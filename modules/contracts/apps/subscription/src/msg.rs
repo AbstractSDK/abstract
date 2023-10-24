@@ -165,7 +165,7 @@ pub struct SubscriberStateResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct UnsubscribedHookMsg {
     /// Unsubscribed users
-    pub unsubscribed: Vec<Addr>,
+    pub unsubscribed: Vec<String>,
 }
 
 // This is just a helper to properly serialize the Hook message

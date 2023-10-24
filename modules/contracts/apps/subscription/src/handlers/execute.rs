@@ -1,15 +1,15 @@
 use crate::contract::{SubscriptionApp, SubscriptionResult};
-use crate::msg::SubscriptionExecuteMsg;
+use crate::msg::{SubscriptionExecuteMsg, UnsubscribedHookMsg};
 use crate::state::{
-    EmissionType, Subscriber, SubscriptionConfig, DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS,
-    SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
+    EmissionType, Subscriber, SubscriptionConfig, SubscriptionState, DORMANT_SUBSCRIBERS,
+    INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
 use crate::{SubscriptionError, DURATION_IN_WEEKS, WEEK_IN_SECONDS};
 use abstract_sdk::core::manager::ExecuteMsg as ManagerMsg;
-use abstract_sdk::{Execution, TransferInterface};
+use abstract_sdk::{AbstractResponse, Execution, ExecutorMsg, TransferInterface};
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, StdResult, SubMsg,
-    Uint128, WasmMsg,
+    to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    SubMsg, Uint128, WasmMsg,
 };
 use cw_asset::{Asset, AssetInfoUnchecked};
 
@@ -176,7 +176,7 @@ pub fn try_pay(
 }
 
 pub fn unsubscribe(
-    mut deps: DepsMut,
+    deps: DepsMut,
     env: Env,
     app: SubscriptionApp,
     unsubscribe_addrs: Vec<String>,
@@ -187,7 +187,9 @@ pub fn unsubscribe(
         .collect::<StdResult<_>>()?;
     let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-    let mut suspend_msgs: Vec<SubMsg> = vec![];
+    let mut unsubscribed_addrs: Vec<String> = vec![];
+    let mut claim_msgs: Vec<ExecutorMsg> = vec![];
+    let mut unsub_hook_addrs: Vec<Addr> = vec![];
 
     // update income
     INCOME_TWA.accumulate(
@@ -199,36 +201,57 @@ pub fn unsubscribe(
 
     for addr in unsubscribe_addrs.iter() {
         let mut subscriber = SUBSCRIBERS.load(deps.storage, addr)?;
-        // TODO:
-        // contributors have free access
-        // if CONTRIBUTORS.has(deps.storage, &subscriber.manager_addr) {
-        //     continue;
-        // }
-        if let Some(mut msg) = expired_sub_msgs(&mut deps, &env, &mut subscriber, addr, &app)? {
+        if subscriber.expiration_timestamp <= env.block.time {
+            unsubscribed_addrs.push(addr.to_string());
             subscription_state.active_subs -= 1;
             SUBSCRIBERS.remove(deps.storage, addr);
             DORMANT_SUBSCRIBERS.save(deps.storage, addr, &subscriber)?;
-            suspend_msgs.append(&mut msg);
+
+            let maybe_claim_msg = claim_emissions_msg(
+                &app,
+                deps.as_ref(),
+                &env,
+                &mut subscriber,
+                addr,
+                subscription_config.subscription_per_week_emissions.clone(),
+                &subscription_state,
+            )?;
+            if let Some(msg) = maybe_claim_msg {
+                claim_msgs.push(msg)
+            }
+            if let Some(unsub_hook_addr) = subscriber.unsubscribe_hook_addr {
+                unsub_hook_addrs.push(unsub_hook_addr)
+            }
         }
     }
 
+    let unsub_hook_msgs = unsub_hook_addrs
+        .into_iter()
+        .map(|hook| {
+            UnsubscribedHookMsg {
+                unsubscribed: unsubscribed_addrs.clone(),
+            }
+            .into_cosmos_msg(hook)
+        })
+        .collect::<StdResult<Vec<CosmosMsg>>>()?;
+
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
-    Ok(Response::new().add_submessages(suspend_msgs))
+
+    Ok(Response::new()
+        .add_messages(claim_msgs)
+        .add_messages(unsub_hook_msgs))
 }
 
-/// Checks if subscriber is allowed to claim his emissions
-pub fn claim_subscriber_emissions(
+// Claim emissions
+pub fn claim_emissions_msg(
     app: &SubscriptionApp,
-    deps: &mut DepsMut,
+    deps: Deps,
     env: &Env,
-    addr: String,
-) -> SubscriptionResult {
-    let subscriber_addr = deps.api.addr_validate(&addr)?;
-    let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
-    let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-    // TODO: this one is called during unsubscribe which means it won't have this addr as a key
-    let mut subscriber = SUBSCRIBERS.load(deps.storage, &subscriber_addr)?;
-
+    subscriber: &mut Subscriber,
+    subscriber_addr: &Addr,
+    subscription_per_week_emissions: EmissionType<Addr>,
+    subscription_state: &SubscriptionState,
+) -> SubscriptionResult<Option<ExecutorMsg>> {
     if subscriber.last_emission_claim_timestamp >= env.block.time {
         return Err(SubscriptionError::EmissionsAlreadyClaimed {});
     }
@@ -240,7 +263,7 @@ pub fn claim_subscriber_emissions(
     let weeks_passed = duration.seconds() / WEEK_IN_SECONDS;
     println!("weeks_passed: {weeks_passed}");
 
-    let asset = match subscription_config.subscription_per_week_emissions {
+    let asset = match subscription_per_week_emissions {
         crate::state::EmissionType::None => {
             return Err(SubscriptionError::SubscriberEmissionsNotEnabled {});
         }
@@ -273,15 +296,40 @@ pub fn claim_subscriber_emissions(
     if !asset.amount.is_zero() {
         // Update only if there was claim
         subscriber.last_emission_claim_timestamp = env.block.time;
-        SUBSCRIBERS.save(deps.storage, &subscriber_addr, &subscriber)?;
+        // SUBSCRIBERS.save(deps.storage, &subscriber_addr, &subscriber)?;
 
-        let send_msg = app
-            .bank(deps.as_ref())
-            .transfer(vec![asset], &subscriber_addr)?;
-        Ok(Response::new().add_message(app.executor(deps.as_ref()).execute(vec![send_msg])?))
+        let send_msg = app.bank(deps).transfer(vec![asset], &subscriber_addr)?;
+        Ok(Some(app.executor(deps).execute(vec![send_msg])?))
     } else {
-        Ok(Response::new())
+        Ok(None)
     }
+}
+
+/// Checks if subscriber is allowed to claim his emissions
+pub fn claim_subscriber_emissions(
+    app: &SubscriptionApp,
+    deps: &mut DepsMut,
+    env: &Env,
+    addr: String,
+) -> SubscriptionResult {
+    let subscriber_addr = deps.api.addr_validate(&addr)?;
+    let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
+    let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+    // TODO: this one is called during unsubscribe which means it won't have this addr as a key
+    let mut subscriber = SUBSCRIBERS.load(deps.storage, &subscriber_addr)?;
+
+    let maybe_msg = claim_emissions_msg(
+        app,
+        deps.as_ref(),
+        env,
+        &mut subscriber,
+        &subscriber_addr,
+        subscription_config.subscription_per_week_emissions,
+        &subscription_state,
+    )?;
+
+    SUBSCRIBERS.save(deps.storage, &subscriber_addr, &subscriber)?;
+    Ok(app.tag_response(Response::new().add_messages(maybe_msg), "claim_emissions"))
 }
 
 // ############
@@ -319,33 +367,4 @@ pub fn update_subscription_config(
     SUBSCRIPTION_CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new().add_attribute("action", "update_subscriber_config"))
-}
-
-/// Check if expired
-/// if so, generate emission msg and suspend manager
-fn expired_sub_msgs(
-    deps: &mut DepsMut,
-    env: &Env,
-    subscriber: &mut Subscriber,
-    unsubscriber_addr: &Addr,
-    app: &SubscriptionApp,
-) -> Result<Option<Vec<SubMsg>>, SubscriptionError> {
-    if subscriber.expiration_timestamp <= env.block.time {
-        // TODO: claim emissions before the un-sub
-        let mut resp = claim_subscriber_emissions(app, deps, env, unsubscriber_addr.to_string())?;
-        // TODO: add hooks instead
-        // resp = resp.add_message(suspend_os(subscriber.manager_addr.clone(), true)?);
-        return Ok(Some(resp.messages));
-    }
-    Ok(None)
-}
-
-pub fn suspend_os(manager_address: Addr, new_suspend_status: bool) -> StdResult<CosmosMsg> {
-    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: manager_address.to_string(),
-        msg: to_binary(&ManagerMsg::UpdateStatus {
-            is_suspended: Some(new_suspend_status),
-        })?,
-        funds: vec![],
-    }))
 }
