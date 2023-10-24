@@ -7,7 +7,7 @@ Abstract provides multiple module bases, as detailed in our section on [modules]
 The builder pattern employed in building an Abstract module is a slight variation of the actual design pattern. Instead, the module builder lets you set custom entry point handlers at compile time, meaning you end up with a `const` value that is heavily optimized by the compiler. This ensures that the overhead of using Abstract has a negatable effect on both the code's runtime and WASM binary size.
 
 ```admonish info
-The code-snippets in this example can be found in the [counter app example](https://github.com/AbstractSDK/contracts/blob/main/packages/abstract-app/examples/counter.rs).
+The code-snippets in this example can be found in the [counter app example](https://github.com/AbstractSDK/abstract/blob/main/packages/abstract-app/examples/counter.rs).
 ```
 
 ### App Type

@@ -23,7 +23,7 @@ cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/Abstract
 cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.16.4" }
 abstract-core = { workspace = true, features = ["interface"] }
 
-abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-interface = { workspace = true }
 ibc-client = { workspace = true }
 tokio = { workspace = true }
 log = "0.4.14"

@@ -18,8 +18,8 @@ impl Identify for Osmosis {
 
 #[cfg(feature = "full_integration")]
 use ::{
-    abstract_core::objects::PoolAddress,
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
+    abstract_sdk::core::objects::PoolAddress,
     cosmwasm_std::{
         Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
     },
