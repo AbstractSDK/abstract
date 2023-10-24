@@ -437,7 +437,7 @@ fn unsubscribe() -> anyhow::Result<()> {
         .pay(None, &coins(1, DENOM))?;
 
     // 1 out of 10 weeks wait
-    chain.wait_seconds(WEEK_IN_SECONDS * 1)?;
+    chain.wait_seconds(WEEK_IN_SECONDS)?;
     // Un-sub on not-expired users should error
     let err = subscription_app
         .unsubscribe(vec![subscriber1.to_string(), subscriber2.to_string()])

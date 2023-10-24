@@ -267,7 +267,7 @@ pub fn claim_emissions_msg(
         subscriber.last_emission_claim_timestamp = env.block.time;
         // SUBSCRIBERS.save(deps.storage, &subscriber_addr, &subscriber)?;
 
-        let send_msg = app.bank(deps).transfer(vec![asset], &subscriber_addr)?;
+        let send_msg = app.bank(deps).transfer(vec![asset], subscriber_addr)?;
         Ok(Some(app.executor(deps).execute(vec![send_msg])?))
     } else {
         Ok(None)
