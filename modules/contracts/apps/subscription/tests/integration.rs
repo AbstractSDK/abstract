@@ -6,8 +6,11 @@ use abstract_core::objects::{
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
 use abstract_subscription::{
     contract::{interface::SubscriptionInterface, CONTRACT_VERSION},
-    msg::{SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg, SubscriptionQueryMsgFns},
-    state::{EmissionType, SubscriptionConfig},
+    msg::{
+        SubscriberStateResponse, SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg,
+        SubscriptionQueryMsgFns,
+    },
+    state::{EmissionType, Subscriber, SubscriptionConfig},
     WEEK_IN_SECONDS,
 };
 
@@ -318,7 +321,7 @@ fn claim_emissions() -> anyhow::Result<()> {
     let sub_amount = coins(500, DENOM);
     chain.set_balances(&[(&subscriber1, &sub_amount), (&subscriber2, &sub_amount)])?;
 
-    // 2 people subscribe
+    // 2 users subscribe
     subscription_app
         .call_as(&subscriber1)
         .pay(None, None, &sub_amount)?;
@@ -349,6 +352,107 @@ fn claim_emissions() -> anyhow::Result<()> {
     // check balance
     let balance = emis.balance(subscriber1.to_string())?;
     assert_eq!(balance.balance, Uint128::one() + Uint128::one());
+    Ok(())
+}
+
+#[test]
+fn unsubscribe() -> anyhow::Result<()> {
+    // Set up the environment and contract
+    let Subscription {
+        chain,
+        account: _account,
+        abstr: _,
+        subscription_app,
+        payment_asset: _,
+    } = setup_native()?;
+
+    let subscriber1 = Addr::unchecked("subscriber1");
+    let subscriber2 = Addr::unchecked("subscriber2");
+
+    let sub_amount = coins(1, DENOM);
+    chain.set_balances(&[(&subscriber1, &sub_amount), (&subscriber2, &sub_amount)])?;
+
+    subscription_app
+        .call_as(&subscriber1)
+        .pay(None, None, &sub_amount)?;
+
+    let subscriber = subscription_app.subscriber_state(subscriber1.to_string())?;
+
+    println!("subscriber: {subscriber:?}");
+
+    let current_time = chain.block_info()?.time;
+    assert_eq!(
+        subscriber,
+        SubscriberStateResponse {
+            currently_subscribed: true,
+            subscriber_details: Subscriber {
+                expiration_timestamp: current_time.plus_seconds(WEEK_IN_SECONDS * 10),
+                last_emission_claim_timestamp: current_time,
+                unsubscribe_hook_addr: None
+            }
+        }
+    );
+
+    // wait until subscription expires
+    chain.wait_seconds(WEEK_IN_SECONDS * 10)?;
+    subscription_app.unsubscribe(vec![subscriber1.to_string()])?;
+    let subscriber = subscription_app.subscriber_state(subscriber1.to_string())?;
+
+    let current_time = chain.block_info()?.time;
+
+    println!("subscriber: {subscriber:?}");
+    assert_eq!(
+        subscriber,
+        SubscriberStateResponse {
+            currently_subscribed: false,
+            subscriber_details: Subscriber {
+                expiration_timestamp: current_time,
+                last_emission_claim_timestamp: current_time,
+                unsubscribe_hook_addr: None
+            }
+        }
+    );
+
+    let emis = Cw20Base::new("abstract:emission_cw20", chain.clone());
+    let b = emis.balance(subscriber1.to_string())?;
+    // 10 weeks passed 2 tokens shared for sub
+    assert_eq!(b.balance, Uint128::new(2 * 10));
+    // Unsubscribe on already unsubscribed user should fail
+    assert!(subscription_app
+        .unsubscribe(vec![subscriber1.to_string()])
+        .is_err());
+
+    // Same with not sub
+    assert!(subscription_app
+        .unsubscribe(vec![subscriber2.to_string()])
+        .is_err());
+
+    subscription_app
+        .call_as(&subscriber2)
+        .pay(None, None, &sub_amount)?;
+
+    // TODO: do we want to error on falsy unsub?
+
+    // 1 out of 10 weeks wait
+    chain.wait_seconds(WEEK_IN_SECONDS * 1)?;
+    // Un-sub on not-expired user shouldn't do anything
+    subscription_app.unsubscribe(vec![subscriber2.to_string()])?;
+
+    let subscriber = subscription_app.subscriber_state(subscriber2.to_string())?;
+
+    let current_time = chain.block_info()?.time;
+    assert_eq!(
+        subscriber,
+        SubscriberStateResponse {
+            currently_subscribed: true,
+            subscriber_details: Subscriber {
+                expiration_timestamp: current_time.plus_seconds(WEEK_IN_SECONDS * 9),
+                // Not even claim emission
+                last_emission_claim_timestamp: current_time.minus_seconds(WEEK_IN_SECONDS * 1),
+                unsubscribe_hook_addr: None
+            }
+        }
+    );
     Ok(())
 }
 

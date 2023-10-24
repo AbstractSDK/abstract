@@ -202,10 +202,6 @@ pub fn unsubscribe(
     for addr in unsubscribe_addrs.iter() {
         let mut subscriber = SUBSCRIBERS.load(deps.storage, addr)?;
         if subscriber.expiration_timestamp <= env.block.time {
-            unsubscribed_addrs.push(addr.to_string());
-            subscription_state.active_subs -= 1;
-            SUBSCRIBERS.remove(deps.storage, addr);
-            DORMANT_SUBSCRIBERS.save(deps.storage, addr, &subscriber)?;
 
             let maybe_claim_msg = claim_emissions_msg(
                 &app,
@@ -216,6 +212,12 @@ pub fn unsubscribe(
                 subscription_config.subscription_per_week_emissions.clone(),
                 &subscription_state,
             )?;
+
+            unsubscribed_addrs.push(addr.to_string());
+            subscription_state.active_subs -= 1;
+            SUBSCRIBERS.remove(deps.storage, addr);
+            DORMANT_SUBSCRIBERS.save(deps.storage, addr, &subscriber)?;
+
             if let Some(msg) = maybe_claim_msg {
                 claim_msgs.push(msg)
             }

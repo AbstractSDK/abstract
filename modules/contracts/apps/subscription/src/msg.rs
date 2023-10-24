@@ -121,7 +121,7 @@ pub enum SubscriptionQueryMsg {
     #[returns(SubscriberStateResponse)]
     SubscriberState {
         /// Address of subscriber  
-        addr: Addr,
+        addr: String,
     },
 }
 

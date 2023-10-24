@@ -37,6 +37,7 @@ pub fn query_handler(
             to_binary(&subscription_config)
         }
         SubscriptionQueryMsg::SubscriberState { addr } => {
+            let addr = deps.api.addr_validate(&addr)?;
             let maybe_sub = SUBSCRIBERS.may_load(deps.storage, &addr)?;
             let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, &addr)?;
             let subscription_state = if let Some(sub) = maybe_sub {
@@ -46,7 +47,7 @@ pub fn query_handler(
                 })?
             } else if let Some(sub) = maybe_dormant_sub {
                 to_binary(&SubscriberStateResponse {
-                    currently_subscribed: true,
+                    currently_subscribed: false,
                     subscriber_details: sub,
                 })?
             } else {
