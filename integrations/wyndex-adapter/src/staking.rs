@@ -45,11 +45,11 @@ use {
     cw_utils::Duration,
     wyndex_stake::msg::DistributionDataResponse,
     wyndex_stake::msg::ReceiveDelegationMsg,
+    wyndex_stake::msg::ReceiveDelegationMsg,
     wyndex_stake::{
         msg::{BondingInfoResponse, ExecuteMsg as StakeCw20ExecuteMsg},
         state::{BondingInfo, STAKE},
     },
-    wyndex_stake::msg::ReceiveDelegationMsg,
 };
 
 #[cfg(feature = "full_integration")]
