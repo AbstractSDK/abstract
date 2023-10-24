@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/apps/*", "contracts/adapters/*", "scripts"]
+members = ["contracts/apps/*", "contracts/adapters/*"]
 
 resolver = "2"
 
@@ -70,7 +70,7 @@ abstract-kujira-adapter = { path = "../integrations/kujira-adapter", default-fea
 
 wyndex-bundle = { path = "../integrations/bundles/wyndex" }
 
-## Apps
+## Modules
 croncat-app = { path = "./contracts/apps/croncat" }
 challenge-app = { path = "./contracts/apps/challenge" }
 etf-app = { path = "./contracts/apps/etf" }

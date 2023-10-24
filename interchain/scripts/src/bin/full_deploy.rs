@@ -8,7 +8,7 @@ use std::{
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 
-use abstract_interface_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
+use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 use clap::Parser;
 use cw_orch::{
     deploy::Deploy,
