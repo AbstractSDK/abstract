@@ -1,20 +1,21 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.18.0",
+  "contract_version": "0.19.2",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "InstantiateMsg",
-    "description": "App instantiate message",
+    "description": "Croncat instantiate message",
     "type": "object",
     "additionalProperties": false
   },
   "execute": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "ExecuteMsg",
-    "description": "App execute messages",
+    "description": "Croncat execute messages",
     "oneOf": [
       {
+        "description": "Update config currently this method is just placeholder",
         "type": "object",
         "required": [
           "update_config"
@@ -28,6 +29,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Create new croncat task",
         "type": "object",
         "required": [
           "create_task"
@@ -42,12 +44,23 @@
             ],
             "properties": {
               "assets": {
-                "$ref": "#/definitions/AssetListBase_for_String"
+                "description": "List of assets to be attached to the task",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AssetListBase_for_String"
+                  }
+                ]
               },
               "task": {
-                "$ref": "#/definitions/TaskRequest"
+                "description": "Task request",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/TaskRequest"
+                  }
+                ]
               },
               "task_tag": {
+                "description": "Custom task tag, which helps to use it after creation",
                 "type": "string"
               }
             },
@@ -57,6 +70,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Remove task by tag and withdraw unused cw20 by this task",
         "type": "object",
         "required": [
           "remove_task"
@@ -69,6 +83,7 @@
             ],
             "properties": {
               "task_tag": {
+                "description": "Task tag of tag which should get removed",
                 "type": "string"
               }
             },
@@ -78,6 +93,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Refill a task",
         "type": "object",
         "required": [
           "refill_task"
@@ -91,9 +107,15 @@
             ],
             "properties": {
               "assets": {
-                "$ref": "#/definitions/AssetListBase_for_String"
+                "description": "List of assets to be added to the task balance",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AssetListBase_for_String"
+                  }
+                ]
               },
               "task_tag": {
+                "description": "Task tag of tag which should get refilled",
                 "type": "string"
               }
             },
@@ -103,6 +125,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Clean state Note: it will not check if task is active or not, use it mindfully",
         "type": "object",
         "required": [
           "purge"
@@ -115,6 +138,7 @@
             ],
             "properties": {
               "task_tags": {
+                "description": "List of task tags that should get cleaned from the state",
                 "type": "array",
                 "items": {
                   "type": "string"
@@ -555,6 +579,10 @@
         },
         "additionalProperties": false
       },
+      "Decimal": {
+        "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+        "type": "string"
+      },
       "DistributionMsg": {
         "description": "The message types of the distribution module.\n\nSee https://github.com/cosmos/cosmos-sdk/blob/v0.42.4/proto/cosmos/distribution/v1beta1/tx.proto",
         "oneOf": [
@@ -601,6 +629,31 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "description": "This is translated to a [[MsgFundCommunityPool](https://github.com/cosmos/cosmos-sdk/blob/v0.42.4/proto/cosmos/distribution/v1beta1/tx.proto#LL69C1-L76C2). `depositor` is automatically filled with the current contract's address.",
+            "type": "object",
+            "required": [
+              "fund_community_pool"
+            ],
+            "properties": {
+              "fund_community_pool": {
+                "type": "object",
+                "required": [
+                  "amount"
+                ],
+                "properties": {
+                  "amount": {
+                    "description": "The amount to spend",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/Coin"
+                    }
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },
@@ -642,6 +695,36 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "description": "This maps directly to [MsgVoteWeighted](https://github.com/cosmos/cosmos-sdk/blob/v0.45.8/proto/cosmos/gov/v1beta1/tx.proto#L66-L78) in the Cosmos SDK with voter set to the contract address.",
+            "type": "object",
+            "required": [
+              "vote_weighted"
+            ],
+            "properties": {
+              "vote_weighted": {
+                "type": "object",
+                "required": [
+                  "options",
+                  "proposal_id"
+                ],
+                "properties": {
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/WeightedVoteOption"
+                    }
+                  },
+                  "proposal_id": {
+                    "type": "integer",
+                    "format": "uint64",
+                    "minimum": 0.0
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },
@@ -673,7 +756,7 @@
                     ]
                   },
                   "channel_id": {
-                    "description": "exisiting channel to send the tokens over",
+                    "description": "existing channel to send the tokens over",
                     "type": "string"
                   },
                   "timeout": {
@@ -791,7 +874,7 @@
             "minimum": 0.0
           },
           "revision": {
-            "description": "the version that the client is currently on (eg. after reseting the chain this could increment 1 as height drops to 0)",
+            "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
             "type": "integer",
             "format": "uint64",
             "minimum": 0.0
@@ -1168,7 +1251,7 @@
                     }
                   },
                   "label": {
-                    "description": "A human-readbale label for the contract",
+                    "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
                     "type": "string"
                   },
                   "msg": {
@@ -1178,6 +1261,60 @@
                         "$ref": "#/definitions/Binary"
                       }
                     ]
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Instantiates a new contracts from previously uploaded Wasm code using a predictable address derivation algorithm implemented in [`cosmwasm_std::instantiate2_address`].\n\nThis is translated to a [MsgInstantiateContract2](https://github.com/CosmWasm/wasmd/blob/v0.29.2/proto/cosmwasm/wasm/v1/tx.proto#L73-L96). `sender` is automatically filled with the current contract's address. `fix_msg` is automatically set to false.",
+            "type": "object",
+            "required": [
+              "instantiate2"
+            ],
+            "properties": {
+              "instantiate2": {
+                "type": "object",
+                "required": [
+                  "code_id",
+                  "funds",
+                  "label",
+                  "msg",
+                  "salt"
+                ],
+                "properties": {
+                  "admin": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "code_id": {
+                    "type": "integer",
+                    "format": "uint64",
+                    "minimum": 0.0
+                  },
+                  "funds": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/Coin"
+                    }
+                  },
+                  "label": {
+                    "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
+                    "type": "string"
+                  },
+                  "msg": {
+                    "description": "msg is the JSON-encoded InstantiateMsg struct (as raw Binary)",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/Binary"
+                      }
+                    ]
+                  },
+                  "salt": {
+                    "$ref": "#/definitions/Binary"
                   }
                 }
               }
@@ -1351,14 +1488,53 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "description": "Returns a [`CodeInfoResponse`] with metadata of the code",
+            "type": "object",
+            "required": [
+              "code_info"
+            ],
+            "properties": {
+              "code_info": {
+                "type": "object",
+                "required": [
+                  "code_id"
+                ],
+                "properties": {
+                  "code_id": {
+                    "type": "integer",
+                    "format": "uint64",
+                    "minimum": 0.0
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           }
         ]
+      },
+      "WeightedVoteOption": {
+        "type": "object",
+        "required": [
+          "option",
+          "weight"
+        ],
+        "properties": {
+          "option": {
+            "$ref": "#/definitions/VoteOption"
+          },
+          "weight": {
+            "$ref": "#/definitions/Decimal"
+          }
+        }
       }
     }
   },
   "query": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "QueryMsg",
+    "description": "Croncat Query Messages",
     "oneOf": [
       {
         "description": "Get config",
@@ -1385,12 +1561,14 @@
             "type": "object",
             "properties": {
               "checked": {
+                "description": "On true check if this task exist on croncat contract and filter if it doesn't. Defaults to false",
                 "type": [
                   "boolean",
                   "null"
                 ]
               },
               "limit": {
+                "description": "Maximum number of tasks to return. Default limit is 50, if not set",
                 "type": [
                   "integer",
                   "null"
@@ -1399,6 +1577,7 @@
                 "minimum": 0.0
               },
               "start_after": {
+                "description": "The addr and task tag to start listing after.",
                 "type": [
                   "array",
                   "null"
@@ -1434,15 +1613,18 @@
             ],
             "properties": {
               "checked": {
+                "description": "On true check if this task exist on croncat contract and filter if it doesn't. Defaults to false",
                 "type": [
                   "boolean",
                   "null"
                 ]
               },
               "creator_addr": {
+                "description": "The addr of creator of tasks",
                 "type": "string"
               },
               "limit": {
+                "description": "Maximum number of tasks to return. Default limit is 50, if not set",
                 "type": [
                   "integer",
                   "null"
@@ -1451,6 +1633,7 @@
                 "minimum": 0.0
               },
               "start_after": {
+                "description": "The task tag to start listing after.",
                 "type": [
                   "string",
                   "null"
@@ -1477,9 +1660,11 @@
             ],
             "properties": {
               "creator_addr": {
+                "description": "The addr of creator of tasks",
                 "type": "string"
               },
               "task_tag": {
+                "description": "The tag of the task",
                 "type": "string"
               }
             },
@@ -1503,9 +1688,11 @@
             ],
             "properties": {
               "creator_addr": {
+                "description": "The addr of creator of tasks",
                 "type": "string"
               },
               "task_tag": {
+                "description": "The tag of the task",
                 "type": "string"
               }
             },
@@ -1515,7 +1702,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get manager address of task Used to verify sender",
+        "description": "Get croncat manager address of task Used to verify sender",
         "type": "object",
         "required": [
           "manager_addr"
@@ -1529,9 +1716,11 @@
             ],
             "properties": {
               "creator_addr": {
+                "description": "The addr of creator of tasks",
                 "type": "string"
               },
               "task_tag": {
+                "description": "The tag of the task",
                 "type": "string"
               }
             },
@@ -1553,8 +1742,10 @@
     "active_tasks": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ActiveTasksResponse",
+      "description": "Response for active_tasks query",
       "oneOf": [
         {
+          "description": "List of tasks in the module state, without checking if it's still active on croncat side",
           "type": "object",
           "required": [
             "unchecked"
@@ -1567,6 +1758,7 @@
               ],
               "properties": {
                 "tasks": {
+                  "description": "Tasks in CronCat App state",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -1589,6 +1781,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Lists of tasks in the module state, with checking if it's still active on croncat side",
           "type": "object",
           "required": [
             "checked"
@@ -1602,6 +1795,7 @@
               ],
               "properties": {
                 "removed_tasks": {
+                  "description": "tasks that got removed and can safely get purged",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -1618,6 +1812,7 @@
                   }
                 },
                 "scheduled_tasks": {
+                  "description": "tasks that are currently active",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -1650,8 +1845,10 @@
     "active_tasks_by_creator": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ActiveTasksByCreatorResponse",
+      "description": "Response for active_tasks_by_creator query",
       "oneOf": [
         {
+          "description": "List of tasks in the module state, without checking if it's still active on croncat side",
           "type": "object",
           "required": [
             "unchecked"
@@ -1664,6 +1861,7 @@
               ],
               "properties": {
                 "tasks": {
+                  "description": "Tasks in CronCat App state",
                   "type": "array",
                   "items": {
                     "type": "string"
@@ -1676,6 +1874,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Lists of tasks in the module state, with checking if it's still active on croncat side",
           "type": "object",
           "required": [
             "checked"
@@ -1689,12 +1888,14 @@
               ],
               "properties": {
                 "removed_tasks": {
+                  "description": "tasks that got removed and can safely get purged",
                   "type": "array",
                   "items": {
                     "type": "string"
                   }
                 },
                 "scheduled_tasks": {
+                  "description": "tasks that are currently active",
                   "type": "array",
                   "items": {
                     "type": "string"
@@ -1711,13 +1912,19 @@
     "config": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ConfigResponse",
+      "description": "Response for config query",
       "type": "object",
       "required": [
         "config"
       ],
       "properties": {
         "config": {
-          "$ref": "#/definitions/Config"
+          "description": "Config of the croncat module",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Config"
+            }
+          ]
         }
       },
       "additionalProperties": false,
@@ -2267,6 +2474,10 @@
           },
           "additionalProperties": false
         },
+        "Decimal": {
+          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+          "type": "string"
+        },
         "DistributionMsg": {
           "description": "The message types of the distribution module.\n\nSee https://github.com/cosmos/cosmos-sdk/blob/v0.42.4/proto/cosmos/distribution/v1beta1/tx.proto",
           "oneOf": [
@@ -2308,6 +2519,31 @@
                     "validator": {
                       "description": "The `validator_address`",
                       "type": "string"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "This is translated to a [[MsgFundCommunityPool](https://github.com/cosmos/cosmos-sdk/blob/v0.42.4/proto/cosmos/distribution/v1beta1/tx.proto#LL69C1-L76C2). `depositor` is automatically filled with the current contract's address.",
+              "type": "object",
+              "required": [
+                "fund_community_pool"
+              ],
+              "properties": {
+                "fund_community_pool": {
+                  "type": "object",
+                  "required": [
+                    "amount"
+                  ],
+                  "properties": {
+                    "amount": {
+                      "description": "The amount to spend",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/Coin"
+                      }
                     }
                   }
                 }
@@ -2382,6 +2618,36 @@
                 }
               },
               "additionalProperties": false
+            },
+            {
+              "description": "This maps directly to [MsgVoteWeighted](https://github.com/cosmos/cosmos-sdk/blob/v0.45.8/proto/cosmos/gov/v1beta1/tx.proto#L66-L78) in the Cosmos SDK with voter set to the contract address.",
+              "type": "object",
+              "required": [
+                "vote_weighted"
+              ],
+              "properties": {
+                "vote_weighted": {
+                  "type": "object",
+                  "required": [
+                    "options",
+                    "proposal_id"
+                  ],
+                  "properties": {
+                    "options": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/WeightedVoteOption"
+                      }
+                    },
+                    "proposal_id": {
+                      "type": "integer",
+                      "format": "uint64",
+                      "minimum": 0.0
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
             }
           ]
         },
@@ -2413,7 +2679,7 @@
                       ]
                     },
                     "channel_id": {
-                      "description": "exisiting channel to send the tokens over",
+                      "description": "existing channel to send the tokens over",
                       "type": "string"
                     },
                     "timeout": {
@@ -2531,7 +2797,7 @@
               "minimum": 0.0
             },
             "revision": {
-              "description": "the version that the client is currently on (eg. after reseting the chain this could increment 1 as height drops to 0)",
+              "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
@@ -2904,7 +3170,7 @@
                       }
                     },
                     "label": {
-                      "description": "A human-readbale label for the contract",
+                      "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
                       "type": "string"
                     },
                     "msg": {
@@ -2914,6 +3180,60 @@
                           "$ref": "#/definitions/Binary"
                         }
                       ]
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Instantiates a new contracts from previously uploaded Wasm code using a predictable address derivation algorithm implemented in [`cosmwasm_std::instantiate2_address`].\n\nThis is translated to a [MsgInstantiateContract2](https://github.com/CosmWasm/wasmd/blob/v0.29.2/proto/cosmwasm/wasm/v1/tx.proto#L73-L96). `sender` is automatically filled with the current contract's address. `fix_msg` is automatically set to false.",
+              "type": "object",
+              "required": [
+                "instantiate2"
+              ],
+              "properties": {
+                "instantiate2": {
+                  "type": "object",
+                  "required": [
+                    "code_id",
+                    "funds",
+                    "label",
+                    "msg",
+                    "salt"
+                  ],
+                  "properties": {
+                    "admin": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "code_id": {
+                      "type": "integer",
+                      "format": "uint64",
+                      "minimum": 0.0
+                    },
+                    "funds": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/Coin"
+                      }
+                    },
+                    "label": {
+                      "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
+                      "type": "string"
+                    },
+                    "msg": {
+                      "description": "msg is the JSON-encoded InstantiateMsg struct (as raw Binary)",
+                      "allOf": [
+                        {
+                          "$ref": "#/definitions/Binary"
+                        }
+                      ]
+                    },
+                    "salt": {
+                      "$ref": "#/definitions/Binary"
                     }
                   }
                 }
@@ -3087,8 +3407,46 @@
                 }
               },
               "additionalProperties": false
+            },
+            {
+              "description": "Returns a [`CodeInfoResponse`] with metadata of the code",
+              "type": "object",
+              "required": [
+                "code_info"
+              ],
+              "properties": {
+                "code_info": {
+                  "type": "object",
+                  "required": [
+                    "code_id"
+                  ],
+                  "properties": {
+                    "code_id": {
+                      "type": "integer",
+                      "format": "uint64",
+                      "minimum": 0.0
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
             }
           ]
+        },
+        "WeightedVoteOption": {
+          "type": "object",
+          "required": [
+            "option",
+            "weight"
+          ],
+          "properties": {
+            "option": {
+              "$ref": "#/definitions/VoteOption"
+            },
+            "weight": {
+              "$ref": "#/definitions/Decimal"
+            }
+          }
         }
       }
     }

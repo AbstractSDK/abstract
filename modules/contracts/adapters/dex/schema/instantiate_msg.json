@@ -50,6 +50,7 @@
       "type": "string"
     },
     "DexInstantiateMsg": {
+      "description": "Instantiation message for dex adapter",
       "type": "object",
       "required": [
         "recipient_account",
@@ -57,12 +58,18 @@
       ],
       "properties": {
         "recipient_account": {
+          "description": "Recipient account for fees.",
           "type": "integer",
           "format": "uint32",
           "minimum": 0.0
         },
         "swap_fee": {
-          "$ref": "#/definitions/Decimal"
+          "description": "Fee charged on each swap.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Decimal"
+            }
+          ]
         }
       },
       "additionalProperties": false

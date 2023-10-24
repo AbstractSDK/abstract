@@ -37,7 +37,7 @@
       ],
       "properties": {
         "dca_creation_amount": {
-          "description": "Amount in native coins for creation dca task and refill amount",
+          "description": "Initial amount in native asset that sent on creating/refilling DCA to croncat to cover gas usage of agents",
           "allOf": [
             {
               "$ref": "#/definitions/Uint128"
@@ -45,7 +45,7 @@
           ]
         },
         "max_spread": {
-          "description": "Max spread",
+          "description": "Max trade spread",
           "allOf": [
             {
               "$ref": "#/definitions/Decimal"
@@ -53,7 +53,7 @@
           ]
         },
         "native_asset": {
-          "description": "Native gas/stake asset for this chain",
+          "description": "Native gas/stake asset for this chain used for covering gas expenses of croncat agents",
           "allOf": [
             {
               "$ref": "#/definitions/AssetEntry"
@@ -61,7 +61,7 @@
           ]
         },
         "refill_threshold": {
-          "description": "Task balance threshold to trigger refill, put it at zero if you consider to never refill your tasks",
+          "description": "Threshold when task refill should happen if it's lower during [`DCAExecuteMsg::Convert`] DCA will refill croncat task TIP: you can put it to \"0\"",
           "allOf": [
             {
               "$ref": "#/definitions/Uint128"
@@ -79,10 +79,14 @@
       "description": "Used by Module Factory to instantiate App",
       "type": "object",
       "required": [
-        "ans_host_address"
+        "ans_host_address",
+        "version_control_address"
       ],
       "properties": {
         "ans_host_address": {
+          "type": "string"
+        },
+        "version_control_address": {
           "type": "string"
         }
       },

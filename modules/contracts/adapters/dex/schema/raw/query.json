@@ -1,86 +1,80 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ExecuteMsg",
-  "description": "Wrapper around all possible messages that can be sent to the module.",
+  "title": "QueryMsg",
+  "description": "Query messages for the dex adapter",
   "oneOf": [
     {
-      "description": "A configuration message, defined by the base.",
+      "description": "Simulate a swap between two assets",
       "type": "object",
       "required": [
-        "base"
+        "simulate_swap"
       ],
       "properties": {
-        "base": {
-          "$ref": "#/definitions/BaseExecuteMsg"
+        "simulate_swap": {
+          "type": "object",
+          "required": [
+            "ask_asset",
+            "offer_asset"
+          ],
+          "properties": {
+            "ask_asset": {
+              "description": "The asset to receive",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AssetEntry"
+                }
+              ]
+            },
+            "dex": {
+              "description": "Name of the dex to simulate the swap on",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "offer_asset": {
+              "description": "The asset to offer",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AnsAsset"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "An app request defined by a base consumer.",
+      "description": "Endpoint can be used by front-end to easily interact with contracts.",
       "type": "object",
       "required": [
-        "module"
+        "generate_messages"
       ],
       "properties": {
-        "module": {
-          "$ref": "#/definitions/AdapterRequestMsg_for_DexExecuteMsg"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "IbcReceive to process IBC callbacks",
-      "type": "object",
-      "required": [
-        "ibc_callback"
-      ],
-      "properties": {
-        "ibc_callback": {
-          "$ref": "#/definitions/IbcResponseMsg"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Receive endpoint for CW20 / external service integrations",
-      "type": "object",
-      "required": [
-        "receive"
-      ],
-      "properties": {
-        "receive": {
-          "$ref": "#/definitions/Empty"
+        "generate_messages": {
+          "type": "object",
+          "required": [
+            "message"
+          ],
+          "properties": {
+            "message": {
+              "description": "Execute message to generate messages for",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/DexExecuteMsg"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
-    "AdapterRequestMsg_for_DexExecuteMsg": {
-      "description": "An adapter request. If proxy is None, then the sender must be an Account manager and the proxy address is extrapolated from the Account id.",
-      "type": "object",
-      "required": [
-        "request"
-      ],
-      "properties": {
-        "proxy_address": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "request": {
-          "description": "The actual request",
-          "allOf": [
-            {
-              "$ref": "#/definitions/DexExecuteMsg"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
     "AnsAsset": {
       "type": "object",
       "required": [
@@ -98,61 +92,6 @@
     },
     "AssetEntry": {
       "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
-      "type": "string"
-    },
-    "BaseExecuteMsg": {
-      "description": "Configuration message for the adapter",
-      "oneOf": [
-        {
-          "description": "Add or remove authorized addresses If an authorized address is both in to_add and to_remove, it will be removed.",
-          "type": "object",
-          "required": [
-            "update_authorized_addresses"
-          ],
-          "properties": {
-            "update_authorized_addresses": {
-              "type": "object",
-              "required": [
-                "to_add",
-                "to_remove"
-              ],
-              "properties": {
-                "to_add": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "to_remove": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Remove the adapter",
-          "type": "object",
-          "required": [
-            "remove"
-          ],
-          "properties": {
-            "remove": {
-              "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "Binary": {
-      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
       "type": "string"
     },
     "Decimal": {
@@ -397,57 +336,6 @@
                 }
               },
               "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "Empty": {
-      "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
-      "type": "object"
-    },
-    "IbcResponseMsg": {
-      "description": "IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg",
-      "type": "object",
-      "required": [
-        "id",
-        "msg"
-      ],
-      "properties": {
-        "id": {
-          "description": "The ID chosen by the caller in the `callback_id`",
-          "type": "string"
-        },
-        "msg": {
-          "$ref": "#/definitions/StdAck"
-        }
-      },
-      "additionalProperties": false
-    },
-    "StdAck": {
-      "description": "This is a generic ICS acknowledgement format. Proto defined [here](https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/proto/ibc/core/channel/v1/channel.proto#L141-L147) If ibc_receive_packet returns Err(), then x/wasm runtime will rollback the state and return an error message in this format",
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "result"
-          ],
-          "properties": {
-            "result": {
-              "$ref": "#/definitions/Binary"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "error"
-          ],
-          "properties": {
-            "error": {
-              "type": "string"
             }
           },
           "additionalProperties": false

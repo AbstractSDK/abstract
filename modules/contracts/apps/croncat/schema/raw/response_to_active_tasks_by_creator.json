@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ActiveTasksByCreatorResponse",
+  "description": "Response for active_tasks_by_creator query",
+  "oneOf": [
+    {
+      "description": "List of tasks in the module state, without checking if it's still active on croncat side",
+      "type": "object",
+      "required": [
+        "unchecked"
+      ],
+      "properties": {
+        "unchecked": {
+          "type": "object",
+          "required": [
+            "tasks"
+          ],
+          "properties": {
+            "tasks": {
+              "description": "Tasks in CronCat App state",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Lists of tasks in the module state, with checking if it's still active on croncat side",
+      "type": "object",
+      "required": [
+        "checked"
+      ],
+      "properties": {
+        "checked": {
+          "type": "object",
+          "required": [
+            "removed_tasks",
+            "scheduled_tasks"
+          ],
+          "properties": {
+            "removed_tasks": {
+              "description": "tasks that got removed and can safely get purged",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "scheduled_tasks": {
+              "description": "tasks that are currently active",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

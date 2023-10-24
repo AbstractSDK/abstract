@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.18.0",
+  "contract_version": "0.19.2",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -99,13 +99,18 @@
               "stake": {
                 "type": "object",
                 "required": [
-                  "asset"
+                  "assets"
                 ],
                 "properties": {
-                  "asset": {
-                    "$ref": "#/definitions/AnsAsset"
+                  "assets": {
+                    "description": "The ANS-resolvable asset information of the assets to stake.",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/AnsAsset"
+                    }
                   },
                   "unbonding_period": {
+                    "description": "The unbonding period for the specified stake.",
                     "anyOf": [
                       {
                         "$ref": "#/definitions/Duration"
@@ -131,13 +136,18 @@
               "unstake": {
                 "type": "object",
                 "required": [
-                  "asset"
+                  "assets"
                 ],
                 "properties": {
-                  "asset": {
-                    "$ref": "#/definitions/AnsAsset"
+                  "assets": {
+                    "description": "The ANS-resolvable asset information of the assets to unstake.",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/AnsAsset"
+                    }
                   },
                   "unbonding_period": {
+                    "description": "The unbonding period for the specified stake.",
                     "anyOf": [
                       {
                         "$ref": "#/definitions/Duration"
@@ -154,7 +164,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Claim rewards for a given token",
+            "description": "Claim rewards for a set of staked assets.",
             "type": "object",
             "required": [
               "claim_rewards"
@@ -163,11 +173,15 @@
               "claim_rewards": {
                 "type": "object",
                 "required": [
-                  "asset"
+                  "assets"
                 ],
                 "properties": {
-                  "asset": {
-                    "$ref": "#/definitions/AssetEntry"
+                  "assets": {
+                    "description": "Staked assets to claim rewards for.",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -185,11 +199,15 @@
               "claim": {
                 "type": "object",
                 "required": [
-                  "asset"
+                  "assets"
                 ],
                 "properties": {
-                  "asset": {
-                    "$ref": "#/definitions/AssetEntry"
+                  "assets": {
+                    "description": "Unbonded staking assets to claim.",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -208,8 +226,10 @@
   "query": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "QueryMsg",
+    "description": "Query messages for the staking adapter",
     "oneOf": [
       {
+        "description": "Get the staking info for a given provider",
         "type": "object",
         "required": [
           "info"
@@ -219,14 +239,19 @@
             "type": "object",
             "required": [
               "provider",
-              "staking_token"
+              "staking_tokens"
             ],
             "properties": {
               "provider": {
+                "description": "Name of the provider",
                 "type": "string"
               },
-              "staking_token": {
-                "$ref": "#/definitions/AssetEntry"
+              "staking_tokens": {
+                "description": "The staking tokens to query",
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/AssetEntry"
+                }
               }
             },
             "additionalProperties": false
@@ -235,6 +260,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Get the staked amount for a given provider, staking token, staker address and unbonding period",
         "type": "object",
         "required": [
           "staked"
@@ -245,19 +271,26 @@
             "required": [
               "provider",
               "staker_address",
-              "staking_token"
+              "stakes"
             ],
             "properties": {
               "provider": {
+                "description": "Name of the provider",
                 "type": "string"
               },
               "staker_address": {
+                "description": "The address of the staker (contract or user)",
                 "type": "string"
               },
-              "staking_token": {
-                "$ref": "#/definitions/AssetEntry"
+              "stakes": {
+                "description": "The staking token to query",
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/AssetEntry"
+                }
               },
               "unbonding_period": {
+                "description": "The unbonding period for the specified staked position.",
                 "anyOf": [
                   {
                     "$ref": "#/definitions/Duration"
@@ -274,6 +307,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Get the unbonding entries for a given provider, staking token and staker address",
         "type": "object",
         "required": [
           "unbonding"
@@ -284,17 +318,23 @@
             "required": [
               "provider",
               "staker_address",
-              "staking_token"
+              "staking_tokens"
             ],
             "properties": {
               "provider": {
+                "description": "Name of the provider",
                 "type": "string"
               },
               "staker_address": {
+                "description": "The address of the staker (contract or user)",
                 "type": "string"
               },
-              "staking_token": {
-                "$ref": "#/definitions/AssetEntry"
+              "staking_tokens": {
+                "description": "The staking tokens to query",
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/AssetEntry"
+                }
               }
             },
             "additionalProperties": false
@@ -303,6 +343,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Get the reward tokens for a given provider and staking token",
         "type": "object",
         "required": [
           "reward_tokens"
@@ -312,14 +353,19 @@
             "type": "object",
             "required": [
               "provider",
-              "staking_token"
+              "staking_tokens"
             ],
             "properties": {
               "provider": {
+                "description": "Name of the provider",
                 "type": "string"
               },
-              "staking_token": {
-                "$ref": "#/definitions/AssetEntry"
+              "staking_tokens": {
+                "description": "The staking tokens to query",
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/AssetEntry"
+                }
               }
             },
             "additionalProperties": false
@@ -380,33 +426,17 @@
     "info": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "StakingInfoResponse",
+      "description": "Response for the staking_info query",
       "type": "object",
       "required": [
-        "staking_target",
-        "staking_token"
+        "infos"
       ],
       "properties": {
-        "max_claims": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint32",
-          "minimum": 0.0
-        },
-        "staking_target": {
-          "$ref": "#/definitions/StakingTarget"
-        },
-        "staking_token": {
-          "$ref": "#/definitions/AssetInfoBase_for_Addr"
-        },
-        "unbonding_periods": {
-          "type": [
-            "array",
-            "null"
-          ],
+        "infos": {
+          "description": "Contract or pool id to stake to",
+          "type": "array",
           "items": {
-            "$ref": "#/definitions/Duration"
+            "$ref": "#/definitions/StakingInfo"
           }
         }
       },
@@ -479,10 +509,57 @@
             }
           ]
         },
+        "StakingInfo": {
+          "description": "Info for a stakeable token",
+          "type": "object",
+          "required": [
+            "staking_target",
+            "staking_token"
+          ],
+          "properties": {
+            "max_claims": {
+              "description": "Max number of claims. None if no limit.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "staking_target": {
+              "description": "Address or pool id to stake to",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/StakingTarget"
+                }
+              ]
+            },
+            "staking_token": {
+              "description": "Staking token",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AssetInfoBase_for_Addr"
+                }
+              ]
+            },
+            "unbonding_periods": {
+              "description": "Different supported unbonding periods. None if no unbonding is supported.",
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/definitions/Duration"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
         "StakingTarget": {
           "description": "Possible staking targets to support staking on cosmwasm contract or cosmos Lockup module",
           "oneOf": [
             {
+              "description": "Address of the staking contract (Cosmwasm)",
               "type": "object",
               "required": [
                 "contract"
@@ -495,6 +572,7 @@
               "additionalProperties": false
             },
             {
+              "description": "Pool id of the staking contract (Osmosis)",
               "type": "object",
               "required": [
                 "id"
@@ -515,15 +593,20 @@
     "reward_tokens": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "RewardTokensResponse",
+      "description": "Response for the rewards query",
       "type": "object",
       "required": [
         "tokens"
       ],
       "properties": {
         "tokens": {
+          "description": "List of reward tokens, per token provided in query",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/AssetInfoBase_for_Addr"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/AssetInfoBase_for_Addr"
+            }
           }
         }
       },
@@ -567,13 +650,18 @@
     "staked": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "StakeResponse",
+      "description": "Response for the staked query",
       "type": "object",
       "required": [
-        "amount"
+        "amounts"
       ],
       "properties": {
-        "amount": {
-          "$ref": "#/definitions/Uint128"
+        "amounts": {
+          "description": "Amount of staked tokens, per token provided in query",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Uint128"
+          }
         }
       },
       "additionalProperties": false,
@@ -587,21 +675,27 @@
     "unbonding": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UnbondingResponse",
+      "description": "Response for the unbonding query",
       "type": "object",
       "required": [
         "claims"
       ],
       "properties": {
         "claims": {
+          "description": "List of unbonding entries, per token provided in query",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Claim"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Claim"
+            }
           }
         }
       },
       "additionalProperties": false,
       "definitions": {
         "Claim": {
+          "description": "A claim for a given amount of tokens that are unbonding.",
           "type": "object",
           "required": [
             "amount",
@@ -609,10 +703,20 @@
           ],
           "properties": {
             "amount": {
-              "$ref": "#/definitions/Uint128"
+              "description": "Amount of tokens that are unbonding",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Uint128"
+                }
+              ]
             },
             "claimable_at": {
-              "$ref": "#/definitions/Expiration"
+              "description": "When the tokens can be claimed",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Expiration"
+                }
+              ]
             }
           },
           "additionalProperties": false

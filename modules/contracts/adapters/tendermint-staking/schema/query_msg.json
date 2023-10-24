@@ -37,10 +37,10 @@
           "description": "Returns [`AdapterConfigResponse`].",
           "type": "object",
           "required": [
-            "config"
+            "base_config"
           ],
           "properties": {
-            "config": {
+            "base_config": {
               "type": "object",
               "additionalProperties": false
             }
@@ -64,6 +64,20 @@
                   "type": "string"
                 }
               },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns module data",
+          "type": "object",
+          "required": [
+            "module_data"
+          ],
+          "properties": {
+            "module_data": {
+              "type": "object",
               "additionalProperties": false
             }
           },

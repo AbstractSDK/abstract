@@ -93,6 +93,12 @@
                     "string",
                     "null"
                   ]
+                },
+                "version_control_address": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 }
               },
               "additionalProperties": false
@@ -110,6 +116,7 @@
       "description": "App execute messages",
       "oneOf": [
         {
+          "description": "Used to update config of DCA App",
           "type": "object",
           "required": [
             "update_config"
@@ -118,17 +125,8 @@
             "update_config": {
               "type": "object",
               "properties": {
-                "new_dca_creation_amount": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Uint128"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "new_max_spread": {
+                "max_spread": {
+                  "description": "Set the max trade spread",
                   "anyOf": [
                     {
                       "$ref": "#/definitions/Decimal"
@@ -138,13 +136,30 @@
                     }
                   ]
                 },
-                "new_native_denom": {
-                  "type": [
-                    "string",
-                    "null"
+                "native_asset": {
+                  "description": "Native gas asset for this chain used for covering gas expenses of croncat agents",
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    },
+                    {
+                      "type": "null"
+                    }
                   ]
                 },
-                "new_refill_threshold": {
+                "new_dca_task_balance": {
+                  "description": "New initial amount in native asset that sent on creating/refilling DCA to croncat to cover gas usage of agents",
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Uint128"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "task_refill_threshold": {
+                  "description": "New threshold for refilling a task TIP: you can set it to \"0\" to disable refilling. The task will then stop running when it runs out of funds.",
                   "anyOf": [
                     {
                       "$ref": "#/definitions/Uint128"
@@ -225,7 +240,11 @@
               "properties": {
                 "dca_id": {
                   "description": "Unique identifier for the DCA",
-                  "type": "string"
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/DCAId"
+                    }
+                  ]
                 },
                 "new_dex": {
                   "description": "Optional new DEX to be used for the swap",
@@ -288,7 +307,11 @@
               "properties": {
                 "dca_id": {
                   "description": "Unique identifier for the DCA",
-                  "type": "string"
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/DCAId"
+                    }
+                  ]
                 }
               },
               "additionalProperties": false
@@ -310,7 +333,12 @@
               ],
               "properties": {
                 "dca_id": {
-                  "type": "string"
+                  "description": "Unique identifier for the DCA",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/DCAId"
+                    }
+                  ]
                 }
               },
               "additionalProperties": false
@@ -319,6 +347,11 @@
           "additionalProperties": false
         }
       ]
+    },
+    "DCAId": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
     },
     "Decimal": {
       "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
@@ -329,6 +362,7 @@
       "type": "object"
     },
     "Frequency": {
+      "description": "The frequency at which swaps are executed.",
       "oneOf": [
         {
           "description": "Blocks will schedule the next DCA purchase every `n` blocks.",

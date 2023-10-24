@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "description": "DCA query messages",
+  "oneOf": [
+    {
+      "description": "Get config of the DCA app",
+      "type": "object",
+      "required": [
+        "config"
+      ],
+      "properties": {
+        "config": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Get DCA Entry",
+      "type": "object",
+      "required": [
+        "d_c_a"
+      ],
+      "properties": {
+        "d_c_a": {
+          "type": "object",
+          "required": [
+            "dca_id"
+          ],
+          "properties": {
+            "dca_id": {
+              "description": "Id of the DCA",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/DCAId"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "DCAId": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    }
+  }
+}

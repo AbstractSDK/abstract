@@ -17,7 +17,12 @@
           ],
           "properties": {
             "asset": {
-              "$ref": "#/definitions/AssetBase_for_String"
+              "description": "Asset to deposit",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AssetBase_for_String"
+                }
+              ]
             }
           },
           "additionalProperties": false
@@ -39,7 +44,12 @@
           ],
           "properties": {
             "fee": {
-              "$ref": "#/definitions/Decimal"
+              "description": "New fee",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Decimal"
+                }
+              ]
             }
           },
           "additionalProperties": false

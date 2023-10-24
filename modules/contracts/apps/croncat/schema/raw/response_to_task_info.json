@@ -1,61 +1,20 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ExecuteMsg",
-  "description": "Wrapper around all possible messages that can be sent to the module.",
-  "oneOf": [
-    {
-      "description": "A configuration message, defined by the base.",
-      "type": "object",
-      "required": [
-        "base"
-      ],
-      "properties": {
-        "base": {
-          "$ref": "#/definitions/BaseExecuteMsg"
+  "title": "TaskResponse",
+  "type": "object",
+  "properties": {
+    "task": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/TaskInfo"
+        },
+        {
+          "type": "null"
         }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "An app request defined by a base consumer.",
-      "type": "object",
-      "required": [
-        "module"
-      ],
-      "properties": {
-        "module": {
-          "$ref": "#/definitions/AppExecuteMsg"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "IbcReceive to process IBC callbacks",
-      "type": "object",
-      "required": [
-        "ibc_callback"
-      ],
-      "properties": {
-        "ibc_callback": {
-          "$ref": "#/definitions/IbcResponseMsg"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Receive endpoint for CW20 / external service integrations",
-      "type": "object",
-      "required": [
-        "receive"
-      ],
-      "properties": {
-        "receive": {
-          "$ref": "#/definitions/Empty"
-        }
-      },
-      "additionalProperties": false
+      ]
     }
-  ],
+  },
+  "additionalProperties": false,
   "definitions": {
     "Action_for_Empty": {
       "type": "object",
@@ -83,209 +42,65 @@
       },
       "additionalProperties": false
     },
-    "AppExecuteMsg": {
-      "description": "Croncat execute messages",
-      "oneOf": [
-        {
-          "description": "Update config currently this method is just placeholder",
-          "type": "object",
-          "required": [
-            "update_config"
-          ],
-          "properties": {
-            "update_config": {
-              "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Create new croncat task",
-          "type": "object",
-          "required": [
-            "create_task"
-          ],
-          "properties": {
-            "create_task": {
-              "type": "object",
-              "required": [
-                "assets",
-                "task",
-                "task_tag"
-              ],
-              "properties": {
-                "assets": {
-                  "description": "List of assets to be attached to the task",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetListBase_for_String"
-                    }
-                  ]
-                },
-                "task": {
-                  "description": "Task request",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/TaskRequest"
-                    }
-                  ]
-                },
-                "task_tag": {
-                  "description": "Custom task tag, which helps to use it after creation",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Remove task by tag and withdraw unused cw20 by this task",
-          "type": "object",
-          "required": [
-            "remove_task"
-          ],
-          "properties": {
-            "remove_task": {
-              "type": "object",
-              "required": [
-                "task_tag"
-              ],
-              "properties": {
-                "task_tag": {
-                  "description": "Task tag of tag which should get removed",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Refill a task",
-          "type": "object",
-          "required": [
-            "refill_task"
-          ],
-          "properties": {
-            "refill_task": {
-              "type": "object",
-              "required": [
-                "assets",
-                "task_tag"
-              ],
-              "properties": {
-                "assets": {
-                  "description": "List of assets to be added to the task balance",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetListBase_for_String"
-                    }
-                  ]
-                },
-                "task_tag": {
-                  "description": "Task tag of tag which should get refilled",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Clean state Note: it will not check if task is active or not, use it mindfully",
-          "type": "object",
-          "required": [
-            "purge"
-          ],
-          "properties": {
-            "purge": {
-              "type": "object",
-              "required": [
-                "task_tags"
-              ],
-              "properties": {
-                "task_tags": {
-                  "description": "List of task tags that should get cleaned from the state",
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
+    "Addr": {
+      "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+      "type": "string"
     },
-    "AssetBase_for_String": {
-      "description": "Represents a fungible asset with a known amount\n\nEach asset instance contains two values: `info`, which specifies the asset's type (CW20 or native), and its `amount`, which specifies the asset's amount.",
+    "AmountForOneTask": {
       "type": "object",
       "required": [
-        "amount",
-        "info"
+        "agent_fee",
+        "coin",
+        "gas",
+        "gas_price",
+        "treasury_fee"
       ],
       "properties": {
-        "amount": {
-          "description": "Specifies the asset's amount",
-          "allOf": [
+        "agent_fee": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
+        },
+        "coin": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Coin"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxItems": 2,
+          "minItems": 2
+        },
+        "cw20": {
+          "anyOf": [
             {
-              "$ref": "#/definitions/Uint128"
+              "$ref": "#/definitions/Cw20CoinVerified"
+            },
+            {
+              "type": "null"
             }
           ]
         },
-        "info": {
-          "description": "Specifies the asset's type (CW20 or native)",
-          "allOf": [
-            {
-              "$ref": "#/definitions/AssetInfoBase_for_String"
-            }
-          ]
+        "gas": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "gas_price": {
+          "$ref": "#/definitions/GasPrice"
+        },
+        "treasury_fee": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
         }
       },
       "additionalProperties": false
-    },
-    "AssetInfoBase_for_String": {
-      "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "native"
-          ],
-          "properties": {
-            "native": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "cw20"
-          ],
-          "properties": {
-            "cw20": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "AssetListBase_for_String": {
-      "description": "Represents a list of fungible tokens, each with a known amount",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/AssetBase_for_String"
-      }
     },
     "BankMsg": {
       "description": "The message types of the bank module.\n\nSee https://github.com/cosmos/cosmos-sdk/blob/v0.40.0/proto/cosmos/bank/v1beta1/tx.proto",
@@ -338,38 +153,6 @@
                   }
                 }
               }
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "BaseExecuteMsg": {
-      "oneOf": [
-        {
-          "description": "Updates the base config",
-          "type": "object",
-          "required": [
-            "update_config"
-          ],
-          "properties": {
-            "update_config": {
-              "type": "object",
-              "properties": {
-                "ans_host_address": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "version_control_address": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                }
-              },
-              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -641,7 +424,7 @@
       },
       "additionalProperties": false
     },
-    "Cw20Coin": {
+    "Cw20CoinVerified": {
       "type": "object",
       "required": [
         "address",
@@ -649,7 +432,7 @@
       ],
       "properties": {
         "address": {
-          "type": "string"
+          "$ref": "#/definitions/Addr"
         },
         "amount": {
           "$ref": "#/definitions/Uint128"
@@ -738,6 +521,34 @@
     "Empty": {
       "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
       "type": "object"
+    },
+    "GasPrice": {
+      "description": "We can't store gas_price as floats inside cosmwasm so instead of having 0.04 we use GasPrice {4/100} and after that multiply Gas by `gas_adjustment` {150/100} (1.5)",
+      "type": "object",
+      "required": [
+        "denominator",
+        "gas_adjustment_numerator",
+        "numerator"
+      ],
+      "properties": {
+        "denominator": {
+          "description": "Denominator is shared",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "gas_adjustment_numerator": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "numerator": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
     },
     "GovMsg": {
       "description": "This message type allows the contract interact with the [x/gov] module in order to cast votes.\n\n[x/gov]: https://github.com/cosmos/cosmos-sdk/tree/v0.45.12/x/gov\n\n## Examples\n\nCast a simple vote:\n\n``` # use cosmwasm_std::{ #     HexBinary, #     Storage, Api, Querier, DepsMut, Deps, entry_point, Env, StdError, MessageInfo, #     Response, QueryResponse, # }; # type ExecuteMsg = (); use cosmwasm_std::{GovMsg, VoteOption};\n\n#[entry_point] pub fn execute( deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg, ) -> Result<Response, StdError> { // ... Ok(Response::new().add_message(GovMsg::Vote { proposal_id: 4, vote: VoteOption::Yes, })) } ```\n\nCast a weighted vote:\n\n``` # use cosmwasm_std::{ #     HexBinary, #     Storage, Api, Querier, DepsMut, Deps, entry_point, Env, StdError, MessageInfo, #     Response, QueryResponse, # }; # type ExecuteMsg = (); # #[cfg(feature = \"cosmwasm_1_2\")] use cosmwasm_std::{Decimal, GovMsg, VoteOption, WeightedVoteOption};\n\n# #[cfg(feature = \"cosmwasm_1_2\")] #[entry_point] pub fn execute( deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg, ) -> Result<Response, StdError> { // ... Ok(Response::new().add_message(GovMsg::VoteWeighted { proposal_id: 4, options: vec![ WeightedVoteOption { option: VoteOption::Yes, weight: Decimal::percent(65), }, WeightedVoteOption { option: VoteOption::Abstain, weight: Decimal::percent(35), }, ], })) } ```",
@@ -910,24 +721,6 @@
           "additionalProperties": false
         }
       ]
-    },
-    "IbcResponseMsg": {
-      "description": "IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg",
-      "type": "object",
-      "required": [
-        "id",
-        "msg"
-      ],
-      "properties": {
-        "id": {
-          "description": "The ID chosen by the caller in the `callback_id`",
-          "type": "string"
-        },
-        "msg": {
-          "$ref": "#/definitions/StdAck"
-        }
-      },
-      "additionalProperties": false
     },
     "IbcTimeout": {
       "description": "In IBC each package must set at least one type of timeout: the timestamp or the block height. Using this rather complex enum instead of two timeout fields we ensure that at least one timeout is set.",
@@ -1114,42 +907,18 @@
         }
       ]
     },
-    "StdAck": {
-      "description": "This is a generic ICS acknowledgement format. Proto defined [here](https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/proto/ibc/core/channel/v1/channel.proto#L141-L147) If ibc_receive_packet returns Err(), then x/wasm runtime will rollback the state and return an error message in this format",
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "result"
-          ],
-          "properties": {
-            "result": {
-              "$ref": "#/definitions/Binary"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "error"
-          ],
-          "properties": {
-            "error": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "TaskRequest": {
-      "description": "Request to create a task",
+    "TaskInfo": {
       "type": "object",
       "required": [
         "actions",
+        "amount_for_one_task",
+        "boundary",
         "interval",
-        "stop_on_fail"
+        "owner_addr",
+        "stop_on_fail",
+        "task_hash",
+        "transforms",
+        "version"
       ],
       "properties": {
         "actions": {
@@ -1158,29 +927,17 @@
             "$ref": "#/definitions/Action_for_Empty"
           }
         },
-        "boundary": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Boundary"
-            },
-            {
-              "type": "null"
-            }
-          ]
+        "amount_for_one_task": {
+          "$ref": "#/definitions/AmountForOneTask"
         },
-        "cw20": {
-          "description": "How much of cw20 coin is attached to this task This will be taken from the manager's contract temporary \"Users balance\" and attached directly to the task's balance.\n\nNote: Unlike other coins ( which get refunded to the task creator in the same transaction as task removal) cw20's will get moved back to the temporary \"Users balance\". This is done primarily to save up gas from executing another contract during `proxy_call`",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Cw20Coin"
-            },
-            {
-              "type": "null"
-            }
-          ]
+        "boundary": {
+          "$ref": "#/definitions/Boundary"
         },
         "interval": {
           "$ref": "#/definitions/Interval"
+        },
+        "owner_addr": {
+          "$ref": "#/definitions/Addr"
         },
         "queries": {
           "type": [
@@ -1194,14 +951,17 @@
         "stop_on_fail": {
           "type": "boolean"
         },
+        "task_hash": {
+          "type": "string"
+        },
         "transforms": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": "array",
           "items": {
             "$ref": "#/definitions/Transform"
           }
+        },
+        "version": {
+          "type": "string"
         }
       },
       "additionalProperties": false

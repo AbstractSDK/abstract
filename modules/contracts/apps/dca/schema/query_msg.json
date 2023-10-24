@@ -50,10 +50,24 @@
           "description": "Returns the admin.",
           "type": "object",
           "required": [
-            "base_app_admin"
+            "base_admin"
           ],
           "properties": {
-            "base_app_admin": {
+            "base_admin": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns module data",
+          "type": "object",
+          "required": [
+            "module_data"
+          ],
+          "properties": {
+            "module_data": {
               "type": "object",
               "additionalProperties": false
             }
@@ -62,9 +76,16 @@
         }
       ]
     },
+    "DCAId": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
     "DCAQueryMsg": {
+      "description": "DCA query messages",
       "oneOf": [
         {
+          "description": "Get config of the DCA app",
           "type": "object",
           "required": [
             "config"
@@ -78,6 +99,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Get DCA Entry",
           "type": "object",
           "required": [
             "d_c_a"
@@ -90,7 +112,12 @@
               ],
               "properties": {
                 "dca_id": {
-                  "type": "string"
+                  "description": "Id of the DCA",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/DCAId"
+                    }
+                  ]
                 }
               },
               "additionalProperties": false

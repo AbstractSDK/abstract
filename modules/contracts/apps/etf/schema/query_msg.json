@@ -59,6 +59,20 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "description": "Returns module data",
+          "type": "object",
+          "required": [
+            "module_data"
+          ],
+          "properties": {
+            "module_data": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },

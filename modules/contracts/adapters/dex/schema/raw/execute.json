@@ -1,29 +1,72 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "QueryMsg",
+  "title": "ExecuteMsg",
+  "description": "Dex Execute msg",
   "oneOf": [
     {
-      "description": "A query to the base.",
+      "description": "Update the fee",
       "type": "object",
       "required": [
-        "base"
+        "update_fee"
       ],
       "properties": {
-        "base": {
-          "$ref": "#/definitions/BaseQueryMsg"
+        "update_fee": {
+          "type": "object",
+          "properties": {
+            "recipient_account": {
+              "description": "New recipient account for fees",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "swap_fee": {
+              "description": "New fee to set",
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Decimal"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "Custom query",
+      "description": "Action to perform on the DEX",
       "type": "object",
       "required": [
-        "module"
+        "action"
       ],
       "properties": {
-        "module": {
-          "$ref": "#/definitions/DexQueryMsg"
+        "action": {
+          "type": "object",
+          "required": [
+            "action",
+            "dex"
+          ],
+          "properties": {
+            "action": {
+              "description": "The action to perform",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/DexAction"
+                }
+              ]
+            },
+            "dex": {
+              "description": "The name of the dex to interact with",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -48,61 +91,6 @@
     "AssetEntry": {
       "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
       "type": "string"
-    },
-    "BaseQueryMsg": {
-      "description": "Query adapter message",
-      "oneOf": [
-        {
-          "description": "Returns [`AdapterConfigResponse`].",
-          "type": "object",
-          "required": [
-            "base_config"
-          ],
-          "properties": {
-            "base_config": {
-              "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Returns [`AuthorizedAddressesResponse`].",
-          "type": "object",
-          "required": [
-            "authorized_addresses"
-          ],
-          "properties": {
-            "authorized_addresses": {
-              "type": "object",
-              "required": [
-                "proxy_address"
-              ],
-              "properties": {
-                "proxy_address": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Returns module data",
-          "type": "object",
-          "required": [
-            "module_data"
-          ],
-          "properties": {
-            "module_data": {
-              "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
     },
     "Decimal": {
       "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
@@ -268,154 +256,6 @@
                   "allOf": [
                     {
                       "$ref": "#/definitions/AnsAsset"
-                    }
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "DexExecuteMsg": {
-      "description": "Dex Execute msg",
-      "oneOf": [
-        {
-          "description": "Update the fee",
-          "type": "object",
-          "required": [
-            "update_fee"
-          ],
-          "properties": {
-            "update_fee": {
-              "type": "object",
-              "properties": {
-                "recipient_account": {
-                  "description": "New recipient account for fees",
-                  "type": [
-                    "integer",
-                    "null"
-                  ],
-                  "format": "uint32",
-                  "minimum": 0.0
-                },
-                "swap_fee": {
-                  "description": "New fee to set",
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Decimal"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Action to perform on the DEX",
-          "type": "object",
-          "required": [
-            "action"
-          ],
-          "properties": {
-            "action": {
-              "type": "object",
-              "required": [
-                "action",
-                "dex"
-              ],
-              "properties": {
-                "action": {
-                  "description": "The action to perform",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/DexAction"
-                    }
-                  ]
-                },
-                "dex": {
-                  "description": "The name of the dex to interact with",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "DexQueryMsg": {
-      "description": "Query messages for the dex adapter",
-      "oneOf": [
-        {
-          "description": "Simulate a swap between two assets",
-          "type": "object",
-          "required": [
-            "simulate_swap"
-          ],
-          "properties": {
-            "simulate_swap": {
-              "type": "object",
-              "required": [
-                "ask_asset",
-                "offer_asset"
-              ],
-              "properties": {
-                "ask_asset": {
-                  "description": "The asset to receive",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    }
-                  ]
-                },
-                "dex": {
-                  "description": "Name of the dex to simulate the swap on",
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "offer_asset": {
-                  "description": "The asset to offer",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AnsAsset"
-                    }
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Endpoint can be used by front-end to easily interact with contracts.",
-          "type": "object",
-          "required": [
-            "generate_messages"
-          ],
-          "properties": {
-            "generate_messages": {
-              "type": "object",
-              "required": [
-                "message"
-              ],
-              "properties": {
-                "message": {
-                  "description": "Execute message to generate messages for",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/DexExecuteMsg"
                     }
                   ]
                 }

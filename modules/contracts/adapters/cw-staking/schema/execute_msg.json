@@ -224,13 +224,18 @@
             "stake": {
               "type": "object",
               "required": [
-                "asset"
+                "assets"
               ],
               "properties": {
-                "asset": {
-                  "$ref": "#/definitions/AnsAsset"
+                "assets": {
+                  "description": "The ANS-resolvable asset information of the assets to stake.",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AnsAsset"
+                  }
                 },
                 "unbonding_period": {
+                  "description": "The unbonding period for the specified stake.",
                   "anyOf": [
                     {
                       "$ref": "#/definitions/Duration"
@@ -256,13 +261,18 @@
             "unstake": {
               "type": "object",
               "required": [
-                "asset"
+                "assets"
               ],
               "properties": {
-                "asset": {
-                  "$ref": "#/definitions/AnsAsset"
+                "assets": {
+                  "description": "The ANS-resolvable asset information of the assets to unstake.",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AnsAsset"
+                  }
                 },
                 "unbonding_period": {
+                  "description": "The unbonding period for the specified stake.",
                   "anyOf": [
                     {
                       "$ref": "#/definitions/Duration"
@@ -279,7 +289,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Claim rewards for a given token",
+          "description": "Claim rewards for a set of staked assets.",
           "type": "object",
           "required": [
             "claim_rewards"
@@ -288,11 +298,15 @@
             "claim_rewards": {
               "type": "object",
               "required": [
-                "asset"
+                "assets"
               ],
               "properties": {
-                "asset": {
-                  "$ref": "#/definitions/AssetEntry"
+                "assets": {
+                  "description": "Staked assets to claim rewards for.",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AssetEntry"
+                  }
                 }
               },
               "additionalProperties": false
@@ -310,11 +324,15 @@
             "claim": {
               "type": "object",
               "required": [
-                "asset"
+                "assets"
               ],
               "properties": {
-                "asset": {
-                  "$ref": "#/definitions/AssetEntry"
+                "assets": {
+                  "description": "Unbonded staking assets to claim.",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AssetEntry"
+                  }
                 }
               },
               "additionalProperties": false

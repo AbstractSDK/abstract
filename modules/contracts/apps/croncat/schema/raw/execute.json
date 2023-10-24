@@ -1,56 +1,140 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ExecuteMsg",
-  "description": "Wrapper around all possible messages that can be sent to the module.",
+  "description": "Croncat execute messages",
   "oneOf": [
     {
-      "description": "A configuration message, defined by the base.",
+      "description": "Update config currently this method is just placeholder",
       "type": "object",
       "required": [
-        "base"
+        "update_config"
       ],
       "properties": {
-        "base": {
-          "$ref": "#/definitions/BaseExecuteMsg"
+        "update_config": {
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "An app request defined by a base consumer.",
+      "description": "Create new croncat task",
       "type": "object",
       "required": [
-        "module"
+        "create_task"
       ],
       "properties": {
-        "module": {
-          "$ref": "#/definitions/AppExecuteMsg"
+        "create_task": {
+          "type": "object",
+          "required": [
+            "assets",
+            "task",
+            "task_tag"
+          ],
+          "properties": {
+            "assets": {
+              "description": "List of assets to be attached to the task",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AssetListBase_for_String"
+                }
+              ]
+            },
+            "task": {
+              "description": "Task request",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/TaskRequest"
+                }
+              ]
+            },
+            "task_tag": {
+              "description": "Custom task tag, which helps to use it after creation",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "IbcReceive to process IBC callbacks",
+      "description": "Remove task by tag and withdraw unused cw20 by this task",
       "type": "object",
       "required": [
-        "ibc_callback"
+        "remove_task"
       ],
       "properties": {
-        "ibc_callback": {
-          "$ref": "#/definitions/IbcResponseMsg"
+        "remove_task": {
+          "type": "object",
+          "required": [
+            "task_tag"
+          ],
+          "properties": {
+            "task_tag": {
+              "description": "Task tag of tag which should get removed",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "Receive endpoint for CW20 / external service integrations",
+      "description": "Refill a task",
       "type": "object",
       "required": [
-        "receive"
+        "refill_task"
       ],
       "properties": {
-        "receive": {
-          "$ref": "#/definitions/Empty"
+        "refill_task": {
+          "type": "object",
+          "required": [
+            "assets",
+            "task_tag"
+          ],
+          "properties": {
+            "assets": {
+              "description": "List of assets to be added to the task balance",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AssetListBase_for_String"
+                }
+              ]
+            },
+            "task_tag": {
+              "description": "Task tag of tag which should get refilled",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Clean state Note: it will not check if task is active or not, use it mindfully",
+      "type": "object",
+      "required": [
+        "purge"
+      ],
+      "properties": {
+        "purge": {
+          "type": "object",
+          "required": [
+            "task_tags"
+          ],
+          "properties": {
+            "task_tags": {
+              "description": "List of task tags that should get cleaned from the state",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -82,147 +166,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "AppExecuteMsg": {
-      "description": "Croncat execute messages",
-      "oneOf": [
-        {
-          "description": "Update config currently this method is just placeholder",
-          "type": "object",
-          "required": [
-            "update_config"
-          ],
-          "properties": {
-            "update_config": {
-              "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Create new croncat task",
-          "type": "object",
-          "required": [
-            "create_task"
-          ],
-          "properties": {
-            "create_task": {
-              "type": "object",
-              "required": [
-                "assets",
-                "task",
-                "task_tag"
-              ],
-              "properties": {
-                "assets": {
-                  "description": "List of assets to be attached to the task",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetListBase_for_String"
-                    }
-                  ]
-                },
-                "task": {
-                  "description": "Task request",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/TaskRequest"
-                    }
-                  ]
-                },
-                "task_tag": {
-                  "description": "Custom task tag, which helps to use it after creation",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Remove task by tag and withdraw unused cw20 by this task",
-          "type": "object",
-          "required": [
-            "remove_task"
-          ],
-          "properties": {
-            "remove_task": {
-              "type": "object",
-              "required": [
-                "task_tag"
-              ],
-              "properties": {
-                "task_tag": {
-                  "description": "Task tag of tag which should get removed",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Refill a task",
-          "type": "object",
-          "required": [
-            "refill_task"
-          ],
-          "properties": {
-            "refill_task": {
-              "type": "object",
-              "required": [
-                "assets",
-                "task_tag"
-              ],
-              "properties": {
-                "assets": {
-                  "description": "List of assets to be added to the task balance",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetListBase_for_String"
-                    }
-                  ]
-                },
-                "task_tag": {
-                  "description": "Task tag of tag which should get refilled",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Clean state Note: it will not check if task is active or not, use it mindfully",
-          "type": "object",
-          "required": [
-            "purge"
-          ],
-          "properties": {
-            "purge": {
-              "type": "object",
-              "required": [
-                "task_tags"
-              ],
-              "properties": {
-                "task_tags": {
-                  "description": "List of task tags that should get cleaned from the state",
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
     },
     "AssetBase_for_String": {
       "description": "Represents a fungible asset with a known amount\n\nEach asset instance contains two values: `info`, which specifies the asset's type (CW20 or native), and its `amount`, which specifies the asset's amount.",
@@ -338,38 +281,6 @@
                   }
                 }
               }
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "BaseExecuteMsg": {
-      "oneOf": [
-        {
-          "description": "Updates the base config",
-          "type": "object",
-          "required": [
-            "update_config"
-          ],
-          "properties": {
-            "update_config": {
-              "type": "object",
-              "properties": {
-                "ans_host_address": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "version_control_address": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                }
-              },
-              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -911,24 +822,6 @@
         }
       ]
     },
-    "IbcResponseMsg": {
-      "description": "IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg",
-      "type": "object",
-      "required": [
-        "id",
-        "msg"
-      ],
-      "properties": {
-        "id": {
-          "description": "The ID chosen by the caller in the `callback_id`",
-          "type": "string"
-        },
-        "msg": {
-          "$ref": "#/definitions/StdAck"
-        }
-      },
-      "additionalProperties": false
-    },
     "IbcTimeout": {
       "description": "In IBC each package must set at least one type of timeout: the timestamp or the block height. Using this rather complex enum instead of two timeout fields we ensure that at least one timeout is set.",
       "type": "object",
@@ -1108,35 +1001,6 @@
                   "type": "string"
                 }
               }
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "StdAck": {
-      "description": "This is a generic ICS acknowledgement format. Proto defined [here](https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/proto/ibc/core/channel/v1/channel.proto#L141-L147) If ibc_receive_packet returns Err(), then x/wasm runtime will rollback the state and return an error message in this format",
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "result"
-          ],
-          "properties": {
-            "result": {
-              "$ref": "#/definitions/Binary"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "error"
-          ],
-          "properties": {
-            "error": {
-              "type": "string"
             }
           },
           "additionalProperties": false
