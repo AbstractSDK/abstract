@@ -1,15 +1,13 @@
 use crate::contract::{SubscriptionApp, SubscriptionResult};
 use crate::msg::{SubscriptionExecuteMsg, UnsubscribedHookMsg};
 use crate::state::{
-    EmissionType, Subscriber, SubscriptionConfig, SubscriptionState, DORMANT_SUBSCRIBERS,
+    EmissionType, Subscriber, SubscriptionConfig, SubscriptionState, EXPIRED_SUBSCRIBERS,
     INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
 use crate::{SubscriptionError, DURATION_IN_WEEKS, WEEK_IN_SECONDS};
-use abstract_sdk::core::manager::ExecuteMsg as ManagerMsg;
 use abstract_sdk::{AbstractResponse, Execution, ExecutorMsg, TransferInterface};
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
-    SubMsg, Uint128, WasmMsg,
+    Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
 };
 use cw_asset::{Asset, AssetInfoUnchecked};
 
@@ -109,8 +107,6 @@ pub fn try_pay(
     // prevents un- and re-subscribing all the time.
     let required_payment = Uint128::from(DURATION_IN_WEEKS) * config.subscription_cost_per_week;
     let paid_for_days = {
-        // TODO: Decimals feels pretty annoying
-
         let paid_for_weeks = asset
             .amount
             .checked_div_floor(config.subscription_cost_per_week)?
@@ -120,8 +116,6 @@ pub fn try_pay(
     if let Some(mut active_sub) = maybe_subscriber {
         // Subscriber is active, update balance
         active_sub.expiration_timestamp = active_sub.expiration_timestamp.plus_days(paid_for_days);
-        // Update hook addr if required
-        // TODO: do we need a way to disable hook?
         if let Some(new_hook_addr) = unsubscribe_hook_addr {
             active_sub.unsubscribe_hook_addr = Some(new_hook_addr);
         }
@@ -134,10 +128,10 @@ pub fn try_pay(
                 deposit_info.to_string(),
             ));
         }
-        let maybe_old_client = DORMANT_SUBSCRIBERS.may_load(deps.storage, &subscriber_addr)?;
+        let maybe_old_client = EXPIRED_SUBSCRIBERS.may_load(deps.storage, &subscriber_addr)?;
         // if old client
         if let Some(mut old_client) = maybe_old_client {
-            DORMANT_SUBSCRIBERS.remove(deps.storage, &subscriber_addr);
+            EXPIRED_SUBSCRIBERS.remove(deps.storage, &subscriber_addr);
             old_client.expiration_timestamp = env.block.time.plus_days(paid_for_days);
             old_client.last_emission_claim_timestamp = env.block.time;
             // Update hook addr if required
@@ -202,7 +196,6 @@ pub fn unsubscribe(
     for addr in unsubscribe_addrs.iter() {
         let mut subscriber = SUBSCRIBERS.load(deps.storage, addr)?;
         if subscriber.expiration_timestamp <= env.block.time {
-
             let maybe_claim_msg = claim_emissions_msg(
                 &app,
                 deps.as_ref(),
@@ -216,7 +209,7 @@ pub fn unsubscribe(
             unsubscribed_addrs.push(addr.to_string());
             subscription_state.active_subs -= 1;
             SUBSCRIBERS.remove(deps.storage, addr);
-            DORMANT_SUBSCRIBERS.save(deps.storage, addr, &subscriber)?;
+            EXPIRED_SUBSCRIBERS.save(deps.storage, addr, &subscriber)?;
 
             if let Some(msg) = maybe_claim_msg {
                 claim_msgs.push(msg)
@@ -227,6 +220,10 @@ pub fn unsubscribe(
         }
     }
 
+    // Error if no one unsubbed
+    if unsubscribed_addrs.is_empty() {
+        return Err(SubscriptionError::NoOneUnsubbed {});
+    }
     let unsub_hook_msgs = unsub_hook_addrs
         .into_iter()
         .map(|hook| {
@@ -294,7 +291,6 @@ pub fn claim_emissions_msg(
           // }
     };
 
-    println!("asset: {asset}");
     if !asset.amount.is_zero() {
         // Update only if there was claim
         subscriber.last_emission_claim_timestamp = env.block.time;
@@ -317,7 +313,6 @@ pub fn claim_subscriber_emissions(
     let subscriber_addr = deps.api.addr_validate(&addr)?;
     let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-    // TODO: this one is called during unsubscribe which means it won't have this addr as a key
     let mut subscriber = SUBSCRIBERS.load(deps.storage, &subscriber_addr)?;
 
     let maybe_msg = claim_emissions_msg(

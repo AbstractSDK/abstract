@@ -1,11 +1,13 @@
-use crate::DURATION_IN_WEEKS;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, Uint128};
+use crate::{msg::SubscribersResponse, DURATION_IN_WEEKS};
+use abstract_core::objects::voting::DEFAULT_LIMIT;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Uint128};
 use cw_asset::Asset;
+use cw_storage_plus::Bound;
 
 use crate::{
     contract::{SubscriptionApp, SubscriptionResult},
-    msg::{StateResponse, SubscriberStateResponse, SubscriptionFeeResponse, SubscriptionQueryMsg},
-    state::{DORMANT_SUBSCRIBERS, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE},
+    msg::{StateResponse, SubscriberResponse, SubscriptionFeeResponse, SubscriptionQueryMsg},
+    state::{EXPIRED_SUBSCRIBERS, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE},
 };
 
 pub fn query_handler(
@@ -36,25 +38,64 @@ pub fn query_handler(
             let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
             to_binary(&subscription_config)
         }
-        SubscriptionQueryMsg::SubscriberState { addr } => {
-            let addr = deps.api.addr_validate(&addr)?;
-            let maybe_sub = SUBSCRIBERS.may_load(deps.storage, &addr)?;
-            let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, &addr)?;
-            let subscription_state = if let Some(sub) = maybe_sub {
-                to_binary(&SubscriberStateResponse {
-                    currently_subscribed: true,
-                    subscriber_details: sub,
-                })?
-            } else if let Some(sub) = maybe_dormant_sub {
-                to_binary(&SubscriberStateResponse {
-                    currently_subscribed: false,
-                    subscriber_details: sub,
-                })?
-            } else {
-                return Err(StdError::generic_err("os has os_id 0 or does not exist").into());
-            };
-            Ok(subscription_state)
-        }
+        SubscriptionQueryMsg::Subscriber { addr } => to_binary(&query_subscriber(deps, addr)?),
+        SubscriptionQueryMsg::Subscribers {
+            start_after,
+            limit,
+            expired_subs,
+        } => to_binary(&query_subscribers(deps, start_after, limit, expired_subs)?),
     }
     .map_err(Into::into)
+}
+
+fn query_subscriber(deps: Deps, addr: String) -> SubscriptionResult<SubscriberResponse> {
+    let addr = deps.api.addr_validate(&addr)?;
+    let subscription_state = if let Some(sub) = SUBSCRIBERS.may_load(deps.storage, &addr)? {
+        SubscriberResponse {
+            currently_subscribed: true,
+            subscriber_details: Some(sub),
+        }
+    } else if let Some(sub) = EXPIRED_SUBSCRIBERS.may_load(deps.storage, &addr)? {
+        SubscriberResponse {
+            currently_subscribed: false,
+            subscriber_details: Some(sub),
+        }
+    } else {
+        SubscriberResponse {
+            currently_subscribed: false,
+            subscriber_details: None,
+        }
+    };
+    Ok(subscription_state)
+}
+
+fn query_subscribers(
+    deps: Deps,
+    start_after: Option<cosmwasm_std::Addr>,
+    limit: Option<u64>,
+    expired_subs: Option<bool>,
+) -> SubscriptionResult<SubscribersResponse> {
+    let min = start_after.as_ref().map(Bound::exclusive);
+    let limit = limit.unwrap_or(DEFAULT_LIMIT);
+    let subscribed = !expired_subs.unwrap_or(false);
+    let map = match subscribed {
+        true => SUBSCRIBERS,
+        false => EXPIRED_SUBSCRIBERS,
+    };
+    let subscribers = map
+        .range(deps.storage, min, None, cosmwasm_std::Order::Ascending)
+        .take(limit as usize)
+        .map(|entry| {
+            entry.map(|(addr, sub)| {
+                (
+                    addr,
+                    SubscriberResponse {
+                        currently_subscribed: subscribed,
+                        subscriber_details: Some(sub),
+                    },
+                )
+            })
+        })
+        .collect::<StdResult<_>>()?;
+    Ok(SubscribersResponse { subscribers })
 }

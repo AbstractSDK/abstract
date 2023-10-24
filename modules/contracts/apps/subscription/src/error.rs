@@ -44,21 +44,6 @@ pub enum SubscriptionError {
     #[error("It's required to use cw20 send message to add pay with cw20 tokens")]
     NotUsingCW20Hook {},
 
-    #[error("The provided fee is invalid")]
-    InvalidFee {},
-
-    #[error("The actual amount of tokens transferred is different from the claimed amount.")]
-    InvalidAmount {},
-
-    #[error("The provided native coin is not the same as the required native coin")]
-    WrongNative {},
-
-    #[error("The contributor you wanted to remove is not registered.")]
-    ContributorNotRegistered,
-
-    #[error("Your contribution compensation expired")]
-    ContributionExpired,
-
     #[error("emissions for this OS are already claimed")]
     EmissionsAlreadyClaimed {},
 
@@ -68,6 +53,6 @@ pub enum SubscriptionError {
     #[error("Subscriber emissions are not enabled")]
     SubscriberEmissionsNotEnabled {},
 
-    #[error("Contribution function must be enabled to use this feature")]
-    ContributionNotEnabled {},
+    #[error("Redundant unsubscribe call")]
+    NoOneUnsubbed {},
 }

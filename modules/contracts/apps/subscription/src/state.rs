@@ -67,9 +67,9 @@ pub struct Subscriber {
 }
 
 /// Average number of subscribers
-pub const SUBSCRIPTION_CONFIG: Item<SubscriptionConfig> = Item::new("\u{0}{10}sub_config");
-pub const SUBSCRIPTION_STATE: Item<SubscriptionState> = Item::new("\u{0}{9}sub_state");
-pub const SUBSCRIBERS: Map<&Addr, Subscriber> = Map::new("subscribed");
-pub const DORMANT_SUBSCRIBERS: Map<&Addr, Subscriber> = Map::new("un-subscribed");
+pub const SUBSCRIPTION_CONFIG: Item<SubscriptionConfig> = Item::new("config");
+pub const SUBSCRIPTION_STATE: Item<SubscriptionState> = Item::new("state");
+pub const SUBSCRIBERS: Map<&Addr, Subscriber> = Map::new("subed");
+pub const EXPIRED_SUBSCRIBERS: Map<&Addr, Subscriber> = Map::new("unsubed");
 
 pub const INCOME_TWA: TimeWeightedAverage = TimeWeightedAverage::new("\u{0}{7}sub_twa");

@@ -1,28 +1,27 @@
 use std::str::FromStr;
 
 use abstract_core::objects::{
-    gov_type::GovernanceDetails, time_weighted_average::TimeWeightedAverageData, AccountId,
+    gov_type::GovernanceDetails, time_weighted_average::TimeWeightedAverageData,
 };
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy};
 use abstract_subscription::{
     contract::{interface::SubscriptionInterface, CONTRACT_VERSION},
     msg::{
-        SubscriberStateResponse, SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg,
+        SubscriberResponse, SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg,
         SubscriptionQueryMsgFns,
     },
     state::{EmissionType, Subscriber, SubscriptionConfig},
-    WEEK_IN_SECONDS,
+    SubscriptionError, WEEK_IN_SECONDS,
 };
 
 use abstract_subscription::contract::SUBSCRIPTION_ID;
-use abstract_subscription::msg as subscr_msg;
 use cw20::{Cw20Coin, Cw20ExecuteMsgFns};
 use cw20_base::{contract::Cw20Base, msg::QueryMsgFns};
-use cw_asset::{Asset, AssetInfo, AssetInfoBase, AssetInfoUnchecked};
+use cw_asset::{AssetInfo, AssetInfoBase, AssetInfoUnchecked};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{coins, Addr, Decimal, Querier, Uint128, Uint64};
+use cosmwasm_std::{coins, Addr, Decimal, Uint128, Uint64};
 
 // consts for testing
 const ADMIN: &str = "admin";
@@ -228,9 +227,9 @@ fn subscribe() -> anyhow::Result<()> {
     let Subscription {
         chain,
         account: _account,
-        abstr,
+        abstr: _,
         subscription_app,
-        payment_asset,
+        payment_asset: _,
     } = setup_native()?;
 
     let subscription_addr = subscription_app.address()?;
@@ -370,46 +369,43 @@ fn unsubscribe() -> anyhow::Result<()> {
     let subscriber2 = Addr::unchecked("subscriber2");
 
     let sub_amount = coins(1, DENOM);
-    chain.set_balances(&[(&subscriber1, &sub_amount), (&subscriber2, &sub_amount)])?;
+    chain.set_balance(&subscriber1, sub_amount.clone())?;
 
     subscription_app
         .call_as(&subscriber1)
         .pay(None, None, &sub_amount)?;
 
-    let subscriber = subscription_app.subscriber_state(subscriber1.to_string())?;
-
-    println!("subscriber: {subscriber:?}");
+    let subscriber = subscription_app.subscriber(subscriber1.to_string())?;
 
     let current_time = chain.block_info()?.time;
     assert_eq!(
         subscriber,
-        SubscriberStateResponse {
+        SubscriberResponse {
             currently_subscribed: true,
-            subscriber_details: Subscriber {
+            subscriber_details: Some(Subscriber {
                 expiration_timestamp: current_time.plus_seconds(WEEK_IN_SECONDS * 10),
                 last_emission_claim_timestamp: current_time,
                 unsubscribe_hook_addr: None
-            }
+            })
         }
     );
 
     // wait until subscription expires
     chain.wait_seconds(WEEK_IN_SECONDS * 10)?;
     subscription_app.unsubscribe(vec![subscriber1.to_string()])?;
-    let subscriber = subscription_app.subscriber_state(subscriber1.to_string())?;
+    let subscriber = subscription_app.subscriber(subscriber1.to_string())?;
 
     let current_time = chain.block_info()?.time;
 
-    println!("subscriber: {subscriber:?}");
     assert_eq!(
         subscriber,
-        SubscriberStateResponse {
+        SubscriberResponse {
             currently_subscribed: false,
-            subscriber_details: Subscriber {
+            subscriber_details: Some(Subscriber {
                 expiration_timestamp: current_time,
                 last_emission_claim_timestamp: current_time,
                 unsubscribe_hook_addr: None
-            }
+            })
         }
     );
 
@@ -427,30 +423,61 @@ fn unsubscribe() -> anyhow::Result<()> {
         .unsubscribe(vec![subscriber2.to_string()])
         .is_err());
 
+    chain.set_balances(&[
+        (&subscriber1, &coins(10, DENOM)),
+        (&subscriber2, &coins(1, DENOM)),
+    ])?;
+    subscription_app
+        .call_as(&subscriber1)
+        .pay(None, None, &coins(10, DENOM))?;
     subscription_app
         .call_as(&subscriber2)
-        .pay(None, None, &sub_amount)?;
-
-    // TODO: do we want to error on falsy unsub?
+        .pay(None, None, &coins(1, DENOM))?;
 
     // 1 out of 10 weeks wait
     chain.wait_seconds(WEEK_IN_SECONDS * 1)?;
-    // Un-sub on not-expired user shouldn't do anything
-    subscription_app.unsubscribe(vec![subscriber2.to_string()])?;
+    // Un-sub on not-expired users should error
+    let err = subscription_app
+        .unsubscribe(vec![subscriber1.to_string(), subscriber2.to_string()])
+        .unwrap_err();
+    let err: SubscriptionError = err.downcast().unwrap();
+    assert_eq!(err, SubscriptionError::NoOneUnsubbed {});
 
-    let subscriber = subscription_app.subscriber_state(subscriber2.to_string())?;
+    // wait rest of 9 weeks for the second subscription
+    chain.wait_seconds(WEEK_IN_SECONDS * 9)?;
+
+    subscription_app.unsubscribe(vec![subscriber1.to_string(), subscriber2.to_string()])?;
 
     let current_time = chain.block_info()?.time;
+
+    let subscriber2 = subscription_app.subscriber(subscriber2.to_string())?;
+
     assert_eq!(
-        subscriber,
-        SubscriberStateResponse {
-            currently_subscribed: true,
-            subscriber_details: Subscriber {
-                expiration_timestamp: current_time.plus_seconds(WEEK_IN_SECONDS * 9),
-                // Not even claim emission
-                last_emission_claim_timestamp: current_time.minus_seconds(WEEK_IN_SECONDS * 1),
+        subscriber2,
+        SubscriberResponse {
+            currently_subscribed: false,
+            subscriber_details: Some(Subscriber {
+                expiration_timestamp: current_time,
+                last_emission_claim_timestamp: current_time,
                 unsubscribe_hook_addr: None
-            }
+            })
+        }
+    );
+
+    // subscriber1 not yet unsubscribed
+    let subscriber1 = subscription_app.subscriber(subscriber1.to_string())?;
+
+    assert_eq!(
+        subscriber1,
+        SubscriberResponse {
+            currently_subscribed: true,
+            subscriber_details: Some(Subscriber {
+                // 90 more weeks
+                expiration_timestamp: current_time.plus_seconds(WEEK_IN_SECONDS * 90),
+                // 10 weeks ago subbed, and unsub of other user didn't affect this user
+                last_emission_claim_timestamp: current_time.minus_seconds(WEEK_IN_SECONDS * 10),
+                unsubscribe_hook_addr: None
+            })
         }
     );
     Ok(())

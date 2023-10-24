@@ -30,7 +30,6 @@
 
 use super::state::{EmissionType, Subscriber, SubscriptionConfig, SubscriptionState};
 use crate::contract::SubscriptionApp;
-use abstract_core::objects::AccountId;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, Decimal, StdResult, Uint64, WasmMsg};
 use cw_asset::{Asset, AssetInfoUnchecked};
@@ -118,10 +117,20 @@ pub enum SubscriptionQueryMsg {
     #[returns(SubscriptionFeeResponse)]
     Fee {},
     /// Get state of the subscriber
-    #[returns(SubscriberStateResponse)]
-    SubscriberState {
+    #[returns(SubscriberResponse)]
+    Subscriber {
         /// Address of subscriber  
         addr: String,
+    },
+    /// Get list of subscribers
+    #[returns(SubscribersResponse)]
+    Subscribers {
+        /// Start after subscriber address
+        start_after: Option<Addr>,
+        /// Limit
+        limit: Option<u64>,
+        /// Get list of expired(inactive) subscribers instead
+        expired_subs: Option<bool>,
     },
 }
 
@@ -152,13 +161,20 @@ pub struct SubscriptionFeeResponse {
     pub fee: Asset,
 }
 
-/// Query response for [`SubscriptionQueryMsg::SubscriberState`]
+/// Query response for [`SubscriptionQueryMsg::Subscriber`]
 #[cosmwasm_schema::cw_serde]
-pub struct SubscriberStateResponse {
+pub struct SubscriberResponse {
     /// If the user currently active subscriber
     pub currently_subscribed: bool,
     /// State of the subscription
-    pub subscriber_details: Subscriber,
+    pub subscriber_details: Option<Subscriber>,
+}
+
+/// Query response for [`SubscriptionQueryMsg::Subscribers`]
+#[cosmwasm_schema::cw_serde]
+pub struct SubscribersResponse {
+    /// list of subscribers
+    pub subscribers: Vec<(Addr, SubscriberResponse)>,
 }
 
 /// Hook message that contains list of just unsubscribed users
