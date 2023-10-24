@@ -33,3 +33,113 @@ abstract_app::export_endpoints!(SUBSCRIPTION_MODULE, SubscriptionApp);
 
 #[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(SUBSCRIPTION_MODULE, SubscriptionApp, SubscriptionInterface);
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env},
+        to_binary, Addr, CosmosMsg, Decimal, SubMsg, WasmMsg,
+    };
+
+    use crate::{
+        msg::{HookReceiverExecuteMsg, UnsubscribedHookMsg},
+        state::{
+            Subscriber, SubscriptionConfig, SubscriptionState, INCOME_TWA, SUBSCRIBERS,
+            SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
+        },
+    };
+
+    use super::*;
+
+    #[test]
+    fn unsubscribe_no_hook_msg() {
+        let mut deps = mock_dependencies();
+        let depsmut = deps.as_mut();
+        let env = mock_env();
+        let app = SUBSCRIPTION_MODULE;
+
+        INCOME_TWA
+            .instantiate(depsmut.storage, &env, None, 259200u64)
+            .unwrap();
+        SUBSCRIPTION_CONFIG
+            .save(
+                depsmut.storage,
+                &SubscriptionConfig {
+                    payment_asset: cw_asset::AssetInfoBase::Native("token".to_owned()),
+                    subscription_cost_per_week: Decimal::from_str("0.1").unwrap(),
+                    subscription_per_week_emissions: crate::state::EmissionType::None,
+                    unsubscription_hook_addr: None,
+                },
+            )
+            .unwrap();
+        SUBSCRIBERS
+            .save(
+                depsmut.storage,
+                &Addr::unchecked("bob"),
+                &Subscriber {
+                    expiration_timestamp: env.block.time,
+                    last_emission_claim_timestamp: env.block.time,
+                },
+            )
+            .unwrap();
+        SUBSCRIPTION_STATE
+            .save(depsmut.storage, &SubscriptionState { active_subs: 1 })
+            .unwrap();
+
+        let res =
+            handlers::execute::unsubscribe(depsmut, env, app, vec!["bob".to_string()]).unwrap();
+
+        assert!(res.messages.is_empty());
+    }
+
+    #[test]
+    fn unsubscribe_with_hook_msg() {
+        let mut deps = mock_dependencies();
+        let depsmut = deps.as_mut();
+        let env = mock_env();
+        let app = SUBSCRIPTION_MODULE;
+
+        INCOME_TWA
+            .instantiate(depsmut.storage, &env, None, 259200u64)
+            .unwrap();
+        SUBSCRIPTION_CONFIG
+            .save(
+                depsmut.storage,
+                &SubscriptionConfig {
+                    payment_asset: cw_asset::AssetInfoBase::Native("token".to_owned()),
+                    subscription_cost_per_week: Decimal::from_str("0.1").unwrap(),
+                    subscription_per_week_emissions: crate::state::EmissionType::None,
+                    unsubscription_hook_addr: Some(Addr::unchecked("alice")),
+                },
+            )
+            .unwrap();
+        SUBSCRIBERS
+            .save(
+                depsmut.storage,
+                &Addr::unchecked("bob"),
+                &Subscriber {
+                    expiration_timestamp: env.block.time,
+                    last_emission_claim_timestamp: env.block.time,
+                },
+            )
+            .unwrap();
+        SUBSCRIPTION_STATE
+            .save(depsmut.storage, &SubscriptionState { active_subs: 1 })
+            .unwrap();
+
+        let res =
+            handlers::execute::unsubscribe(depsmut, env, app, vec!["bob".to_string()]).unwrap();
+
+        let expected_msg = SubMsg::new(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: "alice".to_owned(),
+            msg: to_binary(&HookReceiverExecuteMsg::Unsubscribed(UnsubscribedHookMsg {
+                unsubscribed: vec!["bob".to_owned()],
+            }))
+            .unwrap(),
+            funds: vec![],
+        }));
+        assert_eq!(res.messages, vec![expected_msg]);
+    }
+}

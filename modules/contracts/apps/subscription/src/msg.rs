@@ -180,7 +180,7 @@ pub struct UnsubscribedHookMsg {
 
 // This is just a helper to properly serialize the Hook message
 #[cosmwasm_schema::cw_serde]
-enum HookReceiverExecuteMsg {
+pub(crate) enum HookReceiverExecuteMsg {
     Unsubscribed(UnsubscribedHookMsg),
 }
 

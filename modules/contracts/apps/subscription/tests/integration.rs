@@ -203,7 +203,6 @@ fn successful_install() -> anyhow::Result<()> {
         }
     );
 
-    // Set up the environment and contract
     let Subscription {
         chain: _,
         account: _account,
@@ -227,7 +226,6 @@ fn successful_install() -> anyhow::Result<()> {
 
 #[test]
 fn subscribe() -> anyhow::Result<()> {
-    // Set up the environment and contract
     let Subscription {
         chain,
         account: _account,
@@ -308,8 +306,7 @@ fn subscribe() -> anyhow::Result<()> {
 }
 
 #[test]
-fn claim_emissions() -> anyhow::Result<()> {
-    // Set up the environment and contract
+fn claim_emissions_week_shared() -> anyhow::Result<()> {
     let Subscription {
         chain,
         account: _account,
@@ -360,7 +357,6 @@ fn claim_emissions() -> anyhow::Result<()> {
 
 #[test]
 fn unsubscribe() -> anyhow::Result<()> {
-    // Set up the environment and contract
     let Subscription {
         chain,
         account: _account,
@@ -424,6 +420,21 @@ fn unsubscribe() -> anyhow::Result<()> {
     assert!(subscription_app
         .unsubscribe(vec![subscriber2.to_string()])
         .is_err());
+    Ok(())
+}
+
+#[test]
+fn unsubscribe_part_of_list() -> anyhow::Result<()> {
+    let Subscription {
+        chain,
+        account: _account,
+        abstr: _,
+        subscription_app,
+        payment_asset: _,
+    } = setup_native()?;
+
+    let subscriber1 = Addr::unchecked("subscriber1");
+    let subscriber2 = Addr::unchecked("subscriber2");
 
     chain.set_balances(&[
         (&subscriber1, &coins(10, DENOM)),

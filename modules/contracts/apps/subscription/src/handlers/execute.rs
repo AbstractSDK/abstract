@@ -171,7 +171,7 @@ pub fn unsubscribe(
     for addr in unsubscribe_addrs.iter() {
         let mut subscriber = SUBSCRIBERS.load(deps.storage, addr)?;
         if subscriber.expiration_timestamp <= env.block.time {
-            let maybe_claim_msg = claim_emissions_msg(
+            let maybe_claim_msg = match claim_emissions_msg(
                 &app,
                 deps.as_ref(),
                 &env,
@@ -179,7 +179,15 @@ pub fn unsubscribe(
                 addr,
                 subscription_config.subscription_per_week_emissions.clone(),
                 &subscription_state,
-            )?;
+            ) {
+                Ok(maybe_msg) => maybe_msg,
+                // If just claimed or not enabled - no claims
+                Err(SubscriptionError::EmissionsAlreadyClaimed {})
+                | Err(SubscriptionError::SubscriberEmissionsNotEnabled {}) => None,
+                Err(error) => {
+                    return Err(error);
+                }
+            };
 
             unsubscribed_addrs.push(addr.to_string());
             subscription_state.active_subs -= 1;
