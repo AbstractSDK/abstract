@@ -134,8 +134,6 @@ mod tests {
     use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use speculoos::prelude::*;
 
-    const TEST_CHAIN: &str = "test-chain";
-
     type IbcClientTestResult = Result<(), IbcClientError>;
 
     fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> IbcClientResult {
@@ -287,6 +285,7 @@ mod tests {
         use std::str::FromStr;
 
         use abstract_core::objects::chain_name::ChainName;
+        use abstract_testing::prelude::TEST_CHAIN;
         use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
 
@@ -400,7 +399,9 @@ mod tests {
             objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
         };
         use abstract_sdk::AbstractSdkError;
-        use abstract_testing::prelude::{mocked_account_querier_builder, TEST_MANAGER, TEST_PROXY};
+        use abstract_testing::prelude::{
+            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
+        };
         use cosmwasm_std::wasm_execute;
 
         use crate::commands::PACKET_LIFETIME;
@@ -608,7 +609,7 @@ mod tests {
 
         use crate::commands::PACKET_LIFETIME;
         use abstract_core::{ibc::CallbackInfo, objects::chain_name::ChainName};
-        use abstract_testing::prelude::mocked_account_querier_builder;
+        use abstract_testing::prelude::{mocked_account_querier_builder, TEST_CHAIN};
         use cosmwasm_std::{wasm_execute, BankQuery, Binary, QueryRequest};
         use polytone::callbacks::CallbackRequest;
 
@@ -687,7 +688,9 @@ mod tests {
             ICS20,
         };
         use abstract_sdk::AbstractSdkError;
-        use abstract_testing::prelude::{mocked_account_querier_builder, TEST_MANAGER, TEST_PROXY};
+        use abstract_testing::prelude::{
+            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
+        };
         use cosmwasm_std::{coins, Coin, CosmosMsg, IbcMsg};
 
         #[test]
@@ -777,7 +780,9 @@ mod tests {
             },
         };
         use abstract_sdk::AbstractSdkError;
-        use abstract_testing::prelude::{mocked_account_querier_builder, TEST_MANAGER, TEST_PROXY};
+        use abstract_testing::prelude::{
+            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
+        };
         use cosmwasm_std::{from_binary, wasm_execute};
 
         use crate::commands::PACKET_LIFETIME;
