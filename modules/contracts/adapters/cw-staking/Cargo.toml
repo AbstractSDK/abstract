@@ -82,7 +82,6 @@ cosmwasm-std = { workspace = true }
 cw-controllers = { workspace = true, optional = true }
 cw-utils = { workspace = true }
 cw20 = { workspace = true }
-cw20-base = { workspace = true }
 cw-asset = { workspace = true }
 schemars = { workspace = true }
 thiserror = { workspace = true }

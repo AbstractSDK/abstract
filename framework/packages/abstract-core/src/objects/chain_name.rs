@@ -18,6 +18,11 @@ impl ChainName {
     // Construct the chain name from the environment (chain-id)
     pub fn new(env: &Env) -> Self {
         let chain_id = &env.block.chain_id;
+        Self::from_chain_id(chain_id)
+    }
+
+    // Construct the chain name from the chain id
+    pub fn from_chain_id(chain_id: &str) -> Self {
         // split on the last -
         // `cosmos-testnet-53159`
         // -> `cosmos-testnet` and `53159`

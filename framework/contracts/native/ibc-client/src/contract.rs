@@ -1,3 +1,4 @@
+use crate::ibc;
 use crate::{commands, error::IbcClientError, queries};
 use abstract_core::objects::module_version::assert_cw_contract_upgrade;
 use abstract_core::{
@@ -9,13 +10,11 @@ use abstract_core::{
     IBC_CLIENT,
 };
 use abstract_macros::abstract_response;
-use cosmwasm_std::{
-    to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
-};
+use abstract_sdk::feature_objects::VersionControlContract;
+use cosmwasm_std::{to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub(crate) const MAX_RETRIES: u8 = 5;
 
 pub(crate) type IbcClientResult<T = Response> = Result<T, IbcClientError>;
 
@@ -38,16 +37,14 @@ pub fn instantiate(
         None::<String>,
     )?;
     let cfg = Config {
-        chain: msg.chain,
-        version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
-    };
-    CONFIG.save(deps.storage, &cfg)?;
-    ANS_HOST.save(
-        deps.storage,
-        &AnsHost {
+        version_control: VersionControlContract::new(
+            deps.api.addr_validate(&msg.version_control_address)?,
+        ),
+        ans_host: AnsHost {
             address: deps.api.addr_validate(&msg.ans_host_address)?,
         },
-    )?;
+    };
+    CONFIG.save(deps.storage, &cfg)?;
 
     ADMIN.set(deps, Some(info.sender))?;
     Ok(IbcClientResponse::action("instantiate"))
@@ -67,45 +64,50 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             version_control,
         } => commands::execute_update_config(deps, info, ans_host, version_control)
             .map_err(Into::into),
-        ExecuteMsg::SendPacket {
+        ExecuteMsg::RemoteAction {
             host_chain,
             action,
             callback_info,
-            retries,
-        } => commands::execute_send_packet(
-            deps,
-            env,
-            info,
+        } => commands::execute_send_packet(deps, env, info, host_chain, action, callback_info),
+        ExecuteMsg::RemoteQueries {
             host_chain,
-            action,
+            queries,
             callback_info,
-            retries,
-        ),
+        } => commands::execute_send_query(deps, env, host_chain, queries, callback_info),
+        ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
+            commands::execute_register_infrastructure(deps, env, info, chain, host, note)
+        }
         ExecuteMsg::SendFunds { host_chain, funds } => {
             commands::execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
         }
         ExecuteMsg::Register { host_chain } => {
-            commands::execute_register_os(deps, env, info, host_chain)
+            commands::execute_register_account(deps, info, host_chain)
         }
         ExecuteMsg::RemoveHost { host_chain } => {
             commands::execute_remove_host(deps, info, host_chain).map_err(Into::into)
+        }
+        ExecuteMsg::Callback(c) => {
+            ibc::receive_action_callback(deps, env, info, c).map_err(Into::into)
         }
     }
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryResponse> {
     match msg {
-        QueryMsg::Config {} => to_binary(&queries::query_config(deps)?),
+        QueryMsg::Config {} => to_binary(&queries::config(deps)?),
+        QueryMsg::Host { chain_name } => to_binary(&queries::host(deps, chain_name)?),
         QueryMsg::Account { chain, account_id } => {
-            to_binary(&queries::query_account(deps, chain, account_id)?)
+            to_binary(&queries::account(deps, chain, account_id)?)
         }
-        QueryMsg::ListAccounts {} => to_binary(&queries::query_list_accounts(deps)?),
-        QueryMsg::LatestQueryResult { chain, account_id } => to_binary(
-            &queries::query_latest_ibc_query_result(deps, chain, account_id)?,
-        ),
-        QueryMsg::ListChannels {} => to_binary(&queries::query_list_channels(deps)?),
+        QueryMsg::ListAccounts { start, limit } => {
+            to_binary(&queries::list_accounts(deps, start, limit)?)
+        }
+        QueryMsg::ListRemoteHosts {} => to_binary(&queries::list_remote_hosts(deps)?),
+        QueryMsg::ListRemoteProxies {} => to_binary(&queries::list_remote_proxies(deps)?),
+        QueryMsg::ListIbcInfrastructures {} => to_binary(&queries::list_ibc_counterparts(deps)?),
     }
+    .map_err(Into::into)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -121,7 +123,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::queries::query_config;
+    use crate::queries::config;
     use crate::test_common::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
@@ -137,7 +139,6 @@ mod tests {
     fn instantiate_works() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
-            chain: "test-chain".into(),
             ans_host_address: TEST_ANS_HOST.into(),
             version_control_address: TEST_VERSION_CONTROL.into(),
         };
@@ -147,11 +148,11 @@ mod tests {
 
         // config
         let expected_config = Config {
-            chain: "test-chain".into(),
-            version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+            version_control: VersionControlContract::new(Addr::unchecked(TEST_VERSION_CONTROL)),
+            ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
         };
 
-        let config_resp = query_config(deps.as_ref()).unwrap();
+        let config_resp = config(deps.as_ref()).unwrap();
         assert_that!(config_resp.admin.as_str()).is_equal_to(TEST_CREATOR);
 
         let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();
@@ -161,10 +162,6 @@ mod tests {
         let cw2_info = CONTRACT.load(&deps.storage).unwrap();
         assert_that!(cw2_info.version).is_equal_to(CONTRACT_VERSION.to_string());
         assert_that!(cw2_info.contract).is_equal_to(IBC_CLIENT.to_string());
-
-        // ans host
-        let actual_ans_host = ANS_HOST.load(deps.as_ref().storage).unwrap();
-        assert_that!(actual_ans_host.address.as_str()).is_equal_to(TEST_ANS_HOST);
     }
 
     mod migrate {

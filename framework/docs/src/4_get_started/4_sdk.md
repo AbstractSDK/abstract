@@ -36,7 +36,7 @@ This example sends coins from the account to another address which requires the 
 
 The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Bank.html) API allows developers to transfer assets from and to the Account. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
 
-> The code behind this example is available [here](https://github.com/AbstractSDK/contracts/blob/main/packages/abstract-sdk/src/apis/splitter.rs).
+> The code behind this example is available [here](https://github.com/AbstractSDK/abstract/blob/main/packages/abstract-sdk/src/apis/splitter.rs).
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:splitter }}
