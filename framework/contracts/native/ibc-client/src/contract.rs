@@ -890,4 +890,155 @@ mod tests {
             Ok(())
         }
     }
+
+    mod update_config {
+        use std::str::FromStr;
+
+        use super::*;
+        use abstract_core::{
+            ibc_client::state::Config,
+            objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
+        };
+        use abstract_testing::prelude::TEST_VERSION_CONTROL;
+
+        #[test]
+        fn only_admin() -> IbcClientTestResult {
+            test_only_admin(ExecuteMsg::UpdateConfig {
+                version_control: None,
+                ans_host: None,
+            })
+        }
+
+        #[test]
+        fn update_ans_host() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let cfg = Config {
+                version_control: VersionControlContract::new(Addr::unchecked(TEST_VERSION_CONTROL)),
+                ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
+            };
+            CONFIG.save(deps.as_mut().storage, &cfg)?;
+
+            let new_ans_host = "new_ans_host".to_string();
+
+            let msg = ExecuteMsg::UpdateConfig {
+                ans_host: Some(new_ans_host.clone()),
+                version_control: None,
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg)?;
+            assert_that!(res.messages).is_empty();
+
+            let actual = CONFIG.load(deps.as_ref().storage)?;
+            assert_that!(actual.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
+
+            Ok(())
+        }
+
+        #[test]
+        pub fn update_version_control() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let new_version_control = "new_version_control".to_string();
+
+            let msg = ExecuteMsg::UpdateConfig {
+                ans_host: None,
+                version_control: Some(new_version_control.clone()),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg)?;
+            assert_that!(res.messages).is_empty();
+
+            let cfg = CONFIG.load(deps.as_ref().storage)?;
+            assert_that!(cfg.version_control.address)
+                .is_equal_to(Addr::unchecked(new_version_control));
+
+            Ok(())
+        }
+
+        #[test]
+        fn update_version_control_should_clear_accounts() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            ACCOUNTS.save(
+                deps.as_mut().storage,
+                (&TEST_ACCOUNT_ID, &ChainName::from_str("channel")?),
+                &"Some-remote-account".to_string(),
+            )?;
+
+            let new_version_control = "new_version_control".to_string();
+
+            let msg = ExecuteMsg::UpdateConfig {
+                ans_host: None,
+                version_control: Some(new_version_control),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg)?;
+            assert_that!(res.messages).is_empty();
+
+            assert_that!(ACCOUNTS.is_empty(&deps.storage)).is_true();
+
+            Ok(())
+        }
+    }
+
+    mod remove_host {
+        use std::str::FromStr;
+
+        use abstract_core::objects::chain_name::ChainName;
+        use abstract_testing::prelude::TEST_CHAIN;
+
+        use super::*;
+
+        #[test]
+        fn only_admin() -> IbcClientTestResult {
+            test_only_admin(ExecuteMsg::RemoveHost {
+                host_chain: "host-chain".into(),
+            })
+        }
+
+        #[test]
+        fn remove_existing_host() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            IBC_INFRA.save(
+                deps.as_mut().storage,
+                &ChainName::from_str(TEST_CHAIN)?,
+                &IbcInfrastructure {
+                    polytone_note: Addr::unchecked("note"),
+                    remote_abstract_host: "test_remote_host".into(),
+                    remote_proxy: None,
+                },
+            )?;
+
+            let msg = ExecuteMsg::RemoveHost {
+                host_chain: TEST_CHAIN.into(),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg)?;
+            assert_that!(res.messages).is_empty();
+
+            assert_that!(IBC_INFRA.is_empty(&deps.storage)).is_true();
+
+            Ok(())
+        }
+
+        #[test]
+        fn remove_host_nonexistent_should_not_throw() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::RemoveHost {
+                host_chain: TEST_CHAIN.into(),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg)?;
+            assert_that!(res.messages).is_empty();
+
+            Ok(())
+        }
+    }
 }
