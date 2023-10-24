@@ -136,9 +136,12 @@ pub fn try_pay(
         SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
     }
 
-    Ok(Response::new().add_attributes(attrs).add_message(
-        // Send the received asset to the proxy
-        asset.transfer_msg(base_state.proxy_address)?,
+    Ok(app.tag_response(
+        Response::new().add_attributes(attrs).add_message(
+            // Send the received asset to the proxy
+            asset.transfer_msg(base_state.proxy_address)?,
+        ),
+        "pay",
     ))
 }
 
@@ -337,5 +340,5 @@ pub fn update_subscription_config(
 
     SUBSCRIPTION_CONFIG.save(deps.storage, &config)?;
 
-    Ok(Response::new().add_attribute("action", "update_subscriber_config"))
+    Ok(app.tag_response(Response::new(), "update_subscription_config"))
 }
