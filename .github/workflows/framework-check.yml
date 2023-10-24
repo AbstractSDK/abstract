@@ -158,7 +158,7 @@ jobs:
       - name: cargo install cargo-udeps
         uses: taiki-e/install-action@cargo-udeps
       - name: cargo install cargo-workspaces
-        run: cargo install cargo-workspaces
+        run: cargo +stable install cargo-workspaces
       - name: cargo udeps framework
         working-directory: ./framework
         run: cargo workspaces exec cargo +nightly udeps
