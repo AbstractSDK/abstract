@@ -21,7 +21,7 @@ use cw_asset::{AssetInfo, AssetInfoBase, AssetInfoUnchecked};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{coins, Addr, Decimal, Uint128, Uint64};
+use cosmwasm_std::{coins, Addr, Decimal, StdError, Uint128, Uint64};
 
 // consts for testing
 const ADMIN: &str = "admin";
@@ -334,9 +334,12 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
     let emis = Cw20Base::new("abstract:emission_cw20", chain.clone());
 
     subscription_app.claim_emissions(subscriber1.to_string())?;
-    // check balance
-    let balance = emis.balance(subscriber1.to_string())?;
-    assert_eq!(balance.balance, Uint128::one());
+    subscription_app.claim_emissions(subscriber2.to_string())?;
+    // check balances
+    let balance1 = emis.balance(subscriber1.to_string())?;
+    assert_eq!(balance1.balance, Uint128::one());
+    let balance2 = emis.balance(subscriber2.to_string())?;
+    assert_eq!(balance2.balance, Uint128::one());
 
     // wait 20 seconds
     chain.wait_seconds(20)?;
@@ -345,13 +348,183 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
     let balance = emis.balance(subscriber1.to_string())?;
     assert_eq!(balance.balance, Uint128::one());
 
-    // -20 seconds because he claimed nothing last time
-    chain.wait_seconds(WEEK_IN_SECONDS - 20)?;
+    // two weeks -20 seconds because he claimed nothing last time
+    chain.wait_seconds(WEEK_IN_SECONDS * 2 - 20)?;
 
     subscription_app.claim_emissions(subscriber1.to_string())?;
-    // check balance
+    subscription_app.claim_emissions(subscriber2.to_string())?;
+    // check balances
+    let balance1 = emis.balance(subscriber1.to_string())?;
+    assert_eq!(
+        balance1.balance,
+        Uint128::one() + Uint128::one() + Uint128::one()
+    );
+
+    let balance2 = emis.balance(subscriber2.to_string())?;
+    assert_eq!(
+        balance2.balance,
+        Uint128::one() + Uint128::one() + Uint128::one()
+    );
+    Ok(())
+}
+
+#[test]
+fn claim_emissions_none() -> anyhow::Result<()> {
+    let Subscription {
+        chain,
+        account,
+        abstr: _,
+        subscription_app,
+        payment_asset: _,
+    } = setup_native()?;
+
+    let subscriber1 = Addr::unchecked("subscriber1");
+
+    subscription_app
+        .call_as(&account.manager.address()?)
+        .update_subscription_config(None, None, Some(EmissionType::None), None)?;
+    let sub_amount = coins(500, DENOM);
+    chain.set_balances(&[(&subscriber1, &sub_amount)])?;
+
+    // 1 user subscribe
+    subscription_app
+        .call_as(&subscriber1)
+        .pay(None, &sub_amount)?;
+
+    chain.wait_seconds(WEEK_IN_SECONDS)?;
+
+    let err = subscription_app
+        .claim_emissions(subscriber1.to_string())
+        .unwrap_err();
+    let err: SubscriptionError = err.downcast().unwrap();
+    assert_eq!(err, SubscriptionError::SubscriberEmissionsNotEnabled {});
+    Ok(())
+}
+
+#[test]
+fn claim_emissions_week_per_user() -> anyhow::Result<()> {
+    let Subscription {
+        chain,
+        account,
+        abstr: _,
+        subscription_app,
+        payment_asset: _,
+    } = setup_native()?;
+
+    let subscriber1 = Addr::unchecked("subscriber1");
+    let subscriber2 = Addr::unchecked("subscriber2");
+
+    let emis = Cw20Base::new("abstract:emission_cw20", chain.clone());
+
+    subscription_app
+        .call_as(&account.manager.address()?)
+        .update_subscription_config(
+            None,
+            None,
+            Some(EmissionType::WeekPerUser(
+                Decimal::one(),
+                AssetInfoBase::Cw20(emis.addr_str()?),
+            )),
+            None,
+        )?;
+
+    let sub_amount = coins(500, DENOM);
+    chain.set_balances(&[(&subscriber1, &sub_amount), (&subscriber2, &sub_amount)])?;
+
+    // 2 users subscribe
+    subscription_app
+        .call_as(&subscriber1)
+        .pay(None, &sub_amount)?;
+    subscription_app
+        .call_as(&subscriber2)
+        .pay(None, &sub_amount)?;
+
+    chain.wait_seconds(WEEK_IN_SECONDS)?;
+
+    let emis = Cw20Base::new("abstract:emission_cw20", chain.clone());
+
+    // Both users claim emissions
+    subscription_app.claim_emissions(subscriber1.to_string())?;
+    subscription_app.claim_emissions(subscriber2.to_string())?;
+
+    // check balance of user1
+    let balance1 = emis.balance(subscriber1.to_string())?;
+    assert_eq!(balance1.balance, Uint128::one());
+
+    // check balance of user2
+    let balance2 = emis.balance(subscriber2.to_string())?;
+    assert_eq!(balance2.balance, Uint128::one());
+
+    // wait 20 seconds
+    chain.wait_seconds(20)?;
+    // no double-claims
+    subscription_app.claim_emissions(subscriber1.to_string())?;
     let balance = emis.balance(subscriber1.to_string())?;
-    assert_eq!(balance.balance, Uint128::one() + Uint128::one());
+    assert_eq!(balance.balance, Uint128::one());
+
+    // two weeks -20 seconds because he claimed nothing last time
+    chain.wait_seconds(WEEK_IN_SECONDS * 2 - 20)?;
+
+    subscription_app.claim_emissions(subscriber1.to_string())?;
+    subscription_app.claim_emissions(subscriber2.to_string())?;
+
+    // check balances
+    let balance1 = emis.balance(subscriber1.to_string())?;
+    assert_eq!(
+        balance1.balance,
+        // tree weeks in total
+        Uint128::one() + Uint128::one() + Uint128::one()
+    );
+    let balance2 = emis.balance(subscriber2.to_string())?;
+    assert_eq!(
+        balance2.balance,
+        Uint128::one() + Uint128::one() + Uint128::one()
+    );
+
+    Ok(())
+}
+
+#[test]
+fn claim_emissions_errors() -> anyhow::Result<()> {
+    let Subscription {
+        chain,
+        account: _account,
+        abstr: _,
+        subscription_app,
+        payment_asset: _,
+    } = setup_native()?;
+
+    let subscriber1 = Addr::unchecked("subscriber1");
+
+    let sub_amount = coins(500, DENOM);
+    chain.set_balances(&[(&subscriber1, &sub_amount)])?;
+
+    // no subs
+
+    let err = subscription_app
+        .claim_emissions(subscriber1.to_string())
+        .unwrap_err();
+    let err: SubscriptionError = err.downcast().unwrap();
+    assert!(matches!(
+        err,
+        // can't load subscriber
+        SubscriptionError::Std(StdError::NotFound { .. })
+    ));
+
+    subscription_app
+        .call_as(&subscriber1)
+        .pay(None, &sub_amount)?;
+
+    chain.wait_seconds(WEEK_IN_SECONDS)?;
+
+    // double-claim
+    subscription_app.claim_emissions(subscriber1.to_string())?;
+    let err = subscription_app
+        .claim_emissions(subscriber1.to_string())
+        .unwrap_err();
+    let err: SubscriptionError = err.downcast().unwrap();
+
+    assert_eq!(err, SubscriptionError::EmissionsAlreadyClaimed {});
     Ok(())
 }
 
