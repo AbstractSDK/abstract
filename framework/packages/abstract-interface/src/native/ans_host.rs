@@ -8,6 +8,8 @@ use abstract_core::{
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
+#[allow(unused)]
+pub use abstract_core::ans_host::ExecuteMsgFns;
 
 use cw_orch::{interface, prelude::*, state::ChainState};
 use serde_json::from_reader;

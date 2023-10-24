@@ -17,10 +17,10 @@ impl Identify for Kujira {
 
 #[cfg(feature = "full_integration")]
 use ::{
-    abstract_core::objects::PoolAddress,
     abstract_dex_standard::{
         coins_in_assets, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
+    abstract_sdk::core::objects::PoolAddress,
     abstract_sdk::cw_helpers::wasm_smart_query,
     cosmwasm_std::{
         wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult,

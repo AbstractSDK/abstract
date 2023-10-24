@@ -2,7 +2,6 @@
 members = [
   "contracts/apps/*",
   "contracts/adapters/*",
-  "packages/bundles/wyndex",
   "scripts",
 ]
 
@@ -67,17 +66,13 @@ abstract-adapter-utils = { version = "0.19.2" }
 abstract-dex-standard = { version = "0.19.2" }
 abstract-staking-standard = { version = "0.19.2" }
 
-# Juno dexes #
-abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
-# Osmosis #
+# Integrations
+abstract-wyndex-adapter = { path = "../integrations/wyndex-adapter", default-features = false }
 abstract-osmosis-adapter = { path = "../integrations/osmosis-adapter", default-features = false }
-# Terra #
-abstract-astroport-adapter = { path = "../integrations/astroport/packages/abstract-adapter", default-features = false }
+abstract-astroport-adapter = { path = "../integrations/astroport-adapter", default-features = false }
+abstract-kujira-adapter = { path = "../integrations/kujira-adapter", default-features = false }
 
-# Kujira #
-abstract-kujira-adapter = { path = "../integrations/kujira/packages/abstract-adapter", default-features = false }
-
-wyndex-bundle = { path = "./packages/bundles/wyndex" }
+wyndex-bundle = { path = "../integrations/bundles/wyndex" }
 
 ## Apps
 croncat-app = { path = "./contracts/apps/croncat" }

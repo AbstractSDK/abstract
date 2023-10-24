@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
 use crate::error::AppError;
+use abstract_core::objects::AnsAsset;
 use abstract_core::objects::voting::{ProposalId, ProposalInfo, ProposalOutcome, Vote};
-use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
 use abstract_sdk::{AbstractSdkResult, AccountVerification, Execution, TransferInterface};
 use cosmwasm_std::{
@@ -387,7 +387,7 @@ fn charge_penalty(
         crate::state::StrikeStrategy::PerFriend(amount) => (amount, 0),
     };
 
-    let asset_per_friend = OfferAsset {
+    let asset_per_friend = AnsAsset {
         name: challenge.strike_asset,
         amount: amount_per_friend,
     };

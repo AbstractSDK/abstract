@@ -24,86 +24,41 @@ keywords = ["cosmos", "cosmwasm", "framework"]
 [workspace.dependencies]
 cosmwasm-std = { version = "1.2" }
 cosmwasm-schema = { version = "1.2" }
-cw-controllers = { version = "1.0" }
-cw-utils = { version = "1.0" }
-cw-storage-plus = "~1.1"
+cw-storage-plus = "1.1"
 cw2 = { version = "1.0" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", tag = "v1.1.1" }
 cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", features = [
   "library",
 ], tag = "v1.1.1" }
 cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "0.1.0", tag = "v1.1.1" }
-
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", tag = "v1.1.1" }
-
-cw-asset = { version = "3.0" }
+cw-utils = "1.0"
+cw-controllers = "1.1"
 cw-ownable = { version = "0.5" }
 cw-address-like = { version = "1.0" }
+cw-asset = { version = "3.0" }
+cw-semver = { version = "1.0" }
+cw-orch = { version = "0.16.4" }
+
+anyhow = "1.0"
 
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.50" }
 protobuf = { version = "2", features = ["with-bytes"] }
-
 chrono = { version = "0.4.31", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
-cw-semver = { version = "1.0" }
-cw-orch = { version = "0.16.4" }
-tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
 abstract-interface = { version = "0.19.2" }
 abstract-adapter = { version = "0.19.2" }
-abstract-app = { version = "0.19.2" }
 abstract-sdk = { version = "0.19.2" }
-abstract-testing = { version = "0.19.2" }
 abstract-core = { version = "0.19.2" }
-abstract-macros = { version = "0.19.2" }
-abstract-ica = { version = "0.19.2" }
 
 abstract-adapter-utils = { version = "0.19.2" }
 abstract-dex-standard = { version = "0.19.2" }
 abstract-staking-standard = { version = "0.19.2" }
-
-# Juno dexes #
-abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
-# Osmosis #
-abstract-osmosis-adapter = { path = "../integrations/osmosis-adapter", default-features = false }
-# Terra #
-abstract-astroport-adapter = { path = "../integrations/astroport/packages/abstract-adapter", default-features = false }
-
-# Kujira #
-abstract-kujira-adapter = { path = "../integrations/kujira/packages/abstract-adapter", default-features = false }
-
-wyndex-bundle = { path = "./packages/bundles/wyndex" }
-
-## Apps
-croncat-app = { path = "./contracts/apps/croncat" }
-challenge-app = { path = "./contracts/apps/challenge" }
-etf-app = { path = "./contracts/apps/etf" }
-dca-app = { path = "./contracts/apps/dca" }
-abstract-cw-staking = { path = "./contracts/adapters/cw-staking" }
-abstract-dex-adapter = { path = "./contracts/adapters/dex" }
-
-## Testing
-rstest = "0.17.0"
-speculoos = "0.11.0"
-anyhow = "1"
-cw-multi-test = { package = "abstract-cw-multi-test", version = "0.16.5" }
-
-# this ensures local compatability when compiling locally
-[patch.crates-io]
-abstract-adapter = { path = "../framework/packages/abstract-adapter" }
-abstract-app = { path = "../framework/packages/abstract-app" }
-abstract-interface = { path = "../framework/packages/abstract-interface" }
-abstract-sdk = { path = "../framework/packages/abstract-sdk" }
-abstract-testing = { path = "../framework/packages/abstract-testing" }
-abstract-core = { path = "../framework/packages/abstract-core" }
-abstract-macros = { path = "../framework/packages/abstract-macros" }
-abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
-abstract-dex-standard = { path = "../framework/packages/standards/dex" }
-abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
