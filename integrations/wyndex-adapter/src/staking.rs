@@ -45,7 +45,6 @@ use {
     cw_utils::Duration,
     wyndex_stake::msg::DistributionDataResponse,
     wyndex_stake::msg::ReceiveDelegationMsg,
-    wyndex_stake::msg::ReceiveDelegationMsg,
     wyndex_stake::{
         msg::{BondingInfoResponse, ExecuteMsg as StakeCw20ExecuteMsg},
         state::{BondingInfo, STAKE},
