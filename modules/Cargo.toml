@@ -18,7 +18,7 @@ authors = [
 edition = "2021"
 homepage = "https://abstract.money"
 documentation = "https://docs.abstract.money/"
-repository = "https://github.com/AbstractSDK/contracts"
+repository = "https://github.com/AbstractSDK/abstract"
 license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
