@@ -112,6 +112,7 @@ fn setup_cw20() -> anyhow::Result<Subscription> {
             subscription_per_week_emissions: EmissionType::None,
             // 3 days
             income_averaging_period: INCOME_AVERAGING_PERIOD,
+            unsubscription_hook_addr: None,
         },
         None,
     )?;
@@ -159,6 +160,7 @@ fn setup_native() -> anyhow::Result<Subscription> {
                 AssetInfoBase::Cw20(emissions.addr_str()?),
             ),
             income_averaging_period: INCOME_AVERAGING_PERIOD,
+            unsubscription_hook_addr: None,
         },
         None,
     )?;
@@ -197,6 +199,7 @@ fn successful_install() -> anyhow::Result<()> {
                 Decimal::from_str("2.0")?,
                 AssetInfoBase::Cw20(addr)
             ),
+            unsubscription_hook_addr: None
         }
     );
 
@@ -216,6 +219,7 @@ fn successful_install() -> anyhow::Result<()> {
             payment_asset,
             subscription_cost_per_week: Decimal::from_str("0.1")?,
             subscription_per_week_emissions: EmissionType::None,
+            unsubscription_hook_addr: None
         }
     );
     Ok(())
@@ -250,10 +254,10 @@ fn subscribe() -> anyhow::Result<()> {
     // 2 people subscribe
     subscription_app
         .call_as(&subscriber1)
-        .pay(None, None, &sub_amount)?;
+        .pay(None, &sub_amount)?;
     subscription_app
         .call_as(&subscriber2)
-        .pay(None, None, &sub_amount)?;
+        .pay(None, &sub_amount)?;
     let twa = query_twa(&chain, subscription_addr.clone());
     // No income yet
     assert_eq!(twa.cumulative_value, 0);
@@ -264,7 +268,7 @@ fn subscribe() -> anyhow::Result<()> {
     // Third user subscribes
     subscription_app
         .call_as(&subscriber3)
-        .pay(None, None, &sub_amount)?;
+        .pay(None, &sub_amount)?;
     // refresh twa
     subscription_app.refresh_twa()?;
     // It should contain income of previous 2 subscribers
@@ -288,7 +292,7 @@ fn subscribe() -> anyhow::Result<()> {
     // Fourth user subscribes
     subscription_app
         .call_as(&subscriber4)
-        .pay(None, None, &sub_amount)?;
+        .pay(None, &sub_amount)?;
     // two subscribers were subbed for two periods
     let first_two_subs =
         Decimal::from_str("0.2")? * Uint128::from(INCOME_AVERAGING_PERIOD * Uint64::new(2));
@@ -323,10 +327,10 @@ fn claim_emissions() -> anyhow::Result<()> {
     // 2 users subscribe
     subscription_app
         .call_as(&subscriber1)
-        .pay(None, None, &sub_amount)?;
+        .pay(None, &sub_amount)?;
     subscription_app
         .call_as(&subscriber2)
-        .pay(None, None, &sub_amount)?;
+        .pay(None, &sub_amount)?;
 
     chain.wait_seconds(WEEK_IN_SECONDS)?;
 
@@ -373,7 +377,7 @@ fn unsubscribe() -> anyhow::Result<()> {
 
     subscription_app
         .call_as(&subscriber1)
-        .pay(None, None, &sub_amount)?;
+        .pay(None, &sub_amount)?;
 
     let subscriber = subscription_app.subscriber(subscriber1.to_string())?;
 
@@ -385,7 +389,6 @@ fn unsubscribe() -> anyhow::Result<()> {
             subscriber_details: Some(Subscriber {
                 expiration_timestamp: current_time.plus_seconds(WEEK_IN_SECONDS * 10),
                 last_emission_claim_timestamp: current_time,
-                unsubscribe_hook_addr: None
             })
         }
     );
@@ -404,7 +407,6 @@ fn unsubscribe() -> anyhow::Result<()> {
             subscriber_details: Some(Subscriber {
                 expiration_timestamp: current_time,
                 last_emission_claim_timestamp: current_time,
-                unsubscribe_hook_addr: None
             })
         }
     );
@@ -429,10 +431,10 @@ fn unsubscribe() -> anyhow::Result<()> {
     ])?;
     subscription_app
         .call_as(&subscriber1)
-        .pay(None, None, &coins(10, DENOM))?;
+        .pay(None, &coins(10, DENOM))?;
     subscription_app
         .call_as(&subscriber2)
-        .pay(None, None, &coins(1, DENOM))?;
+        .pay(None, &coins(1, DENOM))?;
 
     // 1 out of 10 weeks wait
     chain.wait_seconds(WEEK_IN_SECONDS * 1)?;
@@ -459,7 +461,6 @@ fn unsubscribe() -> anyhow::Result<()> {
             subscriber_details: Some(Subscriber {
                 expiration_timestamp: current_time,
                 last_emission_claim_timestamp: current_time,
-                unsubscribe_hook_addr: None
             })
         }
     );
@@ -476,7 +477,6 @@ fn unsubscribe() -> anyhow::Result<()> {
                 expiration_timestamp: current_time.plus_seconds(WEEK_IN_SECONDS * 90),
                 // 10 weeks ago subbed, and unsub of other user didn't affect this user
                 last_emission_claim_timestamp: current_time.minus_seconds(WEEK_IN_SECONDS * 10),
-                unsubscribe_hook_addr: None
             })
         }
     );

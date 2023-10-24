@@ -73,6 +73,7 @@ pub mod interface {
                     //     emissions_amp_factor: Uint128::new(680000),
                     //     emissions_offset: Uint128::new(5200),
                     // }),
+                    unsubscription_hook_addr: None,
                 },
             }
         }

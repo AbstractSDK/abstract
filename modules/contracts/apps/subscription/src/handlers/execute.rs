@@ -6,9 +6,7 @@ use crate::state::{
 };
 use crate::{SubscriptionError, DURATION_IN_WEEKS, WEEK_IN_SECONDS};
 use abstract_sdk::{AbstractResponse, Execution, ExecutorMsg, TransferInterface};
-use cosmwasm_std::{
-    Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
-};
+use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 pub fn execute_handler(
@@ -19,25 +17,14 @@ pub fn execute_handler(
     msg: SubscriptionExecuteMsg,
 ) -> SubscriptionResult {
     match msg {
-        SubscriptionExecuteMsg::Pay {
-            subscriber_addr,
-            unsubscribe_hook_addr,
-        } => {
+        SubscriptionExecuteMsg::Pay { subscriber_addr } => {
             let maybe_received_coin = info.funds.last();
             let subscriber_addr = subscriber_addr
                 .map(|human| deps.api.addr_validate(&human))
                 .transpose()?
                 .unwrap_or(info.sender.clone());
             if let Some(coin) = maybe_received_coin.cloned() {
-                try_pay(
-                    app,
-                    deps,
-                    env,
-                    info,
-                    Asset::from(coin),
-                    subscriber_addr,
-                    unsubscribe_hook_addr,
-                )
+                try_pay(app, deps, env, info, Asset::from(coin), subscriber_addr)
             } else {
                 Err(SubscriptionError::NotUsingCW20Hook {})
             }
@@ -52,6 +39,7 @@ pub fn execute_handler(
             payment_asset,
             subscription_cost_per_week: subscription_cost,
             subscription_per_week_emissions,
+            unsubscription_hook_addr,
         } => update_subscription_config(
             deps,
             env,
@@ -60,6 +48,7 @@ pub fn execute_handler(
             payment_asset,
             subscription_cost,
             subscription_per_week_emissions,
+            unsubscription_hook_addr,
         ),
         SubscriptionExecuteMsg::RefreshTWA {} => {
             INCOME_TWA.try_update_value(&env, deps.storage)?;
@@ -67,10 +56,6 @@ pub fn execute_handler(
         }
     }
 }
-
-// ############
-//  SUBSCRIPTION
-// ############
 
 /// Called when either paying with a native token or through the receive_cw20 endpoint when paying
 /// with a CW20.
@@ -81,11 +66,7 @@ pub fn try_pay(
     _msg_info: MessageInfo,
     asset: Asset,
     subscriber_addr: Addr,
-    unsubscribe_hook_addr: Option<String>,
 ) -> SubscriptionResult {
-    let unsubscribe_hook_addr = unsubscribe_hook_addr
-        .map(|human| deps.api.addr_validate(&human))
-        .transpose()?;
     // Load all needed states
     let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let base_state = app.load_state(deps.storage)?;
@@ -116,9 +97,6 @@ pub fn try_pay(
     if let Some(mut active_sub) = maybe_subscriber {
         // Subscriber is active, update balance
         active_sub.expiration_timestamp = active_sub.expiration_timestamp.plus_days(paid_for_days);
-        if let Some(new_hook_addr) = unsubscribe_hook_addr {
-            active_sub.unsubscribe_hook_addr = Some(new_hook_addr);
-        }
         SUBSCRIBERS.save(deps.storage, &subscriber_addr, &active_sub)?;
     } else {
         // Subscriber is (re)activating his subscription.
@@ -134,10 +112,6 @@ pub fn try_pay(
             EXPIRED_SUBSCRIBERS.remove(deps.storage, &subscriber_addr);
             old_client.expiration_timestamp = env.block.time.plus_days(paid_for_days);
             old_client.last_emission_claim_timestamp = env.block.time;
-            // Update hook addr if required
-            if let Some(new_hook_addr) = unsubscribe_hook_addr {
-                old_client.unsubscribe_hook_addr = Some(new_hook_addr);
-            }
             SUBSCRIBERS.save(deps.storage, &subscriber_addr, &old_client)?;
             return Ok(Response::new().add_attributes(attrs).add_message(
                 // Send the received asset to the proxy
@@ -148,7 +122,6 @@ pub fn try_pay(
             let new_sub = Subscriber {
                 expiration_timestamp: env.block.time.plus_days(paid_for_days),
                 last_emission_claim_timestamp: env.block.time,
-                unsubscribe_hook_addr,
             };
             SUBSCRIBERS.save(deps.storage, &subscriber_addr, &new_sub)?;
         }
@@ -183,7 +156,6 @@ pub fn unsubscribe(
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let mut unsubscribed_addrs: Vec<String> = vec![];
     let mut claim_msgs: Vec<ExecutorMsg> = vec![];
-    let mut unsub_hook_addrs: Vec<Addr> = vec![];
 
     // update income
     INCOME_TWA.accumulate(
@@ -214,9 +186,6 @@ pub fn unsubscribe(
             if let Some(msg) = maybe_claim_msg {
                 claim_msgs.push(msg)
             }
-            if let Some(unsub_hook_addr) = subscriber.unsubscribe_hook_addr {
-                unsub_hook_addrs.push(unsub_hook_addr)
-            }
         }
     }
 
@@ -224,21 +193,21 @@ pub fn unsubscribe(
     if unsubscribed_addrs.is_empty() {
         return Err(SubscriptionError::NoOneUnsubbed {});
     }
-    let unsub_hook_msgs = unsub_hook_addrs
-        .into_iter()
-        .map(|hook| {
-            UnsubscribedHookMsg {
-                unsubscribed: unsubscribed_addrs.clone(),
-            }
-            .into_cosmos_msg(hook)
-        })
-        .collect::<StdResult<Vec<CosmosMsg>>>()?;
 
+    // update subscription count
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
 
-    Ok(Response::new()
-        .add_messages(claim_msgs)
-        .add_messages(unsub_hook_msgs))
+    let mut response = app.tag_response(Response::new().add_messages(claim_msgs), "unsubscribe");
+
+    if let Some(hook) = subscription_config.unsubscription_hook_addr {
+        let msg = UnsubscribedHookMsg {
+            unsubscribed: unsubscribed_addrs.clone(),
+        }
+        .into_cosmos_msg(hook)?;
+        response = response.add_message(msg);
+    }
+
+    Ok(response)
 }
 
 // Claim emissions
@@ -343,6 +312,7 @@ pub fn update_subscription_config(
     payment_asset: Option<AssetInfoUnchecked>,
     subscription_cost_per_week: Option<Decimal>,
     subscription_per_week_emissions: Option<EmissionType<String>>,
+    unsubscription_hook_addr: Option<String>,
 ) -> SubscriptionResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -359,6 +329,10 @@ pub fn update_subscription_config(
 
     if let Some(subscription_per_week_emissions) = subscription_per_week_emissions {
         config.subscription_per_week_emissions = subscription_per_week_emissions.check(deps.api)?;
+    }
+
+    if let Some(human) = unsubscription_hook_addr {
+        config.unsubscription_hook_addr = Some(deps.api.addr_validate(&human)?);
     }
 
     SUBSCRIPTION_CONFIG.save(deps.storage, &config)?;

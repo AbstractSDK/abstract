@@ -4,8 +4,6 @@ use cw_address_like::AddressLike;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_storage_plus::{Item, Map};
 
-// #### SUBSCRIPTION SECTION ####
-
 /// Setting for protocol token emissions
 #[cosmwasm_schema::cw_serde]
 pub enum EmissionType<T: AddressLike> {
@@ -44,6 +42,8 @@ pub struct SubscriptionConfig {
     pub subscription_cost_per_week: Decimal,
     /// Subscription emissions per week
     pub subscription_per_week_emissions: EmissionType<Addr>,
+    /// Unsubscription hook addr
+    pub unsubscription_hook_addr: Option<Addr>,
 }
 
 /// Keeps track of the active subscribers.
@@ -62,8 +62,6 @@ pub struct Subscriber {
     pub expiration_timestamp: Timestamp,
     /// last time emissions were claimed
     pub last_emission_claim_timestamp: Timestamp,
-    /// Addr to send [unsubscribe message](`crate::msg::UnsubscribedHookMsg`)
-    pub unsubscribe_hook_addr: Option<Addr>,
 }
 
 /// Average number of subscribers

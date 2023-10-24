@@ -55,6 +55,8 @@ pub struct SubscriptionInstantiateMsg {
     pub subscription_per_week_emissions: EmissionType<String>,
     /// How often update income average
     pub income_averaging_period: Uint64,
+    /// Unsubscription hook addr to send [unsubscribe message](`crate::msg::UnsubscribedHookMsg`)
+    pub unsubscription_hook_addr: Option<String>,
 }
 
 /// App execution messages
@@ -72,8 +74,6 @@ pub enum SubscriptionExecuteMsg {
         /// Address of new subscriber
         /// defaults to the sender
         subscriber_addr: Option<String>,
-        /// Addr to send unsubscribe hook message
-        unsubscribe_hook_addr: Option<String>,
     },
     /// Unsubscribe inactive accounts
     Unsubscribe {
@@ -93,6 +93,9 @@ pub enum SubscriptionExecuteMsg {
         subscription_cost_per_week: Option<Decimal>,
         /// Subscription emissions per week
         subscription_per_week_emissions: Option<EmissionType<String>>,
+        /// New unsubscription hook addr
+        /// TODO: do we need to have option to disable it?
+        unsubscription_hook_addr: Option<String>,
     },
     /// Refresh TWA value
     RefreshTWA {},
@@ -142,8 +145,6 @@ pub enum DepositHookMsg {
         /// Subscriber Addr
         /// defaults to the sender
         subscriber_addr: Option<String>,
-        /// Addr to send unsubscribe hook message
-        unsubscribe_hook_addr: Option<String>,
     },
 }
 
