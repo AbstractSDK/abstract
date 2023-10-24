@@ -193,6 +193,7 @@ pub enum ExecuteMsg {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
     /// Creates a sub-account on the account
+    #[cfg_attr(feature = "interface", payable)]
     CreateSubAccount {
         // Name of the sub-account
         name: String,
