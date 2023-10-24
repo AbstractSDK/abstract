@@ -1041,4 +1041,385 @@ mod tests {
             Ok(())
         }
     }
+
+    mod callback {
+        use abstract_core::{
+            ibc::{CallbackInfo, IbcResponseMsg},
+            objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
+        };
+        use abstract_testing::prelude::TEST_CHAIN;
+        use cosmwasm_std::{Binary, Event, SubMsgResponse};
+        use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
+        use std::str::FromStr;
+
+        use super::*;
+
+        #[test]
+        fn invalid_initiator() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let note = Addr::unchecked("note");
+            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+
+            let msg = ExecuteMsg::Callback(CallbackMessage {
+                initiator: Addr::unchecked("invalid_initiator"),
+                initiator_msg: Binary(vec![]),
+                result: Callback::Execute(Ok(ExecutionResponse {
+                    executed_by: String::from("addr"),
+                    result: vec![],
+                })),
+            });
+
+            let res = execute_as(deps.as_mut(), note.as_ref(), msg);
+
+            assert_that!(&res)
+                .is_err()
+                .matches(|e| matches!(e, IbcClientError::Unauthorized { .. }));
+
+            Ok(())
+        }
+
+        #[test]
+        fn caller_not_note() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let note = Addr::unchecked("note");
+            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+
+            let msg = ExecuteMsg::Callback(CallbackMessage {
+                initiator: Addr::unchecked("invalid_initiator"),
+                initiator_msg: Binary(vec![]),
+                result: Callback::Execute(Ok(ExecutionResponse {
+                    executed_by: String::from("addr"),
+                    result: vec![],
+                })),
+            });
+
+            let res = execute_as(deps.as_mut(), "not_note", msg);
+
+            assert_that!(&res)
+                .is_err()
+                .matches(|e| matches!(e, IbcClientError::Unauthorized { .. }));
+
+            Ok(())
+        }
+
+        #[test]
+        fn who_am_i_unregistered_chain() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let env = mock_env();
+
+            let note = Addr::unchecked("note");
+            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+
+            let msg = ExecuteMsg::Callback(CallbackMessage {
+                initiator: env.contract.address,
+                initiator_msg: to_binary(&IbcClientCallback::WhoAmI {})?,
+                result: Callback::Execute(Ok(ExecutionResponse {
+                    executed_by: String::from("addr"),
+                    result: vec![],
+                })),
+            });
+
+            let res = execute_as(deps.as_mut(), note.as_ref(), msg);
+
+            assert_that!(&res)
+                .is_err()
+                .matches(|e| matches!(e, IbcClientError::UnregisteredChain { .. }));
+
+            Ok(())
+        }
+
+        #[test]
+        fn who_am_i_fatal_error() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let env = mock_env();
+
+            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let note = Addr::unchecked("note");
+            let remote_ibc_host = String::from("test_remote_host");
+
+            IBC_INFRA.save(
+                deps.as_mut().storage,
+                &chain_name,
+                &IbcInfrastructure {
+                    polytone_note: note.clone(),
+                    remote_abstract_host: remote_ibc_host.clone(),
+                    remote_proxy: None,
+                },
+            )?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            let callback_msg = CallbackMessage {
+                initiator: env.contract.address,
+                initiator_msg: to_binary(&IbcClientCallback::WhoAmI {})?,
+                result: Callback::FatalError(String::from("error")),
+            };
+
+            let msg = ExecuteMsg::Callback(callback_msg.clone());
+
+            let res = execute_as(deps.as_mut(), note.as_ref(), msg);
+
+            assert_that!(&res)
+                .is_err()
+                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+
+            Ok(())
+        }
+
+        #[test]
+        fn who_am_i_success() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let env = mock_env();
+
+            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let note = Addr::unchecked("note");
+            let remote_ibc_host = String::from("test_remote_host");
+
+            IBC_INFRA.save(
+                deps.as_mut().storage,
+                &chain_name,
+                &IbcInfrastructure {
+                    polytone_note: note.clone(),
+                    remote_abstract_host: remote_ibc_host.clone(),
+                    remote_proxy: None,
+                },
+            )?;
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+
+            let remote_proxy = String::from("remote_proxy");
+
+            let msg = ExecuteMsg::Callback(CallbackMessage {
+                initiator: env.contract.address,
+                initiator_msg: to_binary(&IbcClientCallback::WhoAmI {})?,
+                result: Callback::Execute(Ok(ExecutionResponse {
+                    executed_by: remote_proxy.clone(),
+                    result: vec![],
+                })),
+            });
+
+            let res = execute_as(deps.as_mut(), note.as_ref(), msg)?;
+
+            assert_eq!(
+                IbcClientResponse::action("register_remote_proxy")
+                    .add_attribute("chain", chain_name.to_string()),
+                res
+            );
+
+            let updated_ibc_infra = IBC_INFRA.load(deps.as_ref().storage, &chain_name)?;
+
+            assert_eq!(
+                IbcInfrastructure {
+                    polytone_note: note.clone(),
+                    remote_abstract_host: remote_ibc_host.clone(),
+                    remote_proxy: Some(remote_proxy),
+                },
+                updated_ibc_infra
+            );
+
+            Ok(())
+        }
+
+        #[test]
+        fn create_account_fatal_error() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let env = mock_env();
+
+            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let note = Addr::unchecked("note");
+
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            let callback_msg = CallbackMessage {
+                initiator: env.contract.address,
+                initiator_msg: to_binary(&IbcClientCallback::CreateAccount {
+                    account_id: TEST_ACCOUNT_ID,
+                })?,
+                result: Callback::FatalError(String::from("error")),
+            };
+
+            let msg = ExecuteMsg::Callback(callback_msg.clone());
+
+            let res = execute_as(deps.as_mut(), note.as_ref(), msg);
+
+            assert_that!(&res)
+                .is_err()
+                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+
+            Ok(())
+        }
+
+        #[test]
+        fn create_account_missing_wasm_event() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let env = mock_env();
+
+            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let note = Addr::unchecked("note");
+            let remote_proxy = String::from("remote_proxy");
+
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            let callback_msg = CallbackMessage {
+                initiator: env.contract.address,
+                initiator_msg: to_binary(&IbcClientCallback::CreateAccount {
+                    account_id: TEST_ACCOUNT_ID,
+                })?,
+                result: Callback::Execute(Ok(ExecutionResponse {
+                    executed_by: remote_proxy.clone(),
+                    result: vec![SubMsgResponse {
+                        events: vec![],
+                        data: None,
+                    }],
+                })),
+            };
+
+            let msg = ExecuteMsg::Callback(callback_msg.clone());
+
+            let res = execute_as(deps.as_mut(), note.as_ref(), msg);
+
+            assert_that!(&res)
+                .is_err()
+                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+
+            Ok(())
+        }
+
+        #[test]
+        fn create_account_missing_proxy_address_attribute() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let env = mock_env();
+
+            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let note = Addr::unchecked("note");
+            let remote_proxy = String::from("remote_proxy");
+
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            let callback_msg = CallbackMessage {
+                initiator: env.contract.address,
+                initiator_msg: to_binary(&IbcClientCallback::CreateAccount {
+                    account_id: TEST_ACCOUNT_ID,
+                })?,
+                result: Callback::Execute(Ok(ExecutionResponse {
+                    executed_by: remote_proxy.clone(),
+                    result: vec![SubMsgResponse {
+                        events: vec![Event::new(String::from("wasm"))],
+                        data: None,
+                    }],
+                })),
+            };
+
+            let msg = ExecuteMsg::Callback(callback_msg.clone());
+
+            let res = execute_as(deps.as_mut(), note.as_ref(), msg);
+
+            assert_that!(&res)
+                .is_err()
+                .matches(|e| matches!(e, IbcClientError::IbcFailed(_callback_msg)));
+
+            Ok(())
+        }
+
+        #[test]
+        fn create_account_success() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let env = mock_env();
+
+            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let note = Addr::unchecked("note");
+            let remote_proxy = String::from("remote_proxy");
+
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            let callback_msg = CallbackMessage {
+                initiator: env.contract.address,
+                initiator_msg: to_binary(&IbcClientCallback::CreateAccount {
+                    account_id: TEST_ACCOUNT_ID,
+                })?,
+                result: Callback::Execute(Ok(ExecutionResponse {
+                    executed_by: remote_proxy.clone(),
+                    result: vec![SubMsgResponse {
+                        events: vec![Event::new(String::from("wasm"))
+                            .add_attribute("action", "create_proxy")
+                            .add_attribute("proxy_address", remote_proxy.clone())],
+                        data: None,
+                    }],
+                })),
+            };
+
+            let msg = ExecuteMsg::Callback(callback_msg.clone());
+
+            let res = execute_as(deps.as_mut(), note.as_ref(), msg)?;
+
+            assert_eq!(
+                IbcClientResponse::action("acknowledge_remote_account_registration")
+                    .add_attribute("account_id", TEST_ACCOUNT_ID.to_string())
+                    .add_attribute("chain", chain_name.to_string()),
+                res
+            );
+
+            let saved_account =
+                ACCOUNTS.load(deps.as_ref().storage, (&TEST_ACCOUNT_ID, &chain_name))?;
+
+            assert_eq!(remote_proxy, saved_account);
+
+            Ok(())
+        }
+
+        #[test]
+        fn user_remote_action() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let env = mock_env();
+
+            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let note = Addr::unchecked("note");
+            let remote_proxy = String::from("remote_proxy");
+
+            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
+            let id = String::from("id");
+            let callback_info_msg = Binary(vec![]);
+            let receiver = String::from("receiver");
+            let callback_msg = CallbackMessage {
+                initiator: env.contract.address,
+                initiator_msg: to_binary(&IbcClientCallback::UserRemoteAction(CallbackInfo {
+                    id: id.clone(),
+                    msg: Some(callback_info_msg.clone()),
+                    receiver: receiver.clone(),
+                }))?,
+                result: Callback::Execute(Ok(ExecutionResponse {
+                    executed_by: remote_proxy.clone(),
+                    result: vec![],
+                })),
+            };
+            let msg = ExecuteMsg::Callback(callback_msg.clone());
+
+            let res = execute_as(deps.as_mut(), note.as_ref(), msg)?;
+
+            assert_eq!(
+                IbcClientResponse::action("user_specific_callback")
+                    .add_message(
+                        IbcResponseMsg {
+                            id: id.clone(),
+                            msg: Some(callback_info_msg),
+                            result: callback_msg.result,
+                        }
+                        .into_cosmos_msg(receiver)?
+                    )
+                    .add_attribute("chain", chain_name.to_string())
+                    .add_attribute("callback_id", id),
+                res
+            );
+
+            Ok(())
+        }
+    }
 }
