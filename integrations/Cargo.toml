@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "astroport-adapter",
+  "astrovault-adapter",
   "bundles/*",
   "osmosis-adapter",
   "wyndex-adapter",
