@@ -5,11 +5,11 @@ use crate::state::{
     INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
 use crate::{SubscriptionError, DURATION_IN_WEEKS, WEEK_IN_SECONDS};
-use abstract_sdk::{AbstractResponse, Execution, ExecutorMsg, TransferInterface};
+use abstract_sdk::{AbstractResponse, AccountAction, Execution, TransferInterface};
 use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
-pub(crate) const MAX_UNSUBS: usize = 5;
+pub(crate) const MAX_UNSUBS: usize = 15;
 
 pub fn execute_handler(
     mut deps: DepsMut,
@@ -26,7 +26,7 @@ pub fn execute_handler(
                 .transpose()?
                 .unwrap_or(info.sender.clone());
             if let Some(coin) = maybe_received_coin.cloned() {
-                try_pay(app, deps, env, info, Asset::from(coin), subscriber_addr)
+                try_pay(app, deps, env, Asset::from(coin), subscriber_addr)
             } else {
                 Err(SubscriptionError::NotUsingCW20Hook {})
             }
@@ -65,7 +65,6 @@ pub fn try_pay(
     app: SubscriptionApp,
     deps: DepsMut,
     env: Env,
-    _msg_info: MessageInfo,
     asset: Asset,
     subscriber_addr: Addr,
 ) -> SubscriptionResult {
@@ -141,7 +140,7 @@ pub fn unsubscribe(
     let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let mut canceled_subs: Vec<String> = vec![];
-    let mut claim_msgs: Vec<ExecutorMsg> = vec![];
+    let mut claim_actions: Vec<AccountAction> = vec![];
 
     // update income
     INCOME_TWA.accumulate(
@@ -178,7 +177,7 @@ pub fn unsubscribe(
             canceled_subs.push(addr.into_string());
 
             if let Some(msg) = maybe_claim_msg {
-                claim_msgs.push(msg)
+                claim_actions.push(msg)
             }
         }
     }
@@ -191,7 +190,10 @@ pub fn unsubscribe(
     // update subscription count
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
 
-    let mut response = app.tag_response(Response::new().add_messages(claim_msgs), "unsubscribe");
+    let mut response = app.tag_response(
+        Response::new().add_messages(app.executor(deps.as_ref()).execute(claim_actions)),
+        "unsubscribe",
+    );
 
     if let Some(hook) = subscription_config.unsubscription_hook_addr {
         let msg = UnsubscribedHookMsg {
@@ -213,7 +215,7 @@ pub fn claim_emissions_msg(
     subscriber_addr: &Addr,
     subscription_per_week_emissions: EmissionType<Addr>,
     subscription_state: &SubscriptionState,
-) -> SubscriptionResult<Option<ExecutorMsg>> {
+) -> SubscriptionResult<Option<AccountAction>> {
     if subscriber.last_emission_claim_timestamp >= env.block.time {
         return Err(SubscriptionError::EmissionsAlreadyClaimed {});
     }
@@ -245,7 +247,7 @@ pub fn claim_emissions_msg(
         subscriber.last_emission_claim_timestamp = env.block.time;
 
         let send_msg = app.bank(deps).transfer(vec![asset], subscriber_addr)?;
-        Ok(Some(app.executor(deps).execute(vec![send_msg])?))
+        Ok(Some(send_msg))
     } else {
         Ok(None)
     }
@@ -263,7 +265,7 @@ pub fn claim_subscriber_emissions(
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let mut subscriber = SUBSCRIBERS.load(deps.storage, &subscriber_addr)?;
 
-    let maybe_msg = claim_emissions_msg(
+    let maybe_action = claim_emissions_msg(
         app,
         deps.as_ref(),
         env,
@@ -274,7 +276,11 @@ pub fn claim_subscriber_emissions(
     )?;
 
     SUBSCRIBERS.save(deps.storage, &subscriber_addr, &subscriber)?;
-    Ok(app.tag_response(Response::new().add_messages(maybe_msg), "claim_emissions"))
+    let mut response = app.tag_response(Response::new(), "claim_emissions");
+    if let Some(action) = maybe_action {
+        response = response.add_message(app.executor(deps.as_ref()).execute(vec![action])?);
+    }
+    Ok(response)
 }
 
 // Only Admin can execute it

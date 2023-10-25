@@ -1,8 +1,5 @@
 use abstract_subscription::contract::SubscriptionApp;
-use abstract_subscription::msg::{StateResponse, SubscriberResponse, SubscriptionFeeResponse};
-use abstract_subscription::state::SubscriptionConfig;
-use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
-use cw_asset::{AssetInfo, AssetInfoUnchecked};
+use cosmwasm_schema::remove_schemas;
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
@@ -12,23 +9,6 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
+    #[cfg(feature = "schema")]
     SubscriptionApp::export_schema(&out_dir);
-
-    export_schema(&schema_for!(SubscriptionConfig), &out_dir);
-    export_schema(&schema_for!(StateResponse), &out_dir);
-    // export_schema(&schema_for!(ContributorStateResponse), &out_dir);
-    export_schema(&schema_for!(SubscriberResponse), &out_dir);
-
-    export_schema_with_title(&schema_for!(AssetInfo), &out_dir, "AssetInfoBase_for_Addr");
-    export_schema_with_title(
-        &schema_for!(AssetInfoUnchecked),
-        &out_dir,
-        "AssetInfoBase_for_String",
-    );
-
-    export_schema_with_title(
-        &schema_for!(SubscriptionFeeResponse),
-        &out_dir,
-        "FeeResponse",
-    );
 }
