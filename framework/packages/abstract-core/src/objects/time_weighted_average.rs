@@ -141,7 +141,7 @@ pub struct TimeWeightedAverageData {
     pub last_block_time: u64,
     pub cumulative_value: u128,
 
-    // Data to get average price
+    // Data to get average value
     pub last_averaging_block_time: u64,
     pub last_averaging_block_height: u64,
     pub last_averaging_cumulative_value: u128,
