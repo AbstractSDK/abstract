@@ -2,7 +2,7 @@ use abstract_core::objects::AssetEntry;
 use abstract_sdk::features::AbstractResponse;
 use chrono::{DateTime, FixedOffset, LocalResult, NaiveTime, TimeZone};
 use cosmwasm_std::{
-    BankMsg, Coin, Deps, DepsMut, Env, Int64, MessageInfo, Response, StdError, Uint128,
+    BankMsg, Coin, CosmosMsg, Deps, DepsMut, Env, Int64, MessageInfo, Response, StdError, Uint128,
 };
 use cw_asset::AssetInfoBase;
 use cw_utils::must_pay;
@@ -13,7 +13,7 @@ use crate::error::AppError;
 use crate::msg::AppExecuteMsg;
 use crate::state::{Meeting, CALENDAR, CONFIG};
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::{DepositMsgs, Resolve, TransferInterface};
+use abstract_sdk::{Resolve, TransferInterface};
 
 enum StakeAction {
     Return,
@@ -200,7 +200,7 @@ fn handle_stake(
             "return_stake",
         ),
         StakeAction::FullSlash => {
-            let proxy_deposit_msgs: DepositMsgs =
+            let proxy_deposit_msgs: Vec<CosmosMsg> =
                 bank.deposit(vec![Coin::new(amount_staked.into(), config.denom)])?;
             app.tag_response(
                 Response::default().add_messages(proxy_deposit_msgs),
@@ -217,7 +217,7 @@ fn handle_stake(
             let amount_to_slash =
                 amount_staked.multiply_ratio(minutes_late, meeting_duration_in_minutes as u128);
 
-            let proxy_deposit_msgs: DepositMsgs = bank.deposit(vec![Coin::new(
+            let proxy_deposit_msgs: Vec<CosmosMsg> = bank.deposit(vec![Coin::new(
                 amount_to_slash.into(),
                 config.denom.clone(),
             )])?;
