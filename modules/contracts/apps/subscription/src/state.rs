@@ -65,15 +65,15 @@ pub struct Subscriber {
 }
 
 impl Subscriber {
-    pub fn new(block: &BlockInfo, paid_for_days: u64) -> Self {
+    pub fn new(block: &BlockInfo, paid_for_weeks: u64) -> Self {
         Self {
-            expiration_timestamp: block.time.plus_days(paid_for_days),
+            expiration_timestamp: block.time.plus_days(paid_for_weeks * 7),
             last_emission_claim_timestamp: block.time,
         }
     }
 
-    pub fn extend(&mut self, paid_for_days: u64) {
-        self.expiration_timestamp = self.expiration_timestamp.plus_days(paid_for_days)
+    pub fn extend(&mut self, paid_for_weeks: u64) {
+        self.expiration_timestamp = self.expiration_timestamp.plus_days(paid_for_weeks * 7)
     }
 
     pub fn is_expired(&self, block: &BlockInfo) -> bool {

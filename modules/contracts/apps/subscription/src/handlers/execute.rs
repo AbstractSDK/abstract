@@ -82,16 +82,13 @@ pub fn try_pay(
     // Minimum of one period worth to (re)-subscribe.
     // prevents un- and re-subscribing all the time.
     let required_payment = Uint128::from(DURATION_IN_WEEKS) * config.subscription_cost_per_week;
-    let paid_for_days = {
-        let paid_for_weeks = asset
-            .amount
-            .checked_div_floor(config.subscription_cost_per_week)?
-            .u128() as u64;
-        paid_for_weeks * 7
-    };
+    let paid_for_weeks = asset
+        .amount
+        .checked_div_floor(config.subscription_cost_per_week)?
+        .u128() as u64;
     if let Some(mut active_sub) = SUBSCRIBERS.may_load(deps.storage, &subscriber_addr)? {
         // Subscriber is active, update balance
-        active_sub.extend(paid_for_days);
+        active_sub.extend(paid_for_weeks);
         SUBSCRIBERS.save(deps.storage, &subscriber_addr, &active_sub)?;
     } else {
         // Subscriber is (re)activating his subscription.
@@ -101,7 +98,7 @@ pub fn try_pay(
                 deposit_info.to_string(),
             ));
         }
-        let subscriber = Subscriber::new(&env.block, paid_for_days);
+        let subscriber = Subscriber::new(&env.block, paid_for_weeks);
         let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
         INCOME_TWA.accumulate(
             &env,
@@ -109,9 +106,9 @@ pub fn try_pay(
             Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
                 * config.subscription_cost_per_week,
         )?;
-        if EXPIRED_SUBSCRIBERS.has(deps.storage, &subscriber_addr) {
-            EXPIRED_SUBSCRIBERS.remove(deps.storage, &subscriber_addr);
-        }
+        // Remove from expired list in case it's re-sub
+        EXPIRED_SUBSCRIBERS.remove(deps.storage, &subscriber_addr);
+
         SUBSCRIBERS.save(deps.storage, &subscriber_addr, &subscriber)?;
         subscription_state.active_subs += 1;
         SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
@@ -119,7 +116,7 @@ pub fn try_pay(
 
     Ok(app.tag_response(
         Response::new()
-            .add_attribute("recived_funds", asset.to_string())
+            .add_attribute("received_funds", asset.to_string())
             .add_message(
                 // Send the received asset to the proxy
                 asset.transfer_msg(base_state.proxy_address)?,
