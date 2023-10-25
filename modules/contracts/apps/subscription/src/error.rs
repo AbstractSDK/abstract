@@ -1,8 +1,11 @@
+use std::num::TryFromIntError;
+
 use abstract_app::AppError;
 use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{
-    CheckedMultiplyFractionError, DecimalRangeExceeded, OverflowError, StdError, Uint128,
+    CheckedMultiplyFractionError, ConversionOverflowError, Decimal256RangeExceeded, OverflowError,
+    StdError, Uint128,
 };
 use cw_asset::{AssetError, AssetInfo};
 use cw_controllers::AdminError;
@@ -28,13 +31,19 @@ pub enum SubscriptionError {
     AdminError(#[from] AdminError),
 
     #[error("{0}")]
-    DecimalError(#[from] DecimalRangeExceeded),
+    Decimal256Error(#[from] Decimal256RangeExceeded),
 
     #[error("{0}")]
     AppError(#[from] AppError),
 
     #[error("{0}")]
     Overflow(#[from] OverflowError),
+
+    #[error("{0}")]
+    ConversionOverflowError(#[from] ConversionOverflowError),
+
+    #[error("{0}")]
+    TryFromIntError(#[from] TryFromIntError),
 
     #[error("{0}")]
     CheckedMultiplyFractionError(#[from] CheckedMultiplyFractionError),

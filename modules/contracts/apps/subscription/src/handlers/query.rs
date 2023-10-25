@@ -1,6 +1,6 @@
 use crate::{msg::SubscribersResponse, DURATION_IN_WEEKS};
 use abstract_core::objects::voting::DEFAULT_LIMIT;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Uint128};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Uint128, Uint256};
 use cw_asset::Asset;
 use cw_storage_plus::Bound;
 
@@ -26,11 +26,11 @@ pub fn query_handler(
         }
         SubscriptionQueryMsg::Fee {} => {
             let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-            let minimal_cost = Uint128::from(DURATION_IN_WEEKS) * config.subscription_cost_per_week;
+            let minimal_cost = Uint256::from(DURATION_IN_WEEKS) * config.subscription_cost_per_week;
             to_binary(&SubscriptionFeeResponse {
                 fee: Asset {
                     info: config.payment_asset,
-                    amount: minimal_cost,
+                    amount: Uint128::try_from(minimal_cost)?,
                 },
             })
         }

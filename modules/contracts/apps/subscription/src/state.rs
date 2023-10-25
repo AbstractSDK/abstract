@@ -1,5 +1,5 @@
 use abstract_core::{objects::time_weighted_average::TimeWeightedAverage, AbstractResult};
-use cosmwasm_std::{Addr, Api, BlockInfo, Decimal, Timestamp};
+use cosmwasm_std::{Addr, Api, BlockInfo, Decimal256, Timestamp};
 use cw_address_like::AddressLike;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_storage_plus::{Item, Map};
@@ -10,10 +10,10 @@ pub enum EmissionType<T: AddressLike> {
     None,
     /// A fixed number of tokens are distributed to users on a per-week basis.
     /// emission = week_shared / total_subscribers
-    WeekShared(Decimal, AssetInfoBase<T>),
+    WeekShared(Decimal256, AssetInfoBase<T>),
     /// Each user receives a fixed number of tokens on a per-week basis.
     /// emission = week_per_user
-    WeekPerUser(Decimal, AssetInfoBase<T>),
+    WeekPerUser(Decimal256, AssetInfoBase<T>),
     // TODO: subscription-contribution
     // /// Requires contribution functionality to be active
     // /// Emissions will be based on protocol income and user/contributor split.
@@ -39,7 +39,7 @@ pub struct SubscriptionConfig {
     /// Asset that's accepted as payment
     pub payment_asset: AssetInfo,
     /// Cost of the subscription on a per-week basis.
-    pub subscription_cost_per_week: Decimal,
+    pub subscription_cost_per_week: Decimal256,
     /// Subscription emissions per week
     pub subscription_per_week_emissions: EmissionType<Addr>,
     /// Unsubscription hook addr
