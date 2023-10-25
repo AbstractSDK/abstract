@@ -44,7 +44,7 @@ impl<'a> TimeWeightedAverage<'a> {
         self.0.save(store, &twa).map_err(Into::into)
     }
 
-    /// Accumulate applies the current value to the TWA for the duration since the last update
+    /// Applies the current value to the TWA for the duration since the last update
     /// and returns the cumulative value and block time.
     pub fn accumulate(
         &self,
@@ -152,7 +152,7 @@ pub struct TimeWeightedAverageData {
 }
 
 impl TimeWeightedAverageData {
-    pub fn need_refresh(&self, env: &Env) -> bool {
+    pub fn needs_refresh(&self, env: &Env) -> bool {
         let block_time = env.block.time.seconds();
 
         let time_elapsed = block_time - self.last_averaging_block_time;
