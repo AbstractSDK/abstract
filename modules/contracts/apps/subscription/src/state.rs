@@ -1,5 +1,5 @@
 use abstract_core::{objects::time_weighted_average::TimeWeightedAverage, AbstractResult};
-use cosmwasm_std::{Addr, Api, Decimal, Timestamp};
+use cosmwasm_std::{Addr, Api, BlockInfo, Decimal, Timestamp};
 use cw_address_like::AddressLike;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_storage_plus::{Item, Map};
@@ -62,6 +62,23 @@ pub struct Subscriber {
     pub expiration_timestamp: Timestamp,
     /// last time emissions were claimed
     pub last_emission_claim_timestamp: Timestamp,
+}
+
+impl Subscriber {
+    pub fn new(block: &BlockInfo, paid_for_days: u64) -> Self {
+        Self {
+            expiration_timestamp: block.time.plus_days(paid_for_days),
+            last_emission_claim_timestamp: block.time,
+        }
+    }
+
+    pub fn extend(&mut self, paid_for_days: u64) {
+        self.expiration_timestamp = self.expiration_timestamp.plus_days(paid_for_days)
+    }
+
+    pub fn is_expired(&self, block: &BlockInfo) -> bool {
+        block.time >= self.expiration_timestamp
+    }
 }
 
 /// Average number of subscribers

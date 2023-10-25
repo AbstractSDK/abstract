@@ -1,10 +1,14 @@
 use abstract_app::AppError;
 use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::{CheckedMultiplyFractionError, DecimalRangeExceeded, OverflowError, StdError};
+use cosmwasm_std::{
+    CheckedMultiplyFractionError, DecimalRangeExceeded, OverflowError, StdError, Uint128,
+};
 use cw_asset::{AssetError, AssetInfo};
 use cw_controllers::AdminError;
 use thiserror::Error;
+
+use crate::handlers::execute::MAX_UNSUBS;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum SubscriptionError {
@@ -48,11 +52,14 @@ pub enum SubscriptionError {
     EmissionsAlreadyClaimed {},
 
     #[error("you need to deposit at least {0} {1} to (re)activate this OS")]
-    InsufficientPayment(u64, String),
+    InsufficientPayment(Uint128, String),
 
     #[error("Subscriber emissions are not enabled")]
     SubscriberEmissionsNotEnabled {},
 
     #[error("Redundant unsubscribe call")]
     NoOneUnsubbed {},
+
+    #[error("Can't unsubscribe more than {MAX_UNSUBS}")]
+    TooManyUnsubs {},
 }

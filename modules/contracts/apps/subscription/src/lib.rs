@@ -2,7 +2,6 @@ pub mod contract;
 mod error;
 mod handlers;
 pub mod msg;
-pub mod queries;
 pub mod state;
 
 pub use error::SubscriptionError;
