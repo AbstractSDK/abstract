@@ -7,7 +7,7 @@
 //!
 
 use crate::AbstractResult;
-use cosmwasm_std::{Addr, Decimal, Env, QuerierWrapper, Storage, Uint128};
+use cosmwasm_std::{Addr, Decimal256, Env, QuerierWrapper, Storage, Uint256};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -32,12 +32,12 @@ impl<'a> TimeWeightedAverage<'a> {
         let block_time = env.block.time.seconds();
 
         let twa = TimeWeightedAverageData {
-            cumulative_value: 0,
+            cumulative_value: Uint256::zero(),
             last_block_time: block_time,
             precision: precision.unwrap_or(DEFAULT_PRECISION),
-            average_value: Decimal::zero(),
+            average_value: Decimal256::zero(),
             averaging_period,
-            last_averaging_cumulative_value: 0,
+            last_averaging_cumulative_value: Uint256::zero(),
             last_averaging_block_time: block_time,
             last_averaging_block_height: env.block.height,
         };
@@ -50,27 +50,27 @@ impl<'a> TimeWeightedAverage<'a> {
         &self,
         env: &Env,
         store: &mut dyn Storage,
-        current_value: Decimal,
-    ) -> AbstractResult<Option<(u128, u64)>> {
+        current_value: Decimal256,
+    ) -> AbstractResult<Option<(Uint256, u64)>> {
         let mut twa = self.0.load(store)?;
         let block_time = env.block.time.seconds();
         if block_time <= twa.last_block_time {
             return Ok(None);
         }
 
-        let time_elapsed = Uint128::from(block_time - twa.last_block_time);
+        let time_elapsed = Uint256::from_u128((block_time - twa.last_block_time) as u128);
         twa.last_block_time = block_time;
 
         if !current_value.is_zero() {
             twa.cumulative_value = twa
                 .cumulative_value
-                .wrapping_add(time_elapsed.mul(current_value).u128());
+                .wrapping_add(current_value.mul(time_elapsed));
         };
         self.0.save(store, &twa)?;
         Ok(Some((twa.cumulative_value, block_time)))
     }
 
-    pub fn get_value(&self, store: &dyn Storage) -> AbstractResult<Decimal> {
+    pub fn get_value(&self, store: &dyn Storage) -> AbstractResult<Decimal256> {
         Ok(self.0.load(store)?.average_value)
     }
 
@@ -93,7 +93,7 @@ impl<'a> TimeWeightedAverage<'a> {
         &self,
         env: &Env,
         store: &mut dyn Storage,
-    ) -> AbstractResult<Option<Decimal>> {
+    ) -> AbstractResult<Option<Decimal256>> {
         let mut twa = self.0.load(store)?;
 
         let block_time = env.block.time.seconds();
@@ -106,7 +106,7 @@ impl<'a> TimeWeightedAverage<'a> {
         }
 
         // (current_cum - last_cum) / time
-        let new_average_value = Decimal::from_ratio(
+        let new_average_value = Decimal256::from_ratio(
             twa.cumulative_value
                 .wrapping_sub(twa.last_averaging_cumulative_value),
             time_elapsed,
@@ -139,16 +139,16 @@ pub struct TimeWeightedAverageData {
     // settings for accumulating value data
     pub precision: u8,
     pub last_block_time: u64,
-    pub cumulative_value: u128,
+    pub cumulative_value: Uint256,
 
     // Data to get average price
     // TODO: @CyberHoward Timestamp here instead?
     pub last_averaging_block_time: u64,
     pub last_averaging_block_height: u64,
-    pub last_averaging_cumulative_value: u128,
+    pub last_averaging_cumulative_value: Uint256,
     pub averaging_period: u64,
     /// The requested average value
-    pub average_value: Decimal,
+    pub average_value: Decimal256,
 }
 
 impl TimeWeightedAverageData {
