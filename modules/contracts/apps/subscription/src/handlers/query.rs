@@ -26,7 +26,8 @@ pub fn query_handler(
         }
         SubscriptionQueryMsg::Fee {} => {
             let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-            let minimal_cost = Uint128::from(DURATION_IN_WEEKS) * config.subscription_cost_per_week;
+            let minimal_cost =
+                Uint128::from(DURATION_IN_WEEKS) * config.subscription_cost_per_second;
             to_binary(&SubscriptionFeeResponse {
                 fee: Asset {
                     info: config.payment_asset,

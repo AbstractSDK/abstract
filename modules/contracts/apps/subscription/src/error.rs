@@ -51,7 +51,7 @@ pub enum SubscriptionError {
     #[error("emissions for this OS are already claimed")]
     EmissionsAlreadyClaimed {},
 
-    #[error("you need to deposit at least {0} {1} to (re)activate this OS")]
+    #[error("you need to deposit at least {0} {1} to (re)subscribe")]
     InsufficientPayment(Uint128, String),
 
     #[error("Subscriber emissions are not enabled")]

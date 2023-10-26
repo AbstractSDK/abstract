@@ -39,8 +39,8 @@ pub fn execute_handler(
         }
         SubscriptionExecuteMsg::UpdateSubscriptionConfig {
             payment_asset,
-            subscription_cost_per_week: subscription_cost,
-            subscription_per_week_emissions,
+            subscription_cost_per_second,
+            subscription_per_second_emissions,
             unsubscription_hook_addr,
         } => update_subscription_config(
             deps,
@@ -48,8 +48,8 @@ pub fn execute_handler(
             info,
             app,
             payment_asset,
-            subscription_cost,
-            subscription_per_week_emissions,
+            subscription_cost_per_second,
+            subscription_per_second_emissions,
             unsubscription_hook_addr,
         ),
         SubscriptionExecuteMsg::RefreshTWA {} => {
@@ -80,14 +80,15 @@ pub fn try_pay(
     }
     // Minimum of one period worth to (re)-subscribe.
     // prevents un- and re-subscribing all the time.
-    let required_payment = Uint128::from(DURATION_IN_WEEKS) * config.subscription_cost_per_week;
-    let paid_for_weeks = asset
+    let required_payment = Uint128::from(DURATION_IN_WEEKS * WEEK_IN_SECONDS)
+        .checked_mul_ceil(config.subscription_cost_per_second)?;
+    let paid_for_seconds = asset
         .amount
-        .checked_div_floor(config.subscription_cost_per_week)?
+        .checked_div_floor(config.subscription_cost_per_second)?
         .u128() as u64;
     if let Some(mut active_sub) = SUBSCRIBERS.may_load(deps.storage, &subscriber_addr)? {
         // Subscriber is active, update balance
-        active_sub.extend(paid_for_weeks);
+        active_sub.extend(paid_for_seconds);
         SUBSCRIBERS.save(deps.storage, &subscriber_addr, &active_sub)?;
     } else {
         // Subscriber is (re)activating his subscription.
@@ -97,13 +98,13 @@ pub fn try_pay(
                 deposit_info.to_string(),
             ));
         }
-        let subscriber = Subscriber::new(&env.block, paid_for_weeks);
+        let subscriber = Subscriber::new(&env.block, paid_for_seconds);
         let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
         INCOME_TWA.accumulate(
             &env,
             deps.storage,
             Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
-                * config.subscription_cost_per_week,
+                * config.subscription_cost_per_second,
         )?;
         // Remove from expired list in case it's re-sub
         EXPIRED_SUBSCRIBERS.remove(deps.storage, &subscriber_addr);
@@ -147,7 +148,7 @@ pub fn unsubscribe(
         &env,
         deps.storage,
         Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
-            * subscription_config.subscription_cost_per_week,
+            * subscription_config.subscription_cost_per_second,
     )?;
 
     for addr in unsubscribe_addrs.into_iter() {
@@ -159,7 +160,9 @@ pub fn unsubscribe(
                 &env,
                 &mut subscriber,
                 &addr,
-                subscription_config.subscription_per_week_emissions.clone(),
+                subscription_config
+                    .subscription_per_second_emissions
+                    .clone(),
                 &subscription_state,
             ) {
                 Ok(maybe_msg) => maybe_msg,
@@ -213,7 +216,7 @@ pub fn claim_emissions_msg(
     env: &Env,
     subscriber: &mut Subscriber,
     subscriber_addr: &Addr,
-    subscription_per_week_emissions: EmissionType<Addr>,
+    subscription_per_second_emissions: EmissionType<Addr>,
     subscription_state: &SubscriptionState,
 ) -> SubscriptionResult<Option<AccountAction>> {
     if subscriber.last_emission_claim_timestamp >= env.block.time {
@@ -224,20 +227,20 @@ pub fn claim_emissions_msg(
         .block
         .time
         .minus_seconds(subscriber.last_emission_claim_timestamp.seconds());
-    let weeks_passed = duration.seconds() / WEEK_IN_SECONDS;
+    let seconds_passed = duration.seconds();
 
-    let asset = match subscription_per_week_emissions {
+    let asset = match subscription_per_second_emissions {
         crate::state::EmissionType::None => {
             return Err(SubscriptionError::SubscriberEmissionsNotEnabled {});
         }
-        crate::state::EmissionType::WeekShared(shared_emissions, token) => {
-            // active_sub can't be 0 as we already loaded from storage
-            let amount = (shared_emissions * Uint128::from(weeks_passed))
+        crate::state::EmissionType::SecondShared(shared_emissions, token) => {
+            // active_sub can't be 0 as we already loaded one from storage
+            let amount = (shared_emissions * Uint128::from(seconds_passed))
                 / (Uint128::from(subscription_state.active_subs));
             Asset::new(token, amount)
         }
-        crate::state::EmissionType::WeekPerUser(per_user_emissions, token) => {
-            let amount = per_user_emissions * Uint128::from(weeks_passed);
+        crate::state::EmissionType::SecondPerUser(per_user_emissions, token) => {
+            let amount = per_user_emissions * Uint128::from(seconds_passed);
             Asset::new(token, amount)
         }
     };
@@ -271,7 +274,7 @@ pub fn claim_subscriber_emissions(
         env,
         &mut subscriber,
         &subscriber_addr,
-        subscription_config.subscription_per_week_emissions,
+        subscription_config.subscription_per_second_emissions,
         &subscription_state,
     )?;
 
@@ -291,25 +294,26 @@ pub fn update_subscription_config(
     info: MessageInfo,
     app: SubscriptionApp,
     payment_asset: Option<AssetInfoUnchecked>,
-    subscription_cost_per_week: Option<Decimal>,
-    subscription_per_week_emissions: Option<EmissionType<String>>,
+    subscription_cost_per_second: Option<Decimal>,
+    subscription_per_second_emissions: Option<EmissionType<String>>,
     unsubscription_hook_addr: Option<String>,
 ) -> SubscriptionResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut config: SubscriptionConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
 
-    if let Some(subscription_cost_per_week) = subscription_cost_per_week {
+    if let Some(subscription_cost_per_second) = subscription_cost_per_second {
         // validate address format
-        config.subscription_cost_per_week = subscription_cost_per_week;
+        config.subscription_cost_per_second = subscription_cost_per_second;
     }
 
     if let Some(payment_asset) = payment_asset {
         config.payment_asset = payment_asset.check(deps.api, None)?;
     }
 
-    if let Some(subscription_per_week_emissions) = subscription_per_week_emissions {
-        config.subscription_per_week_emissions = subscription_per_week_emissions.check(deps.api)?;
+    if let Some(subscription_per_second_emissions) = subscription_per_second_emissions {
+        config.subscription_per_second_emissions =
+            subscription_per_second_emissions.check(deps.api)?;
     }
 
     if let Some(human) = unsubscription_hook_addr {

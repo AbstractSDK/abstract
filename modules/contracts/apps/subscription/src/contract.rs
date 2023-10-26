@@ -68,8 +68,8 @@ mod tests {
                 depsmut.storage,
                 &SubscriptionConfig {
                     payment_asset: cw_asset::AssetInfoBase::Native("token".to_owned()),
-                    subscription_cost_per_week: Decimal::from_str("0.1").unwrap(),
-                    subscription_per_week_emissions: crate::state::EmissionType::None,
+                    subscription_cost_per_second: Decimal::from_str("0.1").unwrap(),
+                    subscription_per_second_emissions: crate::state::EmissionType::None,
                     unsubscription_hook_addr: None,
                 },
             )
@@ -109,8 +109,8 @@ mod tests {
                 depsmut.storage,
                 &SubscriptionConfig {
                     payment_asset: cw_asset::AssetInfoBase::Native("token".to_owned()),
-                    subscription_cost_per_week: Decimal::from_str("0.1").unwrap(),
-                    subscription_per_week_emissions: crate::state::EmissionType::None,
+                    subscription_cost_per_second: Decimal::from_str("0.1").unwrap(),
+                    subscription_per_second_emissions: crate::state::EmissionType::None,
                     unsubscription_hook_addr: Some(Addr::unchecked("alice")),
                 },
             )

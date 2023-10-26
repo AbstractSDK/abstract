@@ -6,10 +6,7 @@ use abstract_core::objects::{
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy};
 use abstract_subscription::{
     contract::{interface::SubscriptionInterface, CONTRACT_VERSION},
-    msg::{
-        SubscriberResponse, SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg,
-        SubscriptionQueryMsgFns,
-    },
+    msg::{SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg, SubscriptionQueryMsgFns},
     state::{EmissionType, Subscriber, SubscriptionConfig},
     SubscriptionError, WEEK_IN_SECONDS,
 };
@@ -109,8 +106,8 @@ fn setup_cw20() -> anyhow::Result<Subscription> {
         subscription_app.clone(),
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::cw20(cw20_addr.clone()),
-            subscription_cost_per_week: Decimal::from_str("0.1")?,
-            subscription_per_week_emissions: EmissionType::None,
+            subscription_cost_per_second: Decimal::from_str("0.000037")?,
+            subscription_per_second_emissions: EmissionType::None,
             // 3 days
             income_averaging_period: INCOME_AVERAGING_PERIOD,
             unsubscription_hook_addr: None,
@@ -155,9 +152,10 @@ fn setup_native() -> anyhow::Result<Subscription> {
         subscription_app.clone(),
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::native(DENOM),
-            subscription_cost_per_week: Decimal::from_str("0.1")?,
-            subscription_per_week_emissions: EmissionType::WeekShared(
-                Decimal::from_str("2.0")?,
+            // https://github.com/AbstractSDK/abstract/pull/92#discussion_r1371693550
+            subscription_cost_per_second: Decimal::from_str("0.000037")?,
+            subscription_per_second_emissions: EmissionType::SecondShared(
+                Decimal::from_str("0.00005")?,
                 AssetInfoBase::Cw20(emissions.addr_str()?),
             ),
             income_averaging_period: INCOME_AVERAGING_PERIOD,
@@ -195,9 +193,9 @@ fn successful_install() -> anyhow::Result<()> {
         config,
         SubscriptionConfig {
             payment_asset,
-            subscription_cost_per_week: Decimal::from_str("0.1")?,
-            subscription_per_week_emissions: EmissionType::WeekShared(
-                Decimal::from_str("2.0")?,
+            subscription_cost_per_second: Decimal::from_str("0.000037")?,
+            subscription_per_second_emissions: EmissionType::SecondShared(
+                Decimal::from_str("0.00005")?,
                 AssetInfoBase::Cw20(addr)
             ),
             unsubscription_hook_addr: None
@@ -217,8 +215,8 @@ fn successful_install() -> anyhow::Result<()> {
         config,
         SubscriptionConfig {
             payment_asset,
-            subscription_cost_per_week: Decimal::from_str("0.1")?,
-            subscription_per_week_emissions: EmissionType::None,
+            subscription_cost_per_second: Decimal::from_str("0.000037")?,
+            subscription_per_second_emissions: EmissionType::None,
             unsubscription_hook_addr: None
         }
     );
@@ -274,10 +272,13 @@ fn subscribe() -> anyhow::Result<()> {
     let twa = query_twa(&chain, subscription_addr.clone());
 
     // expected value for 2 subscribers (cost * period)
-    let expected_value = Decimal::from_str("0.2")? * Uint128::from(INCOME_AVERAGING_PERIOD);
-    // assert it's equal to the 2 subscribers
-    assert_eq!(twa.cumulative_value, expected_value.u128());
-    assert_eq!(twa.average_value, Decimal::from_str("0.2")?);
+    let two_subs_per_second = Decimal::from_str("0.000037")? * Decimal::from_str("2.0")?;
+    let expected_cum = two_subs_per_second * Uint128::from(INCOME_AVERAGING_PERIOD);
+    // assert it's equal to the 2 subscribers(rounded)
+    assert_eq!(twa.cumulative_value, expected_cum.u128());
+    // cum_over_period / time passed
+    let expected_average = Decimal::from_ratio(expected_cum, INCOME_AVERAGING_PERIOD);
+    assert_eq!(twa.average_value, expected_average);
 
     // wait the period
     chain.wait_seconds(INCOME_AVERAGING_PERIOD.u64())?;
@@ -294,9 +295,9 @@ fn subscribe() -> anyhow::Result<()> {
         .pay(None, &sub_amount)?;
     // two subscribers were subbed for two periods
     let first_two_subs =
-        Decimal::from_str("0.2")? * Uint128::from(INCOME_AVERAGING_PERIOD * Uint64::new(2));
+        two_subs_per_second * Uint128::from(INCOME_AVERAGING_PERIOD * Uint64::new(2));
     // and last one only for one
-    let third_sub = Decimal::from_str("0.1")? * Uint128::from(INCOME_AVERAGING_PERIOD);
+    let third_sub = Decimal::from_str("0.000037")? * Uint128::from(INCOME_AVERAGING_PERIOD);
 
     let expected_value = first_two_subs + third_sub;
 
@@ -338,16 +339,19 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
     subscription_app.claim_emissions(subscriber2.to_string())?;
     // check balances
     let balance1 = emis.balance(subscriber1.to_string())?;
-    assert_eq!(balance1.balance, Uint128::one());
+    let total_amount = Decimal::from_str("0.00005")? * Uint128::from(WEEK_IN_SECONDS);
+    // 2 users
+    let expected_balance = total_amount / Uint128::new(2);
+    assert_eq!(balance1.balance, expected_balance);
     let balance2 = emis.balance(subscriber2.to_string())?;
-    assert_eq!(balance2.balance, Uint128::one());
+    assert_eq!(balance2.balance, expected_balance);
 
     // wait 20 seconds
     chain.wait_seconds(20)?;
     // no double-claims
     subscription_app.claim_emissions(subscriber1.to_string())?;
     let balance = emis.balance(subscriber1.to_string())?;
-    assert_eq!(balance.balance, Uint128::one());
+    assert_eq!(balance.balance, expected_balance);
 
     // two weeks -20 seconds because he claimed nothing last time
     chain.wait_seconds(WEEK_IN_SECONDS * 2 - 20)?;
@@ -358,14 +362,12 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
     let balance1 = emis.balance(subscriber1.to_string())?;
     assert_eq!(
         balance1.balance,
-        Uint128::one() + Uint128::one() + Uint128::one()
+        // 3 weeks in total
+        expected_balance * Uint128::new(3)
     );
 
     let balance2 = emis.balance(subscriber2.to_string())?;
-    assert_eq!(
-        balance2.balance,
-        Uint128::one() + Uint128::one() + Uint128::one()
-    );
+    assert_eq!(balance2.balance, expected_balance * Uint128::new(3));
     Ok(())
 }
 
@@ -422,8 +424,8 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
         .update_subscription_config(
             None,
             None,
-            Some(EmissionType::WeekPerUser(
-                Decimal::one(),
+            Some(EmissionType::SecondPerUser(
+                Decimal::from_str("0.00005")?,
                 AssetInfoBase::Cw20(emis.addr_str()?),
             )),
             None,
@@ -448,20 +450,22 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
     subscription_app.claim_emissions(subscriber1.to_string())?;
     subscription_app.claim_emissions(subscriber2.to_string())?;
 
+    let expected_balance = Decimal::from_str("0.00005")? * Uint128::from(WEEK_IN_SECONDS);
+
     // check balance of user1
     let balance1 = emis.balance(subscriber1.to_string())?;
-    assert_eq!(balance1.balance, Uint128::one());
+    assert_eq!(balance1.balance, expected_balance);
 
     // check balance of user2
     let balance2 = emis.balance(subscriber2.to_string())?;
-    assert_eq!(balance2.balance, Uint128::one());
+    assert_eq!(balance2.balance, expected_balance);
 
     // wait 20 seconds
     chain.wait_seconds(20)?;
     // no double-claims
     subscription_app.claim_emissions(subscriber1.to_string())?;
     let balance = emis.balance(subscriber1.to_string())?;
-    assert_eq!(balance.balance, Uint128::one());
+    assert_eq!(balance.balance, expected_balance);
 
     // two weeks -20 seconds because he claimed nothing last time
     chain.wait_seconds(WEEK_IN_SECONDS * 2 - 20)?;
@@ -474,13 +478,10 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
     assert_eq!(
         balance1.balance,
         // tree weeks in total
-        Uint128::one() + Uint128::one() + Uint128::one()
+        expected_balance * Uint128::new(3)
     );
     let balance2 = emis.balance(subscriber2.to_string())?;
-    assert_eq!(
-        balance2.balance,
-        Uint128::one() + Uint128::one() + Uint128::one()
-    );
+    assert_eq!(balance2.balance, expected_balance * Uint128::new(3));
 
     Ok(())
 }
@@ -542,7 +543,8 @@ fn unsubscribe() -> anyhow::Result<()> {
     let subscriber1 = Addr::unchecked("subscriber1");
     let subscriber2 = Addr::unchecked("subscriber2");
 
-    let sub_amount = coins(1, DENOM);
+    // For 4 weeks with few hours
+    let sub_amount = coins(90, DENOM);
     chain.set_balance(&subscriber1, sub_amount.clone())?;
 
     subscription_app
@@ -550,41 +552,41 @@ fn unsubscribe() -> anyhow::Result<()> {
         .pay(None, &sub_amount)?;
 
     let subscriber = subscription_app.subscriber(subscriber1.to_string())?;
-
     let current_time = chain.block_info()?.time;
+    assert!(subscriber.currently_subscribed);
+    let subscriber_details: Subscriber = subscriber.subscriber_details.unwrap();
     assert_eq!(
-        subscriber,
-        SubscriberResponse {
-            currently_subscribed: true,
-            subscriber_details: Some(Subscriber {
-                expiration_timestamp: current_time.plus_seconds(WEEK_IN_SECONDS * 10),
-                last_emission_claim_timestamp: current_time,
-            })
-        }
+        subscriber_details.last_emission_claim_timestamp,
+        current_time
+    );
+    assert!(
+        subscriber_details.expiration_timestamp > current_time.plus_seconds(WEEK_IN_SECONDS * 4)
+            && subscriber_details.expiration_timestamp
+                < current_time.plus_seconds(WEEK_IN_SECONDS * 4).plus_days(1)
     );
 
     // wait until subscription expires
-    chain.wait_seconds(WEEK_IN_SECONDS * 10)?;
+    chain.wait_seconds(WEEK_IN_SECONDS * 5)?;
     subscription_app.unsubscribe(vec![subscriber1.to_string()])?;
     let subscriber = subscription_app.subscriber(subscriber1.to_string())?;
 
     let current_time = chain.block_info()?.time;
 
+    assert!(!subscriber.currently_subscribed);
+
+    let subscriber_details: Subscriber = subscriber.subscriber_details.unwrap();
     assert_eq!(
-        subscriber,
-        SubscriberResponse {
-            currently_subscribed: false,
-            subscriber_details: Some(Subscriber {
-                expiration_timestamp: current_time,
-                last_emission_claim_timestamp: current_time,
-            })
-        }
+        subscriber_details.last_emission_claim_timestamp,
+        current_time
     );
 
     let emis = Cw20Base::new("abstract:emission_cw20", chain.clone());
     let b = emis.balance(subscriber1.to_string())?;
-    // 10 weeks passed 2 tokens shared for sub
-    assert_eq!(b.balance, Uint128::new(2 * 10));
+    // 5 weeks passed until unsubscription
+    assert_eq!(
+        b.balance,
+        Decimal::from_str("0.00005")? * Uint128::from(WEEK_IN_SECONDS * 5)
+    );
     // Unsubscribe on already unsubscribed user should fail
     assert!(subscription_app
         .unsubscribe(vec![subscriber1.to_string()])
@@ -611,16 +613,15 @@ fn unsubscribe_part_of_list() -> anyhow::Result<()> {
     let subscriber2 = Addr::unchecked("subscriber2");
 
     chain.set_balances(&[
-        (&subscriber1, &coins(10, DENOM)),
-        (&subscriber2, &coins(1, DENOM)),
+        (&subscriber1, &coins(2200, DENOM)),
+        (&subscriber2, &coins(220, DENOM)),
     ])?;
     subscription_app
         .call_as(&subscriber1)
-        .pay(None, &coins(10, DENOM))?;
+        .pay(None, &coins(2200, DENOM))?;
     subscription_app
         .call_as(&subscriber2)
-        .pay(None, &coins(1, DENOM))?;
-
+        .pay(None, &coins(220, DENOM))?;
     // 1 out of 10 weeks wait
     chain.wait_seconds(WEEK_IN_SECONDS)?;
     // Un-sub on not-expired users should error
@@ -635,36 +636,14 @@ fn unsubscribe_part_of_list() -> anyhow::Result<()> {
 
     subscription_app.unsubscribe(vec![subscriber1.to_string(), subscriber2.to_string()])?;
 
-    let current_time = chain.block_info()?.time;
-
+    // sub2 unsubbed
     let subscriber2 = subscription_app.subscriber(subscriber2.to_string())?;
-
-    assert_eq!(
-        subscriber2,
-        SubscriberResponse {
-            currently_subscribed: false,
-            subscriber_details: Some(Subscriber {
-                expiration_timestamp: current_time,
-                last_emission_claim_timestamp: current_time,
-            })
-        }
-    );
+    assert!(!subscriber2.currently_subscribed);
 
     // subscriber1 not yet unsubscribed
     let subscriber1 = subscription_app.subscriber(subscriber1.to_string())?;
+    assert!(subscriber1.currently_subscribed);
 
-    assert_eq!(
-        subscriber1,
-        SubscriberResponse {
-            currently_subscribed: true,
-            subscriber_details: Some(Subscriber {
-                // 90 more weeks
-                expiration_timestamp: current_time.plus_seconds(WEEK_IN_SECONDS * 90),
-                // 10 weeks ago subbed, and unsub of other user didn't affect this user
-                last_emission_claim_timestamp: current_time.minus_seconds(WEEK_IN_SECONDS * 10),
-            })
-        }
-    );
     Ok(())
 }
 

@@ -14,7 +14,7 @@
 //! The income of the instance can change over time as subscribers join and leave.
 //! If we want our infrastructure to change parameters based on the income of the unit, then we need a way of keeping track of that income.
 //! Because blockchains don't have a notion of monthly settlement we settled on a per-month payment schema.
-//! We use a [`TimeWeightedAverage`](crate::objects::time_weighted_average::TimeWeightedAverage) of the ongoing income to to determine a per-week income.
+//! We use a [`TimeWeightedAverage`](crate::objects::time_weighted_average::TimeWeightedAverage) of the ongoing income to to determine a per-second income.
 //! We average the income over a monthly basis.
 //!
 //! ## Emissions
@@ -49,10 +49,10 @@ pub struct SubscriptionMigrateMsg {}
 pub struct SubscriptionInstantiateMsg {
     /// Asset for payment
     pub payment_asset: AssetInfoUnchecked,
-    /// Cost of the subscription on a per-week basis.
-    pub subscription_cost_per_week: Decimal,
-    /// Subscription emissions per week
-    pub subscription_per_week_emissions: EmissionType<String>,
+    /// Cost of the subscription on a per-second basis.
+    pub subscription_cost_per_second: Decimal,
+    /// Subscription emissions per second
+    pub subscription_per_second_emissions: EmissionType<String>,
     /// How often update income average
     pub income_averaging_period: Uint64,
     /// Unsubscription hook addr to send [unsubscribe message](`crate::msg::UnsubscribedHookMsg`)
@@ -85,10 +85,10 @@ pub enum SubscriptionExecuteMsg {
     UpdateSubscriptionConfig {
         /// New asset for payment
         payment_asset: Option<AssetInfoUnchecked>,
-        /// new subscription_cost_per_week
-        subscription_cost_per_week: Option<Decimal>,
-        /// Subscription emissions per week
-        subscription_per_week_emissions: Option<EmissionType<String>>,
+        /// new subscription_cost_per_second
+        subscription_cost_per_second: Option<Decimal>,
+        /// Subscription emissions per second
+        subscription_per_second_emissions: Option<EmissionType<String>>,
         /// New unsubscription hook addr
         /// TODO: do we need to have option to disable it?
         unsubscription_hook_addr: Option<String>,

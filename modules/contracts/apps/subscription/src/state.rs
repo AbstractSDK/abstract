@@ -8,12 +8,12 @@ use cw_storage_plus::{Item, Map};
 #[cosmwasm_schema::cw_serde]
 pub enum EmissionType<T: AddressLike> {
     None,
-    /// A fixed number of tokens are distributed to users on a per-week basis.
-    /// emission = week_shared / total_subscribers
-    WeekShared(Decimal, AssetInfoBase<T>),
-    /// Each user receives a fixed number of tokens on a per-week basis.
-    /// emission = week_per_user
-    WeekPerUser(Decimal, AssetInfoBase<T>),
+    /// A fixed number of tokens are distributed to users on a per-second basis.
+    /// emission = second_shared / total_subscribers
+    SecondShared(Decimal, AssetInfoBase<T>),
+    /// Each user receives a fixed number of tokens on a per-second basis.
+    /// emission = second_per_user
+    SecondPerUser(Decimal, AssetInfoBase<T>),
     // TODO: subscription-contribution
     // /// Requires contribution functionality to be active
     // /// Emissions will be based on protocol income and user/contributor split.
@@ -25,9 +25,11 @@ impl EmissionType<String> {
     pub fn check(self, api: &dyn Api) -> AbstractResult<EmissionType<Addr>> {
         match self {
             EmissionType::None => Ok(EmissionType::None),
-            EmissionType::WeekShared(d, a) => Ok(EmissionType::WeekShared(d, a.check(api, None)?)),
-            EmissionType::WeekPerUser(d, a) => {
-                Ok(EmissionType::WeekPerUser(d, a.check(api, None)?))
+            EmissionType::SecondShared(d, a) => {
+                Ok(EmissionType::SecondShared(d, a.check(api, None)?))
+            }
+            EmissionType::SecondPerUser(d, a) => {
+                Ok(EmissionType::SecondPerUser(d, a.check(api, None)?))
             } // EmissionType::IncomeBased(a) => Ok(EmissionType::IncomeBased(a.check(api, None)?)),
         }
     }
@@ -38,10 +40,10 @@ impl EmissionType<String> {
 pub struct SubscriptionConfig {
     /// Asset that's accepted as payment
     pub payment_asset: AssetInfo,
-    /// Cost of the subscription on a per-week basis.
-    pub subscription_cost_per_week: Decimal,
-    /// Subscription emissions per week
-    pub subscription_per_week_emissions: EmissionType<Addr>,
+    /// Cost of the subscription on a per-second basis.
+    pub subscription_cost_per_second: Decimal,
+    /// Subscription emissions per second
+    pub subscription_per_second_emissions: EmissionType<Addr>,
     /// Unsubscription hook addr
     pub unsubscription_hook_addr: Option<Addr>,
 }
@@ -65,15 +67,15 @@ pub struct Subscriber {
 }
 
 impl Subscriber {
-    pub fn new(block: &BlockInfo, paid_for_weeks: u64) -> Self {
+    pub fn new(block: &BlockInfo, paid_for_seconds: u64) -> Self {
         Self {
-            expiration_timestamp: block.time.plus_days(paid_for_weeks * 7),
+            expiration_timestamp: block.time.plus_seconds(paid_for_seconds),
             last_emission_claim_timestamp: block.time,
         }
     }
 
-    pub fn extend(&mut self, paid_for_weeks: u64) {
-        self.expiration_timestamp = self.expiration_timestamp.plus_days(paid_for_weeks * 7)
+    pub fn extend(&mut self, paid_for_seconds: u64) {
+        self.expiration_timestamp = self.expiration_timestamp.plus_seconds(paid_for_seconds)
     }
 
     pub fn is_expired(&self, block: &BlockInfo) -> bool {

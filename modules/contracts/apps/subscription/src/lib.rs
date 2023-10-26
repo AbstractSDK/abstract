@@ -54,8 +54,8 @@ pub mod interface {
                 },
                 module: SubscriptionInstantiateMsg {
                     payment_asset: AssetInfoUnchecked::native(payment_denom),
-                    subscription_cost_per_week: Decimal::from_str("0.000001").unwrap(),
-                    subscription_per_week_emissions: crate::state::EmissionType::WeekShared(
+                    subscription_cost_per_second: Decimal::from_str("0.000001").unwrap(),
+                    subscription_per_second_emissions: crate::state::EmissionType::SecondShared(
                         Decimal::from_str("0.000001").unwrap(),
                         AssetInfoUnchecked::cw20(token_addr.clone()),
                     ),
