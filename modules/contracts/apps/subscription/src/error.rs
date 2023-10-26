@@ -62,4 +62,7 @@ pub enum SubscriptionError {
 
     #[error("Can't unsubscribe more than {MAX_UNSUBS}")]
     TooManyUnsubs {},
+
+    #[error("Income averaging period can't be zero")]
+    ZeroAveragePeriod {},
 }

@@ -1,5 +1,5 @@
-use crate::msg::SubscriptionInstantiateMsg;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use crate::{msg::SubscriptionInstantiateMsg, SubscriptionError};
+use cosmwasm_std::{ensure, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     contract::{SubscriptionApp, SubscriptionResult},
@@ -28,6 +28,11 @@ pub fn instantiate_handler(
     let subscription_state: SubscriptionState = SubscriptionState { active_subs: 0 };
     SUBSCRIPTION_CONFIG.save(deps.storage, &subscription_config)?;
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
+
+    ensure!(
+        !msg.income_averaging_period.is_zero(),
+        SubscriptionError::ZeroAveragePeriod {}
+    );
     INCOME_TWA.instantiate(deps.storage, &env, None, msg.income_averaging_period.u64())?;
 
     Ok(Response::new())
