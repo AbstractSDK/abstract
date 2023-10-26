@@ -7,6 +7,7 @@ use cosmwasm_std::Addr;
 #[derive(Clone, Debug, Default)]
 pub struct Astrovault {
     pub local_proxy_addr: Option<Addr>,
+    pub version_control_contract: Option<VersionControlContract>,
     pub tokens: Vec<AstrovaultTokenContext>,
 }
 
@@ -14,7 +15,6 @@ pub struct Astrovault {
 pub struct AstrovaultTokenContext {
     pub lp_token: LpToken,
     pub lp_token_address: Addr,
-    pub generator_contract_address: Addr,
 }
 
 // Data that's retrieved from ANS
@@ -71,9 +71,6 @@ impl CwStakingCommand for Astrovault {
         self.tokens = lp_tokens
             .into_iter()
             .map(|entry| {
-                let generator_contract_address =
-                    self.staking_contract_address(deps, ans_host, &entry)?;
-
                 let AssetInfo::Cw20(token_addr) = entry.resolve(&deps.querier, ans_host)? else {
                     return Err(
                         StdError::generic_err("expected CW20 as LP token for staking.").into(),
@@ -86,7 +83,6 @@ impl CwStakingCommand for Astrovault {
                 Ok(AstrovaultTokenContext {
                     lp_token,
                     lp_token_address,
-                    generator_contract_address,
                 })
             })
             .collect::<AbstractSdkResult<_>>()?;
@@ -114,7 +110,7 @@ impl CwStakingCommand for Astrovault {
                 let msg: CosmosMsg = wasm_execute(
                     token.lp_token_address.to_string(),
                     &Cw20ExecuteMsg::Send {
-                        contract: token.generator_contract_address.to_string(),
+                        contract: token.lp_token_address.to_string(),
                         amount: stake.amount,
                         msg: msg.clone(),
                     },
@@ -139,7 +135,7 @@ impl CwStakingCommand for Astrovault {
             .zip(self.tokens.iter())
             .map(|(unstake, token)| {
                 let msg: CosmosMsg = wasm_execute(
-                    token.generator_contract_address.to_string(),
+                    token.lp_token_address.to_string(),
                     &LpExecuteMsg::Withdrawal {
                         amount: Some(unstake.amount),
                         // TODO: handle
@@ -166,18 +162,17 @@ impl CwStakingCommand for Astrovault {
         let mut claims: HashMap<&str, Vec<String>> = HashMap::new();
         for token in &self.tokens {
             claims
-                .entry(token.generator_contract_address.as_str())
+                .entry(token.lp_token_address.as_str())
                 .and_modify(|tokens| tokens.push(token.lp_token_address.to_string()))
                 .or_insert(vec![token.lp_token_address.to_string()]);
         }
         let claim_msgs = claims
             .into_iter()
-            .map(|(generator_addr, lp_tokens)| {
+            .map(|(lp_addr, lp_tokens)| {
                 let msg: CosmosMsg = wasm_execute(
-                    generator_addr.to_owned(),
+                    lp_addr.to_owned(),
                     &LpExecuteMsg::Withdrawal {
                         amount: Some(Uint128::zero()),
-                        // TODO: with PoolType's
                         direct_pool_withdrawal: None,
                         to: None,
                         not_claim_rewards: None,
@@ -194,11 +189,8 @@ impl CwStakingCommand for Astrovault {
     }
 
     fn query_info(&self, querier: &QuerierWrapper) -> Result<StakingInfoResponse, CwStakingError> {
-        let generator_addrs: HashSet<&Addr> = self
-            .tokens
-            .iter()
-            .map(|t| &t.generator_contract_address)
-            .collect();
+        let generator_addrs: HashSet<&Addr> =
+            self.tokens.iter().map(|t| &t.lp_token_address).collect();
 
         let mut infos = Vec::with_capacity(generator_addrs.len());
         for g_addr in generator_addrs {
@@ -212,9 +204,11 @@ impl CwStakingCommand for Astrovault {
                         e
                     ))
                 })?;
-            //Will have to trust astrovu
+
+            // TODO: they store it as CanonicalAddress
+            // Is it safe to do this cast?
             let contract_addr = Addr::unchecked(inc_token);
-            let astro_token = AssetInfo::cw20(inc_token);
+            let astro_token = AssetInfo::cw20(contract_addr);
 
             infos.push(StakingInfo {
                 staking_target: g_addr.clone().into(),
@@ -240,10 +234,9 @@ impl CwStakingCommand for Astrovault {
             .map(|t| {
                 let stake_balance: Uint128 = querier
                     .query_wasm_smart(
-                        t.generator_contract_address.clone(),
-                        &LpQueryMsg::Deposit {
-                            lp_token: t.lp_token_address.to_string(),
-                            user: staker.to_string(),
+                        t.lp_token_address.clone(),
+                        &LpQueryMsg::Balance {
+                            address: staker.to_string(),
                         },
                     )
                     .map_err(|e| {
@@ -273,43 +266,40 @@ impl CwStakingCommand for Astrovault {
         &self,
         querier: &QuerierWrapper,
     ) -> Result<abstract_staking_standard::msg::RewardTokensResponse, CwStakingError> {
-        let tokens = self
-            .tokens
-            .iter()
-            .map(|t| {
-                let reward_info: RewardInfoResponse = querier
-                    .query_wasm_smart(
-                        t.generator_contract_address.clone(),
-                        &LpQueryMsg::RewardInfo {
-                            lp_token: t.lp_token_address.to_string(),
-                        },
-                    )
-                    .map_err(|e| {
-                        StdError::generic_err(format!(
-                            "Failed to query reward info on {} for lp token {}. Error: {:?}",
-                            self.name(),
-                            t.lp_token,
-                            e
-                        ))
-                    })?;
+        let tokens =
+            self.tokens
+                .iter()
+                .map(|t| {
+                    let rewards_info: Vec<RewardSourceResponse> = querier
+                        .query_wasm_smart(
+                            t.lp_token_address.clone(),
+                            &LpQueryMsg::RewardSources {
+                                reward_source: None,
+                            },
+                        )
+                        .map_err(|e| {
+                            StdError::generic_err(format!(
+                                "Failed to query reward info on {} for lp token {}. Error: {:?}",
+                                self.name(),
+                                t.lp_token,
+                                e
+                            ))
+                        })?;
 
-                let token = match reward_info.base_reward_token {
-                    astrovault::assets::asset::AssetInfo::Token { contract_addr } => {
-                        AssetInfo::cw20(contract_addr)
-                    }
-                    astrovault::assets::asset::AssetInfo::NativeToken { denom } => {
-                        AssetInfo::native(denom)
-                    }
-                };
+                    let tokens = rewards_info.into_iter().map(|rew_source| {
+                        match rew_source.info.reward_asset {
+                            astrovault::assets::asset::AssetInfo::Token { contract_addr } => {
+                                AssetInfo::cw20(Addr::unchecked(contract_addr))
+                            }
+                            astrovault::assets::asset::AssetInfo::NativeToken { denom } => {
+                                AssetInfo::native(denom)
+                            }
+                        }
+                    }).collect();
 
-                let mut tokens = vec![token];
-
-                if let Some(reward_token) = reward_info.proxy_reward_token {
-                    tokens.push(AssetInfo::cw20(reward_token));
-                }
-                Ok(tokens)
-            })
-            .collect::<Result<_, CwStakingError>>()?;
+                    Ok(tokens)
+                })
+                .collect::<Result<_, CwStakingError>>()?;
 
         Ok(RewardTokensResponse { tokens })
     }
@@ -323,7 +313,7 @@ impl AbstractRegistryAccess for Astrovault {
     ) -> std::result::Result<VersionControlContract, abstract_sdk::AbstractSdkError> {
         self.version_control_contract
             .clone()
-            .ok_or(AbstractSdkError::generic_err(
+            .ok_or(abstract_sdk::AbstractSdkError::generic_err(
                 "version_control address is not set",
             ))
         // We need to get to the version control somehow (possible from Ans Host ?)
