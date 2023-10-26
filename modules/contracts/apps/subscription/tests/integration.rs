@@ -22,7 +22,7 @@ use cw_plus_interface::cw20_base::Cw20Base;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{coins, Addr, Decimal256, StdError, Uint128, Uint256, Uint64};
+use cosmwasm_std::{coins, Addr, Decimal, StdError, Uint128, Uint64};
 
 // consts for testing
 const ADMIN: &str = "admin";
@@ -109,7 +109,7 @@ fn setup_cw20() -> anyhow::Result<Subscription> {
         subscription_app.clone(),
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::cw20(cw20_addr.clone()),
-            subscription_cost_per_week: Decimal256::from_str("0.1")?,
+            subscription_cost_per_week: Decimal::from_str("0.1")?,
             subscription_per_week_emissions: EmissionType::None,
             // 3 days
             income_averaging_period: INCOME_AVERAGING_PERIOD,
@@ -155,9 +155,9 @@ fn setup_native() -> anyhow::Result<Subscription> {
         subscription_app.clone(),
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::native(DENOM),
-            subscription_cost_per_week: Decimal256::from_str("0.1")?,
+            subscription_cost_per_week: Decimal::from_str("0.1")?,
             subscription_per_week_emissions: EmissionType::WeekShared(
-                Decimal256::from_str("2.0")?,
+                Decimal::from_str("2.0")?,
                 AssetInfoBase::Cw20(emissions.addr_str()?),
             ),
             income_averaging_period: INCOME_AVERAGING_PERIOD,
@@ -195,9 +195,9 @@ fn successful_install() -> anyhow::Result<()> {
         config,
         SubscriptionConfig {
             payment_asset,
-            subscription_cost_per_week: Decimal256::from_str("0.1")?,
+            subscription_cost_per_week: Decimal::from_str("0.1")?,
             subscription_per_week_emissions: EmissionType::WeekShared(
-                Decimal256::from_str("2.0")?,
+                Decimal::from_str("2.0")?,
                 AssetInfoBase::Cw20(addr)
             ),
             unsubscription_hook_addr: None
@@ -217,7 +217,7 @@ fn successful_install() -> anyhow::Result<()> {
         config,
         SubscriptionConfig {
             payment_asset,
-            subscription_cost_per_week: Decimal256::from_str("0.1")?,
+            subscription_cost_per_week: Decimal::from_str("0.1")?,
             subscription_per_week_emissions: EmissionType::None,
             unsubscription_hook_addr: None
         }
@@ -259,8 +259,8 @@ fn subscribe() -> anyhow::Result<()> {
         .pay(None, &sub_amount)?;
     let twa = query_twa(&chain, subscription_addr.clone());
     // No income yet
-    assert_eq!(twa.cumulative_value, Uint256::zero());
-    assert_eq!(twa.average_value, Decimal256::zero());
+    assert_eq!(twa.cumulative_value, 0);
+    assert_eq!(twa.average_value, Decimal::zero());
     // wait the period
     chain.wait_seconds(INCOME_AVERAGING_PERIOD.u64())?;
 
@@ -274,10 +274,10 @@ fn subscribe() -> anyhow::Result<()> {
     let twa = query_twa(&chain, subscription_addr.clone());
 
     // expected value for 2 subscribers (cost * period)
-    let expected_value = Decimal256::from_str("0.2")? * Uint256::from(INCOME_AVERAGING_PERIOD);
+    let expected_value = Decimal::from_str("0.2")? * Uint128::from(INCOME_AVERAGING_PERIOD);
     // assert it's equal to the 2 subscribers
-    assert_eq!(twa.cumulative_value, expected_value);
-    assert_eq!(twa.average_value, Decimal256::from_str("0.2")?);
+    assert_eq!(twa.cumulative_value, expected_value.u128());
+    assert_eq!(twa.average_value, Decimal::from_str("0.2")?);
 
     // wait the period
     chain.wait_seconds(INCOME_AVERAGING_PERIOD.u64())?;
@@ -286,7 +286,7 @@ fn subscribe() -> anyhow::Result<()> {
     let twa = query_twa(&chain, subscription_addr.clone());
 
     // 0 new subscribers in this period
-    assert_eq!(twa.average_value, Decimal256::percent(0));
+    assert_eq!(twa.average_value, Decimal::percent(0));
 
     // Fourth user subscribes
     subscription_app
@@ -294,15 +294,15 @@ fn subscribe() -> anyhow::Result<()> {
         .pay(None, &sub_amount)?;
     // two subscribers were subbed for two periods
     let first_two_subs =
-        Decimal256::from_str("0.2")? * Uint256::from(INCOME_AVERAGING_PERIOD * Uint64::new(2));
+        Decimal::from_str("0.2")? * Uint128::from(INCOME_AVERAGING_PERIOD * Uint64::new(2));
     // and last one only for one
-    let third_sub = Decimal256::from_str("0.1")? * Uint256::from(INCOME_AVERAGING_PERIOD);
+    let third_sub = Decimal::from_str("0.1")? * Uint128::from(INCOME_AVERAGING_PERIOD);
 
     let expected_value = first_two_subs + third_sub;
 
     let twa = query_twa(&chain, subscription_addr);
     // assert it's equal to the 3 subscribers
-    assert_eq!(twa.cumulative_value, expected_value);
+    assert_eq!(twa.cumulative_value, expected_value.u128());
     Ok(())
 }
 
@@ -423,7 +423,7 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
             None,
             None,
             Some(EmissionType::WeekPerUser(
-                Decimal256::one(),
+                Decimal::one(),
                 AssetInfoBase::Cw20(emis.addr_str()?),
             )),
             None,

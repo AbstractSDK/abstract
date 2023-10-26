@@ -40,7 +40,7 @@ mod tests {
 
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env},
-        to_binary, Addr, CosmosMsg, Decimal256, SubMsg, WasmMsg,
+        to_binary, Addr, CosmosMsg, Decimal, SubMsg, WasmMsg,
     };
 
     use crate::{
@@ -68,7 +68,7 @@ mod tests {
                 depsmut.storage,
                 &SubscriptionConfig {
                     payment_asset: cw_asset::AssetInfoBase::Native("token".to_owned()),
-                    subscription_cost_per_week: Decimal256::from_str("0.1").unwrap(),
+                    subscription_cost_per_week: Decimal::from_str("0.1").unwrap(),
                     subscription_per_week_emissions: crate::state::EmissionType::None,
                     unsubscription_hook_addr: None,
                 },
@@ -109,7 +109,7 @@ mod tests {
                 depsmut.storage,
                 &SubscriptionConfig {
                     payment_asset: cw_asset::AssetInfoBase::Native("token".to_owned()),
-                    subscription_cost_per_week: Decimal256::from_str("0.1").unwrap(),
+                    subscription_cost_per_week: Decimal::from_str("0.1").unwrap(),
                     subscription_per_week_emissions: crate::state::EmissionType::None,
                     unsubscription_hook_addr: Some(Addr::unchecked("alice")),
                 },

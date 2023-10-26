@@ -6,9 +6,7 @@ use crate::state::{
 };
 use crate::{SubscriptionError, DURATION_IN_WEEKS, WEEK_IN_SECONDS};
 use abstract_sdk::{AbstractResponse, AccountAction, Execution, TransferInterface};
-use cosmwasm_std::{
-    Addr, Decimal256, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, Uint256,
-};
+use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 pub(crate) const MAX_UNSUBS: usize = 15;
@@ -82,14 +80,14 @@ pub fn try_pay(
     }
     // Minimum of one period worth to (re)-subscribe.
     // prevents un- and re-subscribing all the time.
-    let required_payment =
-        Uint128::try_from(Uint256::from(DURATION_IN_WEEKS) * config.subscription_cost_per_week)?;
-    let paid_for_weeks =
-        Uint256::from_uint128(asset.amount).checked_div_floor(config.subscription_cost_per_week)?;
-    let paid_for_weeks_u64 = u64::try_from(Uint128::try_from(paid_for_weeks)?.u128())?;
+    let required_payment = Uint128::from(DURATION_IN_WEEKS) * config.subscription_cost_per_week;
+    let paid_for_weeks = asset
+        .amount
+        .checked_div_floor(config.subscription_cost_per_week)?
+        .u128() as u64;
     if let Some(mut active_sub) = SUBSCRIBERS.may_load(deps.storage, &subscriber_addr)? {
         // Subscriber is active, update balance
-        active_sub.extend(paid_for_weeks_u64);
+        active_sub.extend(paid_for_weeks);
         SUBSCRIBERS.save(deps.storage, &subscriber_addr, &active_sub)?;
     } else {
         // Subscriber is (re)activating his subscription.
@@ -99,12 +97,12 @@ pub fn try_pay(
                 deposit_info.to_string(),
             ));
         }
-        let subscriber = Subscriber::new(&env.block, paid_for_weeks_u64);
+        let subscriber = Subscriber::new(&env.block, paid_for_weeks);
         let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
         INCOME_TWA.accumulate(
             &env,
             deps.storage,
-            Decimal256::from_atomics(Uint256::from(subscription_state.active_subs), 0)?
+            Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
                 * config.subscription_cost_per_week,
         )?;
         // Remove from expired list in case it's re-sub
@@ -148,7 +146,7 @@ pub fn unsubscribe(
     INCOME_TWA.accumulate(
         &env,
         deps.storage,
-        Decimal256::from_atomics(Uint256::from(subscription_state.active_subs), 0)?
+        Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
             * subscription_config.subscription_cost_per_week,
     )?;
 
@@ -234,13 +232,13 @@ pub fn claim_emissions_msg(
         }
         crate::state::EmissionType::WeekShared(shared_emissions, token) => {
             // active_sub can't be 0 as we already loaded from storage
-            let amount = (shared_emissions * Uint256::from(weeks_passed))
-                / (Uint256::from(subscription_state.active_subs));
-            Asset::new(token, Uint128::try_from(amount)?)
+            let amount = (shared_emissions * Uint128::from(weeks_passed))
+                / (Uint128::from(subscription_state.active_subs));
+            Asset::new(token, amount)
         }
         crate::state::EmissionType::WeekPerUser(per_user_emissions, token) => {
-            let amount = per_user_emissions * Uint256::from(weeks_passed);
-            Asset::new(token, Uint128::try_from(amount)?)
+            let amount = per_user_emissions * Uint128::from(weeks_passed);
+            Asset::new(token, amount)
         }
     };
 
@@ -293,7 +291,7 @@ pub fn update_subscription_config(
     info: MessageInfo,
     app: SubscriptionApp,
     payment_asset: Option<AssetInfoUnchecked>,
-    subscription_cost_per_week: Option<Decimal256>,
+    subscription_cost_per_week: Option<Decimal>,
     subscription_per_week_emissions: Option<EmissionType<String>>,
     unsubscription_hook_addr: Option<String>,
 ) -> SubscriptionResult {

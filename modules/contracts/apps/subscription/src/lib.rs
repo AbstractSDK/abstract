@@ -15,7 +15,7 @@ pub mod interface {
     use crate::msg::*;
     use abstract_core::app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg};
     use abstract_interface::AppDeployer;
-    use cosmwasm_std::Decimal256;
+    use cosmwasm_std::Decimal;
     use cw_asset::AssetInfoUnchecked;
     use cw_orch::{interface, prelude::*};
     use std::str::FromStr;
@@ -54,9 +54,9 @@ pub mod interface {
                 },
                 module: SubscriptionInstantiateMsg {
                     payment_asset: AssetInfoUnchecked::native(payment_denom),
-                    subscription_cost_per_week: Decimal256::from_str("0.000001").unwrap(),
+                    subscription_cost_per_week: Decimal::from_str("0.000001").unwrap(),
                     subscription_per_week_emissions: crate::state::EmissionType::WeekShared(
-                        Decimal256::from_str("0.000001").unwrap(),
+                        Decimal::from_str("0.000001").unwrap(),
                         AssetInfoUnchecked::cw20(token_addr.clone()),
                     ),
                     // crate::state::EmissionType::IncomeBased(

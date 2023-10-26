@@ -31,7 +31,7 @@
 use super::state::{EmissionType, Subscriber, SubscriptionConfig, SubscriptionState};
 use crate::contract::SubscriptionApp;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, Decimal256, StdResult, Uint64, WasmMsg};
+use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, Decimal, StdResult, Uint64, WasmMsg};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 abstract_app::app_msg_types!(
@@ -50,7 +50,7 @@ pub struct SubscriptionInstantiateMsg {
     /// Asset for payment
     pub payment_asset: AssetInfoUnchecked,
     /// Cost of the subscription on a per-week basis.
-    pub subscription_cost_per_week: Decimal256,
+    pub subscription_cost_per_week: Decimal,
     /// Subscription emissions per week
     pub subscription_per_week_emissions: EmissionType<String>,
     /// How often update income average
@@ -86,7 +86,7 @@ pub enum SubscriptionExecuteMsg {
         /// New asset for payment
         payment_asset: Option<AssetInfoUnchecked>,
         /// new subscription_cost_per_week
-        subscription_cost_per_week: Option<Decimal256>,
+        subscription_cost_per_week: Option<Decimal>,
         /// Subscription emissions per week
         subscription_per_week_emissions: Option<EmissionType<String>>,
         /// New unsubscription hook addr
