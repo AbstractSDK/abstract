@@ -106,14 +106,6 @@ impl<'a> TimeWeightedAverage<'a> {
         }
 
         // (current_cum - last_cum) / time
-        println!(
-            "current_cum({})-last_cum({}) = {}",
-            twa.cumulative_value,
-            twa.last_averaging_cumulative_value,
-            twa.cumulative_value
-                .wrapping_sub(twa.last_averaging_cumulative_value)
-        );
-        println!("time: {}", time_elapsed);
         let new_average_value = Decimal::from_ratio(
             twa.cumulative_value
                 .wrapping_sub(twa.last_averaging_cumulative_value),
