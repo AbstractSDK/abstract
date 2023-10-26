@@ -10,9 +10,9 @@ use abstract_core::objects::UncheckedChannelEntry;
 use abstract_core::ACCOUNT_FACTORY;
 use abstract_core::ICS20;
 use abstract_core::MANAGER;
+use abstract_core::PROXY;
 use abstract_interface::Abstract;
 use abstract_interface::ExecuteMsgFns as InterfaceExecuteMsgFns;
-use cosmwasm_std::coins;
 use cosmwasm_std::Event;
 use cw_orch::deploy::Deploy;
 
@@ -227,9 +227,6 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     let admin_abstr = Abstract::deploy_on(admin_chain.clone(), admin.to_string())?;
     let abstr = Abstract::load_from(chain.clone())?;
 
-    //chain.set_balance(&admin_abstr.account.proxy.address()?, coins(100, "ujuno"))?;
-    chain.set_balance(&sender, coins(100, "ujuno"))?;
-
     let account_sequence = 1;
     let chain = "juno";
 
@@ -263,15 +260,24 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     )?;
 
     // We call the action and verify that it completes without issues.
-    let response = abstr.ibc.host.ibc_execute(
+    let account_action_response = abstr.ibc.host.ibc_execute(
         AccountId::local(account_sequence),
         HostAction::Helpers(abstract_core::ibc_host::HelperAction::SendAllBack {}),
         "proxy_address".to_string(),
     )?;
 
-    for event in response.events {
+    for event in &account_action_response.events {
         println!("{:?}\n", event);
     }
+
+    // Possible to verify that funds have been sent?
+    assert!(account_action_response.has_event(
+        &Event::new("wasm-abstract")
+            .add_attribute("_contract_address", "contract9") // No simple way to get the account manager here, TODO ? For testing, we will keep that.
+            .add_attribute("contract", MANAGER)
+            .add_attribute("action", "exec_on_module")
+            .add_attribute("module", PROXY)
+    ));
 
     Ok(())
 }
