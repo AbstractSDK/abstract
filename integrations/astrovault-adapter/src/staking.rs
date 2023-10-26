@@ -99,7 +99,6 @@ impl CwStakingCommand for Astrovault {
         stake_request: Vec<AnsAsset>,
         _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        // TODO: astrovault::lp::Cw20HookMsg
         let msg = to_binary(
             &astrovault::lp_staking::handle_msg::LPStakingReceiveMsg::Deposit {
                 sender: None,
@@ -164,28 +163,34 @@ impl CwStakingCommand for Astrovault {
     }
 
     fn claim_rewards(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        // TODO: How to claim rewards on astrovault?
-        todo!();
-        // let mut claims: HashMap<&str, Vec<String>> = HashMap::new();
-        // for token in &self.tokens {
-        //     claims
-        //         .entry(token.generator_contract_address.as_str())
-        //         .and_modify(|tokens| tokens.push(token.lp_token_address.to_string()))
-        //         .or_insert(vec![token.lp_token_address.to_string()]);
-        // }
-        // let claim_msgs = claims
-        //     .into_iter()
-        //     .map(|(generator_addr, lp_tokens)| {
-        //         let msg: CosmosMsg = wasm_execute(
-        //             generator_addr.to_owned(),
-        //             &LpExecuteMsg::ClaimRewards { lp_tokens },
-        //             vec![],
-        //         )?
-        //         .into();
-        //         Ok(msg)
-        //     })
-        //     .collect::<Result<_, CwStakingError>>()?;
-        // Ok(claim_msgs)
+        let mut claims: HashMap<&str, Vec<String>> = HashMap::new();
+        for token in &self.tokens {
+            claims
+                .entry(token.generator_contract_address.as_str())
+                .and_modify(|tokens| tokens.push(token.lp_token_address.to_string()))
+                .or_insert(vec![token.lp_token_address.to_string()]);
+        }
+        let claim_msgs = claims
+            .into_iter()
+            .map(|(generator_addr, lp_tokens)| {
+                let msg: CosmosMsg = wasm_execute(
+                    generator_addr.to_owned(),
+                    &LpExecuteMsg::Withdrawal {
+                        amount: Some(Uint128::zero()),
+                        // TODO: with PoolType's
+                        direct_pool_withdrawal: None,
+                        to: None,
+                        not_claim_rewards: None,
+                        withdrawal_unlocked: None,
+                        notify: None,
+                    },
+                    vec![],
+                )?
+                .into();
+                Ok(msg)
+            })
+            .collect::<Result<_, CwStakingError>>()?;
+        Ok(claim_msgs)
     }
 
     fn query_info(&self, querier: &QuerierWrapper) -> Result<StakingInfoResponse, CwStakingError> {
@@ -207,7 +212,7 @@ impl CwStakingCommand for Astrovault {
                         e
                     ))
                 })?;
-                //Will have to trust astrovu
+            //Will have to trust astrovu
             let contract_addr = Addr::unchecked(inc_token);
             let astro_token = AssetInfo::cw20(inc_token);
 
