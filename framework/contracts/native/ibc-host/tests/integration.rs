@@ -266,10 +266,6 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
         "proxy_address".to_string(),
     )?;
 
-    for event in &account_action_response.events {
-        println!("{:?}\n", event);
-    }
-
     // Possible to verify that funds have been sent?
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
