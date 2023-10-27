@@ -1,11 +1,11 @@
 # Account Factory
 
 The Account Factory is a contract that allows you to create and
-manage Abstract Accounts, which can be interacted with via the contract or the [Account Console](account_console.md).
+manage Abstract Accounts, which can be interacted with via the contract or the [Account Console](4_account_console.md).
 
-To recap from [that chapter](../3_framework/4_architecture.md), an Abstract Account is composed of a Manager and a Proxy
+To recap from [that chapter](../3_framework/3_architecture.md), an Abstract Account is composed of a Manager and a Proxy
 contract. Those contracts will be created for you by the Account Factory using the latest versions of these contracts,
-which are store on the [Version Control](version_control.md) contract.
+which are store on the [Version Control](2_version_control.md) contract.
 
 ## Flow Diagram
 

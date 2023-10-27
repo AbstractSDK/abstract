@@ -44,6 +44,8 @@ environment
 encourages the creation of top-quality smart contracts, offering developers a continuous income stream and promoting
 value for all parties involved.
 
+Read more about monetization on the Abstract platform [here](./5_platform/6_monetization.md).
+
 ## Continuous Innovation and Collaboration
 
 Abstract fosters a vibrant developer community where collaboration and innovation thrive. Engage with like-minded

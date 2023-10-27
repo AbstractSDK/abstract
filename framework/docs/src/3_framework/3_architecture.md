@@ -4,7 +4,7 @@
 
 Abstract's account architecture is skillfully designed, merging modularity, scalability, and security. This
 architectural design is anchored by the ideas of account abstraction. For a detailed exploration of account abstraction,
-read [the preceding chapter](./3_account_abstraction.md). In the upcoming sections, we will delve deeper into the
+read [the preceding chapter](./2_account_abstraction.md). In the upcoming sections, we will delve deeper into the
 architecture of Abstract Accounts, providing insights into its design principles and components.
 
 ## Abstract Account
@@ -15,16 +15,16 @@ and the **Proxy** contract.
 
 ```mermaid
 flowchart LR
-  subgraph Abstr[Abstract Account]
-    direction TB
-    Manager --> Proxy
-  end
+    subgraph Abstr[Abstract Account]
+        direction TB
+        Manager --> Proxy
+    end
 
-  Owner -.-> Manager
+    Owner -.-> Manager
 
-  style Owner fill: #161b25
-  style Manager fill: #161b25
-  style Proxy fill: #161b25
+    style Owner fill: #161b25
+    style Manager fill: #161b25
+    style Proxy fill: #161b25
 ```
 
 The *owner* of the account, can configure the Abstract account by sending messages to the manager contract. We don't
@@ -39,7 +39,6 @@ You can read up on the different ownership structures in our [Ownership](./5_own
 The account's architecture centers around **configurable programmability**. In other words, how can one configure the
 account (install applications, set permissions, etc.) to enable users and developers to easily customize it to do what
 they want?
-Let's see how the account architecture achieves this.
 
 Let's dive deeper into the two components of the Abstract Account.
 
@@ -72,7 +71,8 @@ Abstract Account, taking care of:
 
 ### Account Interactions
 
-The diagram below depicts a User interacting with its Abstract account through the **Manager**, and proxying a call to an
+The diagram below depicts a User interacting with its Abstract account through the **Manager**, and proxying a call to
+an
 external contract through the **Proxy**.
 
 ```mermaid
@@ -88,3 +88,27 @@ sequenceDiagram
     Proxy ->> External Contract: Execute
 
 ```
+
+## Enabling IBC on your Abstract Account
+
+Enabling the IBC functionality on your Abstract Account is done via the Manager contract with the UpdateSettings
+message. By doing so the IBC client will be registered to your account, enabling your modules to execute cross-chain commands.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant M as Manager
+    participant VC as Version Control
+    participant P as Proxy
+
+    U ->> M: UpdateSettings
+    Note right of U: ibc_enabled
+    M -->>+ VC: Query IBC Client reference
+    VC -->>- M: Return IBC Client address
+    M ->> M: Register IBC Client
+    M ->> P: Add IBC client to allowlist
+
+```
+
+> For disabling IBC, see [Uninstall Module](6_module_types.md#installing-and-uninstalling-modules)

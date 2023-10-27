@@ -23,14 +23,14 @@ The ANS contract state layout is defined here. It consists of key-value mappings
 ```
 
 ```admonish info
-You can find the full source code for the ANS contract <a href="https://github.com/AbstractSDK/abstract/tree/main/framework/contracts/native/ans-host>" target="_blank">here</a>.
+You can find the full source code for the ANS contract <a href="https://github.com/AbstractSDK/abstract/tree/main/framework/contracts/native/ans-host" target="_blank">here</a>.
 ```
 
 ## Resolving Entries
 
-The information provided by the ANS is great to have. However, directly calling CosmWasm smart queries on the memory contract can
+The information provided by the ANS is great to have. However, directly calling CosmWasm smart queries on the ANS contract can
 make your code messy and significantly raise gas usage. For this reason, we offer three methods to efficiently and
-dependably execute low-gas queries on the memory contract.
+dependably execute low-gas queries on the ANS contract.
 
 > Resolving your asset/contract name to its matching value is much like resolving a domain name like abstract.money to
 > its IP address (172.67.163.181).

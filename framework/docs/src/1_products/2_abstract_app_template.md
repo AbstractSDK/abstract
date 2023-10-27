@@ -4,9 +4,9 @@ The Abstract App Module Template is a starting point for developing apps that en
 Accounts into standalone products. An app is instantiated for each Account individually and it's migratable. Apps are
 allowed to perform actions on the Account and may also integrate with other apps and Adapters installed on the Account.
 For a deeper understanding of Abstract Accounts, please refer to
-the [abstract accounts](../3_framework/4_architecture.md)
+the [abstract accounts](../3_framework/3_architecture.md)
 documentation. If you're interested in learning about apps, consult
-the [app module documentation](../3_framework/7_module_types.md).
+the [app module documentation](../3_framework/6_module_types.md).
 
 The primary focus of the Abstract App Template as of now is to provide a template for building a new Abstract App, as
 well

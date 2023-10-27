@@ -18,7 +18,7 @@ Skip to [Modules](./7_module_types.md) to learn what the kinds of modules are an
 ## How Modules Work
 
 In Abstract, the process of integrating these modules is managed through the Manager contract within an Abstract
-Account. As described in a [previous section](4_architecture.md), the Manager keeps track of all installed modules,
+Account. As described in a [previous section](3_architecture.md), the Manager keeps track of all installed modules,
 managing their permissions and interactions. This system facilitates the customization of individual Abstract
 Accounts, permitting the installation or removal of modules according to your needs. In doing so, it effectively
 adapts the Account's functionality.
@@ -37,5 +37,5 @@ ensuring that it adheres to best security practices.
 While no system can guarantee absolute security, this rigorous vetting process, coupled with the inherent security
 measures in Abstract and CosmWasm's architecture, mitigates potential risks to a considerable extent.
 
-The Abstract platform also maintains a [Version Control](../5_platform/version_control.md) for all the modules, allowing
+The Abstract platform also maintains a [Version Control](../5_platform/2_version_control.md) for all the modules, allowing
 developers to track changes, understand the evolution of a module, and choose versions that have passed security audits. 

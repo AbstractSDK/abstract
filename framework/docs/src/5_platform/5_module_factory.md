@@ -2,9 +2,9 @@
 
 The Module Factory is a contract that allows you to install and manage Abstract Modules via the Account Manager. You can
 install modules by interacting with the Account Manager directly, i.e. via CLI, or by using
-the [Account Console](account_console.md).
+the [Account Console](4_account_console.md).
 
-To recap from [that chapter](../3_framework/7_module_types.md), there are three types of modules: App, Adapter, and Standalone.
+To recap from [that chapter](../3_framework/6_module_types.md), there are three types of modules: App, Adapter, and Standalone.
 
 # Flow Diagrams
 

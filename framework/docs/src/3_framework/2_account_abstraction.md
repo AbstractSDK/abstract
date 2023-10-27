@@ -42,7 +42,7 @@ Abstract Apps are smart-contracts that add functionality to an Abstract Account.
 you an idea of how an App is created with the Abstract SDK:
 
 ```rust,no_run
-{{#include ../../packages/abstract-app/examples/counter.rs:handlers}}
+{{#include ../../../packages/abstract-app/examples/counter.rs:handlers}}
 ```
 
 The code above defines an **Abstract App**. This app can be installed on any Abstract Account through
@@ -55,5 +55,5 @@ multi-contract transactions with minimum code. Importantly, this simplification 
 programmability. Instead, it provides a balance of efficient coding and comprehensive control over inter-contract
 interactions.
 
-In the upcoming section we will explore the [architecture of Abstract Accounts](4_architecture.md), providing insights
+In the upcoming section we will explore the [architecture of Abstract Accounts](3_architecture.md), providing insights
 into its design.
