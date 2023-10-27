@@ -1,9 +1,14 @@
 use crate::ASTROVAULT;
 use crate::AVAILABLE_CHAINS;
 use abstract_dex_standard::Identify;
+use abstract_sdk::core::objects::PoolType;
+
+use abstract_sdk::feature_objects::AnsHost;
 
 #[derive(Default)]
-pub struct Astrovault {}
+pub struct Astrovault {
+    pub pool_type: Option<PoolType>,
+}
 
 impl Identify for Astrovault {
     fn name(&self) -> &'static str {
@@ -19,8 +24,12 @@ use ::{
     abstract_dex_standard::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
-    abstract_sdk::core::objects::PoolAddress,
-    abstract_sdk::cw_helpers::wasm_smart_query,
+    abstract_sdk::{
+        core::objects::{PoolAddress, UniquePoolId},
+        cw_helpers::wasm_smart_query,
+        feature_objects::VersionControlContract,
+        AbstractSdkResult,
+    },
     astrovault::standard_pool::query_msg::{PoolResponse, SimulationResponse},
     cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
@@ -37,6 +46,19 @@ pub enum StubCw20HookMsg {
 
 #[cfg(feature = "full_integration")]
 impl DexCommand for Astrovault {
+    fn fetch_data(
+        &mut self,
+        deps: Deps,
+        _sender: cosmwasm_std::Addr,
+        _version_control_contract: VersionControlContract,
+        ans_host: AnsHost,
+        pool_id: UniquePoolId,
+    ) -> AbstractSdkResult<()> {
+        let pool_metadata = ans_host.query_pool_metadata(&deps.querier, &pool_id)?;
+        self.pool_type = Some(pool_metadata.pool_type);
+        Ok(())
+    }
+
     fn swap(
         &self,
         _deps: Deps,
@@ -322,7 +344,7 @@ mod tests {
     use std::str::FromStr;
 
     fn create_setup() -> DexCommandTester {
-        DexCommandTester::new(PHOENIX_1.into(), Astrovault {})
+        DexCommandTester::new(PHOENIX_1.into(), Astrovault { pool_type: None })
     }
 
     const POOL_CONTRACT: &str = "terra1fd68ah02gr2y8ze7tm9te7m70zlmc7vjyyhs6xlhsdmqqcjud4dql4wpxr";

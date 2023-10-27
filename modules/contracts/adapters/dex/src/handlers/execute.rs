@@ -69,14 +69,19 @@ pub fn execute_handler(
 fn handle_local_request(
     deps: DepsMut,
     _env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     adapter: DexAdapter,
     action: DexAction,
     exchange: String,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    let (msgs, _) =
-        crate::adapter::DexAdapter::resolve_dex_action(&adapter, deps.as_ref(), action, exchange)?;
+    let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
+        &adapter,
+        deps.as_ref(),
+        info.sender,
+        action,
+        exchange,
+    )?;
     let proxy_msg = adapter
         .executor(deps.as_ref())
         .execute(msgs.into_iter().map(Into::into).collect())?;

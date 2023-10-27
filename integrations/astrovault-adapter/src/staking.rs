@@ -61,7 +61,7 @@ impl CwStakingCommand for Astrovault {
         _env: Env,
         info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
-        _version_control_contract: &VersionControlContract,
+        _version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
     ) -> AbstractSdkResult<()> {
         let base = info

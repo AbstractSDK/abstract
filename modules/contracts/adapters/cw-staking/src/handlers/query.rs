@@ -34,7 +34,7 @@ pub fn query_handler(
                     env,
                     None,
                     ans_host,
-                    &version_control_contract,
+                    version_control_contract,
                     staking_tokens,
                 )?;
                 Ok(to_binary(&provider.query_info(&deps.querier)?)?)
@@ -60,7 +60,7 @@ pub fn query_handler(
                     env,
                     None,
                     ans_host,
-                    &version_control_contract,
+                    version_control_contract,
                     staking_tokens,
                 )?;
                 Ok(to_binary(&provider.query_staked(
@@ -89,7 +89,7 @@ pub fn query_handler(
                     env,
                     None,
                     ans_host,
-                    &version_control_contract,
+                    version_control_contract,
                     staking_tokens,
                 )?;
                 Ok(to_binary(&provider.query_unbonding(
@@ -115,7 +115,7 @@ pub fn query_handler(
                     env,
                     None,
                     ans_host,
-                    &version_control_contract,
+                    version_control_contract,
                     staking_tokens,
                 )?;
                 Ok(to_binary(&provider.query_rewards(&deps.querier)?)?)

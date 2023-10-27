@@ -27,7 +27,10 @@ pub fn query_handler(
             ask_asset,
             dex,
         } => simulate_swap(deps, env, adapter, offer_asset, ask_asset, dex.unwrap()),
-        DexQueryMsg::GenerateMessages { message } => {
+        DexQueryMsg::GenerateMessages {
+            message,
+            manager_addr,
+        } => {
             match message {
                 DexExecuteMsg::Action { dex, action } => {
                     let (local_dex_name, is_over_ibc) = is_over_ibc(env, &dex)?;
@@ -36,8 +39,9 @@ pub fn query_handler(
                         return Err(DexError::IbcMsgQuery);
                     }
                     let exchange = exchange_resolver::resolve_exchange(&local_dex_name)?;
+                    let sender = deps.api.addr_validate(&manager_addr)?;
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
-                        adapter, deps, action, exchange,
+                        adapter, deps, sender, action, exchange,
                     )?;
                     to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }
@@ -65,7 +69,7 @@ pub fn simulate_swap(
     // get addresses
     let swap_offer_asset = ans.query(&offer_asset)?;
     let ask_asset_info = ans.query(&ask_asset)?;
-    let pair_address = exchange
+    let pool_address = exchange
         .pair_address(
             deps,
             ans.host(),
@@ -84,7 +88,7 @@ pub fn simulate_swap(
     offer_asset.amount -= adapter_fee;
 
     let (return_amount, spread_amount, commission_amount, fee_on_input) = exchange
-        .simulate_swap(deps, pair_address, swap_offer_asset, ask_asset_info)
+        .simulate_swap(deps, pool_address, swap_offer_asset, ask_asset_info)
         .map_err(|e| StdError::generic_err(e.to_string()))?;
     let commission_asset = if fee_on_input {
         ask_asset

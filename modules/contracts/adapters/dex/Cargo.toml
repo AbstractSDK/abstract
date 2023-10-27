@@ -25,7 +25,12 @@ required-features = ["schema"]
 [features]
 default = ["export"]
 export = []
-interface = ["dep:abstract-interface", "dep:cw-orch", "export"]
+interface = [
+  "dep:abstract-interface",
+  "dep:cw-orch",
+  "export",
+  "abstract-dex-standard/interface",
+]
 schema = ["abstract-adapter/schema"]
 testing = ["abstract-wyndex-adapter/local", "abstract-astroport-adapter/local"]
 
@@ -39,6 +44,8 @@ osmosis = ["abstract-osmosis-adapter/full_integration"]
 astroport = ["abstract-astroport-adapter/full_integration"]
 bow = ["abstract-kujira-adapter/full_integration"]
 terraswap = ["dep:terraswap"]
+
+osmosis-test = ["cw-orch/osmosis-test-tube"]
 
 # Builds
 [package.metadata.optimizer]
@@ -122,9 +129,11 @@ abstract-sdk = { workspace = true, features = ["test-utils"] }
 dex = { path = ".", features = [
   "interface",
   "wynd",
+  "osmosis",
 ], package = "abstract-dex-adapter" }
 
 abstract-wyndex-adapter = { workspace = true, features = ["local"] }
 
 cw20 = { workspace = true, features = ["interface"] }
 cw20-base = { workspace = true, features = ["interface"] }
+cw-utils = { workspace = true }
