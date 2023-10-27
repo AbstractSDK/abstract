@@ -14,3 +14,4 @@ keywords.workspace = true
 [dependencies]
 abstract-interface.workspace = true
 cw-orch.workspace = true
+serde.workspace = true

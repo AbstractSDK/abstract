@@ -1,8 +1,16 @@
+use std::ops::Deref;
+
+use abstract_interface::AbstractAccount;
+use cw_orch::prelude::*;
+use serde::Serialize;
+
+// An application represents a module installed on a (sub)-account.
 pub struct Application<T: CwEnv, M> {
     account: AbstractAccount<T>,
     module: M,
 }
 
+// Allows to access the module's methods directly from the application struct
 impl<T: CwEnv, M> Deref for Application<T, M> {
     type Target = M;
 
@@ -17,8 +25,8 @@ impl<T: CwEnv, M> Application<T, M> {
     }
 }
 
-impl<T: CwEnv> Application<T, Manager<T>> {
-    pub fn execute(&self, input: &str) -> Result<String, CwError> {
-        self.install_module(module_id, init_msg, funds)
-    }
-}
+// pub trait Installable<T: CwEnv> {
+//     fn install<C: Serialize >(&self, account: AbstractAccount<T>, configuration: C) -> Abstract<T> {
+
+//     };
+// }
