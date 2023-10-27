@@ -77,7 +77,8 @@ impl<Chain: CwEnv> Manager<Chain> {
                 &config.module_factory_address,
             )
             .map_err(Into::into)?;
-        self.install_modules(modules,sim_response.total_required_funds.as_ref()).map_err(Into::into)
+        self.install_modules(modules, sim_response.total_required_funds.as_ref())
+            .map_err(Into::into)
     }
 
     pub fn install_module<TInitMsg: Serialize>(

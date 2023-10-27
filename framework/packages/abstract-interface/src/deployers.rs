@@ -14,7 +14,7 @@ use serde::Serialize;
 //     fn cw_orch_default() -> Self;
 // }
 
-// impl<T,C> RegisteredModule for T where 
+// impl<T,C> RegisteredModule for T where
 // T: From<Contract<C>>,
 // C: CwEnv {
 

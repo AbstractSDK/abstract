@@ -75,7 +75,9 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         modules: Vec<ModuleInstallConfig>,
         funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        self.manager.install_modules(modules, funds).map_err(Into::into)
+        self.manager
+            .install_modules(modules, funds)
+            .map_err(Into::into)
     }
 
     pub fn install_modules_auto(
