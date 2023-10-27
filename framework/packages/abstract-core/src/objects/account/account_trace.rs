@@ -34,7 +34,19 @@ impl<'a> PrimaryKey<'a> for AccountTrace {
         match self {
             AccountTrace::Local => LOCAL.key(),
             AccountTrace::Remote(chain_name) => {
-                chain_name.iter().flat_map(|c| c.str_ref().key()).collect()
+                let len = chain_name.len();
+                chain_name
+                    .iter()
+                    .enumerate()
+                    .flat_map(|(s, c)| {
+                        if s != len - 1 {
+                            vec![c.str_ref().key()]
+                        } else {
+                            vec![c.str_ref().key(), CHAIN_DELIMITER.key()]
+                        }
+                    })
+                    .flatten()
+                    .collect::<Vec<Key>>()
             }
         }
     }
