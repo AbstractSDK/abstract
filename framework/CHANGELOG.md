@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Removed
 
+- `DepositMsgs` removed (now `deposit()` returns `Vec<CosmosMsg>`)
+
 ## [0.19.0] - 2023-09-26
 
 ### Added

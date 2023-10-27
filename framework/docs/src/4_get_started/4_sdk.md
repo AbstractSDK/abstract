@@ -60,10 +60,7 @@ developers to transfer assets
 from and to the Account. We now want to use this API to create a `Splitter` API that splits the transfer of some amount
 of funds between a set of receivers.
 
-> The code behind this example is
->
-available <a href="https://github.com/AbstractSDK/contracts/blob/main/packages/abstract-sdk/src/apis/splitter.rs" target="_blank">
-here</a>.
+> The code behind this example is available [here](https://github.com/AbstractSDK/abstract/blob/main/packages/abstract-sdk/src/apis/splitter.rs).
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:splitter }}

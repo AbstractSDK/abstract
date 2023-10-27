@@ -10,9 +10,9 @@
 //! ## Message format
 //! Each Abstract module accepts a fixed message format that can be customized by the developer to add their own functionality.
 //!
-//! The base massage format is defined [here](abstract_core::base) as follows:
+//! The base message format is defined [here](abstract_core::base) as follows:
 //! ```rust
-//! use abstract_ica::IbcResponseMsg;
+//! use abstract_core::ibc::IbcResponseMsg;
 //! use cosmwasm_std::Empty;
 //!
 //! /// EndpointMsg to the Base.

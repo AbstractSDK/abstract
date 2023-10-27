@@ -1,4 +1,6 @@
 #![allow(unused)]
+#[allow(unused)]
+pub use abstract_core::ans_host::ExecuteMsgFns;
 use abstract_core::{
     ans_host::*,
     objects::{

@@ -23,6 +23,7 @@ fn creating_on_subaccount_should_succeed() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
     let sub_accounts = account.manager.sub_account_ids(None, None)?;
     assert_eq!(
@@ -48,6 +49,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
@@ -80,6 +82,7 @@ fn proxy_updating_on_subaccount_should_succeed() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
@@ -113,6 +116,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
@@ -127,6 +131,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
     let account_contracts =
         get_account_contracts(&deployment.version_control, Some(AccountId::local(3)));
@@ -158,6 +163,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
     let first_proxy_addr = account.proxy.address()?;
 
@@ -215,6 +221,7 @@ fn sub_account_move_ownership() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
     let sub_accounts = account.manager.sub_account_ids(None, None)?;
     assert_eq!(
@@ -278,6 +285,7 @@ fn account_move_ownership_to_sub_account() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
     let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
     let sub_manager_addr = sub_account.manager.address()?;
@@ -335,6 +343,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
     let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
     let sub_manager_addr = sub_account.manager.address()?;
@@ -348,6 +357,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
 
     // sub-accounts state updated
@@ -411,6 +421,7 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
         None,
         None,
         None,
+        &[],
     )?;
     let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
     let sub_manager_addr = sub_account.manager.address()?;

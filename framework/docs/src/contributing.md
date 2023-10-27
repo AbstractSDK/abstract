@@ -20,11 +20,7 @@ Table of Contents
 Getting Started
 ---------------
 
-To get started with contributing to the Abstract SDK project, you should first familiarize yourself with the repository
-structure and the codebase. Please read the
-project's <a href="https://github.com/AbstractSDK/contracts/" target="_blank">README</a> to understand the purpose,
-features, and usage of the Abstract SDK library as well as its <a href="https://docs.abstract.money" target="_blank">
-documentation</a>.
+To get started with contributing to the Abstract SDK project, you should first familiarize yourself with the repository structure and the codebase. Please read the project's [README](https://github.com/AbstractSDK/abstract/) to understand the purpose, features, and usage of the Abstract SDK library as well as its [documentation](https://docs.abstract.money).
 
 How to Contribute
 -----------------
@@ -35,10 +31,7 @@ and submitting code contributions.
 Reporting Bugs
 ------------------
 
-If you encounter any bugs or issues while using the Abstract SDK library, please report them by creating a new issue in
-the <a href="https://github.com/AbstractSDK/contracts/issues" target="_blank">issue tracker</a>. When reporting a bug,
-please provide the following
-information:
+If you encounter any bugs or issues while using the Abstract SDK library, please report them by creating a new issue in the [issue tracker](https://github.com/AbstractSDK/abstract/issues). When reporting a bug, please provide the following information:
 
 * A clear and descriptive title
 * A detailed description of the issue, including steps to reproduce it
@@ -48,10 +41,7 @@ information:
 Suggesting Enhancements
 ------------------
 
-We welcome suggestions for new features or improvements to the existing functionality of the Abstract SDK library. To
-suggest an enhancement, create a new issue in
-the <a href="https://github.com/AbstractSDK/contracts/issues" target="_blank">issue tracker</a> with
-the following information:
+We welcome suggestions for new features or improvements to the existing functionality of the Abstract SDK library. To suggest an enhancement, create a new issue in the [issue tracker](https://github.com/AbstractSDK/abstract/issues) with the following information:
 
 * A clear and descriptive title
 * A detailed explanation of the proposed enhancement, including its benefits and potential use cases

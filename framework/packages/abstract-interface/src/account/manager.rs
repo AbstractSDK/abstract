@@ -1,11 +1,14 @@
 pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_core::{
     adapter,
+    ibc::CallbackInfo,
+    ibc_host::{HelperAction, HostAction},
     manager::*,
     module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse},
     objects::module::{ModuleInfo, ModuleVersion},
+    PROXY,
 };
-use cosmwasm_std::{to_binary, Empty};
+use cosmwasm_std::{to_binary, Binary, Empty};
 use cw_orch::environment::TxHandler;
 use cw_orch::interface;
 use cw_orch::prelude::*;
@@ -159,5 +162,91 @@ impl<Chain: CwEnv> Manager<Chain> {
             .into_iter()
             .find(|module_info| module_info.id == module_id);
         Ok(found)
+    }
+
+    pub fn is_module_installed(
+        &self,
+        module_id: &str,
+    ) -> Result<bool, crate::AbstractInterfaceError> {
+        let module = self.module_info(module_id)?;
+        Ok(module.is_some())
+    }
+
+    /// Helper to create remote accounts
+    pub fn register_remote_account(
+        &self,
+        host_chain: &str,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let result = self.exec_on_module(
+            to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
+                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
+                    host_chain: host_chain.into(),
+                }],
+            })?,
+            PROXY.to_string(),
+            &[],
+        )?;
+
+        Ok(result)
+    }
+
+    pub fn execute_on_remote(
+        &self,
+        host_chain: &str,
+        msg: ExecuteMsg,
+        callback_info: Option<CallbackInfo>,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: host_chain.into(),
+                action: HostAction::Dispatch { manager_msg: msg },
+                callback_info,
+            }],
+        };
+
+        self.execute_on_module(PROXY, msg)
+    }
+
+    pub fn execute_on_remote_module(
+        &self,
+        host_chain: &str,
+        module_id: &str,
+        msg: Binary,
+        callback_info: Option<CallbackInfo>,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: host_chain.into(),
+                action: HostAction::Dispatch {
+                    manager_msg: ExecuteMsg::ExecOnModule {
+                        module_id: module_id.to_string(),
+                        exec_msg: msg,
+                    },
+                },
+                callback_info,
+            }],
+        };
+
+        self.execute_on_module(PROXY, msg)
+    }
+
+    pub fn send_all_funds_back(
+        &self,
+        host_chain: &str,
+        callback_info: Option<CallbackInfo>,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: host_chain.into(),
+                action: HostAction::Helpers(HelperAction::SendAllBack),
+                callback_info,
+            }],
+        };
+
+        self.execute_on_module(PROXY, msg)
     }
 }

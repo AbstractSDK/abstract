@@ -1,7 +1,8 @@
 use abstract_core::AbstractError;
-use abstract_sdk::{core::abstract_ica::SimpleIcaError, AbstractSdkError};
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
+use polytone::callbacks::CallbackMessage;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -16,13 +17,10 @@ pub enum IbcClientError {
     AbstractSdk(#[from] AbstractSdkError),
 
     #[error("{0}")]
-    SimpleIca(#[from] SimpleIcaError),
-
-    #[error("{0}")]
     Admin(#[from] AdminError),
 
-    #[error("No account for channel {0}")]
-    UnregisteredChannel(String),
+    #[error("No account for chain {0}")]
+    UnregisteredChain(String),
 
     #[error("remote account changed from {old} to {addr}")]
     RemoteAccountChanged { addr: String, old: String },
@@ -32,4 +30,16 @@ pub enum IbcClientError {
 
     #[error("The host you are trying to connect is already connected")]
     HostAlreadyExists {},
+
+    #[error("Only authorized ports can connect to the contract on the remote chain")]
+    UnauthorizedConnection {},
+
+    #[error("Unauthorized")]
+    Unauthorized {},
+
+    #[error("IBC Execution Failed, {0:?}")]
+    IbcFailed(CallbackMessage),
+
+    #[error("Chain or host address already registered.")]
+    HostAddressExists {},
 }
