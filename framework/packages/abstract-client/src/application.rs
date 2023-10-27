@@ -1,4 +1,3 @@
-
 pub struct Application<T: CwEnv, M> {
     account: AbstractAccount<T>,
     module: M,
