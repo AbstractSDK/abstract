@@ -77,7 +77,6 @@ There are three kinds of bases:
 
 - <a href="https://crates.io/crates/abstract-app" target="_blank">App</a>
 - <a href="https://crates.io/crates/abstract-adapter" target="_blank">Adapter</a>
-- <a href="https://crates.io/crates/abstract-ibc-host" target="_blank">IBC-host</a>
 
 We will go into the technical details of these elements on the [Build With Abstract](../4_get_started/1_index.md) section.
 

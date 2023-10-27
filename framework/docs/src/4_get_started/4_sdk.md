@@ -103,7 +103,7 @@ information required by that feature.
 Here's an example of such a feature:
 
 ```rust
-{{# include../../../ packages /abstract - sdk / src / base / features /abstract_name_service.rs: ans }}
+{{ #include ../../../packages/abstract-sdk/src/base/features/abstract_name_service.rs:ans }}
 ```
 
 Any structure that implements this trait has access to the Abstract Name Service, and thus has a way to resolve ANS
@@ -114,7 +114,7 @@ Now instead of letting you implement these traits yourself, we've already gone a
 and Adapter structs. Here's the implementation for the App:
 
 ```rust
-{{# include../../../ packages /abstract - app / src / features.rs:ans }}
+{{ #include ../../../packages/abstract-app/src/features.rs:ans }}
 ```
 
 So when you're building your application the module struct already has the features and data required to do the basic

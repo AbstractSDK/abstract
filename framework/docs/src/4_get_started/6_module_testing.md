@@ -42,7 +42,7 @@ is easy! You do it by calling the `with_smart_handler` function.
 **Example**
 
 ```rust
-{{# include../../../ packages /abstract - testing / src / mock_querier.rs:smart_query}}
+{{ #include ../../../packages/abstract-testing/src/mock_querier.rs:smart_query}}
 ```
 
 #### Mocking Raw Queries
@@ -60,7 +60,7 @@ Multi-index maps are currently not supported. PRs on this issue are welcome! ðŸ¤
 **Example**
 
 ```rust
-{{# include../../../ packages /abstract - testing / src / mock_querier.rs:raw_query}}
+{{ #include ../../../packages/abstract-testing/src/mock_querier.rs:raw_query }}
 ```
 
 #### Abstract Querier
@@ -171,10 +171,9 @@ fn count() {
     );
 }
 ```
+<!-- ## Linked Testing
 
-## Linked Testing
-
-@Kayanski
+@Kayanski -->
 
 ## Local Daemon Testing
 
