@@ -65,7 +65,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
         init_msg: &TInitMsg,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.manager.install_module(module_id, init_msg, funds)
     }
@@ -73,9 +73,9 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn install_modules(
         &self,
         modules: Vec<ModuleInstallConfig>,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        self.manager.install_modules(modules, funds)
+        self.manager.install_modules(modules, funds).map_err(Into::into)
     }
 
     pub fn install_modules_auto(
@@ -155,7 +155,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         adapter: T,
         custom_init_msg: &CustomInitMsg,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.manager.get_chain().to_owned())?;
@@ -175,7 +175,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         app: T,
         custom_init_msg: &CustomInitMsg,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.manager.get_chain().to_owned())?;
@@ -194,7 +194,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module: T,
         init_msg: &InitMsg,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         let resp = self.install_module(&module.id(), &init_msg, funds)?;
         let module_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_modules")?;

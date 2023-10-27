@@ -1,11 +1,24 @@
 use crate::Abstract;
 use abstract_core::objects::module::ModuleVersion;
+use cw_orch::contract::Contract;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::CwOrchError::StdErr;
 use cw_orch::prelude::*;
 
 use semver::Version;
 use serde::Serialize;
+
+// TODO: Find a way to construct a module M from a contract instance as the `cw_orch::contract::Contract` can be constructed from the ID and chain.
+// pub trait RegisteredModule {
+//     fn id<'a>() -> &'a str;
+//     fn cw_orch_default() -> Self;
+// }
+
+// impl<T,C> RegisteredModule for T where 
+// T: From<Contract<C>>,
+// C: CwEnv {
+
+// }
 
 /// Strategy for deploying
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

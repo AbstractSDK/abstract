@@ -53,22 +53,13 @@ impl<Chain: CwEnv> Manager<Chain> {
     pub fn replace_api(
         &self,
         module_id: &str,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<(), crate::AbstractInterfaceError> {
         // this should check if installed?
         self.uninstall_module(module_id.to_string())?;
 
         self.install_module(module_id, &Empty {}, funds)?;
         Ok(())
-    }
-
-    pub fn install_modules(
-        &self,
-        modules: Vec<ModuleInstallConfig>,
-        funds: Option<&[Coin]>,
-    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        self.execute(&ExecuteMsg::InstallModules { modules }, funds)
-            .map_err(Into::into)
     }
 
     pub fn install_modules_auto(
@@ -86,14 +77,14 @@ impl<Chain: CwEnv> Manager<Chain> {
                 &config.module_factory_address,
             )
             .map_err(Into::into)?;
-        self.install_modules(modules, Some(sim_response.total_required_funds.as_ref()))
+        self.install_modules(modules,sim_response.total_required_funds.as_ref()).map_err(Into::into)
     }
 
     pub fn install_module<TInitMsg: Serialize>(
         &self,
         module_id: &str,
         init_msg: &TInitMsg,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.install_module_version(module_id, ModuleVersion::Latest, init_msg, funds)
     }
@@ -103,7 +94,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         module_id: &str,
         version: ModuleVersion,
         init_msg: &M,
-        funds: Option<&[Coin]>,
+        funds: &[Coin],
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::InstallModules {
@@ -112,7 +103,7 @@ impl<Chain: CwEnv> Manager<Chain> {
                     Some(to_binary(init_msg).unwrap()),
                 )],
             },
-            funds,
+            Some(funds),
         )
         .map_err(Into::into)
     }

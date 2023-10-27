@@ -74,7 +74,7 @@ fn account_install_app() -> AResult {
 
     let app = MockApp::new_test(chain);
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    let app_addr = account.install_app(app, &MockInitMsg, None)?;
+    let app_addr = account.install_app(app, &MockInitMsg, &[])?;
     let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
     assert_that!(app_addr).is_equal_to(module_addr);
     Ok(())
