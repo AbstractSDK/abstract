@@ -2,25 +2,29 @@ use std::ops::Deref;
 
 use abstract_interface::AbstractAccount;
 use cw_orch::prelude::*;
-use serde::Serialize;
+
+type Module<T> = Box<dyn ContractInstance<T>>;
 
 // An application represents a module installed on a (sub)-account.
-pub struct Application<T: CwEnv, M> {
-    account: AbstractAccount<T>,
-    module: M,
+pub struct Application<'a, T: CwEnv + 'a> {
+    account: &'a AbstractAccount<T>,
+    module: Module<T>,
 }
 
 // Allows to access the module's methods directly from the application struct
-impl<T: CwEnv, M> Deref for Application<T, M> {
-    type Target = M;
+impl<'a, T: CwEnv> Deref for Application<'a, T> {
+    type Target = Module<T>;
 
     fn deref(&self) -> &Self::Target {
         &self.module
     }
 }
 
-impl<T: CwEnv, M> Application<T, M> {
-    pub fn new(account: AbstractAccount<T>, module: M) -> Self {
+impl<'a, T: CwEnv> Application<'a, T> {
+    pub(crate) fn new(
+        account: &'a AbstractAccount<T>,
+        module: Box<dyn ContractInstance<T>>,
+    ) -> Self {
         Self { account, module }
     }
 }
