@@ -7,11 +7,9 @@ use abstract_interface::{
     Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, ManagerQueryFns,
     VCExecFns,
 };
-use cw20::{Cw20Coin, Cw20ExecuteMsgFns};
-use cw20_base::{
-    contract::Cw20Base as AbstractCw20Base,
-    msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns},
-};
+use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
+use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
+use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{AppInstantiateMsg, ConfigResponse, TipCountResponse, TipperResponse, TippersResponse},
