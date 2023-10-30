@@ -23,8 +23,8 @@ command = "mdbook-mermaid"
 [output.html]
 additional-js = ["mermaid.min.js", "mermaid-init.js"]
 additional-css = ["./mdbook-admonish.css"]
-default-theme = "light"
-preferred-dark-theme = "navy"
+default-theme = "abstract"
+preferred-dark-theme = "abstract"
 curly-quotes = true
 git-repository-url = "https://github.com/AbstractSDK/abstract/framework"
 git-repository-icon = "fa-github"
