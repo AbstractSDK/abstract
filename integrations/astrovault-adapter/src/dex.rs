@@ -672,9 +672,11 @@ fn cw_asset_info_to_astrovault(
 #[cfg(test)]
 mod tests {
     use abstract_dex_standard::tests::expect_eq;
+    use abstract_sdk::core::objects::PoolType;
     use cosmwasm_schema::serde::Deserialize;
     use cosmwasm_std::to_binary;
     use cosmwasm_std::Coin;
+    use cosmwasm_std::Uint128;
 
     use cosmwasm_std::coin;
     use cosmwasm_std::from_binary;
@@ -689,23 +691,27 @@ mod tests {
     use cosmwasm_std::Decimal;
     use cosmwasm_std::{wasm_execute, Addr};
     use cw_asset::{Asset, AssetInfo};
-    use cw_orch::daemon::networks::PHOENIX_1;
+    use cw_orch::daemon::networks::ARCHWAY_1;
     use std::assert_eq;
     use std::str::FromStr;
 
-    fn create_setup() -> DexCommandTester {
+    fn create_setup(pool_type: PoolType) -> DexCommandTester {
         DexCommandTester::new(
-            PHOENIX_1.into(),
+            ARCHWAY_1.into(),
             Astrovault {
-                pool_type: Some(abstract_sdk::core::objects::PoolType::ConstantProduct),
+                pool_type: Some(pool_type),
             },
         )
     }
 
-    const POOL_CONTRACT: &str = "terra1fd68ah02gr2y8ze7tm9te7m70zlmc7vjyyhs6xlhsdmqqcjud4dql4wpxr";
-    const LP_TOKEN: &str = "terra1ckmsqdhlky9jxcmtyj64crgzjxad9pvsd58k8zsxsnv4vzvwdt7qke04hl";
-    const USDC: &str = "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4";
-    const LUNA: &str = "uluna";
+    const STANDARD_POOL_CONTRACT: &str =
+        "archway1evz8agrnppzq7gt2nnutkmqgpm86374xds0alc7hru987f9v4hqsejqfaq";
+    const STABLE_POOL_CONTRACT: &str =
+        "archway1vq9jza8kuz80f7ypyvm3pttvpcwlsa5fvum9hxhew5u95mffknxsjy297r";
+    const LP_TOKEN: &str = "archway1m8f5a24pcs5e0xmmprsngsxewv3nztv2val7e9qhpp3nt9sfcy2s46t8hc";
+    const USDC: &str = "ibc/B9E4FD154C92D3A23BEA029906C4C5FF2FE74CB7E3A058290B77197A263CF88B";
+    const ARCH: &str = "aarch";
+    const CW20_ARCH: &str = "archway1cutfh7m87cyq5qgqqw49f289qha7vhsg6wtr6rl5fvm28ulnl9ssg0vk0n";
 
     fn max_spread() -> Decimal {
         Decimal::from_str("0.1").unwrap()
@@ -735,11 +741,11 @@ mod tests {
     #[test]
     fn swap() {
         let amount = 100_000u128;
-        let msgs = create_setup()
+        let msgs = create_setup(PoolType::ConstantProduct)
             .test_swap(
-                PoolAddress::contract(Addr::unchecked(POOL_CONTRACT)),
+                PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 Asset::new(AssetInfo::native(USDC), amount),
-                AssetInfo::native(LUNA),
+                AssetInfo::native(ARCH),
                 Some(Decimal::from_str("0.2").unwrap()),
                 Some(max_spread()),
             )
@@ -747,7 +753,7 @@ mod tests {
 
         expect_eq(
             vec![wasm_execute(
-                POOL_CONTRACT,
+                STANDARD_POOL_CONTRACT,
                 &astrovault::standard_pool::handle_msg::ExecuteMsg::Swap {
                     offer_asset: astrovault::assets::asset::Asset {
                         amount: amount.into(),
@@ -767,18 +773,45 @@ mod tests {
             msgs,
         )
         .unwrap();
+
+        // Stable
+        let msgs = create_setup(PoolType::Stable)
+            .test_swap(
+                PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
+                Asset::new(AssetInfo::native(USDC), amount),
+                AssetInfo::native(ARCH),
+                Some(Decimal::from_str("0.2").unwrap()),
+                Some(max_spread()),
+            )
+            .unwrap();
+
+        expect_eq(
+            vec![wasm_execute(
+                STABLE_POOL_CONTRACT,
+                &astrovault::stable_pool::handle_msg::ExecuteMsg::Swap {
+                    swap_to_asset_index: 0,
+                    expected_return: None,
+                    to: None,
+                },
+                coins(amount, USDC),
+            )
+            .unwrap()
+            .into()],
+            msgs,
+        )
+        .unwrap();
     }
 
     #[test]
     fn provide_liquidity() {
         let amount_usdc = 100_000u128;
-        let amount_luna = 50_000u128;
-        let msgs = create_setup()
+        let amount_aarch = 50_000u128;
+        let msgs = create_setup(PoolType::ConstantProduct)
             .test_provide_liquidity(
-                PoolAddress::contract(Addr::unchecked(POOL_CONTRACT)),
+                PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 vec![
                     Asset::new(AssetInfo::native(USDC), amount_usdc),
-                    Asset::new(AssetInfo::native(LUNA), amount_luna),
+                    Asset::new(AssetInfo::native(ARCH), amount_aarch),
                 ],
                 Some(max_spread()),
             )
@@ -786,7 +819,7 @@ mod tests {
 
         expect_eq(
             vec![wasm_execute(
-                POOL_CONTRACT,
+                STANDARD_POOL_CONTRACT,
                 &astrovault::standard_pool::handle_msg::ExecuteMsg::ProvideLiquidity {
                     assets: [
                         astrovault::assets::asset::Asset {
@@ -796,9 +829,9 @@ mod tests {
                             },
                         },
                         astrovault::assets::asset::Asset {
-                            amount: amount_luna.into(),
+                            amount: amount_aarch.into(),
                             info: astrovault::assets::asset::AssetInfo::NativeToken {
-                                denom: LUNA.to_string(),
+                                denom: ARCH.to_string(),
                             },
                         },
                     ],
@@ -806,7 +839,35 @@ mod tests {
                     direct_staking: None,
                     receiver: None,
                 },
-                vec![coin(amount_usdc, USDC), coin(amount_luna, LUNA)],
+                vec![coin(amount_aarch, ARCH), coin(amount_usdc, USDC)],
+            )
+            .unwrap()
+            .into()],
+            msgs,
+        )
+        .unwrap();
+
+        // Stable
+        let msgs = create_setup(PoolType::Stable)
+            .test_provide_liquidity(
+                PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
+                vec![
+                    Asset::new(AssetInfo::native(USDC), amount_usdc),
+                    Asset::new(AssetInfo::native(ARCH), amount_aarch),
+                ],
+                Some(max_spread()),
+            )
+            .unwrap();
+
+        expect_eq(
+            vec![wasm_execute(
+                STABLE_POOL_CONTRACT,
+                &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
+                    direct_staking: None,
+                    receiver: None,
+                    assets_amount: vec![amount_usdc.into(), amount_aarch.into()],
+                },
+                vec![coin(amount_aarch, ARCH), coin(amount_usdc, USDC)],
             )
             .unwrap()
             .into()],
@@ -818,13 +879,13 @@ mod tests {
     #[test]
     fn provide_liquidity_one_side() {
         let amount_usdc = 100_000u128;
-        let amount_luna = 0u128;
-        let msgs = create_setup()
+        let amount_aarch = 0u128;
+        let msgs = create_setup(PoolType::ConstantProduct)
             .test_provide_liquidity(
-                PoolAddress::contract(Addr::unchecked(POOL_CONTRACT)),
+                PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 vec![
                     Asset::new(AssetInfo::native(USDC), amount_usdc),
-                    Asset::new(AssetInfo::native(LUNA), amount_luna),
+                    Asset::new(AssetInfo::native(ARCH), amount_aarch),
                 ],
                 Some(max_spread()),
             )
@@ -834,7 +895,7 @@ mod tests {
         // We can't really test much further, because this unit test is querying mainnet liquidity pools
         expect_eq(
             wasm_execute(
-                POOL_CONTRACT,
+                STANDARD_POOL_CONTRACT,
                 &astrovault::standard_pool::handle_msg::ExecuteMsg::Swap {
                     offer_asset: astrovault::assets::asset::Asset {
                         amount: (amount_usdc / 2u128).into(),
@@ -854,21 +915,56 @@ mod tests {
             msgs[0].clone(),
         )
         .unwrap();
+
+        // stables
+        let msgs = create_setup(PoolType::Stable)
+            .test_provide_liquidity(
+                PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
+                vec![
+                    Asset::new(AssetInfo::Cw20(Addr::unchecked(CW20_ARCH)), amount_usdc),
+                    Asset::new(AssetInfo::native(ARCH), amount_aarch),
+                ],
+                Some(max_spread()),
+            )
+            .unwrap();
+
+        // There should be a swap before providing liquidity
+        // We can't really test much further, because this unit test is querying mainnet liquidity pools
+        expect_eq(
+            wasm_execute(
+                CW20_ARCH,
+                &cw20::Cw20ExecuteMsg::Send {
+                    contract: STABLE_POOL_CONTRACT.to_owned(),
+                    amount: Uint128::new(amount_usdc / 2u128),
+                    msg: to_binary(&astrovault::stable_pool::handle_msg::ExecuteMsg::Swap {
+                        swap_to_asset_index: 0,
+                        expected_return: None,
+                        to: None,
+                    })
+                    .unwrap(),
+                },
+                vec![],
+            )
+            .unwrap()
+            .into(),
+            msgs[0].clone(),
+        )
+        .unwrap();
     }
 
     #[test]
     fn provide_liquidity_symmetric() {
         let amount_usdc = 100_000u128;
-        let msgs = create_setup()
+        let msgs = create_setup(PoolType::ConstantProduct)
             .test_provide_liquidity_symmetric(
-                PoolAddress::contract(Addr::unchecked(POOL_CONTRACT)),
+                PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 Asset::new(AssetInfo::native(USDC), amount_usdc),
-                vec![AssetInfo::native(LUNA)],
+                vec![AssetInfo::native(ARCH)],
             )
             .unwrap();
 
         assert_eq!(msgs.len(), 1);
-        assert_eq!(get_wasm_addr(msgs[0].clone()), POOL_CONTRACT);
+        assert_eq!(get_wasm_addr(msgs[0].clone()), STANDARD_POOL_CONTRACT);
 
         let unwrapped_msg: astrovault::standard_pool::handle_msg::ExecuteMsg =
             get_wasm_msg(msgs[0].clone());
@@ -898,15 +994,49 @@ mod tests {
 
         let funds = get_wasm_funds(msgs[0].clone());
         assert_eq!(funds.len(), 2);
-        assert_eq!(funds[0], coin(amount_usdc, USDC),);
+        assert_eq!(funds[1], coin(amount_usdc, USDC),);
+
+        // Stable
+
+        let msgs = create_setup(PoolType::Stable)
+            .test_provide_liquidity_symmetric(
+                PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
+                Asset::new(AssetInfo::Cw20(Addr::unchecked(CW20_ARCH)), amount_usdc),
+                vec![AssetInfo::native(ARCH)],
+            )
+            .unwrap();
+
+        // first msg is allowance
+        assert_eq!(msgs.len(), 2);
+        assert_eq!(get_wasm_addr(msgs[1].clone()), STABLE_POOL_CONTRACT);
+
+        let unwrapped_msg: astrovault::stable_pool::handle_msg::ExecuteMsg =
+            get_wasm_msg(msgs[1].clone());
+        match unwrapped_msg {
+            astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
+                assets_amount,
+                receiver,
+                direct_staking,
+            } => {
+                assert_eq!(assets_amount.len(), 2);
+                assert_eq!(assets_amount[0], Uint128::new(amount_usdc));
+                assert_eq!(direct_staking, None);
+                assert_eq!(receiver, None)
+            }
+            _ => panic!("Expected a provide liquidity variant"),
+        }
+
+        let funds = get_wasm_funds(msgs[1].clone());
+        assert_eq!(funds.len(), 1);
+        assert_eq!(funds[0].denom, ARCH);
     }
 
     #[test]
     fn withdraw_liquidity() {
         let amount_lp = 100_000u128;
-        let msgs = create_setup()
+        let msgs = create_setup(PoolType::ConstantProduct)
             .test_withdraw_liquidity(
-                PoolAddress::contract(Addr::unchecked(POOL_CONTRACT)),
+                PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 Asset::new(AssetInfo::cw20(Addr::unchecked(LP_TOKEN)), amount_lp),
             )
             .unwrap();
@@ -916,12 +1046,46 @@ mod tests {
             vec![wasm_execute(
                 LP_TOKEN,
                 &Cw20ExecuteMsg::Send {
-                    contract: POOL_CONTRACT.to_string(),
+                    contract: STANDARD_POOL_CONTRACT.to_string(),
                     amount: amount_lp.into(),
                     msg: to_binary(
                         &astrovault::standard_pool::handle_msg::Cw20HookMsg::WithdrawLiquidity(
                             astrovault::standard_pool::handle_msg::WithdrawLiquidityInputs {
                                 to: None
+                            }
+                        )
+                    )
+                    .unwrap()
+                },
+                vec![]
+            )
+            .unwrap()
+            .into()]
+        );
+
+        // Stable
+
+        let msgs = create_setup(PoolType::Stable)
+            .test_withdraw_liquidity(
+                PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
+                Asset::new(AssetInfo::cw20(Addr::unchecked(LP_TOKEN)), amount_lp),
+            )
+            .unwrap();
+
+        assert_eq!(
+            msgs,
+            vec![wasm_execute(
+                LP_TOKEN,
+                &Cw20ExecuteMsg::Send {
+                    contract: STABLE_POOL_CONTRACT.to_string(),
+                    amount: amount_lp.into(),
+                    msg: to_binary(
+                        &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
+                            astrovault::stable_pool::handle_msg::WithdrawalToLockupInputs {
+                                to: None,
+                                withdrawal_lockup_assets_amount: vec![],
+                                is_instant_withdrawal: Some(true),
+                                expected_return: None
                             }
                         )
                     )
@@ -938,11 +1102,11 @@ mod tests {
     fn simulate_swap() {
         let amount = 100_000u128;
         // We simply verify it's executed, no check on what is returned
-        create_setup()
+        create_setup(PoolType::ConstantProduct)
             .test_simulate_swap(
-                PoolAddress::contract(Addr::unchecked(POOL_CONTRACT)),
+                PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 Asset::new(AssetInfo::native(USDC), amount),
-                AssetInfo::native(LUNA),
+                AssetInfo::native(ARCH),
             )
             .unwrap();
     }
