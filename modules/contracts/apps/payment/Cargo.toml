@@ -66,7 +66,7 @@ wyndex-bundle = { workspace = true }
 abstract-dex-adapter = { workspace = true, features = [
   "interface",
   "wynd",
-  "testing"
+  "testing",
 ] }
 
 #[patch.crates-io]
