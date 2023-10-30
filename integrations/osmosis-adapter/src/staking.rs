@@ -64,7 +64,7 @@ pub mod fns {
                     seconds: sec.try_into().unwrap(),
                     nanos: 0,
                 })),
-                _ => Err(StdError::generic_err("Wrong duration, only time accepted")).unwrap(),
+                _ => Err(StdError::generic_err("Wrong duration, only time accepted")),
             }
         } else {
             Ok(None)
