@@ -3,7 +3,7 @@ authors = ["cyberhoward"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Abstract Development Platform"
+title = "Abstract Money"
 
 
 [build]
@@ -29,5 +29,6 @@ curly-quotes = true
 git-repository-url = "https://github.com/AbstractSDK/abstract/framework"
 git-repository-icon = "fa-github"
 edit-url-template = "https://github.com/AbstractSDK/abstract/edit/main/framework/docs/{path}"
-
+fold.enable = true
+no-section-label = true
 # [output.linkcheck]
