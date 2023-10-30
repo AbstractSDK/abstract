@@ -1,6 +1,5 @@
 use crate::ASTROVAULT;
 use crate::AVAILABLE_CHAINS;
-use abstract_sdk::core::objects::LpToken;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -13,7 +12,6 @@ pub struct Astrovault {
 
 #[derive(Clone, Debug)]
 pub struct AstrovaultTokenContext {
-    pub lp_token: LpToken,
     pub lp_token_address: Addr,
 }
 
@@ -32,7 +30,7 @@ impl Identify for Astrovault {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
-        core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
+        core::objects::{AnsAsset, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
         features::AbstractRegistryAccess,
         AbstractSdkResult, AccountVerification, Resolve,
@@ -78,10 +76,10 @@ impl CwStakingCommand for Astrovault {
                 };
 
                 let lp_token_address = token_addr;
-                let lp_token = AnsEntryConvertor::new(entry.clone()).lp_token()?;
+                // let lp_token = AnsEntryConvertor::new(entry.clone()).lp_token()?;
 
                 Ok(AstrovaultTokenContext {
-                    lp_token,
+                    // lp_token,
                     lp_token_address,
                 })
             })
@@ -266,40 +264,40 @@ impl CwStakingCommand for Astrovault {
         &self,
         querier: &QuerierWrapper,
     ) -> Result<abstract_staking_standard::msg::RewardTokensResponse, CwStakingError> {
-        let tokens =
-            self.tokens
-                .iter()
-                .map(|t| {
-                    let rewards_info: Vec<RewardSourceResponse> = querier
-                        .query_wasm_smart(
-                            t.lp_token_address.clone(),
-                            &LpQueryMsg::RewardSources {
-                                reward_source: None,
-                            },
-                        )
-                        .map_err(|e| {
-                            StdError::generic_err(format!(
-                                "Failed to query reward info on {} for lp token {}. Error: {:?}",
-                                self.name(),
-                                t.lp_token,
-                                e
-                            ))
-                        })?;
+        let tokens = self
+            .tokens
+            .iter()
+            .map(|t| {
+                let rewards_info: Vec<RewardSourceResponse> = querier
+                    .query_wasm_smart(
+                        t.lp_token_address.clone(),
+                        &LpQueryMsg::RewardSources {
+                            reward_source: None,
+                        },
+                    )
+                    .map_err(|e| {
+                        StdError::generic_err(format!(
+                            "Failed to query reward info on {} for lp token. Error: {:?}",
+                            self.name(),
+                            e
+                        ))
+                    })?;
 
-                    let tokens = rewards_info.into_iter().map(|rew_source| {
-                        match rew_source.info.reward_asset {
-                            astrovault::assets::asset::AssetInfo::Token { contract_addr } => {
-                                AssetInfo::cw20(Addr::unchecked(contract_addr))
-                            }
-                            astrovault::assets::asset::AssetInfo::NativeToken { denom } => {
-                                AssetInfo::native(denom)
-                            }
+                let tokens = rewards_info
+                    .into_iter()
+                    .map(|rew_source| match rew_source.info.reward_asset {
+                        astrovault::assets::asset::AssetInfo::Token { contract_addr } => {
+                            AssetInfo::cw20(Addr::unchecked(contract_addr))
                         }
-                    }).collect();
+                        astrovault::assets::asset::AssetInfo::NativeToken { denom } => {
+                            AssetInfo::native(denom)
+                        }
+                    })
+                    .collect();
 
-                    Ok(tokens)
-                })
-                .collect::<Result<_, CwStakingError>>()?;
+                Ok(tokens)
+            })
+            .collect::<Result<_, CwStakingError>>()?;
 
         Ok(RewardTokensResponse { tokens })
     }

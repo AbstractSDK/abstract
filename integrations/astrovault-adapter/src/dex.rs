@@ -44,6 +44,153 @@ pub enum StubCw20HookMsg {
     WithdrawLiquidity {},
 }
 
+fn native_swap(
+    deps: Deps,
+    pool_type: PoolType,
+    pair_address: cosmwasm_std::Addr,
+    offer_asset: Asset,
+    ask_asset: AssetInfo,
+    belief_price: Option<Decimal>,
+    max_spread: Option<Decimal>,
+) -> Result<Vec<CosmosMsg>, DexError> {
+    let msgs = match pool_type {
+        PoolType::ConstantProduct => vec![wasm_execute(
+            pair_address.to_string(),
+            &astrovault::standard_pool::handle_msg::ExecuteMsg::Swap {
+                offer_asset: cw_asset_to_astrovault(&offer_asset)?,
+                belief_price,
+                max_spread,
+                expected_return: None,
+                to: None,
+            },
+            vec![offer_asset.try_into()?],
+        )?
+        .into()],
+        PoolType::Stable => {
+            let pool_info: astrovault::assets::pools::PoolInfo = deps.querier.query_wasm_smart(
+                pair_address.to_string(),
+                &astrovault::stable_pool::query_msg::QueryMsg::PoolInfo {},
+            )?;
+            let ask_asset = cw_asset_info_to_astrovault(&ask_asset)?;
+            let index = pool_info
+                .asset_infos
+                .iter()
+                .position(|a| *a == ask_asset)
+                .ok_or(DexError::ArgumentMismatch(
+                    ask_asset.to_string(),
+                    pool_info
+                        .asset_infos
+                        .into_iter()
+                        .map(|a| a.to_string())
+                        .collect(),
+                ))?;
+            vec![wasm_execute(
+                pair_address.to_string(),
+                &astrovault::stable_pool::handle_msg::ExecuteMsg::Swap {
+                    swap_to_asset_index: index as u32,
+                    expected_return: None,
+                    to: None,
+                },
+                vec![offer_asset.try_into()?],
+            )?
+            .into()]
+        }
+        PoolType::Weighted => {
+            vec![wasm_execute(
+                pair_address.to_string(),
+                &astrovault::ratio_pool::handle_msg::ExecuteMsg::Swap {
+                    expected_return: None,
+                    to: None,
+                },
+                vec![offer_asset.try_into()?],
+            )?
+            .into()]
+        }
+        _ => panic!("Unsupported pool type"),
+    };
+    Ok(msgs)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn cw20_swap(
+    deps: Deps,
+    cw20_addr: &cosmwasm_std::Addr,
+    pool_type: PoolType,
+    pair_address: cosmwasm_std::Addr,
+    offer_asset: &Asset,
+    ask_asset: AssetInfo,
+    belief_price: Option<Decimal>,
+    max_spread: Option<Decimal>,
+) -> Result<Vec<CosmosMsg>, DexError> {
+    let msgs = match pool_type {
+        PoolType::ConstantProduct => vec![wasm_execute(
+            cw20_addr.to_string(),
+            &Cw20ExecuteMsg::Send {
+                contract: pair_address.to_string(),
+                amount: offer_asset.amount,
+                msg: to_binary(&astrovault::standard_pool::handle_msg::Cw20HookMsg::Swap {
+                    belief_price,
+                    max_spread,
+                    expected_return: None,
+                    to: None,
+                })?,
+            },
+            vec![],
+        )?
+        .into()],
+        PoolType::Stable => {
+            let pool_info: astrovault::assets::pools::PoolInfo = deps.querier.query_wasm_smart(
+                pair_address.to_string(),
+                &astrovault::stable_pool::query_msg::QueryMsg::PoolInfo {},
+            )?;
+            let ask_asset = cw_asset_info_to_astrovault(&ask_asset)?;
+            let index = pool_info
+                .asset_infos
+                .iter()
+                .position(|a| *a == ask_asset)
+                .ok_or(DexError::ArgumentMismatch(
+                    ask_asset.to_string(),
+                    pool_info
+                        .asset_infos
+                        .into_iter()
+                        .map(|a| a.to_string())
+                        .collect(),
+                ))?;
+            vec![wasm_execute(
+                cw20_addr.to_string(),
+                &Cw20ExecuteMsg::Send {
+                    contract: pair_address.to_string(),
+                    amount: offer_asset.amount,
+                    msg: to_binary(&astrovault::stable_pool::handle_msg::Cw20HookMsg::Swap {
+                        swap_to_asset_index: index as u32,
+                        expected_return: None,
+                        to: None,
+                    })?,
+                },
+                vec![],
+            )?
+            .into()]
+        }
+        PoolType::Weighted => {
+            vec![wasm_execute(
+                cw20_addr.to_string(),
+                &Cw20ExecuteMsg::Send {
+                    contract: pair_address.to_string(),
+                    amount: offer_asset.amount,
+                    msg: to_binary(&astrovault::ratio_pool::handle_msg::Cw20HookMsg::Swap {
+                        expected_return: None,
+                        to: None,
+                    })?,
+                },
+                vec![],
+            )?
+            .into()]
+        }
+        _ => panic!("Unsupported pool type"),
+    };
+    Ok(msgs)
+}
+
 #[cfg(feature = "full_integration")]
 impl DexCommand for Astrovault {
     fn fetch_data(
@@ -61,43 +208,36 @@ impl DexCommand for Astrovault {
 
     fn swap(
         &self,
-        _deps: Deps,
+        deps: Deps,
         pool_id: PoolAddress,
         offer_asset: Asset,
-        _ask_asset: AssetInfo,
+        ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
 
+        let pool_type = self.pool_type.clone().unwrap();
         let swap_msg: Vec<CosmosMsg> = match &offer_asset.info {
-            AssetInfo::Native(_) => vec![wasm_execute(
-                pair_address.to_string(),
-                &astrovault::standard_pool::handle_msg::ExecuteMsg::Swap {
-                    offer_asset: cw_asset_to_astrovault(&offer_asset)?,
-                    belief_price,
-                    max_spread,
-                    expected_return: None,
-                    to: None,
-                },
-                vec![offer_asset.clone().try_into()?],
-            )?
-            .into()],
-            AssetInfo::Cw20(addr) => vec![wasm_execute(
-                addr.to_string(),
-                &Cw20ExecuteMsg::Send {
-                    contract: pair_address.to_string(),
-                    amount: offer_asset.amount,
-                    msg: to_binary(&astrovault::standard_pool::handle_msg::Cw20HookMsg::Swap {
-                        belief_price,
-                        max_spread,
-                        expected_return: None,
-                        to: None,
-                    })?,
-                },
-                vec![],
-            )?
-            .into()],
+            AssetInfo::Native(_) => native_swap(
+                deps,
+                pool_type,
+                pair_address,
+                offer_asset,
+                ask_asset,
+                belief_price,
+                max_spread,
+            )?,
+            AssetInfo::Cw20(addr) => cw20_swap(
+                deps,
+                addr,
+                pool_type,
+                pair_address,
+                &offer_asset,
+                ask_asset,
+                belief_price,
+                max_spread,
+            )?,
             _ => panic!("unsupported asset"),
         };
         Ok(swap_msg)
@@ -316,6 +456,21 @@ fn cw_asset_to_astrovault(asset: &Asset) -> Result<astrovault::assets::asset::As
             },
         }),
         _ => Err(DexError::UnsupportedAssetType(asset.info.to_string())),
+    }
+}
+
+#[cfg(feature = "full_integration")]
+fn cw_asset_info_to_astrovault(
+    info: &AssetInfo,
+) -> Result<astrovault::assets::asset::AssetInfo, DexError> {
+    match &info {
+        AssetInfoBase::Native(denom) => Ok(astrovault::assets::asset::AssetInfo::NativeToken {
+            denom: denom.clone(),
+        }),
+        AssetInfoBase::Cw20(contract_addr) => Ok(astrovault::assets::asset::AssetInfo::Token {
+            contract_addr: contract_addr.to_string(),
+        }),
+        _ => Err(DexError::UnsupportedAssetType(info.to_string())),
     }
 }
 
