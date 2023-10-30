@@ -6,3 +6,4 @@
 aab772396b72d618bb80682e2da4b0142557aaadec87c346afc106d05ff9fe9f  target/wasm32-unknown-unknown/release/croncat_app.wasm
 88fbd4db752673b3b2156c868dad494c99e6fd1962d70da9b62650814a1ca18b  target/wasm32-unknown-unknown/release/dca_app.wasm
 323de47c1c5d2dae52a6b71fbaa1951049b8d0dab048020266d4e9a475833324  target/wasm32-unknown-unknown/release/etf_app.wasm
+3fa04481310ce22c9006263328a7a0d10d9c094337e3c5ec486e7c8fb4e711f3  target/wasm32-unknown-unknown/release/payment_app.wasm
