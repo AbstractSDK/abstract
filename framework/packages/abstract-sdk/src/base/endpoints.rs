@@ -10,9 +10,9 @@
 //! ## Message format
 //! Each Abstract module accepts a fixed message format that can be customized by the developer to add their own functionality.
 //!
-//! The base massage format is defined [here](abstract_core::base) as follows:
+//! The base message format is defined [here](abstract_core::base) as follows:
 //! ```rust
-//! use abstract_ica::IbcResponseMsg;
+//! use abstract_core::ibc::IbcResponseMsg;
 //! use cosmwasm_std::Empty;
 //!
 //! /// EndpointMsg to the Base.
@@ -53,7 +53,7 @@
 //! }
 //!
 //! ```
-//! Every `Base` variant or field is implemented by the base contract such as the [App](https://crates.io/crates/abstract-app), [API](https://crates.io/crates/abstract-adapter) and [IBC-host](https://crates.io/crates/abstract-ibc-host) contracts.
+//! Every `Base` variant or field is implemented by the base contract such as the [App](https://crates.io/crates/abstract-app) and [API](https://crates.io/crates/abstract-adapter) contracts.
 //! These contracts then expose a type that requires the missing `App` variant types to be provided. The rust type system
 //! is then smart enough to accept the correct message type for each custom endpoint.
 //!

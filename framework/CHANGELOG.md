@@ -12,9 +12,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
 
 ### Changed
+
 - `is_module_installed` moved from `Manager` to `Account`
+- `account_id()` method of `AccountRegistry` is now exposed.
 
 ### Removed
+
+- `DepositMsgs` removed (now `deposit()` returns `Vec<CosmosMsg>`)
 
 ## [0.19.0] - 2023-09-26
 

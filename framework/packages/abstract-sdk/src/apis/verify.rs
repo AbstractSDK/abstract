@@ -105,7 +105,8 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
         }
     }
 
-    fn account_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<AccountId> {
+    /// Get AccountId for given manager or proxy address.
+    pub fn account_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<AccountId> {
         ACCOUNT_ID
             .query(&self.deps.querier, maybe_core_contract_addr.clone())
             .map_err(|_| AbstractSdkError::FailedToQueryAccountId {

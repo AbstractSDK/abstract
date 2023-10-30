@@ -1,8 +1,10 @@
 use crate::{addresses::*, mock_ans::MockAnsHost, MockQuerierBuilder};
 use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
 use abstract_core::{
-    ans_host::state::ASSET_ADDRESSES,
-    objects::{account::ACCOUNT_ID, common_namespace::ADMIN_NAMESPACE, AccountId, AssetEntry},
+    ans_host::state::{ASSET_ADDRESSES, CHANNELS},
+    objects::{
+        account::ACCOUNT_ID, common_namespace::ADMIN_NAMESPACE, AccountId, AssetEntry, ChannelEntry,
+    },
     version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
 use cosmwasm_std::{testing::MockQuerier, Addr};
@@ -72,6 +74,14 @@ impl AbstractMockQuerierBuilder {
         self.builder =
             self.builder
                 .with_contract_map_entries(TEST_ANS_HOST, ASSET_ADDRESSES, assets);
+
+        self
+    }
+
+    pub fn channels(mut self, channels: Vec<(&ChannelEntry, String)>) -> Self {
+        self.builder = self
+            .builder
+            .with_contract_map_entries(TEST_ANS_HOST, CHANNELS, channels);
 
         self
     }

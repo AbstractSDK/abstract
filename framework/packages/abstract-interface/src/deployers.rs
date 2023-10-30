@@ -48,28 +48,30 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
         // retrieve the deployment
         let abstr = Abstract::load_from(self.get_chain().to_owned())?;
 
-        // check for existing version
-        let version_check = abstr
-            .version_control
-            .get_adapter_addr(&self.id(), ModuleVersion::from(version.to_string()));
+        // check for existing version, if not force strategy
+        let version_check = || {
+            abstr
+                .version_control
+                .get_adapter_addr(&self.id(), ModuleVersion::from(version.to_string()))
+        };
 
-        if version_check.is_ok() {
-            match strategy {
-                DeployStrategy::Error => {
+        match strategy {
+            DeployStrategy::Error => {
+                if version_check().is_ok() {
                     return Err(StdErr(format!(
                         "Adapter {} already exists with version {}",
                         self.id(),
                         version
                     ))
-                    .into())
+                    .into());
                 }
-                DeployStrategy::Try => {
-                    if version_check.is_ok() {
-                        return Ok(());
-                    }
-                }
-                _ => {}
             }
+            DeployStrategy::Try => {
+                if version_check().is_ok() {
+                    return Ok(());
+                }
+            }
+            DeployStrategy::Force => {}
         }
 
         self.upload()?;
@@ -103,28 +105,30 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
         let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
 
         // check for existing version
-        let version_check = abstr
-            .version_control
-            .get_app_code(&self.id(), ModuleVersion::from(version.to_string()));
+        let version_check = || {
+            abstr
+                .version_control
+                .get_app_code(&self.id(), ModuleVersion::from(version.to_string()))
+        };
 
-        if version_check.is_ok() {
-            match strategy {
-                DeployStrategy::Error => {
+        match strategy {
+            DeployStrategy::Error => {
+                if version_check().is_ok() {
                     return Err(StdErr(format!(
-                        "Adapter {} already exists with version {}",
+                        "App {} already exists with version {}",
                         self.id(),
                         version
                     ))
-                    .into())
+                    .into());
                 }
-                DeployStrategy::Try => {
-                    if version_check.is_ok() {
-                        return Ok(());
-                    }
-                }
-                _ => {}
             }
-        };
+            DeployStrategy::Try => {
+                if version_check().is_ok() {
+                    return Ok(());
+                }
+            }
+            _ => {}
+        }
 
         self.upload()?;
 

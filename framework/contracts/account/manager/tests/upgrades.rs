@@ -631,6 +631,7 @@ fn create_sub_account_with_installed_module() -> AResult {
         Some(String::from("account_description")),
         None,
         None,
+        &[],
     )?;
 
     let account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));

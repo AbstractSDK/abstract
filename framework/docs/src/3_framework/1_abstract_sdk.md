@@ -75,11 +75,10 @@ types of bases available, each tailored for specific needs and functionalities.
 
 There are three kinds of bases:
 
-- [App]((https://crates.io/crates/abstract-app){target="_blank"})
-- [Adapter]((https://crates.io/crates/abstract-adapter){target="_blank"})
-- [IBC-host]((https://crates.io/crates/abstract-ibc-host){target="_blank"})
+- <a href="https://crates.io/crates/abstract-app" target="_blank">App</a>
+- <a href="https://crates.io/crates/abstract-adapter" target="_blank">Adapter</a>
 
-We will go into the technical details of these elements on the [Build With Abstract]() section.
+We will go into the technical details of these elements on the [Build With Abstract](../4_get_started/1_index.md) section.
 
 ## Example: Autocompounder
 
@@ -112,7 +111,7 @@ Each solid-line arrow represents execution permissions of the autocompounder con
 allow the autocompounder contract to move funds, interact with other contracts through the account, and perform other
 actions. It does this by sending messages to the account, which then executes them on behalf of the autocompounder
 contract. This is the basic idea behind account abstraction and is further elaborated in on
-the [account abstraction](./3_account_abstraction.md) page.
+the [account abstraction](./2_account_abstraction.md) page.
 
 Each dotted arrow indicates a dependency between the contracts. These dependencies are explicitly defined in the
 autocompounder contract and are asserted at contract instantiation. In this example the autocompounder contract is able

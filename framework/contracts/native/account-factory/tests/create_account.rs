@@ -39,6 +39,7 @@ fn instantiate() -> AResult {
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         local_account_sequence: 1,
+        ibc_host: Some(deployment.ibc.host.address()?),
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -60,6 +61,7 @@ fn create_one_account() -> AResult {
         vec![],
         String::from("first_account"),
         None,
+        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
@@ -74,6 +76,7 @@ fn create_one_account() -> AResult {
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         local_account_sequence: 2,
+        ibc_host: Some(deployment.ibc.host.address()?),
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -111,6 +114,7 @@ fn create_two_account_s() -> AResult {
         vec![],
         String::from("first_os"),
         None,
+        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
@@ -122,6 +126,7 @@ fn create_two_account_s() -> AResult {
         },
         vec![],
         String::from("second_os"),
+        None,
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
@@ -143,6 +148,7 @@ fn create_two_account_s() -> AResult {
         module_factory_address: deployment.module_factory.address()?,
         // we created two accounts
         local_account_sequence: account_2_id.seq() + 1,
+        ibc_host: Some(deployment.ibc.host.address()?),
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -183,6 +189,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         },
         vec![],
         String::from("first_os"),
+        None,
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
@@ -235,6 +242,7 @@ fn sender_is_not_admin_external() -> AResult {
         vec![],
         String::from("first_os"),
         None,
+        None,
         Some(String::from("account_description")),
         Some(String::from("http://account_link_of_at_least_11_char")),
         None,
@@ -274,6 +282,7 @@ fn create_one_account_with_base_asset() -> AResult {
         },
         vec![],
         String::from("first_account"),
+        None,
         Some(AssetEntry::new(asset_name)),
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
@@ -311,6 +320,7 @@ fn create_one_account_with_namespace() -> AResult {
         },
         vec![],
         String::from("first_account"),
+        None,
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
