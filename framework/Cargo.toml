@@ -4,8 +4,6 @@ members = [
   "packages/standards/*",
   "contracts/native/*",
   "contracts/account/*",
-  "scripts",
-  "tests",
 ]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
@@ -19,7 +17,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.19.0"
+version = "0.19.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -28,7 +26,7 @@ authors = [
 edition = "2021"
 homepage = "https://abstract.money"
 documentation = "https://docs.abstract.money/"
-repository = "https://github.com/AbstractSDK/contracts"
+repository = "https://github.com/AbstractSDK/abstract"
 license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
@@ -48,7 +46,7 @@ cw-address-like = { version = "1.0" }
 
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
-thiserror = { version = "<=1.0.48" }
+thiserror = { version = "1.0.50" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
 clap = { version = "4.0.32", features = ["derive"] }
@@ -81,14 +79,15 @@ ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 proxy = { package = "abstract-proxy", path = "contracts/account/proxy" }
 manager = { package = "abstract-manager", path = "contracts/account/manager" }
 
-abstract-sdk = { version = "0.19.0", path = "packages/abstract-sdk" }
-abstract-testing = { version = "0.19.0", path = "packages/abstract-testing" }
-abstract-core = { version = "0.19.0", path = "packages/abstract-core" }
+abstract-sdk = { version = "0.19.2", path = "packages/abstract-sdk" }
+abstract-testing = { version = "0.19.2", path = "packages/abstract-testing" }
+abstract-core = { version = "0.19.2", path = "packages/abstract-core" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
-abstract-macros = { version = "0.19.0", path = "packages/abstract-macros" }
+abstract-macros = { version = "0.19.2", path = "packages/abstract-macros" }
+abstract-ica = { version = "0.19.2", path = "packages/abstract-ica" }
 
-abstract-adapter-utils = { version = "0.19.0", path = "packages/standards/utils" }
+abstract-adapter-utils = { version = "0.19.2", path = "packages/standards/utils" }
 abstract-dex-standard = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 

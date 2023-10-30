@@ -50,8 +50,6 @@ abstract-sdk = { workspace = true }
 # Dependencies for interface
 abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
-croncat-app = { workspace = true, default-features = false }
-abstract-dex-adapter = { workspace = true, default-features = false }
 
 [dev-dependencies]
 challenge-app = { path = ".", features = ["interface"] }
@@ -64,12 +62,3 @@ dotenv = "0.15.0"
 env_logger = "0.10.0"
 cw-orch = { workspace = true, features = ["daemon"] }
 lazy_static = "1.4.0"
-
-croncat-integration-testing = { version = "1.1.1" }
-wyndex-bundle = { workspace = true }
-abstract-dex-adapter = { workspace = true, features = [
-  "interface",
-  "wynd",
-  "testing",
-] }
-croncat-app = { workspace = true, features = ["interface"] }

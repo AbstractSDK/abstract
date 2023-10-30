@@ -9,7 +9,7 @@ use abstract_interface::AbstractAccount;
 use abstract_interface::AdapterDeployer;
 use abstract_interface::DeployStrategy;
 use abstract_staking_standard::msg::StakingInfo;
-use cw20::Cw20ExecuteMsgFns;
+use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 
 use abstract_core::objects::{AnsAsset, AssetEntry};

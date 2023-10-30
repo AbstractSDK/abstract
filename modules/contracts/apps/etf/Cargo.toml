@@ -38,8 +38,8 @@ cw-asset = { workspace = true }
 abstract-core = { workspace = true }
 abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
-cw-orch = { workspace = true, optional = true }
 
+cw-orch = { workspace = true, optional = true }
 abstract-interface = { workspace = true, optional = true }
 
 [dev-dependencies]
@@ -56,3 +56,4 @@ dotenv = "0.15.0"
 clap = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 etf-app = { path = ".", features = ["interface"] }
+cw-plus-interface.workspace = true

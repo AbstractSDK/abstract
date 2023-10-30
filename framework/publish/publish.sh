@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=all
 set -o errexit -o nounset -o pipefail
 command -v shellcheck >/dev/null && shellcheck "$0"
 
@@ -76,10 +77,19 @@ echo "All the contracts are published!"
 # Now all the packages and standards
 
 PACKAGES="abstract-interface abstract-adapter abstract-app abstract-ibc-host"
+STANDARDS="utils staking dex"
 
 for pack in $PACKAGES; do
   (
     cd "packages/$pack"
+    echo "Publishing $pack"
+    publish_crate
+  )
+done
+
+for pack in $STANDARDS; do
+  (
+    cd "packages/standards/$pack"
     echo "Publishing $pack"
     publish_crate
   )

@@ -6,7 +6,7 @@ edition = { workspace = true }
 description = "Abstract contract interfaces and storage layouts"
 license = { workspace = true }
 readme = "README.md"
-repository = "https://github.com/AbstractSDK/contracts"
+repository = "https://github.com/AbstractSDK/abstract"
 
 
 [dependencies]
@@ -21,8 +21,6 @@ speculoos = { workspace = true }
 serde_json = "1.0.79"
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
-cw-multi-test = { workspace = true }
-rstest = { workspace = true }
 semver = { workspace = true }
 cw-ownable = { workspace = true }
 

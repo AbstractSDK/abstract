@@ -4,29 +4,29 @@
 
 # About Abstract
 - [What is Abstract?](./8_vision.md)
+- [Abstract Products](./1_products/index.md)
+  - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)
+  - [Abstract-JS](./1_products/4_abstract_js.md)
+  - [Abstract App Template](./1_products/2_abstract_app_template.md)
+  - [Abstract Testing](./1_products/3_abstract_testing.md)
 - [Prerequisites](./3_framework/0_prerequisites.md)
 - [Platform Overview](1_abstract_platform_overview.md)
-  - [Account Abstraction](./3_framework/3_account_abstraction.md)
   - [Abstract SDK](./3_framework/1_abstract_sdk.md)
-  - [CW-Orchestrator](./3_framework/1_abstract_sdk.md)
-  - [Architecture](./3_framework/4_architecture.md)
-  - [Account Ownership](./3_framework/5_ownership.md)
-  - [Modularity](./3_framework/6_modularity.md)
-    - [Module Types](./3_framework/7_module_types.md)
-  - [Upgradability](./3_framework/8_upgradability.md)
+  - [Account Abstraction](./3_framework/2_account_abstraction.md)
+  - [Architecture](./3_framework/3_architecture.md)
+  - [Account Ownership](./3_framework/4_ownership.md)
+  - [Modularity](./3_framework/5_modularity.md)
+    - [Module Types](./3_framework/6_module_types.md)
+  - [Upgradability](./3_framework/7_upgradability.md)
 
 - [Platform Details](./5_platform/index.md)
-  - [Abstract Name Service](./5_platform/ans.md)
-  - [Version Control](./5_platform/version_control.md)
-  - [Account Factory](./5_platform/account_factory.md)
+  - [Abstract Name Service](./5_platform/1_ans.md)
+  - [Version Control](./5_platform/2_version_control.md)
+  - [Account Factory](./5_platform/3_account_factory.md)
+  - [Account Console](./5_platform/4_account_console.md)
+  - [Module Factory](./5_platform/5_module_factory.md)
+  - [Monetization](./5_platform/6_monetization.md)
 
-- [Execution Flows]()
-	- [Account Actions]()
-		- [Install Module](./6_flows/manager/install_module.md)
-		- [Execute on Module](./6_flows/manager/exec_on_module.md)
-		- [Update Settings](./6_flows/manager/update_settings.md)
-		- [Set Owner]()
-		- [Upgrade Modules](./6_flows/manager/upgrade_modules.md)
 - [Interchain Abstract Accounts]()
 
 # Build With Abstract
@@ -36,21 +36,20 @@
   - [Installation](./4_get_started/2_installation.md)
   - [Module Builder](./4_get_started/3_module_builder.md)
   - [Account Abstraction SDK](./4_get_started/4_sdk.md)
-  - [Module Dependencies]()
   - [Account Creation](./4_get_started/5_account_creation.md)
   - [Module Testing](./4_get_started/6_module_testing.md)
   - [Module Deployment](./4_get_started/7_module_deployment.md)
+  - [Module Dependencies](./4_get_started/8_dependencies.md)
   - [Best Practices]()
   - [Quality Assurance]()
 
 
 # Use Cases
 - [Use Cases](./7_use_cases/index.md)
-  - [Equilibrium](./7_use_cases/equilibrium.md)
-  - [4t2 Finance]()
+  - [Equilibrium](./7_use_cases/1_equilibrium.md)
+  - [4t2 Finance](./7_use_cases/2_4t2.md)
 
 - [Vision](./8_vision.md)
-
 
 # Resources and Support
 

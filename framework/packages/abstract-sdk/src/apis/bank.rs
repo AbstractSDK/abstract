@@ -1,10 +1,10 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
+use crate::core::objects::{AnsAsset, AssetEntry};
 use crate::features::AccountIdentification;
 use crate::AccountAction;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
-use core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_std::to_binary;
 use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
@@ -127,7 +127,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Move funds from the contract into the Account.
-    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<DepositMsgs> {
+    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let recipient = self.base.proxy_address(self.deps)?;
         let transferable_funds = funds
             .into_iter()
@@ -138,7 +138,6 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<_>, _>>()
             .map_err(Into::into)
-            .map(DepositMsgs)
     }
 
     /// Withdraw funds from the Account to this contract.
@@ -167,27 +166,6 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         let msgs = transferable_funds.send_msg(recipient, to_binary(message)?)?;
 
         Ok(AccountAction::from_vec(vec![msgs]))
-    }
-}
-
-/// CosmosMsg from the executor methods
-#[must_use = "Pass it to the Response::add_messages"]
-#[cfg_attr(not(target_arch = "wasm32"), derive(Debug, PartialEq, Eq))]
-pub struct DepositMsgs(Vec<CosmosMsg>);
-
-impl From<DepositMsgs> for Vec<CosmosMsg> {
-    fn from(val: DepositMsgs) -> Self {
-        val.0
-    }
-}
-
-impl IntoIterator for DepositMsgs {
-    type Item = CosmosMsg;
-
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
     }
 }
 
@@ -307,7 +285,7 @@ mod test {
             // Create coins to deposit
             let coins: Vec<Coin> = coins(100u128, "asset");
             // Construct messages for deposit (transfer from this contract to the account)
-            let deposit_msgs: DepositMsgs = bank.deposit(coins.clone()).unwrap();
+            let deposit_msgs: Vec<CosmosMsg> = bank.deposit(coins.clone()).unwrap();
             // Add to response
             let response: Response = Response::new().add_messages(deposit_msgs);
             // ANCHOR_END: deposit

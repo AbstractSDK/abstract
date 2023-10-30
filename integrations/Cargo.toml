@@ -1,0 +1,75 @@
+[workspace]
+members = [
+  "astroport-adapter",
+  "bundles/*",
+  "osmosis-adapter",
+  "wyndex-adapter",
+  "kujira-adapter",
+]
+
+resolver = "2"
+
+[workspace.package]
+version = "0.19.2"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Riada <riada@abstract.money>",
+  "Abstract Money <contact@abstract.money>",
+]
+edition = "2021"
+homepage = "https://abstract.money"
+documentation = "https://docs.abstract.money/"
+repository = "https://github.com/AbstractSDK/abstract"
+license = "GPL-3.0-or-later"
+keywords = ["cosmos", "cosmwasm", "framework"]
+
+[workspace.dependencies]
+cosmwasm-std = { version = "1.2" }
+cosmwasm-schema = { version = "1.2" }
+cw-storage-plus = "1.1"
+cw2 = { version = "1.0" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", tag = "v1.1.1" }
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", features = [
+  "library",
+], tag = "v1.1.1" }
+cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "0.1.0", tag = "v1.1.1" }
+cw-utils = "1.0"
+cw-controllers = "1.1"
+cw-ownable = { version = "0.5" }
+cw-address-like = { version = "1.0" }
+cw-asset = { version = "3.0" }
+cw-semver = { version = "1.0" }
+cw-orch = { version = "0.16.4" }
+
+anyhow = "1.0"
+
+schemars = "0.8"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0.50" }
+protobuf = { version = "2", features = ["with-bytes"] }
+chrono = { version = "0.4.31", default-features = false }
+clap = { version = "4.0.32", features = ["derive"] }
+semver = "1.0"
+
+## crates in order of publishing ## see docs/Publishing.md
+
+abstract-interface = { version = "0.19.2" }
+abstract-adapter = { version = "0.19.2" }
+abstract-sdk = { version = "0.19.2" }
+abstract-core = { version = "0.19.2" }
+
+abstract-adapter-utils = { version = "0.19.2" }
+abstract-dex-standard = { version = "0.19.2" }
+abstract-staking-standard = { version = "0.19.2" }
+
+# Backup release profile, will result in warnings during optimization
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
