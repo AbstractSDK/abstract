@@ -563,18 +563,18 @@ impl DexCommand for Astrovault {
                     .iter()
                     .position(|a| *a == offer_astrovault_asset)
                     .ok_or(DexError::ArgumentMismatch(
-                        ask_astrovault_asset.to_string(),
+                        offer_astrovault_asset.to_string(),
                         pool_info
                             .asset_infos
                             .iter()
                             .map(ToString::to_string)
                             .collect(),
                     ))?;
-                let astrovault::standard_pool::query_msg::SimulationResponse {
-                    return_amount,
-                    spread_amount,
-                    commission_amount,
-                    buybackburn_amount: _,
+                // TODO: why is it vector
+                let astrovault::stable_pool::query_msg::StablePoolQuerySwapSimulation {
+                    from_assets_amount: _,
+                    mut to_assets_amount,
+                    mut assets_fee_amount,
                 } = deps.querier.query(&wasm_smart_query(
                     pair_address.to_string(),
                     &astrovault::stable_pool::query_msg::QueryMsg::SwapSimulation {
@@ -584,9 +584,52 @@ impl DexCommand for Astrovault {
                     },
                 )?)?;
                 // commission paid in result asset
-                Ok((return_amount, spread_amount, commission_amount, false))
+                Ok((
+                    to_assets_amount.pop().unwrap_or_default(),
+                    Uint128::zero(),
+                    assets_fee_amount.pop().unwrap_or_default(),
+                    false,
+                ))
             }
-            PoolType::Weighted => todo!(),
+            PoolType::Weighted => {
+                let pool_info: astrovault::assets::pools::PoolInfo =
+                    deps.querier.query_wasm_smart(
+                        pair_address.to_string(),
+                        &astrovault::ratio_pool::query_msg::QueryMsg::PoolInfo {},
+                    )?;
+                let offer_astrovault_asset = cw_asset_info_to_astrovault(&offer_asset.info)?;
+                let offer_index = pool_info
+                    .asset_infos
+                    .iter()
+                    .position(|a| *a == offer_astrovault_asset)
+                    .ok_or(DexError::ArgumentMismatch(
+                        offer_astrovault_asset.to_string(),
+                        pool_info
+                            .asset_infos
+                            .iter()
+                            .map(ToString::to_string)
+                            .collect(),
+                    ))?;
+
+                let astrovault::ratio_pool::query_msg::RatioPoolQuerySwapSimulation {
+                    from_assets_amount: _,
+                    mut to_assets_amount,
+                    mut assets_fee_amount,
+                } = deps.querier.query(&wasm_smart_query(
+                    pair_address.to_string(),
+                    &astrovault::ratio_pool::query_msg::QueryMsg::SwapSimulation {
+                        amount: offer_asset.amount,
+                        swap_from_asset_index: offer_index as u8,
+                    },
+                )?)?;
+                // commission paid in result asset
+                Ok((
+                    to_assets_amount.pop().unwrap_or_default(),
+                    Uint128::zero(),
+                    assets_fee_amount.pop().unwrap_or_default(),
+                    false,
+                ))
+            }
             _ => panic!("Unsupported pool type"),
         }
     }
@@ -651,7 +694,12 @@ mod tests {
     use std::str::FromStr;
 
     fn create_setup() -> DexCommandTester {
-        DexCommandTester::new(PHOENIX_1.into(), Astrovault { pool_type: None })
+        DexCommandTester::new(
+            PHOENIX_1.into(),
+            Astrovault {
+                pool_type: Some(abstract_sdk::core::objects::PoolType::ConstantProduct),
+            },
+        )
     }
 
     const POOL_CONTRACT: &str = "terra1fd68ah02gr2y8ze7tm9te7m70zlmc7vjyyhs6xlhsdmqqcjud4dql4wpxr";
@@ -889,7 +937,7 @@ mod tests {
     #[test]
     fn simulate_swap() {
         let amount = 100_000u128;
-        // We siply verify it's executed, no check on what is returned
+        // We simply verify it's executed, no check on what is returned
         create_setup()
             .test_simulate_swap(
                 PoolAddress::contract(Addr::unchecked(POOL_CONTRACT)),
