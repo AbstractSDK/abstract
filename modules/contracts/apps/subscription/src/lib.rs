@@ -6,9 +6,6 @@ pub mod state;
 
 pub use error::SubscriptionError;
 
-/// Duration of subscription in weeks
-pub const DURATION_IN_WEEKS: u64 = 4;
-pub const WEEK_IN_SECONDS: u64 = 7 * 24 * 60 * 60;
 
 #[cfg(feature = "interface")]
 pub mod interface {

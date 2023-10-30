@@ -4,7 +4,7 @@ use crate::state::{
     EmissionType, Subscriber, SubscriptionConfig, SubscriptionState, EXPIRED_SUBSCRIBERS,
     INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
-use crate::{SubscriptionError, DURATION_IN_WEEKS, WEEK_IN_SECONDS};
+use crate::SubscriptionError;
 use abstract_sdk::{AbstractResponse, AccountAction, Execution, TransferInterface};
 use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfoUnchecked};
@@ -70,6 +70,7 @@ pub fn try_pay(
 ) -> SubscriptionResult {
     // Load all needed states
     let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+    let twa_data = INCOME_TWA.load(deps.storage)?;
     let base_state = app.load_state(deps.storage)?;
     // Construct deposit info
     let deposit_info = config.payment_asset;
@@ -80,7 +81,7 @@ pub fn try_pay(
     }
     // Minimum of one period worth to (re)-subscribe.
     // prevents un- and re-subscribing all the time.
-    let required_payment = Uint128::from(DURATION_IN_WEEKS * WEEK_IN_SECONDS)
+    let required_payment = Uint128::from(twa_data.averaging_period)
         .checked_mul_ceil(config.subscription_cost_per_second)?;
     let paid_for_seconds = asset
         .amount

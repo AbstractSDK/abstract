@@ -1,4 +1,4 @@
-use crate::{msg::SubscribersResponse, DURATION_IN_WEEKS};
+use crate::{msg::SubscribersResponse, state::INCOME_TWA};
 use abstract_core::objects::voting::DEFAULT_LIMIT;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Uint128};
 use cw_asset::Asset;
@@ -26,8 +26,9 @@ pub fn query_handler(
         }
         SubscriptionQueryMsg::Fee {} => {
             let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+            let twa_data = INCOME_TWA.load(deps.storage)?;
             let minimal_cost =
-                Uint128::from(DURATION_IN_WEEKS) * config.subscription_cost_per_second;
+                Uint128::from(twa_data.averaging_period) * config.subscription_cost_per_second;
             to_binary(&SubscriptionFeeResponse {
                 fee: Asset {
                     info: config.payment_asset,

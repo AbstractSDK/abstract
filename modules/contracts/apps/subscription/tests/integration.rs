@@ -8,8 +8,10 @@ use abstract_subscription::{
     contract::{interface::SubscriptionInterface, CONTRACT_VERSION},
     msg::{SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg, SubscriptionQueryMsgFns},
     state::{EmissionType, Subscriber, SubscriptionConfig},
-    SubscriptionError, WEEK_IN_SECONDS,
+    SubscriptionError,
 };
+
+pub const WEEK_IN_SECONDS: u64 = 7 * 24 * 60 * 60;
 
 use abstract_subscription::contract::SUBSCRIPTION_ID;
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
