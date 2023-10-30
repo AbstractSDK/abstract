@@ -6,7 +6,6 @@ pub mod state;
 
 pub use error::SubscriptionError;
 
-
 #[cfg(feature = "interface")]
 pub mod interface {
     use crate::msg::*;
