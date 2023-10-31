@@ -29,7 +29,7 @@ pub fn query_handler(
         } => simulate_swap(deps, env, adapter, offer_asset, ask_asset, dex.unwrap()),
         DexQueryMsg::GenerateMessages {
             message,
-            manager_addr,
+            proxy_addr,
         } => {
             match message {
                 DexExecuteMsg::Action { dex, action } => {
@@ -39,7 +39,7 @@ pub fn query_handler(
                         return Err(DexError::IbcMsgQuery);
                     }
                     let exchange = exchange_resolver::resolve_exchange(&local_dex_name)?;
-                    let sender = deps.api.addr_validate(&manager_addr)?;
+                    let sender = deps.api.addr_validate(&proxy_addr)?;
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
                         adapter, deps, sender, action, exchange,
                     )?;

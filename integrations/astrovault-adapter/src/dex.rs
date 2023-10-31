@@ -8,6 +8,7 @@ use abstract_sdk::feature_objects::AnsHost;
 #[derive(Default)]
 pub struct Astrovault {
     pub pool_type: Option<PoolType>,
+    pub proxy_addr: Option<Addr>,
 }
 
 impl Identify for Astrovault {
@@ -30,7 +31,7 @@ use ::{
         feature_objects::VersionControlContract,
         AbstractSdkResult,
     },
-    cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
+    cosmwasm_std::{to_binary, wasm_execute, Addr, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
 };
@@ -46,7 +47,7 @@ pub enum StubCw20HookMsg {
 fn native_swap(
     deps: Deps,
     pool_type: PoolType,
-    pair_address: cosmwasm_std::Addr,
+    pair_address: Addr,
     offer_asset: Asset,
     ask_asset: AssetInfo,
     belief_price: Option<Decimal>,
@@ -113,9 +114,9 @@ fn native_swap(
 #[allow(clippy::too_many_arguments)]
 fn cw20_swap(
     deps: Deps,
-    cw20_addr: &cosmwasm_std::Addr,
+    cw20_addr: &Addr,
     pool_type: PoolType,
-    pair_address: cosmwasm_std::Addr,
+    pair_address: Addr,
     offer_asset: &Asset,
     ask_asset: AssetInfo,
     belief_price: Option<Decimal>,
@@ -195,13 +196,14 @@ impl DexCommand for Astrovault {
     fn fetch_data(
         &mut self,
         deps: Deps,
-        _sender: cosmwasm_std::Addr,
+        sender: Addr,
         _version_control_contract: VersionControlContract,
         ans_host: AnsHost,
         pool_id: UniquePoolId,
     ) -> AbstractSdkResult<()> {
         let pool_metadata = ans_host.query_pool_metadata(&deps.querier, &pool_id)?;
         self.pool_type = Some(pool_metadata.pool_type);
+        self.proxy_addr = Some(sender);
         Ok(())
     }
 
@@ -366,9 +368,8 @@ impl DexCommand for Astrovault {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
 
-        // TODO: cover three-way stable
         if paired_assets.len() > 1 {
-            return Err(DexError::TooManyAssets(2));
+            return Err(DexError::TooManyAssets(1));
         }
         // Get pair info
         let pair_assets = match self.pool_type.unwrap() {
@@ -447,7 +448,10 @@ impl DexCommand for Astrovault {
             PoolType::Stable => wasm_execute(
                 pair_address,
                 &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
-                    assets_amount: vec![astrovault_assets[0].amount, astrovault_assets[1].amount],
+                    assets_amount: astrovault_assets
+                        .into_iter()
+                        .map(|asset| asset.amount)
+                        .collect(),
                     direct_staking: None,
                     receiver: None,
                 },
@@ -474,7 +478,7 @@ impl DexCommand for Astrovault {
 
     fn withdraw_liquidity(
         &self,
-        _deps: Deps,
+        deps: Deps,
         pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
@@ -486,17 +490,29 @@ impl DexCommand for Astrovault {
                     astrovault::standard_pool::handle_msg::WithdrawLiquidityInputs { to: None },
                 ),
             )?,
-            PoolType::Stable => to_binary(
-                &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
-                    astrovault::stable_pool::handle_msg::WithdrawalToLockupInputs {
-                        // TODO:
-                        withdrawal_lockup_assets_amount: vec![],
-                        to: None,
-                        is_instant_withdrawal: Some(true),
-                        expected_return: None,
-                    },
-                ),
-            )?,
+            PoolType::Stable => {
+                let address = self.proxy_addr.clone().unwrap().into_string();
+                let lp_addr = match &lp_token.info {
+                    AssetInfoBase::Cw20(lp_addr) => lp_addr,
+                    _ => unreachable!(),
+                };
+                let balance: astrovault::lp_staking::query_msg::LpBalanceResponse =
+                    deps.querier.query_wasm_smart(
+                        lp_addr.to_string(),
+                        &astrovault::lp_staking::query_msg::QueryMsg::Balance { address },
+                    )?;
+                to_binary(
+                    &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
+                        astrovault::stable_pool::handle_msg::WithdrawalToLockupInputs {
+                            // TODO: how to determine which asset or in which proportion to withdraw?
+                            withdrawal_lockup_assets_amount: vec![balance.locked, Uint128::zero()],
+                            to: None,
+                            is_instant_withdrawal: Some(true),
+                            expected_return: None,
+                        },
+                    ),
+                )?
+            }
             PoolType::Weighted => to_binary(
                 &astrovault::ratio_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
                     astrovault::ratio_pool::handle_msg::RatioWithdrawalToLockupInputs {
@@ -570,7 +586,7 @@ impl DexCommand for Astrovault {
                             .map(ToString::to_string)
                             .collect(),
                     ))?;
-                // TODO: why is it vector
+                // TODO: why from_assets is vectors, and we swap one asset for the other
                 let astrovault::stable_pool::query_msg::StablePoolQuerySwapSimulation {
                     from_assets_amount: _,
                     mut to_assets_amount,
@@ -700,6 +716,9 @@ mod tests {
             ARCHWAY_1.into(),
             Astrovault {
                 pool_type: Some(pool_type),
+                proxy_addr: Some(Addr::unchecked(
+                    "archway1u76c96fgq9st8wme0f88w8hh57y78juy5cfm49",
+                )),
             },
         )
     }
@@ -708,7 +727,7 @@ mod tests {
         "archway1evz8agrnppzq7gt2nnutkmqgpm86374xds0alc7hru987f9v4hqsejqfaq";
     const STABLE_POOL_CONTRACT: &str =
         "archway1vq9jza8kuz80f7ypyvm3pttvpcwlsa5fvum9hxhew5u95mffknxsjy297r";
-    const LP_TOKEN: &str = "archway1m8f5a24pcs5e0xmmprsngsxewv3nztv2val7e9qhpp3nt9sfcy2s46t8hc";
+    const LP_TOKEN: &str = "archway1kzqddgfzdma4pxeh78207k6nakcqjluyu3xum4twpcfe6c6dpdyq2mmuf0";
     const USDC: &str = "ibc/B9E4FD154C92D3A23BEA029906C4C5FF2FE74CB7E3A058290B77197A263CF88B";
     const ARCH: &str = "aarch";
     const CW20_ARCH: &str = "archway1cutfh7m87cyq5qgqqw49f289qha7vhsg6wtr6rl5fvm28ulnl9ssg0vk0n";
@@ -1083,7 +1102,10 @@ mod tests {
                         &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
                             astrovault::stable_pool::handle_msg::WithdrawalToLockupInputs {
                                 to: None,
-                                withdrawal_lockup_assets_amount: vec![],
+                                withdrawal_lockup_assets_amount: vec![
+                                    Uint128::zero(),
+                                    Uint128::zero()
+                                ],
                                 is_instant_withdrawal: Some(true),
                                 expected_return: None
                             }

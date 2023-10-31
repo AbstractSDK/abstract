@@ -142,7 +142,7 @@ pub enum DexQueryMsg {
     GenerateMessages {
         /// Execute message to generate messages for
         message: DexExecuteMsg,
-        /// Manager Addr generate messages for
-        manager_addr: String,
+        /// Proxy Addr generate messages for
+        proxy_addr: String,
     },
 }
