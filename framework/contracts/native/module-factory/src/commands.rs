@@ -21,8 +21,8 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, BankMsg, Binary, Coin, Coins, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
-    ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+    wasm_execute, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps, DepsMut,
+    Empty, Env, MessageInfo, ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
@@ -59,14 +59,13 @@ pub fn execute_create_modules(
     let mut sum_of_monetization = Coins::default();
 
     // install messages
-    let mut module_instantiate_sub_messages = Vec::with_capacity(modules_responses.len());
-    // list of modules to register after instantiation
-    let mut modules_to_install = VecDeque::with_capacity(modules_responses.len());
+    let mut module_instantiate_messages = Vec::with_capacity(modules_responses.len());
 
     // Attributes logging
     let mut module_ids: Vec<String> = Vec::with_capacity(modules_responses.len());
     let mut modules_to_register: Vec<RegisterModuleData> = vec![];
 
+    let canonical_contract_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
     for (owner_init_msg, module_response) in
         init_msgs.into_iter().zip(modules_responses.into_iter())
     {
@@ -99,17 +98,22 @@ pub fn execute_create_modules(
 
         match &new_module.reference {
             ModuleReference::App(code_id) => {
-                let init_msg = instantiate_contract(
+                let (addr, init_msg) = instantiate2_contract(
+                    deps.as_ref(),
+                    canonical_contract_addr.clone(),
                     block_height,
                     *code_id,
                     owner_init_msg.unwrap(),
                     Some(account_base.manager.clone()),
-                    CREATE_APP_RESPONSE_ID,
                     new_module_init_funds,
                     &new_module.info,
                 )?;
-                modules_to_install.push_back(new_module.clone());
-                module_instantiate_sub_messages.push(init_msg);
+                let module_address = deps.api.addr_humanize(&addr)?;
+                modules_to_register.push(RegisterModuleData {
+                    module_address: module_address.to_string(),
+                    module: new_module,
+                });
+                module_instantiate_messages.push(init_msg);
             }
             // Adapter is not installed but registered instead, so we don't push to the `installed_modules`
             ModuleReference::Adapter(addr) => {
@@ -120,17 +124,22 @@ pub fn execute_create_modules(
                 });
             }
             ModuleReference::Standalone(code_id) => {
-                let init_msg = instantiate_contract(
+                let (addr, init_msg) = instantiate2_contract(
+                    deps.as_ref(),
+                    canonical_contract_addr.clone(),
                     block_height,
                     *code_id,
                     owner_init_msg.unwrap(),
                     Some(account_base.manager.clone()),
-                    CREATE_STANDALONE_RESPONSE_ID,
                     new_module_init_funds,
                     &new_module.info,
                 )?;
-                modules_to_install.push_back(new_module.clone());
-                module_instantiate_sub_messages.push(init_msg);
+                let module_address = deps.api.addr_humanize(&addr)?;
+                modules_to_register.push(RegisterModuleData {
+                    module_address: module_address.to_string(),
+                    module: new_module,
+                });
+                module_instantiate_messages.push(init_msg);
             }
             _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
         };
@@ -145,50 +154,38 @@ pub fn execute_create_modules(
         .into());
     }
 
-    // No submessages, registering modules here
-    if module_instantiate_sub_messages.is_empty() {
-        register_modules(modules_to_register, account_base)
-    } else {
-        CONTEXT.save(
-            deps.storage,
-            &Context {
-                account_base: account_base.clone(),
-                modules: modules_to_install,
-                modules_to_register,
-            },
-        )?;
-
-        Ok(ModuleFactoryResponse::new(
-            "execute_create_modules",
-            iter::once(("module_ids", format!("{module_ids:?}"))),
-        )
-        .add_submessages(module_instantiate_sub_messages)
+    Ok(register_modules(modules_to_register, account_base)?
+        .add_messages(module_instantiate_messages)
         .add_messages(fee_msgs))
-    }
 }
 
-fn instantiate_contract(
+fn instantiate2_contract(
+    deps: Deps,
+    creator_addr: CanonicalAddr,
     block_height: u64,
     code_id: u64,
     init_msg: Binary,
     admin: Option<Addr>,
-    reply_id: u64,
     funds: Vec<Coin>,
     module_info: &ModuleInfo,
-) -> ModuleFactoryResult<SubMsg> {
-    Ok(SubMsg {
-        id: reply_id,
-        gas_limit: None,
-        msg: WasmMsg::Instantiate {
+) -> ModuleFactoryResult<(CanonicalAddr, CosmosMsg)> {
+    let wasm_info = deps.querier.query_wasm_code_info(code_id)?;
+    let salt = Binary::from(module_info.name.as_bytes());
+    let addr =
+        cosmwasm_std::instantiate2_address(&wasm_info.checksum, &creator_addr, salt.as_slice())?;
+
+    Ok((
+        addr,
+        WasmMsg::Instantiate2 {
             code_id,
             funds,
             admin: admin.map(Into::into),
             label: format!("Module: {module_info}, Height {block_height}"),
             msg: init_msg,
+            salt,
         }
         .into(),
-        reply_on: ReplyOn::Success,
-    })
+    ))
 }
 
 pub fn handle_reply(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
@@ -377,49 +374,75 @@ mod test {
     mod instantiate_contract {
         use super::*;
         use abstract_core::objects::module::ModuleVersion;
-        use cosmwasm_std::{coin, testing::mock_info, to_binary};
+        use cosmwasm_std::{
+            coin, testing::mock_info, to_binary, to_json_binary, Api, CodeInfoResponse, HexBinary,
+            QuerierResult,
+        };
 
         #[test]
-        fn should_create_submsg_with_instantiate_msg() -> ModuleFactoryTestResult {
-            let _deps = mock_dependencies();
+        fn should_create_msg_with_instantiate2_msg() -> ModuleFactoryTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier.update_wasm(|request| match request {
+                cosmwasm_std::WasmQuery::CodeInfo { code_id } => {
+                    let deps_v2 = mock_dependencies();
+                    let new_addr = deps_v2.api.addr_make("aloha");
+                    let canonical = deps_v2.api.addr_canonicalize(new_addr.as_str()).unwrap();
+                    let creator = mock_dependencies()
+                        .api
+                        .addr_humanize(&canonical)
+                        .unwrap()
+                        .into_string();
+                    QuerierResult::Ok(cosmwasm_std::ContractResult::Ok(
+                        to_json_binary(&CodeInfoResponse::new(
+                            code_id.clone(),
+                            creator.clone(),
+                            HexBinary::from_hex(
+                                "13a1fc994cc6d1c81b746ee0c0ff6f90043875e0bf1d9be6b7d779fc978dc2a5",
+                            )
+                            .unwrap(),
+                        ))
+                        .unwrap(),
+                    ))
+                }
+                _ => panic!("handling only code_info"),
+            });
             let _info = mock_info("anyone", &[]);
 
             let expected_module_init_msg = to_binary(&Empty {}).unwrap();
             let expected_code_id = 10;
-            let expected_reply_id = 69;
 
             let expected_module_info =
                 ModuleInfo::from_id("test:module", ModuleVersion::Version("1.2.3".to_string()))
                     .unwrap();
 
             let some_block_height = 500;
-            let actual = instantiate_contract(
+            let contract_addr = deps.api.addr_make("contract");
+            let creator_addr = deps.api.addr_canonicalize(contract_addr.as_str()).unwrap();
+            let actual = instantiate2_contract(
+                deps.as_ref(),
+                creator_addr,
                 some_block_height,
                 expected_code_id,
                 expected_module_init_msg.clone(),
                 None,
-                expected_reply_id,
                 vec![coin(5, "ucosm")],
                 &expected_module_info,
             );
 
-            let expected_init_msg = WasmMsg::Instantiate {
+            let expected_init_msg = WasmMsg::Instantiate2 {
                 code_id: expected_code_id,
                 funds: vec![coin(5, "ucosm")],
                 admin: None,
                 label: format!("Module: {expected_module_info}, Height {some_block_height}"),
                 msg: expected_module_init_msg,
+                salt: Binary::from(expected_module_info.name.as_bytes()),
             };
 
             assert_that!(actual).is_ok();
 
-            let actual_submsg = actual.unwrap();
+            let (_addr, actual_msg) = actual.unwrap();
 
-            assert_that!(actual_submsg.id).is_equal_to(expected_reply_id);
-            assert_that!(actual_submsg.gas_limit).is_equal_to(None);
-            assert_that!(actual_submsg.reply_on).is_equal_to(ReplyOn::Success);
-
-            let actual_init_msg: CosmosMsg = actual_submsg.msg;
+            let actual_init_msg: CosmosMsg = actual_msg;
 
             assert_that!(actual_init_msg).matches(|i| matches!(i, CosmosMsg::Wasm { .. }));
             assert_that!(actual_init_msg).is_equal_to(CosmosMsg::from(expected_init_msg));
