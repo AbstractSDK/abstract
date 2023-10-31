@@ -1,5 +1,6 @@
 use crate::ASTROVAULT;
 use crate::AVAILABLE_CHAINS;
+use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -31,7 +32,7 @@ impl Identify for Astrovault {
 use ::{
     abstract_sdk::{
         core::objects::{AnsAsset, AssetEntry},
-        feature_objects::{AnsHost, VersionControlContract},
+        feature_objects::AnsHost,
         features::AbstractRegistryAccess,
         AbstractSdkResult, AccountVerification, Resolve,
     },

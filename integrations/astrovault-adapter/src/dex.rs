@@ -2,8 +2,7 @@ use crate::ASTROVAULT;
 use crate::AVAILABLE_CHAINS;
 use abstract_dex_standard::Identify;
 use abstract_sdk::core::objects::PoolType;
-
-use abstract_sdk::feature_objects::AnsHost;
+use cosmwasm_std::Addr;
 
 #[derive(Default)]
 pub struct Astrovault {
@@ -28,10 +27,10 @@ use ::{
     abstract_sdk::{
         core::objects::{PoolAddress, UniquePoolId},
         cw_helpers::wasm_smart_query,
-        feature_objects::VersionControlContract,
+        feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkResult,
     },
-    cosmwasm_std::{to_binary, wasm_execute, Addr, CosmosMsg, Decimal, Deps, Uint128},
+    cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
 };
@@ -44,6 +43,7 @@ pub enum StubCw20HookMsg {
     WithdrawLiquidity {},
 }
 
+#[cfg(feature = "full_integration")]
 fn native_swap(
     deps: Deps,
     pool_type: PoolType,
@@ -111,6 +111,7 @@ fn native_swap(
     Ok(msgs)
 }
 
+#[cfg(feature = "full_integration")]
 #[allow(clippy::too_many_arguments)]
 fn cw20_swap(
     deps: Deps,
