@@ -30,7 +30,7 @@ use ::{
         feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkResult,
     },
-    cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
+    cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
 };
@@ -129,7 +129,7 @@ fn cw20_swap(
             &Cw20ExecuteMsg::Send {
                 contract: pair_address.to_string(),
                 amount: offer_asset.amount,
-                msg: to_binary(&astrovault::standard_pool::handle_msg::Cw20HookMsg::Swap {
+                msg: to_json_binary(&astrovault::standard_pool::handle_msg::Cw20HookMsg::Swap {
                     belief_price,
                     max_spread,
                     expected_return: None,
@@ -162,7 +162,7 @@ fn cw20_swap(
                 &Cw20ExecuteMsg::Send {
                     contract: pair_address.to_string(),
                     amount: offer_asset.amount,
-                    msg: to_binary(&astrovault::stable_pool::handle_msg::Cw20HookMsg::Swap {
+                    msg: to_json_binary(&astrovault::stable_pool::handle_msg::Cw20HookMsg::Swap {
                         swap_to_asset_index: index as u32,
                         expected_return: None,
                         to: None,
@@ -178,7 +178,7 @@ fn cw20_swap(
                 &Cw20ExecuteMsg::Send {
                     contract: pair_address.to_string(),
                     amount: offer_asset.amount,
-                    msg: to_binary(&astrovault::ratio_pool::handle_msg::Cw20HookMsg::Swap {
+                    msg: to_json_binary(&astrovault::ratio_pool::handle_msg::Cw20HookMsg::Swap {
                         expected_return: None,
                         to: None,
                     })?,
@@ -486,7 +486,7 @@ impl DexCommand for Astrovault {
         let pair_address = pool_id.expect_contract()?;
 
         let hook_msg = match self.pool_type.unwrap() {
-            PoolType::ConstantProduct => to_binary(
+            PoolType::ConstantProduct => to_json_binary(
                 &astrovault::standard_pool::handle_msg::Cw20HookMsg::WithdrawLiquidity(
                     astrovault::standard_pool::handle_msg::WithdrawLiquidityInputs { to: None },
                 ),
@@ -502,7 +502,7 @@ impl DexCommand for Astrovault {
                         lp_addr.to_string(),
                         &astrovault::lp_staking::query_msg::QueryMsg::Balance { address },
                     )?;
-                to_binary(
+                to_json_binary(
                     &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
                         astrovault::stable_pool::handle_msg::WithdrawalToLockupInputs {
                             // TODO: how to determine which asset or in which proportion to withdraw?
@@ -514,7 +514,7 @@ impl DexCommand for Astrovault {
                     ),
                 )?
             }
-            PoolType::Weighted => to_binary(
+            PoolType::Weighted => to_json_binary(
                 &astrovault::ratio_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
                     astrovault::ratio_pool::handle_msg::RatioWithdrawalToLockupInputs {
                         to: None,
@@ -691,12 +691,12 @@ mod tests {
     use abstract_dex_standard::tests::expect_eq;
     use abstract_sdk::core::objects::PoolType;
     use cosmwasm_schema::serde::Deserialize;
-    use cosmwasm_std::to_binary;
+    use cosmwasm_std::to_json_binary;
     use cosmwasm_std::Coin;
     use cosmwasm_std::Uint128;
 
     use cosmwasm_std::coin;
-    use cosmwasm_std::from_binary;
+    use cosmwasm_std::from_json;
     use cosmwasm_std::CosmosMsg;
     use cosmwasm_std::WasmMsg;
     use cw20::Cw20ExecuteMsg;
@@ -739,7 +739,7 @@ mod tests {
 
     fn get_wasm_msg<T: for<'de> Deserialize<'de>>(msg: CosmosMsg) -> T {
         match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_binary(&msg).unwrap(),
+            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_json(&msg).unwrap(),
             _ => panic!("Expected execute wasm msg, got a different enum"),
         }
     }
@@ -956,7 +956,7 @@ mod tests {
                 &cw20::Cw20ExecuteMsg::Send {
                     contract: STABLE_POOL_CONTRACT.to_owned(),
                     amount: Uint128::new(amount_usdc / 2u128),
-                    msg: to_binary(&astrovault::stable_pool::handle_msg::ExecuteMsg::Swap {
+                    msg: to_json_binary(&astrovault::stable_pool::handle_msg::ExecuteMsg::Swap {
                         swap_to_asset_index: 0,
                         expected_return: None,
                         to: None,
@@ -1068,7 +1068,7 @@ mod tests {
                 &Cw20ExecuteMsg::Send {
                     contract: STANDARD_POOL_CONTRACT.to_string(),
                     amount: amount_lp.into(),
-                    msg: to_binary(
+                    msg: to_json_binary(
                         &astrovault::standard_pool::handle_msg::Cw20HookMsg::WithdrawLiquidity(
                             astrovault::standard_pool::handle_msg::WithdrawLiquidityInputs {
                                 to: None
@@ -1099,7 +1099,7 @@ mod tests {
                 &Cw20ExecuteMsg::Send {
                     contract: STABLE_POOL_CONTRACT.to_string(),
                     amount: amount_lp.into(),
-                    msg: to_binary(
+                    msg: to_json_binary(
                         &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
                             astrovault::stable_pool::handle_msg::WithdrawalToLockupInputs {
                                 to: None,
