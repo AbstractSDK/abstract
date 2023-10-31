@@ -11,6 +11,7 @@ crate-type = ["cdylib", "rlib"]
 
 
 [features]
+default = ["test-utils"]
 test-utils = ["dep:abstract-testing", "dep:abstract-interface", "dep:cw-orch"]
 schema = []
 

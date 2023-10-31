@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
@@ -8,9 +10,9 @@ use abstract_sdk::{
     base::SudoHandlerFn,
     feature_objects::{AnsHost, VersionControlContract},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
-    AbstractSdkError,
+    AbstractSdkError, AccountAction, features::Executables,
 };
-use cosmwasm_std::{Addr, Empty, StdResult, Storage};
+use cosmwasm_std::{Addr, CosmosMsg, Deps, Empty, StdResult, Storage, DepsMut};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
@@ -45,6 +47,20 @@ pub struct AppState {
     pub version_control: VersionControlContract,
 }
 
+pub struct ModuleEnv<'a> {
+    pub deps: DepsMut<'a>,
+    pub executable_stack: Executables,
+}
+
+impl<'a> ModuleEnv<'a> {
+    pub fn new(deps: DepsMut<'a>) -> Self {
+        Self {
+            deps,
+            executable_stack: Executables::default(),
+        }
+    }
+}
+
 /// The state variables for our AppContract.
 pub struct AppContract<
     Error: ContractError,
@@ -58,7 +74,6 @@ pub struct AppContract<
     // Custom state for every App
     pub admin: Admin<'static>,
     pub(crate) base_state: Item<'static, AppState>,
-
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<Self, Error>,
 }
