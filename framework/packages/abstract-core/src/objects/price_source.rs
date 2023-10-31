@@ -10,7 +10,7 @@
 //! **There should only be ONE base asset when configuring your proxy**
 
 use cosmwasm_std::{
-    to_binary, Addr, Decimal, Deps, QuerierWrapper, QueryRequest, StdError, Uint128, WasmQuery,
+    to_json_binary, Addr, Decimal, Deps, QuerierWrapper, QueryRequest, StdError, Uint128, WasmQuery,
 };
 use cw_asset::{Asset, AssetInfo};
 use schemars::JsonSchema;
@@ -246,7 +246,7 @@ fn query_cw20_supply(querier: &QuerierWrapper, contract_addr: &Addr) -> Abstract
     let response: cw20::TokenInfoResponse =
         querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: contract_addr.into(),
-            msg: to_binary(&cw20::Cw20QueryMsg::TokenInfo {})?,
+            msg: to_json_binary(&cw20::Cw20QueryMsg::TokenInfo {})?,
         }))?;
     Ok(response.total_supply)
 }
@@ -405,7 +405,7 @@ mod tests {
                         _ => panic!("unexpected message"),
                     };
 
-                    Ok(to_binary(&res).unwrap())
+                    Ok(to_json_binary(&res).unwrap())
                 })
                 .build();
 
