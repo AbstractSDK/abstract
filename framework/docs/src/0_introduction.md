@@ -1,6 +1,5 @@
 <!-- # The Abstract Development Platform -->
 <!-- This page is a high-level overview of the Abstract Platform, not the SDK or any of our actual products. Hence we should stick to a vocabulary that is familiar to the reader. -->
-![Abstract Platform](resources/abstract_platform/abstract_overview.webp)
 <!-- 
 <div align="center">
 
@@ -8,11 +7,15 @@
 
 </div> -->
 
-# Abstract Documentation
+# Introduction
 
-Hi and welcome to Abstract, the interchain CosmWasm development platform! Abstract's CosmWasm framework is your gateway
+Hi and welcome to Abstract, the interchain CosmWasm development platform!  
+
+Abstract's CosmWasm framework is your gateway
 to taking amazing ideas from concept to reality. Whether you're a coding genius or just getting started, Abstract has
-got your back! By building composable modules you'll be crafting scalable masterpieces in no time.
+got your back! By building composable modules you'll be crafting scalable masterpieces in no time.  
+
+![Abstract Platform](resources/abstract_platform/abstract_overview.webp)
 
 ## Abstract in a nutshell
 
