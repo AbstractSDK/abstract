@@ -772,7 +772,7 @@ mod tests {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                (&TEST_ACCOUNT_ID, &chain_name),
+                (&chain_name, &TEST_ACCOUNT_ID),
                 &remote_addr,
             )?;
 
@@ -1002,7 +1002,7 @@ mod tests {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                (&TEST_ACCOUNT_ID, &ChainName::from_str("channel")?),
+                (&ChainName::from_str("channel")?, &TEST_ACCOUNT_ID),
                 &"Some-remote-account".to_string(),
             )?;
 
@@ -1405,7 +1405,7 @@ mod tests {
             );
 
             let saved_account =
-                ACCOUNTS.load(deps.as_ref().storage, (&TEST_ACCOUNT_ID, &chain_name))?;
+                ACCOUNTS.load(deps.as_ref().storage, (&chain_name, &TEST_ACCOUNT_ID))?;
 
             assert_eq!(remote_proxy, saved_account);
 
@@ -1427,7 +1427,7 @@ mod tests {
             );
 
             // TODO: Re-add this code once the bug in list_accounts is fixed.
-            /*let accounts_response: ListAccountsResponse = from_binary(&query(
+            let accounts_response: ListAccountsResponse = from_binary(&query(
                 deps.as_ref(),
                 mock_env(),
                 QueryMsg::ListAccounts {
@@ -1438,10 +1438,10 @@ mod tests {
 
             assert_eq!(
                 ListAccountsResponse {
-                    accounts: vec![(TEST_ACCOUNT_ID, chain_name, remote_proxy)]
+                    accounts: vec![(chain_name, TEST_ACCOUNT_ID, remote_proxy)]
                 },
                 accounts_response
-            );*/
+            );
 
             Ok(())
         }

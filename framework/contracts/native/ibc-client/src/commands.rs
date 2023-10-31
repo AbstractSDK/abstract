@@ -316,7 +316,7 @@ pub fn execute_send_funds(
     // get account_id of Account
     let account_id = account_base.account_id(deps.as_ref())?;
     // load remote account
-    let remote_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
+    let remote_addr = ACCOUNTS.load(deps.storage, (&host_chain, &account_id))?;
 
     let ics20_channel_entry = ChannelEntry {
         connected_chain: host_chain,

@@ -16,26 +16,26 @@ use crate::contract::IbcClientResult;
 
 pub fn list_accounts(
     deps: Deps,
-    start: Option<(AccountId, String)>,
+    start: Option<(String, AccountId)>,
     limit: Option<u32>,
 ) -> IbcClientResult<ListAccountsResponse> {
     let start = start
         .map(|s| {
-            let chain = ChainName::from_str(&s.1)?;
-            Ok::<_, AbstractError>((s.0, chain))
+            let chain = ChainName::from_str(&s.0)?;
+            Ok::<_, AbstractError>((s.1, chain))
         })
         .transpose()?;
 
     let accounts: Vec<(
-        AccountId,
         abstract_core::objects::chain_name::ChainName,
+        AccountId,
         String,
     )> = cw_paginate::paginate_map(
         &ACCOUNTS,
         deps.storage,
-        start.as_ref().map(|s| Bound::exclusive((&s.0, &s.1))),
+        start.as_ref().map(|s| Bound::exclusive((&s.1, &s.0))),
         limit,
-        |(a, c), s| Ok::<_, StdError>((a, c, s)),
+        |(c, a), s| Ok::<_, StdError>((c, a, s)),
     )?;
 
     Ok(ListAccountsResponse { accounts })
@@ -98,6 +98,6 @@ pub fn account(
     account_id: AccountId,
 ) -> IbcClientResult<AccountResponse> {
     let host_chain = ChainName::from_str(&host_chain)?;
-    let remote_proxy_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
+    let remote_proxy_addr = ACCOUNTS.load(deps.storage, (&host_chain, &account_id))?;
     Ok(AccountResponse { remote_proxy_addr })
 }
