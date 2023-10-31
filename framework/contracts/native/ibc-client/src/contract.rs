@@ -1426,7 +1426,6 @@ mod tests {
                 account_response
             );
 
-            // TODO: Re-add this code once the bug in list_accounts is fixed.
             let accounts_response: ListAccountsResponse = from_binary(&query(
                 deps.as_ref(),
                 mock_env(),
