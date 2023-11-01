@@ -288,7 +288,7 @@ mod tests {
 
         use abstract_core::objects::chain_name::ChainName;
         use abstract_testing::prelude::TEST_CHAIN;
-        use cosmwasm_std::{from_binary, wasm_execute};
+        use cosmwasm_std::{from_json, wasm_execute};
         use polytone::callbacks::CallbackRequest;
 
         use crate::commands::PACKET_LIFETIME;
@@ -385,7 +385,7 @@ mod tests {
             assert_eq!(chain_name, reverse_note);
 
             // Verify queries
-            let host_response: HostResponse = from_binary(&query(
+            let host_response: HostResponse = from_json(query(
                 deps.as_ref(),
                 mock_env(),
                 QueryMsg::Host {
@@ -400,7 +400,7 @@ mod tests {
                 host_response
             );
 
-            let remote_hosts_response: ListRemoteHostsResponse = from_binary(&query(
+            let remote_hosts_response: ListRemoteHostsResponse = from_json(query(
                 deps.as_ref(),
                 mock_env(),
                 QueryMsg::ListRemoteHosts {},
@@ -408,7 +408,7 @@ mod tests {
             let hosts = remote_hosts_response.hosts;
             assert_eq!(vec![(chain_name.clone(), host)], hosts);
 
-            let remote_proxies_response: ListRemoteProxiesResponse = from_binary(&query(
+            let remote_proxies_response: ListRemoteProxiesResponse = from_json(query(
                 deps.as_ref(),
                 mock_env(),
                 QueryMsg::ListRemoteProxies {},
@@ -416,7 +416,7 @@ mod tests {
             let hosts = remote_proxies_response.proxies;
             assert_eq!(vec![(chain_name.clone(), None)], hosts);
 
-            let ibc_infratructures_response: ListIbcInfrastructureResponse = from_binary(&query(
+            let ibc_infratructures_response: ListIbcInfrastructureResponse = from_json(query(
                 deps.as_ref(),
                 mock_env(),
                 QueryMsg::ListIbcInfrastructures {},
@@ -1087,7 +1087,7 @@ mod tests {
             objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
         };
         use abstract_testing::prelude::TEST_CHAIN;
-        use cosmwasm_std::{from_binary, Binary, Event, SubMsgResponse};
+        use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
         use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
         use std::str::FromStr;
 
@@ -1411,7 +1411,7 @@ mod tests {
             assert_eq!(remote_proxy, saved_account);
 
             // Verify queries
-            let account_response: AccountResponse = from_binary(&query(
+            let account_response: AccountResponse = from_json(query(
                 deps.as_ref(),
                 mock_env(),
                 QueryMsg::Account {
@@ -1427,7 +1427,7 @@ mod tests {
                 account_response
             );
 
-            let accounts_response: ListAccountsResponse = from_binary(&query(
+            let accounts_response: ListAccountsResponse = from_json(query(
                 deps.as_ref(),
                 mock_env(),
                 QueryMsg::ListAccounts {
