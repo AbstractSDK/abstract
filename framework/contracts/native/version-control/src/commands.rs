@@ -552,7 +552,7 @@ pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCRes
 mod test {
     use abstract_core::objects::account::AccountTrace;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{from_binary, to_binary, Addr, Coin};
+    use cosmwasm_std::{from_json, to_json_binary, Addr, Coin};
     use cw_controllers::AdminError;
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
@@ -582,7 +582,7 @@ mod test {
     pub fn mock_manager_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default()
             .with_smart_handler(TEST_MANAGER, |msg| {
-                match from_binary(msg).unwrap() {
+                match from_json(msg).unwrap() {
                     ManagerQueryMsg::Config {} => {
                         let resp = ManagerConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
@@ -590,7 +590,7 @@ mod test {
                             account_id: TEST_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     ManagerQueryMsg::Ownership {} => {
                         let resp = cw_ownable::Ownership {
@@ -598,7 +598,7 @@ mod test {
                             pending_expiry: None,
                             pending_owner: None,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     _ => panic!("unexpected message"),
                 }
@@ -961,7 +961,7 @@ mod test {
             let account_1_manager = "manager2";
             deps.querier = mock_manager_querier()
                 // add manager 2
-                .with_smart_handler(account_1_manager, |msg| match from_binary(msg).unwrap() {
+                .with_smart_handler(account_1_manager, |msg| match from_json(msg).unwrap() {
                     ManagerQueryMsg::Config {} => {
                         let resp = ManagerConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
@@ -969,7 +969,7 @@ mod test {
                             account_id: TEST_ACCOUNT_ID,
                             is_suspended: false,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     ManagerQueryMsg::Ownership {} => {
                         let resp = cw_ownable::Ownership {
@@ -977,7 +977,7 @@ mod test {
                             pending_expiry: None,
                             pending_owner: None,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     _ => panic!("unexpected message"),
                 })
@@ -1870,7 +1870,7 @@ mod test {
                 infos: vec![new_module.clone()],
             };
             let res = query(deps.as_ref(), mock_env(), query_msg)?;
-            let ser_res = from_binary::<ModulesResponse>(&res)?;
+            let ser_res = from_json::<ModulesResponse>(&res)?;
             assert_that!(ser_res.modules).has_length(1);
             assert_eq!(
                 ser_res.modules[0],
@@ -1919,7 +1919,7 @@ mod test {
                 infos: vec![new_module.clone()],
             };
             let res = query(deps.as_ref(), mock_env(), query_msg)?;
-            let ser_res = from_binary::<ModulesResponse>(&res)?;
+            let ser_res = from_json::<ModulesResponse>(&res)?;
             assert_that!(ser_res.modules).has_length(1);
             assert_eq!(
                 ser_res.modules[0],
@@ -1972,7 +1972,7 @@ mod test {
                 infos: vec![new_module.clone()],
             };
             let res = query(deps.as_ref(), mock_env(), query_msg)?;
-            let ser_res = from_binary::<ModulesResponse>(&res)?;
+            let ser_res = from_json::<ModulesResponse>(&res)?;
             assert_that!(ser_res.modules).has_length(1);
             assert_eq!(
                 ser_res.modules[0],

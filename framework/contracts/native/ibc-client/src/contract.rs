@@ -11,7 +11,7 @@ use abstract_core::{
 };
 use abstract_macros::abstract_response;
 use abstract_sdk::feature_objects::VersionControlContract;
-use cosmwasm_std::{to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
+use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -95,17 +95,19 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryResponse> {
     match msg {
-        QueryMsg::Config {} => to_binary(&queries::config(deps)?),
-        QueryMsg::Host { chain_name } => to_binary(&queries::host(deps, chain_name)?),
+        QueryMsg::Config {} => to_json_binary(&queries::config(deps)?),
+        QueryMsg::Host { chain_name } => to_json_binary(&queries::host(deps, chain_name)?),
         QueryMsg::Account { chain, account_id } => {
-            to_binary(&queries::account(deps, chain, account_id)?)
+            to_json_binary(&queries::account(deps, chain, account_id)?)
         }
         QueryMsg::ListAccounts { start, limit } => {
-            to_binary(&queries::list_accounts(deps, start, limit)?)
+            to_json_binary(&queries::list_accounts(deps, start, limit)?)
         }
-        QueryMsg::ListRemoteHosts {} => to_binary(&queries::list_remote_hosts(deps)?),
-        QueryMsg::ListRemoteProxies {} => to_binary(&queries::list_remote_proxies(deps)?),
-        QueryMsg::ListIbcInfrastructures {} => to_binary(&queries::list_ibc_counterparts(deps)?),
+        QueryMsg::ListRemoteHosts {} => to_json_binary(&queries::list_remote_hosts(deps)?),
+        QueryMsg::ListRemoteProxies {} => to_json_binary(&queries::list_remote_proxies(deps)?),
+        QueryMsg::ListIbcInfrastructures {} => {
+            to_json_binary(&queries::list_ibc_counterparts(deps)?)
+        }
     }
     .map_err(Into::into)
 }
@@ -352,7 +354,7 @@ mod tests {
                     msgs: vec![],
                     callback: Some(CallbackRequest {
                         receiver: mock_env().contract.address.to_string(),
-                        msg: to_binary(&IbcClientCallback::WhoAmI {})?,
+                        msg: to_json_binary(&IbcClientCallback::WhoAmI {})?,
                     }),
                     timeout_seconds: PACKET_LIFETIME.into(),
                 },
@@ -602,7 +604,7 @@ mod tests {
             };
 
             let callback_request = CallbackRequest {
-                msg: to_binary(&IbcClientCallback::UserRemoteAction(callback_info.clone()))?,
+                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info.clone()))?,
                 receiver: mock_env().contract.address.to_string(),
             };
 
@@ -680,7 +682,7 @@ mod tests {
             };
 
             let callback_request = CallbackRequest {
-                msg: to_binary(&IbcClientCallback::UserRemoteAction(callback_info.clone()))?,
+                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info.clone()))?,
                 receiver: mock_env().contract.address.to_string(),
             };
 
@@ -821,7 +823,7 @@ mod tests {
         use abstract_testing::prelude::{
             mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
         };
-        use cosmwasm_std::{from_binary, wasm_execute};
+        use cosmwasm_std::{from_json, wasm_execute};
 
         use crate::commands::PACKET_LIFETIME;
 
@@ -855,10 +857,9 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = mocked_account_querier_builder()
                 .builder()
-                .with_smart_handler(
-                    TEST_MANAGER,
-                    |msg| match from_binary::<manager::QueryMsg>(msg).unwrap() {
-                        manager::QueryMsg::Info {} => to_binary(&manager::InfoResponse {
+                .with_smart_handler(TEST_MANAGER, |msg| {
+                    match from_json::<manager::QueryMsg>(msg).unwrap() {
+                        manager::QueryMsg::Info {} => to_json_binary(&manager::InfoResponse {
                             info: manager::state::AccountInfo {
                                 name: String::from("name"),
                                 governance_details: GovernanceDetails::Monarchy {
@@ -871,8 +872,8 @@ mod tests {
                         })
                         .map_err(|e| e.to_string()),
                         _ => todo!(),
-                    },
-                )
+                    }
+                })
                 .build();
             mock_init(deps.as_mut())?;
 
@@ -1158,7 +1159,7 @@ mod tests {
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
                 initiator: env.contract.address,
-                initiator_msg: to_binary(&IbcClientCallback::WhoAmI {})?,
+                initiator_msg: to_json_binary(&IbcClientCallback::WhoAmI {})?,
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: String::from("addr"),
                     result: vec![],
@@ -1196,7 +1197,7 @@ mod tests {
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
-                initiator_msg: to_binary(&IbcClientCallback::WhoAmI {})?,
+                initiator_msg: to_json_binary(&IbcClientCallback::WhoAmI {})?,
                 result: Callback::FatalError(String::from("error")),
             };
 
@@ -1236,7 +1237,7 @@ mod tests {
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
                 initiator: env.contract.address,
-                initiator_msg: to_binary(&IbcClientCallback::WhoAmI {})?,
+                initiator_msg: to_json_binary(&IbcClientCallback::WhoAmI {})?,
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: remote_proxy.clone(),
                     result: vec![],
@@ -1277,7 +1278,7 @@ mod tests {
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
-                initiator_msg: to_binary(&IbcClientCallback::CreateAccount {
+                initiator_msg: to_json_binary(&IbcClientCallback::CreateAccount {
                     account_id: TEST_ACCOUNT_ID,
                 })?,
                 result: Callback::FatalError(String::from("error")),
@@ -1307,7 +1308,7 @@ mod tests {
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
-                initiator_msg: to_binary(&IbcClientCallback::CreateAccount {
+                initiator_msg: to_json_binary(&IbcClientCallback::CreateAccount {
                     account_id: TEST_ACCOUNT_ID,
                 })?,
                 result: Callback::Execute(Ok(ExecutionResponse {
@@ -1343,7 +1344,7 @@ mod tests {
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
-                initiator_msg: to_binary(&IbcClientCallback::CreateAccount {
+                initiator_msg: to_json_binary(&IbcClientCallback::CreateAccount {
                     account_id: TEST_ACCOUNT_ID,
                 })?,
                 result: Callback::Execute(Ok(ExecutionResponse {
@@ -1379,7 +1380,7 @@ mod tests {
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
-                initiator_msg: to_binary(&IbcClientCallback::CreateAccount {
+                initiator_msg: to_json_binary(&IbcClientCallback::CreateAccount {
                     account_id: TEST_ACCOUNT_ID,
                 })?,
                 result: Callback::Execute(Ok(ExecutionResponse {
@@ -1461,11 +1462,13 @@ mod tests {
             let receiver = String::from("receiver");
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
-                initiator_msg: to_binary(&IbcClientCallback::UserRemoteAction(CallbackInfo {
-                    id: id.clone(),
-                    msg: Some(callback_info_msg.clone()),
-                    receiver: receiver.clone(),
-                }))?,
+                initiator_msg: to_json_binary(&IbcClientCallback::UserRemoteAction(
+                    CallbackInfo {
+                        id: id.clone(),
+                        msg: Some(callback_info_msg.clone()),
+                        receiver: receiver.clone(),
+                    },
+                ))?,
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: remote_proxy.clone(),
                     result: vec![],
