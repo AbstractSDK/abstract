@@ -341,7 +341,7 @@ mod tests {
         mock_init(deps.as_mut())?;
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap();
-        let config: ConfigResponse = from_json(&res).unwrap();
+        let config: ConfigResponse = from_json(res).unwrap();
 
         assert_that!(config.version_control_contract.as_str()).is_equal_to(TEST_VERSION_CONTROL);
         assert_that!(config.ans_host_contract.as_str()).is_equal_to(TEST_ANS_HOST);
@@ -356,7 +356,7 @@ mod tests {
         mock_init(deps.as_mut())?;
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::Ownership {}).unwrap();
-        let ownership: cw_ownable::Ownership<Addr> = from_json(&res).unwrap();
+        let ownership: cw_ownable::Ownership<Addr> = from_json(res).unwrap();
 
         assert_that!(ownership.owner)
             .is_some()

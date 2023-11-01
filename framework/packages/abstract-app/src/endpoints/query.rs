@@ -164,7 +164,7 @@ mod test {
             let config_query = QueryMsg::Base(BaseQueryMsg::BaseConfig {});
             let res = query_helper(deps.as_ref(), config_query)?;
 
-            assert_that!(from_json(&res).unwrap()).is_equal_to(AppConfigResponse {
+            assert_that!(from_json(res).unwrap()).is_equal_to(AppConfigResponse {
                 proxy_address: Addr::unchecked(TEST_PROXY),
                 ans_host_address: Addr::unchecked(TEST_ANS_HOST),
                 manager_address: Addr::unchecked(TEST_MANAGER),
@@ -180,7 +180,7 @@ mod test {
             let admin_query = QueryMsg::Base(BaseQueryMsg::BaseAdmin {});
             let res = query_helper(deps.as_ref(), admin_query)?;
 
-            assert_that!(from_json(&res).unwrap()).is_equal_to(AdminResponse {
+            assert_that!(from_json(res).unwrap()).is_equal_to(AdminResponse {
                 admin: Some(TEST_MANAGER.to_string()),
             });
 

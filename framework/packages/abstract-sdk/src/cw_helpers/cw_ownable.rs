@@ -139,7 +139,7 @@ mod tests {
         };
 
         // Deserialize the query response
-        let actual: cw_ownable::Ownership<Addr> = from_json(&result.unwrap())?;
+        let actual: cw_ownable::Ownership<Addr> = from_json(result.unwrap())?;
 
         assert_eq!(actual, expected);
 

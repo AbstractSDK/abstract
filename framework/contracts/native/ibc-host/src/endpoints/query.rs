@@ -105,7 +105,7 @@ mod test {
             },
         )
         .unwrap();
-        let queried_client_name: ClientProxyResponse = from_json(&client_name).unwrap();
+        let queried_client_name: ClientProxyResponse = from_json(client_name).unwrap();
         assert_eq!(queried_client_name.proxy, "juno-proxy");
     }
 }

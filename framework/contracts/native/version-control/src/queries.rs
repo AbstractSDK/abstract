@@ -1037,7 +1037,7 @@ mod test {
                 },
             );
 
-            // let res2 = from_json(&res.unwrap())?;
+            // let res2 = from_json(res.unwrap())?;
 
             assert_that!(res)
                 .is_err()
