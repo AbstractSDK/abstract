@@ -347,7 +347,7 @@ mod test {
     #[test]
     fn test_with_query() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_query(|_, _, _, _| Ok(cosmwasm_std::to_binary(&Empty {}).unwrap()));
+            .with_query(|_, _, _, _| Ok(cosmwasm_std::to_json_binary(&Empty {}).unwrap()));
 
         assert!(contract.query_handler.is_some());
     }

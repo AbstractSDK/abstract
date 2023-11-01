@@ -16,7 +16,7 @@ use abstract_sdk::{
     feature_objects::AnsHost,
 };
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, SubMsgResult,
+    to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, SubMsgResult,
 };
 use semver::Version;
 
@@ -83,24 +83,24 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_binary(&query_config(deps)?),
-        QueryMsg::TotalValue {} => to_binary(&query_total_value(deps, env)?),
+        QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+        QueryMsg::TotalValue {} => to_json_binary(&query_total_value(deps, env)?),
         QueryMsg::HoldingAmount { identifier } => {
-            to_binary(&query_holding_amount(deps, env, identifier)?)
+            to_json_binary(&query_holding_amount(deps, env, identifier)?)
         }
         QueryMsg::TokenValue { identifier } => {
-            to_binary(&query_token_value(deps, env, identifier)?)
+            to_json_binary(&query_token_value(deps, env, identifier)?)
         }
-        QueryMsg::AssetConfig { identifier } => to_binary(&AssetConfigResponse {
+        QueryMsg::AssetConfig { identifier } => to_json_binary(&AssetConfigResponse {
             price_source: Oracle::new().asset_config(deps, &identifier)?,
         }),
         QueryMsg::AssetsConfig { start_after, limit } => {
-            to_binary(&query_oracle_asset_config(deps, start_after, limit)?)
+            to_json_binary(&query_oracle_asset_config(deps, start_after, limit)?)
         }
         QueryMsg::AssetsInfo { start_after, limit } => {
-            to_binary(&query_oracle_asset_info(deps, start_after, limit)?)
+            to_json_binary(&query_oracle_asset_info(deps, start_after, limit)?)
         }
-        QueryMsg::BaseAsset {} => to_binary(&query_base_asset(deps)?),
+        QueryMsg::BaseAsset {} => to_json_binary(&query_base_asset(deps)?),
     }
     .map_err(Into::into)
 }

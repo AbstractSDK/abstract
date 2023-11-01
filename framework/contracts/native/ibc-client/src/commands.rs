@@ -25,7 +25,7 @@ use abstract_sdk::{
     AccountVerification, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo,
+    to_json_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo,
     QueryRequest, Storage,
 };
 use polytone::callbacks::CallbackRequest;
@@ -100,7 +100,7 @@ pub fn execute_register_infrastructure(
             msgs: vec![],
             callback: Some(CallbackRequest {
                 receiver: env.contract.address.to_string(),
-                msg: to_binary(&IbcClientCallback::WhoAmI {})?,
+                msg: to_json_binary(&IbcClientCallback::WhoAmI {})?,
             }),
             timeout_seconds: PACKET_LIFETIME.into(),
         },
@@ -220,7 +220,7 @@ pub fn execute_send_packet(
 
     let callback_request = callback_info.map(|c| CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_binary(&IbcClientCallback::UserRemoteAction(c)).unwrap(),
+        msg: to_json_binary(&IbcClientCallback::UserRemoteAction(c)).unwrap(),
     });
 
     let note_message = send_remote_host_action(
@@ -247,7 +247,7 @@ pub fn execute_send_query(
 
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_binary(&IbcClientCallback::UserRemoteAction(callback_info)).unwrap(),
+        msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info)).unwrap(),
     };
 
     let note_message =
