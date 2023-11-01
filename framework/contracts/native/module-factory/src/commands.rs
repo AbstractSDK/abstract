@@ -26,8 +26,7 @@ use cosmwasm_std::{
 };
 use protobuf::Message;
 
-pub const CREATE_APP_RESPONSE_ID: u64 = 1u64;
-pub const CREATE_STANDALONE_RESPONSE_ID: u64 = 4u64;
+pub const CHECK_MODULES_VALIDITY: u64 = 1u64;
 
 /// Function that starts the creation of the Modules
 pub fn execute_create_modules(
@@ -60,9 +59,11 @@ pub fn execute_create_modules(
     // install messages
     let mut module_instantiate_messages = Vec::with_capacity(modules_responses.len());
 
+    // Register modules on manager
+    let mut modules_to_register: Vec<RegisterModuleData> = vec![];
+
     // Attributes logging
     let mut module_ids: Vec<String> = Vec::with_capacity(modules_responses.len());
-    let mut modules_to_register: Vec<RegisterModuleData> = vec![];
 
     let canonical_contract_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
     for (owner_init_msg, module_response) in
@@ -153,18 +154,48 @@ pub fn execute_create_modules(
         .into());
     }
 
-    let context = Context { account_base };
+    let context = Context {
+        account_base,
+        modules_to_register,
+    };
     CONTEXT.save(deps.storage, &context)?;
 
     let (register_modules_msg, new_modules) =
-        register_modules(modules_to_register, context.account_base)?;
-    Ok(
-        ModuleFactoryResponse::new("create_modules", vec![("new_modules", new_modules)])
-            // Order is important we need to install apps
-            .add_messages(module_instantiate_messages)
-            .add_message(register_modules_msg)
-            .add_messages(fee_msgs),
+        register_modules(context.modules_to_register.clone(), context.account_base)?;
+
+    let response = ModuleFactoryResponse::new(
+        "create_modules",
+        [
+            ("module_ids", format!("{module_ids:?}")),
+            ("new_modules", new_modules),
+        ],
     )
+    .add_messages(fee_msgs)
+    .add_message(register_modules_msg);
+
+    if module_instantiate_messages.is_empty() {
+        Ok(response.add_message(wasm_execute(
+            // manager
+            info.sender,
+            &ManagerMsg::RegisterDependencies {
+                modules: context.modules_to_register,
+            },
+            vec![],
+        )?))
+    } else {
+        let last_installed_module_msg = module_instantiate_messages.pop().unwrap();
+        let last_installed_module_submsg = SubMsg {
+            id: CHECK_MODULES_VALIDITY,
+            msg: last_installed_module_msg,
+            gas_limit: None,
+            reply_on: ReplyOn::Success,
+        };
+        // Order of register-instantiate is important, we want to register modules
+        // so modules can do actions on account and other modules during instantiate
+        Ok(response
+            .add_messages(module_instantiate_messages)
+            .add_submessage(last_installed_module_submsg))
+    }
 }
 
 fn instantiate2_contract(
@@ -197,9 +228,30 @@ fn instantiate2_contract(
 }
 
 // TODO: make it check installed modules or remove
-pub fn handle_reply(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
-    let mut context: Context = CONTEXT.load(deps.storage)?;
-    unreachable!("no submessages for module-factory");
+pub fn handle_reply(deps: DepsMut, _result: SubMsgResult) -> ModuleFactoryResult {
+    let context: Context = CONTEXT.load(deps.storage)?;
+
+    for RegisterModuleData {
+        module_address,
+        module,
+    } in &context.modules_to_register
+    {
+        module::assert_module_data_validity(
+            &deps.querier,
+            module,
+            Some(Addr::unchecked(module_address)),
+        )?;
+    }
+
+    CONTEXT.remove(deps.storage);
+    Ok(cosmwasm_std::Response::new().add_message(wasm_execute(
+        // manager
+        context.account_base.manager,
+        &ManagerMsg::RegisterDependencies {
+            modules: context.modules_to_register,
+        },
+        vec![],
+    )?))
 }
 
 pub fn register_modules(

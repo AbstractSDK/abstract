@@ -172,7 +172,10 @@ pub struct RegisterModuleData {
 pub enum ExecuteMsg {
     /// Forward execution message to module
     #[cfg_attr(feature = "interface", payable)]
-    ExecOnModule { module_id: String, exec_msg: Binary },
+    ExecOnModule {
+        module_id: String,
+        exec_msg: Binary,
+    },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(Binary),
@@ -184,9 +187,17 @@ pub enum ExecuteMsg {
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
-    RegisterModules { modules: Vec<RegisterModuleData> },
+    RegisterModules {
+        modules: Vec<RegisterModuleData>,
+    },
+    /// Register modules dependencies
+    RegisterDependencies {
+        modules: Vec<RegisterModuleData>,
+    },
     /// Uninstall a module given its ID.
-    UninstallModule { module_id: String },
+    UninstallModule {
+        module_id: String,
+    },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
@@ -216,11 +227,17 @@ pub enum ExecuteMsg {
     },
     /// Sets a new Owner
     /// New owner will have to claim ownership
-    SetOwner { owner: GovernanceDetails<String> },
+    SetOwner {
+        owner: GovernanceDetails<String>,
+    },
     /// Update account statuses
-    UpdateStatus { is_suspended: Option<bool> },
+    UpdateStatus {
+        is_suspended: Option<bool>,
+    },
     /// Update settings for the Account, including IBC enabled, etc.
-    UpdateSettings { ibc_enabled: Option<bool> },
+    UpdateSettings {
+        ibc_enabled: Option<bool>,
+    },
     /// Actions called by internal or external sub-accounts
     UpdateSubAccount(UpdateSubAccountAction),
     /// Callback endpoint

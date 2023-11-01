@@ -79,7 +79,11 @@ fn account_install_app() -> AResult {
 
     assert_that!(app_addr).is_equal_to(module_addr);
 
-    let contract_info = chain.app.borrow().wrap().query_wasm_contract_info(app_addr)?;
+    let contract_info = chain
+        .app
+        .borrow()
+        .wrap()
+        .query_wasm_contract_info(app_addr)?;
     println!("contract_info {contract_info:?}");
     Ok(())
 }

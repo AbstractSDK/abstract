@@ -166,33 +166,17 @@ pub fn register_modules(
         module_address,
     } in modules
     {
-        // TODO: Could move it to the post-install and register unchecked modules here
-        assert_module_data_validity(
-            &deps.querier,
-            &module,
-            Some(Addr::unchecked(&module_address)),
-        )?;
         match module {
             Module {
                 reference: ModuleReference::App(_),
-                info,
                 ..
             } => {
-                let id = info.id();
-                // assert version requirements
-                let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
-                versioning::set_as_dependent(deps.storage, id, dependencies)?;
                 add_modules.push(module_address);
             }
             Module {
                 reference: ModuleReference::Adapter(_),
-                info,
                 ..
             } => {
-                let id = info.id();
-                // assert version requirements
-                let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
-                versioning::set_as_dependent(deps.storage, id, dependencies)?;
                 add_modules.push(module_address);
             }
             _ => (),
@@ -204,6 +188,53 @@ pub fn register_modules(
             response.add_message(add_modules_to_proxy(proxy_addr.into_string(), add_modules)?)
     }
     Ok(response)
+}
+
+/// Adds the modules dependencies
+pub fn register_dependencies(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    _env: Env,
+    modules: Vec<RegisterModuleData>,
+) -> ManagerResult {
+    let config = CONFIG.load(deps.storage)?;
+
+    // check if sender is module factory
+    if msg_info.sender != config.module_factory_address {
+        return Err(ManagerError::CallerNotModuleFactory {});
+    }
+
+    for RegisterModuleData {
+        module,
+        module_address: _,
+    } in modules
+    {
+        match module {
+            Module {
+                reference: ModuleReference::App(_),
+                info,
+                ..
+            } => {
+                let id = info.id();
+                // assert version requirements
+                let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
+                versioning::set_as_dependent(deps.storage, id, dependencies)?;
+            }
+            Module {
+                reference: ModuleReference::Adapter(_),
+                info,
+                ..
+            } => {
+                let id = info.id();
+                // assert version requirements
+                let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
+                versioning::set_as_dependent(deps.storage, id, dependencies)?;
+            }
+            _ => (),
+        };
+    }
+
+    Ok(Response::new())
 }
 
 /// Execute the [`exec_msg`] on the provided [`module_id`],

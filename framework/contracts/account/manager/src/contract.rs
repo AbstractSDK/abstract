@@ -119,6 +119,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::RegisterModules { modules } => {
                     register_modules(deps, info, env, modules)
                 }
+                ExecuteMsg::RegisterDependencies{ modules } => {
+                    register_dependencies(deps, info, env, modules)
+                }
                 ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg,

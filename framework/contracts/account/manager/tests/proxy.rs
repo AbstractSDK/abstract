@@ -20,6 +20,7 @@ use common::{
 use cosmwasm_std::{coin, to_binary, wasm_execute, Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
+use module_factory::error::ModuleFactoryError;
 use speculoos::prelude::*;
 
 #[test]
@@ -264,10 +265,10 @@ fn install_standalone_versions_not_met() -> AResult {
         .unwrap_err();
 
     if let AbstractInterfaceError::Orch(err) = err {
-        let err: ManagerError = err.downcast()?;
+        let err: ModuleFactoryError = err.downcast()?;
         assert_eq!(
             err,
-            ManagerError::Abstract(abstract_core::AbstractError::UnequalModuleData {
+            ModuleFactoryError::Abstract(abstract_core::AbstractError::UnequalModuleData {
                 cw2: mock_modules::V1.to_owned(),
                 module: mock_modules::V2.to_owned(),
             })

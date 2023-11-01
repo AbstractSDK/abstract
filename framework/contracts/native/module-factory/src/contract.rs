@@ -71,15 +71,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 /// This just stores the result for future query
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
-    match msg {
-        Reply {
-            id: commands::CREATE_APP_RESPONSE_ID,
-            result,
-        } => commands::handle_reply(deps, result),
-        Reply {
-            id: commands::CREATE_STANDALONE_RESPONSE_ID,
-            result,
-        } => commands::handle_reply(deps, result),
+    match msg.id {
+        commands::CHECK_MODULES_VALIDITY => commands::handle_reply(deps, msg.result),
         _ => Err(ModuleFactoryError::UnexpectedReply {}),
     }
 }
@@ -146,8 +139,14 @@ pub fn query_simulate_install_modules(
 }
 
 pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
-    let Context { account_base }: Context = CONTEXT.load(deps.storage)?;
-    let resp = ContextResponse { account_base };
+    let Context {
+        account_base,
+        modules_to_register,
+    }: Context = CONTEXT.load(deps.storage)?;
+    let resp = ContextResponse {
+        account_base,
+        modules_to_register,
+    };
 
     Ok(resp)
 }
