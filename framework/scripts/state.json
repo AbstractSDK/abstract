@@ -1,4 +1,24 @@
 {
+  "archway": {
+    "constantine-3": {
+      "code_ids": {
+        "abstract:account-factory": 1636,
+        "abstract:ans-host": 1634,
+        "abstract:manager": 1638,
+        "abstract:module-factory": 1637,
+        "abstract:proxy": 1639,
+        "abstract:version-control": 1635
+      },
+      "default": {
+        "abstract:account-factory": "archway18pt2kaerlr342c833tf4wfnrxj5k5653c8y63w7njkzdvzw7em9qf6ckuj",
+        "abstract:ans-host": "archway175s39uzem9esc43q5rc0xqcwgmna0zrfhl5gtghg2039s67hj6yqfwjlz9",
+        "abstract:manager": "archway1rdypmxd7jzum24lsacgwqfn2ah6wup0vkh2fx47zamaj9pqvy0kqyvr5xl",
+        "abstract:module-factory": "archway1xr8cvcasypdf46rftcsyzlera483j47tl9dyqpst7g50kr9w9scs22tjly",
+        "abstract:proxy": "archway103raewh66z7l9uugl3sgsm9n00j9s9amxz0lrhqqxnj9dq488ucsq945r8",
+        "abstract:version-control": "archway12t40a6qfcjt9yesn399rj8avpztu33zd5wyf9kj39qs6c6vp44nq6x5g72"
+      }
+    }
+  },
   "juno": {
     "juno-1": {
       "code_ids": {
