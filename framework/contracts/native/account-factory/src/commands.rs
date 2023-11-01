@@ -6,8 +6,8 @@ use abstract_core::AbstractError;
 
 use abstract_core::{manager::ExecuteMsg, objects::module::assert_module_data_validity};
 use cosmwasm_std::{
-    ensure_eq, to_json_binary, wasm_execute, Addr, Coins, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
-    QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
+    ensure_eq, to_json_binary, wasm_execute, Addr, Coins, CosmosMsg, DepsMut, Empty, Env,
+    MessageInfo, QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 

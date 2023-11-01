@@ -1,4 +1,6 @@
-use cosmwasm_std::{to_json_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, Uint128};
+use cosmwasm_std::{
+    to_json_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, Uint128,
+};
 
 use cw_semver::Version;
 

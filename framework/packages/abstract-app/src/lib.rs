@@ -101,8 +101,9 @@ pub mod mock {
     crate::export_endpoints!(MOCK_APP, MockAppContract);
 
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
-        MockQuerierBuilder::default().with_smart_handler(TEST_MODULE_FACTORY, |msg| {
-            match from_json(msg).unwrap() {
+        MockQuerierBuilder::default().with_smart_handler(
+            TEST_MODULE_FACTORY,
+            |msg| match from_json(msg).unwrap() {
                 abstract_core::module_factory::QueryMsg::Context {} => {
                     let resp = ContextResponse {
                         account_base: AccountBase {
@@ -115,8 +116,8 @@ pub mod mock {
                     Ok(to_json_binary(&resp).unwrap())
                 }
                 _ => panic!("unexpected message"),
-            }
-        })
+            },
+        )
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].

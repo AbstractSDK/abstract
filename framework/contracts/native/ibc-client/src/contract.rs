@@ -105,7 +105,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespo
         }
         QueryMsg::ListRemoteHosts {} => to_json_binary(&queries::list_remote_hosts(deps)?),
         QueryMsg::ListRemoteProxies {} => to_json_binary(&queries::list_remote_proxies(deps)?),
-        QueryMsg::ListIbcInfrastructures {} => to_json_binary(&queries::list_ibc_counterparts(deps)?),
+        QueryMsg::ListIbcInfrastructures {} => {
+            to_json_binary(&queries::list_ibc_counterparts(deps)?)
+        }
     }
     .map_err(Into::into)
 }
@@ -817,9 +819,8 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = mocked_account_querier_builder()
                 .builder()
-                .with_smart_handler(
-                    TEST_MANAGER,
-                    |msg| match from_json::<manager::QueryMsg>(msg).unwrap() {
+                .with_smart_handler(TEST_MANAGER, |msg| {
+                    match from_json::<manager::QueryMsg>(msg).unwrap() {
                         manager::QueryMsg::Info {} => to_json_binary(&manager::InfoResponse {
                             info: manager::state::AccountInfo {
                                 name: String::from("name"),
@@ -833,8 +834,8 @@ mod tests {
                         })
                         .map_err(|e| e.to_string()),
                         _ => todo!(),
-                    },
-                )
+                    }
+                })
                 .build();
             mock_init(deps.as_mut())?;
 
@@ -1390,11 +1391,13 @@ mod tests {
             let receiver = String::from("receiver");
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
-                initiator_msg: to_json_binary(&IbcClientCallback::UserRemoteAction(CallbackInfo {
-                    id: id.clone(),
-                    msg: Some(callback_info_msg.clone()),
-                    receiver: receiver.clone(),
-                }))?,
+                initiator_msg: to_json_binary(&IbcClientCallback::UserRemoteAction(
+                    CallbackInfo {
+                        id: id.clone(),
+                        msg: Some(callback_info_msg.clone()),
+                        receiver: receiver.clone(),
+                    },
+                ))?,
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: remote_proxy.clone(),
                     result: vec![],
