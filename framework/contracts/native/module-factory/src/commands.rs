@@ -377,14 +377,14 @@ mod test {
     mod instantiate_contract {
         use super::*;
         use abstract_core::objects::module::ModuleVersion;
-        use cosmwasm_std::{coin, testing::mock_info, to_binary};
+        use cosmwasm_std::{coin, testing::mock_info, to_json_binary};
 
         #[test]
         fn should_create_submsg_with_instantiate_msg() -> ModuleFactoryTestResult {
             let _deps = mock_dependencies();
             let _info = mock_info("anyone", &[]);
 
-            let expected_module_init_msg = to_binary(&Empty {}).unwrap();
+            let expected_module_init_msg = to_json_binary(&Empty {}).unwrap();
             let expected_code_id = 10;
             let expected_reply_id = 69;
 
@@ -428,7 +428,7 @@ mod test {
         }
     }
 
-    use cosmwasm_std::to_binary;
+    use cosmwasm_std::to_json_binary;
 
     mod update_factory_binaries {
         use super::*;
@@ -447,7 +447,7 @@ mod test {
             (
                 ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".to_string()))
                     .unwrap(),
-                to_binary(&"tasty pizza usually has pineapple").unwrap(),
+                to_json_binary(&"tasty pizza usually has pineapple").unwrap(),
             )
         }
 

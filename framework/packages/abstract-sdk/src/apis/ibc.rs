@@ -12,7 +12,7 @@ use abstract_core::{
     proxy::ExecuteMsg,
     IBC_CLIENT,
 };
-use cosmwasm_std::{to_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
 use serde::Serialize;
 
 /// Interact with other chains over IBC.
@@ -106,7 +106,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                     modules: vec![ModuleInstallConfig::new(
                         module,
                         Some(
-                            to_binary(&abstract_core::app::InstantiateMsg {
+                            to_json_binary(&abstract_core::app::InstantiateMsg {
                                 base: abstract_core::app::BaseInstantiateMsg {
                                     ans_host_address: remote_ans_host_address.to_string(),
                                     version_control_address: remote_version_control_address
@@ -140,7 +140,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                     modules: vec![ModuleInstallConfig::new(
                         module,
                         Some(
-                            to_binary(&abstract_core::adapter::InstantiateMsg {
+                            to_json_binary(&abstract_core::adapter::InstantiateMsg {
                                 base: abstract_core::adapter::BaseInstantiateMsg {
                                     ans_host_address: remote_ans_host_address.to_string(),
                                     version_control_address: remote_version_control_address
@@ -169,7 +169,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             HostAction::Dispatch {
                 manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
                     module_id,
-                    exec_msg: to_binary(exec_msg)?,
+                    exec_msg: to_json_binary(exec_msg)?,
                 },
             },
             None,
@@ -243,7 +243,7 @@ mod test {
 
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
-            msg: to_binary(&ExecuteMsg::IbcAction {
+            msg: to_json_binary(&ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
                     action: HostAction::Dispatch {
@@ -287,7 +287,7 @@ mod test {
 
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
-            msg: to_binary(&ExecuteMsg::IbcAction {
+            msg: to_json_binary(&ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
                     action: HostAction::Dispatch {
@@ -319,7 +319,7 @@ mod test {
 
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
-            msg: to_binary(&ExecuteMsg::IbcAction {
+            msg: to_json_binary(&ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.into(),
                     funds: expected_funds,
