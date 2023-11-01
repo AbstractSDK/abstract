@@ -40,8 +40,8 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
-    ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps,
-    DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
+    ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
+    Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_ownable::OwnershipError;
@@ -924,7 +924,7 @@ pub fn update_internal_config(
 ) -> ManagerResult {
     // deserialize the config action
     let action: InternalConfigAction =
-        from_json(&config).map_err(|error| ManagerError::InvalidConfigAction { error })?;
+        from_json(config).map_err(|error| ManagerError::InvalidConfigAction { error })?;
 
     let (add, remove) = match action {
         InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => (to_add, to_remove),
@@ -1981,7 +1981,8 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::UpdateInternalConfig(to_json_binary(&QueryMsg::Config {}).unwrap());
+            let msg =
+                ExecuteMsg::UpdateInternalConfig(to_json_binary(&QueryMsg::Config {}).unwrap());
 
             let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg);
 
