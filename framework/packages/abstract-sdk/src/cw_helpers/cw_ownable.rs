@@ -34,7 +34,7 @@ macro_rules! execute_update_ownership {
 #[macro_export]
 macro_rules! query_ownership {
     ($deps:expr) => {{
-        cosmwasm_std::to_binary(&cw_ownable::get_ownership($deps.storage)?)
+        cosmwasm_std::to_json_binary(&cw_ownable::get_ownership($deps.storage)?)
     }};
 }
 
@@ -44,7 +44,7 @@ mod tests {
     use cosmwasm_schema::cw_serde;
     use cosmwasm_schema::QueryResponses;
     use cosmwasm_std::{
-        from_binary,
+        from_json,
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, Binary, StdError, StdResult,
     };
@@ -139,7 +139,7 @@ mod tests {
         };
 
         // Deserialize the query response
-        let actual: cw_ownable::Ownership<Addr> = from_binary(&result.unwrap())?;
+        let actual: cw_ownable::Ownership<Addr> = from_json(&result.unwrap())?;
 
         assert_eq!(actual, expected);
 

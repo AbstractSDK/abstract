@@ -6,7 +6,7 @@ use abstract_core::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
     objects::module_version::{ModuleDataResponse, MODULE},
 };
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 
 impl<
@@ -60,9 +60,9 @@ impl<
 {
     pub fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
-            BaseQueryMsg::BaseConfig {} => to_binary(&self.dapp_config(deps)?),
-            BaseQueryMsg::BaseAdmin {} => to_binary(&self.admin(deps)?),
-            BaseQueryMsg::ModuleData {} => to_binary(&self.module_data(deps)?),
+            BaseQueryMsg::BaseConfig {} => to_json_binary(&self.dapp_config(deps)?),
+            BaseQueryMsg::BaseAdmin {} => to_json_binary(&self.admin(deps)?),
+            BaseQueryMsg::ModuleData {} => to_json_binary(&self.module_data(deps)?),
         }
     }
 
@@ -136,7 +136,7 @@ mod test {
             msg: MockQueryMsg,
         ) -> Result<Binary, MockError> {
             // simply return the message as binary
-            to_binary(&msg).map_err(Into::into)
+            to_json_binary(&msg).map_err(Into::into)
         }
 
         #[test]
@@ -147,7 +147,7 @@ mod test {
             let with_mocked_query = BASIC_MOCK_APP.with_query(mock_query_handler);
             let res = with_mocked_query.query(deps.as_ref(), mock_env(), msg);
 
-            let expected = to_binary(&MockQueryMsg).unwrap();
+            let expected = to_json_binary(&MockQueryMsg).unwrap();
             assert_that!(res).is_ok().is_equal_to(expected);
         }
     }
@@ -155,7 +155,7 @@ mod test {
     mod base_query {
         use super::*;
         use abstract_testing::prelude::{TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY};
-        use cosmwasm_std::{from_binary, Addr};
+        use cosmwasm_std::{from_json, Addr};
 
         #[test]
         fn config() -> AppTestResult {
@@ -164,7 +164,7 @@ mod test {
             let config_query = QueryMsg::Base(BaseQueryMsg::BaseConfig {});
             let res = query_helper(deps.as_ref(), config_query)?;
 
-            assert_that!(from_binary(&res).unwrap()).is_equal_to(AppConfigResponse {
+            assert_that!(from_json(&res).unwrap()).is_equal_to(AppConfigResponse {
                 proxy_address: Addr::unchecked(TEST_PROXY),
                 ans_host_address: Addr::unchecked(TEST_ANS_HOST),
                 manager_address: Addr::unchecked(TEST_MANAGER),
@@ -180,7 +180,7 @@ mod test {
             let admin_query = QueryMsg::Base(BaseQueryMsg::BaseAdmin {});
             let res = query_helper(deps.as_ref(), admin_query)?;
 
-            assert_that!(from_binary(&res).unwrap()).is_equal_to(AdminResponse {
+            assert_that!(from_json(&res).unwrap()).is_equal_to(AdminResponse {
                 admin: Some(TEST_MANAGER.to_string()),
             });
 

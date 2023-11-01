@@ -40,7 +40,7 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
-    ensure, from_binary, to_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps,
+    ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps,
     DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
@@ -618,7 +618,7 @@ fn handle_app_migration(
     Ok(vec![build_module_migrate_msg(
         old_module_addr,
         code_id,
-        migrate_msg.unwrap_or_else(|| to_binary(&Empty {}).unwrap()),
+        migrate_msg.unwrap_or_else(|| to_json_binary(&Empty {}).unwrap()),
     )])
 }
 
@@ -924,7 +924,7 @@ pub fn update_internal_config(
 ) -> ManagerResult {
     // deserialize the config action
     let action: InternalConfigAction =
-        from_binary(&config).map_err(|error| ManagerError::InvalidConfigAction { error })?;
+        from_json(&config).map_err(|error| ManagerError::InvalidConfigAction { error })?;
 
     let (add, remove) = match action {
         InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => (to_add, to_remove),
@@ -1296,7 +1296,7 @@ mod tests {
                 to_add: Some(vec![(PROXY.to_string(), "module_addr".to_string())]),
                 to_remove: None,
             };
-            let msg = ExecuteMsg::UpdateInternalConfig(to_binary(&action_add).unwrap());
+            let msg = ExecuteMsg::UpdateInternalConfig(to_json_binary(&action_add).unwrap());
 
             let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
             assert_that!(&res).is_ok();
@@ -1309,7 +1309,7 @@ mod tests {
                 )]),
                 to_remove: None,
             };
-            let msg = ExecuteMsg::UpdateInternalConfig(to_binary(&action_add).unwrap());
+            let msg = ExecuteMsg::UpdateInternalConfig(to_json_binary(&action_add).unwrap());
 
             // the factory can not call this
             let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
@@ -1403,7 +1403,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let new_module = ModuleInfo::from_id_latest("test:module")?;
-            let expected_init = Some(to_binary(&"some init msg")?);
+            let expected_init = Some(to_json_binary(&"some init msg")?);
 
             let msg = ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
@@ -1534,7 +1534,7 @@ mod tests {
         fn only_owner() -> ManagerTestResult {
             let msg = ExecuteMsg::ExecOnModule {
                 module_id: "test:module".to_string(),
-                exec_msg: to_binary(&"some msg")?,
+                exec_msg: to_json_binary(&"some msg")?,
             };
 
             test_only_owner(msg)
@@ -1548,7 +1548,7 @@ mod tests {
             let missing_module = "test:module".to_string();
             let msg = ExecuteMsg::ExecOnModule {
                 module_id: missing_module.clone(),
-                exec_msg: to_binary(&"some msg")?,
+                exec_msg: to_json_binary(&"some msg")?,
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -1568,7 +1568,7 @@ mod tests {
 
             let msg = ExecuteMsg::ExecOnModule {
                 module_id: PROXY.to_string(),
-                exec_msg: to_binary(&exec_msg)?,
+                exec_msg: to_json_binary(&exec_msg)?,
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -1953,7 +1953,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateInternalConfig(
-                to_binary(&UpdateModuleAddresses {
+                to_json_binary(&UpdateModuleAddresses {
                     to_add: None,
                     to_remove: None,
                 })
@@ -1981,7 +1981,7 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::UpdateInternalConfig(to_binary(&QueryMsg::Config {}).unwrap());
+            let msg = ExecuteMsg::UpdateInternalConfig(to_json_binary(&QueryMsg::Config {}).unwrap());
 
             let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg);
 

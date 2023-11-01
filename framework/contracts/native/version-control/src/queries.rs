@@ -264,7 +264,7 @@ mod test {
     };
     use abstract_testing::{MockQuerierBuilder, MockQuerierOwnership};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{to_binary, Addr, Binary, DepsMut, StdError};
+    use cosmwasm_std::{to_json_binary, Addr, Binary, DepsMut, StdError};
 
     use abstract_core::{manager, version_control::*};
 
@@ -286,7 +286,7 @@ mod test {
     pub fn mock_manager_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default()
             .with_smart_handler(TEST_MANAGER, |msg| {
-                match from_binary(msg).unwrap() {
+                match from_json(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
@@ -294,13 +294,13 @@ mod test {
                             account_id: TEST_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     _ => panic!("unexpected message"),
                 }
             })
             .with_smart_handler(TEST_OTHER_MANAGER_ADDR, |msg| {
-                match from_binary(msg).unwrap() {
+                match from_json(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
@@ -308,7 +308,7 @@ mod test {
                             account_id: TEST_OTHER_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     _ => panic!("unexpected message"),
                 }
@@ -381,7 +381,7 @@ mod test {
         use super::*;
         use abstract_core::objects::module::ModuleVersion::Latest;
 
-        use cosmwasm_std::from_binary;
+        use cosmwasm_std::from_json;
 
         fn add_namespace(deps: DepsMut, namespace: &str) {
             let msg = ExecuteMsg::ClaimNamespace {
@@ -426,7 +426,7 @@ mod test {
             };
 
             let ModulesResponse { mut modules } =
-                from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+                from_json(&query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules.swap_remove(0).module.info).is_equal_to(&new_module_info);
             Ok(())
         }
@@ -491,13 +491,13 @@ mod test {
             };
 
             let ModulesResponse { mut modules } =
-                from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+                from_json(&query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules.swap_remove(0).module.info).is_equal_to(&newest_version);
             Ok(())
         }
     }
 
-    use cosmwasm_std::from_binary;
+    use cosmwasm_std::from_json;
 
     /// Add namespaces
     fn add_namespaces(mut deps: DepsMut, acc_and_namespace: Vec<(AccountId, &str)>, sender: &str) {
@@ -594,7 +594,7 @@ mod test {
             };
 
             let ModulesResponse { modules } =
-                from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+                from_json(&query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules).has_length(3);
             for module in modules {
                 assert_that!(module.module.info.namespace).is_equal_to(namespace.clone());
@@ -653,7 +653,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(3);
 
                 for entry in modules {
@@ -698,7 +698,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(6);
 
                 let yanked_module_names = ["module4".to_string(), "module5".to_string()];
@@ -754,7 +754,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(2);
 
                 for entry in modules {
@@ -795,7 +795,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(1);
 
                 res
@@ -822,7 +822,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(1);
 
                 let module = modules[0].clone();
@@ -863,7 +863,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(2);
 
                 for module in modules {
@@ -893,7 +893,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(6);
 
                 for module in modules {
@@ -922,7 +922,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).is_empty();
 
                 res
@@ -949,7 +949,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 // We expect two because both cw-plus and snth have a module2 with version 0.1.2
                 assert_that!(modules).has_length(2);
 
@@ -982,7 +982,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(3);
 
                 for module in modules {
@@ -1014,7 +1014,7 @@ mod test {
                 },
             );
             assert_that!(res).is_ok().map(|res| {
-                let NamespacesResponse { namespaces } = from_binary(res).unwrap();
+                let NamespacesResponse { namespaces } = from_json(res).unwrap();
                 assert_that!(namespaces[0].0.to_string()).is_equal_to("4t2".to_string());
                 res
             });
@@ -1038,7 +1038,7 @@ mod test {
                 },
             );
 
-            // let res2 = from_binary(&res.unwrap())?;
+            // let res2 = from_json(&res.unwrap())?;
 
             assert_that!(res)
                 .is_err()
@@ -1062,7 +1062,7 @@ mod test {
             );
 
             assert_that!(res).is_ok().map(|res| {
-                let AccountBaseResponse { account_base } = from_binary(res).unwrap();
+                let AccountBaseResponse { account_base } = from_json(res).unwrap();
                 assert_that!(account_base).is_equal_to(test_account_base());
                 res
             });

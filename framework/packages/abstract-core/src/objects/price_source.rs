@@ -395,7 +395,7 @@ mod tests {
                     },
                 )
                 .with_smart_handler(TEST_LP_TOKEN_ADDR, |msg| {
-                    let res = match from_binary::<cw20::Cw20QueryMsg>(msg).unwrap() {
+                    let res = match from_json::<cw20::Cw20QueryMsg>(msg).unwrap() {
                         cw20::Cw20QueryMsg::TokenInfo {} => cw20::TokenInfoResponse {
                             name: "test".to_string(),
                             symbol: "test".to_string(),

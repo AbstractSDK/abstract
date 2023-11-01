@@ -17,7 +17,7 @@ use abstract_core::{
     },
 };
 use abstract_sdk::cw_helpers::load_many;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
 use cw_storage_plus::Bound;
 
@@ -33,7 +33,7 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
         next_unique_pool_id,
     };
 
-    to_binary(&res)
+    to_json_binary(&res)
 }
 
 pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binary> {
@@ -41,7 +41,7 @@ pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binar
 
     let assets = load_many(ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
 
-    to_binary(&AssetsResponse {
+    to_json_binary(&AssetsResponse {
         assets: assets.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
     })
 }
@@ -60,7 +60,7 @@ pub fn query_asset_list(
         .take(limit)
         .collect();
 
-    to_binary(&AssetListResponse { assets: res? })
+    to_json_binary(&AssetListResponse { assets: res? })
 }
 
 pub fn query_asset_infos(
@@ -78,7 +78,7 @@ pub fn query_asset_infos(
 
     let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
 
-    to_binary(&AssetInfosResponse {
+    to_json_binary(&AssetInfosResponse {
         infos: infos.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
     })
 }
@@ -102,13 +102,13 @@ pub fn query_asset_info_list(
         .take(limit)
         .collect();
 
-    to_binary(&AssetInfoListResponse { infos: res? })
+    to_json_binary(&AssetInfoListResponse { infos: res? })
 }
 
 pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdResult<Binary> {
     let contracts = load_many(CONTRACT_ADDRESSES, deps.storage, keys)?;
 
-    to_binary(&ContractsResponse {
+    to_json_binary(&ContractsResponse {
         contracts: contracts
             .into_iter()
             .map(|(x, a)| (x.to_owned(), a))
@@ -119,7 +119,7 @@ pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdRe
 pub fn query_channels(deps: Deps, _env: Env, keys: Vec<&ChannelEntry>) -> StdResult<Binary> {
     let channels = load_many(CHANNELS, deps.storage, keys)?;
 
-    to_binary(&ChannelsResponse {
+    to_json_binary(&ChannelsResponse {
         channels: channels
             .into_iter()
             .map(|(k, v)| (k.to_owned(), v))
@@ -140,7 +140,7 @@ pub fn query_contract_list(
         .take(limit)
         .collect();
 
-    to_binary(&ContractListResponse { contracts: res? })
+    to_json_binary(&ContractListResponse { contracts: res? })
 }
 
 pub fn query_channel_list(
@@ -156,13 +156,13 @@ pub fn query_channel_list(
         .take(limit)
         .collect();
 
-    to_binary(&ChannelListResponse { channels: res? })
+    to_json_binary(&ChannelListResponse { channels: res? })
 }
 
 pub fn query_registered_dexes(deps: Deps, _env: Env) -> StdResult<Binary> {
     let dexes = REGISTERED_DEXES.load(deps.storage)?;
 
-    to_binary(&RegisteredDexesResponse { dexes })
+    to_json_binary(&RegisteredDexesResponse { dexes })
 }
 
 pub fn list_pool_entries(
@@ -226,7 +226,7 @@ pub fn list_pool_entries(
         res?
     };
 
-    to_binary(&PoolAddressListResponse { pools: entry_list })
+    to_json_binary(&PoolAddressListResponse { pools: entry_list })
 }
 
 /// Query the pool ids based on the actual keys
@@ -238,7 +238,7 @@ pub fn query_pool_entries(deps: Deps, keys: Vec<DexAssetPairing>) -> StdResult<B
         entries.push(entry);
     }
 
-    to_binary(&PoolsResponse { pools: entries })
+    to_json_binary(&PoolsResponse { pools: entries })
 }
 
 /// Loads a given key from the asset pairings store and returns the ENTRY
@@ -258,7 +258,7 @@ pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniquePoolId>) -> StdResult<Bi
         entries.push(entry);
     }
 
-    to_binary(&PoolMetadatasResponse { metadatas: entries })
+    to_json_binary(&PoolMetadatasResponse { metadatas: entries })
 }
 
 pub fn list_pool_metadata_entries(
@@ -286,7 +286,7 @@ pub fn list_pool_metadata_entries(
         .map(|e| e.map(|(k, v)| (k, v)))
         .collect();
 
-    to_binary(&PoolMetadataListResponse { metadatas: res? })
+    to_json_binary(&PoolMetadataListResponse { metadatas: res? })
 }
 
 /// Loads a given key from the asset pairings store and returns the ENTRY
@@ -306,7 +306,7 @@ mod test {
     use abstract_core::objects::chain_name::ChainName;
     use abstract_core::objects::PoolType;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
-    use cosmwasm_std::{from_binary, Addr, DepsMut};
+    use cosmwasm_std::{from_json, Addr, DepsMut};
 
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
@@ -595,7 +595,7 @@ mod test {
             names: vec!["bar".to_string(), "foo".to_string()],
         };
         // send query message
-        let res: AssetsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetsResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
         let expected = create_asset_response(create_test_assets(
@@ -621,7 +621,7 @@ mod test {
         let msg = QueryMsg::Contracts {
             entries: create_contract_entry(vec![("foo", "foo")]),
         };
-        let res: ContractsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res: ContractsResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
         let expected = ContractsResponse {
@@ -651,7 +651,7 @@ mod test {
 
         // create and send and deserialise msg
         let msg = create_channel_msg(vec![("foo", "foo")]);
-        let res: ChannelsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res: ChannelsResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
         let expected = ChannelsResponse {
@@ -685,15 +685,15 @@ mod test {
 
         // return all entries
         let msg = query_asset_list_msg("".to_string(), 42);
-        let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetListResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // limit response to 1st result - entries are stored alphabetically
         let msg = query_asset_list_msg("".to_string(), 1);
-        let res_first_entry: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res_first_entry: AssetListResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // results after specified entry
         let msg = query_asset_list_msg("foo".to_string(), 1);
-        let res_of_foobar: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res_of_foobar: AssetListResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
         let expected = create_asset_list_response(create_test_assets(
@@ -743,7 +743,7 @@ mod test {
         update_asset_addresses(deps.as_mut(), test_assets_large)?;
 
         let msg = query_asset_list_msg("".to_string(), 42);
-        let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res: AssetListResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
         assert!(res.assets.len() == 25_usize);
 
         // Assert that despite 30 entries the returned data is capped at the `MAX_LIMIT` of 25 results
@@ -774,7 +774,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res: ContractListResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         let msg = QueryMsg::ContractList {
             start_after: Some(ContractEntry {
@@ -784,7 +784,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_expect_foo: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res_expect_foo: ContractListResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
         let expected = ContractListResponse {
@@ -835,7 +835,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_all = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res_all = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // Filter for entries after `Foo` - Alphabetically
         let msg = QueryMsg::ChannelList {
@@ -846,7 +846,7 @@ mod test {
             limit: Some(42_u8),
             filter: None,
         };
-        let res_foobar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res_foobar = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // Return first entry - Alphabetically
         let msg = QueryMsg::ChannelList {
@@ -854,7 +854,7 @@ mod test {
             limit: Some(1_u8),
             filter: None,
         };
-        let res_bar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res_bar = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
 
@@ -899,7 +899,7 @@ mod test {
         // create msg
         let msg = QueryMsg::RegisteredDexes {};
         // deserialize response
-        let res: RegisteredDexesResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res: RegisteredDexesResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
 
         // comparisons
         let expected = RegisteredDexesResponse {
@@ -926,7 +926,7 @@ mod test {
         let msg = QueryMsg::Pools {
             pairings: vec![create_dex_asset_pairing("btc", "eth", "foo")],
         };
-        let res: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res: PoolsResponse = from_json(&query_helper(deps.as_ref(), msg)?)?;
         //comparisons
         let expected = ASSET_PAIRINGS
             .load(
@@ -964,14 +964,14 @@ mod test {
             None,
             None,
         )?;
-        let res_bar: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+        let res_bar: PoolsResponse = from_json(&query_helper(deps.as_ref(), msg_bar)?)?;
 
         let msg_foo = create_pool_list_msg(
             Some(create_asset_pairing_filter("juno", "atom", None)?),
             None,
             Some(42),
         )?;
-        let res_foo: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
+        let res_foo: PoolsResponse = from_json(&query_helper(deps.as_ref(), msg_foo)?)?;
 
         let msg_foo_using_start_after = create_pool_list_msg(
             Some(AssetPairingFilter {
@@ -982,7 +982,7 @@ mod test {
             Some(42),
         )?;
         let res_foo_using_start_after: PoolsResponse =
-            from_binary(&query_helper(deps.as_ref(), msg_foo_using_start_after)?)?;
+            from_json(&query_helper(deps.as_ref(), msg_foo_using_start_after)?)?;
 
         // create comparisons - bar / foo / all
         let expected_bar =
@@ -1015,7 +1015,7 @@ mod test {
         };
         // comparison all
         let msg_all = create_pool_list_msg(None, None, Some(42))?;
-        let res_all: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg_all)?)?;
+        let res_all: PoolsResponse = from_json(&query_helper(deps.as_ref(), msg_all)?)?;
 
         // assert
         assert_eq!(&res_bar, &expected_bar);
@@ -1044,12 +1044,12 @@ mod test {
         let msg_bar = QueryMsg::PoolMetadatas {
             ids: vec![UniquePoolId::new(42)],
         };
-        let res_bar: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+        let res_bar: PoolMetadatasResponse = from_json(&query_helper(deps.as_ref(), msg_bar)?)?;
 
         let msg_foo = QueryMsg::PoolMetadatas {
             ids: vec![UniquePoolId::new(69)],
         };
-        let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
+        let res_foo: PoolMetadatasResponse = from_json(&query_helper(deps.as_ref(), msg_foo)?)?;
 
         // create comparisons
         let expected_bar = PoolMetadatasResponse {
@@ -1096,7 +1096,7 @@ mod test {
             start_after: None,
             limit: None,
         };
-        let res_bar: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+        let res_bar: PoolMetadatasResponse = from_json(&query_helper(deps.as_ref(), msg_bar)?)?;
         let expected_bar = PoolMetadatasResponse {
             metadatas: vec![(bar_key, bar_metadata.clone())],
         };
@@ -1114,7 +1114,7 @@ mod test {
             start_after: None,
             limit: Some(42),
         };
-        let res_both: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_both)?)?;
+        let res_both: PoolMetadatasResponse = from_json(&query_helper(deps.as_ref(), msg_both)?)?;
 
         let expected_both = PoolMetadatasResponse {
             metadatas: vec![
@@ -1132,7 +1132,7 @@ mod test {
             start_after: Some(bar_key),
             limit: Some(42),
         };
-        let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
+        let res_foo: PoolMetadatasResponse = from_json(&query_helper(deps.as_ref(), msg_foo)?)?;
 
         let expected_foo = PoolMetadatasResponse {
             metadatas: vec![(foo_key, foo_metadata)],

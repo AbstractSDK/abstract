@@ -27,7 +27,7 @@ pub struct IbcResponseMsg {
 
 impl IbcResponseMsg {
     /// serializes the message
-    pub fn into_binary(self) -> StdResult<Binary> {
+    pub fn into_json_binary(self) -> StdResult<Binary> {
         let msg = IbcCallbackMsg::IbcCallback(self);
         to_json_binary(&msg)
     }

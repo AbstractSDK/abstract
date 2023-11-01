@@ -3,7 +3,7 @@ use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{account_factory::*, ACCOUNT_FACTORY};
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 
 use abstract_sdk::{execute_update_ownership, query_ownership};
@@ -106,7 +106,7 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> AccountFactoryResult {
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_binary(&queries::query_config(deps)?),
+        QueryMsg::Config {} => to_json_binary(&queries::query_config(deps)?),
         QueryMsg::Ownership {} => query_ownership!(deps),
     }
 }
@@ -341,7 +341,7 @@ mod tests {
         mock_init(deps.as_mut())?;
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap();
-        let config: ConfigResponse = from_binary(&res).unwrap();
+        let config: ConfigResponse = from_json(&res).unwrap();
 
         assert_that!(config.version_control_contract.as_str()).is_equal_to(TEST_VERSION_CONTROL);
         assert_that!(config.ans_host_contract.as_str()).is_equal_to(TEST_ANS_HOST);
@@ -356,7 +356,7 @@ mod tests {
         mock_init(deps.as_mut())?;
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::Ownership {}).unwrap();
-        let ownership: cw_ownable::Ownership<Addr> = from_binary(&res).unwrap();
+        let ownership: cw_ownable::Ownership<Addr> = from_json(&res).unwrap();
 
         assert_that!(ownership.owner)
             .is_some()

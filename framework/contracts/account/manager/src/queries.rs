@@ -8,7 +8,7 @@ use abstract_sdk::core::manager::{
 };
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::ModuleRegistryInterface;
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult};
+use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_storage_plus::Bound;
 use std::collections::BTreeMap;
@@ -19,18 +19,18 @@ const MAX_LIMIT: u8 = 10;
 pub fn handle_module_address_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
     let contracts = query_module_addresses(deps, &env.contract.address, &ids)?;
     let vector = contracts.into_iter().map(|(v, k)| (v, k)).collect();
-    to_binary(&ModuleAddressesResponse { modules: vector })
+    to_json_binary(&ModuleAddressesResponse { modules: vector })
 }
 
 pub fn handle_contract_versions_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
     let response = query_module_versions(deps, &env.contract.address, &ids)?;
     let versions = response.into_values().collect();
-    to_binary(&ModuleVersionsResponse { versions })
+    to_json_binary(&ModuleVersionsResponse { versions })
 }
 
 pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
     let info: AccountInfo = INFO.load(deps.storage)?;
-    to_binary(&InfoResponse { info })
+    to_json_binary(&InfoResponse { info })
 }
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
@@ -41,7 +41,7 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
         ..
     } = CONFIG.load(deps.storage)?;
     let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
-    to_binary(&ConfigResponse {
+    to_json_binary(&ConfigResponse {
         account_id,
         is_suspended,
         version_control_address,
@@ -77,7 +77,7 @@ pub fn handle_module_info_query(
         })
     }
 
-    to_binary(&ModuleInfosResponse {
+    to_json_binary(&ModuleInfosResponse {
         module_infos: resp_vec,
     })
 }
@@ -95,7 +95,7 @@ pub fn handle_sub_accounts_query(
         .take(limit)
         .collect::<StdResult<Vec<u32>>>()?;
 
-    to_binary(&SubAccountIdsResponse { sub_accounts: res })
+    to_json_binary(&SubAccountIdsResponse { sub_accounts: res })
 }
 
 /// RawQuery the version of an enabled module

@@ -8,18 +8,18 @@ use abstract_core::{
     objects::chain_name::ChainName,
 };
 use abstract_sdk::core::ibc_host::QueryMsg;
-use cosmwasm_std::{to_binary, Binary, Deps, Env};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use cw_storage_plus::Bound;
 
 use crate::{contract::HostResult, HostError};
 
 pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> HostResult<Binary> {
     match query {
-        QueryMsg::Config {} => to_binary(&config(deps)?),
+        QueryMsg::Config {} => to_json_binary(&config(deps)?),
         QueryMsg::ClientProxies { start_after, limit } => {
-            to_binary(&registered_chains(deps, start_after, limit)?)
+            to_json_binary(&registered_chains(deps, start_after, limit)?)
         }
-        QueryMsg::ClientProxy { chain } => to_binary(&associated_client(deps, chain)?),
+        QueryMsg::ClientProxy { chain } => to_json_binary(&associated_client(deps, chain)?),
     }
     .map_err(Into::into)
 }
@@ -65,7 +65,7 @@ mod test {
         use abstract_core::ibc_host::QueryMsg;
 
         use crate::contract::{execute, instantiate, query};
-        use cosmwasm_std::from_binary;
+        use cosmwasm_std::from_json;
         use cosmwasm_std::testing::mock_dependencies;
         use cosmwasm_std::testing::mock_env;
         use cosmwasm_std::testing::mock_info;
@@ -105,7 +105,7 @@ mod test {
             },
         )
         .unwrap();
-        let queried_client_name: ClientProxyResponse = from_binary(&client_name).unwrap();
+        let queried_client_name: ClientProxyResponse = from_json(&client_name).unwrap();
         assert_eq!(queried_client_name.proxy, "juno-proxy");
     }
 }

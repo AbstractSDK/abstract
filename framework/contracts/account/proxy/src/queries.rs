@@ -163,7 +163,7 @@ mod test {
         )
         .unwrap();
 
-        let base_asset: BaseAssetResponse = from_binary(
+        let base_asset: BaseAssetResponse = from_json(
             &query(
                 deps.as_ref(),
                 mock_env(),
@@ -193,7 +193,7 @@ mod test {
         )
         .unwrap();
 
-        let config: ConfigResponse = from_binary(
+        let config: ConfigResponse = from_json(
             &query(
                 deps.as_ref(),
                 mock_env(),
@@ -230,7 +230,7 @@ mod test {
 
         // get the balance of the asset
         // returns HoldingAmountResponse
-        let holding_amount: HoldingAmountResponse = from_binary(
+        let holding_amount: HoldingAmountResponse = from_json(
             &query(
                 deps.as_ref(),
                 mock_env(),
@@ -245,7 +245,7 @@ mod test {
 
         // get the value of the asset
         // returns AccountValue
-        let account_value: AccountValue = from_binary(
+        let account_value: AccountValue = from_json(
             &query(
                 deps.as_ref(),
                 mock_env(),
@@ -262,7 +262,7 @@ mod test {
 
         // get the token value
         // returns TokenValueResponse
-        let token_value: TokenValueResponse = from_binary(
+        let token_value: TokenValueResponse = from_json(
             &query(
                 deps.as_ref(),
                 mock_env(),
@@ -276,7 +276,7 @@ mod test {
         assert_eq!(token_value.value.u128(), 1000u128);
 
         // query USD asset config
-        let asset_config: AssetConfigResponse = from_binary(
+        let asset_config: AssetConfigResponse = from_json(
             &query(
                 deps.as_ref(),
                 mock_env(),
@@ -304,7 +304,7 @@ mod test {
         )
         .unwrap();
 
-        let assets: AssetsConfigResponse = from_binary(
+        let assets: AssetsConfigResponse = from_json(
             &query(
                 deps.as_ref(),
                 mock_env(),
@@ -338,7 +338,7 @@ mod test {
         )
         .unwrap();
 
-        let assets: AssetsInfoResponse = from_binary(
+        let assets: AssetsInfoResponse = from_json(
             &query(
                 deps.as_ref(),
                 mock_env(),

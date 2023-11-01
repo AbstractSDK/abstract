@@ -6,7 +6,7 @@ use abstract_core::AbstractError;
 
 use abstract_core::{manager::ExecuteMsg, objects::module::assert_module_data_validity};
 use cosmwasm_std::{
-    ensure_eq, to_binary, wasm_execute, Addr, Coins, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    ensure_eq, to_json_binary, wasm_execute, Addr, Coins, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
     QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
@@ -146,7 +146,7 @@ pub fn execute_create_account(
                 // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
                 label: format!("Proxy of Account: {}", account_id),
-                msg: to_binary(&ProxyInstantiateMsg {
+                msg: to_json_binary(&ProxyInstantiateMsg {
                     account_id,
                     ans_host_address: config.ans_host_contract.to_string(),
                 })?,
@@ -203,7 +203,7 @@ pub fn after_proxy_create_manager(
                 funds: vec![],
                 admin: Some(env.contract.address.into_string()),
                 label: format!("Abstract Account: {}", context.account_id),
-                msg: to_binary(&ManagerInstantiateMsg {
+                msg: to_json_binary(&ManagerInstantiateMsg {
                     account_id: context.account_id,
                     version_control_address: config.version_control_contract.to_string(),
                     module_factory_address: config.module_factory_address.to_string(),
@@ -285,7 +285,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let add_account_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
-        msg: to_binary(&VCExecuteMsg::AddAccount {
+        msg: to_json_binary(&VCExecuteMsg::AddAccount {
             account_id: account_id.clone(),
             account_base,
         })?,
@@ -295,7 +295,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let whitelist_manager: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         funds: vec![],
-        msg: to_binary(&ProxyExecMsg::AddModules {
+        msg: to_json_binary(&ProxyExecMsg::AddModules {
             modules: vec![manager_address.to_string()],
         })?,
     });
@@ -307,7 +307,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
             Ok::<_, StdError>(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: proxy_address.to_string(),
                 funds: vec![],
-                msg: to_binary(&ProxyExecMsg::UpdateAssets {
+                msg: to_json_binary(&ProxyExecMsg::UpdateAssets {
                     to_add: vec![(a, UncheckedPriceSource::None)],
                     to_remove: vec![],
                 })?,
@@ -322,7 +322,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
             Ok::<_, StdError>(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: config.version_control_contract.to_string(),
                 funds: vec![],
-                msg: to_binary(&VCExecuteMsg::ClaimNamespace {
+                msg: to_json_binary(&VCExecuteMsg::ClaimNamespace {
                     account_id: account_id.clone(),
                     namespace: n,
                 })?,
@@ -333,7 +333,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let set_proxy_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         funds: vec![],
-        msg: to_binary(&ProxyExecMsg::SetAdmin {
+        msg: to_json_binary(&ProxyExecMsg::SetAdmin {
             admin: manager_address.to_string(),
         })?,
     });
@@ -358,7 +358,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         manager_address.to_string(),
         &ExecuteMsg::UpdateInternalConfig(
             // Binary format to prevent users from easily calling the endpoint (because that's dangerous.)
-            to_binary(&InternalConfigAction::UpdateModuleAddresses {
+            to_json_binary(&InternalConfigAction::UpdateModuleAddresses {
                 to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
                 to_remove: None,
             })
