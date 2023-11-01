@@ -1,6 +1,6 @@
 <!-- # The Abstract Development Platform -->
 <!-- This page is a high-level overview of the Abstract Platform, not the SDK or any of our actual products. Hence we should stick to a vocabulary that is familiar to the reader. -->
-![SDK Background](https://github.com/AbstractSDK/assets/blob/mainline/twitter_cover-1.png?raw=true)
+![SDK Background](resources/abstract_platform/twitter_cover-1.webp)
 <!-- 
 <div align="center">
 
