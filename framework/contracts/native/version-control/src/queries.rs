@@ -426,7 +426,7 @@ mod test {
             };
 
             let ModulesResponse { mut modules } =
-                from_json(&query_helper(deps.as_ref(), query_msg)?)?;
+                from_json(query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules.swap_remove(0).module.info).is_equal_to(&new_module_info);
             Ok(())
         }
@@ -491,7 +491,7 @@ mod test {
             };
 
             let ModulesResponse { mut modules } =
-                from_json(&query_helper(deps.as_ref(), query_msg)?)?;
+                from_json(query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules.swap_remove(0).module.info).is_equal_to(&newest_version);
             Ok(())
         }
@@ -593,7 +593,7 @@ mod test {
                 ],
             };
 
-            let ModulesResponse { modules } = from_json(&query_helper(deps.as_ref(), query_msg)?)?;
+            let ModulesResponse { modules } = from_json(query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules).has_length(3);
             for module in modules {
                 assert_that!(module.module.info.namespace).is_equal_to(namespace.clone());
