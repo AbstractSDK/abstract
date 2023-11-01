@@ -10,7 +10,7 @@ When setting up governance for your dApp, you will be prompted to choose between
 and *Multi-signature*.
 
 ```admonish info
-Not interested in account ownership? Skip to our section on [Modularity in Abstract](./6_modularity.md).
+Not interested in account ownership? Skip to our section on [Framework Components](../5_platform/index.md).
 ```
 
 ## Monarchy

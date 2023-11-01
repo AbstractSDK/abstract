@@ -4,23 +4,22 @@
 
 # About Abstract
 
-- [What is Abstract?](./8_vision.md)
-- [Abstract Products](./1_products/index.md)
+- Abstract Products
   - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)
   - [Abstract-JS](./1_products/4_abstract_js.md)
   - [Abstract App Template](./1_products/2_abstract_app_template.md)
   - [Abstract Testing](./1_products/3_abstract_testing.md)
 - [Prerequisites](./3_framework/0_prerequisites.md)
-- [Platform Overview](1_abstract_platform_overview.md)
+- Framework
   - [Abstract SDK](./3_framework/1_abstract_sdk.md)
   - [Account Abstraction](./3_framework/2_account_abstraction.md)
   - [Architecture](./3_framework/3_architecture.md)
-  - [Account Ownership](./3_framework/4_ownership.md)
   - [Modularity](./3_framework/5_modularity.md)
     - [Module Types](./3_framework/6_module_types.md)
-  - [Upgradability](./3_framework/7_upgradability.md)
+    - [Upgradability](./3_framework/7_upgradability.md)
+  - [Account Ownership](./3_framework/4_ownership.md)
 
-- [Platform Details](./5_platform/index.md)
+- [Framework Components](./5_platform/index.md)
   - [Abstract Name Service](./5_platform/1_ans.md)
   - [Version Control](./5_platform/2_version_control.md)
   - [Account Factory](./5_platform/3_account_factory.md)
@@ -49,8 +48,6 @@
 - [Use Cases](./7_use_cases/index.md)
   - [Equilibrium](./7_use_cases/1_equilibrium.md)
   - [4t2 Finance](./7_use_cases/2_4t2.md)
-
-- [Vision](./8_vision.md)
 
 # Resources and Support
 

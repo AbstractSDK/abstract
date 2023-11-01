@@ -12,19 +12,22 @@ explicitly define its dependencies and use them to perform complex multi-contrac
 This, in turn, allows you to focus on the novel functionality of your application without inheriting the complexity of
 the underlying infrastructure.
 
-## What Problem Does it Solve?
+## Why build with Abstract?
 
 The Abstract SDK is designed to solve the following problems:
 
-- **Reusability** ♻️: CosmWasm development has been a start-from-scratch process up until now. The Abstract SDK allows
-  you to reuse components across multiple dApps, reducing development time, increasing productivity, iteration
-  speed and shortening the go-to-market of your ideas.
+- **Simplified Development** ♻️: CosmWasm development has been a start-from-scratch process up until now. Abstract
+  simplifies the development process by providing a modular architecture and a
+  comprehensive set of tools both for the **frontend and backend**, allowing you to reuse components across multiple
+  dApps reducing development time, increasing productivity, iteration speed and shortening the go-to-market of your
+  ideas.
 
 
 - **Security** 🔐: The Abstract SDK is built on top of the CosmWasm smart-contract framework, which is a battle-tested
   and
   highly secure platform. Because of its modular design, it's also easier to audit and test. Audited components can be
-  reused across multiple dApps, reducing the risk of bugs and vulnerabilities.
+  reused across multiple dApps, reducing the risk of bugs and vulnerabilities. Building with the Abstract SDK
+  automatically makes it more secure, with an "off-by-default"permission system, fully configurable by you.
 
 
 - **Complexity** 🧠: The Abstract SDK simplifies the development process by providing a modular framework that allows
@@ -42,15 +45,33 @@ The Abstract SDK is designed to solve the following problems:
 - **Scalability** 📈: The Abstract SDK is designed to scale with your needs, allowing you to easily deploy
   to new networks, iterate on your product and achieve product market fit. Through its novel on-chain application store
   it also allows for personalized dApps that can be customized by the developers to meet their specific needs, making
-  the
-  Abstract SDK the first decentralized software distribution platform.
+  the Abstract SDK the first decentralized software distribution platform.
 
 
-- **Collaboration** 👥: The Abstract SDK enables you to collaborate on the creation of dApps through its composable
+- **Continuous Funding** 📈: Developers on the Abstract platform can earn ongoing revenue for their contributions by
+  leveraging the platform's
+  community-driven incentives. As a developer you can publish your smart contract modules on the marketplace and receive
+  proceeds directly from sales to other teams via subscription or one-time fee. Read more about monetization on the
+  Abstract platform [here](../5_platform/6_monetization.md)
+
+
+- **Continuous Innovation and Collaboration** 👥: The Abstract SDK enables you to collaborate on the creation of dApps
+  through its composable
   architecture and its ability to easily publish testing infrastructure for mock environment construction.
 
+
+- **Developer-Centric Approach** 👥: Abstract is built by developers for developers. We understand the challenges and
+  complexities that developers
+  face in the blockchain space, and we're committed to providing the necessary tools, resources, and support to make
+  your
+  journey smooth and rewarding. Whether you're an experienced blockchain developer or new to the space, Abstract is
+  designed to empower you and unlock your full potential.
+
 In essence, the Abstract SDK offers a structured yet flexible approach to smart-contract development, promoting
-reusability and efficiency.
+reusability and efficiency. With its robust technical capabilities, streamlined development process, rock-solid security
+infrastructure, and
+effortless integration with financial services, Abstract empowers developers to unleash their creativity, craft
+cutting-edge financial applications, and make valuable contributions to the flourishing Cosmos ecosystem.
 
 ## Key Components
 
@@ -78,7 +99,8 @@ There are three kinds of bases:
 - <a href="https://crates.io/crates/abstract-app" target="_blank">App</a>
 - <a href="https://crates.io/crates/abstract-adapter" target="_blank">Adapter</a>
 
-We will go into the technical details of these elements on the [Build With Abstract](../4_get_started/1_index.md) section.
+We will go into the technical details of these elements on the [Build With Abstract](../4_get_started/1_index.md)
+section.
 
 ## Example: Autocompounder
 
@@ -97,7 +119,6 @@ flowchart LR
     end
 
     User[fa:fa-users Users] ==> Autocompounder
-
     style User fill: #161b25
     style Autocompounder fill: #161b25
     style Staking fill: #161b25
