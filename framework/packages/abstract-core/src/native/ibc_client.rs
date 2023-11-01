@@ -145,15 +145,18 @@ pub enum QueryMsg {
     // Returns config
     #[returns(HostResponse)]
     Config {},
+
     // Returns config
     #[returns(HostResponse)]
     Host { chain_name: String },
+
     // Shows all open channels (incl. remote info)
     #[returns(ListAccountsResponse)]
     ListAccounts {
         start: Option<(AccountId, String)>,
         limit: Option<u32>,
     },
+
     // Get channel info for one chain
     #[returns(AccountResponse)]
     Account {
@@ -163,9 +166,15 @@ pub enum QueryMsg {
     // get the hosts
     #[returns(ListRemoteHostsResponse)]
     ListRemoteHosts {},
+
     // get the IBC execution proxies
     #[returns(ListRemoteProxiesResponse)]
     ListRemoteProxies {},
+
+    // get the IBC execution proxies based on the account id passed
+    #[returns(ListRemoteProxiesResponse)]
+    ListRemoteProxiesByAccountId { account_id: AccountId },
+
     // get the IBC counterparts connected to this abstract client
     #[returns(ListIbcInfrastructureResponse)]
     ListIbcInfrastructures {},
@@ -182,10 +191,12 @@ pub struct ConfigResponse {
 pub struct ListAccountsResponse {
     pub accounts: Vec<(AccountId, ChainName, String)>,
 }
+
 #[cosmwasm_schema::cw_serde]
 pub struct ListRemoteHostsResponse {
     pub hosts: Vec<(ChainName, String)>,
 }
+
 #[cosmwasm_schema::cw_serde]
 pub struct ListRemoteProxiesResponse {
     pub proxies: Vec<(ChainName, Option<String>)>,
@@ -201,6 +212,7 @@ pub struct HostResponse {
     pub remote_host: String,
     pub remote_polytone_proxy: Option<String>,
 }
+
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {
     pub remote_proxy_addr: String,

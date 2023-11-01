@@ -50,6 +50,26 @@ pub fn list_accounts(
     Ok(ListAccountsResponse { accounts })
 }
 
+pub fn list_proxies_by_account_id(
+    deps: Deps,
+    account_id: AccountId,
+) -> IbcClientResult<ListRemoteProxiesResponse> {
+    let proxies: Vec<(
+        abstract_core::objects::chain_name::ChainName,
+        Option<String>,
+    )> = cw_paginate::paginate_map_prefix(
+        &ACCOUNTS,
+        deps.storage,
+        (account_id.trace(), account_id.seq()),
+        // Not using pagination as there are not a lot of chains.
+        None,
+        None,
+        |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
+    )?;
+
+    Ok(ListRemoteProxiesResponse { proxies })
+}
+
 // No need for pagination here, not a lot of chains
 pub fn list_remote_hosts(deps: Deps) -> IbcClientResult<ListRemoteHostsResponse> {
     let hosts = IBC_INFRA

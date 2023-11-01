@@ -108,6 +108,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespo
         QueryMsg::ListIbcInfrastructures {} => {
             to_json_binary(&queries::list_ibc_counterparts(deps)?)
         }
+        QueryMsg::ListRemoteProxiesByAccountId { account_id } => {
+            to_json_binary(&queries::list_proxies_by_account_id(deps, account_id)?)
+        }
     }
     .map_err(Into::into)
 }
@@ -1444,9 +1447,24 @@ mod tests {
 
             assert_eq!(
                 ListAccountsResponse {
-                    accounts: vec![(TEST_ACCOUNT_ID, chain_name, remote_proxy)]
+                    accounts: vec![(TEST_ACCOUNT_ID, chain_name.clone(), remote_proxy.clone())]
                 },
                 accounts_response
+            );
+
+            let proxies_response: ListRemoteProxiesResponse = from_json(query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::ListRemoteProxiesByAccountId {
+                    account_id: TEST_ACCOUNT_ID,
+                },
+            )?)?;
+
+            assert_eq!(
+                ListRemoteProxiesResponse {
+                    proxies: vec![(chain_name, Some(remote_proxy))]
+                },
+                proxies_response
             );
 
             Ok(())
