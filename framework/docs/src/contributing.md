@@ -1,17 +1,19 @@
 Contributing to Abstract SDK
 ====================
 
-Thank you for considering to contribute to the Abstract SDK project! We appreciate your support and welcome contributions to help improve this multi-environment CosmWasm smart-contract scripting library. This document provides guidelines and instructions on how to contribute to the project effectively.
+Thank you for considering to contribute to the Abstract SDK project! We appreciate your support and welcome
+contributions to help improve this multi-environment CosmWasm smart-contract scripting library. This document provides
+guidelines and instructions on how to contribute to the project effectively.
 
 Table of Contents
 -----------------
 
 * [Getting Started](#getting-started)
 * [How to Contribute](#how-to-contribute)
-  * [Reporting Bugs](#reporting-bugs)
-  * [Suggesting Enhancements](#suggesting-enhancements)
-  * [Code Contributions](#code-contributions)
-    * [Pull Requests](#pull-requests)
+    * [Reporting Bugs](#reporting-bugs)
+    * [Suggesting Enhancements](#suggesting-enhancements)
+    * [Code Contributions](#code-contributions)
+        * [Pull Requests](#pull-requests)
 * [Style Guide](#style-guide)
 * [Community](#community)
 
@@ -23,7 +25,8 @@ To get started with contributing to the Abstract SDK project, you should first f
 How to Contribute
 -----------------
 
-There are multiple ways to contribute to the Abstract SDK project, including reporting bugs, suggesting enhancements, and submitting code contributions.
+There are multiple ways to contribute to the Abstract SDK project, including reporting bugs, suggesting enhancements,
+and submitting code contributions.
 
 Reporting Bugs
 ------------------
@@ -59,22 +62,29 @@ To contribute code to the Abstract SDK project, please follow these steps:
 Pull Requests
 ------------------
 
-When submitting a pull request, please make sure that your code follows the [Style Guide](#style-guide) and that all tests pass. Please provide a detailed description of your changes, including the motivation for the changes and any potential impact on the project. This will help maintainers review your pull request more effectively.
+When submitting a pull request, please make sure that your code follows the [Style Guide](#style-guide) and that all
+tests pass. Please provide a detailed description of your changes, including the motivation for the changes and any
+potential impact on the project. This will help maintainers review your pull request more effectively.
 
 Style Guide
 -----------
 
-The Abstract SDK project follows the Rust coding style and conventions. Please ensure that your code adheres to these guidelines to maintain consistency and readability throughout the codebase.
+The Abstract SDK project follows the Rust coding style and conventions. Please ensure that your code adheres to these
+guidelines to maintain consistency and readability throughout the codebase.
 
 * Use proper indentation (4 spaces) and consistent formatting (`cargo fmt`).
 * Write descriptive variable and function names.
 * Use comments to explain complex or non-obvious code.
-* Follow the [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/) for API design.
+* Follow the <a href="https://rust-lang.github.io/api-guidelines/" target="_blank">Rust API Guidelines</a> for API
+  design.
 * Add documentation for public functions, types, and modules.
-* Write [doc tests](https://doc.rust-lang.org/rustdoc/documentation-tests.html)
-    for public functions and methods.
+* Write <a href="https://doc.rust-lang.org/rustdoc/documentation-tests.html" target="_blank">doc tests</a>
+  for public functions and methods.
 
 Community
 ---------
 
-To join the Abstract SDK community, please join the [Abstract Discord server](https://discord.gg/uch3Tq3aym) and the `#Abstract SDK` channel. You can also follow the project on [Twitter](https://twitter.com/AbstractSDK) and [GitHub](https://github.com/AbstractSDK).
+To join the Abstract SDK community, please join the <a href="https://discord.com/invite/uch3Tq3aym" target="_blank">
+Abstract Discord server</a> and
+the `#Abstract SDK` channel. You can also follow the project on <a href="https://x.com/AbstractSDK" target="_blank">
+X</a> and <a href="https://github.com/AbstractSDK" target="_blank">GitHub</a>.

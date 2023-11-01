@@ -1,4 +1,4 @@
-use cosmwasm_std::{to_binary, wasm_execute, Binary, CosmosMsg, StdResult};
+use cosmwasm_std::{to_json_binary, wasm_execute, Binary, CosmosMsg, StdResult};
 use polytone::callbacks::Callback;
 use schemars::JsonSchema;
 
@@ -27,9 +27,9 @@ pub struct IbcResponseMsg {
 
 impl IbcResponseMsg {
     /// serializes the message
-    pub fn into_binary(self) -> StdResult<Binary> {
+    pub fn into_json_binary(self) -> StdResult<Binary> {
         let msg = IbcCallbackMsg::IbcCallback(self);
-        to_binary(&msg)
+        to_json_binary(&msg)
     }
 
     /// creates a cosmos_msg sending this struct to the named contract

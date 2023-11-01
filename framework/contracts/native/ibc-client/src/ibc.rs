@@ -8,9 +8,10 @@ use abstract_core::{
         state::{IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
+    objects::chain_name::ChainName,
 };
 use abstract_sdk::core::ibc_client::state::ACCOUNTS;
-use cosmwasm_std::{from_binary, DepsMut, Env, MessageInfo};
+use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 
 use polytone::callbacks::{Callback, CallbackMessage};
 
@@ -24,7 +25,9 @@ pub fn receive_action_callback(
     // 1. First we verify the callback is well formed and sent by the right contract
 
     // only a note contract can call this endpoint
-    let host_chain = REVERSE_POLYTONE_NOTE.load(deps.storage, &info.sender)?;
+    let host_chain: ChainName = REVERSE_POLYTONE_NOTE
+        .may_load(deps.storage, &info.sender)?
+        .ok_or(IbcClientError::Unauthorized {})?;
 
     // only this account can call actions and have a polytone callback
     if callback.initiator != env.contract.address {
@@ -33,7 +36,7 @@ pub fn receive_action_callback(
 
     // 2. From here on, we can trust the message that we are receiving
 
-    let callback_msg: IbcClientCallback = from_binary(&callback.initiator_msg)?;
+    let callback_msg: IbcClientCallback = from_json(&callback.initiator_msg)?;
 
     match callback_msg {
         IbcClientCallback::WhoAmI {} => {
@@ -55,27 +58,27 @@ pub fn receive_action_callback(
         IbcClientCallback::CreateAccount { account_id } => {
             // We need to get the address of the remote proxy from the account creation response
             if let Callback::Execute(Ok(response)) = &callback.result {
-                let account_creation_result = response.result[0].clone();
+                let account_creation_result = &response.result[0];
 
                 let wasm_event = account_creation_result
                     .events
-                    .into_iter()
+                    .iter()
                     .find(|e| e.ty == "wasm")
                     .ok_or(IbcClientError::IbcFailed(callback.clone()))?;
-                let remote_proxy_address = wasm_event
+                let remote_proxy_address = &wasm_event
                     .attributes
-                    .into_iter()
+                    .iter()
                     // We need to skip until we get to the actual account creation part
                     .skip_while(|e| !(e.key.eq("action") && e.value.eq("create_proxy")))
                     .find(|e| e.key == "proxy_address")
-                    .ok_or(IbcClientError::IbcFailed(callback))?
+                    .ok_or(IbcClientError::IbcFailed(callback.clone()))?
                     .value;
 
                 // We need to store the account address in the IBC client for interactions that may need it locally
                 ACCOUNTS.save(
                     deps.storage,
                     (&account_id, &host_chain),
-                    &remote_proxy_address,
+                    remote_proxy_address,
                 )?;
             } else {
                 return Err(IbcClientError::IbcFailed(callback));

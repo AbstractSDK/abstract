@@ -77,6 +77,10 @@ jobs:
           ssh-private-key: |
             ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
             ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.3
+        with:
+          version: "v0.4.2"
       - name: Install nightly
         uses: dtolnay/rust-toolchain@nightly
       - name: cargo doc

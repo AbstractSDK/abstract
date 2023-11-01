@@ -19,7 +19,7 @@ pub mod mock {
     pub use abstract_core::app;
     use abstract_interface::AppDeployer;
     pub use cosmwasm_std::testing::*;
-    use cosmwasm_std::{from_binary, to_binary, Addr, Response, StdError};
+    use cosmwasm_std::{from_json, to_json_binary, Addr, Response, StdError};
     use cw_orch::prelude::*;
 
     pub type AppTestResult = Result<(), MockError>;
@@ -87,7 +87,7 @@ pub mod mock {
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
         .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
         .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-        .with_query(|_, _, _, _| to_binary("mock_query").map_err(Into::into))
+        .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
         .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
@@ -101,8 +101,9 @@ pub mod mock {
     crate::export_endpoints!(MOCK_APP, MockAppContract);
 
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
-        MockQuerierBuilder::default().with_smart_handler(TEST_MODULE_FACTORY, |msg| {
-            match from_binary(msg).unwrap() {
+        MockQuerierBuilder::default().with_smart_handler(
+            TEST_MODULE_FACTORY,
+            |msg| match from_json(msg).unwrap() {
                 abstract_core::module_factory::QueryMsg::Context {} => {
                     let resp = ContextResponse {
                         account_base: AccountBase {
@@ -112,11 +113,11 @@ pub mod mock {
                         modules: vec![],
                         modules_to_register: vec![],
                     };
-                    Ok(to_binary(&resp).unwrap())
+                    Ok(to_json_binary(&resp).unwrap())
                 }
                 _ => panic!("unexpected message"),
-            }
-        })
+            },
+        )
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
