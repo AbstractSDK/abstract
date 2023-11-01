@@ -156,7 +156,7 @@ impl MockQuerierBuilder {
     ///     match key {
     ///         "the key" => to_binary("the value").map_err(|e| e.to_string()),
     ///         _ => to_binary("").map_err(|e| e.to_string())
-    ///     }
+    ///     })
     /// # // ANCHOR_END: raw_query
     /// ```
     pub fn with_raw_handler<RH: 'static>(mut self, contract: &str, handler: RH) -> Self

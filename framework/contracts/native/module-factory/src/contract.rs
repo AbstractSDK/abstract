@@ -146,16 +146,8 @@ pub fn query_simulate_install_modules(
 }
 
 pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
-    let Context {
-        account_base,
-        modules,
-        modules_to_register,
-    }: Context = CONTEXT.load(deps.storage)?;
-    let resp = ContextResponse {
-        account_base,
-        modules: modules.into(),
-        modules_to_register,
-    };
+    let Context { account_base }: Context = CONTEXT.load(deps.storage)?;
+    let resp = ContextResponse { account_base };
 
     Ok(resp)
 }

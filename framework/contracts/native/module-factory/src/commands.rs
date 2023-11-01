@@ -38,7 +38,6 @@ pub fn execute_create_modules(
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
     let block_height = env.block.height;
-
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
     let binding = VersionControlContract::new(config.version_control_address);
@@ -154,9 +153,18 @@ pub fn execute_create_modules(
         .into());
     }
 
-    Ok(register_modules(modules_to_register, account_base)?
-        .add_messages(module_instantiate_messages)
-        .add_messages(fee_msgs))
+    let context = Context { account_base };
+    CONTEXT.save(deps.storage, &context)?;
+
+    let (register_modules_msg, new_modules) =
+        register_modules(modules_to_register, context.account_base)?;
+    Ok(
+        ModuleFactoryResponse::new("create_modules", vec![("new_modules", new_modules)])
+            // Order is important we need to install apps
+            .add_messages(module_instantiate_messages)
+            .add_message(register_modules_msg)
+            .add_messages(fee_msgs),
+    )
 }
 
 fn instantiate2_contract(
@@ -188,41 +196,16 @@ fn instantiate2_contract(
     ))
 }
 
+// TODO: make it check installed modules or remove
 pub fn handle_reply(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
     let mut context: Context = CONTEXT.load(deps.storage)?;
-    // Pop the first module that is assumed to be responsible for the reply.
-    // **This assumption is only valid if all the submessages are module instantiations.**
-    let module = context.modules.pop_front().unwrap();
-    // Get address of the new contract
-    let res: MsgInstantiateContractResponse =
-        Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
-            StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
-        })?;
-    let module_address = deps.api.addr_validate(res.get_contract_address())?;
-    // assert the data after instantiation.
-    module::assert_module_data_validity(&deps.querier, &module, Some(module_address.clone()))?;
-
-    context.modules_to_register.push(RegisterModuleData {
-        module_address: module_address.to_string(),
-        module,
-    });
-
-    if context.modules.is_empty() {
-        // clear context
-        CONTEXT.remove(deps.storage);
-        register_modules(context.modules_to_register, context.account_base)
-    } else {
-        // update context
-        CONTEXT.save(deps.storage, &context)?;
-        // Skip until we have all modules installed
-        Ok(cosmwasm_std::Response::new())
-    }
+    unreachable!("no submessages for module-factory");
 }
 
 pub fn register_modules(
     modules_to_register: Vec<RegisterModuleData>,
     account_base: AccountBase,
-) -> ModuleFactoryResult {
+) -> ModuleFactoryResult<(CosmosMsg, String)> {
     let module_addrs = modules_to_register
         .iter()
         .map(|reg| reg.module_address.as_str())
@@ -237,10 +220,7 @@ pub fn register_modules(
     )?
     .into();
 
-    Ok(
-        ModuleFactoryResponse::new("register_modules", vec![("new_modules", module_addrs)])
-            .add_message(register_msg),
-    )
+    Ok((register_msg, module_addrs))
 }
 
 // Only owner can execute it

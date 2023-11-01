@@ -11,6 +11,7 @@ use abstract_core::adapter::{
 use abstract_core::manager::{InternalConfigAction, RegisterModuleData, UpdateSubAccountAction};
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::module::assert_module_data_validity;
 use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::objects::version_control::VersionControlContract;
@@ -165,6 +166,12 @@ pub fn register_modules(
         module_address,
     } in modules
     {
+        // TODO: Could move it to the post-install and register unchecked modules here
+        assert_module_data_validity(
+            &deps.querier,
+            &module,
+            Some(Addr::unchecked(&module_address)),
+        )?;
         match module {
             Module {
                 reference: ModuleReference::App(_),

@@ -109,8 +109,6 @@ pub mod mock {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked(TEST_PROXY),
                         },
-                        modules: vec![],
-                        modules_to_register: vec![],
                     };
                     Ok(to_binary(&resp).unwrap())
                 }

@@ -26,8 +26,6 @@ pub mod state {
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct Context {
         pub account_base: AccountBase,
-        pub modules: VecDeque<Module>,
-        pub modules_to_register: Vec<RegisterModuleData>,
     }
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
@@ -114,8 +112,6 @@ pub struct ConfigResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ContextResponse {
     pub account_base: AccountBase,
-    pub modules: Vec<Module>,
-    pub modules_to_register: Vec<RegisterModuleData>,
 }
 
 #[cosmwasm_schema::cw_serde]

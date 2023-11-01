@@ -54,6 +54,9 @@ impl<
             address: deps.api.addr_validate(&version_control_address)?,
         };
 
+        // TODO: do we even need context in this case? 
+        // We can pass AccountBase with BaseInstantiateMsg
+
         // Caller is factory so get proxy and manager (admin) from there
         let resp: ContextResponse = deps.querier.query(&wasm_smart_query(
             info.sender.to_string(),

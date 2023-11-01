@@ -72,10 +72,14 @@ fn account_install_app() -> AResult {
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
-    let app = MockApp::new_test(chain);
+    let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
     let app_addr = account.install_app(app, &MockInitMsg, None)?;
     let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
+
     assert_that!(app_addr).is_equal_to(module_addr);
+
+    let contract_info = chain.app.borrow().wrap().query_wasm_contract_info(app_addr)?;
+    println!("contract_info {contract_info:?}");
     Ok(())
 }
