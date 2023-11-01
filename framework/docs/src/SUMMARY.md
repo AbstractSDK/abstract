@@ -27,7 +27,6 @@
   - [Module Factory](./5_platform/5_module_factory.md)
   - [Monetization](./5_platform/6_monetization.md)
 
-- [Interchain Abstract Accounts]()
 
 # Build With Abstract
 
@@ -40,8 +39,6 @@
   - [Module Testing](./4_get_started/6_module_testing.md)
   - [Module Deployment](./4_get_started/7_module_deployment.md)
   - [Module Dependencies](./4_get_started/8_dependencies.md)
-  - [Best Practices]()
-  - [Quality Assurance]()
 
 
 # Use Cases
@@ -55,10 +52,7 @@
   - [Overview](./ibc/overview.md)
   - [Specification](./ibc/spec.md)
 
-- [Video and Content]()
-  - [Interviews]()
-  - [Tutorials]()
-  - [FAQ](./video_and_content/faq.md)
+- [FAQ](./video_and_content/faq.md)
 
 [Glossary](./9_glossary.md)
 [Contributing & Community](./contributing.md)
