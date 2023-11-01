@@ -166,13 +166,29 @@ pub mod mock {
         use ::abstract_core::app;
         use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
         use ::cw_orch::prelude::*;
+        use ::abstract_sdk::base::Handler;
 
         type Exec = app::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
         type Query = app::QueryMsg<MockQueryMsg>;
         type Init = app::InstantiateMsg<MockInitMsg>;
         type Migrate = app::MigrateMsg<MockMigrateMsg>;
         const MOCK_APP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
-        .with_dependencies($deps);
+        .with_dependencies($deps)
+        .with_instantiate(|deps, _env, info, module, msg| {
+            // See test `create_sub_account_with_installed_module` where this will be triggered.
+            if module.info().0 == "tester:mock-app1" {
+                println!("checking address of adapter1");
+                let manager = module.admin.get(deps.as_ref())?.unwrap();
+                // Check if the adapter has access to its dependency during instantiation.
+                let adapter1_addr = ::abstract_core::manager::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
+                // We have address!
+                ::cosmwasm_std::ensure!(
+                    adapter1_addr.is_some(),
+                    ::cosmwasm_std::StdError::generic_err("no address")
+                );
+                println!("adapter_addr: {adapter1_addr:?}");
+            };
+            Ok(::cosmwasm_std::Response::new().set_data("mock_init".as_bytes()))});
 
         fn mock_instantiate(
             deps: ::cosmwasm_std::DepsMut,

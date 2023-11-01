@@ -1,13 +1,9 @@
-use std::collections::VecDeque;
-use std::iter;
+use abstract_core::objects::AccountId;
 
 use abstract_core::objects::module;
 
 use crate::contract::ModuleFactoryResponse;
-use crate::{
-    contract::ModuleFactoryResult, error::ModuleFactoryError,
-    response::MsgInstantiateContractResponse, state::*,
-};
+use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
 use abstract_sdk::{
     core::{
         manager::{ExecuteMsg as ManagerMsg, RegisterModuleData},
@@ -21,8 +17,8 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps, DepsMut,
-    Empty, Env, MessageInfo, ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+    to_json_vec, wasm_execute, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
+    DepsMut, Empty, Env, MessageInfo, ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
@@ -46,6 +42,7 @@ pub fn execute_create_modules(
 
     // assert that sender is manager
     let account_base = account_registry.assert_manager(&info.sender)?;
+    let account_id = account_registry.account_id(&info.sender)?;
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
@@ -101,6 +98,7 @@ pub fn execute_create_modules(
                 let (addr, init_msg) = instantiate2_contract(
                     deps.as_ref(),
                     canonical_contract_addr.clone(),
+                    &account_id,
                     block_height,
                     *code_id,
                     owner_init_msg.unwrap(),
@@ -127,6 +125,7 @@ pub fn execute_create_modules(
                 let (addr, init_msg) = instantiate2_contract(
                     deps.as_ref(),
                     canonical_contract_addr.clone(),
+                    &account_id,
                     block_height,
                     *code_id,
                     owner_init_msg.unwrap(),
@@ -201,6 +200,7 @@ pub fn execute_create_modules(
 fn instantiate2_contract(
     deps: Deps,
     creator_addr: CanonicalAddr,
+    account_id: &AccountId,
     block_height: u64,
     code_id: u64,
     init_msg: Binary,
@@ -209,7 +209,21 @@ fn instantiate2_contract(
     module_info: &ModuleInfo,
 ) -> ModuleFactoryResult<(CanonicalAddr, CosmosMsg)> {
     let wasm_info = deps.querier.query_wasm_code_info(code_id)?;
-    let salt = Binary::from(module_info.name.as_bytes());
+    let mut salt_bytes: Vec<u8> = Vec::with_capacity(40);
+    salt_bytes.extend(block_height.to_be_bytes());
+    salt_bytes.extend(code_id.to_be_bytes());
+    salt_bytes.extend(account_id.seq().to_be_bytes());
+    salt_bytes.extend(
+        account_id
+            .trace()
+            .to_string()
+            .into_bytes()
+            .into_iter()
+            .take(20)
+            .collect::<Vec<u8>>(),
+    );
+    let salt = Binary::from(salt_bytes);
+
     let addr =
         cosmwasm_std::instantiate2_address(&wasm_info.checksum, &creator_addr, salt.as_slice())?;
 
@@ -450,9 +464,11 @@ mod test {
             let some_block_height = 500;
             let contract_addr = deps.api.addr_make("contract");
             let creator_addr = deps.api.addr_canonicalize(contract_addr.as_str()).unwrap();
+            let account_id = AccountId::local(1);
             let actual = instantiate2_contract(
                 deps.as_ref(),
                 creator_addr,
+                &account_id,
                 some_block_height,
                 expected_code_id,
                 expected_module_init_msg.clone(),
@@ -461,13 +477,28 @@ mod test {
                 &expected_module_info,
             );
 
+            let mut salt_bytes: Vec<u8> = Vec::with_capacity(40);
+            salt_bytes.extend(some_block_height.to_be_bytes());
+            salt_bytes.extend(expected_code_id.to_be_bytes());
+            salt_bytes.extend(account_id.seq().to_be_bytes());
+            salt_bytes.extend(
+                account_id
+                    .trace()
+                    .to_string()
+                    .into_bytes()
+                    .into_iter()
+                    .take(20)
+                    .collect::<Vec<u8>>(),
+            );
+            let salt = Binary::from(salt_bytes);
+
             let expected_init_msg = WasmMsg::Instantiate2 {
                 code_id: expected_code_id,
                 funds: vec![coin(5, "ucosm")],
                 admin: None,
                 label: format!("Module: {expected_module_info}, Height {some_block_height}"),
                 msg: expected_module_init_msg,
-                salt: Binary::from(expected_module_info.name.as_bytes()),
+                salt,
             };
 
             assert_that!(actual).is_ok();

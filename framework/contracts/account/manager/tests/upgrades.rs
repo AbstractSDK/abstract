@@ -70,12 +70,13 @@ fn install_app_successful() -> AResult {
     let res = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1);
     assert_that!(&res).is_err();
     assert_that!(res.unwrap_err().root_cause().to_string()).contains(
-        "module tester:mock-adapter1 is a dependency of tester:mock-app1 and is not installed.",
+        // Error from macro
+        "no address",
     );
 
     // install adapter 1
     let adapter1 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
-
+    
     // second dependency still not met
     let res = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1);
     assert_that!(&res).is_err();
