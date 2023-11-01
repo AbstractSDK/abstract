@@ -774,7 +774,7 @@ mod tests {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                (&chain_name, &TEST_ACCOUNT_ID),
+                (TEST_ACCOUNT_ID.trace(), TEST_ACCOUNT_ID.seq(), &chain_name),
                 &remote_addr,
             )?;
 
@@ -1003,7 +1003,11 @@ mod tests {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                (&ChainName::from_str("channel")?, &TEST_ACCOUNT_ID),
+                (
+                    TEST_ACCOUNT_ID.trace(),
+                    TEST_ACCOUNT_ID.seq(),
+                    &ChainName::from_str("channel")?,
+                ),
                 &"Some-remote-account".to_string(),
             )?;
 
@@ -1405,8 +1409,10 @@ mod tests {
                 res
             );
 
-            let saved_account =
-                ACCOUNTS.load(deps.as_ref().storage, (&chain_name, &TEST_ACCOUNT_ID))?;
+            let saved_account = ACCOUNTS.load(
+                deps.as_ref().storage,
+                (TEST_ACCOUNT_ID.trace(), TEST_ACCOUNT_ID.seq(), &chain_name),
+            )?;
 
             assert_eq!(remote_proxy, saved_account);
 
@@ -1438,7 +1444,7 @@ mod tests {
 
             assert_eq!(
                 ListAccountsResponse {
-                    accounts: vec![(chain_name, TEST_ACCOUNT_ID, remote_proxy)]
+                    accounts: vec![(TEST_ACCOUNT_ID, chain_name, remote_proxy)]
                 },
                 accounts_response
             );

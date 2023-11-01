@@ -6,7 +6,11 @@ use abstract_core::{
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
         ListIbcInfrastructureResponse, ListRemoteHostsResponse, ListRemoteProxiesResponse,
     },
-    objects::{chain_name::ChainName, AccountId},
+    objects::{
+        account::{AccountSequence, AccountTrace},
+        chain_name::ChainName,
+        AccountId,
+    },
     AbstractError,
 };
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
@@ -16,26 +20,31 @@ use crate::contract::IbcClientResult;
 
 pub fn list_accounts(
     deps: Deps,
-    start: Option<(String, AccountId)>,
+    start: Option<(AccountId, String)>,
     limit: Option<u32>,
 ) -> IbcClientResult<ListAccountsResponse> {
-    let start = start
+    let start: Option<(AccountTrace, AccountSequence, ChainName)> = start
         .map(|s| {
-            let chain = ChainName::from_str(&s.0)?;
-            Ok::<_, AbstractError>((s.1, chain))
+            let account_id: AccountId = s.0;
+            let chain = ChainName::from_str(&s.1)?;
+            let (trace, seq) = account_id.decompose();
+            Ok::<_, AbstractError>((trace, seq, chain))
         })
         .transpose()?;
 
     let accounts: Vec<(
-        abstract_core::objects::chain_name::ChainName,
         AccountId,
+        abstract_core::objects::chain_name::ChainName,
         String,
     )> = cw_paginate::paginate_map(
         &ACCOUNTS,
         deps.storage,
-        start.as_ref().map(|s| Bound::exclusive((&s.1, &s.0))),
+        start.as_ref().map(|s| Bound::exclusive((&s.0, s.1, &s.2))),
         limit,
-        |(c, a), s| Ok::<_, StdError>((c, a, s)),
+        |(trace, seq, chain), address| {
+            // We can unwrap since the trace has been verified when the account was registered.
+            Ok::<_, StdError>((AccountId::new(seq, trace).unwrap(), chain, address))
+        },
     )?;
 
     Ok(ListAccountsResponse { accounts })
@@ -98,6 +107,9 @@ pub fn account(
     account_id: AccountId,
 ) -> IbcClientResult<AccountResponse> {
     let host_chain = ChainName::from_str(&host_chain)?;
-    let remote_proxy_addr = ACCOUNTS.load(deps.storage, (&host_chain, &account_id))?;
+    let remote_proxy_addr = ACCOUNTS.load(
+        deps.storage,
+        (account_id.trace(), account_id.seq(), &host_chain),
+    )?;
     Ok(AccountResponse { remote_proxy_addr })
 }

@@ -12,8 +12,11 @@ use self::state::IbcInfrastructure;
 pub mod state {
 
     use crate::objects::{
-        account::AccountId, ans_host::AnsHost, chain_name::ChainName,
-        common_namespace::ADMIN_NAMESPACE, version_control::VersionControlContract,
+        account::{AccountSequence, AccountTrace},
+        ans_host::AnsHost,
+        chain_name::ChainName,
+        common_namespace::ADMIN_NAMESPACE,
+        version_control::VersionControlContract,
     };
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
@@ -44,8 +47,11 @@ pub mod state {
     pub const REVERSE_POLYTONE_NOTE: Map<&Addr, ChainName> = Map::new("revpn");
 
     pub const CONFIG: Item<Config> = Item::new("config");
-    /// (chain_name, account_id) -> remote proxy account address
-    pub const ACCOUNTS: Map<(&ChainName, &AccountId), String> = Map::new("accs");
+    /// (account_trace, account_sequence, chain_name) -> remote proxy account address. We use a
+    /// triple instead of including AccountId since nested tuples do not behave as expected due to
+    /// a bug that will be fixed in a future release.
+    pub const ACCOUNTS: Map<(&AccountTrace, AccountSequence, &ChainName), String> =
+        Map::new("accs");
 
     // For callbacks tests
     pub const ACKS: Item<Vec<String>> = Item::new("tmpc");
@@ -145,7 +151,7 @@ pub enum QueryMsg {
     // Shows all open channels (incl. remote info)
     #[returns(ListAccountsResponse)]
     ListAccounts {
-        start: Option<(String, AccountId)>,
+        start: Option<(AccountId, String)>,
         limit: Option<u32>,
     },
     // Get channel info for one chain
@@ -174,7 +180,7 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListAccountsResponse {
-    pub accounts: Vec<(ChainName, AccountId, String)>,
+    pub accounts: Vec<(AccountId, ChainName, String)>,
 }
 #[cosmwasm_schema::cw_serde]
 pub struct ListRemoteHostsResponse {
