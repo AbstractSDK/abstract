@@ -3,7 +3,7 @@ use cosmwasm_std::{Deps, DepsMut, Response, Empty};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 
-use crate::{mock::{MockAppContract, MOCK_APP}, state::ModuleEnv, AppError};
+use crate::{mock::{MockAppContract, MOCK_APP}, state::ModuleEnv, AppError, AppContract};
 
 // TODO: add macro here that generates the private struct below
 // The macro should:
@@ -17,29 +17,43 @@ pub struct TestContract {
     // Custom state goes here (like Sylvia)
     pub admin: Admin<'static>,
     pub config: Item<'static, u64>,
+
+    // added automatically
+    pub(crate) contract: MockAppContract,
+    pub(crate) env: ModuleEnv<'static>,
+}
+
+impl Into<MockAppContract> for &TestContract {
+    fn into(self) -> MockAppContract {
+        self.contract
+    }
 }
 
 // #[contract] TODO: re-enable this macro
 impl TestContract {
     // new function must be implemented manually (sylvia)
-    pub const fn new() -> Self {
+    pub fn new(deps: DepsMut) -> Self {
         Self {
             admin: Admin::new(ADMIN_NAMESPACE),
             config: Item::new("cfg"),
+            contract: MOCK_APP,
+            env: ModuleEnv::new(deps),
         }
     }
 
     // TODO: re-enable macro #[msg(instantiate)] 
     // the macro removes the impl here and applies it to `_TestContract`
-    // pub fn instantiate(
-    //     &self,
-    //     admin: Option<String>,
-    // ) -> Result<Response, AppError> {
-    //     let admin = admin.map(|a| deps.api.addr_validate(&a)).transpose()?;
-    //     self.admin.set(deps, admin)?;
+    pub fn instantiate(
+        &self,
+        admin: Option<String>,
+    ) -> Result<Response, AppError> {
+        let admin = admin.map(|a| self.env.deps.api.addr_validate(&a)).transpose()?;
+        self.admin.set(self.env.deps, admin)?;
 
-    //     Ok(Response::new())
-    // }
+        self.bank()
+
+        Ok(Response::new())
+    }
 }
 
 mod const_contract {
@@ -66,10 +80,6 @@ impl<'a> _TestContract<'a> {
         }
     }
 
-    pub const fn storage() -> TestContract {
-        TestContract::new()
-    }
-
     pub fn _instantiate(
         &mut self,
         admin: Option<String>,
@@ -81,6 +91,8 @@ impl<'a> _TestContract<'a> {
 
         Ok(Response::new())
     }
+
+
 }
 
 impl ExecutionStack for _TestContract<'_> {
