@@ -7,7 +7,6 @@ use abstract_interface::AdapterDeployer;
 use abstract_interface::DeployStrategy;
 use cw_orch::daemon::ChainInfo;
 use cw_orch::daemon::DaemonBuilder;
-use ibc_chain_registry::chain::ChainData;
 
 use cw_orch::daemon::networks::parse_network;
 
@@ -38,7 +37,6 @@ fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
 }
 
 use clap::Parser;
-use tokio::runtime::Runtime;
 
 #[derive(Parser, Default, Debug)]
 #[command(author, version, about, long_about = None)]
