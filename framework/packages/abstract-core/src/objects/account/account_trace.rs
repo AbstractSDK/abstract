@@ -39,7 +39,7 @@ impl<'a> PrimaryKey<'a> for AccountTrace {
                     .iter()
                     .enumerate()
                     .flat_map(|(s, c)| {
-                        if s != len - 1 {
+                        if s == len - 1 {
                             vec![c.str_ref().key()]
                         } else {
                             vec![c.str_ref().key(), CHAIN_DELIMITER.key()]
