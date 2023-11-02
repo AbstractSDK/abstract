@@ -116,7 +116,7 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(EXCHANGE, swap_msg)?;
+            manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
             Ok(())
         }
 
@@ -140,7 +140,7 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(EXCHANGE, swap_msg)?;
+            manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
             Ok(())
         }
     }

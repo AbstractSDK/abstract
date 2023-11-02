@@ -13,14 +13,15 @@ use abstract_core::MANAGER;
 use abstract_dex_adapter::contract::CONTRACT_VERSION;
 use abstract_dex_adapter::msg::DexInstantiateMsg;
 use abstract_dex_adapter::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use abstract_dex_adapter::EXCHANGE;
-use abstract_dex_adapter_traits::msg::DexAction;
-use abstract_dex_adapter_traits::msg::DexExecuteMsg;
+use abstract_dex_adapter::DEX_ADAPTER_ID;
+use abstract_dex_standard::msg::DexAction;
+use abstract_dex_standard::msg::DexExecuteMsg;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AbstractInterfaceError;
 use abstract_interface::AccountFactory;
 use abstract_interface::AdapterDeployer;
+use abstract_interface::DeployStrategy;
 use abstract_interface::Manager;
 use abstract_osmosis_adapter::OSMOSIS;
 use cosmwasm_std::coin;
@@ -32,7 +33,7 @@ use cw_orch::{interface, prelude::*};
 use anyhow::Result as AnyResult;
 
 use cosmwasm_std::coins;
-use cw_orch::test_tube::TestTube;
+use cw_orch::osmosis_test_tube::OsmosisTestTube;
 
 pub fn create_default_account<Chain: CwEnv>(
     factory: &AccountFactory<Chain>,
@@ -88,7 +89,7 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
                 },
             },
         });
-        manager.execute_on_module(EXCHANGE, swap_msg)?;
+        manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
         Ok(())
     }
     /// Provide liquidity using Abstract's OS (registered in daemon_state).
@@ -115,7 +116,7 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
                 },
             },
         });
-        manager.execute_on_module(EXCHANGE, swap_msg)?;
+        manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
         Ok(())
     }
 
@@ -139,7 +140,7 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
                 },
             },
         });
-        manager.execute_on_module(EXCHANGE, swap_msg)?;
+        manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
         Ok(())
     }
 }
@@ -150,24 +151,24 @@ fn get_pool_token(id: u64) -> String {
 
 #[allow(clippy::type_complexity)]
 fn setup_mock() -> anyhow::Result<(
-    TestTube,
-    OsmosisDexAdapter<TestTube>,
-    AbstractAccount<TestTube>,
-    Abstract<TestTube>,
+    OsmosisTestTube,
+    OsmosisDexAdapter<OsmosisTestTube>,
+    AbstractAccount<OsmosisTestTube>,
+    Abstract<OsmosisTestTube>,
     u64,
 )> {
     let atom = "uatom";
     let osmo = "uosmo";
 
-    let chain = TestTube::new(vec![
+    let chain = OsmosisTestTube::new(vec![
         coin(1_000_000_000_000, osmo),
         coin(1_000_000_000_000, atom),
     ]);
 
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), chain.sender().to_string())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
-    let dex_adapter = OsmosisDexAdapter::new(EXCHANGE, chain.clone());
+    let dex_adapter = OsmosisDexAdapter::new(DEX_ADAPTER_ID, chain.clone());
 
     dex_adapter.deploy(
         CONTRACT_VERSION.parse()?,
@@ -175,6 +176,7 @@ fn setup_mock() -> anyhow::Result<(
             swap_fee: Decimal::percent(1),
             recipient_account: 0,
         },
+        DeployStrategy::Try,
     )?;
 
     // We need to register some pairs and assets on the ans host contract
@@ -218,11 +220,17 @@ fn setup_mock() -> anyhow::Result<(
 
     let account = create_default_account(&deployment.account_factory)?;
 
-    // install exchange on OS
-    account.manager.install_module(EXCHANGE, &Empty {}, None)?;
-    // load exchange data into type
+    // install DEX_ADAPTER_ID on OS
+    account
+        .manager
+        .install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
+    // load DEX_ADAPTER_ID data into type
     dex_adapter.set_address(&Addr::unchecked(
-        account.manager.module_info(EXCHANGE)?.unwrap().address,
+        account
+            .manager
+            .module_info(DEX_ADAPTER_ID)?
+            .unwrap()
+            .address,
     ));
 
     Ok((chain, dex_adapter, account, deployment, pool_id))
