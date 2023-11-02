@@ -167,6 +167,9 @@ pub mod mock {
         use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
         use ::cw_orch::prelude::*;
         use ::abstract_sdk::base::Handler;
+        use ::abstract_sdk::features::AccountIdentification;
+        use ::abstract_sdk::{Execution, TransferInterface};
+
 
         type Exec = app::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
         type Query = app::QueryMsg<MockQueryMsg>;
@@ -175,6 +178,7 @@ pub mod mock {
         const MOCK_APP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
         .with_dependencies($deps)
         .with_instantiate(|deps, _env, info, module, msg| {
+            let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());
             // See test `create_sub_account_with_installed_module` where this will be triggered.
             if module.info().0 == "tester:mock-app1" {
                 println!("checking address of adapter1");
@@ -187,8 +191,25 @@ pub mod mock {
                     ::cosmwasm_std::StdError::generic_err("no address")
                 );
                 println!("adapter_addr: {adapter1_addr:?}");
-            };
-            Ok(::cosmwasm_std::Response::new().set_data("mock_init".as_bytes()))});
+                // See test `install_app_with_proxy_action` where this transfer will happen.
+                let proxy_addr = module.proxy_address(deps.as_ref())?;
+                let balance = deps.querier.query_balance(proxy_addr, "TEST")?;
+                if !balance.amount.is_zero() {
+                println!("sending amount from proxy: {balance:?}");
+                    let action = module
+                        .bank(deps.as_ref())
+                        .transfer::<::cosmwasm_std::Coin>(
+                            vec![balance.into()],
+                            &::cosmwasm_std::Addr::unchecked("test_addr"),
+                        )?;
+                    let msg = module.executor(deps.as_ref()).execute(vec![action])?;
+                    println!("message: {msg:?}");
+                    response = response.add_message(msg);
+                }
+                Ok(response)}
+            else {
+                Ok(response)}
+            });
 
         fn mock_instantiate(
             deps: ::cosmwasm_std::DepsMut,

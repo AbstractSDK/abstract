@@ -26,7 +26,7 @@ use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
 
 use common::mock_modules::*;
 use common::{create_default_account, AResult};
-use cosmwasm_std::{coin, to_binary};
+use cosmwasm_std::{coin, coins, to_binary, Uint128};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
@@ -76,7 +76,7 @@ fn install_app_successful() -> AResult {
 
     // install adapter 1
     let adapter1 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
-    
+
     // second dependency still not met
     let res = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1);
     assert_that!(&res).is_err();
@@ -1234,6 +1234,37 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
     let balances = chain.query_all_balances(&account.proxy.address()?)?;
     assert_eq!(balances, vec![coin(1, "coin1"), coin(5, "coin2")]);
     // Make sure all installed
+    Ok(())
+}
+
+// See gen_app_mock for more details
+#[test]
+fn install_app_with_proxy_action() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy } = &account;
+    abstr
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+    deploy_modules(&chain);
+
+    // install adapter 1
+    let adapter1 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
+
+    // install adapter 2
+    let adapter2 = install_module_version(manager, &abstr, adapter_2::MOCK_ADAPTER_ID, V1)?;
+
+    // Add balance to proxy so
+    // app will transfer funds to test addr during instantiation
+    chain.add_balance(&proxy.address()?, coins(123456, "TEST"))?;
+    let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
+
+    let test_addr_balance = chain.query_balance(&Addr::unchecked("test_addr"), "TEST")?;
+    assert_eq!(test_addr_balance, Uint128::new(123456));
+
+    account.expect_modules(vec![adapter1, adapter2, app1])?;
     Ok(())
 }
 
