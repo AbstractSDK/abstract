@@ -255,5 +255,23 @@ mod test {
             assert_eq!(items[0], (1, 69420));
             assert_eq!(items[1], (2, 999));
         }
+
+        #[test]
+        fn works_as_storage_key_with_multiple_chains_in_trace() {
+            let mut deps = mock_dependencies();
+            let key = AccountId {
+                seq: 1,
+                trace: AccountTrace::Remote(vec![
+                    ChainName::from_str("ethereum").unwrap(),
+                    ChainName::from_str("bitcoin").unwrap(),
+                ]),
+            };
+            let map: Map<&AccountId, u64> = Map::new("map");
+
+            let value = 1;
+            map.save(deps.as_mut().storage, &key, &value).unwrap();
+
+            assert_eq!(value, map.load(deps.as_ref().storage, &key).unwrap());
+        }
     }
 }
