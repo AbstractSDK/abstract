@@ -14,8 +14,8 @@ use abstract_core::version_control::AccountBase;
 use abstract_core::{objects::gov_type::GovernanceDetails, PROXY};
 use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, VERSION_CONTROL};
 use abstract_interface::{
-    Abstract, AccountFactory, AnsHost, Manager, ManagerExecFns, ModuleFactory, Proxy, VCExecFns,
-    VersionControl,
+    Abstract, AccountFactory, AnsHost, DeployStrategy, Manager, ManagerExecFns, ModuleFactory,
+    Proxy, VCExecFns, VersionControl,
 };
 use abstract_interface::{AbstractAccount, AdapterDeployer};
 use abstract_testing::prelude::{TEST_MODULE_NAME, TEST_NAMESPACE};
@@ -48,7 +48,7 @@ pub(crate) fn init_mock_adapter(
     let version: Version = version
         .unwrap_or_else(|| CONTRACT_VERSION.to_string())
         .parse()?;
-    staking_adapter.deploy(version, MockInitMsg)?;
+    staking_adapter.deploy(version, MockInitMsg, DeployStrategy::Try)?;
     Ok(staking_adapter)
 }
 

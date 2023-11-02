@@ -4,13 +4,13 @@
 //! These objects are mostly used internally to easy re-use application code without
 //! requiring the usage of a base contract.
 
+use crate::core::PROXY;
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
 pub use abstract_core::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 use abstract_core::version_control::AccountBase;
-use core::PROXY;
 use cosmwasm_std::{Addr, Deps};
 
 /// Store a proxy contract address.

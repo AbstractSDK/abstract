@@ -118,8 +118,8 @@ mod tests {
     }
 
     mod app_request {
+        use crate::core::app;
         use crate::mock_module::MockModuleExecuteMsg;
-        use core::app;
 
         use super::*;
 
@@ -151,14 +151,14 @@ mod tests {
                 .is_ok()
                 .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
-                    msg: to_binary(&expected_msg).unwrap(),
+                    msg: to_json_binary(&expected_msg).unwrap(),
                     funds: vec![],
                 }));
         }
     }
 
     mod app_configure {
-        use core::app;
+        use crate::core::app;
 
         use super::*;
 
@@ -205,7 +205,7 @@ mod tests {
                 .is_ok()
                 .is_equal_to::<CosmosMsg>(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
-                    msg: to_binary(&expected_msg).unwrap(),
+                    msg: to_json_binary(&expected_msg).unwrap(),
                     funds: vec![],
                 }));
         }

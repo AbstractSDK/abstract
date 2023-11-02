@@ -16,6 +16,9 @@ parameters:
   GHA_Meta:
     type: string
     default: ""
+  branch:
+    type: string
+    default: "main"
 
 workflows:
   version: 2
@@ -24,15 +27,25 @@ workflows:
       equal: [ "build_wasms", << pipeline.parameters.GHA_Meta >>]
     jobs:
       - build
+              
   modules-coverage:
     when: 
       equal: [ "modules_coverage", << pipeline.parameters.GHA_Meta >>]
     jobs: 
       - coverage
-  # Add this to give green CI when nothing is ran
+  # add this to give green ci when nothing is ran
   pass:
     jobs:
       - pass
+
+  build-commit-deploy:
+    when:
+      equal: ["build_commit_deploy", << pipeline.parameters.GHA_Meta >>]
+    jobs: 
+      - build
+      - deploy:
+          requires:
+            - build
 
 jobs:
   build:
@@ -52,13 +65,46 @@ jobs:
           command: |
             git config --global user.name 'CircleCI'
             git config --global user.email 'circleci@example.com'
+            # Pull latest changes
+            git pull origin $CIRCLE_BRANCH
+            # Check for changes
             git add framework/artifacts --force
             git add modules/artifacts --force
-            git commit -m 'Update WASM artifacts [skip ci]'
+            git commit -m 'Update WASM binaries [skip ci]'  
+            git push origin $CIRCLE_BRANCH
+
+  deploy:
+    docker:
+      - image: cimg/rust:1.72.0
+    resource_class: large
+    steps:
+      - checkout
+      - run:
+          name: Decode and Deploy 
+          command: |
+            decoded_value=$(echo "$TEST_MNEMONIC_BASE64" | base64 --decode)
+            export TEST_MNEMONIC="$decoded_value"
+            cd framework
+            cargo run --bin full_deploy -- --network-ids $NETWORKS 
+      - run:
+          name: Commit and push deploy file
+          command: |
+            git config --global user.name 'CircleCI'
+            git config --global user.email 'circleci@example.com'
+            git add framework/scripts --force
+            git commit -m 'Update deploy deploy file [skip ci]'
+            git push origin $CIRCLE_BRANCH
+      - run:
+          name: Commit and push state file
+          command: |
+            git config --global user.name 'CircleCI'
+            git config --global user.email 'circleci@example.com'
+            cp ~/.cw-orchestrator/state.json ./framework/scripts/
+            git add ./framework/scripts/state.json
+            git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
 
   coverage:
-    # https://circleci.com/developer/images?imageType=machine
     docker:
       - image: cimg/rust:1.72.0
     resource_class: xlarge

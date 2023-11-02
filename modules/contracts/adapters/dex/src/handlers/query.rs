@@ -3,16 +3,16 @@ use abstract_sdk::features::AccountIdentification;
 
 use crate::exchanges::exchange_resolver::resolve_exchange;
 
-use crate::msg::{
-    DexExecuteMsg, DexQueryMsg, GenerateMessagesResponse, OfferAsset, SimulateSwapResponse,
-};
 use crate::state::SWAP_FEE;
 use crate::{
     contract::{DexAdapter, DexResult},
     exchanges::exchange_resolver,
 };
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
-use abstract_dex_adapter_traits::DexError;
+use abstract_dex_standard::msg::{
+    DexExecuteMsg, DexQueryMsg, GenerateMessagesResponse, OfferAsset, SimulateSwapResponse,
+};
+use abstract_dex_standard::DexError;
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 

@@ -1,9 +1,8 @@
 use abstract_adapter_utils::identity::decompose_platform_name;
 use abstract_adapter_utils::identity::is_available_on;
 use abstract_adapter_utils::identity::is_current_chain;
-use abstract_dex_adapter_traits::{DexCommand, DexError, Identify};
-use cosmwasm_std::Addr;
-use cosmwasm_std::Env;
+use abstract_dex_standard::{DexCommand, DexError, Identify};
+use cosmwasm_std::{Addr, Env};
 
 #[cfg(feature = "terra")]
 use super::terraswap::TERRASWAP;
@@ -53,20 +52,26 @@ pub(crate) fn resolve_exchange(
     proxy_addr: Addr,
 ) -> Result<Box<dyn DexCommand>, DexError> {
     match value {
-        #[cfg(feature = "juno")]
-        JUNOSWAP => Ok(Box::new(JunoSwap {})),
-        #[cfg(feature = "juno")]
-        WYNDEX => Ok(Box::new(WynDex {})),
+        #[cfg(feature = "wynd")]
+        crate::exchanges::junoswap::JUNOSWAP => {
+            Ok(Box::new(crate::exchanges::junoswap::JunoSwap {}))
+        }
+        #[cfg(feature = "wynd")]
+        abstract_wyndex_adapter::WYNDEX => Ok(Box::new(abstract_wyndex_adapter::dex::WynDex {})),
         #[cfg(feature = "osmosis")]
-        OSMOSIS => Ok(Box::new(Osmosis {
-            local_proxy_addr: Some(proxy_addr),
+        abstract_osmosis_adapter::OSMOSIS => Ok(Box::new(abstract_osmosis_adapter::dex::Osmosis {
+            local_proxy_addr: None,
         })),
-        #[cfg(feature = "terra")]
-        TERRASWAP => Ok(Box::new(super::terraswap::Terraswap {})),
-        #[cfg(feature = "terra")]
-        ASTROPORT => Ok(Box::new(abstract_astroport_adapter::dex::Astroport {})),
-        #[cfg(feature = "kujira")]
-        KUJIRA => Ok(Box::new(abstract_kujira_adapter::dex::Kujira {})),
+        #[cfg(feature = "terraswap")]
+        crate::exchanges::terraswap::TERRASWAP => {
+            Ok(Box::new(crate::exchanges::terraswap::Terraswap {}))
+        }
+        #[cfg(feature = "astroport")]
+        abstract_astroport_adapter::ASTROPORT => {
+            Ok(Box::new(abstract_astroport_adapter::dex::Astroport {}))
+        }
+        #[cfg(feature = "bow")]
+        abstract_kujira_adapter::KUJIRA => Ok(Box::new(abstract_kujira_adapter::dex::Kujira {})),
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }

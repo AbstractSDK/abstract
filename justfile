@@ -2,9 +2,9 @@ workspaces := "./framework ./modules ./app-template"
 modules := "./modules/contracts/apps/croncat ./modules/contracts/apps/dca ./modules/contracts/adapters/dex ./modules/contracts/adapters/cw-staking"
 
 docs-install:
-  cargo install mdbook
-  cargo install mdbook-mermaid
-  cargo install mdbook-admonish
+  cargo install mdbook --vers "0.4.21" --locked
+  cargo install mdbook-mermaid --vers "0.12.6" --locked
+  cargo install mdbook-admonish --vers "1.9.0" --locked
 
 # Pull a specific repo from its main remote
 pull repo:
@@ -12,7 +12,7 @@ pull repo:
 
 # Push the local repo to a specific branch
 push repo branch:
-    git subtree pull --prefix={{repo}} {{repo}} {{branch}}
+    git subtree push --prefix={{repo}} {{repo}} {{branch}}
 
 # Run a cargo command in all the workspace repos
 cargo-all *command:

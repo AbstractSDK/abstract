@@ -1,6 +1,6 @@
 [package]
-name = "abstract-challenge-app"
-version = "0.0.1"
+name = "challenge-app"
+version = "0.2.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
@@ -42,22 +42,17 @@ cw-storage-plus = { workspace = true }
 thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
-cw-utils = { workspace = true }
 
 abstract-core = { workspace = true }
 abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
 
-chrono = { workspace = true, default-features = false }
-
 # Dependencies for interface
 abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
-croncat-app = { workspace = true, default-features = false }
-abstract-dex-adapter = { workspace = true, default-features = false }
 
 [dev-dependencies]
-abstract-challenge-app = { path = ".", features = ["interface"] }
+challenge-app = { path = ".", features = ["interface"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
@@ -67,12 +62,3 @@ dotenv = "0.15.0"
 env_logger = "0.10.0"
 cw-orch = { workspace = true, features = ["daemon"] }
 lazy_static = "1.4.0"
-
-croncat-integration-testing = { version = "1.1.1", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
-wyndex-bundle = { workspace = true }
-abstract-dex-adapter = { workspace = true, features = [
-  "interface",
-  "juno",
-  "testing",
-] }
-croncat-app = { workspace = true, features = ["interface"] }

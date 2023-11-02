@@ -7,8 +7,9 @@ use abstract_cw_staking::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AdapterDeployer;
-use abstract_staking_adapter_traits::msg::StakingInfo;
-use cw20::Cw20ExecuteMsgFns;
+use abstract_interface::DeployStrategy;
+use abstract_staking_standard::msg::StakingInfo;
+use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 
 use abstract_core::objects::{AnsAsset, AssetEntry};
@@ -16,7 +17,7 @@ use cw_orch::deploy::Deploy;
 
 use abstract_core::adapter::BaseQueryMsgFns;
 
-use abstract_staking_adapter_traits::msg::{
+use abstract_staking_standard::msg::{
     Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{coin, Addr, Empty, Uint128};
@@ -27,7 +28,7 @@ use wyndex_bundle::{EUR_USD_LP, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER, WY
 
 const WYNDEX: &str = "cosmos-testnet>wyndex";
 
-use abstract_cw_staking::CW_STAKING;
+use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
 use common::create_default_account;
 
 fn setup_mock() -> anyhow::Result<(
@@ -43,9 +44,9 @@ fn setup_mock() -> anyhow::Result<(
     let wyndex = wyndex_bundle::WynDex::store_on(chain.clone())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
-    let staking = CwStakingAdapter::new(CW_STAKING, chain.clone());
+    let staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone());
 
-    staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
+    staking.deploy(CONTRACT_VERSION.parse()?, Empty {}, DeployStrategy::Try)?;
 
     let os = create_default_account(&deployment.account_factory)?;
     let proxy_addr = os.proxy.address()?;
@@ -58,10 +59,14 @@ fn setup_mock() -> anyhow::Result<(
         .transfer(1000u128.into(), proxy_addr.to_string())?;
 
     // install exchange on AbstractAccount
-    os.manager.install_module(CW_STAKING, &Empty {}, None)?;
+    os.manager
+        .install_module(CW_STAKING_ADAPTER_ID, &Empty {}, None)?;
     // load exchange data into type
     staking.set_address(&Addr::unchecked(
-        os.manager.module_info(CW_STAKING)?.unwrap().address,
+        os.manager
+            .module_info(CW_STAKING_ADAPTER_ID)?
+            .unwrap()
+            .address,
     ));
 
     Ok((chain, wyndex, staking, os))
@@ -95,7 +100,7 @@ fn staking_inited() -> anyhow::Result<()> {
     assert_eq!(
         module_data,
         ModuleDataResponse {
-            module_id: CW_STAKING.to_owned(),
+            module_id: CW_STAKING_ADAPTER_ID.to_owned(),
             version: CONTRACT_VERSION.to_owned(),
             dependencies: vec![],
             metadata: None

@@ -174,10 +174,10 @@ mod tests {
         crate::mock::MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
             .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|_, _, _, _| cosmwasm_std::to_binary("mock_query").map_err(Into::into))
+            .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _| {
+            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })])
             .with_replies(&[(1u64, |_, _, _, msg| {

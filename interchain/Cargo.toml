@@ -1,0 +1,107 @@
+[workspace]
+members = ["scripts", "tests"]
+
+# Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
+#
+# Critically this prevents dev-dependencies from enabling features even when not building a target that
+# uses dev-dependencies, e.g. the library crate. This in turn ensures that we can catch invalid feature
+# flag combinations that would otherwise only surface in dependent crates
+#
+# Reference - https://doc.rust-lang.org/nightly/cargo/reference/features.html#feature-resolver-version-2
+# See - https://github.com/apache/arrow-rs/pull/1822/files
+resolver = "2"
+
+[workspace.package]
+version = "0.19.2"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Riada <riada@abstract.money>",
+  "Abstract Money <contact@abstract.money>",
+]
+edition = "2021"
+homepage = "https://abstract.money"
+documentation = "https://docs.abstract.money/"
+repository = "https://github.com/AbstractSDK/abstract"
+license = "GPL-3.0-or-later"
+keywords = ["cosmos", "cosmwasm", "framework"]
+
+[workspace.dependencies]
+cosmwasm-std = { version = "1.2" }
+cosmwasm-schema = { version = "1.2" }
+cw-controllers = { version = "1.0" }
+cw-utils = { version = "1.0" }
+cw-storage-plus = "~1.1"
+cw2 = { version = "1.0" }
+cw20 = { version = "1.0" }
+cw20-base = { version = "1.0", features = ["library"] }
+
+cw-asset = { version = "3.0" }
+cw-ownable = { version = "0.5" }
+cw-address-like = { version = "1.0" }
+
+schemars = "0.8"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0.49" }
+protobuf = { version = "2", features = ["with-bytes"] }
+
+clap = { version = "4.0.32", features = ["derive"] }
+semver = "1.0"
+cw-semver = { version = "1.0" }
+tokio = { version = "1.33.0", features = ["full"] }
+
+cw-orch = { version = "0.16.3" }
+polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }
+polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }
+
+# Keep these as path, creates cirular dependency otherwise
+# Only need to re-publish all contracts if a re-publish of abstract-interface is required
+abstract-interface = { path = "../framework/packages/abstract-interface" }
+abstract-sdk = { version = "0.19.2", path = "../framework/packages/abstract-sdk" }
+abstract-core = { version = "0.19.2", path = "../framework/packages/abstract-core" }
+
+# Modules
+croncat-app = { path = "../modules/contracts/apps/croncat", features = [
+  "interface",
+] }
+challenge-app = { path = "../modules/contracts/apps/challenge", features = [
+  "interface",
+] }
+etf-app = { path = "../modules/contracts/apps/etf", features = ["interface"] }
+dca-app = { path = "../modules/contracts/apps/dca", features = ["interface"] }
+abstract-cw-staking = { path = "../modules/contracts/adapters/cw-staking", features = [
+  "interface",
+] }
+abstract-dex-adapter = { path = "../modules/contracts/adapters/dex", features = [
+  "interface",
+] }
+
+## Testing
+cw-multi-test = { version = "0.16.2" }
+rstest = "0.17.0"
+speculoos = "0.11.0"
+anyhow = "1"
+
+[patch.crates-io]
+abstract-adapter = { path = "../framework/packages/abstract-adapter" }
+abstract-app = { path = "../framework/packages/abstract-app" }
+abstract-interface = { path = "../framework/packages/abstract-interface" }
+abstract-sdk = { path = "../framework/packages/abstract-sdk" }
+abstract-testing = { path = "../framework/packages/abstract-testing" }
+abstract-core = { path = "../framework/packages/abstract-core" }
+abstract-macros = { path = "../framework/packages/abstract-macros" }
+abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
+abstract-dex-standard = { path = "../framework/packages/standards/dex" }
+abstract-staking-standard = { path = "../framework/packages/standards/staking" }
+
+
+# Backup release profile, will result in warnings during optimization
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false

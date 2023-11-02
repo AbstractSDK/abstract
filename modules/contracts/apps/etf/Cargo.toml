@@ -1,5 +1,5 @@
 [package]
-name = "abstract-etf"
+name = "etf-app"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
@@ -38,8 +38,8 @@ cw-asset = { workspace = true }
 abstract-core = { workspace = true }
 abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
-cw-orch = { workspace = true, optional = true }
 
+cw-orch = { workspace = true, optional = true }
 abstract-interface = { workspace = true, optional = true }
 
 [dev-dependencies]
@@ -55,4 +55,5 @@ env_logger = "0.10.0"
 dotenv = "0.15.0"
 clap = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
-abstract-etf = { path = ".", features = ["interface"] }
+etf-app = { path = ".", features = ["interface"] }
+cw-plus-interface.workspace = true

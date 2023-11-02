@@ -6,8 +6,8 @@ use abstract_core::AbstractError;
 
 use abstract_core::{manager::ExecuteMsg, objects::module::assert_module_data_validity};
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coins, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
-    QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
+    ensure_eq, to_json_binary, wasm_execute, Addr, Coins, CosmosMsg, DepsMut, Empty, Env,
+    MessageInfo, QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
@@ -49,24 +49,41 @@ pub fn execute_create_account(
     namespace: Option<String>,
     base_asset: Option<AssetEntry>,
     install_modules: Vec<ModuleInstallConfig>,
+    account_id: Option<AccountId>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
     let governance = governance.verify(deps.as_ref(), config.version_control_contract.clone())?;
+    // If an account_id is provided, assert the caller is the ibc host and return the account_id.
+    // Else get the next account id and set the origin to local.
+    let account_id = if let Some(account_id) = account_id {
+        // if the account_id is provided, assert that the caller is the ibc host
+        let ibc_host = config
+            .ibc_host
+            .ok_or(AccountFactoryError::IbcHostNotSet {})?;
+        ensure_eq!(
+            info.sender,
+            ibc_host,
+            AccountFactoryError::SenderNotIbcHost(info.sender.into(), ibc_host.into())
+        );
+        // then assert that the account trace is remote and properly formatted
+        account_id.trace().verify_remote()?;
+        account_id
+    } else {
+        // else the call is local so we need to look up the account sequence
+        // and set the origin to local
+        let origin = AccountTrace::Local;
 
-    // We want to create a local account
-    // and set the origin to local
-    let origin = AccountTrace::Local;
+        // load the next account id
+        // if it doesn't exist then it's the first account so set it to 0.
+        let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0);
 
-    // load the next account id
-    // if it doesn't exist then it's the first account so set it to 0.
-    let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0);
-
-    // Check if the caller is the owner when instantiating the abstract account
-    if next_sequence == ABSTRACT_ACCOUNT_ID.seq() {
-        cw_ownable::assert_owner(deps.storage, &info.sender)?;
-    }
-    let account_id = AccountId::new(next_sequence, origin)?;
+        // Check if the caller is the owner when instantiating the abstract account
+        if next_sequence == ABSTRACT_ACCOUNT_ID.seq() {
+            cw_ownable::assert_owner(deps.storage, &info.sender)?;
+        }
+        AccountId::new(next_sequence, origin)?
+    };
 
     // Query version_control for code_id of Manager contract
     let module: Module = query_module(&deps.querier, &config.version_control_contract, PROXY)?;
@@ -129,7 +146,7 @@ pub fn execute_create_account(
                 // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
                 label: format!("Proxy of Account: {}", account_id),
-                msg: to_binary(&ProxyInstantiateMsg {
+                msg: to_json_binary(&ProxyInstantiateMsg {
                     account_id,
                     ans_host_address: config.ans_host_contract.to_string(),
                 })?,
@@ -186,7 +203,7 @@ pub fn after_proxy_create_manager(
                 funds: vec![],
                 admin: Some(env.contract.address.into_string()),
                 label: format!("Abstract Account: {}", context.account_id),
-                msg: to_binary(&ManagerInstantiateMsg {
+                msg: to_json_binary(&ManagerInstantiateMsg {
                     account_id: context.account_id,
                     version_control_address: config.version_control_contract.to_string(),
                     module_factory_address: config.module_factory_address.to_string(),
@@ -268,7 +285,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let add_account_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
-        msg: to_binary(&VCExecuteMsg::AddAccount {
+        msg: to_json_binary(&VCExecuteMsg::AddAccount {
             account_id: account_id.clone(),
             account_base,
         })?,
@@ -278,7 +295,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let whitelist_manager: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         funds: vec![],
-        msg: to_binary(&ProxyExecMsg::AddModules {
+        msg: to_json_binary(&ProxyExecMsg::AddModules {
             modules: vec![manager_address.to_string()],
         })?,
     });
@@ -290,7 +307,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
             Ok::<_, StdError>(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: proxy_address.to_string(),
                 funds: vec![],
-                msg: to_binary(&ProxyExecMsg::UpdateAssets {
+                msg: to_json_binary(&ProxyExecMsg::UpdateAssets {
                     to_add: vec![(a, UncheckedPriceSource::None)],
                     to_remove: vec![],
                 })?,
@@ -305,7 +322,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
             Ok::<_, StdError>(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: config.version_control_contract.to_string(),
                 funds: vec![],
-                msg: to_binary(&VCExecuteMsg::ClaimNamespace {
+                msg: to_json_binary(&VCExecuteMsg::ClaimNamespace {
                     account_id: account_id.clone(),
                     namespace: n,
                 })?,
@@ -316,7 +333,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let set_proxy_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         funds: vec![],
-        msg: to_binary(&ProxyExecMsg::SetAdmin {
+        msg: to_json_binary(&ProxyExecMsg::SetAdmin {
             admin: manager_address.to_string(),
         })?,
     });
@@ -341,7 +358,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         manager_address.to_string(),
         &ExecuteMsg::UpdateInternalConfig(
             // Binary format to prevent users from easily calling the endpoint (because that's dangerous.)
-            to_binary(&InternalConfigAction::UpdateModuleAddresses {
+            to_json_binary(&InternalConfigAction::UpdateModuleAddresses {
                 to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
                 to_remove: None,
             })
@@ -397,6 +414,7 @@ pub fn execute_update_config(
     ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
+    ibc_host: Option<String>,
 ) -> AccountFactoryResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
@@ -415,6 +433,11 @@ pub fn execute_update_config(
     if let Some(module_factory_address) = module_factory_address {
         // validate address format
         config.module_factory_address = deps.api.addr_validate(&module_factory_address)?;
+    }
+
+    if let Some(ibc_host) = ibc_host {
+        // validate address format
+        config.ibc_host = Some(deps.api.addr_validate(&ibc_host)?);
     }
     CONFIG.save(deps.storage, &config)?;
 

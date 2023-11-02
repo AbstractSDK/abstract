@@ -1,6 +1,6 @@
 # Setup CI
 
-We use a separate [rust-ci]() repository for CI jobs. 
+We use a separate [rust-ci]() repository for CI jobs.
 
 ## Add the remote rust-ci repo
 

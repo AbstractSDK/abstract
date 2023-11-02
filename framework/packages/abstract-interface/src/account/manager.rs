@@ -1,11 +1,14 @@
 pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_core::{
     adapter,
+    ibc::CallbackInfo,
+    ibc_host::{HelperAction, HostAction},
     manager::*,
     module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse},
     objects::module::{ModuleInfo, ModuleVersion},
+    PROXY,
 };
-use cosmwasm_std::{to_binary, Empty};
+use cosmwasm_std::{to_json_binary, Binary, Empty};
 use cw_orch::environment::TxHandler;
 use cw_orch::interface;
 use cw_orch::prelude::*;
@@ -42,7 +45,7 @@ impl<Chain: CwEnv> Manager<Chain> {
             &ExecuteMsg::Upgrade {
                 modules: vec![(
                     ModuleInfo::from_id(module_id, ModuleVersion::Latest)?,
-                    Some(to_binary(migrate_msg).unwrap()),
+                    Some(to_json_binary(migrate_msg).unwrap()),
                 )],
             },
             None,
@@ -109,7 +112,7 @@ impl<Chain: CwEnv> Manager<Chain> {
             &ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id(module_id, version)?,
-                    Some(to_binary(init_msg).unwrap()),
+                    Some(to_json_binary(init_msg).unwrap()),
                 )],
             },
             funds,
@@ -126,7 +129,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         self.execute(
             &ExecuteMsg::ExecOnModule {
                 module_id: module.into(),
-                exec_msg: to_binary(&msg).unwrap(),
+                exec_msg: to_json_binary(&msg).unwrap(),
             },
             None,
         )
@@ -167,5 +170,83 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<bool, crate::AbstractInterfaceError> {
         let module = self.module_info(module_id)?;
         Ok(module.is_some())
+    }
+
+    /// Helper to create remote accounts
+    pub fn register_remote_account(
+        &self,
+        host_chain: &str,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let result = self.exec_on_module(
+            to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
+                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
+                    host_chain: host_chain.into(),
+                }],
+            })?,
+            PROXY.to_string(),
+            &[],
+        )?;
+
+        Ok(result)
+    }
+
+    pub fn execute_on_remote(
+        &self,
+        host_chain: &str,
+        msg: ExecuteMsg,
+        callback_info: Option<CallbackInfo>,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: host_chain.into(),
+                action: HostAction::Dispatch { manager_msg: msg },
+                callback_info,
+            }],
+        };
+
+        self.execute_on_module(PROXY, msg)
+    }
+
+    pub fn execute_on_remote_module(
+        &self,
+        host_chain: &str,
+        module_id: &str,
+        msg: Binary,
+        callback_info: Option<CallbackInfo>,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: host_chain.into(),
+                action: HostAction::Dispatch {
+                    manager_msg: ExecuteMsg::ExecOnModule {
+                        module_id: module_id.to_string(),
+                        exec_msg: msg,
+                    },
+                },
+                callback_info,
+            }],
+        };
+
+        self.execute_on_module(PROXY, msg)
+    }
+
+    pub fn send_all_funds_back(
+        &self,
+        host_chain: &str,
+        callback_info: Option<CallbackInfo>,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: host_chain.into(),
+                action: HostAction::Helpers(HelperAction::SendAllBack),
+                callback_info,
+            }],
+        };
+
+        self.execute_on_module(PROXY, msg)
     }
 }

@@ -1,12 +1,12 @@
 use abstract_adapter_utils::identity::decompose_platform_name;
 use abstract_adapter_utils::identity::is_available_on;
 use abstract_adapter_utils::identity::is_current_chain;
-use abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError};
+use abstract_staking_standard::{CwStakingCommand, CwStakingError};
 use cosmwasm_std::Env;
 
 use crate::contract::StakingResult;
 
-use abstract_staking_adapter_traits::Identify;
+use abstract_staking_standard::Identify;
 
 /// Any cw-staking provider should be identified by the adapter
 /// This allows erroring the execution before sending any IBC message to another chain
@@ -34,7 +34,7 @@ pub(crate) fn resolve_local_provider(
     name: &str,
 ) -> Result<Box<dyn CwStakingCommand>, CwStakingError> {
     match name {
-        #[cfg(feature = "juno")]
+        #[cfg(feature = "wynd")]
         abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
         }
@@ -42,11 +42,11 @@ pub(crate) fn resolve_local_provider(
         abstract_osmosis_adapter::OSMOSIS => {
             Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default())
         }
-        #[cfg(any(feature = "terra", feature = "neutron"))]
+        #[cfg(feature = "astroport")]
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         }
-        #[cfg(feature = "kujira")]
+        #[cfg(feature = "bow")]
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
         }

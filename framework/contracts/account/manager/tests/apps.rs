@@ -41,7 +41,7 @@ fn execute_on_proxy_through_manager() -> AResult {
     let forwarded_coin: Coin = coin(100, "other_coin");
 
     account.manager.exec_on_module(
-        cosmwasm_std::to_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+        cosmwasm_std::to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
             })],
@@ -73,7 +73,7 @@ fn account_install_app() -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let app = MockApp::new_test(chain);
-    app.deploy(APP_VERSION.parse().unwrap())?;
+    app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
     let app_addr = account.install_app(app, &MockInitMsg, None)?;
     let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
     assert_that!(app_addr).is_equal_to(module_addr);

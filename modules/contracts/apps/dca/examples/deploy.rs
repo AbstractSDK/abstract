@@ -4,8 +4,8 @@ use cw_orch::{
     tokio::runtime::Runtime,
 };
 
-use abstract_dca_app::{contract::DCA_APP_ID, DCAApp};
-use abstract_interface::AppDeployer;
+use abstract_interface::{AppDeployer, DeployStrategy};
+use dca_app::{contract::DCA_APP_ID, DCAApp};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -23,6 +23,6 @@ fn main() -> anyhow::Result<()> {
         .build()?;
     let app = DCAApp::new(DCA_APP_ID, chain);
 
-    app.deploy(version)?;
+    app.deploy(version, DeployStrategy::Try)?;
     Ok(())
 }

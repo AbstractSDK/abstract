@@ -33,7 +33,7 @@ level packages. The only exceptions are `abstract-adapter` and `abstract-app`, w
 
 ### Contracts
 
-1. Upgrade the versions in the [`contracts`](https://github.com/AbstractSDK/contracts) repository to the new version via
+1. Upgrade the versions in the [`contracts`](https://github.com/AbstractSDK/abstract) repository to the new version via
    global find + replace (but be careful).
 2. Run just publish to publish the packages to the new version.
 3. Run just schema

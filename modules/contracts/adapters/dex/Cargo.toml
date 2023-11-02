@@ -30,27 +30,52 @@ required-features = ["osmosis"]
 default = ["export"]
 export = []
 interface = ["dep:abstract-interface", "dep:cw-orch", "export"]
-juno = [
+schema = ["abstract-adapter/schema"]
+testing = ["abstract-wyndex-adapter/local", "abstract-astroport-adapter/local"]
+
+# Supported Dexes
+wynd = [
   "dep:wasmswap",
   "dep:cw20_junoswap",
   "abstract-wyndex-adapter/full_integration",
 ]
-terra = ["dep:terraswap", "abstract-astroport-adapter/full_integration"]
-neutron = ["abstract-astroport-adapter/full_integration"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
-kujira = ["abstract-kujira-adapter/full_integration"]
-schema = ["abstract-adapter/schema"]
-testing = ["abstract-wyndex-adapter/local", "abstract-astroport-adapter/local"]
+astroport = ["abstract-astroport-adapter/full_integration"]
+bow = ["abstract-kujira-adapter/full_integration"]
+terraswap = ["dep:terraswap"]
 
+# Builds
 [package.metadata.optimizer]
-features = ["juno", "terra", "osmosis", "kujira", "neutron"]
+builds = [
+  { name = "juno", features = [
+    "wynd",
+  ] },
+  { name = "terra", features = [
+    "astroport",
+    "terraswap",
+  ] },
+  { name = "neutron", features = [
+    "astroport",
+  ] },
+  { name = "osmosis", features = [
+    "osmosis",
+  ] },
+  { name = "kujira", features = [
+    "bow",
+  ] },
+  { name = "injective", features = [
+    "astroport",
+  ] },
+  { name = "sei", features = [
+    "astroport",
+  ] },
+]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true }
 cw20 = { workspace = true }
-cw20-base = { workspace = true }
 thiserror = { workspace = true }
 cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
@@ -63,7 +88,7 @@ abstract-adapter = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 
 # Local
-abstract-dex-adapter-traits = { workspace = true }
+abstract-dex-standard = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 
 # Wyndex #
@@ -100,7 +125,7 @@ abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 dex = { path = ".", features = [
   "interface",
-  "juno",
+  "wynd",
 ], package = "abstract-dex-adapter" }
 
 abstract-wyndex-adapter = { workspace = true, features = ["local"] }

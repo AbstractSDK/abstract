@@ -7,4 +7,6 @@ Cargo.lock
 .vscode
 .idea
 
+state.json
+
 typescript/node_modules

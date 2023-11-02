@@ -6,7 +6,7 @@ This standard document specifies packet data structure, state machine handling l
 
 ### Motivation
 
-Users of a set of chains connected over the IBC protocol might wish to interact with smart-contracts and dapps present on another chain than their origin, while not having to onboard the distant chain, create a new wallet or transfer the necessary funds to this other chain. This application-layer standard describes a protocol for interacting with a distant chain and creating abstract account on chains connected with IBC which preserves asset ownership, limits the impact of Byzantine faults, and requires no additional permissioning.
+Users of a set of chains connected over the IBC protocol might wish to interact with smart-contracts and dapps present on another chain than their origin, while not having to onboard the remote chain, create a new wallet or transfer the necessary funds to this other chain. This application-layer standard describes a protocol for interacting with a remote chain and creating abstract account on chains connected with IBC which preserves asset ownership, limits the impact of Byzantine faults, and requires no additional permissioning.
 
 ### Definitions
 
@@ -15,7 +15,7 @@ The Abstract IBC Account interface is described in the following guide and the s
 ### Desired Properties
 
 - Preservation of account and funds ownership
-- All interactions that can be done by a local account should be possible for a distant account as well.
+- All interactions that can be done by a local account should be possible for a remote account as well.
 
 ## Technical Specification
 
@@ -399,8 +399,8 @@ and safely alter the packet data format & packet handler semantics.
 
 ## Example Implementations
 
-- Implementation of ICS 20 in Go can be found in [ibc-go repository](https://github.com/cosmos/ibc-go).
-- Implementation of ICS 20 in Rust can be found in [ibc-rs repository](https://github.com/cosmos/ibc-rs).
+- Implementation of ICS 20 in Go can be found in <a href="https://github.com/cosmos/ibc-go" target="_blank">ibc-go repository</a>.
+- Implementation of ICS 20 in Rust can be found in <a href="https://github.com/cosmos/ibc-rs" target="_blank">ibc-rs repository</a>.
 
 ## History
 
@@ -420,4 +420,4 @@ Nov 11, 2022 - Addition of a memo field
 
 ## Copyright
 
-All content herein is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+All content herein is licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache 2.0</a>.

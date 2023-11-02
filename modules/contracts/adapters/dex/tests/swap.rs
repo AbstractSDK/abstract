@@ -2,9 +2,11 @@ use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
 
 use abstract_dex_adapter::contract::CONTRACT_VERSION;
 use abstract_dex_adapter::msg::DexInstantiateMsg;
-use abstract_dex_adapter::EXCHANGE;
+use abstract_dex_adapter::DEX_ADAPTER_ID;
 use abstract_interface::AdapterDeployer;
-use cw20::Cw20ExecuteMsgFns;
+use abstract_interface::DeployStrategy;
+use cw20::msg::Cw20ExecuteMsgFns;
+
 use cw20_base::msg::QueryMsgFns;
 use cw_orch::deploy::Deploy;
 mod common;
@@ -36,7 +38,7 @@ fn setup_mock() -> anyhow::Result<(
     let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
-    let dex_adapter = DexAdapter::new(EXCHANGE, chain.clone());
+    let dex_adapter = DexAdapter::new(DEX_ADAPTER_ID, chain.clone());
 
     dex_adapter.deploy(
         CONTRACT_VERSION.parse()?,
@@ -44,6 +46,7 @@ fn setup_mock() -> anyhow::Result<(
             swap_fee: Decimal::percent(1),
             recipient_account: ABSTRACT_ACCOUNT_ID.seq(),
         },
+        DeployStrategy::Try,
     )?;
 
     let account = create_default_account(&deployment.account_factory)?;
@@ -51,10 +54,16 @@ fn setup_mock() -> anyhow::Result<(
     // mint to proxy
     chain.set_balance(&account.proxy.address()?, vec![coin(10_000, EUR)])?;
     // install exchange on OS
-    account.manager.install_module(EXCHANGE, &Empty {}, None)?;
+    account
+        .manager
+        .install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
     // load exchange data into type
     dex_adapter.set_address(&Addr::unchecked(
-        account.manager.module_info(EXCHANGE)?.unwrap().address,
+        account
+            .manager
+            .module_info(DEX_ADAPTER_ID)?
+            .unwrap()
+            .address,
     ));
 
     Ok((chain, wyndex, dex_adapter, account, deployment))

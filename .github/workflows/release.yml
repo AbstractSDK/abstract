@@ -1,7 +1,4 @@
-name: release-deploy-publish 
-
-# Job that updates the wasms of the mono-repo after a PR is merged to main.
-# Or if it is triggerd manually.
+name: Release and Publish 
 
 on:
   workflow_dispatch:
@@ -14,38 +11,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    if: startsWith(github.ref, 'refs/heads/release/') || github.event_name == 'workflow_dispatch'
     steps:
-      - name: Tickle CircleCI
+      - name: Tickle CircleCI to Build Wasm Binaries
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
-          curl -X POST \
+          BRANCH_NAME=$(echo "${GITHUB_REF}" | sed -e "s/refs\/heads\///")
+          RESPONSE=$(curl -s -X POST \
           -H "Circle-Token: ${CCI_TOKEN}" \
           -H 'Content-Type: application/json' \
           -H 'Accept: application/json' \
           -d '{
-          "branch": "release",
-          "parameters": {
-            "GHA_Meta": "build_wasms"
-          }
-          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+          "branch": "'"$BRANCH_NAME"'",
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Tickle CircleCI for Deploy
-        env:
-          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
-        run: |
-          curl -X POST \
-          -H "Circle-Token: ${CCI_TOKEN}" \
-          -H 'Content-Type: application/json' \
-          -H 'Accept: application/json' \
-          -d '{
-          "branch": "release",
           "parameters": {
-            "GHA_Meta": "deploy_all"
+            "GHA_Meta": "build_commit_deploy"
           }
-          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
+          
+          echo "CircleCI Response: $RESPONSE"

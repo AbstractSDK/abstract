@@ -1,0 +1,12 @@
+/target
+
+artifacts/*
+
+Cargo.lock
+
+.env
+
+.vscode
+.idea
+
+node_modules/

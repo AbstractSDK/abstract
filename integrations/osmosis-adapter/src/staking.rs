@@ -1,7 +1,7 @@
 use crate::AVAILABLE_CHAINS;
 use crate::OSMOSIS;
-use abstract_core::objects::version_control::VersionControlContract;
-use abstract_staking_adapter_traits::Identify;
+use abstract_sdk::core::objects::version_control::VersionControlContract;
+use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
 #[derive(Default)]
@@ -29,7 +29,7 @@ impl Identify for Osmosis {
 pub mod fns {
     use abstract_sdk::features::AbstractRegistryAccess;
     use abstract_sdk::{AbstractSdkError, AccountVerification};
-    use abstract_staking_adapter_traits::msg::{
+    use abstract_staking_standard::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
         UnbondingResponse,
     };
@@ -37,12 +37,12 @@ pub mod fns {
     use osmosis_std::types::osmosis::lockup::{LockupQuerier, MsgBeginUnlockingAll};
     use std::str::FromStr;
 
-    use abstract_core::objects::ans_host::AnsHost;
-    use abstract_core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference};
+    use abstract_sdk::core::objects::ans_host::AnsHost;
+    use abstract_sdk::core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference};
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
     use abstract_sdk::AbstractSdkResult;
-    use abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError};
+    use abstract_staking_standard::{CwStakingCommand, CwStakingError};
     use cosmwasm_std::{
         Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper, StdError, StdResult, Uint128,
     };

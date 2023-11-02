@@ -6,7 +6,7 @@ edition = { workspace = true }
 description = "Abstract IBC Client Contract"
 license = { workspace = true }
 readme = "README.md"
-repository = "https://github.com/AbstractSDK/contracts"
+repository = "https://github.com/AbstractSDK/abstract"
 
 
 [lib]
@@ -18,7 +18,7 @@ default = ["export"]
 export = []
 
 [dependencies]
-cosmwasm-std = { workspace = true }
+cosmwasm-std = { workspace = true, features = ["ibc3", "stargate"] }
 cw-storage-plus = { workspace = true }
 cw-controllers = { workspace = true }
 cw-utils = { workspace = true }
@@ -29,6 +29,9 @@ abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
 cw-semver = { workspace = true }
+polytone-note = { workspace = true, features = ["library"] }
+polytone = { workspace = true }
+cw-paginate = "0.2.1"
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
