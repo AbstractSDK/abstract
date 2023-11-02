@@ -21,7 +21,10 @@ pub trait AbstractNameService: Sized {
     }
 }
 
-impl<T, R: AbstractNameService> AbstractNameService for T where T: From<R> {
+impl<T, R: AbstractNameService> AbstractNameService for T
+where
+    T: From<R>,
+{
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         Self::from::<R>().ans_host(deps)
     }

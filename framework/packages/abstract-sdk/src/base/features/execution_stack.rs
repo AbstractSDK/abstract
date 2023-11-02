@@ -1,14 +1,13 @@
 use crate::{core::objects::AccountId, AccountAction};
+use crate::{AbstractSdkError, AbstractSdkResult};
 use abstract_core::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
     version_control::AccountBase,
 };
-use cosmwasm_std::{Addr, Deps, CosmosMsg, DepsMut, Api, Env};
+use cosmwasm_std::{Addr, Api, CosmosMsg, Deps, DepsMut, Env};
 use cw_storage_plus::Item;
-use crate::{AbstractSdkError, AbstractSdkResult};
 
-
-pub trait DepsAccess<'a:'b, 'b:'c, 'c> {
+pub trait DepsAccess<'a: 'b, 'b: 'c, 'c> {
     fn deps_mut(&'b mut self) -> DepsMut<'c>;
     fn deps(&'b self) -> Deps<'c>;
 
