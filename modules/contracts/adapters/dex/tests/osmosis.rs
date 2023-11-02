@@ -1,4 +1,4 @@
-#![cfg(feature = "osmosis")]
+#![cfg(feature = "osmosis-test")]
 
 use std::format;
 
