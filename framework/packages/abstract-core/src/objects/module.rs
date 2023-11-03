@@ -3,7 +3,7 @@ use crate::objects::fee::FixedFee;
 use crate::objects::module_version::MODULE;
 use crate::objects::namespace::Namespace;
 use crate::{error::AbstractError, AbstractResult};
-use cosmwasm_std::{ensure_eq, to_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
+use cosmwasm_std::{ensure_eq, to_json_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
@@ -343,7 +343,7 @@ impl ModuleInitMsg {
             ModuleInitMsg {
                 fixed_init: Some(_),
                 owner_init: Some(_),
-            } => to_binary(&self),
+            } => to_json_binary(&self),
             // If not, we can simplify by only sending the custom or fixed message.
             ModuleInitMsg {
                 fixed_init: None,

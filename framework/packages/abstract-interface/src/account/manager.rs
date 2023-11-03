@@ -8,7 +8,7 @@ use abstract_core::{
     objects::module::{ModuleInfo, ModuleVersion},
     PROXY,
 };
-use cosmwasm_std::{to_binary, Binary, Empty};
+use cosmwasm_std::{to_json_binary, Binary, Empty};
 use cw_orch::environment::TxHandler;
 use cw_orch::interface;
 use cw_orch::prelude::*;
@@ -45,7 +45,7 @@ impl<Chain: CwEnv> Manager<Chain> {
             &ExecuteMsg::Upgrade {
                 modules: vec![(
                     ModuleInfo::from_id(module_id, ModuleVersion::Latest)?,
-                    Some(to_binary(migrate_msg).unwrap()),
+                    Some(to_json_binary(migrate_msg).unwrap()),
                 )],
             },
             None,
@@ -112,7 +112,7 @@ impl<Chain: CwEnv> Manager<Chain> {
             &ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id(module_id, version)?,
-                    Some(to_binary(init_msg).unwrap()),
+                    Some(to_json_binary(init_msg).unwrap()),
                 )],
             },
             funds,
@@ -129,7 +129,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         self.execute(
             &ExecuteMsg::ExecOnModule {
                 module_id: module.into(),
-                exec_msg: to_binary(&msg).unwrap(),
+                exec_msg: to_json_binary(&msg).unwrap(),
             },
             None,
         )
@@ -179,7 +179,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let result = self.exec_on_module(
-            to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
+            to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
                 msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
                     host_chain: host_chain.into(),
                 }],

@@ -399,8 +399,8 @@ and safely alter the packet data format & packet handler semantics.
 
 ## Example Implementations
 
-- Implementation of ICS 20 in Go can be found in [ibc-go repository](https://github.com/cosmos/ibc-go).
-- Implementation of ICS 20 in Rust can be found in [ibc-rs repository](https://github.com/cosmos/ibc-rs).
+- Implementation of ICS 20 in Go can be found in <a href="https://github.com/cosmos/ibc-go" target="_blank">ibc-go repository</a>.
+- Implementation of ICS 20 in Rust can be found in <a href="https://github.com/cosmos/ibc-rs" target="_blank">ibc-rs repository</a>.
 
 ## History
 
@@ -420,4 +420,4 @@ Nov 11, 2022 - Addition of a memo field
 
 ## Copyright
 
-All content herein is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+All content herein is licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache 2.0</a>.

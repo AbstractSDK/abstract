@@ -6,7 +6,7 @@ use abstract_core::{
     objects::module_version::{ModuleDataResponse, MODULE},
 };
 use abstract_sdk::base::{Handler, QueryEndpoint};
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult};
+use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, StdResult};
 
 /// Where we dispatch the queries for the AdapterContract
 /// These AdapterQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
@@ -35,7 +35,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {
             BaseQueryMsg::BaseConfig {} => {
-                to_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
+                to_json_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
             }
             BaseQueryMsg::AuthorizedAddresses { proxy_address } => {
                 let proxy_address = deps.api.addr_validate(&proxy_address)?;
@@ -44,13 +44,13 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                     .may_load(deps.storage, proxy_address)?
                     .unwrap_or_default();
 
-                to_binary(&AuthorizedAddressesResponse {
+                to_json_binary(&AuthorizedAddressesResponse {
                     addresses: authorized_addrs,
                 })
                 .map_err(Into::into)
             }
             BaseQueryMsg::ModuleData {} => {
-                to_binary(&self.module_data(deps).map_err(Error::from)?).map_err(Into::into)
+                to_json_binary(&self.module_data(deps).map_err(Error::from)?).map_err(Into::into)
             }
         }
     }

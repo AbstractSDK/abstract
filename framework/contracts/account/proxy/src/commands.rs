@@ -392,7 +392,7 @@ mod test {
     mod execute_ibc {
         use abstract_core::{manager, proxy::state::State};
         use abstract_testing::{prelude::TEST_MANAGER, MockQuerierBuilder};
-        use cosmwasm_std::{to_binary, SubMsg};
+        use cosmwasm_std::{to_json_binary, SubMsg};
 
         use super::*;
 
@@ -436,7 +436,7 @@ mod test {
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: "ibc_client_addr".into(),
-                    msg: to_binary(&abstract_core::ibc_client::ExecuteMsg::Register {
+                    msg: to_json_binary(&abstract_core::ibc_client::ExecuteMsg::Register {
                         host_chain: "juno".into(),
                     })
                     .unwrap(),

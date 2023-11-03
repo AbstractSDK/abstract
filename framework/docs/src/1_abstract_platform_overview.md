@@ -70,11 +70,11 @@ easier and faster to build for you.
 The following is the list of products that make up the Abstract platform:
 
 - [Abstract SDK](3_framework/1_abstract_sdk.md): On-chain smart-contract infrastructure.
-- [CW-Orchestrator](1_products/cw_orchestrator.md): Multi-environment CosmWasm smart-contract deployment and scripting
+- [CW-Orchestrator](1_products/1_cw_orchestrator.md): Multi-environment CosmWasm smart-contract deployment and scripting
   library.
-- [Abstract-Testing](1_products/abstract_testing.md): Unit testing utilities for CosmWasm contracts.
-- [Abstract.js](1_products/abstract_js.md): Front-end libraries.
-- [Abstract App Template](1_products/abstract_app_template.md): Starting point for building an Abstract App.
+- [Abstract-Testing](1_products/3_abstract_testing.md): Unit testing utilities for CosmWasm contracts.
+- [Abstract.js](1_products/4_abstract_js.md): Front-end libraries.
+- [Abstract App Template](1_products/2_abstract_app_template.md): Starting point for building an Abstract App.
 - <a href="https://api.abstract.money/" target="_blank">Graphql API Explorer</a>
 
 Feel free to explore them individually at your own pace or follow the documentation as it is presented to you. If you
