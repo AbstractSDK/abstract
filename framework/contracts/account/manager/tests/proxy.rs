@@ -265,10 +265,10 @@ fn install_standalone_versions_not_met() -> AResult {
         .unwrap_err();
 
     if let AbstractInterfaceError::Orch(err) = err {
-        let err: ModuleFactoryError = err.downcast()?;
+        let err: ManagerError = err.downcast()?;
         assert_eq!(
             err,
-            ModuleFactoryError::Abstract(abstract_core::AbstractError::UnequalModuleData {
+            ManagerError::Abstract(abstract_core::AbstractError::UnequalModuleData {
                 cw2: mock_modules::V1.to_owned(),
                 module: mock_modules::V2.to_owned(),
             })

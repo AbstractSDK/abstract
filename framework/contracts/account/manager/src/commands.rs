@@ -285,7 +285,6 @@ pub(crate) fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> Man
             Module {
                 reference: ModuleReference::App(_),
                 info,
-                ..
             } => {
                 assert_module_data_validity(&deps.querier, &module, module_addr.clone())?;
                 let id = info.id();
@@ -294,10 +293,16 @@ pub(crate) fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> Man
                 versioning::set_as_dependent(deps.storage, id, dependencies)?;
             }
             Module {
+                reference: ModuleReference::Standalone(_),
+                info: _,
+            } => {
+                assert_module_data_validity(&deps.querier, &module, module_addr.clone())?;
+            }
+            Module {
                 reference: ModuleReference::Adapter(_),
                 info,
-                ..
             } => {
+                assert_module_data_validity(&deps.querier, &module, module_addr.clone())?;
                 let id = info.id();
                 // assert version requirements
                 let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
