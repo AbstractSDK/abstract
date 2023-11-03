@@ -19,7 +19,7 @@ use wyndex_bundle::WynDex;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{coin, coins, to_binary, Addr, Decimal, Uint128};
+use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, Uint128};
 
 // consts for testing
 const ADMIN: &str = "admin";
@@ -359,7 +359,7 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     cw20_token.call_as(&tipper).send(
         Uint128::from(tip_amount),
         app.address()?.to_string(),
-        to_binary("")?,
+        to_json_binary("")?,
     )?;
 
     let tipper_balance = cw20_token.balance(tipper.to_string())?.balance;

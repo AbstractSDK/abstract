@@ -6,7 +6,11 @@ use abstract_core::{
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
         ListIbcInfrastructureResponse, ListRemoteHostsResponse, ListRemoteProxiesResponse,
     },
-    objects::{chain_name::ChainName, AccountId},
+    objects::{
+        account::{AccountSequence, AccountTrace},
+        chain_name::ChainName,
+        AccountId,
+    },
     AbstractError,
 };
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
@@ -19,10 +23,12 @@ pub fn list_accounts(
     start: Option<(AccountId, String)>,
     limit: Option<u32>,
 ) -> IbcClientResult<ListAccountsResponse> {
-    let start = start
+    let start: Option<(AccountTrace, AccountSequence, ChainName)> = start
         .map(|s| {
+            let account_id: AccountId = s.0;
             let chain = ChainName::from_str(&s.1)?;
-            Ok::<_, AbstractError>((s.0, chain))
+            let (trace, seq) = account_id.decompose();
+            Ok::<_, AbstractError>((trace, seq, chain))
         })
         .transpose()?;
 
@@ -33,12 +39,35 @@ pub fn list_accounts(
     )> = cw_paginate::paginate_map(
         &ACCOUNTS,
         deps.storage,
-        start.as_ref().map(|s| Bound::exclusive((&s.0, &s.1))),
+        start.as_ref().map(|s| Bound::exclusive((&s.0, s.1, &s.2))),
         limit,
-        |(a, c), s| Ok::<_, StdError>((a, c, s)),
+        |(trace, seq, chain), address| {
+            // We can unwrap since the trace has been verified when the account was registered.
+            Ok::<_, StdError>((AccountId::new(seq, trace).unwrap(), chain, address))
+        },
     )?;
 
     Ok(ListAccountsResponse { accounts })
+}
+
+pub fn list_proxies_by_account_id(
+    deps: Deps,
+    account_id: AccountId,
+) -> IbcClientResult<ListRemoteProxiesResponse> {
+    let proxies: Vec<(
+        abstract_core::objects::chain_name::ChainName,
+        Option<String>,
+    )> = cw_paginate::paginate_map_prefix(
+        &ACCOUNTS,
+        deps.storage,
+        (account_id.trace(), account_id.seq()),
+        // Not using pagination as there are not a lot of chains.
+        None,
+        None,
+        |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
+    )?;
+
+    Ok(ListRemoteProxiesResponse { proxies })
 }
 
 // No need for pagination here, not a lot of chains
@@ -98,6 +127,9 @@ pub fn account(
     account_id: AccountId,
 ) -> IbcClientResult<AccountResponse> {
     let host_chain = ChainName::from_str(&host_chain)?;
-    let remote_proxy_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
+    let remote_proxy_addr = ACCOUNTS.load(
+        deps.storage,
+        (account_id.trace(), account_id.seq(), &host_chain),
+    )?;
     Ok(AccountResponse { remote_proxy_addr })
 }

@@ -330,7 +330,7 @@ mod tests {
     use cosmwasm_std::Decimal256;
 
     use cosmwasm_std::coin;
-    use cosmwasm_std::from_binary;
+    use cosmwasm_std::from_json;
     use cosmwasm_std::CosmosMsg;
     use cosmwasm_std::WasmMsg;
     use kujira::bow;
@@ -372,7 +372,7 @@ mod tests {
 
     fn get_wasm_msg<T: for<'de> Deserialize<'de>>(msg: CosmosMsg) -> T {
         match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_binary(&msg).unwrap(),
+            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_json(msg).unwrap(),
             _ => panic!("Expected execute wasm msg, got a different enum"),
         }
     }

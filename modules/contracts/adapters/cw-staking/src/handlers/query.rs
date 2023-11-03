@@ -4,7 +4,7 @@ use crate::{
 };
 use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
 use abstract_staking_standard::{msg::StakingQueryMsg, CwStakingError};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 /// Handle queries related to staking
 pub fn query_handler(
     deps: Deps,
@@ -37,7 +37,7 @@ pub fn query_handler(
                     &version_control_contract,
                     staking_tokens,
                 )?;
-                Ok(to_binary(&provider.query_info(&deps.querier)?)?)
+                Ok(to_json_binary(&provider.query_info(&deps.querier)?)?)
             }
         }
         StakingQueryMsg::Staked {
@@ -63,7 +63,7 @@ pub fn query_handler(
                     &version_control_contract,
                     staking_tokens,
                 )?;
-                Ok(to_binary(&provider.query_staked(
+                Ok(to_json_binary(&provider.query_staked(
                     &deps.querier,
                     deps.api.addr_validate(&staker_address)?,
                     stakes,
@@ -92,7 +92,7 @@ pub fn query_handler(
                     &version_control_contract,
                     staking_tokens,
                 )?;
-                Ok(to_binary(&provider.query_unbonding(
+                Ok(to_json_binary(&provider.query_unbonding(
                     &deps.querier,
                     deps.api.addr_validate(&staker_address)?,
                 )?)?)
@@ -118,7 +118,7 @@ pub fn query_handler(
                     &version_control_contract,
                     staking_tokens,
                 )?;
-                Ok(to_binary(&provider.query_rewards(&deps.querier)?)?)
+                Ok(to_json_binary(&provider.query_rewards(&deps.querier)?)?)
             }
         }
     }

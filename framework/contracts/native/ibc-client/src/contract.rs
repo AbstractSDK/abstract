@@ -108,6 +108,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespo
         QueryMsg::ListIbcInfrastructures {} => {
             to_json_binary(&queries::list_ibc_counterparts(deps)?)
         }
+        QueryMsg::ListRemoteProxiesByAccountId { account_id } => {
+            to_json_binary(&queries::list_proxies_by_account_id(deps, account_id)?)
+        }
     }
     .map_err(Into::into)
 }
@@ -288,7 +291,7 @@ mod tests {
 
         use abstract_core::objects::chain_name::ChainName;
         use abstract_testing::prelude::TEST_CHAIN;
-        use cosmwasm_std::wasm_execute;
+        use cosmwasm_std::{from_json, wasm_execute};
         use polytone::callbacks::CallbackRequest;
 
         use crate::commands::PACKET_LIFETIME;
@@ -370,21 +373,59 @@ mod tests {
 
             // Verify IBC_INFRA
             let ibc_infra = IBC_INFRA.load(deps.as_ref().storage, &chain_name)?;
+            let expected_ibc_infra = IbcInfrastructure {
+                polytone_note: Addr::unchecked(note.clone()),
+                remote_abstract_host: host.clone(),
+                remote_proxy: None,
+            };
 
-            assert_eq!(
-                IbcInfrastructure {
-                    polytone_note: Addr::unchecked(note.clone()),
-                    remote_abstract_host: host,
-                    remote_proxy: None,
-                },
-                ibc_infra
-            );
+            assert_eq!(expected_ibc_infra, ibc_infra);
 
             // Verify REVERSE_POLYTONE_NOTE
             let reverse_note =
                 REVERSE_POLYTONE_NOTE.load(deps.as_ref().storage, &Addr::unchecked(note))?;
 
             assert_eq!(chain_name, reverse_note);
+
+            // Verify queries
+            let host_response: HostResponse = from_json(query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::Host {
+                    chain_name: chain_name.to_string(),
+                },
+            )?)?;
+            assert_eq!(
+                HostResponse {
+                    remote_host: host.clone(),
+                    remote_polytone_proxy: None
+                },
+                host_response
+            );
+
+            let remote_hosts_response: ListRemoteHostsResponse = from_json(query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::ListRemoteHosts {},
+            )?)?;
+            let hosts = remote_hosts_response.hosts;
+            assert_eq!(vec![(chain_name.clone(), host)], hosts);
+
+            let remote_proxies_response: ListRemoteProxiesResponse = from_json(query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::ListRemoteProxies {},
+            )?)?;
+            let hosts = remote_proxies_response.proxies;
+            assert_eq!(vec![(chain_name.clone(), None)], hosts);
+
+            let ibc_infratructures_response: ListIbcInfrastructureResponse = from_json(query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::ListIbcInfrastructures {},
+            )?)?;
+            let hosts = ibc_infratructures_response.counterparts;
+            assert_eq!(vec![(chain_name, expected_ibc_infra)], hosts);
 
             Ok(())
         }
@@ -736,7 +777,7 @@ mod tests {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                (&TEST_ACCOUNT_ID, &chain_name),
+                (TEST_ACCOUNT_ID.trace(), TEST_ACCOUNT_ID.seq(), &chain_name),
                 &remote_addr,
             )?;
 
@@ -965,7 +1006,11 @@ mod tests {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                (&TEST_ACCOUNT_ID, &ChainName::from_str("channel")?),
+                (
+                    TEST_ACCOUNT_ID.trace(),
+                    TEST_ACCOUNT_ID.seq(),
+                    &ChainName::from_str("channel")?,
+                ),
                 &"Some-remote-account".to_string(),
             )?;
 
@@ -1049,7 +1094,7 @@ mod tests {
             objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
         };
         use abstract_testing::prelude::TEST_CHAIN;
-        use cosmwasm_std::{Binary, Event, SubMsgResponse};
+        use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
         use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
         use std::str::FromStr;
 
@@ -1367,10 +1412,60 @@ mod tests {
                 res
             );
 
-            let saved_account =
-                ACCOUNTS.load(deps.as_ref().storage, (&TEST_ACCOUNT_ID, &chain_name))?;
+            let saved_account = ACCOUNTS.load(
+                deps.as_ref().storage,
+                (TEST_ACCOUNT_ID.trace(), TEST_ACCOUNT_ID.seq(), &chain_name),
+            )?;
 
             assert_eq!(remote_proxy, saved_account);
+
+            // Verify queries
+            let account_response: AccountResponse = from_json(query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::Account {
+                    chain: chain_name.to_string(),
+                    account_id: TEST_ACCOUNT_ID,
+                },
+            )?)?;
+
+            assert_eq!(
+                AccountResponse {
+                    remote_proxy_addr: remote_proxy.clone()
+                },
+                account_response
+            );
+
+            let accounts_response: ListAccountsResponse = from_json(query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::ListAccounts {
+                    start: None,
+                    limit: None,
+                },
+            )?)?;
+
+            assert_eq!(
+                ListAccountsResponse {
+                    accounts: vec![(TEST_ACCOUNT_ID, chain_name.clone(), remote_proxy.clone())]
+                },
+                accounts_response
+            );
+
+            let proxies_response: ListRemoteProxiesResponse = from_json(query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::ListRemoteProxiesByAccountId {
+                    account_id: TEST_ACCOUNT_ID,
+                },
+            )?)?;
+
+            assert_eq!(
+                ListRemoteProxiesResponse {
+                    proxies: vec![(chain_name, Some(remote_proxy))]
+                },
+                proxies_response
+            );
 
             Ok(())
         }
