@@ -61,7 +61,7 @@ pub struct ManagerResponse;
 
 pub(crate) const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
 
-pub(crate) const INSTALL_MODULES_CONTEXT: Item<Vec<ModuleResponse>> = Item::new("icontext");
+pub(crate) const INSTALL_MODULES_CONTEXT: Item<Vec<(Module, Option<Addr>)>> = Item::new("icontext");
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
@@ -161,8 +161,7 @@ pub(crate) fn install_modules_internal(
         &abstract_core::version_control::QueryMsg::Modules { infos },
     )?;
 
-    INSTALL_MODULES_CONTEXT.save(deps.storage, &modules)?;
-
+    let mut install_context = Vec::with_capacity(modules.len());
     let mut to_add = Vec::with_capacity(modules.len());
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
         // Check if module is already enabled.
@@ -174,9 +173,10 @@ pub(crate) fn install_modules_internal(
         }
         installed_modules.push(module.info.id_with_version());
 
-        let init_msg_salt = match module.reference {
+        let init_msg_salt = match &module.reference {
             ModuleReference::Adapter(module_address) => {
                 to_add.push((module.info.id(), module_address.to_string()));
+                install_context.push((module.clone(), None));
                 None
             }
             ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
@@ -185,7 +185,7 @@ pub(crate) fn install_modules_internal(
                 code_id_bytes.swap_with_slice(&mut code_id.to_be_bytes());
                 let salt = Binary::from(salt_bytes.as_slice());
 
-                let checksum = deps.querier.query_wasm_code_info(code_id)?.checksum;
+                let checksum = deps.querier.query_wasm_code_info(*code_id)?.checksum;
                 let module_address = cosmwasm_std::instantiate2_address(
                     &checksum,
                     &canonical_module_factory,
@@ -193,6 +193,7 @@ pub(crate) fn install_modules_internal(
                 )?;
                 let module_address = deps.api.addr_humanize(&module_address)?;
                 to_add.push((module.info.id(), module_address.to_string()));
+                install_context.push((module.clone(), Some(module_address)));
 
                 Some((init_msg.unwrap(), salt))
             }
@@ -201,6 +202,8 @@ pub(crate) fn install_modules_internal(
         };
         manager_modules.push(ModuleInstallConfig::new(module.info, init_msg_salt));
     }
+
+    INSTALL_MODULES_CONTEXT.save(deps.storage, &install_context)?;
 
     let (_, add_modules): (Vec<_>, Vec<_>) = to_add.iter().cloned().unzip();
     update_module_addresses(deps.branch(), Some(to_add), None)?;
@@ -274,18 +277,17 @@ pub fn register_modules(
 }
 
 /// Adds the modules dependencies
-pub fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> ManagerResult {
-    let config = CONFIG.load(deps.storage)?;
-
+pub(crate) fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> ManagerResult {
     let modules = INSTALL_MODULES_CONTEXT.load(deps.storage)?;
 
-    for ModuleResponse { module, .. } in modules {
+    for (module, module_addr) in &modules {
         match module {
             Module {
                 reference: ModuleReference::App(_),
                 info,
                 ..
             } => {
+                assert_module_data_validity(&deps.querier, &module, module_addr.clone())?;
                 let id = info.id();
                 // assert version requirements
                 let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
