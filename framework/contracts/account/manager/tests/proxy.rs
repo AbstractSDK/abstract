@@ -1,7 +1,7 @@
 mod common;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_core::adapter::AdapterRequestMsg;
-use abstract_core::manager::{ModuleVersionsResponse, ManagerModuleInstall};
+use abstract_core::manager::{ManagerModuleInstall, ModuleVersionsResponse};
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};

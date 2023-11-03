@@ -201,8 +201,6 @@ pub enum ExecuteMsg {
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
     RegisterModules { modules: Vec<RegisterModuleData> },
-    /// Register modules dependencies
-    RegisterDependencies { modules: Vec<RegisterModuleData> },
     /// Uninstall a module given its ID.
     UninstallModule { module_id: String },
     /// Upgrade the module to a new version

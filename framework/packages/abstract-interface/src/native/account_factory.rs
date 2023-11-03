@@ -4,9 +4,10 @@ pub use abstract_core::account_factory::{
 };
 use abstract_core::{
     account_factory::*,
+    manager::ManagerModuleInstall,
     module_factory::ModuleInstallConfig,
     objects::{gov_type::GovernanceDetails, AssetEntry},
-    ABSTRACT_EVENT_TYPE, MANAGER, PROXY, manager::ManagerModuleInstall,
+    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
 use cosmwasm_std::Addr;
 use cw_orch::{interface, prelude::*};

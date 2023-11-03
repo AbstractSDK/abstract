@@ -1,5 +1,5 @@
 use crate::{
-    commands::*,
+    commands::{self, *},
     error::ManagerError,
     queries::{self, handle_sub_accounts_query},
     queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
@@ -17,7 +17,7 @@ use abstract_sdk::core::{
     MANAGER,
 };
 use cosmwasm_std::{
-    ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+    ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError, StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
@@ -118,9 +118,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 }
                 ExecuteMsg::RegisterModules { modules } => {
                     register_modules(deps, info, env, modules)
-                }
-                ExecuteMsg::RegisterDependencies { modules } => {
-                    register_dependencies(deps, info, env, modules)
                 }
                 ExecuteMsg::ExecOnModule {
                     module_id,
@@ -225,6 +222,16 @@ pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> Manage
 
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
     Ok(Response::new())
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ManagerResult {
+    match msg.id {
+        commands::REGISTER_MODULES_DEPENDENCIES => {
+            commands::register_dependencies(deps, msg.result)
+        }
+        _ => Err(ManagerError::UnexpectedReply {}),
+    }
 }
 
 #[cfg(test)]

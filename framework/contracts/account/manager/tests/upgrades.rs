@@ -1062,7 +1062,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                             },
                         })?),
                     ),
-                    ModuleInstallConfig::new(
+                    ManagerModuleInstall::new(
                         ModuleInfo {
                             namespace: Namespace::new("tester")?,
                             name: "standalone".to_owned(),

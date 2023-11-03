@@ -13,13 +13,14 @@ pub mod state {
     use serde::{Deserialize, Serialize};
 
     use crate::{
+        manager::ManagerModuleInstall,
         native::module_factory::ModuleInstallConfig,
         objects::{
             account::{AccountId, AccountSequence},
             gov_type::GovernanceDetails,
             module::Module,
             AssetEntry,
-        }, manager::ManagerModuleInstall,
+        },
     };
 
     /// Account Factory configuration
@@ -64,12 +65,13 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
 use crate::{
+    manager::ManagerModuleInstall,
     native::module_factory::ModuleInstallConfig,
     objects::{
         account::{AccountId, AccountSequence, AccountTrace},
         gov_type::GovernanceDetails,
         AssetEntry,
-    }, manager::ManagerModuleInstall,
+    },
 };
 
 /// Msg used on instantiation

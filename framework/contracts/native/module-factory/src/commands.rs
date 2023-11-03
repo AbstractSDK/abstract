@@ -172,31 +172,10 @@ pub fn execute_create_modules(
         ],
     )
     .add_messages(fee_msgs)
-    .add_message(register_modules_msg);
+    // .add_message(register_modules_msg)
+    .add_messages(module_instantiate_messages);
 
-    if module_instantiate_messages.is_empty() {
-        Ok(response.add_message(wasm_execute(
-            // manager
-            info.sender,
-            &ManagerMsg::RegisterDependencies {
-                modules: context.modules_to_register,
-            },
-            vec![],
-        )?))
-    } else {
-        let last_installed_module_msg = module_instantiate_messages.pop().unwrap();
-        let last_installed_module_submsg = SubMsg {
-            id: CHECK_MODULES_VALIDITY,
-            msg: last_installed_module_msg,
-            gas_limit: None,
-            reply_on: ReplyOn::Success,
-        };
-        // Order of register-instantiate is important, we want to register modules
-        // so modules can do actions on account and other modules during instantiate
-        Ok(response
-            .add_messages(module_instantiate_messages)
-            .add_submessage(last_installed_module_submsg))
-    }
+    Ok(response)
 }
 
 fn instantiate2_contract(
@@ -232,27 +211,10 @@ fn instantiate2_contract(
 pub fn handle_reply(deps: DepsMut, _result: SubMsgResult) -> ModuleFactoryResult {
     let context: Context = CONTEXT.load(deps.storage)?;
 
-    for RegisterModuleData {
-        module_address,
-        module,
-    } in &context.modules_to_register
-    {
-        module::assert_module_data_validity(
-            &deps.querier,
-            module,
-            Some(Addr::unchecked(module_address)),
-        )?;
-    }
-
     CONTEXT.remove(deps.storage);
-    Ok(cosmwasm_std::Response::new().add_message(wasm_execute(
-        // manager
-        context.account_base.manager,
-        &ManagerMsg::RegisterDependencies {
-            modules: context.modules_to_register,
-        },
-        vec![],
-    )?))
+
+    panic!("shouldn't get here");
+    Ok(cosmwasm_std::Response::new())
 }
 
 pub fn register_modules(
