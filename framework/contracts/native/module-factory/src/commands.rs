@@ -1,5 +1,3 @@
-use abstract_core::objects::AccountId;
-
 use abstract_core::objects::module;
 
 use crate::contract::ModuleFactoryResponse;
@@ -17,12 +15,9 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    to_json_vec, wasm_execute, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
-    DepsMut, Empty, Env, MessageInfo, ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+    wasm_execute, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps, DepsMut,
+    Empty, Env, MessageInfo, StdResult, SubMsgResult, WasmMsg,
 };
-use protobuf::Message;
-
-pub const CHECK_MODULES_VALIDITY: u64 = 1u64;
 
 /// Function that starts the creation of the Modules
 pub fn execute_create_modules(
@@ -155,14 +150,10 @@ pub fn execute_create_modules(
         .into());
     }
 
-    let context = Context {
-        account_base,
-        modules_to_register,
-    };
+    let context = Context { account_base };
     CONTEXT.save(deps.storage, &context)?;
 
-    let (register_modules_msg, new_modules) =
-        register_modules(context.modules_to_register.clone(), context.account_base)?;
+    let new_modules = new_module_addrs(&modules_to_register)?;
 
     let response = ModuleFactoryResponse::new(
         "create_modules",
@@ -207,35 +198,14 @@ fn instantiate2_contract(
     ))
 }
 
-// TODO: make it check installed modules or remove
-pub fn handle_reply(deps: DepsMut, _result: SubMsgResult) -> ModuleFactoryResult {
-    let context: Context = CONTEXT.load(deps.storage)?;
-
-    CONTEXT.remove(deps.storage);
-
-    panic!("shouldn't get here");
-    Ok(cosmwasm_std::Response::new())
-}
-
-pub fn register_modules(
-    modules_to_register: Vec<RegisterModuleData>,
-    account_base: AccountBase,
-) -> ModuleFactoryResult<(CosmosMsg, String)> {
+pub fn new_module_addrs(modules_to_register: &[RegisterModuleData]) -> ModuleFactoryResult<String> {
     let module_addrs = modules_to_register
         .iter()
         .map(|reg| reg.module_address.as_str())
         .collect::<Vec<&str>>()
         .join(",");
-    let register_msg: CosmosMsg<Empty> = wasm_execute(
-        account_base.manager.into_string(),
-        &ManagerMsg::RegisterModules {
-            modules: modules_to_register,
-        },
-        vec![],
-    )?
-    .into();
 
-    Ok((register_msg, module_addrs))
+    Ok(module_addrs)
 }
 
 // Only owner can execute it

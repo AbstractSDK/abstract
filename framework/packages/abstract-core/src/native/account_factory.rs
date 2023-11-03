@@ -14,7 +14,6 @@ pub mod state {
 
     use crate::{
         manager::ManagerModuleInstall,
-        native::module_factory::ModuleInstallConfig,
         objects::{
             account::{AccountId, AccountSequence},
             gov_type::GovernanceDetails,
@@ -66,7 +65,6 @@ use cosmwasm_std::Addr;
 
 use crate::{
     manager::ManagerModuleInstall,
-    native::module_factory::ModuleInstallConfig,
     objects::{
         account::{AccountId, AccountSequence, AccountTrace},
         gov_type::GovernanceDetails,
