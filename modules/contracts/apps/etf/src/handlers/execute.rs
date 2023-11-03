@@ -8,7 +8,7 @@ use abstract_sdk::{
     core::proxy::AssetsInfoResponse, cw_helpers::wasm_smart_query, features::AbstractResponse, *,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response,
+    to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response,
     Uint128, WasmMsg,
 };
 use cosmwasm_std::{QuerierWrapper, StdResult};
@@ -108,7 +108,7 @@ pub fn try_provide_liquidity(
     // mint LP token to depositor
     let mint_lp = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: state.share_token_address.to_string(),
-        msg: to_binary(&Cw20ExecuteMsg::Mint {
+        msg: to_json_binary(&Cw20ExecuteMsg::Mint {
             recipient: depositor.to_string(),
             amount: share,
         })?,

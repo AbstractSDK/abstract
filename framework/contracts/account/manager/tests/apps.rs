@@ -41,7 +41,7 @@ fn execute_on_proxy_through_manager() -> AResult {
     let forwarded_coin: Coin = coin(100, "other_coin");
 
     account.manager.exec_on_module(
-        cosmwasm_std::to_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+        cosmwasm_std::to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
             })],

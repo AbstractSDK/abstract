@@ -21,7 +21,7 @@ use ::{
     },
     abstract_sdk::core::objects::PoolAddress,
     abstract_sdk::cw_helpers::wasm_smart_query,
-    cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
+    cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
     wyndex::{
@@ -63,7 +63,7 @@ impl DexCommand<DexError> for WynDex {
                 &Cw20ExecuteMsg::Send {
                     contract: pair_address.to_string(),
                     amount: offer_asset.amount,
-                    msg: to_binary(&Cw20HookMsg::Swap {
+                    msg: to_json_binary(&Cw20HookMsg::Swap {
                         ask_asset_info: None,
                         belief_price,
                         max_spread,
@@ -239,7 +239,7 @@ impl DexCommand<DexError> for WynDex {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
         let hook_msg = Cw20HookMsg::WithdrawLiquidity { assets: vec![] };
-        let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
+        let withdraw_msg = lp_token.send_msg(pair_address, to_json_binary(&hook_msg)?)?;
         Ok(vec![withdraw_msg])
     }
 

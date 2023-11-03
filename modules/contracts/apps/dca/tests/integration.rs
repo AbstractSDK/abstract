@@ -43,7 +43,7 @@ use cw_multi_test::{App, Executor};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{coin, coins, to_binary, Addr, Decimal, StdError, Uint128};
+use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, StdError, Uint128};
 use wyndex_bundle::{WynDex, EUR, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN};
 
 #[allow(unused)]
@@ -126,7 +126,7 @@ fn setup_croncat_contracts(
         checksum: "checksum123".to_owned(),
         changelog_url: None,
         schema: None,
-        msg: to_binary(&msg).unwrap(),
+        msg: to_json_binary(&msg).unwrap(),
         contract_name: MANAGER_NAME.to_owned(),
     };
     app.execute_contract(
@@ -165,7 +165,7 @@ fn setup_croncat_contracts(
         checksum: "checksum321".to_owned(),
         changelog_url: None,
         schema: None,
-        msg: to_binary(&msg).unwrap(),
+        msg: to_json_binary(&msg).unwrap(),
         contract_name: AGENTS_NAME.to_owned(),
     };
     app.execute_contract(
@@ -200,7 +200,7 @@ fn setup_croncat_contracts(
         checksum: "checksum2".to_owned(),
         changelog_url: None,
         schema: None,
-        msg: to_binary(&msg).unwrap(),
+        msg: to_json_binary(&msg).unwrap(),
         contract_name: TASKS_NAME.to_owned(),
     };
     app.execute_contract(

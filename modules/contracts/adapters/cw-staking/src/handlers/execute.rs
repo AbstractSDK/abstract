@@ -10,7 +10,7 @@ use abstract_sdk::{IbcInterface, Resolve};
 use abstract_staking_standard::msg::{
     ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
 };
-use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
 
 /// Execute staking operation locally or over IBC
 pub fn execute_handler(
@@ -74,7 +74,7 @@ fn handle_ibc_request(
     let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
         manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
             module_id: CW_STAKING_ADAPTER_ID.to_string(),
-            exec_msg: to_binary::<ExecuteMsg>(
+            exec_msg: to_json_binary::<ExecuteMsg>(
                 &StakingExecuteMsg {
                     provider: provider_name.clone(),
                     action: action.clone(),
@@ -91,7 +91,7 @@ fn handle_ibc_request(
     } else {
         Some(CallbackInfo {
             id: IBC_STAKING_PROVIDER_ID.into(),
-            msg: Some(to_binary(&StakingExecuteMsg {
+            msg: Some(to_json_binary(&StakingExecuteMsg {
                 provider: provider_name.clone(),
                 action: action.clone(),
             })?),

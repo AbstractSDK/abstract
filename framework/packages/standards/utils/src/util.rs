@@ -1,4 +1,4 @@
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, StdResult, WasmMsg};
+use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg, StdResult, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo};
 
@@ -13,7 +13,7 @@ pub fn cw_approve_msgs(assets: &[Asset], spender: &Addr) -> StdResult<Vec<Cosmos
             };
             msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: addr.to_string(),
-                msg: to_binary(&msg)?,
+                msg: to_json_binary(&msg)?,
                 funds: vec![],
             }))
         }

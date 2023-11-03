@@ -11,7 +11,7 @@ use abstract_core::{
     objects::chain_name::ChainName,
 };
 use abstract_sdk::core::ibc_client::state::ACCOUNTS;
-use cosmwasm_std::{from_binary, DepsMut, Env, MessageInfo};
+use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 
 use polytone::callbacks::{Callback, CallbackMessage};
 
@@ -36,7 +36,7 @@ pub fn receive_action_callback(
 
     // 2. From here on, we can trust the message that we are receiving
 
-    let callback_msg: IbcClientCallback = from_binary(&callback.initiator_msg)?;
+    let callback_msg: IbcClientCallback = from_json(&callback.initiator_msg)?;
 
     match callback_msg {
         IbcClientCallback::WhoAmI {} => {
@@ -77,7 +77,7 @@ pub fn receive_action_callback(
                 // We need to store the account address in the IBC client for interactions that may need it locally
                 ACCOUNTS.save(
                     deps.storage,
-                    (&account_id, &host_chain),
+                    (account_id.trace(), account_id.seq(), &host_chain),
                     remote_proxy_address,
                 )?;
             } else {

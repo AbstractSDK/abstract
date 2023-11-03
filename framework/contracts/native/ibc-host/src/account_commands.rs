@@ -17,7 +17,7 @@ use abstract_sdk::{
     AbstractSdkError, AccountVerification, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response, SubMsg,
+    to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response, SubMsg,
 };
 
 // one hour
@@ -144,7 +144,7 @@ pub fn send_all_back(
         account.manager,
         &manager::ExecuteMsg::ExecOnModule {
             module_id: PROXY.into(),
-            exec_msg: to_binary(&proxy::ExecuteMsg::ModuleAction { msgs })?,
+            exec_msg: to_json_binary(&proxy::ExecuteMsg::ModuleAction { msgs })?,
         },
         vec![],
     )?;

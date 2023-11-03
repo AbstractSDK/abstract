@@ -30,7 +30,7 @@
 //!                     },
 //!                     kind: crate::core::modules::ModuleKind::External,
 //!                 },
-//!                 init_msg: Some(to_binary(&etf_init_msg).unwrap()),
+//!                 init_msg: Some(to_json_binary(&etf_init_msg).unwrap()),
 //!        };
 //! // Call create_module_msg on manager
 //! ```

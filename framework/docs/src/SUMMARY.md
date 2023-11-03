@@ -1,8 +1,9 @@
 # Summary
 
-[Abstract Documentation](./0_abstract_documentation.md)
+[Introduction](./0_introduction.md)
 
 # About Abstract
+
 - [What is Abstract?](./8_vision.md)
 - [Abstract Products](./1_products/index.md)
   - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)
