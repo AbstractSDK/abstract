@@ -67,7 +67,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn install_modules(
         &self,
-        modules: Vec<ModuleInstallConfig>,
+        modules: Vec<ManagerModuleInstall>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.execute(&ExecuteMsg::InstallModules { modules }, funds)
@@ -76,7 +76,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn install_modules_auto(
         &self,
-        modules: Vec<ModuleInstallConfig>,
+        modules: Vec<ManagerModuleInstall>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         let config = self.config()?;
         let module_infos = modules.iter().map(|m| m.module.clone()).collect();
@@ -110,7 +110,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::InstallModules {
-                modules: vec![ModuleInstallConfig::new(
+                modules: vec![ManagerModuleInstall::new(
                     ModuleInfo::from_id(module_id, version)?,
                     Some(to_binary(init_msg).unwrap()),
                 )],

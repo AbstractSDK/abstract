@@ -19,7 +19,7 @@ pub mod state {
             gov_type::GovernanceDetails,
             module::Module,
             AssetEntry,
-        },
+        }, manager::ManagerModuleInstall,
     };
 
     /// Account Factory configuration
@@ -40,7 +40,7 @@ pub mod state {
         pub account_id: AccountId,
 
         pub additional_config: AdditionalContextConfig,
-        pub install_modules: Vec<ModuleInstallConfig>,
+        pub install_modules: Vec<ManagerModuleInstall>,
         pub funds_for_install: Vec<Coin>,
     }
 
@@ -69,7 +69,7 @@ use crate::{
         account::{AccountId, AccountSequence, AccountTrace},
         gov_type::GovernanceDetails,
         AssetEntry,
-    },
+    }, manager::ManagerModuleInstall,
 };
 
 /// Msg used on instantiation
@@ -119,7 +119,7 @@ pub enum ExecuteMsg {
         // optionally specify a namespace for the account
         namespace: Option<String>,
         // Provide list of module to install after account creation
-        install_modules: Vec<ModuleInstallConfig>,
+        install_modules: Vec<ManagerModuleInstall>,
     },
 }
 

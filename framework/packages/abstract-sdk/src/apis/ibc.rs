@@ -7,6 +7,7 @@ use abstract_core::{
     ibc::CallbackInfo,
     ibc_client::ExecuteMsg as IbcClientMsg,
     ibc_host::HostAction,
+    manager::ManagerModuleInstall,
     module_factory::ModuleInstallConfig,
     objects::module::{ModuleInfo, ModuleVersion},
     proxy::ExecuteMsg,
@@ -64,7 +65,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(wasm_execute(
             self.base.manager_address(self.deps)?,
             &abstract_core::manager::ExecuteMsg::InstallModules {
-                modules: vec![ModuleInstallConfig::new(
+                modules: vec![ManagerModuleInstall::new(
                     ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
                     None,
                 )],
@@ -103,7 +104,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             host_chain,
             HostAction::Dispatch {
                 manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
-                    modules: vec![ModuleInstallConfig::new(
+                    modules: vec![ManagerModuleInstall::new(
                         module,
                         Some(
                             to_binary(&abstract_core::app::InstantiateMsg {
@@ -137,7 +138,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             host_chain,
             HostAction::Dispatch {
                 manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
-                    modules: vec![ModuleInstallConfig::new(
+                    modules: vec![ManagerModuleInstall::new(
                         module,
                         Some(
                             to_binary(&abstract_core::adapter::InstantiateMsg {

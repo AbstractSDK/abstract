@@ -108,7 +108,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 
             match msg {
                 ExecuteMsg::UpdateInternalConfig(config) => {
-                    update_internal_config(deps, info, config)
+                    update_internal_config(deps, env, info, config)
                 }
                 ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
 
@@ -119,7 +119,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::RegisterModules { modules } => {
                     register_modules(deps, info, env, modules)
                 }
-                ExecuteMsg::RegisterDependencies{ modules } => {
+                ExecuteMsg::RegisterDependencies { modules } => {
                     register_dependencies(deps, info, env, modules)
                 }
                 ExecuteMsg::ExecOnModule {

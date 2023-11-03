@@ -14,6 +14,7 @@
 use crate::Abstract;
 use crate::AdapterDeployer;
 use crate::AppDeployer;
+use abstract_core::manager::ManagerModuleInstall;
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::ABSTRACT_EVENT_TYPE;
 use cw_orch::deploy::Deploy;
@@ -72,7 +73,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     pub fn install_modules(
         &self,
-        modules: Vec<ModuleInstallConfig>,
+        modules: Vec<ManagerModuleInstall>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.manager.install_modules(modules, funds)
@@ -80,7 +81,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     pub fn install_modules_auto(
         &self,
-        modules: Vec<ModuleInstallConfig>,
+        modules: Vec<ManagerModuleInstall>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.manager.install_modules_auto(modules)
     }

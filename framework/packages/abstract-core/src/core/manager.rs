@@ -26,6 +26,8 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
     use std::collections::HashSet;
 
+    use super::ManagerModuleInstall;
+
     pub type SuspensionStatus = bool;
 
     /// Manager configuration
@@ -91,7 +93,7 @@ pub mod state {
     /// map module -> modules that depend on module.
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
     /// Stores a queue of modules to install on the account after creation.
-    pub const MODULE_QUEUE: Item<Vec<ModuleInstallConfig>> = Item::new("mqueue");
+    pub const MODULE_QUEUE: Item<Vec<ManagerModuleInstall>> = Item::new("mqueue");
     /// List of sub-accounts
     pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("sub_accs");
     /// Pending new governance
@@ -126,7 +128,7 @@ pub struct InstantiateMsg {
     pub description: Option<String>,
     pub link: Option<String>,
     // Optionally modules can be provided. They will be installed after account registration.
-    pub install_modules: Vec<ModuleInstallConfig>,
+    pub install_modules: Vec<ManagerModuleInstall>,
 }
 
 /// Callback message to set the dependencies after module upgrades.
@@ -165,6 +167,20 @@ pub struct RegisterModuleData {
     pub module: Module,
 }
 
+/// Module info and init message
+#[non_exhaustive]
+#[cosmwasm_schema::cw_serde]
+pub struct ManagerModuleInstall {
+    pub module: ModuleInfo,
+    pub init_msg: Option<Binary>,
+}
+
+impl ManagerModuleInstall {
+    pub fn new(module: ModuleInfo, init_msg: Option<Binary>) -> Self {
+        Self { module, init_msg }
+    }
+}
+
 /// Manager execute messages
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
@@ -172,10 +188,7 @@ pub struct RegisterModuleData {
 pub enum ExecuteMsg {
     /// Forward execution message to module
     #[cfg_attr(feature = "interface", payable)]
-    ExecOnModule {
-        module_id: String,
-        exec_msg: Binary,
-    },
+    ExecOnModule { module_id: String, exec_msg: Binary },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(Binary),
@@ -183,21 +196,15 @@ pub enum ExecuteMsg {
     #[cfg_attr(feature = "interface", payable)]
     InstallModules {
         // Module information and Instantiate message to instantiate the contract
-        modules: Vec<ModuleInstallConfig>,
+        modules: Vec<ManagerModuleInstall>,
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
-    RegisterModules {
-        modules: Vec<RegisterModuleData>,
-    },
+    RegisterModules { modules: Vec<RegisterModuleData> },
     /// Register modules dependencies
-    RegisterDependencies {
-        modules: Vec<RegisterModuleData>,
-    },
+    RegisterDependencies { modules: Vec<RegisterModuleData> },
     /// Uninstall a module given its ID.
-    UninstallModule {
-        module_id: String,
-    },
+    UninstallModule { module_id: String },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
@@ -217,7 +224,7 @@ pub enum ExecuteMsg {
         // optionally specify a namespace for the sub-account
         namespace: Option<String>,
         // Provide list of module to install after sub-account creation
-        install_modules: Vec<ModuleInstallConfig>,
+        install_modules: Vec<ManagerModuleInstall>,
     },
     /// Update info
     UpdateInfo {
@@ -227,17 +234,11 @@ pub enum ExecuteMsg {
     },
     /// Sets a new Owner
     /// New owner will have to claim ownership
-    SetOwner {
-        owner: GovernanceDetails<String>,
-    },
+    SetOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
-    UpdateStatus {
-        is_suspended: Option<bool>,
-    },
+    UpdateStatus { is_suspended: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.
-    UpdateSettings {
-        ibc_enabled: Option<bool>,
-    },
+    UpdateSettings { ibc_enabled: Option<bool> },
     /// Actions called by internal or external sub-accounts
     UpdateSubAccount(UpdateSubAccountAction),
     /// Callback endpoint

@@ -1,7 +1,7 @@
 mod common;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_core::adapter::AdapterRequestMsg;
-use abstract_core::manager::ModuleVersionsResponse;
+use abstract_core::manager::{ModuleVersionsResponse, ManagerModuleInstall};
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
@@ -351,11 +351,11 @@ fn install_multiple_modules() -> AResult {
     let err = account
         .install_modules(
             vec![
-                ModuleInstallConfig::new(
+                ManagerModuleInstall::new(
                     ModuleInfo::from_id_latest("abstract:standalone1")?,
                     Some(to_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
                 ),
-                ModuleInstallConfig::new(
+                ManagerModuleInstall::new(
                     ModuleInfo::from_id_latest("abstract:standalone2")?,
                     Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
                 ),
@@ -371,11 +371,11 @@ fn install_multiple_modules() -> AResult {
 
     // successful install
     account.install_modules_auto(vec![
-        ModuleInstallConfig::new(
+        ManagerModuleInstall::new(
             ModuleInfo::from_id_latest("abstract:standalone1")?,
             Some(to_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
         ),
-        ModuleInstallConfig::new(
+        ManagerModuleInstall::new(
             ModuleInfo::from_id_latest("abstract:standalone2")?,
             Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
         ),

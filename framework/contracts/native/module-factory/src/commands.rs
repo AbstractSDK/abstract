@@ -42,11 +42,15 @@ pub fn execute_create_modules(
 
     // assert that sender is manager
     let account_base = account_registry.assert_manager(&info.sender)?;
-    let account_id = account_registry.account_id(&info.sender)?;
 
     // get module info and module config for further use
-    let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
-        modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
+    let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<(Binary, Binary)>>) = modules
+        .into_iter()
+        .map(|m| (m.module, m.init_msg_salt))
+        .unzip();
+
+    // TODO: we can pass it from manager, but can this contract trust manager?
+    // It will be queried twice if we don't trust
     let modules_responses = version_registry.query_modules_configs(infos)?;
 
     // fees
@@ -63,7 +67,7 @@ pub fn execute_create_modules(
     let mut module_ids: Vec<String> = Vec::with_capacity(modules_responses.len());
 
     let canonical_contract_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
-    for (owner_init_msg, module_response) in
+    for (owner_init_msg_salt, module_response) in
         init_msgs.into_iter().zip(modules_responses.into_iter())
     {
         let new_module = module_response.module;
@@ -98,10 +102,9 @@ pub fn execute_create_modules(
                 let (addr, init_msg) = instantiate2_contract(
                     deps.as_ref(),
                     canonical_contract_addr.clone(),
-                    &account_id,
                     block_height,
                     *code_id,
-                    owner_init_msg.unwrap(),
+                    owner_init_msg_salt.unwrap(),
                     Some(account_base.manager.clone()),
                     new_module_init_funds,
                     &new_module.info,
@@ -125,10 +128,9 @@ pub fn execute_create_modules(
                 let (addr, init_msg) = instantiate2_contract(
                     deps.as_ref(),
                     canonical_contract_addr.clone(),
-                    &account_id,
                     block_height,
                     *code_id,
-                    owner_init_msg.unwrap(),
+                    owner_init_msg_salt.unwrap(),
                     Some(account_base.manager.clone()),
                     new_module_init_funds,
                     &new_module.info,
@@ -200,29 +202,14 @@ pub fn execute_create_modules(
 fn instantiate2_contract(
     deps: Deps,
     creator_addr: CanonicalAddr,
-    account_id: &AccountId,
     block_height: u64,
     code_id: u64,
-    init_msg: Binary,
+    (init_msg, salt): (Binary, Binary),
     admin: Option<Addr>,
     funds: Vec<Coin>,
     module_info: &ModuleInfo,
 ) -> ModuleFactoryResult<(CanonicalAddr, CosmosMsg)> {
     let wasm_info = deps.querier.query_wasm_code_info(code_id)?;
-    let mut salt_bytes: Vec<u8> = Vec::with_capacity(40);
-    salt_bytes.extend(block_height.to_be_bytes());
-    salt_bytes.extend(code_id.to_be_bytes());
-    salt_bytes.extend(account_id.seq().to_be_bytes());
-    salt_bytes.extend(
-        account_id
-            .trace()
-            .to_string()
-            .into_bytes()
-            .into_iter()
-            .take(20)
-            .collect::<Vec<u8>>(),
-    );
-    let salt = Binary::from(salt_bytes);
 
     let addr =
         cosmwasm_std::instantiate2_address(&wasm_info.checksum, &creator_addr, salt.as_slice())?;
@@ -455,31 +442,19 @@ mod test {
             let _info = mock_info("anyone", &[]);
 
             let expected_module_init_msg = to_binary(&Empty {}).unwrap();
-            let expected_code_id = 10;
+            let expected_code_id = 10u64;
 
             let expected_module_info =
                 ModuleInfo::from_id("test:module", ModuleVersion::Version("1.2.3".to_string()))
                     .unwrap();
 
-            let some_block_height = 500;
+            let some_block_height = 500u64;
             let contract_addr = deps.api.addr_make("contract");
             let creator_addr = deps.api.addr_canonicalize(contract_addr.as_str()).unwrap();
             let account_id = AccountId::local(1);
-            let actual = instantiate2_contract(
-                deps.as_ref(),
-                creator_addr,
-                &account_id,
-                some_block_height,
-                expected_code_id,
-                expected_module_init_msg.clone(),
-                None,
-                vec![coin(5, "ucosm")],
-                &expected_module_info,
-            );
-
             let mut salt_bytes: Vec<u8> = Vec::with_capacity(40);
-            salt_bytes.extend(some_block_height.to_be_bytes());
             salt_bytes.extend(expected_code_id.to_be_bytes());
+            salt_bytes.extend(some_block_height.to_be_bytes());
             salt_bytes.extend(account_id.seq().to_be_bytes());
             salt_bytes.extend(
                 account_id
@@ -491,6 +466,17 @@ mod test {
                     .collect::<Vec<u8>>(),
             );
             let salt = Binary::from(salt_bytes);
+
+            let actual = instantiate2_contract(
+                deps.as_ref(),
+                creator_addr,
+                some_block_height,
+                expected_code_id,
+                (expected_module_init_msg.clone(), salt.clone()),
+                None,
+                vec![coin(5, "ucosm")],
+                &expected_module_info,
+            );
 
             let expected_init_msg = WasmMsg::Instantiate2 {
                 code_id: expected_code_id,

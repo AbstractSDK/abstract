@@ -6,7 +6,7 @@ use abstract_core::{
     account_factory::*,
     module_factory::ModuleInstallConfig,
     objects::{gov_type::GovernanceDetails, AssetEntry},
-    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
+    ABSTRACT_EVENT_TYPE, MANAGER, PROXY, manager::ManagerModuleInstall,
 };
 use cosmwasm_std::Addr;
 use cw_orch::{interface, prelude::*};
@@ -19,7 +19,7 @@ pub struct AccountDetails {
     pub link: Option<String>,
     pub namespace: Option<String>,
     pub base_asset: Option<AssetEntry>,
-    pub install_modules: Vec<ModuleInstallConfig>,
+    pub install_modules: Vec<ManagerModuleInstall>,
 }
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

@@ -69,17 +69,20 @@ pub enum ExecuteMsg {
     },
 }
 
-/// Module info and init message
+/// Module info, init message and salt
 #[non_exhaustive]
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInstallConfig {
     pub module: ModuleInfo,
-    pub init_msg: Option<Binary>,
+    pub init_msg_salt: Option<(Binary, Binary)>,
 }
 
 impl ModuleInstallConfig {
-    pub fn new(module: ModuleInfo, init_msg: Option<Binary>) -> Self {
-        Self { module, init_msg }
+    pub fn new(module: ModuleInfo, init_msg_salt: Option<(Binary, Binary)>) -> Self {
+        Self {
+            module,
+            init_msg_salt,
+        }
     }
 }
 

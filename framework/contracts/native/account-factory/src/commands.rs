@@ -1,3 +1,4 @@
+use abstract_core::manager::ManagerModuleInstall;
 use abstract_core::module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse};
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::price_source::UncheckedPriceSource;
@@ -48,7 +49,7 @@ pub fn execute_create_account(
     link: Option<String>,
     namespace: Option<String>,
     base_asset: Option<AssetEntry>,
-    install_modules: Vec<ModuleInstallConfig>,
+    install_modules: Vec<ManagerModuleInstall>,
     account_id: Option<AccountId>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
