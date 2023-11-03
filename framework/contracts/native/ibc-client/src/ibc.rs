@@ -77,7 +77,7 @@ pub fn receive_action_callback(
                 // We need to store the account address in the IBC client for interactions that may need it locally
                 ACCOUNTS.save(
                     deps.storage,
-                    (&account_id, &host_chain),
+                    (account_id.trace(), account_id.seq(), &host_chain),
                     remote_proxy_address,
                 )?;
             } else {

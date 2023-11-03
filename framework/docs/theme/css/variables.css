@@ -179,7 +179,7 @@
     --sidebar-bg: hsl(210, 20%, 5%);  /* Darker sidebar background */
     --sidebar-fg: hsl(45, 10%, 90%);  /* Brighter sidebar text */
     --sidebar-non-existant: hsl(210, 20%, 15%);  /* Slightly darker non-existent sidebar item */
-    --sidebar-active: hsl(45, 10%, 95%);  /* Brighter active sidebar item */
+    --sidebar-active: rgb(236, 191, 89);  /* Brighter active sidebar item */
     --sidebar-spacer: hsl(210, 20%, 20%);  /* Slightly lighter spacer */
 
     --scrollbar: var(--sidebar-fg);
