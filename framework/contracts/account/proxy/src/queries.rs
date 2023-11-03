@@ -163,8 +163,8 @@ mod test {
         )
         .unwrap();
 
-        let base_asset: BaseAssetResponse = from_binary(
-            &query(
+        let base_asset: BaseAssetResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::BaseAsset {},
@@ -193,8 +193,8 @@ mod test {
         )
         .unwrap();
 
-        let config: ConfigResponse = from_binary(
-            &query(
+        let config: ConfigResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::Config {},
@@ -230,8 +230,8 @@ mod test {
 
         // get the balance of the asset
         // returns HoldingAmountResponse
-        let holding_amount: HoldingAmountResponse = from_binary(
-            &query(
+        let holding_amount: HoldingAmountResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::HoldingAmount {
@@ -245,8 +245,8 @@ mod test {
 
         // get the value of the asset
         // returns AccountValue
-        let account_value: AccountValue = from_binary(
-            &query(
+        let account_value: AccountValue = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::TotalValue {},
@@ -262,8 +262,8 @@ mod test {
 
         // get the token value
         // returns TokenValueResponse
-        let token_value: TokenValueResponse = from_binary(
-            &query(
+        let token_value: TokenValueResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::TokenValue {
@@ -276,8 +276,8 @@ mod test {
         assert_eq!(token_value.value.u128(), 1000u128);
 
         // query USD asset config
-        let asset_config: AssetConfigResponse = from_binary(
-            &query(
+        let asset_config: AssetConfigResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::AssetConfig {
@@ -304,8 +304,8 @@ mod test {
         )
         .unwrap();
 
-        let assets: AssetsConfigResponse = from_binary(
-            &query(
+        let assets: AssetsConfigResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::AssetsConfig {
@@ -338,8 +338,8 @@ mod test {
         )
         .unwrap();
 
-        let assets: AssetsInfoResponse = from_binary(
-            &query(
+        let assets: AssetsInfoResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::AssetsInfo {

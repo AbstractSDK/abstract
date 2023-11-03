@@ -50,12 +50,15 @@ impl AccountId {
     pub const fn const_new(seq: AccountSequence, trace: AccountTrace) -> Self {
         Self { seq, trace }
     }
+
     pub fn seq(&self) -> AccountSequence {
         self.seq
     }
+
     pub fn trace(&self) -> &AccountTrace {
         &self.trace
     }
+
     pub fn trace_mut(&mut self) -> &mut AccountTrace {
         &mut self.trace
     }
@@ -66,6 +69,10 @@ impl AccountId {
 
     pub fn is_remote(&self) -> bool {
         !self.is_local()
+    }
+
+    pub fn decompose(self) -> (AccountTrace, AccountSequence) {
+        (self.trace, self.seq)
     }
 }
 
