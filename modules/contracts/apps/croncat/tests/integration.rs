@@ -45,7 +45,7 @@ use cw_multi_test::{App, Executor};
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use crate::common::contracts::TasksResponseCaster;
-use cosmwasm_std::{coins, to_binary, Addr, BankMsg, Uint128, WasmMsg};
+use cosmwasm_std::{coins, to_json_binary, Addr, BankMsg, Uint128, WasmMsg};
 // consts for testing
 const ADMIN: &str = "admin";
 const AGENT: &str = "agent";
@@ -111,7 +111,7 @@ fn setup_croncat_contracts(
         checksum: "checksum123".to_owned(),
         changelog_url: None,
         schema: None,
-        msg: to_binary(&msg).unwrap(),
+        msg: to_json_binary(&msg).unwrap(),
         contract_name: MANAGER_NAME.to_owned(),
     };
 
@@ -151,7 +151,7 @@ fn setup_croncat_contracts(
         checksum: "checksum321".to_owned(),
         changelog_url: None,
         schema: None,
-        msg: to_binary(&msg).unwrap(),
+        msg: to_json_binary(&msg).unwrap(),
         contract_name: AGENTS_NAME.to_owned(),
     };
     app.execute_contract(
@@ -186,7 +186,7 @@ fn setup_croncat_contracts(
         checksum: "checksum2".to_owned(),
         changelog_url: None,
         schema: None,
-        msg: to_binary(&msg).unwrap(),
+        msg: to_json_binary(&msg).unwrap(),
         contract_name: TASKS_NAME.to_owned(),
     };
     app.execute_contract(
@@ -326,7 +326,7 @@ fn all_in_one() -> anyhow::Result<()> {
             Action {
                 msg: WasmMsg::Execute {
                     contract_addr: cw20_addr.to_string(),
-                    msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                    msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                         recipient: "bob".to_owned(),
                         amount: Uint128::new(100),
                     })?,
@@ -592,7 +592,7 @@ fn create_task() -> anyhow::Result<()> {
         actions: vec![Action {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient: "bob".to_owned(),
                     amount: Uint128::new(20),
                 })?,
@@ -636,7 +636,7 @@ fn create_task() -> anyhow::Result<()> {
         actions: vec![Action {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient: "alice".to_owned(),
                     amount: Uint128::new(20),
                 })?,
@@ -683,7 +683,7 @@ fn refill_task() -> anyhow::Result<()> {
         actions: vec![Action {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient: "bob".to_owned(),
                     amount: Uint128::new(20),
                 })?,
@@ -818,7 +818,7 @@ fn remove_task() -> anyhow::Result<()> {
         actions: vec![Action {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient: "bob".to_owned(),
                     amount: Uint128::new(20),
                 })?,
@@ -853,7 +853,7 @@ fn remove_task() -> anyhow::Result<()> {
         actions: vec![Action {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient: "alice".to_owned(),
                     amount: Uint128::new(30),
                 })?,

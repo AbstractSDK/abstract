@@ -1,5 +1,5 @@
 use crate::handlers::execute;
-use cosmwasm_std::{from_binary, DepsMut, Env, MessageInfo};
+use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo};
 
@@ -15,7 +15,7 @@ pub fn receive_cw20(
     app: SubscriptionApp,
     cw20_msg: Cw20ReceiveMsg,
 ) -> SubscriptionResult {
-    match from_binary(&cw20_msg.msg)? {
+    match from_json(cw20_msg.msg)? {
         DepositHookMsg::Pay { subscriber_addr } => {
             // Construct deposit asset
             let asset = Asset {

@@ -5,7 +5,7 @@ use crate::msg::TipperResponse;
 use crate::msg::TippersResponse;
 use crate::msg::{AppQueryMsg, ConfigResponse};
 use crate::state::{Tipper, CONFIG, TIPPERS, TIP_COUNT};
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult, Storage};
+use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, StdResult, Storage};
 use cw_paginate::paginate_map;
 use cw_storage_plus::Bound;
 
@@ -16,12 +16,12 @@ pub fn query_handler(
     msg: AppQueryMsg,
 ) -> AppResult<Binary> {
     match msg {
-        AppQueryMsg::Config {} => to_binary(&query_config(deps)?),
+        AppQueryMsg::Config {} => to_json_binary(&query_config(deps)?),
         AppQueryMsg::ListTippers { start_after, limit } => {
-            to_binary(&query_list_tippers(deps, start_after, limit)?)
+            to_json_binary(&query_list_tippers(deps, start_after, limit)?)
         }
-        AppQueryMsg::TipCount {} => to_binary(&query_tip_count(deps)?),
-        AppQueryMsg::Tipper { address } => to_binary(&query_tipper(deps, address)?),
+        AppQueryMsg::TipCount {} => to_json_binary(&query_tip_count(deps)?),
+        AppQueryMsg::Tipper { address } => to_json_binary(&query_tipper(deps, address)?),
     }
     .map_err(Into::into)
 }

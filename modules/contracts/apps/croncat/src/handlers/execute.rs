@@ -1,7 +1,7 @@
 use abstract_sdk::features::{AbstractNameService, AbstractResponse, AccountIdentification};
 use abstract_sdk::{prelude::*, AccountAction};
 use cosmwasm_std::{
-    to_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, ReplyOn, Response,
+    to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, ReplyOn, Response,
 };
 use croncat_integration_utils::task_creation::{get_croncat_contract, get_latest_croncat_contract};
 use croncat_integration_utils::{MANAGER_NAME, TASKS_NAME};
@@ -104,7 +104,9 @@ fn create_task(
             &Cw20ExecuteMsg::Send {
                 contract: manager_addr.to_string(),
                 amount: cw20.amount,
-                msg: to_binary(&croncat_sdk_manager::msg::ManagerReceiveMsg::RefillTempBalance {})?,
+                msg: to_json_binary(
+                    &croncat_sdk_manager::msg::ManagerReceiveMsg::RefillTempBalance {},
+                )?,
             },
             vec![],
         )?
@@ -233,7 +235,7 @@ fn refill_task(
             &Cw20ExecuteMsg::Send {
                 contract: manager_addr.to_string(),
                 amount: cw20.amount,
-                msg: to_binary(
+                msg: to_json_binary(
                     &croncat_sdk_manager::msg::ManagerReceiveMsg::RefillTaskBalance {
                         task_hash: task_hash.clone(),
                     },

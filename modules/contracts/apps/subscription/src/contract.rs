@@ -40,7 +40,7 @@ mod tests {
 
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env},
-        to_binary, Addr, CosmosMsg, Decimal, SubMsg, WasmMsg,
+        to_json_binary, Addr, CosmosMsg, Decimal, SubMsg, WasmMsg,
     };
 
     use crate::{
@@ -134,7 +134,7 @@ mod tests {
 
         let expected_msg = SubMsg::new(CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: "alice".to_owned(),
-            msg: to_binary(&HookReceiverExecuteMsg::Unsubscribed(UnsubscribedHookMsg {
+            msg: to_json_binary(&HookReceiverExecuteMsg::Unsubscribed(UnsubscribedHookMsg {
                 unsubscribed: vec!["bob".to_owned()],
             }))
             .unwrap(),

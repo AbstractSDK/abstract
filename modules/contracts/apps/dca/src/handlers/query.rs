@@ -4,13 +4,13 @@ use crate::state::{DCAId, CONFIG, DCA_LIST};
 use abstract_core::objects::DexAssetPairing;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::Resolve;
-use cosmwasm_std::{to_binary, Binary, Deps, Env};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use cw_asset::AssetInfo;
 
 pub fn query_handler(deps: Deps, _env: Env, app: &DCAApp, msg: DCAQueryMsg) -> AppResult<Binary> {
     match msg {
-        DCAQueryMsg::Config {} => to_binary(&query_config(deps, app)?),
-        DCAQueryMsg::DCA { dca_id } => to_binary(&query_dca(deps, app, dca_id)?),
+        DCAQueryMsg::Config {} => to_json_binary(&query_config(deps, app)?),
+        DCAQueryMsg::DCA { dca_id } => to_json_binary(&query_dca(deps, app, dca_id)?),
     }
     .map_err(Into::into)
 }

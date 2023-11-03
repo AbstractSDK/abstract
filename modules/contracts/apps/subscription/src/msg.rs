@@ -31,7 +31,7 @@
 use super::state::{EmissionType, Subscriber, SubscriptionConfig, SubscriptionState};
 use crate::contract::SubscriptionApp;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, Decimal, StdResult, Uint64, WasmMsg};
+use cosmwasm_std::{to_json_binary, Addr, Binary, CosmosMsg, Decimal, StdResult, Uint64, WasmMsg};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 abstract_app::app_msg_types!(
@@ -186,14 +186,14 @@ pub(crate) enum HookReceiverExecuteMsg {
 
 impl UnsubscribedHookMsg {
     /// serializes the message
-    pub fn into_binary(self) -> StdResult<Binary> {
+    pub fn into_json_binary(self) -> StdResult<Binary> {
         let msg = HookReceiverExecuteMsg::Unsubscribed(self);
-        to_binary(&msg)
+        to_json_binary(&msg)
     }
 
     /// creates a cosmos_msg sending this struct to the named contract
     pub fn into_cosmos_msg<T: Into<String>>(self, contract_addr: T) -> StdResult<CosmosMsg> {
-        let msg = self.into_binary()?;
+        let msg = self.into_json_binary()?;
         let execute = WasmMsg::Execute {
             contract_addr: contract_addr.into(),
             msg,
