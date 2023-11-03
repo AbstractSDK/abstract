@@ -27,6 +27,9 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::dex::Kujira>::default())
         }
+        abstract_astrovault_adapter::ASTROVAULT => {
+            Ok(Box::<abstract_astrovault_adapter::dex::Astrovault>::default())
+        }
         _ => Err(DexError::UnknownDex(value.to_owned())),
     }
 }
