@@ -230,11 +230,13 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     let account_sequence = 1;
     let chain = "juno";
 
+    let polytone_proxy = Addr::unchecked("polytone_proxy");
+
     // We need to set the sender as the proxy for juno chain
     admin_abstr
         .ibc
         .host
-        .register_chain_proxy(chain.into(), sender.to_string())?;
+        .register_chain_proxy(chain.into(), polytone_proxy.to_string())?;
 
     // Add the juno token ics20 channel.
     admin_abstr.ans_host.update_channels(
@@ -249,7 +251,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     )?;
 
     // We create the account
-    abstr.ibc.host.ibc_execute(
+    abstr.ibc.host.call_as(&polytone_proxy).ibc_execute(
         AccountId::local(account_sequence),
         HostAction::Internal(InternalAction::Register {
             name: "Abstract remote account 1".to_string(),
@@ -260,7 +262,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     )?;
 
     // We call the action and verify that it completes without issues.
-    let account_action_response = abstr.ibc.host.ibc_execute(
+    let account_action_response = abstr.ibc.host.call_as(&polytone_proxy).ibc_execute(
         AccountId::local(account_sequence),
         HostAction::Helpers(abstract_core::ibc_host::HelperAction::SendAllBack {}),
         "proxy_address".to_string(),
