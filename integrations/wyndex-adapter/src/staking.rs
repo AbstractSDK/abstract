@@ -39,7 +39,7 @@ use {
     },
     abstract_staking_standard::CwStakingCommand,
     abstract_staking_standard::CwStakingError,
-    cosmwasm_std::{to_binary, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, WasmMsg},
+    cosmwasm_std::{to_json_binary, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, WasmMsg},
     cw20::Cw20ExecuteMsg,
     cw_asset::{AssetInfo, AssetInfoBase},
     cw_utils::Duration,
@@ -97,7 +97,7 @@ impl CwStakingCommand for WynDex {
         unbonding_period: Option<Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let unbonding_period = unwrap_unbond(self, unbonding_period)?;
-        let msg = to_binary(&ReceiveDelegationMsg::Delegate {
+        let msg = to_json_binary(&ReceiveDelegationMsg::Delegate {
             unbonding_period,
             delegate_as: None,
         })?;
@@ -107,7 +107,7 @@ impl CwStakingCommand for WynDex {
             .map(|(stake, token)| {
                 Ok(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: token.lp_token_address.to_string(),
-                    msg: to_binary(&Cw20ExecuteMsg::Send {
+                    msg: to_json_binary(&Cw20ExecuteMsg::Send {
                         contract: token.staking_contract_address.to_string(),
                         amount: stake.amount,
                         msg: msg.clone(),
@@ -133,7 +133,7 @@ impl CwStakingCommand for WynDex {
             .map(|(unstake, token)| {
                 Ok(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: token.staking_contract_address.to_string(),
-                    msg: to_binary(&StakeCw20ExecuteMsg::Unbond {
+                    msg: to_json_binary(&StakeCw20ExecuteMsg::Unbond {
                         tokens: unstake.amount,
                         unbonding_period,
                     })?,
@@ -146,7 +146,7 @@ impl CwStakingCommand for WynDex {
     }
 
     fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        let msg = to_binary(&StakeCw20ExecuteMsg::Claim {})?;
+        let msg = to_json_binary(&StakeCw20ExecuteMsg::Claim {})?;
 
         let claim_msgs = self
             .tokens
@@ -163,7 +163,7 @@ impl CwStakingCommand for WynDex {
     }
 
     fn claim_rewards(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        let msg = to_binary(&StakeCw20ExecuteMsg::WithdrawRewards {
+        let msg = to_json_binary(&StakeCw20ExecuteMsg::WithdrawRewards {
             owner: None,
             receiver: None,
         })?;

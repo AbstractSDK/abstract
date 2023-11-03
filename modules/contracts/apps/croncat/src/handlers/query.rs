@@ -5,7 +5,7 @@ use crate::msg::{ActiveTasksByCreatorResponse, ActiveTasksResponse, AppQueryMsg,
 use crate::state::{ACTIVE_TASKS, CONFIG};
 use crate::utils::factory_addr;
 use abstract_sdk::features::AbstractNameService;
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, QuerierWrapper, StdResult};
+use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, QuerierWrapper, StdResult};
 use croncat_integration_utils::task_creation::get_croncat_contract;
 use croncat_integration_utils::{MANAGER_NAME, TASKS_NAME};
 use croncat_sdk_manager::msg::ManagerQueryMsg;
@@ -52,18 +52,18 @@ pub fn query_handler(
     msg: AppQueryMsg,
 ) -> CroncatResult<Binary> {
     match msg {
-        AppQueryMsg::Config {} => to_binary(&query_config(deps)?),
+        AppQueryMsg::Config {} => to_json_binary(&query_config(deps)?),
         AppQueryMsg::ActiveTasks {
             start_after,
             limit,
             checked,
-        } => to_binary(&query_active_tasks(deps, app, start_after, limit, checked)?),
+        } => to_json_binary(&query_active_tasks(deps, app, start_after, limit, checked)?),
         AppQueryMsg::ActiveTasksByCreator {
             creator_addr,
             start_after,
             limit,
             checked,
-        } => to_binary(&query_active_tasks_by_creator(
+        } => to_json_binary(&query_active_tasks_by_creator(
             deps,
             app,
             creator_addr,
@@ -74,15 +74,15 @@ pub fn query_handler(
         AppQueryMsg::TaskInfo {
             creator_addr,
             task_tag,
-        } => to_binary(&query_task_info(deps, app, creator_addr, task_tag)?),
+        } => to_json_binary(&query_task_info(deps, app, creator_addr, task_tag)?),
         AppQueryMsg::TaskBalance {
             creator_addr,
             task_tag,
-        } => to_binary(&query_task_balance(deps, app, creator_addr, task_tag)?),
+        } => to_json_binary(&query_task_balance(deps, app, creator_addr, task_tag)?),
         AppQueryMsg::ManagerAddr {
             creator_addr,
             task_tag,
-        } => to_binary(&query_manager_addr(deps, app, creator_addr, task_tag)?),
+        } => to_json_binary(&query_manager_addr(deps, app, creator_addr, task_tag)?),
     }
     .map_err(Into::into)
 }

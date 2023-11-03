@@ -3,7 +3,7 @@ use crate::error::EtfError;
 use crate::handlers::execute;
 use crate::msg::Cw20HookMsg;
 use crate::state::{State, STATE};
-use cosmwasm_std::from_binary;
+use cosmwasm_std::from_json;
 use cosmwasm_std::DepsMut;
 use cosmwasm_std::{Env, MessageInfo};
 use cw20::Cw20ReceiveMsg;
@@ -20,7 +20,7 @@ pub fn receive_cw20(
     dapp: EtfApp,
     cw20_msg: Cw20ReceiveMsg,
 ) -> EtfResult {
-    match from_binary(&cw20_msg.msg)? {
+    match from_json(&cw20_msg.msg)? {
         Cw20HookMsg::Claim {} => {
             let state: State = STATE.load(deps.storage)?;
             if msg_info.sender != state.share_token_address {

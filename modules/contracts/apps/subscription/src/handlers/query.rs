@@ -1,6 +1,6 @@
 use crate::{msg::SubscribersResponse, state::INCOME_TWA};
 use abstract_core::objects::voting::DEFAULT_LIMIT;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Uint128};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult, Uint128};
 use cw_asset::Asset;
 use cw_storage_plus::Bound;
 
@@ -20,7 +20,7 @@ pub fn query_handler(
         // handle dapp-specific queries here
         SubscriptionQueryMsg::State {} => {
             let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
-            to_binary(&StateResponse {
+            to_json_binary(&StateResponse {
                 subscription: subscription_state,
             })
         }
@@ -29,7 +29,7 @@ pub fn query_handler(
             let twa_data = INCOME_TWA.load(deps.storage)?;
             let minimal_cost =
                 Uint128::from(twa_data.averaging_period) * config.subscription_cost_per_second;
-            to_binary(&SubscriptionFeeResponse {
+            to_json_binary(&SubscriptionFeeResponse {
                 fee: Asset {
                     info: config.payment_asset,
                     amount: minimal_cost,
@@ -38,14 +38,14 @@ pub fn query_handler(
         }
         SubscriptionQueryMsg::Config {} => {
             let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-            to_binary(&subscription_config)
+            to_json_binary(&subscription_config)
         }
-        SubscriptionQueryMsg::Subscriber { addr } => to_binary(&query_subscriber(deps, addr)?),
+        SubscriptionQueryMsg::Subscriber { addr } => to_json_binary(&query_subscriber(deps, addr)?),
         SubscriptionQueryMsg::Subscribers {
             start_after,
             limit,
             expired_subs,
-        } => to_binary(&query_subscribers(deps, start_after, limit, expired_subs)?),
+        } => to_json_binary(&query_subscribers(deps, start_after, limit, expired_subs)?),
     }
     .map_err(Into::into)
 }
