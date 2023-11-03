@@ -1,5 +1,5 @@
-use abstract_interface::{Abstract, AbstractInterfaceError};
-use cw_orch::{deploy::Deploy, prelude::*};
+use abstract_interface::{Abstract, AbstractAccount, AbstractInterfaceError};
+use cw_orch::prelude::*;
 
 use crate::account::Account;
 
