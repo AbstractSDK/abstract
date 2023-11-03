@@ -23,6 +23,7 @@ pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> HostResult<Binary> {
     }
     .map_err(Into::into)
 }
+
 fn config(deps: Deps) -> HostResult<ConfigResponse> {
     let state = CONFIG.load(deps.storage)?;
     Ok(ConfigResponse {
