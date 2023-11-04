@@ -1,12 +1,7 @@
 <!-- # The Abstract Development Platform -->
 <!-- This page is a high-level overview of the Abstract Platform, not the SDK or any of our actual products. Hence we should stick to a vocabulary that is familiar to the reader. -->
+
 ![SDK Background](resources/abstract_platform/twitter_cover-1.png)
-<!-- 
-<div align="center">
-
-### Welcome to Abstract, the interchain CosmWasm development platform. </br>We are building tools and infrastructure for composable smart-contract applications. 
-
-</div> -->
 
 # Introduction
 
@@ -16,9 +11,7 @@ Abstract's CosmWasm framework is your gateway
 to taking amazing ideas from concept to reality. Whether you're a coding genius or just getting started, Abstract has
 got your back! By building composable modules you'll be crafting scalable masterpieces in no time.
 
-![Abstract Platform](resources/abstract_platform/abstract_overview.webp)
-
-## Abstract in a nutshell
+## Abstract in a Nutshell
 
 Abstract is your one-stop solution for streamlined CosmWasm smart-contract development. We provide an
 integrated smart-contract framework, continuous deployment tools, robust data management solutions for both on-chain and
@@ -94,7 +87,7 @@ each product.
 If you have any questions or ideas you want to discuss about our products, please contact us
 on <a href="https://discord.com/invite/uch3Tq3aym" target="_blank">Discord</a>.
 
-## How to navigate the docs
+## How to Navigate the Docs
 
 You can read the documentation in the order it is presented, or you can jump to the section that interests you the most!
 We also have a section with code tutorials that will help you get started with the Abstract SDK if you are more of a
