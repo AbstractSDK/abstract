@@ -32,7 +32,7 @@
 # Build With Abstract
 ---
 
-- [Abstract Design Space](./2_introduction/1_design_space.md)
+- [Application Design Space](./2_introduction/1_design_space.md)
 - [Getting Started](./4_get_started/1_index.md)
     - [Installation](./4_get_started/2_installation.md)
     - [Module Builder](./4_get_started/3_module_builder.md)
