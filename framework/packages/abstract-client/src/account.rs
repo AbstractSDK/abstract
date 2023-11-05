@@ -1,6 +1,14 @@
 use std::ops::Deref;
 
+use abstract_core::{
+    module_factory::ModuleInstallConfig,
+    objects::module::{ModuleInfo, ModuleVersion},
+    objects::namespace::Namespace,
+    AbstractResult,
+};
 use abstract_interface::{Abstract, AbstractAccount, Manager, ManagerExecFns};
+use cosmwasm_std::to_json_binary;
+use cw_orch::prelude::*;
 use cw_orch::{contract::Contract, prelude::*};
 use serde::Serialize;
 
@@ -22,21 +30,26 @@ impl<T: CwEnv> Account<T> {
         id: &str,
         configuration: &C,
         funds: Vec<Coin>,
-    ) -> Application<T, M> {
+    ) -> AbstractResult<Application<T, M>> {
         self.account
             .manager
             .install_modules(
-                vec![ModuleInstallConfig {
-                    id: id.to_string(),
-                    configuration: Some(configuration),
-                }],
+                vec![ModuleInstallConfig::new(
+                    ModuleInfo {
+                        // TODO: Set name and namespace properly.
+                        name: "name".to_string(),
+                        namespace: Namespace::new("namespace")?,
+                        version: ModuleVersion::Latest,
+                    },
+                    Some(to_json_binary(&configuration)?),
+                )],
                 &funds,
             )
             .unwrap();
         // Construct module from type and chain
-        let contract = Contract::new(id, self.environment());
+        let contract = Contract::new(id.to_string(), self.environment());
         // TODO: convert contract to M here
-        Application::new(account, contract)
+        Ok(Application::new(self.account, contract))
     }
 }
 
