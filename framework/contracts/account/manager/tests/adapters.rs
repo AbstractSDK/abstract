@@ -148,14 +148,9 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
 
-    dbg!("lol");
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
-    dbg!("lol");
-
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
-
-    dbg!("lol");
 
     // assert proxy module
     // check staking adapter
@@ -168,19 +163,13 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
         },
     });
 
-    dbg!("lol");
-
     // install again
     let second_install_res = install_adapter(&account.manager, TEST_MODULE_ID);
     assert_that!(second_install_res)
         .is_err()
         .matches(|e| e.to_string().contains("test-module-id"));
 
-    dbg!("lol");
-
     account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
-
-    dbg!("lol");
 
     Ok(())
 }
