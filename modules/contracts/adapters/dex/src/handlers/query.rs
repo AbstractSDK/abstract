@@ -13,7 +13,7 @@ use abstract_dex_standard::msg::{
 };
 use abstract_dex_standard::DexError;
 use abstract_sdk::features::AbstractNameService;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 
 pub fn query_handler(
     deps: Deps,
@@ -43,7 +43,7 @@ pub fn query_handler(
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
                         adapter, deps, sender, action, exchange,
                     )?;
-                    to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
+                    to_json_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }
                 _ => Err(DexError::InvalidGenerateMessage {}),
             }
@@ -102,5 +102,5 @@ pub fn simulate_swap(
         commission: (commission_asset, commission_amount),
         usage_fee: adapter_fee,
     };
-    to_binary(&resp).map_err(From::from)
+    to_json_binary(&resp).map_err(From::from)
 }

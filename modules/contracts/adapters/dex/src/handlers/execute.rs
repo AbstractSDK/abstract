@@ -15,7 +15,7 @@ use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
 use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
-use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
+use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -109,7 +109,7 @@ fn handle_ibc_request(
     let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
         manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
             module_id: DEX_ADAPTER_ID.to_string(),
-            exec_msg: to_binary::<ExecuteMsg>(
+            exec_msg: to_json_binary::<ExecuteMsg>(
                 &DexExecuteMsg::Action {
                     dex: dex_name.clone(),
                     action: action.clone(),
@@ -126,7 +126,7 @@ fn handle_ibc_request(
     } else {
         Some(CallbackInfo {
             id: IBC_DEX_PROVIDER_ID.into(),
-            msg: Some(to_binary(&DexExecuteMsg::Action {
+            msg: Some(to_json_binary(&DexExecuteMsg::Action {
                 dex: dex_name.clone(),
                 action: action.clone(),
             })?),

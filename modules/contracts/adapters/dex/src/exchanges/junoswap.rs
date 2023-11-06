@@ -23,7 +23,7 @@ use ::{
     abstract_dex_standard::{DexCommand, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::cw_helpers::wasm_smart_query,
     cosmwasm_std::{
-        to_binary, wasm_execute, Coin, CosmosMsg, Decimal, Deps, Fraction, Uint128, WasmMsg,
+        to_json_binary, wasm_execute, Coin, CosmosMsg, Decimal, Deps, Fraction, Uint128, WasmMsg,
     },
     cw20_junoswap::{Cw20ExecuteMsg, Denom},
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
@@ -153,7 +153,7 @@ impl DexCommand for JunoSwap {
         let coins = coins_in_assets(&offer_assets);
         let junoswap_msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: pair_address.into_string(),
-            msg: to_binary(&msg)?,
+            msg: to_json_binary(&msg)?,
             funds: coins,
         });
         msgs.push(junoswap_msg);
@@ -217,7 +217,7 @@ impl DexCommand for JunoSwap {
         let coins = coins_in_assets(assets);
         let junoswap_msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: pair_address.into_string(),
-            msg: to_binary(&msg)?,
+            msg: to_json_binary(&msg)?,
             funds: coins,
         });
         msgs.push(junoswap_msg);

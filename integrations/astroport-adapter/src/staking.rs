@@ -44,7 +44,7 @@ use ::{
         RewardInfoResponse,
     },
     cosmwasm_std::{
-        to_binary, wasm_execute, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128,
+        to_json_binary, wasm_execute, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128,
     },
     cw20::Cw20ExecuteMsg,
     cw_asset::AssetInfo,
@@ -93,7 +93,7 @@ impl CwStakingCommand for Astroport {
         stake_request: Vec<AnsAsset>,
         _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        let msg = to_binary(&Cw20HookMsg::Deposit {})?;
+        let msg = to_json_binary(&Cw20HookMsg::Deposit {})?;
 
         let stake_msgs = stake_request
             .into_iter()

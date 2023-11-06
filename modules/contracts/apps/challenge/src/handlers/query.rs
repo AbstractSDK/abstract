@@ -5,7 +5,7 @@ use crate::msg::{
 };
 use crate::state::{CHALLENGES, CHALLENGE_FRIENDS, CHALLENGE_PROPOSALS, SIMPLE_VOTING};
 use abstract_core::objects::voting::{ProposalId, ProposalInfo, VoteResult, DEFAULT_LIMIT};
-use cosmwasm_std::{to_binary, Binary, BlockInfo, Deps, Env, Order, StdResult};
+use cosmwasm_std::{to_json_binary, Binary, BlockInfo, Deps, Env, Order, StdResult};
 use cw_storage_plus::Bound;
 
 use super::execute::last_proposal;
@@ -18,19 +18,19 @@ pub fn query_handler(
 ) -> AppResult<Binary> {
     match msg {
         ChallengeQueryMsg::Challenge { challenge_id } => {
-            to_binary(&query_challenge(deps, env, app, challenge_id)?)
+            to_json_binary(&query_challenge(deps, env, app, challenge_id)?)
         }
         ChallengeQueryMsg::Challenges { start_after, limit } => {
-            to_binary(&query_challenges(deps, env, start_after, limit)?)
+            to_json_binary(&query_challenges(deps, env, start_after, limit)?)
         }
         ChallengeQueryMsg::Friends { challenge_id } => {
-            to_binary(&query_friends(deps, app, challenge_id)?)
+            to_json_binary(&query_friends(deps, app, challenge_id)?)
         }
         ChallengeQueryMsg::Vote {
             voter_addr,
             challenge_id,
             proposal_id,
-        } => to_binary(&query_vote(
+        } => to_json_binary(&query_vote(
             deps,
             app,
             voter_addr,
@@ -41,7 +41,7 @@ pub fn query_handler(
             challenge_id,
             start_after,
             limit,
-        } => to_binary(&query_proposals(
+        } => to_json_binary(&query_proposals(
             deps,
             env,
             app,
@@ -54,7 +54,7 @@ pub fn query_handler(
             proposal_id,
             start_after,
             limit,
-        } => to_binary(&query_votes(
+        } => to_json_binary(&query_votes(
             deps,
             app,
             challenge_id,
