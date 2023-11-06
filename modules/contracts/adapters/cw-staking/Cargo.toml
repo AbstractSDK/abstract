@@ -49,6 +49,7 @@ wynd = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
 astroport = ["abstract-astroport-adapter/full_integration"]
 bow = ["abstract-kujira-adapter/full_integration"]
+astrovault = ["abstract-astrovault-adapter/full_integration"]
 
 # Builds
 [package.metadata.optimizer]
@@ -73,6 +74,9 @@ builds = [
   ] },
   { name = "sei", features = [
     "astroport",
+  ] },
+  { name = "archway", features = [
+    "astrovault",
   ] },
 ]
 
@@ -108,6 +112,9 @@ abstract-astroport-adapter = { workspace = true }
 
 # Kujira #
 abstract-kujira-adapter = { workspace = true }
+
+# Astrovault #
+abstract-astrovault-adapter = { workspace = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

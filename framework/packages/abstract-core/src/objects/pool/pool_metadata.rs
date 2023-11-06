@@ -119,7 +119,7 @@ mod tests {
             let dex = "junoswap";
             let pool_type = PoolType::Stable;
             let mut assets = vec!["uust".to_string(), "uusd".to_string()];
-            let actual = PoolMetadata::new(dex, pool_type.clone(), assets.clone());
+            let actual = PoolMetadata::new(dex, pool_type, assets.clone());
             // sort the asset names
             assets.sort();
             let expected = PoolMetadata {
