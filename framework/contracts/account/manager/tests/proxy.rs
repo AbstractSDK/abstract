@@ -17,7 +17,7 @@ use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
 use common::{
     create_default_account, init_mock_adapter, install_adapter, mock_modules, AResult, TEST_COIN,
 };
-use cosmwasm_std::{coin, to_binary, wasm_execute, Addr, Coin, CosmosMsg};
+use cosmwasm_std::{coin, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use module_factory::error::ModuleFactoryError;
@@ -77,7 +77,7 @@ fn exec_through_manager() -> AResult {
     let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TEST_COIN)];
 
     account.manager.exec_on_module(
-        cosmwasm_std::to_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+        cosmwasm_std::to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
             })],
@@ -153,7 +153,7 @@ fn with_response_data() -> AResult {
         .expect("test module installed");
     // proxy should be final executor because of the reply
     let resp = account.manager.exec_on_module(
-        cosmwasm_std::to_binary(&abstract_core::proxy::ExecuteMsg::ModuleActionWithData {
+        cosmwasm_std::to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleActionWithData {
             // execute a message on the adapter, which sets some data in its response
             msg: wasm_execute(
                 adapter_addr.address,
@@ -353,11 +353,11 @@ fn install_multiple_modules() -> AResult {
             vec![
                 ManagerModuleInstall::new(
                     ModuleInfo::from_id_latest("abstract:standalone1")?,
-                    Some(to_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
+                    Some(to_json_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
                 ),
                 ManagerModuleInstall::new(
                     ModuleInfo::from_id_latest("abstract:standalone2")?,
-                    Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
+                    Some(to_json_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
                 ),
             ],
             Some(&[coin(86, "token1"), coin(500, "token2")]),
@@ -373,11 +373,11 @@ fn install_multiple_modules() -> AResult {
     account.install_modules_auto(vec![
         ManagerModuleInstall::new(
             ModuleInfo::from_id_latest("abstract:standalone1")?,
-            Some(to_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
+            Some(to_json_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
         ),
         ManagerModuleInstall::new(
             ModuleInfo::from_id_latest("abstract:standalone2")?,
-            Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
+            Some(to_json_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
         ),
     ])?;
 

@@ -4,19 +4,18 @@ use crate::contract::ModuleFactoryResponse;
 use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
 use abstract_sdk::{
     core::{
-        manager::{ExecuteMsg as ManagerMsg, RegisterModuleData},
+        manager::RegisterModuleData,
         module_factory::ModuleInstallConfig,
         objects::{
             module::ModuleInfo, module_reference::ModuleReference,
             version_control::VersionControlContract,
         },
-        version_control::AccountBase,
     },
     *,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps, DepsMut,
-    Empty, Env, MessageInfo, StdResult, SubMsgResult, WasmMsg,
+    Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps, DepsMut, Env, MessageInfo,
+    StdResult, WasmMsg,
 };
 
 /// Function that starts the creation of the Modules
@@ -338,9 +337,9 @@ mod test {
 
     mod instantiate_contract {
         use super::*;
-        use abstract_core::objects::module::ModuleVersion;
+        use abstract_core::objects::{module::ModuleVersion, AccountId};
         use cosmwasm_std::{
-            coin, testing::mock_info, to_binary, to_json_binary, Api, CodeInfoResponse, HexBinary,
+            coin, testing::mock_info, to_json_binary, Api, CodeInfoResponse, Empty, HexBinary,
             QuerierResult,
         };
 
@@ -373,7 +372,7 @@ mod test {
             });
             let _info = mock_info("anyone", &[]);
 
-            let expected_module_init_msg = to_binary(&Empty {}).unwrap();
+            let expected_module_init_msg = to_json_binary(&Empty {}).unwrap();
             let expected_code_id = 10u64;
 
             let expected_module_info =
@@ -432,7 +431,7 @@ mod test {
         }
     }
 
-    use cosmwasm_std::to_binary;
+    use cosmwasm_std::to_json_binary;
 
     mod update_factory_binaries {
         use super::*;
@@ -451,7 +450,7 @@ mod test {
             (
                 ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".to_string()))
                     .unwrap(),
-                to_binary(&"tasty pizza usually has pineapple").unwrap(),
+                to_json_binary(&"tasty pizza usually has pineapple").unwrap(),
             )
         }
 

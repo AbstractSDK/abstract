@@ -76,7 +76,7 @@ mod test {
 
     use abstract_core::{manager::ConfigResponse, PROXY};
     use abstract_interface::{Manager, ManagerQueryFns};
-    use cosmwasm_std::{to_binary, wasm_execute};
+    use cosmwasm_std::{to_json_binary, wasm_execute};
 
     use anyhow::Result as AnyResult;
 
@@ -120,7 +120,7 @@ mod test {
 
         // The user on chain 1 want to change the account description
         let ibc_action_result = abstr1.account.manager.exec_on_module(
-            to_binary(&ProxyExecuteMsg::IbcAction {
+            to_json_binary(&ProxyExecuteMsg::IbcAction {
                 msgs: vec![IbcClientExecuteMsg::RemoteAction {
                     host_chain: remote_name.clone(),
                     action: HostAction::Dispatch {
@@ -226,7 +226,7 @@ mod test {
         let create_account_remote_tx = abstr_juno.account.manager.execute_on_remote_module(
             &ChainName::from_chain_id(STARGAZE).to_string(),
             PROXY,
-            to_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+            to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
                 msgs: vec![wasm_execute(
                     abstr_stargaze.account_factory.address()?,
                     &abstract_core::account_factory::ExecuteMsg::CreateAccount {

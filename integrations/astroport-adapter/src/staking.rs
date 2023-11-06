@@ -4,7 +4,7 @@ use abstract_sdk::core::objects::LpToken;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Astroport {
     pub tokens: Vec<AstroportTokenContext>,
 }
@@ -14,14 +14,6 @@ pub struct AstroportTokenContext {
     pub lp_token: LpToken,
     pub lp_token_address: Addr,
     pub generator_contract_address: Addr,
-}
-
-impl Default for Astroport {
-    fn default() -> Self {
-        Self {
-            tokens: Default::default(),
-        }
-    }
 }
 
 // Data that's retrieved from ANS
@@ -52,7 +44,7 @@ use ::{
         RewardInfoResponse,
     },
     cosmwasm_std::{
-        to_binary, wasm_execute, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128,
+        to_json_binary, wasm_execute, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128,
     },
     cw20::Cw20ExecuteMsg,
     cw_asset::AssetInfo,
@@ -101,7 +93,7 @@ impl CwStakingCommand for Astroport {
         stake_request: Vec<AnsAsset>,
         _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        let msg = to_binary(&Cw20HookMsg::Deposit {})?;
+        let msg = to_json_binary(&Cw20HookMsg::Deposit {})?;
 
         let stake_msgs = stake_request
             .into_iter()

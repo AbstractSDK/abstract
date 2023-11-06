@@ -5,7 +5,7 @@ use crate::core::objects::{AnsAsset, AssetEntry};
 use crate::features::AccountIdentification;
 use crate::AccountAction;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
-use cosmwasm_std::to_binary;
+use cosmwasm_std::to_json_binary;
 use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
@@ -163,7 +163,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     ) -> AbstractSdkResult<AccountAction> {
         let transferable_funds = funds.transferable_asset(self.base, self.deps)?;
 
-        let msgs = transferable_funds.send_msg(recipient, to_binary(message)?)?;
+        let msgs = transferable_funds.send_msg(recipient, to_json_binary(message)?)?;
 
         Ok(AccountAction::from_vec(vec![msgs]))
     }
@@ -345,10 +345,10 @@ mod test {
 
             let expected_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: asset.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Send {
+                msg: to_json_binary(&Cw20ExecuteMsg::Send {
                     contract: expected_recipient.to_string(),
                     amount: expected_amount.into(),
-                    msg: to_binary(&hook_msg).unwrap(),
+                    msg: to_json_binary(&hook_msg).unwrap(),
                 })
                 .unwrap(),
                 funds: vec![],

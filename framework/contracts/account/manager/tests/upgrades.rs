@@ -26,7 +26,7 @@ use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
 
 use common::mock_modules::*;
 use common::{create_default_account, AResult};
-use cosmwasm_std::{coin, coins, to_binary, Uint128};
+use cosmwasm_std::{coin, to_json_binary, Uint128};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
@@ -188,7 +188,7 @@ fn upgrade_app() -> AResult {
     let res = manager.upgrade(vec![
         (
             ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_string()))?,
-            Some(to_binary(&app::MigrateMsg {
+            Some(to_json_binary(&app::MigrateMsg {
                 base: app::BaseMigrateMsg {},
                 module: MockMigrateMsg,
             })?),
@@ -216,7 +216,7 @@ fn upgrade_app() -> AResult {
     // attempt to upgrade app 1 to version 2 while not updating other modules
     let res = manager.upgrade(vec![(
         ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V2.to_string()))?,
-        Some(to_binary(&app::MigrateMsg {
+        Some(to_json_binary(&app::MigrateMsg {
             base: app::BaseMigrateMsg {},
             module: MockMigrateMsg,
         })?),
@@ -237,7 +237,7 @@ fn upgrade_app() -> AResult {
     let res = manager.upgrade(vec![
         (
             ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V2.to_string()))?,
-            Some(to_binary(&app::MigrateMsg {
+            Some(to_json_binary(&app::MigrateMsg {
                 base: app::BaseMigrateMsg {},
                 module: MockMigrateMsg,
             })?),
@@ -273,7 +273,7 @@ fn upgrade_app() -> AResult {
     manager.upgrade(vec![
         (
             ModuleInfo::from_id_latest(app_1::MOCK_APP_ID)?,
-            Some(to_binary(&app::MigrateMsg {
+            Some(to_json_binary(&app::MigrateMsg {
                 base: app::BaseMigrateMsg {},
                 module: MockMigrateMsg,
             })?),
@@ -402,14 +402,14 @@ fn upgrade_manager_last() -> AResult {
     let res = manager.upgrade(vec![
         (
             ModuleInfo::from_id_latest(app_1::MOCK_APP_ID)?,
-            Some(to_binary(&app::MigrateMsg {
+            Some(to_json_binary(&app::MigrateMsg {
                 base: app::BaseMigrateMsg {},
                 module: MockMigrateMsg,
             })?),
         ),
         (
             ModuleInfo::from_id_latest("abstract:manager")?,
-            Some(to_binary(&manager::MigrateMsg {})?),
+            Some(to_json_binary(&manager::MigrateMsg {})?),
         ),
         (ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID)?, None),
         (ModuleInfo::from_id_latest(adapter_2::MOCK_ADAPTER_ID)?, None),
@@ -531,7 +531,7 @@ fn create_account_with_installed_module() -> AResult {
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_binary(&app::InstantiateMsg {
+                        Some(to_json_binary(&app::InstantiateMsg {
                             module: MockInitMsg,
                             base: BaseInstantiateMsg {
                                 ans_host_address: deployment.ans_host.addr_str()?,
@@ -618,7 +618,7 @@ fn create_sub_account_with_installed_module() -> AResult {
             ),
             ManagerModuleInstall::new(
                 ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                Some(to_binary(&app::InstantiateMsg {
+                Some(to_json_binary(&app::InstantiateMsg {
                     module: MockInitMsg,
                     base: BaseInstantiateMsg {
                         ans_host_address: deployment.ans_host.addr_str()?,
@@ -768,7 +768,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_binary(&app::InstantiateMsg {
+                        Some(to_json_binary(&app::InstantiateMsg {
                             module: MockInitMsg,
                             base: BaseInstantiateMsg {
                                 ans_host_address: deployment.ans_host.addr_str()?,
@@ -907,7 +907,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
                 ),
                 ManagerModuleInstall::new(
                     ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                    Some(to_binary(&app::InstantiateMsg {
+                    Some(to_json_binary(&app::InstantiateMsg {
                         module: MockInitMsg,
                         base: BaseInstantiateMsg {
                             ans_host_address: deployment.ans_host.addr_str()?,
@@ -1054,7 +1054,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_binary(&app::InstantiateMsg {
+                        Some(to_json_binary(&app::InstantiateMsg {
                             module: MockInitMsg,
                             base: BaseInstantiateMsg {
                                 ans_host_address: deployment.ans_host.addr_str()?,
@@ -1068,7 +1068,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                             name: "standalone".to_owned(),
                             version: V1.into(),
                         },
-                        Some(to_binary(&MockInitMsg)?),
+                        Some(to_json_binary(&MockInitMsg)?),
                     ),
                 ],
             },
@@ -1206,7 +1206,7 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_binary(&app::InstantiateMsg {
+                        Some(to_json_binary(&app::InstantiateMsg {
                             module: MockInitMsg,
                             base: BaseInstantiateMsg {
                                 ans_host_address: deployment.ans_host.addr_str()?,
@@ -1220,7 +1220,7 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
                             name: "standalone".to_owned(),
                             version: V1.into(),
                         },
-                        Some(to_binary(&MockInitMsg)?),
+                        Some(to_json_binary(&MockInitMsg)?),
                     ),
                 ],
             },

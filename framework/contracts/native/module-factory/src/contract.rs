@@ -10,7 +10,7 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
-    to_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
@@ -71,10 +71,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_binary(&query_config(deps)?),
-        QueryMsg::Context {} => to_binary(&query_context(deps)?),
+        QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+        QueryMsg::Context {} => to_json_binary(&query_context(deps)?),
         QueryMsg::SimulateInstallModules { modules } => {
-            to_binary(&query_simulate_install_modules(deps, modules)?)
+            to_json_binary(&query_simulate_install_modules(deps, modules)?)
         }
         QueryMsg::Ownership {} => abstract_sdk::query_ownership!(deps),
     }

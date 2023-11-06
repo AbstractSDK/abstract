@@ -72,8 +72,8 @@ pub mod prelude {
     pub use super::MockDeps;
 
     pub use cosmwasm_std::{
-        from_binary,
+        from_json,
         testing::{MockApi as CwMockApi, MockQuerier, MockStorage},
-        to_binary,
+        to_json_binary,
     };
 }

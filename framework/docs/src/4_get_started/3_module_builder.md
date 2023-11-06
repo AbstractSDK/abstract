@@ -66,14 +66,14 @@ this is such a powerful feature in the next section on the [Abstract SDK](./4_sd
 Here's an example of a module with some handlers set:
 
 ```rust,ignore
-{{#include ../../../packages/abstract-app/examples/counter.rs:handlers}}
+{{ #include ../../../packages/abstract-app/examples/counter.rs:handlers }}
 ```
 
 These handlers are functions that allow you to customize the smart contract's behavior. For example, here's a
 custom `execute` handler that updates the contract's config state.
 
 ```rust
-{{# include../../../ packages /abstract - app / examples / counter.rs:execute}}
+{{ #include ../../../packages/abstract-app/examples/counter.rs:execute }}
 ```
 
 ```admonish info

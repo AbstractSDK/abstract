@@ -12,8 +12,11 @@ use self::state::IbcInfrastructure;
 pub mod state {
 
     use crate::objects::{
-        account::AccountId, ans_host::AnsHost, chain_name::ChainName,
-        common_namespace::ADMIN_NAMESPACE, version_control::VersionControlContract,
+        account::{AccountSequence, AccountTrace},
+        ans_host::AnsHost,
+        chain_name::ChainName,
+        common_namespace::ADMIN_NAMESPACE,
+        version_control::VersionControlContract,
     };
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
@@ -44,8 +47,11 @@ pub mod state {
     pub const REVERSE_POLYTONE_NOTE: Map<&Addr, ChainName> = Map::new("revpn");
 
     pub const CONFIG: Item<Config> = Item::new("config");
-    /// (account_id, chain_name) -> remote proxy account address
-    pub const ACCOUNTS: Map<(&AccountId, &ChainName), String> = Map::new("accs");
+    /// (account_trace, account_sequence, chain_name) -> remote proxy account address. We use a
+    /// triple instead of including AccountId since nested tuples do not behave as expected due to
+    /// a bug that will be fixed in a future release.
+    pub const ACCOUNTS: Map<(&AccountTrace, AccountSequence, &ChainName), String> =
+        Map::new("accs");
 
     // For callbacks tests
     pub const ACKS: Item<Vec<String>> = Item::new("tmpc");
@@ -139,15 +145,18 @@ pub enum QueryMsg {
     // Returns config
     #[returns(HostResponse)]
     Config {},
+
     // Returns config
     #[returns(HostResponse)]
     Host { chain_name: String },
+
     // Shows all open channels (incl. remote info)
     #[returns(ListAccountsResponse)]
     ListAccounts {
         start: Option<(AccountId, String)>,
         limit: Option<u32>,
     },
+
     // Get channel info for one chain
     #[returns(AccountResponse)]
     Account {
@@ -157,9 +166,15 @@ pub enum QueryMsg {
     // get the hosts
     #[returns(ListRemoteHostsResponse)]
     ListRemoteHosts {},
+
     // get the IBC execution proxies
     #[returns(ListRemoteProxiesResponse)]
     ListRemoteProxies {},
+
+    // get the IBC execution proxies based on the account id passed
+    #[returns(ListRemoteProxiesResponse)]
+    ListRemoteProxiesByAccountId { account_id: AccountId },
+
     // get the IBC counterparts connected to this abstract client
     #[returns(ListIbcInfrastructureResponse)]
     ListIbcInfrastructures {},
@@ -176,10 +191,12 @@ pub struct ConfigResponse {
 pub struct ListAccountsResponse {
     pub accounts: Vec<(AccountId, ChainName, String)>,
 }
+
 #[cosmwasm_schema::cw_serde]
 pub struct ListRemoteHostsResponse {
     pub hosts: Vec<(ChainName, String)>,
 }
+
 #[cosmwasm_schema::cw_serde]
 pub struct ListRemoteProxiesResponse {
     pub proxies: Vec<(ChainName, Option<String>)>,
@@ -195,6 +212,7 @@ pub struct HostResponse {
     pub remote_host: String,
     pub remote_polytone_proxy: Option<String>,
 }
+
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {
     pub remote_proxy_addr: String,
@@ -211,7 +229,7 @@ pub struct RemoteProxyResponse {
 #[cfg(test)]
 mod tests {
     use crate::ibc::IbcResponseMsg;
-    use cosmwasm_std::{to_binary, CosmosMsg, Empty};
+    use cosmwasm_std::{to_json_binary, CosmosMsg, Empty};
     use polytone::callbacks::Callback;
     use speculoos::prelude::*;
 
@@ -221,7 +239,7 @@ mod tests {
     fn test_response_msg_to_callback_msg() {
         let receiver = "receiver".to_string();
         let callback_id = "15".to_string();
-        let callback_msg = to_binary("15").unwrap();
+        let callback_msg = to_json_binary("15").unwrap();
 
         let result = Callback::FatalError("ibc execution error".to_string());
 
