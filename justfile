@@ -49,3 +49,9 @@ schema-modules:
     (cd $path; cargo run --example schema --features schema); 
   done
   set +e
+
+schema: schema-modules
+  #!/usr/bin/env bash
+  set -e
+  (cd app-template; cargo run --example schema --features schema)
+  set +e
