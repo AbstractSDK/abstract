@@ -1,39 +1,41 @@
-use std::ops::Deref;
-
 use abstract_core::{
     module_factory::ModuleInstallConfig,
     objects::module::{ModuleInfo, ModuleVersion},
     objects::namespace::Namespace,
     AbstractResult,
 };
-use abstract_interface::{Abstract, AbstractAccount, Manager, ManagerExecFns};
+use abstract_interface::{AbstractAccount, ManagerExecFns};
 use cosmwasm_std::to_json_binary;
+use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
-use cw_orch::{contract::Contract, prelude::*};
 use serde::Serialize;
 
 use crate::{application::Application, infrastructure::Infrastructure};
 
 pub struct AccountBuilder {}
 
-pub struct Account<T: CwEnv> {
-    pub(crate) account: AbstractAccount<T>,
+pub struct Account<Chain: CwEnv> {
+    pub(crate) account: AbstractAccount<Chain>,
 }
 
-trait ModuleId {
+pub trait ModuleId {
     fn module_id() -> String;
 }
 
-impl<T: CwEnv> Account<T> {
+impl<Chain: CwEnv> Account<Chain> {
     // Install an application on the account
     // creates a new sub-account and installs the application on it.
     // TODO: For abstract we know that the contract's name in cw-orch = the module's name in abstract.
     // So we should be able to create the module (M) from only the type and the chain (T).
-    pub fn install_app<M: ContractInstance<T> + ModuleId + InstantiableContract, C: Serialize>(
+    pub fn install_app<
+        // Not sure about this From<Contract<Chain>>
+        M: ContractInstance<Chain> + ModuleId + InstantiableContract + From<Contract<Chain>>,
+        C: Serialize,
+    >(
         &self,
         configuration: &M::InstantiateMsg,
         funds: Vec<Coin>,
-    ) -> AbstractResult<Application<T, M>> {
+    ) -> AbstractResult<Application<Chain, M>> {
         self.account
             .manager
             .install_modules(
@@ -55,7 +57,7 @@ impl<T: CwEnv> Account<T> {
         let app: M = contract.into();
 
         // TODO: convert contract to M here
-        Ok(Application::new(self.account, contract))
+        Ok(Application::new(self.account.clone(), app))
     }
 }
 

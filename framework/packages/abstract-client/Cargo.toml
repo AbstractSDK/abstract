@@ -17,3 +17,10 @@ abstract-interface.workspace = true
 abstract-core.workspace = true
 cw-orch.workspace = true
 serde.workspace = true
+
+[dev-dependencies]
+anyhow.workspace = true
+cosmwasm-schema.workspace = true
+cw-storage-plus.workspace = true
+cw2.workspace = true
+thiserror.workspace = true

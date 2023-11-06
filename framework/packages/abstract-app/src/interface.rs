@@ -151,6 +151,7 @@ macro_rules! cw_orch_interface {
 				fn from(contract: ContractInstance<T>) -> Self {
 					Self(contract)
 				}
+            }
 	    }
 
 

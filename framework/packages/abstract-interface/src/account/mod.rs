@@ -33,6 +33,7 @@ use crate::{get_account_contracts, VersionControl};
 
 pub use self::{manager::*, proxy::*};
 
+#[derive(Clone)]
 pub struct AbstractAccount<Chain: CwEnv> {
     pub manager: Manager<Chain>,
     pub proxy: Proxy<Chain>,

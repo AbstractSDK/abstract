@@ -9,13 +9,13 @@ pub struct AbstractClient<Chain: CwEnv> {
 
 // TODO: Handle errors later.
 impl<Chain: CwEnv> AbstractClient<Chain> {
-    fn new(chain: Chain) -> Self {
+    pub fn new(chain: Chain) -> Self {
         let abstr = Abstract::load_from(chain).unwrap();
         Self { abstr }
     }
 
     // TODO: Switch to builder later.
-    fn new_publisher(abstr: Abstract<Chain>, namespace: String) -> Publisher<Chain> {
+    /*fn new_publisher(abstr: Abstract<Chain>, namespace: String) -> Publisher<Chain> {
         Publisher::new(namespace)
-    }
+    }*/
 }
