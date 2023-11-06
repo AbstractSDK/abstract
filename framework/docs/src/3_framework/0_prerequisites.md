@@ -14,9 +14,7 @@ features allow developers to write reliable and efficient code, making it a grea
 Learn more about Rust <a href="https://www.rust-lang.org/" target="_blank">here</a>, or learn by doing
 the <a href="https://github.com/rust-lang/rustlings/" target="_blank">rustlings</a>.
 
-```admonish info
-Already a CosmWasm expert? Jump to [the next page](./3_account_abstraction.md) to learn about account abstraction!
-```
+> Already a CosmWasm expert? Jump to [the next page](./1_abstract_sdk.md) to learn about the Abstract SDK!
 
 ## CosmWasm
 

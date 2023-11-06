@@ -11,9 +11,8 @@ crafted by other developers available in the module marketplace. Additionally, y
 custom modules using the [Abstract SDK](https://docs.rs/abstract-sdk/latest/abstract_sdk), tailoring them to specific
 application needs and even contributing back to the community.
 
-```admonish info
-Skip to [Modules](./7_module_types.md) to learn what the kinds of modules are and why they are relevant to your Abstract Account.
-```
+> Skip to [Modules](./6_module_types.md) to learn what the kinds of modules are and why they are relevant to your Abstract Account.
+
 
 ## How Modules Work
 

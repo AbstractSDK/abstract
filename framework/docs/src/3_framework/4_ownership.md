@@ -9,9 +9,7 @@ token-based and DaoDao integration coming soon) that ensure a seamless user expe
 When setting up governance for your dApp, you will be prompted to choose between supported governance types, *Monarchy*
 and *Multi-signature*.
 
-```admonish info
-Not interested in account ownership? Skip to our section on [Framework Components](../5_platform/index.md).
-```
+> Not interested in account ownership? Skip to our section on [Framework Components](../5_platform/index.md).
 
 ## Monarchy
 

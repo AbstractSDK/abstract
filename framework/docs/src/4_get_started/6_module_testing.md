@@ -19,13 +19,19 @@ an `abstract-testing` package.
 
 The `abstract-testing` provides you with some small abstractions that allow you to mock Smart and Raw queries with ease.
 
-```admonish info
-What's the difference between a Smart and a Raw query?
 
-- **Smart Queries:** A smart query is a query that contains a message in its request. It commonly involves computation on the queried contract. After this optional computation and state loading, the contract responds with a *ResponseMsg*. Mocking this type of query involves matching the serialized query request message (`Binary`) to a specific message type and returning a serialized response. Any expected computation needs to be mocked as well.
+> What's the difference between a Smart and a Raw query?
+>
+> - **Smart Queries:** A smart query is a query that contains a message in its request. It commonly involves 
+computation on the queried contract. After this optional computation and state loading, the contract responds 
+with a *ResponseMsg*. Mocking this type of query involves matching the serialized query request message 
+(`Binary`) to a specific message type and returning a serialized response. Any expected computation needs 
+to be mocked as well.
+> 
+> - **Raw Queries:** A raw query is a simple database key-value lookup. To mock this type of query you need to 
+provide a mapping of the raw key to a raw value. The returned value then needs to be interpreted correctly 
+according to the store's type definitions.
 
-- **Raw Queries:** A raw query is a simple database key-value lookup. To mock this type of query you need to provide a mapping of the raw key to a raw value. The returned value then needs to be interpreted correctly according to the store's type definitions.
-```
 
 ### Mock Querier
 
@@ -75,9 +81,7 @@ Integration testing your contract involves deploying your contract and any of it
 Abstract uses cw-orchestrator's `Mock` struct that is backed by a `cw-multi-test::App` which you might be familiar with.
 The `Mock` struct provides a simulation of the CosmWasm environment, enabling testing of contract functionalities.
 
-```admonish info
-`cw-orchestrator` is a CosmWasm scripting tool that we developed to improve the speed at which developers can test and deploy their applications. We recommend reading the [cw-orchestrator documentation]() if you are not yet familiar with it.
-```
+> `cw-orchestrator` is a CosmWasm scripting tool that we developed to improve the speed at which developers can test and deploy their applications. We recommend reading the [cw-orchestrator documentation](../1_products/1_cw_orchestrator.md) if you are not yet familiar with it.
 
 **Example**
 
@@ -181,9 +185,7 @@ Once you have confirmed that your module works as expected you can spin up a loc
 onto the chain. You can do this by running the [test-local]() example, which uses a locally running juno daemon to
 deploy to. At this point you can also test your front-end with the contracts.
 
-```admonish warn
-Locally testing your Abstract deployment is difficult if it depends on other protocols, and those protocols don't make use of cw-orchestrator.
-```
+> Locally testing your Abstract deployment is difficult if it depends on other protocols, and those protocols don't make use of cw-orchestrator.
 
 ### Testing
 
