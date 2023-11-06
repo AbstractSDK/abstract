@@ -149,7 +149,6 @@ pub fn execute_create_modules(
         ],
     )
     .add_messages(fee_msgs)
-    // .add_message(register_modules_msg)
     .add_messages(module_instantiate_messages);
 
     Ok(response)
