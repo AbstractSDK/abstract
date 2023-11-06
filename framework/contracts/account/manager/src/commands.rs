@@ -1246,35 +1246,34 @@ mod tests {
         use super::*;
         use abstract_core::manager::InternalConfigAction;
 
-        // TODO: expectation failed for value <Std(GenericErr { msg: "Querier system error: No such contract: version_control_address" })>
-        // #[test]
-        // fn manual_adds_module_to_account_modules() -> ManagerTestResult {
-        //     let mut deps = mock_dependencies();
-        //     mock_init(deps.as_mut()).unwrap();
+        #[test]
+        fn manual_adds_module_to_account_modules() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
 
-        //     let to_add: Vec<(String, String)> = vec![
-        //         ("test:module1".to_string(), "module1_addr".to_string()),
-        //         ("test:module2".to_string(), "module2_addr".to_string()),
-        //     ];
+            let to_add: Vec<(String, String)> = vec![
+                ("test:module1".to_string(), "module1_addr".to_string()),
+                ("test:module2".to_string(), "module2_addr".to_string()),
+            ];
 
-        //     let res = update_module_addresses(deps.as_mut(), Some(to_add.clone()), Some(vec![]));
-        //     assert_that!(&res).is_ok();
+            let res = update_module_addresses(deps.as_mut(), Some(to_add.clone()), Some(vec![]));
+            assert_that!(&res).is_ok();
 
-        //     let actual_modules = load_account_modules(&deps.storage)?;
+            let actual_modules = load_account_modules(&deps.storage)?;
 
-        //     speculoos::prelude::VecAssertions::has_length(
-        //         &mut assert_that!(&actual_modules),
-        //         to_add.len(),
-        //     );
-        //     for (module_id, addr) in to_add {
-        //         speculoos::iter::ContainingIntoIterAssertions::contains(
-        //             &mut assert_that!(&actual_modules),
-        //             &(module_id, Addr::unchecked(addr)),
-        //         );
-        //     }
+            speculoos::prelude::VecAssertions::has_length(
+                &mut assert_that!(&actual_modules),
+                to_add.len(),
+            );
+            for (module_id, addr) in to_add {
+                speculoos::iter::ContainingIntoIterAssertions::contains(
+                    &mut assert_that!(&actual_modules),
+                    &(module_id, Addr::unchecked(addr)),
+                );
+            }
 
-        //     Ok(())
-        // }
+            Ok(())
+        }
 
         #[test]
         fn missing_id() -> ManagerTestResult {
