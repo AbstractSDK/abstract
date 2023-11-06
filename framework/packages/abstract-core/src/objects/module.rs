@@ -1,4 +1,4 @@
-use super::module_reference::ModuleReference;
+use super::{module_reference::ModuleReference, AccountId};
 use crate::objects::fee::FixedFee;
 use crate::objects::module_version::MODULE;
 use crate::objects::namespace::Namespace;
@@ -473,6 +473,41 @@ impl Default for Monetization {
 /// Module Metadata String
 pub type ModuleMetadata = String;
 
+pub struct ModuleSalt([u8; 40]);
+
+impl ModuleSalt {
+    pub fn new(block_height: u64, account_id: AccountId) -> Self {
+        let mut salt = [0; 40];
+        // 0..8 bytes for code id
+
+        // 8..16 bytes for block height
+        let block_height_bytes = &mut salt[8..16];
+        block_height_bytes.copy_from_slice(&block_height.to_be_bytes());
+
+        // 16..20 bytes for account seq
+        let account_id_seq_bytes = &mut salt[16..20];
+        account_id_seq_bytes.copy_from_slice(&account_id.seq().to_be_bytes());
+
+        // rest of bytes filled with trace
+        let trace = account_id
+            .trace()
+            .to_string()
+            .into_bytes()
+            .into_iter()
+            .take(20)
+            .collect::<Vec<u8>>();
+        let account_id_trace_bytes: &mut [u8] = &mut salt[20..40];
+        account_id_trace_bytes[0..trace.len()].copy_from_slice(&trace);
+        ModuleSalt(salt)
+    }
+
+    pub fn generate(&mut self, code_id: u64) -> Binary {
+        let code_id_bytes = &mut self.0[0..8];
+        code_id_bytes.copy_from_slice(&code_id.to_be_bytes());
+        Binary::from(self.0.as_slice())
+    }
+}
+
 //--------------------------------------------------------------------------------------------------
 // Tests
 //--------------------------------------------------------------------------------------------------
@@ -809,6 +844,46 @@ mod test {
                 Some(Addr::unchecked(MOCK_CONTRACT_ADDR)),
             );
             assert!(res.is_ok());
+        }
+    }
+
+    mod module_salt {
+        use crate::objects::{account::AccountTrace, chain_name::ChainName};
+
+        use super::*;
+
+        #[test]
+        fn generate_module_salt_local() {
+            let mut module_salt = ModuleSalt::new(123, AccountId::local(5));
+            let salt = module_salt.generate(1);
+            assert!(!salt.is_empty());
+            assert!(salt.len() <= 64);
+            let salt2 = module_salt.generate(2);
+            assert_ne!(salt, salt2);
+        }
+
+        #[test]
+        fn generate_module_salt_trace() {
+            let mut module_salt = ModuleSalt::new(
+                123,
+                AccountId::new(
+                    5,
+                    AccountTrace::Remote(vec![
+                        ChainName::from_chain_id("foo-1"),
+                        ChainName::from_chain_id("bar-42"),
+                        ChainName::from_chain_id("baz-4"),
+                        ChainName::from_chain_id("qux-24"),
+                        ChainName::from_chain_id("quux-99"),
+                        ChainName::from_chain_id("corge-5"),
+                    ]),
+                )
+                .unwrap(),
+            );
+            let salt = module_salt.generate(1);
+            assert!(!salt.is_empty());
+            assert!(salt.len() <= 64);
+            let salt2 = module_salt.generate(2);
+            assert_ne!(salt, salt2);
         }
     }
 }

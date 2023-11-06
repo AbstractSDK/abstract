@@ -13,7 +13,7 @@ use abstract_core::manager::{
 };
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::module::assert_module_data_validity;
+use abstract_core::objects::module::{assert_module_data_validity, ModuleSalt};
 use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::objects::version_control::VersionControlContract;
@@ -49,7 +49,7 @@ use cosmwasm_std::{
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_ownable::OwnershipError;
-use cw_storage_plus::Item;
+use cw_storage_plus::{Endian, Item};
 use semver::Version;
 
 pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
@@ -138,21 +138,7 @@ pub(crate) fn install_modules_internal(
     let canonical_module_factory = deps
         .api
         .addr_canonicalize(module_factory_address.as_str())?;
-    let mut salt_bytes: Vec<u8> = Vec::with_capacity(40);
-    // placeholder 8 bytes for code id
-    salt_bytes.extend([0; 8]);
-
-    salt_bytes.extend(block_height.to_be_bytes());
-    salt_bytes.extend(account_id.seq().to_be_bytes());
-    salt_bytes.extend(
-        account_id
-            .trace()
-            .to_string()
-            .into_bytes()
-            .into_iter()
-            .take(20)
-            .collect::<Vec<u8>>(),
-    );
+    let mut module_salt: ModuleSalt = ModuleSalt::new(block_height, account_id);
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
@@ -180,10 +166,7 @@ pub(crate) fn install_modules_internal(
                 None
             }
             ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
-                // Override first 8 bytes of salt to new code id
-                let code_id_bytes = &mut salt_bytes[..8];
-                code_id_bytes.swap_with_slice(&mut code_id.to_be_bytes());
-                let salt = Binary::from(salt_bytes.as_slice());
+                let salt = module_salt.generate(*code_id);
 
                 let checksum = deps.querier.query_wasm_code_info(*code_id)?.checksum;
                 let module_address = cosmwasm_std::instantiate2_address(
