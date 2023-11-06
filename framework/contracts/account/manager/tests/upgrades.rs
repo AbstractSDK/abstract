@@ -4,7 +4,7 @@ use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_core::{
     app::{self, BaseInstantiateMsg},
     manager::{ManagerModuleInstall, ModuleVersionsResponse},
-    module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse},
+    module_factory::SimulateInstallModulesResponse,
     objects::{
         fee::FixedFee,
         gov_type::GovernanceDetails,
@@ -26,7 +26,7 @@ use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
 
 use common::mock_modules::*;
 use common::{create_default_account, AResult};
-use cosmwasm_std::{coin, to_json_binary, Uint128};
+use cosmwasm_std::{coin, coins, to_json_binary, Uint128};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;

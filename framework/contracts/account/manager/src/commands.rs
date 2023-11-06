@@ -8,9 +8,7 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{
-    InternalConfigAction, ManagerModuleInstall, RegisterModuleData, UpdateSubAccountAction,
-};
+use abstract_core::manager::{InternalConfigAction, ManagerModuleInstall, UpdateSubAccountAction};
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{assert_module_data_validity, ModuleSalt};
@@ -49,7 +47,7 @@ use cosmwasm_std::{
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_ownable::OwnershipError;
-use cw_storage_plus::{Endian, Item};
+use cw_storage_plus::Item;
 use semver::Version;
 
 pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
@@ -123,6 +121,7 @@ pub fn install_modules(
 }
 
 /// Generate message and attribute for installing module
+/// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
 pub(crate) fn install_modules_internal(
     mut deps: DepsMut,
     block_height: u64,
@@ -208,57 +207,6 @@ pub(crate) fn install_modules_internal(
     ))
 }
 
-/// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
-pub fn register_modules(
-    mut deps: DepsMut,
-    msg_info: MessageInfo,
-    _env: Env,
-    modules: Vec<RegisterModuleData>,
-) -> ManagerResult {
-    let config = CONFIG.load(deps.storage)?;
-    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
-
-    // check if sender is module factory
-    if msg_info.sender != config.module_factory_address {
-        return Err(ManagerError::CallerNotModuleFactory {});
-    }
-
-    let to_add = modules
-        .iter()
-        .map(|reg| (reg.module.info.id(), reg.module_address.clone()))
-        .collect();
-
-    let mut response = update_module_addresses(deps.branch(), Some(to_add), None)?;
-    let mut add_modules = vec![];
-    for RegisterModuleData {
-        module,
-        module_address,
-    } in modules
-    {
-        match module {
-            Module {
-                reference: ModuleReference::App(_),
-                ..
-            } => {
-                add_modules.push(module_address);
-            }
-            Module {
-                reference: ModuleReference::Adapter(_),
-                ..
-            } => {
-                add_modules.push(module_address);
-            }
-            _ => (),
-        };
-    }
-    // add modules to proxy if any
-    if !add_modules.is_empty() {
-        response =
-            response.add_message(add_modules_to_proxy(proxy_addr.into_string(), add_modules)?)
-    }
-    Ok(response)
-}
-
 /// Adds the modules dependencies
 pub(crate) fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> ManagerResult {
     let modules = INSTALL_MODULES_CONTEXT.load(deps.storage)?;
@@ -269,7 +217,7 @@ pub(crate) fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> Man
                 reference: ModuleReference::App(_),
                 info,
             } => {
-                assert_module_data_validity(&deps.querier, &module, module_addr.clone())?;
+                assert_module_data_validity(&deps.querier, module, module_addr.clone())?;
                 let id = info.id();
                 // assert version requirements
                 let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
@@ -279,13 +227,13 @@ pub(crate) fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> Man
                 reference: ModuleReference::Standalone(_),
                 info: _,
             } => {
-                assert_module_data_validity(&deps.querier, &module, module_addr.clone())?;
+                assert_module_data_validity(&deps.querier, module, module_addr.clone())?;
             }
             Module {
                 reference: ModuleReference::Adapter(_),
                 info,
             } => {
-                assert_module_data_validity(&deps.querier, &module, module_addr.clone())?;
+                assert_module_data_validity(&deps.querier, module, module_addr.clone())?;
                 let id = info.id();
                 // assert version requirements
                 let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
@@ -1599,39 +1547,39 @@ mod tests {
         // rest should be in integration tests
     }
 
-    mod register_module {
+    // mod register_module {
 
-        use super::*;
+    //     use super::*;
 
-        fn _execute_as_module_factory(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-            execute_as(deps, TEST_MODULE_FACTORY, msg)
-        }
+    //     fn _execute_as_module_factory(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
+    //         execute_as(deps, TEST_MODULE_FACTORY, msg)
+    //     }
 
-        #[test]
-        fn only_module_factory() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            init_with_proxy(&mut deps);
+    //     #[test]
+    //     fn only_module_factory() -> ManagerTestResult {
+    //         let mut deps = mock_dependencies();
+    //         init_with_proxy(&mut deps);
 
-            let _info = mock_info("not_module_factory", &[]);
+    //         let _info = mock_info("not_module_factory", &[]);
 
-            let msg = ExecuteMsg::RegisterModules {
-                modules: vec![RegisterModuleData {
-                    module_address: "module_addr".to_string(),
-                    module: Module {
-                        info: ModuleInfo::from_id_latest("test:module")?,
-                        reference: ModuleReference::App(1),
-                    },
-                }],
-            };
+    //         let msg = ExecuteMsg::RegisterModules {
+    //             modules: vec![RegisterModuleData {
+    //                 module_address: "module_addr".to_string(),
+    //                 module: Module {
+    //                     info: ModuleInfo::from_id_latest("test:module")?,
+    //                     reference: ModuleReference::App(1),
+    //                 },
+    //             }],
+    //         };
 
-            let res = execute_as(deps.as_mut(), "not_module_factory", msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(ManagerError::CallerNotModuleFactory {});
+    //         let res = execute_as(deps.as_mut(), "not_module_factory", msg);
+    //         assert_that!(&res)
+    //             .is_err()
+    //             .is_equal_to(ManagerError::CallerNotModuleFactory {});
 
-            Ok(())
-        }
-    }
+    //         Ok(())
+    //     }
+    // }
 
     mod exec_on_module {
         use super::*;

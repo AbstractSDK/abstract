@@ -87,15 +87,6 @@ impl ModuleReference {
             )),
         }
     }
-
-    pub fn get_code_id(&self) -> Option<u64> {
-        match self {
-            ModuleReference::AccountBase(code_id)
-            | ModuleReference::App(code_id)
-            | ModuleReference::Standalone(code_id) => Some(code_id.clone()),
-            _ => None,
-        }
-    }
 }
 
 #[cfg(test)]

@@ -4,7 +4,6 @@ use crate::contract::ModuleFactoryResponse;
 use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
 use abstract_sdk::{
     core::{
-        manager::RegisterModuleData,
         module_factory::ModuleInstallConfig,
         objects::{
             module::ModuleInfo, module_reference::ModuleReference,
@@ -43,8 +42,6 @@ pub fn execute_create_modules(
         .map(|m| (m.module, m.init_msg_salt))
         .unzip();
 
-    // TODO: we can pass it from manager, but can this contract trust manager?
-    // It will be queried twice if we don't trust
     let modules_responses = version_registry.query_modules_configs(infos)?;
 
     // fees
@@ -55,7 +52,7 @@ pub fn execute_create_modules(
     let mut module_instantiate_messages = Vec::with_capacity(modules_responses.len());
 
     // Register modules on manager
-    let mut modules_to_register: Vec<RegisterModuleData> = vec![];
+    let mut modules_to_register: Vec<Addr> = vec![];
 
     // Attributes logging
     let mut module_ids: Vec<String> = Vec::with_capacity(modules_responses.len());
@@ -104,19 +101,12 @@ pub fn execute_create_modules(
                     &new_module.info,
                 )?;
                 let module_address = deps.api.addr_humanize(&addr)?;
-                modules_to_register.push(RegisterModuleData {
-                    module_address: module_address.to_string(),
-                    module: new_module,
-                });
+                modules_to_register.push(module_address);
                 module_instantiate_messages.push(init_msg);
             }
             // Adapter is not installed but registered instead, so we don't push to the `installed_modules`
             ModuleReference::Adapter(addr) => {
-                let new_module_addr = addr.to_string();
-                modules_to_register.push(RegisterModuleData {
-                    module_address: new_module_addr,
-                    module: new_module,
-                });
+                modules_to_register.push(addr.clone());
             }
             ModuleReference::Standalone(code_id) => {
                 let (addr, init_msg) = instantiate2_contract(
@@ -130,10 +120,7 @@ pub fn execute_create_modules(
                     &new_module.info,
                 )?;
                 let module_address = deps.api.addr_humanize(&addr)?;
-                modules_to_register.push(RegisterModuleData {
-                    module_address: module_address.to_string(),
-                    module: new_module,
-                });
+                modules_to_register.push(module_address);
                 module_instantiate_messages.push(init_msg);
             }
             _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
@@ -168,6 +155,7 @@ pub fn execute_create_modules(
     Ok(response)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn instantiate2_contract(
     deps: Deps,
     creator_addr: CanonicalAddr,
@@ -197,10 +185,10 @@ fn instantiate2_contract(
     ))
 }
 
-pub fn new_module_addrs(modules_to_register: &[RegisterModuleData]) -> ModuleFactoryResult<String> {
+pub fn new_module_addrs(modules_to_register: &[Addr]) -> ModuleFactoryResult<String> {
     let module_addrs = modules_to_register
         .iter()
-        .map(|reg| reg.module_address.as_str())
+        .map(|addr| addr.as_str())
         .collect::<Vec<&str>>()
         .join(",");
 
@@ -358,7 +346,7 @@ mod test {
                         .into_string();
                     QuerierResult::Ok(cosmwasm_std::ContractResult::Ok(
                         to_json_binary(&CodeInfoResponse::new(
-                            code_id.clone(),
+                            *code_id,
                             creator.clone(),
                             HexBinary::from_hex(
                                 "13a1fc994cc6d1c81b746ee0c0ff6f90043875e0bf1d9be6b7d779fc978dc2a5",

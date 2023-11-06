@@ -8,7 +8,6 @@ use abstract_core::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     ibc_host::HostAction,
     manager::ManagerModuleInstall,
-    module_factory::ModuleInstallConfig,
     objects::module::{ModuleInfo, ModuleVersion},
     proxy::ExecuteMsg,
     IBC_CLIENT,

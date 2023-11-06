@@ -2,7 +2,6 @@ mod common;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_core::adapter::AdapterRequestMsg;
 use abstract_core::manager::{ManagerModuleInstall, ModuleVersionsResponse};
-use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::module_reference::ModuleReference;
@@ -20,7 +19,6 @@ use common::{
 use cosmwasm_std::{coin, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
-use module_factory::error::ModuleFactoryError;
 use speculoos::prelude::*;
 
 #[test]
