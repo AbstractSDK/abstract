@@ -140,6 +140,17 @@ macro_rules! cw_orch_interface {
 			}
 
 			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<Chain> for $interface_name<Chain> {}
+
+			impl ModuleId for $interface_name<Chain> {
+				fn module_id() -> String {
+					$app_type::module_id()
+				}
+			}
+
+			impl<T: CwEnv> From<ContractInstance<T>> for $interface_name<T> {
+				fn from(contract: ContractInstance<T>) -> Self {
+					Self(contract)
+				}
 	    }
 
 

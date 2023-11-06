@@ -20,15 +20,18 @@ pub struct Account<T: CwEnv> {
     pub(crate) account: AbstractAccount<T>,
 }
 
+trait ModuleId {
+    fn module_id() -> String;
+}
+
 impl<T: CwEnv> Account<T> {
     // Install an application on the account
     // creates a new sub-account and installs the application on it.
     // TODO: For abstract we know that the contract's name in cw-orch = the module's name in abstract.
     // So we should be able to create the module (M) from only the type and the chain (T).
-    pub fn install_app<M: ContractInstance<T>, C: Serialize>(
+    pub fn install_app<M: ContractInstance<T> + ModuleId + InstantiableContract, C: Serialize>(
         &self,
-        id: &str,
-        configuration: &C,
+        configuration: &M::InstantiateMsg,
         funds: Vec<Coin>,
     ) -> AbstractResult<Application<T, M>> {
         self.account
@@ -47,7 +50,10 @@ impl<T: CwEnv> Account<T> {
             )
             .unwrap();
         // Construct module from type and chain
-        let contract = Contract::new(id.to_string(), self.environment());
+        let contract = Contract::new(M::module_id(), self.environment());
+
+        let app: M = contract.into();
+
         // TODO: convert contract to M here
         Ok(Application::new(self.account, contract))
     }
