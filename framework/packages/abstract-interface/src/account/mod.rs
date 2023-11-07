@@ -174,7 +174,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     }
 
     /// Installs an app from an app object
-    pub fn install_app<CustomInitMsg: Serialize, T: AppDeployer<Chain>>(
+    pub fn install_app<CustomInitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
         app: T,
         custom_init_msg: &CustomInitMsg,

@@ -1,13 +1,15 @@
 mod app;
-use abstract_client::{client::AbstractClient, publisher::Publisher};
+use abstract_client::{application::Application, client::AbstractClient, publisher::Publisher};
 use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
 use abstract_interface::{Abstract, AccountDetails, AppDeployer, DeployStrategy, VCExecFns};
 use app::{
     contract::{APP_ID, APP_VERSION},
-    AppInterface,
+    AppInterface, AppQueryMsgFns,
 };
 use cosmwasm_std::Addr;
 use cw_orch::{deploy::Deploy, prelude::Mock};
+
+use crate::app::msg::ConfigResponse;
 
 const ADMIN: &str = "admin";
 
@@ -57,17 +59,26 @@ fn deploy_app(abstr: &Abstract<Mock>, chain: Mock) -> anyhow::Result<()> {
 fn test() -> anyhow::Result<()> {
     // Set up.
     let (chain, abstr) = deploy_abstract()?;
-    let namespace = "namespace";
-    let user = "user";
+    //let namespace = "namespace";
+    //let user = "user";
     deploy_app(&abstr, chain.clone())?;
-    create_account(user.to_owned(), namespace.to_owned(), &abstr)?;
+    //create_account(user.to_owned(), namespace.to_owned(), &abstr)?;
 
     // Interaction with client begins.
     let client: AbstractClient<Mock> = AbstractClient::new(chain);
 
     // TODO: Also try with namespace that does not exist.
-    let publisher: Publisher<Mock> = client.new_publisher(namespace.to_owned());
+    let publisher: Publisher<Mock> = client.new_publisher(String::from("my-namespace"));
 
-    //let my_app: Application<MyApp> = publisher.install_app<MyApp>();
+    let my_app: Application<Mock, AppInterface<Mock>> = publisher
+        .account()
+        .install_app::<AppInterface<Mock>, app::msg::AppInstantiateMsg>(
+            &app::msg::AppInstantiateMsg {},
+            &[],
+        )
+        .unwrap();
+    let config = my_app.config()?;
+
+    assert_eq!(ConfigResponse {}, config);
     Ok(())
 }

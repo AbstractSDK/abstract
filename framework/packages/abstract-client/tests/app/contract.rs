@@ -9,7 +9,7 @@ use abstract_app::AppContract;
 use cosmwasm_std::Response;
 
 /// The version of your app
-pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const APP_VERSION: &str = "0.1.0";
 /// The id of the app
 pub const APP_ID: &str = "my-namespace:app";
 

@@ -11,7 +11,7 @@ pub struct Application<T: CwEnv, M> {
 }
 
 // Allows to access the module's methods directly from the application struct
-impl<T: CwEnv, M> Deref for Application<T, M> {
+impl<Chain: CwEnv, M> Deref for Application<Chain, M> {
     type Target = M;
 
     fn deref(&self) -> &Self::Target {
