@@ -4,7 +4,7 @@ use crate::contract::ModuleFactoryResponse;
 use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
 use abstract_sdk::{
     core::{
-        module_factory::{ModuleInstallConfig, ModuleInstantiateData},
+        module_factory::ModuleInstallConfig,
         objects::{
             module::ModuleInfo, module_reference::ModuleReference,
             version_control::VersionControlContract,
@@ -23,6 +23,7 @@ pub fn execute_create_modules(
     env: Env,
     info: MessageInfo,
     modules: Vec<ModuleInstallConfig>,
+    salt: Binary,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
     let block_height = env.block.height;
@@ -37,8 +38,8 @@ pub fn execute_create_modules(
     let account_base = account_registry.assert_manager(&info.sender)?;
 
     // get module info and module config for further use
-    let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<ModuleInstantiateData>>) =
-        modules.into_iter().map(|m| (m.module, m.init_data)).unzip();
+    let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
+        modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
 
     let modules_responses = version_registry.query_modules_configs(infos)?;
 
@@ -56,7 +57,7 @@ pub fn execute_create_modules(
     let mut module_ids: Vec<String> = Vec::with_capacity(modules_responses.len());
 
     let canonical_contract_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
-    for (owner_init_msg_salt, module_response) in
+    for (owner_init_msg, module_response) in
         init_msgs.into_iter().zip(modules_responses.into_iter())
     {
         let new_module = module_response.module;
@@ -93,7 +94,8 @@ pub fn execute_create_modules(
                     canonical_contract_addr.clone(),
                     block_height,
                     *code_id,
-                    owner_init_msg_salt.unwrap(),
+                    owner_init_msg.unwrap(),
+                    salt.clone(),
                     Some(account_base.manager.clone()),
                     new_module_init_funds,
                     &new_module.info,
@@ -112,7 +114,8 @@ pub fn execute_create_modules(
                     canonical_contract_addr.clone(),
                     block_height,
                     *code_id,
-                    owner_init_msg_salt.unwrap(),
+                    owner_init_msg.unwrap(),
+                    salt.clone(),
                     Some(account_base.manager.clone()),
                     new_module_init_funds,
                     &new_module.info,
@@ -158,18 +161,16 @@ fn instantiate2_contract(
     creator_addr: CanonicalAddr,
     block_height: u64,
     code_id: u64,
-    init_data: ModuleInstantiateData,
+    init_msg: Binary,
+    salt: Binary,
     admin: Option<Addr>,
     funds: Vec<Coin>,
     module_info: &ModuleInfo,
 ) -> ModuleFactoryResult<(CanonicalAddr, CosmosMsg)> {
     let wasm_info = deps.querier.query_wasm_code_info(code_id)?;
 
-    let addr = cosmwasm_std::instantiate2_address(
-        &wasm_info.checksum,
-        &creator_addr,
-        init_data.salt.as_slice(),
-    )?;
+    let addr =
+        cosmwasm_std::instantiate2_address(&wasm_info.checksum, &creator_addr, salt.as_slice())?;
 
     Ok((
         addr,
@@ -178,8 +179,8 @@ fn instantiate2_contract(
             funds,
             admin: admin.map(Into::into),
             label: format!("Module: {module_info}, Height {block_height}"),
-            msg: init_data.init_msg,
-            salt: init_data.salt,
+            msg: init_msg,
+            salt,
         }
         .into(),
     ))
@@ -371,8 +372,7 @@ mod test {
             let contract_addr = deps.api.addr_make("contract");
             let creator_addr = deps.api.addr_canonicalize(contract_addr.as_str()).unwrap();
             let account_id = AccountId::local(1);
-            let mut salt_bytes: Vec<u8> = Vec::with_capacity(40);
-            salt_bytes.extend(expected_code_id.to_be_bytes());
+            let mut salt_bytes: Vec<u8> = Vec::with_capacity(32);
             salt_bytes.extend(some_block_height.to_be_bytes());
             salt_bytes.extend(account_id.seq().to_be_bytes());
             salt_bytes.extend(
@@ -391,7 +391,8 @@ mod test {
                 creator_addr,
                 some_block_height,
                 expected_code_id,
-                ModuleInstantiateData::new(expected_module_init_msg.clone(), salt.clone()),
+                expected_module_init_msg.clone(),
+                salt.clone(),
                 None,
                 vec![coin(5, "ucosm")],
                 &expected_module_info,

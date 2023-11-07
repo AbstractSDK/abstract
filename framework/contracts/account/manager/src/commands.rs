@@ -9,9 +9,9 @@ use abstract_core::adapter::{
     QueryMsg as AdapterQuery,
 };
 use abstract_core::manager::{InternalConfigAction, ManagerModuleInstall, UpdateSubAccountAction};
-use abstract_core::module_factory::{ModuleInstallConfig, ModuleInstantiateData};
+use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::module::{assert_module_data_validity, ModuleSalt};
+use abstract_core::objects::module::{self, assert_module_data_validity};
 use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::objects::version_control::VersionControlContract;
@@ -133,12 +133,12 @@ pub(crate) fn install_modules_internal(
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
+    let salt: Binary = module::generate_salt(block_height, account_id);
     let version_control = VersionControlContract::new(version_control_address);
 
     let canonical_module_factory = deps
         .api
         .addr_canonicalize(module_factory_address.as_str())?;
-    let mut module_salt: ModuleSalt = ModuleSalt::new(block_height, account_id);
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
@@ -165,8 +165,6 @@ pub(crate) fn install_modules_internal(
                 None
             }
             ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
-                let salt = module_salt.generate(*code_id);
-
                 let checksum = deps.querier.query_wasm_code_info(*code_id)?.checksum;
                 let module_address = cosmwasm_std::instantiate2_address(
                     &checksum,
@@ -177,7 +175,7 @@ pub(crate) fn install_modules_internal(
                 to_add.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), Some(module_address)));
 
-                Some(ModuleInstantiateData::new(init_msg.unwrap(), salt))
+                Some(init_msg.unwrap())
             }
             // TODO: do we want to support installing any other type of module here?
             _ => unreachable!(),
@@ -199,6 +197,7 @@ pub(crate) fn install_modules_internal(
         module_factory_address,
         &ModuleFactoryMsg::InstallModules {
             modules: manager_modules,
+            salt,
         },
         funds,
     )?;

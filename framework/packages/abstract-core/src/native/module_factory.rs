@@ -52,24 +52,14 @@ pub enum ExecuteMsg {
         version_control_address: Option<String>,
     },
     /// Install modules
-    InstallModules { modules: Vec<ModuleInstallConfig> },
+    InstallModules {
+        modules: Vec<ModuleInstallConfig>,
+        salt: Binary,
+    },
     UpdateFactoryBinaryMsgs {
         to_add: Vec<(ModuleInfo, Binary)>,
         to_remove: Vec<ModuleInfo>,
     },
-}
-
-#[non_exhaustive]
-#[cosmwasm_schema::cw_serde]
-pub struct ModuleInstantiateData {
-    pub init_msg: Binary,
-    pub salt: Binary,
-}
-
-impl ModuleInstantiateData {
-    pub fn new(init_msg: Binary, salt: Binary) -> Self {
-        Self { init_msg, salt }
-    }
 }
 
 /// Module info, init message and salt
@@ -77,12 +67,12 @@ impl ModuleInstantiateData {
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInstallConfig {
     pub module: ModuleInfo,
-    pub init_data: Option<ModuleInstantiateData>,
+    pub init_msg: Option<Binary>,
 }
 
 impl ModuleInstallConfig {
-    pub fn new(module: ModuleInfo, init_data: Option<ModuleInstantiateData>) -> Self {
-        Self { module, init_data }
+    pub fn new(module: ModuleInfo, init_msg: Option<Binary>) -> Self {
+        Self { module, init_msg }
     }
 }
 

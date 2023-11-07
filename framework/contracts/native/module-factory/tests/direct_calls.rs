@@ -2,7 +2,7 @@ use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::{module_factory, objects::module::ModuleInfo};
 use abstract_interface::*;
 use abstract_testing::prelude::TEST_ADMIN;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Binary};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
@@ -40,7 +40,10 @@ fn caller_must_be_manager() -> AResult {
     )?;
 
     let res = factory
-        .install_modules(vec![ModuleInstallConfig::new(test_module, None)])
+        .install_modules(
+            vec![ModuleInstallConfig::new(test_module, None)],
+            Binary::default(),
+        )
         .unwrap_err();
     assert_that(&res.root().to_string())
         .contains("ensure that the contract is a Manager or Proxy contract");
