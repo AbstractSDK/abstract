@@ -4,7 +4,7 @@
 //! These objects are mostly used internally to easy re-use application code without
 //! requiring the usage of a base contract.
 
-use crate::core::PROXY;
+use crate::framework::PROXY;
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult,

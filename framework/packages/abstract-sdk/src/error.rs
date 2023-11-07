@@ -1,5 +1,5 @@
 #![allow(missing_docs)]
-use crate::core::{objects::AssetEntry, AbstractError};
+use crate::framework::{objects::AssetEntry, AbstractError};
 use abstract_core::objects::AccountId;
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;

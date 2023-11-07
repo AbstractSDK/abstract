@@ -13,6 +13,8 @@ pub use error::AppError;
 pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
 mod interface;
 
+pub use abstract_sdk as sdk;
+
 use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
 pub mod mock {

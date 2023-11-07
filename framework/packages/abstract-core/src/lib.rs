@@ -2,12 +2,12 @@
 
 // https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html
 
-//! # Abstract Account
+//! # Abstract Core
 //!
-//! Abstract Interface is the interface-defining crate to the Abstract smart-contract framework.
+//! Abstract Core is the interface-defining crate for the Abstract smart-contract framework.
 //!
 //! ## Description
-//! This crate provides the key utilities that are required to integrate with or write Abstract contracts.
+//! This crate provides the key types that are required to integrate with or write Abstract contracts.
 //!
 //! ## Messages
 //! All interfacing message structs are defined here so they can be imported.

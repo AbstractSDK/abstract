@@ -118,7 +118,7 @@ mod tests {
     }
 
     mod app_request {
-        use crate::core::app;
+        use crate::framework::app;
         use crate::mock_module::MockModuleExecuteMsg;
 
         use super::*;
@@ -158,7 +158,7 @@ mod tests {
     }
 
     mod app_configure {
-        use crate::core::app;
+        use crate::framework::app;
 
         use super::*;
 

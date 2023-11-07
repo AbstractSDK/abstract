@@ -1,7 +1,7 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the Account.
 
-use crate::core::objects::module::ModuleId;
+use crate::framework::objects::module::ModuleId;
 use crate::{
     features::{AccountIdentification, Dependencies},
     AbstractSdkResult,

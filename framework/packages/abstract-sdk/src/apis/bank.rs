@@ -1,7 +1,7 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
-use crate::core::objects::{AnsAsset, AssetEntry};
+use crate::framework::objects::{AnsAsset, AssetEntry};
 use crate::features::AccountIdentification;
 use crate::AccountAction;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};

@@ -27,7 +27,7 @@ pub fn wasm_raw_query<C>(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::core::{app, app::BaseQueryMsg};
+    use crate::framework::{app, app::BaseQueryMsg};
     use cosmwasm_std::Empty;
 
     #[test]
