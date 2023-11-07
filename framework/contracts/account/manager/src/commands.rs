@@ -9,14 +9,14 @@ use abstract_core::adapter::{
     QueryMsg as AdapterQuery,
 };
 use abstract_core::manager::{InternalConfigAction, ManagerModuleInstall, UpdateSubAccountAction};
-use abstract_core::module_factory::ModuleInstallConfig;
+use abstract_core::module_factory::{ModuleInstallConfig, ModuleInstantiateData};
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{assert_module_data_validity, ModuleSalt};
 use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::objects::version_control::VersionControlContract;
 use abstract_core::proxy::state::ACCOUNT_ID;
-use abstract_core::version_control::{ModuleResponse, ModulesResponse};
+use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
 
@@ -133,6 +133,7 @@ pub(crate) fn install_modules_internal(
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
+    let version_control = VersionControlContract::new(version_control_address);
 
     let canonical_module_factory = deps
         .api
@@ -141,10 +142,9 @@ pub(crate) fn install_modules_internal(
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
-    let ModulesResponse { modules } = deps.querier.query_wasm_smart(
-        version_control_address.to_string(),
-        &abstract_core::version_control::QueryMsg::Modules { infos },
-    )?;
+    let modules = version_control
+        .module_registry(deps.as_ref())
+        .query_modules_configs(infos)?;
 
     let mut install_context = Vec::with_capacity(modules.len());
     let mut to_add = Vec::with_capacity(modules.len());
@@ -177,7 +177,7 @@ pub(crate) fn install_modules_internal(
                 to_add.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), Some(module_address)));
 
-                Some((init_msg.unwrap(), salt))
+                Some(ModuleInstantiateData::new(init_msg.unwrap(), salt))
             }
             // TODO: do we want to support installing any other type of module here?
             _ => unreachable!(),

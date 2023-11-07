@@ -59,20 +59,30 @@ pub enum ExecuteMsg {
     },
 }
 
+#[non_exhaustive]
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleInstantiateData {
+    pub init_msg: Binary,
+    pub salt: Binary,
+}
+
+impl ModuleInstantiateData {
+    pub fn new(init_msg: Binary, salt: Binary) -> Self {
+        Self { init_msg, salt }
+    }
+}
+
 /// Module info, init message and salt
 #[non_exhaustive]
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInstallConfig {
     pub module: ModuleInfo,
-    pub init_msg_salt: Option<(Binary, Binary)>,
+    pub init_data: Option<ModuleInstantiateData>,
 }
 
 impl ModuleInstallConfig {
-    pub fn new(module: ModuleInfo, init_msg_salt: Option<(Binary, Binary)>) -> Self {
-        Self {
-            module,
-            init_msg_salt,
-        }
+    pub fn new(module: ModuleInfo, init_data: Option<ModuleInstantiateData>) -> Self {
+        Self { module, init_data }
     }
 }
 

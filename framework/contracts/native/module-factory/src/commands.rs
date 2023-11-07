@@ -4,7 +4,7 @@ use crate::contract::ModuleFactoryResponse;
 use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
 use abstract_sdk::{
     core::{
-        module_factory::ModuleInstallConfig,
+        module_factory::{ModuleInstallConfig, ModuleInstantiateData},
         objects::{
             module::ModuleInfo, module_reference::ModuleReference,
             version_control::VersionControlContract,
@@ -37,10 +37,8 @@ pub fn execute_create_modules(
     let account_base = account_registry.assert_manager(&info.sender)?;
 
     // get module info and module config for further use
-    let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<(Binary, Binary)>>) = modules
-        .into_iter()
-        .map(|m| (m.module, m.init_msg_salt))
-        .unzip();
+    let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<ModuleInstantiateData>>) =
+        modules.into_iter().map(|m| (m.module, m.init_data)).unzip();
 
     let modules_responses = version_registry.query_modules_configs(infos)?;
 
@@ -160,15 +158,18 @@ fn instantiate2_contract(
     creator_addr: CanonicalAddr,
     block_height: u64,
     code_id: u64,
-    (init_msg, salt): (Binary, Binary),
+    init_data: ModuleInstantiateData,
     admin: Option<Addr>,
     funds: Vec<Coin>,
     module_info: &ModuleInfo,
 ) -> ModuleFactoryResult<(CanonicalAddr, CosmosMsg)> {
     let wasm_info = deps.querier.query_wasm_code_info(code_id)?;
 
-    let addr =
-        cosmwasm_std::instantiate2_address(&wasm_info.checksum, &creator_addr, salt.as_slice())?;
+    let addr = cosmwasm_std::instantiate2_address(
+        &wasm_info.checksum,
+        &creator_addr,
+        init_data.salt.as_slice(),
+    )?;
 
     Ok((
         addr,
@@ -177,8 +178,8 @@ fn instantiate2_contract(
             funds,
             admin: admin.map(Into::into),
             label: format!("Module: {module_info}, Height {block_height}"),
-            msg: init_msg,
-            salt,
+            msg: init_data.init_msg,
+            salt: init_data.salt,
         }
         .into(),
     ))
@@ -390,7 +391,7 @@ mod test {
                 creator_addr,
                 some_block_height,
                 expected_code_id,
-                (expected_module_init_msg.clone(), salt.clone()),
+                ModuleInstantiateData::new(expected_module_init_msg.clone(), salt.clone()),
                 None,
                 vec![coin(5, "ucosm")],
                 &expected_module_info,
