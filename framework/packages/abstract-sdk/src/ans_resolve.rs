@@ -178,7 +178,7 @@ impl Resolve for PoolMetadata {
         Ok(ResolvedPoolMetadata {
             assets: self.assets.resolve(querier, ans_host)?,
             dex: self.dex.clone(),
-            pool_type: self.pool_type.clone(),
+            pool_type: self.pool_type,
         })
     }
 }
@@ -384,7 +384,7 @@ mod tests {
 
             let dex = "junoswap";
             let pool_type = PoolType::ConstantProduct;
-            let test_pool_metadata = PoolMetadata::new(dex, pool_type.clone(), assets);
+            let test_pool_metadata = PoolMetadata::new(dex, pool_type, assets);
             let querier = AbstractMockQuerierBuilder::default()
                 .assets(
                     resolved_assets
