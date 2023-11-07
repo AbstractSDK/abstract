@@ -20,6 +20,10 @@ use serde::Serialize;
 
 // }
 
+pub trait ModuleId {
+    fn module_id() -> String;
+}
+
 /// Strategy for deploying
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DeployStrategy {

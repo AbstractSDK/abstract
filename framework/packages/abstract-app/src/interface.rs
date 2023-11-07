@@ -141,14 +141,18 @@ macro_rules! cw_orch_interface {
 
 			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<Chain> for $interface_name<Chain> {}
 
-			impl ModuleId for $interface_name<Chain> {
+			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::ModuleId for $interface_name<Chain> {
 				fn module_id() -> String {
-					$app_type::module_id()
+                    $app_const.module_id().to_owned()
+                    //String::from("test")
+
+                    //$app_const.asdfasdfasdf().0.clone()
+					//<$app_type>::module_id()
 				}
 			}
 
-			impl<T: CwEnv> From<ContractInstance<T>> for $interface_name<T> {
-				fn from(contract: ContractInstance<T>) -> Self {
+			impl<T: ::cw_orch::prelude::CwEnv> From<::cw_orch::contract::Contract<T>> for $interface_name<T> {
+				fn from(contract: ::cw_orch::contract::Contract<T>) -> Self {
 					Self(contract)
 				}
             }
