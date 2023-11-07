@@ -54,6 +54,6 @@ schema: schema-modules
   #!/usr/bin/env bash
   set -e
   (cd app-template; cargo run --example schema --features schema)
-  (cd framework; just schema)
-  (cd modules; just schema)
+  sh scripts/modules-schema.sh
+  sh scripts/framework-schema.sh
   set +e
