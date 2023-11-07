@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.18.0",
+  "contract_version": "",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -73,7 +73,12 @@
             ],
             "properties": {
               "asset": {
-                "$ref": "#/definitions/AssetBase_for_String"
+                "description": "Asset to deposit",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/AssetBase_for_String"
+                  }
+                ]
               }
             },
             "additionalProperties": false
@@ -95,7 +100,12 @@
             ],
             "properties": {
               "fee": {
-                "$ref": "#/definitions/Decimal"
+                "description": "New fee",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/Decimal"
+                  }
+                ]
               }
             },
             "additionalProperties": false
@@ -203,6 +213,7 @@
     "state": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "StateResponse",
+      "description": "State query response",
       "type": "object",
       "required": [
         "fee",
@@ -210,10 +221,20 @@
       ],
       "properties": {
         "fee": {
-          "$ref": "#/definitions/Decimal"
+          "description": "Fee charged on withdrawal",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Decimal"
+            }
+          ]
         },
         "share_token_address": {
-          "$ref": "#/definitions/Addr"
+          "description": "Address of the LP token",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            }
+          ]
         }
       },
       "additionalProperties": false,

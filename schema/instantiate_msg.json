@@ -27,7 +27,7 @@
   "additionalProperties": false,
   "definitions": {
     "AppInstantiateMsg": {
-      "description": "Croncat instantiate message",
+      "description": "App instantiate message",
       "type": "object",
       "additionalProperties": false
     },

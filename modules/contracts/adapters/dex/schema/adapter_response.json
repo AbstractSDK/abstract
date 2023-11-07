@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "AdapterResponse",
+  "description": "Response for simulating a swap.",
   "type": "object",
   "required": [
     "commission",
@@ -25,7 +26,12 @@
       "minItems": 2
     },
     "pool": {
-      "$ref": "#/definitions/DexAssetPairing"
+      "description": "The pool on which the swap was simulated",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DexAssetPairing"
+        }
+      ]
     },
     "return_amount": {
       "description": "Amount you would receive when performing the swap.",

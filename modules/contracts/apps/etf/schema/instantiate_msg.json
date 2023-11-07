@@ -30,10 +30,14 @@
       "description": "Used by Module Factory to instantiate App",
       "type": "object",
       "required": [
-        "ans_host_address"
+        "ans_host_address",
+        "version_control_address"
       ],
       "properties": {
         "ans_host_address": {
+          "type": "string"
+        },
+        "version_control_address": {
           "type": "string"
         }
       },

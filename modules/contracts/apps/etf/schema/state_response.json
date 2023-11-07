@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "StateResponse",
+  "description": "State query response",
   "type": "object",
   "required": [
     "fee",
@@ -8,10 +9,20 @@
   ],
   "properties": {
     "fee": {
-      "$ref": "#/definitions/Decimal"
+      "description": "Fee charged on withdrawal",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Decimal"
+        }
+      ]
     },
     "share_token_address": {
-      "$ref": "#/definitions/Addr"
+      "description": "Address of the LP token",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Addr"
+        }
+      ]
     }
   },
   "additionalProperties": false,

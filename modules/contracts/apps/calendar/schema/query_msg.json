@@ -23,13 +23,54 @@
       ],
       "properties": {
         "module": {
-          "$ref": "#/definitions/EtfQueryMsg"
+          "$ref": "#/definitions/AppQueryMsg"
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
+    "AppQueryMsg": {
+      "description": "App query messages",
+      "oneOf": [
+        {
+          "description": "Returns the config.",
+          "type": "object",
+          "required": [
+            "config"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns the meetings for a given day.",
+          "type": "object",
+          "required": [
+            "meetings"
+          ],
+          "properties": {
+            "meetings": {
+              "type": "object",
+              "required": [
+                "day_datetime"
+              ],
+              "properties": {
+                "day_datetime": {
+                  "$ref": "#/definitions/Int64"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "BaseQueryMsg": {
       "oneOf": [
         {
@@ -76,24 +117,9 @@
         }
       ]
     },
-    "EtfQueryMsg": {
-      "description": "Query Msg",
-      "oneOf": [
-        {
-          "description": "Returns [`StateResponse`]",
-          "type": "object",
-          "required": [
-            "state"
-          ],
-          "properties": {
-            "state": {
-              "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
+    "Int64": {
+      "description": "An implementation of i64 that is using strings for JSON encoding/decoding, such that the full i64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `i64` to get the value out:\n\n``` # use cosmwasm_std::Int64; let a = Int64::from(258i64); assert_eq!(a.i64(), 258); ```",
+      "type": "string"
     }
   }
 }

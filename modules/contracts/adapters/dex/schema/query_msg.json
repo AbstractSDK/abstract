@@ -87,6 +87,20 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "description": "Returns module data",
+          "type": "object",
+          "required": [
+            "module_data"
+          ],
+          "properties": {
+            "module_data": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -118,6 +132,7 @@
                   }
                 },
                 "max_spread": {
+                  "description": "Max spread to accept, is a percentage represented as a decimal.",
                   "anyOf": [
                     {
                       "$ref": "#/definitions/Decimal"
@@ -148,10 +163,15 @@
               ],
               "properties": {
                 "offer_asset": {
-                  "$ref": "#/definitions/AnsAsset"
+                  "description": "The asset to offer",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AnsAsset"
+                    }
+                  ]
                 },
                 "paired_assets": {
-                  "description": "Assets that are paired with the offered asset",
+                  "description": "Assets that are paired with the offered asset Should exclude the offer asset",
                   "type": "array",
                   "items": {
                     "$ref": "#/definitions/AssetEntry"
@@ -178,10 +198,20 @@
               ],
               "properties": {
                 "amount": {
-                  "$ref": "#/definitions/Uint128"
+                  "description": "The amount of LP tokens to redeem.",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/Uint128"
+                    }
+                  ]
                 },
                 "lp_token": {
-                  "$ref": "#/definitions/AssetEntry"
+                  "description": "The asset LP token name that is provided.",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
                 }
               },
               "additionalProperties": false
@@ -204,9 +234,15 @@
               ],
               "properties": {
                 "ask_asset": {
-                  "$ref": "#/definitions/AssetEntry"
+                  "description": "The asset to receive",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
                 },
                 "belief_price": {
+                  "description": "The belief price when submitting the transaction.",
                   "anyOf": [
                     {
                       "$ref": "#/definitions/Decimal"
@@ -217,6 +253,7 @@
                   ]
                 },
                 "max_spread": {
+                  "description": "The percentage of spread compared to pre-swap price or belief price (if provided)",
                   "anyOf": [
                     {
                       "$ref": "#/definitions/Decimal"
@@ -227,58 +264,10 @@
                   ]
                 },
                 "offer_asset": {
-                  "$ref": "#/definitions/AnsAsset"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Allow alternative swap routers and methods",
-          "type": "object",
-          "required": [
-            "custom_swap"
-          ],
-          "properties": {
-            "custom_swap": {
-              "type": "object",
-              "required": [
-                "ask_assets",
-                "offer_assets"
-              ],
-              "properties": {
-                "ask_assets": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/AnsAsset"
-                  }
-                },
-                "max_spread": {
-                  "anyOf": [
+                  "description": "The asset to offer",
+                  "allOf": [
                     {
-                      "$ref": "#/definitions/Decimal"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "offer_assets": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/AnsAsset"
-                  }
-                },
-                "router": {
-                  "description": "Optionally supply a router to use",
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/SwapRouter"
-                    },
-                    {
-                      "type": "null"
+                      "$ref": "#/definitions/AnsAsset"
                     }
                   ]
                 }
@@ -294,6 +283,7 @@
       "description": "Dex Execute msg",
       "oneOf": [
         {
+          "description": "Update the fee",
           "type": "object",
           "required": [
             "update_fee"
@@ -303,6 +293,7 @@
               "type": "object",
               "properties": {
                 "recipient_account": {
+                  "description": "New recipient account for fees",
                   "type": [
                     "integer",
                     "null"
@@ -311,6 +302,7 @@
                   "minimum": 0.0
                 },
                 "swap_fee": {
+                  "description": "New fee to set",
                   "anyOf": [
                     {
                       "$ref": "#/definitions/Decimal"
@@ -327,6 +319,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Action to perform on the DEX",
           "type": "object",
           "required": [
             "action"
@@ -340,9 +333,15 @@
               ],
               "properties": {
                 "action": {
-                  "$ref": "#/definitions/DexAction"
+                  "description": "The action to perform",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/DexAction"
+                    }
+                  ]
                 },
                 "dex": {
+                  "description": "The name of the dex to interact with",
                   "type": "string"
                 }
               },
@@ -354,8 +353,10 @@
       ]
     },
     "DexQueryMsg": {
+      "description": "Query messages for the dex adapter",
       "oneOf": [
         {
+          "description": "Simulate a swap between two assets",
           "type": "object",
           "required": [
             "simulate_swap"
@@ -369,16 +370,27 @@
               ],
               "properties": {
                 "ask_asset": {
-                  "$ref": "#/definitions/AssetEntry"
+                  "description": "The asset to receive",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
                 },
                 "dex": {
+                  "description": "Name of the dex to simulate the swap on",
                   "type": [
                     "string",
                     "null"
                   ]
                 },
                 "offer_asset": {
-                  "$ref": "#/definitions/AnsAsset"
+                  "description": "The asset to offer",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AnsAsset"
+                    }
+                  ]
                 }
               },
               "additionalProperties": false
@@ -396,38 +408,24 @@
             "generate_messages": {
               "type": "object",
               "required": [
-                "message"
+                "message",
+                "proxy_addr"
               ],
               "properties": {
                 "message": {
-                  "$ref": "#/definitions/DexExecuteMsg"
+                  "description": "Execute message to generate messages for",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/DexExecuteMsg"
+                    }
+                  ]
+                },
+                "proxy_addr": {
+                  "description": "Proxy Addr generate messages for",
+                  "type": "string"
                 }
               },
               "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "SwapRouter": {
-      "oneOf": [
-        {
-          "description": "Matrix router",
-          "type": "string",
-          "enum": [
-            "matrix"
-          ]
-        },
-        {
-          "description": "Use a custom router (using String type for cross-chain compatibility)",
-          "type": "object",
-          "required": [
-            "custom"
-          ],
-          "properties": {
-            "custom": {
-              "type": "string"
             }
           },
           "additionalProperties": false

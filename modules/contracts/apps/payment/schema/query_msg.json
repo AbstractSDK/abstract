@@ -23,13 +23,93 @@
       ],
       "properties": {
         "module": {
-          "$ref": "#/definitions/DCAQueryMsg"
+          "$ref": "#/definitions/AppQueryMsg"
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
+    "AppQueryMsg": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "config"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "tipper"
+          ],
+          "properties": {
+            "tipper": {
+              "type": "object",
+              "required": [
+                "address"
+              ],
+              "properties": {
+                "address": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "tip_count"
+          ],
+          "properties": {
+            "tip_count": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "list_tippers"
+          ],
+          "properties": {
+            "list_tippers": {
+              "type": "object",
+              "properties": {
+                "limit": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint32",
+                  "minimum": 0.0
+                },
+                "start_after": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "BaseQueryMsg": {
       "oneOf": [
         {
@@ -69,57 +149,6 @@
           "properties": {
             "module_data": {
               "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "DCAId": {
-      "type": "integer",
-      "format": "uint64",
-      "minimum": 0.0
-    },
-    "DCAQueryMsg": {
-      "description": "DCA query messages",
-      "oneOf": [
-        {
-          "description": "Get config of the DCA app",
-          "type": "object",
-          "required": [
-            "config"
-          ],
-          "properties": {
-            "config": {
-              "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Get DCA Entry",
-          "type": "object",
-          "required": [
-            "d_c_a"
-          ],
-          "properties": {
-            "d_c_a": {
-              "type": "object",
-              "required": [
-                "dca_id"
-              ],
-              "properties": {
-                "dca_id": {
-                  "description": "Id of the DCA",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/DCAId"
-                    }
-                  ]
-                }
-              },
               "additionalProperties": false
             }
           },

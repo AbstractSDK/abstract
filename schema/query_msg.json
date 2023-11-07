@@ -23,13 +23,31 @@
       ],
       "properties": {
         "module": {
-          "$ref": "#/definitions/EtfQueryMsg"
+          "$ref": "#/definitions/AppQueryMsg"
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
+    "AppQueryMsg": {
+      "description": "App query messages",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "config"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "BaseQueryMsg": {
       "oneOf": [
         {
@@ -68,25 +86,6 @@
           ],
           "properties": {
             "module_data": {
-              "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "EtfQueryMsg": {
-      "description": "Query Msg",
-      "oneOf": [
-        {
-          "description": "Returns [`StateResponse`]",
-          "type": "object",
-          "required": [
-            "state"
-          ],
-          "properties": {
-            "state": {
               "type": "object",
               "additionalProperties": false
             }

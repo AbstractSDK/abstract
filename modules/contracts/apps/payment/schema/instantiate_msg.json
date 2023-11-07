@@ -27,9 +27,34 @@
   "additionalProperties": false,
   "definitions": {
     "AppInstantiateMsg": {
-      "description": "Croncat instantiate message",
+      "description": "PaymentApp instantiate message",
       "type": "object",
+      "required": [
+        "exchanges"
+      ],
+      "properties": {
+        "desired_asset": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exchanges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
       "additionalProperties": false
+    },
+    "AssetEntry": {
+      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+      "type": "string"
     },
     "BaseInstantiateMsg": {
       "description": "Used by Module Factory to instantiate App",

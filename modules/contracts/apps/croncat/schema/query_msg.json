@@ -31,6 +31,7 @@
   ],
   "definitions": {
     "AppQueryMsg": {
+      "description": "Croncat Query Messages",
       "oneOf": [
         {
           "description": "Get config",
@@ -57,12 +58,14 @@
               "type": "object",
               "properties": {
                 "checked": {
+                  "description": "On true check if this task exist on croncat contract and filter if it doesn't. Defaults to false",
                   "type": [
                     "boolean",
                     "null"
                   ]
                 },
                 "limit": {
+                  "description": "Maximum number of tasks to return. Default limit is 50, if not set",
                   "type": [
                     "integer",
                     "null"
@@ -71,6 +74,7 @@
                   "minimum": 0.0
                 },
                 "start_after": {
+                  "description": "The addr and task tag to start listing after.",
                   "type": [
                     "array",
                     "null"
@@ -106,15 +110,18 @@
               ],
               "properties": {
                 "checked": {
+                  "description": "On true check if this task exist on croncat contract and filter if it doesn't. Defaults to false",
                   "type": [
                     "boolean",
                     "null"
                   ]
                 },
                 "creator_addr": {
+                  "description": "The addr of creator of tasks",
                   "type": "string"
                 },
                 "limit": {
+                  "description": "Maximum number of tasks to return. Default limit is 50, if not set",
                   "type": [
                     "integer",
                     "null"
@@ -123,6 +130,7 @@
                   "minimum": 0.0
                 },
                 "start_after": {
+                  "description": "The task tag to start listing after.",
                   "type": [
                     "string",
                     "null"
@@ -149,9 +157,11 @@
               ],
               "properties": {
                 "creator_addr": {
+                  "description": "The addr of creator of tasks",
                   "type": "string"
                 },
                 "task_tag": {
+                  "description": "The tag of the task",
                   "type": "string"
                 }
               },
@@ -175,9 +185,11 @@
               ],
               "properties": {
                 "creator_addr": {
+                  "description": "The addr of creator of tasks",
                   "type": "string"
                 },
                 "task_tag": {
+                  "description": "The tag of the task",
                   "type": "string"
                 }
               },
@@ -187,7 +199,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get manager address of task Used to verify sender",
+          "description": "Get croncat manager address of task Used to verify sender",
           "type": "object",
           "required": [
             "manager_addr"
@@ -201,9 +213,11 @@
               ],
               "properties": {
                 "creator_addr": {
+                  "description": "The addr of creator of tasks",
                   "type": "string"
                 },
                 "task_tag": {
+                  "description": "The tag of the task",
                   "type": "string"
                 }
               },
@@ -220,10 +234,10 @@
           "description": "Returns [`AppConfigResponse`]",
           "type": "object",
           "required": [
-            "base_app_config"
+            "base_config"
           ],
           "properties": {
-            "base_app_config": {
+            "base_config": {
               "type": "object",
               "additionalProperties": false
             }
@@ -234,10 +248,24 @@
           "description": "Returns the admin.",
           "type": "object",
           "required": [
-            "base_app_admin"
+            "base_admin"
           ],
           "properties": {
-            "base_app_admin": {
+            "base_admin": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns module data",
+          "type": "object",
+          "required": [
+            "module_data"
+          ],
+          "properties": {
+            "module_data": {
               "type": "object",
               "additionalProperties": false
             }

@@ -1,11 +1,10 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.19.0",
+  "contract_version": "",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "InstantiateMsg",
-    "description": "App instantiate message",
     "type": "object",
     "required": [
       "denom",
@@ -16,18 +15,39 @@
     ],
     "properties": {
       "denom": {
-        "$ref": "#/definitions/AssetEntry"
+        "description": "The denom of the staked asset.",
+        "allOf": [
+          {
+            "$ref": "#/definitions/AssetEntry"
+          }
+        ]
       },
       "end_time": {
-        "$ref": "#/definitions/Time"
+        "description": "The end time for each day that meetings can be scheduled.",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Time"
+          }
+        ]
       },
       "price_per_minute": {
-        "$ref": "#/definitions/Uint128"
+        "description": "The price per minute charged to determine the amount of stake necessary to request a meeting for a given length.",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Uint128"
+          }
+        ]
       },
       "start_time": {
-        "$ref": "#/definitions/Time"
+        "description": "The start time for each day that meetings can be scheduled.",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Time"
+          }
+        ]
       },
       "utc_offset": {
+        "description": "The utc offset of the timezone.",
         "type": "integer",
         "format": "int32"
       }
@@ -71,6 +91,7 @@
     "description": "App execute messages",
     "oneOf": [
       {
+        "description": "Request a new meeting.",
         "type": "object",
         "required": [
           "request_meeting"
@@ -84,10 +105,20 @@
             ],
             "properties": {
               "end_time": {
-                "$ref": "#/definitions/Int64"
+                "description": "The unix timestamp of the end datetime of the meeting.",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/Int64"
+                  }
+                ]
               },
               "start_time": {
-                "$ref": "#/definitions/Int64"
+                "description": "The unix timestamp of the start datetime of the meeting.",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/Int64"
+                  }
+                ]
               }
             },
             "additionalProperties": false
@@ -96,6 +127,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Fully slashes the stake for a completed meeting. Admin only.",
         "type": "object",
         "required": [
           "slash_full_stake"
@@ -109,9 +141,15 @@
             ],
             "properties": {
               "day_datetime": {
-                "$ref": "#/definitions/Int64"
+                "description": "The unix timestamp denoting the start of the day the meeting is on. This is equivalent to the \"time\" portion being all zero with respect to the `config.utc_offset`.",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/Int64"
+                  }
+                ]
               },
               "meeting_index": {
+                "description": "The index of the meeting to be slashed.",
                 "type": "integer",
                 "format": "uint32",
                 "minimum": 0.0
@@ -123,6 +161,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Partially slashes the stake for a completed meeting based on how many minutes the requester was late by. Admin only.",
         "type": "object",
         "required": [
           "slash_partial_stake"
@@ -137,14 +176,21 @@
             ],
             "properties": {
               "day_datetime": {
-                "$ref": "#/definitions/Int64"
+                "description": "The unix timestamp denoting the start of the day the meeting is on. This is equivalent to the \"time\" portion being all zero with respect to the `config.utc_offset`.",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/Int64"
+                  }
+                ]
               },
               "meeting_index": {
+                "description": "The index of the meeting to be slashed.",
                 "type": "integer",
                 "format": "uint32",
                 "minimum": 0.0
               },
               "minutes_late": {
+                "description": "The number of minutes the requester was late by resulting in a prorated slash.",
                 "type": "integer",
                 "format": "uint32",
                 "minimum": 0.0
@@ -156,6 +202,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Returns the full stake for a completed meeting. Admin only.",
         "type": "object",
         "required": [
           "return_stake"
@@ -169,9 +216,15 @@
             ],
             "properties": {
               "day_datetime": {
-                "$ref": "#/definitions/Int64"
+                "description": "The unix timestamp denoting the start of the day the meeting is on. This is equivalent to the \"time\" portion being all zero with respect to the `config.utc_offset`.",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/Int64"
+                  }
+                ]
               },
               "meeting_index": {
+                "description": "The index of the meeting whose stake should be returned.",
                 "type": "integer",
                 "format": "uint32",
                 "minimum": 0.0
@@ -183,6 +236,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Update the config. Admin only.",
         "type": "object",
         "required": [
           "update_config"
@@ -192,6 +246,7 @@
             "type": "object",
             "properties": {
               "denom": {
+                "description": "The updated denom.",
                 "anyOf": [
                   {
                     "$ref": "#/definitions/AssetEntry"
@@ -202,6 +257,7 @@
                 ]
               },
               "price_per_minute": {
+                "description": "The updated price per minute.",
                 "anyOf": [
                   {
                     "$ref": "#/definitions/Uint128"
@@ -239,6 +295,7 @@
     "description": "App query messages",
     "oneOf": [
       {
+        "description": "Returns the config.",
         "type": "object",
         "required": [
           "config"
@@ -252,6 +309,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Returns the meetings for a given day.",
         "type": "object",
         "required": [
           "meetings"
@@ -260,12 +318,11 @@
           "meetings": {
             "type": "object",
             "required": [
-              "datetime"
+              "day_datetime"
             ],
             "properties": {
-              "datetime": {
-                "type": "integer",
-                "format": "int64"
+              "day_datetime": {
+                "$ref": "#/definitions/Int64"
               }
             },
             "additionalProperties": false
@@ -273,7 +330,13 @@
         },
         "additionalProperties": false
       }
-    ]
+    ],
+    "definitions": {
+      "Int64": {
+        "description": "An implementation of i64 that is using strings for JSON encoding/decoding, such that the full i64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `i64` to get the value out:\n\n``` # use cosmwasm_std::Int64; let a = Int64::from(258i64); assert_eq!(a.i64(), 258); ```",
+        "type": "string"
+      }
+    }
   },
   "migrate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
