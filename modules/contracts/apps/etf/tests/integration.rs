@@ -7,7 +7,6 @@ use abstract_interface::{
 };
 
 use abstract_app::framework::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
-use abstract_app::sdk::core as abstract_core;
 
 use abstract_testing::prelude::TEST_ADMIN;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
@@ -49,7 +48,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     let abstract_ = Abstract::deploy_on(mock.clone(), mock.sender.to_string())?;
     // create first AbstractAccount
     abstract_.account_factory.create_default_account(
-        abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
+        abstract_app::framework::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: mock.sender.to_string(),
         },
     )?;
@@ -66,7 +65,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
 
     // Create an AbstractAccount that we will turn into a etf
     let account = abstract_.account_factory.create_default_account(
-        abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
+        abstract_app::framework::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: mock.sender.to_string(),
         },
     )?;
@@ -74,7 +73,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     // install etf
     account.manager.install_module(
         ETF_APP_ID,
-        &abstract_core::app::InstantiateMsg {
+        &abstract_app::framework::app::InstantiateMsg {
             module: etf_app::msg::EtfInstantiateMsg {
                 fee: Decimal::percent(5),
                 manager_addr: ETF_MANAGER.into(),
@@ -82,7 +81,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
                 token_name: Some("Test ETF Shares".into()),
                 token_symbol: Some("TETF".into()),
             },
-            base: abstract_core::app::BaseInstantiateMsg {
+            base: abstract_app::framework::app::BaseInstantiateMsg {
                 ans_host_address: abstract_.ans_host.addr_str()?,
                 version_control_address: abstract_.version_control.addr_str()?,
             },

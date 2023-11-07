@@ -14,23 +14,23 @@
 /// This will generate :
 /// ```rust,ignore
 /// pub mod interface{
-///     #[cw_orch::interface(App::InstantiateMsg, App::ExecuteMsg, App::QueryMsg, App::MigrateMsg)]
+///     #[::cw_orch::interface(App::InstantiateMsg, App::ExecuteMsg, App::QueryMsg, App::MigrateMsg)]
 ///     pub struct AppInterface;
 ///
-///     impl <Chain: cw_orch::prelude::CwEnv> cw_orch::prelude::Uploadable for AppInterface<Chain> {
+///     impl <Chain: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::Uploadable for AppInterface<Chain> {
 ///            // Looks for the wasm file in the app's artifacts directory
 ///            // The name of the wasm file should contain the app crate name (snake_cased)
-///         fn wasm(&self) -> cw_orch::prelude::WasmPath {
+///         fn wasm(&self) -> ::cw_orch::prelude::WasmPath {
 ///             let wasm_name = env!("CARGO_CRATE_NAME").replace('-', "_");
-///             cw_orch::prelude::ArtifactsDir::auto(Some(env!("CARGO_MANIFEST_DIR").to_string()))
+///             ::cw_orch::prelude::ArtifactsDir::auto(Some(env!("CARGO_MANIFEST_DIR").to_string()))
 ///                 .find_wasm_path(&wasm_name).unwrap()
 ///         }
 ///
 ///         fn wrapper(
 ///             &self,
-///         ) -> Box<dyn cw_orch::prelude::MockContract<cosmwasm_std::Empty, cosmwasm_std::Empty>> {
+///         ) -> Box<dyn ::cw_orch::prelude::MockContract<cosmwasm_std::Empty, cosmwasm_std::Empty>> {
 ///             Box::new(
-///                 cw_orch::prelude::ContractWrapper::new_with_empty(
+///                 ::cw_orch::prelude::ContractWrapper::new_with_empty(
 ///                     APP::execute, // This notation, doesn't actually work like so, but we use that to illustrate
 ///                     APP::instantiate,
 ///                     APP::query,
@@ -41,7 +41,7 @@
 ///             )
 ///         }
 ///     }
-///     impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<Chain> for AppInterface<Chain> {}
+///     impl<Chain: ::abstract_app::::cw_orch::prelude::CwEnv> ::abstract_app::interfaces::AppDeployer<Chain> for AppInterface<Chain> {}
 /// }
 /// ```
 macro_rules! cw_orch_interface {
@@ -52,9 +52,9 @@ macro_rules! cw_orch_interface {
 	            deps: ::cosmwasm_std::DepsMut,
 	            env: ::cosmwasm_std::Env,
 	            info: ::cosmwasm_std::MessageInfo,
-	            msg: <$app_type as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
-	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-	            use ::abstract_sdk::base::InstantiateEndpoint;
+	            msg: <$app_type as ::abstract_app::sdk::base::InstantiateEndpoint>::InstantiateMsg,
+	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_app::sdk::base::Handler>::Error> {
+	            use ::abstract_app::sdk::base::InstantiateEndpoint;
 	            $app_const.instantiate(deps, env, info, msg)
 	        }
 
@@ -62,27 +62,27 @@ macro_rules! cw_orch_interface {
 	            deps: ::cosmwasm_std::DepsMut,
 	            env: ::cosmwasm_std::Env,
 	            info: ::cosmwasm_std::MessageInfo,
-	            msg: <$app_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
-	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-	            use ::abstract_sdk::base::ExecuteEndpoint;
+	            msg: <$app_type as ::abstract_app::sdk::base::ExecuteEndpoint>::ExecuteMsg,
+	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_app::sdk::base::Handler>::Error> {
+	            use ::abstract_app::sdk::base::ExecuteEndpoint;
 	            $app_const.execute(deps, env, info, msg)
 	        }
 
 	        pub fn query(
 	            deps: ::cosmwasm_std::Deps,
 	            env: ::cosmwasm_std::Env,
-	            msg: <$app_type as abstract_sdk::base::QueryEndpoint>::QueryMsg,
-	        ) -> Result<::cosmwasm_std::Binary, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-	            use ::abstract_sdk::base::QueryEndpoint;
+	            msg: <$app_type as ::abstract_app::sdk::base::QueryEndpoint>::QueryMsg,
+	        ) -> Result<::cosmwasm_std::Binary, <$app_type as ::abstract_app::sdk::base::Handler>::Error> {
+	            use ::abstract_app::sdk::base::QueryEndpoint;
 	            $app_const.query(deps, env, msg)
 	        }
 
 	        pub fn migrate(
 	            deps: ::cosmwasm_std::DepsMut,
 	            env: ::cosmwasm_std::Env,
-	            msg: <$app_type as abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
-	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-	            use ::abstract_sdk::base::MigrateEndpoint;
+	            msg: <$app_type as ::abstract_app::sdk::base::MigrateEndpoint>::MigrateMsg,
+	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_app::sdk::base::Handler>::Error> {
+	            use ::abstract_app::sdk::base::MigrateEndpoint;
 	            $app_const.migrate(deps, env, msg)
 	        }
 
@@ -90,24 +90,24 @@ macro_rules! cw_orch_interface {
 	            deps: ::cosmwasm_std::DepsMut,
 	            env: ::cosmwasm_std::Env,
 	            msg: ::cosmwasm_std::Reply,
-	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-	            use ::abstract_sdk::base::ReplyEndpoint;
+	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_app::sdk::base::Handler>::Error> {
+	            use ::abstract_app::sdk::base::ReplyEndpoint;
 	            $app_const.reply(deps, env, msg)
 	        }
 
 	        pub fn sudo(
 	            deps: ::cosmwasm_std::DepsMut,
 	            env: ::cosmwasm_std::Env,
-	            msg: <$app_type as ::abstract_sdk::base::Handler>::SudoMsg,
-	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-	            use ::abstract_sdk::base::SudoEndpoint;
+	            msg: <$app_type as ::abstract_app::sdk::base::Handler>::SudoMsg,
+	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_app::sdk::base::Handler>::Error> {
+	            use ::abstract_app::sdk::base::SudoEndpoint;
 	            $app_const.sudo(deps, env, msg)
 	        }
 
-	        pub type InstantiateMsg = <$app_type as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
-	        pub type ExecuteMsg = <$app_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
-	        pub type QueryMsg = <$app_type as ::abstract_sdk::base::QueryEndpoint>::QueryMsg;
-	        pub type MigrateMsg = <$app_type as ::abstract_sdk::base::MigrateEndpoint>::MigrateMsg;
+	        pub type InstantiateMsg = <$app_type as ::abstract_app::sdk::base::InstantiateEndpoint>::InstantiateMsg;
+	        pub type ExecuteMsg = <$app_type as ::abstract_app::sdk::base::ExecuteEndpoint>::ExecuteMsg;
+	        pub type QueryMsg = <$app_type as ::abstract_app::sdk::base::QueryEndpoint>::QueryMsg;
+	        pub type MigrateMsg = <$app_type as ::abstract_app::sdk::base::MigrateEndpoint>::MigrateMsg;
 	    }
 
 	    pub mod interface{

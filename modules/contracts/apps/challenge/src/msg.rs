@@ -20,7 +20,7 @@ abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMs
 /// Challenge instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeInstantiateMsg {
-    /// Config for [`SimpleVoting`](abstract_core::objects::voting::SimpleVoting) object
+    /// Config for [`SimpleVoting`](abstract_app::framework::objects::voting::SimpleVoting) object
     pub vote_config: VoteConfig,
 }
 

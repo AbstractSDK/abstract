@@ -51,7 +51,7 @@ thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
 
-abstract-core = { workspace = true }
+
 abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
 

@@ -107,7 +107,7 @@ fn setup_with_time(
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
 
     abstr_deployment.ans_host.execute(
-        &abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
+        &abstract_app::framework::ans_host::ExecuteMsg::UpdateAssetAddresses {
             to_add: vec![(DENOM.to_owned(), AssetInfo::native(DENOM).into())],
             to_remove: vec![],
         },
@@ -1095,7 +1095,7 @@ fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow
 
     let error: anyhow::Error = app
         .execute(
-            &abstract_core::base::ExecuteMsg::Module(AppExecuteMsg::RequestMeeting {
+            &abstract_app::framework::base::ExecuteMsg::Module(AppExecuteMsg::RequestMeeting {
                 start_time: meeting_start_datetime.timestamp().into(),
                 end_time: meeting_end_datetime.timestamp().into(),
             }),
