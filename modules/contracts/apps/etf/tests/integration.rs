@@ -6,8 +6,8 @@ use abstract_interface::{
     ManagerQueryFns, ProxyExecFns, ProxyQueryFns,
 };
 
-use abstract_core::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
-use abstract_sdk::core as abstract_core;
+use abstract_app::framework::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
+use abstract_app::sdk::core as abstract_core;
 
 use abstract_testing::prelude::TEST_ADMIN;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};

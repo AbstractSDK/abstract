@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_app::framework::{
     ans_host::ExecuteMsgFns,
     objects::{gov_type::GovernanceDetails, AccountId, AssetEntry},
 };

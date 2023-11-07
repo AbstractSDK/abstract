@@ -1,12 +1,12 @@
 mod common;
 use std::cell::RefMut;
 
-use abstract_core::objects::{
+use abstract_app::framework::objects::{
     dependency::DependencyResponse, module_version::ModuleDataResponse, AccountId, AssetEntry,
     PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
 };
-use abstract_core::AbstractError;
-use abstract_core::{
+use abstract_app::framework::AbstractError;
+use abstract_app::framework::{
     app::{BaseInstantiateMsg, BaseQueryMsgFns},
     objects::gov_type::GovernanceDetails,
 };

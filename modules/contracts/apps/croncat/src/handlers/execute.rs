@@ -1,5 +1,5 @@
-use abstract_sdk::features::{AbstractNameService, AbstractResponse, AccountIdentification};
-use abstract_sdk::{prelude::*, AccountAction};
+use abstract_app::sdk::features::{AbstractNameService, AbstractResponse, AccountIdentification};
+use abstract_app::sdk::{prelude::*, AccountAction};
 use cosmwasm_std::{
     to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, ReplyOn, Response,
 };

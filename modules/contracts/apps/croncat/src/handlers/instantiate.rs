@@ -1,5 +1,5 @@
-use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::AbstractSdkError;
+use abstract_app::sdk::features::AbstractNameService;
+use abstract_app::sdk::AbstractSdkError;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::contract::{CroncatApp, CroncatResult};

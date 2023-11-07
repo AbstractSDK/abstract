@@ -1,9 +1,9 @@
-use abstract_core::objects::module::ModuleId;
-use abstract_sdk::{
+use abstract_app::framework::objects::module::ModuleId;
+use abstract_app::sdk::{
     features::{AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
-use abstract_sdk::{AppInterface, ModuleInterface};
+use abstract_app::sdk::{AppInterface, ModuleInterface};
 use cosmwasm_std::{Addr, CosmosMsg, Deps};
 use croncat_integration_utils::CronCatTaskRequest;
 use croncat_sdk_manager::types::TaskBalanceResponse;
@@ -183,7 +183,7 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
 mod test {
     use super::*;
     use crate::msg::ExecuteMsg;
-    use abstract_sdk::mock_module::MockModule;
+    use abstract_app::sdk::mock_module::MockModule;
     use abstract_testing::prelude::TEST_MODULE_ID;
     use cosmwasm_std::testing::mock_dependencies;
     use cosmwasm_std::{coins, wasm_execute, BankMsg};

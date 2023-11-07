@@ -1,4 +1,4 @@
-use abstract_core::objects::AssetEntry;
+use abstract_app::framework::objects::AssetEntry;
 use chrono::NaiveTime;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Int64, Uint128};

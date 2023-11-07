@@ -1,9 +1,9 @@
 use abstract_app::AppError as AbstractAppError;
-use abstract_core::{
+use abstract_app::framework::{
     objects::{validation::ValidationError, voting::VoteError},
     AbstractError,
 };
-use abstract_sdk::AbstractSdkError;
+use abstract_app::sdk::AbstractSdkError;
 use cosmwasm_std::{StdError, Timestamp};
 use cw_asset::AssetError;
 use cw_controllers::AdminError;

@@ -1,4 +1,4 @@
-use abstract_core::objects::{AssetEntry, DexName};
+use abstract_app::framework::objects::{AssetEntry, DexName};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Uint128};
 

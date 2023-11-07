@@ -9,7 +9,7 @@ pub use error::SubscriptionError;
 #[cfg(feature = "interface")]
 pub mod interface {
     use crate::msg::*;
-    use abstract_core::app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg};
+    use abstract_app::framework::app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg};
     use abstract_interface::AppDeployer;
     use cosmwasm_std::Decimal;
     use cw_asset::AssetInfoUnchecked;

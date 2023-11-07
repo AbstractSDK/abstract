@@ -4,7 +4,7 @@ use crate::{
     utils::user_balance_nonempty,
 };
 
-use abstract_sdk::{
+use abstract_app::sdk::{
     features::{AbstractResponse, AccountIdentification},
     Execution,
 };

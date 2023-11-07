@@ -1,4 +1,4 @@
-use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
+use abstract_app::framework::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
 use cw_orch::{
     anyhow,
     deploy::Deploy,

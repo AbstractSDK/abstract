@@ -1,6 +1,6 @@
 use crate::contract::{AppResult, PaymentApp};
 use crate::msg::AppMigrateMsg;
-use abstract_sdk::AbstractResponse;
+use abstract_app::sdk::AbstractResponse;
 use cosmwasm_std::{DepsMut, Env, Response};
 
 /// Handle the app migrate msg

@@ -4,7 +4,7 @@ use crate::contract::{CroncatApp, CroncatResult};
 use crate::msg::{ActiveTasksByCreatorResponse, ActiveTasksResponse, AppQueryMsg, ConfigResponse};
 use crate::state::{ACTIVE_TASKS, CONFIG};
 use crate::utils::factory_addr;
-use abstract_sdk::features::AbstractNameService;
+use abstract_app::sdk::features::AbstractNameService;
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, QuerierWrapper, StdResult};
 use croncat_integration_utils::task_creation::get_croncat_contract;
 use croncat_integration_utils::{MANAGER_NAME, TASKS_NAME};

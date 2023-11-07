@@ -3,7 +3,7 @@
 //!
 //! `abstract::cw-staking`
 
-use abstract_core::objects::{AssetEntry, DexName, PoolReference};
+use abstract_app::framework::objects::{AssetEntry, DexName, PoolReference};
 use abstract_dex_adapter::msg::OfferAsset;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};

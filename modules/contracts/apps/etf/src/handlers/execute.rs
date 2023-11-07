@@ -3,7 +3,7 @@ use crate::error::EtfError;
 use crate::msg::EtfExecuteMsg;
 use crate::state::{State, FEE, STATE};
 use abstract_app::state::AppState;
-use abstract_sdk::{
+use abstract_app::sdk::{
     framework::objects::deposit_info::DepositInfo, framework::objects::fee::Fee,
     framework::proxy::AssetsInfoResponse, cw_helpers::wasm_smart_query, features::AbstractResponse, *,
 };

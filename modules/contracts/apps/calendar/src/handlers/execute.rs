@@ -1,5 +1,5 @@
-use abstract_core::objects::AssetEntry;
-use abstract_sdk::features::AbstractResponse;
+use abstract_app::framework::objects::AssetEntry;
+use abstract_app::sdk::features::AbstractResponse;
 use chrono::{DateTime, FixedOffset, LocalResult, NaiveTime, TimeZone};
 use cosmwasm_std::{
     BankMsg, Coin, CosmosMsg, Deps, DepsMut, Env, Int64, MessageInfo, Response, StdError, Uint128,
@@ -12,8 +12,8 @@ use crate::contract::{App, AppResult};
 use crate::error::AppError;
 use crate::msg::AppExecuteMsg;
 use crate::state::{Meeting, CALENDAR, CONFIG};
-use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::{Resolve, TransferInterface};
+use abstract_app::sdk::features::AbstractNameService;
+use abstract_app::sdk::{Resolve, TransferInterface};
 
 enum StakeAction {
     Return,

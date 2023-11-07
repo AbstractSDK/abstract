@@ -1,4 +1,4 @@
-use abstract_sdk::{feature_objects::AnsHost, prelude::*, AbstractSdkResult};
+use abstract_app::sdk::{feature_objects::AnsHost, prelude::*, AbstractSdkResult};
 use cosmwasm_std::{coin, Addr, Api, Coin, Deps, QuerierWrapper};
 use croncat_sdk_manager::msg::ManagerQueryMsg;
 use cw20::Cw20CoinVerified;

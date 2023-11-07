@@ -2,7 +2,7 @@ mod common;
 
 use std::cell::RefMut;
 
-use abstract_core::{
+use abstract_app::framework::{
     ans_host::ContractsResponse,
     app::BaseInstantiateMsg,
     objects::{

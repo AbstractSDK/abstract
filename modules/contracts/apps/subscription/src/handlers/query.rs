@@ -1,5 +1,5 @@
 use crate::{msg::SubscribersResponse, state::INCOME_TWA};
-use abstract_core::objects::voting::DEFAULT_LIMIT;
+use abstract_app::framework::objects::voting::DEFAULT_LIMIT;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult, Uint128};
 use cw_asset::Asset;
 use cw_storage_plus::Bound;

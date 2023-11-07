@@ -1,4 +1,4 @@
-use abstract_core::objects::{AssetEntry, DexName};
+use abstract_app::framework::objects::{AssetEntry, DexName};
 use abstract_dex_adapter::msg::OfferAsset;
 use cosmwasm_std::{Decimal, Uint128};
 use cw_storage_plus::{Item, Key, KeyDeserialize, Map, PrimaryKey};

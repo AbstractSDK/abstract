@@ -5,7 +5,7 @@ use crate::state::{
     INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
 use crate::SubscriptionError;
-use abstract_sdk::{AbstractResponse, AccountAction, Execution, TransferInterface};
+use abstract_app::sdk::{AbstractResponse, AccountAction, Execution, TransferInterface};
 use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfoUnchecked};
 

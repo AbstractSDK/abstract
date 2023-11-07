@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use abstract_core::objects::{
+use abstract_app::framework::objects::{
     gov_type::GovernanceDetails, time_weighted_average::TimeWeightedAverageData,
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy};

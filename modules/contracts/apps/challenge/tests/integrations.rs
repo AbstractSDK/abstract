@@ -1,5 +1,5 @@
 use crate::msg::QueryMsg;
-use abstract_core::{
+use abstract_app::framework::{
     app::BaseInstantiateMsg,
     objects::{
         gov_type::GovernanceDetails,

@@ -1,9 +1,9 @@
 use crate::contract::{AppResult, DCAApp};
 use crate::msg::{ConfigResponse, DCAQueryMsg, DCAResponse};
 use crate::state::{DCAId, CONFIG, DCA_LIST};
-use abstract_core::objects::DexAssetPairing;
-use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::Resolve;
+use abstract_app::framework::objects::DexAssetPairing;
+use abstract_app::sdk::features::AbstractNameService;
+use abstract_app::sdk::Resolve;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use cw_asset::AssetInfo;
 

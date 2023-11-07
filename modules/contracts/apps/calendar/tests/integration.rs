@@ -1,4 +1,4 @@
-use abstract_core::objects::{gov_type::GovernanceDetails, AccountId, AssetEntry};
+use abstract_app::framework::objects::{gov_type::GovernanceDetails, AccountId, AssetEntry};
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
 use calendar_app::{
     contract::{APP_ID, APP_VERSION},
