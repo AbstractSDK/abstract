@@ -5,8 +5,8 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, SubMsg};
 use abstract_staking_standard::CwStakingCommand;
 
 use abstract_sdk::{
-    framework::objects::AssetEntry,
     features::{AbstractNameService, AbstractRegistryAccess},
+    framework::objects::AssetEntry,
     Execution,
 };
 

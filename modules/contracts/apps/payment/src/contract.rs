@@ -4,8 +4,8 @@ use crate::{
     handlers,
     msg::{AppExecuteMsg, AppInstantiateMsg, AppQueryMsg},
 };
-use abstract_app::AppContract;
 use abstract_app::framework::objects::dependency::StaticDependency;
+use abstract_app::AppContract;
 use cosmwasm_std::Response;
 
 /// The version of your app

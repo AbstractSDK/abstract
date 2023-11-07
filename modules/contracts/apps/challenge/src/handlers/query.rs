@@ -4,7 +4,9 @@ use crate::msg::{
     FriendsResponse, ProposalsResponse, VoteResponse, VotesResponse,
 };
 use crate::state::{CHALLENGES, CHALLENGE_FRIENDS, CHALLENGE_PROPOSALS, SIMPLE_VOTING};
-use abstract_app::framework::objects::voting::{ProposalId, ProposalInfo, VoteResult, DEFAULT_LIMIT};
+use abstract_app::framework::objects::voting::{
+    ProposalId, ProposalInfo, VoteResult, DEFAULT_LIMIT,
+};
 use cosmwasm_std::{to_json_binary, Binary, BlockInfo, Deps, Env, Order, StdResult};
 use cw_storage_plus::Bound;
 

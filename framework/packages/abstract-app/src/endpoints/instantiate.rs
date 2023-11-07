@@ -7,9 +7,9 @@ use abstract_core::{
     objects::module_version::set_module_data,
 };
 use abstract_sdk::{
-    framework::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
     cw_helpers::wasm_smart_query,
     feature_objects::{AnsHost, VersionControlContract},
+    framework::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;

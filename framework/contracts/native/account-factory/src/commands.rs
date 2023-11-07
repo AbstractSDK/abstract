@@ -12,6 +12,7 @@ use cosmwasm_std::{
 use protobuf::Message;
 
 use abstract_sdk::{
+    cw_helpers::wasm_smart_query,
     framework::{
         manager::{InstantiateMsg as ManagerInstantiateMsg, InternalConfigAction},
         objects::{
@@ -24,7 +25,6 @@ use abstract_sdk::{
         },
         AbstractResult, MANAGER, PROXY,
     },
-    cw_helpers::wasm_smart_query,
 };
 
 use crate::contract::AccountFactoryResponse;

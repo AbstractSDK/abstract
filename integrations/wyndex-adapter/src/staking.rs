@@ -29,8 +29,8 @@ impl Identify for WynDex {
 #[cfg(feature = "full_integration")]
 use {
     abstract_sdk::{
-        framework::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
+        framework::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         AbstractSdkError, Resolve,
     },
     abstract_staking_standard::msg::{

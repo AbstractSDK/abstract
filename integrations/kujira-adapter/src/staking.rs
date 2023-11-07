@@ -29,8 +29,8 @@ impl Identify for Kujira {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
-        framework::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
+        framework::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         AbstractSdkResult, Resolve,
     },
     abstract_staking_standard::msg::{

@@ -38,7 +38,9 @@ pub mod fns {
     use std::str::FromStr;
 
     use abstract_sdk::framework::objects::ans_host::AnsHost;
-    use abstract_sdk::framework::objects::{AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference};
+    use abstract_sdk::framework::objects::{
+        AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference,
+    };
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
     use abstract_sdk::AbstractSdkResult;

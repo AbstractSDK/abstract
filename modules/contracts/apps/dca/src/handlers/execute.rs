@@ -1,8 +1,8 @@
 #![allow(clippy::too_many_arguments)]
 
 use abstract_app::framework::objects::{AssetEntry, DexName};
-use abstract_dex_adapter::msg::OfferAsset;
 use abstract_app::sdk::features::{AbstractNameService, AbstractResponse};
+use abstract_dex_adapter::msg::OfferAsset;
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
 };
@@ -13,8 +13,8 @@ use crate::contract::{AppResult, DCAApp};
 use crate::error::DCAError;
 use crate::msg::{DCAExecuteMsg, ExecuteMsg, Frequency};
 use crate::state::{Config, DCAEntry, DCAId, CONFIG, DCA_LIST, NEXT_ID};
-use abstract_dex_adapter::api::DexInterface;
 use abstract_app::sdk::AbstractSdkResult;
+use abstract_dex_adapter::api::DexInterface;
 use croncat_app::croncat_integration_utils::{CronCatAction, CronCatTaskRequest};
 use croncat_app::{CronCat, CronCatInterface};
 

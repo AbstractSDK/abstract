@@ -3,8 +3,8 @@ use crate::{
     handlers,
     msg::{AppInstantiateMsg, DCAExecuteMsg, DCAQueryMsg},
 };
-use abstract_app::AppContract;
 use abstract_app::framework::objects::dependency::StaticDependency;
+use abstract_app::AppContract;
 use cosmwasm_std::{Empty, Response};
 use croncat_app::contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION};
 

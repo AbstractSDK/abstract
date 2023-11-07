@@ -5,8 +5,8 @@ use abstract_core::objects::{
 };
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    framework::{module_factory::*, MODULE_FACTORY},
     feature_objects::VersionControlContract,
+    framework::{module_factory::*, MODULE_FACTORY},
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{

@@ -2,11 +2,12 @@ use crate::contract::{EtfApp, EtfResult};
 use crate::error::EtfError;
 use crate::msg::EtfExecuteMsg;
 use crate::state::{State, FEE, STATE};
-use abstract_app::state::AppState;
 use abstract_app::sdk::{
+    cw_helpers::wasm_smart_query, features::AbstractResponse,
     framework::objects::deposit_info::DepositInfo, framework::objects::fee::Fee,
-    framework::proxy::AssetsInfoResponse, cw_helpers::wasm_smart_query, features::AbstractResponse, *,
+    framework::proxy::AssetsInfoResponse, *,
 };
+use abstract_app::state::AppState;
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response,
     Uint128, WasmMsg,

@@ -20,6 +20,7 @@ use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
 
 use abstract_sdk::{
+    cw_helpers::wasm_smart_query,
     framework::{
         manager::state::DEPENDENTS,
         manager::state::{
@@ -36,7 +37,6 @@ use abstract_sdk::{
         proxy::ExecuteMsg as ProxyMsg,
         IBC_CLIENT, MANAGER, PROXY,
     },
-    cw_helpers::wasm_smart_query,
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{

@@ -5,6 +5,7 @@ use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_core::objects::oracle::Oracle;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
+    feature_objects::AnsHost,
     framework::{
         objects::account::ACCOUNT_ID,
         proxy::{
@@ -13,7 +14,6 @@ use abstract_sdk::{
         },
         PROXY,
     },
-    feature_objects::AnsHost,
 };
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, SubMsgResult,
