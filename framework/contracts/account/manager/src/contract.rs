@@ -6,7 +6,7 @@ use crate::{
     versioning,
 };
 use abstract_core::manager::state::MODULE_QUEUE;
-use abstract_sdk::core::{
+use abstract_sdk::framework::{
     manager::{
         state::{AccountInfo, Config, ACCOUNT_FACTORY, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,

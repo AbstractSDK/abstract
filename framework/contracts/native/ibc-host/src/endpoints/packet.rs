@@ -9,7 +9,7 @@ use abstract_core::{
     },
     objects::{chain_name::ChainName, AccountId},
 };
-use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
+use abstract_sdk::framework::ibc_host::{HostAction, InternalAction};
 use cosmwasm_std::{DepsMut, Env};
 
 /// Handle actions that are passed to the IBC host contract

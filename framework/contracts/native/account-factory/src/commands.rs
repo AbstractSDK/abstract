@@ -12,7 +12,7 @@ use cosmwasm_std::{
 use protobuf::Message;
 
 use abstract_sdk::{
-    core::{
+    framework::{
         manager::{InstantiateMsg as ManagerInstantiateMsg, InternalConfigAction},
         objects::{
             gov_type::GovernanceDetails, module::Module, module::ModuleInfo,

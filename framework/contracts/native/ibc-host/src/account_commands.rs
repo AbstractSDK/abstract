@@ -13,7 +13,7 @@ use abstract_core::{
     PROXY,
 };
 use abstract_sdk::{
-    core::{objects::ChannelEntry, ICS20},
+    framework::{objects::ChannelEntry, ICS20},
     AbstractSdkError, AccountVerification, Resolve,
 };
 use cosmwasm_std::{

@@ -9,7 +9,7 @@ use cw_orch::prelude::ContractInstance;
 use abstract_cw_staking::interface::CwStakingAdapter;
 use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
 use abstract_interface::VersionControl;
-use abstract_sdk::core::{
+use abstract_sdk::framework::{
     adapter,
     objects::module::{Module, ModuleInfo, ModuleVersion},
     ANS_HOST, VERSION_CONTROL,

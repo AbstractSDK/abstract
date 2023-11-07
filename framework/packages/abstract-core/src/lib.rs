@@ -53,8 +53,8 @@ pub mod registry;
 mod error;
 pub use error::AbstractError;
 
-mod core;
-pub use crate::core::*;
+mod account;
+pub use crate::account::*;
 
 mod native;
 pub use crate::native::*;

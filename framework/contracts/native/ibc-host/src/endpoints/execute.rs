@@ -9,7 +9,7 @@ use abstract_core::{
     objects::chain_name::ChainName,
     proxy::state::ADMIN,
 };
-use abstract_sdk::{core::ibc_host::ExecuteMsg, feature_objects::VersionControlContract};
+use abstract_sdk::{framework::ibc_host::ExecuteMsg, feature_objects::VersionControlContract};
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
 use super::packet::handle_host_action;

@@ -1,5 +1,4 @@
 use super::ValidationError;
-use core::result::Result::{Err, Ok};
 
 pub(crate) const MIN_DESC_LENGTH: usize = 1;
 pub(crate) const MAX_DESC_LENGTH: usize = 1024;

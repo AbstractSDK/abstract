@@ -5,7 +5,7 @@ use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_core::objects::oracle::Oracle;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    core::{
+    framework::{
         objects::account::ACCOUNT_ID,
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE},

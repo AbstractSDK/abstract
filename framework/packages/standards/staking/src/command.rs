@@ -1,7 +1,7 @@
 use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::{CwStakingError, Identify};
 use abstract_core::objects::AnsAsset;
-use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
+use abstract_sdk::framework::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use abstract_sdk::AbstractSdkResult;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper};

@@ -71,7 +71,7 @@ fn handle_ibc_request(
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
     // construct the action to be called on the host
-    let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
+    let host_action = abstract_sdk::framework::ibc_host::HostAction::Dispatch {
         manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
             module_id: CW_STAKING_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(

@@ -1,6 +1,6 @@
 use crate::state::*;
 
-use abstract_sdk::core::account_factory::*;
+use abstract_sdk::framework::account_factory::*;
 use cosmwasm_std::{Deps, StdResult};
 
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {

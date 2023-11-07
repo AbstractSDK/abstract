@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 use abstract_core::objects::DexName;
 use abstract_dex_adapter::DexInterface;
-use abstract_sdk::core::ans_host;
-use abstract_sdk::core::ans_host::{AssetPairingFilter, PoolAddressListResponse};
+use abstract_sdk::framework::ans_host;
+use abstract_sdk::framework::ans_host::{AssetPairingFilter, PoolAddressListResponse};
 use cosmwasm_std::{Addr, Storage, Uint128};
 
 use abstract_sdk::cw_helpers::AbstractAttributes;

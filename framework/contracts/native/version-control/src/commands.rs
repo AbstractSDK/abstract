@@ -13,7 +13,7 @@ use cosmwasm_std::{
 };
 
 use abstract_sdk::{
-    core::{
+    framework::{
         objects::{
             common_namespace::OWNERSHIP_STORAGE_KEY,
             module::{ModuleInfo, ModuleVersion},

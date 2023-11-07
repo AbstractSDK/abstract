@@ -1,6 +1,6 @@
 use crate::ASTROPORT;
 use crate::AVAILABLE_CHAINS;
-use abstract_sdk::core::objects::LpToken;
+use abstract_sdk::framework::objects::LpToken;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -31,7 +31,7 @@ impl Identify for Astroport {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
-        core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
+        framework::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkResult, Resolve,
     },

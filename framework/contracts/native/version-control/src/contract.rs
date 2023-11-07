@@ -7,7 +7,7 @@ use cw_semver::Version;
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::version_control::Config;
 use abstract_macros::abstract_response;
-use abstract_sdk::core::{
+use abstract_sdk::framework::{
     objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
     version_control::namespaces_info,
     version_control::{

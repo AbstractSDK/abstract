@@ -4,7 +4,7 @@ pub mod error;
 mod querier;
 mod response;
 
-pub(crate) use abstract_sdk::core::module_factory::state;
+pub(crate) use abstract_sdk::framework::module_factory::state;
 
 #[cfg(test)]
 mod test_common {

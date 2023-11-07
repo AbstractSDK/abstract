@@ -6,7 +6,7 @@ use abstract_core::{
 use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
 
-// see core::proxy::state::ADMIN
+// see framework::proxy::state::ADMIN
 use crate::{AbstractSdkError, AbstractSdkResult};
 
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);

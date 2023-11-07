@@ -20,7 +20,7 @@ use ::{
     abstract_dex_standard::{
         coins_in_assets, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
-    abstract_sdk::core::objects::PoolAddress,
+    abstract_sdk::framework::objects::PoolAddress,
     abstract_sdk::cw_helpers::wasm_smart_query,
     cosmwasm_std::{
         wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult,
@@ -339,7 +339,7 @@ mod tests {
     use super::decimal2decimal256;
     use super::Kujira;
     use abstract_dex_standard::tests::DexCommandTester;
-    use abstract_sdk::core::objects::PoolAddress;
+    use abstract_sdk::framework::objects::PoolAddress;
     use cosmwasm_std::coins;
     use cosmwasm_std::Decimal;
     use cosmwasm_std::{wasm_execute, Addr};

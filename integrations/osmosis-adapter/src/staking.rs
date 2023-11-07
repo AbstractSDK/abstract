@@ -1,6 +1,6 @@
 use crate::AVAILABLE_CHAINS;
 use crate::OSMOSIS;
-use abstract_sdk::core::objects::version_control::VersionControlContract;
+use abstract_sdk::framework::objects::version_control::VersionControlContract;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -37,8 +37,8 @@ pub mod fns {
     use osmosis_std::types::osmosis::lockup::{LockupQuerier, MsgBeginUnlockingAll};
     use std::str::FromStr;
 
-    use abstract_sdk::core::objects::ans_host::AnsHost;
-    use abstract_sdk::core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference};
+    use abstract_sdk::framework::objects::ans_host::AnsHost;
+    use abstract_sdk::framework::objects::{AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference};
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
     use abstract_sdk::AbstractSdkResult;

@@ -5,7 +5,7 @@ use abstract_core::objects::{
 };
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    core::{module_factory::*, MODULE_FACTORY},
+    framework::{module_factory::*, MODULE_FACTORY},
     feature_objects::VersionControlContract,
     ModuleRegistryInterface,
 };

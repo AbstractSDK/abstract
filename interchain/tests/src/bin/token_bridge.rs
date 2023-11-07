@@ -18,7 +18,7 @@ use cw_orch::prelude::{
 use cw_orch_proto::tokenfactory::{
     create_denom, create_transfer_channel, get_denom, mint, transfer_tokens,
 };
-use ibc_relayer_types::core::ics24_host::identifier::PortId;
+use ibc_relayer_types::framework::ics24_host::identifier::PortId;
 
 pub fn token_bridge() -> AnyResult<()> {
     env_logger::init();

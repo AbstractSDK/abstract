@@ -7,7 +7,7 @@ use abstract_core::{
     objects::module_version::set_module_data,
 };
 use abstract_sdk::{
-    core::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
+    framework::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
     cw_helpers::wasm_smart_query,
     feature_objects::{AnsHost, VersionControlContract},
 };

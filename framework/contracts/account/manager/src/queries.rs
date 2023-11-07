@@ -1,8 +1,8 @@
 use abstract_core::manager::state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS};
 use abstract_core::manager::SubAccountIdsResponse;
 use abstract_core::objects::module::{self, ModuleInfo};
-use abstract_sdk::core::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
-use abstract_sdk::core::manager::{
+use abstract_sdk::framework::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
+use abstract_sdk::framework::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     ModuleVersionsResponse,
 };

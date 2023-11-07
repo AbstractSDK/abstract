@@ -1,7 +1,7 @@
 use crate::{commands, error::AccountFactoryError, queries, state::*};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
-use abstract_sdk::core::{account_factory::*, ACCOUNT_FACTORY};
+use abstract_sdk::framework::{account_factory::*, ACCOUNT_FACTORY};
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };

@@ -5,7 +5,7 @@ use abstract_sdk::{
         AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
         QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
-    core::version_control::AccountBase,
+    framework::version_control::AccountBase,
     feature_objects::{AnsHost, VersionControlContract},
     namespaces::BASE_STATE,
     AbstractSdkError,

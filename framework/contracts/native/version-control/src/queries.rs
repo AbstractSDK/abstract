@@ -4,7 +4,7 @@ use abstract_core::{
     objects::module::ModuleStatus,
     version_control::{state::PENDING_MODULES, ModuleConfiguration, NamespaceResponse},
 };
-use abstract_sdk::core::{
+use abstract_sdk::framework::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,

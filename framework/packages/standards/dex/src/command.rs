@@ -4,7 +4,7 @@ use crate::error::DexError;
 use abstract_adapter_utils::identity::Identify;
 use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference, UniquePoolId};
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
-use abstract_sdk::{core::objects::AssetEntry, AbstractSdkResult};
+use abstract_sdk::{framework::objects::AssetEntry, AbstractSdkResult};
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 

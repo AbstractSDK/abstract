@@ -1,6 +1,6 @@
 use abstract_core::objects::validation::ValidationError;
 use abstract_core::AbstractError;
-use abstract_sdk::core::objects::module::ModuleInfo;
+use abstract_sdk::framework::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;

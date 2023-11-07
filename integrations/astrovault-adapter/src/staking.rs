@@ -31,7 +31,7 @@ impl Identify for Astrovault {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
-        core::objects::{AnsAsset, AssetEntry},
+        framework::objects::{AnsAsset, AssetEntry},
         feature_objects::AnsHost,
         features::AbstractRegistryAccess,
         AbstractSdkResult, AccountVerification, Resolve,

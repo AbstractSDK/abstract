@@ -20,7 +20,7 @@ use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
 
 use abstract_sdk::{
-    core::{
+    framework::{
         manager::state::DEPENDENTS,
         manager::state::{
             AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS,

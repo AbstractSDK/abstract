@@ -10,7 +10,7 @@ use abstract_core::{
     },
     objects::chain_name::ChainName,
 };
-use abstract_sdk::core::ibc_client::state::ACCOUNTS;
+use abstract_sdk::framework::ibc_client::state::ACCOUNTS;
 use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 
 use polytone::callbacks::{Callback, CallbackMessage};

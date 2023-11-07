@@ -4,7 +4,7 @@ use abstract_core::{
     IBC_HOST,
 };
 use abstract_sdk::{
-    core::ibc_host::InstantiateMsg,
+    framework::ibc_host::InstantiateMsg,
     feature_objects::{AnsHost, VersionControlContract},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo};

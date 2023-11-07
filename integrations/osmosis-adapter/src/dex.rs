@@ -22,7 +22,7 @@ impl Identify for Osmosis {
 use ::{
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::{
-        core::objects::PoolAddress, core::objects::UniquePoolId, feature_objects::AnsHost,
+        framework::objects::PoolAddress, framework::objects::UniquePoolId, feature_objects::AnsHost,
         features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult, AccountVerification,
     },
     cosmwasm_std::{

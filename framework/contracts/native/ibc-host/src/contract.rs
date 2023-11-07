@@ -10,7 +10,7 @@ use crate::{
 };
 use abstract_core::{ibc_host::ExecuteMsg, IBC_HOST};
 use abstract_macros::abstract_response;
-use abstract_sdk::core::ibc_host::{InstantiateMsg, QueryMsg};
+use abstract_sdk::framework::ibc_host::{InstantiateMsg, QueryMsg};
 use cosmwasm_std::{
     Binary, Deps, DepsMut, Env, IbcReceiveResponse, MessageInfo, Reply, Response, StdError,
 };

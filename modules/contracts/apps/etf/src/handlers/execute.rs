@@ -4,8 +4,8 @@ use crate::msg::EtfExecuteMsg;
 use crate::state::{State, FEE, STATE};
 use abstract_app::state::AppState;
 use abstract_sdk::{
-    core::objects::deposit_info::DepositInfo, core::objects::fee::Fee,
-    core::proxy::AssetsInfoResponse, cw_helpers::wasm_smart_query, features::AbstractResponse, *,
+    framework::objects::deposit_info::DepositInfo, framework::objects::fee::Fee,
+    framework::proxy::AssetsInfoResponse, cw_helpers::wasm_smart_query, features::AbstractResponse, *,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response,

@@ -13,7 +13,9 @@ pub use error::AppError;
 pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
 mod interface;
 
+// Re-export core abstract utils and types
 pub use abstract_sdk as sdk;
+pub use abstract_sdk::framework;
 
 use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
@@ -167,7 +169,7 @@ pub mod mock {
     #[macro_export]
     macro_rules! gen_app_mock {
     ($name:ident,$id:expr, $version:expr, $deps:expr) => {
-        use ::abstract_core::app;
+        use ::abstract_app::framework::app;
         use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
         use ::cw_orch::prelude::*;
 

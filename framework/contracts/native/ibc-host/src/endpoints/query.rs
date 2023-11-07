@@ -7,7 +7,7 @@ use abstract_core::{
     },
     objects::chain_name::ChainName,
 };
-use abstract_sdk::core::ibc_host::QueryMsg;
+use abstract_sdk::framework::ibc_host::QueryMsg;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use cw_storage_plus::Bound;
 

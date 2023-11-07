@@ -1,6 +1,6 @@
 use crate::contract::{HostResponse, HostResult, CONTRACT_VERSION};
 use abstract_core::{objects::module_version::assert_contract_upgrade, IBC_HOST};
-use abstract_sdk::core::ibc_host::MigrateMsg;
+use abstract_sdk::framework::ibc_host::MigrateMsg;
 
 use semver::Version;
 

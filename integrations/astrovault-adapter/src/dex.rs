@@ -1,7 +1,7 @@
 use crate::ASTROVAULT;
 use crate::AVAILABLE_CHAINS;
 use abstract_dex_standard::Identify;
-use abstract_sdk::core::objects::PoolType;
+use abstract_sdk::framework::objects::PoolType;
 use cosmwasm_std::Addr;
 
 #[derive(Default)]
@@ -25,7 +25,7 @@ use ::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
     abstract_sdk::{
-        core::objects::{PoolAddress, UniquePoolId},
+        framework::objects::{PoolAddress, UniquePoolId},
         cw_helpers::wasm_smart_query,
         feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkResult,
@@ -689,7 +689,7 @@ fn cw_asset_info_to_astrovault(
 #[cfg(test)]
 mod tests {
     use abstract_dex_standard::tests::expect_eq;
-    use abstract_sdk::core::objects::PoolType;
+    use abstract_sdk::framework::objects::PoolType;
     use cosmwasm_schema::serde::Deserialize;
     use cosmwasm_std::to_json_binary;
     use cosmwasm_std::Coin;
@@ -703,7 +703,7 @@ mod tests {
 
     use super::Astrovault;
     use abstract_dex_standard::tests::DexCommandTester;
-    use abstract_sdk::core::objects::PoolAddress;
+    use abstract_sdk::framework::objects::PoolAddress;
     use cosmwasm_std::coins;
     use cosmwasm_std::Decimal;
     use cosmwasm_std::{wasm_execute, Addr};

@@ -6,7 +6,7 @@ use thiserror::Error;
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::{objects::AccountId, AbstractError};
 use abstract_sdk::{
-    core::objects::module::ModuleInfo, core::objects::validation::ValidationError, AbstractSdkError,
+    framework::objects::module::ModuleInfo, framework::objects::validation::ValidationError, AbstractSdkError,
 };
 
 #[derive(Error, Debug, PartialEq)]

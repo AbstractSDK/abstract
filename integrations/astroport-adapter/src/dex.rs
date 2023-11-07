@@ -19,7 +19,7 @@ use ::{
     abstract_dex_standard::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
-    abstract_sdk::core::objects::PoolAddress,
+    abstract_sdk::framework::objects::PoolAddress,
     abstract_sdk::cw_helpers::wasm_smart_query,
     astroport::pair::{PoolResponse, SimulationResponse},
     cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
@@ -310,7 +310,7 @@ mod tests {
 
     use super::Astroport;
     use abstract_dex_standard::tests::DexCommandTester;
-    use abstract_sdk::core::objects::PoolAddress;
+    use abstract_sdk::framework::objects::PoolAddress;
     use cosmwasm_std::coins;
     use cosmwasm_std::Decimal;
     use cosmwasm_std::{wasm_execute, Addr};

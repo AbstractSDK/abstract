@@ -15,7 +15,7 @@ use abstract_core::{
     version_control::AccountBase,
 };
 use abstract_sdk::{
-    core::{
+    framework::{
         ibc_client::state::{ACCOUNTS, ADMIN, CONFIG},
         ibc_host::{HostAction, InternalAction},
         objects::{ans_host::AnsHost, version_control::VersionControlContract, ChannelEntry},
