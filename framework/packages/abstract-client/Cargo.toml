@@ -19,6 +19,10 @@ cw-orch.workspace = true
 serde.workspace = true
 
 [dev-dependencies]
+cw-asset.workspace = true
+cw-controllers.workspace = true
+abstract-app.workspace = true
+abstract-sdk.workspace = true
 anyhow.workspace = true
 cosmwasm-schema.workspace = true
 cw-storage-plus.workspace = true

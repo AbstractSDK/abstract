@@ -1,14 +1,9 @@
 pub mod contract;
-mod error;
-pub(crate) mod execute;
+pub mod error;
+mod handlers;
 pub mod msg;
-pub(crate) mod query;
+mod replies;
 pub mod state;
 
-pub use error::ContractError;
-
-mod interface;
-
-pub use interface::CounterContract;
-
-//pub use msg::{ExecuteMsgFns as CounterExecuteMsgFns, QueryMsgFns as CounterQueryMsgFns};
+pub use contract::interface::AppInterface;
+pub use msg::{AppExecuteMsgFns, AppQueryMsgFns};

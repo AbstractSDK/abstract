@@ -1,49 +1,34 @@
-#![warn(missing_docs)]
-//! # Counter contract
+use cosmwasm_schema::QueryResponses;
 
-use cosmwasm_schema::{cw_serde, QueryResponses};
+use super::contract::App;
 
-#[cw_serde]
-/// Instantiate method for counter
-pub struct InstantiateMsg {
-    /// Initial count
-    pub count: i32,
+// This is used for type safety and re-exporting the contract endpoint structs.
+abstract_app::app_msg_types!(App, AppExecuteMsg, AppQueryMsg);
+
+/// App instantiate message
+#[cosmwasm_schema::cw_serde]
+pub struct AppInstantiateMsg {}
+
+/// App execute messages
+#[cosmwasm_schema::cw_serde]
+#[derive(cw_orch::ExecuteFns)]
+#[impl_into(ExecuteMsg)]
+pub enum AppExecuteMsg {
+    UpdateConfig {},
 }
 
-#[cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))] // Function generation
-/// Execute methods for counter
-pub enum ExecuteMsg {
-    /// Increment count by one
-    Increment {},
-    /// Reset count
-    Reset {
-        /// Count value after reset
-        count: i32,
-    },
-}
-
-#[cw_serde]
+/// App query messages
+#[cosmwasm_schema::cw_serde]
+#[derive(cw_orch::QueryFns)]
+#[impl_into(QueryMsg)]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))] // Function generation
-/// Query methods for counter
-pub enum QueryMsg {
-    /// GetCount returns the current count as a json-encoded number
-    #[returns(GetCountResponse)]
-    GetCount {},
+pub enum AppQueryMsg {
+    #[returns(ConfigResponse)]
+    Config {},
 }
 
-// Custom response for the query
-#[cw_serde]
-/// Response from get_count query
-pub struct GetCountResponse {
-    /// Current count in the state
-    pub count: i32,
-}
+#[cosmwasm_schema::cw_serde]
+pub enum AppMigrateMsg {}
 
-#[cw_serde]
-/// Migrate message for count contract
-pub struct MigrateMsg {
-    /// Your favorite type of tea
-    pub t: String,
-}
+#[cosmwasm_schema::cw_serde]
+pub struct ConfigResponse {}

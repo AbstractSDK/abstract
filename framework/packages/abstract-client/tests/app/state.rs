@@ -1,12 +1,6 @@
-
-use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
-use cosmwasm_schema::cw_serde;
 
-#[cw_serde]
-pub struct State {
-    pub count: i32,
-    pub owner: Addr,
-}
+#[cosmwasm_schema::cw_serde]
+pub struct Config {}
 
-pub const STATE: Item<State> = Item::new("state");
+pub const CONFIG: Item<Config> = Item::new("config");
