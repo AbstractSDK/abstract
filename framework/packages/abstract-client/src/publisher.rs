@@ -1,4 +1,5 @@
-use abstract_interface::AbstractAccount;
+use abstract_core::{objects::namespace::Namespace, version_control::NamespaceResponse};
+use abstract_interface::{Abstract, AbstractAccount, VCQueryFns};
 use cosmwasm_std::{Addr, Coin};
 use cw_orch::prelude::{ContractInstance, CwEnv};
 
@@ -12,19 +13,28 @@ pub struct Publisher<Chain: CwEnv> {
 }
 
 impl<Chain: CwEnv> Publisher<Chain> {
-    /*pub(crate) fn new(namespace: String) -> Self {
-        //let account = ...?
-        Self { namespace }
-    }*/
+    pub(crate) fn new(abstr: &Abstract<Chain>, namespace: String) -> Self {
+        let namespace_response: Result<NamespaceResponse, cw_orch::prelude::CwOrchError> = abstr
+            .version_control
+            .namespace(Namespace::new(&namespace).unwrap());
 
-    fn publish() {}
+        let abstract_account: AbstractAccount<Chain> =
+            AbstractAccount::new(abstr, Some(namespace_response.unwrap().account_id));
 
-    fn account(&self) -> &Account<Chain> {
+        // TODO: add logic for when namespace does not exist.
+        Self {
+            account: Account::new(abstract_account),
+        }
+    }
+
+    pub fn publish() {}
+
+    pub fn account(&self) -> &Account<Chain> {
         &self.account
     }
 
     // TODO: handle error
-    fn admin(&self) -> Addr {
+    pub fn admin(&self) -> Addr {
         self.account.account.manager.address().unwrap()
     }
 }

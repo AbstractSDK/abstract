@@ -18,6 +18,14 @@ pub struct Account<Chain: CwEnv> {
     pub(crate) account: AbstractAccount<Chain>,
 }
 
+impl<Chain: CwEnv> Account<Chain> {
+    pub(crate) fn new(abstract_account: AbstractAccount<Chain>) -> Self {
+        Self {
+            account: abstract_account,
+        }
+    }
+}
+
 pub trait ModuleId {
     fn module_id() -> String;
 }

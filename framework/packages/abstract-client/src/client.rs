@@ -15,7 +15,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 
     // TODO: Switch to builder later.
-    /*fn new_publisher(abstr: Abstract<Chain>, namespace: String) -> Publisher<Chain> {
-        Publisher::new(namespace)
-    }*/
+    pub fn new_publisher(&self, namespace: String) -> Publisher<Chain> {
+        Publisher::new(&self.abstr, namespace)
+    }
 }
