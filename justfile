@@ -1,5 +1,4 @@
 workspaces := "./framework ./modules ./app-template"
-modules := "./modules/contracts/apps/croncat ./modules/contracts/apps/dca ./modules/contracts/adapters/dex ./modules/contracts/adapters/cw-staking"
 
 docs-install:
   cargo install mdbook --vers "0.4.21" --locked
@@ -40,15 +39,6 @@ wasm-all:
 # Wasms all the workspaces that can be wasm'd
 wasm-all-ci:
   ./scripts/wasm-all-ci.sh
-
-schema-modules:
-  #!/usr/bin/env bash
-  set -e;
-  for path in {{modules}}
-  do 
-    (cd $path; cargo run --example schema --features schema); 
-  done
-  set +e
 
 schema: schema-modules
   #!/usr/bin/env bash
