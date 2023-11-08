@@ -9,13 +9,13 @@ use crate::{application::Application, infrastructure::Infrastructure};
 pub struct AccountBuilder {}
 
 pub struct Account<Chain: CwEnv> {
-    pub(crate) account: AbstractAccount<Chain>,
+    pub(crate) abstr_account: AbstractAccount<Chain>,
 }
 
 impl<Chain: CwEnv> Account<Chain> {
     pub(crate) fn new(abstract_account: AbstractAccount<Chain>) -> Self {
         Self {
-            account: abstract_account,
+            abstr_account: abstract_account,
         }
     }
 }
@@ -38,10 +38,10 @@ impl<Chain: CwEnv> Account<Chain> {
 
         let app: M = contract.into();
 
-        self.account
+        self.abstr_account
             .install_app(app.clone(), configuration, funds)
             .unwrap();
-        Ok(Application::new(self.account.clone(), app))
+        Ok(Application::new(self.abstr_account.clone(), app))
     }
 }
 

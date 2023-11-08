@@ -17,6 +17,6 @@ pub(crate) trait Infrastructure<T: CwEnv> {
 
 impl<M: CwEnv> Infrastructure<M> for Account<M> {
     fn environment(&self) -> M {
-        self.account.proxy.get_chain().clone()
+        self.abstr_account.proxy.get_chain().clone()
     }
 }

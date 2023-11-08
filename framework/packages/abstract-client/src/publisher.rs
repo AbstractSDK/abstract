@@ -12,7 +12,7 @@ use cw_orch::{
 use semver::Version;
 use serde::Serialize;
 
-use crate::{account::Account, application::Application};
+use crate::{account::Account, application::Application, infrastructure::Infrastructure};
 
 pub struct PublisherBuilder {}
 
@@ -52,16 +52,12 @@ impl<Chain: CwEnv> Publisher<Chain> {
             + ModuleId
             + InstantiableContract
             + From<Contract<Chain>>
-            + Clone
             + AppDeployer<Chain>,
     >(
         &self,
         version: Version,
     ) {
-        let contract = Contract::new(
-            M::module_id(),
-            self.account.account.manager.get_chain().to_owned(),
-        );
+        let contract = Contract::new(M::module_id(), self.account.environment());
         let app: M = contract.into();
         app.deploy(version, DeployStrategy::Try).unwrap();
     }
@@ -72,6 +68,6 @@ impl<Chain: CwEnv> Publisher<Chain> {
 
     // TODO: handle error
     pub fn admin(&self) -> Addr {
-        self.account.account.manager.address().unwrap()
+        self.account.abstr_account.manager.address().unwrap()
     }
 }

@@ -1,11 +1,8 @@
 mod app;
 use abstract_client::{application::Application, client::AbstractClient, publisher::Publisher};
 use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
-use abstract_interface::{Abstract, AccountDetails, AppDeployer, DeployStrategy, VCExecFns};
-use app::{
-    contract::{APP_ID, APP_VERSION},
-    AppInterface, AppQueryMsgFns,
-};
+use abstract_interface::{Abstract, AccountDetails, VCExecFns};
+use app::{contract::APP_VERSION, AppInterface, AppQueryMsgFns};
 use cosmwasm_std::Addr;
 use cw_orch::{deploy::Deploy, prelude::Mock};
 
