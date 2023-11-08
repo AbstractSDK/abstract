@@ -1,7 +1,7 @@
 /* Globals */
 
 :root {
-    --sidebar-width: 300px;
+    --sidebar-width: 200px;
     --page-padding: 15px;
     --content-max-width: 900px;
     --menu-bar-height: 50px;
@@ -173,85 +173,43 @@
 }
 
 .abstract {
-    --bg: hsl(210, 20%, 15%);
-    --fg: hsl(45, 10%, 70%);
+    --bg: hsl(210, 20%, 8%);  /* Darker background for main content */
+    --fg: hsl(45, 10%, 80%);  /* Brighter text color */
 
-    --sidebar-bg: hsl(210, 20%, 10%);
-    --sidebar-fg: hsl(45, 10%, 80%);
-    --sidebar-non-existant: hsl(210, 20%, 20%);
-    --sidebar-active: hsl(45, 10%, 85%);
-    --sidebar-spacer: hsl(210, 20%, 25%);
-
-    --scrollbar: var(--sidebar-fg);
-
-    --icons: hsl(210, 20%, 45%);
-    --icons-hover: hsl(45, 10%, 90%);
-
-    --links: hsl(45, 10%, 90%);
-
-    --inline-code-color: hsl(45, 10%, 60%);
-
-    --theme-popup-bg: hsl(210, 20%, 30%);
-    --theme-popup-border: hsl(45, 10%, 90%);
-    --theme-hover: hsl(210, 20%, 40%);
-
-    --quote-bg: hsl(210, 20%, 20%);
-    --quote-border: hsl(210, 20%, 25%);
-
-    --table-border-color: hsl(210, 20%, 25%);
-    --table-header-bg: hsl(45, 10%, 85%);
-    --table-alternate-bg: hsl(210, 20%, 20%);
-
-    --searchbar-border-color: hsl(210, 20%, 45%);
-    --searchbar-bg: hsl(210, 20%, 10%);
-    --searchbar-fg: hsl(45, 10%, 90%);
-    --searchbar-shadow-color: hsl(210, 20%, 40%);
-    --searchresults-header-fg: hsl(210, 20%, 45%);
-    --searchresults-border-color: hsl(210, 20%, 50%);
-    --searchresults-li-bg: hsl(45, 10%, 90%);
-    --search-mark-bg: hsl(45, 10%, 90%);
-}
-
-.abstract_light {
-    --bg: hsl(210, 20%, 95%);
-    --fg: hsl(45, 10%, 30%);
-
-    --sidebar-bg: hsl(210, 20%, 90%);
-    --sidebar-fg: hsl(45, 10%, 40%);
-    --sidebar-non-existant: hsl(210, 20%, 80%);
-    --sidebar-active: hsl(45, 10%, 50%);
-    --sidebar-spacer: hsl(210, 20%, 75%);
+    --sidebar-bg: hsl(210, 20%, 5%);  /* Darker sidebar background */
+    --sidebar-fg: hsl(45, 10%, 90%);  /* Brighter sidebar text */
+    --sidebar-non-existant: hsl(210, 20%, 15%);  /* Slightly darker non-existent sidebar item */
+    --sidebar-active: rgb(236, 191, 89);  /* Brighter active sidebar item */
+    --sidebar-spacer: hsl(210, 20%, 20%);  /* Slightly lighter spacer */
 
     --scrollbar: var(--sidebar-fg);
 
-    --icons: hsl(210, 20%, 55%);
-    --icons-hover: hsl(45, 10%, 20%);
+    --icons: hsl(210, 20%, 50%);  /* Slightly brighter icons */
+    --icons-hover: hsl(45, 10%, 95%);  /* Brighter icon hover */
 
-    --links: hsl(45, 10%, 20%);
+    --links: hsl(45, 10%, 95%);  /* Brighter links */
 
-    --inline-code-color: hsl(45, 10%, 40%);
+    --inline-code-color: hsl(45, 10%, 65%);  /* Slightly brighter inline code */
 
-    --theme-popup-bg: hsl(210, 20%, 70%);
-    --theme-popup-border: hsl(45, 10%, 20%);
-    --theme-hover: hsl(210, 20%, 60%);
+    --theme-popup-bg: hsl(210, 20%, 25%);  /* Slightly darker theme popup background */
+    --theme-popup-border: hsl(45, 10%, 95%);  /* Brighter theme popup border */
+    --theme-hover: hsl(210, 20%, 35%);  /* Slightly lighter theme hover */
 
-    --quote-bg: hsl(210, 20%, 80%);
-    --quote-border: hsl(210, 20%, 75%);
+    --quote-bg: hsl(210, 20%, 15%);  /* Slightly darker quote background */
+    --quote-border: hsl(210, 20%, 20%);  /* Darker quote border */
 
-    --table-border-color: hsl(210, 20%, 75%);
-    --table-header-bg: hsl(45, 10%, 50%);
-    --table-alternate-bg: hsl(210, 20%, 80%);
+    --table-border-color: hsl(210, 20%, 20%);  /* Slightly darker table border */
+    --table-header-bg: hsl(45, 10%, 90%);  /* Brighter table header background */
+    --table-alternate-bg: hsl(210, 20%, 15%);  /* Slightly darker alternate table row */
 
-    --searchbar-border-color: hsl(210, 20%, 55%);
-    --searchbar-bg: hsl(210, 20%, 90%);
-    --searchbar-fg: hsl(45, 10%, 20%);
-    --searchbar-shadow-color: hsl(210, 20%, 60%);
-    --searchresults-header-fg: hsl(210, 20%, 55%);
-    --searchresults-border-color: hsl(210, 20%, 50%);
-    --searchresults-li-bg: hsl(45, 10%, 50%);
-    --search-mark-bg: hsl(45, 10%, 50%);
-
-
+    --searchbar-border-color: hsl(210, 20%, 50%);  /* Slightly brighter search bar border */
+    --searchbar-bg: hsl(210, 20%, 5%);  /* Darker search bar background */
+    --searchbar-fg: hsl(45, 10%, 95%);  /* Brighter search bar text */
+    --searchbar-shadow-color: hsl(210, 20%, 45%);  /* Slightly darker search bar shadow */
+    --searchresults-header-fg: hsl(210, 20%, 50%);  /* Slightly brighter search results header text */
+    --searchresults-border-color: hsl(210, 20%, 55%);  /* Brighter search results border */
+    --searchresults-li-bg: hsl(45, 10%, 95%);  /* Brighter search results list item background */
+    --search-mark-bg: hsl(45, 10%, 95%);  /* Brighter search mark background */
 }
 
 .rust {

@@ -38,7 +38,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         env: Env,
         info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
-        version_control_contract: &VersionControlContract,
+        version_control_contract: VersionControlContract,
         staking_assets: Vec<AssetEntry>,
     ) -> AbstractSdkResult<()>;
 

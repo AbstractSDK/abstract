@@ -160,7 +160,7 @@ fn proper_initialization() -> AResult {
     etf_token.call_as(&owner).send(
         500u128.into(),
         etf_addr.clone(),
-        cosmwasm_std::to_binary(&Cw20HookMsg::Claim {})?,
+        cosmwasm_std::to_json_binary(&Cw20HookMsg::Claim {})?,
     )?;
 
     // check that the etf token decreased

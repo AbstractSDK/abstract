@@ -7,7 +7,7 @@ use std::time::Duration;
 use crate::features::AccountIdentification;
 
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Timestamp};
+use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg, Timestamp};
 
 use crate::AbstractSdkResult;
 use crate::AccountAction;
@@ -68,7 +68,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.MsgGrantAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())
@@ -92,7 +92,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.MsgGrantAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())
@@ -108,7 +108,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())
@@ -124,7 +124,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())
@@ -144,7 +144,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())
@@ -160,7 +160,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())
