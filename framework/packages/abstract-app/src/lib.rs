@@ -157,7 +157,7 @@ pub mod mock {
         fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
             Box::new(
                 ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
-                    .migrate(self::migrate),
+                    .with_migrate(self::migrate),
             )
         }
     }

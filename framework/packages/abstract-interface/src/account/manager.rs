@@ -25,7 +25,7 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
                 ::manager::contract::instantiate,
                 ::manager::contract::query,
             )
-            .migrate(::manager::contract::migrate),
+            .with_migrate(::manager::contract::migrate),
         )
     }
     fn wasm(&self) -> WasmPath {

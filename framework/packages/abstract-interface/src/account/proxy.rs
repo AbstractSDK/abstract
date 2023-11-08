@@ -20,8 +20,8 @@ impl<Chain: CwEnv> Uploadable for Proxy<Chain> {
                 ::proxy::contract::instantiate,
                 ::proxy::contract::query,
             )
-            .migrate(::proxy::contract::migrate)
-            .replies(::proxy::contract::reply),
+            .with_migrate(::proxy::contract::migrate)
+            .with_reply(::proxy::contract::reply),
         )
     }
     fn wasm(&self) -> WasmPath {
