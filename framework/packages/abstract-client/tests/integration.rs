@@ -38,8 +38,8 @@ fn test() -> anyhow::Result<()> {
         .new_publisher(GovernanceDetails::Monarchy {
             monarch: ADMIN.to_string(),
         })
-        .with_name("test-account")
-        .with_namespace("my-namespace")
+        .name("test-account")
+        .namespace("my-namespace")
         .build();
 
     publisher.deploy_module::<AppInterface<Mock>>(APP_VERSION.parse().unwrap());

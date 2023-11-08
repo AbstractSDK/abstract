@@ -42,35 +42,35 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         }
     }
 
-    pub fn with_name(self, name: impl Into<String>) -> Self {
+    pub fn name(self, name: impl Into<String>) -> Self {
         Self {
             name: Some(name.into()),
             ..self
         }
     }
 
-    pub fn with_description(self, description: impl Into<String>) -> Self {
+    pub fn description(self, description: impl Into<String>) -> Self {
         Self {
             description: Some(description.into()),
             ..self
         }
     }
 
-    pub fn with_link(self, link: impl Into<String>) -> Self {
+    pub fn link(self, link: impl Into<String>) -> Self {
         Self {
             link: Some(link.into()),
             ..self
         }
     }
 
-    pub fn with_namespace(self, namespace: impl Into<String>) -> Self {
+    pub fn namespace(self, namespace: impl Into<String>) -> Self {
         Self {
             namespace: Some(namespace.into()),
             ..self
         }
     }
 
-    pub fn with_base_asset(self, base_asset: AssetEntry) -> Self {
+    pub fn base_asset(self, base_asset: AssetEntry) -> Self {
         Self {
             base_asset: Some(base_asset),
             ..self
