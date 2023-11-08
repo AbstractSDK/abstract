@@ -13,6 +13,7 @@
     - [Module Types](./3_framework/6_module_types.md)
     - [Upgradability](./3_framework/7_upgradability.md)
 - [Account Ownership](./3_framework/4_ownership.md)
+- [Interchain Abstract Accounts](./3_framework/8_ibc.md)
 
 - [Framework Components](./5_platform/index.md)
     - [Abstract Name Service](./5_platform/1_ans.md)
