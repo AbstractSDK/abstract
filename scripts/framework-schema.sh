@@ -9,4 +9,4 @@ cd ./framework
 # Generates schemas for each contract, removes the "Raw" schema, and copies the rest to the schema output directory.
 SCHEMA_OUT_DIR=$SCHEMA_OUT_DIR version=$version \
 cargo ws exec --no-bail bash -lc \
-'cargo schema && { rm -rf "schema/raw"; outdir="$SCHEMA_OUT_DIR/abstract/${PWD##*/}/$(eval $version)"; mkdir -p "$outdir"; cp -a "schema/." "$outdir";}'
+'cargo schema && { rm -rf "schema/raw"; outdir="$SCHEMA_OUT_DIR/${PWD##*/}/$(eval $version)"; mkdir -p "$outdir"; cp -a "schema/." "$outdir";}'

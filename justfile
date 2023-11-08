@@ -41,7 +41,7 @@ wasm-all-ci:
   ./scripts/wasm-all-ci.sh
 
 # Generates JSON schemas for all the contracts in the repo.
-schema: schema-modules
+schema:
   #!/usr/bin/env bash
   set -e
   (cd app-template; cargo run --example schema --features schema)
