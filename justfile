@@ -40,6 +40,7 @@ wasm-all:
 wasm-all-ci:
   ./scripts/wasm-all-ci.sh
 
+# Generates JSON schemas for all the contracts in the repo.
 schema: schema-modules
   #!/usr/bin/env bash
   set -e

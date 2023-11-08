@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD")
+
+# Generates the schemas for each module and copies them to ./schema/abstract/<contract-name>/<version>
 version="cargo pkgid | cut -d@ -f2"
+SCHEMA_OUT_DIR=$(echo "$PWD"/schema)
 
 cd ./modules
 
+# Generates schemas for each contract, removes the "Raw" schema, and copies the rest to the schema output directory.
 SCHEMA_OUT_DIR=$SCHEMA_OUT_DIR version=$version \
 cargo ws exec --no-bail bash -lc \
 'cargo schema && \
