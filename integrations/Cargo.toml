@@ -65,7 +65,7 @@ abstract-staking-standard = { version = "0.19.2" }
 
 # TODO: REMOVE As soon as new dex-standard published
 [patch.crates-io]
-abstract-dex-standard = { path = "../framework/packages/standards/dex"}
+abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
