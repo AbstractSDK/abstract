@@ -1,10 +1,10 @@
 use abstract_core::{
-    objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry},
+    objects::{namespace::Namespace, AssetEntry},
     version_control::NamespaceResponse,
     AbstractResult,
 };
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, AppDeployer, DeployStrategy, ModuleId, VCQueryFns,
+    Abstract, AbstractAccount, AppDeployer, DeployStrategy, ModuleId, VCQueryFns,
 };
 use cosmwasm_std::{Addr, Coin};
 use cw_orch::{
@@ -14,93 +14,54 @@ use cw_orch::{
 use semver::Version;
 use serde::Serialize;
 
-use crate::{account::Account, application::Application, infrastructure::Infrastructure};
+use crate::{
+    account::{Account, AccountBuilder},
+    application::Application,
+    infrastructure::Infrastructure,
+};
 
 pub struct PublisherBuilder<'a, Chain: CwEnv> {
-    abstr: &'a Abstract<Chain>,
-    name: Option<String>,
-    description: Option<String>,
-    link: Option<String>,
-    namespace: Option<String>,
-    base_asset: Option<AssetEntry>,
-    governance_details: GovernanceDetails<String>,
+    account_builder: AccountBuilder<'a, Chain>,
 }
 
 impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
-    pub(crate) fn new(
-        abstr: &'a Abstract<Chain>,
-        governance_details: GovernanceDetails<String>,
-    ) -> Self {
-        Self {
-            abstr,
-            name: None,
-            description: None,
-            link: None,
-            namespace: None,
-            base_asset: None,
-            governance_details,
-        }
+    pub(crate) fn new(account_builder: AccountBuilder<'a, Chain>) -> Self {
+        Self { account_builder }
     }
 
     pub fn name(self, name: impl Into<String>) -> Self {
         Self {
-            name: Some(name.into()),
-            ..self
+            account_builder: self.account_builder.name(name),
         }
     }
 
     pub fn description(self, description: impl Into<String>) -> Self {
         Self {
-            description: Some(description.into()),
-            ..self
+            account_builder: self.account_builder.description(description),
         }
     }
 
     pub fn link(self, link: impl Into<String>) -> Self {
         Self {
-            link: Some(link.into()),
-            ..self
+            account_builder: self.account_builder.link(link),
         }
     }
 
     pub fn namespace(self, namespace: impl Into<String>) -> Self {
         Self {
-            namespace: Some(namespace.into()),
-            ..self
+            account_builder: self.account_builder.namespace(namespace),
         }
     }
 
     pub fn base_asset(self, base_asset: AssetEntry) -> Self {
         Self {
-            base_asset: Some(base_asset),
-            ..self
+            account_builder: self.account_builder.base_asset(base_asset),
         }
     }
 
     pub fn build(self) -> Publisher<Chain> {
-        let abstract_account: AbstractAccount<Chain> = if let Some(name) = self.name {
-            self.abstr
-                .account_factory
-                .create_new_account(
-                    AccountDetails {
-                        name,
-                        description: self.description,
-                        link: self.link,
-                        namespace: self.namespace,
-                        base_asset: self.base_asset,
-                        install_modules: vec![],
-                    },
-                    self.governance_details,
-                    &[],
-                )
-                .unwrap()
-        } else {
-            self.abstr
-                .account_factory
-                .create_default_account(self.governance_details)
-                .unwrap()
-        };
-        Publisher::new(abstract_account)
+        let account = self.account_builder.build();
+        Publisher { account }
     }
 }
 

@@ -1,5 +1,7 @@
 mod app;
-use abstract_client::{application::Application, client::AbstractClient, publisher::Publisher};
+use abstract_client::{
+    account::Account, application::Application, client::AbstractClient, publisher::Publisher,
+};
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 use app::{contract::APP_VERSION, AppInterface, AppQueryMsgFns};
@@ -53,5 +55,11 @@ fn test() -> anyhow::Result<()> {
     let config = my_app.config()?;
 
     assert_eq!(ConfigResponse {}, config);
+
+    let _account: Account<Mock> = client
+        .new_account(GovernanceDetails::Monarchy {
+            monarch: String::from("monarch"),
+        })
+        .build();
     Ok(())
 }

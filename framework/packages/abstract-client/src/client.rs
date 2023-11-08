@@ -2,7 +2,10 @@ use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 use cw_orch::{deploy::Deploy, prelude::CwEnv};
 
-use crate::publisher::{Publisher, PublisherBuilder};
+use crate::{
+    account::AccountBuilder,
+    publisher::{Publisher, PublisherBuilder},
+};
 
 pub struct AbstractClient<Chain: CwEnv> {
     abstr: Abstract<Chain>,
@@ -24,6 +27,13 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         &self,
         governance_details: GovernanceDetails<String>,
     ) -> PublisherBuilder<Chain> {
-        PublisherBuilder::new(&self.abstr, governance_details)
+        PublisherBuilder::new(AccountBuilder::new(&self.abstr, governance_details))
+    }
+
+    pub fn new_account(
+        &self,
+        governance_details: GovernanceDetails<String>,
+    ) -> AccountBuilder<Chain> {
+        AccountBuilder::new(&self.abstr, governance_details)
     }
 }
