@@ -111,6 +111,7 @@ macro_rules! cw_orch_interface {
 	    }
 
 	    pub mod interface{
+            use super::*;
 	    	use super::_wrapper_fns;
 	    	#[::cw_orch::interface(_wrapper_fns::InstantiateMsg, _wrapper_fns::ExecuteMsg, _wrapper_fns::QueryMsg, _wrapper_fns::MigrateMsg)]
 			pub struct $interface_name;

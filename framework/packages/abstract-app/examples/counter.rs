@@ -87,7 +87,7 @@ abstract_app::export_endpoints!(COUNTER_APP, CounterApp);
 // ANCHOR_END: export
 
 // ANCHOR: interface
-abstract_app::cw_orch_interface!(crate::COUNTER_APP, CounterApp, CounterAppInterface);
+abstract_app::cw_orch_interface!(COUNTER_APP, CounterApp, CounterAppInterface);
 // ANCHOR_END: interface
 
 mod handlers {

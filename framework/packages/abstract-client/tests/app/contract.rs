@@ -26,4 +26,4 @@ const APP: App = App::new(APP_ID, APP_VERSION, None)
     .with_migrate(handlers::migrate_handler)
     .with_replies(&[(INSTANTIATE_REPLY_ID, replies::instantiate_reply)]);
 
-abstract_app::cw_orch_interface!(crate::app::contract::APP, App, AppInterface);
+abstract_app::cw_orch_interface!(APP, App, AppInterface);
