@@ -1,7 +1,8 @@
+use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 use cw_orch::{deploy::Deploy, prelude::CwEnv};
 
-use crate::publisher::Publisher;
+use crate::publisher::{Publisher, PublisherBuilder};
 
 pub struct AbstractClient<Chain: CwEnv> {
     abstr: Abstract<Chain>,
@@ -15,7 +16,14 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 
     // TODO: Switch to builder later.
-    pub fn new_publisher(&self, namespace: String) -> Publisher<Chain> {
-        Publisher::new(&self.abstr, namespace)
+    pub fn existing_publisher(&self, namespace: String) -> Publisher<Chain> {
+        Publisher::new_existing_publisher(&self.abstr, namespace)
+    }
+
+    pub fn new_publisher(
+        &self,
+        governance_details: GovernanceDetails<String>,
+    ) -> PublisherBuilder<Chain> {
+        PublisherBuilder::new(&self.abstr, governance_details)
     }
 }
