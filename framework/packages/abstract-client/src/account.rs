@@ -41,7 +41,6 @@ impl<Chain: CwEnv> Account<Chain> {
         self.account
             .install_app(app.clone(), configuration, funds)
             .unwrap();
-
         Ok(Application::new(self.account.clone(), app))
     }
 }

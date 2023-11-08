@@ -17,6 +17,7 @@ abstract-interface.workspace = true
 abstract-core.workspace = true
 cw-orch.workspace = true
 serde.workspace = true
+semver.workspace = true
 
 [dev-dependencies]
 cw-asset.workspace = true

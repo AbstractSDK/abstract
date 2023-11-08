@@ -1,9 +1,18 @@
-use abstract_core::{objects::namespace::Namespace, version_control::NamespaceResponse};
-use abstract_interface::{Abstract, AbstractAccount, VCQueryFns};
+use abstract_core::{
+    objects::namespace::Namespace, version_control::NamespaceResponse, AbstractResult,
+};
+use abstract_interface::{
+    Abstract, AbstractAccount, AppDeployer, DeployStrategy, ModuleId, VCQueryFns,
+};
 use cosmwasm_std::{Addr, Coin};
-use cw_orch::prelude::{ContractInstance, CwEnv};
+use cw_orch::{
+    contract::Contract,
+    prelude::{ContractInstance, CwEnv, InstantiableContract},
+};
+use semver::Version;
+use serde::Serialize;
 
-use crate::account::Account;
+use crate::{account::Account, application::Application};
 
 pub struct PublisherBuilder {}
 
@@ -27,7 +36,35 @@ impl<Chain: CwEnv> Publisher<Chain> {
         }
     }
 
-    pub fn publish() {}
+    pub fn install_app<
+        M: ContractInstance<Chain> + ModuleId + InstantiableContract + From<Contract<Chain>> + Clone,
+        C: Serialize,
+    >(
+        &self,
+        configuration: &C,
+        funds: &[Coin],
+    ) -> AbstractResult<Application<Chain, M>> {
+        self.account.install_app(configuration, funds)
+    }
+
+    pub fn deploy_module<
+        M: ContractInstance<Chain>
+            + ModuleId
+            + InstantiableContract
+            + From<Contract<Chain>>
+            + Clone
+            + AppDeployer<Chain>,
+    >(
+        &self,
+        version: Version,
+    ) {
+        let contract = Contract::new(
+            M::module_id(),
+            self.account.account.manager.get_chain().to_owned(),
+        );
+        let app: M = contract.into();
+        app.deploy(version, DeployStrategy::Try).unwrap();
+    }
 
     pub fn account(&self) -> &Account<Chain> {
         &self.account

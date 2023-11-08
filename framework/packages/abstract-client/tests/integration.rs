@@ -40,7 +40,10 @@ fn create_account(
     Ok(())
 }
 
-fn deploy_app(abstr: &Abstract<Mock>, chain: Mock) -> anyhow::Result<()> {
+#[test]
+fn test() -> anyhow::Result<()> {
+    // Set up.
+    let (chain, abstr) = deploy_abstract()?;
     let account = abstr
         .account_factory
         .create_default_account(GovernanceDetails::Monarchy {
@@ -50,19 +53,6 @@ fn deploy_app(abstr: &Abstract<Mock>, chain: Mock) -> anyhow::Result<()> {
     abstr
         .version_control
         .claim_namespace(AccountId::local(1), "my-namespace".to_string())?;
-    let app = AppInterface::new(APP_ID, chain);
-    app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;
-    Ok(())
-}
-
-#[test]
-fn test() -> anyhow::Result<()> {
-    // Set up.
-    let (chain, abstr) = deploy_abstract()?;
-    //let namespace = "namespace";
-    //let user = "user";
-    deploy_app(&abstr, chain.clone())?;
-    //create_account(user.to_owned(), namespace.to_owned(), &abstr)?;
 
     // Interaction with client begins.
     let client: AbstractClient<Mock> = AbstractClient::new(chain);
@@ -70,8 +60,9 @@ fn test() -> anyhow::Result<()> {
     // TODO: Also try with namespace that does not exist.
     let publisher: Publisher<Mock> = client.new_publisher(String::from("my-namespace"));
 
+    publisher.deploy_module::<AppInterface<Mock>>(APP_VERSION.parse().unwrap());
+
     let my_app: Application<Mock, AppInterface<Mock>> = publisher
-        .account()
         .install_app::<AppInterface<Mock>, app::msg::AppInstantiateMsg>(
             &app::msg::AppInstantiateMsg {},
             &[],
