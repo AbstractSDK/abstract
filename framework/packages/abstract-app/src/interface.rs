@@ -144,10 +144,6 @@ macro_rules! cw_orch_interface {
 			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::ModuleId for $interface_name<Chain> {
 				fn module_id() -> String {
                     $app_const.module_id().to_owned()
-                    //String::from("test")
-
-                    //$app_const.asdfasdfasdf().0.clone()
-					//<$app_type>::module_id()
 				}
 			}
 
