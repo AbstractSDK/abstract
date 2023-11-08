@@ -4,7 +4,7 @@ use abstract_sdk::core::objects::LpToken;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct Astroport {
     pub tokens: Vec<AstroportTokenContext>,
 }
@@ -59,7 +59,7 @@ impl CwStakingCommand for Astroport {
         _env: Env,
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
-        _version_control_contract: &VersionControlContract,
+        _version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
     ) -> AbstractSdkResult<()> {
         self.tokens = lp_tokens

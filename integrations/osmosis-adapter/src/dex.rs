@@ -1,9 +1,11 @@
 use crate::{AVAILABLE_CHAINS, OSMOSIS};
 use abstract_dex_standard::Identify;
+use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::Addr;
 
 #[derive(Default)]
 pub struct Osmosis {
+    pub version_control_contract: Option<VersionControlContract>,
     pub local_proxy_addr: Option<Addr>,
 }
 
@@ -19,7 +21,10 @@ impl Identify for Osmosis {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
-    abstract_sdk::core::objects::PoolAddress,
+    abstract_sdk::{
+        core::objects::PoolAddress, core::objects::UniquePoolId, feature_objects::AnsHost,
+        features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult, AccountVerification,
+    },
     cosmwasm_std::{
         Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
     },
@@ -34,8 +39,40 @@ use ::{
 };
 
 #[cfg(feature = "full_integration")]
+impl AbstractRegistryAccess for Osmosis {
+    fn abstract_registry(
+        &self,
+        _: cosmwasm_std::Deps<'_>,
+    ) -> std::result::Result<VersionControlContract, abstract_sdk::AbstractSdkError> {
+        self.version_control_contract
+            .clone()
+            .ok_or(AbstractSdkError::generic_err(
+                "version_control address is not set",
+            ))
+        // We need to get to the version control somehow (possible from Ans Host ?)
+    }
+}
+
+#[cfg(feature = "full_integration")]
 /// Osmosis app-chain dex implementation
 impl DexCommand for Osmosis {
+    fn fetch_data(
+        &mut self,
+        deps: Deps,
+        sender: cosmwasm_std::Addr,
+        version_control_contract: VersionControlContract,
+        _ans_host: AnsHost,
+        _pool_id: UniquePoolId,
+    ) -> AbstractSdkResult<()> {
+        self.version_control_contract = Some(version_control_contract);
+        let account_registry = self.account_registry(deps);
+
+        let base = account_registry.assert_manager(&sender)?;
+        self.local_proxy_addr = Some(base.proxy);
+
+        Ok(())
+    }
+
     fn swap(
         &self,
         _deps: Deps,
@@ -61,7 +98,11 @@ impl DexCommand for Osmosis {
         let token_in = Coin::try_from(offer_asset)?;
 
         let swap_msg: CosmosMsg = MsgSwapExactAmountIn {
-            sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
+            sender: self
+                .local_proxy_addr
+                .as_ref()
+                .expect("no local proxy")
+                .to_string(),
             routes,
             token_in: Some(token_in.into()),
             token_out_min_amount: Uint128::one().to_string(),

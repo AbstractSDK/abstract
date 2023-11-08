@@ -79,7 +79,7 @@ mod osmosis_test {
     }
 
     impl<Chain: CwEnv> OsmosisStakingAdapter<Chain> {
-        /// Swap using Abstract's OS (registered in daemon_state).
+        /// Stake using Abstract's OS (registered in daemon_state).
         pub fn stake(
             &self,
             stake_assets: Vec<AnsAsset>,

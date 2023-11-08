@@ -25,6 +25,9 @@ pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStak
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
         }
+        abstract_astrovault_adapter::ASTROVAULT => {
+            Ok(Box::<abstract_astrovault_adapter::staking::Astrovault>::default())
+        }
         _ => Err(CwStakingError::UnknownDex(value.to_string())),
     }
 }

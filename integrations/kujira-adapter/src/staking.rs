@@ -50,7 +50,7 @@ impl CwStakingCommand for Kujira {
         _env: Env,
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
-        _version_control_contract: &VersionControlContract,
+        _version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
     ) -> AbstractSdkResult<()> {
         self.tokens = lp_tokens

@@ -1520,4 +1520,101 @@ mod tests {
             Ok(())
         }
     }
+    mod list_proxies_by_account_id {
+        use std::str::FromStr;
+
+        use abstract_core::objects::{
+            account::{AccountTrace, TEST_ACCOUNT_ID},
+            chain_name::ChainName,
+            AccountId,
+        };
+        use cosmwasm_std::from_json;
+
+        use super::*;
+
+        #[test]
+        fn works_with_multiple_local_accounts() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let (trace, seq) = TEST_ACCOUNT_ID.decompose();
+
+            let chain1 = ChainName::from_str("chain-a")?;
+            let proxy1 = String::from("proxy1");
+
+            let chain2 = ChainName::from_str("chain-b")?;
+            let proxy2 = String::from("proxy2");
+
+            ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain1), &proxy1)?;
+            ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain2), &proxy2)?;
+
+            let proxies_response: ListRemoteProxiesResponse = from_json(query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::ListRemoteProxiesByAccountId {
+                    account_id: TEST_ACCOUNT_ID,
+                },
+            )?)?;
+
+            assert_eq!(
+                ListRemoteProxiesResponse {
+                    proxies: vec![(chain1, Some(proxy1)), (chain2, Some(proxy2))]
+                },
+                proxies_response
+            );
+
+            Ok(())
+        }
+
+        #[test]
+        fn works_with_multiple_remote_accounts() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let account_id = AccountId::new(
+                1,
+                AccountTrace::Remote(vec![
+                    ChainName::from_str("juno")?,
+                    ChainName::from_str("osmosis")?,
+                ]),
+            )?;
+
+            let (trace, seq) = account_id.clone().decompose();
+
+            let terra_chain = ChainName::from_str("terra")?;
+            let terra_proxy = String::from("terra-proxy");
+
+            let archway_chain = ChainName::from_str("archway")?;
+            let archway_proxy = String::from("archway-proxy");
+
+            ACCOUNTS.save(
+                deps.as_mut().storage,
+                (&trace, seq, &terra_chain),
+                &terra_proxy,
+            )?;
+            ACCOUNTS.save(
+                deps.as_mut().storage,
+                (&trace, seq, &archway_chain),
+                &archway_proxy,
+            )?;
+
+            let proxies_response: ListRemoteProxiesResponse = from_json(query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::ListRemoteProxiesByAccountId { account_id },
+            )?)?;
+
+            assert_eq!(
+                ListRemoteProxiesResponse {
+                    proxies: vec![
+                        (archway_chain, Some(archway_proxy)),
+                        (terra_chain, Some(terra_proxy)),
+                    ]
+                },
+                proxies_response
+            );
+
+            Ok(())
+        }
+    }
 }

@@ -32,7 +32,7 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
             env,
             Some(info),
             &self.ans_host(deps.as_ref())?,
-            &self.abstract_registry(deps.as_ref())?,
+            self.abstract_registry(deps.as_ref())?,
             staking_asset,
         )?;
 
