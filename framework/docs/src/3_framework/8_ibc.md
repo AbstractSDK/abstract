@@ -15,8 +15,10 @@ blockchains. This means that users can send data (like tokens) from one blockcha
 assumptions. This is a huge step forward for the blockchain industry, as it allows for the creation of a network of
 blockchains that can independently communicate with each other.
 
-> If you're interested in a visual representation of the interchain, check
-> out <a href="https://mapofzones.com/home?columnKey=ibcVolume&period=24h" target="_blank">the map of zones</a>.
+```admonish info
+If you're interested in a visual representation of the interchain, check
+out <a href="https://mapofzones.com/home?columnKey=ibcVolume&period=24h" target="_blank">the map of zones</a>.
+```
 
 ## Building on The Interchain
 
@@ -62,7 +64,9 @@ his/her applications) can interact with the ICAA as if it were a regular account
 ICAA, execute smart-contract calls, request queries and more. With the help of Polytone, the ICAA returns the result of
 these actions to the application.
 
-> The account creation process is covered in detail in the [Account Factory](../5_platform/3_account_factory.md) section.
+```admonish info
+The account creation process is covered in detail in the [Account Factory](../5_platform/3_account_factory.md) section.
+```
 
 ICAAs can be chained together, creating a network of accounts that can interact with each other. This allows for the
 creation of complex applications that span multiple chains. The diagram below showcases this relationship.
@@ -129,4 +133,6 @@ We're now able to easily create *interchain applications*. I.e. a single smart-c
 blockchains that uses IBC to communicate about its state. Any chain-specific logic can be handled by the application's
 dependencies, like the dex or staking adapter.
 
-> Need a refresher on adapters? Check out the [Adapters](../3_framework/6_module_types.md#adapters) section.
+```admonish info
+Need a refresher on adapters? Check out the [Adapters](../3_framework/6_module_types.md#adapters) section.
+```
