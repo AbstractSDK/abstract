@@ -88,62 +88,62 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             .proxy)
     }
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
-        self.contract = self.contract.with_dependencies(dependencies);
+    pub const fn dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
+        self.contract = self.contract.dependencies(dependencies);
         self
     }
 
-    pub const fn with_instantiate(
+    pub const fn instantiate(
         mut self,
         instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
     ) -> Self {
-        self.contract = self.contract.with_instantiate(instantiate_handler);
+        self.contract = self.contract.instantiate(instantiate_handler);
         self
     }
 
-    pub const fn with_execute(
+    pub const fn execute(
         mut self,
         execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
     ) -> Self {
-        self.contract = self.contract.with_execute(execute_handler);
+        self.contract = self.contract.execute(execute_handler);
         self
     }
 
-    pub const fn with_query(
+    pub const fn query(
         mut self,
         query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
     ) -> Self {
-        self.contract = self.contract.with_query(query_handler);
+        self.contract = self.contract.query(query_handler);
         self
     }
 
-    pub const fn with_replies(
+    pub const fn replies(
         mut self,
         reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
     ) -> Self {
-        self.contract = self.contract.with_replies([&[], reply_handlers]);
+        self.contract = self.contract.replies([&[], reply_handlers]);
         self
     }
 
-    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
-        self.contract = self.contract.with_sudo(sudo_handler);
+    pub const fn sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
+        self.contract = self.contract.sudo(sudo_handler);
         self
     }
 
-    pub const fn with_receive(
+    pub const fn receive(
         mut self,
         receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
     ) -> Self {
-        self.contract = self.contract.with_receive(receive_handler);
+        self.contract = self.contract.receive(receive_handler);
         self
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
+    pub const fn ibc_callbacks(
         mut self,
         callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
     ) -> Self {
-        self.contract = self.contract.with_ibc_callbacks(callbacks);
+        self.contract = self.contract.ibc_callbacks(callbacks);
         self
     }
 }
@@ -172,15 +172,15 @@ mod tests {
     #[test]
     fn builder_functions() {
         crate::mock::MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
-            .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
+            .instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
+            .execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+            .query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
+            .sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
+            .receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
+            .ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })])
-            .with_replies(&[(1u64, |_, _, _, msg| {
+            .replies(&[(1u64, |_, _, _, msg| {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })]);
     }

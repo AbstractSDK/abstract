@@ -35,9 +35,9 @@
 ///                     APP::instantiate,
 ///                     APP::query,
 ///                 )
-///                 .with_reply(APP::reply)
-///                 .with_migrate(APP::migrate)
-///                 .with_sudo(APP::sudo),
+///                 .replies(APP::reply)
+///                 .migrate(APP::migrate)
+///                 .sudo(APP::sudo),
 ///             )
 ///         }
 ///     }
@@ -132,9 +132,9 @@ macro_rules! cw_orch_interface {
 			                _wrapper_fns::instantiate,
 			                _wrapper_fns::query,
 			            )
-			            .with_reply(_wrapper_fns::reply)
-			            .with_migrate(_wrapper_fns::migrate)
-						.with_sudo(_wrapper_fns::sudo),
+			            .replies(_wrapper_fns::reply)
+			            .migrate(_wrapper_fns::migrate)
+						.sudo(_wrapper_fns::sudo),
 			        )
 			    }
 			}

@@ -109,7 +109,7 @@ mod tests {
 
     pub fn featured_adapter() -> MockAdapterContract {
         MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_execute(feature_exec_fn)
+            .execute(feature_exec_fn)
     }
 
     #[test]

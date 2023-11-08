@@ -87,7 +87,7 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     /// The execution will be executed in a submessage and the reply will be sent to the provided `reply_on`.
-    pub fn execute_with_reply(
+    pub fn execute_replies(
         &self,
         actions: Vec<AccountAction>,
         reply_on: ReplyOn,
@@ -106,7 +106,7 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// Execute a single msg on the Account.
     /// This message will be executed on the proxy contract. Any data returned from the execution will be forwarded to the proxy's response through a reply.
     /// The resulting data should be available in the reply of the specified ID.
-    pub fn execute_with_reply_and_data(
+    pub fn execute_replies_and_data(
         &self,
         actions: CosmosMsg,
         reply_on: ReplyOn,
@@ -220,7 +220,7 @@ mod test {
         }
     }
 
-    mod execute_with_reply {
+    mod execute_replies {
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
@@ -234,7 +234,7 @@ mod test {
             let expected_reply_on = ReplyOn::Success;
             let expected_reply_id = 10952;
 
-            let actual_res = executor.execute_with_reply(
+            let actual_res = executor.execute_replies(
                 empty_actions.clone(),
                 expected_reply_on.clone(),
                 expected_reply_id,
@@ -269,7 +269,7 @@ mod test {
             let expected_reply_on = ReplyOn::Never;
             let expected_reply_id = 1;
 
-            let actual_res = executor.execute_with_reply(
+            let actual_res = executor.execute_replies(
                 action.clone(),
                 expected_reply_on.clone(),
                 expected_reply_id,

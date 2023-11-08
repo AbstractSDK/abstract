@@ -21,8 +21,8 @@ impl<Chain: CwEnv> Uploadable for IbcHost<Chain> {
                 ibc_host::contract::instantiate,
                 ibc_host::contract::query,
             )
-            .with_migrate(ibc_host::endpoints::migrate::migrate)
-            .with_reply(ibc_host::contract::reply),
+            .migrate(ibc_host::endpoints::migrate::migrate)
+            .replies(ibc_host::contract::reply),
         )
     }
     fn wasm(&self) -> WasmPath {

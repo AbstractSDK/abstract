@@ -27,7 +27,7 @@ impl<Chain: CwEnv> Uploadable for AnsHost<Chain> {
                 ::ans_host::contract::instantiate,
                 ::ans_host::contract::query,
             )
-            .with_migrate(::ans_host::contract::migrate),
+            .migrate(::ans_host::contract::migrate),
         )
     }
     fn wasm(&self) -> WasmPath {

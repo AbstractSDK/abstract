@@ -82,17 +82,17 @@ You can find more application code to read in our <a href="https://github.com/Ab
 
 The available handlers are:
 
-- `with_execute`: Called when the App's `ExecuteMsg` is called on the instantiate entry point.
-- `with_instantiate`: Called when the App's `InstantiateMsg` is called on the instantiate entry point.
-- `with_query`: Called when the App's `QueryMsg::Module` is called on the query entry point.
-- `with_migrate`: Called when the App's `MigrateMsg` is called on the migrate entry point.
-- `with_replies`: Called when the App's reply entry point is called. Matches the function's associated reply-id.
-- `with_sudo`: Called when the App's `SudoMsg` is called on the sudo entry point.
-- `with_receive`: Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
-- `with_ibc_callbacks`: Called when the App's `ExecuteMsg::IbcCallback` is called on the execute entry point. Matches
+- `execute`: Called when the App's `ExecuteMsg` is called on the instantiate entry point.
+- `instantiate`: Called when the App's `InstantiateMsg` is called on the instantiate entry point.
+- `query`: Called when the App's `QueryMsg::Module` is called on the query entry point.
+- `migrate`: Called when the App's `MigrateMsg` is called on the migrate entry point.
+- `replies`: Called when the App's reply entry point is called. Matches the function's associated reply-id.
+- `sudo`: Called when the App's `SudoMsg` is called on the sudo entry point.
+- `receive`: Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
+- `ibc_callbacks`: Called when the App's `ExecuteMsg::IbcCallback` is called on the execute entry point. Matches
   the callback's callback ID to its associated function.
 
-In the case of adapters, the handlers are the same, except for `with_migrate` and `with_sudo` that are missing for
+In the case of adapters, the handlers are the same, except for `migrate` and `sudo` that are missing for
 reasons we explain in the [adapter section](../3_framework/6_module_types.md#adapters).
 
 For a full overview of the list of handlers available, please refer to the respective module type documentation:
@@ -325,7 +325,7 @@ customizable but contains the IBC action acknowledgment.
 
 ## Dependencies
 
-There is another method accessible on the module builder, which is the `with_dependencies` function. As it states it
+There is another method accessible on the module builder, which is the `dependencies` function. As it states it
 allows you to specify any smart contract dependencies that your module might require. This is a key requirement for
 building truly composable and secure applications. We'll cover dependencies further
 the [dependencies section](./8_dependencies.md).

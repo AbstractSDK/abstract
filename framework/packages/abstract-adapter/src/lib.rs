@@ -91,15 +91,15 @@ pub mod mock {
     /// use for testing
     pub const MOCK_ADAPTER: MockAdapterContract =
         MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
-            .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
+            .instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
+            .execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+            .query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
+            .sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
+            .receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
+            .ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })])
-            .with_replies(&[(1u64, |_, _, _, msg| {
+            .replies(&[(1u64, |_, _, _, msg| {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })]);
 
@@ -168,7 +168,7 @@ pub mod mock {
         use ::cw_orch::environment::CwEnv;
 
         const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
-        .with_dependencies($deps);
+        .dependencies($deps);
 
         fn instantiate(
             deps: ::cosmwasm_std::DepsMut,

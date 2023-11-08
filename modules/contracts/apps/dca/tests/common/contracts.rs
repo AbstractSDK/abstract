@@ -66,7 +66,7 @@ pub fn croncat_factory_contract() -> Box<dyn Contract<Empty>> {
         croncat_factory::contract::instantiate,
         croncat_factory::contract::query,
     )
-    .with_reply(croncat_factory::contract::reply);
+    .replies(croncat_factory::contract::reply);
     Box::new(contract)
 }
 
@@ -76,7 +76,7 @@ pub fn croncat_manager_contract() -> Box<dyn Contract<Empty>> {
         croncat_manager::contract::instantiate,
         croncat_manager::contract::query,
     )
-    .with_reply(croncat_manager::contract::reply);
+    .replies(croncat_manager::contract::reply);
     Box::new(contract)
 }
 

@@ -90,7 +90,7 @@ fn create_task(
         funds,
     )?
     .into();
-    let create_task_submessage = executor.execute_with_reply_and_data(
+    let create_task_submessage = executor.execute_replies_and_data(
         create_task_msg,
         ReplyOn::Success,
         TASK_CREATE_REPLY_ID,
@@ -170,7 +170,7 @@ fn remove_task(
             vec![],
         )?
         .into();
-        let executor_submessage = app.executor(deps.as_ref()).execute_with_reply(
+        let executor_submessage = app.executor(deps.as_ref()).execute_replies(
             vec![remove_task_msg.into()],
             ReplyOn::Success,
             TASK_REMOVE_REPLY_ID,

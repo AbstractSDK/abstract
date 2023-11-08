@@ -20,9 +20,9 @@ pub type ChallengeApp =
 
 const CHALLENGE_APP: ChallengeApp =
     ChallengeApp::new(CHALLENGE_APP_ID, CHALLENGE_APP_VERSION, None)
-        .with_instantiate(handlers::instantiate_handler)
-        .with_execute(handlers::execute_handler)
-        .with_query(handlers::query_handler);
+        .instantiate(handlers::instantiate_handler)
+        .execute(handlers::execute_handler)
+        .query(handlers::query_handler);
 
 // Export handlers
 #[cfg(feature = "export")]

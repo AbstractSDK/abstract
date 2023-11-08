@@ -141,12 +141,12 @@ where
         self.info
     }
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
+    pub const fn dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.dependencies = dependencies;
         self
     }
     /// Add reply handlers to the contract.
-    pub const fn with_replies(
+    pub const fn replies(
         mut self,
         reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
     ) -> Self {
@@ -155,7 +155,7 @@ where
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
+    pub const fn ibc_callbacks(
         mut self,
         callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
     ) -> Self {
@@ -164,7 +164,7 @@ where
     }
 
     /// Add instantiate handler to the contract.
-    pub const fn with_instantiate(
+    pub const fn instantiate(
         mut self,
         instantiate_handler: InstantiateHandlerFn<
             Module,
@@ -177,7 +177,7 @@ where
     }
 
     /// Add query handler to the contract.
-    pub const fn with_migrate(
+    pub const fn migrate(
         mut self,
         migrate_handler: MigrateHandlerFn<Module, <Module as Handler>::CustomMigrateMsg, Error>,
     ) -> Self {
@@ -186,7 +186,7 @@ where
     }
 
     /// Add sudo handler to the contract.
-    pub const fn with_sudo(
+    pub const fn sudo(
         mut self,
         sudo_handler: SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>,
     ) -> Self {
@@ -195,7 +195,7 @@ where
     }
 
     /// Add receive handler to the contract.
-    pub const fn with_receive(
+    pub const fn receive(
         mut self,
         receive_handler: ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>,
     ) -> Self {
@@ -204,7 +204,7 @@ where
     }
 
     /// Add execute handler to the contract.
-    pub const fn with_execute(
+    pub const fn execute(
         mut self,
         execute_handler: ExecuteHandlerFn<Module, <Module as Handler>::CustomExecMsg, Error>,
     ) -> Self {
@@ -213,7 +213,7 @@ where
     }
 
     /// Add query handler to the contract.
-    pub const fn with_query(
+    pub const fn query(
         mut self,
         query_handler: QueryHandlerFn<Module, <Module as Handler>::CustomQueryMsg, Error>,
     ) -> Self {
@@ -285,7 +285,7 @@ mod test {
     #[test]
     fn test_with_empty() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_dependencies(&[]);
+            .dependencies(&[]);
 
         assert!(contract.reply_handlers.iter().all(|x| x.is_empty()));
 
@@ -299,13 +299,13 @@ mod test {
     }
 
     #[test]
-    fn test_with_dependencies() {
+    fn test_dependencies() {
         const VERSION: &str = "0.1.0";
         const DEPENDENCY: StaticDependency = StaticDependency::new("test", &[VERSION]);
         const DEPENDENCIES: &[StaticDependency] = &[DEPENDENCY];
 
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_dependencies(DEPENDENCIES);
+            .dependencies(DEPENDENCIES);
 
         assert_that!(contract.dependencies[0].clone()).is_equal_to(DEPENDENCY);
     }
@@ -313,7 +313,7 @@ mod test {
     #[test]
     fn test_with_instantiate() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_instantiate(|_, _, _, _, _| {
+            .instantiate(|_, _, _, _, _| {
                 Ok(Response::default().add_attribute("test", "instantiate"))
             });
 
@@ -321,17 +321,17 @@ mod test {
     }
 
     #[test]
-    fn test_with_receive() {
+    fn test_receive() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_receive(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "receive")));
+            .receive(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "receive")));
 
         assert!(contract.receive_handler.is_some());
     }
 
     #[test]
-    fn test_with_sudo() {
+    fn test_sudo() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_sudo(|_, _, _, _| Ok(Response::default().add_attribute("test", "sudo")));
+            .sudo(|_, _, _, _| Ok(Response::default().add_attribute("test", "sudo")));
 
         assert!(contract.sudo_handler.is_some());
     }
@@ -339,7 +339,7 @@ mod test {
     #[test]
     fn test_with_execute() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_execute(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "execute")));
+            .execute(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "execute")));
 
         assert!(contract.execute_handler.is_some());
     }
@@ -347,7 +347,7 @@ mod test {
     #[test]
     fn test_with_query() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_query(|_, _, _, _| Ok(cosmwasm_std::to_json_binary(&Empty {}).unwrap()));
+            .query(|_, _, _, _| Ok(cosmwasm_std::to_json_binary(&Empty {}).unwrap()));
 
         assert!(contract.query_handler.is_some());
     }
@@ -355,18 +355,18 @@ mod test {
     #[test]
     fn test_with_migrate() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_migrate(|_, _, _, _| Ok(Response::default().add_attribute("test", "migrate")));
+            .migrate(|_, _, _, _| Ok(Response::default().add_attribute("test", "migrate")));
 
         assert!(contract.migrate_handler.is_some());
     }
 
     #[test]
-    fn test_with_reply_handlers() {
+    fn test_replies_handlers() {
         const REPLY_ID: u64 = 50u64;
         const HANDLER: ReplyHandlerFn<MockModule, MockError> =
             |_, _, _, _| Ok(Response::default().add_attribute("test", "reply"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_replies([&[(REPLY_ID, HANDLER)], &[]]);
+            .replies([&[(REPLY_ID, HANDLER)], &[]]);
 
         assert_that!(contract.reply_handlers[0][0].0).is_equal_to(REPLY_ID);
         assert!(contract.reply_handlers[1].is_empty());
@@ -378,7 +378,7 @@ mod test {
         const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
             |_, _, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_ibc_callbacks(&[(IBC_ID, HANDLER)]);
+            .ibc_callbacks(&[(IBC_ID, HANDLER)]);
 
         assert_that!(contract.ibc_callback_handlers[0].0).is_equal_to(IBC_ID);
     }

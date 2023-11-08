@@ -12,9 +12,9 @@ pub type DexAdapter = AdapterContract<DexError, DexInstantiateMsg, DexExecuteMsg
 pub type DexResult<T = Response> = Result<T, DexError>;
 
 pub const DEX_ADAPTER: DexAdapter = DexAdapter::new(DEX_ADAPTER_ID, CONTRACT_VERSION, None)
-    .with_instantiate(handlers::instantiate_handler)
-    .with_execute(handlers::execute_handler)
-    .with_query(handlers::query_handler);
+    .instantiate(handlers::instantiate_handler)
+    .execute(handlers::execute_handler)
+    .query(handlers::query_handler);
 
 #[cfg(feature = "export")]
 export_endpoints!(DEX_ADAPTER, DexAdapter);

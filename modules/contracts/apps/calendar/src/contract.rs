@@ -19,10 +19,10 @@ pub type AppResult<T = Response> = Result<T, AppError>;
 pub type App = AppContract<AppError, AppInstantiateMsg, AppExecuteMsg, AppQueryMsg, AppMigrateMsg>;
 
 const APP: App = App::new(APP_ID, APP_VERSION, None)
-    .with_instantiate(handlers::instantiate_handler)
-    .with_execute(handlers::execute_handler)
-    .with_query(handlers::query_handler)
-    .with_migrate(handlers::migrate_handler);
+    .instantiate(handlers::instantiate_handler)
+    .execute(handlers::execute_handler)
+    .query(handlers::query_handler)
+    .migrate(handlers::migrate_handler);
 
 // Export handlers
 #[cfg(feature = "export")]

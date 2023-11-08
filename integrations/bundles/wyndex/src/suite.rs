@@ -50,7 +50,7 @@ fn store_factory(app: &mut App) -> u64 {
             wyndex_factory::contract::instantiate,
             wyndex_factory::contract::query,
         )
-        .with_reply_empty(wyndex_factory::contract::reply),
+        .replies_empty(wyndex_factory::contract::reply),
     );
 
     app.store_code(contract)
@@ -63,7 +63,7 @@ fn store_pair(app: &mut App) -> u64 {
             wyndex_pair::contract::instantiate,
             wyndex_pair::contract::query,
         )
-        .with_reply_empty(wyndex_pair::contract::reply),
+        .replies_empty(wyndex_pair::contract::reply),
     );
 
     app.store_code(contract)

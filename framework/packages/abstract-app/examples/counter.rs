@@ -73,13 +73,13 @@ const APP_VERSION: &str = "1.0.0";
 // ANCHOR: new
 pub const COUNTER_APP: CounterApp = CounterApp::new(COUNTER_ID, APP_VERSION, None)
     // ANCHOR_END: new
-    .with_instantiate(handlers::instantiate)
-    .with_execute(handlers::execute)
-    .with_query(handlers::query)
-    .with_sudo(handlers::sudo)
-    .with_receive(handlers::receive)
-    .with_replies(&[(1u64, handlers::reply)])
-    .with_migrate(handlers::migrate);
+    .instantiate(handlers::instantiate)
+    .execute(handlers::execute)
+    .query(handlers::query)
+    .sudo(handlers::sudo)
+    .receive(handlers::receive)
+    .replies(&[(1u64, handlers::reply)])
+    .migrate(handlers::migrate);
 // ANCHOR_END: handlers
 
 // ANCHOR: export

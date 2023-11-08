@@ -32,12 +32,12 @@ const DEX_DEPENDENCY: StaticDependency = StaticDependency::new(
 );
 
 const APP: PaymentApp = PaymentApp::new(APP_ID, APP_VERSION, None)
-    .with_instantiate(handlers::instantiate_handler)
-    .with_execute(handlers::execute_handler)
-    .with_query(handlers::query_handler)
-    .with_migrate(handlers::migrate_handler)
-    .with_receive(handlers::receive_handler)
-    .with_dependencies(&[DEX_DEPENDENCY]);
+    .instantiate(handlers::instantiate_handler)
+    .execute(handlers::execute_handler)
+    .query(handlers::query_handler)
+    .migrate(handlers::migrate_handler)
+    .receive(handlers::receive_handler)
+    .dependencies(&[DEX_DEPENDENCY]);
 
 // Export handlers
 #[cfg(feature = "export")]

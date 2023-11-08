@@ -34,8 +34,8 @@ impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
                 ::account_factory::contract::instantiate,
                 ::account_factory::contract::query,
             )
-            .with_reply_empty(::account_factory::contract::reply)
-            .with_migrate(::account_factory::contract::migrate),
+            .replies_empty(::account_factory::contract::reply)
+            .migrate(::account_factory::contract::migrate),
         )
     }
 

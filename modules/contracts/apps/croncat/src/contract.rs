@@ -20,10 +20,10 @@ pub type CroncatResult<T = Response> = Result<T, AppError>;
 pub type CroncatApp = AppContract<AppError, AppInstantiateMsg, AppExecuteMsg, AppQueryMsg, Empty>;
 
 pub const CRONCAT_APP: CroncatApp = CroncatApp::new(CRONCAT_ID, CRONCAT_MODULE_VERSION, None)
-    .with_instantiate(handlers::instantiate_handler)
-    .with_execute(handlers::execute_handler)
-    .with_query(handlers::query_handler)
-    .with_replies(&[
+    .instantiate(handlers::instantiate_handler)
+    .execute(handlers::execute_handler)
+    .query(handlers::query_handler)
+    .replies(&[
         (TASK_CREATE_REPLY_ID, replies::create_task_reply),
         (TASK_REMOVE_REPLY_ID, replies::task_remove_reply),
     ]);

@@ -85,18 +85,18 @@ pub mod mock {
         MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
-        .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
-        .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-        .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
-        .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-        .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
+        .instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
+        .execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+        .query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
+        .sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
+        .receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
+        .ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
             Ok(Response::new().set_data("mock_callback".as_bytes()))
         })])
-        .with_replies(&[(1u64, |_, _, _, msg| {
+        .replies(&[(1u64, |_, _, _, msg| {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
-        .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
+        .migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
 
     crate::export_endpoints!(MOCK_APP, MockAppContract);
 
@@ -157,7 +157,7 @@ pub mod mock {
         fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
             Box::new(
                 ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
-                    .with_migrate(self::migrate),
+                    .migrate(self::migrate),
             )
         }
     }
@@ -174,7 +174,7 @@ pub mod mock {
         type Init = app::InstantiateMsg<MockInitMsg>;
         type Migrate = app::MigrateMsg<MockMigrateMsg>;
         const MOCK_APP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
-        .with_dependencies($deps);
+        .dependencies($deps);
 
         fn mock_instantiate(
             deps: ::cosmwasm_std::DepsMut,
@@ -234,7 +234,7 @@ pub mod mock {
                     self::mock_execute,
                     self::mock_instantiate,
                     self::mock_query,
-                ).with_migrate(self::mock_migrate))
+                ).migrate(self::mock_migrate))
             }
         }
 

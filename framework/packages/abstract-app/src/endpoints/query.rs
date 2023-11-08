@@ -144,7 +144,7 @@ mod test {
             let deps = mock_init();
             let msg = AppQueryMsg::Module(MockQueryMsg);
 
-            let with_mocked_query = BASIC_MOCK_APP.with_query(mock_query_handler);
+            let with_mocked_query = BASIC_MOCK_APP.query(mock_query_handler);
             let res = with_mocked_query.query(deps.as_ref(), mock_env(), msg);
 
             let expected = to_json_binary(&MockQueryMsg).unwrap();

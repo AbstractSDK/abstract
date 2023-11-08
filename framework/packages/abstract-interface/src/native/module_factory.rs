@@ -17,8 +17,8 @@ impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
                 ::module_factory::contract::instantiate,
                 ::module_factory::contract::query,
             )
-            .with_migrate(::module_factory::contract::migrate)
-            .with_reply(::module_factory::contract::reply),
+            .migrate(::module_factory::contract::migrate)
+            .replies(::module_factory::contract::reply),
         )
     }
     fn wasm(&self) -> WasmPath {

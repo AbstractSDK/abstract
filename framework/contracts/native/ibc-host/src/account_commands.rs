@@ -32,7 +32,7 @@ pub fn receive_register(
     name: String,
     description: Option<String>,
     link: Option<String>,
-    with_reply: bool,
+    replies: bool,
 ) -> HostResult {
     let cfg = CONFIG.load(deps.storage)?;
 
@@ -61,7 +61,7 @@ pub fn receive_register(
     )?;
 
     // If we were ordered to have a reply after account creation
-    let sub_msg = if with_reply {
+    let sub_msg = if replies {
         SubMsg::reply_on_success(factory_msg, INIT_BEFORE_ACTION_REPLY_ID)
     } else {
         SubMsg::new(factory_msg)
