@@ -12,7 +12,7 @@ to taking amazing ideas from concept to reality. Whether you're a coding genius 
 got your back! By building composable modules you'll be crafting scalable masterpieces in no time.
 
 ```admonish info
-Coming from 👾EVM👾 ? Be sure to read up on CosmWasm and its differences from EVM in the [CosmWasm](./3_framework/0_prerequisites.md#cosmwasm) section.
+Prefer to watch a video? Check out our [video library](./video_and_content/videos.md)!
 ```
 
 ## Abstract in a Nutshell
@@ -24,6 +24,10 @@ off-chain needs, and top-tier infrastructure-as-a-service (IaaS) offerings.
 Our products are designed to be composable, allowing you to re-use the components you need to build your applications.
 While Abstract aims to simplify the development experience, it functions as a powerful tool, enabling you to innovate
 with less effort.
+
+```admonish info
+Coming from 👾EVM👾 ? Be sure to read up on CosmWasm and its differences from EVM in the [CosmWasm](./3_framework/0_prerequisites.md#cosmwasm) section.
+```
 
 ## Why Build with Abstract?
 

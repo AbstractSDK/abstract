@@ -61,6 +61,7 @@
     - [Specification](./ibc/spec.md)
 
 - [FAQ](./video_and_content/faq.md)
+- [Videos](./video_and_content/videos.md)
 
 [Glossary](./9_glossary.md)
 [Contributing & Community](./contributing.md)
