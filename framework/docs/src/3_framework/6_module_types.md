@@ -100,7 +100,7 @@ the [web-app](https://app.abstract.money/).
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as User
+    actor U as Owner
     participant M as Manager
     participant MF as Module Factory
     participant VC as Version Control
@@ -123,7 +123,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as User
+    actor U as Owner
     participant M as Manager
     participant P as Proxy
     U ->> M: UninstallModule
@@ -180,36 +180,36 @@ the robustness and flexibility of the Abstract ecosystem.
 
 The following are sequence diagrams of the process of executing a module on an Abstract Account. There are three types
 of
-execution: Non-dependent Execution, Adapter Execution, and Module-dependent Execution.
+execution: Owner Execution, Adapter Execution, and Module Execution.
 
 Let's explore each of them.
 
-## Non-dependent Execution
+## Owner Execution
 
-To execute a message on a specific module, a user can call the `ExecOnModule` function on the Manager, providing
-the module id. This diagram depicts how the Manager interacts with any module.
+To execute a message on a specific module, the Owner can call the `ExecOnModule` function on the Manager, providing
+the module id. This diagram depicts how the Manager interacts with any module installed on the account.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as User
+    actor U as Owner
     participant M as Manager
-    participant Md as Module
+    participant Md as Module ("addr123")
     U ->> M: ExecOnModule
-    Note right of U: ModuleMsg
+    Note right of U: ModuleMsg {"module_id": "xyz"}
     M -->> M: Load module address
     M ->> Md: Execute
-    Note right of M: ModuleMsg
+    Note right of M: ModuleMsg {"module_addr": "addr123"}
 ```
 
 ## Adapter Execution
 
-In the following example, the `abstract:dex` module is installed on an Account, and the user requests a swap on a dex.
+In the following example, the `abstract:dex` module is installed on an Account, and the owner requests a swap on a dex.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as User
+    actor U as Owner
     participant M as Manager
     participant D as abstract:dex
     participant VC as Version Control
@@ -235,7 +235,7 @@ sequenceDiagram
 
 ```
 
-## Module-dependent Execution
+## Module Execution
 
 In this example, we use [Equilibrium](../7_use_cases/1_equilibrium.md)'s `Rebalance` function as an example. Modules
 with dependencies (`equilibrium:balancer` is dependent on `abstract:etf` and `abstract:dex`) have their addresses

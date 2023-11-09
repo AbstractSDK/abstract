@@ -25,6 +25,10 @@ Our products are designed to be composable, allowing you to re-use the component
 While Abstract aims to simplify the development experience, it functions as a powerful tool, enabling you to innovate
 with less effort.
 
+```admonish info
+Coming from 👾EVM👾 ? Be sure to read up on CosmWasm and its differences from EVM in the [CosmWasm](./3_framework/0_prerequisites.md#cosmwasm) section.
+```
+
 ## Why Build with Abstract?
 
 Building decentralized applications is hard! We know this because we've been there. We've spent countless hours building

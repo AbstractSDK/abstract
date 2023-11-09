@@ -1,40 +1,35 @@
-# Platform Details
+# Framework Components
 
-In this section, we will explore the powerful features that make our platform unique and efficient. The Abstract
-platform is meticulously crafted to enhance both user and developer experiences, ensuring a seamless interaction with
-decentralized applications. Here's a peek into the key elements that form the foundation of the Abstract platform:
+In the previous sections, we covered different aspects of the Abstract framework on a higher level. In this section, we
+will explore the different components under the hood of the Abstract framework that makes it powerful and
+unique, enabling it to work the way it does.
 
-## [Abstract Name Service (ANS)](./1_ans.md)
+Here's a peek into the key elements that form the foundation of the Abstract framework:
 
-Delve into the realm of dynamic address resolution with our on-chain registry, the Abstract Name Service. ANS is a
-gateway to intuitive blockchain engagement, offering chain-agnostic action execution and a store for crucial address
-space-related data on the deployed blockchain.
+- [Abstract Name Service (ANS)](./1_ans.md): Enables chain-agnostic action execution by storing crucial address
+  space-related data on the deployed blockchain which can easily be referenced.
 
-## [Version Control](./2_version_control.md)
+- [Version Control](./2_version_control.md): Acts as a comprehensive on-chain registry for accounts and software.
+  It exposes namespace claiming, module
+  registrations, and seamlessly querying modules by namespace, name, and version.
 
-Uncover the cornerstone of module and account registry within the Abstract platform. Our Version Control contract acts
-as a comprehensive registry, enabling namespace claims, module registrations, and seamless querying by namespace, name,
-and version.
+- [Account Factory](./3_account_factory.md): Allows for the creation (Interchain) Abstract Accounts, which can be
+  interacted with via scripts or the <a href="https://app.abstract.money" >Account Console web interface</a>.
 
-## [Account Factory](./3_account_factory.md)
+- [Account Console](./4_account_console.md): A web-based interface designed for optimal interaction with your Abstract
+  Accounts. It's a powerful tool that contains all the features you need not only to manage your accounts but also help
+  you develop your application.
 
-Navigate the creation and management of Abstract Accounts with our Account Factory. This contract is designed to
-facilitate interaction through either the contract or the Account Console web interface, ensuring a smooth creation and
-management of your Abstract Accounts.
+- [Module Factory](./5_module_factory.md): Allows you to install and manage Abstract Modules via the Account Manager.
+  You
+  can install modules by interacting with the Account Manager directly, i.e. via CLI/scripts, or by using the Account Console.
 
-## [Account Console](./4_account_console.md)
+- [Monetization](./6_monetization.md): Developers have the potential to monetize their modules by setting an
+  installation fee for
+  others to use their modules. By introducing monetization strategies, Abstract offers developers
+  incentives to build and share valuable modules with the community.
+  
+- [Value Oracle](./7_oracle.md): An integrated way to get the value of your account's assets **on-chain**.
 
-Engage with a web-based interface designed for optimal interaction with your Abstract Accounts. The Account Console is
-your one-stop solution for account and module management, name service registration, developer tools, and delegation
-functionalities, all aimed at aiding your application development.
-
-## [Module Factory](./5_module_factory.md)
-
-Explore the ease of installing and managing Abstract Modules via the Account Manager with our Module Factory. Whether
-directly through the Account Manager or the Account Console, installing modules of various types has never been easier.
-
-## [Monetization](./6_monetization.md)
-
-Unleash the potential of monetizing your modules in the Abstract framework. Set installation fees, and introduce
-monetization strategies to incentivize the creation and sharing of valuable modules, all while having a clear insight
-into the financial aspects.
+In the following pages we will explore each of these components in detail. If you have any questions, please don't
+hesitate to reach out to us on <a href="https://discord.com/invite/uch3Tq3aym" target="_blank">Discord</a>.
