@@ -131,7 +131,7 @@ fn install_non_existent_version_should_fail() -> AResult {
         TEST_MODULE_ID,
         ModuleVersion::Version("1.2.3".to_string()),
         &Empty {},
-        &[],
+        None,
     );
 
     // testtodo: check error
@@ -365,7 +365,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
         &adapter1.id(),
         ModuleVersion::Version(expected_version),
         &MockInitMsg {},
-        &[],
+        None,
     )?;
 
     let modules = account.expect_modules(vec![v1_adapter_addr.to_string()])?;
@@ -388,7 +388,7 @@ fn account_install_adapter() -> AResult {
 
     let adapter = BootMockAdapter1V1::new_test(chain);
     adapter.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
-    let adapter_addr = account.install_adapter(adapter, &MockInitMsg, &[])?;
+    let adapter_addr = account.install_adapter(adapter, &MockInitMsg, None)?;
     let module_addr = account
         .manager
         .module_info(common::mock_modules::adapter_1::MOCK_ADAPTER_ID)?

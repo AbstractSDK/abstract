@@ -48,7 +48,7 @@ fn install_module_version(
                 version_control_address: abstr.version_control.addr_str()?,
             },
         },
-        &[],
+        None,
     )?;
 
     Ok(manager.module_info(module)?.unwrap().address.to_string())
@@ -498,7 +498,7 @@ fn create_account_with_installed_module() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        &[],
+        None,
     )?;
     deploy_modules(&chain);
 
@@ -543,7 +543,7 @@ fn create_account_with_installed_module() -> AResult {
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
-            &[],
+            None,
         )
         .unwrap();
 
@@ -595,7 +595,7 @@ fn create_sub_account_with_installed_module() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        &[],
+        None,
     )?;
     deploy_modules(&chain);
 
@@ -686,7 +686,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        &[],
+        None,
     )?;
     deploy_modules(&chain);
     // Add monetization
@@ -836,7 +836,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        &[],
+        None,
     )?;
     deploy_modules(&chain);
     // Add monetization
@@ -957,7 +957,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        &[],
+        None,
     )?;
     deploy_modules(&chain);
 
@@ -1106,7 +1106,7 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        &[],
+        None,
     )?;
     deploy_modules(&chain);
 
