@@ -4,12 +4,14 @@ The Version Control contract acts as the registry for all modules and accounts w
 Accounts can use it to claim namespaces and register their modules. The Version Control contract allows modules to be
 queried by its namespace, name, and version, returning its reference which may be a code id or address.
 
-# Propose Modules
+## Propose Modules
 
 Developers that wish to publish modules to the Abstract platform need to call `ProposeModules` on the Version Control
 contract. The modules will subsequently be reviewed by the Abstract platform for registration.
 
-> For documentation on how to register modules, see [Module Deployment](../4_get_started/7_module_deployment.md)
+```admonish info
+For documentation on how to register modules, see [Module Deployment](../4_get_started/7_module_deployment.md)
+```
 
 Modules cannot be registered without their namespaces being claimed by an Account. This is to prevent malicious actors
 from registering modules under trusted namespaces.
