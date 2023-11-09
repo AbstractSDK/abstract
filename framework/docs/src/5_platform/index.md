@@ -28,6 +28,8 @@ Here's a peek into the key elements that form the foundation of the Abstract fra
   installation fee for
   others to use their modules. By introducing monetization strategies, Abstract offers developers
   incentives to build and share valuable modules with the community.
+  
+- [Value Oracle](./7_oracle.md): An integrated way to get the value of your account's assets **on-chain**.
 
 In the following pages we will explore each of these components in detail. If you have any questions, please don't
 hesitate to reach out to us on <a href="https://discord.com/invite/uch3Tq3aym" target="_blank">Discord</a>.

@@ -22,6 +22,7 @@
     - [Account Console](./5_platform/4_account_console.md)
     - [Module Factory](./5_platform/5_module_factory.md)
     - [Monetization](./5_platform/6_monetization.md)
+    - [Oracle](./5_platform/7_oracle.md)
 
 - [Abstract Products](1_products/index.md)
   - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)

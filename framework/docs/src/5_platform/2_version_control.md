@@ -21,7 +21,7 @@ Below details the assertion process.
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as User
+    actor U as Owner
 
     participant VC as Version Control
     participant Man as Manager of Namespace
