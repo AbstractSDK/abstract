@@ -2,11 +2,10 @@ use std::ops::Deref;
 
 use abstract_interface::AbstractAccount;
 use cw_orch::prelude::*;
-use serde::Serialize;
 
 // An application represents a module installed on a (sub)-account.
 pub struct Application<T: CwEnv, M> {
-    account: AbstractAccount<T>,
+    _account: AbstractAccount<T>,
     module: M,
 }
 
@@ -21,7 +20,10 @@ impl<Chain: CwEnv, M> Deref for Application<Chain, M> {
 
 impl<T: CwEnv, M> Application<T, M> {
     pub fn new(account: AbstractAccount<T>, module: M) -> Self {
-        Self { account, module }
+        Self {
+            _account: account,
+            module,
+        }
     }
 }
 
