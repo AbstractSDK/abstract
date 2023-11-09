@@ -743,7 +743,7 @@ mod tests {
 
     fn get_wasm_msg<T: for<'de> Deserialize<'de>>(msg: CosmosMsg) -> T {
         match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_json(&msg).unwrap(),
+            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_json(msg).unwrap(),
             _ => panic!("Expected execute wasm msg, got a different enum"),
         }
     }
