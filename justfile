@@ -1,11 +1,6 @@
 workspaces := "./framework ./modules ./app-template"
 modules := "./modules/contracts/apps/croncat ./modules/contracts/apps/dca ./modules/contracts/adapters/dex ./modules/contracts/adapters/cw-staking"
 
-docs-install:
-  cargo install mdbook --vers "0.4.21" --locked
-  cargo install mdbook-mermaid --vers "0.12.6" --locked
-  cargo install mdbook-admonish --vers "1.9.0" --locked
-
 # Pull a specific repo from its main remote
 pull repo:
     git subtree pull --prefix={{repo}} {{repo}} main
