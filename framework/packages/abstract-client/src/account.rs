@@ -12,22 +12,19 @@ use crate::{
 };
 
 pub struct AccountBuilder<'a, Chain: CwEnv> {
-    abstr: &'a Abstract<Chain>,
+    pub(crate) abstr: &'a Abstract<Chain>,
     name: Option<String>,
     description: Option<String>,
     link: Option<String>,
     namespace: Option<String>,
     base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
-    governance_details: GovernanceDetails<String>,
+    governance_details: Option<GovernanceDetails<String>>,
     // TODO: How to handle install_modules?
 }
 
 impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
-    pub(crate) fn new(
-        abstr: &'a Abstract<Chain>,
-        governance_details: GovernanceDetails<String>,
-    ) -> Self {
+    pub(crate) fn new(abstr: &'a Abstract<Chain>) -> Self {
         Self {
             abstr,
             name: None,
@@ -35,7 +32,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             link: None,
             namespace: None,
             base_asset: None,
-            governance_details,
+            governance_details: None,
         }
     }
 
@@ -74,10 +71,21 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         }
     }
 
+    pub fn governance_details(self, governance_details: GovernanceDetails<String>) -> Self {
+        Self {
+            governance_details: Some(governance_details),
+            ..self
+        }
+    }
+
     pub fn build(self) -> AbstractClientResult<Account<Chain>> {
+        let sender = self.environment().sender().to_string();
         let name = self
             .name
             .unwrap_or_else(|| String::from("Default Abstract Account"));
+        let governance_details = self
+            .governance_details
+            .unwrap_or(GovernanceDetails::Monarchy { monarch: sender });
         let abstract_account = self.abstr.account_factory.create_new_account(
             AccountDetails {
                 name,
@@ -87,7 +95,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 base_asset: self.base_asset,
                 install_modules: vec![],
             },
-            self.governance_details,
+            governance_details,
             Some(&[]),
         )?;
         Ok(Account::new(abstract_account))

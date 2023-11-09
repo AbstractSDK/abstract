@@ -1,4 +1,4 @@
-use abstract_core::objects::AssetEntry;
+use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
 use abstract_interface::{AppDeployer, DeployStrategy, ModuleId};
 use cosmwasm_std::{Addr, Coin};
 use cw_orch::{
@@ -51,6 +51,12 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
     pub fn base_asset(self, base_asset: AssetEntry) -> Self {
         Self {
             account_builder: self.account_builder.base_asset(base_asset),
+        }
+    }
+
+    pub fn governance_details(self, governance_details: GovernanceDetails<String>) -> Self {
+        Self {
+            account_builder: self.account_builder.governance_details(governance_details),
         }
     }
 

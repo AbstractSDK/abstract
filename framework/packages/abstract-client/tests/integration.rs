@@ -33,11 +33,12 @@ fn test() -> anyhow::Result<()> {
     let client: AbstractClient<Mock> = AbstractClient::new(chain)?;
 
     let publisher: Publisher<Mock> = client
-        .new_publisher(GovernanceDetails::Monarchy {
-            monarch: ADMIN.to_string(),
-        })
+        .new_publisher()
         .name("test-account")
         .namespace("my-namespace")
+        .governance_details(GovernanceDetails::Monarchy {
+            monarch: ADMIN.to_string(),
+        })
         .build()?;
 
     publisher.deploy_module::<AppInterface<Mock>>(APP_VERSION.parse()?)?;
@@ -52,10 +53,6 @@ fn test() -> anyhow::Result<()> {
 
     assert_eq!(ConfigResponse {}, config);
 
-    let _account: Account<Mock> = client
-        .new_account(GovernanceDetails::Monarchy {
-            monarch: String::from("monarch"),
-        })
-        .build()?;
+    let _account: Account<Mock> = client.new_account().build()?;
     Ok(())
 }

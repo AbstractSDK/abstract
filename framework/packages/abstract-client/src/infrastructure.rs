@@ -2,7 +2,7 @@ use abstract_interface::{Abstract, AbstractInterfaceError};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
-use crate::account::Account;
+use crate::account::{Account, AccountBuilder};
 
 pub(crate) trait Infrastructure<T: CwEnv> {
     // Get the execution environment
@@ -15,8 +15,14 @@ pub(crate) trait Infrastructure<T: CwEnv> {
     }
 }
 
-impl<M: CwEnv> Infrastructure<M> for Account<M> {
-    fn environment(&self) -> M {
+impl<Chain: CwEnv> Infrastructure<Chain> for Account<Chain> {
+    fn environment(&self) -> Chain {
         self.abstr_account.proxy.get_chain().clone()
+    }
+}
+
+impl<'a, Chain: CwEnv> Infrastructure<Chain> for AccountBuilder<'a, Chain> {
+    fn environment(&self) -> Chain {
+        self.abstr.account.proxy.get_chain().clone()
     }
 }

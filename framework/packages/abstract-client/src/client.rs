@@ -1,4 +1,3 @@
-use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 use cw_orch::{deploy::Deploy, prelude::CwEnv};
 
@@ -24,18 +23,12 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(Publisher::new(self.new_existing_account(namespace)?))
     }
 
-    pub fn new_publisher(
-        &self,
-        governance_details: GovernanceDetails<String>,
-    ) -> PublisherBuilder<Chain> {
-        PublisherBuilder::new(AccountBuilder::new(&self.abstr, governance_details))
+    pub fn new_publisher(&self) -> PublisherBuilder<Chain> {
+        PublisherBuilder::new(AccountBuilder::new(&self.abstr))
     }
 
-    pub fn new_account(
-        &self,
-        governance_details: GovernanceDetails<String>,
-    ) -> AccountBuilder<Chain> {
-        AccountBuilder::new(&self.abstr, governance_details)
+    pub fn new_account(&self) -> AccountBuilder<Chain> {
+        AccountBuilder::new(&self.abstr)
     }
 
     pub fn new_existing_account(&self, namespace: String) -> AbstractClientResult<Account<Chain>> {
