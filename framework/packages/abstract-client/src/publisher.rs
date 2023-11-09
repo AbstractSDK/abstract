@@ -1,11 +1,5 @@
-use abstract_core::{
-    objects::{namespace::Namespace, AssetEntry},
-    version_control::NamespaceResponse,
-    AbstractResult,
-};
-use abstract_interface::{
-    Abstract, AbstractAccount, AppDeployer, DeployStrategy, ModuleId, VCQueryFns,
-};
+use abstract_core::{objects::AssetEntry, AbstractResult};
+use abstract_interface::{AppDeployer, DeployStrategy, ModuleId};
 use cosmwasm_std::{Addr, Coin};
 use cw_orch::{
     contract::Contract,
@@ -65,7 +59,7 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
     }
 }
 
-// A provider represents an account that owns a namespace with the goal of publishing software to the module-store.
+/// A publisher represents an account that owns a namespace with the goal of publishing software to the module-store.
 pub struct Publisher<Chain: CwEnv> {
     account: Account<Chain>,
 }

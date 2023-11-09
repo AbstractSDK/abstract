@@ -20,8 +20,6 @@ fn deploy_abstract() -> anyhow::Result<(Mock, Abstract<Mock>)> {
 }
 
 // TODO:
-// Figure out flow for creating account + claiming namespace (have different APIs or default
-// behaviour when namespace is not claimed?)
 // Add builders for nicer interaction.
 // Allow using account-id instead of namespace to get publisher in the case where namespace is not
 // claimed.

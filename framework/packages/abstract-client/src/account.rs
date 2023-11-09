@@ -17,6 +17,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     link: Option<String>,
     namespace: Option<String>,
     base_asset: Option<AssetEntry>,
+    // TODO: Decide if we want to abstract this as well.
     governance_details: GovernanceDetails<String>,
     // TODO: How to handle install_modules?
 }
