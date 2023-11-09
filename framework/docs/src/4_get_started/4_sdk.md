@@ -117,7 +117,9 @@ and Adapter structs. Here's the implementation for the App:
 So when you're building your application the module struct already has the features and data required to do the basic
 abstract operations. With this in place we can start creating more advanced functionality.
 
-> Other structs that implement a feature without being module bases are called *Feature Objects*.
+```admonish info
+Other structs that implement a feature without being module bases are called *Feature Objects*.
+```
 
 ## Usage
 

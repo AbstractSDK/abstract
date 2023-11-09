@@ -15,7 +15,9 @@ tokens and interacting with other smart contracts. The ownership structure of th
 fit the needs of the developers and their applications. It is designed to be highly programmable, allowing developers to
 build and distribute complex applications on top of it.
 
-> See <a href="https://eips.ethereum.org/EIPS/eip-4337" target="_blank">EIP-4337</a> to read about account abstraction in the Ethereum ecosystem.
+```admonish info
+See <a href="https://eips.ethereum.org/EIPS/eip-4337" target="_blank">EIP-4337</a> to read about account abstraction in the Ethereum ecosystem.
+```
 
 This concept of account abstraction, when implemented correctly, can provide numerous benefits:
 

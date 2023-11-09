@@ -32,7 +32,9 @@ make any assumptions about the nature of this owner, it can be a wallet, multi-s
 allowing you
 to customize your Abstract account's ownership to fit your needs.
 
-> You can read up on the different ownership structures in our [Ownership](./4_ownership.md) section.
+```admonish info
+You can read up on the different ownership structures in our [Ownership](./4_ownership.md) section.
+```
 
 The account's architecture centers around **configurable programmability**. In other words, how can one configure the
 account (install applications, set permissions, etc.) to enable users and developers to easily customize it to do what
