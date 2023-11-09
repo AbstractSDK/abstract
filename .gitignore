@@ -29,7 +29,6 @@
 # Schemas
 framework/packages/**/schema
 framework/contracts/**/schema
-./schema
 
 # Release
 **/release
