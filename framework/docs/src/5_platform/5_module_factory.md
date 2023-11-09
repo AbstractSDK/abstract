@@ -15,7 +15,7 @@ When a developer requests the installation of a module, the following internal p
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as User
+    actor U as Owner
     participant M as Manager
     participant MF as Module Factory
     participant VC as Version Control
@@ -41,12 +41,12 @@ sequenceDiagram
 
 Once the module is installed, there are essentially three ways to interact with it depending on the type of module:
 
-### Non-dependent Execution
+### Owner Execution
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as User
+    actor U as Owner
     participant M as Manager
     participant Md as Module
 
@@ -67,7 +67,7 @@ In the following example, the `abstract:dex` module is installed on an Account, 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as User
+    actor U as Owner
     participant M as Manager
     participant D as abstract:dex
     participant VC as Version Control
@@ -98,9 +98,9 @@ sequenceDiagram
 
 <figcaption align = "center"><b>Adapter Execution</b></figcaption>
 
-### Module-dependent Execution
+### User Execution
 
-In this example, we use [Equilibrium](../../use_cases/equilibrium.md)'s `Rebalance` function as an example. Modules with
+In this example, we use [Equilibrium](../../use_cases/equilibrium.md)'s `Rebalance` permissionless function as an example. Modules with
 dependencies (`equilibrium:balancer` is dependent on `abstract:etf` and `abstract:dex`) have their addresses dynamically
 resolved when called.
 

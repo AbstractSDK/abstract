@@ -94,7 +94,7 @@ flowchart LR
         ICAATerra --> ICAAArch([ICAA])
         ICAAArch --> ICAAOsmo2
     end
-    Owner[Owner] ==> Account
+    Owner[fa:fa-user Owner] ==> Account
 ```
 
 Each of these accounts has a unique `AccountId` defined by the account's origin chain and the path over which it was
