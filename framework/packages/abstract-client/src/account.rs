@@ -74,28 +74,25 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     pub fn build(self) -> Account<Chain> {
-        let abstract_account: AbstractAccount<Chain> = if let Some(name) = self.name {
-            self.abstr
-                .account_factory
-                .create_new_account(
-                    AccountDetails {
-                        name,
-                        description: self.description,
-                        link: self.link,
-                        namespace: self.namespace,
-                        base_asset: self.base_asset,
-                        install_modules: vec![],
-                    },
-                    self.governance_details,
-                    Some(&[]),
-                )
-                .unwrap()
-        } else {
-            self.abstr
-                .account_factory
-                .create_default_account(self.governance_details)
-                .unwrap()
-        };
+        let name = self
+            .name
+            .unwrap_or_else(|| String::from("Default Abstract Account"));
+        let abstract_account = self
+            .abstr
+            .account_factory
+            .create_new_account(
+                AccountDetails {
+                    name,
+                    description: self.description,
+                    link: self.link,
+                    namespace: self.namespace,
+                    base_asset: self.base_asset,
+                    install_modules: vec![],
+                },
+                self.governance_details,
+                Some(&[]),
+            )
+            .unwrap();
         Account::new(abstract_account)
     }
 }
