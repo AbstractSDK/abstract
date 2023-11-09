@@ -38,3 +38,7 @@ directly through the Account Manager or the Account Console, installing modules 
 Unleash the potential of monetizing your modules in the Abstract framework. Set installation fees, and introduce
 monetization strategies to incentivize the creation and sharing of valuable modules, all while having a clear insight
 into the financial aspects.
+
+## [Value Oracle](./7_oracle.md)
+
+An integrated way to get the value of your account's assets **on-chain**.
