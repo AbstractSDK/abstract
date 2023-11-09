@@ -87,8 +87,10 @@ Migrations are a key feature of CosmWasm. They allow you to upgrade a contract's
 
 A migration doesn't delete the code that was previously running for a contract. Code (a WebAssembly binary) is referred to by code-ids and contracts run against a specific code-id and get their own address space (and state) when they are instantiated. Hence migrations just update the code-id that a contract uses to run. I.e. The contract keeps its address and state but now runs on a different code-id (binary).
 
+> If you're looking for a more in-depth comparison go read this <a href="https://medium.com/cosmwasm/cosmwasm-for-ctos-f1ffa19cccb8" target="_blank">article</a> by the creator of CosmWasm.
+
 To learn more about CosmWasm, check out its <a href="https://book.cosmwasm.com/" target="_blank">official
-documentation</a>.
+documentation</a>. 
 
 ## Javascript
 
