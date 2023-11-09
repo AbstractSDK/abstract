@@ -32,7 +32,7 @@ fn test() -> anyhow::Result<()> {
     let (chain, _abstr) = deploy_abstract()?;
 
     // Interaction with client begins.
-    let client: AbstractClient<Mock> = AbstractClient::new(chain);
+    let client: AbstractClient<Mock> = AbstractClient::new(chain)?;
 
     let publisher: Publisher<Mock> = client
         .new_publisher(GovernanceDetails::Monarchy {
@@ -40,16 +40,16 @@ fn test() -> anyhow::Result<()> {
         })
         .name("test-account")
         .namespace("my-namespace")
-        .build();
+        .build()?;
 
-    publisher.deploy_module::<AppInterface<Mock>>(APP_VERSION.parse().unwrap());
+    publisher.deploy_module::<AppInterface<Mock>>(APP_VERSION.parse()?)?;
 
     let my_app: Application<Mock, AppInterface<Mock>> = publisher
         .install_app::<AppInterface<Mock>, app::msg::AppInstantiateMsg>(
             &app::msg::AppInstantiateMsg {},
             &[],
-        )
-        .unwrap();
+        )?;
+
     let config = my_app.config()?;
 
     assert_eq!(ConfigResponse {}, config);
@@ -58,6 +58,6 @@ fn test() -> anyhow::Result<()> {
         .new_account(GovernanceDetails::Monarchy {
             monarch: String::from("monarch"),
         })
-        .build();
+        .build()?;
     Ok(())
 }

@@ -18,6 +18,7 @@ abstract-core.workspace = true
 cw-orch.workspace = true
 serde.workspace = true
 semver.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 cw-asset.workspace = true
@@ -28,4 +29,3 @@ anyhow.workspace = true
 cosmwasm-schema.workspace = true
 cw-storage-plus.workspace = true
 cw2.workspace = true
-thiserror.workspace = true

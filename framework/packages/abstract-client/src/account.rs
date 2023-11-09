@@ -1,14 +1,15 @@
 use abstract_core::{
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry},
     version_control::NamespaceResponse,
-    AbstractResult,
 };
 use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ModuleId, VCQueryFns};
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
 use serde::Serialize;
 
-use crate::{application::Application, infrastructure::Infrastructure};
+use crate::{
+    application::Application, client::AbstractClientResult, infrastructure::Infrastructure,
+};
 
 pub struct AccountBuilder<'a, Chain: CwEnv> {
     abstr: &'a Abstract<Chain>,
@@ -73,27 +74,23 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         }
     }
 
-    pub fn build(self) -> Account<Chain> {
+    pub fn build(self) -> AbstractClientResult<Account<Chain>> {
         let name = self
             .name
             .unwrap_or_else(|| String::from("Default Abstract Account"));
-        let abstract_account = self
-            .abstr
-            .account_factory
-            .create_new_account(
-                AccountDetails {
-                    name,
-                    description: self.description,
-                    link: self.link,
-                    namespace: self.namespace,
-                    base_asset: self.base_asset,
-                    install_modules: vec![],
-                },
-                self.governance_details,
-                Some(&[]),
-            )
-            .unwrap();
-        Account::new(abstract_account)
+        let abstract_account = self.abstr.account_factory.create_new_account(
+            AccountDetails {
+                name,
+                description: self.description,
+                link: self.link,
+                namespace: self.namespace,
+                base_asset: self.base_asset,
+                install_modules: vec![],
+            },
+            self.governance_details,
+            Some(&[]),
+        )?;
+        Ok(Account::new(abstract_account))
     }
 }
 
@@ -110,15 +107,18 @@ impl<Chain: CwEnv> Account<Chain> {
 }
 
 impl<Chain: CwEnv> Account<Chain> {
-    pub(crate) fn new_existing_account(abstr: &Abstract<Chain>, namespace: String) -> Self {
-        let namespace_response: Result<NamespaceResponse, cw_orch::prelude::CwOrchError> = abstr
+    pub(crate) fn new_existing_account(
+        abstr: &Abstract<Chain>,
+        namespace: String,
+    ) -> AbstractClientResult<Self> {
+        let namespace_response: NamespaceResponse = abstr
             .version_control
-            .namespace(Namespace::new(&namespace).unwrap());
+            .namespace(Namespace::new(&namespace)?)?;
 
         let abstract_account: AbstractAccount<Chain> =
-            AbstractAccount::new(abstr, Some(namespace_response.unwrap().account_id));
+            AbstractAccount::new(abstr, Some(namespace_response.account_id));
 
-        Self::new(abstract_account)
+        Ok(Self::new(abstract_account))
     }
 
     // Install an application on the account
@@ -133,14 +133,13 @@ impl<Chain: CwEnv> Account<Chain> {
         &self,
         configuration: &C,
         funds: &[Coin],
-    ) -> AbstractResult<Application<Chain, M>> {
+    ) -> AbstractClientResult<Application<Chain, M>> {
         let contract = Contract::new(M::module_id(), self.environment());
 
         let app: M = contract.into();
 
         self.abstr_account
-            .install_app(app.clone(), configuration, Some(funds))
-            .unwrap();
+            .install_app(app.clone(), configuration, Some(funds))?;
         Ok(Application::new(self.abstr_account.clone(), app))
     }
 }

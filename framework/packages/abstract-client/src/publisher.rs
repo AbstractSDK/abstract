@@ -1,4 +1,4 @@
-use abstract_core::{objects::AssetEntry, AbstractResult};
+use abstract_core::objects::AssetEntry;
 use abstract_interface::{AppDeployer, DeployStrategy, ModuleId};
 use cosmwasm_std::{Addr, Coin};
 use cw_orch::{
@@ -11,6 +11,7 @@ use serde::Serialize;
 use crate::{
     account::{Account, AccountBuilder},
     application::Application,
+    client::AbstractClientResult,
     infrastructure::Infrastructure,
 };
 
@@ -53,9 +54,9 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         }
     }
 
-    pub fn build(self) -> Publisher<Chain> {
-        let account = self.account_builder.build();
-        Publisher { account }
+    pub fn build(self) -> AbstractClientResult<Publisher<Chain>> {
+        let account = self.account_builder.build()?;
+        Ok(Publisher { account })
     }
 }
 
@@ -76,7 +77,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
         &self,
         configuration: &C,
         funds: &[Coin],
-    ) -> AbstractResult<Application<Chain, M>> {
+    ) -> AbstractClientResult<Application<Chain, M>> {
         self.account.install_app(configuration, funds)
     }
 
@@ -89,10 +90,10 @@ impl<Chain: CwEnv> Publisher<Chain> {
     >(
         &self,
         version: Version,
-    ) {
+    ) -> AbstractClientResult<()> {
         let contract = Contract::new(M::module_id(), self.account.environment());
         let app: M = contract.into();
-        app.deploy(version, DeployStrategy::Try).unwrap();
+        app.deploy(version, DeployStrategy::Try).map_err(Into::into)
     }
 
     pub fn account(&self) -> &Account<Chain> {
@@ -100,7 +101,11 @@ impl<Chain: CwEnv> Publisher<Chain> {
     }
 
     // TODO: handle error
-    pub fn admin(&self) -> Addr {
-        self.account.abstr_account.manager.address().unwrap()
+    pub fn admin(&self) -> AbstractClientResult<Addr> {
+        self.account
+            .abstr_account
+            .manager
+            .address()
+            .map_err(Into::into)
     }
 }
