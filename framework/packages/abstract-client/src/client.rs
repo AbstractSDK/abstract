@@ -14,14 +14,12 @@ pub struct AbstractClient<Chain: CwEnv> {
 
 pub type AbstractClientResult<T> = Result<T, AbstractClientError>;
 
-// TODO: Handle errors later.
 impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn new(chain: Chain) -> AbstractClientResult<Self> {
         let abstr = Abstract::load_from(chain)?;
         Ok(Self { abstr })
     }
 
-    // TODO: Switch to builder later.
     pub fn existing_publisher(&self, namespace: String) -> AbstractClientResult<Publisher<Chain>> {
         Ok(Publisher::new(self.new_existing_account(namespace)?))
     }

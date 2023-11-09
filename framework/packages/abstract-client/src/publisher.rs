@@ -100,7 +100,6 @@ impl<Chain: CwEnv> Publisher<Chain> {
         &self.account
     }
 
-    // TODO: handle error
     pub fn admin(&self) -> AbstractClientResult<Addr> {
         self.account
             .abstr_account

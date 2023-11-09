@@ -123,8 +123,6 @@ impl<Chain: CwEnv> Account<Chain> {
 
     // Install an application on the account
     // creates a new sub-account and installs the application on it.
-    // TODO: For abstract we know that the contract's name in cw-orch = the module's name in abstract.
-    // So we should be able to create the module (M) from only the type and the chain (T).
     pub fn install_app<
         // Not sure about this From<Contract<Chain>>
         M: ContractInstance<Chain> + ModuleId + InstantiableContract + From<Contract<Chain>> + Clone,

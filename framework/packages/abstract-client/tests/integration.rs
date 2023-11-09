@@ -20,10 +20,8 @@ fn deploy_abstract() -> anyhow::Result<(Mock, Abstract<Mock>)> {
 }
 
 // TODO:
-// Add builders for nicer interaction.
 // Allow using account-id instead of namespace to get publisher in the case where namespace is not
 // claimed.
-// Handle errors gracefully.
 // Handle module dependencies.
 
 #[test]
