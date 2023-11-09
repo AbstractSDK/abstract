@@ -11,6 +11,10 @@ Abstract's CosmWasm framework is your gateway
 to taking amazing ideas from concept to reality. Whether you're a coding genius or just getting started, Abstract has
 got your back! By building composable modules you'll be crafting scalable masterpieces in no time.
 
+```admonish info
+Prefer to watch a video? Check out our [video library](./video_and_content/videos.md)!
+```
+
 ## Abstract in a Nutshell
 
 Abstract is your one-stop solution for streamlined CosmWasm smart-contract development. We provide an
