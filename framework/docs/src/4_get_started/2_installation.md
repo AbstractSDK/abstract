@@ -3,6 +3,10 @@
 Before you get started with the Abstract SDK, you will need to set up your development environment. This guide will walk
 you through the process of setting up your environment and creating your first Abstract app module.
 
+```admonish info
+Experienced with CosmWasm? Skip to the [Using The Template](#using-the-template) section.
+```
+
 ## Rust
 
 To work with the SDK you will need the Rust programming language installed on your
@@ -66,6 +70,10 @@ the "Use this template" button to create a new repository based on the template.
 you want, but we recommend using the name of your module.
 
 ![](../resources/get_started/use-this-template.webp)
+
+```admonish success
+To quickly get started, run `./template_setup.sh` and install the recommended tools.
+```
 
 Go ahead and read through the readme of the template repository to learn how it is structured. It contains instructions
 on how to set up your

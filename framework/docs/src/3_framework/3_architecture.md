@@ -50,10 +50,8 @@ Account. It is responsible for various important operations, including:
 - **Owner Authentication** 🔐: Authenticating privileged calls and ensuring only approved entities can interact with the
   account.
 
-
 - **Application Management** 📦: Managing and storing information about the applications installed on the account, their
   inter-dependencies, permissions and configurations.
-
 
 - **Account Details** 📄: Storing the account's details, such as its name, description, and other relevant information.
 
@@ -65,25 +63,32 @@ Abstract Account, taking care of:
 - **Asset Management & Pricing** 💰: Holding the account's assets, including tokens, NFTs, and other fungible and
   non-fungible assets as well as allows for pricing assets based on decentralized exchange or oracle prices.
 
-
 - **Transaction Forwarding (Proxying)** 🔀: Routing approved transactions from the **Manager** or other connected
   smart-contracts to other actors.
 
+```admonish question
+**Why are these two contracts instead of one?**
+
+1. *Separation of concerns:* By separating the contracts the proxy's functionality (and attack surface) is as small as possible. The separation also allows for simple permission management as we want to separate the admin calls (verified by the manager) from module calls.
+
+2. *Minimizing WASM size:* Whenever a contract is loaded for execution the whole WASM binary needs to be loaded into memory. Because all the apps proxy their messages through the Proxy contract it would be smart to have this contract be as small as possible to make it cheap to load. While CosmWasm currently has a fixed cost for loading a contract irrespective of its size. We think that might change in the future.
+```
+
 ### Account Interactions
 
-The diagram below depicts a User interacting with its Abstract account through the **Manager**, and proxying a call to
+The diagram below depicts an Owner interacting with its Abstract account through the **Manager**, and proxying a call to
 an
 external contract through the **Proxy**.
 
 ```mermaid
 sequenceDiagram
-    actor User
+    actor Owner
     participant Manager
     participant Proxy
     participant External Contract
 
 
-    User ->> Manager: Account Action
+    Owner ->> Manager: Account Action
     Manager ->> Proxy: Forward to Proxy
     Proxy ->> External Contract: Execute
 
@@ -97,7 +102,7 @@ message. By doing so the IBC client will be registered to your account, enabling
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as User
+    actor U as Owner
     participant M as Manager
     participant VC as Version Control
     participant P as Proxy
@@ -110,5 +115,3 @@ sequenceDiagram
     M ->> P: Add IBC client to allowlist
 
 ```
-
-> For disabling IBC, see [Uninstall Module](6_module_types.md#installing-and-uninstalling-modules)
