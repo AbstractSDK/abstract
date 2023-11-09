@@ -87,7 +87,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                         install_modules: vec![],
                     },
                     self.governance_details,
-                    &[],
+                    Some(&[]),
                 )
                 .unwrap()
         } else {
@@ -142,7 +142,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let app: M = contract.into();
 
         self.abstr_account
-            .install_app(app.clone(), configuration, funds)
+            .install_app(app.clone(), configuration, Some(funds))
             .unwrap();
         Ok(Application::new(self.abstr_account.clone(), app))
     }
