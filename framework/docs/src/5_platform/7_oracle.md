@@ -2,6 +2,10 @@
 
 Have you ever wished to know the value of your portfolio? I'm guessing you have. Luckily Abstract has an integrated system to retrieve the value of your assets, on-chain!
 
+```admonish info
+This section is mainly focused on developers. If you're a user feel free to skip this section!
+```
+
 ## Value is relative
 
 The value of something is always relative to some other thing. A bitcoin isn't valued at 20,000, it's valued at 20,000 **USD**. Likewise the first decision that's required to work with Abstract's oracle is: In what currency do you want your Account's assets to be valued?
