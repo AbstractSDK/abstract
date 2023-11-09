@@ -71,21 +71,8 @@ pub struct Publisher<Chain: CwEnv> {
 }
 
 impl<Chain: CwEnv> Publisher<Chain> {
-    pub(crate) fn new_existing_publisher(abstr: &Abstract<Chain>, namespace: String) -> Self {
-        let namespace_response: Result<NamespaceResponse, cw_orch::prelude::CwOrchError> = abstr
-            .version_control
-            .namespace(Namespace::new(&namespace).unwrap());
-
-        let abstract_account: AbstractAccount<Chain> =
-            AbstractAccount::new(abstr, Some(namespace_response.unwrap().account_id));
-
-        Self::new(abstract_account)
-    }
-
-    fn new(abstr_account: AbstractAccount<Chain>) -> Self {
-        Self {
-            account: Account::new(abstr_account),
-        }
+    pub(crate) fn new(account: Account<Chain>) -> Self {
+        Self { account }
     }
 
     pub fn install_app<

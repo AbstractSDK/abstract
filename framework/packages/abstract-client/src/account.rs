@@ -1,8 +1,9 @@
 use abstract_core::{
-    objects::{gov_type::GovernanceDetails, AssetEntry},
+    objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry},
+    version_control::NamespaceResponse,
     AbstractResult,
 };
-use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ModuleId};
+use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ModuleId, VCQueryFns};
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
 use serde::Serialize;
@@ -111,6 +112,17 @@ impl<Chain: CwEnv> Account<Chain> {
 }
 
 impl<Chain: CwEnv> Account<Chain> {
+    pub(crate) fn new_existing_account(abstr: &Abstract<Chain>, namespace: String) -> Self {
+        let namespace_response: Result<NamespaceResponse, cw_orch::prelude::CwOrchError> = abstr
+            .version_control
+            .namespace(Namespace::new(&namespace).unwrap());
+
+        let abstract_account: AbstractAccount<Chain> =
+            AbstractAccount::new(abstr, Some(namespace_response.unwrap().account_id));
+
+        Self::new(abstract_account)
+    }
+
     // Install an application on the account
     // creates a new sub-account and installs the application on it.
     // TODO: For abstract we know that the contract's name in cw-orch = the module's name in abstract.

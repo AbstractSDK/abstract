@@ -3,7 +3,7 @@ use abstract_interface::Abstract;
 use cw_orch::{deploy::Deploy, prelude::CwEnv};
 
 use crate::{
-    account::AccountBuilder,
+    account::{Account, AccountBuilder},
     publisher::{Publisher, PublisherBuilder},
 };
 
@@ -20,7 +20,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     // TODO: Switch to builder later.
     pub fn existing_publisher(&self, namespace: String) -> Publisher<Chain> {
-        Publisher::new_existing_publisher(&self.abstr, namespace)
+        Publisher::new(self.new_existing_account(namespace))
     }
 
     pub fn new_publisher(
@@ -35,5 +35,9 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         governance_details: GovernanceDetails<String>,
     ) -> AccountBuilder<Chain> {
         AccountBuilder::new(&self.abstr, governance_details)
+    }
+
+    pub fn new_existing_account(&self, namespace: String) -> Account<Chain> {
+        Account::new_existing_account(&self.abstr, namespace)
     }
 }
