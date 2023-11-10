@@ -1,8 +1,11 @@
 use abstract_core::{
+    manager::{state::AccountInfo, InfoResponse},
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry},
     version_control::NamespaceResponse,
 };
-use abstract_interface::{Abstract, AbstractAccount, AccountDetails, RegisteredModule, VCQueryFns};
+use abstract_interface::{
+    Abstract, AbstractAccount, AccountDetails, ManagerQueryFns, RegisteredModule, VCQueryFns,
+};
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
 use serde::Serialize;
@@ -112,10 +115,8 @@ impl<Chain: CwEnv> Account<Chain> {
             abstr_account: abstract_account,
         }
     }
-}
 
-impl<Chain: CwEnv> Account<Chain> {
-    pub(crate) fn new_existing_account(
+    pub(crate) fn from_namespace(
         abstr: &Abstract<Chain>,
         namespace: String,
     ) -> AbstractClientResult<Self> {
@@ -127,6 +128,11 @@ impl<Chain: CwEnv> Account<Chain> {
             AbstractAccount::new(abstr, Some(namespace_response.account_id));
 
         Ok(Self::new(abstract_account))
+    }
+
+    pub fn get_account_info(&self) -> AbstractClientResult<AccountInfo<Addr>> {
+        let info_response: InfoResponse = self.abstr_account.manager.info()?;
+        Ok(info_response.info)
     }
 
     // Install an application on the account

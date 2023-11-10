@@ -19,8 +19,11 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(Self { abstr })
     }
 
-    pub fn existing_publisher(&self, namespace: String) -> AbstractClientResult<Publisher<Chain>> {
-        Ok(Publisher::new(self.new_existing_account(namespace)?))
+    pub fn get_publisher_from_namespace(
+        &self,
+        namespace: String,
+    ) -> AbstractClientResult<Publisher<Chain>> {
+        Ok(Publisher::new(self.get_account_from_namespace(namespace)?))
     }
 
     pub fn new_publisher(&self) -> PublisherBuilder<Chain> {
@@ -31,7 +34,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         AccountBuilder::new(&self.abstr)
     }
 
-    pub fn new_existing_account(&self, namespace: String) -> AbstractClientResult<Account<Chain>> {
-        Account::new_existing_account(&self.abstr, namespace)
+    pub fn get_account_from_namespace(
+        &self,
+        namespace: String,
+    ) -> AbstractClientResult<Account<Chain>> {
+        Account::from_namespace(&self.abstr, namespace)
     }
 }
