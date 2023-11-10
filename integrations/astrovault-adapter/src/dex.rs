@@ -590,8 +590,9 @@ impl DexCommand for Astrovault {
                 // TODO: why from_assets is vectors, and we swap one asset for the other
                 let astrovault::stable_pool::query_msg::StablePoolQuerySwapSimulation {
                     from_assets_amount: _,
-                    mut to_assets_amount,
-                    mut assets_fee_amount,
+                    mut swap_to_assets_amount,
+                    mint_to_assets_amount: _,
+                    assets_fee_amount: _,
                 } = deps.querier.query(&wasm_smart_query(
                     pair_address.to_string(),
                     &astrovault::stable_pool::query_msg::QueryMsg::SwapSimulation {
@@ -602,9 +603,9 @@ impl DexCommand for Astrovault {
                 )?)?;
                 // commission paid in result asset
                 Ok((
-                    to_assets_amount.pop().unwrap_or_default(),
+                    swap_to_assets_amount.pop().unwrap_or_default(),
                     Uint128::zero(),
-                    assets_fee_amount.pop().unwrap_or_default(),
+                    swap_to_assets_amount.pop().unwrap_or_default(),
                     false,
                 ))
             }
