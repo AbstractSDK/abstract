@@ -33,7 +33,7 @@ allowing you
 to customize your Abstract account's ownership to fit your needs.
 
 ```admonish info
-You can read up on the different ownership structures in our [Ownership](./5_ownership.md) section.
+You can read up on the different ownership structures in our [Ownership](./4_ownership.md) section.
 ```
 
 The account's architecture centers around **configurable programmability**. In other words, how can one configure the
