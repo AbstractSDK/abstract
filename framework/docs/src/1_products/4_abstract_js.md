@@ -1,35 +1,40 @@
-# Abstract JS
+# Abstract Frontend Libraries
 
-Abstract.js is a comprehensive JavaScript library designed to facilitate seamless interactions with the on-chain
-Abstract framework. Whether you're a developer looking to integrate blockchain functionalities into your application or
-a blockchain enthusiast aiming to explore the Abstract framework, Abstract.js provides the essential tools to make the
-process straightforward.
-
+Abstract is built with the full-stack developer experience in mind. It maintains libraries for Typescript and React-based applications with easy of development in mind.
 ## Features
 
-- **Easy Integration** 🛠️ : Designed with developers in mind, Abstract.js ensures a hassle-free integration process with
-  existing JavaScript applications.
-- **Type Declarations** 🔍: For TypeScript enthusiasts, Abstract.js comes with type declarations, ensuring type safety
-  and enhancing the development experience.
-- **Comprehensive Methods** 🌐: From querying blockchain data to sending transactions, Abstract.js covers a wide range of
-  functionalities required for on-chain operations.
-- **React Support** ⚛︎️: With the @abstract-money/abstract.js-react package, you can easily integrate and manage the
-  Abstract framework in their React applications.
+- **Type Declarations** 🔍: Typescript-native, and fully type-safe.
+- **Abstract Account Management** 🛠️ : Manage Abstract Accounts as any other smart (or dumb) accounts.
+- **Comprehensive Execute & Query Helpers** 🌐: All on-chain functionality is exposed, with fully-typed execution and query helpers.
+- **Native React Support** ⚛︎️: Native React support with many hooks, providers, and helpers. Uses `react-query` under the hood for maximum extensibility
 
 ## Installation
 
-To install the main library:
+#### Core Library
 
+**<0.19**
 ```bash
 npm i @abstract-money/abstract.js
 ```
 
-For React-specific functionalities:
+**>=0.20**
+```bash
+npm i @abstract-money/core
+```
 
+#### React Library
+
+**<0.19**
 ```bash
 npm i @abstract-money/abstract.js-react
 ```
 
+**>=0.20**
+```bash
+npm i @abstract-money/react
+```
+
 To read more about the available types and methods, please refer to
 the <a href="https://abstractjs.abstract.money/" target="_blank">Abstract.js Documentation</a>.
-  
+
+## Full-Stack Application Development

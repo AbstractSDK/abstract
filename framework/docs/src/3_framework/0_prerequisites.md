@@ -84,6 +84,5 @@ You need to have a basic understanding of <a href="https://www.javascript.com/" 
 out front-end library Abstract.js, which is used to
 interact with the on-chain Abstract framework.
 
-You can learn about
-Javascript <a href="https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/JavaScript_basics" target="_blank">
+You can learn about Javascript <a href="https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/JavaScript_basics" target="_blank">
 here</a>.

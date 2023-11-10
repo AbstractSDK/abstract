@@ -1,15 +1,17 @@
-# CW-Orchestrator
+# Testing And Deployment
+## CW-Orchestrator
 
-The <a href="https://github.com/AbstractSDK/cw-orchestrator" target="_blank">cw-orchestrator</a> package is a scripting
-tool designed to simplify interactions with CosmWasm smart contracts. By providing a set of macros that generate
-type-safe interfaces for your contracts, it not only enhances the code's readability and maintainability but also
-reduces testing and deployment overhead. These interfaces can be seamlessly combined into a single object, fostering
-easier integration and collaboration.
+The <a href="https://github.com/AbstractSDK/cw-orchestrator" target="_blank">cw-orchestrator</a> package is a Rust-native scripting tool designed to simplify interactions with CosmWasm smart contracts. It provides a set of macros that generate type-safe interfaces for your contracts, enhancing readability and maintainability.
 
+
+Cw-Orchestrator is integrated with the following environments;
+- cw-multi-test (mock testing)
+- test-tube (integration testing)
+- live daemons (localnets / testnets / mainnets)
 Furthermore, cw-orchestrator allows for code reusability between testing and deployments, establishing itself as our
 primary tool in making Abstract's infrastructure highly available.
 
-## Usage
+### Usage
 
 Here's a snippet that sets up the **complete Abstract SDK framework** on a cw-multi-test environment, and deploys the
 Counter App to the framework.

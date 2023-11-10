@@ -22,18 +22,24 @@
     - [Account Console](./5_platform/4_account_console.md)
     - [Module Factory](./5_platform/5_module_factory.md)
     - [Monetization](./5_platform/6_monetization.md)
-
-- [Abstract Products](1_products/index.md)
-  - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)
-  - [Abstract-JS](./1_products/4_abstract_js.md)
-  - [Abstract App Template](./1_products/2_abstract_app_template.md)
-  - [Abstract Testing](./1_products/3_abstract_testing.md)
-
   
 # Build With Abstract
 ---
 
 - [Application Design Space](./2_introduction/1_design_space.md)
+
+- [Interchain Application Stack](1_products/index.md)
+	- Smart-Contracts
+		- [App Framework](./1_products/5_framework.md)
+		- [Testing & Deployment](./1_products/1_cw_orchestrator.md)
+	- Middleware
+		- [GraphQL API](./1_products/6_api.md)
+	- Frontend
+		- [Typescript Libraries](./1_products/4_abstract_js.md)
+		- [Developer Console](./1_products/7_console.md)
+  - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)
+
+
 - [Getting Started](./4_get_started/1_index.md)
     - [Installation](./4_get_started/2_installation.md)
     - [Module Builder](./4_get_started/3_module_builder.md)

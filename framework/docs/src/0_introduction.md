@@ -7,9 +7,7 @@
 
 Hi and welcome to Abstract, the interchain CosmWasm development platform!
 
-Abstract's CosmWasm framework is your gateway
-to taking amazing ideas from concept to reality. Whether you're a coding genius or just getting started, Abstract has
-got your back! By building composable modules you'll be crafting scalable masterpieces in no time.
+Abstract's CosmWasm framework is your gateway to taking any idea from concept to reality. Whether you're a coding genius or just getting started, Abstract has got your back! By building composable modules you'll be crafting scalable masterpieces in no time.
 
 ## Abstract in a Nutshell
 
@@ -23,9 +21,10 @@ with less effort.
 
 ## Why Build with Abstract?
 
-Building decentralized applications is hard! We know this because we've been there. We've spent countless hours building
-applications on the Cosmos ecosystem, and we've created Abstract with all the lessons we learned along the way to make
-it easier and faster to build for you.
+
+Building decentralized applications is hard! We know this because we've been there. We've spent countless hours building applications in CosmWasm, and we've created Abstract with all the lessons we learned along the way to make it easier and faster to build for you.
+
+When you're building on Abstract, you're building on and for the interchain. Let's realize Cosmos' vision and make the internet of blockchains a reality.
 
 - **Based on CosmWasm** 🌟: The Abstract SDK is built on top of the <a href="https://cosmwasm.com/" target="_blank">
   CosmWasm</a>
@@ -44,17 +43,15 @@ it easier and faster to build for you.
 
 
 - **Custom Governance** 🗳️: All Abstract Accounts can be governed by any entity tailored to your application's specific
-  requirements. Currently, the Console supports soverign, cw3-flex-multisig, and DaoDao-governed Accounts.
+  requirements. Currently, the Console supports sovereign, cw3-flex-multisig, and DaoDao-governed Accounts.
 
 
 - **Development Tooling** 🛠: Abstract offers a vast integration testing library, enabling you to quickly increase test
-  coverage
-  and ensure the reliability of your dApps.
+  coverage and ensure the reliability of your dApps.
 
 
 - **Version Management** 🔄: Abstract simplifies the process of managing smart-contract versioning, ensuring you can
-  quickly
-  release and access new features and bug-fixes.
+  quickly release and access new features and bug-fixes.
 
 
 - **Ecosystem Integrations** 🌱: Abstract is designed to work seamlessly with protocols, projects, and services in the

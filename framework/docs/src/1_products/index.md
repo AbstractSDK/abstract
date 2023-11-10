@@ -1,35 +1,49 @@
-# Abstract Products
+# The Interchain Application Stack
 
-At Abstract, we are dedicated to expanding the horizons of blockchain development through our innovative and
-ever-growing suite of products. Our products aim to simplify and enhance the development process, allowing creators to
-bring their visions to life with efficiency and security.
+Abstract aims to make the full-stack CosmWasm app developer's life as easy as possible. Building on Abstract means building on the interchain.
 
-## Our Product Lineup
-
-### [CW-Orchestrator](1_cw_orchestrator.md)
-
-- **Scripting Power**: Simplify your interactions with CosmWasm contracts.
-- **Macros for Efficiency**: Generate type-safe interfaces to streamline your workflow.
-- **Code Reusability**: Use the same logic for testing and deployment.
-
-### [Abstract JS](4_abstract_js.md)
-
-- **Seamless Interactions**: Engage with the blockchain from your web application effortlessly.
-- **Type Declarations**: Develop with type safety in mind.
-- **Comprehensive**: From queries to transactions, we've got you covered.
+To accomplish this, we provide Cosmwasm tooling for every vertical, including:
 
 
-### [Abstract App Template](2_abstract_app_template.md)
+### [Interchain App Template (Full-Stack)](2_abstract_app_template.md)
 
 - **Quick Start**: Jumpstart your app development with our robust template.
 - **Integration Friendly**: Easy to integrate with existing systems.
 - **TypeScript Support**: Build with confidence using TypeScript.
 
-### [Abstract Testing](3_abstract_testing.md)
 
-- **Mocking Tools**: Simulate scenarios with ease.
-- **Query Testing**: Verify your queries and logic reliably.
-- **ANS Integration**: Test with mock assets in our Abstract Naming Service.
+## Smart-Contracts
+
+### [CosmWasm Framework](5_framework.md)
+
+The Abstract SDK is a framework for modular CosmWasm application development. It provides the means to build smart-contract "lego-blocks" that are composed to build applications.
+
+### [CW-Orchestrator (Testing)](1_cw_orchestrator.md)
+
+Fully Rust-native CosmWasm scripting, testing and deployment library. Integrates multiple environments with a unified and intuitive interface.
+
+## Middleware
+
+### [Abstract GraphQL API ](6_api.md)
+
+A GraphQL API for accessing all of Abstract from anywhere. Supports custom configurations for any CosmWasm network with Abstract.
+
+### Typescript Interface Generation
+
+Typescript generation tooling built on top of [Cosmology](https://cosmology.tech)'s CosmWasm [ts-codegen](https://github.com/CosmWasm/ts-codegen), specifically geared towards application developers. It wraps the CosmWasm and Abstract clients, and enables one-line interfacing with Abstract applications.
+
+## Frontend
+
+### [Typescript Libraries](4_abstract_js.md)
+
+- **Seamless Interactions**: Engage with the blockchain from your web application effortlessly.
+- **Type Declarations**: Develop with type safety in mind.
+- **Comprehensive**: From queries to transactions, we've got you covered.
+
+### [Developer Console](7_console.md)
+
+A developer console created to simplify development and management of Abstract Accounts and applications.
+
 
 ## A Growing Ecosystem
 
