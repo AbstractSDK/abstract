@@ -182,6 +182,9 @@ impl<Chain: CwEnv> Manager<Chain> {
             to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
                 msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
                     host_chain: host_chain.into(),
+                    base_asset: None,
+                    namespace: None,
+                    install_modules: vec![],
                 }],
             })?,
             PROXY.to_string(),

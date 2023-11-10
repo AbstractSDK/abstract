@@ -67,6 +67,9 @@ fn account_creation() -> anyhow::Result<()> {
                 name: "Abstract remote account 1".to_string(),
                 description: Some("account description".to_string()),
                 link: Some("https://abstract.money".to_string()),
+                base_asset: None,
+                namespace: None,
+                install_modules: vec![],
             }),
             "proxy_address".to_string(),
         )
@@ -115,6 +118,9 @@ fn account_action() -> anyhow::Result<()> {
                 name: "Abstract remote account 1".to_string(),
                 description: Some("account description".to_string()),
                 link: Some("https://abstract.money".to_string()),
+                base_asset: None,
+                namespace: None,
+                install_modules: vec![],
             }),
             "proxy_address".to_string(),
         )
@@ -257,6 +263,9 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
             name: "Abstract remote account 1".to_string(),
             description: Some("account description".to_string()),
             link: Some("https://abstract.money".to_string()),
+            base_asset: None,
+            namespace: None,
+            install_modules: vec![],
         }),
         "proxy_address".to_string(),
     )?;

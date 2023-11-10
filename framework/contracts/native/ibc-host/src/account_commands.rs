@@ -7,7 +7,8 @@ use abstract_core::{
     account_factory,
     ibc_host::state::CONFIG,
     manager,
-    objects::{chain_name::ChainName, AccountId},
+    module_factory::ModuleInstallConfig,
+    objects::{chain_name::ChainName, AccountId, AssetEntry},
     proxy,
     version_control::AccountBase,
     PROXY,
@@ -32,6 +33,9 @@ pub fn receive_register(
     name: String,
     description: Option<String>,
     link: Option<String>,
+    base_asset: Option<AssetEntry>,
+    namespace: Option<String>,
+    install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
 ) -> HostResult {
     let cfg = CONFIG.load(deps.storage)?;
@@ -53,9 +57,9 @@ pub fn receive_register(
             // provide the origin chain id
             account_id: Some(account_id.clone()),
 
-            base_asset: None,
-            install_modules: vec![],
-            namespace: None,
+            base_asset,
+            install_modules,
+            namespace,
         },
         vec![],
     )?;
