@@ -4,7 +4,7 @@ pub use abstract_core::account_factory::{
 };
 use abstract_core::{
     account_factory::*,
-    manager::ManagerModuleInstall,
+    manager::ModuleInstallConfig,
     objects::{gov_type::GovernanceDetails, AssetEntry},
     ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
@@ -19,7 +19,7 @@ pub struct AccountDetails {
     pub link: Option<String>,
     pub namespace: Option<String>,
     pub base_asset: Option<AssetEntry>,
-    pub install_modules: Vec<ManagerModuleInstall>,
+    pub install_modules: Vec<ModuleInstallConfig>,
 }
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

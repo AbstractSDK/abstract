@@ -53,7 +53,7 @@ pub enum ExecuteMsg {
     },
     /// Install modules
     InstallModules {
-        modules: Vec<ModuleInstallConfig>,
+        modules: Vec<FactoryModuleInstallConfig>,
         salt: Binary,
     },
     UpdateFactoryBinaryMsgs {
@@ -65,12 +65,12 @@ pub enum ExecuteMsg {
 /// Module info, init message and salt
 #[non_exhaustive]
 #[cosmwasm_schema::cw_serde]
-pub struct ModuleInstallConfig {
+pub struct FactoryModuleInstallConfig {
     pub module: ModuleInfo,
     pub init_msg: Option<Binary>,
 }
 
-impl ModuleInstallConfig {
+impl FactoryModuleInstallConfig {
     pub fn new(module: ModuleInfo, init_msg: Option<Binary>) -> Self {
         Self { module, init_msg }
     }

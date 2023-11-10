@@ -1,4 +1,4 @@
-use abstract_core::module_factory::ModuleInstallConfig;
+use abstract_core::module_factory::FactoryModuleInstallConfig;
 use abstract_core::{module_factory, objects::module::ModuleInfo};
 use abstract_interface::*;
 use abstract_testing::prelude::TEST_ADMIN;
@@ -41,7 +41,7 @@ fn caller_must_be_manager() -> AResult {
 
     let res = factory
         .install_modules(
-            vec![ModuleInstallConfig::new(test_module, None)],
+            vec![FactoryModuleInstallConfig::new(test_module, None)],
             Binary::default(),
         )
         .unwrap_err();

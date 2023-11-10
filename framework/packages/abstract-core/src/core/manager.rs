@@ -25,7 +25,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
     use std::collections::HashSet;
 
-    use super::ManagerModuleInstall;
+    use super::ModuleInstallConfig;
 
     pub type SuspensionStatus = bool;
 
@@ -92,7 +92,7 @@ pub mod state {
     /// map module -> modules that depend on module.
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
     /// Stores a queue of modules to install on the account after creation.
-    pub const MODULE_QUEUE: Item<Vec<ManagerModuleInstall>> = Item::new("mqueue");
+    pub const MODULE_QUEUE: Item<Vec<ModuleInstallConfig>> = Item::new("mqueue");
     /// List of sub-accounts
     pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("sub_accs");
     /// Pending new governance
@@ -122,7 +122,7 @@ pub struct InstantiateMsg {
     pub description: Option<String>,
     pub link: Option<String>,
     // Optionally modules can be provided. They will be installed after account registration.
-    pub install_modules: Vec<ManagerModuleInstall>,
+    pub install_modules: Vec<ModuleInstallConfig>,
 }
 
 /// Callback message to set the dependencies after module upgrades.
@@ -158,12 +158,12 @@ pub enum UpdateSubAccountAction {
 /// Module info and init message
 #[non_exhaustive]
 #[cosmwasm_schema::cw_serde]
-pub struct ManagerModuleInstall {
+pub struct ModuleInstallConfig {
     pub module: ModuleInfo,
     pub init_msg: Option<Binary>,
 }
 
-impl ManagerModuleInstall {
+impl ModuleInstallConfig {
     pub fn new(module: ModuleInfo, init_msg: Option<Binary>) -> Self {
         Self { module, init_msg }
     }
@@ -184,7 +184,7 @@ pub enum ExecuteMsg {
     #[cfg_attr(feature = "interface", payable)]
     InstallModules {
         // Module information and Instantiate message to instantiate the contract
-        modules: Vec<ManagerModuleInstall>,
+        modules: Vec<ModuleInstallConfig>,
     },
     /// Uninstall a module given its ID.
     UninstallModule { module_id: String },
@@ -207,7 +207,7 @@ pub enum ExecuteMsg {
         // optionally specify a namespace for the sub-account
         namespace: Option<String>,
         // Provide list of module to install after sub-account creation
-        install_modules: Vec<ManagerModuleInstall>,
+        install_modules: Vec<ModuleInstallConfig>,
     },
     /// Update info
     UpdateInfo {

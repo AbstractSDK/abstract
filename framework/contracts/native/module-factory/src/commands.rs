@@ -4,7 +4,7 @@ use crate::contract::ModuleFactoryResponse;
 use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
 use abstract_sdk::{
     core::{
-        module_factory::ModuleInstallConfig,
+        module_factory::FactoryModuleInstallConfig,
         objects::{
             module::ModuleInfo, module_reference::ModuleReference,
             version_control::VersionControlContract,
@@ -22,7 +22,7 @@ pub fn execute_create_modules(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    modules: Vec<ModuleInstallConfig>,
+    modules: Vec<FactoryModuleInstallConfig>,
     salt: Binary,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;

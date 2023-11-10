@@ -7,7 +7,7 @@ use abstract_core::{
     ibc::CallbackInfo,
     ibc_client::ExecuteMsg as IbcClientMsg,
     ibc_host::HostAction,
-    manager::ManagerModuleInstall,
+    manager::ModuleInstallConfig,
     objects::module::{ModuleInfo, ModuleVersion},
     proxy::ExecuteMsg,
     IBC_CLIENT,
@@ -64,7 +64,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(wasm_execute(
             self.base.manager_address(self.deps)?,
             &abstract_core::manager::ExecuteMsg::InstallModules {
-                modules: vec![ManagerModuleInstall::new(
+                modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
                     None,
                 )],
@@ -103,7 +103,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             host_chain,
             HostAction::Dispatch {
                 manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
-                    modules: vec![ManagerModuleInstall::new(
+                    modules: vec![ModuleInstallConfig::new(
                         module,
                         Some(
                             to_json_binary(&abstract_core::app::InstantiateMsg {
@@ -137,7 +137,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             host_chain,
             HostAction::Dispatch {
                 manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
-                    modules: vec![ManagerModuleInstall::new(
+                    modules: vec![ModuleInstallConfig::new(
                         module,
                         Some(
                             to_json_binary(&abstract_core::adapter::InstantiateMsg {

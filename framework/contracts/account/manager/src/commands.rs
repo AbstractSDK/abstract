@@ -8,8 +8,8 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{InternalConfigAction, ManagerModuleInstall, UpdateSubAccountAction};
-use abstract_core::module_factory::ModuleInstallConfig;
+use abstract_core::manager::{InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction};
+use abstract_core::module_factory::FactoryModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{self, assert_module_data_validity};
 use abstract_core::objects::{AccountId, AssetEntry};
@@ -98,7 +98,7 @@ pub fn install_modules(
     mut deps: DepsMut,
     msg_info: MessageInfo,
     env: Env,
-    modules: Vec<ManagerModuleInstall>,
+    modules: Vec<ModuleInstallConfig>,
 ) -> ManagerResult {
     // only owner can call this method
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
@@ -125,7 +125,7 @@ pub fn install_modules(
 pub(crate) fn install_modules_internal(
     mut deps: DepsMut,
     block_height: u64,
-    modules: Vec<ManagerModuleInstall>,
+    modules: Vec<ModuleInstallConfig>,
     module_factory_address: Addr,
     version_control_address: Addr,
     funds: Vec<Coin>,
@@ -180,7 +180,7 @@ pub(crate) fn install_modules_internal(
             // TODO: do we want to support installing any other type of module here?
             _ => unreachable!(),
         };
-        manager_modules.push(ModuleInstallConfig::new(module.info, init_msg_salt));
+        manager_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
     }
 
     INSTALL_MODULES_CONTEXT.save(deps.storage, &install_context)?;
@@ -270,7 +270,7 @@ pub fn create_sub_account(
     link: Option<String>,
     base_asset: Option<AssetEntry>,
     namespace: Option<String>,
-    install_modules: Vec<ManagerModuleInstall>,
+    install_modules: Vec<ModuleInstallConfig>,
 ) -> ManagerResult {
     // only owner can create a subaccount
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
@@ -1379,7 +1379,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::InstallModules {
-                modules: vec![ManagerModuleInstall::new(
+                modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id_latest("test:module")?,
                     None,
                 )],

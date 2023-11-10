@@ -13,7 +13,7 @@ pub mod state {
     use serde::{Deserialize, Serialize};
 
     use crate::{
-        manager::ManagerModuleInstall,
+        manager::ModuleInstallConfig,
         objects::{
             account::{AccountId, AccountSequence},
             gov_type::GovernanceDetails,
@@ -40,7 +40,7 @@ pub mod state {
         pub account_id: AccountId,
 
         pub additional_config: AdditionalContextConfig,
-        pub install_modules: Vec<ManagerModuleInstall>,
+        pub install_modules: Vec<ModuleInstallConfig>,
         pub funds_for_install: Vec<Coin>,
     }
 
@@ -64,7 +64,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
 use crate::{
-    manager::ManagerModuleInstall,
+    manager::ModuleInstallConfig,
     objects::{
         account::{AccountId, AccountSequence, AccountTrace},
         gov_type::GovernanceDetails,
@@ -119,7 +119,7 @@ pub enum ExecuteMsg {
         // optionally specify a namespace for the account
         namespace: Option<String>,
         // Provide list of module to install after account creation
-        install_modules: Vec<ManagerModuleInstall>,
+        install_modules: Vec<ModuleInstallConfig>,
     },
 }
 

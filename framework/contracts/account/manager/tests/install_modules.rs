@@ -2,7 +2,7 @@ mod common;
 
 use abstract_core::{
     manager::{
-        ExecuteMsg as ManagerMsg, ManagerModuleInstall, ModuleAddressesResponse,
+        ExecuteMsg as ManagerMsg, ModuleAddressesResponse, ModuleInstallConfig,
         QueryMsg as ManagerQuery,
     },
     objects::{account::TEST_ACCOUNT_ID, module::ModuleInfo},
@@ -37,7 +37,7 @@ fn cannot_reinstall_module() -> AResult {
 
     manager.execute(
         &ManagerMsg::InstallModules {
-            modules: vec![ManagerModuleInstall::new(
+            modules: vec![ModuleInstallConfig::new(
                 ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
                 None,
             )],
@@ -48,7 +48,7 @@ fn cannot_reinstall_module() -> AResult {
     let err = manager
         .execute(
             &ManagerMsg::InstallModules {
-                modules: vec![ManagerModuleInstall::new(
+                modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
                     None,
                 )],
@@ -81,7 +81,7 @@ fn adds_module_to_account_modules() -> AResult {
 
     manager.execute(
         &ManagerMsg::InstallModules {
-            modules: vec![ManagerModuleInstall::new(
+            modules: vec![ModuleInstallConfig::new(
                 ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
                 None,
             )],
