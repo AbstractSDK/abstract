@@ -16,4 +16,7 @@ pub enum AbstractClientError {
 
     #[error("{0}")]
     CwOrch(#[from] cw_orch::prelude::CwOrchError),
+
+    #[error("{0}")]
+    Semver(#[from] semver::Error),
 }

@@ -4,7 +4,7 @@ use abstract_client::{
 };
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
-use app::{contract::APP_VERSION, AppInterface, AppQueryMsgFns};
+use app::{AppInterface, AppQueryMsgFns};
 use cosmwasm_std::Addr;
 use cw_orch::{deploy::Deploy, prelude::Mock};
 
@@ -41,7 +41,7 @@ fn test() -> anyhow::Result<()> {
         })
         .build()?;
 
-    publisher.deploy_module::<AppInterface<Mock>>(APP_VERSION.parse()?)?;
+    publisher.deploy_module::<AppInterface<Mock>>()?;
 
     let my_app: Application<Mock, AppInterface<Mock>> = publisher
         .install_app::<AppInterface<Mock>, app::msg::AppInstantiateMsg>(

@@ -1,11 +1,10 @@
 use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
-use abstract_interface::{AppDeployer, DeployStrategy, ModuleId};
+use abstract_interface::{AppDeployer, DeployStrategy, RegisteredModule};
 use cosmwasm_std::{Addr, Coin};
 use cw_orch::{
     contract::Contract,
     prelude::{ContractInstance, CwEnv, InstantiableContract},
 };
-use semver::Version;
 use serde::Serialize;
 
 use crate::{
@@ -77,7 +76,11 @@ impl<Chain: CwEnv> Publisher<Chain> {
     }
 
     pub fn install_app<
-        M: ContractInstance<Chain> + ModuleId + InstantiableContract + From<Contract<Chain>> + Clone,
+        M: ContractInstance<Chain>
+            + RegisteredModule
+            + InstantiableContract
+            + From<Contract<Chain>>
+            + Clone,
         C: Serialize,
     >(
         &self,
@@ -89,17 +92,17 @@ impl<Chain: CwEnv> Publisher<Chain> {
 
     pub fn deploy_module<
         M: ContractInstance<Chain>
-            + ModuleId
+            + RegisteredModule
             + InstantiableContract
             + From<Contract<Chain>>
             + AppDeployer<Chain>,
     >(
         &self,
-        version: Version,
     ) -> AbstractClientResult<()> {
         let contract = Contract::new(M::module_id(), self.account.environment());
         let app: M = contract.into();
-        app.deploy(version, DeployStrategy::Try).map_err(Into::into)
+        app.deploy(M::module_version().parse()?, DeployStrategy::Try)
+            .map_err(Into::into)
     }
 
     pub fn account(&self) -> &Account<Chain> {

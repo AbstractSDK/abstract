@@ -2,7 +2,7 @@ use abstract_core::{
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry},
     version_control::NamespaceResponse,
 };
-use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ModuleId, VCQueryFns};
+use abstract_interface::{Abstract, AbstractAccount, AccountDetails, RegisteredModule, VCQueryFns};
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
 use serde::Serialize;
@@ -133,7 +133,7 @@ impl<Chain: CwEnv> Account<Chain> {
     // creates a new sub-account and installs the application on it.
     pub fn install_app<
         // Not sure about this From<Contract<Chain>>
-        M: ContractInstance<Chain> + ModuleId + InstantiableContract + From<Contract<Chain>> + Clone,
+        M: ContractInstance<Chain> + RegisteredModule + InstantiableContract + From<Contract<Chain>> + Clone,
         C: Serialize,
     >(
         &self,

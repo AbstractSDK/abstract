@@ -19,8 +19,9 @@ use serde::Serialize;
 
 // }
 
-pub trait ModuleId {
+pub trait RegisteredModule {
     fn module_id() -> String;
+    fn module_version() -> String;
 }
 
 /// Strategy for deploying

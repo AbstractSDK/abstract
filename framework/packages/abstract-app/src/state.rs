@@ -99,6 +99,10 @@ impl<
         self.contract.info().0
     }
 
+    pub fn version(&self) -> &str {
+        self.contract.info().1
+    }
+
     pub fn load_state(&self, store: &dyn Storage) -> StdResult<AppState> {
         self.base_state.load(store)
     }
@@ -196,5 +200,6 @@ mod tests {
             .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
 
         assert_eq!(app.module_id(), TEST_MODULE_ID);
+        assert_eq!(app.version(), TEST_VERSION);
     }
 }
