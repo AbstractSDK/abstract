@@ -56,9 +56,9 @@
 # Resources and Support
 
 ---
-- [Interchain Abstract Accounts](./ibc/index.md)
+<!-- - [Interchain Abstract Accounts](./ibc/index.md)
     - [Overview](./ibc/overview.md)
-    - [Specification](./ibc/spec.md)
+    - [Specification](./ibc/spec.md) -->
 
 - [FAQ](./video_and_content/faq.md)
 - [Videos](./video_and_content/videos.md)
