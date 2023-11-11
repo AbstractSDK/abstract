@@ -150,7 +150,7 @@ impl<Chain: CwEnv> Account<Chain> {
         configuration: &C,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
-        let contract = Contract::new(M::module_id(), self.environment());
+        let contract = Contract::new(M::module_id().to_owned(), self.environment());
 
         let app: M = contract.into();
 

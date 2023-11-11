@@ -99,7 +99,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
     >(
         &self,
     ) -> AbstractClientResult<()> {
-        let contract = Contract::new(M::module_id(), self.account.environment());
+        let contract = Contract::new(M::module_id().to_owned(), self.account.environment());
         let app: M = contract.into();
         app.deploy(M::module_version().parse()?, DeployStrategy::Try)
             .map_err(Into::into)

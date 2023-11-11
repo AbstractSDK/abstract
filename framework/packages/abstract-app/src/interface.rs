@@ -143,12 +143,12 @@ macro_rules! cw_orch_interface {
 			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<Chain> for $interface_name<Chain> {}
 
 			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::RegisteredModule for $interface_name<Chain> {
-				fn module_id() -> String {
-                    $app_const.module_id().to_owned()
+				fn module_id<'a>() -> &'a str {
+                    $app_const.module_id()
 				}
 
-                fn module_version() -> String {
-                    $app_const.version().to_owned()
+                fn module_version<'a>() -> &'a str {
+                    $app_const.version()
                 }
 			}
 

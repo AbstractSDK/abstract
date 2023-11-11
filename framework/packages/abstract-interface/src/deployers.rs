@@ -20,8 +20,8 @@ use serde::Serialize;
 // }
 
 pub trait RegisteredModule {
-    fn module_id() -> String;
-    fn module_version() -> String;
+    fn module_id<'a>() -> &'a str;
+    fn module_version<'a>() -> &'a str;
 }
 
 /// Strategy for deploying
