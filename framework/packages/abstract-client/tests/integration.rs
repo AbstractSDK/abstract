@@ -26,11 +26,6 @@ fn deploy_abstract() -> anyhow::Result<(Mock, Abstract<Mock>)> {
     Ok((chain, abstr))
 }
 
-// TODO:
-// Allow using account-id instead of namespace to get publisher in the case where namespace is not
-// claimed.
-// Handle module dependencies.
-
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
     // Set up.

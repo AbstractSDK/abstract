@@ -138,7 +138,6 @@ impl<Chain: CwEnv> Account<Chain> {
     // Install an application on the account
     // creates a new sub-account and installs the application on it.
     pub fn install_app<
-        // Not sure about this From<Contract<Chain>>
         M: ContractInstance<Chain>
             + RegisteredModule
             + InstantiableContract
