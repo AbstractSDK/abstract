@@ -15,7 +15,7 @@ Learn more about Rust <a href="https://www.rust-lang.org/" target="_blank">here<
 the <a href="https://github.com/rust-lang/rustlings/" target="_blank">rustlings</a>.
 
 ```admonish info
-Already a CosmWasm expert? Jump to [the next page](./3_account_abstraction.md) to learn about account abstraction!
+Already a CosmWasm expert? Jump to [the next page](./1_abstract_sdk.md) to learn about the Abstract SDK!
 ```
 
 ## CosmWasm
@@ -75,8 +75,22 @@ The application of the actor model in the CosmWasm framework provides the follow
   prevents
   inconsistent states in the contract.
 
-To learn more about CosmWasm, check out the <a href="https://book.cosmwasm.com/" target="_blank">official
-documentation</a>.
+#### Coming from EVM?
+
+There are a few key differences between the EVM and CosmWasm that you should be aware of. The most important one is that instances of contracts and the code that they run against are two different concepts in CosmWasm. This means that you can have multiple instances of the same contract code running at the same time, each with their own state. This is not possible in EVM, where the contract code and the contract instance are the same thing.
+
+This is an important difference to be aware of when we talk about migrations further in our documentation.
+
+```admonish summary
+Migrations are a key feature of CosmWasm. They allow you to upgrade a contract's code while retaining the state of the contract.
+```
+
+A migration doesn't delete the code that was previously running for a contract. Code (a WebAssembly binary) is referred to by code-ids and contracts run against a specific code-id and get their own address space (and state) when they are instantiated. Hence migrations just update the code-id that a contract uses to run. I.e. The contract keeps its address and state but now runs on a different code-id (binary).
+
+> If you're looking for a more in-depth comparison go read this <a href="https://medium.com/cosmwasm/cosmwasm-for-ctos-f1ffa19cccb8" target="_blank">article</a> by the creator of CosmWasm.
+
+To learn more about CosmWasm, check out its <a href="https://book.cosmwasm.com/" target="_blank">official
+documentation</a>. 
 
 ## Javascript
 

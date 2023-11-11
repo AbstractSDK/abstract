@@ -14,7 +14,7 @@ that is heavily optimized by the compiler. This ensures that the overhead of usi
 both the code's runtime and WASM binary size.
 
 ```admonish info
-The code-snippets in this example can be found in the [counter app example](https://github.com/AbstractSDK/abstract/blob/main/packages/abstract-app/examples/counter.rs).
+The code-snippets in this example can be found in the <a href="https://github.com/AbstractSDK/abstract/blob/main/framework/packages/abstract-app/examples/counter.rs" target="_blank">counter app example</a>.
 ```
 
 In this tutorial we will be working with an [`App` Module](../3_framework/6_module_types.md#apps).

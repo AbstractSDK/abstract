@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "base",
+    "module"
+  ],
+  "properties": {
+    "base": {
+      "description": "base instantiate information",
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseInstantiateMsg"
+        }
+      ]
+    },
+    "module": {
+      "description": "custom instantiate msg",
+      "allOf": [
+        {
+          "$ref": "#/definitions/AppInstantiateMsg"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "AppInstantiateMsg": {
+      "description": "PaymentApp instantiate message",
+      "type": "object",
+      "required": [
+        "exchanges"
+      ],
+      "properties": {
+        "desired_asset": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exchanges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "AssetEntry": {
+      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+      "type": "string"
+    },
+    "BaseInstantiateMsg": {
+      "description": "Used by Module Factory to instantiate App",
+      "type": "object",
+      "required": [
+        "ans_host_address",
+        "version_control_address"
+      ],
+      "properties": {
+        "ans_host_address": {
+          "type": "string"
+        },
+        "version_control_address": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
