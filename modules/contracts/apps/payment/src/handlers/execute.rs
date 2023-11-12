@@ -18,8 +18,6 @@ use crate::error::AppError;
 use crate::msg::AppExecuteMsg;
 use crate::state::{CONFIG, TIPPERS, TIP_COUNT};
 
-const MAX_SPREAD_PERCENT: u64 = 20;
-
 pub fn execute_handler(
     deps: DepsMut,
     _env: Env,
@@ -99,7 +97,7 @@ pub fn tip(
                 let trigger_swap_msg = dex.swap(
                     pay_asset.clone(),
                     desired_asset.clone(),
-                    Some(Decimal::percent(MAX_SPREAD_PERCENT)),
+                    None,
                     None,
                 )?;
                 swap_msgs.push(trigger_swap_msg);

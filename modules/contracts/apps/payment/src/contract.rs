@@ -28,7 +28,7 @@ pub type PaymentApp = AppContract<
 
 const DEX_DEPENDENCY: StaticDependency = StaticDependency::new(
     abstract_dex_adapter::DEX_ADAPTER_ID,
-    &[abstract_dex_adapter::contract::CONTRACT_VERSION],
+    &["^0.19.0"],
 );
 
 const APP: PaymentApp = PaymentApp::new(APP_ID, APP_VERSION, None)

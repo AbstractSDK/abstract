@@ -28,4 +28,7 @@ pub enum AppError {
 
     #[error("Tipper does not exist")]
     TipperDoesNotExist {},
+
+    #[error("Desired asset does not exist")]
+    DesiredAssetDoesNotExist {},
 }
