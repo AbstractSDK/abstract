@@ -1,10 +1,4 @@
 workspaces := "./framework ./modules ./app-template"
-modules := "./modules/contracts/apps/croncat ./modules/contracts/apps/dca ./modules/contracts/adapters/dex ./modules/contracts/adapters/cw-staking"
-
-docs-install:
-  cargo install mdbook --vers "0.4.21" --locked
-  cargo install mdbook-mermaid --vers "0.12.6" --locked
-  cargo install mdbook-admonish --vers "1.9.0" --locked
 
 # Pull a specific repo from its main remote
 pull repo:
@@ -41,11 +35,11 @@ wasm-all:
 wasm-all-ci:
   ./scripts/wasm-all-ci.sh
 
-schema-modules:
+# Generates JSON schemas for all the contracts in the repo.
+schema:
   #!/usr/bin/env bash
-  set -e;
-  for path in {{modules}}
-  do 
-    (cd $path; cargo run --example schema --features schema); 
-  done
+  set -e
+  (cd app-template; cargo run --example schema --features schema)
+  sh scripts/modules-schema.sh
+  sh scripts/framework-schema.sh
   set +e

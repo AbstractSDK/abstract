@@ -23,7 +23,7 @@ development experience.
 
 4. **How can I get started with Abstract?**
 
-To get started with Abstract, check out [getting started](../4_get_started/index.md)! You will find comprehensive
+To get started with Abstract, check out [getting started](../4_get_started/1_index.md)! You will find comprehensive
 guides, tutorials, and resources to help you understand the platform's features and functionality. Additionally, you can
 join our <a href="https://discord.com/invite/uch3Tq3aym" target="_blank">developer community on Discord</a> to connect
 with
@@ -33,7 +33,7 @@ assistance if needed.
 5. **Can I contribute to the Abstract ecosystem?**
 
 Absolutely! Abstract values community contributions and welcomes developers to contribute to the growth of CosmWasm. The
-best ways for you to contribute are by creating modules (see the [getting started docs](../4_get_started/index.md)),
+best ways for you to contribute are by creating modules (see the [getting started docs](../4_get_started/1_index.md)),
 sharing your insights and knowledge, participating in discussions, and collaborating on some of our open-source
 projects. Check out the [Contributing page](../contributing.md) to learn more about how you can get involved.
 
@@ -51,7 +51,7 @@ with <a href="https://www.oaksecurity.io/" target="_blank">Oak Security</a> to e
 
 8. **How can I stay updated with Abstract's latest developments?**
 
-Follow us on X [@AbstractSDK](https://x.com/AbstractSDK) to stay in the loop with our latest advancements!
+Follow us on X <a href="https://x.com/AbstractSDK" target="_blank">@AbstractSDK</a> to stay in the loop with our latest advancements!
 
 9. **What about cw-orchestrator?**
 

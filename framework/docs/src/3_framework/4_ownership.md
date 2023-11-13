@@ -16,7 +16,7 @@ Not interested in account ownership? Skip to our section on [Framework Component
 ## Monarchy
 
 In a monarchy, a single wallet has full control over the dApp. If you're connected with a wallet, your address will be
-automatically inserted as the root user.
+automatically inserted as the owner.
 
 ```mermaid
 graph TD
