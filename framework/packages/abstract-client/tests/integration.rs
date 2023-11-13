@@ -1,4 +1,6 @@
-mod app;
+use abstract_app::mock::{
+    interface::MockAppInterface, MockExecMsgFns, MockInitMsg, MockQueryMsgFns, MockQueryResponse,
+};
 use abstract_client::{
     account::Account, application::Application, client::AbstractClient, publisher::Publisher,
 };
@@ -7,15 +9,12 @@ use abstract_core::{
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
 };
 use abstract_interface::{Abstract, VCQueryFns};
-use app::{AppInterface, AppQueryMsgFns};
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfo;
 use cw_orch::{
     deploy::Deploy,
     prelude::{CallAs, CwOrchExecute, Mock},
 };
-
-use crate::app::{msg::ConfigResponse, AppExecuteMsgFns};
 
 const ADMIN: &str = "admin";
 
@@ -241,24 +240,21 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     let client: AbstractClient<Mock> = AbstractClient::new(chain)?;
 
-    let publisher: Publisher<Mock> = client.new_publisher().namespace("my-namespace").build()?;
+    let publisher: Publisher<Mock> = client.new_publisher().namespace("tester").build()?;
 
     let publisher_admin = publisher.admin()?;
     let publisher_proxy = publisher.proxy()?;
 
-    publisher.deploy_module::<AppInterface<Mock>>()?;
+    publisher.deploy_module::<MockAppInterface<Mock>>()?;
 
-    let my_app: Application<Mock, AppInterface<Mock>> = publisher
-        .install_app::<AppInterface<Mock>, app::msg::AppInstantiateMsg>(
-            &app::msg::AppInstantiateMsg {},
-            &[],
-        )?;
+    let my_app: Application<Mock, MockAppInterface<Mock>> =
+        publisher.install_app::<MockAppInterface<Mock>, MockInitMsg>(&MockInitMsg, &[])?;
 
-    my_app.call_as(&publisher.admin()?).update_config()?;
+    my_app.call_as(&publisher.admin()?).do_something()?;
 
-    let config = my_app.config()?;
+    let something = my_app.get_something()?;
 
-    assert_eq!(ConfigResponse {}, config);
+    assert_eq!(MockQueryResponse {}, something);
 
     let sub_account_details = my_app.account().get_account_info()?;
     assert_eq!(

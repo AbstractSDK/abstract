@@ -23,7 +23,7 @@ thiserror.workspace = true
 [dev-dependencies]
 cw-asset.workspace = true
 cw-controllers.workspace = true
-abstract-app.workspace = true
+abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-sdk.workspace = true
 anyhow.workspace = true
 cosmwasm-schema.workspace = true

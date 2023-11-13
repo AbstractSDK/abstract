@@ -18,24 +18,36 @@ use cosmwasm_std::{Empty, Response};
 pub mod mock {
     pub use abstract_core::app;
     use abstract_interface::AppDeployer;
+    use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_json, to_json_binary, Addr, Response, StdError};
     use cw_orch::prelude::*;
 
     pub type AppTestResult = Result<(), MockError>;
 
+    crate::app_msg_types!(MockAppContract, MockExecMsg, MockQueryMsg);
+
     #[cosmwasm_schema::cw_serde]
     pub struct MockInitMsg;
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockExecMsg;
-
-    impl app::AppExecuteMsg for MockExecMsg {}
+    #[derive(cw_orch::ExecuteFns)]
+    #[impl_into(ExecuteMsg)]
+    pub enum MockExecMsg {
+        DoSomething {},
+    }
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockQueryMsg;
+    #[derive(cw_orch::QueryFns)]
+    #[impl_into(QueryMsg)]
+    #[derive(QueryResponses)]
+    pub enum MockQueryMsg {
+        #[returns(MockQueryResponse)]
+        GetSomething {},
+    }
 
-    impl app::AppQueryMsg for MockQueryMsg {}
+    #[cosmwasm_schema::cw_serde]
+    pub struct MockQueryResponse {}
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockMigrateMsg;
@@ -87,7 +99,7 @@ pub mod mock {
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
         .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
         .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-        .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
+        .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into))
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
         .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
@@ -97,6 +109,8 @@ pub mod mock {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
+
+    crate::cw_orch_interface!(MOCK_APP, MockAppContract, MockAppInterface);
 
     crate::export_endpoints!(MOCK_APP, MockAppContract);
 

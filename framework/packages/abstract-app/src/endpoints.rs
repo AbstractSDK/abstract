@@ -140,7 +140,7 @@ mod test {
         assert_that!(actual_init).is_equal_to(expected_init);
 
         // exec
-        let exec_msg = app::ExecuteMsg::Module(MockExecMsg);
+        let exec_msg = app::ExecuteMsg::Module(MockExecMsg::DoSomething {});
         let actual_exec = execute(
             deps.as_mut(),
             mock_env(),
@@ -156,7 +156,7 @@ mod test {
         assert_that!(actual_exec).is_equal_to(expected_exec);
 
         // query
-        let query_msg = app::QueryMsg::Module(MockQueryMsg);
+        let query_msg = app::QueryMsg::Module(MockQueryMsg::GetSomething {});
         let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
         let expected_query = MOCK_APP.query(deps.as_ref(), mock_env(), query_msg);
         assert_that!(actual_query).is_equal_to(expected_query);
