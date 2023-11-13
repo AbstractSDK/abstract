@@ -6,19 +6,15 @@ use abstract_core::{
     app::{BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
 };
-use abstract_sdk::{
-    core::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
-    cw_helpers::wasm_smart_query,
-    feature_objects::{AnsHost, VersionControlContract},
-};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use cosmwasm_std::{from_json, Binary, DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 
 impl<
         Error: ContractError,
-        CustomInitMsg: Serialize + JsonSchema,
+        CustomInitMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
@@ -35,7 +31,7 @@ impl<
         SudoMsg,
     >
 {
-    type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
+    type InstantiateMsg = InstantiateMsg<Binary>;
     fn instantiate(
         self,
         mut deps: DepsMut,
@@ -46,24 +42,17 @@ impl<
         let BaseInstantiateMsg {
             ans_host_address,
             version_control_address,
+            account_base,
         } = msg.base;
+
+        let module_msg = from_json(msg.module)?;
+
         let ans_host = AnsHost {
             address: deps.api.addr_validate(&ans_host_address)?,
         };
         let version_control = VersionControlContract {
             address: deps.api.addr_validate(&version_control_address)?,
         };
-
-        // TODO: Would be nice to remove context
-        // Issue: We can't pass easily AccountBase with BaseInstantiateMsg(right now)
-
-        // Caller is factory so get proxy and manager (admin) from there
-        let resp: ContextResponse = deps.querier.query(&wasm_smart_query(
-            info.sender.to_string(),
-            &FactoryQuery::Context {},
-        )?)?;
-
-        let account_base = resp.account_base;
 
         // Base state
         let state = AppState {
@@ -80,7 +69,7 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new());
         };
-        handler(deps, env, info, self, msg.module)
+        handler(deps, env, info, self, module_msg)
     }
 }
 
@@ -88,9 +77,13 @@ impl<
 mod test {
     use super::*;
     use crate::mock::*;
+    use cosmwasm_std::to_json_binary;
     use speculoos::prelude::*;
 
-    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL};
+    use abstract_testing::{
+        addresses::test_account_base,
+        prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL},
+    };
     use speculoos::assert_that;
 
     #[test]
@@ -104,8 +97,9 @@ mod test {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
+                account_base: test_account_base(),
             },
-            module: MockInitMsg {},
+            module: to_json_binary(&MockInitMsg {}).unwrap(),
         };
 
         let res = MOCK_APP

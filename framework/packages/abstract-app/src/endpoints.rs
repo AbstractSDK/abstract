@@ -102,10 +102,13 @@ mod test {
         ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
         SudoEndpoint,
     };
-    use abstract_testing::prelude::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use abstract_testing::{
+        addresses::test_account_base,
+        prelude::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL},
+    };
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        SubMsgResult,
+        to_json_binary, SubMsgResult,
     };
     use speculoos::prelude::*;
 
@@ -122,8 +125,9 @@ mod test {
             base: app::BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
+                account_base: test_account_base(),
             },
-            module: MockInitMsg,
+            module: to_json_binary(&MockInitMsg).unwrap(),
         };
         let actual_init = instantiate(
             deps.as_mut(),

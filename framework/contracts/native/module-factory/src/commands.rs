@@ -13,8 +13,8 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps, DepsMut, Env, MessageInfo,
-    StdResult, WasmMsg,
+    to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps, DepsMut,
+    Env, MessageInfo, StdResult, WasmMsg,
 };
 
 /// Function that starts the creation of the Modules
@@ -29,13 +29,20 @@ pub fn execute_create_modules(
     let block_height = env.block.height;
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
-    let binding = VersionControlContract::new(config.version_control_address);
+    let version_control = VersionControlContract::new(config.version_control_address);
 
-    let version_registry = binding.module_registry(deps.as_ref());
-    let account_registry = binding.account_registry(deps.as_ref());
+    let version_registry = version_control.module_registry(deps.as_ref());
+    let account_registry = version_control.account_registry(deps.as_ref());
 
     // assert that sender is manager
     let account_base = account_registry.assert_manager(&info.sender)?;
+
+    // App base message
+    let app_base_msg = abstract_core::app::BaseInstantiateMsg {
+        ans_host_address: config.ans_host_address.to_string(),
+        version_control_address: version_control.address.to_string(),
+        account_base: account_base.clone(),
+    };
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
@@ -89,12 +96,19 @@ pub fn execute_create_modules(
 
         match &new_module.reference {
             ModuleReference::App(code_id) => {
+                let init_msg = owner_init_msg.unwrap();
+
+                // App will have to do one extra
+                let app_init_msg = abstract_core::app::InstantiateMsg::<Binary> {
+                    base: app_base_msg.clone(),
+                    module: init_msg,
+                };
                 let (addr, init_msg) = instantiate2_contract(
                     deps.as_ref(),
                     canonical_contract_addr.clone(),
                     block_height,
                     *code_id,
-                    owner_init_msg.unwrap(),
+                    to_json_binary(&app_init_msg)?,
                     salt.clone(),
                     Some(account_base.manager.clone()),
                     new_module_init_funds,
@@ -136,9 +150,6 @@ pub fn execute_create_modules(
         ))
         .into());
     }
-
-    let context = Context { account_base };
-    CONTEXT.save(deps.storage, &context)?;
 
     let new_modules = new_module_addrs(&modules_to_register)?;
 
