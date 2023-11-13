@@ -111,7 +111,6 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     }
 
     /// A simple helper install a remote api Module providing only the chain name
-    /// TODO, too much arguments here, we need to have the remote addresses automatically populated
     pub fn install_remote_api<M: Serialize>(
         &self,
         host_chain: String, // The chain on which you want to create an account,
