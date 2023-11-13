@@ -52,7 +52,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
     origin
         .account
         .manager
-        .install_module(IBC_CLIENT, &Empty {}, None)?;
+        .install_module::<Empty>(IBC_CLIENT, None, None)?;
 
     // Now we send a message to the client saying that we want to create an account on osmosis
     let register_tx = origin.account.register_remote_account(&destination_name)?;

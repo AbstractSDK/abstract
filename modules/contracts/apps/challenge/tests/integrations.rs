@@ -1,12 +1,9 @@
 use crate::msg::QueryMsg;
-use abstract_core::{
-    app::BaseInstantiateMsg,
-    objects::{
-        gov_type::GovernanceDetails,
-        module::{ModuleInfo, ModuleVersion},
-        voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
-        AssetEntry,
-    },
+use abstract_core::objects::{
+    gov_type::GovernanceDetails,
+    module::{ModuleInfo, ModuleVersion},
+    voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
+    AssetEntry,
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
 use challenge_app::{
@@ -15,7 +12,7 @@ use challenge_app::{
     msg::{
         ChallengeEntryResponse, ChallengeInstantiateMsg, ChallengeQueryMsg, ChallengeRequest,
         ChallengeResponse, ChallengesResponse, Friend, FriendByAddr, FriendsResponse,
-        InstantiateMsg, ProposalsResponse, VoteResponse,
+        ProposalsResponse, VoteResponse,
     },
     state::{AdminStrikes, ChallengeEntryUpdate, StrikeStrategy, UpdateFriendsOpKind},
     *,
@@ -126,30 +123,17 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
         None,
     )?;
 
-    let _ = account.install_module(
-        CHALLENGE_APP_ID,
-        &InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr_deployment.ans_host.addr_str()?,
-                version_control_address: abstr_deployment.version_control.addr_str()?,
-            },
-            module: ChallengeInstantiateMsg {
-                vote_config: VoteConfig {
-                    threshold: Threshold::Majority {},
-                    veto_duration_seconds: None,
-                },
+    let _ = account.install_app(
+        &challenge_app,
+        &ChallengeInstantiateMsg {
+            vote_config: VoteConfig {
+                threshold: Threshold::Majority {},
+                veto_duration_seconds: None,
             },
         },
         None,
     )?;
 
-    let module_addr = account
-        .manager
-        .module_info(CHALLENGE_APP_ID)?
-        .unwrap()
-        .address;
-
-    challenge_app.set_address(&module_addr);
     challenge_app.set_sender(&account.manager.address()?);
     mock.set_balance(
         &account.proxy.address()?,
