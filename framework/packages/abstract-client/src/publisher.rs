@@ -23,43 +23,40 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         Self { account_builder }
     }
 
-    pub fn name(self, name: impl Into<String>) -> Self {
-        Self {
-            account_builder: self.account_builder.name(name),
-        }
+    pub fn name(&mut self, name: impl Into<String>) -> &mut Self {
+        self.account_builder.name(name);
+        self
     }
 
-    pub fn description(self, description: impl Into<String>) -> Self {
-        Self {
-            account_builder: self.account_builder.description(description),
-        }
+    pub fn description(&mut self, description: impl Into<String>) -> &mut Self {
+        self.account_builder.description(description);
+        self
     }
 
-    pub fn link(self, link: impl Into<String>) -> Self {
-        Self {
-            account_builder: self.account_builder.link(link),
-        }
+    pub fn link(&mut self, link: impl Into<String>) -> &mut Self {
+        self.account_builder.link(link);
+        self
     }
 
-    pub fn namespace(self, namespace: impl Into<String>) -> Self {
-        Self {
-            account_builder: self.account_builder.namespace(namespace),
-        }
+    pub fn namespace(&mut self, namespace: impl Into<String>) -> &mut Self {
+        self.account_builder.namespace(namespace);
+        self
     }
 
-    pub fn base_asset(self, base_asset: AssetEntry) -> Self {
-        Self {
-            account_builder: self.account_builder.base_asset(base_asset),
-        }
+    pub fn base_asset(&mut self, base_asset: AssetEntry) -> &mut Self {
+        self.account_builder.base_asset(base_asset);
+        self
     }
 
-    pub fn governance_details(self, governance_details: GovernanceDetails<String>) -> Self {
-        Self {
-            account_builder: self.account_builder.governance_details(governance_details),
-        }
+    pub fn governance_details(
+        &mut self,
+        governance_details: GovernanceDetails<String>,
+    ) -> &mut Self {
+        self.account_builder.governance_details(governance_details);
+        self
     }
 
-    pub fn build(self) -> AbstractClientResult<Publisher<Chain>> {
+    pub fn build(&self) -> AbstractClientResult<Publisher<Chain>> {
         let account = self.account_builder.build()?;
         Ok(Publisher { account })
     }

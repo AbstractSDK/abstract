@@ -39,63 +39,56 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         }
     }
 
-    pub fn name(self, name: impl Into<String>) -> Self {
-        Self {
-            name: Some(name.into()),
-            ..self
-        }
+    pub fn name(&mut self, name: impl Into<String>) -> &mut Self {
+        self.name = Some(name.into());
+        self
     }
 
-    pub fn description(self, description: impl Into<String>) -> Self {
-        Self {
-            description: Some(description.into()),
-            ..self
-        }
+    pub fn description(&mut self, description: impl Into<String>) -> &mut Self {
+        self.description = Some(description.into());
+        self
     }
 
-    pub fn link(self, link: impl Into<String>) -> Self {
-        Self {
-            link: Some(link.into()),
-            ..self
-        }
+    pub fn link(&mut self, link: impl Into<String>) -> &mut Self {
+        self.link = Some(link.into());
+        self
     }
 
-    pub fn namespace(self, namespace: impl Into<String>) -> Self {
-        Self {
-            namespace: Some(namespace.into()),
-            ..self
-        }
+    pub fn namespace(&mut self, namespace: impl Into<String>) -> &mut Self {
+        self.namespace = Some(namespace.into());
+        self
     }
 
-    pub fn base_asset(self, base_asset: AssetEntry) -> Self {
-        Self {
-            base_asset: Some(base_asset),
-            ..self
-        }
+    pub fn base_asset(&mut self, base_asset: AssetEntry) -> &mut Self {
+        self.base_asset = Some(base_asset);
+        self
     }
 
-    pub fn governance_details(self, governance_details: GovernanceDetails<String>) -> Self {
-        Self {
-            governance_details: Some(governance_details),
-            ..self
-        }
+    pub fn governance_details(
+        &mut self,
+        governance_details: GovernanceDetails<String>,
+    ) -> &mut Self {
+        self.governance_details = Some(governance_details);
+        self
     }
 
-    pub fn build(self) -> AbstractClientResult<Account<Chain>> {
+    pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
         let sender = self.environment().sender().to_string();
         let name = self
             .name
+            .clone()
             .unwrap_or_else(|| String::from("Default Abstract Account"));
         let governance_details = self
             .governance_details
+            .clone()
             .unwrap_or(GovernanceDetails::Monarchy { monarch: sender });
         let abstract_account = self.abstr.account_factory.create_new_account(
             AccountDetails {
                 name,
-                description: self.description,
-                link: self.link,
-                namespace: self.namespace,
-                base_asset: self.base_asset,
+                description: self.description.clone(),
+                link: self.link.clone(),
+                namespace: self.namespace.clone(),
+                base_asset: self.base_asset.clone(),
                 install_modules: vec![],
             },
             governance_details,
