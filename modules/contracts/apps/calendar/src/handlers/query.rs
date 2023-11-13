@@ -1,12 +1,14 @@
 use crate::contract::{App, AppResult};
 use crate::msg::{AppQueryMsg, ConfigResponse, MeetingsResponse};
 use crate::state::{CALENDAR, CONFIG};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Int64, StdResult};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, Int64, StdResult};
 
 pub fn query_handler(deps: Deps, _env: Env, _app: &App, msg: AppQueryMsg) -> AppResult<Binary> {
     match msg {
-        AppQueryMsg::Config {} => to_binary(&query_config(deps)?),
-        AppQueryMsg::Meetings { day_datetime } => to_binary(&query_meetings(deps, day_datetime)?),
+        AppQueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+        AppQueryMsg::Meetings { day_datetime } => {
+            to_json_binary(&query_meetings(deps, day_datetime)?)
+        }
     }
     .map_err(Into::into)
 }

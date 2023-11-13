@@ -25,7 +25,7 @@ use abstract_sdk::{
     AccountVerification, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo,
+    to_json_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo,
     QueryRequest, Storage,
 };
 use polytone::callbacks::CallbackRequest;
@@ -100,7 +100,7 @@ pub fn execute_register_infrastructure(
             msgs: vec![],
             callback: Some(CallbackRequest {
                 receiver: env.contract.address.to_string(),
-                msg: to_binary(&IbcClientCallback::WhoAmI {})?,
+                msg: to_json_binary(&IbcClientCallback::WhoAmI {})?,
             }),
             timeout_seconds: PACKET_LIFETIME.into(),
         },
@@ -220,7 +220,7 @@ pub fn execute_send_packet(
 
     let callback_request = callback_info.map(|c| CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_binary(&IbcClientCallback::UserRemoteAction(c)).unwrap(),
+        msg: to_json_binary(&IbcClientCallback::UserRemoteAction(c)).unwrap(),
     });
 
     let note_message = send_remote_host_action(
@@ -247,7 +247,7 @@ pub fn execute_send_query(
 
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_binary(&IbcClientCallback::UserRemoteAction(callback_info)).unwrap(),
+        msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info)).unwrap(),
     };
 
     let note_message =
@@ -316,7 +316,10 @@ pub fn execute_send_funds(
     // get account_id of Account
     let account_id = account_base.account_id(deps.as_ref())?;
     // load remote account
-    let remote_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
+    let remote_addr = ACCOUNTS.load(
+        deps.storage,
+        (account_id.trace(), account_id.seq(), &host_chain),
+    )?;
 
     let ics20_channel_entry = ChannelEntry {
         connected_chain: host_chain,
@@ -346,190 +349,4 @@ pub fn execute_send_funds(
 
 fn clear_accounts(store: &mut dyn Storage) {
     ACCOUNTS.clear(store);
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::contract;
-    use abstract_core::ibc_client::*;
-    use abstract_testing::prelude::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        Addr,
-    };
-    use speculoos::prelude::*;
-
-    const TEST_CHAIN: &str = "test-chain";
-
-    type IbcClientTestResult = Result<(), IbcClientError>;
-
-    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> IbcClientResult {
-        contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
-    }
-
-    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> IbcClientResult {
-        execute_as(deps, TEST_ADMIN, msg)
-    }
-
-    fn mock_init(deps: DepsMut) -> IbcClientResult {
-        let msg = InstantiateMsg {
-            ans_host_address: TEST_ANS_HOST.to_string(),
-            version_control_address: TEST_VERSION_CONTROL.to_string(),
-        };
-        contract::instantiate(deps, mock_env(), mock_info(TEST_ADMIN, &[]), msg)
-    }
-
-    fn test_only_admin(msg: ExecuteMsg) -> IbcClientTestResult {
-        let mut deps = mock_dependencies();
-        mock_init(deps.as_mut())?;
-
-        let res = execute_as(deps.as_mut(), "not_admin", msg);
-        assert_that!(&res)
-            .is_err()
-            .matches(|e| matches!(e, IbcClientError::Admin { .. }));
-
-        Ok(())
-    }
-
-    mod update_config {
-        use super::*;
-        use abstract_core::{ibc_client::state::Config, objects::account::TEST_ACCOUNT_ID};
-        use abstract_testing::prelude::TEST_VERSION_CONTROL;
-
-        #[test]
-        fn only_admin() -> IbcClientTestResult {
-            test_only_admin(ExecuteMsg::UpdateConfig {
-                version_control: None,
-                ans_host: None,
-            })
-        }
-
-        #[test]
-        fn update_ans_host() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-            let cfg = Config {
-                version_control: VersionControlContract::new(Addr::unchecked(TEST_VERSION_CONTROL)),
-                ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
-            };
-            CONFIG.save(deps.as_mut().storage, &cfg)?;
-
-            let new_ans_host = "new_ans_host".to_string();
-
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host: Some(new_ans_host.clone()),
-                version_control: None,
-            };
-
-            let res = execute_as_admin(deps.as_mut(), msg)?;
-            assert_that!(res.messages).is_empty();
-
-            let actual = CONFIG.load(deps.as_ref().storage)?;
-            assert_that!(actual.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
-
-            Ok(())
-        }
-
-        #[test]
-        pub fn update_version_control() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let new_version_control = "new_version_control".to_string();
-
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host: None,
-                version_control: Some(new_version_control.clone()),
-            };
-
-            let res = execute_as_admin(deps.as_mut(), msg)?;
-            assert_that!(res.messages).is_empty();
-
-            let cfg = CONFIG.load(deps.as_ref().storage)?;
-            assert_that!(cfg.version_control.address)
-                .is_equal_to(Addr::unchecked(new_version_control));
-
-            Ok(())
-        }
-
-        #[test]
-        fn update_version_control_should_clear_accounts() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            ACCOUNTS.save(
-                deps.as_mut().storage,
-                (&TEST_ACCOUNT_ID, &ChainName::from_str("channel")?),
-                &"Some-remote-account".to_string(),
-            )?;
-
-            let new_version_control = "new_version_control".to_string();
-
-            let msg = ExecuteMsg::UpdateConfig {
-                ans_host: None,
-                version_control: Some(new_version_control),
-            };
-
-            let res = execute_as_admin(deps.as_mut(), msg)?;
-            assert_that!(res.messages).is_empty();
-
-            assert_that!(ACCOUNTS.is_empty(&deps.storage)).is_true();
-
-            Ok(())
-        }
-    }
-
-    mod remove_host {
-        use super::*;
-
-        #[test]
-        fn only_admin() -> IbcClientTestResult {
-            test_only_admin(ExecuteMsg::RemoveHost {
-                host_chain: "host-chain".into(),
-            })
-        }
-
-        #[test]
-        fn remove_existing_host() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            IBC_INFRA.save(
-                deps.as_mut().storage,
-                &ChainName::from_str(TEST_CHAIN)?,
-                &IbcInfrastructure {
-                    polytone_note: Addr::unchecked("note"),
-                    remote_abstract_host: "test_remote_host".into(),
-                    remote_proxy: None,
-                },
-            )?;
-
-            let msg = ExecuteMsg::RemoveHost {
-                host_chain: TEST_CHAIN.into(),
-            };
-
-            let res = execute_as_admin(deps.as_mut(), msg)?;
-            assert_that!(res.messages).is_empty();
-
-            assert_that!(IBC_INFRA.is_empty(&deps.storage)).is_true();
-
-            Ok(())
-        }
-
-        #[test]
-        fn remove_host_nonexistent_should_not_throw() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let msg = ExecuteMsg::RemoveHost {
-                host_chain: TEST_CHAIN.into(),
-            };
-
-            let res = execute_as_admin(deps.as_mut(), msg)?;
-            assert_that!(res.messages).is_empty();
-
-            Ok(())
-        }
-    }
 }

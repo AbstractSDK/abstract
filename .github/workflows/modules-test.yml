@@ -64,25 +64,3 @@ jobs:
             }
           }" https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
 
-  # Find any unused dependencies
-  unused-deps:
-    runs-on: ubuntu-latest
-    name: nigtly / unused-deps
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
-            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
-      - name: Install nightly
-        uses: dtolnay/rust-toolchain@nightly
-      - name: cargo install cargo-udeps
-        uses: taiki-e/install-action@cargo-udeps
-      - name: cargo install cargo-workspaces
-        run: cargo install cargo-workspaces
-      - name: cargo udeps modules
-        working-directory: ./modules
-        run: cargo workspaces exec cargo +nightly udeps

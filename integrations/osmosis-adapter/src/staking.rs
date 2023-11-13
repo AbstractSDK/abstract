@@ -64,7 +64,7 @@ pub mod fns {
                     seconds: sec.try_into().unwrap(),
                     nanos: 0,
                 })),
-                _ => Err(StdError::generic_err("Wrong duration, only time accepted")).unwrap(),
+                _ => Err(StdError::generic_err("Wrong duration, only time accepted")),
             }
         } else {
             Ok(None)
@@ -133,10 +133,10 @@ pub mod fns {
             _env: Env,
             info: Option<MessageInfo>,
             ans_host: &AnsHost,
-            version_control_contract: &VersionControlContract,
+            version_control_contract: VersionControlContract,
             staking_assets: Vec<AssetEntry>,
         ) -> abstract_sdk::AbstractSdkResult<()> {
-            self.version_control_contract = Some(version_control_contract.clone());
+            self.version_control_contract = Some(version_control_contract);
             let account_registry = self.account_registry(deps);
 
             let base = info

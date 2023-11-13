@@ -1,67 +1,67 @@
 # Summary
 
-[Abstract Documentation](./0_abstract_documentation.md)
+[Introduction](./0_introduction.md)
 
-# About Abstract
-- [What is Abstract?](./8_vision.md)
+# Framework
+---
+
 - [Prerequisites](./3_framework/0_prerequisites.md)
-- [Platform Overview](1_abstract_platform_overview.md)
-  - [Account Abstraction](./3_framework/3_account_abstraction.md)
-  - [Abstract SDK](./3_framework/1_abstract_sdk.md)
-  - [CW-Orchestrator](./3_framework/1_abstract_sdk.md)
-  - [Architecture](./3_framework/4_architecture.md)
-  - [Account Ownership](./3_framework/5_ownership.md)
-  - [Modularity](./3_framework/6_modularity.md)
-    - [Module Types](./3_framework/7_module_types.md)
-  - [Upgradability](./3_framework/8_upgradability.md)
+- [Abstract SDK](./3_framework/1_abstract_sdk.md)
+- [Account Abstraction](./3_framework/2_account_abstraction.md)
+- [Architecture](./3_framework/3_architecture.md)
+- [Modularity](./3_framework/5_modularity.md)
+    - [Module Types](./3_framework/6_module_types.md)
+    - [Upgradability](./3_framework/7_upgradability.md)
+- [Account Ownership](./3_framework/4_ownership.md)
+- [Interchain Abstract Accounts](./3_framework/8_ibc.md)
 
-- [Platform Details](./5_platform/index.md)
-  - [Abstract Name Service](./5_platform/ans.md)
-  - [Version Control](./5_platform/version_control.md)
-  - [Account Factory](./5_platform/account_factory.md)
+- [Framework Components](./5_platform/index.md)
+    - [Abstract Name Service](./5_platform/1_ans.md)
+    - [Version Control](./5_platform/2_version_control.md)
+    - [Account Factory](./5_platform/3_account_factory.md)
+    - [Account Console](./5_platform/4_account_console.md)
+    - [Module Factory](./5_platform/5_module_factory.md)
+    - [Monetization](./5_platform/6_monetization.md)
+    - [Oracle](./5_platform/7_oracle.md)
 
-- [Execution Flows]()
-	- [Account Actions]()
-		- [Install Module](./6_flows/manager/install_module.md)
-		- [Execute on Module](./6_flows/manager/exec_on_module.md)
-		- [Update Settings](./6_flows/manager/update_settings.md)
-		- [Set Owner]()
-		- [Upgrade Modules](./6_flows/manager/upgrade_modules.md)
-- [Interchain Abstract Accounts]()
+- [Abstract Products](1_products/index.md)
+  - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)
+  - [Abstract-JS](./1_products/4_abstract_js.md)
+  - [Abstract App Template](./1_products/2_abstract_app_template.md)
+  - [Abstract Testing](./1_products/3_abstract_testing.md)
 
+  
 # Build With Abstract
+---
 
-- [Abstract Design Space](./2_introduction/1_design_space.md)
+- [Application Design Space](./2_introduction/1_design_space.md)
 - [Getting Started](./4_get_started/1_index.md)
-  - [Installation](./4_get_started/2_installation.md)
-  - [Module Builder](./4_get_started/3_module_builder.md)
-  - [Account Abstraction SDK](./4_get_started/4_sdk.md)
-  - [Module Dependencies]()
-  - [Account Creation](./4_get_started/5_account_creation.md)
-  - [Module Testing](./4_get_started/6_module_testing.md)
-  - [Module Deployment](./4_get_started/7_module_deployment.md)
-  - [Best Practices]()
-  - [Quality Assurance]()
+    - [Installation](./4_get_started/2_installation.md)
+    - [Module Builder](./4_get_started/3_module_builder.md)
+    - [Account Abstraction SDK](./4_get_started/4_sdk.md)
+    - [Account Creation](./4_get_started/5_account_creation.md)
+    - [Module Testing](./4_get_started/6_module_testing.md)
+    - [Module Deployment](./4_get_started/7_module_deployment.md)
+    - [Module Dependencies](./4_get_started/8_dependencies.md)
 
 
-# Use Cases
+# Case Studies
+---
+
 - [Use Cases](./7_use_cases/index.md)
-  - [Equilibrium](./7_use_cases/equilibrium.md)
-  - [4t2 Finance]()
-
-- [Vision](./8_vision.md)
+    - [Equilibrium](./7_use_cases/1_equilibrium.md)
+    - [4t2 Finance](./7_use_cases/2_4t2.md)
 
 
 # Resources and Support
 
-- [Interchain Abstract Accounts](./ibc/index.md)
-  - [Overview](./ibc/overview.md)
-  - [Specification](./ibc/spec.md)
+---
+<!-- - [Interchain Abstract Accounts](./ibc/index.md)
+    - [Overview](./ibc/overview.md)
+    - [Specification](./ibc/spec.md) -->
 
-- [Video and Content]()
-  - [Interviews]()
-  - [Tutorials]()
-  - [FAQ](./video_and_content/faq.md)
+- [FAQ](./video_and_content/faq.md)
+- [Videos](./video_and_content/videos.md)
 
 [Glossary](./9_glossary.md)
 [Contributing & Community](./contributing.md)

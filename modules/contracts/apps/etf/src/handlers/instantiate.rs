@@ -3,7 +3,7 @@ use crate::msg::EtfInstantiateMsg;
 use crate::state::{State, FEE, STATE};
 use abstract_core::objects::fee::Fee;
 use cosmwasm_std::{
-    to_binary, Addr, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg, WasmMsg,
+    to_json_binary, Addr, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg, WasmMsg,
 };
 use cw20::MinterResponse;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
@@ -38,7 +38,7 @@ pub fn instantiate_handler(
         msg: WasmMsg::Instantiate {
             admin: None,
             code_id: msg.token_code_id,
-            msg: to_binary(&TokenInstantiateMsg {
+            msg: to_json_binary(&TokenInstantiateMsg {
                 name: lp_token_name.clone(),
                 symbol: lp_token_symbol,
                 decimals: 6,

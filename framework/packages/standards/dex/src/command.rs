@@ -2,9 +2,9 @@ use std::error::Error;
 
 use crate::error::DexError;
 use abstract_adapter_utils::identity::Identify;
-use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference};
-use abstract_sdk::core::objects::AssetEntry;
-use abstract_sdk::feature_objects::AnsHost;
+use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference, UniquePoolId};
+use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::{core::objects::AssetEntry, AbstractSdkResult};
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
@@ -19,19 +19,29 @@ pub type FeeOnInput = bool;
 /// Implements the usual DEX operations.
 pub trait DexCommand<E: Error = DexError>: Identify {
     /// Return pool information for given assets pair
-    fn pair_address(
+    fn pool_reference(
         &self,
         deps: Deps,
         ans_host: &AnsHost,
         assets: (AssetEntry, AssetEntry),
-    ) -> Result<PoolAddress, DexError> {
+    ) -> Result<PoolReference, DexError> {
         let dex_pair = DexAssetPairing::new(assets.0, assets.1, self.name());
         let mut pool_ref = ans_host.query_asset_pairing(&deps.querier, &dex_pair)?;
         // Currently takes the first pool found, but should be changed to take the best pool
         let found: PoolReference = pool_ref.pop().ok_or(DexError::AssetPairingNotFound {
             asset_pairing: dex_pair,
         })?;
-        Ok(found.pool_address)
+        Ok(found)
+    }
+
+    /// Return pool address for given assets pair
+    fn pair_address(
+        &self,
+        deps: Deps,
+        ans_host: &AnsHost,
+        assets: (AssetEntry, AssetEntry),
+    ) -> Result<PoolAddress, DexError> {
+        Ok(self.pool_reference(deps, ans_host, assets)?.pool_address)
     }
 
     /// Execute a swap on the given DEX using the swap in question custom logic
@@ -93,6 +103,18 @@ pub trait DexCommand<E: Error = DexError>: Identify {
         ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), E>;
 
+    /// Fetch data for execute methods
+    fn fetch_data(
+        &mut self,
+        _deps: Deps,
+        _sender: cosmwasm_std::Addr,
+        _version_control_contract: VersionControlContract,
+        _ans_host: AnsHost,
+        _pool_id: UniquePoolId,
+    ) -> AbstractSdkResult<()> {
+        // Dummy implementation, since most of dexes does not require this method
+        Ok(())
+    }
     // fn raw_swap();
     // fn raw_provide_liquidity();
     // fn raw_withdraw_liquidity();

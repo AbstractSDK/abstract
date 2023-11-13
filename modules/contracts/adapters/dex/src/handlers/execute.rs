@@ -15,7 +15,7 @@ use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
 use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
-use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
+use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -69,14 +69,19 @@ pub fn execute_handler(
 fn handle_local_request(
     deps: DepsMut,
     _env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     adapter: DexAdapter,
     action: DexAction,
     exchange: String,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    let (msgs, _) =
-        crate::adapter::DexAdapter::resolve_dex_action(&adapter, deps.as_ref(), action, exchange)?;
+    let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
+        &adapter,
+        deps.as_ref(),
+        info.sender,
+        action,
+        exchange,
+    )?;
     let proxy_msg = adapter
         .executor(deps.as_ref())
         .execute(msgs.into_iter().map(Into::into).collect())?;
@@ -104,7 +109,7 @@ fn handle_ibc_request(
     let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
         manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
             module_id: DEX_ADAPTER_ID.to_string(),
-            exec_msg: to_binary::<ExecuteMsg>(
+            exec_msg: to_json_binary::<ExecuteMsg>(
                 &DexExecuteMsg::Action {
                     dex: dex_name.clone(),
                     action: action.clone(),
@@ -121,7 +126,7 @@ fn handle_ibc_request(
     } else {
         Some(CallbackInfo {
             id: IBC_DEX_PROVIDER_ID.into(),
-            msg: Some(to_binary(&DexExecuteMsg::Action {
+            msg: Some(to_json_binary(&DexExecuteMsg::Action {
                 dex: dex_name.clone(),
                 action: action.clone(),
             })?),

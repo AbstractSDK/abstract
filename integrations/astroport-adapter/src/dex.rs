@@ -22,7 +22,7 @@ use ::{
     abstract_sdk::core::objects::PoolAddress,
     abstract_sdk::cw_helpers::wasm_smart_query,
     astroport::pair::{PoolResponse, SimulationResponse},
-    cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
+    cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
 };
@@ -66,7 +66,7 @@ impl DexCommand for Astroport {
                 &Cw20ExecuteMsg::Send {
                     contract: pair_address.to_string(),
                     amount: offer_asset.amount,
-                    msg: to_binary(&astroport::pair::Cw20HookMsg::Swap {
+                    msg: to_json_binary(&astroport::pair::Cw20HookMsg::Swap {
                         belief_price,
                         ask_asset_info: None,
                         max_spread,
@@ -247,7 +247,7 @@ impl DexCommand for Astroport {
 
         let hook_msg = astroport::pair::Cw20HookMsg::WithdrawLiquidity { assets: vec![] };
 
-        let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
+        let withdraw_msg = lp_token.send_msg(pair_address, to_json_binary(&hook_msg)?)?;
         Ok(vec![withdraw_msg])
     }
 
@@ -299,11 +299,11 @@ fn cw_asset_to_astroport(asset: &Asset) -> Result<astroport::asset::Asset, DexEr
 mod tests {
     use abstract_dex_standard::tests::expect_eq;
     use cosmwasm_schema::serde::Deserialize;
-    use cosmwasm_std::to_binary;
+    use cosmwasm_std::to_json_binary;
     use cosmwasm_std::Coin;
 
     use cosmwasm_std::coin;
-    use cosmwasm_std::from_binary;
+    use cosmwasm_std::from_json;
     use cosmwasm_std::CosmosMsg;
     use cosmwasm_std::WasmMsg;
     use cw20::Cw20ExecuteMsg;
@@ -334,7 +334,7 @@ mod tests {
 
     fn get_wasm_msg<T: for<'de> Deserialize<'de>>(msg: CosmosMsg) -> T {
         match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_binary(&msg).unwrap(),
+            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_json(msg).unwrap(),
             _ => panic!("Expected execute wasm msg, got a different enum"),
         }
     }
@@ -538,7 +538,7 @@ mod tests {
                 &Cw20ExecuteMsg::Send {
                     contract: POOL_CONTRACT.to_string(),
                     amount: amount_lp.into(),
-                    msg: to_binary(&astroport::pair::Cw20HookMsg::WithdrawLiquidity {
+                    msg: to_json_binary(&astroport::pair::Cw20HookMsg::WithdrawLiquidity {
                         assets: vec![]
                     })
                     .unwrap()
