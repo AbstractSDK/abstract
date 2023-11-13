@@ -16,13 +16,22 @@ pub enum AdapterError {
     #[error("Sender: {sender} of request to {adapter} is not a Manager or Authorized Address")]
     UnauthorizedAddressAdapterRequest { adapter: String, sender: String },
 
-    #[error("The authorized address or module_id to remove: {} was not present.", addr_or_module_id)]
+    #[error(
+        "The authorized address or module_id to remove: {} was not present.",
+        addr_or_module_id
+    )]
     AuthorizedAddressOrModuleIdNotPresent { addr_or_module_id: String },
 
-    #[error("The authorized address or module_id to add : {} was not valid.", addr_or_module_id)]
-    AuthorizedAddressOrModuleIdNotValid {addr_or_module_id: String },
+    #[error(
+        "The authorized address or module_id to add : {} was not valid.",
+        addr_or_module_id
+    )]
+    AuthorizedAddressOrModuleIdNotValid { addr_or_module_id: String },
 
-    #[error("The authorized address or module_id to add: {} is already present", addr_or_module_id)]
+    #[error(
+        "The authorized address or module_id to add: {} is already present",
+        addr_or_module_id
+    )]
     AuthorizedAddressOrModuleIdAlreadyPresent { addr_or_module_id: String },
 
     #[error("Maximum authorized addresses ({}) reached", max)]
