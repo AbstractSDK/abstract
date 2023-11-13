@@ -22,7 +22,7 @@ then
         echo "'just' has been installed."
     else
         echo "Installation of 'just' cancelled. Can't install tools. ❌"
-        exit 1
+        exit 0
     fi
 fi
 
@@ -33,5 +33,5 @@ then
     echo "Tools have been installed! 👷"
 else
     echo "Tools installation cancelled. ❌"
-    exit 1
+    exit 0
 fi
