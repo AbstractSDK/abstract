@@ -37,13 +37,6 @@ pub fn execute_create_modules(
     // assert that sender is manager
     let account_base = account_registry.assert_manager(&info.sender)?;
 
-    // App base message
-    let app_base_msg = abstract_core::app::BaseInstantiateMsg {
-        ans_host_address: config.ans_host_address.to_string(),
-        version_control_address: version_control.address.to_string(),
-        account_base: account_base.clone(),
-    };
-
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
@@ -97,10 +90,16 @@ pub fn execute_create_modules(
         match &new_module.reference {
             ModuleReference::App(code_id) => {
                 let init_msg = owner_init_msg.unwrap();
+                // App base message
+                let app_base_msg = abstract_core::app::BaseInstantiateMsg {
+                    ans_host_address: config.ans_host_address.to_string(),
+                    version_control_address: version_control.address.to_string(),
+                    account_base: account_base.clone(),
+                };
 
                 // TODO: App will have to do one extra deserialize, is it avoidable?
                 let app_init_msg = abstract_core::app::InstantiateMsg::<Binary> {
-                    base: app_base_msg.clone(),
+                    base: app_base_msg,
                     module: init_msg,
                 };
                 let (addr, init_msg) = instantiate2_contract(
