@@ -98,7 +98,7 @@ pub fn execute_create_modules(
             ModuleReference::App(code_id) => {
                 let init_msg = owner_init_msg.unwrap();
 
-                // App will have to do one extra
+                // TODO: App will have to do one extra deserialize, is it avoidable?
                 let app_init_msg = abstract_core::app::InstantiateMsg::<Binary> {
                     base: app_base_msg.clone(),
                     module: init_msg,
