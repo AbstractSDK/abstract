@@ -154,14 +154,13 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn install_adapter<CustomInitMsg: Serialize, T: AdapterDeployer<Chain, CustomInitMsg>>(
         &self,
         adapter: T,
-        custom_init_msg: &CustomInitMsg,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.manager.get_chain().to_owned())?;
 
         let init_msg = abstract_core::adapter::InstantiateMsg {
-            module: custom_init_msg,
+            module: Empty {}, // Adapters always have empty install messages
             base: abstract_core::adapter::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.address()?.into(),
                 version_control_address: abstr.version_control.address()?.into(),

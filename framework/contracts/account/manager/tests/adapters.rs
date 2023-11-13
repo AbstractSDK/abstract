@@ -388,7 +388,7 @@ fn account_install_adapter() -> AResult {
 
     let adapter = BootMockAdapter1V1::new_test(chain);
     adapter.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
-    let adapter_addr = account.install_adapter(adapter, &MockInitMsg, None)?;
+    let adapter_addr = account.install_adapter(adapter, None)?;
     let module_addr = account
         .manager
         .module_info(common::mock_modules::adapter_1::MOCK_ADAPTER_ID)?
