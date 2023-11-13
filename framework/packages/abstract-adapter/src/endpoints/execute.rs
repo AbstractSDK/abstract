@@ -403,7 +403,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let api = MOCK_ADAPTER;
+            let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
                 to_add: vec![TEST_MODULE_ID.into()],
                 to_remove: vec![],
