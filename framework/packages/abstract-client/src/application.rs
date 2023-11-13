@@ -1,11 +1,12 @@
 use std::ops::Deref;
 
-use abstract_interface::AbstractAccount;
 use cw_orch::prelude::*;
+
+use crate::account::Account;
 
 // An application represents a module installed on a (sub)-account.
 pub struct Application<T: CwEnv, M> {
-    _account: AbstractAccount<T>,
+    account: Account<T>,
     module: M,
 }
 
@@ -18,12 +19,13 @@ impl<Chain: CwEnv, M> Deref for Application<Chain, M> {
     }
 }
 
-impl<T: CwEnv, M> Application<T, M> {
-    pub fn new(account: AbstractAccount<T>, module: M) -> Self {
-        Self {
-            _account: account,
-            module,
-        }
+impl<Chain: CwEnv, M> Application<Chain, M> {
+    pub fn new(account: Account<Chain>, module: M) -> Self {
+        Self { account, module }
+    }
+
+    pub fn account(&self) -> &Account<Chain> {
+        &self.account
     }
 }
 

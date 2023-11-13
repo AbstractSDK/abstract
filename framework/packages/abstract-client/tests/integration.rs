@@ -243,6 +243,9 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     let publisher: Publisher<Mock> = client.new_publisher().namespace("my-namespace").build()?;
 
+    let publisher_admin = publisher.admin()?;
+    let publisher_proxy = publisher.proxy()?;
+
     publisher.deploy_module::<AppInterface<Mock>>()?;
 
     let my_app: Application<Mock, AppInterface<Mock>> = publisher
@@ -256,5 +259,21 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let config = my_app.config()?;
 
     assert_eq!(ConfigResponse {}, config);
+
+    let sub_account_details = my_app.account().get_account_info()?;
+    assert_eq!(
+        AccountInfo {
+            name: String::from("Sub Account"),
+            chain_id: String::from("cosmos-testnet-14002"),
+            description: None,
+            governance_details: GovernanceDetails::SubAccount {
+                manager: publisher_admin,
+                proxy: publisher_proxy
+            },
+            link: None,
+        },
+        sub_account_details
+    );
+
     Ok(())
 }

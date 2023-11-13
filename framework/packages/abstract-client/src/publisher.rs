@@ -107,10 +107,10 @@ impl<Chain: CwEnv> Publisher<Chain> {
     }
 
     pub fn admin(&self) -> AbstractClientResult<Addr> {
-        self.account
-            .abstr_account
-            .manager
-            .address()
-            .map_err(Into::into)
+        self.account.admin()
+    }
+
+    pub fn proxy(&self) -> AbstractClientResult<Addr> {
+        self.account.proxy()
     }
 }
