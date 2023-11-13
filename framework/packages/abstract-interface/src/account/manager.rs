@@ -4,7 +4,7 @@ use abstract_core::{
     ibc::CallbackInfo,
     ibc_host::{HelperAction, HostAction},
     manager::*,
-    module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse},
+    module_factory::SimulateInstallModulesResponse,
     objects::module::{ModuleInfo, ModuleVersion},
     PROXY,
 };
@@ -25,7 +25,8 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
                 ::manager::contract::instantiate,
                 ::manager::contract::query,
             )
-            .with_migrate(::manager::contract::migrate),
+            .with_migrate(::manager::contract::migrate)
+            .with_reply(::manager::contract::reply),
         )
     }
     fn wasm(&self) -> WasmPath {

@@ -4,7 +4,7 @@ pub use abstract_core::account_factory::{
 };
 use abstract_core::{
     account_factory::*,
-    module_factory::ModuleInstallConfig,
+    manager::ModuleInstallConfig,
     objects::{gov_type::GovernanceDetails, AssetEntry},
     ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
