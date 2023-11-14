@@ -4,6 +4,7 @@ use crate::{
     state::{AdapterContract, ContractError},
     AdapterResult,
 };
+use abstract_core::manager::state::ACCOUNT_MODULES;
 use abstract_core::{
     adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
     version_control::AccountBase,
@@ -14,7 +15,9 @@ use abstract_sdk::{
     features::ModuleIdentification,
     AbstractResponse, AccountVerification, Execution, ModuleInterface,
 };
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
+use cosmwasm_std::{
+    wasm_execute, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -171,7 +174,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             .map_err(Into::into)
     }
 
-    /// Remove authorized addresses from the api.
+    /// Update authorized addresses from the adapter.
     fn update_authorized_addresses(
         &self,
         deps: DepsMut,
@@ -185,7 +188,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             ..
         } = self
             .account_registry(deps.as_ref())
-            .assert_manager(&info.sender)?;
+            .assert_manager(&info.sender.clone())?;
 
         let mut authorized_addrs = self
             .authorized_addresses
@@ -194,10 +197,16 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
         // Handle the addition of authorized addresses
         for authorized in to_add {
-            let authorized_addr = deps.api.addr_validate(authorized.as_str())?;
+            // authorized here can either be a contract address or a module id
+            let authorized_addr = get_addr_from_module_id_or_addr(
+                deps.as_ref(),
+                info.sender.clone(),
+                authorized.clone(),
+            )?;
+
             if authorized_addrs.contains(&authorized_addr) {
-                return Err(AdapterError::AuthorizedAddressAlreadyPresent {
-                    address: authorized,
+                return Err(AdapterError::AuthorizedAddressOrModuleIdAlreadyPresent {
+                    addr_or_module_id: authorized,
                 });
             } else {
                 authorized_addrs.push(authorized_addr);
@@ -206,10 +215,14 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
         // Handling the removal of authorized addresses
         for deauthorized in to_remove {
-            let deauthorized_addr = deps.api.addr_validate(deauthorized.as_str())?;
+            let deauthorized_addr = get_addr_from_module_id_or_addr(
+                deps.as_ref(),
+                info.sender.clone(),
+                deauthorized.clone(),
+            )?;
             if !authorized_addrs.contains(&deauthorized_addr) {
-                return Err(AdapterError::AuthorizedAddressNotPresent {
-                    address: deauthorized,
+                return Err(AdapterError::AuthorizedAddressOrModuleIdNotPresent {
+                    addr_or_module_id: deauthorized,
                 });
             } else {
                 authorized_addrs.retain(|addr| deauthorized_addr.ne(addr));
@@ -229,6 +242,25 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             "update_authorized_addresses",
             vec![("proxy", proxy)],
         ))
+    }
+}
+
+/// This function is a helper to get a contract address from a module ir or from an address.
+/// This is a temporary fix until we change or get rid of the UpdateAuthorizedAddresses API
+fn get_addr_from_module_id_or_addr(
+    deps: Deps,
+    manager: Addr,
+    addr_or_module_id: String,
+) -> Result<Addr, AdapterError> {
+    // authorized here can either be a contract address or a module id
+    if let Ok(Some(addr)) = ACCOUNT_MODULES.query(&deps.querier, manager, &addr_or_module_id) {
+        // In case we receive a module id
+        Ok(addr)
+    } else if let Ok(addr) = deps.api.addr_validate(addr_or_module_id.as_str()) {
+        // In case we receive an address
+        Ok(addr)
+    } else {
+        Err(AdapterError::AuthorizedAddressOrModuleIdNotValid { addr_or_module_id })
     }
 }
 
@@ -355,11 +387,34 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Adapter(AdapterError::AuthorizedAddressAlreadyPresent {
-                        address: _test_authorized_address_string
+                    MockError::Adapter(AdapterError::AuthorizedAddressOrModuleIdAlreadyPresent {
+                        addr_or_module_id: _test_authorized_address_string
                     })
                 )
             });
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_module_id_authorized_address() -> AdapterMockResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_querier();
+
+            mock_init(deps.as_mut())?;
+
+            let _api = MOCK_ADAPTER;
+            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
+                to_add: vec![TEST_MODULE_ID.into()],
+                to_remove: vec![],
+            };
+
+            base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
+
+            let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
+            assert_that!(authorized_addrs.len()).is_equal_to(1);
+            assert_that!(authorized_addrs[0].to_string())
+                .is_equal_to(TEST_MODULE_ADDRESS.to_string());
 
             Ok(())
         }
@@ -382,8 +437,8 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Adapter(AdapterError::AuthorizedAddressNotPresent {
-                        address: _test_authorized_address_string
+                    MockError::Adapter(AdapterError::AuthorizedAddressOrModuleIdNotPresent {
+                        addr_or_module_id: _test_authorized_address_string
                     })
                 )
             });
