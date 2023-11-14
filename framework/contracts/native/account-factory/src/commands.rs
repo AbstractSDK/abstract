@@ -1,4 +1,5 @@
-use abstract_core::module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse};
+use abstract_core::manager::ModuleInstallConfig;
+use abstract_core::module_factory::SimulateInstallModulesResponse;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::price_source::UncheckedPriceSource;
 use abstract_core::objects::{AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID};
