@@ -218,7 +218,7 @@ mod test {
             assert_that(&res).is_ok();
 
             let actual_modules = load_modules(&deps.storage);
-            // Plus proxy
+            // Plus manager
             assert_that(&actual_modules).has_length(2);
             assert_that(&actual_modules).contains(&Addr::unchecked(TEST_MODULE));
         }
@@ -251,7 +251,7 @@ mod test {
             };
 
             // -1 because manager counts as module as well
-            for i in 0..LIST_SIZE_LIMIT-1 {
+            for i in 0..LIST_SIZE_LIMIT - 1 {
                 msg = ExecuteMsg::AddModules {
                     modules: vec![format!("module_{i}")],
                 };
