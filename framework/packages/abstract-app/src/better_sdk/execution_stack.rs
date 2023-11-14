@@ -49,6 +49,14 @@ pub trait ExecutionStack: Sized + AccountIdentification {
     fn push_app_message(&mut self, msg: CosmosMsg) {
         self.stack_mut().push(Executable::CosmosMsg(msg));
     }
+    /// Get the manager address for the current account.
+    fn push_proxy_message(&mut self, msg: CosmosMsg) {
+        self.push_proxy_messages(vec![msg])
+    }
+    /// Get the manager address for the current account.
+    fn push_proxy_messages(&mut self, msgs: Vec<CosmosMsg>) {
+        self.stack_mut().push(Executable::AccountAction(AccountAction::from_vec(msgs)));
+    }
     /// NEVER USE INSIDE YOUR CONTRACTS
     /// Only used for unwrapping the messages to the Response inside abstract
     fn _unwrap_for_response(&mut self) -> AbstractSdkResult<Vec<SubMsg>> {

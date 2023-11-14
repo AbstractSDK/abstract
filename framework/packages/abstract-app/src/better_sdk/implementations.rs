@@ -1,4 +1,4 @@
-use abstract_sdk::{feature_objects::AnsHost, AbstractSdkResult};
+use abstract_sdk::{feature_objects::AnsHost, AbstractSdkResult, base::Handler, AbstractSdkError};
 use cosmwasm_std::{Addr, Deps, DepsMut, Empty, Env, Event, MessageInfo, Response};
 
 use super::{
@@ -9,36 +9,36 @@ use super::{
 };
 
 // This is macro generated (because it has the struct in its types)
-impl<'a> AccountIdentification for TestContract<'a> {
+impl<'a, Module: Handler + 'static, Error: From<AbstractSdkError> + 'static> AccountIdentification for TestContract<'a, Module, Error> {
     fn proxy_address(&self) -> AbstractSdkResult<Addr> {
         Ok(Addr::unchecked("proxy_test"))
     }
 }
 
-impl<'a> AbstractNameService for TestContract<'a> {
+impl<'a, Module: Handler + 'static, Error: From<AbstractSdkError> + 'static> AbstractNameService for TestContract<'a, Module, Error> {
     fn ans_host(&self) -> AbstractSdkResult<AnsHost> {
         Ok(AnsHost::new(Addr::unchecked("ans_host")))
     }
 }
 
-impl<'a> DepsAccess for TestContract<'a> {
+impl<'a, Module: Handler + 'static, Error: From<AbstractSdkError> + 'static> DepsAccess for TestContract<'a, Module, Error> {
     fn deps_mut<'b: 'c, 'c>(&'b mut self) -> DepsMut<'c> {
-        self.env.deps.branch()
+        self.deps.branch()
     }
     fn deps<'b: 'c, 'c>(&'b self) -> Deps<'c> {
-        self.env.deps.as_ref()
+        self.deps.as_ref()
     }
 }
 
-impl<'a> ExecutionStack for TestContract<'a> {
+impl<'a, Module: Handler + 'static, Error: From<AbstractSdkError> + 'static> ExecutionStack for TestContract<'a, Module, Error> {
     fn stack_mut(&mut self) -> &mut Executables {
-        &mut self.env.executable_stack
+        &mut self.executable_stack
     }
 }
 
-impl<'a> CustomEvents for TestContract<'a> {
+impl<'a, Module: Handler + 'static, Error: From<AbstractSdkError> + 'static> CustomEvents for TestContract<'a, Module, Error> {
     fn add_event(&mut self, event_name: &str, attributes: Vec<(&str, &str)>) {
-        self.env
+        self
             .events
             .push(Event::new(event_name).add_attributes(attributes))
     }
@@ -54,12 +54,14 @@ pub fn instantiate(
     info: MessageInfo,
     _msg: Empty,
 ) -> AbstractSdkResult<Response> {
-    let mut app: TestContract = TestContract::new(deps.branch(), env, info);
+    let mut app = TestContract::new(deps.branch(), env, info);
+
+    
 
     app.instantiate(None).unwrap();
 
     let resp = Response::new()
-        .add_events(app.env.events.clone())
+        .add_events(app.events.clone())
         .add_submessages(app._unwrap_for_response()?);
     Ok(resp)
 }
