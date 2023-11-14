@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - `is_module_installed` moved from `Manager` to `Account`
 - `account_id()` method of `AccountRegistry` is now exposed.
+- `Modules`, `Manager` and `Proxy` are now instantiated via instantiate2 message 
 
 ### Removed
 
