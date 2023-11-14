@@ -147,7 +147,7 @@ mod test {
     }
 
     pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
-        let info = mock_info(TEST_CREATOR, &[]);
+        let info = mock_info(TEST_MANAGER, &[]);
         execute(deps.as_mut(), mock_env(), info, msg)
     }
 
@@ -207,7 +207,7 @@ mod test {
         assert_eq!(
             config,
             ConfigResponse {
-                modules: vec!["test_module".to_string()],
+                modules: vec!["manager_address".to_string(), "test_module".to_string()],
             }
         );
     }

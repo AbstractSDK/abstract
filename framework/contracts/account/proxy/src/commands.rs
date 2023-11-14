@@ -250,7 +250,8 @@ mod test {
                 modules: vec![TEST_MODULE.to_string()],
             };
 
-            for i in 0..LIST_SIZE_LIMIT {
+            // -1 because manager counts as module as well
+            for i in 0..LIST_SIZE_LIMIT-1 {
                 msg = ExecuteMsg::AddModules {
                     modules: vec![format!("module_{i}")],
                 };
