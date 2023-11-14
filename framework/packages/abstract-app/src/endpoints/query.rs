@@ -97,13 +97,13 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use super::QueryMsg as MyQueryMsg;
+    use super::QueryMsg as SuperQueryMsg;
     use crate::mock::*;
     use abstract_sdk::base::QueryEndpoint;
     use cosmwasm_std::{Binary, Deps};
     use speculoos::prelude::*;
 
-    type AppQueryMsg = MyQueryMsg<MockQueryMsg>;
+    type AppQueryMsg = SuperQueryMsg<MockQueryMsg>;
 
     fn query_helper(deps: Deps, msg: AppQueryMsg) -> Result<Binary, MockError> {
         BASIC_MOCK_APP.query(deps, mock_env(), msg)
