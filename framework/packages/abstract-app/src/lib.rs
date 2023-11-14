@@ -1,3 +1,4 @@
+pub mod better_sdk;
 mod endpoints;
 pub mod error;
 pub mod features;
@@ -6,7 +7,6 @@ pub mod msgs;
 #[cfg(feature = "schema")]
 pub mod schema;
 pub mod state;
-mod test_app;
 pub(crate) use abstract_sdk::base::*;
 
 pub use crate::state::AppContract;

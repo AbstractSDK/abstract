@@ -1,8 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
+    better_sdk::execution_stack::Executables, AbstractContract, AppError, ExecuteHandlerFn,
+    IbcCallbackHandlerFn, InstantiateHandlerFn, MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
+    ReplyHandlerFn,
 };
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_core::AbstractError;
@@ -10,9 +11,11 @@ use abstract_sdk::{
     base::SudoHandlerFn,
     feature_objects::{AnsHost, VersionControlContract},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
-    AbstractSdkError, AccountAction, features::Executables,
+    AbstractSdkError, AccountAction,
 };
-use cosmwasm_std::{Addr, CosmosMsg, Deps, Empty, StdResult, Storage, DepsMut};
+use cosmwasm_std::{
+    Addr, CosmosMsg, Deps, DepsMut, Empty, Env, Event, MessageInfo, StdResult, Storage,
+};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
@@ -49,14 +52,20 @@ pub struct AppState {
 
 pub struct ModuleEnv<'a> {
     pub deps: DepsMut<'a>,
+    pub env: Env,
+    pub info: MessageInfo,
     pub executable_stack: Executables,
+    pub events: Vec<Event>,
 }
 
 impl<'a> ModuleEnv<'a> {
-    pub fn new(deps: DepsMut<'a>) -> Self {
+    pub fn new(deps: DepsMut<'a>, env: Env, info: MessageInfo) -> Self {
         Self {
             deps,
+            env,
+            info,
             executable_stack: Executables::default(),
+            events: vec![],
         }
     }
 }
