@@ -350,6 +350,7 @@ mod test {
             ExecuteMsg::AddAccount {
                 account_id: TEST_ACCOUNT_ID,
                 account_base: test_account_base(),
+                namespace: None,
             },
         )?;
         execute_as(
@@ -361,6 +362,7 @@ mod test {
                     manager: Addr::unchecked(TEST_OTHER_MANAGER_ADDR),
                     proxy: Addr::unchecked(TEST_OTHER_PROXY_ADDR),
                 },
+                namespace: None,
             },
         )
     }

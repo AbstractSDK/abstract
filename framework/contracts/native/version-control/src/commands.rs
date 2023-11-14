@@ -36,6 +36,7 @@ pub fn add_account(
     msg_info: MessageInfo,
     account_id: AccountId,
     account_base: AccountBase,
+    namespace: Option<String>,
 ) -> VCResult {
     // Only Factory can add new Account
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
@@ -47,14 +48,26 @@ pub fn add_account(
 
     ACCOUNT_ADDRESSES.save(deps.storage, &account_id, &account_base)?;
 
-    Ok(VcResponse::new(
+    let fee_msg = if let Some(namespace) = &namespace {
+        claim_namespace_internal(deps.storage, msg_info, account_id.clone(), namespace)?
+    } else {
+        None
+    };
+
+    let mut response = VcResponse::new(
         "add_account",
         vec![
             ("account_id", account_id.to_string().as_str()),
             ("manager", account_base.manager.as_ref()),
             ("proxy", account_base.proxy.as_ref()),
+            ("namespace", &format!("{namespace:?}")),
         ],
-    ))
+    );
+
+    if let Some(msg) = fee_msg {
+        response = response.add_message(msg);
+    }
+    Ok(response)
 }
 
 /// Here we can add logic to allow subscribers to claim a namespace and upload contracts to that namespace
@@ -357,12 +370,40 @@ pub fn claim_namespace(
         });
     }
 
+    let fee_msg = claim_namespace_internal(
+        deps.storage,
+        msg_info,
+        account_id.clone(),
+        &namespace_to_claim,
+    )?;
+
+    let mut response = VcResponse::new(
+        "claim_namespace",
+        vec![
+            ("account_id", account_id.to_string()),
+            ("namespaces", namespace_to_claim),
+        ],
+    );
+
+    if let Some(msg) = fee_msg {
+        response = response.add_message(msg);
+    }
+    Ok(response)
+}
+
+/// Claim namespace internal
+fn claim_namespace_internal(
+    storage: &mut dyn Storage,
+    msg_info: MessageInfo,
+    account_id: AccountId,
+    namespace_to_claim: &str,
+) -> VCResult<Option<CosmosMsg>> {
     // check if the account already has a namespace
     let has_namespace = namespaces_info()
         .idx
         .account_id
         .prefix(account_id.clone())
-        .range(deps.storage, None, None, Order::Ascending)
+        .range(storage, None, None, Order::Ascending)
         .take(1)
         .count()
         == 1;
@@ -376,39 +417,32 @@ pub fn claim_namespace(
     let Config {
         namespace_registration_fee: fee,
         ..
-    } = CONFIG.load(deps.storage)?;
+    } = CONFIG.load(storage)?;
 
-    let mut fee_messages = vec![];
-
-    if !fee.amount.is_zero() {
+    let fee_msg = if !fee.amount.is_zero() {
         // assert it is paid
         FixedFee::new(&fee).assert_payment(&msg_info)?;
 
         // We transfer the namespace fee if necessary
-        let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, &ABSTRACT_ACCOUNT_ID)?;
-        fee_messages.push(CosmosMsg::Bank(BankMsg::Send {
+        let admin_account = ACCOUNT_ADDRESSES.load(storage, &ABSTRACT_ACCOUNT_ID)?;
+        Some(CosmosMsg::Bank(BankMsg::Send {
             to_address: admin_account.proxy.to_string(),
             amount: msg_info.funds,
-        }));
-    }
+        }))
+    } else {
+        None
+    };
 
-    let namespace = Namespace::try_from(&namespace_to_claim)?;
-    if let Some(id) = namespaces_info().may_load(deps.storage, &namespace)? {
+    let namespace = Namespace::try_from(namespace_to_claim)?;
+    if let Some(id) = namespaces_info().may_load(storage, &namespace)? {
         return Err(VCError::NamespaceOccupied {
             namespace: namespace.to_string(),
             id,
         });
     }
-    namespaces_info().save(deps.storage, &namespace, &account_id)?;
+    namespaces_info().save(storage, &namespace, &account_id)?;
 
-    Ok(VcResponse::new(
-        "claim_namespace",
-        vec![
-            ("account_id", &account_id.to_string()),
-            ("namespaces", &namespace_to_claim),
-        ],
-    )
-    .add_messages(fee_messages))
+    Ok(fee_msg)
 }
 
 /// Remove namespaces
@@ -659,6 +693,7 @@ mod test {
                     manager: Addr::unchecked(TEST_MANAGER),
                     proxy: Addr::unchecked(TEST_PROXY),
                 },
+                namespace: None,
             },
         )
     }
@@ -674,6 +709,7 @@ mod test {
                     manager: Addr::unchecked(TEST_MANAGER),
                     proxy: Addr::unchecked(TEST_PROXY),
                 },
+                namespace: None,
             },
         )
         .unwrap();
@@ -847,6 +883,7 @@ mod test {
                         manager: Addr::unchecked(TEST_MANAGER),
                         proxy: Addr::unchecked(TEST_ADMIN_PROXY),
                     },
+                    namespace: None,
                 },
             )
             .unwrap();
@@ -932,6 +969,7 @@ mod test {
                         manager: Addr::unchecked(TEST_MANAGER),
                         proxy: Addr::unchecked(TEST_PROXY),
                     },
+                    namespace: None,
                 },
             )?;
             let new_namespace1 = Namespace::new("namespace1")?;
@@ -995,6 +1033,7 @@ mod test {
                         manager: Addr::unchecked(account_1_manager),
                         proxy: Addr::unchecked("proxy2"),
                     },
+                    namespace: None,
                 },
             )?;
 
@@ -2121,6 +2160,7 @@ mod test {
             let msg = ExecuteMsg::AddAccount {
                 account_id: ABSTRACT_ACCOUNT_ID,
                 account_base: test_core.clone(),
+                namespace: None,
             };
 
             // as other

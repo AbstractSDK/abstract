@@ -474,7 +474,7 @@ impl Default for Monetization {
 pub type ModuleMetadata = String;
 
 /// Generate salt helper
-pub fn generate_salt(block_height: u64, account_id: AccountId) -> Binary {
+pub fn generate_salt(block_height: u64, account_id: &AccountId) -> Binary {
     let mut salt = [0; 32];
     // 0..8 bytes for block height
     let block_height_bytes = &mut salt[0..8];
@@ -843,7 +843,7 @@ mod test {
 
         #[test]
         fn generate_module_salt_local() {
-            let salt = generate_salt(123, AccountId::local(5));
+            let salt = generate_salt(123, &AccountId::local(5));
             assert!(!salt.is_empty());
             assert!(salt.len() <= 64);
         }
@@ -852,7 +852,7 @@ mod test {
         fn generate_module_salt_trace() {
             let salt = generate_salt(
                 123,
-                AccountId::new(
+                &AccountId::new(
                     5,
                     AccountTrace::Remote(vec![
                         ChainName::from_chain_id("foo-1"),
