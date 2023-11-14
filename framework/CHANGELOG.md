@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - `is_module_installed` moved from `Manager` to `Account`
 - `account_id()` method of `AccountRegistry` is now exposed.
+- Allow module-id to be passed in as a valid authorized address when allowing new addresses on adapter contracts.
 
 ### Removed
 
