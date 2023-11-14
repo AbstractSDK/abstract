@@ -133,11 +133,7 @@ impl<Chain: CwEnv> Account<Chain> {
     // Install an application on the account
     // creates a new sub-account and installs the application on it.
     pub fn install_app<
-        M: ContractInstance<Chain>
-            + RegisteredModule
-            + InstantiableContract
-            + From<Contract<Chain>>
-            + Clone,
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
         C: Serialize,
     >(
         &self,
@@ -194,5 +190,3 @@ fn get_sub_account_id_from_events(events: Vec<Event>) -> Option<u32> {
 
     sub_account_id
 }
-
-pub struct InterchainAccount {}

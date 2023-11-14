@@ -4,13 +4,13 @@ use cw_orch::prelude::*;
 
 use crate::account::Account;
 
-// An application represents a module installed on a (sub)-account.
+/// An application represents a module installed on a (sub)-account.
 pub struct Application<T: CwEnv, M> {
     account: Account<T>,
     module: M,
 }
 
-// Allows to access the module's methods directly from the application struct
+/// Allows to access the module's methods directly from the application struct
 impl<Chain: CwEnv, M> Deref for Application<Chain, M> {
     type Target = M;
 
@@ -28,9 +28,3 @@ impl<Chain: CwEnv, M> Application<Chain, M> {
         &self.account
     }
 }
-
-// pub trait Installable<T: CwEnv> {
-//     fn install<C: Serialize >(&self, account: AbstractAccount<T>, configuration: C) -> Abstract<T> {
-
-//     };
-// }

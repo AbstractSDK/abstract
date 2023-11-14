@@ -245,7 +245,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let publisher_admin = publisher.admin()?;
     let publisher_proxy = publisher.proxy()?;
 
-    publisher.deploy_module::<MockAppInterface<Mock>>()?;
+    publisher.deploy_app::<MockAppInterface<Mock>>()?;
 
     let my_app: Application<Mock, MockAppInterface<Mock>> =
         publisher.install_app::<MockAppInterface<Mock>, MockInitMsg>(&MockInitMsg, &[])?;

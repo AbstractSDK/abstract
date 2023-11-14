@@ -1,9 +1,9 @@
 use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
-use abstract_interface::{AppDeployer, DeployStrategy, RegisteredModule};
+use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule};
 use cosmwasm_std::{Addr, Coin};
 use cw_orch::{
     contract::Contract,
-    prelude::{ContractInstance, CwEnv, InstantiableContract},
+    prelude::{ContractInstance, CwEnv},
 };
 use serde::Serialize;
 
@@ -73,11 +73,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
     }
 
     pub fn install_app<
-        M: ContractInstance<Chain>
-            + RegisteredModule
-            + InstantiableContract
-            + From<Contract<Chain>>
-            + Clone,
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
         C: Serialize,
     >(
         &self,
@@ -87,18 +83,30 @@ impl<Chain: CwEnv> Publisher<Chain> {
         self.account.install_app(configuration, funds)
     }
 
-    pub fn deploy_module<
-        M: ContractInstance<Chain>
-            + RegisteredModule
-            + InstantiableContract
-            + From<Contract<Chain>>
-            + AppDeployer<Chain>,
+    pub fn deploy_app<
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + AppDeployer<Chain>,
     >(
         &self,
     ) -> AbstractClientResult<()> {
         let contract = Contract::new(M::module_id().to_owned(), self.account.environment());
         let app: M = contract.into();
         app.deploy(M::module_version().parse()?, DeployStrategy::Try)
+            .map_err(Into::into)
+    }
+
+    pub fn deploy_adapter<
+        CustomInitMsg: Serialize,
+        M: ContractInstance<Chain>
+            + RegisteredModule
+            + From<Contract<Chain>>
+            + AdapterDeployer<Chain, CustomInitMsg>,
+    >(
+        &self,
+        init_msg: CustomInitMsg,
+    ) -> AbstractClientResult<()> {
+        let contract = Contract::new(M::module_id().to_owned(), self.account.environment());
+        let app: M = contract.into();
+        app.deploy(M::module_version().parse()?, init_msg, DeployStrategy::Try)
             .map_err(Into::into)
     }
 

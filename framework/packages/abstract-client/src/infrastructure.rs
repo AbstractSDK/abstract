@@ -5,10 +5,10 @@ use cw_orch::prelude::*;
 use crate::account::{Account, AccountBuilder};
 
 pub(crate) trait Infrastructure<T: CwEnv> {
-    // Get the execution environment
+    /// Get the execution environment
     fn environment(&self) -> T;
 
-    // Get the infrastructure on the execution environment
+    /// Get the infrastructure on the execution environment
     fn infrastructure(&self) -> Result<Abstract<T>, AbstractInterfaceError> {
         let chain = self.environment();
         Abstract::load_from(chain)
