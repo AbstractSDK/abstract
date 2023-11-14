@@ -26,11 +26,11 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(Publisher::new(self.get_account_from_namespace(namespace)?))
     }
 
-    pub fn new_publisher(&self) -> PublisherBuilder<Chain> {
+    pub fn publisher_builder(&self) -> PublisherBuilder<Chain> {
         PublisherBuilder::new(AccountBuilder::new(&self.abstr))
     }
 
-    pub fn new_account(&self) -> AccountBuilder<Chain> {
+    pub fn account_builder(&self) -> AccountBuilder<Chain> {
         AccountBuilder::new(&self.abstr)
     }
 

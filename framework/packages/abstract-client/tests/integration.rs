@@ -32,7 +32,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
 
     let client: AbstractClient<Mock> = AbstractClient::new(chain.clone())?;
 
-    let account: Account<Mock> = client.new_account().build()?;
+    let account: Account<Mock> = client.account_builder().build()?;
 
     let account_info = account.get_account_info()?;
     assert_eq!(
@@ -77,7 +77,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let namespace = "test-namespace";
     let base_asset = AssetEntry::new(asset);
     let account: Account<Mock> = client
-        .new_account()
+        .account_builder()
         .name(name)
         .link(link)
         .description(description)
@@ -116,7 +116,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
     let client: AbstractClient<Mock> = AbstractClient::new(chain.clone())?;
 
     let namespace = "namespace";
-    let account: Account<Mock> = client.new_account().namespace(namespace).build()?;
+    let account: Account<Mock> = client.account_builder().namespace(namespace).build()?;
 
     let account_from_namespace: Account<Mock> =
         client.get_account_from_namespace(namespace.to_owned())?;
@@ -136,7 +136,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
 
     let client: AbstractClient<Mock> = AbstractClient::new(chain.clone())?;
 
-    let publisher: Publisher<Mock> = client.new_publisher().build()?;
+    let publisher: Publisher<Mock> = client.publisher_builder().build()?;
 
     let account_info = publisher.account().get_account_info()?;
     assert_eq!(
@@ -181,7 +181,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let namespace = "test-namespace";
     let base_asset = AssetEntry::new(asset);
     let publisher: Publisher<Mock> = client
-        .new_publisher()
+        .publisher_builder()
         .name(name)
         .link(link)
         .description(description)
@@ -220,7 +220,7 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let client: AbstractClient<Mock> = AbstractClient::new(chain.clone())?;
 
     let namespace = "namespace";
-    let publisher: Publisher<Mock> = client.new_publisher().namespace(namespace).build()?;
+    let publisher: Publisher<Mock> = client.publisher_builder().namespace(namespace).build()?;
 
     let publisher_from_namespace: Publisher<Mock> =
         client.get_publisher_from_namespace(namespace.to_owned())?;
@@ -240,7 +240,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     let client: AbstractClient<Mock> = AbstractClient::new(chain)?;
 
-    let publisher: Publisher<Mock> = client.new_publisher().namespace("tester").build()?;
+    let publisher: Publisher<Mock> = client.publisher_builder().namespace("tester").build()?;
 
     let publisher_admin = publisher.admin()?;
     let publisher_proxy = publisher.proxy()?;
