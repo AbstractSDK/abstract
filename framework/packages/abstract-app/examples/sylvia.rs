@@ -4,7 +4,6 @@ use abstract_app::better_sdk::execution::Execution;
 use abstract_app::better_sdk::instantiate::AppInstantiateCtx;
 use abstract_app::better_sdk::migrate::AppMigrateCtx;
 use abstract_app::better_sdk::query::AppQueryCtx;
-use abstract_core::app::BaseExecuteMsg;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{coins, ensure, Addr, BankMsg, CosmosMsg, ReplyOn, StdError};
 use cw_storage_plus::Item;

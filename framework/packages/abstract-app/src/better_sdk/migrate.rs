@@ -40,6 +40,10 @@ impl<'a, C: CustomQuery> TryFrom<((DepsMut<'a, C>, Env), BaseMigrateMsg)> for Ap
     fn try_from(
         ((mut deps, env), base_msg): ((DepsMut<'a, C>, Env), BaseMigrateMsg),
     ) -> StdResult<Self> {
+        // TODO, we need to find a way to devise name, version and metadata. Maybe force that on the contract implementation ?
+        // Or have that stored in a field ?
+        // This is the same as in instantiate Handler
+
         // let (name, version_string, metadata) = self.info();
         // let to_version = version_string.parse().unwrap();
         // assert_contract_upgrade(deps.storage, name, to_version)?;

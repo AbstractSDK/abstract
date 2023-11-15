@@ -68,8 +68,9 @@ impl<'a, C: CustomQuery> TryFrom<((DepsMut<'a, C>, Env, MessageInfo), BaseInstan
         };
 
         // TODO: Would be nice to remove context
-        // Issue: We can't pass easily AccountBase with BaseInstantiateMsg(right now)
+        // Issue: We can't pass easily AccountBase with BaseInstantiateMsg (right now)
 
+        // TODO, I don't know how to test that in an actual context. So I use the mock values here
         // Caller is factory so get proxy and manager (admin) from there
         // let resp: ContextResponse = deps.querier.query(&wasm_smart_query(
         //     info.sender.to_string(),
@@ -90,6 +91,9 @@ impl<'a, C: CustomQuery> TryFrom<((DepsMut<'a, C>, Env, MessageInfo), BaseInstan
             ans_host,
             version_control,
         };
+
+        // TODO, we need to find a way to devise name, version and metadata. Maybe force that on the contract implementation ?
+        // Or have that stored in a field ?
 
         // let (name, version, metadata) = self.info();
         // set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;

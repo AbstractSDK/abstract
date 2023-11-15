@@ -38,6 +38,8 @@ impl<'a, C: CustomQuery> From<(DepsMut<'a, C>, Env, MessageInfo)> for AppExecCtx
 
 impl<'a> AppExecCtx<'a> {
     pub fn _base(self, msg: BaseExecuteMsg) -> AbstractSdkResult<Self> {
+        // We need to port this implementation from the current app definition
+        todo!();
         Ok(self)
     }
 }

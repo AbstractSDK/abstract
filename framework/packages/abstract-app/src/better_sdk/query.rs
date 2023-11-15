@@ -46,6 +46,8 @@ impl BaseQueryResult {
 
 impl<'a> AppQueryCtx<'a> {
     pub fn _base(self, msg: BaseQueryMsg) -> AbstractSdkResult<BaseQueryResult> {
+        // We need to port this implementation from the current app definition
+        todo!();
         Ok(BaseQueryResult::Empty)
     }
 }
