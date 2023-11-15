@@ -13,7 +13,6 @@
 
 use crate::Abstract;
 use crate::AdapterDeployer;
-use crate::AppDeployer;
 use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::ABSTRACT_EVENT_TYPE;
 use cw_orch::deploy::Deploy;
@@ -33,6 +32,7 @@ use crate::{get_account_contracts, VersionControl};
 
 pub use self::{manager::*, proxy::*};
 
+#[derive(Clone)]
 pub struct AbstractAccount<Chain: CwEnv> {
     pub manager: Manager<Chain>,
     pub proxy: Proxy<Chain>,
@@ -75,7 +75,9 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         modules: Vec<ModuleInstallConfig>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        self.manager.install_modules(modules, funds)
+        self.manager
+            .install_modules(modules, funds)
+            .map_err(Into::into)
     }
 
     pub fn install_modules_auto(
@@ -171,7 +173,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     }
 
     /// Installs an app from an app object
-    pub fn install_app<CustomInitMsg: Serialize, T: AppDeployer<Chain>>(
+    pub fn install_app<CustomInitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
         app: T,
         custom_init_msg: &CustomInitMsg,
