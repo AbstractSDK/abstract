@@ -7,6 +7,7 @@ pub mod sdk;
 pub mod instantiate;
 pub mod execute;
 pub mod migrate;
+pub mod query;
 
 // TODO: add macro here that generates the private struct below
 // The macro should:

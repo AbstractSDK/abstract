@@ -1,3 +1,4 @@
+use abstract_core::app::BaseExecuteMsg;
 use abstract_sdk::{namespaces::{ADMIN_NAMESPACE, BASE_STATE}, AbstractSdkResult, feature_objects::AnsHost};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Empty, CustomQuery, Event, Addr};
 
@@ -25,6 +26,14 @@ impl<'a, C: CustomQuery> From<(DepsMut<'a, C>, Env, MessageInfo)> for AppExecCtx
         }
     }
 }
+
+impl<'a> AppExecCtx<'a>{
+    pub fn _base(self, msg: BaseExecuteMsg) -> AbstractSdkResult<Self>{
+        Ok(self)
+    }
+}
+
+
 
 impl<'c> DepsAccess for AppExecCtx<'c>{
     fn deps_mut<'a: 'b, 'b>(&'a mut self) -> DepsMut<'b, Empty> {

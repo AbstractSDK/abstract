@@ -3,6 +3,8 @@ use abstract_app::better_sdk::execute::AppExecCtx;
 use abstract_app::better_sdk::execution::Execution;
 use abstract_app::better_sdk::instantiate::AppInstantiateCtx;
 use abstract_app::better_sdk::migrate::AppMigrateCtx;
+use abstract_app::better_sdk::query::AppQueryCtx;
+use abstract_core::app::BaseExecuteMsg;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{ensure, StdError, coins, Addr, ReplyOn, CosmosMsg, BankMsg};
 use cw_storage_plus::Item;
@@ -40,6 +42,7 @@ impl SylviaContract<'_> {
     pub fn instantiate<'a>(&self, mut ctx: AppInstantiateCtx<'a>, admin: String) -> abstract_sdk::AbstractSdkResult<AppInstantiateCtx<'a> > {
         let admin_addr = ctx.api().addr_validate(&admin)?;
         ctx.base_state.admin.set(ctx.deps.branch(), Some(admin_addr))?;
+        self.counter.save(ctx.deps_mut().storage, &8)?;
 
         let amount = coins(145, "ujuno");
 
@@ -100,7 +103,7 @@ impl SylviaContract<'_> {
     }
 
     #[msg(exec)]
-    pub fn increment(&self, ctx: AppExecCtx) -> StdResult<Response> {
+    pub fn increment(&self, ctx: AppExecCtx, i: u64) -> StdResult<Response> {
         let counter = self.counter.load(ctx.deps.storage)?;
 
         ensure!(counter < 10, StdError::generic_err("Limit reached"));
@@ -108,7 +111,58 @@ impl SylviaContract<'_> {
         self.counter.save(ctx.deps.storage, &(counter + 1))?;
         Ok(Response::new())
     }
+
+    #[msg(query)]
+    pub fn count(&self, ctx: AppQueryCtx, i: u64) -> StdResult<u64> {
+        self.counter.load(ctx.deps.storage)
+    }
 }
+
+
+// pub enum ExecMsgTest{
+//     Module(ImplExecMsgTest),
+//     Base(BaseExecuteMsg)
+// }
+
+// pub enum ImplExecMsgTest{
+//     Increment { i: u64 },
+// }
+
+// impl ExecMsgTest {
+//     pub fn dispatch(
+//         self,
+//         contract: &SylviaContract<'_>,
+//         ctx: (
+//             sylvia::cw_std::DepsMut<sylvia::cw_std::Empty>,
+//             sylvia::cw_std::Env,
+//             sylvia::cw_std::MessageInfo,
+//         ),
+//     ) -> std::result::Result<
+//         sylvia::cw_std::Response<sylvia::cw_std::Empty>,
+//         AbstractSdkError,
+//     > {
+
+//         let ctx = Into::into(ctx);
+
+//         let resp = match self{
+//             ExecMsgTest::Module(msg) => {
+//                 use ImplExecMsgTest::*;
+//                 match msg {
+//                     Increment { i: field1 } => {
+//                         contract.increment(ctx, field1).map_err(Into::into)
+//                     }
+//                 }
+//             },
+//             ExecMsgTest::Base(msg) => {
+//                 use abstract_app::better_sdk::execution_stack::ResponseGenerator;
+//                 let mut result_ctx = ctx._base_execute(msg)?;
+//                 result_ctx.generate_response()
+//             }
+//         }?;
+
+//         Ok(resp)
+//     }
+// }
 
 
 fn main(){
@@ -121,9 +175,14 @@ pub mod test{
     use abstract_core::app::BaseInstantiateMsg;
     use abstract_testing::addresses::{TEST_ANS_HOST, TEST_VERSION_CONTROL, TEST_MODULE_FACTORY};
     use abstract_testing::mock_querier;
+    use cosmwasm_std::from_json;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use crate::sv::{ImplInstantiateMsg, InstantiateMsg};
-    use crate::entry_points::instantiate;
+    use crate::sv::{
+        ImplInstantiateMsg, InstantiateMsg, 
+        ContractExecMsg, ExecMsg, ImplExecMsg,
+        ContractQueryMsg, QueryMsg, ImplQueryMsg,
+    };
+    use crate::entry_points::{instantiate, execute, query};
     pub fn main(){
         
         let mut deps = mock_dependencies();
@@ -140,6 +199,22 @@ pub mod test{
 
         assert_eq!(response.messages.len(), 5);
         assert_eq!(response.events.len(), 1);
+
+        execute(
+            deps.as_mut(), 
+            mock_env(), 
+            mock_info(TEST_MODULE_FACTORY, &[]), 
+            ContractExecMsg::SylviaContract(ExecMsg::Module(ImplExecMsg::Increment { i: 9 }))
+        ).unwrap();
+
+        let response = query(
+            deps.as_ref(), 
+            mock_env(), 
+            ContractQueryMsg::SylviaContract(QueryMsg::Module(ImplQueryMsg::Count { i: 9 }))
+        ).unwrap();
+
+        let count: i32 = from_json(response).unwrap();
+        assert_eq!(count,  9i32);
     }
 }
 
