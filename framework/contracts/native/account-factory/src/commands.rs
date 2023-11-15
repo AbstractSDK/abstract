@@ -1,7 +1,6 @@
 use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::module_factory::SimulateInstallModulesResponse;
-use abstract_core::objects::account::AccountTrace;
-use abstract_core::objects::module::generate_salt;
+use abstract_core::objects::account::{generate_account_salt, AccountTrace};
 use abstract_core::objects::{AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID};
 use abstract_core::AbstractError;
 
@@ -106,7 +105,7 @@ pub fn execute_create_account(
         })?;
     }
 
-    let salt = generate_salt(0, &account_id);
+    let salt = generate_account_salt(&account_id);
 
     // Get code_ids
     let (proxy_code_id, manager_code_id) = if let (

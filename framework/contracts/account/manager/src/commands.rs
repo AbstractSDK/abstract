@@ -131,7 +131,7 @@ pub(crate) fn install_modules_internal(
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let salt: Binary = module::generate_salt(block_height, &account_id);
+    let salt: Binary = module::generate_module_salt(block_height, &account_id);
     let version_control = VersionControlContract::new(version_control_address);
 
     let canonical_module_factory = deps
