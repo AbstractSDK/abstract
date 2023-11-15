@@ -6,7 +6,7 @@
 //! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  
 pub mod state {
 
-    use crate::{objects::module::ModuleInfo, version_control::AccountBase};
+    use crate::objects::module::ModuleInfo;
     use cosmwasm_std::{Addr, Binary};
     use cw_storage_plus::{Item, Map};
     use schemars::JsonSchema;
@@ -18,17 +18,11 @@ pub mod state {
         pub ans_host_address: Addr,
     }
 
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-    pub struct Context {
-        pub account_base: AccountBase,
-    }
-
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
-    pub const CONTEXT: Item<Context> = Item::new("\u{0}{7}context");
     pub const MODULE_INIT_BINARIES: Map<&ModuleInfo, Binary> = Map::new("module_init_binaries");
 }
 
-use crate::{objects::module::ModuleInfo, version_control::AccountBase};
+use crate::objects::module::ModuleInfo;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, Coin};
 
@@ -86,10 +80,6 @@ pub enum QueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
-    /// Get the installation context of the module factory.
-    /// Returns [`ContextResponse`]
-    #[returns(ContextResponse)]
-    Context {},
     /// Simulate install module cost
     /// Returns [`SimulateInstallModulesResponse`]
     #[returns(SimulateInstallModulesResponse)]
@@ -101,11 +91,6 @@ pub enum QueryMsg {
 pub struct ConfigResponse {
     pub ans_host_address: Addr,
     pub version_control_address: Addr,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct ContextResponse {
-    pub account_base: AccountBase,
 }
 
 #[cosmwasm_schema::cw_serde]

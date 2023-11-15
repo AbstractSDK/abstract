@@ -72,7 +72,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
-        QueryMsg::Context {} => to_json_binary(&query_context(deps)?),
         QueryMsg::SimulateInstallModules { modules } => {
             to_json_binary(&query_simulate_install_modules(deps, modules)?)
         }
@@ -126,13 +125,6 @@ pub fn query_simulate_install_modules(
         monetization_funds: install_funds,
         initialization_funds: init_funds,
     };
-    Ok(resp)
-}
-
-pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
-    let Context { account_base }: Context = CONTEXT.load(deps.storage)?;
-    let resp = ContextResponse { account_base };
-
     Ok(resp)
 }
 

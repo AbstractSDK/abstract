@@ -1,6 +1,6 @@
 use cosmwasm_schema::QueryResponses;
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 
 use abstract_core::app::{self, AppExecuteMsg, AppQueryMsg};
 use {
@@ -18,7 +18,7 @@ impl<
             + From<abstract_core::AbstractError>
             + 'static,
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
-        CustomInitMsg: Serialize + JsonSchema,
+        CustomInitMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema + AppQueryMsg + QueryResponses,
         CustomMigrateMsg: Serialize + JsonSchema,
         ReceiveMsg: Serialize + JsonSchema,
