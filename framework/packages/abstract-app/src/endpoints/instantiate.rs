@@ -7,7 +7,7 @@ use abstract_core::{
     objects::module_version::set_module_data,
 };
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
-use cosmwasm_std::{from_json, Binary, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Serialize};
@@ -31,7 +31,7 @@ impl<
         SudoMsg,
     >
 {
-    type InstantiateMsg = InstantiateMsg<Binary>;
+    type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
     fn instantiate(
         self,
         mut deps: DepsMut,
@@ -45,7 +45,7 @@ impl<
             account_base,
         } = msg.base;
 
-        let module_msg = from_json(msg.module)?;
+        let module_msg = msg.module;
 
         let ans_host = AnsHost {
             address: deps.api.addr_validate(&ans_host_address)?,
@@ -77,7 +77,6 @@ impl<
 mod test {
     use super::*;
     use crate::mock::*;
-    use cosmwasm_std::to_json_binary;
     use speculoos::prelude::*;
 
     use abstract_testing::{
@@ -99,7 +98,7 @@ mod test {
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 account_base: test_account_base(),
             },
-            module: to_json_binary(&MockInitMsg {}).unwrap(),
+            module: MockInitMsg {},
         };
 
         let res = MOCK_APP

@@ -1,4 +1,5 @@
 use abstract_core::objects::module;
+use serde_cw_value::Value;
 
 use crate::contract::ModuleFactoryResponse;
 use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
@@ -13,8 +14,8 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps, DepsMut,
-    Env, MessageInfo, StdResult, WasmMsg,
+    from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
+    DepsMut, Env, MessageInfo, StdResult, WasmMsg,
 };
 
 /// Function that starts the creation of the Modules
@@ -90,6 +91,7 @@ pub fn execute_create_modules(
         match &new_module.reference {
             ModuleReference::App(code_id) => {
                 let init_msg = owner_init_msg.unwrap();
+                let init_msg_as_value: Value = from_json(init_msg)?;
                 // App base message
                 let app_base_msg = abstract_core::app::BaseInstantiateMsg {
                     ans_host_address: config.ans_host_address.to_string(),
@@ -97,10 +99,9 @@ pub fn execute_create_modules(
                     account_base: account_base.clone(),
                 };
 
-                // TODO: App will have to do one extra deserialize, is it avoidable?
-                let app_init_msg = abstract_core::app::InstantiateMsg::<Binary> {
+                let app_init_msg = abstract_core::app::InstantiateMsg::<Value> {
                     base: app_base_msg,
-                    module: init_msg,
+                    module: init_msg_as_value,
                 };
                 let (addr, init_msg) = instantiate2_contract(
                     deps.as_ref(),

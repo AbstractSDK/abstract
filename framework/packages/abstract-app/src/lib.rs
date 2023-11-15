@@ -120,7 +120,7 @@ pub mod mock {
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 account_base: test_account_base(),
             },
-            module: to_json_binary(&MockInitMsg {}).unwrap(),
+            module: MockInitMsg {},
         };
 
         BASIC_MOCK_APP
