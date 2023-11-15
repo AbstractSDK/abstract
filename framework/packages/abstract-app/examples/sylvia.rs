@@ -123,51 +123,6 @@ impl SylviaContract<'_> {
     }
 }
 
-// pub enum ExecMsgTest{
-//     Module(ImplExecMsgTest),
-//     Base(BaseExecuteMsg)
-// }
-
-// pub enum ImplExecMsgTest{
-//     Increment { i: u64 },
-// }
-
-// impl ExecMsgTest {
-//     pub fn dispatch(
-//         self,
-//         contract: &SylviaContract<'_>,
-//         ctx: (
-//             sylvia::cw_std::DepsMut<sylvia::cw_std::Empty>,
-//             sylvia::cw_std::Env,
-//             sylvia::cw_std::MessageInfo,
-//         ),
-//     ) -> std::result::Result<
-//         sylvia::cw_std::Response<sylvia::cw_std::Empty>,
-//         AbstractSdkError,
-//     > {
-
-//         let ctx = Into::into(ctx);
-
-//         let resp = match self{
-//             ExecMsgTest::Module(msg) => {
-//                 use ImplExecMsgTest::*;
-//                 match msg {
-//                     Increment { i: field1 } => {
-//                         contract.increment(ctx, field1).map_err(Into::into)
-//                     }
-//                 }
-//             },
-//             ExecMsgTest::Base(msg) => {
-//                 use abstract_app::better_sdk::execution_stack::ResponseGenerator;
-//                 let mut result_ctx = ctx._base_execute(msg)?;
-//                 result_ctx.generate_response()
-//             }
-//         }?;
-
-//         Ok(resp)
-//     }
-// }
-
 fn main() {
     test::main();
 }
@@ -225,46 +180,3 @@ pub mod test {
         assert_eq!(count, 9i32);
     }
 }
-
-// /// This is the message that the app expects
-// #[cw_serde]
-// pub struct AppInstantiateMsg{
-//     admin: String
-// }
-
-// /// This is the message that the contract expects
-// #[cw_serde]
-// pub struct InstantiateMsg{
-//     base: BaseInstantiateMsg,
-//     module: AppInstantiateMsg
-// }
-
-// pub fn instantiate(
-//     deps: DepsMut,
-//     env: Env,
-//     info: MessageInfo,
-//     msg: InstantiateMsg
-// ) -> Result<
-//     sylvia::cw_std::Response<sylvia::cw_std::Empty>,
-//     sylvia::cw_std::StdError,
-// > {
-//     msg.dispatch(&SylviaContract::new(), (deps, env, info)).map_err(Into::into)
-// }
-
-// impl InstantiateMsg {
-//     pub fn dispatch(
-//         self,
-//         contract: &SylviaContract<'_>,
-//         ctx: (
-//             sylvia::cw_std::DepsMut<sylvia::cw_std::Empty>,
-//             sylvia::cw_std::Env,
-//             sylvia::cw_std::MessageInfo,
-//         ),
-//     ) -> StdResult<Response> {
-//         let Self { base, module } = self;
-
-//         let AppInstantiateMsg{ admin } = module;
-
-//         contract.instantiate(TryInto::try_into((ctx, base))?, admin).map_err(Into::into)
-//     }
-// }
