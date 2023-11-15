@@ -100,12 +100,10 @@ impl FeeGranter {
         }
         .encode_to_vec();
 
-        let msg = CosmosMsg::Stargate {
+        CosmosMsg::Stargate {
             type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
             value: Binary(msg),
-        };
-
-        msg
+        }
     }
 
     /// Grants a basic allowance.
