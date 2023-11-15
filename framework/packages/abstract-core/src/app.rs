@@ -10,6 +10,7 @@ use crate::{
         MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
     },
     objects::module_version::ModuleDataResponse,
+    version_control::AccountBase,
 };
 
 pub type ExecuteMsg<ModuleMsg = Empty, ReceiveMsg = Empty> =
@@ -52,6 +53,7 @@ impl AppQueryMsg for Empty {}
 pub struct BaseInstantiateMsg {
     pub ans_host_address: String,
     pub version_control_address: String,
+    pub account_base: AccountBase,
 }
 
 #[cosmwasm_schema::cw_serde]

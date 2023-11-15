@@ -208,7 +208,7 @@ fn install_standalone_modules() -> AResult {
 
     account.install_module(
         "abstract:standalone1",
-        &mock_modules::standalone_cw2::MockMsg,
+        Some(&mock_modules::standalone_cw2::MockMsg),
         None,
     )?;
 
@@ -224,7 +224,7 @@ fn install_standalone_modules() -> AResult {
 
     account.install_module(
         "abstract:standalone2",
-        &mock_modules::standalone_no_cw2::MockMsg,
+        Some(&mock_modules::standalone_no_cw2::MockMsg),
         None,
     )?;
     Ok(())
@@ -257,7 +257,7 @@ fn install_standalone_versions_not_met() -> AResult {
     let err = account
         .install_module(
             "abstract:standalone1",
-            &mock_modules::standalone_cw2::MockMsg,
+            Some(&mock_modules::standalone_cw2::MockMsg),
             None,
         )
         .unwrap_err();

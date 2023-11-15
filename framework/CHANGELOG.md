@@ -17,10 +17,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `is_module_installed` moved from `Manager` to `Account`
 - `account_id()` method of `AccountRegistry` is now exposed.
 - Allow module-id to be passed in as a valid authorized address when allowing new addresses on adapter contracts.
+- `BaseInstantiateMsg` is now removed from install app API, now only `ModuleMsg` should be provided
 
 ### Removed
 
 - `DepositMsgs` removed (now `deposit()` returns `Vec<CosmosMsg>`)
+- Abstract removed from the fields where it's redundant
+- InstantiateMsg is now removed from the install_adapter API
 
 ## [0.19.0] - 2023-09-26
 

@@ -20,7 +20,7 @@ pub mod mock {
     use abstract_interface::AppDeployer;
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::*;
-    use cosmwasm_std::{from_json, to_json_binary, Addr, Response, StdError};
+    use cosmwasm_std::{to_json_binary, Response, StdError};
     use cw_orch::prelude::*;
 
     pub type AppTestResult = Result<(), MockError>;
@@ -59,11 +59,12 @@ pub mod mock {
     pub struct MockSudoMsg;
 
     use crate::{AppContract, AppError};
-    use abstract_core::{module_factory::ContextResponse, version_control::AccountBase};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
-    use abstract_testing::prelude::{
-        MockDeps, MockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
-        TEST_MODULE_ID, TEST_PROXY, TEST_VERSION, TEST_VERSION_CONTROL,
+    use abstract_testing::{
+        addresses::{test_account_base, TEST_ANS_HOST, TEST_VERSION_CONTROL},
+        prelude::{
+            MockDeps, MockQuerierBuilder, TEST_MODULE_FACTORY, TEST_MODULE_ID, TEST_VERSION,
+        },
     };
     use thiserror::Error;
 
@@ -115,21 +116,8 @@ pub mod mock {
     crate::export_endpoints!(MOCK_APP, MockAppContract);
 
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
-        MockQuerierBuilder::default().with_smart_handler(
-            TEST_MODULE_FACTORY,
-            |msg| match from_json(msg).unwrap() {
-                abstract_core::module_factory::QueryMsg::Context {} => {
-                    let resp = ContextResponse {
-                        account_base: AccountBase {
-                            manager: Addr::unchecked(TEST_MANAGER),
-                            proxy: Addr::unchecked(TEST_PROXY),
-                        },
-                    };
-                    Ok(to_json_binary(&resp).unwrap())
-                }
-                _ => panic!("unexpected message"),
-            },
-        )
+        MockQuerierBuilder::default()
+            .with_smart_handler(TEST_MODULE_FACTORY, |_msg| panic!("unexpected messsage"))
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
@@ -144,6 +132,7 @@ pub mod mock {
             base: app::BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
+                account_base: test_account_base(),
             },
             module: MockInitMsg {},
         };

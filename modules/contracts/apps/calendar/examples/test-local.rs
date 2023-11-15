@@ -60,7 +60,7 @@ fn main() -> anyhow::Result<()> {
 
     // Install app
     account.install_app(
-        app,
+        &app,
         &AppInstantiateMsg {
             price_per_minute: Uint128::zero(),
             denom: AssetEntry::from("juno>ujunox"),

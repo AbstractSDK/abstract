@@ -15,7 +15,6 @@ use crate::Abstract;
 use crate::AdapterDeployer;
 use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::ABSTRACT_EVENT_TYPE;
-use cw_orch::deploy::Deploy;
 
 mod manager;
 mod proxy;
@@ -64,7 +63,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn install_module<TInitMsg: Serialize>(
         &self,
         module_id: &str,
-        init_msg: &TInitMsg,
+        init_msg: Option<&TInitMsg>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.manager.install_module(module_id, init_msg, funds)
@@ -155,50 +154,30 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     /// Installs an adapter from an adapter object
     pub fn install_adapter<CustomInitMsg: Serialize, T: AdapterDeployer<Chain, CustomInitMsg>>(
         &self,
-        adapter: T,
-        custom_init_msg: &CustomInitMsg,
+        adapter: &T,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
-        // retrieve the deployment
-        let abstr = Abstract::load_from(self.manager.get_chain().to_owned())?;
-
-        let init_msg = abstract_core::adapter::InstantiateMsg {
-            module: custom_init_msg,
-            base: abstract_core::adapter::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.address()?.into(),
-                version_control_address: abstr.version_control.address()?.into(),
-            },
-        };
-        self.install_module_parse_addr(adapter, &init_msg, funds)
+        self.install_module_parse_addr::<Empty, _>(adapter, None, funds)
     }
 
     /// Installs an app from an app object
     pub fn install_app<CustomInitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
-        app: T,
+        app: &T,
         custom_init_msg: &CustomInitMsg,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         // retrieve the deployment
-        let abstr = Abstract::load_from(self.manager.get_chain().to_owned())?;
-
-        let init_msg = abstract_core::app::InstantiateMsg {
-            module: custom_init_msg,
-            base: abstract_core::app::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.addr_str()?,
-                version_control_address: abstr.version_control.addr_str()?,
-            },
-        };
-        self.install_module_parse_addr(app, &init_msg, funds)
+        self.install_module_parse_addr(app, Some(&custom_init_msg), funds)
     }
 
     fn install_module_parse_addr<InitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
-        module: T,
-        init_msg: &InitMsg,
+        module: &T,
+        init_msg: Option<&InitMsg>,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
-        let resp = self.install_module(&module.id(), &init_msg, funds)?;
+        let resp = self.install_module(&module.id(), init_msg, funds)?;
         let module_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_modules")?;
         let module_address = Addr::unchecked(module_address);
 
