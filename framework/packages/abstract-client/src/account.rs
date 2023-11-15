@@ -163,7 +163,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
         let app: M = contract.into();
 
-        sub_account.install_app(app.clone(), configuration, Some(funds))?;
+        sub_account.install_app(&app, configuration, Some(funds))?;
         Ok(Application::new(Account::new(sub_account), app))
     }
 
