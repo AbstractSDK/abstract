@@ -1,6 +1,6 @@
 use abstract_core::proxy::ExecuteMsg;
 use abstract_sdk::{AbstractSdkResult, AccountAction};
-use cosmwasm_std::{wasm_execute, Api, CosmosMsg, Deps, DepsMut, ReplyOn, SubMsg, Event, Response};
+use cosmwasm_std::{wasm_execute, Api, CosmosMsg, Deps, DepsMut, Event, ReplyOn, Response, SubMsg};
 
 use super::sdk::AccountIdentification;
 
@@ -55,7 +55,8 @@ pub trait ExecutionStack: Sized + AccountIdentification {
     }
     /// Get the manager address for the current account.
     fn push_proxy_messages(&mut self, msgs: Vec<CosmosMsg>) {
-        self.stack_mut().push(Executable::AccountAction(AccountAction::from_vec(msgs)));
+        self.stack_mut()
+            .push(Executable::AccountAction(AccountAction::from_vec(msgs)));
     }
     /// NEVER USE INSIDE YOUR CONTRACTS
     /// Only used for unwrapping the messages to the Response inside abstract
@@ -104,15 +105,15 @@ pub trait CustomEvents {
     fn events(&self) -> Vec<Event>;
 }
 
-pub trait ResponseGenerator: ExecutionStack + CustomEvents{
-    fn generate_response(&mut self) -> AbstractSdkResult<Response>{
+pub trait ResponseGenerator: ExecutionStack + CustomEvents {
+    fn generate_response(&mut self) -> AbstractSdkResult<Response> {
         Ok(Response::new()
             .add_events(self.events())
             .add_submessages(self._unwrap_for_response()?))
     }
 }
 
-impl<T> ResponseGenerator for T where T: ExecutionStack + CustomEvents{}
+impl<T> ResponseGenerator for T where T: ExecutionStack + CustomEvents {}
 
 // #[cfg(test)]
 // mod test {

@@ -43,8 +43,7 @@ pub trait AccountIdentification: DepsAccess + Sized {
     }
 }
 
-
-pub trait SylviaAbstractContract{
+pub trait SylviaAbstractContract {
     type BaseInstantiateMsg;
     type BaseMigrateMsg;
     type BaseExecuteMsg;
@@ -52,7 +51,6 @@ pub trait SylviaAbstractContract{
     type BaseQueryMsg;
     type QueryCtx<'a>;
 }
-
 
 #[cfg(test)]
 mod test {

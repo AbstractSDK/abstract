@@ -6,42 +6,45 @@ use abstract_app::better_sdk::migrate::AppMigrateCtx;
 use abstract_app::better_sdk::query::AppQueryCtx;
 use abstract_core::app::BaseExecuteMsg;
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::{ensure, StdError, coins, Addr, ReplyOn, CosmosMsg, BankMsg};
+use cosmwasm_std::{coins, ensure, Addr, BankMsg, CosmosMsg, ReplyOn, StdError};
 use cw_storage_plus::Item;
+use sylvia::cw_std::{Response, StdResult};
 use sylvia::{contract, entry_points};
-use sylvia::cw_std::{StdResult, Response};
 
-use abstract_app::better_sdk::execution_stack::{DepsAccess, CustomEvents, ExecutionStack};
+use abstract_app::better_sdk::execution_stack::{CustomEvents, DepsAccess, ExecutionStack};
 use abstract_app::better_sdk::implementations::AbstractApp;
 
-pub struct SylviaContract<'a>{
-    counter: Item<'a, u64>
+pub struct SylviaContract<'a> {
+    counter: Item<'a, u64>,
 }
 
-
-impl Default for SylviaContract<'_>{
+impl Default for SylviaContract<'_> {
     fn default() -> Self {
         Self {
-            counter: Item::new("counter")
+            counter: Item::new("counter"),
         }
     }
 }
-
 
 #[entry_points]
 #[contract]
 #[contract_type(AbstractApp)]
 #[error(AbstractSdkError)]
 impl SylviaContract<'_> {
-
     pub fn new() -> Self {
         Self::default()
     }
 
     #[msg(instantiate)]
-    pub fn instantiate<'a>(&self, mut ctx: AppInstantiateCtx<'a>, admin: String) -> abstract_sdk::AbstractSdkResult<AppInstantiateCtx<'a> > {
+    pub fn instantiate<'a>(
+        &self,
+        mut ctx: AppInstantiateCtx<'a>,
+        admin: String,
+    ) -> abstract_sdk::AbstractSdkResult<AppInstantiateCtx<'a>> {
         let admin_addr = ctx.api().addr_validate(&admin)?;
-        ctx.base_state.admin.set(ctx.deps.branch(), Some(admin_addr))?;
+        ctx.base_state
+            .admin
+            .set(ctx.deps.branch(), Some(admin_addr))?;
         self.counter.save(ctx.deps_mut().storage, &8)?;
 
         let amount = coins(145, "ujuno");
@@ -50,12 +53,9 @@ impl SylviaContract<'_> {
         ctx.bank()
             .transfer(amount.clone(), &Addr::unchecked("robin".to_string()))?;
 
-
         ctx.bank()
             .with_reply(ReplyOn::Always, 76)
             .transfer(amount.clone(), &Addr::unchecked("adair".to_string()))?;
-
-
 
         // This is very similar execept we are batching the execution here
         ctx.executor().execute(vec![
@@ -91,14 +91,19 @@ impl SylviaContract<'_> {
         }));
         ctx.add_event("abstract_execution", vec![("action", "test-event-value")]);
 
-
         Ok(ctx)
     }
 
     #[msg(migrate)]
-    pub fn migrate<'a>(&self, mut ctx: AppMigrateCtx<'a>, admin: String) -> StdResult<AppMigrateCtx<'a>> {
+    pub fn migrate<'a>(
+        &self,
+        mut ctx: AppMigrateCtx<'a>,
+        admin: String,
+    ) -> StdResult<AppMigrateCtx<'a>> {
         let admin_addr = ctx.api().addr_validate(&admin)?;
-        ctx.base_state.admin.set(ctx.deps.branch(), Some(admin_addr))?;
+        ctx.base_state
+            .admin
+            .set(ctx.deps.branch(), Some(admin_addr))?;
         Ok(ctx)
     }
 
@@ -117,7 +122,6 @@ impl SylviaContract<'_> {
         self.counter.load(ctx.deps.storage)
     }
 }
-
 
 // pub enum ExecMsgTest{
 //     Module(ImplExecMsgTest),
@@ -164,57 +168,61 @@ impl SylviaContract<'_> {
 //     }
 // }
 
-
-fn main(){
+fn main() {
     test::main();
 }
 
+pub mod test {
 
-pub mod test{
-
+    use crate::entry_points::{execute, instantiate, query};
+    use crate::sv::{
+        ContractExecMsg, ContractQueryMsg, ExecMsg, ImplExecMsg, ImplInstantiateMsg, ImplQueryMsg,
+        InstantiateMsg, QueryMsg,
+    };
     use abstract_core::app::BaseInstantiateMsg;
-    use abstract_testing::addresses::{TEST_ANS_HOST, TEST_VERSION_CONTROL, TEST_MODULE_FACTORY};
+    use abstract_testing::addresses::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL};
     use abstract_testing::mock_querier;
     use cosmwasm_std::from_json;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use crate::sv::{
-        ImplInstantiateMsg, InstantiateMsg, 
-        ContractExecMsg, ExecMsg, ImplExecMsg,
-        ContractQueryMsg, QueryMsg, ImplQueryMsg,
-    };
-    use crate::entry_points::{instantiate, execute, query};
-    pub fn main(){
-        
+    pub fn main() {
         let mut deps = mock_dependencies();
         deps.querier = mock_querier();
-        let response = instantiate(deps.as_mut(), mock_env(), mock_info(TEST_MODULE_FACTORY, &[]), InstantiateMsg{
-            base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
+        let response = instantiate(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(TEST_MODULE_FACTORY, &[]),
+            InstantiateMsg {
+                base: BaseInstantiateMsg {
+                    ans_host_address: TEST_ANS_HOST.to_string(),
+                    version_control_address: TEST_VERSION_CONTROL.to_string(),
+                },
+                module: ImplInstantiateMsg {
+                    admin: "abstract".to_string(),
+                },
             },
-            module: ImplInstantiateMsg{
-                admin: "abstract".to_string()
-            }
-        }).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(response.messages.len(), 5);
         assert_eq!(response.events.len(), 1);
 
         execute(
-            deps.as_mut(), 
-            mock_env(), 
-            mock_info(TEST_MODULE_FACTORY, &[]), 
-            ContractExecMsg::SylviaContract(ExecMsg::Module(ImplExecMsg::Increment { i: 9 }))
-        ).unwrap();
+            deps.as_mut(),
+            mock_env(),
+            mock_info(TEST_MODULE_FACTORY, &[]),
+            ContractExecMsg::SylviaContract(ExecMsg::Module(ImplExecMsg::Increment { i: 9 })),
+        )
+        .unwrap();
 
         let response = query(
-            deps.as_ref(), 
-            mock_env(), 
-            ContractQueryMsg::SylviaContract(QueryMsg::Module(ImplQueryMsg::Count { i: 9 }))
-        ).unwrap();
+            deps.as_ref(),
+            mock_env(),
+            ContractQueryMsg::SylviaContract(QueryMsg::Module(ImplQueryMsg::Count { i: 9 })),
+        )
+        .unwrap();
 
         let count: i32 = from_json(response).unwrap();
-        assert_eq!(count,  9i32);
+        assert_eq!(count, 9i32);
     }
 }
 
@@ -231,7 +239,6 @@ pub mod test{
 //     module: AppInstantiateMsg
 // }
 
-
 // pub fn instantiate(
 //     deps: DepsMut,
 //     env: Env,
@@ -243,7 +250,6 @@ pub mod test{
 // > {
 //     msg.dispatch(&SylviaContract::new(), (deps, env, info)).map_err(Into::into)
 // }
-
 
 // impl InstantiateMsg {
 //     pub fn dispatch(

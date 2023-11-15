@@ -1,13 +1,13 @@
 pub mod bank;
+pub mod execute;
 pub mod execution;
 pub mod execution_stack;
 pub mod implementations;
-pub mod nameservice;
-pub mod sdk;
 pub mod instantiate;
-pub mod execute;
 pub mod migrate;
+pub mod nameservice;
 pub mod query;
+pub mod sdk;
 
 // TODO: add macro here that generates the private struct below
 // The macro should:

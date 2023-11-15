@@ -1,45 +1,61 @@
-use abstract_core::{app::BaseInstantiateMsg, module_factory::{ContextResponse, QueryMsg as FactoryQuery, }};
-use abstract_sdk::{namespaces::{ADMIN_NAMESPACE, BASE_STATE}, feature_objects::{VersionControlContract, AnsHost}, cw_helpers::wasm_smart_query, AbstractSdkResult};
+use abstract_core::{
+    app::BaseInstantiateMsg,
+    module_factory::{ContextResponse, QueryMsg as FactoryQuery},
+};
+use abstract_sdk::{
+    cw_helpers::wasm_smart_query,
+    feature_objects::{AnsHost, VersionControlContract},
+    namespaces::{ADMIN_NAMESPACE, BASE_STATE},
+    AbstractSdkResult,
+};
 use abstract_testing::addresses::{TEST_MANAGER, TEST_PROXY};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Empty, CustomQuery, StdResult, StdError, Event, Addr};
+use cosmwasm_std::{
+    Addr, CustomQuery, DepsMut, Empty, Env, Event, MessageInfo, StdError, StdResult,
+};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 
 use crate::state::AppState;
 
-use super::{execution_stack::{DepsAccess, CustomEvents, Executables, ExecutionStack}, sdk::AccountIdentification, nameservice::AbstractNameService};
+use super::{
+    execution_stack::{CustomEvents, DepsAccess, Executables, ExecutionStack},
+    nameservice::AbstractNameService,
+    sdk::AccountIdentification,
+};
 
-pub struct AppBaseState{
+pub struct AppBaseState {
     // Custom state for every App
     pub admin: Admin<'static>,
     pub(crate) state: Item<'static, AppState>,
 }
 
-impl Default for AppBaseState{
-    fn default() -> Self{
-        Self{
+impl Default for AppBaseState {
+    fn default() -> Self {
+        Self {
             state: Item::new(BASE_STATE),
             admin: Admin::new(ADMIN_NAMESPACE),
         }
     }
 }
 
-pub struct AppInstantiateCtx<'a, C: CustomQuery = Empty>{
+pub struct AppInstantiateCtx<'a, C: CustomQuery = Empty> {
     pub deps: DepsMut<'a, C>,
     pub env: Env,
     pub info: MessageInfo,
 
     pub base_state: AppBaseState,
     pub events: Vec<Event>,
-    pub executables: Executables
+    pub executables: Executables,
 }
 
-impl<'a, C: CustomQuery> TryFrom<((DepsMut<'a, C>, Env, MessageInfo), BaseInstantiateMsg)> for AppInstantiateCtx<'a, C> {
-
+impl<'a, C: CustomQuery> TryFrom<((DepsMut<'a, C>, Env, MessageInfo), BaseInstantiateMsg)>
+    for AppInstantiateCtx<'a, C>
+{
     type Error = StdError;
 
-    fn try_from(((mut deps, env, info), base_msg): ((DepsMut<'a, C>, Env, MessageInfo), BaseInstantiateMsg)) -> StdResult<Self> {
-        
+    fn try_from(
+        ((mut deps, env, info), base_msg): ((DepsMut<'a, C>, Env, MessageInfo), BaseInstantiateMsg),
+    ) -> StdResult<Self> {
         let BaseInstantiateMsg {
             ans_host_address,
             version_control_address,
@@ -59,11 +75,11 @@ impl<'a, C: CustomQuery> TryFrom<((DepsMut<'a, C>, Env, MessageInfo), BaseInstan
         //     info.sender.to_string(),
         //     &FactoryQuery::Context {},
         // )?)?;
-         let resp = ContextResponse{
-            account_base:abstract_core::version_control::AccountBase { 
+        let resp = ContextResponse {
+            account_base: abstract_core::version_control::AccountBase {
                 manager: Addr::unchecked(TEST_MANAGER),
-                proxy: Addr::unchecked(TEST_PROXY) 
-            }
+                proxy: Addr::unchecked(TEST_PROXY),
+            },
         };
 
         let account_base = resp.account_base;
@@ -81,22 +97,23 @@ impl<'a, C: CustomQuery> TryFrom<((DepsMut<'a, C>, Env, MessageInfo), BaseInstan
 
         let base_state = AppBaseState::default();
         base_state.state.save(deps.storage, &state)?;
-        base_state.admin.set(deps.branch(), Some(account_base.manager))?;
+        base_state
+            .admin
+            .set(deps.branch(), Some(account_base.manager))?;
 
         // All the app logic
-        Ok(Self { 
-            deps, 
-            env, 
+        Ok(Self {
+            deps,
+            env,
             info,
             base_state,
             events: vec![],
-            executables: Executables::default()
+            executables: Executables::default(),
         })
     }
-
 }
 
-impl<'c> DepsAccess for AppInstantiateCtx<'c, Empty>{
+impl<'c> DepsAccess for AppInstantiateCtx<'c, Empty> {
     fn deps_mut<'a: 'b, 'b>(&'a mut self) -> DepsMut<'b, Empty> {
         self.deps.branch()
     }
@@ -108,11 +125,10 @@ impl<'c> DepsAccess for AppInstantiateCtx<'c, Empty>{
 
 impl<'a> CustomEvents for AppInstantiateCtx<'a> {
     fn add_event(&mut self, event_name: &str, attributes: Vec<(&str, &str)>) {
-        self
-            .events
+        self.events
             .push(Event::new(event_name).add_attributes(attributes))
     }
-    fn events(&self) -> Vec<Event>{
+    fn events(&self) -> Vec<Event> {
         self.events.clone()
     }
 }
@@ -128,7 +144,6 @@ impl<'a> AccountIdentification for AppInstantiateCtx<'a> {
         Ok(self.base_state.state.load(self.deps.storage)?.proxy_address)
     }
 }
-
 
 impl<'a> AbstractNameService for AppInstantiateCtx<'a> {
     fn ans_host(&self) -> AbstractSdkResult<AnsHost> {

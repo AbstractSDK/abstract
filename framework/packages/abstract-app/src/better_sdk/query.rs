@@ -1,11 +1,22 @@
 use abstract_core::{app::BaseExecuteMsg, app::BaseQueryMsg};
-use abstract_sdk::{namespaces::{ADMIN_NAMESPACE, BASE_STATE}, AbstractSdkResult, feature_objects::AnsHost};
+use abstract_sdk::{
+    feature_objects::AnsHost,
+    namespaces::{ADMIN_NAMESPACE, BASE_STATE},
+    AbstractSdkResult,
+};
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Empty, CustomQuery, Event, Addr, Deps, Binary, to_json_binary};
+use cosmwasm_std::{
+    to_json_binary, Addr, Binary, CustomQuery, Deps, DepsMut, Empty, Env, Event, MessageInfo,
+};
 
-use super::{instantiate::AppBaseState, execution_stack::{DepsAccess, ExecutionStack, CustomEvents, Executables}, sdk::AccountIdentification, nameservice::AbstractNameService};
+use super::{
+    execution_stack::{CustomEvents, DepsAccess, Executables, ExecutionStack},
+    instantiate::AppBaseState,
+    nameservice::AbstractNameService,
+    sdk::AccountIdentification,
+};
 
-pub struct AppQueryCtx<'a, C: CustomQuery = Empty>{
+pub struct AppQueryCtx<'a, C: CustomQuery = Empty> {
     pub deps: Deps<'a, C>,
     pub env: Env,
 
@@ -14,33 +25,32 @@ pub struct AppQueryCtx<'a, C: CustomQuery = Empty>{
 
 impl<'a, C: CustomQuery> From<(Deps<'a, C>, Env)> for AppQueryCtx<'a, C> {
     fn from((deps, env): (Deps<'a, C>, Env)) -> Self {
-        Self { 
-            deps, 
-            env, 
+        Self {
+            deps,
+            env,
             base_state: AppBaseState::default(),
         }
     }
 }
 
 #[cw_serde]
-pub enum BaseQueryResult{
-    Empty
+pub enum BaseQueryResult {
+    Empty,
 }
 
-impl BaseQueryResult{
-    pub fn generate_response(self) -> AbstractSdkResult<Binary>{
+impl BaseQueryResult {
+    pub fn generate_response(self) -> AbstractSdkResult<Binary> {
         to_json_binary(&self).map_err(Into::into)
     }
 }
 
-
-impl<'a> AppQueryCtx<'a>{
-    pub fn _base(self, msg: BaseQueryMsg) -> AbstractSdkResult<BaseQueryResult>{
+impl<'a> AppQueryCtx<'a> {
+    pub fn _base(self, msg: BaseQueryMsg) -> AbstractSdkResult<BaseQueryResult> {
         Ok(BaseQueryResult::Empty)
     }
 }
 
-impl<'c> DepsAccess for AppQueryCtx<'c>{
+impl<'c> DepsAccess for AppQueryCtx<'c> {
     fn deps_mut<'a: 'b, 'b>(&'a mut self) -> DepsMut<'b, Empty> {
         unimplemented!()
     }
@@ -55,7 +65,6 @@ impl<'a> AccountIdentification for AppQueryCtx<'a> {
         Ok(self.base_state.state.load(self.deps.storage)?.proxy_address)
     }
 }
-
 
 impl<'a> AbstractNameService for AppQueryCtx<'a> {
     fn ans_host(&self) -> AbstractSdkResult<AnsHost> {

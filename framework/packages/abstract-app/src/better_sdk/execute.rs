@@ -1,41 +1,48 @@
 use abstract_core::app::BaseExecuteMsg;
-use abstract_sdk::{namespaces::{ADMIN_NAMESPACE, BASE_STATE}, AbstractSdkResult, feature_objects::AnsHost};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Empty, CustomQuery, Event, Addr};
+use abstract_sdk::{
+    feature_objects::AnsHost,
+    namespaces::{ADMIN_NAMESPACE, BASE_STATE},
+    AbstractSdkResult,
+};
+use cosmwasm_std::{Addr, CustomQuery, DepsMut, Empty, Env, Event, MessageInfo};
 
-use super::{instantiate::AppBaseState, execution_stack::{DepsAccess, ExecutionStack, CustomEvents, Executables}, sdk::AccountIdentification, nameservice::AbstractNameService};
+use super::{
+    execution_stack::{CustomEvents, DepsAccess, Executables, ExecutionStack},
+    instantiate::AppBaseState,
+    nameservice::AbstractNameService,
+    sdk::AccountIdentification,
+};
 
-pub struct AppExecCtx<'a, C: CustomQuery = Empty>{
+pub struct AppExecCtx<'a, C: CustomQuery = Empty> {
     pub deps: DepsMut<'a, C>,
     pub env: Env,
     pub info: MessageInfo,
 
     pub base_state: AppBaseState,
     pub events: Vec<Event>,
-    pub executables: Executables
+    pub executables: Executables,
 }
 
 impl<'a, C: CustomQuery> From<(DepsMut<'a, C>, Env, MessageInfo)> for AppExecCtx<'a, C> {
     fn from((deps, env, info): (DepsMut<'a, C>, Env, MessageInfo)) -> Self {
-        Self { 
-            deps, 
-            env, 
+        Self {
+            deps,
+            env,
             info,
             base_state: AppBaseState::default(),
             events: vec![],
-            executables: Executables::default()
+            executables: Executables::default(),
         }
     }
 }
 
-impl<'a> AppExecCtx<'a>{
-    pub fn _base(self, msg: BaseExecuteMsg) -> AbstractSdkResult<Self>{
+impl<'a> AppExecCtx<'a> {
+    pub fn _base(self, msg: BaseExecuteMsg) -> AbstractSdkResult<Self> {
         Ok(self)
     }
 }
 
-
-
-impl<'c> DepsAccess for AppExecCtx<'c>{
+impl<'c> DepsAccess for AppExecCtx<'c> {
     fn deps_mut<'a: 'b, 'b>(&'a mut self) -> DepsMut<'b, Empty> {
         self.deps.branch()
     }
@@ -45,14 +52,12 @@ impl<'c> DepsAccess for AppExecCtx<'c>{
     }
 }
 
-
 impl<'a> CustomEvents for AppExecCtx<'a> {
     fn add_event(&mut self, event_name: &str, attributes: Vec<(&str, &str)>) {
-        self
-            .events
+        self.events
             .push(Event::new(event_name).add_attributes(attributes))
     }
-    fn events(&self) -> Vec<Event>{
+    fn events(&self) -> Vec<Event> {
         self.events.clone()
     }
 }
@@ -68,7 +73,6 @@ impl<'a> AccountIdentification for AppExecCtx<'a> {
         Ok(self.base_state.state.load(self.deps.storage)?.proxy_address)
     }
 }
-
 
 impl<'a> AbstractNameService for AppExecCtx<'a> {
     fn ans_host(&self) -> AbstractSdkResult<AnsHost> {
