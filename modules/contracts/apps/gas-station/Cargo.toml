@@ -1,0 +1,68 @@
+[package]
+name = "abstract-gas-station-app"
+version = "0.1.0"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Adair <adair@abstract.money>",
+  "Abstract Money <contact@abstract.money>",
+]
+edition = "2021"
+homepage = ""
+documentation = ""
+repository = ""
+license = "GPL-3.0-or-later"
+keywords = ["cosmos", "cosmwasm", "abstractsdk"]
+resolver = "2"
+
+exclude = ["contract.wasm", "hash.txt"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
+[features]
+# backtraces = ["cosmwasm-std/backtraces"]
+default = ["export"]
+export = []
+# enable node-backed tests (ensure Docker is running)
+# run with `cargo test --jobs 1 --features node-tests`
+node-tests = ["interface"]
+interface = ["export", "dep:abstract-interface", "dep:cw-orch"]
+schema = ["abstract-app/schema"]
+
+osmosis-test = ["cw-orch/osmosis-test-tube"]
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+thiserror = { workspace = true }
+schemars = { workspace = true }
+cw-asset = { workspace = true }
+
+abstract-core = { workspace = true }
+abstract-app = { workspace = true }
+abstract-sdk = { workspace = true, features = ["stargate"] }
+
+# Dependencies for interface
+abstract-interface = { workspace = true, optional = true }
+cw-orch = { workspace = true, optional = true }
+osmosis-std = { version = "=0.19.1" }
+#osmosis-std = { path = "../../../../integrations/osmosis/packages/osmosis-std" }
+# TODO: remove
+cosmos-sdk-proto = { version = "0.20.0", default-features = false }
+cw-utils = { workspace = true }
+
+[dev-dependencies]
+abstract-gas-station-app = { path = ".", features = ["interface"] }
+abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-testing = { workspace = true }
+abstract-sdk = { workspace = true, features = ["test-utils"] }
+speculoos = "0.11.0"
+semver = "1.0"
+dotenv = "0.15.0"
+env_logger = "0.10.0"
