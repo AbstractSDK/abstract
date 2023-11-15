@@ -32,6 +32,7 @@ abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 # Keep this as a version and update when publishing new versions
 abstract-interface = { path = "../../packages/abstract-interface", version = "0.19.2", optional = true }
+sylvia = { version = "0.9.0", path = "../../../../sylvia/sylvia" }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

@@ -43,6 +43,13 @@ pub trait AccountIdentification: DepsAccess + Sized {
     }
 }
 
+
+pub trait SylviaAbstractContract{
+    type BaseInstantiateMsg;
+    type BaseMigrateMsg;
+}
+
+
 #[cfg(test)]
 mod test {
     use super::*;

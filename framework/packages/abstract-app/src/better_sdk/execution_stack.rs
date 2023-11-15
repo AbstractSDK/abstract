@@ -1,6 +1,6 @@
 use abstract_core::proxy::ExecuteMsg;
 use abstract_sdk::{AbstractSdkResult, AccountAction};
-use cosmwasm_std::{wasm_execute, Api, CosmosMsg, Deps, DepsMut, ReplyOn, SubMsg};
+use cosmwasm_std::{wasm_execute, Api, CosmosMsg, Deps, DepsMut, ReplyOn, SubMsg, Event, Response};
 
 use super::sdk::AccountIdentification;
 
@@ -87,8 +87,8 @@ pub trait ExecutionStack: Sized + AccountIdentification {
                         )?
                         .into();
                         SubMsg {
-                            id: id.clone(),
-                            msg: msg.into(),
+                            id: *id,
+                            msg: msg.clone(),
                             gas_limit: None,
                             reply_on: reply_on.clone(),
                         }
@@ -101,7 +101,18 @@ pub trait ExecutionStack: Sized + AccountIdentification {
 }
 pub trait CustomEvents {
     fn add_event(&mut self, event_name: &str, attributes: Vec<(&str, &str)>);
+    fn events(&self) -> Vec<Event>;
 }
+
+pub trait ResponseGenerator: ExecutionStack + CustomEvents{
+    fn generate_response(&mut self) -> AbstractSdkResult<Response>{
+        Ok(Response::new()
+            .add_events(self.events())
+            .add_submessages(self._unwrap_for_response()?))
+    }
+}
+
+impl<T> ResponseGenerator for T where T: ExecutionStack + CustomEvents{}
 
 // #[cfg(test)]
 // mod test {
