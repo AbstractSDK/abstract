@@ -14,7 +14,7 @@
 use crate::Abstract;
 use crate::AdapterDeployer;
 use crate::AppDeployer;
-use abstract_core::module_factory::ModuleInstallConfig;
+use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::ABSTRACT_EVENT_TYPE;
 use cw_orch::deploy::Deploy;
 

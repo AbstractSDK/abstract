@@ -8,9 +8,10 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{InternalConfigAction, RegisterModuleData, UpdateSubAccountAction};
-use abstract_core::module_factory::ModuleInstallConfig;
+use abstract_core::manager::{InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction};
+use abstract_core::module_factory::FactoryModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::module::{self, assert_module_data_validity};
 use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::objects::version_control::VersionControlContract;
@@ -41,12 +42,15 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
-    Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
+    Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg,
+    SubMsgResult, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_ownable::OwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
+
+pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
 
 pub const MAX_ADMIN_RECURSION: usize = 2;
 
@@ -54,6 +58,8 @@ pub const MAX_ADMIN_RECURSION: usize = 2;
 pub struct ManagerResponse;
 
 pub(crate) const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
+
+pub(crate) const INSTALL_MODULES_CONTEXT: Item<Vec<(Module, Option<Addr>)>> = Item::new("icontext");
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
@@ -89,9 +95,9 @@ pub fn update_module_addresses(
 
 /// Attempts to install a new module through the Module Factory Contract
 pub fn install_modules(
-    deps: DepsMut,
+    mut deps: DepsMut,
     msg_info: MessageInfo,
-    _env: Env,
+    env: Env,
     modules: Vec<ModuleInstallConfig>,
 ) -> ManagerResult {
     // only owner can call this method
@@ -99,104 +105,135 @@ pub fn install_modules(
 
     let config = CONFIG.load(deps.storage)?;
 
-    let (install_msg, install_attribute) = install_modules_internal(
-        deps.storage,
+    let (register_on_proxy, install_msg, install_attribute) = install_modules_internal(
+        deps.branch(),
+        env.block.height,
         modules,
         config.module_factory_address,
+        config.version_control_address,
         msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
     )?;
     let response = ManagerResponse::new("install_modules", std::iter::once(install_attribute))
-        .add_message(install_msg);
+        .add_message(register_on_proxy)
+        .add_submessage(install_msg);
 
     Ok(response)
 }
 
 /// Generate message and attribute for installing module
+/// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
 pub(crate) fn install_modules_internal(
-    storage: &dyn Storage,
+    mut deps: DepsMut,
+    block_height: u64,
     modules: Vec<ModuleInstallConfig>,
     module_factory_address: Addr,
+    version_control_address: Addr,
     funds: Vec<Coin>,
-) -> ManagerResult<(CosmosMsg, Attribute)> {
+) -> ManagerResult<(CosmosMsg, SubMsg, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
-    for ModuleInstallConfig { module, .. } in &modules {
+    let mut manager_modules = Vec::with_capacity(modules.len());
+    let account_id = ACCOUNT_ID.load(deps.storage)?;
+    let salt: Binary = module::generate_salt(block_height, account_id);
+    let version_control = VersionControlContract::new(version_control_address);
+
+    let canonical_module_factory = deps
+        .api
+        .addr_canonicalize(module_factory_address.as_str())?;
+
+    let (infos, init_msgs): (Vec<_>, Vec<_>) =
+        modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
+    let modules = version_control
+        .module_registry(deps.as_ref())
+        .query_modules_configs(infos)?;
+
+    let mut install_context = Vec::with_capacity(modules.len());
+    let mut to_add = Vec::with_capacity(modules.len());
+    for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
         // Check if module is already enabled.
-        if ACCOUNT_MODULES.may_load(storage, &module.id())?.is_some() {
-            return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
+        if ACCOUNT_MODULES
+            .may_load(deps.storage, &module.info.id())?
+            .is_some()
+        {
+            return Err(ManagerError::ModuleAlreadyInstalled(module.info.id()));
         }
-        installed_modules.push(module.id_with_version());
+        installed_modules.push(module.info.id_with_version());
+
+        let init_msg_salt = match &module.reference {
+            ModuleReference::Adapter(module_address) => {
+                to_add.push((module.info.id(), module_address.to_string()));
+                install_context.push((module.clone(), None));
+                None
+            }
+            ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
+                let checksum = deps.querier.query_wasm_code_info(*code_id)?.checksum;
+                let module_address = cosmwasm_std::instantiate2_address(
+                    &checksum,
+                    &canonical_module_factory,
+                    &salt,
+                )?;
+                let module_address = deps.api.addr_humanize(&module_address)?;
+                to_add.push((module.info.id(), module_address.to_string()));
+                install_context.push((module.clone(), Some(module_address)));
+
+                Some(init_msg.unwrap())
+            }
+            // TODO: do we want to support installing any other type of module here?
+            _ => unreachable!(),
+        };
+        manager_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
     }
+
+    INSTALL_MODULES_CONTEXT.save(deps.storage, &install_context)?;
+
+    // Add modules to proxy
+    let (_, add_modules): (Vec<_>, Vec<_>) = to_add.iter().cloned().unzip();
+    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
+    let add_to_proxy = add_modules_to_proxy(proxy_addr.into_string(), add_modules)?;
+
+    // Update module addrs
+    update_module_addresses(deps.branch(), Some(to_add), None)?;
 
     let msg = wasm_execute(
         module_factory_address,
-        &ModuleFactoryMsg::InstallModules { modules },
+        &ModuleFactoryMsg::InstallModules {
+            modules: manager_modules,
+            salt,
+        },
         funds,
     )?;
     Ok((
-        msg.into(),
+        add_to_proxy,
+        SubMsg::reply_on_success(msg, REGISTER_MODULES_DEPENDENCIES),
         Attribute::new("installed_modules", format!("{installed_modules:?}")),
     ))
 }
 
-/// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
-pub fn register_modules(
-    mut deps: DepsMut,
-    msg_info: MessageInfo,
-    _env: Env,
-    modules: Vec<RegisterModuleData>,
-) -> ManagerResult {
-    let config = CONFIG.load(deps.storage)?;
-    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
+/// Adds the modules dependencies
+pub(crate) fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> ManagerResult {
+    let modules = INSTALL_MODULES_CONTEXT.load(deps.storage)?;
 
-    // check if sender is module factory
-    if msg_info.sender != config.module_factory_address {
-        return Err(ManagerError::CallerNotModuleFactory {});
-    }
+    for (module, module_addr) in &modules {
+        assert_module_data_validity(&deps.querier, module, module_addr.clone())?;
 
-    let to_add = modules
-        .iter()
-        .map(|reg| (reg.module.info.id(), reg.module_address.clone()))
-        .collect();
-
-    let mut response = update_module_addresses(deps.branch(), Some(to_add), None)?;
-    let mut add_modules = vec![];
-    for RegisterModuleData {
-        module,
-        module_address,
-    } in modules
-    {
         match module {
             Module {
                 reference: ModuleReference::App(_),
                 info,
-                ..
-            } => {
-                let id = info.id();
-                // assert version requirements
-                let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
-                versioning::set_as_dependent(deps.storage, id, dependencies)?;
-                add_modules.push(module_address);
             }
-            Module {
+            | Module {
                 reference: ModuleReference::Adapter(_),
                 info,
-                ..
             } => {
                 let id = info.id();
                 // assert version requirements
                 let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
                 versioning::set_as_dependent(deps.storage, id, dependencies)?;
-                add_modules.push(module_address);
             }
             _ => (),
         };
     }
-    // add modules to proxy if any
-    if !add_modules.is_empty() {
-        response =
-            response.add_message(add_modules_to_proxy(proxy_addr.into_string(), add_modules)?)
-    }
-    Ok(response)
+
+    Ok(Response::new())
 }
 
 /// Execute the [`exec_msg`] on the provided [`module_id`],
@@ -919,6 +956,7 @@ pub fn update_account_status(
 /// This method is also called once by the Account Factory after the account is created and triggers any queued module installations.
 pub fn update_internal_config(
     mut deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     config: Binary,
 ) -> ManagerResult {
@@ -955,14 +993,17 @@ pub fn update_internal_config(
         } else {
             let config = CONFIG.load(deps.storage)?;
 
-            let (install_msg, install_attributes) = install_modules_internal(
-                deps.storage,
+            let (add_to_proxy, install_msg, install_attributes) = install_modules_internal(
+                deps.branch(),
+                env.block.height,
                 queued_modules,
                 config.module_factory_address,
+                config.version_control_address,
                 info.funds,
             )?;
             ManagerResponse::new("manager_after_init", std::iter::once(install_attributes))
-                .add_message(install_msg)
+                .add_message(add_to_proxy)
+                .add_submessage(install_msg)
         };
 
         let account_info = INFO.load(deps.storage)?;
@@ -1328,6 +1369,7 @@ mod tests {
         }
     }
 
+    // TODO: move those tests to integrations tests, since we can't do query in unit tests
     mod install_module {
         use super::*;
 
@@ -1347,89 +1389,6 @@ mod tests {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner));
-
-            Ok(())
-        }
-
-        #[test]
-        fn cannot_reinstall_module() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let msg = ExecuteMsg::InstallModules {
-                modules: vec![ModuleInstallConfig::new(
-                    ModuleInfo::from_id_latest("test:module")?,
-                    None,
-                )],
-            };
-
-            // manual installation
-            ACCOUNT_MODULES.save(
-                &mut deps.storage,
-                "test:module",
-                &Addr::unchecked("test_module_addr"),
-            )?;
-
-            let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that!(&res).is_err().matches(|e| {
-                let _module_id = String::from("test:module");
-                matches!(e, ManagerError::ModuleAlreadyInstalled(_module_id))
-            });
-
-            Ok(())
-        }
-
-        #[test]
-        fn adds_module_to_account_modules() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let msg = ExecuteMsg::InstallModules {
-                modules: vec![ModuleInstallConfig::new(
-                    ModuleInfo::from_id_latest("test:module")?,
-                    None,
-                )],
-            };
-
-            let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that!(&res).is_ok();
-
-            Ok(())
-        }
-
-        #[test]
-        fn forwards_init_to_module_factory() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let new_module = ModuleInfo::from_id_latest("test:module")?;
-            let expected_init = Some(to_json_binary(&"some init msg")?);
-
-            let msg = ExecuteMsg::InstallModules {
-                modules: vec![ModuleInstallConfig::new(
-                    new_module.clone(),
-                    expected_init.clone(),
-                )],
-            };
-
-            let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that!(&res).is_ok();
-
-            let msgs = res.unwrap().messages;
-
-            let msg = &msgs[0];
-
-            let expected_msg: CosmosMsg = wasm_execute(
-                TEST_MODULE_FACTORY,
-                &ModuleFactoryMsg::InstallModules {
-                    modules: vec![ModuleInstallConfig::new(new_module, expected_init)],
-                },
-                vec![],
-            )?
-            .into();
-            assert_that!(&msgs).has_length(1);
-
-            assert_that!(&msg.msg).is_equal_to(&expected_msg);
 
             Ok(())
         }
@@ -1491,40 +1450,6 @@ mod tests {
         }
 
         // rest should be in integration tests
-    }
-
-    mod register_module {
-
-        use super::*;
-
-        fn _execute_as_module_factory(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-            execute_as(deps, TEST_MODULE_FACTORY, msg)
-        }
-
-        #[test]
-        fn only_module_factory() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            init_with_proxy(&mut deps);
-
-            let _info = mock_info("not_module_factory", &[]);
-
-            let msg = ExecuteMsg::RegisterModules {
-                modules: vec![RegisterModuleData {
-                    module_address: "module_addr".to_string(),
-                    module: Module {
-                        info: ModuleInfo::from_id_latest("test:module")?,
-                        reference: ModuleReference::App(1),
-                    },
-                }],
-            };
-
-            let res = execute_as(deps.as_mut(), "not_module_factory", msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(ManagerError::CallerNotModuleFactory {});
-
-            Ok(())
-        }
     }
 
     mod exec_on_module {

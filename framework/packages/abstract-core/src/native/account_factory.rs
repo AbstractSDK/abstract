@@ -13,7 +13,7 @@ pub mod state {
     use serde::{Deserialize, Serialize};
 
     use crate::{
-        native::module_factory::ModuleInstallConfig,
+        manager::ModuleInstallConfig,
         objects::{
             account::{AccountId, AccountSequence},
             gov_type::GovernanceDetails,
@@ -64,7 +64,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
 use crate::{
-    native::module_factory::ModuleInstallConfig,
+    manager::ModuleInstallConfig,
     objects::{
         account::{AccountId, AccountSequence, AccountTrace},
         gov_type::GovernanceDetails,

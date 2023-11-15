@@ -7,7 +7,7 @@ use abstract_core::{
     ibc::CallbackInfo,
     ibc_client::ExecuteMsg as IbcClientMsg,
     ibc_host::HostAction,
-    module_factory::ModuleInstallConfig,
+    manager::ModuleInstallConfig,
     objects::module::{ModuleInfo, ModuleVersion},
     proxy::ExecuteMsg,
     IBC_CLIENT,

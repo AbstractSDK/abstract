@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
+- `Astrovault` integrated into dex and cw-staking adapters
 
 ### Changed
 
 - `is_module_installed` moved from `Manager` to `Account`
 - `account_id()` method of `AccountRegistry` is now exposed.
+- Allow module-id to be passed in as a valid authorized address when allowing new addresses on adapter contracts.
 
 ### Removed
 

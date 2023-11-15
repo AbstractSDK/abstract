@@ -111,8 +111,6 @@ pub mod mock {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked(TEST_PROXY),
                         },
-                        modules: vec![],
-                        modules_to_register: vec![],
                     };
                     Ok(to_json_binary(&resp).unwrap())
                 }
@@ -169,13 +167,50 @@ pub mod mock {
         use ::abstract_core::app;
         use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
         use ::cw_orch::prelude::*;
+        use ::abstract_sdk::base::Handler;
+        use ::abstract_sdk::features::AccountIdentification;
+        use ::abstract_sdk::{Execution, TransferInterface};
+
 
         type Exec = app::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
         type Query = app::QueryMsg<MockQueryMsg>;
         type Init = app::InstantiateMsg<MockInitMsg>;
         type Migrate = app::MigrateMsg<MockMigrateMsg>;
         const MOCK_APP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
-        .with_dependencies($deps);
+        .with_dependencies($deps)
+        .with_instantiate(|deps, _env, info, module, msg| {
+            let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());
+            // See test `create_sub_account_with_installed_module` where this will be triggered.
+            if module.info().0 == "tester:mock-app1" {
+                println!("checking address of adapter1");
+                let manager = module.admin.get(deps.as_ref())?.unwrap();
+                // Check if the adapter has access to its dependency during instantiation.
+                let adapter1_addr = ::abstract_core::manager::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
+                // We have address!
+                ::cosmwasm_std::ensure!(
+                    adapter1_addr.is_some(),
+                    ::cosmwasm_std::StdError::generic_err("no address")
+                );
+                println!("adapter_addr: {adapter1_addr:?}");
+                // See test `install_app_with_proxy_action` where this transfer will happen.
+                let proxy_addr = module.proxy_address(deps.as_ref())?;
+                let balance = deps.querier.query_balance(proxy_addr, "TEST")?;
+                if !balance.amount.is_zero() {
+                println!("sending amount from proxy: {balance:?}");
+                    let action = module
+                        .bank(deps.as_ref())
+                        .transfer::<::cosmwasm_std::Coin>(
+                            vec![balance.into()],
+                            &::cosmwasm_std::Addr::unchecked("test_addr"),
+                        )?;
+                    let msg = module.executor(deps.as_ref()).execute(vec![action])?;
+                    println!("message: {msg:?}");
+                    response = response.add_message(msg);
+                }
+                Ok(response)}
+            else {
+                Ok(response)}
+            });
 
         fn mock_instantiate(
             deps: ::cosmwasm_std::DepsMut,

@@ -15,7 +15,6 @@
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::manager` as module.
 pub mod state {
-    use crate::module_factory::ModuleInstallConfig;
     pub use crate::objects::account::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
@@ -25,6 +24,8 @@ pub mod state {
     use cw_ownable::Ownership;
     use cw_storage_plus::{Item, Map};
     use std::collections::HashSet;
+
+    use super::ModuleInstallConfig;
 
     pub type SuspensionStatus = bool;
 
@@ -100,13 +101,8 @@ pub mod state {
 
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
-use crate::module_factory::ModuleInstallConfig;
 use crate::objects::AssetEntry;
-use crate::objects::{
-    account::AccountId,
-    gov_type::GovernanceDetails,
-    module::{Module, ModuleInfo},
-};
+use crate::objects::{account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 use cw2::ContractVersion;
@@ -159,10 +155,18 @@ pub enum UpdateSubAccountAction {
     RegisterSubAccount { id: u32 },
 }
 
+/// Module info and init message
+#[non_exhaustive]
 #[cosmwasm_schema::cw_serde]
-pub struct RegisterModuleData {
-    pub module_address: String,
-    pub module: Module,
+pub struct ModuleInstallConfig {
+    pub module: ModuleInfo,
+    pub init_msg: Option<Binary>,
+}
+
+impl ModuleInstallConfig {
+    pub fn new(module: ModuleInfo, init_msg: Option<Binary>) -> Self {
+        Self { module, init_msg }
+    }
 }
 
 /// Manager execute messages
@@ -182,9 +186,6 @@ pub enum ExecuteMsg {
         // Module information and Instantiate message to instantiate the contract
         modules: Vec<ModuleInstallConfig>,
     },
-    /// Registers a module after creation.
-    /// Used as a callback *only* by the Module Factory to register the module on the Account.
-    RegisterModules { modules: Vec<RegisterModuleData> },
     /// Uninstall a module given its ID.
     UninstallModule { module_id: String },
     /// Upgrade the module to a new version

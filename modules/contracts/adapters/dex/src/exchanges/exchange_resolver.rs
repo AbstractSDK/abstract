@@ -60,6 +60,10 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<Box<dyn DexCommand>, DexEr
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::dex::Kujira>::default())
         }
+        #[cfg(feature = "astrovault")]
+        abstract_astrovault_adapter::ASTROVAULT => {
+            Ok(Box::<abstract_astrovault_adapter::dex::Astrovault>::default())
+        }
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }
