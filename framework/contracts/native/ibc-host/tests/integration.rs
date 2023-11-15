@@ -148,7 +148,6 @@ fn account_action() -> anyhow::Result<()> {
 
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
-            // .add_attribute("_contract_address", "contract9") No simple way to get the account manager here, TODO ? For testing, we will keep that.
             .add_attribute("contract", MANAGER)
             .add_attribute("action", "update_owner")
             .add_attribute("governance_type", "monarch")
@@ -206,7 +205,6 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
-            // .add_attribute("_contract_address", "contract9") No simple way to get the account manager here, TODO ? For testing, we will keep that.
             .add_attribute("contract", MANAGER)
             .add_attribute("action", "update_owner")
             .add_attribute("governance_type", "monarch")
@@ -271,7 +269,6 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     // Possible to verify that funds have been sent?
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
-            // .add_attribute("_contract_address", "contract9") No simple way to get the account manager here, TODO ? For testing, we will keep that.
             .add_attribute("contract", MANAGER)
             .add_attribute("action", "exec_on_module")
             .add_attribute("module", PROXY)

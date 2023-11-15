@@ -106,7 +106,7 @@ pub fn execute_create_account(
         })?;
     }
 
-    let salt = generate_salt(env.block.height, &account_id);
+    let salt = generate_salt(0, &account_id);
 
     // Get code_ids
     let (proxy_code_id, manager_code_id) = if let (
@@ -124,7 +124,6 @@ pub fn execute_create_account(
         ));
     };
 
-    // TODO: should be possible to parse checksums from artifacts/checksums.txt
     // Get checksums
     let proxy_checksum = deps.querier.query_wasm_code_info(proxy_code_id)?.checksum;
     let manager_checksum = deps.querier.query_wasm_code_info(manager_code_id)?.checksum;
@@ -240,12 +239,8 @@ fn query_module(
     Ok(modules.swap_remove(0).module)
 }
 
-/// Registers the Account on the version_control contract and
-/// adds proxy contract address to Manager
-pub fn after_proxy_add_to_manager_and_set_admin(
-    deps: DepsMut,
-    _result: SubMsgResult,
-) -> AccountFactoryResult {
+/// Validates instantiated manager and proxy modules
+pub fn validate_instantiated_account(deps: DepsMut, _result: SubMsgResult) -> AccountFactoryResult {
     let context = CONTEXT.load(deps.storage)?;
     CONTEXT.remove(deps.storage);
 

@@ -360,10 +360,8 @@ pub fn claim_namespace(
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
     let account_owner = query_account_owner(&deps.querier, &account_base.manager, &account_id)?;
 
-    let account_factory = FACTORY.get(deps.as_ref())?.unwrap();
-
     // The account owner as well as the account factory contract are able to claim namespaces
-    if msg_info.sender != account_owner && msg_info.sender != account_factory {
+    if msg_info.sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
             sender: msg_info.sender,
             owner: account_owner,
