@@ -111,6 +111,7 @@ macro_rules! cw_orch_interface {
 	    }
 
 	    pub mod interface{
+            use super::*;
 	    	use super::_wrapper_fns;
 	    	#[::cw_orch::interface(_wrapper_fns::InstantiateMsg, _wrapper_fns::ExecuteMsg, _wrapper_fns::QueryMsg, _wrapper_fns::MigrateMsg)]
 			pub struct $interface_name;
@@ -140,6 +141,22 @@ macro_rules! cw_orch_interface {
 			}
 
 			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<Chain> for $interface_name<Chain> {}
+
+			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::RegisteredModule for $interface_name<Chain> {
+				fn module_id<'a>() -> &'a str {
+                    $app_const.module_id()
+				}
+
+                fn module_version<'a>() -> &'a str {
+                    $app_const.version()
+                }
+			}
+
+			impl<T: ::cw_orch::prelude::CwEnv> From<::cw_orch::contract::Contract<T>> for $interface_name<T> {
+				fn from(contract: ::cw_orch::contract::Contract<T>) -> Self {
+					Self(contract)
+				}
+            }
 	    }
 
 

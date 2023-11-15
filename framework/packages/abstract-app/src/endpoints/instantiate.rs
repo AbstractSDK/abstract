@@ -75,8 +75,10 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use super::InstantiateMsg as SuperInstantiateMsg;
     use crate::mock::*;
+    use abstract_core::app::BaseInstantiateMsg;
+    use abstract_sdk::base::InstantiateEndpoint;
     use speculoos::prelude::*;
 
     use abstract_testing::{
@@ -92,7 +94,7 @@ mod test {
 
         deps.querier = app_base_mock_querier().build();
 
-        let msg = InstantiateMsg {
+        let msg = SuperInstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),

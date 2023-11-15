@@ -85,9 +85,7 @@ impl<
 mod test {
     use super::*;
     use abstract_core::version_control::AccountBase;
-    use abstract_sdk::{
-        features::ModuleIdentification, AccountVerification, ModuleRegistryInterface,
-    };
+    use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
     use abstract_testing::{
         mock_querier,
         prelude::{
