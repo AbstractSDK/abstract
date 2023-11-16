@@ -7,10 +7,10 @@ use std::time::Duration;
 use crate::features::AccountIdentification;
 use cosmos_sdk_proto::cosmos::base::v1beta1::Coin as SdkCoin;
 
-use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
 use cosmos_sdk_proto::cosmos::feegrant::v1beta1::MsgGrantAllowance;
 use cosmos_sdk_proto::traits::TypeUrl;
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Timestamp};
+use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
+use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg, Timestamp};
 
 use crate::AbstractSdkResult;
 use crate::AccountAction;
@@ -60,7 +60,7 @@ impl Grant {
         &self,
         granter: &Addr,
         grantee: &Addr,
-        basic: BasicAllowance,
+        _basic: BasicAllowance,
     ) -> AbstractSdkResult<AccountAction> {
         let allowance = feegrant::v1beta1::BasicAllowance {
             spend_limit: vec![SdkCoin {
@@ -75,7 +75,7 @@ impl Grant {
             grantee: grantee.into(),
             allowance: Some(Any {
                 type_url: feegrant::v1beta1::BasicAllowance::TYPE_URL.to_string(),
-                value: allowance.encode_to_vec()
+                value: allowance.encode_to_vec(),
             }),
             // allowance: Some(build_any_basic(basic)),
         };

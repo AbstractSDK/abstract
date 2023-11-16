@@ -1,8 +1,5 @@
 use cosmos_sdk_proto::traits::Message;
-use cosmwasm_std::to_binary;
-use cosmwasm_std::CosmosMsg;
 use cosmwasm_std::StdResult;
-use serde::Serialize;
 
 /// Shortcut helper as the construction of CosmosMsg::Stargate {...} can be quite verbose in contract code.
 /// ```rust,norun
@@ -35,6 +32,6 @@ mod test {
             granter: "foo".to_owned(),
             grantee: "bar".to_owned(),
         };
-        let _msg = prost_stargate_msg("/cosmos.feegrant.v1beta1.MsgGrantAllowance", &msg).unwrap();
+        let _msg = prost_stargate_msg("/cosmos.feegrant.v1beta1.MsgGrantAllowance", msg).unwrap();
     }
 }
