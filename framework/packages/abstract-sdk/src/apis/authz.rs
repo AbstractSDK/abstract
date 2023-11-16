@@ -119,7 +119,7 @@ fn convert_stamp(stamp: Timestamp) -> prost_types::Timestamp {
 }
 
 /// Represents a generic authorization grant.
-#[derive(Serialize, Deserialize, Clone, Default, PartialEq, Eq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema)]
 pub struct GenericAuthorization {
     /// Allowed msg type_url
     pub msg: String,
