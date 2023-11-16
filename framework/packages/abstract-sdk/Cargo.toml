@@ -13,7 +13,7 @@ resolver = "2"
 [features]
 default = []
 stargate = ["dep:cosmos-sdk-proto", "dep:prost-types"]
-tokenfactory = ["stargate", "dep:osmosis-std", "dep:osmo-bindings"]
+osmosis-token-factory = ["stargate", "dep:osmosis-std", "dep:osmo-bindings"]
 
 # Expose MockModule for testing with other Adapters
 test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]

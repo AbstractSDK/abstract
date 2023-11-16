@@ -31,7 +31,7 @@ pub use account_action::AccountAction;
 #[cfg(feature = "stargate")]
 pub use crate::apis::{distribution::*, grant::*};
 
-#[cfg(feature = "tokenfactory")]
+#[cfg(feature = "stargate")]
 pub use crate::apis::token_factory::*;
 
 pub mod features {

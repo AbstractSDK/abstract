@@ -29,18 +29,18 @@ pub trait TokenFactoryInterface: AccountIdentification {
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let token_factory: TokenFactory<MockModule> = module.token_factory(deps.as_ref(), "uusd", None)?;
+    let token_factory: TokenFactory = module.token_factory(deps.as_ref(), "uusd", None)?;
     ```
      */
     fn token_factory<'a>(
         &'a self,
         deps: Deps<'a>,
-        subdenom: impl ToString,
+        subdenom: impl Into<String>,
         sender: Option<Addr>,
     ) -> AbstractSdkResult<TokenFactory> {
         let sender = sender.unwrap_or(self.proxy_address(deps)?);
         // Check that the subdenom is valid
-        let subdenom = subdenom.to_string();
+        let subdenom = subdenom.into();
         if !subdenom
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '/')
@@ -50,10 +50,7 @@ pub trait TokenFactoryInterface: AccountIdentification {
             )
             .into());
         }
-        Ok(TokenFactory {
-            subdenom: subdenom.to_string(),
-            sender,
-        })
+        Ok(TokenFactory { subdenom, sender })
     }
 }
 
