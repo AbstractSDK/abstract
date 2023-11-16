@@ -195,7 +195,7 @@ impl AllowedMsgAllowanceAllowance for BasicAllowance {}
 impl AllowedMsgAllowanceAllowance for PeriodicAllowance {}
 
 /// Represents a basic fee allowance grant.
-#[derive(Serialize, Deserialize, Clone, Default, PartialEq, Eq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema)]
 pub struct BasicAllowance {
     /// Maximum amount of tokens that can be spent
     pub spend_limits: Vec<Coin>,
@@ -215,7 +215,7 @@ impl BasicAllowance {
 
 /// Details for a periodic fee allowance grant
 /// @see [cosmos_sdk_proto::cosmos::feegrant::v1beta1::PeriodicAllowance]
-#[derive(Serialize, Deserialize, Clone, Default, PartialEq, Eq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema)]
 pub struct PeriodicAllowance {
     /// basic is the instance of [BasicAllowance] which is optional for periodic fee allowance. If empty, the grant will have no expiration and no spend_limit.
     pub basic: Option<BasicAllowance>,
