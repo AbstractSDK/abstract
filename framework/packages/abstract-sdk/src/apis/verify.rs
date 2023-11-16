@@ -119,7 +119,7 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
         let registry_addr = self.base.abstract_registry(self.deps)?.address;
         let config = abstract_core::version_control::state::CONFIG
             .query(&self.deps.querier, registry_addr)?;
-        if config.namespace_registration_fee == cosmwasm_std::Coin::default() {
+        if config.namespace_registration_fee.amount.is_zero() {
             Ok(None)
         } else {
             Ok(Some(config.namespace_registration_fee))
