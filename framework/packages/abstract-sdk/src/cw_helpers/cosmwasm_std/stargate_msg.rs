@@ -1,3 +1,4 @@
+use cosmos_sdk_proto::traits::Message;
 use cosmwasm_std::to_binary;
 use cosmwasm_std::CosmosMsg;
 use cosmwasm_std::StdResult;
@@ -8,24 +9,32 @@ use serde::Serialize;
 ///         let msg = MsgCreateDenom {
 ///             sender: self.sender()?,
 ///             subdenom: self.subdenom.to_string(),
-///         }
-///         .encode_to_vec();
+///         };
 ///
 ///         let msg = prost_stargate_msg(MsgCreateDenom::TYPE_URL, &msg)?;
 /// ```
-pub fn prost_stargate_msg(type_url: &str, msg: &[u8]) -> StdResult<cosmwasm_std::CosmosMsg> {
+pub fn prost_stargate_msg(
+    type_url: impl Into<String>,
+    msg: impl Message,
+) -> StdResult<cosmwasm_std::CosmosMsg> {
     Ok(cosmwasm_std::CosmosMsg::Stargate {
-        type_url: type_url.to_string(),
-        value: cosmwasm_std::Binary(msg.to_vec()),
+        type_url: type_url.into(),
+        value: cosmwasm_std::Binary(msg.encode_to_vec()),
     })
 }
 
 #[cfg(test)]
 mod test {
+    use cosmos_sdk_proto::cosmos;
+
     use super::*;
 
     #[test]
     fn test_stargate_msg() {
-        let _msg = prost_stargate_msg("/cosmos.feegrant.v1beta1.MsgGrantAllowance", "key").unwrap();
+        let msg = cosmos::feegrant::v1beta1::MsgRevokeAllowance {
+            granter: "foo".to_owned(),
+            grantee: "bar".to_owned(),
+        };
+        let _msg = prost_stargate_msg("/cosmos.feegrant.v1beta1.MsgGrantAllowance", &msg).unwrap();
     }
 }
