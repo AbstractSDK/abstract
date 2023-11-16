@@ -19,7 +19,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(Self { abstr })
     }
 
-    pub fn ans_host(&self) -> &AnsHost<Chain> {
+    pub fn name_service(&self) -> &AnsHost<Chain> {
         &self.abstr.ans_host
     }
 

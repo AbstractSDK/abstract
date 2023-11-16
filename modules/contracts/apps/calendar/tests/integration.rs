@@ -100,7 +100,7 @@ fn setup_with_time(
 
     let client = AbstractClient::new(mock.clone())?;
 
-    client.ans_host().execute(
+    client.name_service().execute(
         &abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
             to_add: vec![(DENOM.to_owned(), AssetInfo::native(DENOM).into())],
             to_remove: vec![],
@@ -117,7 +117,7 @@ fn setup_with_time(
         .namespace("my-namespace")
         .build()?;
 
-    publisher.deploy_app::<AppInterface<Mock>>()?;
+    publisher.publish_app::<AppInterface<Mock>>()?;
 
     let app: Application<Mock, AppInterface<Mock>> = publisher.install_app(
         &AppInstantiateMsg {
