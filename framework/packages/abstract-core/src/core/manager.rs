@@ -20,12 +20,9 @@ pub mod state {
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
     use cosmwasm_std::{Addr, Deps};
     use cw_address_like::AddressLike;
-    use cw_controllers::Admin;
     use cw_ownable::Ownership;
     use cw_storage_plus::{Item, Map};
     use std::collections::HashSet;
-
-    use super::ModuleInstallConfig;
 
     pub type SuspensionStatus = bool;
 
@@ -82,8 +79,6 @@ pub mod state {
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
     /// Info about the Account
     pub const INFO: Item<AccountInfo<Addr>> = Item::new("\u{0}{4}info");
-    /// Contract Admin
-    pub const ACCOUNT_FACTORY: Admin = Admin::new("\u{0}{7}factory");
     /// Account owner - managed by cw-ownable
     pub const OWNER: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
     /// Enabled Abstract modules
@@ -91,8 +86,6 @@ pub mod state {
     /// Stores the dependency relationship between modules
     /// map module -> modules that depend on module.
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
-    /// Stores a queue of modules to install on the account after creation.
-    pub const MODULE_QUEUE: Item<Vec<ModuleInstallConfig>> = Item::new("mqueue");
     /// List of sub-accounts
     pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("sub_accs");
     /// Pending new governance
@@ -116,6 +109,7 @@ pub struct MigrateMsg {}
 pub struct InstantiateMsg {
     pub account_id: AccountId,
     pub owner: GovernanceDetails<String>,
+    pub proxy_addr: String,
     pub version_control_address: String,
     pub module_factory_address: String,
     pub name: String,
