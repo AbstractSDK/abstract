@@ -5,10 +5,8 @@
 //! ## Description  
 //! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  
 pub mod state {
-    use crate::{
-        objects::module::{Module, ModuleInfo},
-        version_control::AccountBase,
-    };
+
+    use crate::objects::module::ModuleInfo;
     use cosmwasm_std::{Addr, Binary};
     use cw_storage_plus::{Item, Map};
     use schemars::JsonSchema;
@@ -20,23 +18,13 @@ pub mod state {
         pub ans_host_address: Addr,
     }
 
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-    pub struct Context {
-        pub account_base: Option<AccountBase>,
-        pub module: Option<Module>,
-    }
-
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
-    pub const CONTEXT: Item<Context> = Item::new("\u{0}{7}context");
     pub const MODULE_INIT_BINARIES: Map<&ModuleInfo, Binary> = Map::new("module_init_binaries");
 }
 
-use crate::{
-    objects::module::{Module, ModuleInfo},
-    version_control::AccountBase,
-};
+use crate::objects::module::ModuleInfo;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary};
+use cosmwasm_std::{Addr, Binary, Coin};
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
@@ -57,16 +45,29 @@ pub enum ExecuteMsg {
         ans_host_address: Option<String>,
         version_control_address: Option<String>,
     },
-    /// Installs a module on the Account
-    InstallModule {
-        // Module details
-        module: ModuleInfo,
-        init_msg: Option<Binary>,
+    /// Install modules
+    InstallModules {
+        modules: Vec<FactoryModuleInstallConfig>,
+        salt: Binary,
     },
     UpdateFactoryBinaryMsgs {
         to_add: Vec<(ModuleInfo, Binary)>,
         to_remove: Vec<ModuleInfo>,
     },
+}
+
+/// Module info, init message and salt
+#[non_exhaustive]
+#[cosmwasm_schema::cw_serde]
+pub struct FactoryModuleInstallConfig {
+    pub module: ModuleInfo,
+    pub init_msg: Option<Binary>,
+}
+
+impl FactoryModuleInstallConfig {
+    pub fn new(module: ModuleInfo, init_msg: Option<Binary>) -> Self {
+        Self { module, init_msg }
+    }
 }
 
 /// Module factory query messages
@@ -79,10 +80,10 @@ pub enum QueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
-    /// Get the installation context of the module factory.
-    /// Returns [`ContextResponse`]
-    #[returns(ContextResponse)]
-    Context {},
+    /// Simulate install module cost
+    /// Returns [`SimulateInstallModulesResponse`]
+    #[returns(SimulateInstallModulesResponse)]
+    SimulateInstallModules { modules: Vec<ModuleInfo> },
 }
 
 /// Module factory config response
@@ -93,9 +94,12 @@ pub struct ConfigResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ContextResponse {
-    pub account_base: Option<AccountBase>,
-    pub module: Option<Module>,
+pub struct SimulateInstallModulesResponse {
+    pub total_required_funds: Vec<Coin>,
+    /// Funds transferred to the module creator
+    pub monetization_funds: Vec<(String, Coin)>,
+    /// Funds transferred to the module contract at instantiation
+    pub initialization_funds: Vec<(String, Vec<Coin>)>,
 }
 
 /// We currently take no arguments for migrations

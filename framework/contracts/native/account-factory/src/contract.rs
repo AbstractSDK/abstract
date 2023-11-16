@@ -1,9 +1,9 @@
-use crate::{commands, error::AccountFactoryError, state::*};
+use crate::{commands, error::AccountFactoryError, queries, state::*};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{account_factory::*, ACCOUNT_FACTORY};
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 
 use abstract_sdk::{execute_update_ownership, query_ownership};
@@ -27,7 +27,7 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
-        next_account_id: 0u32,
+        ibc_host: None,
     };
 
     cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
@@ -50,23 +50,37 @@ pub fn execute(
             ans_host_contract,
             version_control_contract,
             module_factory_address,
+            ibc_host,
         } => commands::execute_update_config(
             deps,
-            env,
             info,
             ans_host_contract,
             version_control_contract,
             module_factory_address,
+            ibc_host,
         ),
         ExecuteMsg::CreateAccount {
             governance,
             link,
             name,
             description,
-        } => {
-            let gov_details = governance.verify(deps.api)?;
-            commands::execute_create_account(deps, env, info, gov_details, name, description, link)
-        }
+            account_id,
+            namespace,
+            base_asset,
+            install_modules,
+        } => commands::execute_create_account(
+            deps,
+            env,
+            info,
+            governance,
+            name,
+            description,
+            link,
+            namespace,
+            base_asset,
+            install_modules,
+            account_id,
+        ),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(AccountFactoryResponse, deps, env, info, action)
         }
@@ -80,11 +94,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
         Reply {
             id: commands::CREATE_ACCOUNT_MANAGER_MSG_ID,
             result,
-        } => commands::after_manager_create_proxy(deps, result),
-        Reply {
-            id: commands::CREATE_ACCOUNT_PROXY_MSG_ID,
-            result,
-        } => commands::after_proxy_add_to_manager_and_set_admin(deps, result),
+        } => commands::validate_instantiated_account(deps, result),
         _ => Err(AccountFactoryError::UnexpectedReply {}),
     }
 }
@@ -92,22 +102,9 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_binary(&query_config(deps)?),
+        QueryMsg::Config {} => to_json_binary(&queries::query_config(deps)?),
         QueryMsg::Ownership {} => query_ownership!(deps),
     }
-}
-
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
-    let state: Config = CONFIG.load(deps.storage)?;
-
-    let resp = ConfigResponse {
-        version_control_contract: state.version_control_contract,
-        ans_host_contract: state.ans_host_contract,
-        module_factory_address: state.module_factory_address,
-        next_account_id: state.next_account_id,
-    };
-
-    Ok(resp)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -168,6 +165,7 @@ mod tests {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: None,
                 module_factory_address: None,
+                ibc_host: None,
             };
 
             test_only_owner(deps.as_mut(), msg)?;
@@ -185,6 +183,7 @@ mod tests {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: None,
                 module_factory_address: None,
+                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -193,7 +192,7 @@ mod tests {
                 version_control_contract: Addr::unchecked(TEST_VERSION_CONTROL),
                 ans_host_contract: Addr::unchecked(new_ans_host),
                 module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                next_account_id: 0,
+                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -211,6 +210,7 @@ mod tests {
                 ans_host_contract: None,
                 version_control_contract: Some(new_version_control.to_string()),
                 module_factory_address: None,
+                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -219,7 +219,7 @@ mod tests {
                 version_control_contract: Addr::unchecked(new_version_control),
                 ans_host_contract: Addr::unchecked(TEST_ANS_HOST),
                 module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                next_account_id: 0,
+                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -237,6 +237,7 @@ mod tests {
                 ans_host_contract: None,
                 version_control_contract: None,
                 module_factory_address: Some(new_module_factory.to_string()),
+                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -245,7 +246,7 @@ mod tests {
                 version_control_contract: Addr::unchecked(TEST_VERSION_CONTROL),
                 ans_host_contract: Addr::unchecked(TEST_ANS_HOST),
                 module_factory_address: Addr::unchecked(new_module_factory),
-                next_account_id: 0,
+                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -265,6 +266,7 @@ mod tests {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: Some(new_version_control.to_string()),
                 module_factory_address: Some(new_module_factory.to_string()),
+                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -273,7 +275,7 @@ mod tests {
                 version_control_contract: Addr::unchecked(new_version_control),
                 ans_host_contract: Addr::unchecked(new_ans_host),
                 module_factory_address: Addr::unchecked(new_module_factory),
-                next_account_id: 0,
+                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -335,7 +337,7 @@ mod tests {
         mock_init(deps.as_mut())?;
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap();
-        let config: ConfigResponse = from_binary(&res).unwrap();
+        let config: ConfigResponse = from_json(res).unwrap();
 
         assert_that!(config.version_control_contract.as_str()).is_equal_to(TEST_VERSION_CONTROL);
         assert_that!(config.ans_host_contract.as_str()).is_equal_to(TEST_ANS_HOST);
@@ -350,7 +352,7 @@ mod tests {
         mock_init(deps.as_mut())?;
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::Ownership {}).unwrap();
-        let ownership: cw_ownable::Ownership<Addr> = from_binary(&res).unwrap();
+        let ownership: cw_ownable::Ownership<Addr> = from_json(res).unwrap();
 
         assert_that!(ownership.owner)
             .is_some()

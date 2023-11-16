@@ -1,6 +1,6 @@
 # Abstract-SDK
 
-<!-- [![](https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github)](https://github.com/AbstractSDK/contracts)   -->
+<!-- [![](https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github)](https://github.com/AbstractSDK/abstract)   -->
 
 [![](https://docs.rs/abstract-sdk/badge.svg)](https://docs.rs/abstract-sdk) [![](https://img.shields.io/crates/v/abstract-sdk)](https://crates.io/crates/abstract-sdk)
 
@@ -123,7 +123,6 @@ The available base contracts are:
 |--------------------------------------------------------|------------|-------------|
 | [App](https://crates.io/crates/abstract-app)           | ✅          | ✅           |
 | [Adapter](https://crates.io/crates/abstract-adapter)       | ❌          | ✅           |
-| [IBC-host](https://crates.io/crates/abstract-ibc-host) | ✅          | ❌           |
 
 Each base supports a set of endpoints that can accept custom handlers. These handlers can be added to the base using a static builder pattern.
 All the available endpoints are discussed [here](crate::base::endpoints).

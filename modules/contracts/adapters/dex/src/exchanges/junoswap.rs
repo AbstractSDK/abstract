@@ -15,22 +15,22 @@ impl Identify for JunoSwap {
     }
 }
 
-#[cfg(feature = "juno")]
+#[cfg(feature = "wynd")]
 use ::{
     abstract_core::objects::PoolAddress,
-    abstract_dex_adapter_traits::DexError,
-    abstract_dex_adapter_traits::{coins_in_assets, cw_approve_msgs},
-    abstract_dex_adapter_traits::{DexCommand, Fee, FeeOnInput, Return, Spread},
+    abstract_dex_standard::DexError,
+    abstract_dex_standard::{coins_in_assets, cw_approve_msgs},
+    abstract_dex_standard::{DexCommand, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::cw_helpers::wasm_smart_query,
     cosmwasm_std::{
-        to_binary, wasm_execute, Coin, CosmosMsg, Decimal, Deps, Fraction, Uint128, WasmMsg,
+        to_json_binary, wasm_execute, Coin, CosmosMsg, Decimal, Deps, Fraction, Uint128, WasmMsg,
     },
     cw20_junoswap::{Cw20ExecuteMsg, Denom},
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
     wasmswap::msg::*,
 };
 
-#[cfg(feature = "juno")]
+#[cfg(feature = "wynd")]
 impl DexCommand for JunoSwap {
     fn swap(
         &self,
@@ -153,7 +153,7 @@ impl DexCommand for JunoSwap {
         let coins = coins_in_assets(&offer_assets);
         let junoswap_msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: pair_address.into_string(),
-            msg: to_binary(&msg)?,
+            msg: to_json_binary(&msg)?,
             funds: coins,
         });
         msgs.push(junoswap_msg);
@@ -217,7 +217,7 @@ impl DexCommand for JunoSwap {
         let coins = coins_in_assets(assets);
         let junoswap_msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: pair_address.into_string(),
-            msg: to_binary(&msg)?,
+            msg: to_json_binary(&msg)?,
             funds: coins,
         });
         msgs.push(junoswap_msg);
@@ -301,7 +301,7 @@ impl DexCommand for JunoSwap {
     }
 }
 
-#[cfg(feature = "juno")]
+#[cfg(feature = "wynd")]
 fn denom_and_asset_match(denom: &Denom, asset: &AssetInfo) -> Result<bool, DexError> {
     match denom {
         Denom::Native(denom_name) => match asset {

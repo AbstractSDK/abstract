@@ -130,7 +130,7 @@ fn install_non_existent_version_should_fail() -> AResult {
     let res = account.manager.install_module_version(
         TEST_MODULE_ID,
         ModuleVersion::Version("1.2.3".to_string()),
-        &Empty {},
+        Some(&Empty {}),
         None,
     );
 
@@ -222,7 +222,9 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
     let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
-    adapter1.deploy(V1.parse().unwrap(), MockInitMsg).unwrap();
+    adapter1
+        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .unwrap();
 
     install_adapter(&account.manager, &adapter1.id())?;
 
@@ -247,7 +249,9 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     let adapter2 = BootMockAdapter1V2::new_test(chain);
 
-    adapter2.deploy(V2.parse().unwrap(), MockInitMsg).unwrap();
+    adapter2
+        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .unwrap();
 
     // check that the latest staking version is the new one
     let latest_staking = deployment
@@ -342,13 +346,17 @@ fn installing_specific_version_should_install_expected() -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
     let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
-    adapter1.deploy(V1.parse().unwrap(), MockInitMsg).unwrap();
+    adapter1
+        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .unwrap();
 
     let v1_adapter_addr = adapter1.address()?;
 
     let adapter2 = BootMockAdapter1V2::new_test(chain);
 
-    adapter2.deploy(V2.parse().unwrap(), MockInitMsg).unwrap();
+    adapter2
+        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .unwrap();
 
     let expected_version = "1.0.0".to_string();
 
@@ -356,7 +364,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     account.manager.install_module_version(
         &adapter1.id(),
         ModuleVersion::Version(expected_version),
-        &MockInitMsg {},
+        Some(&MockInitMsg {}),
         None,
     )?;
 
@@ -376,11 +384,11 @@ fn account_install_adapter() -> AResult {
 
     deployment
         .version_control
-        .claim_namespace(1, "tester".to_owned())?;
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = BootMockAdapter1V1::new_test(chain);
-    adapter.deploy(V1.parse().unwrap(), MockInitMsg)?;
-    let adapter_addr = account.install_adapter(adapter, &MockInitMsg, None)?;
+    adapter.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
+    let adapter_addr = account.install_adapter(&adapter, None)?;
     let module_addr = account
         .manager
         .module_info(common::mock_modules::adapter_1::MOCK_ADAPTER_ID)?

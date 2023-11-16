@@ -1,8 +1,8 @@
-use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
+use abstract_core::objects::gov_type::GovernanceDetails;
 use cw_orch::{
     anyhow,
     deploy::Deploy,
-    prelude::{networks::parse_network, ContractInstance, DaemonBuilder, TxHandler},
+    prelude::{networks::parse_network, DaemonBuilder, TxHandler},
     tokio::runtime::Runtime,
 };
 
@@ -47,21 +47,12 @@ fn main() -> anyhow::Result<()> {
     let account_config = account.manager.config()?;
     abstract_deployment
         .version_control
-        .claim_namespace(account_config.account_id.u64() as u32, "croncat".to_owned())?;
+        .claim_namespace(account_config.account_id, "croncat".to_owned())?;
 
     // Deploy
-    app.deploy(version)?;
+    app.deploy(version, DeployStrategy::Try)?;
 
     // Install app
-    account.install_module(
-        CRONCAT_ID,
-        &croncat_app::msg::InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstract_deployment.ans_host.addr_str()?,
-            },
-            module: AppInstantiateMsg {},
-        },
-        None,
-    )?;
+    account.install_app(&app, &AppInstantiateMsg {}, None)?;
     Ok(())
 }

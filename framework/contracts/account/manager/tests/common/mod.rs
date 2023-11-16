@@ -14,8 +14,8 @@ use abstract_core::version_control::AccountBase;
 use abstract_core::{objects::gov_type::GovernanceDetails, PROXY};
 use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, VERSION_CONTROL};
 use abstract_interface::{
-    Abstract, AccountFactory, AnsHost, Manager, ManagerExecFns, ModuleFactory, Proxy, VCExecFns,
-    VersionControl,
+    Abstract, AccountFactory, AnsHost, DeployStrategy, Manager, ManagerExecFns, ModuleFactory,
+    Proxy, VCExecFns, VersionControl,
 };
 use abstract_interface::{AbstractAccount, AdapterDeployer};
 use abstract_testing::prelude::{TEST_MODULE_NAME, TEST_NAMESPACE};
@@ -48,7 +48,7 @@ pub(crate) fn init_mock_adapter(
     let version: Version = version
         .unwrap_or_else(|| CONTRACT_VERSION.to_string())
         .parse()?;
-    staking_adapter.deploy(version, MockInitMsg)?;
+    staking_adapter.deploy(version, MockInitMsg, DeployStrategy::Try)?;
     Ok(staking_adapter)
 }
 
@@ -58,19 +58,22 @@ pub(crate) fn add_mock_adapter_install_fee(
     monetization: Monetization,
     version: Option<String>,
 ) -> anyhow::Result<()> {
-    let version: Version = version
-        .unwrap_or_else(|| CONTRACT_VERSION.to_string())
-        .parse()?;
-    deployment.version_control.set_module_monetization(
+    let version = version.unwrap_or(CONTRACT_VERSION.to_string());
+    deployment.version_control.update_module_configuration(
         TEST_MODULE_NAME.to_string(),
-        monetization,
         Namespace::new(TEST_NAMESPACE).unwrap(),
+        abstract_core::version_control::UpdateModule::Versioned {
+            version,
+            metadata: None,
+            monetization: Some(monetization),
+            instantiation_funds: None,
+        },
     )?;
     Ok(())
 }
 
 pub fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
-    manager.install_module(adapter_id, &Empty {}, None)?;
+    manager.install_module::<Empty>(adapter_id, None, None)?;
     Ok(())
 }
 
@@ -79,7 +82,7 @@ pub fn install_adapter_with_funds(
     adapter_id: &str,
     funds: &[Coin],
 ) -> AResult {
-    manager.install_module(adapter_id, &Empty {}, Some(funds))?;
+    manager.install_module::<Empty>(adapter_id, None, Some(funds))?;
     Ok(())
 }
 

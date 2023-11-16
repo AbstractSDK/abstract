@@ -1,6 +1,7 @@
-use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Empty;
+
+use crate::ibc::IbcResponseMsg;
 
 // ANCHOR: exec
 /// Wrapper around all possible messages that can be sent to the module.
@@ -11,6 +12,7 @@ pub enum ExecuteMsg<BaseMsg, CustomExecMsg, ReceiveMsg = Empty> {
     /// An app request defined by a base consumer.
     Module(CustomExecMsg),
     /// IbcReceive to process IBC callbacks
+    /// In order to trust this, the apps and adapters verify this comes from the ibc-client contract.
     IbcCallback(IbcResponseMsg),
     /// Receive endpoint for CW20 / external service integrations
     Receive(ReceiveMsg),

@@ -1,5 +1,13 @@
+//! # Time Weighted Average (TWA) helper
+//!
+//! A time weighted average is an accumulating value that is updated irregularly.
+//! Whenever an update is applied, the time between the current update and the last update is used, along with the current value,
+//! to accumulate the cumulative value.
+//!
+//!
+
 use crate::AbstractResult;
-use cosmwasm_std::{Decimal, Env, Storage, Uint128};
+use cosmwasm_std::{Addr, Decimal, Env, QuerierWrapper, Storage, Timestamp, Uint128};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -21,7 +29,7 @@ impl<'a> TimeWeightedAverage<'a> {
         precision: Option<u8>,
         averaging_period: u64,
     ) -> AbstractResult<()> {
-        let block_time = env.block.time.seconds();
+        let block_time = env.block.time;
 
         let twa = TimeWeightedAverageData {
             cumulative_value: 0,
@@ -35,19 +43,22 @@ impl<'a> TimeWeightedAverage<'a> {
         };
         self.0.save(store, &twa).map_err(Into::into)
     }
+
+    /// Applies the current value to the TWA for the duration since the last update
+    /// and returns the cumulative value and block time.
     pub fn accumulate(
         &self,
         env: &Env,
         store: &mut dyn Storage,
         current_value: Decimal,
-    ) -> AbstractResult<Option<(u128, u64)>> {
+    ) -> AbstractResult<Option<u128>> {
         let mut twa = self.0.load(store)?;
-        let block_time = env.block.time.seconds();
+        let block_time = env.block.time;
         if block_time <= twa.last_block_time {
             return Ok(None);
         }
 
-        let time_elapsed = Uint128::from(block_time - twa.last_block_time);
+        let time_elapsed = Uint128::from(block_time.seconds() - twa.last_block_time.seconds());
         twa.last_block_time = block_time;
 
         if !current_value.is_zero() {
@@ -56,7 +67,7 @@ impl<'a> TimeWeightedAverage<'a> {
                 .wrapping_add(time_elapsed.mul(current_value).u128());
         };
         self.0.save(store, &twa)?;
-        Ok(Some((twa.cumulative_value, block_time)))
+        Ok(Some(twa.cumulative_value))
     }
 
     pub fn get_value(&self, store: &dyn Storage) -> AbstractResult<Decimal> {
@@ -67,6 +78,16 @@ impl<'a> TimeWeightedAverage<'a> {
         self.0.load(store).map_err(Into::into)
     }
 
+    pub fn query(
+        &self,
+        querier: &QuerierWrapper,
+        remote_contract_addr: Addr,
+    ) -> AbstractResult<TimeWeightedAverageData> {
+        self.0
+            .query(querier, remote_contract_addr)
+            .map_err(Into::into)
+    }
+
     /// Get average value, updates when possible
     pub fn try_update_value(
         &self,
@@ -75,9 +96,9 @@ impl<'a> TimeWeightedAverage<'a> {
     ) -> AbstractResult<Option<Decimal>> {
         let mut twa = self.0.load(store)?;
 
-        let block_time = env.block.time.seconds();
+        let block_time = env.block.time;
 
-        let time_elapsed = block_time - twa.last_averaging_block_time;
+        let time_elapsed = block_time.seconds() - twa.last_averaging_block_time.seconds();
 
         // Ensure that at least one full period has passed since the last update
         if time_elapsed < twa.averaging_period {
@@ -117,14 +138,25 @@ impl<'a> TimeWeightedAverage<'a> {
 pub struct TimeWeightedAverageData {
     // settings for accumulating value data
     pub precision: u8,
-    pub last_block_time: u64,
+    pub last_block_time: Timestamp,
     pub cumulative_value: u128,
 
-    // Data to get average price
-    pub last_averaging_block_time: u64,
+    // Data to get average value
+    pub last_averaging_block_time: Timestamp,
     pub last_averaging_block_height: u64,
     pub last_averaging_cumulative_value: u128,
     pub averaging_period: u64,
     /// The requested average value
-    average_value: Decimal,
+    pub average_value: Decimal,
+}
+
+impl TimeWeightedAverageData {
+    pub fn needs_refresh(&self, env: &Env) -> bool {
+        let block_time = env.block.time;
+
+        let time_elapsed = block_time.seconds() - self.last_averaging_block_time.seconds();
+
+        // At least one full period has passed since the last update
+        time_elapsed >= self.averaging_period
+    }
 }

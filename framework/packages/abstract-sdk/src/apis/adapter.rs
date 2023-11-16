@@ -110,7 +110,7 @@ mod tests {
     }
     mod adapter_request {
         use super::*;
-        use core::adapter::{self, AdapterRequestMsg};
+        use crate::core::adapter::{self, AdapterRequestMsg};
 
         #[test]
         fn should_return_err_if_not_dependency() {
@@ -143,7 +143,7 @@ mod tests {
                 .is_ok()
                 .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
-                    msg: to_binary(&expected_msg).unwrap(),
+                    msg: to_json_binary(&expected_msg).unwrap(),
                     funds: vec![],
                 }));
         }

@@ -4,35 +4,14 @@
 //! These objects are mostly used internally to easy re-use application code without
 //! requiring the usage of a base contract.
 
+use crate::core::PROXY;
 use crate::{
-    features::{AbstractRegistryAccess, AccountIdentification, ModuleIdentification},
+    features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
-pub use abstract_core::objects::ans_host::AnsHost;
+pub use abstract_core::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 use abstract_core::version_control::AccountBase;
-use core::PROXY;
 use cosmwasm_std::{Addr, Deps};
-
-/// Store the Version Control contract.
-/// Implements [`AbstractRegistryAccess`]
-#[derive(Clone)]
-pub struct VersionControlContract {
-    /// Address of the version control contract
-    pub address: Addr,
-}
-
-impl VersionControlContract {
-    /// Construct a new version control feature object.
-    pub fn new(address: Addr) -> Self {
-        Self { address }
-    }
-}
-
-impl AbstractRegistryAccess for VersionControlContract {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.address.clone())
-    }
-}
 
 /// Store a proxy contract address.
 /// Implements [`AccountIdentification`].
@@ -84,11 +63,14 @@ impl ModuleIdentification for AccountBase {
     }
 }
 
+impl crate::features::AbstractRegistryAccess for VersionControlContract {
+    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+        Ok(self.clone())
+    }
+}
+
 impl crate::features::AbstractNameService for AnsHost {
-    fn ans_host(
-        &self,
-        _deps: Deps,
-    ) -> AbstractSdkResult<abstract_core::objects::ans_host::AnsHost> {
+    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
         Ok(self.clone())
     }
 }
@@ -103,6 +85,8 @@ mod tests {
         use super::*;
         use cosmwasm_std::testing::mock_dependencies;
 
+        use crate::features::AbstractRegistryAccess;
+
         #[test]
         fn test_registry() {
             let address = Addr::unchecked("version");
@@ -112,7 +96,7 @@ mod tests {
 
             assert_that!(vc.abstract_registry(deps.as_ref()))
                 .is_ok()
-                .is_equal_to(address);
+                .is_equal_to(vc);
         }
     }
 

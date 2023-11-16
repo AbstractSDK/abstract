@@ -1,9 +1,9 @@
-use super::module_reference::ModuleReference;
+use super::{module_reference::ModuleReference, AccountId};
 use crate::objects::fee::FixedFee;
 use crate::objects::module_version::MODULE;
 use crate::objects::namespace::Namespace;
 use crate::{error::AbstractError, AbstractResult};
-use cosmwasm_std::{ensure_eq, to_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
+use cosmwasm_std::{ensure_eq, to_json_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
@@ -32,6 +32,20 @@ pub struct ModuleInfo {
     pub name: String,
     /// Version of the module
     pub version: ModuleVersion,
+}
+
+impl TryFrom<ModuleInfo> for ContractVersion {
+    type Error = AbstractError;
+
+    fn try_from(value: ModuleInfo) -> Result<Self, Self::Error> {
+        let ModuleVersion::Version(version) = value.version else {
+            return Err(AbstractError::MissingVersion("module".to_owned()));
+        };
+        Ok(ContractVersion {
+            contract: format!("{}:{}", value.namespace, value.name),
+            version,
+        })
+    }
 }
 
 const MAX_LENGTH: usize = 64;
@@ -329,7 +343,7 @@ impl ModuleInitMsg {
             ModuleInitMsg {
                 fixed_init: Some(_),
                 owner_init: Some(_),
-            } => to_binary(&self),
+            } => to_json_binary(&self),
             // If not, we can simplify by only sending the custom or fixed message.
             ModuleInitMsg {
                 fixed_init: None,
@@ -364,14 +378,34 @@ pub fn assert_module_data_validity(
             let Some(addr) = module_address else {
                 // if no addr provided and module doesn't have it, just return
                 // this will be the case when registering a code-id on VC
-                return Ok(())
+                return Ok(());
             };
             addr
         }
     };
 
+    let ModuleVersion::Version(version) = &module_claim.info.version else {
+        panic!("Module version is not versioned, context setting is wrong")
+    };
+
     // verify that the contract's data is equal to its registered data
-    let cw_2_data = cw2::CONTRACT.query(querier, module_address.clone())?;
+    let cw_2_data_res = cw2::CONTRACT.query(querier, module_address.clone());
+
+    // For standalone we only check the version if cw2 exists
+    if let ModuleReference::Standalone(_) = module_claim.reference {
+        if let Ok(cw_2_data) = cw_2_data_res {
+            ensure_eq!(
+                version,
+                &cw_2_data.version,
+                AbstractError::UnequalModuleData {
+                    cw2: cw_2_data.version,
+                    module: version.to_owned()
+                }
+            );
+        }
+        return Ok(());
+    }
+    let cw_2_data = cw_2_data_res?;
 
     // Assert that the contract name is equal to the module name
     ensure_eq!(
@@ -382,10 +416,6 @@ pub fn assert_module_data_validity(
             module: module_claim.info.id()
         }
     );
-
-    let ModuleVersion::Version(version) = &module_claim.info.version else {
-    panic!("Module version is not versioned, context setting is wrong")
-    };
 
     // Assert that the contract version is equal to the module version
     ensure_eq!(
@@ -400,7 +430,6 @@ pub fn assert_module_data_validity(
     match module_claim.reference {
         ModuleReference::AccountBase(_) => return Ok(()),
         ModuleReference::Native(_) => return Ok(()),
-        ModuleReference::Standalone(_) => return Ok(()),
         _ => {}
     }
 
@@ -434,8 +463,30 @@ pub enum Monetization {
     None,
     InstallFee(FixedFee),
 }
+
+impl Default for Monetization {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 /// Module Metadata String
 pub type ModuleMetadata = String;
+
+/// Generate salt helper
+pub fn generate_module_salt(block_height: u64, account_id: &AccountId) -> Binary {
+    let mut salt = [0; 40];
+    // 0..32 bytes for account_id
+    let account_id = sha256::digest(account_id.to_string());
+    let accound_id_bytes: &mut [u8] = &mut salt[0..32];
+    accound_id_bytes.copy_from_slice(&account_id.as_bytes()[0..32]);
+
+    // 0..8 bytes for block height
+    let block_height_bytes = &mut salt[32..40];
+    block_height_bytes.copy_from_slice(&block_height.to_be_bytes());
+
+    Binary::from(salt)
+}
 
 //--------------------------------------------------------------------------------------------------
 // Tests
@@ -749,6 +800,64 @@ mod test {
             let actual: Result<Version, _> = version.try_into();
 
             assert_that!(actual).is_err();
+        }
+    }
+
+    mod standalone_modules_valid {
+        use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
+
+        use super::*;
+
+        #[test]
+        fn no_cw2_contract() {
+            let deps = mock_dependencies();
+            let res = assert_module_data_validity(
+                &deps.as_ref().querier,
+                &Module {
+                    info: ModuleInfo {
+                        namespace: Namespace::new("counter").unwrap(),
+                        name: "counter".to_owned(),
+                        version: ModuleVersion::Version("1.1.0".to_owned()),
+                    },
+                    reference: ModuleReference::Standalone(0),
+                },
+                Some(Addr::unchecked(MOCK_CONTRACT_ADDR)),
+            );
+            assert!(res.is_ok());
+        }
+    }
+
+    mod module_salt {
+        use crate::objects::{account::AccountTrace, chain_name::ChainName};
+
+        use super::*;
+
+        #[test]
+        fn generate_module_salt_local() {
+            let salt = generate_module_salt(123, &AccountId::local(5));
+            assert!(!salt.is_empty());
+            assert!(salt.len() <= 64);
+        }
+
+        #[test]
+        fn generate_module_salt_trace() {
+            let salt = generate_module_salt(
+                123,
+                &AccountId::new(
+                    5,
+                    AccountTrace::Remote(vec![
+                        ChainName::from_chain_id("foo-1"),
+                        ChainName::from_chain_id("bar-42"),
+                        ChainName::from_chain_id("baz-4"),
+                        ChainName::from_chain_id("qux-24"),
+                        ChainName::from_chain_id("quux-99"),
+                        ChainName::from_chain_id("corge-5"),
+                    ]),
+                )
+                .unwrap(),
+            );
+            assert!(!salt.is_empty());
+            assert!(salt.len() <= 64);
         }
     }
 }

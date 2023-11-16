@@ -65,7 +65,9 @@ where
         &self,
     ) -> AbstractSdkResult<ExecuteHandlerFn<Self, Self::CustomExecMsg, Self::Error>> {
         let Some(handler) = self.maybe_execute_handler() else {
-            return Err(AbstractSdkError::MissingHandler { endpoint: "execution handler".to_string() })
+            return Err(AbstractSdkError::MissingHandler {
+                endpoint: "execution handler".to_string(),
+            });
         };
         Ok(handler)
     }
@@ -82,7 +84,9 @@ where
         &self,
     ) -> AbstractSdkResult<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
         let Some(handler) = self.maybe_instantiate_handler() else {
-            return Err(AbstractSdkError::MissingHandler { endpoint: "instantiate".to_string() })
+            return Err(AbstractSdkError::MissingHandler {
+                endpoint: "instantiate".to_string(),
+            });
         };
         Ok(handler)
     }
@@ -99,7 +103,9 @@ where
         &self,
     ) -> AbstractSdkResult<QueryHandlerFn<Self, Self::CustomQueryMsg, Self::Error>> {
         let Some(handler) = self.maybe_query_handler() else {
-            return Err(AbstractSdkError::MissingHandler { endpoint: "query".to_string() })
+            return Err(AbstractSdkError::MissingHandler {
+                endpoint: "query".to_string(),
+            });
         };
         Ok(handler)
     }
@@ -116,7 +122,9 @@ where
         &self,
     ) -> AbstractSdkResult<MigrateHandlerFn<Self, Self::CustomMigrateMsg, Self::Error>> {
         let Some(handler) = self.maybe_migrate_handler() else {
-            return Err(AbstractSdkError::MissingHandler { endpoint: "migrate".to_string() })
+            return Err(AbstractSdkError::MissingHandler {
+                endpoint: "migrate".to_string(),
+            });
         };
         Ok(handler)
     }
@@ -129,7 +137,9 @@ where
     /// Get a sudo handler or return an error.
     fn sudo_handler(&self) -> AbstractSdkResult<SudoHandlerFn<Self, Self::SudoMsg, Self::Error>> {
         let Some(handler) = self.maybe_sudo_handler() else {
-            return Err(AbstractSdkError::MissingHandler { endpoint: "sudo".to_string() })
+            return Err(AbstractSdkError::MissingHandler {
+                endpoint: "sudo".to_string(),
+            });
         };
         Ok(handler)
     }
@@ -146,7 +156,9 @@ where
         &self,
     ) -> AbstractSdkResult<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::Error>> {
         let Some(handler) = self.maybe_receive_handler() else {
-            return Err(AbstractSdkError::MissingHandler { endpoint: "receive".to_string() })
+            return Err(AbstractSdkError::MissingHandler {
+                endpoint: "receive".to_string(),
+            });
         };
         Ok(handler)
     }
@@ -178,7 +190,9 @@ where
     /// Get a reply handler or return an error.
     fn reply_handler(&self, id: u64) -> AbstractSdkResult<ReplyHandlerFn<Self, Self::Error>> {
         let Some(handler) = self.maybe_reply_handler(id) else {
-            return Err(AbstractSdkError::MissingHandler { endpoint: format! {"reply with id {id}"} })
+            return Err(AbstractSdkError::MissingHandler {
+                endpoint: format! {"reply with id {id}"},
+            });
         };
         Ok(handler)
     }

@@ -6,7 +6,7 @@ edition = { workspace = true }
 description = "Abstract Module Factory Contract"
 license = { workspace = true }
 readme = "README.md"
-repository = "https://github.com/AbstractSDK/contracts"
+repository = "https://github.com/AbstractSDK/abstract"
 
 
 exclude = ["contract.wasm", "hash.txt"]
@@ -35,6 +35,7 @@ abstract-core = { workspace = true }
 abstract-macros = { workspace = true }
 cw-asset = { workspace = true }
 cw-ownable = { workspace = true }
+serde-cw-value = "0.7.0"
 
 [dev-dependencies]
 abstract-interface = { workspace = true }

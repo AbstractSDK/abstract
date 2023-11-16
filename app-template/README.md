@@ -49,18 +49,29 @@ Here are some of the tasks available in the `justfile`:
 
 You can see the full list of tasks available by running `just --list`.
 
+### Testing
+
+You can test the module using the different provided methods.
+
+1. **Integration testing:** We provide an integration testing setup [here](./tests/integration.rs). You should use this to set up your environment and test the different execution and query entry-points of your module. Once you are satisfied with the results you can try deploying it to a real chain.
+2. **Local Daemon:** Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [test-local](./examples/test-local.rs) example, which uses a locally running juno daemon to deploy to. You can setup local juno using `just juno-local` command. At this point you can also test your front-end with the contracts.
+
+Once testing is done you can attempt an actual deployment on test and mainnet.
+
 ### Deploying
 
 Before attempting to deploy your app you need to add your mnemonic to the `.env` file. **Don't use a mnemonic that has mainnet funds for this.**
 
-You can now use `just deploy` to run the `examples/deploy.rs` script. The script will deploy the app to the juno testnet. You can change the network by changing the `network` variable in the script.
+It's also assumed that you have an account and module namespace claimed with this account before performing the deployment. You can read how to do that [here](https://docs.abstract.money/4_get_started/5_account_creation.html).
+
+You can now use `just deploy {{chain-id}}` to run the [`examples/deploy.rs`](./examples/deploy.rs) script. The script will deploy the app to the networks that you provided. Make sure you have enough funds in your wallet on the different networks you aim to deploy on.
 
 ### Generating Typescript Client Code
 
 Before proceeding you need to install the required dependencies for the typescript client code generation.
 
 ```bash
-cd typescript
+cd packages/typescript
 npm install
 ```
 

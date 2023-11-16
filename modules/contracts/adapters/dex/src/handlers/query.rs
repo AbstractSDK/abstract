@@ -2,18 +2,18 @@ use crate::handlers::query::exchange_resolver::is_over_ibc;
 
 use crate::exchanges::exchange_resolver::resolve_exchange;
 
-use crate::msg::{
-    DexExecuteMsg, DexQueryMsg, GenerateMessagesResponse, OfferAsset, SimulateSwapResponse,
-};
 use crate::state::SWAP_FEE;
 use crate::{
     contract::{DexAdapter, DexResult},
     exchanges::exchange_resolver,
 };
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
-use abstract_dex_adapter_traits::DexError;
+use abstract_dex_standard::msg::{
+    DexExecuteMsg, DexQueryMsg, GenerateMessagesResponse, OfferAsset, SimulateSwapResponse,
+};
+use abstract_dex_standard::DexError;
 use abstract_sdk::features::AbstractNameService;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 
 pub fn query_handler(
     deps: Deps,
@@ -27,7 +27,10 @@ pub fn query_handler(
             ask_asset,
             dex,
         } => simulate_swap(deps, env, adapter, offer_asset, ask_asset, dex.unwrap()),
-        DexQueryMsg::GenerateMessages { message } => {
+        DexQueryMsg::GenerateMessages {
+            message,
+            proxy_addr,
+        } => {
             match message {
                 DexExecuteMsg::Action { dex, action } => {
                     let (local_dex_name, is_over_ibc) = is_over_ibc(env, &dex)?;
@@ -36,10 +39,11 @@ pub fn query_handler(
                         return Err(DexError::IbcMsgQuery);
                     }
                     let exchange = exchange_resolver::resolve_exchange(&local_dex_name)?;
+                    let sender = deps.api.addr_validate(&proxy_addr)?;
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
-                        adapter, deps, action, exchange,
+                        adapter, deps, sender, action, exchange,
                     )?;
-                    to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
+                    to_json_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }
                 _ => Err(DexError::InvalidGenerateMessage {}),
             }
@@ -65,7 +69,7 @@ pub fn simulate_swap(
     // get addresses
     let swap_offer_asset = ans.query(&offer_asset)?;
     let ask_asset_info = ans.query(&ask_asset)?;
-    let pair_address = exchange
+    let pool_address = exchange
         .pair_address(
             deps,
             ans.host(),
@@ -84,7 +88,7 @@ pub fn simulate_swap(
     offer_asset.amount -= adapter_fee;
 
     let (return_amount, spread_amount, commission_amount, fee_on_input) = exchange
-        .simulate_swap(deps, pair_address, swap_offer_asset, ask_asset_info)
+        .simulate_swap(deps, pool_address, swap_offer_asset, ask_asset_info)
         .map_err(|e| StdError::generic_err(e.to_string()))?;
     let commission_asset = if fee_on_input {
         ask_asset
@@ -98,5 +102,5 @@ pub fn simulate_swap(
         commission: (commission_asset, commission_amount),
         usage_fee: adapter_fee,
     };
-    to_binary(&resp).map_err(From::from)
+    to_json_binary(&resp).map_err(From::from)
 }

@@ -13,9 +13,8 @@
 
 use crate::Abstract;
 use crate::AdapterDeployer;
-use crate::AppDeployer;
+use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::ABSTRACT_EVENT_TYPE;
-use cw_orch::deploy::Deploy;
 
 mod manager;
 mod proxy;
@@ -32,6 +31,7 @@ use crate::{get_account_contracts, VersionControl};
 
 pub use self::{manager::*, proxy::*};
 
+#[derive(Clone)]
 pub struct AbstractAccount<Chain: CwEnv> {
     pub manager: Manager<Chain>,
     pub proxy: Proxy<Chain>,
@@ -63,10 +63,27 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn install_module<TInitMsg: Serialize>(
         &self,
         module_id: &str,
-        init_msg: &TInitMsg,
+        init_msg: Option<&TInitMsg>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.manager.install_module(module_id, init_msg, funds)
+    }
+
+    pub fn install_modules(
+        &self,
+        modules: Vec<ModuleInstallConfig>,
+        funds: Option<&[Coin]>,
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
+        self.manager
+            .install_modules(modules, funds)
+            .map_err(Into::into)
+    }
+
+    pub fn install_modules_auto(
+        &self,
+        modules: Vec<ModuleInstallConfig>,
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
+        self.manager.install_modules_auto(modules)
     }
 
     /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.
@@ -97,6 +114,15 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         Ok(manager_modules)
     }
+
+    pub fn is_module_installed(
+        &self,
+        module_id: &str,
+    ) -> Result<bool, crate::AbstractInterfaceError> {
+        let module = self.manager.module_info(module_id)?;
+        Ok(module.is_some())
+    }
+
     /// Checks that the proxy's whitelist includes the expected module addresses.
     /// Automatically includes the manager in the expected whitelist.
     pub fn expect_whitelist(
@@ -122,61 +148,49 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     /// Gets the account ID of the account in the local store.
     pub fn id(&self) -> Result<AccountId, crate::AbstractInterfaceError> {
-        let account_id: u64 = self.manager.config()?.account_id.into();
-        Ok(account_id.try_into().unwrap())
+        Ok(self.manager.config()?.account_id)
     }
 
     /// Installs an adapter from an adapter object
     pub fn install_adapter<CustomInitMsg: Serialize, T: AdapterDeployer<Chain, CustomInitMsg>>(
         &self,
-        adapter: T,
-        custom_init_msg: &CustomInitMsg,
+        adapter: &T,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
-        // retrieve the deployment
-        let abstr = Abstract::load_from(self.manager.get_chain().to_owned())?;
-
-        let init_msg = abstract_core::adapter::InstantiateMsg {
-            module: custom_init_msg,
-            base: abstract_core::adapter::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.address()?.into(),
-                version_control_address: abstr.version_control.address()?.into(),
-            },
-        };
-        self.install_module_parse_addr(adapter, &init_msg, funds)
+        self.install_module_parse_addr::<Empty, _>(adapter, None, funds)
     }
 
     /// Installs an app from an app object
-    pub fn install_app<CustomInitMsg: Serialize, T: AppDeployer<Chain>>(
+    pub fn install_app<CustomInitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
-        app: T,
+        app: &T,
         custom_init_msg: &CustomInitMsg,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         // retrieve the deployment
-        let abstr = Abstract::load_from(self.manager.get_chain().to_owned())?;
-
-        let init_msg = abstract_core::app::InstantiateMsg {
-            module: custom_init_msg,
-            base: abstract_core::app::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.address()?.into(),
-            },
-        };
-        self.install_module_parse_addr(app, &init_msg, funds)
+        self.install_module_parse_addr(app, Some(&custom_init_msg), funds)
     }
 
     fn install_module_parse_addr<InitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
-        module: T,
-        init_msg: &InitMsg,
+        module: &T,
+        init_msg: Option<&InitMsg>,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
-        let resp = self.install_module(&module.id(), &init_msg, funds)?;
-        let module_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_module")?;
+        let resp = self.install_module(&module.id(), init_msg, funds)?;
+        let module_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_modules")?;
         let module_address = Addr::unchecked(module_address);
 
         module.set_address(&module_address);
         Ok(module_address)
+    }
+
+    pub fn register_remote_account(
+        &self,
+        host_chain: &str,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        self.manager.register_remote_account(host_chain)
     }
 }
 

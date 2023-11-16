@@ -1,4 +1,6 @@
-use cosmwasm_std::{to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, Uint128};
+use cosmwasm_std::{
+    to_json_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, Uint128,
+};
 
 use cw_semver::Version;
 
@@ -84,14 +86,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         }
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::YankModule { module } => yank_module(deps, info, module),
-        ExecuteMsg::SetModuleMonetization {
+        ExecuteMsg::UpdateModuleConfiguration {
             module_name,
             namespace,
-            monetization,
-        } => set_module_monetization(deps, info, module_name, namespace, monetization),
-        ExecuteMsg::SetModuleMetadata { module, metadata } => {
-            set_module_metadata(deps, info, module, metadata)
-        }
+            update_module,
+        } => update_module_config(deps, info, module_name, namespace, update_module),
         ExecuteMsg::ClaimNamespace {
             namespace,
             account_id,
@@ -100,7 +99,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         ExecuteMsg::AddAccount {
             account_id,
             account_base: base,
-        } => add_account(deps, info, account_id, base),
+            namespace,
+        } => add_account(deps, info, account_id, base, namespace),
         ExecuteMsg::UpdateConfig {
             allow_direct_module_registration_and_updates,
             namespace_registration_fee,
@@ -121,24 +121,24 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
     match msg {
         QueryMsg::AccountBase { account_id } => {
-            to_binary(&queries::handle_account_address_query(deps, account_id)?)
+            to_json_binary(&queries::handle_account_address_query(deps, account_id)?)
         }
-        QueryMsg::Modules { infos } => to_binary(&queries::handle_modules_query(deps, infos)?),
+        QueryMsg::Modules { infos } => to_json_binary(&queries::handle_modules_query(deps, infos)?),
         QueryMsg::Namespaces { accounts } => {
-            to_binary(&queries::handle_namespaces_query(deps, accounts)?)
+            to_json_binary(&queries::handle_namespaces_query(deps, accounts)?)
         }
         QueryMsg::Namespace { namespace } => {
-            to_binary(&queries::handle_namespace_query(deps, namespace)?)
+            to_json_binary(&queries::handle_namespace_query(deps, namespace)?)
         }
         QueryMsg::Config {} => {
             let factory = FACTORY.get(deps)?.unwrap();
-            to_binary(&ConfigResponse { factory })
+            to_json_binary(&ConfigResponse { factory })
         }
         QueryMsg::ModuleList {
             filter,
             start_after,
             limit,
-        } => to_binary(&queries::handle_module_list_query(
+        } => to_json_binary(&queries::handle_module_list_query(
             deps,
             start_after,
             limit,
@@ -146,13 +146,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
         )?),
         QueryMsg::NamespaceList { start_after, limit } => {
             let start_after = start_after.map(Namespace::try_from).transpose()?;
-            to_binary(&queries::handle_namespace_list_query(
+            to_json_binary(&queries::handle_namespace_list_query(
                 deps,
                 start_after,
                 limit,
             )?)
         }
-        QueryMsg::Ownership {} => to_binary(&query_ownership!(deps)?),
+        QueryMsg::Ownership {} => to_json_binary(&query_ownership!(deps)?),
     }
     .map_err(Into::into)
 }

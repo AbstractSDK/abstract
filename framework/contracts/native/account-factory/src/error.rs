@@ -1,6 +1,6 @@
 use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_asset::AssetError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -25,6 +25,9 @@ pub enum AccountFactoryError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
+    #[error("{0}")]
+    Instantiate2AddressError(#[from] Instantiate2AddressError),
+
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),
 
@@ -36,4 +39,13 @@ pub enum AccountFactoryError {
 
     #[error("No payment received")]
     NoPaymentReceived {},
+
+    #[error("Can not create remote accounts without configured IBC host.")]
+    IbcHostNotSet {},
+
+    #[error("A trace must exist of at least one or at most {0} hops but has {1}")]
+    InvalidTrace(usize, usize),
+
+    #[error("Sender {0} is not the IBC host {1}")]
+    SenderNotIbcHost(String, String),
 }

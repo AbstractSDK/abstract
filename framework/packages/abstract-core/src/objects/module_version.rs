@@ -17,7 +17,7 @@ For more information on this specification, please check out the
 [README](https://github.com/CosmWasm/cw-plus/blob/main/packages/cw2/README.md).
  */
 
-use super::dependency::{Dependency, StaticDependency};
+use super::dependency::{Dependency, DependencyResponse, StaticDependency};
 use crate::AbstractError;
 use cosmwasm_std::{
     ensure, ensure_eq, Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Storage, WasmQuery,
@@ -46,6 +46,14 @@ pub struct ModuleData {
     pub metadata: Option<String>,
 }
 // ANCHOR_END: metadata
+
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleDataResponse {
+    pub module_id: String,
+    pub version: String,
+    pub dependencies: Vec<DependencyResponse>,
+    pub metadata: Option<String>,
+}
 
 /// set_module_version should be used in instantiate to store the original version, and after a successful
 /// migrate to update it

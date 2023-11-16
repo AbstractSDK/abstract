@@ -1,4 +1,4 @@
-use abstract_dex_adapter_traits::Identify;
+use abstract_dex_standard::Identify;
 
 pub const TERRASWAP: &str = "terraswap";
 
@@ -14,19 +14,19 @@ impl Identify for Terraswap {
     }
 }
 
-#[cfg(feature = "terra")]
+#[cfg(feature = "terraswap")]
 use ::{
     abstract_core::objects::PoolAddress,
-    abstract_dex_adapter_traits::{coins_in_assets, cw_approve_msgs},
-    abstract_dex_adapter_traits::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
+    abstract_dex_standard::{coins_in_assets, cw_approve_msgs},
+    abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::cw_helpers::wasm_smart_query,
-    cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps},
+    cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
     terraswap::pair::{PoolResponse, SimulationResponse},
 };
 
-#[cfg(feature = "terra")]
+#[cfg(feature = "terraswap")]
 impl DexCommand for Terraswap {
     fn swap(
         &self,
@@ -50,7 +50,7 @@ impl DexCommand for Terraswap {
             let send_msg = Cw20ExecuteMsg::Send {
                 contract: pair_address.to_string(),
                 amount: offer_asset.amount,
-                msg: to_binary(&hook_msg)?,
+                msg: to_json_binary(&hook_msg)?,
             };
             // call send on cw20
             wasm_execute(token_addr, &send_msg, vec![])?
@@ -184,7 +184,7 @@ impl DexCommand for Terraswap {
             min_assets: None,
         };
         // Call swap on pair through cw20 Send
-        let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
+        let withdraw_msg = lp_token.send_msg(pair_address, to_json_binary(&hook_msg)?)?;
 
         Ok(vec![withdraw_msg])
     }
@@ -213,7 +213,7 @@ impl DexCommand for Terraswap {
     }
 }
 
-#[cfg(feature = "terra")]
+#[cfg(feature = "terraswap")]
 fn cw_asset_to_terraswap(asset: &Asset) -> Result<terraswap::asset::Asset, DexError> {
     match &asset.info {
         AssetInfoBase::Native(denom) => Ok(terraswap::asset::Asset {

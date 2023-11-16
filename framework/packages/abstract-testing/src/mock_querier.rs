@@ -9,7 +9,7 @@ use abstract_core::{
 };
 use cosmwasm_std::ContractInfoResponse;
 use cosmwasm_std::{
-    from_binary, testing::MockQuerier, to_binary, Addr, Binary, ContractResult, Empty,
+    from_json, testing::MockQuerier, to_json_binary, Addr, Binary, ContractResult, Empty,
     QuerierWrapper, SystemResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
@@ -28,19 +28,19 @@ type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 /// Usage:
 ///
 /// ```
-/// use cosmwasm_std::{from_binary, to_binary};
+/// use cosmwasm_std::{from_json, to_json_binary};
 /// use abstract_testing::MockQuerierBuilder;
 /// use cosmwasm_std::testing::MockQuerier;
 /// use abstract_sdk::mock_module::MockModuleExecuteMsg;
 ///
 /// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
 ///    // handle the message
-///     let res = match from_binary::<MockModuleExecuteMsg>(msg).unwrap() {
+///     let res = match from_json::<MockModuleExecuteMsg>(msg).unwrap() {
 ///         // handle the message
 ///        _ => panic!("unexpected message"),
 ///    };
 ///
-///   Ok(to_binary(&msg).unwrap())
+///   Ok(to_json_binary(&msg).unwrap())
 /// }).build();
 /// ```
 pub struct MockQuerierBuilder {
@@ -114,21 +114,21 @@ impl MockQuerierBuilder {
         self
     }
 
-    /// Add a smart contract handler to the mock querier. The handler will be called when the
+    /// Add a smart query contract handler to the mock querier. The handler will be called when the
     /// contract address is queried with the given message.
     /// Usage:
     /// ```rust
-    /// use cosmwasm_std::{from_binary, to_binary};
+    /// use cosmwasm_std::{from_json, to_json_binary};
     /// use abstract_testing::MockQuerierBuilder;
     /// use cosmwasm_std::testing::MockQuerier;
     /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
     /// # // ANCHOR: smart_query
     /// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
     ///    // handle the message
-    ///     let res = match from_binary::<MockModuleQueryMsg>(msg).unwrap() {
+    ///     let res = match from_json::<MockModuleQueryMsg>(msg).unwrap() {
     ///         // handle the message
     ///         MockModuleQueryMsg =>
-    ///                         return to_binary(&MockModuleQueryResponse {}).map_err(|e| e.to_string())
+    ///                         return to_json_binary(&MockModuleQueryResponse {}).map_err(|e| e.to_string())
     ///    };
     /// }).build();
     /// # // ANCHOR_END: smart_query
@@ -142,6 +142,23 @@ impl MockQuerierBuilder {
         self
     }
 
+    /// Add a raw query contract handler to the mock querier. The handler will be called when the
+    /// contract address is queried with the given message.
+    /// Usage:
+    /// ```rust
+    /// use cosmwasm_std::{from_json, to_json_binary};
+    /// use abstract_testing::MockQuerierBuilder;
+    /// use cosmwasm_std::testing::MockQuerier;
+    /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
+    /// # // ANCHOR: raw_query
+    /// let querier = MockQuerierBuilder::default().with_raw_handler("contract1", |key: &str| {
+    ///     // Example: Let's say, in the raw storage, the key "the key" maps to the value "the value"
+    ///     match key {
+    ///         "the key" => to_json_binary("the value").map_err(|e| e.to_string()),
+    ///         _ => to_json_binary("").map_err(|e| e.to_string())
+    ///     }
+    /// # // ANCHOR_END: raw_query
+    /// ```
     pub fn with_raw_handler<RH: 'static>(mut self, contract: &str, handler: RH) -> Self
     where
         RH: Fn(&str) -> BinaryQueryResult,
@@ -196,7 +213,7 @@ impl MockQuerierBuilder {
             self.insert_contract_key_value(
                 contract,
                 raw_map_key(&cw_map, key),
-                to_binary(&value).unwrap(),
+                to_json_binary(&value).unwrap(),
             );
         }
 
@@ -252,7 +269,7 @@ impl MockQuerierBuilder {
         self.insert_contract_key_value(
             contract,
             cw_item.as_slice().to_vec(),
-            to_binary(value).unwrap(),
+            to_json_binary(value).unwrap(),
         );
 
         self
@@ -316,7 +333,7 @@ impl MockQuerierBuilder {
                 WasmQuery::ContractInfo { contract_addr } => {
                     let mut info = ContractInfoResponse::default();
                     info.admin = self.contract_admin.get(contract_addr).cloned();
-                    Ok(to_binary(&info).unwrap())
+                    Ok(to_json_binary(&info).unwrap())
                 }
                 unexpected => panic!("Unexpected query: {unexpected:?}"),
             };
@@ -380,7 +397,7 @@ pub fn mock_querier() -> MockQuerier {
         .with_contract_map_entry(
             TEST_VERSION_CONTROL,
             ACCOUNT_ADDRESSES,
-            (TEST_ACCOUNT_ID, test_account_base()),
+            (&TEST_ACCOUNT_ID, test_account_base()),
         )
         .with_contract_item(
             TEST_PROXY,
@@ -389,8 +406,8 @@ pub fn mock_querier() -> MockQuerier {
         )
         .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
         .with_smart_handler(TEST_MODULE_ADDRESS, |msg| {
-            let Empty {} = from_binary(msg).unwrap();
-            Ok(to_binary(TEST_MODULE_RESPONSE).unwrap())
+            let Empty {} = from_json(msg).unwrap();
+            Ok(to_json_binary(TEST_MODULE_RESPONSE).unwrap())
         })
         .with_contract_map_entry(
             TEST_MANAGER,
@@ -428,7 +445,7 @@ mod tests {
             let actual = ACCOUNT_ADDRESSES.query(
                 &wrap_querier(&deps.querier),
                 Addr::unchecked(TEST_VERSION_CONTROL),
-                TEST_ACCOUNT_ID,
+                &TEST_ACCOUNT_ID,
             );
 
             let expected = AccountBase {

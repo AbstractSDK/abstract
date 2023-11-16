@@ -138,14 +138,16 @@ mod test {
     fn mock_init(deps: DepsMut) {
         let info = mock_info(TEST_CREATOR, &[]);
         let msg = InstantiateMsg {
-            account_id: 0,
+            account_id: TEST_ACCOUNT_ID,
             ans_host_address: TEST_ANS_HOST.to_string(),
+            manager_addr: TEST_MANAGER.to_string(),
+            base_asset: None,
         };
         let _res = instantiate(deps, mock_env(), info, msg).unwrap();
     }
 
     pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
-        let info = mock_info(TEST_CREATOR, &[]);
+        let info = mock_info(TEST_MANAGER, &[]);
         execute(deps.as_mut(), mock_env(), info, msg)
     }
 
@@ -163,8 +165,8 @@ mod test {
         )
         .unwrap();
 
-        let base_asset: BaseAssetResponse = from_binary(
-            &query(
+        let base_asset: BaseAssetResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::BaseAsset {},
@@ -187,14 +189,14 @@ mod test {
         mock_init(deps.as_mut());
         execute_as_admin(
             &mut deps,
-            ExecuteMsg::AddModule {
-                module: "test_module".to_string(),
+            ExecuteMsg::AddModules {
+                modules: vec!["test_module".to_string()],
             },
         )
         .unwrap();
 
-        let config: ConfigResponse = from_binary(
-            &query(
+        let config: ConfigResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::Config {},
@@ -205,7 +207,7 @@ mod test {
         assert_eq!(
             config,
             ConfigResponse {
-                modules: vec!["test_module".to_string()],
+                modules: vec!["manager_address".to_string(), "test_module".to_string()],
             }
         );
     }
@@ -230,8 +232,8 @@ mod test {
 
         // get the balance of the asset
         // returns HoldingAmountResponse
-        let holding_amount: HoldingAmountResponse = from_binary(
-            &query(
+        let holding_amount: HoldingAmountResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::HoldingAmount {
@@ -245,8 +247,8 @@ mod test {
 
         // get the value of the asset
         // returns AccountValue
-        let account_value: AccountValue = from_binary(
-            &query(
+        let account_value: AccountValue = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::TotalValue {},
@@ -262,8 +264,8 @@ mod test {
 
         // get the token value
         // returns TokenValueResponse
-        let token_value: TokenValueResponse = from_binary(
-            &query(
+        let token_value: TokenValueResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::TokenValue {
@@ -276,8 +278,8 @@ mod test {
         assert_eq!(token_value.value.u128(), 1000u128);
 
         // query USD asset config
-        let asset_config: AssetConfigResponse = from_binary(
-            &query(
+        let asset_config: AssetConfigResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::AssetConfig {
@@ -304,8 +306,8 @@ mod test {
         )
         .unwrap();
 
-        let assets: AssetsConfigResponse = from_binary(
-            &query(
+        let assets: AssetsConfigResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::AssetsConfig {
@@ -338,8 +340,8 @@ mod test {
         )
         .unwrap();
 
-        let assets: AssetsInfoResponse = from_binary(
-            &query(
+        let assets: AssetsInfoResponse = from_json(
+            query(
                 deps.as_ref(),
                 mock_env(),
                 abstract_core::proxy::QueryMsg::AssetsInfo {

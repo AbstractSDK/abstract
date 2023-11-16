@@ -1,11 +1,11 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
+use crate::core::objects::{AnsAsset, AssetEntry};
 use crate::features::AccountIdentification;
 use crate::AccountAction;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
-use core::objects::{AnsAsset, AssetEntry};
-use cosmwasm_std::to_binary;
+use cosmwasm_std::to_json_binary;
 use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
@@ -138,7 +138,6 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<_>, _>>()
             .map_err(Into::into)
-            .map(Into::into)
     }
 
     /// Withdraw funds from the Account to this contract.
@@ -164,7 +163,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     ) -> AbstractSdkResult<AccountAction> {
         let transferable_funds = funds.transferable_asset(self.base, self.deps)?;
 
-        let msgs = transferable_funds.send_msg(recipient, to_binary(message)?)?;
+        let msgs = transferable_funds.send_msg(recipient, to_json_binary(message)?)?;
 
         Ok(AccountAction::from_vec(vec![msgs]))
     }
@@ -231,7 +230,7 @@ mod test {
     mod transfer_coins {
         use abstract_core::proxy::ExecuteMsg;
 
-        use crate::{Execution, Executor};
+        use crate::{Execution, Executor, ExecutorMsg};
 
         use super::*;
 
@@ -247,7 +246,7 @@ mod test {
             let bank_transfer: AccountAction = bank.transfer(coins.clone(), &recipient).unwrap();
 
             let executor: Executor<'_, MockModule> = app.executor(deps.as_ref());
-            let account_message: CosmosMsg = executor.execute(vec![bank_transfer]).unwrap();
+            let account_message: ExecutorMsg = executor.execute(vec![bank_transfer]).unwrap();
             let response: Response = Response::new().add_message(account_message);
             // ANCHOR_END: transfer
 
@@ -346,10 +345,10 @@ mod test {
 
             let expected_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: asset.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Send {
+                msg: to_json_binary(&Cw20ExecuteMsg::Send {
                     contract: expected_recipient.to_string(),
                     amount: expected_amount.into(),
-                    msg: to_binary(&hook_msg).unwrap(),
+                    msg: to_json_binary(&hook_msg).unwrap(),
                 })
                 .unwrap(),
                 funds: vec![],

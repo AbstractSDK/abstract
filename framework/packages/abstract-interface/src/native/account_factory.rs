@@ -3,7 +3,10 @@ pub use abstract_core::account_factory::{
     ExecuteMsgFns as AccountFactoryExecFns, QueryMsgFns as AccountFactoryQueryFns,
 };
 use abstract_core::{
-    account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
+    account_factory::*,
+    manager::ModuleInstallConfig,
+    objects::{gov_type::GovernanceDetails, AssetEntry},
+    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
 use cosmwasm_std::Addr;
 use cw_orch::{interface, prelude::*};
@@ -14,6 +17,9 @@ pub struct AccountDetails {
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
+    pub namespace: Option<String>,
+    pub base_asset: Option<AssetEntry>,
+    pub install_modules: Vec<ModuleInstallConfig>,
 }
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -35,21 +41,26 @@ impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
 
     fn wasm(&self) -> WasmPath {
         artifacts_dir_from_workspace!()
-            .find_wasm_path("account_factor")
+            .find_wasm_path("account_factory")
             .unwrap()
     }
 }
 
 impl<Chain: CwEnv> AccountFactory<Chain> {
+    /// Creates a local account
     pub fn create_new_account(
         &self,
         account_details: AccountDetails,
         governance_details: GovernanceDetails<String>,
+        funds: Option<&[Coin]>,
     ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
         let AccountDetails {
             name,
             link,
             description,
+            namespace,
+            base_asset,
+            install_modules,
         } = account_details;
 
         let result = self.execute(
@@ -58,8 +69,12 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 name,
                 link,
                 description,
+                account_id: None,
+                namespace,
+                base_asset,
+                install_modules,
             },
-            None,
+            funds,
         )?;
 
         let manager_address = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
@@ -86,6 +101,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 ..Default::default()
             },
             governance_details,
+            None,
         )
     }
 }

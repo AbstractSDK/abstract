@@ -1,12 +1,13 @@
 use abstract_interface::AdapterDeployer;
 use abstract_interface::AnsHost;
+use abstract_interface::DeployStrategy;
 use abstract_interface::VCExecFns;
 use cw_orch::daemon::ChainInfo;
 use cw_orch::daemon::DaemonBuilder;
 use cw_orch::prelude::ContractInstance;
 
 use abstract_cw_staking::interface::CwStakingAdapter;
-use abstract_cw_staking::CW_STAKING;
+use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
 use abstract_interface::VersionControl;
 use abstract_sdk::core::{
     adapter,
@@ -22,7 +23,11 @@ fn deploy_cw_staking(
     prev_version: Option<String>,
     code_id: Option<u64>,
 ) -> anyhow::Result<()> {
-    let chain = DaemonBuilder::default().chain(network).build()?;
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let chain = DaemonBuilder::default()
+        .handle(rt.handle())
+        .chain(network)
+        .build()?;
 
     let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     version_control.set_address(&Addr::unchecked(
@@ -33,7 +38,7 @@ fn deploy_cw_staking(
 
     if let Some(prev_version) = prev_version {
         let Module { info, reference } = version_control.module(ModuleInfo::from_id(
-            CW_STAKING,
+            CW_STAKING_ADAPTER_ID,
             ModuleVersion::from(prev_version),
         )?)?;
 
@@ -43,7 +48,7 @@ fn deploy_cw_staking(
         };
         version_control.propose_modules(vec![(new_info, reference)])?;
     } else if let Some(code_id) = code_id {
-        let mut cw_staking = CwStakingAdapter::new(CW_STAKING, chain);
+        let mut cw_staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain);
         cw_staking.set_code_id(code_id);
         let init_msg = adapter::InstantiateMsg {
             module: Empty {},
@@ -63,9 +68,9 @@ fn deploy_cw_staking(
     } else {
         log::info!("Uploading Cw staking");
         // Upload and deploy with the version
-        let cw_staking = CwStakingAdapter::new(CW_STAKING, chain);
+        let cw_staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain);
 
-        cw_staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
+        cw_staking.deploy(CONTRACT_VERSION.parse()?, Empty {}, DeployStrategy::Try)?;
     }
 
     Ok(())

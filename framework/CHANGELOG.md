@@ -9,11 +9,54 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
+- `Astrovault` integrated into dex and cw-staking adapters
+
 ### Changed
+
+- `is_module_installed` moved from `Manager` to `Account`
+- `account_id()` method of `AccountRegistry` is now exposed.
+- Allow module-id to be passed in as a valid authorized address when allowing new addresses on adapter contracts.
+- `BaseInstantiateMsg` is now removed from install app API, now only `ModuleMsg` should be provided
+- `Modules`, `Manager` and `Proxy` are now instantiated via instantiate2 message 
+
+### Removed
+
+- `DepositMsgs` removed (now `deposit()` returns `Vec<CosmosMsg>`)
+- Abstract removed from the fields where it's redundant
+- InstantiateMsg is now removed from the install_adapter API
+
+## [0.19.0] - 2023-09-26
+
+### Added
+
+- Install modules on account or Sub-account creation.
+- Manager stores his sub-accounts and sub-accounts can register or unregister in case of ownership change.
+- Query on module factory to see how much funds needs to be attached for installing modules.
+- Version control on instantiation to the Apps alongside with registry traits.
+- Instantiation funds added to module configuration, allowing modules to perform external setup calls.
+- An `adapter_msg_types` similar to `app_msg_types`. This can be used to easily define the top-level entrypoint messages.
+
+### Changed
+
 - Updated fetch_data arguments of CwStakingCommand
+- StakingInfoResponse now returns staking target(which is either contract address or pool id) instead of always staking contract address.
+- Owner of the sub-accounts now Proxy, allowing modules to interact with sub-accounts.
+- Install modules replaced install module method on module factory to reduce gas consumption for multi-install cases.
+- Modified the account id structure. Each account is now identified with a unique ID and a trace. This is a requirement for Abstract IBC.
+- Register Module(and Add Module) will now accept list of items, which reduces gas for multi-module install
+- Removed the `CustomSwap` option on the dex adapter.
+- Stake methods on cw-staking adapter now accept list, allowing users to do multi-stake/unstake/etc.
+- Added must_use attribute on abstract sdk methods
+- Renamed `abstract-(dex/staking)-adapter-traits` to `abstract-(dex/staking)-standard`
 
 ### Fixed
-- Partially fixed cw-staking for Osmosis
+
+- Partially fixed cw-staking for Osmosis.
+- Manager governance now changes only after new "owner" claimed ownership.
+- Fixed and separated cw-staking and dex adapters for kujira.
+- `ExecOnModule` calls now forward any provided funds to the module that is called.
+- Manager queries of standalone module versions will now return version of the contract from the Version Control storage instead of error  
 
 ## [0.17.2] - 2023-07-27
 
@@ -29,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Ability to set admin to native contracts during instantiation
+- Query handler for module data
 - Added neutron
 
 ### Changed

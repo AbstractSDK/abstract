@@ -2,22 +2,14 @@
 
 Publishing new abstract versions.
 
-1. Bump the abstract version everywhere it is used.
-2. Remove the path deps from `adapters`, `adapter-packages` and `integration-bundles`. This will ensure that git-based imports use the published abstract version.
+1. Bump the abstract versions of packages everywhere they are used.
 
-Releasing is done in the following order:
+Now you should proceed with deploying the contracts to the different chains. We want to deploy to as many chains as possible because a new version of abstract-interfaces will have to be published when new chains are added.
 
-1. `abstract_core`
-2. `abstract-testing`
-3. `abstract-sdk`
-4. All contracts in `./contracts`
+After deploying the contracts you can proceed with publishing the rest of the contracts. Before doing this ensure that:
 
-Do this by running `./publish/contracts.sh`.
+- You have the latest x86_64 artifacts in `./framework/artifacts`. These should be automatically committed by the CI before deployment is triggered.
 
-Now we have all the 
+- You have all the latest addresses and code-ids in the `state.json` file located in the `abstract-interface` folder.
 
-Now you should proceed with deploying the contracts to the different chains. The resulting data (addresses, code-ids) is used when publishing the abstract-interface.
-5. `abstract-interface`
-6. `abstract-adapter`, `abstract-app` and `abstract-ibc-host`
-
-7. When our customers take a git dependency on our abstract-wyndex-adapter, for example, we must ensure that 
+You can then trigger the release by executing `./publish/publish.sh`.

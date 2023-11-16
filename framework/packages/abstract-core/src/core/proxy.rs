@@ -14,7 +14,7 @@
 use crate::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     objects::{
-        account_id::AccountId,
+        account::AccountId,
         oracle::{AccountValue, Complexity},
         price_source::{PriceSource, UncheckedPriceSource},
         AssetEntry,
@@ -25,7 +25,7 @@ use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 pub mod state {
-    pub use crate::objects::account_id::ACCOUNT_ID;
+    pub use crate::objects::account::ACCOUNT_ID;
     use cw_controllers::Admin;
 
     use cosmwasm_std::Addr;
@@ -45,6 +45,8 @@ pub mod state {
 pub struct InstantiateMsg {
     pub account_id: AccountId,
     pub ans_host_address: String,
+    pub manager_addr: String,
+    pub base_asset: Option<AssetEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -59,7 +61,7 @@ pub enum ExecuteMsg {
     /// Execute IBC action on Client
     IbcAction { msgs: Vec<IbcClientMsg> },
     /// Adds the provided address to whitelisted dapps
-    AddModule { module: String },
+    AddModules { modules: Vec<String> },
     /// Removes the provided address from the whitelisted dapps
     RemoveModule { module: String },
     /// Updates the VAULT_ASSETS map

@@ -86,7 +86,7 @@ pub fn update_assets(
 }
 
 /// Add a contract to the whitelist
-pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> ProxyResult {
+pub fn add_modules(deps: DepsMut, msg_info: MessageInfo, modules: Vec<String>) -> ProxyResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     let mut state = STATE.load(deps.storage)?;
@@ -96,18 +96,24 @@ pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Proxy
         return Err(ProxyError::ModuleLimitReached {});
     }
 
-    let module_addr = deps.api.addr_validate(&module)?;
+    for module in modules.iter() {
+        let module_addr = deps.api.addr_validate(module)?;
 
-    if state.modules.contains(&module_addr) {
-        return Err(ProxyError::AlreadyWhitelisted(module));
+        if state.modules.contains(&module_addr) {
+            return Err(ProxyError::AlreadyWhitelisted(module.clone()));
+        }
+
+        // Add contract to whitelist.
+        state.modules.push(module_addr);
     }
 
-    // Add contract to whitelist.
-    state.modules.push(module_addr);
     STATE.save(deps.storage, &state)?;
 
     // Respond and note the change
-    Ok(ProxyResponse::new("add_module", vec![("module", module)]))
+    Ok(ProxyResponse::new(
+        "add_module",
+        vec![("modules", modules.join(","))],
+    ))
 }
 
 /// Remove a contract from the whitelist
@@ -188,8 +194,8 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut());
 
-            let msg = ExecuteMsg::AddModule {
-                module: TEST_MODULE.to_string(),
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![TEST_MODULE.to_string()],
             };
             let info = mock_info("not_admin", &[]);
 
@@ -204,15 +210,16 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut());
 
-            let msg = ExecuteMsg::AddModule {
-                module: TEST_MODULE.to_string(),
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![TEST_MODULE.to_string()],
             };
 
             let res = execute_as_admin(&mut deps, msg);
             assert_that(&res).is_ok();
 
             let actual_modules = load_modules(&deps.storage);
-            assert_that(&actual_modules).has_length(1);
+            // Plus manager
+            assert_that(&actual_modules).has_length(2);
             assert_that(&actual_modules).contains(&Addr::unchecked(TEST_MODULE));
         }
 
@@ -221,8 +228,8 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut());
 
-            let msg = ExecuteMsg::AddModule {
-                module: TEST_MODULE.to_string(),
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![TEST_MODULE.to_string()],
             };
 
             let res = execute_as_admin(&mut deps, msg.clone());
@@ -239,13 +246,14 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut());
 
-            let mut msg = ExecuteMsg::AddModule {
-                module: TEST_MODULE.to_string(),
+            let mut msg = ExecuteMsg::AddModules {
+                modules: vec![TEST_MODULE.to_string()],
             };
 
-            for i in 0..LIST_SIZE_LIMIT {
-                msg = ExecuteMsg::AddModule {
-                    module: format!("module_{i}"),
+            // -1 because manager counts as module as well
+            for i in 0..LIST_SIZE_LIMIT - 1 {
+                msg = ExecuteMsg::AddModules {
+                    modules: vec![format!("module_{i}")],
                 };
                 let res = execute_as_admin(&mut deps, msg.clone());
                 assert_that(&res).is_ok();
@@ -388,7 +396,7 @@ mod test {
     mod execute_ibc {
         use abstract_core::{manager, proxy::state::State};
         use abstract_testing::{prelude::TEST_MANAGER, MockQuerierBuilder};
-        use cosmwasm_std::{to_binary, SubMsg};
+        use cosmwasm_std::{to_json_binary, SubMsg};
 
         use super::*;
 
@@ -432,7 +440,7 @@ mod test {
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: "ibc_client_addr".into(),
-                    msg: to_binary(&abstract_core::ibc_client::ExecuteMsg::Register {
+                    msg: to_json_binary(&abstract_core::ibc_client::ExecuteMsg::Register {
                         host_chain: "juno".into(),
                     })
                     .unwrap(),

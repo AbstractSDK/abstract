@@ -1,19 +1,21 @@
 use crate::handlers::execute::exchange_resolver::is_over_ibc;
+use crate::DEX_ADAPTER_ID;
 
 use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
-use crate::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
+use crate::msg::{DexAction, DexExecuteMsg, DexName};
 use crate::state::SWAP_FEE;
-use abstract_dex_adapter_traits::DexError;
+use abstract_core::ibc::CallbackInfo;
+use abstract_core::objects::account::AccountTrace;
+use abstract_core::objects::chain_name::ChainName;
+use abstract_dex_standard::msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID};
+use abstract_dex_standard::DexError;
 
-use abstract_core::ibc_client::CallbackInfo;
 use abstract_core::objects::ans_host::AnsHost;
-use abstract_core::objects::AnsAsset;
+use abstract_core::objects::{AccountId, AnsAsset};
 use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
-use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
-
-const ACTION_RETRIES: u8 = 3;
+use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -54,7 +56,7 @@ pub fn execute_handler(
                 let mut fee = SWAP_FEE.load(deps.storage)?;
                 let recipient = adapter
                     .account_registry(deps.as_ref())
-                    .proxy_address(account_id)?;
+                    .proxy_address(&AccountId::new(account_id, AccountTrace::Local)?)?;
                 fee.set_recipient(deps.api, recipient)?;
                 SWAP_FEE.save(deps.storage, &fee)?;
             }
@@ -67,14 +69,19 @@ pub fn execute_handler(
 fn handle_local_request(
     deps: DepsMut,
     _env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     adapter: DexAdapter,
     action: DexAction,
     exchange: String,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    let (msgs, _) =
-        crate::adapter::DexAdapter::resolve_dex_action(&adapter, deps.as_ref(), action, exchange)?;
+    let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
+        &adapter,
+        deps.as_ref(),
+        info.sender,
+        action,
+        exchange,
+    )?;
     let proxy_msg = adapter
         .executor(deps.as_ref())
         .execute(msgs.into_iter().map(Into::into).collect())?;
@@ -82,6 +89,7 @@ fn handle_local_request(
 }
 
 /// Handle an adapter request that can be executed on an IBC chain
+/// TODO, this doesn't work as is, would have to change this for working with IBC hooks
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,
@@ -89,27 +97,43 @@ fn handle_ibc_request(
     dex_name: DexName,
     action: &DexAction,
 ) -> DexResult {
-    let host_chain = dex_name;
+    let host_chain = ChainName::from_string(dex_name.clone())?; // TODO, this is faulty
+
     let ans = adapter.name_service(deps.as_ref());
     let ibc_client = adapter.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
-    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins)?;
+    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
-    let action = abstract_sdk::core::ibc_host::HostAction::App {
-        msg: to_binary(&action)?,
+    let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
+        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+            module_id: DEX_ADAPTER_ID.to_string(),
+            exec_msg: to_json_binary::<ExecuteMsg>(
+                &DexExecuteMsg::Action {
+                    dex: dex_name.clone(),
+                    action: action.clone(),
+                }
+                .into(),
+            )?,
+        },
     };
+
+    // If the calling entity is a contract, we provide a callback on successful swap
     let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());
     let callback = if maybe_contract_info.is_err() {
         None
     } else {
         Some(CallbackInfo {
-            id: IBC_DEX_ID.to_string(),
+            id: IBC_DEX_PROVIDER_ID.into(),
+            msg: Some(to_json_binary(&DexExecuteMsg::Action {
+                dex: dex_name.clone(),
+                action: action.clone(),
+            })?),
             receiver: info.sender.into_string(),
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain, action, callback, ACTION_RETRIES)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action, callback)?;
 
     // call both messages on the proxy
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
@@ -141,10 +165,6 @@ pub(crate) fn resolve_assets_to_transfer(
             amount: amount.to_owned(),
         })?]),
         DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
-        DexAction::CustomSwap { offer_assets, .. } => {
-            let coins: Result<Vec<Coin>, _> = offer_assets.iter().map(offer_to_coin).collect();
-            coins
-        }
     }
     .map_err(Into::into)
 }

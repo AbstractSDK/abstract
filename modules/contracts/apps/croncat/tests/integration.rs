@@ -4,19 +4,17 @@ use std::cell::RefMut;
 
 use abstract_core::{
     ans_host::ContractsResponse,
-    app::BaseInstantiateMsg,
-    objects::{gov_type::GovernanceDetails, UncheckedContractEntry},
+    objects::{
+        account::AccountTrace, gov_type::GovernanceDetails, AccountId, UncheckedContractEntry,
+    },
 };
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
 
 use common::contracts;
 use croncat_app::{
     contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION},
     error::AppError,
-    msg::{
-        ActiveTasksByCreatorResponse, ActiveTasksResponse, AppInstantiateMsg, ConfigResponse,
-        InstantiateMsg,
-    },
+    msg::{ActiveTasksByCreatorResponse, ActiveTasksResponse, AppInstantiateMsg, ConfigResponse},
     state::Config,
     AppExecuteMsgFns, AppQueryMsgFns, CroncatApp, CRON_CAT_FACTORY,
 };
@@ -38,13 +36,12 @@ use croncat_sdk_tasks::{
 
 use cw20::{Cw20Coin, Cw20CoinVerified, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_asset::{Asset, AssetList, AssetListUnchecked};
-use cw_multi_test::Executor;
+use cw_multi_test::{App, Executor};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{coins, to_binary, Addr, BankMsg, Uint128, WasmMsg};
-
 use crate::common::contracts::TasksResponseCaster;
+use cosmwasm_std::{coins, to_json_binary, Addr, BankMsg, Uint128, WasmMsg};
 // consts for testing
 const ADMIN: &str = "admin";
 const AGENT: &str = "agent";
@@ -53,7 +50,7 @@ const DENOM: &str = "abstr";
 const PAUSE_ADMIN: &str = "cosmos338dwgj5wm2tuahvfjdldz5s8hmt7l5aznw8jz9s2mmgj5c52jqgfq000";
 
 fn setup_croncat_contracts(
-    mut app: RefMut<cw_multi_test::App>,
+    mut app: RefMut<App>,
     proxy_addr: String,
 ) -> anyhow::Result<(Addr, Addr)> {
     let sender = Addr::unchecked(ADMIN);
@@ -110,9 +107,10 @@ fn setup_croncat_contracts(
         checksum: "checksum123".to_owned(),
         changelog_url: None,
         schema: None,
-        msg: to_binary(&msg).unwrap(),
+        msg: to_json_binary(&msg).unwrap(),
         contract_name: MANAGER_NAME.to_owned(),
     };
+
     app.execute_contract(
         sender.clone(),
         factory_addr.clone(),
@@ -149,7 +147,7 @@ fn setup_croncat_contracts(
         checksum: "checksum321".to_owned(),
         changelog_url: None,
         schema: None,
-        msg: to_binary(&msg).unwrap(),
+        msg: to_json_binary(&msg).unwrap(),
         contract_name: AGENTS_NAME.to_owned(),
     };
     app.execute_contract(
@@ -184,7 +182,7 @@ fn setup_croncat_contracts(
         checksum: "checksum2".to_owned(),
         changelog_url: None,
         schema: None,
-        msg: to_binary(&msg).unwrap(),
+        msg: to_json_binary(&msg).unwrap(),
         contract_name: TASKS_NAME.to_owned(),
     };
     app.execute_contract(
@@ -246,16 +244,17 @@ fn setup() -> anyhow::Result<TestingSetup> {
                 monarch: ADMIN.to_string(),
             })?;
     // claim the namespace so app can be deployed
-    abstr_deployment
-        .version_control
-        .claim_namespace(1, "croncat".to_owned())?;
+    abstr_deployment.version_control.claim_namespace(
+        AccountId::new(1, AccountTrace::Local)?,
+        "croncat".to_owned(),
+    )?;
 
     // Instantiating croncat contracts
     mock.set_balance(&sender, coins(100, DENOM))?;
     let (factory_addr, cw20_addr) =
         setup_croncat_contracts(mock.app.as_ref().borrow_mut(), account.proxy.addr_str()?)?;
 
-    let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY.to_owned())?;
+    let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?;
     abstr_deployment.ans_host.execute(
         &abstract_core::ans_host::ExecuteMsg::UpdateContractAddresses {
             to_add: vec![(factory_entry, factory_addr.to_string())],
@@ -264,20 +263,9 @@ fn setup() -> anyhow::Result<TestingSetup> {
         None,
     )?;
 
-    contract.deploy(CRONCAT_MODULE_VERSION.parse()?)?;
-    account.install_module(
-        CRONCAT_ID,
-        &InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr_deployment.ans_host.addr_str()?,
-            },
-            module: AppInstantiateMsg {},
-        },
-        None,
-    )?;
+    contract.deploy(CRONCAT_MODULE_VERSION.parse()?, DeployStrategy::Try)?;
+    account.install_app(&contract, &AppInstantiateMsg {}, None)?;
 
-    let module_addr = account.manager.module_info(CRONCAT_ID)?.unwrap().address;
-    contract.set_address(&module_addr);
     let manager_addr = account.manager.address()?;
     contract.set_sender(&manager_addr);
     mock.set_balance(&account.proxy.address()?, coins(500_000, DENOM))?;
@@ -322,7 +310,7 @@ fn all_in_one() -> anyhow::Result<()> {
             Action {
                 msg: WasmMsg::Execute {
                     contract_addr: cw20_addr.to_string(),
-                    msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                    msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                         recipient: "bob".to_owned(),
                         amount: Uint128::new(100),
                     })?,
@@ -588,7 +576,7 @@ fn create_task() -> anyhow::Result<()> {
         actions: vec![Action {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient: "bob".to_owned(),
                     amount: Uint128::new(20),
                 })?,
@@ -632,7 +620,7 @@ fn create_task() -> anyhow::Result<()> {
         actions: vec![Action {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient: "alice".to_owned(),
                     amount: Uint128::new(20),
                 })?,
@@ -679,7 +667,7 @@ fn refill_task() -> anyhow::Result<()> {
         actions: vec![Action {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient: "bob".to_owned(),
                     amount: Uint128::new(20),
                 })?,
@@ -814,7 +802,7 @@ fn remove_task() -> anyhow::Result<()> {
         actions: vec![Action {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient: "bob".to_owned(),
                     amount: Uint128::new(20),
                 })?,
@@ -849,7 +837,7 @@ fn remove_task() -> anyhow::Result<()> {
         actions: vec![Action {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
                     recipient: "alice".to_owned(),
                     amount: Uint128::new(30),
                 })?,
@@ -880,9 +868,7 @@ fn remove_task() -> anyhow::Result<()> {
             abstr_deployment
                 .ans_host
                 .query(&abstract_core::ans_host::QueryMsg::Contracts {
-                    entries: vec![
-                        UncheckedContractEntry::try_from(CRON_CAT_FACTORY.to_owned())?.into(),
-                    ],
+                    entries: vec![UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?.into()],
                 })?;
         let factory_addr: Addr = contracts_response.contracts[0].1.clone();
         let response: ContractMetadataResponse = mock.query(

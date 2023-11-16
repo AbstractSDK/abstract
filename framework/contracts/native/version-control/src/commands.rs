@@ -1,7 +1,11 @@
-use abstract_core::objects::{
-    fee::FixedFee,
-    module::{self, Module, ModuleMetadata, Monetization},
-    validation::validate_link,
+use abstract_core::{
+    objects::{
+        fee::FixedFee,
+        module::{self, Module},
+        validation::validate_link,
+        ABSTRACT_ACCOUNT_ID,
+    },
+    version_control::{ModuleDefaultConfiguration, UpdateModule},
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
@@ -32,19 +36,38 @@ pub fn add_account(
     msg_info: MessageInfo,
     account_id: AccountId,
     account_base: AccountBase,
+    namespace: Option<String>,
 ) -> VCResult {
     // Only Factory can add new Account
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    ACCOUNT_ADDRESSES.save(deps.storage, account_id, &account_base)?;
+    // Check if account already exists
+    ensure!(
+        !ACCOUNT_ADDRESSES.has(deps.storage, &account_id),
+        VCError::AccountAlreadyExists(account_id)
+    );
 
-    Ok(VcResponse::new(
+    ACCOUNT_ADDRESSES.save(deps.storage, &account_id, &account_base)?;
+
+    let fee_msg = if let Some(namespace) = &namespace {
+        claim_namespace_internal(deps.storage, msg_info, account_id.clone(), namespace)?
+    } else {
+        None
+    };
+
+    let mut response = VcResponse::new(
         "add_account",
         vec![
             ("account_id", account_id.to_string().as_str()),
             ("manager", account_base.manager.as_ref()),
             ("proxy", account_base.proxy.as_ref()),
+            ("namespace", &format!("{namespace:?}")),
         ],
-    ))
+    );
+
+    if let Some(msg) = fee_msg {
+        response = response.add_message(msg);
+    }
+    Ok(response)
 }
 
 /// Here we can add logic to allow subscribers to claim a namespace and upload contracts to that namespace
@@ -96,6 +119,11 @@ pub fn propose_modules(
                 None,
             )?;
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
+            // Save module info of standalone contracts,
+            // helps querying version for cw-2-less or mis-formatted contracts
+            if let ModuleReference::Standalone(id) = mod_ref {
+                STANDALONE_INFOS.save(deps.storage, id, &module)?;
+            }
         } else {
             PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;
         }
@@ -138,6 +166,12 @@ fn approve_modules(storage: &mut dyn Storage, approves: Vec<ModuleInfo>) -> VCRe
         REGISTERED_MODULES.save(storage, module, &mod_ref)?;
         // Remove from pending
         PENDING_MODULES.remove(storage, module);
+
+        // Save module info of standalone contracts,
+        // helps querying version for cw-2-less or mis-formatted contracts
+        if let ModuleReference::Standalone(id) = mod_ref {
+            STANDALONE_INFOS.save(storage, id, module)?;
+        }
     }
 
     let approves: Vec<_> = approves.into_iter().map(|m| m.to_string()).collect();
@@ -165,25 +199,31 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     // Only specific versions may be removed
     module.assert_version_variant()?;
 
+    let module_ref_res = REGISTERED_MODULES.load(deps.storage, &module);
+
     ensure!(
-        REGISTERED_MODULES.has(deps.storage, &module) || YANKED_MODULES.has(deps.storage, &module),
+        module_ref_res.is_ok() || YANKED_MODULES.has(deps.storage, &module),
         VCError::ModuleNotFound(module)
     );
 
     REGISTERED_MODULES.remove(deps.storage, &module);
     YANKED_MODULES.remove(deps.storage, &module);
-    MODULE_METADATA.remove(deps.storage, &module);
+    MODULE_CONFIG.remove(deps.storage, &module);
 
-    // If this module has no more versions, we also remove the monetization
+    // Remove standalone info
+    if let Ok(ModuleReference::Standalone(id)) = module_ref_res {
+        STANDALONE_INFOS.remove(deps.storage, id);
+    }
+
+    // If this module has no more versions, we also remove default configuration
     if REGISTERED_MODULES
         .prefix((module.namespace.clone(), module.name.clone()))
         .range(deps.storage, None, None, Order::Ascending)
         .next()
         .is_none()
     {
-        MODULE_MONETIZATION.remove(deps.storage, (&module.namespace, &module.name));
+        MODULE_DEFAULT_CONFIG.remove(deps.storage, (&module.namespace, &module.name));
     }
-
     Ok(VcResponse::new(
         "remove_module",
         vec![("module", &module.to_string())],
@@ -210,13 +250,13 @@ pub fn yank_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> 
     ))
 }
 
-/// Set a module monetization allowing the namespace owner to charge for module installation/usage or else.
-pub fn set_module_monetization(
+/// Updates module configuration
+pub fn update_module_config(
     deps: DepsMut,
     msg_info: MessageInfo,
     module_name: String,
     namespace: Namespace,
-    monetization: Monetization,
+    update_module: UpdateModule,
 ) -> VCResult {
     // validate the caller is the owner of the namespace
 
@@ -228,60 +268,82 @@ pub fn set_module_monetization(
         validate_account_owner(deps.as_ref(), &namespace, &msg_info.sender)?;
     }
 
-    // We verify the module exists before updating the monetization
-    REGISTERED_MODULES
-        .prefix((namespace.clone(), module_name.clone()))
-        .range(deps.storage, None, None, Order::Ascending)
-        .next()
-        .ok_or_else(|| {
-            VCError::ModuleNotFound(ModuleInfo {
+    match update_module {
+        UpdateModule::Default { metadata } => {
+            // Check there is at least one version of this module
+            if REGISTERED_MODULES
+                .prefix((namespace.clone(), module_name.clone()))
+                .range(deps.storage, None, None, Order::Ascending)
+                .next()
+                .is_none()
+            {
+                return Err(VCError::ModuleNotFound(ModuleInfo {
+                    namespace,
+                    name: module_name,
+                    version: ModuleVersion::Latest,
+                }));
+            }
+
+            validate_link(Some(&metadata))?;
+
+            MODULE_DEFAULT_CONFIG.save(
+                deps.storage,
+                (&namespace, &module_name),
+                &ModuleDefaultConfiguration::new(metadata),
+            )?;
+        }
+        UpdateModule::Versioned {
+            version,
+            metadata,
+            monetization,
+            instantiation_funds,
+        } => {
+            let module = ModuleInfo {
                 namespace: namespace.clone(),
                 name: module_name.clone(),
-                version: ModuleVersion::Latest,
-            })
-        })??;
+                version: ModuleVersion::Version(version),
+            };
 
-    MODULE_MONETIZATION.save(deps.storage, (&namespace, &module_name), &monetization)?;
+            // We verify the module exists before updating the config
+            let Some(module_reference) = REGISTERED_MODULES.may_load(deps.storage, &module)? else {
+                return Err(VCError::ModuleNotFound(module));
+            };
+
+            let mut current_cfg = MODULE_CONFIG
+                .may_load(deps.storage, &module)?
+                .unwrap_or_default();
+            // Update metadata
+            if let Some(metadata) = metadata {
+                current_cfg.metadata = Some(metadata);
+            }
+
+            // Update monetization
+            if let Some(monetization) = monetization {
+                current_cfg.monetization = monetization;
+            }
+
+            // Update init funds
+            if let Some(init_funds) = instantiation_funds {
+                if matches!(
+                    module_reference,
+                    ModuleReference::App(_) | ModuleReference::Standalone(_)
+                ) {
+                    current_cfg.instantiation_funds = init_funds
+                } else {
+                    return Err(VCError::RedundantInitFunds {});
+                }
+            }
+            MODULE_CONFIG.save(deps.storage, &module, &current_cfg)?;
+        }
+        _ => todo!(),
+    };
 
     Ok(VcResponse::new(
-        "set_monetization",
+        "update_module_config",
         vec![
             ("namespace", &namespace.to_string()),
             ("module_name", &module_name),
         ],
-    ))
-}
-
-/// Set a module metadata.
-pub fn set_module_metadata(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    module: ModuleInfo,
-    metadata: ModuleMetadata,
-) -> VCResult {
-    // validate the caller is the owner of the namespace
-
-    if module.namespace == Namespace::unchecked(ABSTRACT_NAMESPACE) {
-        // Only Admin can update abstract contracts
-        cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
-    } else {
-        // Only owner can add modules
-        validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
-    }
-
-    // We verify the module exists before updating the monetization
-    if !REGISTERED_MODULES.has(deps.storage, &module) {
-        return Err(VCError::ModuleNotFound(module));
-    }
-
-    // We verify the metadata is a URL
-    validate_link(&Some(metadata.clone()))?;
-
-    MODULE_METADATA.save(deps.storage, &module, &metadata)?;
-
-    Ok(VcResponse::new(
-        "set_metadata",
-        vec![("module", &module.to_string()), ("metadata", &metadata)],
     ))
 }
 
@@ -294,8 +356,11 @@ pub fn claim_namespace(
     namespace_to_claim: String,
 ) -> VCResult {
     // verify account owner
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
+
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, &account_id)?;
+
+    // The account owner as well as the account factory contract are able to claim namespaces
     if msg_info.sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
             sender: msg_info.sender,
@@ -303,12 +368,40 @@ pub fn claim_namespace(
         });
     }
 
+    let fee_msg = claim_namespace_internal(
+        deps.storage,
+        msg_info,
+        account_id.clone(),
+        &namespace_to_claim,
+    )?;
+
+    let mut response = VcResponse::new(
+        "claim_namespace",
+        vec![
+            ("account_id", account_id.to_string()),
+            ("namespaces", namespace_to_claim),
+        ],
+    );
+
+    if let Some(msg) = fee_msg {
+        response = response.add_message(msg);
+    }
+    Ok(response)
+}
+
+/// Claim namespace internal
+fn claim_namespace_internal(
+    storage: &mut dyn Storage,
+    msg_info: MessageInfo,
+    account_id: AccountId,
+    namespace_to_claim: &str,
+) -> VCResult<Option<CosmosMsg>> {
     // check if the account already has a namespace
     let has_namespace = namespaces_info()
         .idx
         .account_id
-        .prefix(account_id)
-        .range(deps.storage, None, None, Order::Ascending)
+        .prefix(account_id.clone())
+        .range(storage, None, None, Order::Ascending)
         .take(1)
         .count()
         == 1;
@@ -322,39 +415,32 @@ pub fn claim_namespace(
     let Config {
         namespace_registration_fee: fee,
         ..
-    } = CONFIG.load(deps.storage)?;
+    } = CONFIG.load(storage)?;
 
-    let mut fee_messages = vec![];
-
-    if !fee.amount.is_zero() {
+    let fee_msg = if !fee.amount.is_zero() {
         // assert it is paid
         FixedFee::new(&fee).assert_payment(&msg_info)?;
 
         // We transfer the namespace fee if necessary
-        let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, 0)?;
-        fee_messages.push(CosmosMsg::Bank(BankMsg::Send {
+        let admin_account = ACCOUNT_ADDRESSES.load(storage, &ABSTRACT_ACCOUNT_ID)?;
+        Some(CosmosMsg::Bank(BankMsg::Send {
             to_address: admin_account.proxy.to_string(),
-            amount: msg_info.funds, //
-        }));
-    }
+            amount: msg_info.funds,
+        }))
+    } else {
+        None
+    };
 
-    let namespace = Namespace::try_from(&namespace_to_claim)?;
-    if let Some(id) = namespaces_info().may_load(deps.storage, &namespace)? {
+    let namespace = Namespace::try_from(namespace_to_claim)?;
+    if let Some(id) = namespaces_info().may_load(storage, &namespace)? {
         return Err(VCError::NamespaceOccupied {
             namespace: namespace.to_string(),
             id,
         });
     }
-    namespaces_info().save(deps.storage, &namespace, &account_id)?;
+    namespaces_info().save(storage, &namespace, &account_id)?;
 
-    Ok(VcResponse::new(
-        "claim_namespace",
-        vec![
-            ("account_id", &account_id.to_string()),
-            ("namespaces", &namespace_to_claim),
-        ],
-    )
-    .add_messages(fee_messages))
+    Ok(fee_msg)
 }
 
 /// Remove namespaces
@@ -454,12 +540,14 @@ pub fn update_config(
 pub fn query_account_owner(
     querier: &QuerierWrapper,
     manager_addr: &Addr,
-    account_id: AccountId,
+    account_id: &AccountId,
 ) -> VCResult<Addr> {
     let req = wasm_raw_query(manager_addr, OWNERSHIP_STORAGE_KEY)?;
     let cw_ownable::Ownership { owner, .. } = querier.query(&req)?;
 
-    owner.ok_or(VCError::NoAccountOwner { account_id })
+    owner.ok_or_else(|| VCError::NoAccountOwner {
+        account_id: account_id.clone(),
+    })
 }
 
 pub fn validate_account_owner(
@@ -473,8 +561,8 @@ pub fn validate_account_owner(
         .ok_or_else(|| VCError::UnknownNamespace {
             namespace: namespace.to_owned(),
         })?;
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, &account_id)?;
     if sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
             sender,
@@ -494,8 +582,9 @@ pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCRes
 
 #[cfg(test)]
 mod test {
+    use abstract_core::objects::account::AccountTrace;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{from_binary, to_binary, Addr, Coin, Uint64};
+    use cosmwasm_std::{from_json, to_json_binary, Addr, Coin};
     use cw_controllers::AdminError;
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
@@ -520,19 +609,20 @@ mod test {
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_OTHER: &str = "test-other";
+    pub const SECOND_TEST_ACCOUNT_ID: AccountId = AccountId::const_new(2, AccountTrace::Local);
 
     pub fn mock_manager_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default()
             .with_smart_handler(TEST_MANAGER, |msg| {
-                match from_binary(msg).unwrap() {
+                match from_json(msg).unwrap() {
                     ManagerQueryMsg::Config {} => {
                         let resp = ManagerConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                            account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                            account_id: TEST_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     ManagerQueryMsg::Ownership {} => {
                         let resp = cw_ownable::Ownership {
@@ -540,7 +630,7 @@ mod test {
                             pending_expiry: None,
                             pending_owner: None,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     _ => panic!("unexpected message"),
                 }
@@ -601,6 +691,7 @@ mod test {
                     manager: Addr::unchecked(TEST_MANAGER),
                     proxy: Addr::unchecked(TEST_PROXY),
                 },
+                namespace: None,
             },
         )
     }
@@ -611,11 +702,12 @@ mod test {
             deps,
             TEST_ACCOUNT_FACTORY,
             ExecuteMsg::AddAccount {
-                account_id: 2,
+                account_id: SECOND_TEST_ACCOUNT_ID,
                 account_base: AccountBase {
                     manager: Addr::unchecked(TEST_MANAGER),
                     proxy: Addr::unchecked(TEST_PROXY),
                 },
+                namespace: None,
             },
         )
         .unwrap();
@@ -744,7 +836,7 @@ mod test {
 
             let new_namespace2 = Namespace::new("namespace2").unwrap();
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: 2,
+                account_id: SECOND_TEST_ACCOUNT_ID,
                 namespace: new_namespace2.to_string(),
             };
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
@@ -753,7 +845,7 @@ mod test {
             let account_id = namespaces_info().load(&deps.storage, &new_namespace1)?;
             assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
             let account_id = namespaces_info().load(&deps.storage, &new_namespace2)?;
-            assert_that!(account_id).is_equal_to(2);
+            assert_that!(account_id).is_equal_to(SECOND_TEST_ACCOUNT_ID);
             Ok(())
         }
 
@@ -784,11 +876,12 @@ mod test {
                 deps.as_mut(),
                 TEST_ACCOUNT_FACTORY,
                 ExecuteMsg::AddAccount {
-                    account_id: 0,
+                    account_id: ABSTRACT_ACCOUNT_ID,
                     account_base: AccountBase {
                         manager: Addr::unchecked(TEST_MANAGER),
                         proxy: Addr::unchecked(TEST_ADMIN_PROXY),
                     },
+                    namespace: None,
                 },
             )
             .unwrap();
@@ -869,11 +962,12 @@ mod test {
                 deps.as_mut(),
                 TEST_ACCOUNT_FACTORY,
                 ExecuteMsg::AddAccount {
-                    account_id: 2,
+                    account_id: SECOND_TEST_ACCOUNT_ID,
                     account_base: AccountBase {
                         manager: Addr::unchecked(TEST_MANAGER),
                         proxy: Addr::unchecked(TEST_PROXY),
                     },
+                    namespace: None,
                 },
             )?;
             let new_namespace1 = Namespace::new("namespace1")?;
@@ -884,7 +978,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             let msg = ExecuteMsg::ClaimNamespace {
-                account_id: 2,
+                account_id: SECOND_TEST_ACCOUNT_ID,
                 namespace: new_namespace1.to_string(),
             };
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
@@ -903,15 +997,15 @@ mod test {
             let account_1_manager = "manager2";
             deps.querier = mock_manager_querier()
                 // add manager 2
-                .with_smart_handler(account_1_manager, |msg| match from_binary(msg).unwrap() {
+                .with_smart_handler(account_1_manager, |msg| match from_json(msg).unwrap() {
                     ManagerQueryMsg::Config {} => {
                         let resp = ManagerConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                            account_id: Uint64::one(),
+                            account_id: TEST_ACCOUNT_ID,
                             is_suspended: false,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     ManagerQueryMsg::Ownership {} => {
                         let resp = cw_ownable::Ownership {
@@ -919,7 +1013,7 @@ mod test {
                             pending_expiry: None,
                             pending_owner: None,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     _ => panic!("unexpected message"),
                 })
@@ -932,17 +1026,18 @@ mod test {
                 deps.as_mut(),
                 TEST_ACCOUNT_FACTORY,
                 ExecuteMsg::AddAccount {
-                    account_id: 1,
+                    account_id: SECOND_TEST_ACCOUNT_ID,
                     account_base: AccountBase {
                         manager: Addr::unchecked(account_1_manager),
                         proxy: Addr::unchecked("proxy2"),
                     },
+                    namespace: None,
                 },
             )?;
 
             // Attempt to claim the abstract namespace with account 1
-            let claim_abstract_msg = ExecuteMsg::ClaimNamespace {
-                account_id: 1,
+            let claim_abstract_msg: ExecuteMsg = ExecuteMsg::ClaimNamespace {
+                account_id: SECOND_TEST_ACCOUNT_ID,
                 namespace: ABSTRACT_NAMESPACE.to_string(),
             };
             let res = execute_as(deps.as_mut(), TEST_OWNER, claim_abstract_msg);
@@ -1220,6 +1315,7 @@ mod test {
 
     mod propose_modules {
         use abstract_core::objects::fee::FixedFee;
+        use abstract_core::objects::module::Monetization;
         use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
         use abstract_testing::prelude::TEST_MODULE_ID;
@@ -1793,11 +1889,16 @@ mod test {
             let _module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
 
             let monetization = Monetization::InstallFee(FixedFee::new(&coin(45, "ujuno")));
-            let metadata = "".to_string();
-            let monetization_module_msg = ExecuteMsg::SetModuleMonetization {
+            let metadata = None;
+            let monetization_module_msg = ExecuteMsg::UpdateModuleConfiguration {
                 module_name: new_module.name.clone(),
                 namespace: new_module.namespace.clone(),
-                monetization: monetization.clone(),
+                update_module: UpdateModule::Versioned {
+                    version: TEST_VERSION.to_owned(),
+                    metadata: None,
+                    monetization: Some(monetization.clone()),
+                    instantiation_funds: None,
+                },
             };
             execute_as(deps.as_mut(), TEST_ADMIN, monetization_module_msg)?;
 
@@ -1806,7 +1907,7 @@ mod test {
                 infos: vec![new_module.clone()],
             };
             let res = query(deps.as_ref(), mock_env(), query_msg)?;
-            let ser_res = from_binary::<ModulesResponse>(&res)?;
+            let ser_res = from_json::<ModulesResponse>(&res)?;
             assert_that!(ser_res.modules).has_length(1);
             assert_eq!(
                 ser_res.modules[0],
@@ -1815,7 +1916,60 @@ mod test {
                         info: new_module,
                         reference: ModuleReference::App(0)
                     },
-                    config: ModuleConfiguration::new(monetization, metadata)
+                    config: ModuleConfiguration::new(monetization, metadata, vec![])
+                }
+            );
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_module_init_funds() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), true)?;
+            let mut new_module = test_module();
+            new_module.namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
+            let msg = ExecuteMsg::ProposeModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+            };
+            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
+            assert_that!(&res).is_ok();
+            let _module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
+
+            let instantiation_funds = vec![coin(42, "ujuno"), coin(123, "ujunox")];
+            let metadata = None;
+            let monetization_module_msg = ExecuteMsg::UpdateModuleConfiguration {
+                module_name: new_module.name.clone(),
+                namespace: new_module.namespace.clone(),
+                update_module: UpdateModule::Versioned {
+                    version: TEST_VERSION.to_owned(),
+                    metadata: None,
+                    monetization: None,
+                    instantiation_funds: Some(instantiation_funds.clone()),
+                },
+            };
+            execute_as(deps.as_mut(), TEST_ADMIN, monetization_module_msg)?;
+
+            // We query the module to see if the monetization is attached ok
+            let query_msg = QueryMsg::Modules {
+                infos: vec![new_module.clone()],
+            };
+            let res = query(deps.as_ref(), mock_env(), query_msg)?;
+            let ser_res = from_json::<ModulesResponse>(&res)?;
+            assert_that!(ser_res.modules).has_length(1);
+            assert_eq!(
+                ser_res.modules[0],
+                ModuleResponse {
+                    module: Module {
+                        info: new_module,
+                        reference: ModuleReference::App(0)
+                    },
+                    config: ModuleConfiguration::new(
+                        Monetization::None,
+                        metadata,
+                        instantiation_funds
+                    )
                 }
             );
 
@@ -1837,10 +1991,16 @@ mod test {
             let _module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
 
             let monetization = Monetization::None;
-            let metadata = "ipfs://YRUI243876FJHKHV3IY".to_string();
-            let metadata_module_msg = ExecuteMsg::SetModuleMetadata {
-                module: new_module.clone(),
-                metadata: metadata.clone(),
+            let metadata = Some("ipfs://YRUI243876FJHKHV3IY".to_string());
+            let metadata_module_msg = ExecuteMsg::UpdateModuleConfiguration {
+                module_name: new_module.name.clone(),
+                namespace: new_module.namespace.clone(),
+                update_module: UpdateModule::Versioned {
+                    version: TEST_VERSION.to_owned(),
+                    metadata: metadata.clone(),
+                    monetization: None,
+                    instantiation_funds: None,
+                },
             };
             execute_as(deps.as_mut(), TEST_ADMIN, metadata_module_msg)?;
 
@@ -1849,7 +2009,7 @@ mod test {
                 infos: vec![new_module.clone()],
             };
             let res = query(deps.as_ref(), mock_env(), query_msg)?;
-            let ser_res = from_binary::<ModulesResponse>(&res)?;
+            let ser_res = from_json::<ModulesResponse>(&res)?;
             assert_that!(ser_res.modules).has_length(1);
             assert_eq!(
                 ser_res.modules[0],
@@ -1858,7 +2018,7 @@ mod test {
                         info: new_module,
                         reference: ModuleReference::App(0)
                     },
-                    config: ModuleConfiguration::new(monetization, metadata)
+                    config: ModuleConfiguration::new(monetization, metadata, vec![])
                 }
             );
 
@@ -1996,8 +2156,9 @@ mod test {
                 proxy: Addr::unchecked(TEST_PROXY),
             };
             let msg = ExecuteMsg::AddAccount {
-                account_id: 0,
+                account_id: ABSTRACT_ACCOUNT_ID,
                 account_base: test_core.clone(),
+                namespace: None,
             };
 
             // as other
@@ -2015,7 +2176,7 @@ mod test {
             // as factory
             execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg)?;
 
-            let account = ACCOUNT_ADDRESSES.load(&deps.storage, 0)?;
+            let account = ACCOUNT_ADDRESSES.load(&deps.storage, &ABSTRACT_ACCOUNT_ID)?;
             assert_that!(&account).is_equal_to(&test_core);
             Ok(())
         }
@@ -2078,12 +2239,15 @@ mod test {
         fn returns_account_owner() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             deps.querier = AbstractMockQuerierBuilder::default()
-                .account(TEST_MANAGER, TEST_PROXY, 0)
+                .account(TEST_MANAGER, TEST_PROXY, ABSTRACT_ACCOUNT_ID)
                 .build();
             mock_init_with_account(deps.as_mut(), true)?;
 
-            let account_owner =
-                query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_MANAGER), 0)?;
+            let account_owner = query_account_owner(
+                &deps.as_ref().querier,
+                &Addr::unchecked(TEST_MANAGER),
+                &ABSTRACT_ACCOUNT_ID,
+            )?;
 
             assert_that!(account_owner).is_equal_to(Addr::unchecked(TEST_OWNER));
             Ok(())
@@ -2107,11 +2271,11 @@ mod test {
                 .build();
             mock_init_with_account(deps.as_mut(), true)?;
 
-            let account_id = 0;
+            let account_id = ABSTRACT_ACCOUNT_ID;
             let res = query_account_owner(
                 &deps.as_ref().querier,
                 &Addr::unchecked(TEST_MANAGER),
-                account_id,
+                &account_id,
             );
             assert_that!(res)
                 .is_err()

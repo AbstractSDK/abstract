@@ -1,17 +1,4 @@
 workspaces := "./framework ./modules ./app-template"
-modules := "./modules/contracts/apps/croncat ./modules/contracts/apps/dca ./modules/contracts/adapters/dex ./modules/contracts/adapters/cw-staking"
-
-docs-install:
-  cargo install mdbook
-  cargo install mdbook-mermaid
-  cargo install mdbook-admonish
-
-# Serve docs locally, pass --open to open in browser
-docs-serve *FLAGS:
-  (cd docs && mdbook serve {{FLAGS}}) 
-
-docs-build:
-  (cd docs && mdbook build)
 
 # Pull a specific repo from its main remote
 pull repo:
@@ -19,7 +6,7 @@ pull repo:
 
 # Push the local repo to a specific branch
 push repo branch:
-    git subtree pull --prefix={{repo}} {{repo}} {{branch}}
+    git subtree push --prefix={{repo}} {{repo}} {{branch}}
 
 # Run a cargo command in all the workspace repos
 cargo-all *command:
@@ -44,11 +31,15 @@ nightly-build:
 wasm-all:
   ./scripts/wasm-all.sh
 
-schema-modules:
+# Wasms all the workspaces that can be wasm'd
+wasm-all-ci:
+  ./scripts/wasm-all-ci.sh
+
+# Generates JSON schemas for all the contracts in the repo.
+schema:
   #!/usr/bin/env bash
-  set -e;
-  for path in {{modules}}
-  do 
-    (cd $path; cargo run --example schema --features schema); 
-  done
+  set -e
+  (cd app-template; cargo run --example schema --features schema)
+  sh scripts/modules-schema.sh
+  sh scripts/framework-schema.sh
   set +e

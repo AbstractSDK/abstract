@@ -28,7 +28,7 @@ pub fn handle_account_address_query(
     deps: Deps,
     account_id: AccountId,
 ) -> StdResult<AccountBaseResponse> {
-    let account_address = ACCOUNT_ADDRESSES.load(deps.storage, account_id);
+    let account_address = ACCOUNT_ADDRESSES.load(deps.storage, &account_id);
     match account_address {
         Err(_) => Err(StdError::generic_err(
             VCError::UnknownAccountId { id: account_id }.to_string(),
@@ -69,7 +69,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                         info: module.clone(),
                         reference: mod_ref,
                     },
-                    config: ModuleConfiguration::from_storage(deps.storage, &module),
+                    config: ModuleConfiguration::from_storage(deps.storage, &module)?,
                 });
                 Ok(())
             }
@@ -141,7 +141,7 @@ pub fn handle_module_list_query(
                     info: module_info.clone(),
                     reference: mod_ref,
                 },
-                config: ModuleConfiguration::from_storage(deps.storage, &module_info),
+                config: ModuleConfiguration::from_storage(deps.storage, &module_info)?,
             })
         })
         .collect::<Result<Vec<_>, StdError>>()?;
@@ -170,7 +170,7 @@ pub fn handle_namespaces_query(
 
 pub fn handle_namespace_query(deps: Deps, namespace: Namespace) -> StdResult<NamespaceResponse> {
     let account_id = namespaces_info().load(deps.storage, &namespace)?;
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
 
     Ok(NamespaceResponse {
         account_id,
@@ -257,13 +257,14 @@ fn filter_modules_by_namespace(
 
 #[cfg(test)]
 mod test {
+    use abstract_core::objects::account::AccountTrace;
     use abstract_testing::prelude::{
         test_account_base, TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_MANAGER,
         TEST_MODULE_FACTORY, TEST_VERSION_CONTROL,
     };
     use abstract_testing::{MockQuerierBuilder, MockQuerierOwnership};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{to_binary, Addr, Binary, DepsMut, StdError, Uint64};
+    use cosmwasm_std::{to_json_binary, Addr, Binary, DepsMut, StdError};
 
     use abstract_core::{manager, version_control::*};
 
@@ -278,36 +279,36 @@ mod test {
     const TEST_ADMIN: &str = "testadmin";
 
     const TEST_OTHER: &str = "testother";
-    const TEST_OTHER_ACCOUNT_ID: u32 = 2;
+    const TEST_OTHER_ACCOUNT_ID: AccountId = AccountId::const_new(2, AccountTrace::Local);
     const TEST_OTHER_PROXY_ADDR: &str = "proxy1";
     const TEST_OTHER_MANAGER_ADDR: &str = "manager1";
 
     pub fn mock_manager_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default()
             .with_smart_handler(TEST_MANAGER, |msg| {
-                match from_binary(msg).unwrap() {
+                match from_json(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                            account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                            account_id: TEST_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     _ => panic!("unexpected message"),
                 }
             })
             .with_smart_handler(TEST_OTHER_MANAGER_ADDR, |msg| {
-                match from_binary(msg).unwrap() {
+                match from_json(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                            account_id: Uint64::from(TEST_OTHER_ACCOUNT_ID), // mock value, not used
+                            account_id: TEST_OTHER_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
-                        Ok(to_binary(&resp).unwrap())
+                        Ok(to_json_binary(&resp).unwrap())
                     }
                     _ => panic!("unexpected message"),
                 }
@@ -349,6 +350,7 @@ mod test {
             ExecuteMsg::AddAccount {
                 account_id: TEST_ACCOUNT_ID,
                 account_base: test_account_base(),
+                namespace: None,
             },
         )?;
         execute_as(
@@ -360,6 +362,7 @@ mod test {
                     manager: Addr::unchecked(TEST_OTHER_MANAGER_ADDR),
                     proxy: Addr::unchecked(TEST_OTHER_PROXY_ADDR),
                 },
+                namespace: None,
             },
         )
     }
@@ -380,7 +383,7 @@ mod test {
         use super::*;
         use abstract_core::objects::module::ModuleVersion::Latest;
 
-        use cosmwasm_std::from_binary;
+        use cosmwasm_std::from_json;
 
         fn add_namespace(deps: DepsMut, namespace: &str) {
             let msg = ExecuteMsg::ClaimNamespace {
@@ -425,7 +428,7 @@ mod test {
             };
 
             let ModulesResponse { mut modules } =
-                from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+                from_json(query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules.swap_remove(0).module.info).is_equal_to(&new_module_info);
             Ok(())
         }
@@ -490,16 +493,16 @@ mod test {
             };
 
             let ModulesResponse { mut modules } =
-                from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+                from_json(query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules.swap_remove(0).module.info).is_equal_to(&newest_version);
             Ok(())
         }
     }
 
-    use cosmwasm_std::from_binary;
+    use cosmwasm_std::from_json;
 
     /// Add namespaces
-    fn add_namespaces(mut deps: DepsMut, acc_and_namespace: Vec<(u32, &str)>, sender: &str) {
+    fn add_namespaces(mut deps: DepsMut, acc_and_namespace: Vec<(AccountId, &str)>, sender: &str) {
         for (account_id, namespace) in acc_and_namespace {
             let msg = ExecuteMsg::ClaimNamespace {
                 account_id,
@@ -540,7 +543,11 @@ mod test {
             vec![(TEST_ACCOUNT_ID, "cw-plus")],
             TEST_ADMIN,
         );
-        add_namespaces(deps.branch(), vec![(2, "4t2")], TEST_OTHER);
+        add_namespaces(
+            deps.branch(),
+            vec![(TEST_OTHER_ACCOUNT_ID, "4t2")],
+            TEST_OTHER,
+        );
 
         let cw_mods = vec![
             ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
@@ -588,8 +595,7 @@ mod test {
                 ],
             };
 
-            let ModulesResponse { modules } =
-                from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+            let ModulesResponse { modules } = from_json(query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules).has_length(3);
             for module in modules {
                 assert_that!(module.module.info.namespace).is_equal_to(namespace.clone());
@@ -648,7 +654,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(3);
 
                 for entry in modules {
@@ -693,7 +699,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(6);
 
                 let yanked_module_names = ["module4".to_string(), "module5".to_string()];
@@ -749,7 +755,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(2);
 
                 for entry in modules {
@@ -790,7 +796,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(1);
 
                 res
@@ -817,7 +823,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(1);
 
                 let module = modules[0].clone();
@@ -858,7 +864,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(2);
 
                 for module in modules {
@@ -888,7 +894,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(6);
 
                 for module in modules {
@@ -917,7 +923,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).is_empty();
 
                 res
@@ -944,7 +950,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 // We expect two because both cw-plus and snth have a module2 with version 0.1.2
                 assert_that!(modules).has_length(2);
 
@@ -977,7 +983,7 @@ mod test {
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                let ModulesListResponse { modules } = from_json(res).unwrap();
                 assert_that!(modules).has_length(3);
 
                 for module in modules {
@@ -1009,7 +1015,7 @@ mod test {
                 },
             );
             assert_that!(res).is_ok().map(|res| {
-                let NamespacesResponse { namespaces } = from_binary(res).unwrap();
+                let NamespacesResponse { namespaces } = from_json(res).unwrap();
                 assert_that!(namespaces[0].0.to_string()).is_equal_to("4t2".to_string());
                 res
             });
@@ -1025,15 +1031,15 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let not_registered = 15;
+            let not_registered = AccountId::new(15, AccountTrace::Local)?;
             let res = query_helper(
                 deps.as_ref(),
                 QueryMsg::AccountBase {
-                    account_id: not_registered,
+                    account_id: not_registered.clone(),
                 },
             );
 
-            // let res2 = from_binary(&res.unwrap())?;
+            // let res2 = from_json(res.unwrap())?;
 
             assert_that!(res)
                 .is_err()
@@ -1057,7 +1063,7 @@ mod test {
             );
 
             assert_that!(res).is_ok().map(|res| {
-                let AccountBaseResponse { account_base } = from_binary(res).unwrap();
+                let AccountBaseResponse { account_base } = from_json(res).unwrap();
                 assert_that!(account_base).is_equal_to(test_account_base());
                 res
             });

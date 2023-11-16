@@ -6,7 +6,7 @@ use abstract_core::objects::dependency::StaticDependency;
 use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,
-    feature_objects::AnsHost,
+    feature_objects::{AnsHost, VersionControlContract},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
 };
@@ -41,6 +41,8 @@ pub struct AppState {
     pub proxy_address: Addr,
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
+    /// Used to verify requests
+    pub version_control: VersionControlContract,
 }
 
 /// The state variables for our AppContract.
@@ -91,6 +93,14 @@ impl<
             admin: Admin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version, metadata),
         }
+    }
+
+    pub fn module_id(&self) -> &str {
+        self.contract.info().0
+    }
+
+    pub fn version(&self) -> &str {
+        self.contract.info().1
     }
 
     pub fn load_state(&self, store: &dyn Storage) -> StdResult<AppState> {
@@ -175,18 +185,21 @@ mod tests {
 
     #[test]
     fn builder() {
-        MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
+        let app = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
             .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|_, _, _, _| cosmwasm_std::to_binary("mock_query").map_err(Into::into))
+            .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _| {
+            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })])
             .with_replies(&[(1u64, |_, _, _, msg| {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })])
             .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
+
+        assert_eq!(app.module_id(), TEST_MODULE_ID);
+        assert_eq!(app.version(), TEST_VERSION);
     }
 }

@@ -1,5 +1,6 @@
 #![allow(missing_docs)]
-use core::{objects::AssetEntry, AbstractError};
+use crate::core::{objects::AssetEntry, AbstractError};
+use abstract_core::objects::AccountId;
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use std::fmt::{Display, Formatter};
@@ -54,16 +55,16 @@ pub enum AbstractSdkError {
 
     // caller not Manager error
     #[error("Address {0} is not the Manager of Account {1}.")]
-    NotManager(Addr, u32),
+    NotManager(Addr, AccountId),
 
     // caller not Proxy error
     #[error("Address {0} is not the Proxy of Account {1}.")]
-    NotProxy(Addr, u32),
+    NotProxy(Addr, AccountId),
 
     // unknown Account id error
     #[error("Unknown Account id {account_id} on version control {version_control_addr}. Please ensure that you are using the correct Account id and version control address.")]
     UnknownAccountId {
-        account_id: u32,
+        account_id: AccountId,
         version_control_addr: Addr,
     },
 
@@ -74,6 +75,10 @@ pub enum AbstractSdkError {
     // module not found in version registry
     #[error("Module {module} not found in version registry {registry_addr}.")]
     ModuleNotFound { module: String, registry_addr: Addr },
+
+    // module not found in version registry
+    #[error("Standalone {code_id} not found in version registry {registry_addr}.")]
+    StandaloneNotFound { code_id: u64, registry_addr: Addr },
 
     // callback not called by IBC client
     #[error("IBC callback called by {caller} instead of IBC client {client_addr}.")]

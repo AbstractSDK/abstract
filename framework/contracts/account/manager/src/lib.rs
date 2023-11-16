@@ -8,7 +8,10 @@ mod versioning;
 #[cfg(test)]
 mod test_common {
     use crate::contract::ManagerResult;
-    use abstract_core::{manager, objects::gov_type::GovernanceDetails};
+    use abstract_core::{
+        manager,
+        objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId},
+    };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, DepsMut};
 
@@ -21,15 +24,17 @@ mod test_common {
             mock_env(),
             info,
             manager::InstantiateMsg {
-                account_id: 1,
+                account_id: AccountId::new(1, AccountTrace::Local).unwrap(),
                 owner: GovernanceDetails::Monarchy {
                     monarch: TEST_OWNER.to_string(),
                 },
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),
+                proxy_addr: TEST_PROXY.to_string(),
                 name: "test".to_string(),
                 description: None,
                 link: None,
+                install_modules: vec![],
             },
         )
     }

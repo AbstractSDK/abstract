@@ -22,7 +22,7 @@ rm -rf ./artifacts/*.wasm
 docker run --rm -v "$(pwd)":/code \
 --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
 --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-${image}:0.12.13
+${image}:0.14.0
 
 cd $starting_dir
 
@@ -35,7 +35,7 @@ rm -rf ./artifacts/*.wasm
 docker run --rm -v "$(pwd)":/code \
 --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
 --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-${workspace_image}:0.12.13
+${abstract_image}:0.15.0
 
 cd $starting_dir
 
@@ -50,4 +50,4 @@ docker run --rm -v "$(pwd)":/code \
   -v "$(dirname "$(pwd)")/integrations":/integrations \
   -v "$(dirname "$(pwd)")/framework":/framework \
   --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-  ${abstract_image}:0.12.14
+  ${abstract_image}:0.15.0

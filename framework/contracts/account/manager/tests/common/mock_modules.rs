@@ -7,7 +7,7 @@ use abstract_app::gen_app_mock;
 use abstract_app::mock::MockError as AppMockError;
 use abstract_app::AppContract;
 use abstract_core::objects::dependency::StaticDependency;
-use abstract_interface::{AdapterDeployer, AppDeployer};
+use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy};
 use cw_orch::prelude::*;
 
 pub type MockAdapterContract = AdapterContract<AdapterMockError, Empty, Empty, Empty, Empty, Empty>;
@@ -23,32 +23,32 @@ pub const V2: &str = "2.0.0";
 /// deploys different version adapters and app for migration testing
 pub fn deploy_modules(mock: &Mock) {
     self::BootMockAdapter1V1::new_test(mock.clone())
-        .deploy(V1.parse().unwrap(), MockInitMsg)
+        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
     self::BootMockAdapter1V2::new_test(mock.clone())
-        .deploy(V2.parse().unwrap(), MockInitMsg)
+        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // and now for adapter 2
     self::BootMockAdapter2V1::new_test(mock.clone())
-        .deploy(V1.parse().unwrap(), MockInitMsg)
+        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
     self::BootMockAdapter2V2::new_test(mock.clone())
-        .deploy(V2.parse().unwrap(), MockInitMsg)
+        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // and now for app 1
     self::BootMockApp1V1::new_test(mock.clone())
-        .deploy(V1.parse().unwrap())
+        .deploy(V1.parse().unwrap(), DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
     self::BootMockApp1V2::new_test(mock.clone())
-        .deploy(V2.parse().unwrap())
+        .deploy(V2.parse().unwrap(), DeployStrategy::Error)
         .unwrap();
 }
 
@@ -126,5 +126,60 @@ pub mod app_1 {
                 StaticDependency::new(adapter_2::MOCK_ADAPTER_ID, &[V2]),
             ]
         );
+    }
+}
+
+// this standalone have cw2
+pub mod standalone_cw2 {
+    pub use super::*;
+    pub const MOCK_STANDALONE_ID: &str = "crate.io:mock-standalone1";
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct MockMsg;
+
+    pub fn mock_instantiate(
+        deps: cosmwasm_std::DepsMut,
+        env: cosmwasm_std::Env,
+        info: cosmwasm_std::MessageInfo,
+        msg: MockInitMsg,
+    ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
+        cw2::set_contract_version(deps.storage, MOCK_STANDALONE_ID, V1);
+        Ok(cosmwasm_std::Response::new())
+    }
+
+    /// Execute entrypoint
+    pub fn mock_execute(
+        deps: cosmwasm_std::DepsMut,
+        env: cosmwasm_std::Env,
+        info: cosmwasm_std::MessageInfo,
+        msg: MockMsg,
+    ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
+        Ok(cosmwasm_std::Response::new())
+    }
+
+    /// Query entrypoint
+    pub fn mock_query(
+        deps: cosmwasm_std::Deps,
+        env: cosmwasm_std::Env,
+        msg: MockMsg,
+    ) -> cosmwasm_std::StdResult<cosmwasm_std::Binary> {
+        Ok(cosmwasm_std::Binary::default())
+    }
+}
+
+// this standalone does not have cw2
+pub mod standalone_no_cw2 {
+    pub use super::*;
+    pub const MOCK_STANDALONE_ID: &str = "crates.io:mock-standalone2";
+
+    pub use super::standalone_cw2::{mock_execute, mock_query, MockMsg};
+
+    pub fn mock_instantiate(
+        deps: cosmwasm_std::DepsMut,
+        env: cosmwasm_std::Env,
+        info: cosmwasm_std::MessageInfo,
+        msg: MockInitMsg,
+    ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
+        Ok(cosmwasm_std::Response::new())
     }
 }

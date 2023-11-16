@@ -4,13 +4,14 @@ use abstract_core::objects::dependency::StaticDependency;
 use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
 use cosmwasm_std::{Addr, Deps};
 
+use crate::core::objects::module::ModuleId;
 use crate::features::{
     AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies,
     ModuleIdentification,
 };
 use crate::AbstractSdkResult;
 use abstract_core::objects::ans_host::AnsHost;
-use core::objects::module::ModuleId;
+use abstract_core::objects::version_control::VersionControlContract;
 
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
 impl AccountIdentification for MockModule {
@@ -34,8 +35,10 @@ impl AbstractNameService for MockModule {
 }
 
 impl AbstractRegistryAccess for MockModule {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(Addr::unchecked("abstract_registry"))
+    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+        Ok(VersionControlContract {
+            address: Addr::unchecked("abstract_registry"),
+        })
     }
 }
 

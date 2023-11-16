@@ -1,1 +1,1 @@
-f890d41ddd32b5e274da6153cd55b9b4a00f8777a015dc33d4fb0303940f4ec8  ./target/wasm32-unknown-unknown/release/app.wasm
+5edc6d889283c7107888a00dfb0103bef6d2b14bae4f9f65494270a89777f1ac  /target/wasm32-unknown-unknown/release/app.wasm

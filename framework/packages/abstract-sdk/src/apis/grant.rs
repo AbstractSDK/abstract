@@ -106,7 +106,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.MsgGrantAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())
@@ -122,7 +122,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())
@@ -138,7 +138,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())
@@ -158,7 +158,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())
@@ -174,7 +174,7 @@ impl Grant {
 
         let msg = CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance".to_string(),
-            value: to_binary(&msg)?,
+            value: to_json_binary(&msg)?,
         };
 
         Ok(msg.into())

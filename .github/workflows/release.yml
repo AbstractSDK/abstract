@@ -1,0 +1,33 @@
+name: Release and Publish 
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+    branches:
+      - 'release/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/release/') || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Tickle CircleCI to Build Wasm Binaries
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+        run: |
+          BRANCH_NAME=$(echo "${GITHUB_REF}" | sed -e "s/refs\/heads\///")
+          RESPONSE=$(curl -s -X POST \
+          -H "Circle-Token: ${CCI_TOKEN}" \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d '{
+          "branch": "'"$BRANCH_NAME"'",
+
+          "parameters": {
+            "GHA_Meta": "build_commit_deploy"
+          }
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
+          
+          echo "CircleCI Response: $RESPONSE"
