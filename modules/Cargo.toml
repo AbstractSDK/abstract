@@ -57,6 +57,7 @@ abstract-testing = { version = "0.19.2" }
 abstract-core = { version = "0.19.2" }
 abstract-macros = { version = "0.19.2" }
 abstract-ica = { version = "0.19.2" }
+abstract-client = { version = "0.19.2" }
 
 abstract-adapter-utils = { version = "0.19.2" }
 abstract-dex-standard = { version = "0.19.2" }
@@ -97,6 +98,7 @@ abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
+abstract-client = { path = "../framework/packages/abstract-client" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

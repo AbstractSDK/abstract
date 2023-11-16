@@ -1,4 +1,4 @@
-use abstract_interface::Abstract;
+use abstract_interface::{Abstract, AnsHost};
 use cw_orch::{deploy::Deploy, prelude::CwEnv};
 
 use crate::{
@@ -17,6 +17,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn new(chain: Chain) -> AbstractClientResult<Self> {
         let abstr = Abstract::load_from(chain)?;
         Ok(Self { abstr })
+    }
+
+    pub fn ans_host(&self) -> &AnsHost<Chain> {
+        &self.abstr.ans_host
     }
 
     pub fn get_publisher_from_namespace(
