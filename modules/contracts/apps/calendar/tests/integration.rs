@@ -90,6 +90,7 @@ fn setup_with_time(
     // Create the mock
     let mock = Mock::new(&sender);
 
+    // set balances
     mock.set_balance(&Addr::unchecked("sender1"), coins(INITIAL_BALANCE, DENOM))?;
     mock.set_balance(&Addr::unchecked("sender2"), coins(INITIAL_BALANCE, DENOM))?;
     mock.set_balance(&Addr::unchecked("sender"), coins(INITIAL_BALANCE, DENOM))?;
