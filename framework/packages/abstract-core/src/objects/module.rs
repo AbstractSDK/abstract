@@ -474,26 +474,17 @@ impl Default for Monetization {
 pub type ModuleMetadata = String;
 
 /// Generate salt helper
-pub fn generate_salt(block_height: u64, account_id: AccountId) -> Binary {
-    let mut salt = [0; 32];
+pub fn generate_module_salt(block_height: u64, account_id: &AccountId) -> Binary {
+    let mut salt = [0; 40];
+    // 0..32 bytes for account_id
+    let account_id = sha256::digest(account_id.to_string());
+    let accound_id_bytes: &mut [u8] = &mut salt[0..32];
+    accound_id_bytes.copy_from_slice(&account_id.as_bytes()[0..32]);
+
     // 0..8 bytes for block height
-    let block_height_bytes = &mut salt[0..8];
+    let block_height_bytes = &mut salt[32..40];
     block_height_bytes.copy_from_slice(&block_height.to_be_bytes());
 
-    // 8..12 bytes for account seq
-    let account_id_seq_bytes = &mut salt[8..12];
-    account_id_seq_bytes.copy_from_slice(&account_id.seq().to_be_bytes());
-
-    // rest of bytes filled with trace
-    let trace = account_id
-        .trace()
-        .to_string()
-        .into_bytes()
-        .into_iter()
-        .take(20)
-        .collect::<Vec<u8>>();
-    let account_id_trace_bytes: &mut [u8] = &mut salt[12..32];
-    account_id_trace_bytes[0..trace.len()].copy_from_slice(&trace);
     Binary::from(salt)
 }
 
@@ -843,16 +834,16 @@ mod test {
 
         #[test]
         fn generate_module_salt_local() {
-            let salt = generate_salt(123, AccountId::local(5));
+            let salt = generate_module_salt(123, &AccountId::local(5));
             assert!(!salt.is_empty());
             assert!(salt.len() <= 64);
         }
 
         #[test]
         fn generate_module_salt_trace() {
-            let salt = generate_salt(
+            let salt = generate_module_salt(
                 123,
-                AccountId::new(
+                &AccountId::new(
                     5,
                     AccountTrace::Remote(vec![
                         ChainName::from_chain_id("foo-1"),

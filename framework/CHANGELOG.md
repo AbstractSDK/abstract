@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `account_id()` method of `AccountRegistry` is now exposed.
 - Allow module-id to be passed in as a valid authorized address when allowing new addresses on adapter contracts.
 - `BaseInstantiateMsg` is now removed from install app API, now only `ModuleMsg` should be provided
+- `Modules`, `Manager` and `Proxy` are now instantiated via instantiate2 message 
 - `FeeGrant` API updated
 
 ### Removed

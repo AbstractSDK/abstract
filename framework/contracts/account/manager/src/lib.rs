@@ -30,6 +30,7 @@ mod test_common {
                 },
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),
+                proxy_addr: TEST_PROXY.to_string(),
                 name: "test".to_string(),
                 description: None,
                 link: None,
