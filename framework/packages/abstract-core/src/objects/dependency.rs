@@ -123,7 +123,7 @@ mod test {
 
         assert_that!(dep.matches(&Version::parse("1.0.0").unwrap())).is_true();
         assert_that!(dep.matches(&Version::parse("1.1.0").unwrap())).is_true();
-        assert_that!(dep.matches(&Version::parse("1.1.1").unwrap())).is_true();
+        assert_that!(dep.matches(&Version::parse("1.2.1").unwrap())).is_true();
     }
 
     #[test]

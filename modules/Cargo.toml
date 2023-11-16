@@ -24,11 +24,11 @@ cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "~1.1"
 cw2 = { version = "1.0" }
-cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", features = [
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
   "library",
-], rev = "03274f3" }
-cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "0.1.0", rev = "03274f3" }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", rev = "03274f3" }
+], tag = "v1.2.1"}
+cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "1.2.1" }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }

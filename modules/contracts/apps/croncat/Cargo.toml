@@ -86,7 +86,7 @@ croncat-factory = { version = "1.0.4" }
 croncat-tasks = { version = "1.0.4" }
 croncat-manager = { version = "1.0.4" }
 croncat-agents = { version = "1.0.4" }
-croncat-integration-testing = { version = "1.1.1" }
+croncat-integration-testing = { version = "1.2.1" }
 
 # Testing cw20
 cw20-base = "0.16.0"
