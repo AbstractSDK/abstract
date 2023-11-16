@@ -96,7 +96,7 @@ pub fn execute_create_account(
         },
     )?;
     let funds_for_install = simulate_resp.total_required_funds;
-    let funds_for_account_fee = if namespace.is_some() {
+    let funds_for_namespace_fee = if namespace.is_some() {
         abstract_registry
             .account_registry(deps.as_ref())
             .namespace_registration_fee()?
@@ -111,7 +111,7 @@ pub fn execute_create_account(
     for coin in funds_for_install
         .clone()
         .into_iter()
-        .chain(funds_for_account_fee.clone().into_iter())
+        .chain(funds_for_namespace_fee.clone().into_iter())
     {
         funds_to_proxy.sub(coin).map_err(|_| {
             AbstractError::Fee(format!(
@@ -179,7 +179,7 @@ pub fn execute_create_account(
     // Add Account base to version_control
     let add_account_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.version_control_contract.to_string(),
-        funds: funds_for_account_fee,
+        funds: funds_for_namespace_fee,
         msg: to_json_binary(&VCExecuteMsg::AddAccount {
             account_id: proxy_message.account_id.clone(),
             account_base: context.account_base,
