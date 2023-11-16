@@ -115,11 +115,15 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     }
 
     /// Get namespace registration fee
-    pub fn namespace_registration_fee(&self) -> AbstractSdkResult<cosmwasm_std::Coin> {
+    pub fn namespace_registration_fee(&self) -> AbstractSdkResult<Option<cosmwasm_std::Coin>> {
         let registry_addr = self.base.abstract_registry(self.deps)?.address;
         let config = abstract_core::version_control::state::CONFIG
             .query(&self.deps.querier, registry_addr)?;
-        Ok(config.namespace_registration_fee)
+        if config.namespace_registration_fee == cosmwasm_std::Coin::default() {
+            Ok(None)
+        } else {
+            Ok(Some(config.namespace_registration_fee))
+        }
     }
 }
 

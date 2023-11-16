@@ -97,9 +97,11 @@ pub fn execute_create_account(
     )?;
     let funds_for_install = simulate_resp.total_required_funds;
     let funds_for_account_fee = if namespace.is_some() {
-        vec![abstract_registry
+        abstract_registry
             .account_registry(deps.as_ref())
-            .namespace_registration_fee()?]
+            .namespace_registration_fee()?
+            .into_iter()
+            .collect()
     } else {
         vec![]
     };
