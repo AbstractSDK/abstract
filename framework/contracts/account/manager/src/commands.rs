@@ -1,8 +1,6 @@
 use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_version};
 use crate::{validation, versioning};
-use abstract_core::manager::state::{
-    ACCOUNT_FACTORY, MODULE_QUEUE, PENDING_GOVERNANCE, SUB_ACCOUNTS,
-};
+use abstract_core::manager::state::{PENDING_GOVERNANCE, SUB_ACCOUNTS};
 
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
@@ -133,7 +131,7 @@ pub(crate) fn install_modules_internal(
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let salt: Binary = module::generate_salt(block_height, account_id);
+    let salt: Binary = module::generate_module_salt(block_height, &account_id);
     let version_control = VersionControlContract::new(version_control_address);
 
     let canonical_module_factory = deps
@@ -952,14 +950,7 @@ pub fn update_account_status(
 
 /// Allows the owner to manually update the internal configuration of the account.
 /// This can be used to unblock the account and its modules in case of a bug/lock on the account.
-///
-/// This method is also called once by the Account Factory after the account is created and triggers any queued module installations.
-pub fn update_internal_config(
-    mut deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    config: Binary,
-) -> ManagerResult {
+pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) -> ManagerResult {
     // deserialize the config action
     let action: InternalConfigAction =
         from_json(config).map_err(|error| ManagerError::InvalidConfigAction { error })?;
@@ -973,60 +964,8 @@ pub fn update_internal_config(
         }
     };
 
-    // if the caller is the module factory, and the account is not already instantiated, then instantiate the account and register the modules.
-    if ACCOUNT_FACTORY
-        .is_admin(deps.as_ref(), &info.sender)
-        .is_ok_and(|a| a)
-        && !ACCOUNT_MODULES.has(deps.storage, PROXY)
-    {
-        // Add the proxy.
-        update_module_addresses(deps.branch(), add, remove)?;
-        // Perform module installation.
-        let queued_modules = MODULE_QUEUE.load(deps.storage)?;
-
-        // No need to send message to install module if there is none
-        let mut response = if queued_modules.is_empty() {
-            ManagerResponse::new(
-                "manager_after_init",
-                std::iter::once(Attribute::new("installed_modules", "[]")),
-            )
-        } else {
-            let config = CONFIG.load(deps.storage)?;
-
-            let (add_to_proxy, install_msg, install_attributes) = install_modules_internal(
-                deps.branch(),
-                env.block.height,
-                queued_modules,
-                config.module_factory_address,
-                config.version_control_address,
-                info.funds,
-            )?;
-            ManagerResponse::new("manager_after_init", std::iter::once(install_attributes))
-                .add_message(add_to_proxy)
-                .add_submessage(install_msg)
-        };
-
-        let account_info = INFO.load(deps.storage)?;
-        if let GovernanceDetails::SubAccount { manager, .. } = account_info.governance_details {
-            response = response.add_message(wasm_execute(
-                manager,
-                &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-                    id: ACCOUNT_ID.load(deps.storage)?.seq(),
-                }),
-                vec![],
-            )?);
-        }
-
-        // clear the queue
-        MODULE_QUEUE.remove(deps.storage);
-        // Remove account factory from storage
-        ACCOUNT_FACTORY.set(deps, None)?;
-
-        Ok(response)
-    } else {
-        assert_admin_right(deps.as_ref(), &info.sender)?;
-        update_module_addresses(deps, add, remove)
-    }
+    assert_admin_right(deps.as_ref(), &info.sender)?;
+    update_module_addresses(deps, add, remove)
 }
 
 /// Function that guards all the admin rights.
@@ -1262,7 +1201,8 @@ mod tests {
 
             speculoos::prelude::VecAssertions::has_length(
                 &mut assert_that!(&actual_modules),
-                to_add.len(),
+                // Plus proxy
+                to_add.len() + 1,
             );
             for (module_id, addr) in to_add {
                 speculoos::iter::ContainingIntoIterAssertions::contains(
@@ -1308,7 +1248,8 @@ mod tests {
 
             let actual_modules = load_account_modules(&deps.storage)?;
 
-            speculoos::prelude::VecAssertions::is_empty(&mut assert_that!(&actual_modules));
+            // Only proxy left
+            speculoos::prelude::VecAssertions::has_length(&mut assert_that!(&actual_modules), 1);
 
             Ok(())
         }
@@ -1329,20 +1270,11 @@ mod tests {
         }
 
         #[test]
-        fn only_account_factory_or_owner() -> ManagerTestResult {
+        fn only_account_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
-            // mock add the proxy
-            let action_add = InternalConfigAction::UpdateModuleAddresses {
-                to_add: Some(vec![(PROXY.to_string(), "module_addr".to_string())]),
-                to_remove: None,
-            };
-            let msg = ExecuteMsg::UpdateInternalConfig(to_json_binary(&action_add).unwrap());
 
-            let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
-            assert_that!(&res).is_ok();
-
-            // add some other thing
+            // add some thing
             let action_add = InternalConfigAction::UpdateModuleAddresses {
                 to_add: Some(vec![(
                     "module:other".to_string(),
@@ -1873,7 +1805,7 @@ mod tests {
         use abstract_core::manager::QueryMsg;
 
         #[test]
-        fn only_account_factory_or_owner() -> ManagerTestResult {
+        fn only_account_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -1885,18 +1817,18 @@ mod tests {
                 .unwrap(),
             );
 
-            let bad_sender = "not_account_factory";
+            let bad_sender = "not_account_owner";
             let res = execute_as(deps.as_mut(), bad_sender, msg.clone());
 
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner {}));
 
-            let owner_res = execute_as_owner(deps.as_mut(), msg.clone());
-            assert_that!(&owner_res).is_ok();
+            let factory_res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
+            assert_that!(&factory_res).is_err();
 
-            let factory_res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg);
-            assert_that!(&factory_res).is_ok();
+            let owner_res = execute_as_owner(deps.as_mut(), msg);
+            assert_that!(&owner_res).is_ok();
 
             Ok(())
         }
