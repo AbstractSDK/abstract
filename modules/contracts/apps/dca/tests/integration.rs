@@ -6,10 +6,7 @@ use abstract_core::objects::{
     PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
 };
 use abstract_core::AbstractError;
-use abstract_core::{
-    app::{BaseInstantiateMsg, BaseQueryMsgFns},
-    objects::gov_type::GovernanceDetails,
-};
+use abstract_core::{app::BaseQueryMsgFns, objects::gov_type::GovernanceDetails};
 use abstract_dex_adapter::interface::DexAdapter;
 use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
 use abstract_dex_adapter::DEX_ADAPTER_ID;
@@ -18,7 +15,7 @@ use dca_app::msg::{DCAResponse, Frequency};
 use dca_app::state::{DCAEntry, DCAId};
 use dca_app::{
     contract::{DCA_APP_ID, DCA_APP_VERSION},
-    msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
+    msg::{AppInstantiateMsg, ConfigResponse},
     *,
 };
 
@@ -345,57 +342,29 @@ fn setup() -> anyhow::Result<(
                 monarch: ADMIN.to_string(),
             })?;
     // Install DEX
-    account
-        .manager
-        .install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
-    let module_addr = account
-        .manager
-        .module_info(DEX_ADAPTER_ID)?
-        .unwrap()
-        .address;
-    dex_adapter.set_address(&module_addr);
+    account.install_adapter(&dex_adapter, None)?;
 
     // Install croncat
-    account.install_module(
-        CRONCAT_ID,
-        &croncat_app::msg::InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr_deployment.ans_host.addr_str()?,
-                version_control_address: abstr_deployment.version_control.addr_str()?,
-            },
-            module: croncat_app::msg::AppInstantiateMsg {},
-        },
-        None,
-    )?;
-    let module_addr = account.manager.module_info(CRONCAT_ID)?.unwrap().address;
-    cron_cat_app.set_address(&module_addr);
+    account.install_app(&cron_cat_app, &croncat_app::msg::AppInstantiateMsg {}, None)?;
     let manager_addr = account.manager.address()?;
     cron_cat_app.set_sender(&manager_addr);
 
     // Install DCA
     dca_app.deploy(DCA_APP_VERSION.parse()?, DeployStrategy::Try)?;
-    account.install_module(
-        DCA_APP_ID,
-        &InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr_deployment.ans_host.addr_str()?,
-                version_control_address: abstr_deployment.version_control.addr_str()?,
-            },
-            module: AppInstantiateMsg {
-                native_asset: AssetEntry::new("denom"),
-                dca_creation_amount: Uint128::new(5_000_000),
-                refill_threshold: Uint128::new(1_000_000),
-                max_spread: Decimal::percent(30),
-            },
+    account.install_app(
+        &dca_app,
+        &AppInstantiateMsg {
+            native_asset: AssetEntry::new("denom"),
+            dca_creation_amount: Uint128::new(5_000_000),
+            refill_threshold: Uint128::new(1_000_000),
+            max_spread: Decimal::percent(30),
         },
         None,
     )?;
 
-    let module_addr = account.manager.module_info(DCA_APP_ID)?.unwrap().address;
-    dca_app.set_address(&module_addr);
     account.manager.update_adapter_authorized_addresses(
         DEX_ADAPTER_ID,
-        vec![module_addr.to_string()],
+        vec![dca_app.addr_str()?],
         vec![],
     )?;
 

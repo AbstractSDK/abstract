@@ -2,7 +2,7 @@ use abstract_core::objects::validation::ValidationError;
 use abstract_core::AbstractError;
 use abstract_sdk::core::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;
 
@@ -25,6 +25,9 @@ pub enum ManagerError {
 
     #[error("{0}")]
     Ownership(#[from] cw_ownable::OwnershipError),
+
+    #[error("{0}")]
+    Instantiate2AddressError(#[from] Instantiate2AddressError),
 
     #[error("Module with id: {0} is already installed")]
     ModuleAlreadyInstalled(String),

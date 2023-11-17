@@ -59,15 +59,7 @@ fn setup_mock() -> anyhow::Result<(
         .transfer(1000u128.into(), proxy_addr.to_string())?;
 
     // install exchange on AbstractAccount
-    os.manager
-        .install_module(CW_STAKING_ADAPTER_ID, &Empty {}, None)?;
-    // load exchange data into type
-    staking.set_address(&Addr::unchecked(
-        os.manager
-            .module_info(CW_STAKING_ADAPTER_ID)?
-            .unwrap()
-            .address,
-    ));
+    os.install_adapter(&staking, None)?;
 
     Ok((chain, wyndex, staking, os))
 }

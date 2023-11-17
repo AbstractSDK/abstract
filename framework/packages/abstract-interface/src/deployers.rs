@@ -7,6 +7,14 @@ use cw_orch::prelude::*;
 use semver::Version;
 use serde::Serialize;
 
+/// Trait to access module information tied directly to the type.
+pub trait RegisteredModule {
+    /// The id of the module.
+    fn module_id<'a>() -> &'a str;
+    /// The version of the module.
+    fn module_version<'a>() -> &'a str;
+}
+
 /// Strategy for deploying
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DeployStrategy {

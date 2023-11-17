@@ -2,10 +2,9 @@ use abstract_core::{
     ans_host::ExecuteMsgFns,
     objects::{gov_type::GovernanceDetails, AccountId, AssetEntry},
 };
-use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg};
 use abstract_interface::{
-    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, ManagerQueryFns,
-    VCExecFns,
+    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, VCExecFns,
 };
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
 use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
@@ -71,19 +70,16 @@ fn setup(
     app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;
 
     // install exchange module as it's a dependency
-    account.install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
+    account.install_adapter(&dex_adapter, None)?;
 
     account.install_app(
-        app.clone(),
+        &app,
         &AppInstantiateMsg {
             desired_asset,
             exchanges: vec!["wyndex".to_string()],
         },
         None,
     )?;
-
-    let modules = account.manager.module_infos(None, None)?;
-    app.set_address(&modules.module_infos[1].address);
 
     account.manager.update_adapter_authorized_addresses(
         abstract_dex_adapter::DEX_ADAPTER_ID,

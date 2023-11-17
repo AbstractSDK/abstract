@@ -130,7 +130,7 @@ fn setup_with_time(
     app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;
 
     account.install_app(
-        app.clone(),
+        &app,
         &AppInstantiateMsg {
             price_per_minute: Uint128::from(1u128),
             denom: AssetEntry::from(DENOM),
