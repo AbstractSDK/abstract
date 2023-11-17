@@ -59,6 +59,7 @@ jobs:
       - run:
           name: Build WASM artifacts
           command: |
+            set -e
             ./scripts/wasm-all-ci.sh
       - run:
           name: Commit and push artifacts
