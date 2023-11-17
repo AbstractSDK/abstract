@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Detect the architecture #
 if [[ $(arch) == "arm64" ]]; then
 image="cosmwasm/rust-optimizer-arm64"
