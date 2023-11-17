@@ -42,6 +42,7 @@
 /// Result type for Abstract objects
 pub type AbstractResult<T> = Result<T, error::AbstractError>;
 
+pub mod account;
 pub mod base;
 
 pub use registry::*;
