@@ -47,7 +47,7 @@ anyhow = { workspace = true }
 account-factory = { workspace = true }
 ans-host = { workspace = true }
 version-control = { workspace = true }
-proxy = { workspace = true }
+proxy = { workspace = true, default-features = false}
 module-factory = { workspace = true }
 rstest = { workspace = true }
 speculoos = { workspace = true }

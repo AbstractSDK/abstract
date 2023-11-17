@@ -38,3 +38,5 @@ framework/contracts/**/schema
 
 # logs
 **/logs
+
+**/artifacts
