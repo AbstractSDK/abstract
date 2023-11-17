@@ -28,7 +28,7 @@ cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
   "library",
 ], tag = "v1.2.1" }
 cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "1.2.1" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
