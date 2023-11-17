@@ -49,7 +49,6 @@ cd $starting_dir
 
 echo "Wasming modules"
 
-docker rm -v modules_with_code
 # create a dummy container which will hold a volume with config
 docker create -v /code -v /integrations -v /framework --name modules_with_code alpine /bin/true
 
