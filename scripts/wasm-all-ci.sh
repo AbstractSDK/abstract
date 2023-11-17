@@ -22,6 +22,7 @@ cd ./framework
 # Remove for docker to successfuly copy
 rm packages/abstract-interface/state.json
 rm packages/abstract-interface/build.rs
+rm packages/abstract-interface/artifacts || true
 
 # Delete the current artifacts folder.
 # rm -rf ./artifacts
@@ -30,6 +31,8 @@ rm packages/abstract-interface/build.rs
 if [ ! -f Cargo.lock ]; then
   cargo generate-lockfile
 fi
+
+docker rm -v with_code || true
 
 # create a dummy container which will hold a volume with config
 docker create -v /code --name with_code alpine /bin/true
@@ -48,6 +51,8 @@ ls artifacts
 cd $starting_dir
 
 echo "Wasming modules"
+
+docker rm -v modules_with_code || true
 
 # create a dummy container which will hold a volume with config
 docker create -v /code -v /integrations -v /framework --name modules_with_code alpine /bin/true
