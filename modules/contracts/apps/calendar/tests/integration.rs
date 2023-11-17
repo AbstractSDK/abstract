@@ -1,6 +1,6 @@
 use abstract_client::{application::Application, client::AbstractClient, publisher::Publisher};
 use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
-use abstract_interface::Abstract;
+use abstract_interface::ExecuteMsgFns;
 use calendar_app::{
     error::AppError,
     msg::{AppExecuteMsg, AppInstantiateMsg, ConfigResponse, Time},
@@ -10,7 +10,7 @@ use calendar_app::{
 use chrono::{DateTime, Days, FixedOffset, NaiveDateTime, NaiveTime, TimeZone, Timelike};
 use cw_asset::AssetInfo;
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, deploy::Deploy, prelude::*};
+use cw_orch::{anyhow, prelude::*};
 
 use cosmwasm_std::{coins, Addr, BlockInfo, Uint128};
 
@@ -84,28 +84,16 @@ fn request_meeting(
 fn setup_with_time(
     start_time: Time,
     end_time: Time,
-) -> anyhow::Result<(Application<Mock, AppInterface<Mock>>, Mock)> {
-    // Create a sender
-    let sender = Addr::unchecked(ADMIN);
-    // Create the mock
-    let mock = Mock::new(&sender);
+) -> anyhow::Result<(Application<Mock, AppInterface<Mock>>, AbstractClient<Mock>)> {
+    let client: AbstractClient<Mock> = AbstractClient::builder(ADMIN.to_owned())
+        .balance("sender1", coins(INITIAL_BALANCE, DENOM))
+        .balance("sender2", coins(INITIAL_BALANCE, DENOM))
+        .balance("sender", coins(INITIAL_BALANCE, DENOM))
+        .build()?;
 
-    // set balances
-    mock.set_balance(&Addr::unchecked("sender1"), coins(INITIAL_BALANCE, DENOM))?;
-    mock.set_balance(&Addr::unchecked("sender2"), coins(INITIAL_BALANCE, DENOM))?;
-    mock.set_balance(&Addr::unchecked("sender"), coins(INITIAL_BALANCE, DENOM))?;
-
-    // Deploy Abstract to the mock
-    Abstract::deploy_on(mock.clone(), sender.to_string())?;
-
-    let client = AbstractClient::new(mock.clone())?;
-
-    client.name_service().execute(
-        &abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
-            to_add: vec![(DENOM.to_owned(), AssetInfo::native(DENOM).into())],
-            to_remove: vec![],
-        },
-        None,
+    client.name_service().update_asset_addresses(
+        vec![(DENOM.to_owned(), AssetInfo::native(DENOM).into())],
+        vec![],
     )?;
 
     // Create account to install app onto as well as claim namespace.
@@ -130,12 +118,12 @@ fn setup_with_time(
         &[],
     )?;
 
-    Ok((app, mock))
+    Ok((app, client))
 }
 
 /// Set up the test environment with the contract installed
 #[allow(clippy::type_complexity)]
-fn setup() -> anyhow::Result<(Application<Mock, AppInterface<Mock>>, Mock)> {
+fn setup() -> anyhow::Result<(Application<Mock, AppInterface<Mock>>, AbstractClient<Mock>)> {
     setup_with_time(
         Time { hour: 9, minute: 0 },
         Time {
@@ -263,7 +251,7 @@ fn start_time_after_end_time() -> anyhow::Result<()> {
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (app, _mock) = setup()?;
+    let (app, _client) = setup()?;
 
     let config = app.config()?;
     assert_eq!(
@@ -284,8 +272,8 @@ fn successful_install() -> anyhow::Result<()> {
 #[test]
 fn request_meeting_at_start_of_day() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -327,8 +315,8 @@ fn request_meeting_at_start_of_day() -> anyhow::Result<()> {
 #[test]
 fn request_meeting_at_end_of_day() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -370,8 +358,8 @@ fn request_meeting_at_end_of_day() -> anyhow::Result<()> {
 #[test]
 fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -437,8 +425,8 @@ fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
 #[test]
 fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -514,8 +502,8 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
 #[test]
 fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -591,8 +579,8 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
 #[test]
 fn request_meetings_on_different_days() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -666,8 +654,8 @@ fn request_meetings_on_different_days() -> anyhow::Result<()> {
 #[test]
 fn cannot_request_multiple_meetings_with_same_start_time() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -714,8 +702,8 @@ fn cannot_request_multiple_meetings_with_same_start_time() -> anyhow::Result<()>
 #[test]
 fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -772,8 +760,8 @@ fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
 #[test]
 fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -830,8 +818,8 @@ fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
 #[test]
 fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -888,8 +876,8 @@ fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
 #[test]
 fn cannot_request_meeting_in_past() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -929,8 +917,8 @@ fn cannot_request_meeting_in_past() -> anyhow::Result<()> {
 #[test]
 fn cannot_request_meeting_with_end_time_before_start_time() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -970,8 +958,8 @@ fn cannot_request_meeting_with_end_time_before_start_time() -> anyhow::Result<()
 #[test]
 fn cannot_request_meeting_with_start_time_out_of_calendar_bounds() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -1011,8 +999,8 @@ fn cannot_request_meeting_with_start_time_out_of_calendar_bounds() -> anyhow::Re
 #[test]
 fn cannot_request_meeting_with_end_time_out_of_calendar_bounds() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -1052,8 +1040,8 @@ fn cannot_request_meeting_with_end_time_out_of_calendar_bounds() -> anyhow::Resu
 #[test]
 fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -1099,8 +1087,8 @@ fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow
 #[test]
 fn cannot_request_meeting_with_insufficient_funds() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -1141,8 +1129,8 @@ fn cannot_request_meeting_with_insufficient_funds() -> anyhow::Result<()> {
 #[test]
 fn slash_full_stake() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
     let admin = app.account().admin()?;
     let proxy = app.account().proxy()?;
 
@@ -1162,7 +1150,7 @@ fn slash_full_stake() -> anyhow::Result<()> {
         app.clone(),
     )?;
 
-    mock.wait_blocks(100000)?;
+    client.wait_blocks(100000)?;
 
     let day_datetime = meeting_start_datetime
         .date()
@@ -1184,7 +1172,7 @@ fn slash_full_stake() -> anyhow::Result<()> {
         meetings_response.meetings
     );
 
-    assert_eq!(Uint128::from(60u128), mock.query_balance(&proxy, DENOM)?);
+    assert_eq!(Uint128::from(60u128), client.query_balance(&proxy, DENOM)?);
 
     Ok(())
 }
@@ -1192,8 +1180,8 @@ fn slash_full_stake() -> anyhow::Result<()> {
 #[test]
 fn return_stake() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
     let admin = app.account().admin()?;
 
     let config: ConfigResponse = app.config()?;
@@ -1214,10 +1202,10 @@ fn return_stake() -> anyhow::Result<()> {
 
     assert_eq!(
         Uint128::from(INITIAL_BALANCE - 60),
-        mock.query_balance(&sender, DENOM)?
+        client.query_balance(&sender, DENOM)?
     );
 
-    mock.wait_blocks(100000)?;
+    client.wait_blocks(100000)?;
 
     let day_datetime = meeting_start_datetime
         .date()
@@ -1241,7 +1229,7 @@ fn return_stake() -> anyhow::Result<()> {
 
     assert_eq!(
         Uint128::from(INITIAL_BALANCE),
-        mock.query_balance(&sender, DENOM)?
+        client.query_balance(&sender, DENOM)?
     );
 
     Ok(())
@@ -1250,8 +1238,8 @@ fn return_stake() -> anyhow::Result<()> {
 #[test]
 fn slash_partial_stake() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, mock) = setup()?;
-    let block_info: BlockInfo = mock.block_info()?;
+    let (mut app, client) = setup()?;
+    let block_info: BlockInfo = client.block_info()?;
     let admin = app.account().admin()?;
     let proxy = app.account().proxy()?;
 
@@ -1273,10 +1261,10 @@ fn slash_partial_stake() -> anyhow::Result<()> {
 
     assert_eq!(
         Uint128::from(INITIAL_BALANCE - 60),
-        mock.query_balance(&sender, DENOM)?
+        client.query_balance(&sender, DENOM)?
     );
 
-    mock.wait_blocks(100000)?;
+    client.wait_blocks(100000)?;
 
     let day_datetime = meeting_start_datetime
         .date()
@@ -1301,10 +1289,10 @@ fn slash_partial_stake() -> anyhow::Result<()> {
 
     assert_eq!(
         Uint128::from(INITIAL_BALANCE - 20),
-        mock.query_balance(&sender, DENOM)?
+        client.query_balance(&sender, DENOM)?
     );
 
-    assert_eq!(Uint128::from(20u128), mock.query_balance(&proxy, DENOM)?);
+    assert_eq!(Uint128::from(20u128), client.query_balance(&proxy, DENOM)?);
 
     Ok(())
 }

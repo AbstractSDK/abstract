@@ -55,7 +55,7 @@ cw-orch = { workspace = true, optional = true }
 calendar-app = { path = ".", features = ["interface"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
-abstract-client = { workspace = true }
+abstract-client = { workspace = true, features = ["test-utils"] }
 abstract-sdk = { workspace = true }
 speculoos = { workspace = true }
 semver = { workspace = true }

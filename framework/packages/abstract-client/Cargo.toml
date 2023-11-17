@@ -11,6 +11,9 @@ keywords.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+test-utils = ["cw-asset", "abstract-testing"]
+
 [dependencies]
 cosmwasm-std.workspace = true
 abstract-interface.workspace = true
@@ -20,7 +23,12 @@ serde.workspace = true
 semver.workspace = true
 thiserror.workspace = true
 
+# Used for test-utils feature
+cw-asset = { workspace = true, optional = true }
+abstract-testing = {workspace = true, optional = true }
+
 [dev-dependencies]
+abstract-client = { path = ".", features = ["test-utils"] }
 cw-asset.workspace = true
 cw-controllers.workspace = true
 abstract-app = { workspace = true, features = ["test-utils"] }
