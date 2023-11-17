@@ -1,8 +1,4 @@
-
-
-
-
-use cosmwasm_std::{StdError};
+use cosmwasm_std::StdError;
 
 use manager::error::ManagerError;
 use proxy::error::ProxyError;

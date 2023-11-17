@@ -21,7 +21,7 @@ export = []
 
 [dependencies]
 proxy = { workspace = true, default-features = false }
-manager= { workspace = true, default-features = false }
+manager = { workspace = true, default-features = false }
 cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-controllers = { workspace = true }

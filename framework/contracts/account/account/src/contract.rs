@@ -1,15 +1,7 @@
-
-
 use crate::error::AccountError;
 
-use abstract_sdk::core::{
-    account::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-};
-use cosmwasm_std::{
-    Binary, Deps, DepsMut, Env, MessageInfo, Response,
-};
-
-
+use abstract_sdk::core::account::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 pub type AccountResult<R = Response> = Result<R, AccountError>;
 
@@ -31,7 +23,8 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> AccountResult {
-    let resp = manager::contract::instantiate(deps.branch(), env.clone(), info.clone(), msg.manager)?;
+    let resp =
+        manager::contract::instantiate(deps.branch(), env.clone(), info.clone(), msg.manager)?;
     let _resp2 = proxy::contract::instantiate(deps, env, info, msg.proxy)?;
     Ok(resp)
 }
@@ -39,8 +32,12 @@ pub fn instantiate(
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> AccountResult {
     match msg {
-        ExecuteMsg::Proxy(msg) => proxy::contract::execute(deps, env, info, msg).map_err(Into::into),
-        ExecuteMsg::Manager(msg) => manager::contract::execute(deps, env, info, msg).map_err(Into::into),
+        ExecuteMsg::Proxy(msg) => {
+            proxy::contract::execute(deps, env, info, msg).map_err(Into::into)
+        }
+        ExecuteMsg::Manager(msg) => {
+            manager::contract::execute(deps, env, info, msg).map_err(Into::into)
+        }
     }
 }
 
