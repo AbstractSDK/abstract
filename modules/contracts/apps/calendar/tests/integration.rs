@@ -1,6 +1,5 @@
 use abstract_client::{application::Application, client::AbstractClient, publisher::Publisher};
 use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
-use abstract_interface::ExecuteMsgFns;
 use calendar_app::{
     error::AppError,
     msg::{AppExecuteMsg, AppInstantiateMsg, ConfigResponse, Time},
@@ -8,7 +7,7 @@ use calendar_app::{
     *,
 };
 use chrono::{DateTime, Days, FixedOffset, NaiveDateTime, NaiveTime, TimeZone, Timelike};
-use cw_asset::AssetInfo;
+use cw_asset::AssetInfoUnchecked;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
 
@@ -89,12 +88,8 @@ fn setup_with_time(
         .balance("sender1", coins(INITIAL_BALANCE, DENOM))
         .balance("sender2", coins(INITIAL_BALANCE, DENOM))
         .balance("sender", coins(INITIAL_BALANCE, DENOM))
+        .asset(DENOM, AssetInfoUnchecked::native(DENOM))
         .build()?;
-
-    client.name_service().update_asset_addresses(
-        vec![(DENOM.to_owned(), AssetInfo::native(DENOM).into())],
-        vec![],
-    )?;
 
     // Create account to install app onto as well as claim namespace.
     let publisher: Publisher<Mock> = client
