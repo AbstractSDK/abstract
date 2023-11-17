@@ -32,10 +32,7 @@ use crate::{addresses::*, MockQuerierBuilder};
 /// pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
 /// ```
 #[derive(Default)]
-pub struct MockAnsHost(MockAnsState);
-
-#[derive(Default)]
-pub struct MockAnsState {
+pub struct MockAnsHost {
     pub contracts: Vec<(ContractEntry, Addr)>,
     pub assets: Vec<(AssetEntry, AssetInfo)>,
     pub channels: Vec<(ChannelEntry, String)>,
@@ -56,30 +53,22 @@ impl MockAnsHost {
             .with_contract_map_entries(
                 TEST_ANS_HOST,
                 ASSET_ADDRESSES,
-                self.0.assets.iter().map(|(a, b)| (a, b.clone())).collect(),
+                self.assets.iter().map(|(a, b)| (a, b.clone())).collect(),
             )
             .with_contract_map_entries(
                 TEST_ANS_HOST,
                 CONTRACT_ADDRESSES,
-                self.0
-                    .contracts
-                    .iter()
-                    .map(|(a, b)| (a, b.clone()))
-                    .collect(),
+                self.contracts.iter().map(|(a, b)| (a, b.clone())).collect(),
             )
             .with_contract_map_entries(
                 TEST_ANS_HOST,
                 CHANNELS,
-                self.0
-                    .channels
-                    .iter()
-                    .map(|(a, b)| (a, b.clone()))
-                    .collect(),
+                self.channels.iter().map(|(a, b)| (a, b.clone())).collect(),
             );
 
         let mut unique_id = UniquePoolId::new(0);
         let mut dexes = vec![];
-        for (pool_addr, pool_meta) in self.0.pools {
+        for (pool_addr, pool_meta) in self.pools {
             let dex = pool_meta.dex.clone();
             if !dexes.contains(&dex) {
                 dexes.push(dex);
@@ -128,7 +117,7 @@ impl MockAnsHost {
     }
 
     pub fn with_defaults(mut self) -> Self {
-        self.0.assets.append(&mut vec![
+        self.assets.append(&mut vec![
             (AssetEntry::from(EUR), AssetInfo::native(EUR)),
             (AssetEntry::from(USD), AssetInfo::native(USD)),
             (
@@ -144,7 +133,7 @@ impl MockAnsHost {
                 AssetInfo::Cw20(Addr::unchecked(TTOKEN_EUR_LP)),
             ),
         ]);
-        self.0.pools.append(&mut vec![
+        self.pools.append(&mut vec![
             (
                 UncheckedPoolAddress::contract(EUR_USD_PAIR),
                 PoolMetadata::new(
