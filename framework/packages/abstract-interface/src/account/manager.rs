@@ -4,7 +4,7 @@ use abstract_core::{
     ibc::CallbackInfo,
     ibc_host::{HelperAction, HostAction},
     manager::*,
-    module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse},
+    module_factory::SimulateInstallModulesResponse,
     objects::module::{ModuleInfo, ModuleVersion},
     PROXY,
 };
@@ -25,7 +25,8 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
                 ::manager::contract::instantiate,
                 ::manager::contract::query,
             )
-            .with_migrate(::manager::contract::migrate),
+            .with_migrate(::manager::contract::migrate)
+            .with_reply(::manager::contract::reply),
         )
     }
     fn wasm(&self) -> WasmPath {
@@ -61,7 +62,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         // this should check if installed?
         self.uninstall_module(module_id.to_string())?;
 
-        self.install_module(module_id, &Empty {}, funds)?;
+        self.install_module::<Empty>(module_id, None, funds)?;
         Ok(())
     }
 
@@ -95,7 +96,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     pub fn install_module<TInitMsg: Serialize>(
         &self,
         module_id: &str,
-        init_msg: &TInitMsg,
+        init_msg: Option<&TInitMsg>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.install_module_version(module_id, ModuleVersion::Latest, init_msg, funds)
@@ -105,14 +106,14 @@ impl<Chain: CwEnv> Manager<Chain> {
         &self,
         module_id: &str,
         version: ModuleVersion,
-        init_msg: &M,
+        init_msg: Option<&M>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id(module_id, version)?,
-                    Some(to_json_binary(init_msg).unwrap()),
+                    init_msg.map(to_json_binary).transpose().unwrap(),
                 )],
             },
             funds,

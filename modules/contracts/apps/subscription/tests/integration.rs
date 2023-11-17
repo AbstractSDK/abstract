@@ -105,7 +105,7 @@ fn setup_cw20() -> anyhow::Result<Subscription> {
 
     let cw20_addr = cw20.address()?;
     account.install_app(
-        subscription_app.clone(),
+        &subscription_app,
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::cw20(cw20_addr.clone()),
             subscription_cost_per_second: Decimal::from_str("0.000037")?,
@@ -151,7 +151,7 @@ fn setup_native() -> anyhow::Result<Subscription> {
     subscription_app.deploy(CONTRACT_VERSION.parse()?, DeployStrategy::Try)?;
 
     account.install_app(
-        subscription_app.clone(),
+        &subscription_app,
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::native(DENOM),
             // https://github.com/AbstractSDK/abstract/pull/92#discussion_r1371693550

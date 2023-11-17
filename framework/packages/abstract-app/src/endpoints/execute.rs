@@ -117,14 +117,18 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use super::ExecuteMsg as SuperExecuteMsg;
     use crate::mock::*;
+    use crate::AppError;
+    use abstract_core::app::BaseExecuteMsg;
+    use abstract_sdk::base::ExecuteEndpoint;
     use abstract_testing::prelude::TEST_MANAGER;
-    use cosmwasm_std::Addr;
+    use cosmwasm_std::Response;
+    use cosmwasm_std::{Addr, DepsMut};
     use cw_controllers::AdminError;
     use speculoos::prelude::*;
 
-    type AppExecuteMsg = ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+    type AppExecuteMsg = SuperExecuteMsg<MockExecMsg, MockReceiveMsg>;
 
     fn execute_as(deps: DepsMut, sender: &str, msg: AppExecuteMsg) -> Result<Response, MockError> {
         let info = mock_info(sender, &[]);

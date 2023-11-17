@@ -10,7 +10,7 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
-    to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
@@ -56,8 +56,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             ans_host_address,
             version_control_address,
         ),
-        ExecuteMsg::InstallModules { modules } => {
-            commands::execute_create_modules(deps, env, info, modules)
+        ExecuteMsg::InstallModules { modules, salt } => {
+            commands::execute_create_modules(deps, env, info, modules, salt)
         }
         ExecuteMsg::UpdateFactoryBinaryMsgs { to_add, to_remove } => {
             commands::update_factory_binaries(deps, info, to_add, to_remove)
@@ -68,27 +68,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
     }
 }
 
-/// This just stores the result for future query
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
-    match msg {
-        Reply {
-            id: commands::CREATE_APP_RESPONSE_ID,
-            result,
-        } => commands::handle_reply(deps, result),
-        Reply {
-            id: commands::CREATE_STANDALONE_RESPONSE_ID,
-            result,
-        } => commands::handle_reply(deps, result),
-        _ => Err(ModuleFactoryError::UnexpectedReply {}),
-    }
-}
-
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
-        QueryMsg::Context {} => to_json_binary(&query_context(deps)?),
         QueryMsg::SimulateInstallModules { modules } => {
             to_json_binary(&query_simulate_install_modules(deps, modules)?)
         }
@@ -142,21 +125,6 @@ pub fn query_simulate_install_modules(
         monetization_funds: install_funds,
         initialization_funds: init_funds,
     };
-    Ok(resp)
-}
-
-pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
-    let Context {
-        account_base,
-        modules,
-        modules_to_register,
-    }: Context = CONTEXT.load(deps.storage)?;
-    let resp = ContextResponse {
-        account_base,
-        modules: modules.into(),
-        modules_to_register,
-    };
-
     Ok(resp)
 }
 

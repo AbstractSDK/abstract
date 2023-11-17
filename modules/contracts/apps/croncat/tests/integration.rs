@@ -4,7 +4,6 @@ use std::cell::RefMut;
 
 use abstract_core::{
     ans_host::ContractsResponse,
-    app::BaseInstantiateMsg,
     objects::{
         account::AccountTrace, gov_type::GovernanceDetails, AccountId, UncheckedContractEntry,
     },
@@ -15,10 +14,7 @@ use common::contracts;
 use croncat_app::{
     contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION},
     error::AppError,
-    msg::{
-        ActiveTasksByCreatorResponse, ActiveTasksResponse, AppInstantiateMsg, ConfigResponse,
-        InstantiateMsg,
-    },
+    msg::{ActiveTasksByCreatorResponse, ActiveTasksResponse, AppInstantiateMsg, ConfigResponse},
     state::Config,
     AppExecuteMsgFns, AppQueryMsgFns, CroncatApp, CRON_CAT_FACTORY,
 };
@@ -268,20 +264,8 @@ fn setup() -> anyhow::Result<TestingSetup> {
     )?;
 
     contract.deploy(CRONCAT_MODULE_VERSION.parse()?, DeployStrategy::Try)?;
-    account.install_module(
-        CRONCAT_ID,
-        &InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr_deployment.ans_host.addr_str()?,
-                version_control_address: abstr_deployment.version_control.addr_str()?,
-            },
-            module: AppInstantiateMsg {},
-        },
-        None,
-    )?;
+    account.install_app(&contract, &AppInstantiateMsg {}, None)?;
 
-    let module_addr = account.manager.module_info(CRONCAT_ID)?.unwrap().address;
-    contract.set_address(&module_addr);
     let manager_addr = account.manager.address()?;
     contract.set_sender(&manager_addr);
     mock.set_balance(&account.proxy.address()?, coins(500_000, DENOM))?;

@@ -10,15 +10,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
+- `Astrovault` integrated into dex and cw-staking adapters
 
 ### Changed
 
 - `is_module_installed` moved from `Manager` to `Account`
 - `account_id()` method of `AccountRegistry` is now exposed.
+- Allow module-id to be passed in as a valid authorized address when allowing new addresses on adapter contracts.
+- `BaseInstantiateMsg` is now removed from install app API, now only `ModuleMsg` should be provided
+- `Modules`, `Manager` and `Proxy` are now instantiated via instantiate2 message 
 
 ### Removed
 
 - `DepositMsgs` removed (now `deposit()` returns `Vec<CosmosMsg>`)
+- Abstract removed from the fields where it's redundant
+- InstantiateMsg is now removed from the install_adapter API
 
 ## [0.19.0] - 2023-09-26
 

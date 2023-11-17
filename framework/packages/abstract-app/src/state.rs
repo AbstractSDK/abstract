@@ -95,6 +95,14 @@ impl<
         }
     }
 
+    pub fn module_id(&self) -> &str {
+        self.contract.info().0
+    }
+
+    pub fn version(&self) -> &str {
+        self.contract.info().1
+    }
+
     pub fn load_state(&self, store: &dyn Storage) -> StdResult<AppState> {
         self.base_state.load(store)
     }
@@ -177,7 +185,7 @@ mod tests {
 
     #[test]
     fn builder() {
-        MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
+        let app = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
             .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
             .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
@@ -190,5 +198,8 @@ mod tests {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })])
             .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
+
+        assert_eq!(app.module_id(), TEST_MODULE_ID);
+        assert_eq!(app.version(), TEST_VERSION);
     }
 }
