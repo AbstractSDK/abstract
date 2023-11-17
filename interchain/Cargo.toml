@@ -33,7 +33,9 @@ cw-utils = { version = "1.0" }
 cw-storage-plus = "~1.1"
 cw2 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
 cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
-cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", features = ["library"] }
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", features = [
+  "library",
+] }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
