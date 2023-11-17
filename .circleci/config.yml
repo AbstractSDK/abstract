@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   codecov: codecov/codecov@3.2.2
+  discord: antonioned/discord@0.1.0
 
 parameters:
   GHA_Event:
@@ -129,3 +130,8 @@ jobs:
           name: Pass
           command: |
             echo "Pass"
+      - discord/status:
+          fail_only: false
+          failure_message: "**${CIRCLE_USERNAME}**'s build: **${CIRCLE_JOB}** failed."
+          webhook: "${DISCORD_STATUS_WEBHOOK}"
+          success_message: "**${CIRCLE_USERNAME}** deployed api to prod."
