@@ -74,6 +74,11 @@ jobs:
             git add modules/artifacts --force
             git commit -m 'Update WASM binaries [skip ci]'  
             git push origin $CIRCLE_BRANCH
+      - discord/status:
+          fail_only: false
+          failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
+          webhook: "${DISCORD_STATUS_WEBHOOK}"
+          success_message: "**${CIRCLE_USERNAME}** has successfully built WASM! 🎉"
 
   deploy:
     docker:
@@ -130,8 +135,3 @@ jobs:
           name: Pass
           command: |
             echo "Pass"
-      - discord/status:
-          fail_only: false
-          failure_message: "**${CIRCLE_USERNAME}**'s build: **${CIRCLE_JOB}** failed."
-          webhook: "${DISCORD_STATUS_WEBHOOK}"
-          success_message: "**${CIRCLE_USERNAME}** deployed api to prod."
