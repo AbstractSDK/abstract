@@ -1,6 +1,6 @@
 //! # AuthZ
-//! This module provides functionality to interact with the authz module of Cosmos.
-//! It allows for granting authorizations to perform actions on behalf of one account to other accounts.
+//! This module provides functionality to interact with the authz module of CosmosSDK Chains.
+//! It allows for granting authorizations to perform actions on behalf of an account to other accounts.
 
 use cosmos_sdk_proto::{cosmos::authz, traits::Message, Any};
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Timestamp};
@@ -13,7 +13,7 @@ use crate::AbstractSdkResult;
 /// An interface to the CosmosSDK AuthZ module which allows for granting authorizations to perform actions on behalf of one account to other accounts.
 pub trait AuthZInterface: AccountIdentification {
     /// API for accessing the Cosmos SDK AuthZ module.
-    /// The **granter** is the address of the user granting an authorization to perform an action on their behalf.
+    /// The **granter** is the address of the user **granting** an authorization to perform an action on their behalf.
     /// By default, it is the proxy address of the Account.
 
     /// ```
@@ -88,7 +88,7 @@ impl AuthZ {
     /// # Arguments
     ///
     /// * `grantee` - The address of the grantee.
-    /// * `msg` - Allowed message type url.
+    /// * `msg` - Allowed message type url. These are protobuf URLs defined in the Cosmos SDK.
     pub fn grant_generic(
         &self,
         grantee: &Addr,
@@ -132,7 +132,7 @@ impl GenericAuthorization {
     }
 }
 
-trait AuthZAuthrization {
+trait AuthZAuthorization {
     type ProtoType: Message;
 
     const TYPE_URL: &'static str;
@@ -156,7 +156,7 @@ trait AuthZAuthrization {
     }
 }
 
-impl AuthZAuthrization for GenericAuthorization {
+impl AuthZAuthorization for GenericAuthorization {
     type ProtoType = authz::v1beta1::GenericAuthorization;
 
     const TYPE_URL: &'static str = "/cosmos.authz.v1beta1.GenericAuthorization";
