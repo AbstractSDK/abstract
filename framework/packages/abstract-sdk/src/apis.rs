@@ -11,8 +11,12 @@ pub mod verify;
 pub mod version_registry;
 
 #[cfg(feature = "stargate")]
+pub mod authz;
+#[cfg(feature = "stargate")]
 pub mod distribution;
 #[cfg(feature = "stargate")]
-pub mod grant;
+pub mod feegrant;
+#[cfg(feature = "stargate")]
+pub mod stargate;
 #[cfg(feature = "stargate")]
 pub mod token_factory;

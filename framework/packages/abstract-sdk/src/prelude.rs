@@ -16,6 +16,6 @@ pub use crate::apis::{
 #[cfg(feature = "tokenfactory")]
 pub use crate::apis::token_factory::*;
 #[cfg(feature = "stargate")]
-pub use crate::apis::{distribution::*, grant::*};
+pub use crate::apis::{distribution::*, stargate::feegrant::*};
 
 pub use crate::ans_resolve::Resolve;
