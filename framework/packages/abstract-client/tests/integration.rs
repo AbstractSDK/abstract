@@ -8,29 +8,16 @@ use abstract_core::{
     manager::state::AccountInfo,
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
 };
-use abstract_interface::{Abstract, VCQueryFns};
+use abstract_interface::VCQueryFns;
 use cosmwasm_std::Addr;
-use cw_asset::AssetInfo;
-use cw_orch::{
-    deploy::Deploy,
-    prelude::{CallAs, CwOrchExecute, Mock},
-};
+use cw_asset::AssetInfoUnchecked;
+use cw_orch::prelude::{CallAs, Mock};
 
 const ADMIN: &str = "admin";
 
-fn deploy_abstract() -> anyhow::Result<(Mock, Abstract<Mock>)> {
-    let admin = Addr::unchecked(ADMIN);
-    let chain = Mock::new(&admin);
-    let abstr = Abstract::deploy_on(chain.clone(), admin.to_string())?;
-    Ok((chain, abstr))
-}
-
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
-    // Set up.
-    let (chain, _abstr) = deploy_abstract()?;
-
-    let client: AbstractClient<Mock> = AbstractClient::new(chain.clone())?;
+    let client = AbstractClient::builder(ADMIN).build()?;
 
     let account: Account<Mock> = client.account_builder().build()?;
 
@@ -41,7 +28,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
             governance_details: GovernanceDetails::Monarchy {
-                monarch: chain.sender
+                monarch: Addr::unchecked(ADMIN)
             },
             link: None,
         },
@@ -53,20 +40,11 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
-    // Set up.
-    let (chain, abstr) = deploy_abstract()?;
-
     let asset = "asset";
 
-    abstr.ans_host.execute(
-        &abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
-            to_add: vec![(asset.to_owned(), AssetInfo::native(asset).into())],
-            to_remove: vec![],
-        },
-        None,
-    )?;
-
-    let client: AbstractClient<Mock> = AbstractClient::new(chain.clone())?;
+    let client = AbstractClient::builder(ADMIN)
+        .asset(asset, AssetInfoUnchecked::native(asset))
+        .build()?;
 
     let name = "test-account";
     let description = "description";
@@ -99,8 +77,8 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     );
 
     // Namespace is claimed.
-    let account_id = abstr
-        .version_control
+    let account_id = client
+        .version_control()
         .namespace(Namespace::new(namespace)?)?
         .account_id;
     assert_eq!(account_id, AccountId::local(1));
@@ -110,10 +88,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_account_from_namespace() -> anyhow::Result<()> {
-    // Set up.
-    let (chain, _abstr) = deploy_abstract()?;
-
-    let client: AbstractClient<Mock> = AbstractClient::new(chain.clone())?;
+    let client = AbstractClient::builder(ADMIN).build()?;
 
     let namespace = "namespace";
     let account: Account<Mock> = client.account_builder().namespace(namespace).build()?;
@@ -131,10 +106,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
 
 #[test]
 fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
-    // Set up.
-    let (chain, _abstr) = deploy_abstract()?;
-
-    let client: AbstractClient<Mock> = AbstractClient::new(chain.clone())?;
+    let client = AbstractClient::builder(ADMIN).build()?;
 
     let publisher: Publisher<Mock> = client.publisher_builder().build()?;
 
@@ -145,7 +117,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
             governance_details: GovernanceDetails::Monarchy {
-                monarch: chain.sender
+                monarch: Addr::unchecked(ADMIN)
             },
             link: None,
         },
@@ -157,20 +129,10 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
-    // Set up.
-    let (chain, abstr) = deploy_abstract()?;
-
     let asset = "asset";
-
-    abstr.ans_host.execute(
-        &abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
-            to_add: vec![(asset.to_owned(), AssetInfo::native(asset).into())],
-            to_remove: vec![],
-        },
-        None,
-    )?;
-
-    let client: AbstractClient<Mock> = AbstractClient::new(chain.clone())?;
+    let client = AbstractClient::builder(ADMIN)
+        .asset(asset, AssetInfoUnchecked::native(asset))
+        .build()?;
 
     let name = "test-account";
     let description = "description";
@@ -203,8 +165,8 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     );
 
     // Namespace is claimed.
-    let account_id = abstr
-        .version_control
+    let account_id = client
+        .version_control()
         .namespace(Namespace::new(namespace)?)?
         .account_id;
     assert_eq!(account_id, AccountId::local(1));
@@ -214,10 +176,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
-    // Set up.
-    let (chain, _abstr) = deploy_abstract()?;
-
-    let client: AbstractClient<Mock> = AbstractClient::new(chain.clone())?;
+    let client = AbstractClient::builder(ADMIN).build()?;
 
     let namespace = "namespace";
     let publisher: Publisher<Mock> = client.publisher_builder().namespace(namespace).build()?;
@@ -235,17 +194,14 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
 
 #[test]
 fn can_publish_and_install_app() -> anyhow::Result<()> {
-    // Set up.
-    let (chain, _abstr) = deploy_abstract()?;
-
-    let client: AbstractClient<Mock> = AbstractClient::new(chain)?;
+    let client = AbstractClient::builder(ADMIN).build()?;
 
     let publisher: Publisher<Mock> = client.publisher_builder().namespace("tester").build()?;
 
     let publisher_admin = publisher.admin()?;
     let publisher_proxy = publisher.proxy()?;
 
-    publisher.deploy_app::<MockAppInterface<Mock>>()?;
+    publisher.publish_app::<MockAppInterface<Mock>>()?;
 
     let my_app: Application<Mock, MockAppInterface<Mock>> =
         publisher.install_app::<MockAppInterface<Mock>, MockInitMsg>(&MockInitMsg, &[])?;
