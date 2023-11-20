@@ -198,7 +198,7 @@ impl TokenFactory {
 
     /// Set the token factory before send hook.
     /// TODO: this is not yet possible on the chain
-    pub fn set_before_send_hook(&self, cosmwasm_address: Addr) -> CosmosMsg {
+    pub fn set_before_send_hook(&self, cosmwasm_address: &Addr) -> CosmosMsg {
         let msg = MsgSetBeforeSendHook {
             sender: self.sender().to_string(),
             denom: self.denom().to_string(),
