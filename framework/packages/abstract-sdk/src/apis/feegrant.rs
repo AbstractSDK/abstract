@@ -1,16 +1,21 @@
-use super::feegrant::*;
-use super::utils::*;
+//! # Fee Granter
+//! This module provides functionality to interact with the feegrant module of Cosmos.
+//! It allows for granting fee expenditure rights to other accounts.
 
-use std::time::Duration;
+use crate::apis::stargate::{
+    convert_coins, convert_stamp,
+    feegrant::{AllowedMsgAllowance, BasicAllowance, PeriodicAllowance},
+    StargateMessage,
+};
+use crate::features::AccountIdentification;
+use crate::AbstractSdkResult;
 
 use cosmos_sdk_proto::traits::Name;
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message};
 use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
+use std::time::Duration;
 
-use crate::features::AccountIdentification;
-use crate::AbstractSdkResult;
-
-use super::StargateMessage;
+use super::stargate::feegrant::{BasicOrPeriodicAllowance, MsgAllowance};
 
 /// An interface to the CosmosSDK FeeGrant module which allows for granting fee expenditure rights.
 pub trait GrantInterface: AccountIdentification {
@@ -164,13 +169,9 @@ impl FeeGranter {
     }
 }
 
-/// Trait for types that can be used as allowances in the FeeGranter.
-pub trait BasicOrPeriodicAllowance: MsgAllowance {}
 impl BasicOrPeriodicAllowance for BasicAllowance {}
 impl BasicOrPeriodicAllowance for PeriodicAllowance {}
 
-/// Trait for types that can be used as feegrant type
-pub trait MsgAllowance: StargateMessage {}
 impl MsgAllowance for BasicAllowance {}
 impl MsgAllowance for PeriodicAllowance {}
 impl<A: BasicOrPeriodicAllowance> MsgAllowance for AllowedMsgAllowance<A> {}
