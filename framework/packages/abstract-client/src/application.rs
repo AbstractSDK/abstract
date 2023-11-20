@@ -1,4 +1,5 @@
 use std::ops::Deref;
+use std::ops::DerefMut;
 
 use cw_orch::prelude::*;
 
@@ -16,6 +17,12 @@ impl<Chain: CwEnv, M> Deref for Application<Chain, M> {
 
     fn deref(&self) -> &Self::Target {
         &self.module
+    }
+}
+
+impl<Chain: CwEnv, M> DerefMut for Application<Chain, M> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.module
     }
 }
 

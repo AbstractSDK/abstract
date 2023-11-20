@@ -13,7 +13,7 @@ pub use contract_base::{
     VersionString,
 };
 pub use endpoints::{
-    migrate::MigrateEndpoint, ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint,
-    QueryEndpoint, ReceiveEndpoint, ReplyEndpoint, SudoEndpoint,
+    ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint,
+    ReceiveEndpoint, ReplyEndpoint, SudoEndpoint,
 };
 pub use handler::Handler;
