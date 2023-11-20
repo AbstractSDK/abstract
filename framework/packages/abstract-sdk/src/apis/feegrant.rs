@@ -2,9 +2,7 @@
 //! This module provides functionality to interact with the feegrant module of Cosmos.
 //! It allows for granting fee expenditure rights to other accounts.
 
-use crate::apis::stargate::{
-    feegrant::{AllowedMsgAllowance, BasicAllowance, PeriodicAllowance},
-};
+use crate::apis::stargate::feegrant::{AllowedMsgAllowance, BasicAllowance, PeriodicAllowance};
 use crate::features::AccountIdentification;
 use crate::AbstractSdkResult;
 
