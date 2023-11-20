@@ -3,15 +3,13 @@
 //! It allows for granting fee expenditure rights to other accounts.
 
 use crate::apis::stargate::{
-    convert_coins, convert_stamp,
     feegrant::{AllowedMsgAllowance, BasicAllowance, PeriodicAllowance},
-    StargateMessage,
 };
 use crate::features::AccountIdentification;
 use crate::AbstractSdkResult;
 
 use cosmos_sdk_proto::traits::Name;
-use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message};
+use cosmos_sdk_proto::{cosmos::feegrant, traits::Message};
 use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
 use std::time::Duration;
 
@@ -172,6 +170,7 @@ impl FeeGranter {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::apis::stargate::StargateMessage;
     use crate::mock_module::*;
 
     use cosmwasm_std::coins;
