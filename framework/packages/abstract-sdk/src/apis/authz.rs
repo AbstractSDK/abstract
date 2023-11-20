@@ -95,7 +95,7 @@ impl AuthZ {
         msg_type_url: String,
         expiration: Option<Timestamp>,
     ) -> CosmosMsg {
-        let generic = GenericAuthorization::new(msg);
+        let generic = GenericAuthorization::new(msg_type_url);
 
         let msg = authz::v1beta1::MsgGrant {
             granter: self.granter().to_string(),
@@ -122,13 +122,13 @@ fn convert_stamp(stamp: Timestamp) -> prost_types::Timestamp {
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema)]
 pub struct GenericAuthorization {
     /// Allowed msg type_url
-    pub msg: String,
+    pub msg_type_url: String,
 }
 
 impl GenericAuthorization {
     /// Create new generic authorization
-    pub fn new(msg: String) -> Self {
-        Self { msg }
+    pub fn new(msg_type_url: String) -> Self {
+        Self { msg_type_url }
     }
 }
 
@@ -163,7 +163,7 @@ impl AuthZAuthorization for GenericAuthorization {
 
     fn to_proto(&self) -> Self::ProtoType {
         authz::v1beta1::GenericAuthorization {
-            msg: self.msg.clone(),
+            msg: self.msg_type_url.clone(),
         }
     }
 }
