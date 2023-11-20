@@ -92,7 +92,7 @@ impl AuthZ {
     pub fn grant_generic(
         &self,
         grantee: &Addr,
-        msg: String,
+        msg_type_url: String,
         expiration: Option<Timestamp>,
     ) -> CosmosMsg {
         let generic = GenericAuthorization::new(msg);
