@@ -83,7 +83,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
         self.account.install_app(configuration, funds)
     }
 
-    pub fn deploy_app<
+    pub fn publish_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + AppDeployer<Chain>,
     >(
         &self,
