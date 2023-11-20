@@ -450,7 +450,7 @@ impl Deploy<Mock> for WynDex {
     }
 
     // This is only a mock deploy
-    fn deployed_state_file_path(&self) -> Option<String> {
+    fn deployed_state_file_path() -> Option<String> {
         None
     }
 }

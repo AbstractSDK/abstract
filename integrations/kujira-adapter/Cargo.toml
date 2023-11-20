@@ -25,5 +25,5 @@ cw-utils = { workspace = true, optional = true }
 
 [dev-dependencies]
 abstract-dex-standard = { workspace = true, features = ["testing"] }
-cw-orch = { workspace = true }
+cw-orch = { workspace = true, features = ["daemon"] }
 cosmwasm-schema.workspace = true
