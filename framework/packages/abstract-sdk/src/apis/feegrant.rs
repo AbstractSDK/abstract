@@ -179,6 +179,10 @@ impl<A: BasicOrPeriodicAllowance> MsgAllowance for AllowedMsgAllowance<A> {}
 impl StargateMessage for BasicAllowance {
     type ProtoType = feegrant::v1beta1::BasicAllowance;
 
+    fn type_url() -> String {
+        Self::ProtoType::type_url()
+    }
+
     fn to_proto(&self) -> feegrant::v1beta1::BasicAllowance {
         feegrant::v1beta1::BasicAllowance {
             spend_limit: self
@@ -197,6 +201,10 @@ impl StargateMessage for BasicAllowance {
 impl StargateMessage for PeriodicAllowance {
     type ProtoType = feegrant::v1beta1::PeriodicAllowance;
 
+    fn type_url() -> String {
+        Self::ProtoType::type_url()
+    }
+
     fn to_proto(&self) -> feegrant::v1beta1::PeriodicAllowance {
         feegrant::v1beta1::PeriodicAllowance {
             basic: self.basic.clone().map(|b| b.to_proto()),
@@ -213,6 +221,10 @@ impl StargateMessage for PeriodicAllowance {
 
 impl<A: BasicOrPeriodicAllowance> StargateMessage for AllowedMsgAllowance<A> {
     type ProtoType = feegrant::v1beta1::AllowedMsgAllowance;
+
+    fn type_url() -> String {
+        Self::ProtoType::type_url()
+    }
 
     fn to_proto(&self) -> feegrant::v1beta1::AllowedMsgAllowance {
         feegrant::v1beta1::AllowedMsgAllowance {
