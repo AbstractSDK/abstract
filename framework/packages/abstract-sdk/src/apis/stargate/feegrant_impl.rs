@@ -5,13 +5,15 @@
 use std::time::Duration;
 
 use cosmos_sdk_proto::traits::Name;
-use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
+use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message};
 use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::features::AccountIdentification;
 use crate::AbstractSdkResult;
+
+use super::StargateMessage;
 
 /// An interface to the CosmosSDK FeeGrant module which allows for granting fee expenditure rights.
 pub trait GrantInterface: AccountIdentification {
@@ -88,11 +90,7 @@ impl FeeGranter {
     ///
     /// * `grantee` - The address of the grantee.
     /// * `allowance` - The allowance to be granted.
-    pub fn grant_allowance<A: FeeGranterAllowance>(
-        &self,
-        grantee: &Addr,
-        allowance: A,
-    ) -> CosmosMsg {
+    pub fn grant_allowance<A: MsgAllowance>(&self, grantee: &Addr, allowance: A) -> CosmosMsg {
         let msg = feegrant::v1beta1::MsgGrantAllowance {
             granter: self.granter().to_string(),
             grantee: grantee.to_string(),
@@ -158,7 +156,7 @@ impl FeeGranter {
     /// * `grantee` - The address of the grantee.
     /// * `allowed_messages` - The list of allowed messages for the grantee.
     /// * `allowance` - The allowance details.
-    pub fn grant_allowed_msg_allowance<A: AllowedMsgAllowanceAllowance + 'static>(
+    pub fn grant_allowed_msg_allowance<A: AllowedMsgAllowanceAllowance>(
         &self,
         grantee: &Addr,
         allowed_messages: Vec<String>,
@@ -190,11 +188,18 @@ fn convert_stamp(stamp: Timestamp) -> prost_types::Timestamp {
 }
 
 /// Trait for types that can be used as allowances in the FeeGranter.
-pub trait AllowedMsgAllowanceAllowance: FeeGranterAllowance {}
+pub trait AllowedMsgAllowanceAllowance: MsgAllowance {}
 impl AllowedMsgAllowanceAllowance for BasicAllowance {}
 impl AllowedMsgAllowanceAllowance for PeriodicAllowance {}
 
+/// Trait for types that can be used as feegrant type
+pub trait MsgAllowance: StargateMessage {}
+impl MsgAllowance for BasicAllowance {}
+impl MsgAllowance for PeriodicAllowance {}
+impl<A: AllowedMsgAllowanceAllowance> MsgAllowance for AllowedMsgAllowance<A> {}
+
 /// Represents a basic fee allowance grant.
+/// @see [cosmos_sdk_proto::cosmos::feegrant::v1beta1::BasicAllowance]
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema)]
 pub struct BasicAllowance {
     /// Maximum amount of tokens that can be spent
@@ -252,31 +257,14 @@ impl PeriodicAllowance {
 }
 
 /// Allowance and list of allowed messages
-pub struct AllowedMsgAllowance<A> {
+pub struct AllowedMsgAllowance<A: AllowedMsgAllowanceAllowance> {
     /// allowance can be any of basic and periodic fee allowance.
     pub allowance: Option<A>,
     /// allowed_messages are the messages for which the grantee has the access.
     pub allowed_messages: Vec<String>,
 }
 
-/// This trait allows generate `Any` and proto message from FeeGranter message
-pub trait FeeGranterAllowance {
-    /// Returned proto type
-    type ProtoType: Message + Name + Sized;
-
-    /// Get `Any`
-    fn to_any(&self) -> Any {
-        Any {
-            type_url: Self::ProtoType::type_url(),
-            value: self.to_proto().encode_to_vec(),
-        }
-    }
-
-    /// Get `Self::ProtoType`
-    fn to_proto(&self) -> Self::ProtoType;
-}
-
-impl FeeGranterAllowance for BasicAllowance {
+impl StargateMessage for BasicAllowance {
     type ProtoType = feegrant::v1beta1::BasicAllowance;
 
     fn to_proto(&self) -> feegrant::v1beta1::BasicAllowance {
@@ -294,7 +282,7 @@ impl FeeGranterAllowance for BasicAllowance {
     }
 }
 
-impl FeeGranterAllowance for PeriodicAllowance {
+impl StargateMessage for PeriodicAllowance {
     type ProtoType = feegrant::v1beta1::PeriodicAllowance;
 
     fn to_proto(&self) -> feegrant::v1beta1::PeriodicAllowance {
@@ -311,7 +299,7 @@ impl FeeGranterAllowance for PeriodicAllowance {
     }
 }
 
-impl<A: FeeGranterAllowance> FeeGranterAllowance for AllowedMsgAllowance<A> {
+impl<A: AllowedMsgAllowanceAllowance> StargateMessage for AllowedMsgAllowance<A> {
     type ProtoType = feegrant::v1beta1::AllowedMsgAllowance;
 
     fn to_proto(&self) -> feegrant::v1beta1::AllowedMsgAllowance {
@@ -333,7 +321,7 @@ mod test {
     fn grant_allowance_msg(
         granter: Addr,
         grantee: Addr,
-        allowance: impl FeeGranterAllowance,
+        allowance: impl StargateMessage,
     ) -> CosmosMsg {
         CosmosMsg::Stargate {
             type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),

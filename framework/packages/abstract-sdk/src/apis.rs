@@ -13,4 +13,4 @@ pub mod version_registry;
 #[cfg(feature = "stargate")]
 pub mod distribution;
 #[cfg(feature = "stargate")]
-pub mod feegrant;
+pub mod stargate;

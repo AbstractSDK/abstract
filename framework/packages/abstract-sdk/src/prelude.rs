@@ -14,6 +14,6 @@ pub use crate::apis::{
 };
 
 #[cfg(feature = "stargate")]
-pub use crate::apis::{distribution::*, feegrant::*};
+pub use crate::apis::{distribution::*, stargate::feegrant::*};
 
 pub use crate::ans_resolve::Resolve;
