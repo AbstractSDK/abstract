@@ -1,11 +1,11 @@
+pub mod feegrant;
+
 use cosmos_sdk_proto::{
     cosmos::base,
     traits::{Message, Name},
 };
 use cosmwasm_std::{Coin, Timestamp};
 use prost_types::Any;
-
-pub mod feegrant;
 
 /// This trait allows generate `Any` and proto message from Stargate API message
 pub trait StargateMessage {
