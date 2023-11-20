@@ -72,8 +72,8 @@ jobs:
             # Check for changes
             git add framework/artifacts --force
             git add modules/artifacts --force
-            git commit -m 'Update WASM binaries [skip ci]'  
-            git push origin $CIRCLE_BRANCH
+            git commit -m 'Update WASM binaries [skip ci]'  || true
+            git push origin $CIRCLE_BRANCH || true
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
