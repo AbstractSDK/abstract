@@ -94,8 +94,8 @@ impl TokenFactory {
     /// # let deps = mock_dependencies();
     /// const CREATE_DENOM_REPLY_ID: u64 = 1;
     /// let token_factory: TokenFactory<MockModule> = module.token_factory(deps.as_ref(), "denom", None)?;
-    /// let denom_msg = token_factory.create_denom()?;
-    /// let denom_msg = module.executor(deps.as_ref()).execute_with_reply(vec![denom_msg], ReplyOn::Always, CREATE_DENOM_REPLY_ID)?;
+    /// let denom_msg = token_factory.create_denom();
+    /// let denom_msg = module.executor(deps.as_ref()).execute_with_reply(vec![denom_msg.into()], ReplyOn::Always, CREATE_DENOM_REPLY_ID)?;
     ///
     ///  let response = Response::new().add_submessage(denom_msg);
     /// ```
@@ -244,9 +244,36 @@ mod test {
         }
     }
 
+    mod create_denom {
+        use super::*;
+
+        use abstract_testing::addresses::TEST_PROXY;
+        use cosmos_sdk_proto::traits::Message;
+
+        #[test]
+        fn create_denom() {
+            let module = MockModule::new();
+            let deps = mock_dependencies();
+            let token_factory: TokenFactory = module
+                .token_factory(deps.as_ref(), "denom".to_string(), None)
+                .unwrap();
+            let create_denom_msg = token_factory.create_denom();
+            let expected_msg_create_denom = MsgCreateDenom {
+                sender: TEST_PROXY.to_string(),
+                subdenom: "denom".to_string(),
+            };
+
+            assert_stargate_message(
+                create_denom_msg,
+                "/osmosis.tokenfactory.v1beta1.MsgCreateDenom",
+                Binary(expected_msg_create_denom.encode_to_vec()),
+            )
+        }
+    }
     mod mint {
         use super::*;
         use abstract_testing::prelude::TEST_PROXY;
+        use cosmos_sdk_proto::traits::Message;
 
         #[test]
         fn happy_mint() {
@@ -273,7 +300,7 @@ mod test {
             assert_stargate_message(
                 mint_msg,
                 "/osmosis.tokenfactory.v1beta1.MsgMint",
-                Binary(expected_msg_mint.to_proto_bytes()),
+                Binary(expected_msg_mint.encode_to_vec()),
             );
         }
     }

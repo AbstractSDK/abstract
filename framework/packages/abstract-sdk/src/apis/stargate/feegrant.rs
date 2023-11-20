@@ -1,5 +1,5 @@
 use cosmos_sdk_proto::cosmos::{base, feegrant};
-use cosmos_sdk_proto::traits::Name;
+use cosmos_sdk_proto::traits::TypeUrl;
 use cosmwasm_std::{Coin, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -104,7 +104,7 @@ impl StargateMessage for BasicAllowance {
     type ProtoType = feegrant::v1beta1::BasicAllowance;
 
     fn type_url() -> String {
-        Self::ProtoType::type_url()
+        Self::ProtoType::TYPE_URL.to_owned()
     }
 
     fn to_proto(&self) -> feegrant::v1beta1::BasicAllowance {
@@ -126,7 +126,7 @@ impl StargateMessage for PeriodicAllowance {
     type ProtoType = feegrant::v1beta1::PeriodicAllowance;
 
     fn type_url() -> String {
-        Self::ProtoType::type_url()
+        Self::ProtoType::TYPE_URL.to_owned()
     }
 
     fn to_proto(&self) -> feegrant::v1beta1::PeriodicAllowance {
@@ -147,7 +147,7 @@ impl<A: BasicOrPeriodicAllowance> StargateMessage for AllowedMsgAllowance<A> {
     type ProtoType = feegrant::v1beta1::AllowedMsgAllowance;
 
     fn type_url() -> String {
-        Self::ProtoType::type_url()
+        Self::ProtoType::TYPE_URL.to_owned()
     }
 
     fn to_proto(&self) -> feegrant::v1beta1::AllowedMsgAllowance {
