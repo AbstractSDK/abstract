@@ -95,6 +95,7 @@ pub fn add_modules(deps: DepsMut, msg_info: MessageInfo, modules: Vec<String>) -
     if state.modules.len() >= LIST_SIZE_LIMIT {
         return Err(ProxyError::ModuleLimitReached {});
     }
+
     for module in modules.iter() {
         let module_addr = deps.api.addr_validate(module)?;
 
@@ -105,6 +106,7 @@ pub fn add_modules(deps: DepsMut, msg_info: MessageInfo, modules: Vec<String>) -
         // Add contract to whitelist.
         state.modules.push(module_addr);
     }
+
     STATE.save(deps.storage, &state)?;
 
     // Respond and note the change
@@ -216,7 +218,8 @@ mod test {
             assert_that(&res).is_ok();
 
             let actual_modules = load_modules(&deps.storage);
-            assert_that(&actual_modules).has_length(1);
+            // Plus manager
+            assert_that(&actual_modules).has_length(2);
             assert_that(&actual_modules).contains(&Addr::unchecked(TEST_MODULE));
         }
 
@@ -247,7 +250,8 @@ mod test {
                 modules: vec![TEST_MODULE.to_string()],
             };
 
-            for i in 0..LIST_SIZE_LIMIT {
+            // -1 because manager counts as module as well
+            for i in 0..LIST_SIZE_LIMIT - 1 {
                 msg = ExecuteMsg::AddModules {
                     modules: vec![format!("module_{i}")],
                 };

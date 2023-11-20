@@ -1,8 +1,7 @@
 mod common;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_core::adapter::AdapterRequestMsg;
-use abstract_core::manager::ModuleVersionsResponse;
-use abstract_core::module_factory::ModuleInstallConfig;
+use abstract_core::manager::{ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::module_reference::ModuleReference;
@@ -12,6 +11,7 @@ use abstract_core::version_control::UpdateModule;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
+use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
 use common::{
     create_default_account, init_mock_adapter, install_adapter, mock_modules, AResult, TEST_COIN,
@@ -19,7 +19,6 @@ use common::{
 use cosmwasm_std::{coin, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
-use module_factory::error::ModuleFactoryError;
 use speculoos::prelude::*;
 
 #[test]
@@ -209,7 +208,7 @@ fn install_standalone_modules() -> AResult {
 
     account.install_module(
         "abstract:standalone1",
-        &mock_modules::standalone_cw2::MockMsg,
+        Some(&mock_modules::standalone_cw2::MockMsg),
         None,
     )?;
 
@@ -225,7 +224,7 @@ fn install_standalone_modules() -> AResult {
 
     account.install_module(
         "abstract:standalone2",
-        &mock_modules::standalone_no_cw2::MockMsg,
+        Some(&mock_modules::standalone_no_cw2::MockMsg),
         None,
     )?;
     Ok(())
@@ -258,16 +257,16 @@ fn install_standalone_versions_not_met() -> AResult {
     let err = account
         .install_module(
             "abstract:standalone1",
-            &mock_modules::standalone_cw2::MockMsg,
+            Some(&mock_modules::standalone_cw2::MockMsg),
             None,
         )
         .unwrap_err();
 
     if let AbstractInterfaceError::Orch(err) = err {
-        let err: ModuleFactoryError = err.downcast()?;
+        let err: ManagerError = err.downcast()?;
         assert_eq!(
             err,
-            ModuleFactoryError::Abstract(abstract_core::AbstractError::UnequalModuleData {
+            ManagerError::Abstract(abstract_core::AbstractError::UnequalModuleData {
                 cw2: mock_modules::V1.to_owned(),
                 module: mock_modules::V2.to_owned(),
             })

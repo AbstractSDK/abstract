@@ -255,6 +255,9 @@ impl DexCommand for Astrovault {
         let pair_address = pool_id.expect_contract()?;
         let mut msgs = vec![];
 
+        // TODO: right now abstract doesn't support <2 offer assets
+        // Which is a problem for astrovault xAssets, if we want to support them
+
         // We know that (+)two assets were provided because it's a requirement to resolve the pool
         // We don't know if one of the asset amounts is 0, which would require a simulation and swap before providing liquidity
         if offer_assets.len() > 2 {
@@ -591,8 +594,8 @@ impl DexCommand for Astrovault {
                 let astrovault::stable_pool::query_msg::StablePoolQuerySwapSimulation {
                     from_assets_amount: _,
                     mut swap_to_assets_amount,
+                    mut assets_fee_amount,
                     mint_to_assets_amount: _,
-                    assets_fee_amount: _,
                 } = deps.querier.query(&wasm_smart_query(
                     pair_address.to_string(),
                     &astrovault::stable_pool::query_msg::QueryMsg::SwapSimulation {
@@ -740,7 +743,7 @@ mod tests {
 
     fn get_wasm_msg<T: for<'de> Deserialize<'de>>(msg: CosmosMsg) -> T {
         match msg {
-            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_json(&msg).unwrap(),
+            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_json(msg).unwrap(),
             _ => panic!("Expected execute wasm msg, got a different enum"),
         }
     }
