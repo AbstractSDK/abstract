@@ -9,7 +9,7 @@
 
 use crate::{
     manager,
-    module_factory::ModuleInstallConfig,
+    manager::ModuleInstallConfig,
     objects::{account::AccountId, chain_name::ChainName, AssetEntry},
 };
 use cosmwasm_schema::QueryResponses;

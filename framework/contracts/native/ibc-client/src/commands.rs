@@ -11,7 +11,7 @@ use abstract_core::{
         IbcClientCallback,
     },
     ibc_host, manager,
-    module_factory::ModuleInstallConfig,
+    manager::ModuleInstallConfig,
     objects::{chain_name::ChainName, AccountId, AssetEntry},
     version_control::AccountBase,
 };

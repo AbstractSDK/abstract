@@ -6,8 +6,7 @@ use crate::{
 use abstract_core::{
     account_factory,
     ibc_host::state::CONFIG,
-    manager,
-    module_factory::ModuleInstallConfig,
+    manager::{self, ModuleInstallConfig},
     objects::{chain_name::ChainName, AccountId, AssetEntry},
     proxy,
     version_control::AccountBase,
