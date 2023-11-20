@@ -4,7 +4,8 @@ use anyhow::Result as AnyResult;
 
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
-use cw_orch_polytone::{Polytone, PolytoneConnection};
+use cw_orch_polytone::Polytone;
+use polytone::handshake::POLYTONE_VERSION;
 
 pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     interchain: &IBC,
@@ -23,10 +24,10 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     let polytone_2 = Polytone::deploy_on(chain2.clone(), None)?;
 
     // Creating a connection between 2 polytone deployments
-    let polytone_connection = PolytoneConnection::connect(interchain, &polytone_1, &polytone_2)?;
+    interchain.create_contract_channel(&polytone_1.note, &polytone_2.voice, POLYTONE_VERSION)?;
 
     // Create the connection between client and host
-    abstract_ibc_connection_with(&abstr_1, interchain, &abstr_2, &polytone_connection)?;
+    abstract_ibc_connection_with(&abstr_1, interchain, &abstr_2, &polytone_1)?;
 
     Ok((abstr_1, abstr_2))
 }

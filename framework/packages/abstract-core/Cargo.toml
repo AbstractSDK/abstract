@@ -31,7 +31,7 @@ cw20 = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 cw-ownable = { workspace = true }
 polytone = { workspace = true }
-sha256 = "1"
+sha256 = { version = "1", default-features = false }
 
 [dev-dependencies]
 speculoos = { workspace = true }

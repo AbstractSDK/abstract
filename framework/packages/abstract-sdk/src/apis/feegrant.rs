@@ -2,16 +2,12 @@
 //! This module provides functionality to interact with the feegrant module of Cosmos.
 //! It allows for granting fee expenditure rights to other accounts.
 
-use crate::apis::stargate::{
-    convert_coins, convert_stamp,
-    feegrant::{AllowedMsgAllowance, BasicAllowance, PeriodicAllowance},
-    StargateMessage,
-};
+use crate::apis::stargate::feegrant::{AllowedMsgAllowance, BasicAllowance, PeriodicAllowance};
 use crate::features::AccountIdentification;
 use crate::AbstractSdkResult;
 
 use cosmos_sdk_proto::traits::Name;
-use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message};
+use cosmos_sdk_proto::{cosmos::feegrant, traits::Message};
 use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
 use std::time::Duration;
 
@@ -169,74 +165,10 @@ impl FeeGranter {
     }
 }
 
-impl BasicOrPeriodicAllowance for BasicAllowance {}
-impl BasicOrPeriodicAllowance for PeriodicAllowance {}
-
-impl MsgAllowance for BasicAllowance {}
-impl MsgAllowance for PeriodicAllowance {}
-impl<A: BasicOrPeriodicAllowance> MsgAllowance for AllowedMsgAllowance<A> {}
-
-impl StargateMessage for BasicAllowance {
-    type ProtoType = feegrant::v1beta1::BasicAllowance;
-
-    fn type_url() -> String {
-        Self::ProtoType::type_url()
-    }
-
-    fn to_proto(&self) -> feegrant::v1beta1::BasicAllowance {
-        feegrant::v1beta1::BasicAllowance {
-            spend_limit: self
-                .spend_limit
-                .iter()
-                .map(|item| base::v1beta1::Coin {
-                    denom: item.denom.clone(),
-                    amount: item.amount.to_string(),
-                })
-                .collect(),
-            expiration: self.expiration.map(convert_stamp),
-        }
-    }
-}
-
-impl StargateMessage for PeriodicAllowance {
-    type ProtoType = feegrant::v1beta1::PeriodicAllowance;
-
-    fn type_url() -> String {
-        Self::ProtoType::type_url()
-    }
-
-    fn to_proto(&self) -> feegrant::v1beta1::PeriodicAllowance {
-        feegrant::v1beta1::PeriodicAllowance {
-            basic: self.basic.clone().map(|b| b.to_proto()),
-            period: self.period.map(|p| prost_types::Duration {
-                seconds: p.as_secs() as i64,
-                nanos: 0,
-            }),
-            period_spend_limit: convert_coins(self.period_spend_limit.clone()),
-            period_can_spend: convert_coins(self.period_can_spend.clone()),
-            period_reset: self.period_reset.map(convert_stamp),
-        }
-    }
-}
-
-impl<A: BasicOrPeriodicAllowance> StargateMessage for AllowedMsgAllowance<A> {
-    type ProtoType = feegrant::v1beta1::AllowedMsgAllowance;
-
-    fn type_url() -> String {
-        Self::ProtoType::type_url()
-    }
-
-    fn to_proto(&self) -> feegrant::v1beta1::AllowedMsgAllowance {
-        feegrant::v1beta1::AllowedMsgAllowance {
-            allowance: self.allowance.as_ref().map(|a| a.to_any()),
-            allowed_messages: self.allowed_messages.clone(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::apis::stargate::StargateMessage;
     use crate::mock_module::*;
 
     use cosmwasm_std::coins;
