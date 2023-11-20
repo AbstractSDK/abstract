@@ -2,7 +2,7 @@
 //! Interacts with the osmosis tokenfactory module
 //!
 
-use cosmwasm_std::{Addr, CosmosMsg, Deps, StdError};
+use cosmwasm_std::{Addr, Binary, CosmosMsg, Deps, StdError};
 use osmosis_std::types::cosmos::bank::v1beta1::Metadata;
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{
     MsgBurn, MsgChangeAdmin, MsgCreateDenom, MsgForceTransfer, MsgMint, MsgSetBeforeSendHook,
@@ -10,10 +10,8 @@ use osmosis_std::types::osmosis::tokenfactory::v1beta1::{
 };
 use std::num::NonZeroU128;
 
-use crate::cw_helpers::prost_stargate_msg;
 use crate::features::AccountIdentification;
 use crate::AbstractSdkResult;
-use crate::AccountAction;
 
 /// An interface to the CosmosSDK FeeTokenFactory module which allows for granting fee expenditure rights.
 pub trait TokenFactoryInterface: AccountIdentification {
@@ -101,15 +99,16 @@ impl TokenFactory {
     ///
     ///  let response = Response::new().add_submessage(denom_msg);
     /// ```
-    pub fn create_denom(&self) -> AccountAction {
+    pub fn create_denom(&self) -> CosmosMsg {
         let msg = MsgCreateDenom {
             sender: self.sender().to_string(),
             subdenom: self.subdenom.to_string(),
         };
 
-        let msg = prost_stargate_msg(MsgCreateDenom::TYPE_URL, msg);
-
-        msg.into()
+        CosmosMsg::Stargate {
+            type_url: MsgCreateDenom::TYPE_URL.to_owned(),
+            value: Binary(msg.to_proto_bytes()),
+        }
     }
 
     /// Mint tokens
@@ -121,7 +120,10 @@ impl TokenFactory {
             mint_to_address: mint_to_address.to_string(),
         };
 
-        prost_stargate_msg(MsgMint::TYPE_URL, msg)
+        CosmosMsg::Stargate {
+            type_url: MsgMint::TYPE_URL.to_owned(),
+            value: Binary(msg.to_proto_bytes()),
+        }
     }
 
     /// Burn tokens
@@ -134,7 +136,10 @@ impl TokenFactory {
             burn_from_address: burn_from_address.to_string(),
         };
 
-        prost_stargate_msg(MsgBurn::TYPE_URL, msg)
+        CosmosMsg::Stargate {
+            type_url: MsgBurn::TYPE_URL.to_owned(),
+            value: Binary(msg.to_proto_bytes()),
+        }
     }
 
     /// Change admin
@@ -147,7 +152,10 @@ impl TokenFactory {
             new_admin: new_admin.to_string(),
         };
 
-        prost_stargate_msg(MsgChangeAdmin::TYPE_URL, msg)
+        CosmosMsg::Stargate {
+            type_url: MsgChangeAdmin::TYPE_URL.to_owned(),
+            value: Binary(msg.to_proto_bytes()),
+        }
     }
 
     /// Set denom metadata
@@ -160,20 +168,31 @@ impl TokenFactory {
             metadata,
         };
 
-        prost_stargate_msg(MsgSetDenomMetadata::TYPE_URL, msg)
+        CosmosMsg::Stargate {
+            type_url: MsgSetDenomMetadata::TYPE_URL.to_owned(),
+            value: Binary(msg.to_proto_bytes()),
+        }
     }
 
     /// Force transfer tokens
     /// MsgForceTransfer is the sdk.Msg type for allowing an admin account to forcibly transfer tokens from one account to another.
-    pub fn force_transfer(&self, amount: NonZeroU128, recipient: &Addr) -> CosmosMsg {
+    pub fn force_transfer(
+        &self,
+        amount: NonZeroU128,
+        from_address: &Addr,
+        recipient: &Addr,
+    ) -> CosmosMsg {
         let msg = MsgForceTransfer {
             sender: self.sender().to_string(),
             amount: Some(self.build_coin(amount)),
-            transfer_from_address: self.sender().to_string(),
+            transfer_from_address: from_address.to_string(),
             transfer_to_address: recipient.to_string(),
         };
 
-        prost_stargate_msg(MsgForceTransfer::TYPE_URL, msg)
+        CosmosMsg::Stargate {
+            type_url: MsgForceTransfer::TYPE_URL.to_owned(),
+            value: Binary(msg.to_proto_bytes()),
+        }
     }
 
     /// Set the token factory before send hook.
@@ -185,7 +204,10 @@ impl TokenFactory {
             cosmwasm_address: cosmwasm_address.to_string(),
         };
 
-        prost_stargate_msg(MsgSetBeforeSendHook::TYPE_URL, msg)
+        CosmosMsg::Stargate {
+            type_url: MsgSetBeforeSendHook::TYPE_URL.to_owned(),
+            value: Binary(msg.to_proto_bytes()),
+        }
     }
 
     /// Build the osmosis coin
@@ -208,16 +230,15 @@ mod test {
     /// Asserts that the provided CosmosMsg::Stargate has the expected type_url and value
     /// If the CosmosMsg is not a Stargate, this function will panic
     /// TODO: This should be moved to abstract-testing
-    pub fn assert_stargate_message<T: cosmos_sdk_proto::traits::Message>(
+    pub fn assert_stargate_message(
         msg: cosmwasm_std::CosmosMsg,
         expected_type_url: &str,
-        expected_value: &T,
+        expected_value: Binary,
     ) {
         match msg {
             cosmwasm_std::CosmosMsg::Stargate { type_url, value } => {
                 speculoos::assert_that!(type_url).is_equal_to(expected_type_url.to_string());
-                speculoos::assert_that!(value)
-                    .is_equal_to(cosmwasm_std::Binary(expected_value.encode_to_vec()));
+                speculoos::assert_that!(value).is_equal_to(expected_value);
             }
             _ => panic!("Unexpected message type"),
         }
@@ -252,7 +273,7 @@ mod test {
             assert_stargate_message(
                 mint_msg,
                 "/osmosis.tokenfactory.v1beta1.MsgMint",
-                &expected_msg_mint,
+                Binary(expected_msg_mint.to_proto_bytes()),
             );
         }
     }
