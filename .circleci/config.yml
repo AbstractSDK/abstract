@@ -75,10 +75,9 @@ jobs:
             git commit -m 'Update WASM binaries [skip ci]'  
             git push origin $CIRCLE_BRANCH
       - discord/status:
-          fail_only: false
+          fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
           webhook: "${DISCORD_STATUS_WEBHOOK}"
-          success_message: "**${CIRCLE_USERNAME}** has successfully built WASM! 🎉"
 
   deploy:
     docker:

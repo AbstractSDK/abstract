@@ -24,11 +24,11 @@ cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "~1.1"
 cw2 = { version = "1.0" }
-cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", features = [
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
   "library",
-], rev = "03274f3" }
-cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "0.1.0", rev = "03274f3" }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", rev = "03274f3" }
+], tag = "v1.2.1" }
+cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
@@ -56,6 +56,7 @@ abstract-testing = { version = "0.19.2" }
 abstract-core = { version = "0.19.2" }
 abstract-macros = { version = "0.19.2" }
 abstract-ica = { version = "0.19.2" }
+abstract-client = { version = "0.19.2" }
 
 abstract-adapter-utils = { version = "0.19.2" }
 abstract-dex-standard = { version = "0.19.2" }
@@ -95,6 +96,7 @@ abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
+abstract-client = { path = "../framework/packages/abstract-client" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

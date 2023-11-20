@@ -31,9 +31,11 @@ cosmwasm-schema = { version = "1.2" }
 cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "~1.1"
-cw2 = { version = "1.0" }
-cw20 = { version = "1.0" }
-cw20-base = { version = "1.0", features = ["library"] }
+cw2 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", features = [
+  "library",
+] }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
@@ -49,9 +51,12 @@ semver = "1.0"
 cw-semver = { version = "1.0" }
 tokio = { version = "1.33.0", features = ["full"] }
 
-cw-orch = { version = "0.16.3" }
-polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }
-polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }
+cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
+polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
+polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
+
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.18.0" }
+cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.18.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
