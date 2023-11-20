@@ -12,6 +12,7 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
+default = ["test-utils"]
 test-utils = ["cw-asset", "abstract-testing"]
 
 [dependencies]
