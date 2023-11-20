@@ -2,6 +2,7 @@
 //! Interacts with the osmosis tokenfactory module
 //!
 
+use cosmos_sdk_proto::traits::Message;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Deps, StdError};
 use osmosis_std::types::cosmos::bank::v1beta1::Metadata;
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{
@@ -107,7 +108,7 @@ impl TokenFactory {
 
         CosmosMsg::Stargate {
             type_url: MsgCreateDenom::TYPE_URL.to_owned(),
-            value: Binary(msg.to_proto_bytes()),
+            value: Binary(msg.encode_to_vec()),
         }
     }
 
@@ -122,7 +123,7 @@ impl TokenFactory {
 
         CosmosMsg::Stargate {
             type_url: MsgMint::TYPE_URL.to_owned(),
-            value: Binary(msg.to_proto_bytes()),
+            value: Binary(msg.encode_to_vec()),
         }
     }
 
@@ -138,7 +139,7 @@ impl TokenFactory {
 
         CosmosMsg::Stargate {
             type_url: MsgBurn::TYPE_URL.to_owned(),
-            value: Binary(msg.to_proto_bytes()),
+            value: Binary(msg.encode_to_vec()),
         }
     }
 
@@ -154,7 +155,7 @@ impl TokenFactory {
 
         CosmosMsg::Stargate {
             type_url: MsgChangeAdmin::TYPE_URL.to_owned(),
-            value: Binary(msg.to_proto_bytes()),
+            value: Binary(msg.encode_to_vec()),
         }
     }
 
@@ -170,7 +171,7 @@ impl TokenFactory {
 
         CosmosMsg::Stargate {
             type_url: MsgSetDenomMetadata::TYPE_URL.to_owned(),
-            value: Binary(msg.to_proto_bytes()),
+            value: Binary(msg.encode_to_vec()),
         }
     }
 
@@ -191,7 +192,7 @@ impl TokenFactory {
 
         CosmosMsg::Stargate {
             type_url: MsgForceTransfer::TYPE_URL.to_owned(),
-            value: Binary(msg.to_proto_bytes()),
+            value: Binary(msg.encode_to_vec()),
         }
     }
 
@@ -206,7 +207,7 @@ impl TokenFactory {
 
         CosmosMsg::Stargate {
             type_url: MsgSetBeforeSendHook::TYPE_URL.to_owned(),
-            value: Binary(msg.to_proto_bytes()),
+            value: Binary(msg.encode_to_vec()),
         }
     }
 
