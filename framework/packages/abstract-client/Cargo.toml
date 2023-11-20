@@ -13,7 +13,7 @@ keywords.workspace = true
 
 [features]
 default = ["test-utils"]
-test-utils = ["cw-asset", "abstract-testing"]
+test-utils = ["cw-asset"]
 
 [dependencies]
 cosmwasm-std.workspace = true
@@ -26,7 +26,6 @@ thiserror.workspace = true
 
 # Used for test-utils feature
 cw-asset = { workspace = true, optional = true }
-abstract-testing = { workspace = true, optional = true }
 
 [dev-dependencies]
 abstract-client = { path = ".", features = ["test-utils"] }
