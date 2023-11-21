@@ -3,57 +3,14 @@
 //!
 
 use cosmos_sdk_proto::traits::Message;
-use cosmwasm_std::{Addr, Binary, CosmosMsg, Deps, StdError};
-use osmosis_std::types::cosmos::bank::v1beta1::Metadata;
+use cosmwasm_std::{Addr, Binary, CosmosMsg};
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{
     MsgBurn, MsgChangeAdmin, MsgCreateDenom, MsgForceTransfer, MsgMint, MsgSetBeforeSendHook,
     MsgSetDenomMetadata,
 };
 use std::num::NonZeroU128;
 
-use crate::features::AccountIdentification;
-use crate::AbstractSdkResult;
-
-/// An interface to the CosmosSDK FeeTokenFactory module which allows for granting fee expenditure rights.
-pub trait TokenFactoryInterface: AccountIdentification {
-    /**
-    API for accessing Osmosis' TokenFactory module.
-    To leverage this api, you must retrieve the TokenFactory by passing in the subdenom.
-
-    # Example
-    ```
-    use abstract_sdk::prelude::*;
-    # use cosmwasm_std::testing::mock_dependencies;
-    # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
-    # let deps = mock_dependencies();
-
-    let token_factory: TokenFactory = module.token_factory(deps.as_ref(), "uusd", None)?;
-    ```
-     */
-    fn token_factory<'a>(
-        &'a self,
-        deps: Deps<'a>,
-        subdenom: impl Into<String>,
-        sender: Option<Addr>,
-    ) -> AbstractSdkResult<TokenFactory> {
-        let sender = sender.unwrap_or(self.proxy_address(deps)?);
-        // Check that the subdenom is valid
-        let subdenom = subdenom.into();
-        if !subdenom
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '/')
-        {
-            return Err(StdError::generic_err(
-                "Invalid character found. Only alphanumeric characters, '.' and '/' are allowed.",
-            )
-            .into());
-        }
-        Ok(TokenFactory { subdenom, sender })
-    }
-}
-
-impl<T> TokenFactoryInterface for T where T: AccountIdentification {}
+use crate::apis::stargate::token_factory::{Metadata, TokenFactoryCommand};
 
 /**
 API for accessing the Osmosis TokenFactory module.
@@ -70,19 +27,29 @@ let token_factory: TokenFactory  = module.token_factory(deps.as_ref(), "uusd".to
 ```
  */
 #[derive(Clone)]
-pub struct TokenFactory {
-    subdenom: String,
-    sender: Addr,
+pub struct OsmosisTokenFactory {
+    pub(crate) subdenom: String,
+    pub(crate) sender: Addr,
 }
 
-impl TokenFactory {
+impl OsmosisTokenFactory {
+    /// Build the osmosis coin
+    fn build_coin(&self, amount: NonZeroU128) -> osmosis_std::types::cosmos::base::v1beta1::Coin {
+        osmosis_std::types::cosmos::base::v1beta1::Coin {
+            denom: self.denom().clone(),
+            amount: amount.to_string(),
+        }
+    }
+}
+
+impl TokenFactoryCommand for OsmosisTokenFactory {
     /// Retrieves the sender's address as a string.
     fn sender(&self) -> Addr {
         self.sender.clone()
     }
 
     /// Retrieves the actual denom of the asset
-    pub fn denom(&self) -> String {
+    fn denom(&self) -> String {
         ["factory", self.sender().as_str(), self.subdenom.as_str()].join("/")
     }
     ///  Create denom
@@ -100,7 +67,7 @@ impl TokenFactory {
     ///
     ///  let response = Response::new().add_submessage(denom_msg);
     /// ```
-    pub fn create_denom(&self) -> CosmosMsg {
+    fn create_denom(&self) -> CosmosMsg {
         let msg = MsgCreateDenom {
             sender: self.sender().to_string(),
             subdenom: self.subdenom.to_string(),
@@ -114,7 +81,7 @@ impl TokenFactory {
 
     /// Mint tokens
     /// MsgMint is the sdk.Msg type for minting new tokens into existence.
-    pub fn mint(&self, amount: NonZeroU128, mint_to_address: &Addr) -> CosmosMsg {
+    fn mint(&self, amount: NonZeroU128, mint_to_address: &Addr) -> CosmosMsg {
         let msg = MsgMint {
             sender: self.sender().to_string(),
             amount: Some(self.build_coin(amount)),
@@ -130,7 +97,7 @@ impl TokenFactory {
     /// Burn tokens
     /// MsgBurn is the sdk.Msg type for allowing an admin account to burn a token.
     /// For now, we only support burning from the sender account.
-    pub fn burn(&self, amount: NonZeroU128, burn_from_address: &Addr) -> CosmosMsg {
+    fn burn(&self, amount: NonZeroU128, burn_from_address: &Addr) -> CosmosMsg {
         let msg = MsgBurn {
             sender: self.sender().to_string(),
             amount: Some(self.build_coin(amount)),
@@ -146,7 +113,7 @@ impl TokenFactory {
     /// Change admin
     /// MsgChangeAdmin is the sdk.Msg type for allowing an admin account to reassign
     /// adminship of a denom to a new account.
-    pub fn change_admin(&self, new_admin: &Addr) -> CosmosMsg {
+    fn change_admin(&self, new_admin: &Addr) -> CosmosMsg {
         let msg = MsgChangeAdmin {
             sender: self.sender().to_string(),
             denom: self.denom().to_string(),
@@ -163,10 +130,10 @@ impl TokenFactory {
     /// MsgSetDenomMetadata is the sdk.Msg type for allowing an admin account to set
     /// the denom's bank metadata.
     /// If the metadata is empty, it will be deleted.
-    pub fn set_denom_metadata(&self, metadata: Option<Metadata>) -> CosmosMsg {
+    fn set_denom_metadata(&self, metadata: Option<Metadata>) -> CosmosMsg {
         let msg = MsgSetDenomMetadata {
             sender: self.sender().to_string(),
-            metadata,
+            metadata: metadata.map(Into::into),
         };
 
         CosmosMsg::Stargate {
@@ -177,7 +144,7 @@ impl TokenFactory {
 
     /// Force transfer tokens
     /// MsgForceTransfer is the sdk.Msg type for allowing an admin account to forcibly transfer tokens from one account to another.
-    pub fn force_transfer(
+    fn force_transfer(
         &self,
         amount: NonZeroU128,
         from_address: &Addr,
@@ -197,8 +164,8 @@ impl TokenFactory {
     }
 
     /// Set the token factory before send hook.
-    /// TODO: this is not yet possible on the chain
-    pub fn set_before_send_hook(&self, cosmwasm_address: &Addr) -> CosmosMsg {
+    /// TODO: this is not yet possible on osmosis
+    fn set_before_send_hook(&self, cosmwasm_address: &Addr) -> CosmosMsg {
         let msg = MsgSetBeforeSendHook {
             sender: self.sender().to_string(),
             denom: self.denom().to_string(),
@@ -210,12 +177,27 @@ impl TokenFactory {
             value: Binary(msg.encode_to_vec()),
         }
     }
+}
 
-    /// Build the osmosis coin
-    fn build_coin(&self, amount: NonZeroU128) -> osmosis_std::types::cosmos::base::v1beta1::Coin {
-        osmosis_std::types::cosmos::base::v1beta1::Coin {
-            denom: self.denom().clone(),
-            amount: amount.to_string(),
+impl From<Metadata> for osmosis_std::types::cosmos::bank::v1beta1::Metadata {
+    fn from(value: Metadata) -> Self {
+        Self {
+            description: value.description,
+            denom_units: value
+                .denom_units
+                .into_iter()
+                .map(
+                    |unit| osmosis_std::types::cosmos::bank::v1beta1::DenomUnit {
+                        denom: unit.denom,
+                        exponent: unit.exponent,
+                        aliases: unit.aliases,
+                    },
+                )
+                .collect(),
+            base: value.base,
+            display: value.display,
+            name: value.name,
+            symbol: value.symbol,
         }
     }
 }
@@ -225,27 +207,11 @@ mod test {
     use super::*;
     use crate::mock_module::*;
     use cosmwasm_std::testing::*;
-    use speculoos::prelude::*;
     const MOCK_DENOM: &str = "factory/proxy_address/denom";
 
-    /// Asserts that the provided CosmosMsg::Stargate has the expected type_url and value
-    /// If the CosmosMsg is not a Stargate, this function will panic
-    /// TODO: This should be moved to abstract-testing
-    pub fn assert_stargate_message(
-        msg: cosmwasm_std::CosmosMsg,
-        expected_type_url: &str,
-        expected_value: Binary,
-    ) {
-        match msg {
-            cosmwasm_std::CosmosMsg::Stargate { type_url, value } => {
-                speculoos::assert_that!(type_url).is_equal_to(expected_type_url.to_string());
-                speculoos::assert_that!(value).is_equal_to(expected_value);
-            }
-            _ => panic!("Unexpected message type"),
-        }
-    }
-
     mod create_denom {
+        use crate::apis::stargate::token_factory::{TokenFactoryInterface, OSMOSIS_TOKEN_FACTORY};
+
         use super::*;
 
         use abstract_testing::addresses::TEST_PROXY;
@@ -255,8 +221,13 @@ mod test {
         fn create_denom() {
             let module = MockModule::new();
             let deps = mock_dependencies();
-            let token_factory: TokenFactory = module
-                .token_factory(deps.as_ref(), "denom".to_string(), None)
+            let token_factory = module
+                .token_factory(
+                    deps.as_ref(),
+                    "denom".to_string(),
+                    None,
+                    OSMOSIS_TOKEN_FACTORY,
+                )
                 .unwrap();
             let create_denom_msg = token_factory.create_denom();
             let expected_msg_create_denom = MsgCreateDenom {
@@ -264,14 +235,18 @@ mod test {
                 subdenom: "denom".to_string(),
             };
 
-            assert_stargate_message(
+            assert_eq!(
                 create_denom_msg,
-                "/osmosis.tokenfactory.v1beta1.MsgCreateDenom",
-                Binary(expected_msg_create_denom.encode_to_vec()),
-            )
+                CosmosMsg::Stargate {
+                    type_url: "/osmosis.tokenfactory.v1beta1.MsgCreateDenom".to_owned(),
+                    value: Binary(expected_msg_create_denom.encode_to_vec())
+                }
+            );
         }
     }
     mod mint {
+        use crate::apis::stargate::token_factory::{TokenFactoryInterface, OSMOSIS_TOKEN_FACTORY};
+
         use super::*;
         use abstract_testing::prelude::TEST_PROXY;
         use cosmos_sdk_proto::traits::Message;
@@ -280,8 +255,13 @@ mod test {
         fn happy_mint() {
             let module = MockModule::new();
             let deps = mock_dependencies();
-            let token_factory: TokenFactory = module
-                .token_factory(deps.as_ref(), "denom".to_string(), None)
+            let token_factory = module
+                .token_factory(
+                    deps.as_ref(),
+                    "denom".to_string(),
+                    None,
+                    OSMOSIS_TOKEN_FACTORY,
+                )
                 .unwrap();
 
             let mint_msg = token_factory.mint(
@@ -298,10 +278,12 @@ mod test {
                 mint_to_address: "mint_to_address".to_string(),
             };
 
-            assert_stargate_message(
+            assert_eq!(
                 mint_msg,
-                "/osmosis.tokenfactory.v1beta1.MsgMint",
-                Binary(expected_msg_mint.encode_to_vec()),
+                CosmosMsg::Stargate {
+                    type_url: "/osmosis.tokenfactory.v1beta1.MsgMint".to_owned(),
+                    value: Binary(expected_msg_mint.encode_to_vec())
+                }
             );
         }
     }

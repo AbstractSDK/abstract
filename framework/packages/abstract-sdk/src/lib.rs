@@ -29,7 +29,10 @@ pub use crate::apis::{
 pub use account_action::AccountAction;
 
 #[cfg(feature = "stargate")]
-pub use crate::apis::{authz::*, distribution::*, feegrant::*, token_factory::*};
+pub use crate::apis::{authz::*, distribution::*, feegrant::*};
+
+#[cfg(feature = "osmosis-token-factory")]
+pub use crate::apis::stargate::token_factory::*;
 
 pub mod features {
     //! # Feature traits
