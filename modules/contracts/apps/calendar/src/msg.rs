@@ -3,10 +3,10 @@ use chrono::NaiveTime;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Int64, Uint128};
 
-use crate::{contract::App, error::AppError, state::Meeting};
+use crate::{contract::CalendarApp, error::AppError, state::Meeting};
 
 // This is used for type safety and re-exporting the contract endpoint structs.
-abstract_app::app_msg_types!(App, AppExecuteMsg, AppQueryMsg);
+abstract_app::app_msg_types!(CalendarApp, AppExecuteMsg, AppQueryMsg);
 
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]

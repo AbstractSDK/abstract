@@ -17,7 +17,7 @@
 use abstract_interface::{AppDeployer, DeployStrategy};
 use calendar_app::{
     contract::{APP_ID, APP_VERSION},
-    AppInterface,
+    CalendarAppInterface,
 };
 use clap::Parser;
 use cw_orch::{
@@ -38,7 +38,7 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network)
             .build()?;
 
-        let app = AppInterface::new(APP_ID, chain);
+        let app = CalendarAppInterface::new(APP_ID, chain);
         app.deploy(version, DeployStrategy::Try)?;
 
         // Create an account on our front-end to install the module!

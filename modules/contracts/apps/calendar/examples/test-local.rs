@@ -11,7 +11,7 @@ use abstract_interface::{Abstract, AppDeployer, DeployStrategy, VCExecFns};
 use calendar_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{AppInstantiateMsg, Time},
-    AppInterface,
+    CalendarAppInterface,
 };
 use cosmwasm_std::Uint128;
 use cw_orch::{
@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
     // Deploy abstract locally
     let abstract_deployment = Abstract::deploy_on(daemon.clone(), daemon.sender().to_string())?;
 
-    let app = AppInterface::new(APP_ID, daemon.clone());
+    let app = CalendarAppInterface::new(APP_ID, daemon.clone());
 
     // Create account
     let account = abstract_deployment.account_factory.create_default_account(

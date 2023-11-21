@@ -7,7 +7,7 @@ use cosmwasm_std::{
 use cw_asset::AssetInfoBase;
 use cw_utils::must_pay;
 
-use crate::contract::{App, AppResult};
+use crate::contract::{CalendarApp, CalendarAppResult};
 
 use crate::error::AppError;
 use crate::msg::AppExecuteMsg;
@@ -25,9 +25,9 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: App,
+    app: CalendarApp,
     msg: AppExecuteMsg,
-) -> AppResult {
+) -> CalendarAppResult {
     match msg {
         AppExecuteMsg::RequestMeeting {
             start_time,
@@ -80,11 +80,11 @@ pub fn execute_handler(
 fn request_meeting(
     deps: DepsMut,
     info: MessageInfo,
-    app: App,
+    app: CalendarApp,
     env: Env,
     meeting_start_time: Int64,
     meeting_end_time: Int64,
-) -> AppResult {
+) -> CalendarAppResult {
     let config = CONFIG.load(deps.storage)?;
     let amount_sent = must_pay(&info, &config.denom)?;
 
@@ -158,12 +158,12 @@ fn request_meeting(
 fn handle_stake(
     deps: DepsMut,
     info: MessageInfo,
-    app: App,
+    app: CalendarApp,
     env: Env,
     day_datetime: Int64,
     meeting_index: u32,
     stake_action: StakeAction,
-) -> AppResult {
+) -> CalendarAppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
@@ -245,10 +245,10 @@ fn handle_stake(
 fn update_config(
     deps: DepsMut,
     info: MessageInfo,
-    app: App,
+    app: CalendarApp,
     price_per_minute: Option<Uint128>,
     denom: Option<AssetEntry>,
-) -> AppResult {
+) -> CalendarAppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut attrs = vec![];
@@ -265,7 +265,7 @@ fn update_config(
     Ok(app.custom_tag_response(Response::new(), "update_config", attrs))
 }
 
-pub fn resolve_native_ans_denom(deps: Deps, app: &App, denom: AssetEntry) -> AppResult<String> {
+pub fn resolve_native_ans_denom(deps: Deps, app: &CalendarApp, denom: AssetEntry) -> CalendarAppResult<String> {
     let ans_host = app.ans_host(deps)?;
     let resolved_denom = denom.resolve(&deps.querier, &ans_host)?;
     let denom = match resolved_denom {
@@ -275,7 +275,7 @@ pub fn resolve_native_ans_denom(deps: Deps, app: &App, denom: AssetEntry) -> App
     Ok(denom)
 }
 
-fn get_date_time(timezone: FixedOffset, timestamp: Int64) -> AppResult<DateTime<FixedOffset>> {
+fn get_date_time(timezone: FixedOffset, timestamp: Int64) -> CalendarAppResult<DateTime<FixedOffset>> {
     if let LocalResult::Single(value) = timezone.timestamp_opt(timestamp.i64(), 0) {
         Ok(value)
     } else {

@@ -22,7 +22,7 @@ const INITIAL_BALANCE: u128 = 10_000;
 fn request_meeting_with_start_time(
     day_datetime: DateTime<FixedOffset>,
     start_time: Time,
-    app: AppInterface<Mock>,
+    app: CalendarAppInterface<Mock>,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
@@ -39,7 +39,7 @@ fn request_meeting_with_start_time(
 fn request_meeting_with_end_time(
     day_datetime: DateTime<FixedOffset>,
     end_time: Time,
-    app: AppInterface<Mock>,
+    app: CalendarAppInterface<Mock>,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
@@ -57,7 +57,7 @@ fn request_meeting(
     day_datetime: DateTime<FixedOffset>,
     start_time: Time,
     end_time: Time,
-    app: AppInterface<Mock>,
+    app: CalendarAppInterface<Mock>,
     funds: Coin,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     let meeting_start_datetime: NaiveDateTime = day_datetime
@@ -83,7 +83,7 @@ fn request_meeting(
 fn setup_with_time(
     start_time: Time,
     end_time: Time,
-) -> anyhow::Result<(Application<Mock, AppInterface<Mock>>, AbstractClient<Mock>)> {
+) -> anyhow::Result<(Application<Mock, CalendarAppInterface<Mock>>, AbstractClient<Mock>)> {
     let client: AbstractClient<Mock> = AbstractClient::builder(ADMIN.to_owned())
         .balance("sender1", coins(INITIAL_BALANCE, DENOM))
         .balance("sender2", coins(INITIAL_BALANCE, DENOM))
@@ -100,9 +100,9 @@ fn setup_with_time(
         .namespace("my-namespace")
         .build()?;
 
-    publisher.publish_app::<AppInterface<Mock>>()?;
+    publisher.publish_app::<CalendarAppInterface<Mock>>()?;
 
-    let app: Application<Mock, AppInterface<Mock>> = publisher.install_app(
+    let app: Application<Mock, CalendarAppInterface<Mock>> = publisher.install_app(
         &AppInstantiateMsg {
             price_per_minute: Uint128::from(1u128),
             denom: AssetEntry::from(DENOM),
@@ -118,7 +118,7 @@ fn setup_with_time(
 
 /// Set up the test environment with the contract installed
 #[allow(clippy::type_complexity)]
-fn setup() -> anyhow::Result<(Application<Mock, AppInterface<Mock>>, AbstractClient<Mock>)> {
+fn setup() -> anyhow::Result<(Application<Mock, CalendarAppInterface<Mock>>, AbstractClient<Mock>)> {
     setup_with_time(
         Time { hour: 9, minute: 0 },
         Time {
