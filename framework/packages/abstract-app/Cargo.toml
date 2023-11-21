@@ -39,3 +39,5 @@ sylvia = { version = "0.9.0", git = "https://github.com/AbstractSDK/sylvia", rev
 cosmwasm-schema = { workspace = true }
 speculoos = { workspace = true }
 abstract-app = { path = ".", features = ["test-utils"] }
+
+cw20 = { workspace = true }

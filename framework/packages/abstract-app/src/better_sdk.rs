@@ -3,6 +3,7 @@ pub mod bank;
 pub mod contexts;
 pub mod execution;
 pub mod execution_stack;
+pub mod mock_module;
 pub mod nameservice;
 pub mod sdk;
 

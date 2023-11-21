@@ -4,7 +4,7 @@
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use abstract_sdk::{AbstractSdkResult, AccountAction, Resolve};
 use cosmwasm_std::{to_json_binary, ReplyOn};
-use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
+use cosmwasm_std::{Addr, Coin, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
 
@@ -139,17 +139,20 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Move funds from the contract into the Account.
-    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
+    pub fn deposit<R: Transferable>(&mut self, funds: Vec<R>) -> AbstractSdkResult<()> {
         let recipient = self.base.proxy_address()?;
         let transferable_funds = funds
             .into_iter()
             .map(|asset| asset.transferable_asset(self.base, self.base.deps()))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
-        transferable_funds
+        let msgs = transferable_funds
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(Into::into)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        self.base.push_app_messages(msgs);
+
+        Ok(())
     }
 
     /// Withdraw funds from the Account to this contract.
@@ -227,161 +230,151 @@ impl Transferable for Coin {
     }
 }
 
-// #[cfg(test)]
-// mod test {
-//     use super::*;
-//     use crate::mock_module::*;
-//     use abstract_testing::prelude::*;
-//     use cosmwasm_std::{testing::*, *};
-//     use speculoos::prelude::*;
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::better_sdk::execution::Executor;
+    use crate::better_sdk::execution::ExecutorMsg;
+    use crate::better_sdk::mock_module::MockCtx;
+    use abstract_sdk::AbstractSdkError;
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{testing::*, *};
+    use speculoos::prelude::*;
+    mod transfer_coins {
+        use super::*;
+        use abstract_core::proxy::ExecuteMsg;
 
-//     mod transfer_coins {
-//         use abstract_core::proxy::ExecuteMsg;
+        #[test]
+        fn transfer_asset_to_sender() {
+            let mut deps = mock_dependencies();
+            let mut app: MockCtx = (deps.as_mut(), mock_env(), mock_info("sender", &[])).into();
 
-//         use crate::{Execution, Executor, ExecutorMsg};
+            // ANCHOR: transfer
+            let recipient: Addr = Addr::unchecked("recipient");
+            let coins: Vec<Coin> = coins(100u128, "asset");
+            app.bank().transfer(coins.clone(), &recipient).unwrap();
+            // ANCHOR_END: transfer
 
-//         use super::*;
+            let response: Response = app.try_into().unwrap();
 
-//         #[test]
-//         fn transfer_asset_to_sender() {
-//             let app = MockModule::new();
-//             let deps = mock_dependencies();
+            let expected_msg = CosmosMsg::Bank(BankMsg::Send {
+                to_address: recipient.to_string(),
+                amount: coins,
+            });
 
-//             // ANCHOR: transfer
-//             let recipient: Addr = Addr::unchecked("recipient");
-//             let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
-//             let coins: Vec<Coin> = coins(100u128, "asset");
-//             let bank_transfer: AccountAction = bank.transfer(coins.clone(), &recipient).unwrap();
+            assert_that!(response.messages[0].msg).is_equal_to(
+                &wasm_execute(
+                    TEST_PROXY,
+                    &ExecuteMsg::ModuleAction {
+                        msgs: vec![expected_msg],
+                    },
+                    vec![],
+                )
+                .unwrap()
+                .into(),
+            );
+        }
+    }
 
-//             let executor: Executor<'_, MockModule> = app.executor(deps.as_ref());
-//             let account_message: ExecutorMsg = executor.execute(vec![bank_transfer]).unwrap();
-//             let response: Response = Response::new().add_message(account_message);
-//             // ANCHOR_END: transfer
+    // transfer must be tested via integration test
 
-//             let expected_msg = CosmosMsg::Bank(BankMsg::Send {
-//                 to_address: recipient.to_string(),
-//                 amount: coins,
-//             });
+    mod deposit {
+        use super::*;
 
-//             assert_that!(response.messages[0].msg).is_equal_to(
-//                 &wasm_execute(
-//                     TEST_PROXY,
-//                     &ExecuteMsg::ModuleAction {
-//                         msgs: vec![expected_msg],
-//                     },
-//                     vec![],
-//                 )
-//                 .unwrap()
-//                 .into(),
-//             );
-//         }
-//     }
+        #[test]
+        fn deposit() {
+            let mut deps = mock_dependencies();
+            let mut app: MockCtx = (deps.as_mut(), mock_env(), mock_info("sender", &[])).into();
 
-//     // transfer must be tested via integration test
+            // ANCHOR: deposit
+            // Get bank API struct from the app
+            let mut bank: Bank<'_, MockCtx> = app.bank();
+            // Create coins to deposit
+            let coins: Vec<Coin> = coins(100u128, "asset");
+            // Construct messages for deposit (transfer from this contract to the account)
+            bank.deposit(coins.clone()).unwrap();
+            // ANCHOR_END: deposit
+            let response: Response = app.try_into().unwrap();
 
-//     mod deposit {
-//         use super::*;
+            let expected_msg = SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
+                to_address: TEST_PROXY.to_string(),
+                amount: coins,
+            }));
 
-//         #[test]
-//         fn deposit() {
-//             let app = MockModule::new();
-//             let deps = mock_dependencies();
+            assert_that!(response.messages[0]).is_equal_to::<SubMsg>(expected_msg);
+        }
+    }
 
-//             // ANCHOR: deposit
-//             // Get bank API struct from the app
-//             let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
-//             // Create coins to deposit
-//             let coins: Vec<Coin> = coins(100u128, "asset");
-//             // Construct messages for deposit (transfer from this contract to the account)
-//             let deposit_msgs: Vec<CosmosMsg> = bank.deposit(coins.clone()).unwrap();
-//             // Add to response
-//             let response: Response = Response::new().add_messages(deposit_msgs);
-//             // ANCHOR_END: deposit
+    mod withdraw_coins {
+        use super::*;
 
-//             let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
-//                 to_address: TEST_PROXY.to_string(),
-//                 amount: coins,
-//             });
+        #[test]
+        fn withdraw_coins() {
+            let mut deps = mock_dependencies();
+            let mut app: MockCtx = (deps.as_mut(), mock_env(), mock_info("sender", &[])).into();
+            let expected_amount = 100u128;
+            let env = mock_env();
 
-//             assert_that!(response.messages[0].msg).is_equal_to::<CosmosMsg>(expected_msg);
-//         }
-//     }
+            let coins = coins(expected_amount, "asset");
+            app.bank().withdraw(&env, coins.clone()).unwrap();
 
-//     mod withdraw_coins {
-//         use super::*;
+            let expected_msg = SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
+                to_address: env.contract.address.to_string(),
+                amount: coins,
+            }));
+            let actual_res: Response = app.try_into().unwrap();
+            assert_that!(actual_res.messages[0]).is_equal_to::<SubMsg>(expected_msg);
+        }
+    }
 
-//         #[test]
-//         fn withdraw_coins() {
-//             let app = MockModule::new();
-//             let deps = mock_dependencies();
-//             let expected_amount = 100u128;
-//             let env = mock_env();
+    mod send_coins {
+        use cw20::Cw20ExecuteMsg;
+        use cw_asset::AssetError;
 
-//             let bank = app.bank(deps.as_ref());
-//             let coins = coins(expected_amount, "asset");
-//             let actual_res = bank.withdraw(&env, coins.clone());
+        use super::*;
 
-//             let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
-//                 to_address: env.contract.address.to_string(),
-//                 amount: coins,
-//             });
+        #[test]
+        fn send_cw20() {
+            let mut deps = mock_dependencies();
+            let mut app: MockCtx = (deps.as_mut(), mock_env(), mock_info("sender", &[])).into();
+            let expected_amount = 100u128;
+            let expected_recipient = Addr::unchecked("recipient");
 
-//             assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
-//         }
-//     }
+            let hook_msg = Empty {};
+            let asset = Addr::unchecked("asset");
+            let coin = Asset::cw20(asset.clone(), expected_amount);
+            let actual_res = app.bank().send(coin, &expected_recipient, &hook_msg);
 
-//     mod send_coins {
-//         use cw20::Cw20ExecuteMsg;
-//         use cw_asset::AssetError;
+            let expected_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: asset.to_string(),
+                msg: to_json_binary(&Cw20ExecuteMsg::Send {
+                    contract: expected_recipient.to_string(),
+                    amount: expected_amount.into(),
+                    msg: to_json_binary(&hook_msg).unwrap(),
+                })
+                .unwrap(),
+                funds: vec![],
+            });
 
-//         use crate::AbstractSdkError;
+            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
+        }
 
-//         use super::*;
+        #[test]
+        fn send_coins() {
+            let mut deps = mock_dependencies();
+            let mut app: MockCtx = (deps.as_mut(), mock_env(), mock_info("sender", &[])).into();
+            let expected_amount = 100u128;
+            let expected_recipient = Addr::unchecked("recipient");
 
-//         #[test]
-//         fn send_cw20() {
-//             let app = MockModule::new();
-//             let deps = mock_dependencies();
-//             let expected_amount = 100u128;
-//             let expected_recipient = Addr::unchecked("recipient");
+            let coin = coin(expected_amount, "asset");
+            let hook_msg = Empty {};
+            let actual_res = app.bank().send(coin, &expected_recipient, &hook_msg);
 
-//             let bank = app.bank(deps.as_ref());
-//             let hook_msg = Empty {};
-//             let asset = Addr::unchecked("asset");
-//             let coin = Asset::cw20(asset.clone(), expected_amount);
-//             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);
-
-//             let expected_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
-//                 contract_addr: asset.to_string(),
-//                 msg: to_json_binary(&Cw20ExecuteMsg::Send {
-//                     contract: expected_recipient.to_string(),
-//                     amount: expected_amount.into(),
-//                     msg: to_json_binary(&hook_msg).unwrap(),
-//                 })
-//                 .unwrap(),
-//                 funds: vec![],
-//             });
-
-//             assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
-//         }
-
-//         #[test]
-//         fn send_coins() {
-//             let app = MockModule::new();
-//             let deps = mock_dependencies();
-//             let expected_amount = 100u128;
-//             let expected_recipient = Addr::unchecked("recipient");
-
-//             let bank = app.bank(deps.as_ref());
-//             let coin = coin(expected_amount, "asset");
-//             let hook_msg = Empty {};
-//             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);
-
-//             assert_that!(actual_res.unwrap_err()).is_equal_to::<AbstractSdkError>(
-//                 AbstractSdkError::Asset(AssetError::UnavailableMethodForNative {
-//                     method: "send".into(),
-//                 }),
-//             );
-//         }
-//     }
-// }
+            assert_that!(actual_res.unwrap_err()).is_equal_to::<AbstractSdkError>(
+                AbstractSdkError::Asset(AssetError::UnavailableMethodForNative {
+                    method: "send".into(),
+                }),
+            );
+        }
+    }
+}

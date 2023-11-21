@@ -53,6 +53,12 @@ pub trait ExecutionStack: Sized + AccountIdentification {
         self.stack_mut().push(Executable::CosmosMsg(msg));
     }
     /// Get the manager address for the current account.
+    fn push_app_messages(&mut self, msgs: Vec<CosmosMsg>) {
+        self.stack_mut()
+            .0
+            .extend(msgs.iter().map(|msg| Executable::CosmosMsg(msg.clone())));
+    }
+    /// Get the manager address for the current account.
     fn push_proxy_message(&mut self, msg: CosmosMsg) {
         self.push_proxy_messages(vec![msg])
     }
