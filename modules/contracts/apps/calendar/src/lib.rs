@@ -7,4 +7,4 @@ pub mod state;
 #[cfg(feature = "interface")]
 pub use contract::interface::CalendarAppInterface;
 #[cfg(feature = "interface")]
-pub use msg::{AppExecuteMsgFns, AppQueryMsgFns};
+pub use msg::{CalendarExecuteMsgFns, CalendarQueryMsgFns};

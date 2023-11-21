@@ -8,7 +8,7 @@ use cw_utils::PaymentError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum AppError {
+pub enum CalendarError {
     #[error("{0}")]
     Std(#[from] StdError),
 

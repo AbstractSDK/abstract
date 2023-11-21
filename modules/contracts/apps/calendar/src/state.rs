@@ -2,7 +2,7 @@ use chrono::{DateTime, FixedOffset, NaiveTime, Timelike};
 use cosmwasm_std::{Addr, BlockInfo, Uint128};
 use cw_storage_plus::{Item, Map};
 
-use crate::{error::AppError, msg::Time};
+use crate::{error::CalendarError, msg::Time};
 
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
@@ -29,7 +29,7 @@ impl Meeting {
         meeting_end_datetime: DateTime<FixedOffset>,
         requester: Addr,
         amount_staked: Uint128,
-    ) -> Result<Self, AppError> {
+    ) -> Result<Self, CalendarError> {
         let meeting_start_timestamp = meeting_start_datetime.timestamp();
         let meeting_end_timestamp = meeting_end_datetime.timestamp();
 
@@ -40,33 +40,33 @@ impl Meeting {
         let calendar_end_time: NaiveTime = config.end_time.into();
 
         if meeting_start_datetime.date_naive() != meeting_end_datetime.date_naive() {
-            return Err(AppError::StartAndEndTimeNotOnSameDay {});
+            return Err(CalendarError::StartAndEndTimeNotOnSameDay {});
         }
 
         if meeting_start_time.second() != 0 || meeting_start_time.nanosecond() != 0 {
-            return Err(AppError::StartTimeNotRoundedToNearestMinute {});
+            return Err(CalendarError::StartTimeNotRoundedToNearestMinute {});
         }
 
         if meeting_end_time.second() != 0 || meeting_end_time.nanosecond() != 0 {
-            return Err(AppError::EndTimeNotRoundedToNearestMinute {});
+            return Err(CalendarError::EndTimeNotRoundedToNearestMinute {});
         }
 
         // Not 100% sure about this typecasting but the same is done in the cosmwasm doc example using
         // chrono so it should be fine.
         if (block.time.seconds() as i64) > meeting_start_timestamp {
-            return Err(AppError::StartTimeMustBeInFuture {});
+            return Err(CalendarError::StartTimeMustBeInFuture {});
         }
 
         if meeting_start_time >= meeting_end_time {
-            return Err(AppError::EndTimeMustBeAfterStartTime {});
+            return Err(CalendarError::EndTimeMustBeAfterStartTime {});
         }
 
         if meeting_start_time < calendar_start_time || meeting_start_time > calendar_end_time {
-            return Err(AppError::OutOfBoundsStartTime {});
+            return Err(CalendarError::OutOfBoundsStartTime {});
         }
 
         if meeting_end_time < calendar_start_time || meeting_end_time > calendar_end_time {
-            return Err(AppError::OutOfBoundsEndTime {});
+            return Err(CalendarError::OutOfBoundsEndTime {});
         }
 
         Ok(Meeting {

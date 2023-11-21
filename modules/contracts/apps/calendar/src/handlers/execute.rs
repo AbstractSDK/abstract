@@ -9,8 +9,8 @@ use cw_utils::must_pay;
 
 use crate::contract::{CalendarApp, CalendarAppResult};
 
-use crate::error::AppError;
-use crate::msg::AppExecuteMsg;
+use crate::error::CalendarError;
+use crate::msg::CalendarExecuteMsg;
 use crate::state::{Meeting, CALENDAR, CONFIG};
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::{Resolve, TransferInterface};
@@ -26,14 +26,14 @@ pub fn execute_handler(
     env: Env,
     info: MessageInfo,
     app: CalendarApp,
-    msg: AppExecuteMsg,
+    msg: CalendarExecuteMsg,
 ) -> CalendarAppResult {
     match msg {
-        AppExecuteMsg::RequestMeeting {
+        CalendarExecuteMsg::RequestMeeting {
             start_time,
             end_time,
         } => request_meeting(deps, info, app, env, start_time, end_time),
-        AppExecuteMsg::SlashFullStake {
+        CalendarExecuteMsg::SlashFullStake {
             day_datetime,
             meeting_index,
         } => handle_stake(
@@ -45,7 +45,7 @@ pub fn execute_handler(
             meeting_index,
             StakeAction::FullSlash,
         ),
-        AppExecuteMsg::SlashPartialStake {
+        CalendarExecuteMsg::SlashPartialStake {
             day_datetime,
             meeting_index,
             minutes_late,
@@ -58,7 +58,7 @@ pub fn execute_handler(
             meeting_index,
             StakeAction::PartialSlash { minutes_late },
         ),
-        AppExecuteMsg::ReturnStake {
+        CalendarExecuteMsg::ReturnStake {
             day_datetime,
             meeting_index,
         } => handle_stake(
@@ -70,7 +70,7 @@ pub fn execute_handler(
             meeting_index,
             StakeAction::Return,
         ),
-        AppExecuteMsg::UpdateConfig {
+        CalendarExecuteMsg::UpdateConfig {
             price_per_minute,
             denom,
         } => update_config(deps, info, app, price_per_minute, denom),
@@ -89,7 +89,7 @@ fn request_meeting(
     let amount_sent = must_pay(&info, &config.denom)?;
 
     let timezone: FixedOffset =
-        FixedOffset::east_opt(config.utc_offset).ok_or(AppError::InvalidUtcOffset {})?;
+        FixedOffset::east_opt(config.utc_offset).ok_or(CalendarError::InvalidUtcOffset {})?;
 
     let meeting_start_datetime: DateTime<FixedOffset> =
         get_date_time(timezone, meeting_start_time)?;
@@ -116,7 +116,7 @@ fn request_meeting(
 
     let expected_amount = duration_in_minutes * config.price_per_minute;
     if amount_sent != expected_amount {
-        return Err(AppError::InvalidStakeAmountSent { expected_amount });
+        return Err(CalendarError::InvalidStakeAmountSent { expected_amount });
     }
 
     // Get unix start date of the current day
@@ -139,7 +139,7 @@ fn request_meeting(
                 && meeting_end_timestamp <= meeting.end_time;
 
             if start_time_conflicts || end_time_conflicts {
-                return Err(AppError::MeetingConflictExists {});
+                return Err(CalendarError::MeetingConflictExists {});
             }
         }
     }
@@ -170,22 +170,22 @@ fn handle_stake(
 
     let meetings = CALENDAR.may_load(deps.storage, day_datetime.i64())?;
     if meetings.is_none() {
-        return Err(AppError::NoMeetingsAtGivenDayDateTime {});
+        return Err(CalendarError::NoMeetingsAtGivenDayDateTime {});
     }
     let mut meetings = meetings.unwrap();
     if meeting_index as usize >= meetings.len() {
-        return Err(AppError::MeetingDoesNotExist {});
+        return Err(CalendarError::MeetingDoesNotExist {});
     }
     let meeting: &mut Meeting = meetings.get_mut(meeting_index as usize).unwrap();
 
     if (env.block.time.seconds() as i64) <= meeting.end_time {
-        return Err(AppError::MeetingNotFinishedYet {});
+        return Err(CalendarError::MeetingNotFinishedYet {});
     }
 
     let amount_staked = meeting.amount_staked;
     let requester = meeting.requester.to_string();
     if amount_staked.is_zero() {
-        return Err(AppError::StakeAlreadyHandled {});
+        return Err(CalendarError::StakeAlreadyHandled {});
     }
 
     meeting.amount_staked = Uint128::zero();
@@ -212,7 +212,7 @@ fn handle_stake(
             let meeting_duration_in_minutes: u32 =
                 ((meeting.end_time - meeting.start_time) / 60) as u32;
             if minutes_late > meeting_duration_in_minutes {
-                return Err(AppError::MinutesLateCannotExceedDurationOfMeeting {});
+                return Err(CalendarError::MinutesLateCannotExceedDurationOfMeeting {});
             }
             let amount_to_slash =
                 amount_staked.multiply_ratio(minutes_late, meeting_duration_in_minutes as u128);
@@ -286,6 +286,6 @@ fn get_date_time(
     if let LocalResult::Single(value) = timezone.timestamp_opt(timestamp.i64(), 0) {
         Ok(value)
     } else {
-        Err(AppError::InvalidTime {})
+        Err(CalendarError::InvalidTime {})
     }
 }

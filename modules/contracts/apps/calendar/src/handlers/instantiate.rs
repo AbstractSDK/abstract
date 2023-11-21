@@ -1,8 +1,8 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::contract::{CalendarApp, CalendarAppResult};
-use crate::error::AppError;
-use crate::msg::AppInstantiateMsg;
+use crate::error::CalendarError;
+use crate::msg::CalendarInstantiateMsg;
 use crate::state::{Config, CONFIG};
 
 use super::execute::resolve_native_ans_denom;
@@ -12,7 +12,7 @@ pub fn instantiate_handler(
     _env: Env,
     _info: MessageInfo,
     app: CalendarApp,
-    msg: AppInstantiateMsg,
+    msg: CalendarInstantiateMsg,
 ) -> CalendarAppResult {
     let denom = resolve_native_ans_denom(deps.as_ref(), &app, msg.denom)?;
 
@@ -20,7 +20,7 @@ pub fn instantiate_handler(
     msg.end_time.validate()?;
 
     if msg.start_time >= msg.end_time {
-        return Err(AppError::EndTimeMustBeAfterStartTime {});
+        return Err(CalendarError::EndTimeMustBeAfterStartTime {});
     }
 
     let config: Config = Config {

@@ -1,8 +1,8 @@
-use crate::msg::AppMigrateMsg;
+use crate::msg::CalendarMigrateMsg;
 use crate::{
-    error::AppError,
+    error::CalendarError,
     handlers,
-    msg::{AppExecuteMsg, AppInstantiateMsg, AppQueryMsg},
+    msg::{CalendarExecuteMsg, CalendarInstantiateMsg, CalendarQueryMsg},
 };
 use abstract_app::AppContract;
 use cosmwasm_std::Response;
@@ -13,11 +13,16 @@ pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const APP_ID: &str = "abstract:calendar";
 
 /// The type of the result returned by your app's entry points.
-pub type CalendarAppResult<T = Response> = Result<T, AppError>;
+pub type CalendarAppResult<T = Response> = Result<T, CalendarError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type CalendarApp =
-    AppContract<AppError, AppInstantiateMsg, AppExecuteMsg, AppQueryMsg, AppMigrateMsg>;
+pub type CalendarApp = AppContract<
+    CalendarError,
+    CalendarInstantiateMsg,
+    CalendarExecuteMsg,
+    CalendarQueryMsg,
+    CalendarMigrateMsg,
+>;
 
 const APP: CalendarApp = CalendarApp::new(APP_ID, APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
