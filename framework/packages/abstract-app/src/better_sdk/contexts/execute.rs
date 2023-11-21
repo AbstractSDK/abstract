@@ -1,16 +1,15 @@
-use abstract_core::app::BaseExecuteMsg;
 use abstract_sdk::{
     feature_objects::AnsHost,
-    namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Addr, CustomQuery, DepsMut, Empty, Env, Event, MessageInfo};
+use cosmwasm_std::{Addr, CustomQuery, DepsMut, Empty, Env, Event, MessageInfo, Attribute, Binary, Response};
 
-use super::{
-    execution_stack::{CustomEvents, DepsAccess, Executables, ExecutionStack},
-    instantiate::AppBaseState,
-    nameservice::AbstractNameService,
-    sdk::AccountIdentification,
+use crate::AppError;
+
+use crate::better_sdk::{
+    account_identification::AccountIdentification,
+    execution_stack::{CustomEvents, DepsAccess, Executables, ExecutionStack, CustomData, ResponseGenerator},
+    nameservice::AbstractNameService, sdk::BASE_STATE,
 };
 
 pub struct AppExecCtx<'a, C: CustomQuery = Empty> {
@@ -18,9 +17,10 @@ pub struct AppExecCtx<'a, C: CustomQuery = Empty> {
     pub env: Env,
     pub info: MessageInfo,
 
-    pub base_state: AppBaseState,
-    pub events: Vec<Event>,
     pub executables: Executables,
+    pub events: Vec<Event>,
+    pub attributes: Vec<Attribute>,
+    pub data: Option<Binary>,
 }
 
 impl<'a, C: CustomQuery> From<(DepsMut<'a, C>, Env, MessageInfo)> for AppExecCtx<'a, C> {
@@ -29,18 +29,18 @@ impl<'a, C: CustomQuery> From<(DepsMut<'a, C>, Env, MessageInfo)> for AppExecCtx
             deps,
             env,
             info,
-            base_state: AppBaseState::default(),
-            events: vec![],
             executables: Executables::default(),
+            events: vec![],
+            attributes: vec![],
+            data: None
         }
     }
 }
 
-impl<'a> AppExecCtx<'a> {
-    pub fn _base(self, msg: BaseExecuteMsg) -> AbstractSdkResult<Self> {
-        // We need to port this implementation from the current app definition
-        todo!();
-        Ok(self)
+impl TryInto<Response<Empty>> for AppExecCtx<'_>{
+    type Error = AppError;
+    fn try_into(mut self) -> Result<Response<Empty>, Self::Error> {
+        Ok(self._generate_response()?)
     }
 }
 
@@ -62,23 +62,36 @@ impl<'a> CustomEvents for AppExecCtx<'a> {
     fn events(&self) -> Vec<Event> {
         self.events.clone()
     }
-}
 
+    fn add_attributes(&mut self,attributes: Vec<(&str, &str)>) {
+        self.attributes.extend(attributes.into_iter().map(|(key, value)| Attribute::new(key, value)))
+    }
+
+    fn attributes(&self) -> Vec<Attribute> {
+        self.attributes.clone()
+    }
+}
+impl<'a> CustomData for AppExecCtx<'a> {
+    fn set_data(&mut self, data: impl Into<Binary>){
+        self.data = Some(data.into());
+    }  
+    fn data(&self) -> Option<Binary> {
+        self.data.clone()
+    }
+}
 impl<'a> ExecutionStack for AppExecCtx<'a> {
     fn stack_mut(&mut self) -> &mut Executables {
         &mut self.executables
     }
 }
-
 impl<'a> AccountIdentification for AppExecCtx<'a> {
     fn proxy_address(&self) -> AbstractSdkResult<Addr> {
-        Ok(self.base_state.state.load(self.deps.storage)?.proxy_address)
+        Ok(BASE_STATE.load(self.deps.storage)?.proxy_address)
     }
 }
-
 impl<'a> AbstractNameService for AppExecCtx<'a> {
     fn ans_host(&self) -> AbstractSdkResult<AnsHost> {
         // Retrieve the ANS host address from the base state.
-        Ok(self.base_state.state.load(self.deps.storage)?.ans_host)
+        Ok(BASE_STATE.load(self.deps.storage)?.ans_host)
     }
 }

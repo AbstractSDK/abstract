@@ -1,7 +1,6 @@
-use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    better_sdk::execution_stack::Executables, AbstractContract, AppError, ExecuteHandlerFn,
+    AbstractContract, AppError, ExecuteHandlerFn,
     IbcCallbackHandlerFn, InstantiateHandlerFn, MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
     ReplyHandlerFn,
 };
@@ -10,11 +9,11 @@ use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,
     feature_objects::{AnsHost, VersionControlContract},
-    namespaces::{ADMIN_NAMESPACE, BASE_STATE},
-    AbstractSdkError, AccountAction,
+    namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE},
+    AbstractSdkError,
 };
 use cosmwasm_std::{
-    Addr, CosmosMsg, Deps, DepsMut, Empty, Env, Event, MessageInfo, StdResult, Storage,
+    Addr, Empty, StdResult, Storage,
 };
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
@@ -93,7 +92,7 @@ impl<
         metadata: Option<&'static str>,
     ) -> Self {
         Self {
-            base_state: Item::new(BASE_STATE),
+            base_state: Item::new(BASE_STATE_NAMESPACE),
             admin: Admin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version, metadata),
         }

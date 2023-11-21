@@ -1,8 +1,8 @@
 use abstract_core::proxy::ExecuteMsg;
 use abstract_sdk::{AbstractSdkResult, AccountAction};
-use cosmwasm_std::{wasm_execute, Api, CosmosMsg, Deps, DepsMut, Event, ReplyOn, Response, SubMsg};
+use cosmwasm_std::{wasm_execute, Api, CosmosMsg, Deps, DepsMut, Event, ReplyOn, Response, SubMsg, Attribute, Binary};
 
-use super::sdk::AccountIdentification;
+use super::account_identification::AccountIdentification;
 
 pub trait DepsAccess {
     fn deps_mut<'a: 'b, 'b>(&'a mut self) -> DepsMut<'b>;
@@ -103,17 +103,33 @@ pub trait ExecutionStack: Sized + AccountIdentification {
 pub trait CustomEvents {
     fn add_event(&mut self, event_name: &str, attributes: Vec<(&str, &str)>);
     fn events(&self) -> Vec<Event>;
-}
 
-pub trait ResponseGenerator: ExecutionStack + CustomEvents {
-    fn generate_response(&mut self) -> AbstractSdkResult<Response> {
-        Ok(Response::new()
+    fn add_attributes(&mut self,attributes: Vec<(&str, &str)>);
+    fn add_attribute(&mut self,key: &str, value: &str){
+        self.add_attributes(vec![(key, value)])
+    }
+    fn attributes(&self) -> Vec<Attribute>;
+}
+pub trait CustomData {
+    fn data(&self) -> Option<Binary>;
+    fn set_data(&mut self, data: impl Into<Binary>);
+}
+pub trait ResponseGenerator: ExecutionStack + CustomEvents + CustomData {
+    fn _generate_response(&mut self) -> AbstractSdkResult<Response> {
+        let resp = Response::new()
             .add_events(self.events())
-            .add_submessages(self._unwrap_for_response()?))
+            .add_attributes(self.attributes())
+            .add_submessages(self._unwrap_for_response()?);
+        Ok(if let Some(data) = self.data(){
+            resp.set_data(data)
+        }else{
+            resp
+        })
     }
 }
 
-impl<T> ResponseGenerator for T where T: ExecutionStack + CustomEvents {}
+impl<T> ResponseGenerator for T where T: ExecutionStack + CustomEvents + CustomData {}
+
 
 // #[cfg(test)]
 // mod test {

@@ -1,5 +1,5 @@
 /// namespace key for State Item
-pub const BASE_STATE: &str = "base_state";
+pub const BASE_STATE_NAMESPACE: &str = "base_state";
 /// namespace for module base state
 pub const CONTRACT_VERSION: &str = "base_state";
 /// namespace for contract Admin

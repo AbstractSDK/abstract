@@ -1,7 +1,7 @@
 #![allow(missing_docs)]
 use crate::core::{objects::AssetEntry, AbstractError};
 use abstract_core::objects::AccountId;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, StdError};
 use cw_asset::AssetError;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
@@ -96,5 +96,11 @@ pub enum AbstractSdkError {
 impl AbstractSdkError {
     pub fn generic_err(msg: impl Into<String>) -> Self {
         AbstractSdkError::Std(cosmwasm_std::StdError::generic_err(msg))
+    }
+}
+
+impl From<AbstractSdkError> for StdError{
+    fn from(value: AbstractSdkError) -> Self {
+        cosmwasm_std::StdError::generic_err(value.to_string())
     }
 }

@@ -1,148 +1,177 @@
-// This is generated
-
-use abstract_sdk::{AbstractSdkError, AbstractSdkResult};
-use cosmwasm_std::Addr;
-
-use super::execution_stack::DepsAccess;
-
-use abstract_core::{
-    objects::{common_namespace::ADMIN_NAMESPACE, AccountId},
-    proxy::state::ACCOUNT_ID,
-    version_control::AccountBase,
-};
+use crate::{better_sdk::contexts::AppExecCtx, state::AppState, AppError};
+use abstract_core::{app::{AppConfigResponse, BaseInstantiateMsg, BaseMigrateMsg}, objects::{module_version::{ModuleDataResponse, MODULE, set_module_data, assert_contract_upgrade}, module::ModuleId, dependency::StaticDependency}, module_factory::ContextResponse};
+use abstract_sdk::{namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE}, base::VersionString, feature_objects::{AnsHost, VersionControlContract}};
+use abstract_testing::addresses::{TEST_MANAGER, TEST_PROXY};
+use cosmwasm_std::{Response, StdError, Addr};
+use cw2::set_contract_version;
+use cw_controllers::{Admin, AdminResponse};
 use cw_storage_plus::Item;
 
-// see core::proxy::state::ADMIN
+use super::{contexts::{AppInstantiateCtx, AppMigrateCtx, AppQueryCtx}, execution_stack::DepsAccess};
 
-const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
-
-/// Retrieve identifying information about an Account.
-/// This includes the manager, proxy, core and account_id.
-pub trait AccountIdentification: DepsAccess + Sized {
-    /// Get the proxy address for the current account.
-    fn proxy_address(&self) -> AbstractSdkResult<Addr>;
-    /// Get the manager address for the current account.
-    fn manager_address(&self) -> AbstractSdkResult<Addr> {
-        let maybe_proxy_manager = MANAGER.query(&self.deps().querier, self.proxy_address()?)?;
-        maybe_proxy_manager.ok_or_else(|| AbstractSdkError::AdminNotSet {
-            proxy_addr: self.proxy_address().unwrap(),
-        })
-    }
-    /// Get the AccountBase for the current account.
-    fn account_base(&self) -> AbstractSdkResult<AccountBase> {
-        Ok(AccountBase {
-            manager: self.manager_address()?,
-            proxy: self.proxy_address()?,
-        })
-    }
-    /// Get the Account id for the current account.
-    fn account_id(&self) -> AbstractSdkResult<AccountId> {
-        ACCOUNT_ID
-            .query(&self.deps().querier, self.proxy_address()?)
-            .map_err(Into::into)
-    }
-}
 
 pub trait SylviaAbstractContract {
-    type BaseInstantiateMsg;
-    type BaseMigrateMsg;
-    type BaseExecuteMsg;
-    type ExecuteCtx<'a>;
-    type BaseQueryMsg;
-    type QueryCtx<'a>;
+    type BaseInstantiateMsg: 'static;
+    type BaseMigrateMsg: 'static;
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::DepsMut;
-    use speculoos::prelude::*;
+pub const ADMIN : Admin = Admin::new(ADMIN_NAMESPACE);
+pub const BASE_STATE : Item<'static, AppState> = Item::new(BASE_STATE_NAMESPACE);
 
-    struct MockBinding<'a> {
-        deps: DepsMut<'a>,
-    }
 
-    impl<'a> MockBinding<'a> {
-        fn new(deps: DepsMut<'a>) -> Self {
-            MockBinding { deps }
-        }
-    }
+pub type ContractInfo = (ModuleId<'static>, VersionString, Option<&'static str>);
 
-    impl<'a> DepsAccess for MockBinding<'a> {
-        fn deps_mut<'b: 'c, 'c>(&'b mut self) -> cosmwasm_std::DepsMut<'c> {
-            self.deps.branch()
-        }
+#[sylvia::interface]
+pub trait AbstractAppBase {
 
-        fn deps<'b: 'c, 'c>(&'b self) -> cosmwasm_std::Deps<'c> {
-            self.deps.as_ref()
-        }
-    }
+    type Error: From<AppError> + From<StdError>;
 
-    impl<'a> AccountIdentification for MockBinding<'a> {
-        fn proxy_address(&self) -> AbstractSdkResult<Addr> {
-            Ok(Addr::unchecked(TEST_PROXY))
-        }
-    }
+    const INFO: ContractInfo;
+    const DEPENDENCIES: &'static [StaticDependency];
 
-    mod account {
-        use super::*;
-        use cosmwasm_std::testing::mock_dependencies;
+    fn base_instantiate<'a>(
+        &self,
+        mut ctx: AppInstantiateCtx<'a>,
+        base_msg: BaseInstantiateMsg
+    ) -> Result<AppInstantiateCtx<'a>, AppError>{
+        let BaseInstantiateMsg {
+            ans_host_address,
+            version_control_address,
+        } = base_msg;
+        let ans_host = AnsHost {
+            address: ctx.api().addr_validate(&ans_host_address)?,
+        };
+        let version_control = VersionControlContract {
+            address: ctx.api().addr_validate(&version_control_address)?,
+        };
 
-        #[test]
-        fn test_proxy_address() {
-            let mut deps = mock_dependencies();
-            let binding = MockBinding::new(deps.as_mut());
+        // TODO: Would be nice to remove context
+        // Issue: We can't pass easily AccountBase with BaseInstantiateMsg (right now)
 
-            let res = binding.proxy_address();
-            assert_that!(res)
-                .is_ok()
-                .is_equal_to(Addr::unchecked(TEST_PROXY));
-        }
-
-        #[test]
-        fn test_manager_address() {
-            let mut deps = mock_dependencies();
-
-            deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)))
-                .build();
-
-            let binding = MockBinding::new(deps.as_mut());
-            assert_that!(binding.manager_address())
-                .is_ok()
-                .is_equal_to(Addr::unchecked(TEST_MANAGER));
-        }
-
-        #[test]
-        fn test_account() {
-            let mut deps = mock_dependencies();
-            deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)))
-                .build();
-
-            let binding = MockBinding::new(deps.as_mut());
-            let expected_account_base = AccountBase {
+        // TODO, I don't know how to test that in an actual context. So I use the mock values here
+        // Caller is factory so get proxy and manager (admin) from there
+        // let resp: ContextResponse = deps.querier.query(&wasm_smart_query(
+        //     info.sender.to_string(),
+        //     &FactoryQuery::Context {},
+        // )?)?;
+        let resp = ContextResponse {
+            account_base: abstract_core::version_control::AccountBase {
                 manager: Addr::unchecked(TEST_MANAGER),
                 proxy: Addr::unchecked(TEST_PROXY),
-            };
+            },
+        };
 
-            assert_that!(binding.account_base())
-                .is_ok()
-                .is_equal_to(expected_account_base);
-        }
+        let account_base = resp.account_base;
 
-        #[test]
-        fn account_id() {
-            let mut deps = mock_dependencies();
-            deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .build();
+        // Base state
+        let state = AppState {
+            proxy_address: account_base.proxy.clone(),
+            ans_host,
+            version_control,
+        };
 
-            let binding = MockBinding::new(deps.as_mut());
-            assert_that!(binding.account_id())
-                .is_ok()
-                .is_equal_to(TEST_ACCOUNT_ID);
-        }
+
+        let (name, version, metadata) = Self::INFO;
+        set_module_data(ctx.deps.storage, name, version, Self::DEPENDENCIES, metadata)?;
+        set_contract_version(ctx.deps.storage, name, version)?;
+
+        BASE_STATE.save(ctx.deps.storage, &state)?;
+        ADMIN
+            .set(ctx.deps_mut(), Some(account_base.manager))?;
+
+        Ok(ctx)
+
     }
+
+    fn base_migrate<'a>(
+        &self,
+        ctx: AppMigrateCtx<'a>,
+        _base_msg: BaseMigrateMsg
+    ) -> Result<AppMigrateCtx<'a>, AppError>{
+        
+        let (name, version_string, metadata) = Self::INFO;
+        let to_version = version_string.parse().unwrap();
+        assert_contract_upgrade(ctx.deps.storage, name, to_version)?;
+        set_module_data(
+            ctx.deps.storage,
+            name,
+            version_string,
+            Self::DEPENDENCIES,
+            metadata,
+        )?;
+        set_contract_version(ctx.deps.storage, name, version_string)?;
+
+        Ok(ctx)
+
+    }
+
+    #[msg(exec)]
+    fn update_config(
+        &self,
+        ctx: AppExecCtx,
+        ans_host_address: Option<String>,
+        version_control_address: Option<String>,
+    ) -> Result<Response, AppError> {
+        // self._update_config(deps, info, ans_host_address)?;
+        // Only the admin should be able to call this
+        ADMIN.assert_admin(ctx.deps.as_ref(), &ctx.info.sender)?;
+
+        let mut state = BASE_STATE.load(ctx.deps.storage)?;
+
+        if let Some(ans_host_address) = ans_host_address {
+            state.ans_host.address = ctx.api().addr_validate(ans_host_address.as_str())?;
+        }
+
+        if let Some(version_control_address) = version_control_address {
+            state.version_control.address =
+                ctx.api().addr_validate(version_control_address.as_str())?;
+        }
+
+        BASE_STATE.save(ctx.deps.storage, &state)?;
+
+        Ok(Response::new())
+    }
+
+    #[msg(query)]
+    fn base_config(
+        &self,
+        ctx: AppQueryCtx,
+    ) -> Result<abstract_core::app::AppConfigResponse, AppError> {
+        let state = BASE_STATE.load(ctx.deps.storage)?;
+        let admin = ADMIN.get(ctx.deps)?.unwrap();
+        Ok(AppConfigResponse {
+            proxy_address: state.proxy_address,
+            ans_host_address: state.ans_host.address,
+            manager_address: admin,
+        })
+    }
+
+    #[msg(query)]
+    fn base_admin(
+        &self,
+        ctx: AppQueryCtx,
+    ) -> Result<AdminResponse, AppError> {
+        Ok(ADMIN.query_admin(ctx.deps)?)
+    }
+
+    #[msg(query)]
+    fn module_data(&self,
+        ctx: AppQueryCtx,) -> Result<abstract_core::objects::module_version::ModuleDataResponse, AppError> {
+        let module_data = MODULE.load(ctx.deps.storage)?;
+        Ok(ModuleDataResponse {
+            module_id: module_data.module,
+            version: module_data.version,
+            dependencies: module_data
+                .dependencies
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            metadata: module_data.metadata,
+        })
+    }
+}
+pub struct AbstractApp;
+impl SylviaAbstractContract for AbstractApp{
+    type BaseInstantiateMsg = abstract_core::app::BaseInstantiateMsg;
+    type BaseMigrateMsg = abstract_core::app::BaseMigrateMsg;
 }

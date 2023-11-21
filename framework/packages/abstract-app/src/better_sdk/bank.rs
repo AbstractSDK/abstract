@@ -8,9 +8,9 @@ use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
 
+use super::account_identification::AccountIdentification;
 use super::execution::{Execution, ExecutorOptions};
 use super::nameservice::AbstractNameService;
-use super::sdk::AccountIdentification;
 
 /// Query and Transfer assets from and to the Abstract Account.
 pub trait TransferInterface: AbstractNameService + AccountIdentification + Execution {
