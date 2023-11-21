@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
 - `Astrovault` integrated into dex and cw-staking adapters
+- `AuthZ` API added
 
 ### Changed
 
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Allow module-id to be passed in as a valid authorized address when allowing new addresses on adapter contracts.
 - `BaseInstantiateMsg` is now removed from install app API, now only `ModuleMsg` should be provided.
 - `Modules`, `Manager` and `Proxy` are now instantiated via instantiate2 message.
+- `FeeGrant` API updated.
 - Bump `cw-orch` to `v0.18`.
 
 ### Removed
@@ -26,6 +28,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `DepositMsgs` removed (now `deposit()` returns `Vec<CosmosMsg>`)
 - Abstract removed from the fields where it's redundant
 - InstantiateMsg is now removed from the install_adapter API
+
+### Fixed
+
+- Namespace registration fee fixed
 
 ## [0.19.0] - 2023-09-26
 
