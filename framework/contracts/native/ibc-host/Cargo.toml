@@ -41,3 +41,4 @@ abstract-interface = { workspace = true }
 cw-orch = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
 anyhow.workspace = true
+abstract-adapter = { workspace = true, features = ["test-utils"]}
