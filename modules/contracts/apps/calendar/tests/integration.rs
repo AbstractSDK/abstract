@@ -83,7 +83,10 @@ fn request_meeting(
 fn setup_with_time(
     start_time: Time,
     end_time: Time,
-) -> anyhow::Result<(Application<Mock, CalendarAppInterface<Mock>>, AbstractClient<Mock>)> {
+) -> anyhow::Result<(
+    Application<Mock, CalendarAppInterface<Mock>>,
+    AbstractClient<Mock>,
+)> {
     let client: AbstractClient<Mock> = AbstractClient::builder(ADMIN.to_owned())
         .balance("sender1", coins(INITIAL_BALANCE, DENOM))
         .balance("sender2", coins(INITIAL_BALANCE, DENOM))
@@ -118,7 +121,10 @@ fn setup_with_time(
 
 /// Set up the test environment with the contract installed
 #[allow(clippy::type_complexity)]
-fn setup() -> anyhow::Result<(Application<Mock, CalendarAppInterface<Mock>>, AbstractClient<Mock>)> {
+fn setup() -> anyhow::Result<(
+    Application<Mock, CalendarAppInterface<Mock>>,
+    AbstractClient<Mock>,
+)> {
     setup_with_time(
         Time { hour: 9, minute: 0 },
         Time {

@@ -3,7 +3,12 @@ use crate::msg::{AppQueryMsg, ConfigResponse, MeetingsResponse};
 use crate::state::{CALENDAR, CONFIG};
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, Int64, StdResult};
 
-pub fn query_handler(deps: Deps, _env: Env, _app: &CalendarApp, msg: AppQueryMsg) -> CalendarAppResult<Binary> {
+pub fn query_handler(
+    deps: Deps,
+    _env: Env,
+    _app: &CalendarApp,
+    msg: AppQueryMsg,
+) -> CalendarAppResult<Binary> {
     match msg {
         AppQueryMsg::Config {} => to_json_binary(&query_config(deps)?),
         AppQueryMsg::Meetings { day_datetime } => {

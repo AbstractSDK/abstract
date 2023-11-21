@@ -265,7 +265,11 @@ fn update_config(
     Ok(app.custom_tag_response(Response::new(), "update_config", attrs))
 }
 
-pub fn resolve_native_ans_denom(deps: Deps, app: &CalendarApp, denom: AssetEntry) -> CalendarAppResult<String> {
+pub fn resolve_native_ans_denom(
+    deps: Deps,
+    app: &CalendarApp,
+    denom: AssetEntry,
+) -> CalendarAppResult<String> {
     let ans_host = app.ans_host(deps)?;
     let resolved_denom = denom.resolve(&deps.querier, &ans_host)?;
     let denom = match resolved_denom {
@@ -275,7 +279,10 @@ pub fn resolve_native_ans_denom(deps: Deps, app: &CalendarApp, denom: AssetEntry
     Ok(denom)
 }
 
-fn get_date_time(timezone: FixedOffset, timestamp: Int64) -> CalendarAppResult<DateTime<FixedOffset>> {
+fn get_date_time(
+    timezone: FixedOffset,
+    timestamp: Int64,
+) -> CalendarAppResult<DateTime<FixedOffset>> {
     if let LocalResult::Single(value) = timezone.timestamp_opt(timestamp.i64(), 0) {
         Ok(value)
     } else {
