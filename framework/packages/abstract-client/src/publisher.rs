@@ -1,9 +1,10 @@
 use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
 use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule};
+use abstract_sdk::base::{Handler, InstantiateEndpoint};
 use cosmwasm_std::{Addr, Coin};
 use cw_orch::{
     contract::Contract,
-    prelude::{ContractInstance, CwEnv},
+    prelude::{ContractInstance, CwEnv, InstantiableContract},
 };
 use serde::Serialize;
 
@@ -74,10 +75,9 @@ impl<Chain: CwEnv> Publisher<Chain> {
 
     pub fn install_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
-        C: Serialize,
     >(
         &self,
-        configuration: &C,
+        configuration: &M::InitMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         self.account.install_app(configuration, funds)

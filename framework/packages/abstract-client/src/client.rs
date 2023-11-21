@@ -29,10 +29,11 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         &self.abstr.version_control
     }
 
-    // Is there a way for us to return `AbstractClientResult<BlockInfo>` here instead? I think we
-    // would need to add <T: CwEnv> to `AbstractClientError` which I am not sure we want to do.
-    pub fn block_info(&self) -> Result<BlockInfo, <Chain as cw_orch::prelude::TxHandler>::Error> {
-        self.environment().block_info()
+    pub fn block_info(&self) -> AbstractClientResult<BlockInfo> {
+        self.environment()
+            .block_info()
+            .map_err(Into::<cw_orch::prelude::CwOrchError>::into)
+            .map_err(Into::<AbstractClientError>::into)
     }
 
     pub fn get_publisher_from_namespace(

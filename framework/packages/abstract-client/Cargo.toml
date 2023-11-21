@@ -19,6 +19,7 @@ test-utils = ["cw-asset"]
 cosmwasm-std.workspace = true
 abstract-interface.workspace = true
 abstract-core.workspace = true
+abstract-sdk.workspace = true
 cw-orch.workspace = true
 serde.workspace = true
 semver.workspace = true
@@ -32,7 +33,6 @@ abstract-client = { path = ".", features = ["test-utils"] }
 cw-asset.workspace = true
 cw-controllers.workspace = true
 abstract-app = { workspace = true, features = ["test-utils"] }
-abstract-sdk.workspace = true
 anyhow.workspace = true
 cosmwasm-schema.workspace = true
 cw-storage-plus.workspace = true

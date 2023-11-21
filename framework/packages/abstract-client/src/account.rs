@@ -7,6 +7,7 @@ use abstract_interface::{
     Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns, RegisteredModule,
     VCQueryFns,
 };
+use abstract_sdk::base::{Handler, InstantiateEndpoint};
 use cosmwasm_std::{Attribute, Event};
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
@@ -134,10 +135,9 @@ impl<Chain: CwEnv> Account<Chain> {
     // creates a new sub-account and installs the application on it.
     pub fn install_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
-        C: Serialize,
     >(
         &self,
-        configuration: &C,
+        configuration: &M::InitMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         // Create sub account.
