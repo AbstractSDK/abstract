@@ -1,17 +1,15 @@
-use abstract_sdk::{
-    feature_objects::AnsHost,
-    AbstractSdkResult,
-};
-use cosmwasm_std::{
-    Addr, CustomQuery, DepsMut, Empty, Env, Event, Attribute, Binary, Response
-};
+use abstract_sdk::{feature_objects::AnsHost, AbstractSdkResult};
+use cosmwasm_std::{Addr, Attribute, Binary, CustomQuery, DepsMut, Empty, Env, Event, Response};
 
 use crate::AppError;
 
 use crate::better_sdk::{
     account_identification::AccountIdentification,
-    execution_stack::{CustomEvents, DepsAccess, Executables, ExecutionStack, CustomData, ResponseGenerator},
-    nameservice::AbstractNameService, sdk::BASE_STATE,
+    execution_stack::{
+        CustomData, CustomEvents, DepsAccess, Executables, ExecutionStack, ResponseGenerator,
+    },
+    nameservice::AbstractNameService,
+    sdk::BASE_STATE,
 };
 
 pub struct AppMigrateCtx<'a, C: CustomQuery = Empty> {
@@ -25,17 +23,14 @@ pub struct AppMigrateCtx<'a, C: CustomQuery = Empty> {
 }
 
 impl<'a, C: CustomQuery> From<(DepsMut<'a, C>, Env)> for AppMigrateCtx<'a, C> {
-
-    fn from(
-        (deps, env): (DepsMut<'a, C>, Env),
-    ) -> Self {
+    fn from((deps, env): (DepsMut<'a, C>, Env)) -> Self {
         Self {
             deps,
             env,
             executables: Executables::default(),
             events: vec![],
             attributes: vec![],
-            data: None
+            data: None,
         }
     }
 }
@@ -59,8 +54,12 @@ impl<'a> CustomEvents for AppMigrateCtx<'a> {
         self.events.clone()
     }
 
-    fn add_attributes(&mut self,attributes: Vec<(&str, &str)>) {
-        self.attributes.extend(attributes.into_iter().map(|(key, value)| Attribute::new(key, value)))
+    fn add_attributes(&mut self, attributes: Vec<(&str, &str)>) {
+        self.attributes.extend(
+            attributes
+                .into_iter()
+                .map(|(key, value)| Attribute::new(key, value)),
+        )
     }
 
     fn attributes(&self) -> Vec<Attribute> {
@@ -68,9 +67,9 @@ impl<'a> CustomEvents for AppMigrateCtx<'a> {
     }
 }
 impl<'a> CustomData for AppMigrateCtx<'a> {
-    fn set_data(&mut self, data: impl Into<Binary>){
+    fn set_data(&mut self, data: impl Into<Binary>) {
         self.data = Some(data.into());
-    }  
+    }
     fn data(&self) -> Option<Binary> {
         self.data.clone()
     }
@@ -81,7 +80,7 @@ impl<'a> ExecutionStack for AppMigrateCtx<'a> {
         &mut self.executables
     }
 }
-impl TryInto<Response<Empty>> for AppMigrateCtx<'_>{
+impl TryInto<Response<Empty>> for AppMigrateCtx<'_> {
     type Error = AppError;
     fn try_into(mut self) -> Result<Response<Empty>, Self::Error> {
         Ok(self._generate_response()?)
@@ -99,4 +98,3 @@ impl<'a> AbstractNameService for AppMigrateCtx<'a> {
         Ok(BASE_STATE.load(self.deps.storage)?.ans_host)
     }
 }
-

@@ -1,9 +1,9 @@
 pub mod account_identification;
 pub mod bank;
+pub mod contexts;
 pub mod execution;
 pub mod execution_stack;
 pub mod nameservice;
-pub mod contexts;
 pub mod sdk;
 
 // TODO: add macro here that generates the private struct below

@@ -1,7 +1,10 @@
-use abstract_app::AppError;
 use abstract_app::better_sdk::bank::TransferInterface;
-use abstract_app::better_sdk::{execution::Execution, contexts::{AppExecCtx, AppInstantiateCtx, AppMigrateCtx, AppQueryCtx}};
 use abstract_app::better_sdk::sdk::{AbstractAppBase, ContractInfo};
+use abstract_app::better_sdk::{
+    contexts::{AppExecCtx, AppInstantiateCtx, AppMigrateCtx, AppQueryCtx},
+    execution::Execution,
+};
+use abstract_app::AppError;
 use cosmwasm_std::{coins, ensure, Addr, BankMsg, CosmosMsg, ReplyOn, StdError};
 use cw_storage_plus::Item;
 use sylvia::{contract, entry_points};
@@ -96,7 +99,11 @@ impl SylviaContract<'_> {
     }
 
     #[msg(exec)]
-    pub fn increment<'a>(&self, mut ctx: AppExecCtx<'a>, i: u64) -> Result<AppExecCtx<'a>, AppError> {
+    pub fn increment<'a>(
+        &self,
+        mut ctx: AppExecCtx<'a>,
+        i: u64,
+    ) -> Result<AppExecCtx<'a>, AppError> {
         let counter = self.counter.load(ctx.deps.storage)?;
         ensure!(counter < 10, StdError::generic_err("Limit reached"));
         ensure!(i < 10, StdError::generic_err("Unauthorized"));
@@ -118,15 +125,12 @@ impl SylviaContract<'_> {
     pub fn count(&self, ctx: AppQueryCtx) -> Result<u64, AppError> {
         Ok(self.counter.load(ctx.deps.storage)?)
     }
-
 }
 
 impl AbstractAppBase for SylviaContract<'_> {
     type Error = AppError;
-    const INFO: ContractInfo = (
-        "COUNTER_ID", "v1.0.1", Some("Metadata")
-    );
-    const DEPENDENCIES: &'static[abstract_core::objects::dependency::StaticDependency] = &[];
+    const INFO: ContractInfo = ("COUNTER_ID", "v1.0.1", Some("Metadata"));
+    const DEPENDENCIES: &'static [abstract_core::objects::dependency::StaticDependency] = &[];
 }
 
 fn main() {
@@ -141,10 +145,12 @@ pub mod test {
     };
     use abstract_app::better_sdk::sdk::sv::AbstractAppBaseExecMsg;
     use abstract_core::app::BaseInstantiateMsg;
-    use abstract_testing::addresses::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL, TEST_MANAGER};
+    use abstract_testing::addresses::{
+        TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL,
+    };
     use abstract_testing::mock_querier;
-    use cosmwasm_std::{from_json, Attribute};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{from_json, Attribute};
     pub fn main() {
         let mut deps = mock_dependencies();
         deps.querier = mock_querier();
@@ -157,9 +163,7 @@ pub mod test {
                     ans_host_address: TEST_ANS_HOST.to_string(),
                     version_control_address: TEST_VERSION_CONTROL.to_string(),
                 },
-                module: ImplInstantiateMsg {
-                    couter_init: 8
-                },
+                module: ImplInstantiateMsg { couter_init: 8 },
             },
         )
         .unwrap();
@@ -187,7 +191,10 @@ pub mod test {
         .unwrap();
 
         assert_eq!(response.messages.len(), 1);
-        assert_eq!(response.attributes, vec![Attribute::new("action", "execute_test")]);
+        assert_eq!(
+            response.attributes,
+            vec![Attribute::new("action", "execute_test")]
+        );
 
         let response = query(
             deps.as_ref(),

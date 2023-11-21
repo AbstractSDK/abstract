@@ -1,8 +1,6 @@
-
 use crate::{
-    AbstractContract, AppError, ExecuteHandlerFn,
-    IbcCallbackHandlerFn, InstantiateHandlerFn, MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
-    ReplyHandlerFn,
+    AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_core::AbstractError;
@@ -12,9 +10,7 @@ use abstract_sdk::{
     namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE},
     AbstractSdkError,
 };
-use cosmwasm_std::{
-    Addr, Empty, StdResult, Storage,
-};
+use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;

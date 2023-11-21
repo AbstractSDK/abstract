@@ -99,7 +99,7 @@ impl AbstractSdkError {
     }
 }
 
-impl From<AbstractSdkError> for StdError{
+impl From<AbstractSdkError> for StdError {
     fn from(value: AbstractSdkError) -> Self {
         cosmwasm_std::StdError::generic_err(value.to_string())
     }

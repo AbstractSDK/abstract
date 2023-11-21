@@ -1,14 +1,8 @@
-use abstract_sdk::{
-    feature_objects::AnsHost,
-    AbstractSdkResult,
-};
-use cosmwasm_std::{
-    Addr, CustomQuery, Deps, DepsMut, Empty, Env, 
-};
+use abstract_sdk::{feature_objects::AnsHost, AbstractSdkResult};
+use cosmwasm_std::{Addr, CustomQuery, Deps, DepsMut, Empty, Env};
 
 use crate::better_sdk::{
-    account_identification::AccountIdentification,
-    execution_stack::DepsAccess,
+    account_identification::AccountIdentification, execution_stack::DepsAccess,
     nameservice::AbstractNameService, sdk::BASE_STATE,
 };
 
@@ -19,10 +13,7 @@ pub struct AppQueryCtx<'a, C: CustomQuery = Empty> {
 
 impl<'a, C: CustomQuery> From<(Deps<'a, C>, Env)> for AppQueryCtx<'a, C> {
     fn from((deps, env): (Deps<'a, C>, Env)) -> Self {
-        Self {
-            deps,
-            env,
-        }
+        Self { deps, env }
     }
 }
 

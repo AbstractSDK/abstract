@@ -1,29 +1,41 @@
 use crate::{better_sdk::contexts::AppExecCtx, state::AppState, AppError};
-use abstract_core::{app::{AppConfigResponse, BaseInstantiateMsg, BaseMigrateMsg}, objects::{module_version::{ModuleDataResponse, MODULE, set_module_data, assert_contract_upgrade}, module::ModuleId, dependency::StaticDependency}, module_factory::ContextResponse};
-use abstract_sdk::{namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE}, base::VersionString, feature_objects::{AnsHost, VersionControlContract}};
+use abstract_core::{
+    app::{AppConfigResponse, BaseInstantiateMsg, BaseMigrateMsg},
+    module_factory::ContextResponse,
+    objects::{
+        dependency::StaticDependency,
+        module::ModuleId,
+        module_version::{assert_contract_upgrade, set_module_data, ModuleDataResponse, MODULE},
+    },
+};
+use abstract_sdk::{
+    base::VersionString,
+    feature_objects::{AnsHost, VersionControlContract},
+    namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE},
+};
 use abstract_testing::addresses::{TEST_MANAGER, TEST_PROXY};
-use cosmwasm_std::{Response, StdError, Addr};
+use cosmwasm_std::{Addr, Response, StdError};
 use cw2::set_contract_version;
 use cw_controllers::{Admin, AdminResponse};
 use cw_storage_plus::Item;
 
-use super::{contexts::{AppInstantiateCtx, AppMigrateCtx, AppQueryCtx}, execution_stack::DepsAccess};
-
+use super::{
+    contexts::{AppInstantiateCtx, AppMigrateCtx, AppQueryCtx},
+    execution_stack::DepsAccess,
+};
 
 pub trait SylviaAbstractContract {
     type BaseInstantiateMsg: 'static;
     type BaseMigrateMsg: 'static;
 }
 
-pub const ADMIN : Admin = Admin::new(ADMIN_NAMESPACE);
-pub const BASE_STATE : Item<'static, AppState> = Item::new(BASE_STATE_NAMESPACE);
-
+pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
+pub const BASE_STATE: Item<'static, AppState> = Item::new(BASE_STATE_NAMESPACE);
 
 pub type ContractInfo = (ModuleId<'static>, VersionString, Option<&'static str>);
 
 #[sylvia::interface]
 pub trait AbstractAppBase {
-
     type Error: From<AppError> + From<StdError>;
 
     const INFO: ContractInfo;
@@ -32,8 +44,8 @@ pub trait AbstractAppBase {
     fn base_instantiate<'a>(
         &self,
         mut ctx: AppInstantiateCtx<'a>,
-        base_msg: BaseInstantiateMsg
-    ) -> Result<AppInstantiateCtx<'a>, AppError>{
+        base_msg: BaseInstantiateMsg,
+    ) -> Result<AppInstantiateCtx<'a>, AppError> {
         let BaseInstantiateMsg {
             ans_host_address,
             version_control_address,
@@ -70,25 +82,27 @@ pub trait AbstractAppBase {
             version_control,
         };
 
-
         let (name, version, metadata) = Self::INFO;
-        set_module_data(ctx.deps.storage, name, version, Self::DEPENDENCIES, metadata)?;
+        set_module_data(
+            ctx.deps.storage,
+            name,
+            version,
+            Self::DEPENDENCIES,
+            metadata,
+        )?;
         set_contract_version(ctx.deps.storage, name, version)?;
 
         BASE_STATE.save(ctx.deps.storage, &state)?;
-        ADMIN
-            .set(ctx.deps_mut(), Some(account_base.manager))?;
+        ADMIN.set(ctx.deps_mut(), Some(account_base.manager))?;
 
         Ok(ctx)
-
     }
 
     fn base_migrate<'a>(
         &self,
         ctx: AppMigrateCtx<'a>,
-        _base_msg: BaseMigrateMsg
-    ) -> Result<AppMigrateCtx<'a>, AppError>{
-        
+        _base_msg: BaseMigrateMsg,
+    ) -> Result<AppMigrateCtx<'a>, AppError> {
         let (name, version_string, metadata) = Self::INFO;
         let to_version = version_string.parse().unwrap();
         assert_contract_upgrade(ctx.deps.storage, name, to_version)?;
@@ -102,7 +116,6 @@ pub trait AbstractAppBase {
         set_contract_version(ctx.deps.storage, name, version_string)?;
 
         Ok(ctx)
-
     }
 
     #[msg(exec)]
@@ -147,16 +160,15 @@ pub trait AbstractAppBase {
     }
 
     #[msg(query)]
-    fn base_admin(
-        &self,
-        ctx: AppQueryCtx,
-    ) -> Result<AdminResponse, AppError> {
+    fn base_admin(&self, ctx: AppQueryCtx) -> Result<AdminResponse, AppError> {
         Ok(ADMIN.query_admin(ctx.deps)?)
     }
 
     #[msg(query)]
-    fn module_data(&self,
-        ctx: AppQueryCtx,) -> Result<abstract_core::objects::module_version::ModuleDataResponse, AppError> {
+    fn module_data(
+        &self,
+        ctx: AppQueryCtx,
+    ) -> Result<abstract_core::objects::module_version::ModuleDataResponse, AppError> {
         let module_data = MODULE.load(ctx.deps.storage)?;
         Ok(ModuleDataResponse {
             module_id: module_data.module,
@@ -171,7 +183,7 @@ pub trait AbstractAppBase {
     }
 }
 pub struct AbstractApp;
-impl SylviaAbstractContract for AbstractApp{
+impl SylviaAbstractContract for AbstractApp {
     type BaseInstantiateMsg = abstract_core::app::BaseInstantiateMsg;
     type BaseMigrateMsg = abstract_core::app::BaseMigrateMsg;
 }

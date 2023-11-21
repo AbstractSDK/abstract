@@ -1,15 +1,17 @@
-use abstract_sdk::{
-    feature_objects::AnsHost,
-    AbstractSdkResult,
+use abstract_sdk::{feature_objects::AnsHost, AbstractSdkResult};
+use cosmwasm_std::{
+    Addr, Attribute, Binary, CustomQuery, DepsMut, Empty, Env, Event, MessageInfo, Response,
 };
-use cosmwasm_std::{Addr, CustomQuery, DepsMut, Empty, Env, Event, MessageInfo, Attribute, Binary, Response};
 
 use crate::AppError;
 
 use crate::better_sdk::{
     account_identification::AccountIdentification,
-    execution_stack::{CustomEvents, DepsAccess, Executables, ExecutionStack, CustomData, ResponseGenerator},
-    nameservice::AbstractNameService, sdk::BASE_STATE,
+    execution_stack::{
+        CustomData, CustomEvents, DepsAccess, Executables, ExecutionStack, ResponseGenerator,
+    },
+    nameservice::AbstractNameService,
+    sdk::BASE_STATE,
 };
 
 pub struct AppExecCtx<'a, C: CustomQuery = Empty> {
@@ -32,12 +34,12 @@ impl<'a, C: CustomQuery> From<(DepsMut<'a, C>, Env, MessageInfo)> for AppExecCtx
             executables: Executables::default(),
             events: vec![],
             attributes: vec![],
-            data: None
+            data: None,
         }
     }
 }
 
-impl TryInto<Response<Empty>> for AppExecCtx<'_>{
+impl TryInto<Response<Empty>> for AppExecCtx<'_> {
     type Error = AppError;
     fn try_into(mut self) -> Result<Response<Empty>, Self::Error> {
         Ok(self._generate_response()?)
@@ -63,8 +65,12 @@ impl<'a> CustomEvents for AppExecCtx<'a> {
         self.events.clone()
     }
 
-    fn add_attributes(&mut self,attributes: Vec<(&str, &str)>) {
-        self.attributes.extend(attributes.into_iter().map(|(key, value)| Attribute::new(key, value)))
+    fn add_attributes(&mut self, attributes: Vec<(&str, &str)>) {
+        self.attributes.extend(
+            attributes
+                .into_iter()
+                .map(|(key, value)| Attribute::new(key, value)),
+        )
     }
 
     fn attributes(&self) -> Vec<Attribute> {
@@ -72,9 +78,9 @@ impl<'a> CustomEvents for AppExecCtx<'a> {
     }
 }
 impl<'a> CustomData for AppExecCtx<'a> {
-    fn set_data(&mut self, data: impl Into<Binary>){
+    fn set_data(&mut self, data: impl Into<Binary>) {
         self.data = Some(data.into());
-    }  
+    }
     fn data(&self) -> Option<Binary> {
         self.data.clone()
     }

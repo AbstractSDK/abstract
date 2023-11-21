@@ -1,6 +1,9 @@
 use abstract_core::proxy::ExecuteMsg;
 use abstract_sdk::{AbstractSdkResult, AccountAction};
-use cosmwasm_std::{wasm_execute, Api, CosmosMsg, Deps, DepsMut, Event, ReplyOn, Response, SubMsg, Attribute, Binary};
+use cosmwasm_std::{
+    wasm_execute, Api, Attribute, Binary, CosmosMsg, Deps, DepsMut, Event, ReplyOn, Response,
+    SubMsg,
+};
 
 use super::account_identification::AccountIdentification;
 
@@ -104,8 +107,8 @@ pub trait CustomEvents {
     fn add_event(&mut self, event_name: &str, attributes: Vec<(&str, &str)>);
     fn events(&self) -> Vec<Event>;
 
-    fn add_attributes(&mut self,attributes: Vec<(&str, &str)>);
-    fn add_attribute(&mut self,key: &str, value: &str){
+    fn add_attributes(&mut self, attributes: Vec<(&str, &str)>);
+    fn add_attribute(&mut self, key: &str, value: &str) {
         self.add_attributes(vec![(key, value)])
     }
     fn attributes(&self) -> Vec<Attribute>;
@@ -120,16 +123,15 @@ pub trait ResponseGenerator: ExecutionStack + CustomEvents + CustomData {
             .add_events(self.events())
             .add_attributes(self.attributes())
             .add_submessages(self._unwrap_for_response()?);
-        Ok(if let Some(data) = self.data(){
+        Ok(if let Some(data) = self.data() {
             resp.set_data(data)
-        }else{
+        } else {
             resp
         })
     }
 }
 
 impl<T> ResponseGenerator for T where T: ExecutionStack + CustomEvents + CustomData {}
-
 
 // #[cfg(test)]
 // mod test {

@@ -1,9 +1,9 @@
-mod instantiate;
 mod execute;
-mod query;
+mod instantiate;
 mod migrate;
+mod query;
 
-pub use instantiate::AppInstantiateCtx;
 pub use execute::AppExecCtx;
-pub use query::AppQueryCtx;
+pub use instantiate::AppInstantiateCtx;
 pub use migrate::AppMigrateCtx;
+pub use query::AppQueryCtx;
