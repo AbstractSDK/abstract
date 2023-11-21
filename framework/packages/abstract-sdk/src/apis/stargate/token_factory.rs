@@ -8,7 +8,7 @@ use thiserror::Error;
 use crate::{apis::token_factory::osmosis::OsmosisTokenFactory, features::AccountIdentification};
 
 /// Osmosis chain
-pub const OSMOSIS_TOKEN_FACTORY: &'static str = "OSMOSIS";
+pub const OSMOSIS_TOKEN_FACTORY: &str = "OSMOSIS";
 
 /// Error type for the abstract token factory API.
 #[derive(Error, Debug, PartialEq)]
@@ -117,7 +117,7 @@ pub trait TokenFactoryInterface: AccountIdentification {
     ) -> Result<Box<dyn TokenFactoryCommand>, TokenFactoryError> {
         let sender = sender.unwrap_or(
             self.proxy_address(deps)
-                .map_err(|_| TokenFactoryError::ProxyNotFound{})?,
+                .map_err(|_| TokenFactoryError::ProxyNotFound {})?,
         );
         // Check that the subdenom is valid
         let subdenom: String = subdenom.into();
