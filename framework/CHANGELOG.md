@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Abstract removed from the fields where it's redundant
 - InstantiateMsg is now removed from the install_adapter API
 
+### Fixed
+
+- Namespace registration fee fixed
+
 ## [0.19.0] - 2023-09-26
 
 ### Added
