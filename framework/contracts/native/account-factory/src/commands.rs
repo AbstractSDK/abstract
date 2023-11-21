@@ -5,6 +5,8 @@ use abstract_core::objects::{AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID};
 use abstract_core::AbstractError;
 
 use abstract_core::objects::module::assert_module_data_validity;
+use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::AccountVerification;
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, DepsMut, Empty, Env,
     MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
@@ -47,6 +49,7 @@ pub fn execute_create_account(
     account_id: Option<AccountId>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
+    let abstract_registry = VersionControlContract::new(config.version_control_contract.clone());
 
     let governance = governance.verify(deps.as_ref(), config.version_control_contract.clone())?;
     // If an account_id is provided, assert the caller is the ibc host and return the account_id.
@@ -93,10 +96,23 @@ pub fn execute_create_account(
         },
     )?;
     let funds_for_install = simulate_resp.total_required_funds;
+    let funds_for_namespace_fee = if namespace.is_some() {
+        abstract_registry
+            .account_registry(deps.as_ref())
+            .namespace_registration_fee()?
+            .into_iter()
+            .collect()
+    } else {
+        vec![]
+    };
 
-    // Remove all funds used to install the module to pass rest to the proxy contract
+    // Remove all funds used to install the module and account fee to pass rest to the proxy contract
     let mut funds_to_proxy = Coins::try_from(info.funds.clone()).unwrap();
-    for coin in funds_for_install.clone() {
+    for coin in funds_for_install
+        .clone()
+        .into_iter()
+        .chain(funds_for_namespace_fee.clone().into_iter())
+    {
         funds_to_proxy.sub(coin).map_err(|_| {
             AbstractError::Fee(format!(
                 "Invalid fee payment sent. Expected {:?}, sent {:?}",
@@ -163,7 +179,7 @@ pub fn execute_create_account(
     // Add Account base to version_control
     let add_account_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.version_control_contract.to_string(),
-        funds: vec![],
+        funds: funds_for_namespace_fee,
         msg: to_json_binary(&VCExecuteMsg::AddAccount {
             account_id: proxy_message.account_id.clone(),
             account_base: context.account_base,

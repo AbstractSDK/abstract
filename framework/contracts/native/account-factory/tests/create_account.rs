@@ -17,6 +17,7 @@ use abstract_interface::{
 };
 use abstract_testing::addresses::TEST_ACCOUNT_ID;
 use abstract_testing::prelude::TEST_OWNER;
+use cosmwasm_std::coin;
 use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_orch::deploy::Deploy;
@@ -65,6 +66,7 @@ fn create_one_account() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
+        &[],
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
@@ -118,6 +120,7 @@ fn create_two_account_s() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
+        &[],
     )?;
     // second account
     let account_2 = factory.create_account(
@@ -131,6 +134,7 @@ fn create_two_account_s() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
+        &[],
     )?;
 
     let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
@@ -194,6 +198,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
+        &[],
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
@@ -246,6 +251,7 @@ fn sender_is_not_admin_external() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("http://account_link_of_at_least_11_char")),
         None,
+        &[],
     )?;
 
     let account = AbstractAccount::new(&deployment, Some(TEST_ACCOUNT_ID));
@@ -287,6 +293,7 @@ fn create_one_account_with_base_asset() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
+        &[],
     )?;
 
     let proxy_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
@@ -325,6 +332,76 @@ fn create_one_account_with_namespace() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         Some(namespace_to_claim.to_string()),
+        &[],
+    )?;
+
+    let manager_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
+    let proxy_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
+
+    // We need to check if the namespace is associated with this account
+    let namespace = version_control.namespace(Namespace::new(namespace_to_claim)?)?;
+
+    assert_that!(&namespace).is_equal_to(&NamespaceResponse {
+        account_id: TEST_ACCOUNT_ID,
+        account_base: AccountBase {
+            manager: Addr::unchecked(manager_addr),
+            proxy: Addr::unchecked(proxy_addr),
+        },
+    });
+
+    Ok(())
+}
+
+#[test]
+fn create_one_account_with_namespace_fee() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let factory = &deployment.account_factory;
+    let version_control = &deployment.version_control;
+
+    // Update namespace fee
+    let namespace_fee = coin(10, "token");
+    chain.set_balance(&sender, vec![namespace_fee.clone()])?;
+    version_control.update_config(None, Some(namespace_fee.clone()))?;
+
+    let namespace_to_claim = "namespace-to-claim";
+
+    let err = factory.create_account(
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        vec![],
+        String::from("first_account"),
+        None,
+        None,
+        Some(String::from("account_description")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
+        Some(namespace_to_claim.to_string()),
+        // Account creation fee not covered
+        &[],
+    );
+    assert!(err
+        .unwrap_err()
+        // Error type is inside contract, not the package
+        .root()
+        .to_string()
+        .contains("Invalid fee payment sent."));
+
+    // Now cover account creation fee
+    let account_creation = factory.create_account(
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        vec![],
+        String::from("first_account"),
+        None,
+        None,
+        Some(String::from("account_description")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
+        Some(namespace_to_claim.to_string()),
+        &[namespace_fee],
     )?;
 
     let manager_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
