@@ -45,11 +45,11 @@ pub trait AbstractAppBase {
         ADMIN
     }
 
-    fn base_instantiate<'a>(
+    fn base_instantiate(
         &self,
-        mut ctx: AppInstantiateCtx<'a>,
+        ctx: &mut AppInstantiateCtx,
         base_msg: BaseInstantiateMsg,
-    ) -> Result<AppInstantiateCtx<'a>, AppError> {
+    ) -> Result<(), AppError> {
         let BaseInstantiateMsg {
             ans_host_address,
             version_control_address,
@@ -91,14 +91,14 @@ pub trait AbstractAppBase {
         BASE_STATE.save(ctx.deps.storage, &state)?;
         ADMIN.set(ctx.deps_mut(), Some(account_base.manager))?;
 
-        Ok(ctx)
+        Ok(())
     }
 
-    fn base_migrate<'a>(
+    fn base_migrate(
         &self,
-        ctx: AppMigrateCtx<'a>,
+        ctx: &mut AppMigrateCtx,
         _base_msg: BaseMigrateMsg,
-    ) -> Result<AppMigrateCtx<'a>, AppError> {
+    ) -> Result<(), AppError> {
         let (name, version_string, metadata) = Self::INFO;
         let to_version = version_string.parse().unwrap();
         assert_contract_upgrade(ctx.deps.storage, name, to_version)?;
@@ -111,7 +111,7 @@ pub trait AbstractAppBase {
         )?;
         set_contract_version(ctx.deps.storage, name, version_string)?;
 
-        Ok(ctx)
+        Ok(())
     }
 
     #[msg(exec)]

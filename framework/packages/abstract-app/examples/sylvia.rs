@@ -34,11 +34,11 @@ impl SylviaContract<'_> {
     }
 
     #[msg(instantiate)]
-    pub fn instantiate<'a>(
+    pub fn instantiate(
         &self,
-        mut ctx: AppInstantiateCtx<'a>,
+        ctx: &mut AppInstantiateCtx,
         couter_init: u64,
-    ) -> Result<AppInstantiateCtx<'a>, AppError> {
+    ) -> Result<(), AppError> {
         self.counter.save(ctx.deps.storage, &couter_init)?;
 
         let amount = coins(145, "ujuno");
@@ -85,17 +85,13 @@ impl SylviaContract<'_> {
         }));
         ctx.add_event("abstract_execution", vec![("action", "test-event-value")]);
 
-        Ok(ctx)
+        Ok(())
     }
 
     #[msg(migrate)]
-    pub fn migrate<'a>(
-        &self,
-        ctx: AppMigrateCtx<'a>,
-        new_counter: u64,
-    ) -> Result<AppMigrateCtx<'a>, AppError> {
+    pub fn migrate(&self, ctx: &mut AppMigrateCtx, new_counter: u64) -> Result<(), AppError> {
         self.counter.save(ctx.deps.storage, &new_counter)?;
-        Ok(ctx)
+        Ok(())
     }
 
     #[msg(exec)]
@@ -133,6 +129,38 @@ impl AbstractAppBase for SylviaContract<'_> {
     const DEPENDENCIES: &'static [abstract_core::objects::dependency::StaticDependency] = &[];
 }
 
+pub mod ibc_callbacks {
+    use abstract_app::better_sdk::contexts::AppExecCtx;
+    use abstract_sdk::AbstractSdkError;
+    use cosmwasm_std::{Response, StdError};
+    use sylvia::interface;
+
+    #[interface]
+    pub trait IbcCallback {
+        type Error: From<StdError> + From<AbstractSdkError>;
+
+        #[msg(exec)]
+        fn dex_callback(
+            &self,
+            ctx: AppExecCtx,
+            callback_msg: Option<cosmwasm_std::Binary>,
+            result: polytone::callbacks::Callback,
+        ) -> Result<Response, AbstractSdkError> {
+            Ok(Response::new())
+        }
+
+        #[msg(exec)]
+        fn random_callback(
+            &self,
+            ctx: AppExecCtx,
+            callback_msg: Option<cosmwasm_std::Binary>,
+            result: polytone::callbacks::Callback,
+        ) -> Result<Response, AbstractSdkError> {
+            Ok(Response::new())
+        }
+    }
+}
+
 fn main() {
     test::main();
 }
@@ -143,6 +171,7 @@ pub mod test {
     use crate::sv::{
         ContractExecMsg, ContractQueryMsg, ExecMsg, ImplInstantiateMsg, InstantiateMsg, QueryMsg,
     };
+
     use abstract_app::better_sdk::sdk::sv::AbstractAppBaseExecMsg;
     use abstract_core::app::BaseInstantiateMsg;
     use abstract_testing::addresses::{
@@ -151,6 +180,7 @@ pub mod test {
     use abstract_testing::mock_querier;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{from_json, Attribute};
+
     pub fn main() {
         let mut deps = mock_dependencies();
         deps.querier = mock_querier();

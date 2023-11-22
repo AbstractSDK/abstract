@@ -18,11 +18,11 @@ macro_rules! gen_app_better_mock {
         use ::cw_orch::prelude::*;
         use ::sylvia::{contract, entry_points};
 
-        pub struct $name<'a> {
+        pub struct Contract<'a> {
             _marker: std::marker::PhantomData<&'a ()>,
         }
 
-        impl Default for $name<'_> {
+        impl Default for Contract<'_> {
             fn default() -> Self {
                 Self {
                     _marker: std::marker::PhantomData,
@@ -35,16 +35,13 @@ macro_rules! gen_app_better_mock {
         #[contract_type(::abstract_app::better_sdk::sdk::AbstractApp)]
         #[error(::abstract_app::AppError)]
         #[messages(::abstract_app::better_sdk::sdk as Base)]
-        impl $name<'_> {
+        impl Contract<'_> {
             pub fn new() -> Self {
                 Self::default()
             }
 
             #[msg(instantiate)]
-            pub fn instantiate<'a>(
-                &self,
-                mut ctx: AppInstantiateCtx<'a>,
-            ) -> Result<AppInstantiateCtx<'a>, AppError> {
+            pub fn instantiate(&self, ctx: &mut AppInstantiateCtx) -> Result<(), AppError> {
                 ctx.set_data("mock_init".as_bytes());
                 // See test `create_sub_account_with_installed_module` where this will be triggered.
                 if Self::INFO.0 == "tester:mock-app1" {
@@ -72,10 +69,8 @@ macro_rules! gen_app_better_mock {
                             &::cosmwasm_std::Addr::unchecked("test_addr"),
                         )?;
                     }
-                    Ok(ctx)
-                } else {
-                    Ok(ctx)
                 }
+                Ok(())
             }
 
             #[msg(exec)]
@@ -89,19 +84,48 @@ macro_rules! gen_app_better_mock {
             }
 
             #[msg(migrate)]
-            fn mock_migrate<'a>(
-                &self,
-                mut ctx: AppMigrateCtx<'a>,
-            ) -> Result<AppMigrateCtx<'a>, AppError> {
-                Ok(ctx)
+            fn mock_migrate<'a>(&self, ctx: &mut AppMigrateCtx<'a>) -> Result<(), AppError> {
+                Ok(())
             }
         }
 
-        impl AbstractAppBase for $name<'_> {
+        impl AbstractAppBase for Contract<'_> {
             type Error = AppError;
             const INFO: ContractInfo = ($id, $version, None);
             const DEPENDENCIES: &'static [abstract_core::objects::dependency::StaticDependency] =
                 $deps;
+        }
+
+        use ::cosmwasm_std::Empty;
+        use ::cw_orch::{
+            contract::interface_traits::Uploadable, mock::Mock, prelude::ContractWrapper,
+        };
+
+        use entry_points::{execute, instantiate, migrate, query};
+        use sv::{ExecMsg, InstantiateMsg, QueryMsg};
+
+        #[cw_orch::interface(InstantiateMsg, ExecMsg, QueryMsg, Empty)]
+        pub struct $name;
+
+        impl ::abstract_interface::AppDeployer<Mock> for $name<Mock> {}
+
+        impl Uploadable for $name<Mock> {
+            fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+                Box::new(
+                    ContractWrapper::<_, _, _, _, _, _>::new_with_empty(
+                        execute,
+                        instantiate,
+                        query,
+                    )
+                    .with_migrate(migrate),
+                )
+            }
+        }
+
+        impl<Chain: ::cw_orch::environment::CwEnv> $name<Chain> {
+            pub fn new_test(chain: Chain) -> Self {
+                Self(cw_orch::contract::Contract::new($id, chain))
+            }
         }
     };
 }

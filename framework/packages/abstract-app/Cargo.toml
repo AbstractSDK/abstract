@@ -33,6 +33,7 @@ cw-orch = { workspace = true, optional = true }
 # Keep this as a version and update when publishing new versions
 abstract-interface = { path = "../../packages/abstract-interface", version = "0.19.2", optional = true }
 sylvia = { workspace = true }
+polytone.workspace = true
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

@@ -6,7 +6,7 @@ use common::{create_default_account, AResult};
 use cosmwasm_std::Addr;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
-use interface::MockApp;
+use mock_app::MockApp;
 use speculoos::prelude::*;
 
 pub mod mock_app {
@@ -16,37 +16,6 @@ pub mod mock_app {
 }
 use crate::mock_app::APP_ID;
 use crate::mock_app::APP_VERSION;
-
-pub mod interface {
-    use cosmwasm_std::Empty;
-    use cw_orch::{contract::interface_traits::Uploadable, mock::Mock, prelude::ContractWrapper};
-
-    use crate::mock_app::{
-        entry_points::{execute, instantiate, migrate, query},
-        sv::{ExecMsg, InstantiateMsg, QueryMsg},
-        APP_ID,
-    };
-
-    #[cw_orch::interface(InstantiateMsg, ExecMsg, QueryMsg, Empty)]
-    pub struct MockApp;
-
-    impl ::abstract_interface::AppDeployer<Mock> for MockApp<Mock> {}
-
-    impl Uploadable for MockApp<Mock> {
-        fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
-            Box::new(
-                ContractWrapper::<_, _, _, _, _, _>::new_with_empty(execute, instantiate, query)
-                    .with_migrate(migrate),
-            )
-        }
-    }
-
-    impl<Chain: ::cw_orch::environment::CwEnv> MockApp<Chain> {
-        pub fn new_test(chain: Chain) -> Self {
-            Self(cw_orch::contract::Contract::new(APP_ID, chain))
-        }
-    }
-}
 
 #[test]
 fn account_install_app() -> AResult {
