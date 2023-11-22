@@ -37,7 +37,7 @@ mod test {
         match query {
             QueryRequest::Wasm(WasmQuery::Raw { contract_addr, key }) => {
                 assert_eq!(contract_addr, "contract");
-                // namespace length, namespace, key 
+                // namespace length, namespace, key
                 assert_eq!(key, cosmwasm_std::Binary::from(b"\x00\x03map\x04"));
             }
             _ => panic!("Unexpected query"),
