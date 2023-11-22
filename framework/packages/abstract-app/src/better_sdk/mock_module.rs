@@ -1,6 +1,6 @@
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{feature_objects::AnsHost, AbstractSdkResult};
-use abstract_testing::addresses::{TEST_PROXY, TEST_MODULE_ID};
+use abstract_testing::addresses::{TEST_MODULE_ID, TEST_PROXY};
 use cosmwasm_std::{
     Addr, Attribute, Binary, CustomQuery, DepsMut, Empty, Env, Event, MessageInfo, Response,
 };
@@ -107,7 +107,12 @@ impl<'a> AbstractNameService for MockCtx<'a> {
 }
 
 impl<'a> Dependencies for MockCtx<'a> {
-    fn dependencies(&self) -> Result<Vec<abstract_core::objects::dependency::Dependency>, abstract_sdk::AbstractSdkError> {
-        Ok(vec![(&StaticDependency::new(TEST_MODULE_ID, &["^1.0.0"])).into()])
+    fn dependencies(
+        &self,
+    ) -> Result<Vec<abstract_core::objects::dependency::Dependency>, abstract_sdk::AbstractSdkError>
+    {
+        Ok(vec![
+            (&StaticDependency::new(TEST_MODULE_ID, &["^1.0.0"])).into()
+        ])
     }
 }

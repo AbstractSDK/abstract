@@ -3,7 +3,7 @@ use abstract_sdk::{feature_objects::AnsHost, AbstractSdkResult};
 use cosmwasm_std::{
     Addr, Attribute, Binary, CustomQuery, DepsMut, Empty, Env, Event, MessageInfo, Response,
 };
-use cw2::{ContractVersion, get_contract_version};
+use cw2::{get_contract_version, ContractVersion};
 
 use crate::AppError;
 
@@ -105,11 +105,8 @@ impl<'a> AbstractNameService for AppInstantiateCtx<'a> {
     }
 }
 impl<'a> ModuleIdentification for AppInstantiateCtx<'a> {
-    fn module_id(&self) -> Result<String, AbstractSdkError>{
-        let ContractVersion {
-            contract,
-            ..
-        } = get_contract_version(self.deps().storage)?;
+    fn module_id(&self) -> Result<String, AbstractSdkError> {
+        let ContractVersion { contract, .. } = get_contract_version(self.deps().storage)?;
         Ok(contract)
     }
 }

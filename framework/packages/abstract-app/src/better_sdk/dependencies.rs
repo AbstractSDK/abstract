@@ -1,6 +1,5 @@
-use abstract_core::objects::dependency::{Dependency};
+use abstract_core::objects::dependency::Dependency;
 use abstract_sdk::AbstractSdkError;
-
 
 /// Retrieve the dependencies of a module.
 pub trait Dependencies: Sized {

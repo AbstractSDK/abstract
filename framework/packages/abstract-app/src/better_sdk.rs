@@ -1,13 +1,13 @@
 pub mod account_identification;
 pub mod bank;
 pub mod contexts;
+pub mod dependencies;
 pub mod execution;
 pub mod execution_stack;
 pub mod mock_app;
 pub mod mock_module;
 pub mod module_identification;
 pub mod modules;
-pub mod dependencies;
 pub mod nameservice;
 pub mod sdk;
 

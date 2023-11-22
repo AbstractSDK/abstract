@@ -3,16 +3,18 @@ use abstract_core::{
     app::{AppConfigResponse, BaseInstantiateMsg, BaseMigrateMsg},
     module_factory::{ContextResponse, QueryMsg as FactoryQuery},
     objects::{
-        dependency::{StaticDependency, Dependency},
+        dependency::{Dependency, StaticDependency},
         module::ModuleId,
         module_version::{assert_contract_upgrade, set_module_data, ModuleDataResponse, MODULE},
-    }, IBC_CLIENT,
+    },
+    IBC_CLIENT,
 };
 use abstract_sdk::{
     base::VersionString,
     cw_helpers::wasm_smart_query,
     feature_objects::{AnsHost, VersionControlContract},
-    namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE}, AbstractSdkError,
+    namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE},
+    AbstractSdkError,
 };
 use cosmwasm_std::{Response, StdError};
 use cw2::set_contract_version;
@@ -21,7 +23,8 @@ use cw_storage_plus::Item;
 
 use super::{
     contexts::{AppInstantiateCtx, AppMigrateCtx, AppQueryCtx},
-    execution_stack::DepsAccess, modules::ModuleInterface,
+    execution_stack::DepsAccess,
+    modules::ModuleInterface,
 };
 
 pub trait SylviaAbstractContract {
@@ -29,26 +32,28 @@ pub trait SylviaAbstractContract {
     type BaseMigrateMsg: 'static;
 }
 
-
 pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 pub const BASE_STATE: Item<'static, AppState> = Item::new(BASE_STATE_NAMESPACE);
 // This storage is supposed to be immutable
 pub const DEPENDENCIES_NAMESPACE: &str = "abstract_dependencies";
 pub const DEPENDENCIES: Item<'static, Vec<Dependency>> = Item::new(DEPENDENCIES_NAMESPACE);
 
-
-pub struct ModuleStateInfo{
+pub struct ModuleStateInfo {
     pub name: ModuleId<'static>,
     pub version: VersionString,
-    pub metadata: Option<&'static str>
+    pub metadata: Option<&'static str>,
 }
 
-impl ModuleStateInfo{
-    pub const fn new(name: &'static str, version: &'static str, metadata: Option<&'static str>) -> Self{
-        Self{
+impl ModuleStateInfo {
+    pub const fn new(
+        name: &'static str,
+        version: &'static str,
+        metadata: Option<&'static str>,
+    ) -> Self {
+        Self {
             name,
             version,
-            metadata
+            metadata,
         }
     }
 }
@@ -64,11 +69,7 @@ pub trait AbstractAppBase {
         ADMIN
     }
 
-    fn base_ibc(
-        &self,
-        ctx: AppExecCtx,
-    ) -> Result<(), AppError>{
-
+    fn base_ibc(&self, ctx: AppExecCtx) -> Result<(), AppError> {
         let ibc_client = ctx.modules().module_address(IBC_CLIENT)?;
         if ctx.info.sender.ne(&ibc_client) {
             return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
@@ -107,7 +108,11 @@ pub trait AbstractAppBase {
 
         let account_base = resp.account_base;
 
-        let ModuleStateInfo {name, version, metadata} = Self::INFO;
+        let ModuleStateInfo {
+            name,
+            version,
+            metadata,
+        } = Self::INFO;
         // Base state
         let state = AppState {
             proxy_address: account_base.proxy.clone(),
@@ -135,7 +140,11 @@ pub trait AbstractAppBase {
         ctx: &mut AppMigrateCtx,
         _base_msg: BaseMigrateMsg,
     ) -> Result<(), AppError> {
-        let ModuleStateInfo {name, version: version_string, metadata} = Self::INFO;
+        let ModuleStateInfo {
+            name,
+            version: version_string,
+            metadata,
+        } = Self::INFO;
 
         let to_version = version_string.parse().unwrap();
         assert_contract_upgrade(ctx.deps.storage, name, to_version)?;

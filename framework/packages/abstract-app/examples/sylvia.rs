@@ -4,7 +4,6 @@ use abstract_app::better_sdk::{
     contexts::{AppExecCtx, AppInstantiateCtx, AppMigrateCtx, AppQueryCtx},
     execution::Execution,
 };
-use abstract_sdk::AbstractSdkError;
 use abstract_app::AppError;
 use cosmwasm_std::{coins, ensure, Addr, BankMsg, CosmosMsg, ReplyOn, StdError};
 use cw_storage_plus::Item;
@@ -163,7 +162,7 @@ pub mod ibc_callbacks {
     }
 }
 
-impl ibc_callbacks::IbcCallback for SylviaContract<'_>{
+impl ibc_callbacks::IbcCallback for SylviaContract<'_> {
     type Error = AppError;
 }
 

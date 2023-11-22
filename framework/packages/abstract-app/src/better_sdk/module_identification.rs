@@ -1,4 +1,3 @@
-use abstract_core::objects::module::ModuleId;
 use abstract_sdk::AbstractSdkError;
 
 /// Return the identifier for this module.

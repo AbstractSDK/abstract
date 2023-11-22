@@ -3,10 +3,10 @@ macro_rules! gen_app_better_mock {
     ($name:ident,$id:expr, $version:expr, $deps:expr) => {
         use ::abstract_app::better_sdk::{
             account_identification::AccountIdentification,
-            module_identification::ModuleIdentification,
             bank::TransferInterface,
             contexts::{AppExecCtx, AppInstantiateCtx, AppMigrateCtx, AppQueryCtx},
             execution_stack::CustomData,
+            module_identification::ModuleIdentification,
             sdk::AbstractAppBase,
             sdk::ModuleStateInfo,
         };
@@ -92,10 +92,10 @@ macro_rules! gen_app_better_mock {
 
         impl AbstractAppBase for Contract<'_> {
             type Error = AppError;
-            const INFO: ModuleStateInfo = ModuleStateInfo{
+            const INFO: ModuleStateInfo = ModuleStateInfo {
                 name: $id,
                 version: $version,
-                metadata: None
+                metadata: None,
             };
             const DEPENDENCIES: &'static [abstract_core::objects::dependency::StaticDependency] =
                 $deps;

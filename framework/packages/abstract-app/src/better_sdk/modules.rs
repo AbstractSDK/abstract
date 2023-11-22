@@ -2,11 +2,14 @@
 //! The Module interface provides helper functions to execute functions on other modules installed on the Account.
 
 use abstract_core::{manager::state::ACCOUNT_MODULES, objects::module::ModuleId};
-use abstract_sdk::{AbstractSdkResult, AbstractSdkError};
-use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
+use abstract_sdk::{AbstractSdkError, AbstractSdkResult};
+use cosmwasm_std::{Addr, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 
-use super::{account_identification::AccountIdentification, dependencies::Dependencies, execution_stack::DepsAccess};
+use super::{
+    account_identification::AccountIdentification, dependencies::Dependencies,
+    execution_stack::DepsAccess,
+};
 
 /// Interact with other modules on the Account.
 pub trait ModuleInterface: AccountIdentification + Dependencies + DepsAccess {
