@@ -1,5 +1,5 @@
 use calendar_app::contract::APP_ID;
-use calendar_app::AppInterface;
+use calendar_app::CalendarAppInterface;
 
 use cw_orch::prelude::*;
 
@@ -14,7 +14,7 @@ fn successful_wasm() {
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = AppInterface::new(APP_ID, mock);
+    let contract = CalendarAppInterface::new(APP_ID, mock);
     // Panics if no path to a .wasm file is found
     contract.wasm();
 }
