@@ -14,7 +14,7 @@ use cw_orch::prelude::*;
 fn creating_on_subaccount_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     account.manager.create_sub_account(
         vec![],
@@ -32,7 +32,8 @@ fn creating_on_subaccount_should_succeed() -> AResult {
             // only one sub-account and it should be account_id 2
             sub_accounts: vec![2]
         }
-    );
+    );    
+    take_storage_snapshot!(chain, "creating_on_subaccount_should_succeed");
     Ok(())
 }
 
@@ -40,7 +41,7 @@ fn creating_on_subaccount_should_succeed() -> AResult {
 fn updating_on_subaccount_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     account.manager.create_sub_account(
         vec![],
@@ -64,7 +65,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
         Some(new_desc.to_string()),
         account_contracts.0.info()?.info.description
     );
-
+    take_storage_snapshot!(chain, "updating_on_subaccount_should_succeed");
     Ok(())
 }
 
@@ -72,7 +73,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
 fn proxy_updating_on_subaccount_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let proxy_address = account.proxy.address()?;
     account.manager.create_sub_account(
@@ -100,6 +101,7 @@ fn proxy_updating_on_subaccount_should_succeed() -> AResult {
         sub_manager.info()?.info.description
     );
 
+    take_storage_snapshot!(chain, "proxy_updating_on_subaccount_should_succeed");
     Ok(())
 }
 
@@ -107,7 +109,7 @@ fn proxy_updating_on_subaccount_should_succeed() -> AResult {
 fn recursive_updating_on_subaccount_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     account.manager.create_sub_account(
         vec![],
@@ -147,6 +149,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
         account_contracts.0.info()?.info.description
     );
 
+    take_storage_snapshot!(chain, "recursive_updating_on_subaccount_should_succeed");
     Ok(())
 }
 
@@ -154,7 +157,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
 fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     account.manager.create_sub_account(
         vec![],
@@ -200,6 +203,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
         Some(new_desc.to_string()),
         sub_manager.info()?.info.description
     );
+    take_storage_snapshot!(chain, "installed_app_updating_on_subaccount_should_succeed");
 
     Ok(())
 }
@@ -267,6 +271,7 @@ fn sub_account_move_ownership() -> AResult {
             sub_accounts: vec![]
         }
     );
+    take_storage_snapshot!(chain, "sub_account_move_ownership");
 
     Ok(())
 }
@@ -325,6 +330,7 @@ fn account_move_ownership_to_sub_account() -> AResult {
     let new_account = AbstractAccount::new(&deployment, Some(AccountId::local(3)));
     let info = new_account.manager.info()?.info;
     assert_eq!(new_governance, info.governance_details.into());
+    take_storage_snapshot!(chain, "account_move_ownership_to_sub_account");
 
     Ok(())
 }
@@ -403,6 +409,8 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     let new_account_sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(4)));
     let info = new_account_sub_account.manager.info()?.info;
     assert_eq!(new_governance, info.governance_details.into());
+    take_storage_snapshot!(chain, "sub_account_move_ownership_to_sub_account");
+
     Ok(())
 }
 
@@ -435,5 +443,6 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
     let err = new_account.manager.set_owner(new_governance).unwrap_err();
     let err = err.root().to_string();
     assert!(err.contains("manager and proxy has different account ids"));
+    take_storage_snapshot!(chain, "account_move_ownership_to_falsy_sub_account");
     Ok(())
 }

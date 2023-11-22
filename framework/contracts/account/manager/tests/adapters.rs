@@ -23,7 +23,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
+    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None)?;
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
@@ -49,6 +49,8 @@ fn installing_one_adapter_should_succeed() -> AResult {
     let authorized = staking_adapter.authorized_addresses(account.proxy.addr_str()?)?;
     assert_that!(authorized)
         .is_equal_to(adapter::AuthorizedAddressesResponse { addresses: vec![] });
+
+    take_storage_snapshot!(chain, "install_one_adapter");
 
     Ok(())
 }
@@ -90,7 +92,7 @@ fn installing_one_adapter_with_fee_should_succeed() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     init_mock_adapter(chain.clone(), &deployment, None)?;
     add_mock_adapter_install_fee(
-        chain,
+        chain.clone(),
         &deployment,
         Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
         None,
@@ -102,6 +104,9 @@ fn installing_one_adapter_with_fee_should_succeed() -> AResult {
         &coins(45, "ujunox")
     ))
     .is_ok();
+
+    take_storage_snapshot!(chain, "install_one_adapter_with_fee");
+
 
     Ok(())
 }
@@ -180,7 +185,7 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
+    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None)?;
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
@@ -206,6 +211,7 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
     account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
+    take_storage_snapshot!(chain, "reinstalling_adapter_should_be_allowed");
 
     Ok(())
 }
@@ -247,7 +253,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     let old_adapter_addr = adapter1.address()?;
 
-    let adapter2 = BootMockAdapter1V2::new_test(chain);
+    let adapter2 = BootMockAdapter1V2::new_test(chain.clone());
 
     adapter2
         .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
@@ -279,6 +285,8 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     assert_ne!(old_adapter_addr, adapter2.address()?);
 
     assert_that!(modules[1].address).is_equal_to(adapter2.as_instance().address()?);
+    take_storage_snapshot!(chain, "reinstalling_new_version_should_install_latest");
+
 
     Ok(())
 }
@@ -352,7 +360,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
 
     let v1_adapter_addr = adapter1.address()?;
 
-    let adapter2 = BootMockAdapter1V2::new_test(chain);
+    let adapter2 = BootMockAdapter1V2::new_test(chain.clone());
 
     adapter2
         .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
@@ -371,6 +379,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let modules = account.expect_modules(vec![v1_adapter_addr.to_string()])?;
     let installed_module: ManagerModuleInfo = modules[1].clone();
     assert_that!(installed_module.id).is_equal_to(adapter1.id());
+    take_storage_snapshot!(chain, "installing_specific_version_should_install_expected");
 
     Ok(())
 }
@@ -386,7 +395,7 @@ fn account_install_adapter() -> AResult {
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
-    let adapter = BootMockAdapter1V1::new_test(chain);
+    let adapter = BootMockAdapter1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
     let adapter_addr = account.install_adapter(&adapter, None)?;
     let module_addr = account
@@ -395,5 +404,6 @@ fn account_install_adapter() -> AResult {
         .unwrap()
         .address;
     assert_that!(adapter_addr).is_equal_to(module_addr);
+    take_storage_snapshot!(chain, "account_install_adapter");
     Ok(())
 }
