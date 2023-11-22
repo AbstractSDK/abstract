@@ -7,7 +7,7 @@ use abstract_sdk::{
     },
     core::version_control::AccountBase,
     feature_objects::{AnsHost, VersionControlContract},
-    namespaces::BASE_STATE,
+    namespaces::BASE_STATE_NAMESPACE,
     AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
@@ -68,7 +68,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     ) -> Self {
         Self {
             contract: AbstractContract::new(name, version, metadata),
-            base_state: Item::new(BASE_STATE),
+            base_state: Item::new(BASE_STATE_NAMESPACE),
             authorized_addresses: Map::new(AUTHORIZED_ADDRESSES_NAMESPACE),
             target_account: None,
         }

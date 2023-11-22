@@ -233,8 +233,6 @@ impl Transferable for Coin {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::better_sdk::execution::Executor;
-    use crate::better_sdk::execution::ExecutorMsg;
     use crate::better_sdk::mock_module::MockCtx;
     use abstract_sdk::AbstractSdkError;
     use abstract_testing::prelude::*;

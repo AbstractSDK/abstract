@@ -1,7 +1,7 @@
 use crate::{better_sdk::contexts::AppExecCtx, state::AppState, AppError};
 use abstract_core::{
     app::{AppConfigResponse, BaseInstantiateMsg, BaseMigrateMsg},
-    module_factory::ContextResponse,
+    module_factory::{ContextResponse, QueryMsg as FactoryQuery},
     objects::{
         dependency::StaticDependency,
         module::ModuleId,
@@ -10,11 +10,11 @@ use abstract_core::{
 };
 use abstract_sdk::{
     base::VersionString,
+    cw_helpers::wasm_smart_query,
     feature_objects::{AnsHost, VersionControlContract},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE},
 };
-use abstract_testing::addresses::{TEST_MANAGER, TEST_PROXY};
-use cosmwasm_std::{Addr, Response, StdError};
+use cosmwasm_std::{Response, StdError};
 use cw2::set_contract_version;
 use cw_controllers::{Admin, AdminResponse};
 use cw_storage_plus::Item;
@@ -41,6 +41,10 @@ pub trait AbstractAppBase {
     const INFO: ContractInfo;
     const DEPENDENCIES: &'static [StaticDependency];
 
+    fn admin(&self) -> Admin {
+        ADMIN
+    }
+
     fn base_instantiate<'a>(
         &self,
         mut ctx: AppInstantiateCtx<'a>,
@@ -60,18 +64,10 @@ pub trait AbstractAppBase {
         // TODO: Would be nice to remove context
         // Issue: We can't pass easily AccountBase with BaseInstantiateMsg (right now)
 
-        // TODO, I don't know how to test that in an actual context. So I use the mock values here
-        // Caller is factory so get proxy and manager (admin) from there
-        // let resp: ContextResponse = deps.querier.query(&wasm_smart_query(
-        //     info.sender.to_string(),
-        //     &FactoryQuery::Context {},
-        // )?)?;
-        let resp = ContextResponse {
-            account_base: abstract_core::version_control::AccountBase {
-                manager: Addr::unchecked(TEST_MANAGER),
-                proxy: Addr::unchecked(TEST_PROXY),
-            },
-        };
+        let resp: ContextResponse = ctx.deps.querier.query(&wasm_smart_query(
+            ctx.info.sender.to_string(),
+            &FactoryQuery::Context {},
+        )?)?;
 
         let account_base = resp.account_base;
 

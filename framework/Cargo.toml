@@ -91,6 +91,11 @@ abstract-adapter-utils = { version = "0.19.2", path = "packages/standards/utils"
 abstract-dex-standard = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 
+# Sylvia
+sylvia = { version = "0.9.0", git = "https://github.com/AbstractSDK/sylvia", rev = "0a62626" } #branch="update/abstract-contract",
+# sylvia = { version = "0.9.0", path = "../../../../sylvia/sylvia" } #branch="update/abstract-contract",
+
+
 ## Testing
 cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"
