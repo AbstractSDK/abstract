@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `Astrovault` integrated into dex and cw-staking adapters
 - `AuthZ` API added
 - Interchain Abstract Accounts can now be created!
+- Added snapshot tests
 
 ### Changed
 

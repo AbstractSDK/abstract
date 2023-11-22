@@ -18,6 +18,7 @@ use cosmwasm_std::Addr;
 use cw_orch::{
     deploy::Deploy,
     prelude::{CwOrchExecute, CwOrchQuery, Mock},
+    take_storage_snapshot,
 };
 
 #[test]
@@ -93,5 +94,6 @@ fn adds_module_to_account_modules() -> AResult {
         ids: vec![adapter_1::MOCK_ADAPTER_ID.to_owned()],
     })?;
     assert_eq!(addrs.modules.len(), 1);
+    take_storage_snapshot!(chain, "adds_module_to_account_modules");
     Ok(())
 }
