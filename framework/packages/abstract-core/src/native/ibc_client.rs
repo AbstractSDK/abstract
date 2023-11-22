@@ -1,7 +1,8 @@
 use crate::{
     ibc::CallbackInfo,
     ibc_host::HostAction,
-    objects::{account::AccountId, chain_name::ChainName},
+    manager::ModuleInstallConfig,
+    objects::{account::AccountId, chain_name::ChainName, AssetEntry},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Coin, Empty, QueryRequest};
@@ -100,6 +101,9 @@ pub enum ExecuteMsg {
     /// This action creates a proxy for them on the remote chain.
     Register {
         host_chain: String,
+        base_asset: Option<AssetEntry>,
+        namespace: Option<String>,
+        install_modules: Vec<ModuleInstallConfig>,
     },
     RemoteAction {
         // host chain to be executed on

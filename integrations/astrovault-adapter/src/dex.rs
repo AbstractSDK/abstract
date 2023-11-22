@@ -608,7 +608,7 @@ impl DexCommand for Astrovault {
                 Ok((
                     swap_to_assets_amount.pop().unwrap_or_default(),
                     Uint128::zero(),
-                    assets_fee_amount.pop().unwrap_or_default(),
+                    swap_to_assets_amount.pop().unwrap_or_default(),
                     false,
                 ))
             }
