@@ -230,7 +230,7 @@ fn install_standalone_modules() -> AResult {
         "abstract:standalone2",
         Some(&mock_modules::standalone_no_cw2::MockMsg),
         None,
-    )?;    
+    )?;
     take_storage_snapshot!(chain, "proxy_install_standalone_modules");
     Ok(())
 }

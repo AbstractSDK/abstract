@@ -107,7 +107,6 @@ fn installing_one_adapter_with_fee_should_succeed() -> AResult {
 
     take_storage_snapshot!(chain, "install_one_adapter_with_fee");
 
-
     Ok(())
 }
 
@@ -286,7 +285,6 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     assert_that!(modules[1].address).is_equal_to(adapter2.as_instance().address()?);
     take_storage_snapshot!(chain, "reinstalling_new_version_should_install_latest");
-
 
     Ok(())
 }

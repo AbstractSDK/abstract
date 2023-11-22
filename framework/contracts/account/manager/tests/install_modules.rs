@@ -17,7 +17,8 @@ use common::{
 use cosmwasm_std::Addr;
 use cw_orch::{
     deploy::Deploy,
-    prelude::{CwOrchExecute, CwOrchQuery, Mock}, take_storage_snapshot,
+    prelude::{CwOrchExecute, CwOrchQuery, Mock},
+    take_storage_snapshot,
 };
 
 #[test]

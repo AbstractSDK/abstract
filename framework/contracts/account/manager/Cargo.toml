@@ -40,7 +40,7 @@ cw-ownable = { workspace = true }
 [dev-dependencies]
 cw20 = { workspace = true }
 abstract-interface = { workspace = true }
-cw-orch = { workspace = true, features= ["snapshot-testing"] }
+cw-orch = { workspace = true, features = ["snapshot-testing"] }
 anyhow = { workspace = true }
 account-factory = { workspace = true }
 ans-host = { workspace = true }

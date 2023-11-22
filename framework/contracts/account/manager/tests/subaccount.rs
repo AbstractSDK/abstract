@@ -32,7 +32,7 @@ fn creating_on_subaccount_should_succeed() -> AResult {
             // only one sub-account and it should be account_id 2
             sub_accounts: vec![2]
         }
-    );    
+    );
     take_storage_snapshot!(chain, "creating_on_subaccount_should_succeed");
     Ok(())
 }
