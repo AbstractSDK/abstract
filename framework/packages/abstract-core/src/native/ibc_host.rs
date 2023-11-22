@@ -9,7 +9,8 @@
 
 use crate::{
     manager,
-    objects::{account::AccountId, chain_name::ChainName},
+    manager::ModuleInstallConfig,
+    objects::{account::AccountId, chain_name::ChainName, AssetEntry},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
@@ -72,6 +73,9 @@ pub enum InternalAction {
         name: String,
         description: Option<String>,
         link: Option<String>,
+        base_asset: Option<AssetEntry>,
+        namespace: Option<String>,
+        install_modules: Vec<ModuleInstallConfig>,
     },
 }
 

@@ -3,10 +3,10 @@ use chrono::NaiveTime;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Int64, Uint128};
 
-use crate::{contract::App, error::AppError, state::Meeting};
+use crate::{contract::CalendarApp, error::CalendarError, state::Meeting};
 
 // This is used for type safety and re-exporting the contract endpoint structs.
-abstract_app::app_msg_types!(App, AppExecuteMsg, AppQueryMsg);
+abstract_app::app_msg_types!(CalendarApp, CalendarExecuteMsg, CalendarQueryMsg);
 
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]
@@ -17,11 +17,11 @@ pub struct Time {
 }
 
 impl Time {
-    pub fn validate(&self) -> Result<(), AppError> {
+    pub fn validate(&self) -> Result<(), CalendarError> {
         if self.hour > 23 {
-            return Err(AppError::HourOutOfBounds {});
+            return Err(CalendarError::HourOutOfBounds {});
         } else if self.minute > 59 {
-            return Err(AppError::MinutesOutOfBounds {});
+            return Err(CalendarError::MinutesOutOfBounds {});
         }
         Ok(())
     }
@@ -35,7 +35,7 @@ impl From<Time> for NaiveTime {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AppInstantiateMsg {
+pub struct CalendarInstantiateMsg {
     /// The price per minute charged to determine the amount of stake necessary to request a
     /// meeting for a given length.
     pub price_per_minute: Uint128,
@@ -53,7 +53,7 @@ pub struct AppInstantiateMsg {
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
-pub enum AppExecuteMsg {
+pub enum CalendarExecuteMsg {
     #[cfg_attr(feature = "interface", payable)]
     /// Request a new meeting.
     RequestMeeting {
@@ -103,7 +103,7 @@ pub enum AppExecuteMsg {
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
-pub enum AppQueryMsg {
+pub enum CalendarQueryMsg {
     /// Returns the config.
     #[returns(ConfigResponse)]
     Config {},
@@ -113,7 +113,7 @@ pub enum AppQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum AppMigrateMsg {}
+pub enum CalendarMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {

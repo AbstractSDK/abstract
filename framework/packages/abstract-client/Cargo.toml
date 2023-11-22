@@ -26,6 +26,7 @@ thiserror.workspace = true
 
 # Used for test-utils feature
 cw-asset = { workspace = true, optional = true }
+abstract-testing = { workspace = true, optional = true }
 
 [dev-dependencies]
 abstract-client = { path = ".", features = ["test-utils"] }
