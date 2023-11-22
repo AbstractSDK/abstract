@@ -137,6 +137,7 @@ fn account_creation_full() -> anyhow::Result<()> {
         .host
         .register_chain_proxy(chain_name.into(), sender.to_string())?;
 
+    // Add chain to set base_asset
     home_abstr.ans_host.update_asset_addresses(
         vec![("juno>juno".to_owned(), "native:juno".parse().unwrap())],
         vec![],
@@ -148,6 +149,7 @@ fn account_creation_full() -> anyhow::Result<()> {
 
     assert_eq!(sender, client_proxy_response.proxy);
 
+    // Deploy app to install it during account registration
     let mock_adapter = MockAdapter::new_test(chain);
     mock_adapter.call_as(&admin).deploy(
         "1.0.0".parse().unwrap(),
