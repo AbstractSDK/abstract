@@ -129,11 +129,6 @@ pub fn query_module_version(
     module_registry
         .query_standalone_info(code_id)
         .and_then(|module_info| {
-            let module_info =
-                module_info.ok_or(abstract_sdk::AbstractSdkError::StandaloneNotFound {
-                    code_id,
-                    registry_addr: version_control.address.clone(),
-                })?;
             let version = ContractVersion::try_from(module_info)?;
             Ok(version)
         })

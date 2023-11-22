@@ -111,10 +111,15 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     }
 
     /// Queries the module info of the standalone code id
-    pub fn query_standalone_info(&self, code_id: u64) -> AbstractSdkResult<Option<ModuleInfo>> {
+    pub fn query_standalone_info(&self, code_id: u64) -> AbstractSdkResult<ModuleInfo> {
         let registry_addr = self.base.abstract_registry(self.deps)?.address;
 
-        let info = STANDALONE_INFOS.query(&self.deps.querier, registry_addr, code_id)?;
+        let info = STANDALONE_INFOS
+            .query(&self.deps.querier, registry_addr.clone(), code_id)?
+            .ok_or(AbstractSdkError::StandaloneNotFound {
+                code_id,
+                registry_addr,
+            })?;
         Ok(info)
     }
 }
