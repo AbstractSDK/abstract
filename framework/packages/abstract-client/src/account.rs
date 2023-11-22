@@ -28,6 +28,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     // TODO: Decide if we want to abstract this as well.
     governance_details: Option<GovernanceDetails<String>>,
     // TODO: How to handle install_modules?
+    fetch_account_if_namespace_claimed: bool,
 }
 
 impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
@@ -40,6 +41,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: None,
             base_asset: None,
             governance_details: None,
+            fetch_account_if_namespace_claimed: false,
         }
     }
 
@@ -68,6 +70,13 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
+    // Would it bet better to make this a "switch" by removing `value` and always setting the flag
+    // to `true`? Could be an issue where you can't turn it off for some niche case.
+    pub fn fetch_account_if_namespace_claimed(&mut self, value: bool) -> &mut Self {
+        self.fetch_account_if_namespace_claimed = value;
+        self
+    }
+
     pub fn governance_details(
         &mut self,
         governance_details: GovernanceDetails<String>,
@@ -77,6 +86,19 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
+        if self.fetch_account_if_namespace_claimed {
+            // Check if namespace already claimed
+            if let Some(ref namespace) = self.namespace {
+                let account_from_namespace_result: AbstractClientResult<Account<Chain>> =
+                    Account::from_namespace(self.abstr, namespace);
+
+                // Only return if the account can be retrieved without errors.
+                if let Ok(account_from_namespace) = account_from_namespace_result {
+                    return Ok(account_from_namespace);
+                }
+            }
+        }
+
         let sender = self.environment().sender().to_string();
         let name = self
             .name
@@ -115,11 +137,11 @@ impl<Chain: CwEnv> Account<Chain> {
 
     pub(crate) fn from_namespace(
         abstr: &Abstract<Chain>,
-        namespace: String,
+        namespace: &str,
     ) -> AbstractClientResult<Self> {
         let namespace_response: NamespaceResponse = abstr
             .version_control
-            .namespace(Namespace::new(&namespace)?)?;
+            .namespace(Namespace::new(namespace)?)?;
 
         let abstract_account: AbstractAccount<Chain> =
             AbstractAccount::new(abstr, Some(namespace_response.account_id));
