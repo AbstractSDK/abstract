@@ -28,7 +28,6 @@ use crate::mock_adapter::MockAdapter;
 use crate::mock_adapter::MOCK_ADAPTER_ID;
 
 mod mock_adapter {
-    // pub type MockAdapterContract = AdapterContract<MockError, Empty, Empty, Empty, Empty, Empty>;
     use super::*;
     use abstract_adapter::gen_adapter_mock;
 
@@ -42,36 +41,36 @@ fn account_creation() -> anyhow::Result<()> {
     let chain = Mock::new(&sender);
 
     let admin = Addr::unchecked("admin");
-    let mut admin_chain = chain.clone();
-    admin_chain.set_sender(admin.clone());
+    let mut home_chain = chain.clone();
+    home_chain.set_sender(admin.clone());
 
-    let admin_abstr = Abstract::deploy_on(admin_chain.clone(), admin.to_string())?;
+    let home_abstr = Abstract::deploy_on(home_chain.clone(), admin.to_string())?;
     let abstr = Abstract::load_from(chain.clone())?;
 
     let account_sequence = 1;
     let chain = "juno";
 
     // Verify config
-    let config_response: ConfigResponse = admin_abstr.ibc.host.config()?;
+    let config_response: ConfigResponse = home_abstr.ibc.host.config()?;
 
     assert_eq!(
         ConfigResponse {
-            ans_host_address: admin_abstr.ans_host.address()?,
-            version_control_address: admin_abstr.version_control.address()?,
-            account_factory_address: admin_abstr.account_factory.address()?,
+            ans_host_address: home_abstr.ans_host.address()?,
+            version_control_address: home_abstr.version_control.address()?,
+            account_factory_address: home_abstr.account_factory.address()?,
         },
         config_response
     );
 
     // We need to set the sender as the proxy for juno chain
-    admin_abstr
+    home_abstr
         .ibc
         .host
         .register_chain_proxy(chain.into(), sender.to_string())?;
 
     // Verify chain proxy via query
     let client_proxy_response: ClientProxyResponse =
-        admin_abstr.ibc.host.client_proxy(chain.to_owned())?;
+        home_abstr.ibc.host.client_proxy(chain.to_owned())?;
 
     assert_eq!(sender, client_proxy_response.proxy);
 
@@ -111,41 +110,41 @@ fn account_creation_full() -> anyhow::Result<()> {
     let chain = Mock::new(&sender);
 
     let admin = Addr::unchecked("admin");
-    let mut admin_chain = chain.clone();
-    admin_chain.set_sender(admin.clone());
+    let mut home_chain = chain.clone();
+    home_chain.set_sender(admin.clone());
 
-    let admin_abstr = Abstract::deploy_on(admin_chain.clone(), admin.to_string())?;
+    let home_abstr = Abstract::deploy_on(home_chain.clone(), admin.to_string())?;
     let abstr = Abstract::load_from(chain.clone())?;
 
     let account_sequence = 1;
     let chain_name = "juno";
 
     // Verify config
-    let config_response: ConfigResponse = admin_abstr.ibc.host.config()?;
+    let config_response: ConfigResponse = home_abstr.ibc.host.config()?;
 
     assert_eq!(
         ConfigResponse {
-            ans_host_address: admin_abstr.ans_host.address()?,
-            version_control_address: admin_abstr.version_control.address()?,
-            account_factory_address: admin_abstr.account_factory.address()?,
+            ans_host_address: home_abstr.ans_host.address()?,
+            version_control_address: home_abstr.version_control.address()?,
+            account_factory_address: home_abstr.account_factory.address()?,
         },
         config_response
     );
 
     // We need to set the sender as the proxy for juno chain
-    admin_abstr
+    home_abstr
         .ibc
         .host
         .register_chain_proxy(chain_name.into(), sender.to_string())?;
 
-    admin_abstr.ans_host.update_asset_addresses(
+    home_abstr.ans_host.update_asset_addresses(
         vec![("juno>juno".to_owned(), "native:juno".parse().unwrap())],
         vec![],
     )?;
 
     // Verify chain proxy via query
     let client_proxy_response: ClientProxyResponse =
-        admin_abstr.ibc.host.client_proxy(chain_name.to_owned())?;
+        home_abstr.ibc.host.client_proxy(chain_name.to_owned())?;
 
     assert_eq!(sender, client_proxy_response.proxy);
 
@@ -193,17 +192,17 @@ fn account_action() -> anyhow::Result<()> {
     let chain = Mock::new(&sender);
 
     let admin = Addr::unchecked("admin");
-    let mut admin_chain = chain.clone();
-    admin_chain.set_sender(admin.clone());
+    let mut home_chain = chain.clone();
+    home_chain.set_sender(admin.clone());
 
-    let admin_abstr = Abstract::deploy_on(admin_chain.clone(), admin.to_string())?;
+    let home_abstr = Abstract::deploy_on(home_chain.clone(), admin.to_string())?;
     let abstr = Abstract::load_from(chain.clone())?;
 
     let account_sequence = 1;
     let chain = "juno";
 
     // We need to set the sender as the proxy for juno chain
-    admin_abstr
+    home_abstr
         .ibc
         .host
         .register_chain_proxy(chain.into(), sender.to_string())?;
@@ -268,17 +267,17 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
     let chain = Mock::new(&sender);
 
     let admin = Addr::unchecked("admin");
-    let mut admin_chain = chain.clone();
-    admin_chain.set_sender(admin.clone());
+    let mut home_chain = chain.clone();
+    home_chain.set_sender(admin.clone());
 
-    let admin_abstr = Abstract::deploy_on(admin_chain.clone(), admin.to_string())?;
+    let home_abstr = Abstract::deploy_on(home_chain.clone(), admin.to_string())?;
     let abstr = Abstract::load_from(chain.clone())?;
 
     let account_sequence = 1;
     let chain = "juno";
 
     // We need to set the sender as the proxy for juno chain
-    admin_abstr
+    home_abstr
         .ibc
         .host
         .register_chain_proxy(chain.into(), sender.to_string())?;
@@ -325,10 +324,10 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     let chain = Mock::new(&sender);
 
     let admin = Addr::unchecked("admin");
-    let mut admin_chain = chain.clone();
-    admin_chain.set_sender(admin.clone());
+    let mut home_chain = chain.clone();
+    home_chain.set_sender(admin.clone());
 
-    let admin_abstr = Abstract::deploy_on(admin_chain.clone(), admin.to_string())?;
+    let home_abstr = Abstract::deploy_on(home_chain.clone(), admin.to_string())?;
     let abstr = Abstract::load_from(chain.clone())?;
 
     let account_sequence = 1;
@@ -337,13 +336,13 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     let polytone_proxy = Addr::unchecked("polytone_proxy");
 
     // We need to set the sender as the proxy for juno chain
-    admin_abstr
+    home_abstr
         .ibc
         .host
         .register_chain_proxy(chain.into(), polytone_proxy.to_string())?;
 
     // Add the juno token ics20 channel.
-    admin_abstr.ans_host.update_channels(
+    home_abstr.ans_host.update_channels(
         vec![(
             UncheckedChannelEntry {
                 connected_chain: chain.to_owned(),
