@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
 - `Astrovault` integrated into dex and cw-staking adapters
 - `AuthZ` API added
+- Added snapshot tests
 
 ### Changed
 
