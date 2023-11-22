@@ -10,7 +10,10 @@ use osmosis_std::types::osmosis::tokenfactory::v1beta1::{
 };
 use std::num::NonZeroU128;
 
-use crate::apis::stargate::token_factory::{Metadata, TokenFactoryCommand};
+use crate::{
+    apis::stargate::token_factory::{Metadata, TokenFactoryCommand},
+    TokenFactoryResult,
+};
 
 /**
 API for accessing the Osmosis TokenFactory module.
@@ -67,79 +70,79 @@ impl TokenFactoryCommand for OsmosisTokenFactory {
     ///
     ///  let response = Response::new().add_submessage(denom_msg);
     /// ```
-    fn create_denom(&self) -> CosmosMsg {
+    fn create_denom(&self) -> TokenFactoryResult<CosmosMsg> {
         let msg = MsgCreateDenom {
             sender: self.sender().to_string(),
             subdenom: self.subdenom.to_string(),
         };
 
-        CosmosMsg::Stargate {
+        Ok(CosmosMsg::Stargate {
             type_url: MsgCreateDenom::TYPE_URL.to_owned(),
             value: Binary(msg.encode_to_vec()),
-        }
+        })
     }
 
     /// Mint tokens
     /// MsgMint is the sdk.Msg type for minting new tokens into existence.
-    fn mint(&self, amount: NonZeroU128, mint_to_address: &Addr) -> CosmosMsg {
+    fn mint(&self, amount: NonZeroU128, mint_to_address: &Addr) -> TokenFactoryResult<CosmosMsg> {
         let msg = MsgMint {
             sender: self.sender().to_string(),
             amount: Some(self.build_coin(amount)),
             mint_to_address: mint_to_address.to_string(),
         };
 
-        CosmosMsg::Stargate {
+        Ok(CosmosMsg::Stargate {
             type_url: MsgMint::TYPE_URL.to_owned(),
             value: Binary(msg.encode_to_vec()),
-        }
+        })
     }
 
     /// Burn tokens
     /// MsgBurn is the sdk.Msg type for allowing an admin account to burn a token.
     /// For now, we only support burning from the sender account.
-    fn burn(&self, amount: NonZeroU128, burn_from_address: &Addr) -> CosmosMsg {
+    fn burn(&self, amount: NonZeroU128, burn_from_address: &Addr) -> TokenFactoryResult<CosmosMsg> {
         let msg = MsgBurn {
             sender: self.sender().to_string(),
             amount: Some(self.build_coin(amount)),
             burn_from_address: burn_from_address.to_string(),
         };
 
-        CosmosMsg::Stargate {
+        Ok(CosmosMsg::Stargate {
             type_url: MsgBurn::TYPE_URL.to_owned(),
             value: Binary(msg.encode_to_vec()),
-        }
+        })
     }
 
     /// Change admin
     /// MsgChangeAdmin is the sdk.Msg type for allowing an admin account to reassign
     /// adminship of a denom to a new account.
-    fn change_admin(&self, new_admin: &Addr) -> CosmosMsg {
+    fn change_admin(&self, new_admin: &Addr) -> TokenFactoryResult<CosmosMsg> {
         let msg = MsgChangeAdmin {
             sender: self.sender().to_string(),
             denom: self.denom().to_string(),
             new_admin: new_admin.to_string(),
         };
 
-        CosmosMsg::Stargate {
+        Ok(CosmosMsg::Stargate {
             type_url: MsgChangeAdmin::TYPE_URL.to_owned(),
             value: Binary(msg.encode_to_vec()),
-        }
+        })
     }
 
     /// Set denom metadata
     /// MsgSetDenomMetadata is the sdk.Msg type for allowing an admin account to set
     /// the denom's bank metadata.
     /// If the metadata is empty, it will be deleted.
-    fn set_denom_metadata(&self, metadata: Option<Metadata>) -> CosmosMsg {
+    fn set_denom_metadata(&self, metadata: Option<Metadata>) -> TokenFactoryResult<CosmosMsg> {
         let msg = MsgSetDenomMetadata {
             sender: self.sender().to_string(),
             metadata: metadata.map(Into::into),
         };
 
-        CosmosMsg::Stargate {
+        Ok(CosmosMsg::Stargate {
             type_url: MsgSetDenomMetadata::TYPE_URL.to_owned(),
             value: Binary(msg.encode_to_vec()),
-        }
+        })
     }
 
     /// Force transfer tokens
@@ -149,7 +152,7 @@ impl TokenFactoryCommand for OsmosisTokenFactory {
         amount: NonZeroU128,
         from_address: &Addr,
         recipient: &Addr,
-    ) -> CosmosMsg {
+    ) -> TokenFactoryResult<CosmosMsg> {
         let msg = MsgForceTransfer {
             sender: self.sender().to_string(),
             amount: Some(self.build_coin(amount)),
@@ -157,25 +160,25 @@ impl TokenFactoryCommand for OsmosisTokenFactory {
             transfer_to_address: recipient.to_string(),
         };
 
-        CosmosMsg::Stargate {
+        Ok(CosmosMsg::Stargate {
             type_url: MsgForceTransfer::TYPE_URL.to_owned(),
             value: Binary(msg.encode_to_vec()),
-        }
+        })
     }
 
     /// Set the token factory before send hook.
     /// TODO: this is not yet possible on osmosis
-    fn set_before_send_hook(&self, cosmwasm_address: &Addr) -> CosmosMsg {
+    fn set_before_send_hook(&self, cosmwasm_address: &Addr) -> TokenFactoryResult<CosmosMsg> {
         let msg = MsgSetBeforeSendHook {
             sender: self.sender().to_string(),
             denom: self.denom().to_string(),
             cosmwasm_address: cosmwasm_address.to_string(),
         };
 
-        CosmosMsg::Stargate {
+        Ok(CosmosMsg::Stargate {
             type_url: MsgSetBeforeSendHook::TYPE_URL.to_owned(),
             value: Binary(msg.encode_to_vec()),
-        }
+        })
     }
 }
 
@@ -229,7 +232,7 @@ mod test {
                     OSMOSIS_TOKEN_FACTORY,
                 )
                 .unwrap();
-            let create_denom_msg = token_factory.create_denom();
+            let create_denom_msg = token_factory.create_denom().unwrap();
             let expected_msg_create_denom = MsgCreateDenom {
                 sender: TEST_PROXY.to_string(),
                 subdenom: "denom".to_string(),
@@ -264,10 +267,12 @@ mod test {
                 )
                 .unwrap();
 
-            let mint_msg = token_factory.mint(
-                NonZeroU128::new(100u128).unwrap(),
-                &Addr::unchecked("mint_to_address"),
-            );
+            let mint_msg = token_factory
+                .mint(
+                    NonZeroU128::new(100u128).unwrap(),
+                    &Addr::unchecked("mint_to_address"),
+                )
+                .unwrap();
 
             let expected_msg_mint = MsgMint {
                 sender: TEST_PROXY.to_string(),
