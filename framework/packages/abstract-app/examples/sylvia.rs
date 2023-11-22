@@ -1,9 +1,10 @@
 use abstract_app::better_sdk::bank::TransferInterface;
-use abstract_app::better_sdk::sdk::{AbstractAppBase, ContractInfo};
+use abstract_app::better_sdk::sdk::{AbstractAppBase, ModuleStateInfo};
 use abstract_app::better_sdk::{
     contexts::{AppExecCtx, AppInstantiateCtx, AppMigrateCtx, AppQueryCtx},
     execution::Execution,
 };
+use abstract_sdk::AbstractSdkError;
 use abstract_app::AppError;
 use cosmwasm_std::{coins, ensure, Addr, BankMsg, CosmosMsg, ReplyOn, StdError};
 use cw_storage_plus::Item;
@@ -28,6 +29,7 @@ impl Default for SylviaContract<'_> {
 #[contract_type(abstract_app::better_sdk::sdk::AbstractApp)]
 #[error(AppError)]
 #[messages(abstract_app::better_sdk::sdk as Base)]
+#[messages(ibc_callbacks as IbcCallback)]
 impl SylviaContract<'_> {
     pub fn new() -> Self {
         Self::default()
@@ -125,7 +127,7 @@ impl SylviaContract<'_> {
 
 impl AbstractAppBase for SylviaContract<'_> {
     type Error = AppError;
-    const INFO: ContractInfo = ("COUNTER_ID", "v1.0.1", Some("Metadata"));
+    const INFO: ModuleStateInfo = ModuleStateInfo::new("COUNTER_ID", "v1.0.1", Some("Metadata"));
     const DEPENDENCIES: &'static [abstract_core::objects::dependency::StaticDependency] = &[];
 }
 
@@ -159,6 +161,10 @@ pub mod ibc_callbacks {
             Ok(Response::new())
         }
     }
+}
+
+impl ibc_callbacks::IbcCallback for SylviaContract<'_>{
+    type Error = AppError;
 }
 
 fn main() {

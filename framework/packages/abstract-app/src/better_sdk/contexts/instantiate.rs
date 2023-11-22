@@ -1,10 +1,13 @@
+use abstract_sdk::AbstractSdkError;
 use abstract_sdk::{feature_objects::AnsHost, AbstractSdkResult};
 use cosmwasm_std::{
     Addr, Attribute, Binary, CustomQuery, DepsMut, Empty, Env, Event, MessageInfo, Response,
 };
+use cw2::{ContractVersion, get_contract_version};
 
 use crate::AppError;
 
+use crate::better_sdk::module_identification::ModuleIdentification;
 use crate::better_sdk::{
     account_identification::AccountIdentification,
     execution_stack::{
@@ -99,5 +102,14 @@ impl<'a> AbstractNameService for AppInstantiateCtx<'a> {
     fn ans_host(&self) -> AbstractSdkResult<AnsHost> {
         // Retrieve the ANS host address from the base state.
         Ok(BASE_STATE.load(self.deps.storage)?.ans_host)
+    }
+}
+impl<'a> ModuleIdentification for AppInstantiateCtx<'a> {
+    fn module_id(&self) -> Result<String, AbstractSdkError>{
+        let ContractVersion {
+            contract,
+            ..
+        } = get_contract_version(self.deps().storage)?;
+        Ok(contract)
     }
 }

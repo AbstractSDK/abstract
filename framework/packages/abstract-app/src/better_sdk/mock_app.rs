@@ -3,11 +3,12 @@ macro_rules! gen_app_better_mock {
     ($name:ident,$id:expr, $version:expr, $deps:expr) => {
         use ::abstract_app::better_sdk::{
             account_identification::AccountIdentification,
+            module_identification::ModuleIdentification,
             bank::TransferInterface,
             contexts::{AppExecCtx, AppInstantiateCtx, AppMigrateCtx, AppQueryCtx},
             execution_stack::CustomData,
             sdk::AbstractAppBase,
-            sdk::ContractInfo,
+            sdk::ModuleStateInfo,
         };
         use ::abstract_app::mock::{
             MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg,
@@ -44,7 +45,7 @@ macro_rules! gen_app_better_mock {
             pub fn instantiate(&self, ctx: &mut AppInstantiateCtx) -> Result<(), AppError> {
                 ctx.set_data("mock_init".as_bytes());
                 // See test `create_sub_account_with_installed_module` where this will be triggered.
-                if Self::INFO.0 == "tester:mock-app1" {
+                if ctx.module_id()?.eq("tester:mock-app1") {
                     println!("checking address of adapter1");
                     let manager = self.admin().get(ctx.deps.as_ref())?.unwrap();
                     // Check if the adapter has access to its dependency during instantiation.
@@ -91,7 +92,11 @@ macro_rules! gen_app_better_mock {
 
         impl AbstractAppBase for Contract<'_> {
             type Error = AppError;
-            const INFO: ContractInfo = ($id, $version, None);
+            const INFO: ModuleStateInfo = ModuleStateInfo{
+                name: $id,
+                version: $version,
+                metadata: None
+            };
             const DEPENDENCIES: &'static [abstract_core::objects::dependency::StaticDependency] =
                 $deps;
         }

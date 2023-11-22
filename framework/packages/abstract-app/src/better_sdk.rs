@@ -6,6 +6,8 @@ pub mod execution_stack;
 pub mod mock_app;
 pub mod mock_module;
 pub mod module_identification;
+pub mod modules;
+pub mod dependencies;
 pub mod nameservice;
 pub mod sdk;
 
