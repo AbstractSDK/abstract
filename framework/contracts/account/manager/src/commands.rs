@@ -35,7 +35,6 @@ use abstract_sdk::{
         proxy::ExecuteMsg as ProxyMsg,
         IBC_CLIENT, MANAGER, PROXY,
     },
-    cw_helpers::wasm_smart_query,
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
@@ -695,12 +694,12 @@ pub fn replace_adapter(
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
     let AuthorizedAddressesResponse {
         addresses: authorized_addresses,
-    } = deps.querier.query(&wasm_smart_query(
+    } = deps.querier.query_wasm_smart(
         old_adapter_addr.to_string(),
         &<AdapterQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
             proxy_address: proxy_addr.to_string(),
         }),
-    )?)?;
+    )?;
     let authorized_to_migrate: Vec<String> = authorized_addresses
         .into_iter()
         .map(|addr| addr.into_string())

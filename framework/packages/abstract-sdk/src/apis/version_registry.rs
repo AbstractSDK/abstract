@@ -1,7 +1,4 @@
-use crate::{
-    cw_helpers::wasm_smart_query, features::AbstractRegistryAccess, AbstractSdkError,
-    AbstractSdkResult,
-};
+use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
 use abstract_core::{
     objects::{
         module::{Module, ModuleInfo},
@@ -95,10 +92,10 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         infos: Vec<ModuleInfo>,
     ) -> AbstractSdkResult<Vec<ModuleResponse>> {
         let registry_addr = self.base.abstract_registry(self.deps)?.address;
-        let ModulesResponse { modules } = self.deps.querier.query(&wasm_smart_query(
-            registry_addr.into_string(),
-            &QueryMsg::Modules { infos },
-        )?)?;
+        let ModulesResponse { modules } = self
+            .deps
+            .querier
+            .query_wasm_smart(registry_addr.into_string(), &QueryMsg::Modules { infos })?;
         Ok(modules)
     }
 
@@ -106,10 +103,10 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     /// Is also returns the base modules of that account (AccountBase)
     pub fn query_namespace(&self, namespace: Namespace) -> AbstractSdkResult<NamespaceResponse> {
         let registry_addr = self.base.abstract_registry(self.deps)?.address;
-        let namespace_response: NamespaceResponse = self.deps.querier.query(&wasm_smart_query(
+        let namespace_response: NamespaceResponse = self.deps.querier.query_wasm_smart(
             registry_addr.into_string(),
             &QueryMsg::Namespace { namespace },
-        )?)?;
+        )?;
         Ok(namespace_response)
     }
 

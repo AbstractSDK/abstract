@@ -12,20 +12,17 @@ use cosmwasm_std::{
     MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
 };
 
-use abstract_sdk::{
-    core::{
-        manager::InstantiateMsg as ManagerInstantiateMsg,
-        objects::{
-            gov_type::GovernanceDetails, module::Module, module::ModuleInfo,
-            module_reference::ModuleReference,
-        },
-        proxy::InstantiateMsg as ProxyInstantiateMsg,
-        version_control::{
-            AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
-        },
-        AbstractResult, MANAGER, PROXY,
+use abstract_sdk::core::{
+    manager::InstantiateMsg as ManagerInstantiateMsg,
+    objects::{
+        gov_type::GovernanceDetails, module::Module, module::ModuleInfo,
+        module_reference::ModuleReference,
     },
-    cw_helpers::wasm_smart_query,
+    proxy::InstantiateMsg as ProxyInstantiateMsg,
+    version_control::{
+        AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
+    },
+    AbstractResult, MANAGER, PROXY,
 };
 
 use crate::contract::AccountFactoryResponse;
@@ -244,12 +241,12 @@ fn query_module(
     version_control_addr: &Addr,
     module_id: &str,
 ) -> AbstractResult<Module> {
-    let ModulesResponse { mut modules } = querier.query(&wasm_smart_query(
+    let ModulesResponse { mut modules } = querier.query_wasm_smart(
         version_control_addr.to_string(),
         &VCQuery::Modules {
             infos: vec![ModuleInfo::from_id_latest(module_id)?],
         },
-    )?)?;
+    )?;
 
     Ok(modules.swap_remove(0).module)
 }

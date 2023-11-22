@@ -1,5 +1,5 @@
 /// ANCHOR: ans
-use crate::{ans_resolve::Resolve, cw_helpers::wasm_smart_query, AbstractSdkResult};
+use crate::{ans_resolve::Resolve, AbstractSdkResult};
 use abstract_core::{
     ans_host::{AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, QueryMsg},
     objects::{ans_host::AnsHost, DexAssetPairing},
@@ -43,7 +43,7 @@ impl<'a, T: AbstractNameService> AbstractNameServiceClient<'a, T> {
         page_limit: Option<u8>,
         start_after: Option<DexAssetPairing>,
     ) -> AbstractSdkResult<Vec<AssetPairingMapEntry>> {
-        let query = wasm_smart_query(
+        let resp: PoolAddressListResponse = self.deps.querier.query_wasm_smart(
             &self.host.address,
             &QueryMsg::PoolList {
                 filter,
@@ -51,7 +51,6 @@ impl<'a, T: AbstractNameService> AbstractNameServiceClient<'a, T> {
                 limit: page_limit,
             },
         )?;
-        let resp: PoolAddressListResponse = self.deps.querier.query(&query)?;
         Ok(resp.pools)
     }
 }

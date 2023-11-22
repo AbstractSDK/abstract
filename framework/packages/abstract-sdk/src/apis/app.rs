@@ -67,26 +67,26 @@ impl<'a, T: AppInterface> Apps<'a, T> {
     pub fn configure(
         &self,
         app_id: ModuleId,
-        query: msg::BaseExecuteMsg,
+        message: msg::BaseExecuteMsg,
     ) -> AbstractSdkResult<CosmosMsg> {
-        let app_query: msg::ExecuteMsg<Empty, Empty> = query.into();
+        let base_msg: msg::ExecuteMsg<Empty, Empty> = message.into();
         let modules = self.base.modules(self.deps);
         let app_address = modules.module_address(app_id)?;
-        Ok(wasm_execute(app_address, &app_query, vec![])?.into())
+        Ok(wasm_execute(app_address, &base_msg, vec![])?.into())
     }
 
     /// Smart query an app
     pub fn query<Q: Serialize, R: DeserializeOwned>(
         &self,
         app_id: ModuleId,
-        message: impl Into<msg::QueryMsg<Q>>,
+        query: impl Into<msg::QueryMsg<Q>>,
     ) -> AbstractSdkResult<R> {
         let modules = self.base.modules(self.deps);
-        let app_msg: msg::QueryMsg<Q> = message.into();
+        let app_query: msg::QueryMsg<Q> = query.into();
         let app_address = modules.module_address(app_id)?;
         self.deps
             .querier
-            .query_wasm_smart(app_address, &app_msg)
+            .query_wasm_smart(app_address, &app_query)
             .map_err(Into::into)
     }
 }

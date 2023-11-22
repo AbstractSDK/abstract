@@ -2,7 +2,6 @@
 //! The Accountant object provides function for querying balances and asset values for the Account.
 
 use crate::{
-    cw_helpers::wasm_smart_query,
     features::{AbstractNameService, AccountIdentification},
     AbstractSdkResult,
 };
@@ -64,10 +63,8 @@ impl<'a, T: AccountingInterface> Accountant<'a, T> {
     pub fn query_total_value(&self) -> AbstractSdkResult<AccountValue> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
-        let response: AccountValue = querier.query(&wasm_smart_query(
-            proxy_address.to_string(),
-            &QueryMsg::TotalValue {},
-        )?)?;
+        let response: AccountValue =
+            querier.query_wasm_smart(proxy_address.to_string(), &QueryMsg::TotalValue {})?;
 
         Ok(response)
     }
@@ -76,12 +73,12 @@ impl<'a, T: AccountingInterface> Accountant<'a, T> {
     pub fn asset_value(&self, asset_entry: AssetEntry) -> AbstractSdkResult<Uint128> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
-        let response: TokenValueResponse = querier.query(&wasm_smart_query(
+        let response: TokenValueResponse = querier.query_wasm_smart(
             proxy_address.to_string(),
             &QueryMsg::TokenValue {
                 identifier: asset_entry,
             },
-        )?)?;
+        )?;
 
         Ok(response.value)
     }
@@ -90,10 +87,8 @@ impl<'a, T: AccountingInterface> Accountant<'a, T> {
     pub fn base_asset(&self) -> AbstractSdkResult<BaseAssetResponse> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
-        let response: BaseAssetResponse = querier.query(&wasm_smart_query(
-            proxy_address.to_string(),
-            &QueryMsg::BaseAsset {},
-        )?)?;
+        let response: BaseAssetResponse =
+            querier.query_wasm_smart(proxy_address.to_string(), &QueryMsg::BaseAsset {})?;
 
         Ok(response)
     }
