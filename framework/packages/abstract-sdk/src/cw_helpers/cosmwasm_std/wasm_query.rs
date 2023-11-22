@@ -14,8 +14,8 @@ pub fn wasm_raw_query<C>(
 #[cfg(test)]
 mod test {
     use super::*;
-    use cosmwasm_std::{testing::mock_dependencies, to_json_binary, Empty};
-    use cw_storage_plus::{Endian, Map, Path};
+    use cosmwasm_std::Empty;
+    use cw_storage_plus::Path;
 
     #[test]
     fn test_wasm_raw_query() {
