@@ -1,10 +1,9 @@
 use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
 use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule};
-use abstract_sdk::base::{Handler, InstantiateEndpoint};
 use cosmwasm_std::{Addr, Coin};
 use cw_orch::{
     contract::Contract,
-    prelude::{ContractInstance, CwEnv, InstantiableContract},
+    prelude::{ContractInstance, CwEnv},
 };
 use serde::Serialize;
 

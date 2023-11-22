@@ -1,17 +1,18 @@
 use abstract_core::{
-    manager::{state::AccountInfo, InfoResponse},
-    objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
+    manager::{state::AccountInfo, InfoResponse, ModuleInstallConfig},
+    objects::{
+        gov_type::GovernanceDetails, module::ModuleInfo, namespace::Namespace, AccountId,
+        AssetEntry,
+    },
     version_control::NamespaceResponse,
 };
 use abstract_interface::{
     Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns, RegisteredModule,
     VCQueryFns,
 };
-use abstract_sdk::base::{Handler, InstantiateEndpoint};
-use cosmwasm_std::{Attribute, Event};
+use cosmwasm_std::{to_json_binary, Attribute, Event};
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
-use serde::Serialize;
 
 use crate::{
     application::Application, client::AbstractClientResult, infrastructure::Infrastructure,
@@ -142,28 +143,36 @@ impl<Chain: CwEnv> Account<Chain> {
     ) -> AbstractClientResult<Application<Chain, M>> {
         // Create sub account.
         let sub_account_response = self.abstr_account.manager.create_sub_account(
-            vec![],
+            vec![ModuleInstallConfig::new(
+                ModuleInfo::from_id(M::module_id(), M::module_version().into())?,
+                Some(to_json_binary(&configuration)?),
+            )],
             "Sub Account".to_owned(),
             None,
             None,
             None,
             None,
-            &[],
+            funds,
         )?;
 
-        // Unwrap should be fine since we are not expecting this to ever error.
-        let sub_account_id = get_sub_account_id_from_events(sub_account_response.events()).unwrap();
+        let extracted_event_info = extract_info_from_events(sub_account_response.events());
 
         let sub_account: AbstractAccount<Chain> = AbstractAccount::new(
             &self.infrastructure()?,
-            Some(AccountId::local(sub_account_id)),
+            Some(AccountId::local(
+                // Unwrap should be fine since the related event should always exist.
+                extracted_event_info.sub_account_id.unwrap(),
+            )),
         );
 
-        let contract = Contract::new(M::module_id().to_owned(), self.environment());
+        let contract =
+            Contract::new(M::module_id().to_owned(), self.environment()).with_address(Some(
+                // Unwrap should be fine since the related event should always exist.
+                &Addr::unchecked(extracted_event_info.module_address.unwrap()),
+            ));
 
         let app: M = contract.into();
 
-        sub_account.install_app(&app, configuration, Some(funds))?;
         Ok(Application::new(Account::new(sub_account), app))
     }
 
@@ -176,7 +185,12 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 }
 
-fn get_sub_account_id_from_events(events: Vec<Event>) -> Option<u32> {
+struct ExtractedEventInfo {
+    sub_account_id: Option<u32>,
+    module_address: Option<String>,
+}
+
+fn extract_info_from_events(events: Vec<Event>) -> ExtractedEventInfo {
     let wasm_abstract_attributes: Vec<Attribute> = events
         .into_iter()
         .filter(|e| e.ty == "wasm-abstract")
@@ -184,9 +198,17 @@ fn get_sub_account_id_from_events(events: Vec<Event>) -> Option<u32> {
         .collect();
 
     let sub_account_id: Option<u32> = wasm_abstract_attributes
-        .into_iter()
+        .iter()
         .find(|a| a.key == "sub_account_added")
         .map(|a| a.value.parse().unwrap());
 
-    sub_account_id
+    let module_address: Option<String> = wasm_abstract_attributes
+        .iter()
+        .find(|a| a.key == "new_modules")
+        .map(|a| a.value.parse().unwrap());
+
+    ExtractedEventInfo {
+        sub_account_id,
+        module_address,
+    }
 }
