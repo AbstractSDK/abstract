@@ -137,7 +137,7 @@ fn account_creation_full() -> anyhow::Result<()> {
         .host
         .register_chain_proxy(chain_name.into(), sender.to_string())?;
 
-    // Add chain to set base_asset
+    // Add asset to set base_asset
     home_abstr.ans_host.update_asset_addresses(
         vec![("juno>juno".to_owned(), "native:juno".parse().unwrap())],
         vec![],
