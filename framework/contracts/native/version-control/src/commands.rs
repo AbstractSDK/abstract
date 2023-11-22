@@ -542,7 +542,7 @@ pub fn query_account_owner(
     manager_addr: &Addr,
     account_id: &AccountId,
 ) -> VCResult<Addr> {
-    let req = wasm_raw_query(manager_addr, OWNERSHIP_STORAGE_KEY)?;
+    let req = wasm_raw_query(manager_addr, OWNERSHIP_STORAGE_KEY.as_bytes())?;
     let cw_ownable::Ownership { owner, .. } = querier.query(&req)?;
 
     owner.ok_or_else(|| VCError::NoAccountOwner {
