@@ -94,43 +94,40 @@ flowchart TB
     SubAccount-A --> SubAccount-C
 ```
 
-Now accessing or configuring these accounts could be hard. To make this easier we allow calling any sub-account or any app on a sub-account directly without requiring the message to be proxied through the top-level account. The diagram below shows how an account owner can configure the sub-accounts and apps directly that are part of his main account. 
+Now accessing or configuring these accounts could be hard. To make this easier we allow calling any sub-account or any app on a sub-account directly without requiring the message to be proxied through the top-level account. The diagram below shows how an account owner can configure the sub-accounts and apps directly that are part of his main account.
 
 ```mermaid
 flowchart TB
-    subgraph Sub-Account Ownership Structure
+    direction TB
+    subgraph AbstrA[Sub-Account A]
         direction TB
-        subgraph AbstrA[Sub-Account A]
-            direction TB
-            ManagerA[Manager] --> ProxyA[Proxy]
-            AppA[App]
-        end
+        ManagerA[Manager] --> ProxyA[Proxy]
+        AppA[App]
+    end
 
-        subgraph AbstrB[Sub-Account B]
-            direction TB
-            ManagerB[Manager] --> ProxyB[Proxy]
-        end
+    subgraph AbstrB[Sub-Account B]
+        direction TB
+        ManagerB[Manager] --> ProxyB[Proxy]
+    end
 
-        subgraph AbstrC[Sub-Account C]
-            direction TB
-            ManagerC[Manager] --> ProxyC[Proxy]
-            App
-        end
+    subgraph AbstrC[Sub-Account C]
+        direction TB
+        ManagerC[Manager] --> ProxyC[Proxy]
+        App
+    end
 
-        subgraph Abstr[Account]
-            direction TB
-            Manager --> Proxy
-        end
+    subgraph Abstr[Account]
+        direction TB
+        Manager --> Proxy
+    end
 
-    Owner --> Manager
-    Manager --> ManagerA
-    Manager --> ManagerB
-    ManagerB --> ManagerC
+Owner --> Manager
+Manager --> ManagerA
+Manager ---> ManagerB
+ManagerB --> ManagerC
 
-    %% Owner -.admin action.-> App
-    Owner -.Configure App.-> AppA
-    Owner -.Configure Account.-> ManagerC
-end
+Owner -.Configure App.....-> AppA
+Owner -.Configure Account....-> ManagerC
 ```
 
 As a result of this structure, complex multi-account systems can easily be transferred to between governance systems by simply changing the owner of the top-level account.
