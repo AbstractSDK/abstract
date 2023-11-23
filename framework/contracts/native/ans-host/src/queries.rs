@@ -220,8 +220,6 @@ pub fn list_pool_entries(
                 let pairing = &e.as_ref().unwrap().0;
                 dex_filter.as_ref().map_or(true, |f| f == pairing.dex())
             })
-            // TODO: is this necessary?
-            .map(|e| e.map(|(k, v)| (k, v)))
             .collect();
         res?
     };
@@ -283,7 +281,6 @@ pub fn list_pool_metadata_entries(
             pool_type_filter.as_ref().map_or(true, |f| f == pool_type)
         })
         .take(limit)
-        .map(|e| e.map(|(k, v)| (k, v)))
         .collect();
 
     to_json_binary(&PoolMetadataListResponse { metadatas: res? })
