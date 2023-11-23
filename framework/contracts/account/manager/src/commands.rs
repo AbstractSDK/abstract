@@ -6,7 +6,9 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction, MAX_MANAGER_ADMIN_RECURSION};
+use abstract_core::manager::{
+    InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction, MAX_MANAGER_ADMIN_RECURSION,
+};
 use abstract_core::module_factory::FactoryModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{self, assert_module_data_validity};
