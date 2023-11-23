@@ -10,7 +10,7 @@ pub const MAX_ADMIN_RECURSION: usize = 2;
 
 /// App Admin object
 /// This object has same api to the [cw_controllers::Admin]
-/// but allows top-level abstract account owner to have admin privileges on the app 
+/// but allows top-level abstract account owner to have admin privileges on the app
 pub struct AppAdmin<'a>(Admin<'a>);
 
 impl<'a> AppAdmin<'a> {
