@@ -1,6 +1,6 @@
 use crate::{
-    AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
+    admin::AppAdmin, AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn,
+    InstantiateHandlerFn, MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_core::AbstractError;
@@ -11,7 +11,6 @@ use abstract_sdk::{
     AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
-use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -56,7 +55,7 @@ pub struct AppContract<
     SudoMsg: 'static = Empty,
 > {
     // Custom state for every App
-    pub admin: Admin<'static>,
+    pub admin: AppAdmin<'static>,
     pub(crate) base_state: Item<'static, AppState>,
 
     // Scaffolding contract that handles type safety and provides helper methods
@@ -90,7 +89,7 @@ impl<
     ) -> Self {
         Self {
             base_state: Item::new(BASE_STATE),
-            admin: Admin::new(ADMIN_NAMESPACE),
+            admin: AppAdmin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version, metadata),
         }
     }
