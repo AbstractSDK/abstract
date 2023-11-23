@@ -5,6 +5,8 @@ use crate::{
     AdapterResult,
 };
 use abstract_core::manager::state::ACCOUNT_MODULES;
+use abstract_core::manager::{self, MAX_MANAGER_ADMIN_RECURSION};
+use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::{
     adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
     version_control::AccountBase,
@@ -16,7 +18,8 @@ use abstract_sdk::{
     AbstractResponse, AccountVerification, Execution, ModuleInterface,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+    wasm_execute, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, QuerierWrapper, Response,
+    StdError, StdResult,
 };
 use schemars::JsonSchema;
 use serde::Serialize;
@@ -53,6 +56,20 @@ impl<
     }
 }
 
+fn is_top_level_owner(querier: &QuerierWrapper, manager: Addr, sender: &Addr) -> StdResult<bool> {
+    let mut current = manager::state::INFO.query(querier, manager)?;
+    for _ in 0..MAX_MANAGER_ADMIN_RECURSION {
+        match current.governance_details {
+            // As long as the accounts are sub-accounts, we check the owner of the parent account
+            GovernanceDetails::SubAccount { manager, .. } => {
+                current = manager::state::INFO.query(querier, manager)?;
+            }
+            _ => break,
+        }
+    }
+    Ok(current.governance_details.owner_address() == sender)
+}
+
 /// The api-contract base implementation.
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
@@ -84,7 +101,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         request: AdapterRequestMsg<CustomExecMsg>,
     ) -> Result<Response, Error> {
         let sender = &info.sender;
-        let unauthorized_sender = |_| AdapterError::UnauthorizedAddressAdapterRequest {
+        let unauthorized_sender = || AdapterError::UnauthorizedAddressAdapterRequest {
             adapter: self.module_id().to_string(),
             sender: sender.to_string(),
         };
@@ -106,23 +123,23 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                     let authorized = self
                         .authorized_addresses
                         .load(deps.storage, proxy_address)
-                        .map_err(Into::into)
-                        .map_err(unauthorized_sender)?;
-                    if authorized.contains(sender) {
-                        // If the sender is an authorized address, return the account_base.
+                        .map_err(|_| unauthorized_sender())?;
+                    if authorized.contains(sender)
+                        || is_top_level_owner(&deps.querier, requested_core.manager.clone(), sender)
+                            .map_err(|_| unauthorized_sender())?
+                    {
+                        // If the sender is an authorized address,
+                        // or top level account return the account_base.
                         requested_core
                     } else {
                         // If not, we error, this call is not permitted
-                        Err(AdapterError::UnauthorizedAddressAdapterRequest {
-                            adapter: self.module_id().to_string(),
-                            sender: sender.to_string(),
-                        })?
+                        return Err(unauthorized_sender().into());
                     }
                 }
             }
             None => account_registry
                 .assert_manager(sender)
-                .map_err(unauthorized_sender)?,
+                .map_err(|_| unauthorized_sender())?,
         };
         self.target_account = Some(account_base);
         self.execute_handler()?(deps, env, info, self, request.request)

@@ -1013,7 +1013,7 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
                 Err(ownership_error)
             }
         }
-        // MAX_ADMIN_RECURSION levels deep still sub account
+        // MAX_MANAGER_RECURSION levels deep still sub account
         GovernanceDetails::SubAccount { .. } => {
             Err(ManagerError::Std(StdError::generic_err(format!(
                 "Admin recursion error, too much recursion, maximum allowed sub-account admin recursion : {}",
