@@ -1,12 +1,10 @@
 use abstract_core::{
-    manager::{self, state::AccountInfo},
+    manager::{self, state::AccountInfo, MAX_MANAGER_ADMIN_RECURSION},
     objects::gov_type::GovernanceDetails,
 };
 use cosmwasm_std::{attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, Response, StdResult};
 use cw_controllers::{Admin, AdminError, AdminResponse};
 use schemars::JsonSchema;
-
-pub const MAX_ADMIN_RECURSION: usize = 2;
 
 /// App Admin object
 /// This object has same api to the [cw_controllers::Admin]
@@ -39,7 +37,7 @@ impl<'a> AppAdmin<'a> {
                 // Starting from (potentially)manager that owns this app
                 let mut current = manager::state::INFO.query(&deps.querier, owner.clone());
                 // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-                for _ in 0..MAX_ADMIN_RECURSION {
+                for _ in 0..MAX_MANAGER_ADMIN_RECURSION {
                     match &current {
                         Ok(AccountInfo {
                             governance_details: GovernanceDetails::SubAccount { manager, .. },

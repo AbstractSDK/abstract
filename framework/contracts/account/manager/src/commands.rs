@@ -6,7 +6,7 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction};
+use abstract_core::manager::{InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction, MAX_MANAGER_ADMIN_RECURSION};
 use abstract_core::module_factory::FactoryModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{self, assert_module_data_validity};
@@ -49,8 +49,6 @@ use cw_storage_plus::Item;
 use semver::Version;
 
 pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
-
-pub const MAX_ADMIN_RECURSION: usize = 2;
 
 #[abstract_response(MANAGER)]
 pub struct ManagerResponse;
@@ -984,7 +982,7 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
     // In case it fails we get the account info and check if the current(this) account is a sub-account.
     let mut current: AccountInfo = INFO.load(deps.storage)?;
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-    for _ in 0..MAX_ADMIN_RECURSION {
+    for _ in 0..MAX_MANAGER_ADMIN_RECURSION {
         match current.governance_details {
             // As long as the accounts are sub-accounts, we check the owner of the parent account
             GovernanceDetails::SubAccount { manager, .. } => {
@@ -1017,7 +1015,7 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
         GovernanceDetails::SubAccount { .. } => {
             Err(ManagerError::Std(StdError::generic_err(format!(
                 "Admin recursion error, too much recursion, maximum allowed sub-account admin recursion : {}",
-                MAX_ADMIN_RECURSION
+                MAX_MANAGER_ADMIN_RECURSION
             ))))
         }
         _ => Err(ownership_error),
