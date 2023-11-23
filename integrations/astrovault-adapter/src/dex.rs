@@ -594,7 +594,7 @@ impl DexCommand for Astrovault {
                 let astrovault::stable_pool::query_msg::StablePoolQuerySwapSimulation {
                     from_assets_amount: _,
                     mut swap_to_assets_amount,
-                    mut assets_fee_amount,
+                    assets_fee_amount: _,
                     mint_to_assets_amount: _,
                 } = deps.querier.query(&wasm_smart_query(
                     pair_address.to_string(),
