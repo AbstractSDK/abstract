@@ -5,7 +5,7 @@ The Challenge App Module is used to create challenges with friends and motivate 
 ## Features
 - Admin of this contract can create challenge 
   - Name and description of the challenge
-  - List of friends(either by address or abstract account id) that have a voting power for failing a challenge
+  - List of friends(either by address or Abstract Account id) that have a voting power for failing a challenge
   - Asset for striking
   - Striking strategy:
     - Amount per friend (per_friend)

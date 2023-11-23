@@ -55,7 +55,7 @@ direction TB
 Owner[fa:fa-user Owner] ==> Account
 ```
 
-When a user creates an abstract account they do so locally on whichever chain they prefer. In this scenario the user
+When a user creates an Abstract Account they do so locally on whichever chain they prefer. In this scenario the user
 opted to create his account on the Juno network.
 
 After account creation the user (or his application) opted to create an ICAA on Osmosis. The ICAA creation is handled by
