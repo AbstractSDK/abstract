@@ -18,7 +18,7 @@ const MAX_LIMIT: u8 = 10;
 
 pub fn handle_module_address_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
     let contracts = query_module_addresses(deps, &env.contract.address, &ids)?;
-    let vector = contracts.into_iter().map(|(v, k)| (v, k)).collect();
+    let vector = contracts.into_iter().collect();
     to_json_binary(&ModuleAddressesResponse { modules: vector })
 }
 
