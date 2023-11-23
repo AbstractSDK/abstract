@@ -2,9 +2,9 @@ use crate::Abstract;
 use abstract_core::{account_factory, ans_host, module_factory, version_control};
 use cw_orch::prelude::*;
 
-impl Abstract<Daemon> {
+impl<T: CwEnv> Abstract<T> {
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
-    pub fn migrate(&self) -> Result<(), crate::AbstractInterfaceError> {
+    pub fn migrate_if_needed(&self) -> Result<(), crate::AbstractInterfaceError> {
         // start with factories
         self.account_factory
             .upload_and_migrate_if_needed(&account_factory::MigrateMsg {})?;

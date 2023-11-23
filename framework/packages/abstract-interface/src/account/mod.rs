@@ -194,14 +194,12 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     }
 }
 
-#[cfg(feature = "daemon")]
 use crate::AbstractInterfaceError;
-#[cfg(feature = "daemon")]
-impl AbstractAccount<Daemon> {
+impl<T: CwEnv> AbstractAccount<T> {
     /// Upload and register the account core contracts in the version control if they need to be updated
     pub fn upload_and_register_if_needed(
         &self,
-        version_control: &VersionControl<Daemon>,
+        version_control: &VersionControl<T>,
     ) -> Result<(), AbstractInterfaceError> {
         let mut modules_to_register = Vec::with_capacity(2);
 
