@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `Modules`, `Manager` and `Proxy` are now instantiated via instantiate2 message.
 - `FeeGrant` API updated.
 - Bump `cw-orch` to `v0.18`.
+- Top level account owner now has admin privileges on the apps
 
 ### Removed
 
