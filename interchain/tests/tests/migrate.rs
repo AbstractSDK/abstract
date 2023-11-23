@@ -35,6 +35,7 @@ fn migrate_infra_success() -> anyhow::Result<()> {
     assert_eq!(abstr_deployment.version_control.code_id()?, 3692);
     abstr_deployment.migrate_if_needed()?;
     assert_eq!(abstr_deployment.version_control.code_id()?, 5000003);
-
+    abstr_deployment.migrate_if_needed()?;
+    assert_eq!(abstr_deployment.version_control.code_id()?, 5000003);
     Ok(())
 }
