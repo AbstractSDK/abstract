@@ -30,9 +30,7 @@ fn migrate_infra_success() -> anyhow::Result<()>{
 
     let abstr_deployment = Abstract::load_from(app)?;
 
-    panic!("{:?}" , Abstract::<ForkMock>::deployed_state_file_path());
-
-    let a = abstr_deployment.version_control.get_account(AccountId::local(0));
+    let a = abstr_deployment.version_control.get_account(AccountId::local(0))?;
     eprint!("account: {:?}", a);
     // We assert the balance has changed when depositing some funds
 
