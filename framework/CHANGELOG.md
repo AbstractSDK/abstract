@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `AuthZ` API added
 - Interchain Abstract Accounts can now be created!
 - Added snapshot tests
+- Method `query_account_owner()` for Apps Admin object
 
 ### Changed
 
