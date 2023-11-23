@@ -2,12 +2,15 @@ use abstract_core::{
     manager::{self, state::AccountInfo, MAX_MANAGER_ADMIN_RECURSION},
     objects::gov_type::GovernanceDetails,
 };
-use cosmwasm_std::{attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, Response, StdError, StdResult,
+};
 use cw_controllers::{Admin, AdminError, AdminResponse};
 use schemars::JsonSchema;
 
 /// App Admin object
 /// This object has same api to the [cw_controllers::Admin]
+/// With added query_account_owner method (will get top-level owner in case of sub-accounts)
 /// but allows top-level abstract account owner to have admin privileges on the app
 pub struct AppAdmin<'a>(Admin<'a>);
 
@@ -29,31 +32,13 @@ impl<'a> AppAdmin<'a> {
             Some(owner) => {
                 // Initial check if directly called by the owner
                 if caller == owner {
-                    return Ok(true);
+                    Ok(true)
+                } else {
+                    // Check if top level owner address is equal to the caller
+                    Ok(query_top_level_owner(deps, owner)
+                        .map(|owner| owner == caller)
+                        .unwrap_or(false))
                 }
-
-                // Check for top level owner
-
-                // Starting from (potentially)manager that owns this app
-                let mut current = manager::state::INFO.query(&deps.querier, owner.clone());
-                // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-                for _ in 0..MAX_MANAGER_ADMIN_RECURSION {
-                    match &current {
-                        Ok(AccountInfo {
-                            governance_details: GovernanceDetails::SubAccount { manager, .. },
-                            ..
-                        }) => {
-                            current = manager::state::INFO.query(&deps.querier, manager.clone());
-                        }
-                        _ => break,
-                    }
-                }
-
-                // Check if top level owner address is equal to the caller
-                let is_admin = current
-                    .map(|info| info.governance_details.owner_address() == caller)
-                    .unwrap_or(false);
-                Ok(is_admin)
             }
             None => Ok(false),
         }
@@ -97,8 +82,43 @@ impl<'a> AppAdmin<'a> {
         Ok(Response::new().add_attributes(attributes))
     }
 
-    // TODO: this will only return direct admin
+    // This method queries direct app owner
     pub fn query_admin<Q: CustomQuery>(&self, deps: Deps<Q>) -> StdResult<AdminResponse> {
         self.0.query_admin(deps)
     }
+
+    // This method tries to get top-level account owner
+    pub fn query_account_owner<Q: CustomQuery>(&self, deps: Deps<Q>) -> StdResult<AdminResponse> {
+        let admin = match self.0.get(deps)? {
+            Some(owner) => Some(query_top_level_owner(deps, owner).map_err(|_| {
+                StdError::generic_err(
+                    "Failed to query top level owner. Make sure this app is owned by the manager",
+                )
+            })?),
+            None => None,
+        };
+        Ok(AdminResponse {
+            admin: admin.map(|addr| addr.into_string()),
+        })
+    }
+}
+
+fn query_top_level_owner<Q: CustomQuery>(deps: Deps<Q>, maybe_manager: Addr) -> StdResult<Addr> {
+    // Starting from (potentially)manager that owns this app
+    let mut current = manager::state::INFO.query(&deps.querier, maybe_manager.clone());
+    // Get sub-accounts until we get non-sub-account governance or reach recursion limit
+    for _ in 0..MAX_MANAGER_ADMIN_RECURSION {
+        match &current {
+            Ok(AccountInfo {
+                governance_details: GovernanceDetails::SubAccount { manager, .. },
+                ..
+            }) => {
+                current = manager::state::INFO.query(&deps.querier, manager.clone());
+            }
+            _ => break,
+        }
+    }
+
+    // Get top level account owner address
+    current.map(|info| info.governance_details.owner_address())
 }
