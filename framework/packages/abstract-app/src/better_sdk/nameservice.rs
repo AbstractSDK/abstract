@@ -1,22 +1,22 @@
 /// ANCHOR: ans
-use crate::{ans_resolve::Resolve, cw_helpers::wasm_smart_query, AbstractSdkResult};
 use abstract_core::{
     ans_host::{AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, QueryMsg},
     objects::{ans_host::AnsHost, DexAssetPairing},
 };
-use cosmwasm_std::Deps;
+use abstract_sdk::{cw_helpers::wasm_smart_query, AbstractSdkResult, Resolve};
+
+use super::execution_stack::DepsAccess;
 
 /// Accessor to the Abstract Name Service.
-pub trait AbstractNameService: Sized {
+pub trait AbstractNameService: DepsAccess + Sized {
     /// Get the ANS host address.
-    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost>;
+    fn ans_host(&self) -> AbstractSdkResult<AnsHost>;
 
     /// Construct the name service client.
-    fn name_service<'a>(&'a self, deps: Deps<'a>) -> AbstractNameServiceClient<Self> {
+    fn name_service(&self) -> AbstractNameServiceClient<Self> {
         AbstractNameServiceClient {
-            _base: self,
-            deps,
-            host: self.ans_host(deps).unwrap(),
+            base: self,
+            host: self.ans_host().unwrap(),
         }
     }
 }
@@ -25,14 +25,13 @@ pub trait AbstractNameService: Sized {
 
 #[derive(Clone)]
 pub struct AbstractNameServiceClient<'a, T: AbstractNameService> {
-    _base: &'a T,
-    deps: Deps<'a>,
+    base: &'a T,
     pub host: AnsHost,
 }
 
 impl<'a, T: AbstractNameService> AbstractNameServiceClient<'a, T> {
     pub fn query<R: Resolve>(&self, entry: &R) -> AbstractSdkResult<R::Output> {
-        entry.resolve(&self.deps.querier, &self.host)
+        entry.resolve(&self.base.deps().querier, &self.host)
     }
     pub fn host(&self) -> &AnsHost {
         &self.host
@@ -52,7 +51,7 @@ impl<'a, T: AbstractNameService> AbstractNameServiceClient<'a, T> {
                 limit: page_limit,
             },
         )?;
-        let resp: PoolAddressListResponse = self.deps.querier.query(&query)?;
+        let resp: PoolAddressListResponse = self.base.deps().querier.query(&query)?;
         Ok(resp.pools)
     }
 }

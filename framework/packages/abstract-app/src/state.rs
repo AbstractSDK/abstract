@@ -7,7 +7,7 @@ use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,
     feature_objects::{AnsHost, VersionControlContract},
-    namespaces::{ADMIN_NAMESPACE, BASE_STATE},
+    namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE},
     AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
@@ -58,7 +58,6 @@ pub struct AppContract<
     // Custom state for every App
     pub admin: Admin<'static>,
     pub(crate) base_state: Item<'static, AppState>,
-
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<Self, Error>,
 }
@@ -89,7 +88,7 @@ impl<
         metadata: Option<&'static str>,
     ) -> Self {
         Self {
-            base_state: Item::new(BASE_STATE),
+            base_state: Item::new(BASE_STATE_NAMESPACE),
             admin: Admin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version, metadata),
         }

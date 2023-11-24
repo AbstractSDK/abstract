@@ -54,6 +54,7 @@ abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }
+sylvia = { workspace = true }
 
 [profile.release]
 rpath = false

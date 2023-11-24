@@ -1,3 +1,4 @@
+pub mod better_sdk;
 mod endpoints;
 pub mod error;
 pub mod features;
