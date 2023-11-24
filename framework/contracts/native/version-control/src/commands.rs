@@ -542,7 +542,8 @@ pub fn query_account_owner(
     manager_addr: Addr,
     account_id: &AccountId,
 ) -> VCResult<Addr> {
-    let cw_ownable::Ownership { owner, .. } = abstract_core::manager::state::OWNER.query(querier, manager_addr)?;
+    let cw_ownable::Ownership { owner, .. } =
+        abstract_core::manager::state::OWNER.query(querier, manager_addr)?;
 
     owner.ok_or_else(|| VCError::NoAccountOwner {
         account_id: account_id.clone(),
