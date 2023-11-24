@@ -90,7 +90,7 @@ abstract-adapter-utils = { version = "0.20.0-rc.1", path = "packages/standards/u
 abstract-dex-standard = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 
-abstract-integration-tests = {path = "packages/abstract-integration-tests"}
+abstract-integration-tests = { path = "packages/abstract-integration-tests" }
 
 ## Testing
 rstest = "0.17.0"

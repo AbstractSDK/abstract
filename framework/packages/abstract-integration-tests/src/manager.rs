@@ -5,23 +5,23 @@ use abstract_app::gen_app_mock;
 use abstract_app::mock::MockInitMsg;
 use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::manager::ModuleVersionsResponse;
+use abstract_core::module_factory::SimulateInstallModulesResponse;
 use abstract_core::objects::account::TEST_ACCOUNT_ID;
+use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::ModuleInfo;
 use abstract_core::objects::module::ModuleVersion;
 use abstract_core::objects::module::Monetization;
-use abstract_core::objects::fee::FixedFee;
-use abstract_core::module_factory::SimulateInstallModulesResponse;
-use abstract_core::objects::AccountId;
-use abstract_interface::*;
-use abstract_core::version_control::UpdateModule;
-use cosmwasm_std::coin;
 use abstract_core::objects::module_reference::ModuleReference;
+use abstract_core::objects::namespace::Namespace;
+use abstract_core::objects::AccountId;
+use abstract_core::version_control::UpdateModule;
+use abstract_interface::*;
 use abstract_testing::prelude::*;
+use cosmwasm_std::coin;
 use cosmwasm_std::Addr;
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
-use abstract_core::objects::namespace::Namespace;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
@@ -37,7 +37,11 @@ pub fn account_install_app<T: CwEnv>(chain: T, sender: Addr) -> AResult {
     let app = BootMockApp1V1::new_test(chain.clone());
     BootMockApp1V1::deploy(&app, V1.parse().unwrap(), DeployStrategy::Try)?;
     let app_addr = account.install_app(&app, &MockInitMsg, None)?;
-    let module_addr = account.manager.module_info(app_1::MOCK_APP_ID)?.unwrap().address;
+    let module_addr = account
+        .manager
+        .module_info(app_1::MOCK_APP_ID)?
+        .unwrap()
+        .address;
     assert_that!(app_addr).is_equal_to(module_addr);
     Ok(())
 }
@@ -125,7 +129,7 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T, sender: Add
 pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv>(
     chain: T,
     sender: Addr,
-    payment_denoms: (String,String),
+    payment_denoms: (String, String),
 ) -> AResult {
     // Adding coins to fill monetization
     // chain.add_balance(&sender, vec![coin(18, "coin1"), coin(20, "coin2")])?;
@@ -169,7 +173,10 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv
         UpdateModule::Versioned {
             version: V1.to_owned(),
             metadata: None,
-            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(10, payment_denoms.1)))),
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(
+                10,
+                payment_denoms.1,
+            )))),
             instantiation_funds: Some(vec![coin(3, payment_denoms.0), coin(5, payment_denoms.1)]),
         },
     )?;
@@ -179,7 +186,10 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv
         UpdateModule::Versioned {
             version: V1.to_owned(),
             metadata: None,
-            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(8, payment_denoms.0)))),
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(
+                8,
+                payment_denoms.0,
+            )))),
             instantiation_funds: Some(vec![coin(6, payment_denoms.0)]),
         },
     )?;
@@ -208,7 +218,10 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv
                     app_1::MOCK_APP_ID.to_string(),
                     vec![coin(3, payment_denoms.0), coin(5, payment_denoms.1)]
                 ),
-                ("tester:standalone".to_string(), vec![coin(6, payment_denoms.0)]),
+                (
+                    "tester:standalone".to_string(),
+                    vec![coin(6, payment_denoms.0)]
+                ),
             ],
         }
     );
@@ -261,7 +274,10 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv
         )
         .unwrap();
     let balances = chain.query_all_balances(&account.proxy.address()?)?;
-    assert_eq!(balances, vec![coin(1, payment_denoms.0), coin(5, payment_denoms.1)]);
+    assert_eq!(
+        balances,
+        vec![coin(1, payment_denoms.0), coin(5, payment_denoms.1)]
+    );
     // Make sure all installed
     Ok(())
 }
