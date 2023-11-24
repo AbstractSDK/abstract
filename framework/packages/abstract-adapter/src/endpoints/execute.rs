@@ -82,6 +82,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         let BaseExecuteMsg { proxy_address, msg } = message;
         let account_registry = self.account_registry(deps.as_ref());
         let account_base = match proxy_address {
+            // If proxy address provided, check if the sender is a direct or nested owner for this account.
             Some(requested_proxy) => {
                 let proxy_address = deps.api.addr_validate(&requested_proxy)?;
                 let requested_core = account_registry.assert_proxy(&proxy_address)?;
@@ -101,6 +102,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                     });
                 }
             }
+            // If not provided the sender must be the direct owner
             None => account_registry.assert_manager(&info.sender).map_err(|_| {
                 AdapterError::UnauthorizedAdapterRequest {
                     adapter: self.module_id().to_string(),
