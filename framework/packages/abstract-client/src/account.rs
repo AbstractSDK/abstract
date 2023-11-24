@@ -28,7 +28,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     // TODO: Decide if we want to abstract this as well.
     governance_details: Option<GovernanceDetails<String>>,
     // TODO: How to handle install_modules?
-    fetch_account_if_namespace_claimed: bool,
+    fetch_if_namespace_claimed: bool,
 }
 
 impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
@@ -41,7 +41,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: None,
             base_asset: None,
             governance_details: None,
-            fetch_account_if_namespace_claimed: false,
+            fetch_if_namespace_claimed: false,
         }
     }
 
@@ -72,8 +72,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
     // Would it bet better to make this a "switch" by removing `value` and always setting the flag
     // to `true`? Could be an issue where you can't turn it off for some niche case.
-    pub fn fetch_account_if_namespace_claimed(&mut self, value: bool) -> &mut Self {
-        self.fetch_account_if_namespace_claimed = value;
+    pub fn fetch_if_namespace_claimed(&mut self, value: bool) -> &mut Self {
+        self.fetch_if_namespace_claimed = value;
         self
     }
 
@@ -86,7 +86,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
-        if self.fetch_account_if_namespace_claimed {
+        if self.fetch_if_namespace_claimed {
             // Check if namespace already claimed
             if let Some(ref namespace) = self.namespace {
                 let account_from_namespace_result: AbstractClientResult<Account<Chain>> =
