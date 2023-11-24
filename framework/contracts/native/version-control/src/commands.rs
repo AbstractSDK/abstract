@@ -539,11 +539,10 @@ pub fn update_config(
 
 pub fn query_account_owner(
     querier: &QuerierWrapper,
-    manager_addr: &Addr,
+    manager_addr: Addr,
     account_id: &AccountId,
 ) -> VCResult<Addr> {
-    let req = wasm_raw_query(manager_addr, OWNERSHIP_STORAGE_KEY.as_bytes())?;
-    let cw_ownable::Ownership { owner, .. } = querier.query(&req)?;
+    let cw_ownable::Ownership { owner, .. } = abstract_core::manager::state::OWNER.query(querier, manager_addr)?;
 
     owner.ok_or_else(|| VCError::NoAccountOwner {
         account_id: account_id.clone(),
