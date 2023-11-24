@@ -23,17 +23,7 @@ use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 use semver::Version;
 
-pub(crate) type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
-
-pub(crate) fn create_default_account(
-    factory: &AccountFactory<Mock>,
-) -> anyhow::Result<AbstractAccount<Mock>> {
-    let account = factory.create_default_account(GovernanceDetails::Monarchy {
-        monarch: Addr::unchecked(OWNER).to_string(),
-    })?;
-    Ok(account)
-}
-
+pub use abstract_integration_tests::{AResult, create_default_account};
 use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
 
 pub(crate) fn init_mock_adapter(

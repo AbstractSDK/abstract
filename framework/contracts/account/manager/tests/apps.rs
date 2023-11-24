@@ -67,18 +67,7 @@ fn execute_on_proxy_through_manager() -> AResult {
 fn account_install_app() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
-
-    deployment
-        .version_control
-        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
-
-    let app = MockApp::new_test(chain.clone());
-    app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    let app_addr = account.install_app(&app, &MockInitMsg, None)?;
-    let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
-    assert_that!(app_addr).is_equal_to(module_addr);
+    abstract_integration_tests::manager::account_install_app(chain.clone(), sender)?;
     take_storage_snapshot!(chain, "account_install_app");
     Ok(())
 }

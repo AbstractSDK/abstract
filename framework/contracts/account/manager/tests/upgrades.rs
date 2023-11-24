@@ -25,15 +25,15 @@ use abstract_manager::error::ManagerError;
 use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
 
 use common::mock_modules::*;
-use common::{create_default_account, AResult};
+use common::{*};
 use cosmwasm_std::{coin, coins, to_json_binary, Uint128};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
-fn install_module_version(
-    manager: &Manager<Mock>,
+fn install_module_version<T: CwEnv>(
+    manager: &Manager<T>,
     module: &str,
     version: &str,
 ) -> anyhow::Result<String> {
@@ -1208,15 +1208,15 @@ fn install_app_with_proxy_action() -> AResult {
     deploy_modules(&chain);
 
     // install adapter 1
-    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter1 = install_module_version(&manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     // install adapter 2
-    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let adapter2 = install_module_version(&manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
     // Add balance to proxy so
     // app will transfer funds to test addr during instantiation
     chain.add_balance(&proxy.address()?, coins(123456, "TEST"))?;
-    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
+    let app1 = install_module_version(&manager, app_1::MOCK_APP_ID, V1)?;
 
     let test_addr_balance = chain.query_balance(&Addr::unchecked("test_addr"), "TEST")?;
     assert_eq!(test_addr_balance, Uint128::new(123456));
