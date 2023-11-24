@@ -21,11 +21,11 @@ use abstract_interface::{
     ManagerExecFns, ManagerQueryFns, VCExecFns,
 };
 
+use abstract_integration_tests::mock_modules::*;
+
 use abstract_manager::error::ManagerError;
 use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
-
-use common::mock_modules::*;
-use common::{*};
+use common::*;
 use cosmwasm_std::{coin, coins, to_json_binary, Uint128};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
@@ -567,83 +567,7 @@ fn create_account_with_installed_module() -> AResult {
 fn create_sub_account_with_installed_module() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-
-    let factory = &deployment.account_factory;
-
-    let _deployer_acc = factory.create_new_account(
-        AccountDetails {
-            name: String::from("first_account"),
-            description: Some(String::from("account_description")),
-            link: Some(String::from("https://account_link_of_at_least_11_char")),
-            namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
-            install_modules: vec![],
-        },
-        GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
-        },
-        None,
-    )?;
-    deploy_modules(&chain);
-
-    _deployer_acc.manager.create_sub_account(
-        vec![
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id(
-                    adapter_1::MOCK_ADAPTER_ID,
-                    ModuleVersion::Version(V1.to_owned()),
-                )?,
-                None,
-            ),
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id(
-                    adapter_2::MOCK_ADAPTER_ID,
-                    ModuleVersion::Version(V1.to_owned()),
-                )?,
-                None,
-            ),
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                Some(to_json_binary(&MockInitMsg)?),
-            ),
-        ],
-        String::from("sub_account"),
-        None,
-        Some(String::from("account_description")),
-        None,
-        None,
-        &[],
-    )?;
-
-    let account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
-
-    // Make sure all installed
-    let account_module_versions = account.manager.module_versions(vec![
-        String::from(adapter_1::MOCK_ADAPTER_ID),
-        String::from(adapter_2::MOCK_ADAPTER_ID),
-        String::from(app_1::MOCK_APP_ID),
-    ])?;
-    assert_eq!(
-        account_module_versions,
-        ModuleVersionsResponse {
-            versions: vec![
-                ContractVersion {
-                    contract: String::from(adapter_1::MOCK_ADAPTER_ID),
-                    version: String::from(V1)
-                },
-                ContractVersion {
-                    contract: String::from(adapter_2::MOCK_ADAPTER_ID),
-                    version: String::from(V1)
-                },
-                ContractVersion {
-                    contract: String::from(app_1::MOCK_APP_ID),
-                    version: String::from(V1)
-                }
-            ]
-        }
-    );
-    Ok(())
+    abstract_integration_tests::manager::create_sub_account_with_modules_installed(chain, sender)
 }
 
 #[test]
