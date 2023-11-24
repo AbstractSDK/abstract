@@ -256,7 +256,7 @@ fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<
     let account2 = client
         .account_builder()
         .namespace(namespace)
-        .fetch_account_if_namespace_claimed(true)
+        .fetch_if_namespace_claimed(true)
         .build()?;
 
     assert_eq!(account1.get_account_info()?, account2.get_account_info()?);
