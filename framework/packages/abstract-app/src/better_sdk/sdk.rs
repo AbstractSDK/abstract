@@ -24,6 +24,7 @@ use cw_storage_plus::Item;
 use super::{
     contexts::{AppInstantiateCtx, AppMigrateCtx, AppQueryCtx},
     execution_stack::DepsAccess,
+    module_identification::ModuleIdentification,
     modules::ModuleInterface,
 };
 
@@ -67,19 +68,6 @@ pub trait AbstractAppBase {
 
     fn admin(&self) -> Admin {
         ADMIN
-    }
-
-    fn base_ibc(&self, ctx: AppExecCtx) -> Result<(), AppError> {
-        let ibc_client = ctx.modules().module_address(IBC_CLIENT)?;
-        if ctx.info.sender.ne(&ibc_client) {
-            return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
-                caller: ctx.info.sender,
-                client_addr: ibc_client,
-                module: Self::INFO.name.to_string(),
-            }
-            .into());
-        };
-        Ok(())
     }
 
     fn base_instantiate(
@@ -160,13 +148,17 @@ pub trait AbstractAppBase {
         Ok(())
     }
 
+    fn before_module_execute(&self, ctx: &mut AppExecCtx) -> Result<(), AppError> {
+        Ok(())
+    }
+
     #[msg(exec)]
     fn update_config(
         &self,
-        ctx: AppExecCtx,
+        ctx: &mut AppExecCtx,
         ans_host_address: Option<String>,
         version_control_address: Option<String>,
-    ) -> Result<Response, AppError> {
+    ) -> Result<(), AppError> {
         // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
         ADMIN.assert_admin(ctx.deps.as_ref(), &ctx.info.sender)?;
@@ -183,14 +175,13 @@ pub trait AbstractAppBase {
         }
 
         BASE_STATE.save(ctx.deps.storage, &state)?;
-
-        Ok(Response::new())
+        Ok(())
     }
 
     #[msg(query)]
     fn base_config(
         &self,
-        ctx: AppQueryCtx,
+        ctx: &AppQueryCtx,
     ) -> Result<abstract_core::app::AppConfigResponse, AppError> {
         let state = BASE_STATE.load(ctx.deps.storage)?;
         let admin = ADMIN.get(ctx.deps)?.unwrap();
@@ -202,14 +193,14 @@ pub trait AbstractAppBase {
     }
 
     #[msg(query)]
-    fn base_admin(&self, ctx: AppQueryCtx) -> Result<AdminResponse, AppError> {
+    fn base_admin(&self, ctx: &AppQueryCtx) -> Result<AdminResponse, AppError> {
         Ok(ADMIN.query_admin(ctx.deps)?)
     }
 
     #[msg(query)]
     fn module_data(
         &self,
-        ctx: AppQueryCtx,
+        ctx: &AppQueryCtx,
     ) -> Result<abstract_core::objects::module_version::ModuleDataResponse, AppError> {
         let module_data = MODULE.load(ctx.deps.storage)?;
         Ok(ModuleDataResponse {
@@ -224,6 +215,24 @@ pub trait AbstractAppBase {
         })
     }
 }
+
+pub trait BaseIbcCallback {
+    fn base_ibc(&self, ctx: &mut AppExecCtx) -> Result<(), AppError> {
+        let ibc_client = ctx.modules().module_address(IBC_CLIENT)?;
+        if ctx.info.sender.ne(&ibc_client) {
+            return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
+                caller: ctx.info.sender.clone(),
+                client_addr: ibc_client,
+                module: ctx.module_id()?,
+            }
+            .into());
+        };
+        Ok(())
+    }
+}
+
+impl<T> BaseIbcCallback for T {}
+
 pub struct AbstractApp;
 impl SylviaAbstractContract for AbstractApp {
     type BaseInstantiateMsg = abstract_core::app::BaseInstantiateMsg;
