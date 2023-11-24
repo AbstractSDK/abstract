@@ -5,8 +5,6 @@ edition = { workspace = true }
 license = { workspace = true }
 description = "Package with environment-agnonstic tests"
 
-[lib]
-
 [dependencies]
 cosmwasm-std = { workspace = true }
 abstract-interface = { workspace = true }
