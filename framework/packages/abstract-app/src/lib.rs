@@ -193,7 +193,7 @@ pub mod mock {
                 },
                 _ => {},
             }
-            Ok(::cosmwasm_std::Response::new().set_data("mock_init".as_bytes()))
+            Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
         })
         .with_instantiate(|deps, _env, info, module, msg| {
             let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());

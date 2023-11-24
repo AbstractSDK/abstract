@@ -97,11 +97,16 @@ impl<Request: Serialize> AdapterRequestMsg<Request> {
     }
 }
 
+#[cosmwasm_schema::cw_serde]
+pub struct BaseExecuteMsg {
+    pub proxy_address: Option<String>,
+    // The actual base message
+    pub msg: AdapterBaseMsg,
+}
+
 /// Configuration message for the adapter
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg<T>))]
-pub enum BaseExecuteMsg {
+pub enum AdapterBaseMsg {
     /// Add or remove authorized addresses
     /// If an authorized address is both in to_add and to_remove, it will be removed.
     UpdateAuthorizedAddresses {

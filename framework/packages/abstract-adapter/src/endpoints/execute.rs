@@ -4,13 +4,11 @@ use crate::{
     state::{AdapterContract, ContractError},
     AdapterResult,
 };
+use abstract_core::adapter::AdapterBaseMsg;
+use abstract_core::adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg};
 use abstract_core::manager::state::ACCOUNT_MODULES;
 use abstract_core::manager::{self, MAX_MANAGER_ADMIN_RECURSION};
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::{
-    adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
-    version_control::AccountBase,
-};
 use abstract_sdk::AccountAction;
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
@@ -81,11 +79,41 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         info: MessageInfo,
         message: BaseExecuteMsg,
     ) -> AdapterResult {
-        match message {
-            BaseExecuteMsg::UpdateAuthorizedAddresses { to_add, to_remove } => {
+        let BaseExecuteMsg { proxy_address, msg } = message;
+        let account_registry = self.account_registry(deps.as_ref());
+        let account_base = match proxy_address {
+            Some(requested_proxy) => {
+                let proxy_address = deps.api.addr_validate(&requested_proxy)?;
+                let requested_core = account_registry.assert_proxy(&proxy_address)?;
+                if requested_core.manager == info.sender
+                    || is_top_level_owner(
+                        &deps.querier,
+                        requested_core.manager.clone(),
+                        &info.sender,
+                    )
+                    .unwrap_or(false)
+                {
+                    requested_core
+                } else {
+                    return Err(AdapterError::UnauthorizedAdapterRequest {
+                        adapter: self.module_id().to_string(),
+                        sender: info.sender.to_string(),
+                    });
+                }
+            }
+            None => account_registry.assert_manager(&info.sender).map_err(|_| {
+                AdapterError::UnauthorizedAdapterRequest {
+                    adapter: self.module_id().to_string(),
+                    sender: info.sender.to_string(),
+                }
+            })?,
+        };
+        self.target_account = Some(account_base);
+        match msg {
+            AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove } => {
                 self.update_authorized_addresses(deps, info, to_add, to_remove)
             }
-            BaseExecuteMsg::Remove {} => self.remove_self_from_deps(deps.as_ref(), env, info),
+            AdapterBaseMsg::Remove {} => self.remove_self_from_deps(deps.as_ref(), env),
         }
     }
 
@@ -123,10 +151,10 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                     let authorized = self
                         .authorized_addresses
                         .load(deps.storage, proxy_address)
-                        .map_err(|_| unauthorized_sender())?;
+                        .unwrap_or_default();
                     if authorized.contains(sender)
                         || is_top_level_owner(&deps.querier, requested_core.manager.clone(), sender)
-                            .map_err(|_| unauthorized_sender())?
+                            .unwrap_or(false)
                     {
                         // If the sender is an authorized address,
                         // or top level account return the account_base.
@@ -146,21 +174,8 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     }
 
     /// If dependencies are set, remove self from them.
-    pub(crate) fn remove_self_from_deps(
-        &mut self,
-        deps: Deps,
-        env: Env,
-        info: MessageInfo,
-    ) -> AdapterResult {
-        // Only the manager can remove the Adapter as a dependency.
-        let account_base = self
-            .account_registry(deps)
-            .assert_manager(&info.sender)
-            .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
-                adapter: self.module_id().to_string(),
-                sender: info.sender.to_string(),
-            })?;
-        self.target_account = Some(account_base);
+    fn remove_self_from_deps(&mut self, deps: Deps, env: Env) -> AdapterResult {
+        let account_base = self.target_account.as_ref().unwrap();
 
         let dependencies = self.dependencies();
         let mut msgs: Vec<CosmosMsg> = vec![];
@@ -174,9 +189,12 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             msgs.push(
                 wasm_execute(
                     adapter_addr?.into_string(),
-                    &BaseExecuteMsg::UpdateAuthorizedAddresses {
-                        to_add: vec![],
-                        to_remove: vec![env.contract.address.to_string()],
+                    &BaseExecuteMsg {
+                        msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                            to_add: vec![],
+                            to_remove: vec![env.contract.address.to_string()],
+                        },
+                        proxy_address: Some(account_base.proxy.to_string()),
                     },
                     vec![],
                 )?
@@ -199,13 +217,8 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         to_add: Vec<String>,
         to_remove: Vec<String>,
     ) -> AdapterResult {
-        let AccountBase {
-            // Manager can only change authorized addresses for associated proxy
-            proxy,
-            ..
-        } = self
-            .account_registry(deps.as_ref())
-            .assert_manager(&info.sender.clone())?;
+        let account_base = self.target_account.as_ref().unwrap();
+        let proxy = account_base.proxy.clone();
 
         let mut authorized_addrs = self
             .authorized_addresses
@@ -292,7 +305,9 @@ mod tests {
         Addr, Storage,
     };
 
-    use crate::mock::*;
+    use crate::mock::{
+        mock_init, AdapterMockResult, MockError, MockExecMsg, MockReceiveMsg, MOCK_ADAPTER,
+    };
     use speculoos::prelude::*;
 
     fn execute_as(
@@ -331,9 +346,12 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let _api = MOCK_ADAPTER;
-            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
-                to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
-                to_remove: vec![],
+            let msg = BaseExecuteMsg {
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_remove: vec![],
+                },
+                proxy_address: None,
             };
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
@@ -357,9 +375,12 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let _api = MOCK_ADAPTER;
-            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
-                to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
-                to_remove: vec![],
+            let msg = BaseExecuteMsg {
+                proxy_address: None,
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_remove: vec![],
+                },
             };
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
@@ -367,9 +388,12 @@ mod tests {
             let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
             assert_that!(authorized_addrs.len()).is_equal_to(1);
 
-            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
-                to_add: vec![],
-                to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
+            let msg = BaseExecuteMsg {
+                proxy_address: None,
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![],
+                    to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                },
             };
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
@@ -386,16 +410,22 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let _api = MOCK_ADAPTER;
-            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
-                to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
-                to_remove: vec![],
+            let msg = BaseExecuteMsg {
+                proxy_address: None,
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_remove: vec![],
+                },
             };
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
 
-            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
-                to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
-                to_remove: vec![],
+            let msg = BaseExecuteMsg {
+                proxy_address: None,
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                    to_remove: vec![],
+                },
             };
 
             let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
@@ -421,9 +451,12 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let _api = MOCK_ADAPTER;
-            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
-                to_add: vec![TEST_MODULE_ID.into()],
-                to_remove: vec![],
+            let msg = BaseExecuteMsg {
+                proxy_address: None,
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![TEST_MODULE_ID.into()],
+                    to_remove: vec![],
+                },
             };
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
@@ -444,9 +477,12 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let _api = MOCK_ADAPTER;
-            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
-                to_add: vec![],
-                to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
+            let msg = BaseExecuteMsg {
+                proxy_address: None,
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![],
+                    to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
+                },
             };
 
             let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
@@ -482,9 +518,12 @@ mod tests {
             mock_init(deps.branch()).unwrap();
 
             let _api = MOCK_ADAPTER;
-            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
-                to_add: authorized.into_iter().map(Into::into).collect(),
-                to_remove: vec![],
+            let msg = BaseExecuteMsg {
+                proxy_address: None,
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: authorized.into_iter().map(Into::into).collect(),
+                    to_remove: vec![],
+                },
             };
 
             base_execute_as(deps, TEST_MANAGER, msg).unwrap();
