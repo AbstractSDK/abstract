@@ -1,8 +1,8 @@
 use abstract_client::{application::Application, client::AbstractClient, publisher::Publisher};
 use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
 use calendar_app::{
-    error::AppError,
-    msg::{AppExecuteMsg, AppInstantiateMsg, ConfigResponse, Time},
+    error::CalendarError,
+    msg::{CalendarExecuteMsg, CalendarInstantiateMsg, ConfigResponse, Time},
     state::Meeting,
     *,
 };
@@ -22,7 +22,7 @@ const INITIAL_BALANCE: u128 = 10_000;
 fn request_meeting_with_start_time(
     day_datetime: DateTime<FixedOffset>,
     start_time: Time,
-    app: AppInterface<Mock>,
+    app: CalendarAppInterface<Mock>,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
@@ -39,7 +39,7 @@ fn request_meeting_with_start_time(
 fn request_meeting_with_end_time(
     day_datetime: DateTime<FixedOffset>,
     end_time: Time,
-    app: AppInterface<Mock>,
+    app: CalendarAppInterface<Mock>,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
@@ -57,7 +57,7 @@ fn request_meeting(
     day_datetime: DateTime<FixedOffset>,
     start_time: Time,
     end_time: Time,
-    app: AppInterface<Mock>,
+    app: CalendarAppInterface<Mock>,
     funds: Coin,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     let meeting_start_datetime: NaiveDateTime = day_datetime
@@ -83,7 +83,10 @@ fn request_meeting(
 fn setup_with_time(
     start_time: Time,
     end_time: Time,
-) -> anyhow::Result<(Application<Mock, AppInterface<Mock>>, AbstractClient<Mock>)> {
+) -> anyhow::Result<(
+    Application<Mock, CalendarAppInterface<Mock>>,
+    AbstractClient<Mock>,
+)> {
     let client: AbstractClient<Mock> = AbstractClient::builder(ADMIN.to_owned())
         .balance("sender1", coins(INITIAL_BALANCE, DENOM))
         .balance("sender2", coins(INITIAL_BALANCE, DENOM))
@@ -100,10 +103,10 @@ fn setup_with_time(
         .namespace("my-namespace")
         .build()?;
 
-    publisher.publish_app::<AppInterface<Mock>>()?;
+    publisher.publish_app::<CalendarAppInterface<Mock>>()?;
 
-    let app: Application<Mock, AppInterface<Mock>> = publisher.install_app(
-        &AppInstantiateMsg {
+    let app: Application<Mock, CalendarAppInterface<Mock>> = publisher.install_app(
+        &CalendarInstantiateMsg {
             price_per_minute: Uint128::from(1u128),
             denom: AssetEntry::from(DENOM),
             utc_offset: 0,
@@ -118,7 +121,10 @@ fn setup_with_time(
 
 /// Set up the test environment with the contract installed
 #[allow(clippy::type_complexity)]
-fn setup() -> anyhow::Result<(Application<Mock, AppInterface<Mock>>, AbstractClient<Mock>)> {
+fn setup() -> anyhow::Result<(
+    Application<Mock, CalendarAppInterface<Mock>>,
+    AbstractClient<Mock>,
+)> {
     setup_with_time(
         Time { hour: 9, minute: 0 },
         Time {
@@ -143,7 +149,7 @@ fn start_hour_out_of_bounds() -> anyhow::Result<()> {
         },
     ) {
         assert_eq!(
-            AppError::HourOutOfBounds {}.to_string(),
+            CalendarError::HourOutOfBounds {}.to_string(),
             error.root_cause().to_string()
         );
         return Ok(());
@@ -166,7 +172,7 @@ fn end_hour_out_of_bounds() -> anyhow::Result<()> {
         },
     ) {
         assert_eq!(
-            AppError::HourOutOfBounds {}.to_string(),
+            CalendarError::HourOutOfBounds {}.to_string(),
             error.root_cause().to_string()
         );
         return Ok(());
@@ -189,7 +195,7 @@ fn start_minutes_out_of_bounds() -> anyhow::Result<()> {
         },
     ) {
         assert_eq!(
-            AppError::MinutesOutOfBounds {}.to_string(),
+            CalendarError::MinutesOutOfBounds {}.to_string(),
             error.root_cause().to_string()
         );
         return Ok(());
@@ -212,7 +218,7 @@ fn end_minutes_out_of_bounds() -> anyhow::Result<()> {
         },
     ) {
         assert_eq!(
-            AppError::MinutesOutOfBounds {}.to_string(),
+            CalendarError::MinutesOutOfBounds {}.to_string(),
             error.root_cause().to_string()
         );
         return Ok(());
@@ -235,7 +241,7 @@ fn start_time_after_end_time() -> anyhow::Result<()> {
         },
     ) {
         assert_eq!(
-            AppError::EndTimeMustBeAfterStartTime {}.to_string(),
+            CalendarError::EndTimeMustBeAfterStartTime {}.to_string(),
             error.root_cause().to_string()
         );
         return Ok(());
@@ -687,7 +693,7 @@ fn cannot_request_multiple_meetings_with_same_start_time() -> anyhow::Result<()>
     .unwrap_err();
 
     assert_eq!(
-        AppError::MeetingConflictExists {}.to_string(),
+        CalendarError::MeetingConflictExists {}.to_string(),
         error.root_cause().to_string()
     );
 
@@ -745,7 +751,7 @@ fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
     .unwrap_err();
 
     assert_eq!(
-        AppError::MeetingConflictExists {}.to_string(),
+        CalendarError::MeetingConflictExists {}.to_string(),
         error.root_cause().to_string()
     );
 
@@ -803,7 +809,7 @@ fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
     .unwrap_err();
 
     assert_eq!(
-        AppError::MeetingConflictExists {}.to_string(),
+        CalendarError::MeetingConflictExists {}.to_string(),
         error.root_cause().to_string()
     );
 
@@ -861,7 +867,7 @@ fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
     .unwrap_err();
 
     assert_eq!(
-        AppError::MeetingConflictExists {}.to_string(),
+        CalendarError::MeetingConflictExists {}.to_string(),
         error.root_cause().to_string()
     );
 
@@ -902,7 +908,7 @@ fn cannot_request_meeting_in_past() -> anyhow::Result<()> {
     .unwrap_err();
 
     assert_eq!(
-        AppError::StartTimeMustBeInFuture {}.to_string(),
+        CalendarError::StartTimeMustBeInFuture {}.to_string(),
         error.root_cause().to_string()
     );
 
@@ -943,7 +949,7 @@ fn cannot_request_meeting_with_end_time_before_start_time() -> anyhow::Result<()
     .unwrap_err();
 
     assert_eq!(
-        AppError::EndTimeMustBeAfterStartTime {}.to_string(),
+        CalendarError::EndTimeMustBeAfterStartTime {}.to_string(),
         error.root_cause().to_string()
     );
 
@@ -984,7 +990,7 @@ fn cannot_request_meeting_with_start_time_out_of_calendar_bounds() -> anyhow::Re
     .unwrap_err();
 
     assert_eq!(
-        AppError::OutOfBoundsStartTime {}.to_string(),
+        CalendarError::OutOfBoundsStartTime {}.to_string(),
         error.root_cause().to_string()
     );
 
@@ -1025,7 +1031,7 @@ fn cannot_request_meeting_with_end_time_out_of_calendar_bounds() -> anyhow::Resu
     .unwrap_err();
 
     assert_eq!(
-        AppError::OutOfBoundsEndTime {}.to_string(),
+        CalendarError::OutOfBoundsEndTime {}.to_string(),
         error.root_cause().to_string()
     );
 
@@ -1062,7 +1068,7 @@ fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow
 
     let error: anyhow::Error = app
         .execute(
-            &abstract_core::base::ExecuteMsg::Module(AppExecuteMsg::RequestMeeting {
+            &abstract_core::base::ExecuteMsg::Module(CalendarExecuteMsg::RequestMeeting {
                 start_time: meeting_start_datetime.timestamp().into(),
                 end_time: meeting_end_datetime.timestamp().into(),
             }),
@@ -1072,7 +1078,7 @@ fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow
         .into();
 
     assert_eq!(
-        AppError::StartAndEndTimeNotOnSameDay {}.to_string(),
+        CalendarError::StartAndEndTimeNotOnSameDay {}.to_string(),
         error.root_cause().to_string(),
     );
 
@@ -1111,7 +1117,7 @@ fn cannot_request_meeting_with_insufficient_funds() -> anyhow::Result<()> {
     .unwrap_err();
 
     assert_eq!(
-        AppError::InvalidStakeAmountSent {
+        CalendarError::InvalidStakeAmountSent {
             expected_amount: Uint128::from(60u128)
         }
         .to_string(),

@@ -11,7 +11,8 @@ use abstract_core::{
         IbcClientCallback,
     },
     ibc_host, manager,
-    objects::{chain_name::ChainName, AccountId},
+    manager::ModuleInstallConfig,
+    objects::{chain_name::ChainName, AccountId, AssetEntry},
     version_control::AccountBase,
 };
 use abstract_sdk::{
@@ -261,6 +262,9 @@ pub fn execute_register_account(
     deps: DepsMut,
     info: MessageInfo,
     host_chain: String,
+    base_asset: Option<AssetEntry>,
+    namespace: Option<String>,
+    install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
     let cfg = CONFIG.load(deps.storage)?;
@@ -289,6 +293,9 @@ pub fn execute_register_account(
             description: account_info.description,
             link: account_info.link,
             name: account_info.name,
+            base_asset,
+            namespace,
+            install_modules,
         }),
         None,
     )?;

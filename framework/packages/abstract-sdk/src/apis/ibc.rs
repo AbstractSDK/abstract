@@ -82,7 +82,12 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register { host_chain }],
+                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
+                    host_chain,
+                    base_asset: None,
+                    namespace: None,
+                    install_modules: vec![],
+                }],
             },
             vec![],
         )?

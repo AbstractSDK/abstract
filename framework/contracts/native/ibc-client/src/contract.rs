@@ -80,9 +80,19 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::SendFunds { host_chain, funds } => {
             commands::execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
         }
-        ExecuteMsg::Register { host_chain } => {
-            commands::execute_register_account(deps, info, host_chain)
-        }
+        ExecuteMsg::Register {
+            host_chain,
+            base_asset,
+            namespace,
+            install_modules,
+        } => commands::execute_register_account(
+            deps,
+            info,
+            host_chain,
+            base_asset,
+            namespace,
+            install_modules,
+        ),
         ExecuteMsg::RemoveHost { host_chain } => {
             commands::execute_remove_host(deps, info, host_chain).map_err(Into::into)
         }
@@ -497,6 +507,9 @@ mod tests {
                     name: String::from("name"),
                     description: None,
                     link: None,
+                    base_asset: None,
+                    namespace: None,
+                    install_modules: vec![],
                 }),
                 callback_info: None,
             };
@@ -842,6 +855,9 @@ mod tests {
 
             let msg = ExecuteMsg::Register {
                 host_chain: chain_name.to_string(),
+                base_asset: None,
+                namespace: None,
+                install_modules: vec![],
             };
 
             let res = execute_as(deps.as_mut(), TEST_MANAGER, msg);
@@ -896,6 +912,9 @@ mod tests {
 
             let msg = ExecuteMsg::Register {
                 host_chain: chain_name.to_string(),
+                base_asset: None,
+                namespace: None,
+                install_modules: vec![],
             };
 
             let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
@@ -913,6 +932,9 @@ mod tests {
                                 description: None,
                                 link: None,
                                 name: String::from("name"),
+                                base_asset: None,
+                                namespace: None,
+                                install_modules: vec![],
                             }),
                         },
                         vec![],

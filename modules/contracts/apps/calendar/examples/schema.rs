@@ -1,4 +1,4 @@
-use calendar_app::contract::App;
+use calendar_app::contract::CalendarApp;
 use cosmwasm_schema::remove_schemas;
 use std::env::current_dir;
 use std::fs::create_dir_all;
@@ -10,5 +10,5 @@ fn main() {
     remove_schemas(&out_dir).unwrap();
 
     #[cfg(feature = "schema")]
-    App::export_schema(&out_dir);
+    CalendarApp::export_schema(&out_dir);
 }

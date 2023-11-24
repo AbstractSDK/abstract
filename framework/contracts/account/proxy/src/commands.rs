@@ -417,6 +417,9 @@ mod test {
             let msg = ExecuteMsg::IbcAction {
                 msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
                     host_chain: "juno".into(),
+                    base_asset: None,
+                    namespace: None,
+                    install_modules: vec![],
                 }],
             };
 
@@ -442,6 +445,9 @@ mod test {
                     contract_addr: "ibc_client_addr".into(),
                     msg: to_json_binary(&abstract_core::ibc_client::ExecuteMsg::Register {
                         host_chain: "juno".into(),
+                        base_asset: None,
+                        namespace: None,
+                        install_modules: vec![],
                     })
                     .unwrap(),
                     funds: vec![],
