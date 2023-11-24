@@ -53,3 +53,4 @@ prost = "0.11.9"
 cw-orch-polytone = { workspace = true }
 polytone = { workspace = true }
 abstract-scripts = { path = "../scripts" }
+abstract-integration-tests ={ path = "../../framework/packages/abstract-integration-tests" }

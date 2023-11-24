@@ -20,3 +20,5 @@ abstract-core.workspace = true
 abstract-sdk.workspace = true
 anyhow.workspace = true
 abstract-testing.workspace = true
+cosmwasm-schema = {workspace = true}
+cw2 = {workspace = true}
