@@ -70,8 +70,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
-    // Would it bet better to make this a "switch" by removing `value` and always setting the flag
-    // to `true`? Could be an issue where you can't turn it off for some niche case.
     pub fn fetch_if_namespace_claimed(&mut self, value: bool) -> &mut Self {
         self.fetch_if_namespace_claimed = value;
         self
@@ -181,17 +179,11 @@ impl<Chain: CwEnv> Account<Chain> {
 
         let sub_account: AbstractAccount<Chain> = AbstractAccount::new(
             &self.infrastructure()?,
-            Some(AccountId::local(
-                // Unwrap should be fine since the related event should always exist.
-                extracted_event_info.sub_account_id.unwrap(),
-            )),
+            Some(AccountId::local(extracted_event_info.sub_account_id)),
         );
 
-        let contract =
-            Contract::new(M::module_id().to_owned(), self.environment()).with_address(Some(
-                // Unwrap should be fine since the related event should always exist.
-                &Addr::unchecked(extracted_event_info.module_address.unwrap()),
-            ));
+        let contract = Contract::new(M::module_id().to_owned(), self.environment())
+            .with_address(Some(&Addr::unchecked(extracted_event_info.module_address)));
 
         let app: M = contract.into();
 
@@ -208,8 +200,8 @@ impl<Chain: CwEnv> Account<Chain> {
 }
 
 struct ExtractedEventInfo {
-    sub_account_id: Option<u32>,
-    module_address: Option<String>,
+    sub_account_id: u32,
+    module_address: String,
 }
 
 fn extract_info_from_events(events: Vec<Event>) -> ExtractedEventInfo {
@@ -230,7 +222,8 @@ fn extract_info_from_events(events: Vec<Event>) -> ExtractedEventInfo {
         .map(|a| a.value.parse().unwrap());
 
     ExtractedEventInfo {
-        sub_account_id,
-        module_address,
+        // We expect both of these fields to be present.
+        sub_account_id: sub_account_id.unwrap(),
+        module_address: module_address.unwrap(),
     }
 }
