@@ -54,7 +54,8 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
         .manager
         .install_module::<Empty>(IBC_CLIENT, None, None)?;
 
-    // Now we send a message to the client saying that we want to create an account on osmosis
+    // Now we send a message to the client saying that we want to create an account on the
+    // destination chain
     let register_tx = origin.account.register_remote_account(&destination_name)?;
 
     interchain.wait_ibc(&origin_id.to_owned(), register_tx)?;
@@ -89,13 +90,10 @@ mod test {
     use crate::STARGAZE;
 
     use abstract_core::{
-        ibc_client::ExecuteMsg as IbcClientExecuteMsg,
-        ibc_host::HostAction,
         manager::ExecuteMsg as ManagerExecuteMsg,
         objects::{chain_name::ChainName, AccountId},
-        proxy::ExecuteMsg as ProxyExecuteMsg,
     };
-    use abstract_interface::{ManagerExecFns, VCQueryFns};
+    use abstract_interface::VCQueryFns;
     use cosmwasm_std::Addr;
     use cw_orch::prelude::ContractInstance;
 
@@ -119,22 +117,15 @@ mod test {
         // Ad client to account
 
         // The user on chain 1 want to change the account description
-        let ibc_action_result = abstr1.account.manager.exec_on_module(
-            to_json_binary(&ProxyExecuteMsg::IbcAction {
-                msgs: vec![IbcClientExecuteMsg::RemoteAction {
-                    host_chain: remote_name.clone(),
-                    action: HostAction::Dispatch {
-                        manager_msg: ManagerExecuteMsg::UpdateInfo {
-                            name: Some(new_name.to_string()),
-                            description: Some(new_description.to_string()),
-                            link: Some(new_link.to_string()),
-                        },
-                    },
-                    callback_info: None,
-                }],
-            })?,
-            PROXY.to_string(),
-            &[],
+
+        let ibc_action_result = abstr1.account.manager.execute_on_remote(
+            &remote_name,
+            ManagerExecuteMsg::UpdateInfo {
+                name: Some(new_name.to_string()),
+                description: Some(new_description.to_string()),
+                link: Some(new_link.to_string()),
+            },
+            None,
         )?;
 
         mock_interchain.wait_ibc(&JUNO.to_string(), ibc_action_result)?;
