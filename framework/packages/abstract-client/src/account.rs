@@ -175,15 +175,17 @@ impl<Chain: CwEnv> Account<Chain> {
             funds,
         )?;
 
-        let extracted_event_info = extract_info_from_events(sub_account_response.events());
+        let creation_attribute_values =
+            extract_creation_attribute_values_from_events(sub_account_response.events());
 
         let sub_account: AbstractAccount<Chain> = AbstractAccount::new(
             &self.infrastructure()?,
-            Some(AccountId::local(extracted_event_info.sub_account_id)),
+            Some(AccountId::local(creation_attribute_values.sub_account_id)),
         );
 
-        let contract = Contract::new(M::module_id().to_owned(), self.environment())
-            .with_address(Some(&Addr::unchecked(extracted_event_info.module_address)));
+        let contract = Contract::new(M::module_id().to_owned(), self.environment()).with_address(
+            Some(&Addr::unchecked(creation_attribute_values.module_address)),
+        );
 
         let app: M = contract.into();
 
@@ -199,12 +201,12 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 }
 
-struct ExtractedEventInfo {
+struct CreationAttributeValues {
     sub_account_id: u32,
     module_address: String,
 }
 
-fn extract_info_from_events(events: Vec<Event>) -> ExtractedEventInfo {
+fn extract_creation_attribute_values_from_events(events: Vec<Event>) -> CreationAttributeValues {
     let wasm_abstract_attributes: Vec<Attribute> = events
         .into_iter()
         .filter(|e| e.ty == "wasm-abstract")
@@ -221,7 +223,7 @@ fn extract_info_from_events(events: Vec<Event>) -> ExtractedEventInfo {
         .find(|a| a.key == "new_modules")
         .map(|a| a.value.parse().unwrap());
 
-    ExtractedEventInfo {
+    CreationAttributeValues {
         // We expect both of these fields to be present.
         sub_account_id: sub_account_id.unwrap(),
         module_address: module_address.unwrap(),
