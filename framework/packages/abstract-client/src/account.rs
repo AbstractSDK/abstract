@@ -10,7 +10,7 @@ use abstract_interface::{
     Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns, RegisteredModule,
     VCQueryFns,
 };
-use cosmwasm_std::{to_json_binary, Attribute, Event};
+use cosmwasm_std::{to_json_binary, Attribute};
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
 
@@ -126,6 +126,11 @@ pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
 }
 
+struct ParsedAccountCreationResponse {
+    sub_account_id: u32,
+    module_address: String,
+}
+
 impl<Chain: CwEnv> Account<Chain> {
     pub(crate) fn new(abstract_account: AbstractAccount<Chain>) -> Self {
         Self {
@@ -175,17 +180,20 @@ impl<Chain: CwEnv> Account<Chain> {
             funds,
         )?;
 
-        let creation_attribute_values =
-            extract_creation_attribute_values_from_events(sub_account_response.events());
+        let parsed_account_creation_response =
+            Self::parse_account_creation_response(sub_account_response);
 
         let sub_account: AbstractAccount<Chain> = AbstractAccount::new(
             &self.infrastructure()?,
-            Some(AccountId::local(creation_attribute_values.sub_account_id)),
+            Some(AccountId::local(
+                parsed_account_creation_response.sub_account_id,
+            )),
         );
 
-        let contract = Contract::new(M::module_id().to_owned(), self.environment()).with_address(
-            Some(&Addr::unchecked(creation_attribute_values.module_address)),
-        );
+        let contract =
+            Contract::new(M::module_id().to_owned(), self.environment()).with_address(Some(
+                &Addr::unchecked(parsed_account_creation_response.module_address),
+            ));
 
         let app: M = contract.into();
 
@@ -199,33 +207,31 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn proxy(&self) -> AbstractClientResult<Addr> {
         self.abstr_account.proxy.address().map_err(Into::into)
     }
-}
 
-struct CreationAttributeValues {
-    sub_account_id: u32,
-    module_address: String,
-}
+    fn parse_account_creation_response(
+        response: <Chain as TxHandler>::Response,
+    ) -> ParsedAccountCreationResponse {
+        let wasm_abstract_attributes: Vec<Attribute> = response
+            .events()
+            .into_iter()
+            .filter(|e| e.ty == "wasm-abstract")
+            .flat_map(|e| e.attributes)
+            .collect();
 
-fn extract_creation_attribute_values_from_events(events: Vec<Event>) -> CreationAttributeValues {
-    let wasm_abstract_attributes: Vec<Attribute> = events
-        .into_iter()
-        .filter(|e| e.ty == "wasm-abstract")
-        .flat_map(|e| e.attributes)
-        .collect();
+        let sub_account_id: Option<u32> = wasm_abstract_attributes
+            .iter()
+            .find(|a| a.key == "sub_account_added")
+            .map(|a| a.value.parse().unwrap());
 
-    let sub_account_id: Option<u32> = wasm_abstract_attributes
-        .iter()
-        .find(|a| a.key == "sub_account_added")
-        .map(|a| a.value.parse().unwrap());
+        let module_address: Option<String> = wasm_abstract_attributes
+            .iter()
+            .find(|a| a.key == "new_modules")
+            .map(|a| a.value.parse().unwrap());
 
-    let module_address: Option<String> = wasm_abstract_attributes
-        .iter()
-        .find(|a| a.key == "new_modules")
-        .map(|a| a.value.parse().unwrap());
-
-    CreationAttributeValues {
-        // We expect both of these fields to be present.
-        sub_account_id: sub_account_id.unwrap(),
-        module_address: module_address.unwrap(),
+        ParsedAccountCreationResponse {
+            // We expect both of these fields to be present.
+            sub_account_id: sub_account_id.unwrap(),
+            module_address: module_address.unwrap(),
+        }
     }
 }
