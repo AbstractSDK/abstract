@@ -42,6 +42,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             account_id,
             action,
         } => {
+            println!("IBC_HOST: got action {:?}", action);
             // This endpoint retrieves the chain name from the executor of the message
             let client_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
 
@@ -90,7 +91,9 @@ fn register_chain_proxy(
     chain: String,
     proxy: String,
 ) -> HostResult {
-    cw_ownable::is_owner(deps.storage, &info.sender)?;
+    if !cw_ownable::is_owner(deps.storage, &info.sender)? {
+        return Err(HostError::Unauthorized {});
+    }
     let chain = ChainName::from_str(&chain)?;
 
     // We validate the proxy address, because this is the Polytone counterpart on the local chain
@@ -106,7 +109,11 @@ fn register_chain_proxy(
 }
 
 fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: String) -> HostResult {
-    cw_ownable::is_owner(deps.storage, &info.sender)?;
+    if !cw_ownable::is_owner(deps.storage, &info.sender)? {
+        return Err(HostError::Unauthorized {});
+    }
+
+    println!("SENDER IN CONTRACT: {:?}", info.sender);
     let chain = ChainName::from_str(&chain)?;
 
     if let Some(proxy) = CHAIN_PROXIES.may_load(deps.storage, &chain)? {
