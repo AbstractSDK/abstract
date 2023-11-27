@@ -1,16 +1,18 @@
 use abstract_core::{
-    manager::{state::AccountInfo, InfoResponse},
-    objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
+    manager::{state::AccountInfo, InfoResponse, ModuleInstallConfig},
+    objects::{
+        gov_type::GovernanceDetails, module::ModuleInfo, namespace::Namespace, AccountId,
+        AssetEntry,
+    },
     version_control::NamespaceResponse,
 };
 use abstract_interface::{
     Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns, RegisteredModule,
     VCQueryFns,
 };
-use cosmwasm_std::{Attribute, Event};
+use cosmwasm_std::{to_json_binary, Attribute};
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
-use serde::Serialize;
 
 use crate::{
     application::Application, client::AbstractClientResult, infrastructure::Infrastructure,
@@ -26,6 +28,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     // TODO: Decide if we want to abstract this as well.
     governance_details: Option<GovernanceDetails<String>>,
     // TODO: How to handle install_modules?
+    fetch_if_namespace_claimed: bool,
 }
 
 impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
@@ -38,6 +41,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: None,
             base_asset: None,
             governance_details: None,
+            fetch_if_namespace_claimed: false,
         }
     }
 
@@ -66,6 +70,11 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
+    pub fn fetch_if_namespace_claimed(&mut self, value: bool) -> &mut Self {
+        self.fetch_if_namespace_claimed = value;
+        self
+    }
+
     pub fn governance_details(
         &mut self,
         governance_details: GovernanceDetails<String>,
@@ -75,6 +84,19 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
+        if self.fetch_if_namespace_claimed {
+            // Check if namespace already claimed
+            if let Some(ref namespace) = self.namespace {
+                let account_from_namespace_result: AbstractClientResult<Account<Chain>> =
+                    Account::from_namespace(self.abstr, namespace);
+
+                // Only return if the account can be retrieved without errors.
+                if let Ok(account_from_namespace) = account_from_namespace_result {
+                    return Ok(account_from_namespace);
+                }
+            }
+        }
+
         let sender = self.environment().sender().to_string();
         let name = self
             .name
@@ -104,6 +126,11 @@ pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
 }
 
+struct ParsedAccountCreationResponse {
+    sub_account_id: u32,
+    module_address: String,
+}
+
 impl<Chain: CwEnv> Account<Chain> {
     pub(crate) fn new(abstract_account: AbstractAccount<Chain>) -> Self {
         Self {
@@ -113,11 +140,11 @@ impl<Chain: CwEnv> Account<Chain> {
 
     pub(crate) fn from_namespace(
         abstr: &Abstract<Chain>,
-        namespace: String,
+        namespace: &str,
     ) -> AbstractClientResult<Self> {
         let namespace_response: NamespaceResponse = abstr
             .version_control
-            .namespace(Namespace::new(&namespace)?)?;
+            .namespace(Namespace::new(namespace)?)?;
 
         let abstract_account: AbstractAccount<Chain> =
             AbstractAccount::new(abstr, Some(namespace_response.account_id));
@@ -134,36 +161,42 @@ impl<Chain: CwEnv> Account<Chain> {
     // creates a new sub-account and installs the application on it.
     pub fn install_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
-        C: Serialize,
     >(
         &self,
-        configuration: &C,
+        configuration: &M::InitMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         // Create sub account.
         let sub_account_response = self.abstr_account.manager.create_sub_account(
-            vec![],
+            vec![ModuleInstallConfig::new(
+                ModuleInfo::from_id(M::module_id(), M::module_version().into())?,
+                Some(to_json_binary(&configuration)?),
+            )],
             "Sub Account".to_owned(),
             None,
             None,
             None,
             None,
-            &[],
+            funds,
         )?;
 
-        // Unwrap should be fine since we are not expecting this to ever error.
-        let sub_account_id = get_sub_account_id_from_events(sub_account_response.events()).unwrap();
+        let parsed_account_creation_response =
+            Self::parse_account_creation_response(sub_account_response);
 
         let sub_account: AbstractAccount<Chain> = AbstractAccount::new(
             &self.infrastructure()?,
-            Some(AccountId::local(sub_account_id)),
+            Some(AccountId::local(
+                parsed_account_creation_response.sub_account_id,
+            )),
         );
 
-        let contract = Contract::new(M::module_id().to_owned(), self.environment());
+        let contract =
+            Contract::new(M::module_id().to_owned(), self.environment()).with_address(Some(
+                &Addr::unchecked(parsed_account_creation_response.module_address),
+            ));
 
         let app: M = contract.into();
 
-        sub_account.install_app(&app, configuration, Some(funds))?;
         Ok(Application::new(Account::new(sub_account), app))
     }
 
@@ -174,19 +207,31 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn proxy(&self) -> AbstractClientResult<Addr> {
         self.abstr_account.proxy.address().map_err(Into::into)
     }
-}
 
-fn get_sub_account_id_from_events(events: Vec<Event>) -> Option<u32> {
-    let wasm_abstract_attributes: Vec<Attribute> = events
-        .into_iter()
-        .filter(|e| e.ty == "wasm-abstract")
-        .flat_map(|e| e.attributes)
-        .collect();
+    fn parse_account_creation_response(
+        response: <Chain as TxHandler>::Response,
+    ) -> ParsedAccountCreationResponse {
+        let wasm_abstract_attributes: Vec<Attribute> = response
+            .events()
+            .into_iter()
+            .filter(|e| e.ty == "wasm-abstract")
+            .flat_map(|e| e.attributes)
+            .collect();
 
-    let sub_account_id: Option<u32> = wasm_abstract_attributes
-        .into_iter()
-        .find(|a| a.key == "sub_account_added")
-        .map(|a| a.value.parse().unwrap());
+        let sub_account_id: Option<u32> = wasm_abstract_attributes
+            .iter()
+            .find(|a| a.key == "sub_account_added")
+            .map(|a| a.value.parse().unwrap());
 
-    sub_account_id
+        let module_address: Option<String> = wasm_abstract_attributes
+            .iter()
+            .find(|a| a.key == "new_modules")
+            .map(|a| a.value.parse().unwrap());
+
+        ParsedAccountCreationResponse {
+            // We expect both of these fields to be present.
+            sub_account_id: sub_account_id.unwrap(),
+            module_address: module_address.unwrap(),
+        }
+    }
 }
