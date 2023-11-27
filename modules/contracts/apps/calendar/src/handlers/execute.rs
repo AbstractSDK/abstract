@@ -13,7 +13,7 @@ use crate::error::CalendarError;
 use crate::msg::CalendarExecuteMsg;
 use crate::state::{Meeting, CALENDAR, CONFIG};
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::{Resolve, TransferInterface};
+use abstract_sdk::TransferInterface;
 
 enum StakeAction {
     Return,
@@ -270,8 +270,8 @@ pub fn resolve_native_ans_denom(
     app: &CalendarApp,
     denom: AssetEntry,
 ) -> CalendarAppResult<String> {
-    let ans_host = app.ans_host(deps)?;
-    let resolved_denom = denom.resolve(&deps.querier, &ans_host)?;
+    let name_service = app.name_service(deps);
+    let resolved_denom = name_service.query(&denom)?;
     let denom = match resolved_denom {
         AssetInfoBase::Native(denom) => Ok(denom),
         _ => Err(StdError::generic_err("Non-native denom not supported")),

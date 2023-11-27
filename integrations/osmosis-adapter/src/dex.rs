@@ -23,7 +23,7 @@ use ::{
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::{
         core::objects::PoolAddress, core::objects::UniquePoolId, feature_objects::AnsHost,
-        features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult, AccountVerification,
+        features::AbstractRegistryAccess, AbstractSdkError, AccountVerification,
     },
     cosmwasm_std::{
         Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
@@ -63,9 +63,9 @@ impl DexCommand for Osmosis {
         version_control_contract: VersionControlContract,
         _ans_host: AnsHost,
         _pool_id: UniquePoolId,
-    ) -> AbstractSdkResult<()> {
+    ) -> Result<(), DexError> {
         self.version_control_contract = Some(version_control_contract);
-        let account_registry = self.account_registry(deps);
+        let account_registry = self.account_registry(deps)?;
 
         let base = account_registry.assert_manager(&sender)?;
         self.local_proxy_addr = Some(base.proxy);
@@ -327,4 +327,11 @@ fn assert_slippage_tolerance(
     }
 
     Ok(())
+}
+
+#[cfg(feature = "full_integration")]
+impl abstract_sdk::features::ModuleIdentification for Osmosis {
+    fn module_id(&self) -> abstract_sdk::core::objects::module::ModuleId<'static> {
+        abstract_dex_standard::DEX_ADAPTER_ID
+    }
 }

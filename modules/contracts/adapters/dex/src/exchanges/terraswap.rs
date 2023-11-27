@@ -19,7 +19,6 @@ use ::{
     abstract_core::objects::PoolAddress,
     abstract_dex_standard::{coins_in_assets, cw_approve_msgs},
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
-    abstract_sdk::cw_helpers::wasm_smart_query,
     cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
@@ -115,10 +114,10 @@ impl DexCommand for Terraswap {
             return Err(DexError::TooManyAssets(2));
         }
         // Get pair info
-        let pair_config: PoolResponse = deps.querier.query(&wasm_smart_query(
+        let pair_config: PoolResponse = deps.querier.query_wasm_smart(
             pair_address.to_string(),
             &terraswap::pair::QueryMsg::Pool {},
-        )?)?;
+        )?;
 
         let ts_offer_asset = cw_asset_to_terraswap(&offer_asset)?;
         let other_asset = if pair_config.assets[0].info == ts_offer_asset.info {
@@ -202,12 +201,12 @@ impl DexCommand for Terraswap {
             return_amount,
             spread_amount,
             commission_amount,
-        } = deps.querier.query(&wasm_smart_query(
+        } = deps.querier.query_wasm_smart(
             pair_address.to_string(),
             &terraswap::pair::QueryMsg::Simulation {
                 offer_asset: cw_asset_to_terraswap(&offer_asset)?,
             },
-        )?)?;
+        )?;
         // commission paid in result asset
         Ok((return_amount, spread_amount, commission_amount, false))
     }

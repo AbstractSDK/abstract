@@ -33,7 +33,7 @@ use ::{
     abstract_sdk::{
         core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
-        AbstractSdkResult, Resolve,
+        Resolve,
     },
     abstract_staking_standard::msg::{
         RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse, UnbondingResponse,
@@ -61,7 +61,7 @@ impl CwStakingCommand for Astroport {
         ans_host: &AnsHost,
         _version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
-    ) -> AbstractSdkResult<()> {
+    ) -> Result<(), CwStakingError> {
         self.tokens = lp_tokens
             .into_iter()
             .map(|entry| {
@@ -83,7 +83,7 @@ impl CwStakingCommand for Astroport {
                     generator_contract_address,
                 })
             })
-            .collect::<AbstractSdkResult<_>>()?;
+            .collect::<Result<_, CwStakingError>>()?;
         Ok(())
     }
 

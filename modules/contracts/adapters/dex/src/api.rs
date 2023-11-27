@@ -5,17 +5,16 @@ use abstract_core::objects::{module::ModuleId, AssetEntry};
 use abstract_dex_standard::msg::{
     DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
 };
-use abstract_sdk::AdapterInterface;
 use abstract_sdk::{
-    features::{AccountIdentification, Dependencies},
-    AbstractSdkResult,
+    features::{AccountIdentification, Dependencies, ModuleIdentification},
+    AbstractSdkResult, AdapterInterface,
 };
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use serde::de::DeserializeOwned;
 
 // API for Abstract SDK users
 /// Interact with the dex adapter in your module.
-pub trait DexInterface: AccountIdentification + Dependencies {
+pub trait DexInterface: AccountIdentification + Dependencies + ModuleIdentification {
     /// Construct a new dex interface
     fn dex<'a>(&'a self, deps: Deps<'a>, name: DexName) -> Dex<Self> {
         Dex {
@@ -27,7 +26,7 @@ pub trait DexInterface: AccountIdentification + Dependencies {
     }
 }
 
-impl<T: AccountIdentification + Dependencies> DexInterface for T {}
+impl<T: AccountIdentification + Dependencies + ModuleIdentification> DexInterface for T {}
 
 #[derive(Clone)]
 pub struct Dex<'a, T: DexInterface> {
