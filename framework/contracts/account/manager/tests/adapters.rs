@@ -15,7 +15,9 @@ use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
-use crate::common::mock_modules::{adapter_1::BootMockAdapter1V1, adapter_1::BootMockAdapter1V2, V1, V2};
+use crate::common::mock_modules::{
+    adapter_1::BootMockAdapter1V1, adapter_1::BootMockAdapter1V2, V1, V2,
+};
 
 #[test]
 fn installing_one_adapter_should_succeed() -> AResult {

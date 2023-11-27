@@ -1,6 +1,6 @@
+use crate::mock_modules::app_1::*;
 use crate::mock_modules::standalone_cw2;
 use crate::mock_modules::*;
-use crate::mock_modules::app_1::*;
 use crate::AResult;
 use abstract_app::gen_app_mock;
 use abstract_app::mock::MockInitMsg;
