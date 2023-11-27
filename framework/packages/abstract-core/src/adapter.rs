@@ -108,8 +108,6 @@ pub enum BaseExecuteMsg {
         to_add: Vec<String>,
         to_remove: Vec<String>,
     },
-    /// Remove the adapter
-    Remove {},
 }
 
 /// Query adapter message

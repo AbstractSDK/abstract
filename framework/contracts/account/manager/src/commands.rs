@@ -713,11 +713,6 @@ pub fn replace_adapter(
             to_remove: authorized_to_migrate.clone(),
         },
     )?);
-    // Remove adapter as authorized address on dependencies
-    msgs.push(configure_adapter(
-        &old_adapter_addr,
-        BaseExecuteMsg::Remove {},
-    )?);
     // Add authorized addresses to new
     msgs.push(configure_adapter(
         &new_adapter_addr,

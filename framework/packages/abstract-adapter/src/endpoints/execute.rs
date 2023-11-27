@@ -47,8 +47,6 @@ impl<
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
             ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
-            #[allow(unreachable_patterns)]
-            _ => Err(StdError::generic_err("Unsupported api execute message variant").into()),
         }
     }
 }
@@ -68,7 +66,6 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             BaseExecuteMsg::UpdateAuthorizedAddresses { to_add, to_remove } => {
                 self.update_authorized_addresses(deps, info, to_add, to_remove)
             }
-            BaseExecuteMsg::Remove {} => self.remove_self_from_deps(deps.as_ref(), env, info),
         }
     }
 
@@ -126,52 +123,6 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         };
         self.target_account = Some(account_base);
         self.execute_handler()?(deps, env, info, self, request.request)
-    }
-
-    /// If dependencies are set, remove self from them.
-    pub(crate) fn remove_self_from_deps(
-        &mut self,
-        deps: Deps,
-        env: Env,
-        info: MessageInfo,
-    ) -> AdapterResult {
-        // Only the manager can remove the Adapter as a dependency.
-        let account_base = self
-            .account_registry(deps)
-            .assert_manager(&info.sender)
-            .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
-                adapter: self.module_id().to_string(),
-                sender: info.sender.to_string(),
-            })?;
-        self.target_account = Some(account_base);
-
-        let dependencies = self.dependencies();
-        let mut msgs: Vec<CosmosMsg> = vec![];
-        let modules = self.modules(deps);
-        for dep in dependencies {
-            let adapter_addr = modules.module_address(dep.id);
-            // just skip if dep is already removed. This means all the authorized addresses are already removed.
-            if adapter_addr.is_err() {
-                continue;
-            };
-            msgs.push(
-                wasm_execute(
-                    adapter_addr?.into_string(),
-                    &BaseExecuteMsg::UpdateAuthorizedAddresses {
-                        to_add: vec![],
-                        to_remove: vec![env.contract.address.to_string()],
-                    },
-                    vec![],
-                )?
-                .into(),
-            );
-        }
-        self.executor(deps)
-            .execute_with_response(
-                vec![AccountAction::from_vec(msgs)],
-                "remove_adapter_from_dependencies",
-            )
-            .map_err(Into::into)
     }
 
     /// Update authorized addresses from the adapter.
