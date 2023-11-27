@@ -18,6 +18,10 @@ pub struct AnsHost {
     pub address: Addr,
 }
 
+trait ContractObject {
+    fn contract_address(&self) -> Addr;
+}
+
 impl AnsHost {
     /// Create a new ans_host instance with the given address.
     pub fn new(address: Addr) -> Self {

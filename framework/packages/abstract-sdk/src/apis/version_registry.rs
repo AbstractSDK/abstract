@@ -7,7 +7,7 @@ use abstract_core::{
     objects::{
         module::{Module, ModuleInfo},
         module_reference::ModuleReference,
-        namespace::Namespace,
+        namespace::Namespace, version_control::VersionControlContract,
     },
     version_control::{
         state::{REGISTERED_MODULES, STANDALONE_INFOS},
@@ -72,6 +72,7 @@ impl<'a, T: ModuleRegistryInterface> ApiIdentification for ModuleRegistry<'a, T>
 pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
     base: &'a T,
     deps: Deps<'a>,
+    vc: VersionControlContract,
 }
 
 impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {

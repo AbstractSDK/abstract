@@ -20,12 +20,12 @@ pub fn wasm_raw_query<C>(
 pub trait ApiSmartQuery<S: ModuleIdentification>: AbstractApi<S> + ApiIdentification {
     fn api_smart_query<T: DeserializeOwned>(
         &self,
-        contract_addr: impl Into<String>,
+        contract: impl ContractObject,
         msg: &impl Serialize,
     ) -> AbstractSdkResult<T> {
         let querier = self.deps().querier;
         querier
-            .query_wasm_smart(contract_addr, msg)
+            .query_wasm_smart(contract.contract_addr.contr, msg)
             .map_err(|error| AbstractSdkError::ApiSmartQuery {
                 api: Self::api_id(),
                 module_id: self.base().module_id().to_owned(),
