@@ -7,7 +7,8 @@ use abstract_core::{
     objects::{
         module::{Module, ModuleInfo},
         module_reference::ModuleReference,
-        namespace::Namespace, version_control::VersionControlContract,
+        namespace::Namespace,
+        version_control::VersionControlContract,
     },
     version_control::{
         state::{REGISTERED_MODULES, STANDALONE_INFOS},
