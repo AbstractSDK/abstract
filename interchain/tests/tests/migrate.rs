@@ -19,14 +19,24 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 // owner of the abstract infra
 const SENDER: &str = "juno1kjzpqv393k4g064xh04j4hwy5d0s03wfvqejga";
 
+/// Returns a shared tokio runtime for all tests
+fn rt() -> &'static tokio::runtime::Runtime {
+    lazy_static::lazy_static! {
+        static ref RT: tokio::runtime::Runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .expect("Should create a tokio runtime");
+    }
+    &RT
+}
+
 /// Sets up the forkmock for Juno mainnet.
 /// Returns the abstract deployment and sender (=mainnet admin)
 fn setup() -> anyhow::Result<(Abstract<ForkMock>, Addr, ForkMock)> {
-    let runtime = Runtime::new().unwrap();
     env_logger::init();
     let sender = Addr::unchecked(SENDER);
     // Run migration tests against Juno mainnet
-    let mut app = ForkMock::new(&runtime, JUNO_1)?;
+    let mut app = ForkMock::new(rt(), JUNO_1)?;
     app.set_sender(sender.clone());
 
     let abstr_deployment = Abstract::load_from(app.clone())?;

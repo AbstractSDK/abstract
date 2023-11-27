@@ -54,3 +54,4 @@ cw-orch-polytone = { workspace = true }
 polytone = { workspace = true }
 abstract-scripts = { path = "../scripts" }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
+lazy_static = "1.4.0"
