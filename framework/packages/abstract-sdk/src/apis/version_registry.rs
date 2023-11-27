@@ -1,4 +1,8 @@
-use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
+use crate::{
+    cw_helpers::ApiSmartQuery,
+    features::{AbstractApi, AbstractRegistryAccess, ApiIdentification, ModuleIdentification},
+    AbstractSdkError, AbstractSdkResult,
+};
 use abstract_core::{
     objects::{
         module::{Module, ModuleInfo},
@@ -13,7 +17,7 @@ use abstract_core::{
 use cosmwasm_std::Deps;
 
 /// Access the Abstract Version Control and access module information.
-pub trait ModuleRegistryInterface: AbstractRegistryAccess {
+pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification {
     /**
         API for querying module information from the Abstract version control contract.
 
@@ -33,7 +37,22 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess {
     }
 }
 
-impl<T> ModuleRegistryInterface for T where T: AbstractRegistryAccess {}
+impl<T> ModuleRegistryInterface for T where T: AbstractRegistryAccess + ModuleIdentification {}
+
+impl<'a, T: ModuleRegistryInterface> AbstractApi<T> for ModuleRegistry<'a, T> {
+    fn base(&self) -> &T {
+        self.base
+    }
+    fn deps(&self) -> Deps {
+        self.deps
+    }
+}
+
+impl<'a, T: ModuleRegistryInterface> ApiIdentification for ModuleRegistry<'a, T> {
+    fn api_id() -> String {
+        "ModuleRegistry".to_owned()
+    }
+}
 
 #[derive(Clone)]
 /**
@@ -92,10 +111,8 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         infos: Vec<ModuleInfo>,
     ) -> AbstractSdkResult<Vec<ModuleResponse>> {
         let registry_addr = self.base.abstract_registry(self.deps)?.address;
-        let ModulesResponse { modules } = self
-            .deps
-            .querier
-            .query_wasm_smart(registry_addr.into_string(), &QueryMsg::Modules { infos })?;
+        let ModulesResponse { modules } =
+            self.api_smart_query(registry_addr.into_string(), &QueryMsg::Modules { infos })?;
         Ok(modules)
     }
 
@@ -103,7 +120,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     /// Is also returns the base modules of that account (AccountBase)
     pub fn query_namespace(&self, namespace: Namespace) -> AbstractSdkResult<NamespaceResponse> {
         let registry_addr = self.base.abstract_registry(self.deps)?.address;
-        let namespace_response: NamespaceResponse = self.deps.querier.query_wasm_smart(
+        let namespace_response: NamespaceResponse = self.api_smart_query(
             registry_addr.into_string(),
             &QueryMsg::Namespace { namespace },
         )?;

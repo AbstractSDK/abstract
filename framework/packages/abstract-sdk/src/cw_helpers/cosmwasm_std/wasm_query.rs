@@ -1,4 +1,10 @@
 use cosmwasm_std::{Binary, QueryRequest, StdResult, WasmQuery};
+use serde::{de::DeserializeOwned, Serialize};
+
+use crate::{
+    features::{AbstractApi, ApiIdentification, ModuleIdentification},
+    AbstractSdkError, AbstractSdkResult,
+};
 
 /// Shortcut helper as the construction of QueryRequest::Wasm(WasmQuery::Raw {...}) can be quite verbose in contract code
 pub fn wasm_raw_query<C>(
@@ -9,6 +15,30 @@ pub fn wasm_raw_query<C>(
         contract_addr: contract_addr.into(),
         key: key.into(),
     }))
+}
+
+pub trait ApiSmartQuery<S: ModuleIdentification>: AbstractApi<S> + ApiIdentification {
+    fn api_smart_query<T: DeserializeOwned>(
+        &self,
+        contract_addr: impl Into<String>,
+        msg: &impl Serialize,
+    ) -> AbstractSdkResult<T> {
+        let querier = self.deps().querier;
+        querier
+            .query_wasm_smart(contract_addr, msg)
+            .map_err(|error| AbstractSdkError::ApiSmartQuery {
+                api: Self::api_id(),
+                module_id: self.base().module_id().to_owned(),
+                error,
+            })
+    }
+}
+
+impl<S, T> ApiSmartQuery<S> for T
+where
+    S: ModuleIdentification,
+    T: AbstractApi<S> + ApiIdentification,
+{
 }
 
 #[cfg(test)]

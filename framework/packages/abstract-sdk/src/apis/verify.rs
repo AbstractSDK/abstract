@@ -1,6 +1,9 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
-use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
+use crate::{
+    features::{AbstractApi, AbstractRegistryAccess, ApiIdentification, ModuleIdentification},
+    AbstractSdkError, AbstractSdkResult,
+};
 use abstract_core::{
     manager::state::ACCOUNT_ID,
     objects::AccountId,
@@ -9,7 +12,7 @@ use abstract_core::{
 use cosmwasm_std::{Addr, Deps};
 
 /// Verify if an addresses is associated with an Abstract Account.
-pub trait AccountVerification: AbstractRegistryAccess {
+pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
     /**
         API for querying and verifying a sender's identity in the context of Abstract Accounts.
 
@@ -29,7 +32,22 @@ pub trait AccountVerification: AbstractRegistryAccess {
     }
 }
 
-impl<T> AccountVerification for T where T: AbstractRegistryAccess {}
+impl<T> AccountVerification for T where T: AbstractRegistryAccess + ModuleIdentification {}
+
+impl<'a, T: AccountVerification> AbstractApi<T> for AccountRegistry<'a, T> {
+    fn base(&self) -> &T {
+        self.base
+    }
+    fn deps(&self) -> Deps {
+        self.deps
+    }
+}
+
+impl<'a, T: AccountVerification> ApiIdentification for AccountRegistry<'a, T> {
+    fn api_id() -> String {
+        "AccountRegistry".to_owned()
+    }
+}
 
 /**
     API for querying and verifying a sender's identity in the context of Abstract Accounts.
@@ -132,6 +150,7 @@ mod test {
 
     use super::*;
     use abstract_core::objects::account::AccountTrace;
+    use abstract_core::objects::module::ModuleId;
     use abstract_core::objects::version_control::VersionControlContract;
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
@@ -143,9 +162,15 @@ mod test {
 
     impl AbstractRegistryAccess for MockBinding {
         fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-            Ok(VersionControlContract {
-                address: Addr::unchecked(TEST_VERSION_CONTROL),
-            })
+            Ok(VersionControlContract::new(Addr::unchecked(
+                TEST_VERSION_CONTROL,
+            )))
+        }
+    }
+
+    impl ModuleIdentification for MockBinding {
+        fn module_id(&self) -> ModuleId<'static> {
+            ModuleId::from("module")
         }
     }
 

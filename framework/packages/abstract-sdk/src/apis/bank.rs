@@ -2,7 +2,9 @@
 //! The Bank object handles asset transfers to and from the Account.
 
 use crate::core::objects::{AnsAsset, AssetEntry};
-use crate::features::AccountIdentification;
+use crate::features::{
+    AbstractApi, AccountIdentification, ApiIdentification, ModuleIdentification,
+};
 use crate::AccountAction;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
 use cosmwasm_std::to_json_binary;
@@ -11,7 +13,9 @@ use cw_asset::Asset;
 use serde::Serialize;
 
 /// Query and Transfer assets from and to the Abstract Account.
-pub trait TransferInterface: AbstractNameService + AccountIdentification {
+pub trait TransferInterface:
+    AbstractNameService + AccountIdentification + ModuleIdentification
+{
     /**
         API for transferring funds to and from the account.
 
@@ -31,7 +35,25 @@ pub trait TransferInterface: AbstractNameService + AccountIdentification {
     }
 }
 
-impl<T> TransferInterface for T where T: AbstractNameService + AccountIdentification {}
+impl<T> TransferInterface for T where
+    T: AbstractNameService + AccountIdentification + ModuleIdentification
+{
+}
+
+impl<'a, T: TransferInterface> AbstractApi<T> for Bank<'a, T> {
+    fn base(&self) -> &T {
+        self.base
+    }
+    fn deps(&self) -> Deps {
+        self.deps
+    }
+}
+
+impl<'a, T: TransferInterface> ApiIdentification for Bank<'a, T> {
+    fn api_id() -> String {
+        "Bank".to_owned()
+    }
+}
 
 /**
     API for transferring funds to and from the account.
