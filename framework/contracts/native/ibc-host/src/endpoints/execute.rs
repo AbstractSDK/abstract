@@ -39,7 +39,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             let client_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
 
             handle_host_action(deps, env, client_chain, proxy_address, account_id, action)
-        },
+        }
         ExecuteMsg::UpdateOwnership(action) => {
             cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
             Ok(HostResponse::action("update_ownership"))

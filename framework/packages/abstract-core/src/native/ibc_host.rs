@@ -110,9 +110,14 @@ pub enum ExecuteMsg {
     },
     /// Register the Polytone proxy for a specific chain.
     /// proxy should be a local address (will be validated)
-    RegisterChainProxy { chain: String, proxy: String },
+    RegisterChainProxy {
+        chain: String,
+        proxy: String,
+    },
     /// Remove the Polytone proxy for a specific chain.
-    RemoveChainProxy { chain: String },
+    RemoveChainProxy {
+        chain: String,
+    },
     /// Allows for remote execution from the Polytone implementation
     #[cfg_attr(feature = "interface", fn_name("ibc_execute"))]
     Execute {
