@@ -93,12 +93,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             .version_control
             .register_natives(deployment.contracts())?;
 
-        // This Ibc Client is actually a module that people need to register on their accounts
-        deployment.version_control.register_adapters(vec![(
-            deployment.ibc.client.as_instance(),
-            ibc_client::contract::CONTRACT_VERSION.to_string(),
-        )])?;
-
         // Only the ibc host is allowed to create remote accounts on the account factory
         deployment
             .account_factory
@@ -130,6 +124,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             Box::new(&mut self.module_factory),
             Box::new(&mut self.account.manager),
             Box::new(&mut self.account.proxy),
+            Box::new(&mut self.ibc.client),
+            Box::new(&mut self.ibc.host),
         ]
     }
 
@@ -253,6 +249,14 @@ impl<Chain: CwEnv> Abstract<Chain> {
             (
                 self.module_factory.as_instance(),
                 module_factory::contract::CONTRACT_VERSION.to_string(),
+            ),
+            (
+                self.ibc.client.as_instance(),
+                ibc_client::contract::CONTRACT_VERSION.to_string(),
+            ),
+            (
+                self.ibc.host.as_instance(),
+                ibc_host::contract::CONTRACT_VERSION.to_string(),
             ),
         ]
     }
