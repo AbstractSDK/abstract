@@ -15,6 +15,7 @@ use abstract_core::ACCOUNT_FACTORY;
 use abstract_core::ICS20;
 use abstract_core::MANAGER;
 use abstract_core::PROXY;
+use abstract_ibc_host::HostError;
 use abstract_interface::Abstract;
 use abstract_interface::AdapterDeployer;
 use abstract_interface::DeployStrategy;
@@ -100,6 +101,58 @@ fn account_creation() -> anyhow::Result<()> {
             .add_attribute("account_sequence", account_sequence.to_string())
             .add_attribute("trace", chain)
     ));
+
+    Ok(())
+}
+
+#[test]
+fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
+    let sender = Addr::unchecked("sender");
+    let chain = Mock::new(&sender);
+
+    let admin = Addr::unchecked("admin");
+    let mut home_chain = chain.clone();
+    home_chain.set_sender(admin.clone());
+
+    let home_abstr = Abstract::deploy_on(home_chain.clone(), admin.to_string())?;
+
+    let chain = "juno";
+
+    // We need to set the sender as the proxy for juno chain
+    let err: CwOrchError = home_abstr
+        .ibc
+        .host
+        .call_as(&Addr::unchecked("user"))
+        .register_chain_proxy(chain.into(), sender.to_string())
+        .unwrap_err();
+
+    assert_eq!(HostError::Unauthorized {}, err.downcast()?);
+
+    Ok(())
+}
+
+#[test]
+fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
+    let sender = Addr::unchecked("sender");
+    let chain = Mock::new(&sender);
+
+    let admin = Addr::unchecked("admin");
+    let mut home_chain = chain.clone();
+    home_chain.set_sender(admin.clone());
+
+    let home_abstr = Abstract::deploy_on(home_chain.clone(), admin.to_string())?;
+
+    let chain = "juno";
+
+    // We need to set the sender as the proxy for juno chain
+    let err: CwOrchError = home_abstr
+        .ibc
+        .host
+        .call_as(&Addr::unchecked("user"))
+        .remove_chain_proxy(chain.into())
+        .unwrap_err();
+
+    assert_eq!(HostError::Unauthorized {}, err.downcast()?);
 
     Ok(())
 }
