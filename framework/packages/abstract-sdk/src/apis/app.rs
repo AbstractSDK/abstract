@@ -1,6 +1,6 @@
 #![allow(unused)]
 use crate::{
-    cw_helpers::ApiSmartQuery,
+    cw_helpers::ApiQuery,
     features::{AbstractApi, ApiIdentification, ModuleIdentification},
     AbstractSdkResult, AccountAction, ModuleInterface,
 };

@@ -6,7 +6,6 @@ use abstract_core::AbstractError;
 
 use abstract_core::objects::module::assert_module_data_validity;
 use abstract_sdk::feature_objects::VersionControlContract;
-use abstract_sdk::AccountVerification;
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, DepsMut, Empty, Env,
     MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
@@ -95,8 +94,7 @@ pub fn execute_create_account(
     let funds_for_install = simulate_resp.total_required_funds;
     let funds_for_namespace_fee = if namespace.is_some() {
         abstract_registry
-            .account_registry(deps.as_ref())
-            .namespace_registration_fee()?
+            .namespace_registration_fee(&deps.querier)?
             .into_iter()
             .collect()
     } else {

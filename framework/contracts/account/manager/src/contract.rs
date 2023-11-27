@@ -10,18 +10,15 @@ use abstract_core::{
     objects::gov_type::GovernanceDetails,
     PROXY,
 };
-use abstract_sdk::{
-    core::{
-        manager::{
-            state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
-            CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-        },
-        objects::module_version::assert_contract_upgrade,
-        objects::validation::{validate_description, validate_link, validate_name},
-        proxy::state::ACCOUNT_ID,
-        MANAGER,
+use abstract_sdk::core::{
+    manager::{
+        state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
+        CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
-    features::ModuleIdentification,
+    objects::module_version::assert_contract_upgrade,
+    objects::validation::{validate_description, validate_link, validate_name},
+    proxy::state::ACCOUNT_ID,
+    MANAGER,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,

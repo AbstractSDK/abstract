@@ -1,4 +1,4 @@
-use cosmwasm_std::{Binary, QueryRequest, StdResult, WasmQuery};
+use cosmwasm_std::{Binary, QueryRequest, StdError, StdResult, WasmQuery};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
@@ -17,24 +17,28 @@ pub fn wasm_raw_query<C>(
     }))
 }
 
-pub trait ApiSmartQuery<S: ModuleIdentification>: AbstractApi<S> + ApiIdentification {
+pub trait ApiQuery<S: ModuleIdentification>: AbstractApi<S> + ApiIdentification {
     fn api_smart_query<T: DeserializeOwned>(
         &self,
-        contract: impl ContractObject,
+        contract_addr: impl Into<String>,
         msg: &impl Serialize,
     ) -> AbstractSdkResult<T> {
         let querier = self.deps().querier;
         querier
-            .query_wasm_smart(contract.contract_addr.contr, msg)
-            .map_err(|error| AbstractSdkError::ApiSmartQuery {
-                api: Self::api_id(),
-                module_id: self.base().module_id().to_owned(),
-                error,
-            })
+            .query_wasm_smart(contract_addr, msg)
+            .map_err(|error| self.wrap_query_error(error))
+    }
+
+    fn wrap_query_error(&self, error: StdError) -> AbstractSdkError {
+        AbstractSdkError::ApiQuery {
+            api: Self::api_id(),
+            module_id: self.base().module_id().to_owned(),
+            error,
+        }
     }
 }
 
-impl<S, T> ApiSmartQuery<S> for T
+impl<S, T> ApiQuery<S> for T
 where
     S: ModuleIdentification,
     T: AbstractApi<S> + ApiIdentification,

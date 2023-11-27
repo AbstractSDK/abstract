@@ -1,7 +1,7 @@
 use crate::{
-    cw_helpers::ApiSmartQuery,
+    cw_helpers::ApiQuery,
     features::{AbstractApi, AbstractRegistryAccess, ApiIdentification, ModuleIdentification},
-    AbstractSdkError, AbstractSdkResult,
+    AbstractSdkResult,
 };
 use abstract_core::{
     objects::{
@@ -10,10 +10,7 @@ use abstract_core::{
         namespace::Namespace,
         version_control::VersionControlContract,
     },
-    version_control::{
-        state::{REGISTERED_MODULES, STANDALONE_INFOS},
-        ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse, QueryMsg,
-    },
+    version_control::{ModuleConfiguration, ModuleResponse, NamespaceResponse},
 };
 use cosmwasm_std::Deps;
 
@@ -33,8 +30,13 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
         let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref());
         ```
     */
-    fn module_registry<'a>(&'a self, deps: Deps<'a>) -> ModuleRegistry<Self> {
-        ModuleRegistry { base: self, deps }
+    fn module_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<ModuleRegistry<Self>> {
+        let vc = self.abstract_registry(deps)?;
+        Ok(ModuleRegistry {
+            base: self,
+            deps,
+            vc,
+        })
     }
 }
 
@@ -82,13 +84,9 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         &self,
         module_info: &ModuleInfo,
     ) -> AbstractSdkResult<ModuleReference> {
-        let registry_addr = self.base.abstract_registry(self.deps)?.address;
-        REGISTERED_MODULES
-            .query(&self.deps.querier, registry_addr.clone(), module_info)?
-            .ok_or_else(|| AbstractSdkError::ModuleNotFound {
-                module: module_info.to_string(),
-                registry_addr,
-            })
+        self.vc
+            .query_module_reference_raw(module_info, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Smart query for a module
@@ -112,33 +110,23 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         &self,
         infos: Vec<ModuleInfo>,
     ) -> AbstractSdkResult<Vec<ModuleResponse>> {
-        let registry_addr = self.base.abstract_registry(self.deps)?.address;
-        let ModulesResponse { modules } =
-            self.api_smart_query(registry_addr.into_string(), &QueryMsg::Modules { infos })?;
-        Ok(modules)
+        self.vc
+            .query_modules_configs(infos, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Queries the account that owns the namespace
     /// Is also returns the base modules of that account (AccountBase)
     pub fn query_namespace(&self, namespace: Namespace) -> AbstractSdkResult<NamespaceResponse> {
-        let registry_addr = self.base.abstract_registry(self.deps)?.address;
-        let namespace_response: NamespaceResponse = self.api_smart_query(
-            registry_addr.into_string(),
-            &QueryMsg::Namespace { namespace },
-        )?;
-        Ok(namespace_response)
+        self.vc
+            .query_namespace(namespace, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Queries the module info of the standalone code id
-    pub fn query_standalone_info(&self, code_id: u64) -> AbstractSdkResult<ModuleInfo> {
-        let registry_addr = self.base.abstract_registry(self.deps)?.address;
-
-        let info = STANDALONE_INFOS
-            .query(&self.deps.querier, registry_addr.clone(), code_id)?
-            .ok_or(AbstractSdkError::StandaloneNotFound {
-                code_id,
-                registry_addr,
-            })?;
-        Ok(info)
+    pub fn query_standalone_info_raw(&self, code_id: u64) -> AbstractSdkResult<ModuleInfo> {
+        self.vc
+            .query_standalone_info_raw(code_id, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 }

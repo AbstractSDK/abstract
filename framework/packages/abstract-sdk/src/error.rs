@@ -92,9 +92,9 @@ pub enum AbstractSdkError {
     #[error("Admin of proxy {proxy_addr} is not set.")]
     AdminNotSet { proxy_addr: Addr },
 
-    // Smart query from api object failed
-    #[error("API smart query for {api} failed in {module_id}: {error}")]
-    ApiSmartQuery {
+    // Query from api object failed
+    #[error("API query for {api} failed in {module_id}: {error}")]
+    ApiQuery {
         api: String,
         module_id: String,
         error: cosmwasm_std::StdError,

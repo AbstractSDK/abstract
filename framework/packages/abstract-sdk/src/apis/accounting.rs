@@ -2,7 +2,7 @@
 //! The Accountant object provides function for querying balances and asset values for the Account.
 
 use crate::{
-    cw_helpers::ApiSmartQuery,
+    cw_helpers::ApiQuery,
     features::{
         AbstractApi, AbstractNameService, AccountIdentification, ApiIdentification,
         ModuleIdentification,

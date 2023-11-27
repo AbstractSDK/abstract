@@ -7,7 +7,6 @@ use abstract_sdk::core::manager::{
     ModuleVersionsResponse,
 };
 use abstract_sdk::feature_objects::VersionControlContract;
-use abstract_sdk::ModuleRegistryInterface;
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_storage_plus::Bound;
@@ -104,8 +103,6 @@ pub fn query_module_version(
     module_addr: Addr,
     version_control: &VersionControlContract,
 ) -> StdResult<ContractVersion> {
-    let module_registry = version_control.module_registry(deps);
-
     if let Ok(info) = cw2::query_contract_info(&deps.querier, module_addr.to_string()) {
         // Check if it's abstract format and return now
         if ModuleInfo::from_id(
@@ -126,13 +123,10 @@ pub fn query_module_version(
         .querier
         .query_wasm_contract_info(module_addr.to_string())?
         .code_id;
-    module_registry
-        .query_standalone_info(code_id)
-        .and_then(|module_info| {
-            let version = ContractVersion::try_from(module_info)?;
-            Ok(version)
-        })
-        .map_err(|e| StdError::generic_err(e.to_string()))
+    let module_info = version_control.query_standalone_info_raw(code_id, &deps.querier)?;
+    let version =
+        ContractVersion::try_from(module_info).map_err(|e| StdError::generic_err(e.to_string()))?;
+    Ok(version)
 }
 
 /// RawQuery the module versions of the modules part of the Account

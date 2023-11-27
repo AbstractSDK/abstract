@@ -1,13 +1,13 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use crate::{
+    cw_helpers::ApiQuery,
     features::{AbstractApi, AbstractRegistryAccess, ApiIdentification, ModuleIdentification},
     AbstractSdkError, AbstractSdkResult,
 };
 use abstract_core::{
-    manager::state::ACCOUNT_ID,
-    objects::AccountId,
-    version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
+    objects::{version_control::VersionControlContract, AccountId},
+    version_control::AccountBase,
 };
 use cosmwasm_std::{Addr, Deps};
 
@@ -27,8 +27,13 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
         let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref());
         ```
     */
-    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> AccountRegistry<Self> {
-        AccountRegistry { base: self, deps }
+    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<AccountRegistry<Self>> {
+        let vc = self.abstract_registry(deps)?;
+        Ok(AccountRegistry {
+            base: self,
+            deps,
+            vc,
+        })
     }
 }
 
@@ -67,6 +72,7 @@ impl<'a, T: AccountVerification> ApiIdentification for AccountRegistry<'a, T> {
 pub struct AccountRegistry<'a, T: AccountVerification> {
     base: &'a T,
     deps: Deps<'a>,
+    vc: VersionControlContract,
 }
 
 impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
@@ -109,39 +115,23 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
 
     /// Get the account base for a given account id.
     pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<AccountBase> {
-        let maybe_account = ACCOUNT_ADDRESSES.query(
-            &self.deps.querier,
-            self.base.abstract_registry(self.deps)?.address,
-            account_id,
-        )?;
-        match maybe_account {
-            None => Err(AbstractSdkError::UnknownAccountId {
-                account_id: account_id.clone(),
-                version_control_addr: self.base.abstract_registry(self.deps)?.address,
-            }),
-            Some(account_base) => Ok(account_base),
-        }
+        self.vc
+            .account_base(account_id, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Get AccountId for given manager or proxy address.
     pub fn account_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<AccountId> {
-        ACCOUNT_ID
-            .query(&self.deps.querier, maybe_core_contract_addr.clone())
-            .map_err(|_| AbstractSdkError::FailedToQueryAccountId {
-                contract_addr: maybe_core_contract_addr.clone(),
-            })
+        self.vc
+            .account_id(maybe_core_contract_addr, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Get namespace registration fee
     pub fn namespace_registration_fee(&self) -> AbstractSdkResult<Option<cosmwasm_std::Coin>> {
-        let registry_addr = self.base.abstract_registry(self.deps)?.address;
-        let config = abstract_core::version_control::state::CONFIG
-            .query(&self.deps.querier, registry_addr)?;
-        if config.namespace_registration_fee.amount.is_zero() {
-            Ok(None)
-        } else {
-            Ok(Some(config.namespace_registration_fee))
-        }
+        self.vc
+            .namespace_registration_fee(&self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 }
 
@@ -152,6 +142,7 @@ mod test {
     use abstract_core::objects::account::AccountTrace;
     use abstract_core::objects::module::ModuleId;
     use abstract_core::objects::version_control::VersionControlContract;
+    use abstract_core::{proxy::state::ACCOUNT_ID, version_control::state::ACCOUNT_ADDRESSES};
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
@@ -196,6 +187,7 @@ mod test {
 
             let res = binding
                 .account_registry(deps.as_ref())
+                .unwrap()
                 .assert_proxy(&Addr::unchecked("not_proxy"));
 
             assert_that!(res)
@@ -217,6 +209,7 @@ mod test {
 
             let res = binding
                 .account_registry(deps.as_ref())
+                .unwrap()
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
             assert_that!(res)
@@ -245,6 +238,7 @@ mod test {
 
             let res = binding
                 .account_registry(deps.as_ref())
+                .unwrap()
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
             assert_that!(res).is_ok().is_equal_to(test_account_base());
@@ -273,6 +267,7 @@ mod test {
 
             let res = binding
                 .account_registry(deps.as_ref())
+                .unwrap()
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
             assert_that!(res)
@@ -301,6 +296,7 @@ mod test {
 
             let res = binding
                 .account_registry(deps.as_ref())
+                .unwrap()
                 .assert_manager(&Addr::unchecked("not_manager"));
 
             assert_that!(res)
@@ -322,6 +318,7 @@ mod test {
 
             let res = binding
                 .account_registry(deps.as_ref())
+                .unwrap()
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
             assert_that!(res)
@@ -351,6 +348,7 @@ mod test {
 
             let res = binding
                 .account_registry(deps.as_ref())
+                .unwrap()
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
             assert_that!(res).is_ok().is_equal_to(test_account_base());
@@ -379,6 +377,7 @@ mod test {
 
             let res = binding
                 .account_registry(deps.as_ref())
+                .unwrap()
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
             assert_that!(res)
