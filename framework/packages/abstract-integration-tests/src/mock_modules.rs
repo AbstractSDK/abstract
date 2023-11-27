@@ -13,42 +13,37 @@ use cw_orch::prelude::*;
 pub type MockAdapterContract = AdapterContract<AdapterMockError, Empty, Empty, Empty, Empty, Empty>;
 pub type MockAppContract = AppContract<AppMockError, Empty, Empty, Empty, Empty, Empty, Empty>;
 
-#[allow(ambiguous_glob_reexports)]
-pub use self::adapter_1::*;
-pub use self::adapter_2::*;
-pub use self::app_1::*;
-
 pub const V1: &str = "1.0.0";
 pub const V2: &str = "2.0.0";
 
 /// deploys different version adapters and app for migration testing
 pub fn deploy_modules<T: CwEnv>(chain: &T) {
-    self::BootMockAdapter1V1::new_test(chain.clone())
+    adapter_1::BootMockAdapter1V1::new_test(chain.clone())
         .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
-    self::BootMockAdapter1V2::new_test(chain.clone())
+    adapter_1::BootMockAdapter1V2::new_test(chain.clone())
         .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // and now for adapter 2
-    self::BootMockAdapter2V1::new_test(chain.clone())
+    adapter_2::BootMockAdapter2V1::new_test(chain.clone())
         .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
-    self::BootMockAdapter2V2::new_test(chain.clone())
+    adapter_2::BootMockAdapter2V2::new_test(chain.clone())
         .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // and now for app 1
-    self::BootMockApp1V1::new_test(chain.clone())
+    app_1::BootMockApp1V1::new_test(chain.clone())
         .deploy(V1.parse().unwrap(), DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
-    self::BootMockApp1V2::new_test(chain.clone())
+    app_1::BootMockApp1V2::new_test(chain.clone())
         .deploy(V2.parse().unwrap(), DeployStrategy::Error)
         .unwrap();
 }
@@ -136,12 +131,6 @@ pub mod gen_mock {
     /// Macro to generate a mock contract's interface. The cw2 expression (bool) is used to indicate if the cw2 state should be set or not.
     macro_rules! gen_standalone_mock {
         ($name:ident, $id:expr, $version:expr, $cw2:expr) => {
-            use ::abstract_core::app;
-            use ::abstract_sdk::base::Handler;
-            use ::abstract_sdk::features::AccountIdentification;
-            use ::abstract_sdk::{Execution, TransferInterface};
-            use ::cw_orch::prelude::*;
-
             #[cosmwasm_schema::cw_serde]
             pub struct MockMsg;
 
@@ -150,38 +139,38 @@ pub mod gen_mock {
                 _env: ::cosmwasm_std::Env,
                 _info: ::cosmwasm_std::MessageInfo,
                 _msg: MockMsg,
-            ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
+            ) -> ::cosmwasm_std::StdResult<::cosmwasm_std::Response> {
                 if $cw2 {
                     ::cw2::set_contract_version(deps.storage, $id, $version)?;
                 }
-                Ok(cosmwasm_std::Response::new())
+                Ok(::cosmwasm_std::Response::new())
             }
 
             /// Execute entrypoint
             pub fn mock_execute(
-                _deps: cosmwasm_std::DepsMut,
-                _env: cosmwasm_std::Env,
-                _info: cosmwasm_std::MessageInfo,
+                _deps: ::cosmwasm_std::DepsMut,
+                _env: ::cosmwasm_std::Env,
+                _info: ::cosmwasm_std::MessageInfo,
                 _msg: MockMsg,
-            ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
-                Ok(cosmwasm_std::Response::new())
+            ) -> ::cosmwasm_std::StdResult<::cosmwasm_std::Response> {
+                Ok(::cosmwasm_std::Response::new())
             }
 
             /// Query entrypoint
             pub fn mock_query(
-                _deps: cosmwasm_std::Deps,
-                _env: cosmwasm_std::Env,
+                _deps: ::cosmwasm_std::Deps,
+                _env: ::cosmwasm_std::Env,
                 _msg: MockMsg,
-            ) -> cosmwasm_std::StdResult<cosmwasm_std::Binary> {
-                Ok(cosmwasm_std::Binary::default())
+            ) -> ::cosmwasm_std::StdResult<::cosmwasm_std::Binary> {
+                Ok(::cosmwasm_std::Binary::default())
             }
 
             #[cw_orch::interface(MockMsg, MockMsg, MockMsg, Empty)]
             pub struct $name;
 
-            impl<T: cw_orch::prelude::CwEnv> Uploadable for $name<T> {
+            impl<T: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::Uploadable for $name<T> {
                 fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
-                    Box::new(ContractWrapper::<Exec, _, _, _, _, _>::new_with_empty(
+                    Box::new(ContractWrapper::<MockMsg, _, _, _, _, _>::new_with_empty(
                         self::mock_execute,
                         self::mock_instantiate,
                         self::mock_query,
@@ -191,7 +180,7 @@ pub mod gen_mock {
 
             impl<Chain: ::cw_orch::environment::CwEnv> $name<Chain> {
                 pub fn new_test(chain: Chain) -> Self {
-                    Self(cw_orch::contract::Contract::new($id, chain))
+                    Self(::cw_orch::contract::Contract::new($id, chain))
                 }
             }
         };

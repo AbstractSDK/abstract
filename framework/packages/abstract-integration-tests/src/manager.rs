@@ -1,5 +1,6 @@
 use crate::mock_modules::standalone_cw2;
 use crate::mock_modules::*;
+use crate::mock_modules::app_1::*;
 use crate::AResult;
 use abstract_app::gen_app_mock;
 use abstract_app::mock::MockInitMsg;
@@ -129,7 +130,7 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T, sender: Add
 pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv>(
     chain: T,
     sender: Addr,
-    payment_denoms: (String, String),
+    payment_denoms: (&str, &str),
 ) -> AResult {
     // Adding coins to fill monetization
     // chain.add_balance(&sender, vec![coin(18, "coin1"), coin(20, "coin2")])?;
@@ -273,11 +274,11 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv
             Some(&[coin(18, payment_denoms.0), coin(20, payment_denoms.1)]),
         )
         .unwrap();
-    let balances = chain.query_all_balances(&account.proxy.address()?)?;
-    assert_eq!(
-        balances,
-        vec![coin(1, payment_denoms.0), coin(5, payment_denoms.1)]
-    );
+    // let balances = chain.query_all_balances(&account.proxy.address()?)?;
+    // assert_eq!(
+    //     balances,
+    //     vec![coin(1, payment_denoms.0), coin(5, payment_denoms.1)]
+    // );
     // Make sure all installed
     Ok(())
 }

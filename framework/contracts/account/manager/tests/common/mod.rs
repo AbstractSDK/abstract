@@ -22,7 +22,7 @@ use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 use semver::Version;
 
-pub use abstract_integration_tests::{create_default_account, AResult};
+pub use abstract_integration_tests::{create_default_account, AResult, mock_modules};
 use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
 
 pub(crate) fn init_mock_adapter(

@@ -15,7 +15,7 @@ use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
-use crate::common::mock_modules::{BootMockAdapter1V1, BootMockAdapter1V2, V1, V2};
+use crate::common::mock_modules::{adapter_1::BootMockAdapter1V1, adapter_1::BootMockAdapter1V2, V1, V2};
 
 #[test]
 fn installing_one_adapter_should_succeed() -> AResult {
@@ -398,7 +398,7 @@ fn account_install_adapter() -> AResult {
     let adapter_addr = account.install_adapter(&adapter, None)?;
     let module_addr = account
         .manager
-        .module_info(common::mock_modules::adapter_1::MOCK_ADAPTER_ID)?
+        .module_info(crate::common::mock_modules::adapter_1::MOCK_ADAPTER_ID)?
         .unwrap()
         .address;
     assert_that!(adapter_addr).is_equal_to(module_addr);
