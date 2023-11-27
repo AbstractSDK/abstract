@@ -90,9 +90,8 @@ fn register_chain_proxy(
     chain: String,
     proxy: String,
 ) -> HostResult {
-    if !cw_ownable::is_owner(deps.storage, &info.sender)? {
-        return Err(HostError::Unauthorized {});
-    }
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
+
     let chain = ChainName::from_str(&chain)?;
 
     // We validate the proxy address, because this is the Polytone counterpart on the local chain
@@ -108,9 +107,7 @@ fn register_chain_proxy(
 }
 
 fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: String) -> HostResult {
-    if !cw_ownable::is_owner(deps.storage, &info.sender)? {
-        return Err(HostError::Unauthorized {});
-    }
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let chain = ChainName::from_str(&chain)?;
 
