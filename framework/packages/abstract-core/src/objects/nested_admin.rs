@@ -1,22 +1,23 @@
-use abstract_core::{
+use crate::{
     manager::{self, state::AccountInfo, MAX_MANAGER_ADMIN_RECURSION},
     objects::gov_type::GovernanceDetails,
 };
 use cosmwasm_std::{
-    attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, Response, StdError, StdResult,
+    attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, QuerierWrapper, Response, StdError,
+    StdResult,
 };
 use cw_controllers::{Admin, AdminError, AdminResponse};
 use schemars::JsonSchema;
 
-/// App Admin object
+/// Abstract Admin object
 /// This object has same api to the [cw_controllers::Admin]
 /// With added query_account_owner method (will get top-level owner in case of sub-accounts)
-/// but allows top-level abstract account owner to have admin privileges on the app
-pub struct AppAdmin<'a>(Admin<'a>);
+/// but allows top-level abstract account owner to have admin privileges on the module
+pub struct NestedAdmin<'a>(Admin<'a>);
 
-impl<'a> AppAdmin<'a> {
+impl<'a> NestedAdmin<'a> {
     pub const fn new(namespace: &'a str) -> Self {
-        AppAdmin(Admin::new(namespace))
+        NestedAdmin(Admin::new(namespace))
     }
 
     pub fn set<Q: CustomQuery>(&self, deps: DepsMut<Q>, admin: Option<Addr>) -> StdResult<()> {
@@ -35,7 +36,7 @@ impl<'a> AppAdmin<'a> {
                     Ok(true)
                 } else {
                     // Check if top level owner address is equal to the caller
-                    Ok(query_top_level_owner(deps, owner)
+                    Ok(query_top_level_owner(&deps.querier, owner)
                         .map(|owner| owner == caller)
                         .unwrap_or(false))
                 }
@@ -82,7 +83,7 @@ impl<'a> AppAdmin<'a> {
         Ok(Response::new().add_attributes(attributes))
     }
 
-    // This method queries direct app owner
+    // This method queries direct module owner
     pub fn query_admin<Q: CustomQuery>(&self, deps: Deps<Q>) -> StdResult<AdminResponse> {
         self.0.query_admin(deps)
     }
@@ -90,9 +91,9 @@ impl<'a> AppAdmin<'a> {
     // This method tries to get top-level account owner
     pub fn query_account_owner<Q: CustomQuery>(&self, deps: Deps<Q>) -> StdResult<AdminResponse> {
         let admin = match self.0.get(deps)? {
-            Some(owner) => Some(query_top_level_owner(deps, owner).map_err(|_| {
+            Some(owner) => Some(query_top_level_owner(&deps.querier, owner).map_err(|_| {
                 StdError::generic_err(
-                    "Failed to query top level owner. Make sure this app is owned by the manager",
+                    "Failed to query top level owner. Make sure this module is owned by the manager",
                 )
             })?),
             None => None,
@@ -103,9 +104,12 @@ impl<'a> AppAdmin<'a> {
     }
 }
 
-fn query_top_level_owner<Q: CustomQuery>(deps: Deps<Q>, maybe_manager: Addr) -> StdResult<Addr> {
-    // Starting from (potentially)manager that owns this app
-    let mut current = manager::state::INFO.query(&deps.querier, maybe_manager.clone());
+pub fn query_top_level_owner<Q: CustomQuery>(
+    querier: &QuerierWrapper<Q>,
+    maybe_manager: Addr,
+) -> StdResult<Addr> {
+    // Starting from (potentially)manager that owns this module
+    let mut current = manager::state::INFO.query(querier, maybe_manager.clone());
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
     for _ in 0..MAX_MANAGER_ADMIN_RECURSION {
         match &current {
@@ -113,7 +117,7 @@ fn query_top_level_owner<Q: CustomQuery>(deps: Deps<Q>, maybe_manager: Addr) -> 
                 governance_details: GovernanceDetails::SubAccount { manager, .. },
                 ..
             }) => {
-                current = manager::state::INFO.query(&deps.querier, manager.clone());
+                current = manager::state::INFO.query(querier, manager.clone());
             }
             _ => break,
         }

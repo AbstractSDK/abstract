@@ -7,8 +7,7 @@ use crate::{
 use abstract_core::adapter::AdapterBaseMsg;
 use abstract_core::adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg};
 use abstract_core::manager::state::ACCOUNT_MODULES;
-use abstract_core::manager::{self, MAX_MANAGER_ADMIN_RECURSION};
-use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::nested_admin::query_top_level_owner;
 use abstract_sdk::AccountAction;
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
@@ -55,17 +54,8 @@ impl<
 }
 
 fn is_top_level_owner(querier: &QuerierWrapper, manager: Addr, sender: &Addr) -> StdResult<bool> {
-    let mut current = manager::state::INFO.query(querier, manager)?;
-    for _ in 0..MAX_MANAGER_ADMIN_RECURSION {
-        match current.governance_details {
-            // As long as the accounts are sub-accounts, we check the owner of the parent account
-            GovernanceDetails::SubAccount { manager, .. } => {
-                current = manager::state::INFO.query(querier, manager)?;
-            }
-            _ => break,
-        }
-    }
-    Ok(current.governance_details.owner_address() == sender)
+    let owner = query_top_level_owner(querier, manager)?;
+    Ok(owner == sender)
 }
 
 /// The api-contract base implementation.
