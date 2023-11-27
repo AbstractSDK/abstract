@@ -42,7 +42,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             account_id,
             action,
         } => {
-            println!("IBC_HOST: got action {:?}", action);
             // This endpoint retrieves the chain name from the executor of the message
             let client_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
 
