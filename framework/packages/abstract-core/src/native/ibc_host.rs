@@ -92,7 +92,7 @@ pub enum HostAction {
     Dispatch {
         manager_msg: manager::ExecuteMsg,
     },
-    /// Can't be called by an account directly. These are permissionned messages that only the IBC Client is allowed to call by itself.
+    /// Can't be called by an account directly. These are permissioned messages that only the IBC Client is allowed to call by itself.
     Internal(InternalAction),
     /// Some helpers that allow calling dispatch messages faster (for actions that are called regularly)
     Helpers(HelperAction),
@@ -102,8 +102,7 @@ pub enum HostAction {
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
-    /// Update the Admin
-    UpdateAdmin { admin: String },
+    UpdateOwnership(cw_ownable::Action),
     UpdateConfig {
         ans_host_address: Option<String>,
         account_factory_address: Option<String>,
@@ -130,6 +129,8 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
+    #[returns(cw_ownable::Ownership<String> )]
+    Ownership {},
     /// Returns [`ConfigResponse`].
     #[returns(ConfigResponse)]
     Config {},

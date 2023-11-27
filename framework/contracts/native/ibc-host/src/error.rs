@@ -1,7 +1,7 @@
 use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
-use cw_controllers::AdminError;
+use cw_ownable::OwnershipError;
 use cw_utils::ParseReplyError;
 use thiserror::Error;
 
@@ -20,7 +20,7 @@ pub enum HostError {
     NoCustomQueries,
 
     #[error("{0}")]
-    AdminError(#[from] AdminError),
+    OwnershipError(#[from] OwnershipError),
 
     #[error("{0}")]
     ParseReply(#[from] ParseReplyError),
@@ -33,9 +33,6 @@ pub enum HostError {
 
     #[error("Chain or proxy address already registered.")]
     ProxyAddressExists {},
-
-    #[error("Unauthorized action")]
-    Unauthorized {},
 }
 
 impl From<semver::Error> for HostError {

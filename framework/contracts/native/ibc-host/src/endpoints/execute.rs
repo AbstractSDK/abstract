@@ -7,7 +7,6 @@ use crate::{
 use abstract_core::{
     ibc_host::state::{CHAIN_PROXIES, CONFIG, REVERSE_CHAIN_PROXIES},
     objects::chain_name::ChainName,
-    proxy::state::ADMIN,
 };
 use abstract_sdk::{core::ibc_host::ExecuteMsg, feature_objects::VersionControlContract};
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
@@ -16,12 +15,6 @@ use super::packet::handle_host_action;
 
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> HostResult {
     match msg {
-        ExecuteMsg::UpdateAdmin { admin } => {
-            let new_admin = deps.api.addr_validate(&admin)?;
-            ADMIN
-                .execute_update_admin(deps, info, Some(new_admin))
-                .map_err(Into::into)
-        }
         ExecuteMsg::UpdateConfig {
             ans_host_address,
             account_factory_address,
@@ -46,6 +39,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             let client_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
 
             handle_host_action(deps, env, client_chain, proxy_address, account_id, action)
+        },
+        ExecuteMsg::UpdateOwnership(action) => {
+            cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
+            Ok(HostResponse::action("update_ownership"))
         }
     }
 }
@@ -60,7 +57,7 @@ fn update_config(
 ) -> HostResult {
     let mut config = CONFIG.load(deps.storage)?;
 
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     if let Some(ans_host_address) = ans_host_address {
         // validate address format
