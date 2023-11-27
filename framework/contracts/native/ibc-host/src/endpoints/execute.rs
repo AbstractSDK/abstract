@@ -113,7 +113,6 @@ fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: String) -> HostRe
         return Err(HostError::Unauthorized {});
     }
 
-    println!("SENDER IN CONTRACT: {:?}", info.sender);
     let chain = ChainName::from_str(&chain)?;
 
     if let Some(proxy) = CHAIN_PROXIES.may_load(deps.storage, &chain)? {

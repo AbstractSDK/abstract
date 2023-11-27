@@ -118,7 +118,6 @@ fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
 
     let chain = "juno";
 
-    // We need to set the sender as the proxy for juno chain
     let err: CwOrchError = home_abstr
         .ibc
         .host
@@ -144,7 +143,6 @@ fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
 
     let chain = "juno";
 
-    // We need to set the sender as the proxy for juno chain
     let err: CwOrchError = home_abstr
         .ibc
         .host

@@ -47,7 +47,6 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
         },
         None,
     )?;
-    println!("{:?}", origin.ibc.client.address()?);
 
     // We need to register the ibc client as a module of the manager (account specific)
     origin
@@ -241,6 +240,7 @@ mod test {
 
         mock_interchain.wait_ibc(&JUNO.to_owned(), register_tx)?;
 
+        // Register the IBC_CLIENT on STARGAZE from JUNO.
         let register_module_tx = origin.account.manager.execute_on_remote(
             &ChainName::from_chain_id(STARGAZE).to_string(),
             ManagerExecuteMsg::InstallModules {
@@ -281,7 +281,6 @@ mod test {
 
         let account = AbstractAccount::new(&destination, Some(destination_account_id.clone()));
 
-        // Now we need to test some things about this account on the juno chain
         let manager_config = account.manager.config()?;
         assert_eq!(
             manager_config,
