@@ -12,18 +12,14 @@ use cosmwasm_std::{
     QuerierWrapper, Response, StdResult, Storage,
 };
 
-use abstract_sdk::{
-    core::{
-        objects::{
-            common_namespace::OWNERSHIP_STORAGE_KEY,
-            module::{ModuleInfo, ModuleVersion},
-            module_reference::ModuleReference,
-            namespace::Namespace,
-            AccountId,
-        },
-        version_control::{namespaces_info, state::*, AccountBase, Config},
+use abstract_sdk::core::{
+    objects::{
+        module::{ModuleInfo, ModuleVersion},
+        module_reference::ModuleReference,
+        namespace::Namespace,
+        AccountId,
     },
-    cw_helpers::wasm_raw_query,
+    version_control::{namespaces_info, state::*, AccountBase, Config},
 };
 
 use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
@@ -358,7 +354,7 @@ pub fn claim_namespace(
     // verify account owner
 
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager, &account_id)?;
+    let account_owner = query_account_owner(&deps.querier, account_base.manager, &account_id)?;
 
     // The account owner as well as the account factory contract are able to claim namespaces
     if msg_info.sender != account_owner {
@@ -562,7 +558,7 @@ pub fn validate_account_owner(
             namespace: namespace.to_owned(),
         })?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager, &account_id)?;
+    let account_owner = query_account_owner(&deps.querier, account_base.manager, &account_id)?;
     if sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
             sender,
@@ -2233,6 +2229,8 @@ mod test {
     }
 
     mod query_account_owner {
+        use abstract_sdk::namespaces::OWNERSHIP_STORAGE_KEY;
+
         use super::*;
 
         #[test]
@@ -2245,7 +2243,7 @@ mod test {
 
             let account_owner = query_account_owner(
                 &deps.as_ref().querier,
-                &Addr::unchecked(TEST_MANAGER),
+                Addr::unchecked(TEST_MANAGER),
                 &ABSTRACT_ACCOUNT_ID,
             )?;
 
@@ -2274,7 +2272,7 @@ mod test {
             let account_id = ABSTRACT_ACCOUNT_ID;
             let res = query_account_owner(
                 &deps.as_ref().querier,
-                &Addr::unchecked(TEST_MANAGER),
+                Addr::unchecked(TEST_MANAGER),
                 &account_id,
             );
             assert_that!(res)

@@ -1,4 +1,5 @@
-use cosmwasm_std::{Binary, QueryRequest, StdError, StdResult, WasmQuery};
+use abstract_core::AbstractError;
+use cosmwasm_std::{Binary, QueryRequest, StdResult, WasmQuery};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
@@ -29,11 +30,11 @@ pub trait ApiQuery<S: ModuleIdentification>: AbstractApi<S> + ApiIdentification 
             .map_err(|error| self.wrap_query_error(error))
     }
 
-    fn wrap_query_error(&self, error: StdError) -> AbstractSdkError {
+    fn wrap_query_error(&self, error: impl Into<AbstractError>) -> AbstractSdkError {
         AbstractSdkError::ApiQuery {
             api: Self::api_id(),
             module_id: self.base().module_id().to_owned(),
-            error,
+            error: Box::new(error.into()),
         }
     }
 }

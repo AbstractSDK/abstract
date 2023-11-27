@@ -3,7 +3,7 @@
 use crate::{
     cw_helpers::ApiQuery,
     features::{AbstractApi, AbstractRegistryAccess, ApiIdentification, ModuleIdentification},
-    AbstractSdkError, AbstractSdkResult,
+    AbstractSdkResult,
 };
 use abstract_core::{
     objects::{version_control::VersionControlContract, AccountId},
@@ -78,27 +78,16 @@ pub struct AccountRegistry<'a, T: AccountVerification> {
 impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
-        let account_id = self.account_id(maybe_manager)?;
-        let account_base = self.account_base(&account_id)?;
-        if account_base.manager.ne(maybe_manager) {
-            Err(AbstractSdkError::NotManager(
-                maybe_manager.clone(),
-                account_id,
-            ))
-        } else {
-            Ok(account_base)
-        }
+        self.vc
+            .assert_manager(maybe_manager, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Verify if the provided proxy address is indeed a user.
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
-        let account_id = self.account_id(maybe_proxy)?;
-        let account_base = self.account_base(&account_id)?;
-        if account_base.proxy.ne(maybe_proxy) {
-            Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), account_id))
-        } else {
-            Ok(account_base)
-        }
+        self.vc
+            .assert_proxy(maybe_proxy, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Get the proxy address for a given account id.
@@ -139,9 +128,11 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
 mod test {
 
     use super::*;
+    use crate::AbstractSdkError;
     use abstract_core::objects::account::AccountTrace;
     use abstract_core::objects::module::ModuleId;
     use abstract_core::objects::version_control::VersionControlContract;
+    use abstract_core::{objects::version_control::VersionControlError, AbstractError};
     use abstract_core::{proxy::state::ACCOUNT_ID, version_control::state::ACCOUNT_ADDRESSES};
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
@@ -192,7 +183,14 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::NotProxy(..)))
+                .matches(|e| {
+                    matches!(
+                        e,
+                        AbstractSdkError::Abstract(AbstractError::VersionControlError(
+                            VersionControlError::NotProxy(..)
+                        ))
+                    )
+                })
                 .matches(|e| e.to_string().contains("not_proxy"));
         }
 
@@ -214,7 +212,14 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::UnknownAccountId { .. }))
+                .matches(|e| {
+                    matches!(
+                        e,
+                        AbstractSdkError::Abstract(AbstractError::VersionControlError(
+                            VersionControlError::UnknownAccountId { .. }
+                        ))
+                    )
+                })
                 .matches(|e| {
                     e.to_string()
                         .contains(format!("Unknown Account id {}", TEST_ACCOUNT_ID).as_str())
@@ -301,7 +306,14 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::NotManager(..)))
+                .matches(|e| {
+                    matches!(
+                        e,
+                        AbstractSdkError::Abstract(AbstractError::VersionControlError(
+                            VersionControlError::NotManager(..)
+                        ))
+                    )
+                })
                 .matches(|e| e.to_string().contains("not_manager is not the Manager"));
         }
 
@@ -323,7 +335,9 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::UnknownAccountId { .. }))
+                .matches(|e| matches!(e, AbstractSdkError::Abstract(
+                    AbstractError::VersionControlError(VersionControlError::UnknownAccountId { .. }))
+                ))
                 .matches(|e| {
                     e.to_string().contains(&format!(
                         "Unknown Account id {TEST_ACCOUNT_ID} on version control {TEST_VERSION_CONTROL}"
@@ -382,7 +396,14 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::NotManager(..)))
+                .matches(|e| {
+                    matches!(
+                        e,
+                        AbstractSdkError::Abstract(AbstractError::VersionControlError(
+                            VersionControlError::NotManager(..)
+                        ))
+                    )
+                })
                 .matches(|e| e.to_string().contains("not the Manager"))
                 .matches(|e| e.to_string().contains(TEST_MANAGER));
         }

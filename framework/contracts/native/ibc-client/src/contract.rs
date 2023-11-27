@@ -449,9 +449,11 @@ mod tests {
             ibc::CallbackInfo,
             ibc_host::{self, HostAction, InternalAction},
             manager,
-            objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
+            objects::{
+                account::TEST_ACCOUNT_ID, chain_name::ChainName,
+                version_control::VersionControlError,
+            },
         };
-        use abstract_sdk::AbstractSdkError;
         use abstract_testing::prelude::{
             mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
         };
@@ -487,7 +489,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    IbcClientError::AbstractSdk(AbstractSdkError::NotProxy(..))
+                    IbcClientError::VersionControlError(VersionControlError::NotProxy(..))
                 )
             });
             Ok(())
@@ -740,10 +742,12 @@ mod tests {
 
         use super::*;
         use abstract_core::{
-            objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName, ChannelEntry},
+            objects::{
+                account::TEST_ACCOUNT_ID, chain_name::ChainName,
+                version_control::VersionControlError, ChannelEntry,
+            },
             ICS20,
         };
-        use abstract_sdk::AbstractSdkError;
         use abstract_testing::prelude::{
             mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
         };
@@ -767,7 +771,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    IbcClientError::AbstractSdk(AbstractSdkError::NotProxy(..))
+                    IbcClientError::VersionControlError(VersionControlError::NotProxy(..))
                 )
             });
             Ok(())
@@ -833,9 +837,9 @@ mod tests {
             manager,
             objects::{
                 account::TEST_ACCOUNT_ID, chain_name::ChainName, gov_type::GovernanceDetails,
+                version_control::VersionControlError,
             },
         };
-        use abstract_sdk::AbstractSdkError;
         use abstract_testing::prelude::{
             mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
         };
@@ -865,7 +869,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    IbcClientError::AbstractSdk(AbstractSdkError::NotProxy(..))
+                    IbcClientError::VersionControlError(VersionControlError::NotProxy(..))
                 )
             });
             Ok(())

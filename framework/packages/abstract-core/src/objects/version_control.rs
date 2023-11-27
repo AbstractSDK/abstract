@@ -1,4 +1,5 @@
-use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};
+use cosmwasm_std::{Addr, QuerierWrapper};
+use thiserror::Error;
 
 use crate::version_control::{
     state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, STANDALONE_INFOS},
@@ -12,6 +13,41 @@ use super::{
     namespace::Namespace,
     AccountId,
 };
+
+#[derive(Error, Debug, PartialEq)]
+pub enum VersionControlError {
+    #[error(transparent)]
+    StdError(#[from] cosmwasm_std::StdError),
+
+    // module not found in version registry
+    #[error("Module {module} not found in version registry {registry_addr}.")]
+    ModuleNotFound { module: String, registry_addr: Addr },
+
+    // failed to query account id
+    #[error("Failed to query Account id on contract {contract_addr}. Please ensure that the contract is a Manager or Proxy contract.")]
+    FailedToQueryAccountId { contract_addr: Addr },
+
+    // standalone module not found in version registry
+    #[error("Standalone {code_id} not found in version registry {registry_addr}.")]
+    StandaloneNotFound { code_id: u64, registry_addr: Addr },
+
+    // unknown Account id error
+    #[error("Unknown Account id {account_id} on version control {version_control_addr}. Please ensure that you are using the correct Account id and version control address.")]
+    UnknownAccountId {
+        account_id: AccountId,
+        version_control_addr: Addr,
+    },
+
+    // caller not Manager error
+    #[error("Address {0} is not the Manager of Account {1}.")]
+    NotManager(Addr, AccountId),
+
+    // caller not Proxy error
+    #[error("Address {0} is not the Proxy of Account {1}.")]
+    NotProxy(Addr, AccountId),
+}
+
+pub type VersionControlResult<T> = Result<T, VersionControlError>;
 
 /// Store the Version Control contract.
 /// Implements [`AbstractRegistryAccess`]
@@ -34,15 +70,12 @@ impl VersionControlContract {
         &self,
         module_info: &ModuleInfo,
         querier: &QuerierWrapper,
-    ) -> StdResult<ModuleReference> {
+    ) -> VersionControlResult<ModuleReference> {
         let module_reference =
             REGISTERED_MODULES.query(querier, self.address.clone(), module_info)?;
-        module_reference.ok_or_else(|| {
-            StdError::generic_err(format!(
-                "Module {} not found in version registry {}.",
-                module_info.to_string(),
-                self.address
-            ))
+        module_reference.ok_or_else(|| VersionControlError::ModuleNotFound {
+            module: module_info.to_string(),
+            registry_addr: self.address.clone(),
         })
     }
 
@@ -51,7 +84,7 @@ impl VersionControlContract {
         &self,
         module_info: ModuleInfo,
         querier: &QuerierWrapper,
-    ) -> StdResult<Module> {
+    ) -> VersionControlResult<Module> {
         Ok(self
             .query_modules_configs(vec![module_info], querier)?
             .swap_remove(0)
@@ -63,7 +96,7 @@ impl VersionControlContract {
         &self,
         module_info: ModuleInfo,
         querier: &QuerierWrapper,
-    ) -> StdResult<ModuleConfiguration> {
+    ) -> VersionControlResult<ModuleConfiguration> {
         Ok(self
             .query_modules_configs(vec![module_info], querier)?
             .swap_remove(0)
@@ -75,7 +108,7 @@ impl VersionControlContract {
         &self,
         infos: Vec<ModuleInfo>,
         querier: &QuerierWrapper,
-    ) -> StdResult<Vec<ModuleResponse>> {
+    ) -> VersionControlResult<Vec<ModuleResponse>> {
         let ModulesResponse { modules } =
             querier.query_wasm_smart(self.address.to_string(), &QueryMsg::Modules { infos })?;
         Ok(modules)
@@ -87,7 +120,7 @@ impl VersionControlContract {
         &self,
         namespace: Namespace,
         querier: &QuerierWrapper,
-    ) -> StdResult<NamespaceResponse> {
+    ) -> VersionControlResult<NamespaceResponse> {
         let namespace_response: NamespaceResponse = querier
             .query_wasm_smart(self.address.to_string(), &QueryMsg::Namespace { namespace })?;
         Ok(namespace_response)
@@ -98,13 +131,11 @@ impl VersionControlContract {
         &self,
         code_id: u64,
         querier: &QuerierWrapper,
-    ) -> StdResult<ModuleInfo> {
-        let module_info = STANDALONE_INFOS.query(&querier, self.address.clone(), code_id)?;
-        module_info.ok_or_else(|| {
-            StdError::generic_err(format!(
-                "Standalone {} not found in version registry {}.",
-                code_id, self.address
-            ))
+    ) -> VersionControlResult<ModuleInfo> {
+        let module_info = STANDALONE_INFOS.query(querier, self.address.clone(), code_id)?;
+        module_info.ok_or_else(|| VersionControlError::StandaloneNotFound {
+            code_id,
+            registry_addr: self.address.clone(),
         })
     }
 
@@ -115,10 +146,12 @@ impl VersionControlContract {
         &self,
         maybe_core_contract_addr: &Addr,
         querier: &QuerierWrapper,
-    ) -> StdResult<AccountId> {
+    ) -> VersionControlResult<AccountId> {
         ACCOUNT_ID
-            .query(&querier, maybe_core_contract_addr.clone())
-            .map_err(|_| StdError::generic_err(format!("Failed to query Account id on contract {}. Please ensure that the contract is a Manager or Proxy contract.", maybe_core_contract_addr)))
+            .query(querier, maybe_core_contract_addr.clone())
+            .map_err(|_| VersionControlError::FailedToQueryAccountId {
+                contract_addr: maybe_core_contract_addr.clone(),
+            })
     }
 
     /// Get the account base for a given account id.
@@ -126,16 +159,19 @@ impl VersionControlContract {
         &self,
         account_id: &AccountId,
         querier: &QuerierWrapper,
-    ) -> StdResult<AccountBase> {
+    ) -> VersionControlResult<AccountBase> {
         let maybe_account = ACCOUNT_ADDRESSES.query(querier, self.address.clone(), account_id)?;
-        maybe_account.ok_or_else(|| StdError::generic_err(format!("Unknown Account id {} on version control {}. Please ensure that you are using the correct Account id and version control address.", account_id, self.address)))
+        maybe_account.ok_or_else(|| VersionControlError::UnknownAccountId {
+            account_id: account_id.clone(),
+            version_control_addr: self.address.clone(),
+        })
     }
 
     /// Get namespace registration fee
     pub fn namespace_registration_fee(
         &self,
         querier: &QuerierWrapper,
-    ) -> StdResult<Option<cosmwasm_std::Coin>> {
+    ) -> VersionControlResult<Option<cosmwasm_std::Coin>> {
         let config = CONFIG.query(querier, self.address.clone())?;
         if config.namespace_registration_fee.amount.is_zero() {
             Ok(None)
@@ -144,28 +180,39 @@ impl VersionControlContract {
         }
     }
 
-        // /// Verify if the provided manager address is indeed a user.
-        // pub fn assert_manager(&self, maybe_manager: &Addr, querier: &QuerierWrapper) -> StdResult<AccountBase> {
-        //     let account_id = self.account_id(maybe_manager, querier)?;
-        //     let account_base = self.account_base(&account_id, querier)?;
-        //     if account_base.manager.ne(maybe_manager) {
-        //         Err(AbstractSdkError::NotManager(
-        //             maybe_manager.clone(),
-        //             account_id,
-        //         ))
-        //     } else {
-        //         Ok(account_base)
-        //     }
-        // }
-    
-        // /// Verify if the provided proxy address is indeed a user.
-        // pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
-        //     let account_id = self.account_id(maybe_proxy)?;
-        //     let account_base = self.account_base(&account_id)?;
-        //     if account_base.proxy.ne(maybe_proxy) {
-        //         Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), account_id))
-        //     } else {
-        //         Ok(account_base)
-        //     }
-        // }
+    /// Verify if the provided manager address is indeed a user.
+    pub fn assert_manager(
+        &self,
+        maybe_manager: &Addr,
+        querier: &QuerierWrapper,
+    ) -> VersionControlResult<AccountBase> {
+        let account_id = self.account_id(maybe_manager, querier)?;
+        let account_base = self.account_base(&account_id, querier)?;
+        if account_base.manager.ne(maybe_manager) {
+            Err(VersionControlError::NotManager(
+                maybe_manager.clone(),
+                account_id,
+            ))
+        } else {
+            Ok(account_base)
+        }
+    }
+
+    /// Verify if the provided proxy address is indeed a user.
+    pub fn assert_proxy(
+        &self,
+        maybe_proxy: &Addr,
+        querier: &QuerierWrapper,
+    ) -> VersionControlResult<AccountBase> {
+        let account_id = self.account_id(maybe_proxy, querier)?;
+        let account_base = self.account_base(&account_id, querier)?;
+        if account_base.proxy.ne(maybe_proxy) {
+            Err(VersionControlError::NotProxy(
+                maybe_proxy.clone(),
+                account_id,
+            ))
+        } else {
+            Ok(account_base)
+        }
+    }
 }

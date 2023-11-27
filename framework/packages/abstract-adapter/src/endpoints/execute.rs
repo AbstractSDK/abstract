@@ -89,7 +89,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             sender: sender.to_string(),
         };
 
-        let account_registry = self.account_registry(deps.as_ref());
+        let account_registry = self.account_registry(deps.as_ref())?;
 
         let account_base = match request.proxy_address {
             // The sender must either be an authorized address or manager.
@@ -137,7 +137,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     ) -> AdapterResult {
         // Only the manager can remove the Adapter as a dependency.
         let account_base = self
-            .account_registry(deps)
+            .account_registry(deps)?
             .assert_manager(&info.sender)
             .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
                 adapter: self.module_id().to_string(),
@@ -187,7 +187,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             proxy,
             ..
         } = self
-            .account_registry(deps.as_ref())
+            .account_registry(deps.as_ref())?
             .assert_manager(&info.sender.clone())?;
 
         let mut authorized_addrs = self
