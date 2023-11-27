@@ -82,7 +82,7 @@ impl UncheckedPriceSource {
                     .pop()
                     .unwrap();
                 let pool_assets = ans_host
-                    .query_pool_metadata(&deps.querier, &unique_id)?
+                    .query_pool_metadata(&deps.querier, unique_id)?
                     .assets;
                 let assets = ans_host.query_assets(&deps.querier, &pool_assets)?;
                 // TODO: fix this for pools with multiple assets

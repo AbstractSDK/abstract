@@ -23,7 +23,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         deps: Deps,
         ans_host: &AnsHost,
         token: &AssetEntry,
-    ) -> AbstractSdkResult<Addr> {
+    ) -> Result<Addr, CwStakingError> {
         let staking_contract = self.staking_entry(token);
 
         ans_host

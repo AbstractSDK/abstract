@@ -32,10 +32,10 @@ pub enum VersionControlError {
     StandaloneNotFound { code_id: u64, registry_addr: Addr },
 
     // unknown Account id error
-    #[error("Unknown Account id {account_id} on version control {version_control_addr}. Please ensure that you are using the correct Account id and version control address.")]
+    #[error("Unknown Account id {account_id} on version control {registry_addr}. Please ensure that you are using the correct Account id and version control address.")]
     UnknownAccountId {
         account_id: AccountId,
-        version_control_addr: Addr,
+        registry_addr: Addr,
     },
 
     // caller not Manager error
@@ -163,7 +163,7 @@ impl VersionControlContract {
         let maybe_account = ACCOUNT_ADDRESSES.query(querier, self.address.clone(), account_id)?;
         maybe_account.ok_or_else(|| VersionControlError::UnknownAccountId {
             account_id: account_id.clone(),
-            version_control_addr: self.address.clone(),
+            registry_addr: self.address.clone(),
         })
     }
 

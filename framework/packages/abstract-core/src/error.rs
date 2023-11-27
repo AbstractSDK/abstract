@@ -4,7 +4,7 @@ use cw_semver::Error as CwSemverError;
 use semver::{Error as SemverError, Version};
 use thiserror::Error;
 
-use crate::objects::version_control::VersionControlError;
+use crate::objects::{ans_host::AnsHostError, version_control::VersionControlError};
 
 /// Wrapper error for the Abstract framework.
 #[derive(Error, Debug, PartialEq)]
@@ -20,6 +20,9 @@ pub enum AbstractError {
 
     #[error("{0}")]
     VersionControlError(#[from] VersionControlError),
+
+    #[error("{0}")]
+    AnsHostError(#[from] AnsHostError),
 
     #[error("Semver error encountered while handling account object: {0}")]
     Semver(String),

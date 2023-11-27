@@ -2,11 +2,13 @@
 //! The Bank object handles asset transfers to and from the Account.
 
 use crate::core::objects::{AnsAsset, AssetEntry};
+use crate::cw_helpers::ApiQuery;
 use crate::features::{
     AbstractApi, AccountIdentification, ApiIdentification, ModuleIdentification,
 };
-use crate::AccountAction;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
+use crate::{AbstractSdkError, AccountAction};
+use abstract_core::objects::ans_host::AnsHostError;
 use cosmwasm_std::to_json_binary;
 use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
@@ -85,7 +87,9 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
     /// Get the balance of the provided asset.
     pub fn balance(&self, asset: &AssetEntry) -> AbstractSdkResult<Asset> {
-        let resolved_info = asset.resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)?;
+        let resolved_info = asset
+            .resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)
+            .map_err(|error| self.wrap_query_error(error))?;
         let balance =
             resolved_info.query_balance(&self.deps.querier, self.base.proxy_address(self.deps)?)?;
         Ok(Asset::new(resolved_info, balance))
@@ -194,30 +198,44 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
 /// Turn an object that represents an asset into the blockchain representation of an asset, i.e. [`Asset`].
 pub trait Transferable {
     /// Turn an object that represents an asset into the blockchain representation of an asset, i.e. [`Asset`].
-    fn transferable_asset<T: AbstractNameService>(
+    fn transferable_asset<T: AbstractNameService + ModuleIdentification>(
         self,
         base: &T,
         deps: Deps,
     ) -> AbstractSdkResult<Asset>;
 }
 
+// Helper to wrap errors
+fn transferable_api_error(
+    base: &impl ModuleIdentification,
+    error: AnsHostError,
+) -> AbstractSdkError {
+    AbstractSdkError::ApiQuery {
+        api: "Transferable".to_owned(),
+        module_id: base.module_id().to_owned(),
+        error: Box::new(error.into()),
+    }
+}
+
 impl Transferable for &AnsAsset {
-    fn transferable_asset<T: AbstractNameService>(
+    fn transferable_asset<T: AbstractNameService + ModuleIdentification>(
         self,
         base: &T,
         deps: Deps,
     ) -> AbstractSdkResult<Asset> {
         self.resolve(&deps.querier, &base.ans_host(deps)?)
+            .map_err(|error| transferable_api_error(base, error))
     }
 }
 
 impl Transferable for AnsAsset {
-    fn transferable_asset<T: AbstractNameService>(
+    fn transferable_asset<T: AbstractNameService + ModuleIdentification>(
         self,
         base: &T,
         deps: Deps,
     ) -> AbstractSdkResult<Asset> {
         self.resolve(&deps.querier, &base.ans_host(deps)?)
+            .map_err(|error| transferable_api_error(base, error))
     }
 }
 
