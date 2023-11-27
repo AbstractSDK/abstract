@@ -24,6 +24,7 @@ use cosmwasm_std::Event;
 use cw_orch::deploy::Deploy;
 
 use cw_orch::prelude::*;
+use cw_ownable::OwnershipError;
 
 use crate::mock_adapter::MockAdapter;
 use crate::mock_adapter::MOCK_ADAPTER_ID;
@@ -125,7 +126,10 @@ fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
         .register_chain_proxy(chain.into(), sender.to_string())
         .unwrap_err();
 
-    assert_eq!(HostError::Unauthorized {}, err.downcast()?);
+    assert_eq!(
+        HostError::OwnershipError(OwnershipError::NotOwner),
+        err.downcast()?
+    );
 
     Ok(())
 }
@@ -150,7 +154,10 @@ fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
         .remove_chain_proxy(chain.into())
         .unwrap_err();
 
-    assert_eq!(HostError::Unauthorized {}, err.downcast()?);
+    assert_eq!(
+        HostError::OwnershipError(OwnershipError::NotOwner),
+        err.downcast()?
+    );
 
     Ok(())
 }
