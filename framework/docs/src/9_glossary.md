@@ -129,7 +129,7 @@ A contract that allows the installation and management of Abstract Modules via t
 
 ## Module Installation
 
-The process of adding a module to an Abstract account, specifying its parameters, and initializing it on a specific
+The process of adding a module to an Abstract Account, specifying its parameters, and initializing it on a specific
 network.
 
 ## Module Uploading
@@ -152,7 +152,7 @@ agree on actions taken.
 
 ## Namespace
 
-A unique publishing domain for Abstract modules, associated with an Abstract account. It's used to uniquely identify and
+A unique publishing domain for Abstract modules, associated with an Abstract Account. It's used to uniquely identify and
 monetize modules.
 
 ## Proxy Contract

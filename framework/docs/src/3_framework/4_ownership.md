@@ -77,3 +77,57 @@ stakeholders, and you want at least 60% of the total voting weight to approve a 
 With this configuration, any proposal will require approval from stakeholders with a combined voting weight of at least
 60% to be executed. This ensures a more democratic decision-making process and reduces the risk of a single stakeholder
 making unilateral decisions.
+
+## Sub-accounts
+
+A Sub-Account is an Abstract Account that is owned by another Abstract Account. They are easily created by calling `CreateSubAccount` on any account. By creating a sub-account for each app it separates the access to funds between different apps. This system allows users to easily experiment with different apps without the concern of those apps accessing funds from their main account or other apps. The diagram below shows how sub-accounts can be owned by the main `Account` or other sub-accounts.
+
+```mermaid
+flowchart TB
+    Account
+    SubAccount-A
+    SubAccount-B
+    SubAccount-C
+    Owner --> Account
+    Account --> SubAccount-A
+    Account --> SubAccount-B
+    SubAccount-A --> SubAccount-C
+```
+
+Now accessing or configuring these accounts could be hard. To make this easier we allow calling any sub-account or any app on a sub-account directly without requiring the message to be proxied through the top-level account. The diagram below shows how an account owner can configure the sub-accounts and apps directly that are part of his main account.
+
+```mermaid
+flowchart TB
+    direction TB
+    subgraph AbstrA[Sub-Account A]
+        direction TB
+        ManagerA[Manager] --> ProxyA[Proxy]
+        AppA[App]
+    end
+
+    subgraph AbstrB[Sub-Account B]
+        direction TB
+        ManagerB[Manager] --> ProxyB[Proxy]
+    end
+
+    subgraph AbstrC[Sub-Account C]
+        direction TB
+        ManagerC[Manager] --> ProxyC[Proxy]
+        App
+    end
+
+    subgraph Abstr[Account]
+        direction TB
+        Manager --> Proxy
+    end
+
+Owner --> Manager
+Manager --> ManagerA
+Manager ---> ManagerB
+ManagerB --> ManagerC
+
+Owner -.Configure App.....-> AppA
+Owner -.Configure Account....-> ManagerC
+```
+
+As a result of this structure, complex multi-account systems can easily be transferred to between governance systems by simply changing the owner of the top-level account.

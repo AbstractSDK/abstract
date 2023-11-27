@@ -1,6 +1,6 @@
 # CronCat App module
 
-The CronCat app module is used to automate abstract account actions or other modules
+The CronCat app module is used to automate Abstract Account actions or other modules
 
 ## Features
 - Communication with [croncat contracts](https://docs.cron.cat/docs/deployed-contracts/)
