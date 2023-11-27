@@ -9,15 +9,13 @@ use abstract_core::{
     adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
     version_control::AccountBase,
 };
-use abstract_sdk::AccountAction;
+
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
-    AbstractResponse, AccountVerification, Execution, ModuleInterface,
+    AbstractResponse, AccountVerification,
 };
-use cosmwasm_std::{
-    wasm_execute, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError,
-};
+use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -58,7 +56,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     fn base_execute(
         &mut self,
         deps: DepsMut,
-        env: Env,
+        _env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
     ) -> AdapterResult {
