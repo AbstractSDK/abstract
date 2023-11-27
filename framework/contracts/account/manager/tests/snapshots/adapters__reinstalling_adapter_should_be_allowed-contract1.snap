@@ -33,10 +33,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 100
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
   - - 123
     - 34
     - 97
@@ -85,10 +90,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 121
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
   - - 123
     - 34
     - 97
@@ -133,10 +143,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 114
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
   - - 123
     - 34
     - 97
@@ -182,10 +197,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 116
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
   - - 123
     - 34
     - 110
@@ -237,10 +257,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 116
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
   - - 123
     - 34
     - 97
@@ -297,10 +322,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 121
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
   - - 123
     - 34
     - 110
@@ -357,10 +387,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 121
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
   - - 123
     - 34
     - 110
@@ -417,10 +452,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 108
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
   - - 123
     - 34
     - 110
@@ -1119,10 +1159,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 34
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
     - 34
     - 125
 - - - 102
