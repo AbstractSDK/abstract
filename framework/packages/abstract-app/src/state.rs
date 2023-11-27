@@ -2,7 +2,7 @@ use crate::{
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
-use abstract_core::objects::{nested_admin::NestedAdmin, dependency::StaticDependency};
+use abstract_core::objects::{dependency::StaticDependency, nested_admin::NestedAdmin};
 use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,

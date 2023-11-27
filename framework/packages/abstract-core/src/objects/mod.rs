@@ -6,8 +6,8 @@ pub mod ans_host;
 pub mod common_namespace;
 pub mod version_control;
 
-pub mod nested_admin;
 mod entry;
+pub mod nested_admin;
 pub mod oracle;
 pub mod pool;
 
