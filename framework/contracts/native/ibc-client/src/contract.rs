@@ -46,18 +46,16 @@ pub fn instantiate(
     };
     CONFIG.save(deps.storage, &cfg)?;
 
-    ADMIN.set(deps, Some(info.sender))?;
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
     Ok(IbcClientResponse::action("instantiate"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> IbcClientResult {
     match msg {
-        ExecuteMsg::UpdateAdmin { admin } => {
-            let new_admin = deps.api.addr_validate(&admin)?;
-            ADMIN
-                .execute_update_admin(deps, info, Some(new_admin))
-                .map_err(Into::into)
+        ExecuteMsg::UpdateOwnership(action) => {
+            cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
+            Ok(IbcClientResponse::action("update_ownership"))
         }
         ExecuteMsg::UpdateConfig {
             ans_host,
@@ -105,6 +103,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryResponse> {
     match msg {
+        QueryMsg::Ownership {} => to_json_binary(&cw_ownable::get_ownership(deps.storage)?),
         QueryMsg::Config {} => to_json_binary(&queries::config(deps)?),
         QueryMsg::Host { chain_name } => to_json_binary(&queries::host(deps, chain_name)?),
         QueryMsg::Account { chain, account_id } => {
@@ -138,8 +137,9 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{queries::config, test_common::mock_init};
+    use crate::test_common::mock_init;
     use cosmwasm_std::{
+        from_json,
         testing::{mock_dependencies, mock_env, mock_info},
         Addr,
     };
@@ -147,6 +147,7 @@ mod tests {
 
     use abstract_testing::addresses::TEST_CREATOR;
     use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use cw_ownable::{Ownership, OwnershipError};
     use speculoos::prelude::*;
 
     type IbcClientTestResult = Result<(), IbcClientError>;
@@ -166,13 +167,13 @@ mod tests {
         let res = execute_as(deps.as_mut(), "not_admin", msg);
         assert_that!(&res)
             .is_err()
-            .matches(|e| matches!(e, IbcClientError::Admin { .. }));
+            .matches(|e| matches!(e, IbcClientError::Ownership(OwnershipError::NotOwner)));
 
         Ok(())
     }
 
     #[test]
-    fn instantiate_works() {
+    fn instantiate_works() -> IbcClientResult<()> {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
             ans_host_address: TEST_ANS_HOST.into(),
@@ -188,8 +189,10 @@ mod tests {
             ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
         };
 
-        let config_resp = config(deps.as_ref()).unwrap();
-        assert_that!(config_resp.admin.as_str()).is_equal_to(TEST_CREATOR);
+        let ownership_resp: Ownership<Addr> =
+            from_json(query(deps.as_ref(), mock_env(), QueryMsg::Ownership {})?)?;
+
+        assert_eq!(ownership_resp.owner, Some(Addr::unchecked(TEST_CREATOR)));
 
         let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();
         assert_that!(actual_config).is_equal_to(expected_config);
@@ -198,6 +201,8 @@ mod tests {
         let cw2_info = CONTRACT.load(&deps.storage).unwrap();
         assert_that!(cw2_info.version).is_equal_to(CONTRACT_VERSION.to_string());
         assert_that!(cw2_info.contract).is_equal_to(IBC_CLIENT.to_string());
+
+        Ok(())
     }
 
     mod migrate {

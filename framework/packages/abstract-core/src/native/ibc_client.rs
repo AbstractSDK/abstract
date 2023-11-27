@@ -16,11 +16,9 @@ pub mod state {
         account::{AccountSequence, AccountTrace},
         ans_host::AnsHost,
         chain_name::ChainName,
-        common_namespace::ADMIN_NAMESPACE,
         version_control::VersionControlContract,
     };
     use cosmwasm_std::Addr;
-    use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
     #[cosmwasm_schema::cw_serde]
@@ -28,8 +26,6 @@ pub mod state {
         pub version_control: VersionControlContract,
         pub ans_host: AnsHost,
     }
-
-    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 
     /// Information about the deployed infrastructure we're connected to.
     #[cosmwasm_schema::cw_serde]
@@ -71,10 +67,8 @@ pub struct MigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
-    /// Update the Admin
-    UpdateAdmin {
-        admin: String,
-    },
+    /// Update the ownership.
+    UpdateOwnership(cw_ownable::Action),
     // Registers the polytone note on the local chain as well as the host on the remote chain to send messages through
     // This allows for monitoring which chain are connected to the contract remotely
     RegisterInfrastructure {
@@ -146,6 +140,9 @@ pub enum IbcClientCallback {
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
+    #[returns(cw_ownable::Ownership<String> )]
+    Ownership {},
+
     // Returns config
     #[returns(HostResponse)]
     Config {},
@@ -186,7 +183,6 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub admin: String,
     pub ans_host: String,
     pub version_control_address: String,
 }
