@@ -1,8 +1,9 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
+use super::{AbstractApi, ApiIdentification};
 use crate::{
     cw_helpers::ApiQuery,
-    features::{AbstractApi, AbstractRegistryAccess, ApiIdentification, ModuleIdentification},
+    features::{AbstractRegistryAccess, ModuleIdentification},
     AbstractSdkResult,
 };
 use abstract_core::{

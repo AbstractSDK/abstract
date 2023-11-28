@@ -3,7 +3,8 @@ use cosmwasm_std::{Binary, QueryRequest, StdResult, WasmQuery};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
-    features::{AbstractApi, ApiIdentification, ModuleIdentification},
+    apis::{AbstractApi, ApiIdentification},
+    features::ModuleIdentification,
     AbstractSdkError, AbstractSdkResult,
 };
 

@@ -1,11 +1,10 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
+use super::{AbstractApi, ApiIdentification};
 use crate::core::objects::{AnsAsset, AssetEntry};
 use crate::cw_helpers::ApiQuery;
-use crate::features::{
-    AbstractApi, AccountIdentification, ApiIdentification, ModuleIdentification,
-};
+use crate::features::{AccountIdentification, ModuleIdentification};
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
 use crate::{AbstractSdkError, AccountAction};
 use abstract_core::objects::ans_host::AnsHostError;

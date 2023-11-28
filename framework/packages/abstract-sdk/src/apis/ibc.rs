@@ -2,8 +2,9 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
+use super::{AbstractApi, ApiIdentification};
 use crate::{
-    features::{AbstractApi, AccountIdentification, ApiIdentification, ModuleIdentification},
+    features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult, ModuleInterface,
 };
 use abstract_core::{

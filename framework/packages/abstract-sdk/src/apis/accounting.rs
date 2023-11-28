@@ -1,12 +1,10 @@
 //! # Accountant
 //! The Accountant object provides function for querying balances and asset values for the Account.
 
+use super::{AbstractApi, ApiIdentification};
 use crate::{
     cw_helpers::ApiQuery,
-    features::{
-        AbstractApi, AbstractNameService, AccountIdentification, ApiIdentification,
-        ModuleIdentification,
-    },
+    features::{AbstractNameService, AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
 use abstract_core::{objects::AssetEntry, proxy::QueryMsg};

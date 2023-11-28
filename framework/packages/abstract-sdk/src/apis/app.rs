@@ -1,8 +1,8 @@
 #![allow(unused)]
+use super::{AbstractApi, ApiIdentification};
 use crate::{
-    cw_helpers::ApiQuery,
-    features::{AbstractApi, ApiIdentification, ModuleIdentification},
-    AbstractSdkResult, AccountAction, ModuleInterface,
+    cw_helpers::ApiQuery, features::ModuleIdentification, AbstractSdkResult, AccountAction,
+    ModuleInterface,
 };
 use abstract_core::objects::module::ModuleId;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};

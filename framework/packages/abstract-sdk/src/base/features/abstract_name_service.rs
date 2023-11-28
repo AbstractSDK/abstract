@@ -6,7 +6,8 @@ use abstract_core::{
 };
 use cosmwasm_std::Deps;
 
-use super::{AbstractApi, ApiIdentification, ModuleIdentification};
+use super::ModuleIdentification;
+use crate::apis::{AbstractApi, ApiIdentification};
 
 /// Accessor to the Abstract Name Service.
 pub trait AbstractNameService: Sized {

@@ -1,6 +1,5 @@
 mod abstract_name_service;
 mod abstract_registry_access;
-mod api;
 mod dependencies;
 mod identification;
 mod module_identification;
@@ -12,4 +11,4 @@ pub use dependencies::Dependencies;
 pub use identification::AccountIdentification;
 pub use module_identification::ModuleIdentification;
 
-pub(crate) use api::{AbstractApi, ApiIdentification};
+// pub(crate) use crate::api::{AbstractApi, ApiIdentification};

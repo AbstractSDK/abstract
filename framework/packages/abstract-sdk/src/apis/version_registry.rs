@@ -1,6 +1,7 @@
+use super::{AbstractApi, ApiIdentification};
 use crate::{
     cw_helpers::ApiQuery,
-    features::{AbstractApi, AbstractRegistryAccess, ApiIdentification, ModuleIdentification},
+    features::{AbstractRegistryAccess, ModuleIdentification},
     AbstractSdkResult,
 };
 use abstract_core::{

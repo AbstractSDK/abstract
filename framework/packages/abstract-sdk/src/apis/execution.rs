@@ -2,8 +2,9 @@
 //! The executor provides function for executing commands on the Account.
 //!
 
+use super::{AbstractApi, ApiIdentification};
 use crate::{
-    features::{AbstractApi, AccountIdentification, ApiIdentification, ModuleIdentification},
+    features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult, AccountAction,
 };
 use abstract_core::proxy::ExecuteMsg;

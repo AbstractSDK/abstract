@@ -1,6 +1,6 @@
 use cosmwasm_std::Deps;
 
-use super::ModuleIdentification;
+use crate::features::ModuleIdentification;
 
 /// Return the identifier for this api.
 pub trait ApiIdentification {
