@@ -7,7 +7,6 @@ use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{module_factory::*, MODULE_FACTORY},
     feature_objects::VersionControlContract,
-    ModuleRegistryInterface,
 };
 use cosmwasm_std::{
     to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
@@ -94,11 +93,10 @@ pub fn query_simulate_install_modules(
     modules: Vec<ModuleInfo>,
 ) -> StdResult<SimulateInstallModulesResponse> {
     let config = CONFIG.load(deps.storage)?;
-    let binding = VersionControlContract::new(config.version_control_address);
-    let version_registry = binding.module_registry(deps);
+    let version_control = VersionControlContract::new(config.version_control_address);
 
-    let module_responses = version_registry
-        .query_modules_configs(modules)
+    let module_responses = version_control
+        .query_modules_configs(modules, &deps.querier)
         .map_err(|e| cosmwasm_std::StdError::generic_err(e.to_string()))?;
 
     let mut coins = Coins::default();

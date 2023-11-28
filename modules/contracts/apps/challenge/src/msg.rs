@@ -241,7 +241,7 @@ impl Friend<String> {
         deps: Deps,
         app: &ChallengeApp,
     ) -> AbstractSdkResult<(Addr, Friend<Addr>)> {
-        let account_registry = app.account_registry(deps);
+        let account_registry = app.account_registry(deps)?;
         let checked = match self {
             Friend::Addr(human) => {
                 let checked = human.check(deps)?;
@@ -261,7 +261,9 @@ impl Friend<Addr> {
         Ok(match self {
             Friend::Addr(human) => human.address.clone(),
             Friend::AbstractAccount(account_id) => {
-                app.account_registry(deps).account_base(account_id)?.manager
+                app.account_registry(deps)?
+                    .account_base(account_id)?
+                    .manager
             }
         })
     }

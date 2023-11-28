@@ -8,10 +8,8 @@ pub mod msg {
     pub use abstract_staking_standard::msg::*;
 }
 
-pub use abstract_staking_standard::CwStakingCommand;
+pub use abstract_staking_standard::{CwStakingCommand, CW_STAKING_ADAPTER_ID};
 pub use adapter::CwStakingAdapter;
-
-pub const CW_STAKING_ADAPTER_ID: &str = "abstract:cw-staking";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_staking {

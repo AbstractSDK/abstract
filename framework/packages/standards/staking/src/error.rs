@@ -1,5 +1,5 @@
 use abstract_adapter::AdapterError;
-use abstract_core::AbstractError;
+use abstract_core::{objects::ans_host::AnsHostError, AbstractError};
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
@@ -21,6 +21,9 @@ pub enum CwStakingError {
 
     #[error("{0}")]
     AssetError(#[from] AssetError),
+
+    #[error("{0}")]
+    AnsHostError(#[from] AnsHostError),
 
     //Ibc not supported
     #[error("IBC queries not supported.")]
