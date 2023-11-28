@@ -453,7 +453,7 @@ mod tests {
                 version_control::VersionControlError,
             },
         };
-        use abstract_sdk::AbstractSdkError;
+
         use abstract_testing::prelude::{
             mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
         };
@@ -746,7 +746,7 @@ mod tests {
             },
             ICS20,
         };
-        use abstract_sdk::AbstractSdkError;
+
         use abstract_testing::prelude::{
             mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
         };
