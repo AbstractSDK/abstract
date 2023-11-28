@@ -11,6 +11,7 @@ use abstract_dex_adapter::interface::DexAdapter;
 use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
 use abstract_dex_adapter::DEX_ADAPTER_ID;
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use abstract_testing::OWNER;
 use dca_app::msg::{DCAResponse, Frequency};
 use dca_app::state::{DCAEntry, DCAId};
 use dca_app::{
@@ -59,7 +60,6 @@ struct DeployedApps {
     wyndex: WynDex,
 }
 // consts for testing
-const ADMIN: &str = "admin";
 const AGENT: &str = "agent";
 const VERSION: &str = "1.0";
 const DENOM: &str = "abstr";
@@ -69,7 +69,7 @@ fn setup_croncat_contracts(
     mut app: RefMut<App>,
     proxy_addr: String,
 ) -> anyhow::Result<(CronCatAddrs, Addr)> {
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     let pause_admin = Addr::unchecked(PAUSE_ADMIN);
 
     // Instantiate cw20
@@ -271,7 +271,7 @@ fn setup() -> anyhow::Result<(
     CronCatAddrs,
 )> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
 
     // Create the mock
     let mock = Mock::new(&sender);
@@ -315,7 +315,7 @@ fn setup() -> anyhow::Result<(
     abstr_deployment
         .account_factory
         .create_default_account(GovernanceDetails::Monarchy {
-            monarch: ADMIN.to_string(),
+            monarch: OWNER.to_string(),
         })?;
     abstr_deployment
         .version_control
@@ -339,7 +339,7 @@ fn setup() -> anyhow::Result<(
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_string(),
+                monarch: OWNER.to_string(),
             })?;
     // Install DEX
     account.install_adapter(&dex_adapter, None)?;
