@@ -126,7 +126,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             sender: sender.to_string(),
         };
 
-        let account_registry = self.account_registry(deps.as_ref());
+        let account_registry = self.account_registry(deps.as_ref())?;
 
         let account_base = match request.proxy_address {
             // The sender must either be an authorized address or manager.

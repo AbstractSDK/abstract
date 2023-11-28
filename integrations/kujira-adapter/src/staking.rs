@@ -31,7 +31,7 @@ use ::{
     abstract_sdk::{
         core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
-        AbstractSdkResult, Resolve,
+        Resolve,
     },
     abstract_staking_standard::msg::{
         RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
@@ -52,7 +52,7 @@ impl CwStakingCommand for Kujira {
         ans_host: &AnsHost,
         _version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
-    ) -> AbstractSdkResult<()> {
+    ) -> Result<(), CwStakingError> {
         self.tokens = lp_tokens
             .into_iter()
             .map(|entry| {
@@ -73,7 +73,7 @@ impl CwStakingCommand for Kujira {
                     staking_contract_address,
                 })
             })
-            .collect::<AbstractSdkResult<_>>()?;
+            .collect::<Result<_, CwStakingError>>()?;
 
         Ok(())
     }
@@ -256,5 +256,12 @@ impl CwStakingCommand for Kujira {
             .collect::<Result<_, CwStakingError>>()?;
 
         Ok(RewardTokensResponse { tokens })
+    }
+}
+
+#[cfg(feature = "full_integration")]
+impl abstract_sdk::features::ModuleIdentification for Kujira {
+    fn module_id(&self) -> abstract_sdk::core::objects::module::ModuleId<'static> {
+        abstract_staking_standard::CW_STAKING_ADAPTER_ID
     }
 }

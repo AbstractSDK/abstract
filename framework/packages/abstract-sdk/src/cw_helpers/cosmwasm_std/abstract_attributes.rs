@@ -50,11 +50,11 @@ mod test {
         response = response.add_abstract_attributes(vec![("key1", "value1")]);
 
         assert_that!(response.events).has_length(1);
-        let event = response.events.get(0).unwrap();
+        let event = response.events.first().unwrap();
         assert_that!(event.ty).is_equal_to(ABSTRACT_EVENT_TYPE.to_string());
         assert_that!(event.attributes).has_length(1);
 
-        let attr = event.attributes.get(0).unwrap();
+        let attr = event.attributes.first().unwrap();
         assert_that!(attr.key).is_equal_to("key1".to_string());
         assert_that!(attr.value).is_equal_to("value1".to_string());
     }
@@ -67,7 +67,7 @@ mod test {
             .add_event(Event::new(ABSTRACT_EVENT_TYPE).add_attributes(vec![(KEY_1, VALUE_1)]));
 
         assert_that!(response.events).has_length(1);
-        let event = response.events.get(0).unwrap();
+        let event = response.events.first().unwrap();
         assert_that!(event.ty).is_equal_to(ABSTRACT_EVENT_TYPE.to_string());
         assert_that!(event.attributes).has_length(1);
 
@@ -77,12 +77,12 @@ mod test {
         response = response.add_abstract_attributes(vec![(KEY_2, VALUE_2)]);
 
         assert_that!(response.events).has_length(1);
-        let event = response.events.get(0).unwrap();
+        let event = response.events.first().unwrap();
         assert_that!(event.ty).is_equal_to(ABSTRACT_EVENT_TYPE.to_string());
         // should now be 2
         assert_that!(event.attributes).has_length(2);
 
-        let attr1 = event.attributes.get(0).unwrap();
+        let attr1 = event.attributes.first().unwrap();
         assert_that!(attr1.key).is_equal_to(KEY_1.to_string());
         assert_that!(attr1.value).is_equal_to(VALUE_1.to_string());
 

@@ -1,4 +1,5 @@
 use abstract_adapter::AdapterError;
+use abstract_core::objects::ans_host::AnsHostError;
 use abstract_core::objects::DexAssetPairing;
 use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
@@ -22,6 +23,9 @@ pub enum DexError {
 
     #[error("{0}")]
     AdapterError(#[from] AdapterError),
+
+    #[error("{0}")]
+    AnsHostError(#[from] AnsHostError),
 
     #[error("DEX {0} is not a known dex on this network.")]
     UnknownDex(String),

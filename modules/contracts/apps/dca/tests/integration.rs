@@ -1,6 +1,8 @@
 mod common;
 use std::cell::RefMut;
 
+use abstract_core::objects::ans_host::AnsHostError;
+use abstract_core::objects::DexAssetPairing;
 use abstract_core::objects::{
     dependency::DependencyResponse, module_version::ModuleDataResponse, AccountId, AssetEntry,
     PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
@@ -11,6 +13,7 @@ use abstract_dex_adapter::interface::DexAdapter;
 use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
 use abstract_dex_adapter::DEX_ADAPTER_ID;
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use abstract_sdk::AbstractSdkError;
 use dca_app::msg::{DCAResponse, Frequency};
 use dca_app::state::{DCAEntry, DCAId};
 use dca_app::{
@@ -22,7 +25,7 @@ use dca_app::{
 use common::contracts;
 
 use croncat_app::contract::CRONCAT_MODULE_VERSION;
-use croncat_app::{contract::CRONCAT_ID, AppQueryMsgFns, CroncatApp, CRON_CAT_FACTORY};
+use croncat_app::{contract::CRONCAT_ID, AppQueryMsgFns, Croncat, CRON_CAT_FACTORY};
 
 use croncat_app::croncat_integration_utils::{AGENTS_NAME, MANAGER_NAME, TASKS_NAME};
 use croncat_sdk_agents::msg::InstantiateMsg as AgentsInstantiateMsg;
@@ -53,9 +56,9 @@ struct CronCatAddrs {
 
 #[allow(unused)]
 struct DeployedApps {
-    dca_app: DCAApp<Mock>,
+    dca_app: DCA<Mock>,
     dex_adapter: DexAdapter<Mock>,
-    cron_cat_app: CroncatApp<Mock>,
+    cron_cat_app: Croncat<Mock>,
     wyndex: WynDex,
 }
 // consts for testing
@@ -284,7 +287,7 @@ fn setup() -> anyhow::Result<(
         setup_croncat_contracts(mock.app.as_ref().borrow_mut(), sender.to_string())?;
 
     // Construct the DCA interface
-    let mut dca_app = DCAApp::new(DCA_APP_ID, mock.clone());
+    let mut dca_app = DCA::new(DCA_APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
@@ -310,7 +313,7 @@ fn setup() -> anyhow::Result<(
         DeployStrategy::Try,
     )?;
 
-    let mut cron_cat_app = CroncatApp::new(CRONCAT_ID, mock.clone());
+    let mut cron_cat_app = Croncat::new(CRONCAT_ID, mock.clone());
     // Create account for croncat namespace
     abstr_deployment
         .account_factory
@@ -390,12 +393,12 @@ fn setup() -> anyhow::Result<(
 }
 
 fn assert_querrier_err_eq(left: CwOrchError, right: StdError) {
-    let querier_contract_err =
-        |err| StdError::generic_err(format!("Querier contract error: {}", err));
-    assert_eq!(
-        left.root().to_string(),
-        querier_contract_err(right).to_string()
-    )
+    let querier_contract_err = || AbstractSdkError::ApiQuery {
+        api: "Adapters".to_owned(),
+        module_id: DCA_APP_ID.to_owned(),
+        error: Box::new(StdError::generic_err(format!("Querier contract error: {right}")).into()),
+    };
+    assert_eq!(left.root().to_string(), querier_contract_err().to_string())
 }
 
 #[test]
@@ -543,9 +546,14 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
             "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
             offer_asset = OfferAsset::new(USD, 100_u128),
             target_asset = AssetEntry::new(USD),
-            e = AbstractError::from(StdError::generic_err(
-                "asset pairing wyndex/usd,usd not found in ans_host"
-            ))
+            e = AbstractError::from(AnsHostError::DexPairingNotFound {
+                pairing: DexAssetPairing::new(
+                    AssetEntry::new(USD),
+                    AssetEntry::new(USD),
+                    WYNDEX_WITHOUT_CHAIN
+                ),
+                ans_host: _abstr.ans_host.address()?
+            })
         )),
     );
 
@@ -701,9 +709,14 @@ fn update_dca_negative() -> anyhow::Result<()> {
             "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
             offer_asset = OfferAsset::new(USD, 200_u128),
             target_asset = AssetEntry::new(USD),
-            e = AbstractError::from(StdError::generic_err(
-                "asset pairing wyndex/usd,usd not found in ans_host"
-            ))
+            e = AbstractError::from(AnsHostError::DexPairingNotFound {
+                pairing: DexAssetPairing::new(
+                    AssetEntry::new(USD),
+                    AssetEntry::new(USD),
+                    WYNDEX_WITHOUT_CHAIN
+                ),
+                ans_host: _abstr.ans_host.address()?
+            })
         )),
     );
 

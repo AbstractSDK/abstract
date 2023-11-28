@@ -27,10 +27,10 @@ flowchart LR
     style Proxy fill: #161b25
 ```
 
-The *owner* of the account, can configure the Abstract account by sending messages to the manager contract. We don't
+The *owner* of the account, can configure the Abstract Account by sending messages to the manager contract. We don't
 make any assumptions about the nature of this owner, it can be a wallet, multi-sig or any other ownership structure,
 allowing you
-to customize your Abstract account's ownership to fit your needs.
+to customize your Abstract Account's ownership to fit your needs.
 
 ```admonish info
 You can read up on the different ownership structures in our [Ownership](./4_ownership.md) section.
@@ -76,7 +76,7 @@ Abstract Account, taking care of:
 
 ### Account Interactions
 
-The diagram below depicts an Owner interacting with its Abstract account through the **Manager**, and proxying a call to
+The diagram below depicts an Owner interacting with its Abstract Account through the **Manager**, and proxying a call to
 an
 external contract through the **Proxy**.
 

@@ -19,25 +19,21 @@ use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
 
-use abstract_sdk::{
-    core::{
-        manager::state::DEPENDENTS,
-        manager::state::{
-            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS,
-        },
-        manager::{CallbackMsg, ExecuteMsg},
-        module_factory::ExecuteMsg as ModuleFactoryMsg,
-        objects::{
-            dependency::Dependency,
-            module::{Module, ModuleInfo, ModuleVersion},
-            module_reference::ModuleReference,
-            validation::{validate_description, validate_link, validate_name},
-        },
-        proxy::ExecuteMsg as ProxyMsg,
-        IBC_CLIENT, MANAGER, PROXY,
+use abstract_sdk::core::{
+    manager::state::DEPENDENTS,
+    manager::state::{
+        AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS,
     },
-    cw_helpers::wasm_smart_query,
-    ModuleRegistryInterface,
+    manager::{CallbackMsg, ExecuteMsg},
+    module_factory::ExecuteMsg as ModuleFactoryMsg,
+    objects::{
+        dependency::Dependency,
+        module::{Module, ModuleInfo, ModuleVersion},
+        module_reference::ModuleReference,
+        validation::{validate_description, validate_link, validate_name},
+    },
+    proxy::ExecuteMsg as ProxyMsg,
+    IBC_CLIENT, MANAGER, PROXY,
 };
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
@@ -139,9 +135,7 @@ pub(crate) fn install_modules_internal(
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
-    let modules = version_control
-        .module_registry(deps.as_ref())
-        .query_modules_configs(infos)?;
+    let modules = version_control.query_modules_configs(infos, &deps.querier)?;
 
     let mut install_context = Vec::with_capacity(modules.len());
     let mut to_add = Vec::with_capacity(modules.len());
@@ -694,12 +688,12 @@ pub fn replace_adapter(
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
     let AuthorizedAddressesResponse {
         addresses: authorized_addresses,
-    } = deps.querier.query(&wasm_smart_query(
+    } = deps.querier.query_wasm_smart(
         old_adapter_addr.to_string(),
         &<AdapterQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
             proxy_address: proxy_addr.to_string(),
         }),
-    )?)?;
+    )?;
     let authorized_to_migrate: Vec<String> = authorized_addresses
         .into_iter()
         .map(|addr| addr.into_string())
@@ -846,7 +840,6 @@ fn query_module(
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
     let version_control = VersionControlContract::new(config.version_control_address);
-    let version_registry = version_control.module_registry(deps);
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
@@ -863,12 +856,13 @@ fn query_module(
             }
             Module {
                 info: module_info.clone(),
-                reference: version_registry.query_module_reference_raw(&module_info)?,
+                reference: version_control
+                    .query_module_reference_raw(&module_info, &deps.querier)?,
             }
         }
         ModuleVersion::Latest => {
             // Query latest version of contract
-            version_registry.query_module(module_info.clone())?
+            version_control.query_module(module_info.clone(), &deps.querier)?
         }
     };
 
@@ -877,9 +871,7 @@ fn query_module(
             info: module.info,
             reference: module.reference,
         },
-        config: version_control
-            .module_registry(deps)
-            .query_config(module_info)?,
+        config: version_control.query_config(module_info, &deps.querier)?,
     })
 }
 

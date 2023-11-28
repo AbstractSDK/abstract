@@ -74,10 +74,9 @@ impl<Chain: CwEnv> Publisher<Chain> {
 
     pub fn install_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
-        C: Serialize,
     >(
         &self,
-        configuration: &C,
+        configuration: &M::InitMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         self.account.install_app(configuration, funds)

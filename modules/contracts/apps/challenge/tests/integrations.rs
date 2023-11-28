@@ -76,7 +76,7 @@ lazy_static! {
 
 #[allow(unused)]
 struct DeployedApps {
-    challenge_app: ChallengeApp<Mock>,
+    challenge_app: Challenge<Mock>,
 }
 
 #[allow(clippy::type_complexity)]
@@ -87,7 +87,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
     let mock = Mock::new(&sender);
     mock.set_balance(&sender, vec![coin(INITIAL_BALANCE, DENOM)])?;
 
-    let mut challenge_app = ChallengeApp::new(CHALLENGE_APP_ID, mock.clone());
+    let mut challenge_app = Challenge::new(CHALLENGE_APP_ID, mock.clone());
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
 

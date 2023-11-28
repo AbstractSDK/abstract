@@ -1,4 +1,4 @@
-use abstract_core::objects::validation::ValidationError;
+use abstract_core::objects::{validation::ValidationError, version_control::VersionControlError};
 use abstract_core::AbstractError;
 use abstract_sdk::core::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
@@ -28,6 +28,9 @@ pub enum ManagerError {
 
     #[error("{0}")]
     Instantiate2AddressError(#[from] Instantiate2AddressError),
+
+    #[error("{0}")]
+    VersionControlError(#[from] VersionControlError),
 
     #[error("Module with id: {0} is already installed")]
     ModuleAlreadyInstalled(String),
