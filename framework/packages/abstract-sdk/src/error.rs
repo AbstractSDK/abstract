@@ -30,14 +30,6 @@ pub enum AbstractSdkError {
     #[error("Asset error encountered in sdk while handling assets: {0}")]
     Asset(#[from] AssetError),
 
-    // #[error("cw math overflow error: {0}")]
-    // Overflow(#[from] OverflowError),
-
-    // #[error("Semver error encountered while handling account object: {0}")]
-    // Semver(#[from] SemverError),
-
-    // #[error("Semver error encountered while handling account object: {0}")]
-    // CwSemver(#[from] CwSemverError),
     #[error("Missing handler for {endpoint}")]
     MissingHandler { endpoint: String },
 
