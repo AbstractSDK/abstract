@@ -127,9 +127,7 @@ fn update_config(
     let old_config = CONFIG.load(deps.storage)?;
     let new_native_denom = new_native_asset
         .map(|asset| {
-            let asset = app
-                .name_service(deps.as_ref())
-                .query(&asset)?;
+            let asset = app.name_service(deps.as_ref()).query(&asset)?;
             if let AssetInfoBase::Native(native) = asset {
                 Ok(native)
             } else {
