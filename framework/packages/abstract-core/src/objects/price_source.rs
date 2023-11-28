@@ -261,7 +261,7 @@ mod tests {
 
     // TODO: abstract_testing has a circular dependency with this package, and so the mockAns host is unable to be used.
     mod check {
-        use crate::ans_host;
+        use crate::{ans_host, objects::ans_host::AnsHostError};
         use cosmwasm_std::testing::mock_dependencies;
 
         use crate::objects::pool_id::PoolAddressBase;
@@ -347,10 +347,10 @@ mod tests {
 
             assert_that!(actual_source_res)
                 .is_err()
-                .is_equal_to(AbstractError::Std(StdError::generic_err(format!(
-                    "asset {} not found in ans_host",
-                    TEST_ASSET_1
-                ))));
+                .is_equal_to(AbstractError::AnsHostError(AnsHostError::AssetNotFound {
+                    asset: AssetEntry::new(TEST_ASSET_1),
+                    ans_host: Addr::unchecked(TEST_ANS_HOST),
+                }));
             Ok(())
         }
     }

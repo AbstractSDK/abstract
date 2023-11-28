@@ -132,7 +132,7 @@ mod test {
     use abstract_core::objects::account::AccountTrace;
     use abstract_core::objects::module::ModuleId;
     use abstract_core::objects::version_control::VersionControlContract;
-    use abstract_core::{objects::version_control::VersionControlError, AbstractError};
+    use abstract_core::objects::version_control::VersionControlError;
     use abstract_core::{proxy::state::ACCOUNT_ID, version_control::state::ACCOUNT_ADDRESSES};
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
@@ -183,14 +183,7 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| {
-                    matches!(
-                        e,
-                        AbstractSdkError::Abstract(AbstractError::VersionControlError(
-                            VersionControlError::NotProxy(..)
-                        ))
-                    )
-                })
+                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
                 .matches(|e| e.to_string().contains("not_proxy"));
         }
 
@@ -212,17 +205,15 @@ mod test {
 
             assert_that!(res)
                 .is_err()
+                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
                 .matches(|e| {
-                    matches!(
-                        e,
-                        AbstractSdkError::Abstract(AbstractError::VersionControlError(
-                            VersionControlError::UnknownAccountId { .. }
-                        ))
+                    e.to_string().contains(
+                        &VersionControlError::UnknownAccountId {
+                            account_id: TEST_ACCOUNT_ID,
+                            registry_addr: Addr::unchecked(TEST_VERSION_CONTROL),
+                        }
+                        .to_string(),
                     )
-                })
-                .matches(|e| {
-                    e.to_string()
-                        .contains(format!("Unknown Account id {}", TEST_ACCOUNT_ID).as_str())
                 });
         }
 
@@ -306,14 +297,7 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| {
-                    matches!(
-                        e,
-                        AbstractSdkError::Abstract(AbstractError::VersionControlError(
-                            VersionControlError::NotManager(..)
-                        ))
-                    )
-                })
+                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
                 .matches(|e| e.to_string().contains("not_manager is not the Manager"));
         }
 
@@ -335,13 +319,15 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::Abstract(
-                    AbstractError::VersionControlError(VersionControlError::UnknownAccountId { .. }))
-                ))
+                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
                 .matches(|e| {
-                    e.to_string().contains(&format!(
-                        "Unknown Account id {TEST_ACCOUNT_ID} on version control {TEST_VERSION_CONTROL}"
-                    ))
+                    e.to_string().contains(
+                        &VersionControlError::UnknownAccountId {
+                            account_id: TEST_ACCOUNT_ID,
+                            registry_addr: Addr::unchecked(TEST_VERSION_CONTROL),
+                        }
+                        .to_string(),
+                    )
                 });
         }
 
@@ -396,16 +382,16 @@ mod test {
 
             assert_that!(res)
                 .is_err()
+                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
                 .matches(|e| {
-                    matches!(
-                        e,
-                        AbstractSdkError::Abstract(AbstractError::VersionControlError(
-                            VersionControlError::NotManager(..)
-                        ))
+                    e.to_string().contains(
+                        &VersionControlError::NotManager(
+                            Addr::unchecked(TEST_MANAGER),
+                            TEST_ACCOUNT_ID,
+                        )
+                        .to_string(),
                     )
-                })
-                .matches(|e| e.to_string().contains("not the Manager"))
-                .matches(|e| e.to_string().contains(TEST_MANAGER));
+                });
         }
     }
 }
