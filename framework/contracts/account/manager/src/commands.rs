@@ -3,13 +3,14 @@ use crate::{validation, versioning};
 use abstract_core::manager::state::{PENDING_GOVERNANCE, SUB_ACCOUNTS};
 
 use abstract_core::adapter::{
-    AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
-    QueryMsg as AdapterQuery,
+    AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
+    ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
 };
 use abstract_core::manager::{InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction};
 use abstract_core::module_factory::FactoryModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{self, assert_module_data_validity};
+use abstract_core::objects::nested_admin::MAX_ADMIN_RECURSION;
 use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::objects::version_control::VersionControlContract;
@@ -45,8 +46,6 @@ use cw_storage_plus::Item;
 use semver::Version;
 
 pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
-
-pub const MAX_ADMIN_RECURSION: usize = 2;
 
 #[abstract_response(MANAGER)]
 pub struct ManagerResponse;
@@ -702,22 +701,31 @@ pub fn replace_adapter(
     // Remove authorized addresses from old
     msgs.push(configure_adapter(
         &old_adapter_addr,
-        BaseExecuteMsg::UpdateAuthorizedAddresses {
-            to_add: vec![],
-            to_remove: authorized_to_migrate.clone(),
+        BaseExecuteMsg {
+            msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: vec![],
+                to_remove: authorized_to_migrate.clone(),
+            },
+            proxy_address: Some(proxy_addr.to_string()),
         },
     )?);
     // Remove adapter as authorized address on dependencies
     msgs.push(configure_adapter(
         &old_adapter_addr,
-        BaseExecuteMsg::Remove {},
+        BaseExecuteMsg {
+            msg: AdapterBaseMsg::Remove {},
+            proxy_address: Some(proxy_addr.to_string()),
+        },
     )?);
     // Add authorized addresses to new
     msgs.push(configure_adapter(
         &new_adapter_addr,
-        BaseExecuteMsg::UpdateAuthorizedAddresses {
-            to_add: authorized_to_migrate,
-            to_remove: vec![],
+        BaseExecuteMsg {
+            msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: authorized_to_migrate,
+                to_remove: vec![],
+            },
+            proxy_address: Some(proxy_addr.to_string()),
         },
     )?);
     // Remove adapter permissions from proxy
