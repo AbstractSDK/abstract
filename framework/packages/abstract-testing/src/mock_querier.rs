@@ -1,7 +1,4 @@
-use crate::addresses::{
-    test_account_base, TEST_ACCOUNT_ID, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID,
-    TEST_MODULE_RESPONSE, TEST_PROXY, TEST_VERSION_CONTROL,
-};
+use crate::prelude::*;
 use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
 use abstract_core::{
     manager::state::{ACCOUNT_ID, ACCOUNT_MODULES},
@@ -423,8 +420,6 @@ pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {
 
 #[cfg(test)]
 mod tests {
-    use crate::addresses::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
-
     use super::*;
     use abstract_core::{
         manager::state::ACCOUNT_MODULES, proxy::state::ACCOUNT_ID,

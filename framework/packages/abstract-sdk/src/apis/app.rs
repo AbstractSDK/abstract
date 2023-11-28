@@ -253,7 +253,7 @@ mod tests {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(abstract_testing::prelude::TEST_MODULE_RESPONSE.to_string());
+                .is_equal_to(TEST_MODULE_RESPONSE.to_string());
         }
     }
 }

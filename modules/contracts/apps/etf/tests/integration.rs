@@ -9,7 +9,7 @@ use abstract_interface::{
 use abstract_core::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
 use abstract_sdk::core as abstract_core;
 
-use abstract_testing::prelude::TEST_ADMIN;
+use abstract_testing::OWNER;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw_orch::prelude::*;
@@ -99,7 +99,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
 
 #[test]
 fn proper_initialization() -> AResult {
-    let owner = Addr::unchecked(TEST_ADMIN);
+    let owner = Addr::unchecked(OWNER);
 
     // create testing environment
     let mock = Mock::new(&owner);

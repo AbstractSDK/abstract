@@ -4,6 +4,7 @@ use abstract_core::manager::SubAccountIdsResponse;
 use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
 
 use abstract_interface::*;
+use abstract_testing::OWNER;
 use common::*;
 use cosmwasm_std::{wasm_execute, Addr};
 use cw_orch::contract::Deploy;
@@ -11,7 +12,7 @@ use cw_orch::prelude::*;
 
 #[test]
 fn creating_on_subaccount_should_succeed() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -38,7 +39,7 @@ fn creating_on_subaccount_should_succeed() -> AResult {
 
 #[test]
 fn updating_on_subaccount_should_succeed() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -70,7 +71,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
 
 #[test]
 fn proxy_updating_on_subaccount_should_succeed() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -106,7 +107,7 @@ fn proxy_updating_on_subaccount_should_succeed() -> AResult {
 
 #[test]
 fn recursive_updating_on_subaccount_should_succeed() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -154,7 +155,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
 
 #[test]
 fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -209,7 +210,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
 
 #[test]
 fn sub_account_move_ownership() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let new_owner = Addr::unchecked("new_owner");
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
@@ -277,7 +278,7 @@ fn sub_account_move_ownership() -> AResult {
 
 #[test]
 fn account_move_ownership_to_sub_account() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -336,7 +337,7 @@ fn account_move_ownership_to_sub_account() -> AResult {
 
 #[test]
 fn sub_account_move_ownership_to_sub_account() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -415,7 +416,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
 
 #[test]
 fn account_move_ownership_to_falsy_sub_account() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;

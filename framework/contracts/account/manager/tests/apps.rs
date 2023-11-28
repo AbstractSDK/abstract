@@ -8,6 +8,7 @@ use abstract_core::objects::AccountId;
 use abstract_core::PROXY;
 use abstract_interface::*;
 
+use abstract_testing::prelude::*;
 use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{coin, to_json_binary, Addr, Coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
@@ -21,7 +22,7 @@ gen_app_mock!(MockApp, APP_ID, APP_VERSION, &[]);
 
 #[test]
 fn execute_on_proxy_through_manager() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -70,7 +71,7 @@ fn execute_on_proxy_through_manager() -> AResult {
 
 #[test]
 fn account_install_app() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -90,7 +91,7 @@ fn account_install_app() -> AResult {
 
 #[test]
 fn account_app_ownership() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -133,7 +134,7 @@ fn account_app_ownership() -> AResult {
 
 #[test]
 fn subaccount_app_ownership() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;

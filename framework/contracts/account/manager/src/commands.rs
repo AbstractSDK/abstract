@@ -1043,7 +1043,7 @@ mod tests {
     const TEST_PROXY_ADDR: &str = "proxy";
 
     fn mock_installed_proxy(deps: DepsMut) -> StdResult<()> {
-        let _info = mock_info(TEST_OWNER, &[]);
+        let _info = mock_info(OWNER, &[]);
         ACCOUNT_MODULES.save(deps.storage, PROXY, &Addr::unchecked(TEST_PROXY_ADDR))
     }
 
@@ -1056,7 +1056,7 @@ mod tests {
     }
 
     fn execute_as_owner(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-        execute_as(deps, TEST_OWNER, msg)
+        execute_as(deps, OWNER, msg)
     }
 
     fn init_with_proxy(deps: &mut MockDeps) {
@@ -1853,7 +1853,6 @@ mod tests {
 
     mod add_module_upgrade_to_context {
         use super::*;
-        use abstract_testing::prelude::TEST_MODULE_ID;
         use cosmwasm_std::testing::mock_dependencies;
 
         #[test]

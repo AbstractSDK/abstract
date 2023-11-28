@@ -27,9 +27,7 @@ pub mod mock {
         objects::dependency::StaticDependency,
     };
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
-    use abstract_testing::prelude::{
-        TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
-    };
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
         to_json_binary, DepsMut, Empty, Response, StdError,
@@ -107,7 +105,7 @@ pub mod mock {
 
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
         let adapter = MOCK_ADAPTER;
-        let info = mock_info(TEST_ADMIN, &[]);
+        let info = mock_info(OWNER, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
@@ -122,7 +120,7 @@ pub mod mock {
         deps: DepsMut,
         adapter: MockAdapterContract,
     ) -> Result<Response, MockError> {
-        let info = mock_info(TEST_ADMIN, &[]);
+        let info = mock_info(OWNER, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),

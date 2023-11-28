@@ -9,6 +9,7 @@ use abstract_core::{
     },
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_testing::OWNER;
 
 use common::contracts;
 use croncat_app::{
@@ -43,7 +44,6 @@ use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 use crate::common::contracts::TasksResponseCaster;
 use cosmwasm_std::{coins, to_json_binary, Addr, BankMsg, Uint128, WasmMsg};
 // consts for testing
-const ADMIN: &str = "admin";
 const AGENT: &str = "agent";
 const VERSION: &str = "1.0";
 const DENOM: &str = "abstr";
@@ -53,7 +53,7 @@ fn setup_croncat_contracts(
     mut app: RefMut<App>,
     proxy_addr: String,
 ) -> anyhow::Result<(Addr, Addr)> {
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     let pause_admin = Addr::unchecked(PAUSE_ADMIN);
 
     // Instantiate cw20
@@ -227,7 +227,7 @@ struct TestingSetup {
 /// Set up the test environment with the contract installed
 fn setup() -> anyhow::Result<TestingSetup> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
@@ -241,7 +241,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_string(),
+                monarch: OWNER.to_string(),
             })?;
     // claim the namespace so app can be deployed
     abstr_deployment.version_control.claim_namespace(

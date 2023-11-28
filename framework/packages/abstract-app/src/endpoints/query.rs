@@ -158,7 +158,7 @@ mod test {
     mod base_query {
         use super::*;
         use abstract_core::app::{AppConfigResponse, BaseQueryMsg};
-        use abstract_testing::prelude::{TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY};
+        use abstract_testing::prelude::*;
         use cosmwasm_std::{from_json, Addr};
         use cw_controllers::AdminResponse;
 

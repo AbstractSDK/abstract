@@ -14,7 +14,7 @@ mod testing {
 
     /// Initialize the version_control with admin as creator and factory
     pub fn mock_init(mut deps: DepsMut) -> Result<Response, VCError> {
-        let info = mock_info(TEST_ADMIN, &[]);
+        let info = mock_info(OWNER, &[]);
         let admin = info.sender.to_string();
 
         contract::instantiate(
