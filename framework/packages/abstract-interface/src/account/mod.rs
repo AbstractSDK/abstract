@@ -200,7 +200,7 @@ impl<T: CwEnv> AbstractAccount<T> {
     pub fn upload_and_register_if_needed(
         &self,
         version_control: &VersionControl<T>,
-    ) -> Result<(), AbstractInterfaceError> {
+    ) -> Result<bool, AbstractInterfaceError> {
         let mut modules_to_register = Vec::with_capacity(2);
 
         if self.manager.upload_if_needed()?.is_some() {
@@ -217,10 +217,13 @@ impl<T: CwEnv> AbstractAccount<T> {
             ));
         };
 
-        if !modules_to_register.is_empty() {
+        let migrated = if !modules_to_register.is_empty() {
             version_control.register_account_mods(modules_to_register)?;
-        }
+            true
+        } else {
+            false
+        };
 
-        Ok(())
+        Ok(migrated)
     }
 }

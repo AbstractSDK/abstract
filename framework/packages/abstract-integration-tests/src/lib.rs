@@ -16,8 +16,10 @@ pub type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 pub fn create_default_account<T: CwEnv>(
     factory: &AccountFactory<T>,
 ) -> anyhow::Result<AbstractAccount<T>> {
+    let sender = factory.as_instance().get_chain().sender();
+
     let account = factory.create_default_account(GovernanceDetails::Monarchy {
-        monarch: Addr::unchecked(OWNER).to_string(),
+        monarch: sender.to_string(),
     })?;
     Ok(account)
 }
