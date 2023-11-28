@@ -9,7 +9,6 @@ use common::*;
 use cosmwasm_std::{wasm_execute, Addr};
 use cw_orch::contract::Deploy;
 use cw_orch::prelude::*;
-// use cw_multi_test::StakingInfo;
 
 #[test]
 fn creating_on_subaccount_should_succeed() -> AResult {

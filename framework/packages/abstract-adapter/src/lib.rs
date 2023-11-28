@@ -37,6 +37,8 @@ pub mod mock {
 
     use abstract_interface::AdapterDeployer;
 
+    crate::adapter_msg_types!(MockAdapterContract, MockExecMsg, MockQueryMsg);
+
     pub const TEST_METADATA: &str = "test_metadata";
     pub const TEST_AUTHORIZED_ADDRESS: &str = "test_authorized_address";
 
@@ -61,12 +63,8 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockExecMsg;
 
-    impl abstract_core::adapter::AdapterExecuteMsg for MockExecMsg {}
-
     #[cosmwasm_schema::cw_serde]
     pub struct MockQueryMsg;
-
-    impl abstract_core::adapter::AdapterQueryMsg for MockQueryMsg {}
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockReceiveMsg;
@@ -166,7 +164,8 @@ pub mod mock {
         use ::cw_orch::environment::CwEnv;
 
         const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
-        .with_dependencies($deps);
+        .with_dependencies($deps)
+        .with_execute(|_, _, _, _, _| Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes())));
 
         fn instantiate(
             deps: ::cosmwasm_std::DepsMut,

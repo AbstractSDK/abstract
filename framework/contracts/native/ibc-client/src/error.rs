@@ -1,4 +1,7 @@
-use abstract_core::AbstractError;
+use abstract_core::{
+    objects::{ans_host::AnsHostError, version_control::VersionControlError},
+    AbstractError,
+};
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
@@ -18,6 +21,12 @@ pub enum IbcClientError {
 
     #[error("{0}")]
     Admin(#[from] AdminError),
+
+    #[error("{0}")]
+    VersionControlError(#[from] VersionControlError),
+
+    #[error("{0}")]
+    AnsHostError(#[from] AnsHostError),
 
     #[error("No account for chain {0}")]
     UnregisteredChain(String),

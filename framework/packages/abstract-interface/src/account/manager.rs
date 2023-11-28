@@ -1,6 +1,6 @@
 pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_core::{
-    adapter,
+    adapter::{self, AdapterBaseMsg},
     ibc::CallbackInfo,
     ibc_host::{HelperAction, HostAction},
     manager::*,
@@ -145,9 +145,10 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<(), crate::AbstractInterfaceError> {
         self.execute_on_module(
             module_id,
-            adapter::ExecuteMsg::<Empty, Empty>::Base(
-                adapter::BaseExecuteMsg::UpdateAuthorizedAddresses { to_add, to_remove },
-            ),
+            adapter::ExecuteMsg::<Empty, Empty>::Base(adapter::BaseExecuteMsg {
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
+                proxy_address: None,
+            }),
         )?;
 
         Ok(())

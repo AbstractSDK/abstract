@@ -115,7 +115,8 @@ fn query_active_tasks(
 
     let response = match check {
         true => {
-            let factory_addr = factory_addr(&deps.querier, &app.ans_host(deps)?)?;
+            let name_service = app.name_service(deps);
+            let factory_addr = factory_addr(&name_service)?;
             let mut manager_addrs = HashMap::new();
             let mut removed_tasks = Vec::new();
 
@@ -177,7 +178,8 @@ fn query_active_tasks_by_creator(
 
     match check {
         true => {
-            let factory_addr = factory_addr(&deps.querier, &app.ans_host(deps)?)?;
+            let name_service = app.name_service(deps);
+            let factory_addr = factory_addr(&name_service)?;
             let mut manager_addrs = HashMap::new();
             let mut removed_tasks = Vec::new();
 
@@ -224,7 +226,8 @@ fn query_task_info(
     let creator_addr = deps.api.addr_validate(&creator_addr)?;
     let (task_hash, task_version) = ACTIVE_TASKS.load(deps.storage, (creator_addr, task_tag))?;
 
-    let factory_addr = factory_addr(&deps.querier, &app.ans_host(deps)?)?;
+    let name_service = app.name_service(deps);
+    let factory_addr = factory_addr(&name_service)?;
     let tasks_addr = get_croncat_contract(
         &deps.querier,
         factory_addr,
@@ -247,7 +250,8 @@ fn query_task_balance(
     let creator_addr = deps.api.addr_validate(&creator_addr)?;
     let (task_hash, task_version) = ACTIVE_TASKS.load(deps.storage, (creator_addr, task_tag))?;
 
-    let factory_addr = factory_addr(&deps.querier, &app.ans_host(deps)?)?;
+    let name_service = app.name_service(deps);
+    let factory_addr = factory_addr(&name_service)?;
     let manager_addr = get_croncat_contract(
         &deps.querier,
         factory_addr,
@@ -270,7 +274,8 @@ fn query_manager_addr(
     let creator_addr = deps.api.addr_validate(&creator_addr)?;
     let (_, task_version) = ACTIVE_TASKS.load(deps.storage, (creator_addr, task_tag))?;
 
-    let factory_addr = factory_addr(&deps.querier, &app.ans_host(deps)?)?;
+    let name_service = app.name_service(deps);
+    let factory_addr = factory_addr(&name_service)?;
     let manager_addr = get_croncat_contract(
         &deps.querier,
         factory_addr,

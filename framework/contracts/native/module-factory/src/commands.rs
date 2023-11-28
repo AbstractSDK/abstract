@@ -32,17 +32,14 @@ pub fn execute_create_modules(
     // Construct feature object to access registry functions
     let version_control = VersionControlContract::new(config.version_control_address);
 
-    let version_registry = version_control.module_registry(deps.as_ref());
-    let account_registry = version_control.account_registry(deps.as_ref());
-
     // assert that sender is manager
-    let account_base = account_registry.assert_manager(&info.sender)?;
+    let account_base = version_control.assert_manager(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
 
-    let modules_responses = version_registry.query_modules_configs(infos)?;
+    let modules_responses = version_control.query_modules_configs(infos, &deps.querier)?;
 
     // fees
     let mut fee_msgs = vec![];
@@ -72,8 +69,8 @@ pub fn execute_create_modules(
                 let fee = f.fee();
                 sum_of_monetization.add(fee.clone())?;
                 // We transfer that fee to the namespace owner if there is
-                let namespace_account =
-                    version_registry.query_namespace(new_module.info.namespace.clone())?;
+                let namespace_account = version_control
+                    .query_namespace(new_module.info.namespace.clone(), &deps.querier)?;
                 fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
                     to_address: namespace_account.account_base.proxy.to_string(),
                     amount: vec![fee],

@@ -1,6 +1,6 @@
 mod common;
 use abstract_adapter::mock::MockExecMsg;
-use abstract_core::adapter::AdapterRequestMsg;
+use abstract_core::adapter::{AdapterBaseMsg, AdapterRequestMsg};
 use abstract_core::manager::{ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
@@ -136,9 +136,12 @@ fn with_response_data() -> AResult {
         .call_as(&account.manager.address()?)
         .execute(
             &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Base(
-                abstract_core::adapter::BaseExecuteMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![account.proxy.addr_str()?],
-                    to_remove: vec![],
+                abstract_core::adapter::BaseExecuteMsg {
+                    proxy_address: None,
+                    msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                        to_add: vec![account.proxy.addr_str()?],
+                        to_remove: vec![],
+                    },
                 },
             ),
             None,

@@ -41,7 +41,6 @@ pub mod fns {
     use abstract_sdk::core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference};
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
-    use abstract_sdk::AbstractSdkResult;
     use abstract_staking_standard::{CwStakingCommand, CwStakingError};
     use cosmwasm_std::{
         Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper, StdError, StdResult, Uint128,
@@ -78,7 +77,7 @@ pub mod fns {
             querier: &QuerierWrapper,
             ans_host: &AnsHost,
             staking_assets: Vec<AssetEntry>,
-        ) -> AbstractSdkResult<Vec<OsmosisTokenContext>> {
+        ) -> Result<Vec<OsmosisTokenContext>, CwStakingError> {
             staking_assets
                 .into_iter()
                 .map(|s_asset| {
@@ -135,9 +134,9 @@ pub mod fns {
             ans_host: &AnsHost,
             version_control_contract: VersionControlContract,
             staking_assets: Vec<AssetEntry>,
-        ) -> abstract_sdk::AbstractSdkResult<()> {
+        ) -> Result<(), CwStakingError> {
             self.version_control_contract = Some(version_control_contract);
-            let account_registry = self.account_registry(deps);
+            let account_registry = self.account_registry(deps)?;
 
             let base = info
                 .map(|i| account_registry.assert_manager(&i.sender))
@@ -301,5 +300,12 @@ pub mod fns {
         ) -> Result<RewardTokensResponse, CwStakingError> {
             Err(CwStakingError::NotImplemented("osmosis".to_owned()))
         }
+    }
+}
+
+#[cfg(feature = "full_integration")]
+impl abstract_sdk::features::ModuleIdentification for Osmosis {
+    fn module_id(&self) -> abstract_sdk::core::objects::module::ModuleId<'static> {
+        abstract_staking_standard::CW_STAKING_ADAPTER_ID
     }
 }

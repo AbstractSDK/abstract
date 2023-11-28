@@ -1,6 +1,8 @@
 mod common;
 use std::cell::RefMut;
 
+use abstract_core::objects::ans_host::AnsHostError;
+use abstract_core::objects::DexAssetPairing;
 use abstract_core::objects::{
     dependency::DependencyResponse, module_version::ModuleDataResponse, AccountId, AssetEntry,
     PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
@@ -12,6 +14,7 @@ use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
 use abstract_dex_adapter::DEX_ADAPTER_ID;
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use abstract_testing::OWNER;
+use abstract_sdk::AbstractSdkError;
 use dca_app::msg::{DCAResponse, Frequency};
 use dca_app::state::{DCAEntry, DCAId};
 use dca_app::{
@@ -390,12 +393,12 @@ fn setup() -> anyhow::Result<(
 }
 
 fn assert_querrier_err_eq(left: CwOrchError, right: StdError) {
-    let querier_contract_err =
-        |err| StdError::generic_err(format!("Querier contract error: {}", err));
-    assert_eq!(
-        left.root().to_string(),
-        querier_contract_err(right).to_string()
-    )
+    let querier_contract_err = || AbstractSdkError::ApiQuery {
+        api: "Adapters".to_owned(),
+        module_id: DCA_APP_ID.to_owned(),
+        error: Box::new(StdError::generic_err(format!("Querier contract error: {right}")).into()),
+    };
+    assert_eq!(left.root().to_string(), querier_contract_err().to_string())
 }
 
 #[test]
@@ -543,9 +546,14 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
             "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
             offer_asset = OfferAsset::new(USD, 100_u128),
             target_asset = AssetEntry::new(USD),
-            e = AbstractError::from(StdError::generic_err(
-                "asset pairing wyndex/usd,usd not found in ans_host"
-            ))
+            e = AbstractError::from(AnsHostError::DexPairingNotFound {
+                pairing: DexAssetPairing::new(
+                    AssetEntry::new(USD),
+                    AssetEntry::new(USD),
+                    WYNDEX_WITHOUT_CHAIN
+                ),
+                ans_host: _abstr.ans_host.address()?
+            })
         )),
     );
 
@@ -701,9 +709,14 @@ fn update_dca_negative() -> anyhow::Result<()> {
             "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
             offer_asset = OfferAsset::new(USD, 200_u128),
             target_asset = AssetEntry::new(USD),
-            e = AbstractError::from(StdError::generic_err(
-                "asset pairing wyndex/usd,usd not found in ans_host"
-            ))
+            e = AbstractError::from(AnsHostError::DexPairingNotFound {
+                pairing: DexAssetPairing::new(
+                    AssetEntry::new(USD),
+                    AssetEntry::new(USD),
+                    WYNDEX_WITHOUT_CHAIN
+                ),
+                ans_host: _abstr.ans_host.address()?
+            })
         )),
     );
 

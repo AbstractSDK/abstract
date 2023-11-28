@@ -1,9 +1,13 @@
 mod common;
 
+use abstract_adapter::mock::{self, MockError};
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
-use abstract_core::manager::ManagerModuleInfo;
+use abstract_adapter::AdapterError;
+use abstract_core::adapter::{AdapterBaseMsg, AdapterRequestMsg, BaseExecuteMsg};
+use abstract_core::manager::{ManagerModuleInfo, ModuleInstallConfig};
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
+use abstract_core::objects::AccountId;
 use abstract_core::{adapter::BaseQueryMsgFns, *};
 use abstract_interface::*;
 use abstract_testing::prelude::*;
@@ -15,7 +19,7 @@ use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
-use crate::common::mock_modules::{BootMockAdapter1V1, BootMockAdapter1V2, V1, V2};
+use crate::common::mock_modules::{adapter_1, BootMockAdapter1V1, BootMockAdapter1V2, V1, V2};
 
 #[test]
 fn installing_one_adapter_should_succeed() -> AResult {
@@ -398,10 +402,243 @@ fn account_install_adapter() -> AResult {
     let adapter_addr = account.install_adapter(&adapter, None)?;
     let module_addr = account
         .manager
-        .module_info(common::mock_modules::adapter_1::MOCK_ADAPTER_ID)?
+        .module_info(adapter_1::MOCK_ADAPTER_ID)?
         .unwrap()
         .address;
     assert_that!(adapter_addr).is_equal_to(module_addr);
     take_storage_snapshot!(chain, "account_install_adapter");
+    Ok(())
+}
+
+#[test]
+fn account_adapter_ownership() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = create_default_account(&deployment.account_factory)?;
+
+    deployment
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
+
+    let adapter = BootMockAdapter1V1::new_test(chain.clone());
+    adapter.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
+    account.install_adapter(&adapter, None)?;
+
+    let proxy_addr = account.proxy.address()?;
+
+    // Checking module requests
+
+    // Can call either by account owner or manager
+    adapter.call_as(&sender).execute(
+        &mock::ExecuteMsg::Module(AdapterRequestMsg {
+            proxy_address: Some(proxy_addr.to_string()),
+            request: MockExecMsg {},
+        }),
+        None,
+    )?;
+    adapter.call_as(&account.manager.address()?).execute(
+        &mock::ExecuteMsg::Module(AdapterRequestMsg {
+            proxy_address: Some(proxy_addr.to_string()),
+            request: MockExecMsg {},
+        }),
+        None,
+    )?;
+
+    // Not admin or manager
+    let err: MockError = adapter
+        .call_as(&Addr::unchecked("who"))
+        .execute(
+            &mock::ExecuteMsg::Module(AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: MockExecMsg {},
+            }),
+            None,
+        )
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        MockError::Adapter(AdapterError::UnauthorizedAddressAdapterRequest {
+            adapter: adapter_1::MOCK_ADAPTER_ID.to_owned(),
+            sender: "who".to_owned()
+        })
+    );
+
+    // Checking base requests
+
+    // Can call either by account owner or manager
+    adapter.call_as(&sender).execute(
+        &mock::ExecuteMsg::Base(BaseExecuteMsg {
+            proxy_address: Some(proxy_addr.to_string()),
+            msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: vec!["123".to_owned()],
+                to_remove: vec![],
+            },
+        }),
+        None,
+    )?;
+    adapter.call_as(&account.manager.address()?).execute(
+        &mock::ExecuteMsg::Base(BaseExecuteMsg {
+            proxy_address: Some(proxy_addr.to_string()),
+            msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: vec!["234".to_owned()],
+                to_remove: vec![],
+            },
+        }),
+        None,
+    )?;
+
+    // Not admin or manager
+    let err: MockError = adapter
+        .call_as(&Addr::unchecked("who"))
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec!["345".to_owned()],
+                    to_remove: vec![],
+                },
+            }),
+            None,
+        )
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        MockError::Adapter(AdapterError::UnauthorizedAdapterRequest {
+            adapter: adapter_1::MOCK_ADAPTER_ID.to_owned(),
+            sender: "who".to_owned()
+        })
+    );
+
+    Ok(())
+}
+
+#[test]
+fn subaccount_adapter_ownership() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = create_default_account(&deployment.account_factory)?;
+
+    deployment
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
+
+    let adapter = BootMockAdapter1V1::new_test(chain.clone());
+    adapter.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
+
+    account.manager.create_sub_account(
+        vec![ModuleInstallConfig::new(
+            ModuleInfo::from_id_latest(adapter_1::MOCK_ADAPTER_ID).unwrap(),
+            None,
+        )],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+        &[],
+    )?;
+
+    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+
+    let module = sub_account
+        .manager
+        .module_info(adapter_1::MOCK_ADAPTER_ID)?
+        .unwrap();
+    adapter.set_address(&module.address);
+
+    let proxy_addr = sub_account.proxy.address()?;
+
+    // Checking module requests
+
+    // Can call either by account owner or manager
+    adapter.call_as(&sender).execute(
+        &mock::ExecuteMsg::Module(AdapterRequestMsg {
+            proxy_address: Some(proxy_addr.to_string()),
+            request: MockExecMsg {},
+        }),
+        None,
+    )?;
+    adapter.call_as(&sub_account.manager.address()?).execute(
+        &mock::ExecuteMsg::Module(AdapterRequestMsg {
+            proxy_address: Some(proxy_addr.to_string()),
+            request: MockExecMsg {},
+        }),
+        None,
+    )?;
+
+    // Not admin or manager
+    let err: MockError = adapter
+        .call_as(&Addr::unchecked("who"))
+        .execute(
+            &mock::ExecuteMsg::Module(AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: MockExecMsg {},
+            }),
+            None,
+        )
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        MockError::Adapter(AdapterError::UnauthorizedAddressAdapterRequest {
+            adapter: adapter_1::MOCK_ADAPTER_ID.to_owned(),
+            sender: "who".to_owned()
+        })
+    );
+
+    // Checking base requests
+
+    // Can call either by account owner or manager
+    adapter.call_as(&sender).execute(
+        &mock::ExecuteMsg::Base(BaseExecuteMsg {
+            proxy_address: Some(proxy_addr.to_string()),
+            msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: vec!["123".to_owned()],
+                to_remove: vec![],
+            },
+        }),
+        None,
+    )?;
+    adapter.call_as(&sub_account.manager.address()?).execute(
+        &mock::ExecuteMsg::Base(BaseExecuteMsg {
+            proxy_address: Some(proxy_addr.to_string()),
+            msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: vec!["234".to_owned()],
+                to_remove: vec![],
+            },
+        }),
+        None,
+    )?;
+
+    // Not admin or manager
+    let err: MockError = adapter
+        .call_as(&Addr::unchecked("who"))
+        .execute(
+            &mock::ExecuteMsg::Base(BaseExecuteMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec!["345".to_owned()],
+                    to_remove: vec![],
+                },
+            }),
+            None,
+        )
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        MockError::Adapter(AdapterError::UnauthorizedAdapterRequest {
+            adapter: adapter_1::MOCK_ADAPTER_ID.to_owned(),
+            sender: "who".to_owned()
+        })
+    );
     Ok(())
 }

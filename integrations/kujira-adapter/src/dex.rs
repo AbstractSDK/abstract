@@ -21,7 +21,6 @@ use ::{
         coins_in_assets, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
     abstract_sdk::core::objects::PoolAddress,
-    abstract_sdk::cw_helpers::wasm_smart_query,
     cosmwasm_std::{
         wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult,
         Uint128,
@@ -185,16 +184,16 @@ impl DexCommand for Kujira {
         }
 
         // Pair config
-        let pair_config: ConfigResponse = deps.querier.query(&wasm_smart_query(
+        let pair_config: ConfigResponse = deps.querier.query_wasm_smart(
             bow_pair_address.to_string(),
             &bow::market_maker::QueryMsg::Config {},
-        )?)?;
+        )?;
 
         // Get pair info
-        let pair_info: PoolResponse = deps.querier.query(&wasm_smart_query(
+        let pair_info: PoolResponse = deps.querier.query_wasm_smart(
             bow_pair_address.to_string(),
             &bow::market_maker::QueryMsg::Pool {},
-        )?)?;
+        )?;
 
         let pair_assets: Vec<kujira::Asset> = vec![
             kujira::Asset {
@@ -282,12 +281,12 @@ impl DexCommand for Kujira {
             return_amount,
             spread_amount,
             commission_amount,
-        } = deps.querier.query(&wasm_smart_query(
+        } = deps.querier.query_wasm_smart(
             fin_pair_address.to_string(),
             &fin::QueryMsg::Simulation {
                 offer_asset: cw_asset_to_kujira(&offer_asset)?,
             },
-        )?)?;
+        )?;
         // commission paid in result asset
         Ok((
             Uint128::try_from(return_amount).unwrap(),

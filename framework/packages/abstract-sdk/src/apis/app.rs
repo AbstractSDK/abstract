@@ -1,5 +1,9 @@
 #![allow(unused)]
-use crate::{AbstractSdkResult, AccountAction, ModuleInterface};
+use super::{AbstractApi, ApiIdentification};
+use crate::{
+    cw_helpers::ApiQuery, features::ModuleIdentification, AbstractSdkResult, AccountAction,
+    ModuleInterface,
+};
 use abstract_core::objects::module::ModuleId;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
@@ -7,7 +11,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use abstract_core::app as msg;
 
 /// Interact with other modules on the Account.
-pub trait AppInterface: ModuleInterface {
+pub trait AppInterface: ModuleInterface + ModuleIdentification {
     /**
         API for accessing Abstract Apps installed on the account.
 
@@ -27,7 +31,22 @@ pub trait AppInterface: ModuleInterface {
     }
 }
 
-impl<T> AppInterface for T where T: ModuleInterface {}
+impl<T> AppInterface for T where T: ModuleInterface + ModuleIdentification {}
+
+impl<'a, T: AppInterface> AbstractApi<T> for Apps<'a, T> {
+    fn base(&self) -> &T {
+        self.base
+    }
+    fn deps(&self) -> Deps {
+        self.deps
+    }
+}
+
+impl<'a, T: AppInterface> ApiIdentification for Apps<'a, T> {
+    fn api_id() -> String {
+        "Apps".to_owned()
+    }
+}
 
 /**
     API for accessing Abstract Apps installed on the account.
@@ -67,27 +86,24 @@ impl<'a, T: AppInterface> Apps<'a, T> {
     pub fn configure(
         &self,
         app_id: ModuleId,
-        query: msg::BaseExecuteMsg,
+        message: msg::BaseExecuteMsg,
     ) -> AbstractSdkResult<CosmosMsg> {
-        let app_query: msg::ExecuteMsg<Empty, Empty> = query.into();
+        let base_msg: msg::ExecuteMsg<Empty, Empty> = message.into();
         let modules = self.base.modules(self.deps);
         let app_address = modules.module_address(app_id)?;
-        Ok(wasm_execute(app_address, &app_query, vec![])?.into())
+        Ok(wasm_execute(app_address, &base_msg, vec![])?.into())
     }
 
     /// Smart query an app
     pub fn query<Q: Serialize, R: DeserializeOwned>(
         &self,
         app_id: ModuleId,
-        message: impl Into<msg::QueryMsg<Q>>,
+        query: impl Into<msg::QueryMsg<Q>>,
     ) -> AbstractSdkResult<R> {
         let modules = self.base.modules(self.deps);
-        let app_msg: msg::QueryMsg<Q> = message.into();
+        let app_query: msg::QueryMsg<Q> = query.into();
         let app_address = modules.module_address(app_id)?;
-        self.deps
-            .querier
-            .query_wasm_smart(app_address, &app_msg)
-            .map_err(Into::into)
+        self.smart_query(app_address, &app_query)
     }
 }
 
