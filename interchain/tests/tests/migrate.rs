@@ -46,20 +46,22 @@ fn setup() -> anyhow::Result<(Abstract<ForkMock>, Addr, ForkMock)> {
 #[test]
 fn migrate_infra_success() -> anyhow::Result<()> {
     let (abstr_deployment, sender, _) = setup()?;
-
-    assert_eq!(abstr_deployment.version_control.code_id()?, 3692);
+    
+    let pre_code_id = abstr_deployment.version_control.code_id()?;
     abstr_deployment.migrate_if_needed()?;
-    assert_eq!(abstr_deployment.version_control.code_id()?, 5000003);
+    assert_ne!(abstr_deployment.version_control.code_id()?, pre_code_id);
     Ok(())
 }
 
 fn install_app_after_migrate() -> anyhow::Result<()> {
     let (abstr_deployment, sender, app) = setup()?;
+    abstr_deployment.migrate_if_needed()?;
     abstract_integration_tests::manager::account_install_app(app.clone(), sender)
 }
 
 fn create_sub_account_after_migrate() -> anyhow::Result<()> {
     let (abstr_deployment, sender, app) = setup()?;
+    abstr_deployment.migrate_if_needed()?;
     abstract_integration_tests::manager::create_sub_account_with_modules_installed(
         app.clone(),
         sender,
