@@ -23,7 +23,7 @@ use dca_app::{
 use common::contracts;
 
 use croncat_app::contract::CRONCAT_MODULE_VERSION;
-use croncat_app::{contract::CRONCAT_ID, AppQueryMsgFns, CroncatApp, CRON_CAT_FACTORY};
+use croncat_app::{contract::CRONCAT_ID, AppQueryMsgFns, Croncat, CRON_CAT_FACTORY};
 
 use croncat_app::croncat_integration_utils::{AGENTS_NAME, MANAGER_NAME, TASKS_NAME};
 use croncat_sdk_agents::msg::InstantiateMsg as AgentsInstantiateMsg;
@@ -54,9 +54,9 @@ struct CronCatAddrs {
 
 #[allow(unused)]
 struct DeployedApps {
-    dca_app: DCAApp<Mock>,
+    dca_app: DCA<Mock>,
     dex_adapter: DexAdapter<Mock>,
-    cron_cat_app: CroncatApp<Mock>,
+    cron_cat_app: Croncat<Mock>,
     wyndex: WynDex,
 }
 // consts for testing
@@ -284,7 +284,7 @@ fn setup() -> anyhow::Result<(
         setup_croncat_contracts(mock.app.as_ref().borrow_mut(), sender.to_string())?;
 
     // Construct the DCA interface
-    let mut dca_app = DCAApp::new(DCA_APP_ID, mock.clone());
+    let mut dca_app = DCA::new(DCA_APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
@@ -310,7 +310,7 @@ fn setup() -> anyhow::Result<(
         DeployStrategy::Try,
     )?;
 
-    let mut cron_cat_app = CroncatApp::new(CRONCAT_ID, mock.clone());
+    let mut cron_cat_app = Croncat::new(CRONCAT_ID, mock.clone());
     // Create account for croncat namespace
     abstr_deployment
         .account_factory

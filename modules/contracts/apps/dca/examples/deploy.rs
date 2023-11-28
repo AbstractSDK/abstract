@@ -5,7 +5,7 @@ use cw_orch::{
 };
 
 use abstract_interface::{AppDeployer, DeployStrategy};
-use dca_app::{contract::DCA_APP_ID, DCAApp};
+use dca_app::{contract::DCA_APP_ID, DCA};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -21,7 +21,7 @@ fn main() -> anyhow::Result<()> {
         .chain(chain)
         .handle(rt.handle())
         .build()?;
-    let app = DCAApp::new(DCA_APP_ID, chain);
+    let app = DCA::new(DCA_APP_ID, chain);
 
     app.deploy(version, DeployStrategy::Try)?;
     Ok(())

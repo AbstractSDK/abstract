@@ -9,7 +9,7 @@ mod replies;
 pub mod state;
 
 #[cfg(feature = "interface")]
-pub use contract::interface::CroncatApp;
+pub use contract::interface::Croncat;
 #[cfg(feature = "interface")]
 pub use msg::{AppExecuteMsgFns, AppQueryMsgFns};
 

@@ -20,7 +20,7 @@ use cw_asset::{AssetInfo, AssetUnchecked};
 use cw_orch::deploy::Deploy;
 
 use etf_app::{
-    contract::interface::EtfApp,
+    contract::interface::Etf,
     msg::Cw20HookMsg,
     msg::{EtfExecuteMsgFns, EtfQueryMsgFns},
     ETF_APP_ID,
@@ -37,7 +37,7 @@ const ETF_TOKEN: &str = "etf_token";
 
 pub struct EtfEnv<Chain: CwEnv> {
     pub account: AbstractAccount<Chain>,
-    pub etf: EtfApp<Chain>,
+    pub etf: Etf<Chain>,
     pub share_token: AbstractCw20Base<Chain>,
     pub wyndex: WynDex,
     pub abstract_core: Abstract<Chain>,
@@ -57,7 +57,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     // Deploy mock dex
     let wyndex = WynDex::deploy_on(mock.clone(), Empty {})?;
 
-    let etf = EtfApp::new(ETF_APP_ID, mock.clone());
+    let etf = Etf::new(ETF_APP_ID, mock.clone());
     etf.deploy(version, DeployStrategy::Try)?;
 
     let etf_token = AbstractCw20Base::new(ETF_TOKEN, mock.clone());

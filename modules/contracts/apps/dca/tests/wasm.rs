@@ -1,6 +1,6 @@
 use abstract_testing::OWNER;
 use dca_app::contract::DCA_APP_ID;
-use dca_app::DCAApp;
+use dca_app::DCA;
 
 use cw_orch::prelude::*;
 
@@ -12,7 +12,7 @@ fn successful_wasm() {
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = DCAApp::new(DCA_APP_ID, mock);
+    let contract = DCA::new(DCA_APP_ID, mock);
 
     contract.wasm();
 }
