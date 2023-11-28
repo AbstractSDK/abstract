@@ -261,6 +261,7 @@ pub fn update_factory_binaries(
 #[cfg(test)]
 mod test {
     use super::*;
+    use abstract_testing::OWNER;
     use speculoos::prelude::*;
 
     use crate::contract::execute;
@@ -276,7 +277,7 @@ mod test {
     }
 
     fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute_as(deps, "admin", msg)
+        execute_as(deps, OWNER, msg)
     }
 
     fn test_only_admin(msg: ExecuteMsg) -> ModuleFactoryTestResult {
@@ -437,7 +438,6 @@ mod test {
         use super::*;
         use abstract_core::{objects::module::ModuleVersion, AbstractError};
         use abstract_testing::map_tester::*;
-        use abstract_testing::prelude::TEST_ADMIN;
 
         fn update_module_msgs_builder(
             to_add: Vec<(ModuleInfo, Binary)>,
@@ -463,7 +463,7 @@ mod test {
             ModuleInfo,
             Binary,
         > {
-            let info = mock_info(TEST_ADMIN, &[]);
+            let info = mock_info(OWNER, &[]);
 
             let tester = CwMapTesterBuilder::default()
                 .info(info)

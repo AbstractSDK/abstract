@@ -206,7 +206,7 @@ mod tests {
     use cosmwasm_std::Binary;
 
     use abstract_core::ans_host::state::ASSET_ADDRESSES;
-    use abstract_testing::prelude::{wrap_querier, MockDeps, MockQuerierBuilder, TEST_ANS_HOST};
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, MockQuerier},
         Empty,
@@ -363,8 +363,6 @@ mod tests {
             test_dne(&not_exist_lp_token);
         }
     }
-
-    use abstract_testing::prelude::*;
 
     mod pool_metadata {
         use super::*;

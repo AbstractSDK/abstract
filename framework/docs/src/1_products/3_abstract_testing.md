@@ -47,7 +47,7 @@ fn returns_account_owner() -> VersionControlTestResult {
     let account_owner =
         query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_MANAGER), 0)?;
 
-    assert_that!(account_owner).is_equal_to(Addr::unchecked(TEST_OWNER));
+    assert_that!(account_owner).is_equal_to(Addr::unchecked(OWNER));
     Ok(())
 }
 ```

@@ -145,8 +145,7 @@ mod tests {
     };
     use cw2::CONTRACT;
 
-    use abstract_testing::addresses::TEST_CREATOR;
-    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
     type IbcClientTestResult = Result<(), IbcClientError>;
@@ -156,7 +155,7 @@ mod tests {
     }
 
     fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> IbcClientResult {
-        execute_as(deps, TEST_CREATOR, msg)
+        execute_as(deps, OWNER, msg)
     }
 
     fn test_only_admin(msg: ExecuteMsg) -> IbcClientTestResult {
@@ -178,7 +177,7 @@ mod tests {
             ans_host_address: TEST_ANS_HOST.into(),
             version_control_address: TEST_VERSION_CONTROL.into(),
         };
-        let info = mock_info(TEST_CREATOR, &[]);
+        let info = mock_info(OWNER, &[]);
         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_that!(res.messages).is_empty();
 
@@ -189,7 +188,7 @@ mod tests {
         };
 
         let config_resp = config(deps.as_ref()).unwrap();
-        assert_that!(config_resp.admin.as_str()).is_equal_to(TEST_CREATOR);
+        assert_that!(config_resp.admin.as_str()).is_equal_to(OWNER);
 
         let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();
         assert_that!(actual_config).is_equal_to(expected_config);
@@ -297,16 +296,14 @@ mod tests {
     }
 
     mod register_infrastructure {
+        use super::*;
         use std::str::FromStr;
 
         use abstract_core::objects::chain_name::ChainName;
-        use abstract_testing::prelude::TEST_CHAIN;
         use cosmwasm_std::{from_json, wasm_execute};
         use polytone::callbacks::CallbackRequest;
 
         use crate::commands::PACKET_LIFETIME;
-
-        use super::*;
 
         #[test]
         fn only_admin() -> IbcClientResult<()> {
@@ -442,6 +439,8 @@ mod tests {
     }
 
     mod remote_action {
+        use super::*;
+
         use cosmwasm_std::Binary;
         use std::str::FromStr;
 
@@ -452,15 +451,10 @@ mod tests {
             objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
         };
         use abstract_sdk::AbstractSdkError;
-        use abstract_testing::prelude::{
-            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
-        };
         use cosmwasm_std::wasm_execute;
 
         use crate::commands::PACKET_LIFETIME;
         use polytone::callbacks::CallbackRequest;
-
-        use super::*;
 
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
@@ -661,15 +655,14 @@ mod tests {
     }
 
     mod remote_query {
+        use super::*;
+
         use std::str::FromStr;
 
         use crate::commands::PACKET_LIFETIME;
         use abstract_core::{ibc::CallbackInfo, objects::chain_name::ChainName};
-        use abstract_testing::prelude::{mocked_account_querier_builder, TEST_CHAIN};
         use cosmwasm_std::{wasm_execute, BankQuery, Binary, QueryRequest};
         use polytone::callbacks::CallbackRequest;
-
-        use super::*;
 
         #[test]
         fn works() -> IbcClientTestResult {
@@ -734,19 +727,17 @@ mod tests {
     }
 
     mod send_funds {
+        use super::*;
+
         use std::str::FromStr;
 
         use crate::commands::PACKET_LIFETIME;
 
-        use super::*;
         use abstract_core::{
             objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName, ChannelEntry},
             ICS20,
         };
         use abstract_sdk::AbstractSdkError;
-        use abstract_testing::prelude::{
-            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
-        };
         use cosmwasm_std::{coins, Coin, CosmosMsg, IbcMsg};
 
         #[test]
@@ -826,6 +817,8 @@ mod tests {
     }
 
     mod register_account {
+        use super::*;
+
         use std::str::FromStr;
 
         use abstract_core::{
@@ -836,14 +829,9 @@ mod tests {
             },
         };
         use abstract_sdk::AbstractSdkError;
-        use abstract_testing::prelude::{
-            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
-        };
         use cosmwasm_std::{from_json, wasm_execute};
 
         use crate::commands::PACKET_LIFETIME;
-
-        use super::*;
 
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
@@ -956,14 +944,14 @@ mod tests {
     }
 
     mod update_config {
+        use super::*;
+
         use std::str::FromStr;
 
-        use super::*;
         use abstract_core::{
             ibc_client::state::Config,
             objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
         };
-        use abstract_testing::prelude::TEST_VERSION_CONTROL;
 
         #[test]
         fn only_admin() -> IbcClientTestResult {
@@ -1053,12 +1041,11 @@ mod tests {
     }
 
     mod remove_host {
+        use super::*;
+
         use std::str::FromStr;
 
         use abstract_core::objects::chain_name::ChainName;
-        use abstract_testing::prelude::TEST_CHAIN;
-
-        use super::*;
 
         #[test]
         fn only_admin() -> IbcClientTestResult {
@@ -1111,16 +1098,15 @@ mod tests {
     }
 
     mod callback {
+        use super::*;
+
         use abstract_core::{
             ibc::{CallbackInfo, IbcResponseMsg},
             objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
         };
-        use abstract_testing::prelude::TEST_CHAIN;
         use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
         use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
         use std::str::FromStr;
-
-        use super::*;
 
         #[test]
         fn invalid_initiator() -> IbcClientTestResult {

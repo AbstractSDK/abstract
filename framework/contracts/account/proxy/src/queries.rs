@@ -118,8 +118,6 @@ mod test {
 
     use super::*;
 
-    const TEST_CREATOR: &str = "creator";
-
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     pub fn base_asset() -> (AssetEntry, UncheckedPriceSource) {
@@ -136,7 +134,7 @@ mod test {
     }
 
     fn mock_init(deps: DepsMut) {
-        let info = mock_info(TEST_CREATOR, &[]);
+        let info = mock_info(OWNER, &[]);
         let msg = InstantiateMsg {
             account_id: TEST_ACCOUNT_ID,
             ans_host_address: TEST_ANS_HOST.to_string(),

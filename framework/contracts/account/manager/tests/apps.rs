@@ -1,9 +1,9 @@
 mod common;
 use abstract_app::gen_app_mock;
-use abstract_core::objects::account::TEST_ACCOUNT_ID;
 use abstract_core::PROXY;
 use abstract_interface::*;
 
+use abstract_testing::prelude::*;
 use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{coin, Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
@@ -16,7 +16,7 @@ gen_app_mock!(MockApp, APP_ID, APP_VERSION, &[]);
 
 #[test]
 fn execute_on_proxy_through_manager() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -65,7 +65,7 @@ fn execute_on_proxy_through_manager() -> AResult {
 
 #[test]
 fn account_install_app() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;

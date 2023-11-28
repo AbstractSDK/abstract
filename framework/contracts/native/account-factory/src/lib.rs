@@ -16,7 +16,7 @@ mod test_common {
     use cosmwasm_std::DepsMut;
 
     pub fn mock_init(deps: DepsMut) -> AccountFactoryResult {
-        let info = mock_info(TEST_ADMIN, &[]);
+        let info = mock_info(OWNER, &[]);
         let admin = info.sender.to_string();
 
         contract::instantiate(

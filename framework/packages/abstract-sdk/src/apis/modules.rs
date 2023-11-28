@@ -105,7 +105,7 @@ mod test {
     use super::*;
     use crate::mock_module::*;
 
-    use abstract_testing::prelude::TEST_MODULE_ID;
+    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
     mod assert_module_dependency {
