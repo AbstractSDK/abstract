@@ -16,7 +16,7 @@ use croncat_app::{
     error::AppError,
     msg::{ActiveTasksByCreatorResponse, ActiveTasksResponse, AppInstantiateMsg, ConfigResponse},
     state::Config,
-    AppExecuteMsgFns, AppQueryMsgFns, CroncatApp, CRON_CAT_FACTORY,
+    AppExecuteMsgFns, AppQueryMsgFns, Croncat, CRON_CAT_FACTORY,
 };
 
 use croncat_integration_utils::{AGENTS_NAME, MANAGER_NAME, TASKS_NAME};
@@ -219,7 +219,7 @@ struct TestingSetup {
     account: AbstractAccount<Mock>,
     #[allow(unused)]
     abstr_deployment: Abstract<Mock>,
-    module_contract: CroncatApp<Mock>,
+    module_contract: Croncat<Mock>,
     cw20_addr: Addr,
     mock: Mock,
 }
@@ -233,7 +233,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
 
     mock.set_balance(&Addr::unchecked(AGENT), coins(500_000, DENOM))?;
     // Construct the counter interface
-    let mut contract = CroncatApp::new(CRONCAT_ID, mock.clone());
+    let mut contract = Croncat::new(CRONCAT_ID, mock.clone());
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
     // Create a new account to install the app onto
