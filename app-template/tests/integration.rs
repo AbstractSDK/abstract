@@ -1,5 +1,6 @@
 use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
+use abstract_testing::OWNER;
 use app::{
     contract::{APP_ID, APP_VERSION},
     msg::{AppInstantiateMsg, ConfigResponse},
@@ -10,13 +11,10 @@ use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use cosmwasm_std::Addr;
 
-// consts for testing
-const ADMIN: &str = "admin";
-
 /// Set up the test environment with the contract installed
 fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterface<Mock>)> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
@@ -31,7 +29,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterfac
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_string(),
+                monarch: OWNER.to_string(),
             })?;
 
     // claim the namespace so app can be deployed
