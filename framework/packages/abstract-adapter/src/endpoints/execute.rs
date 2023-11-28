@@ -70,7 +70,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         message: BaseExecuteMsg,
     ) -> AdapterResult {
         let BaseExecuteMsg { proxy_address, msg } = message;
-        let account_registry = self.account_registry(deps.as_ref());
+        let account_registry = self.account_registry(deps.as_ref())?;
         let account_base = match proxy_address {
             // If proxy address provided, check if the sender is a direct or nested owner for this account.
             Some(requested_proxy) => {
