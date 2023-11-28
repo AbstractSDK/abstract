@@ -69,7 +69,7 @@ impl<'a, T: ModuleIdentification + AbstractNameService> AbstractNameServiceClien
         page_limit: Option<u8>,
         start_after: Option<DexAssetPairing>,
     ) -> AbstractSdkResult<Vec<AssetPairingMapEntry>> {
-        let resp: PoolAddressListResponse = self.api_smart_query(
+        let resp: PoolAddressListResponse = self.smart_query(
             &self.host.address,
             &QueryMsg::PoolList {
                 filter,

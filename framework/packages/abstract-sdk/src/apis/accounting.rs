@@ -87,7 +87,7 @@ impl<'a, T: AccountingInterface> Accountant<'a, T> {
     pub fn query_total_value(&self) -> AbstractSdkResult<AccountValue> {
         let proxy_address = self.base.proxy_address(self.deps)?;
         let response: AccountValue =
-            self.api_smart_query(proxy_address.to_string(), &QueryMsg::TotalValue {})?;
+            self.smart_query(proxy_address.to_string(), &QueryMsg::TotalValue {})?;
 
         Ok(response)
     }
@@ -95,7 +95,7 @@ impl<'a, T: AccountingInterface> Accountant<'a, T> {
     /// Query the asset value denominated in the base asset
     pub fn asset_value(&self, asset_entry: AssetEntry) -> AbstractSdkResult<Uint128> {
         let proxy_address = self.base.proxy_address(self.deps)?;
-        let response: TokenValueResponse = self.api_smart_query(
+        let response: TokenValueResponse = self.smart_query(
             proxy_address.to_string(),
             &QueryMsg::TokenValue {
                 identifier: asset_entry,
@@ -109,7 +109,7 @@ impl<'a, T: AccountingInterface> Accountant<'a, T> {
     pub fn base_asset(&self) -> AbstractSdkResult<BaseAssetResponse> {
         let proxy_address = self.base.proxy_address(self.deps)?;
         let response: BaseAssetResponse =
-            self.api_smart_query(proxy_address.to_string(), &QueryMsg::BaseAsset {})?;
+            self.smart_query(proxy_address.to_string(), &QueryMsg::BaseAsset {})?;
 
         Ok(response)
     }
@@ -118,7 +118,7 @@ impl<'a, T: AccountingInterface> Accountant<'a, T> {
     pub fn assets_list(&self) -> AbstractSdkResult<AssetsInfoResponse> {
         let proxy_address = self.base.proxy_address(self.deps)?;
 
-        let resp: AssetsInfoResponse = self.api_smart_query(
+        let resp: AssetsInfoResponse = self.smart_query(
             proxy_address,
             &QueryMsg::AssetsInfo {
                 start_after: None,

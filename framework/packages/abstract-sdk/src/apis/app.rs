@@ -103,7 +103,7 @@ impl<'a, T: AppInterface> Apps<'a, T> {
         let modules = self.base.modules(self.deps);
         let app_query: msg::QueryMsg<Q> = query.into();
         let app_address = modules.module_address(app_id)?;
-        self.api_smart_query(app_address, &app_query)
+        self.smart_query(app_address, &app_query)
     }
 }
 

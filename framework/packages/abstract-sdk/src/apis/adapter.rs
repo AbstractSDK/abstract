@@ -94,7 +94,7 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
         let adapter_query: abstract_core::adapter::QueryMsg<Q> = query.into();
         let modules = self.base.modules(self.deps);
         let adapter_address = modules.module_address(adapter_id)?;
-        self.api_smart_query(adapter_address, &adapter_query)
+        self.smart_query(adapter_address, &adapter_query)
     }
 }
 

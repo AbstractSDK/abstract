@@ -19,7 +19,7 @@ pub fn wasm_raw_query<C>(
 }
 
 pub trait ApiQuery<S: ModuleIdentification>: AbstractApi<S> + ApiIdentification {
-    fn api_smart_query<T: DeserializeOwned>(
+    fn smart_query<T: DeserializeOwned>(
         &self,
         contract_addr: impl Into<String>,
         msg: &impl Serialize,
