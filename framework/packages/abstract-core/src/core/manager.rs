@@ -100,9 +100,6 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 use cw2::ContractVersion;
 
-/// Max manager admin recursion
-pub const MAX_MANAGER_ADMIN_RECURSION: usize = 2;
-
 /// Manager Migrate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}

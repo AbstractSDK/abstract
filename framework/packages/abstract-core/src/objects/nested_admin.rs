@@ -1,5 +1,5 @@
 use crate::{
-    manager::{self, state::AccountInfo, MAX_MANAGER_ADMIN_RECURSION},
+    manager::{self, state::AccountInfo},
     objects::gov_type::GovernanceDetails,
 };
 use cosmwasm_std::{
@@ -8,6 +8,9 @@ use cosmwasm_std::{
 };
 use cw_controllers::{Admin, AdminError, AdminResponse};
 use schemars::JsonSchema;
+
+/// Max manager admin recursion
+pub const MAX_ADMIN_RECURSION: usize = 2;
 
 /// Abstract Admin object
 /// This object has same api to the [cw_controllers::Admin]
@@ -111,7 +114,7 @@ pub fn query_top_level_owner<Q: CustomQuery>(
     // Starting from (potentially)manager that owns this module
     let mut current = manager::state::INFO.query(querier, maybe_manager.clone());
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-    for _ in 0..MAX_MANAGER_ADMIN_RECURSION {
+    for _ in 0..MAX_ADMIN_RECURSION {
         match &current {
             Ok(AccountInfo {
                 governance_details: GovernanceDetails::SubAccount { manager, .. },
