@@ -1,5 +1,5 @@
 use croncat_app::contract::CRONCAT_ID;
-use croncat_app::CroncatApp;
+use croncat_app::Croncat;
 
 use cw_orch::prelude::*;
 
@@ -14,7 +14,7 @@ fn successful_wasm() {
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = CroncatApp::new(CRONCAT_ID, mock);
+    let contract = Croncat::new(CRONCAT_ID, mock);
 
     contract.wasm();
 }
