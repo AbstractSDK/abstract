@@ -67,7 +67,8 @@ fn execute_on_proxy_through_manager() -> AResult {
 fn account_install_app() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    abstract_integration_tests::manager::account_install_app(chain.clone(), sender)?;
+    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    abstract_integration_tests::manager::account_install_app(chain.clone())?;
     take_storage_snapshot!(chain, "account_install_app");
     Ok(())
 }

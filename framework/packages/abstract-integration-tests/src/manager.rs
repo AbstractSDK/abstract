@@ -1,9 +1,11 @@
+use crate::create_default_account;
+use crate::install_module_version;
 use crate::mock_modules::app_1::*;
 use crate::mock_modules::standalone_cw2;
 use crate::mock_modules::*;
 use crate::AResult;
-use abstract_app::gen_app_mock;
 use abstract_app::mock::MockInitMsg;
+use abstract_core::app;
 use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::manager::ModuleVersionsResponse;
 use abstract_core::module_factory::SimulateInstallModulesResponse;
@@ -18,16 +20,19 @@ use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::AccountId;
 use abstract_core::version_control::UpdateModule;
 use abstract_interface::*;
+use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 use cosmwasm_std::coin;
-use cosmwasm_std::Addr;
+use cosmwasm_std::coins;
+use cosmwasm_std::Uint128;
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
+use cw_orch::environment::MutCwEnv;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 /// Test installing an app on an account
-pub fn account_install_app<T: CwEnv>(chain: T, sender: Addr) -> AResult {
+pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
     let account = crate::create_default_account(&deployment.account_factory)?;
 
@@ -48,8 +53,9 @@ pub fn account_install_app<T: CwEnv>(chain: T, sender: Addr) -> AResult {
 }
 
 /// Test installing an app on an account
-pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T, sender: Addr) -> AResult {
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult {
+    let deployment = Abstract::load_from(chain.clone())?;
+    let sender = chain.sender();
     let factory = &deployment.account_factory;
 
     let deployer_acc = factory.create_new_account(
@@ -127,13 +133,15 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T, sender: Add
     Ok(())
 }
 
-pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv>(
-    chain: T,
-    sender: Addr,
-    payment_denoms: (&str, &str),
+pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCwEnv>(
+    mut chain: T,
+    (coin1, coin2): (&str, &str),
 ) -> AResult {
+    let sender = chain.sender();
     // Adding coins to fill monetization
-    // chain.add_balance(&sender, vec![coin(18, "coin1"), coin(20, "coin2")])?;
+    chain
+        .add_balance(&sender, vec![coin(18, coin1), coin(20, coin2)])
+        .unwrap();
     let deployment = Abstract::load_from(chain.clone())?;
     let factory = &deployment.account_factory;
 
@@ -153,7 +161,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv
     )?;
     deploy_modules(&chain);
 
-    let standalone = standalone_cw2::StandaloneCw2::new_test(chain);
+    let standalone = standalone_cw2::StandaloneCw2::new_test(chain.clone());
     standalone.upload()?;
 
     deployment.version_control.propose_modules(vec![(
@@ -172,11 +180,8 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv
         UpdateModule::Versioned {
             version: V1.to_owned(),
             metadata: None,
-            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(
-                10,
-                payment_denoms.1,
-            )))),
-            instantiation_funds: Some(vec![coin(3, payment_denoms.0), coin(5, payment_denoms.1)]),
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(10, coin2)))),
+            instantiation_funds: Some(vec![coin(3, coin1), coin(5, coin2)]),
         },
     )?;
     deployment.version_control.update_module_configuration(
@@ -185,11 +190,8 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv
         UpdateModule::Versioned {
             version: V1.to_owned(),
             metadata: None,
-            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(
-                8,
-                payment_denoms.0,
-            )))),
-            instantiation_funds: Some(vec![coin(6, payment_denoms.0)]),
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(8, coin1)))),
+            instantiation_funds: Some(vec![coin(6, coin1)]),
         },
     )?;
 
@@ -207,20 +209,17 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv
     assert_eq!(
         simulate_response,
         SimulateInstallModulesResponse {
-            total_required_funds: vec![coin(17, payment_denoms.0), coin(15, payment_denoms.1)],
+            total_required_funds: vec![coin(17, coin1), coin(15, coin2)],
             monetization_funds: vec![
-                (app_1::MOCK_APP_ID.to_string(), coin(10, payment_denoms.1)),
-                ("tester:standalone".to_string(), coin(8, payment_denoms.0))
+                (app_1::MOCK_APP_ID.to_string(), coin(10, coin2)),
+                ("tester:standalone".to_string(), coin(8, coin1))
             ],
             initialization_funds: vec![
                 (
                     app_1::MOCK_APP_ID.to_string(),
-                    vec![coin(3, payment_denoms.0), coin(5, payment_denoms.1)]
+                    vec![coin(3, coin1), coin(5, coin2)]
                 ),
-                (
-                    "tester:standalone".to_string(),
-                    vec![coin(6, payment_denoms.0)]
-                ),
+                ("tester:standalone".to_string(), vec![coin(6, coin1)]),
             ],
         }
     );
@@ -269,15 +268,119 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: CwEnv
                 monarch: sender.to_string(),
             },
             // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
-            Some(&[coin(18, payment_denoms.0), coin(20, payment_denoms.1)]),
+            Some(&[coin(18, coin1), coin(20, coin2)]),
         )
         .unwrap();
-    // TODO: uncomment
-    // let balances = chain.query_all_balances(&account.proxy.address()?)?;
-    // assert_eq!(
-    //     balances,
-    //     vec![coin(1, payment_denoms.0), coin(5, payment_denoms.1)]
-    // );
-    // Make sure all installed
+    let balances = chain.balance(&account.proxy.address()?, None).unwrap();
+    assert_eq!(balances, vec![coin(1, coin1), coin(5, coin2)]);
+    Ok(())
+}
+
+pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
+    let abstr = Abstract::load_from(chain.clone())?;
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy } = &account;
+    abstr
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+    deploy_modules(&chain);
+
+    // install adapter 1
+    let adapter1 = install_module_version(&manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+
+    // install adapter 2
+    let adapter2 = install_module_version(&manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
+
+    // Add balance to proxy so
+    // app will transfer funds to test addr during instantiation
+    chain
+        .add_balance(&proxy.address()?, coins(123456, "TEST"))
+        .unwrap();
+    let app1 = install_module_version(&manager, app_1::MOCK_APP_ID, V1)?;
+
+    let test_addr_balance = chain
+        .balance(&Addr::unchecked("test_addr"), Some("TEST".to_owned()))
+        .unwrap();
+    assert_eq!(test_addr_balance[0].amount, Uint128::new(123456));
+
+    account.expect_modules(vec![adapter1, adapter2, app1])?;
+    Ok(())
+}
+
+pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T) -> AResult {
+    let abstr = Abstract::load_from(chain.clone())?;
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy } = &account;
+    abstr
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+    deploy_modules(&chain);
+
+    // install adapter 1
+    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    account.expect_modules(vec![adapter1.clone()])?;
+
+    // register an authorized address on Adapter 1
+    let authorizee = "authorizee";
+    manager.update_adapter_authorized_addresses(
+        adapter_1::MOCK_ADAPTER_ID,
+        vec![authorizee.to_string()],
+        vec![],
+    )?;
+
+    // upgrade adapter 1 to version 2
+    manager.upgrade_module(
+        adapter_1::MOCK_ADAPTER_ID,
+        &app::MigrateMsg {
+            base: app::BaseMigrateMsg {},
+            module: Empty {},
+        },
+    )?;
+    use abstract_core::manager::QueryMsgFns as _;
+    let adapter_v2 = manager.module_addresses(vec![adapter_1::MOCK_ADAPTER_ID.into()])?;
+    // assert that the address actually changed
+    assert_that!(adapter_v2.modules[0].1).is_not_equal_to(Addr::unchecked(adapter1.clone()));
+
+    let adapter = adapter_1::BootMockAdapter1V2::new_test(chain);
+    use abstract_core::adapter::BaseQueryMsgFns as _;
+    let authorized = adapter.authorized_addresses(proxy.addr_str()?)?;
+    assert_that!(authorized.addresses).contains(Addr::unchecked(authorizee));
+
+    // assert that authorized address was removed from old Adapter
+    adapter.set_address(&Addr::unchecked(adapter1));
+    let authorized = adapter.authorized_addresses(proxy.addr_str()?)?;
+    assert_that!(authorized.addresses).is_empty();
+    Ok(())
+}
+
+pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
+    let abstr = Abstract::load_from(chain.clone())?;
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy: _ } = &account;
+    abstr
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+    deploy_modules(&chain);
+
+    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
+    account.expect_modules(vec![adapter1, adapter2, app1])?;
+
+    let res = manager.uninstall_module(adapter_1::MOCK_ADAPTER_ID.to_string());
+    // fails because app is depends on adapter 1
+    assert_that!(res.unwrap_err().root().to_string())
+        .contains(ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
+    // same for adapter 2
+    let res = manager.uninstall_module(adapter_2::MOCK_ADAPTER_ID.to_string());
+    assert_that!(res.unwrap_err().root().to_string())
+        .contains(ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
+
+    // we can only uninstall if the app is uninstalled first
+    manager.uninstall_module(app_1::MOCK_APP_ID.to_string())?;
+    // now we can uninstall adapter 1
+    manager.uninstall_module(adapter_1::MOCK_ADAPTER_ID.to_string())?;
+    // and adapter 2
+    manager.uninstall_module(adapter_2::MOCK_ADAPTER_ID.to_string())?;
     Ok(())
 }
