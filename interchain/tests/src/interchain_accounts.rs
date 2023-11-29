@@ -1,12 +1,11 @@
 use std::str::FromStr;
 
-use abstract_core::{
-    objects::{account::AccountTrace, chain_name::ChainName, AccountId},
-    IBC_CLIENT,
-};
+use abstract_core::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 
-use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ManagerQueryFns};
+use abstract_interface::{
+    Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns,
+};
 use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
 
