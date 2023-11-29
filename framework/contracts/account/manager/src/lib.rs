@@ -26,7 +26,7 @@ mod test_common {
             manager::InstantiateMsg {
                 account_id: AccountId::new(1, AccountTrace::Local).unwrap(),
                 owner: GovernanceDetails::Monarchy {
-                    monarch: TEST_OWNER.to_string(),
+                    monarch: OWNER.to_string(),
                 },
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),

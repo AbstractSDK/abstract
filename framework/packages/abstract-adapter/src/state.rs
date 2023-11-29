@@ -151,7 +151,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 #[cfg(test)]
 mod tests {
 
-    use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};
+    use abstract_testing::prelude::*;
     use cosmwasm_std::Response;
 
     use super::*;

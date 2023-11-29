@@ -1,4 +1,4 @@
-use crate::{addresses::*, mock_ans::MockAnsHost, MockQuerierBuilder};
+use crate::{mock_ans::MockAnsHost, prelude::*, MockQuerierBuilder};
 use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
 use abstract_core::{
     ans_host::state::{ASSET_ADDRESSES, CHANNELS},
@@ -48,7 +48,7 @@ impl AbstractMockQuerierBuilder {
                 manager,
                 Item::new(OWNERSHIP_STORAGE_KEY),
                 &Some(Ownership {
-                    owner: Some(Addr::unchecked(TEST_OWNER)),
+                    owner: Some(Addr::unchecked(OWNER)),
                     pending_owner: None,
                     pending_expiry: None,
                 }),

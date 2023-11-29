@@ -23,7 +23,7 @@ use abstract_sdk::{
         ICS20,
     },
     features::AccountIdentification,
-    AccountVerification, Resolve,
+    Resolve,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo,
@@ -208,8 +208,7 @@ pub fn execute_send_packet(
     // Verify that the sender is a proxy contract
     let account_base = cfg
         .version_control
-        .account_registry(deps.as_ref())
-        .assert_proxy(&info.sender)?;
+        .assert_proxy(&info.sender, &deps.querier)?;
 
     // get account_id
     let account_id = account_base.account_id(deps.as_ref())?;
@@ -273,8 +272,7 @@ pub fn execute_register_account(
     // Verify that the sender is a proxy contract
     let account_base = cfg
         .version_control
-        .account_registry(deps.as_ref())
-        .assert_proxy(&info.sender)?;
+        .assert_proxy(&info.sender, &deps.querier)?;
 
     // get account_id
     let account_id = account_base.account_id(deps.as_ref())?;
@@ -321,8 +319,7 @@ pub fn execute_send_funds(
 
     let account_base = cfg
         .version_control
-        .account_registry(deps.as_ref())
-        .assert_proxy(&info.sender)?;
+        .assert_proxy(&info.sender, &deps.querier)?;
 
     // get account_id of Account
     let account_id = account_base.account_id(deps.as_ref())?;

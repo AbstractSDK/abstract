@@ -6,6 +6,7 @@ use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg};
 use abstract_interface::{
     Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, VCExecFns,
 };
+use abstract_testing::OWNER;
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
 use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
 use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
@@ -19,9 +20,6 @@ use wyndex_bundle::WynDex;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, Uint128};
-
-// consts for testing
-const ADMIN: &str = "admin";
 
 /// Set up the test environment with the contract installed
 fn setup(
@@ -59,7 +57,7 @@ fn setup(
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_string(),
+                monarch: OWNER.to_string(),
             })?;
 
     // claim the namespace so app can be deployed
@@ -97,7 +95,7 @@ fn wyndex_deployment(chain: &Mock) -> WynDex {
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
@@ -118,7 +116,7 @@ fn successful_install() -> anyhow::Result<()> {
 #[test]
 fn test_update_config() -> anyhow::Result<()> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
@@ -144,7 +142,7 @@ fn test_update_config() -> anyhow::Result<()> {
 #[test]
 fn test_simple_tip() -> anyhow::Result<()> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
@@ -191,7 +189,7 @@ fn test_simple_tip() -> anyhow::Result<()> {
 #[test]
 fn test_tip_swap() -> anyhow::Result<()> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
@@ -243,7 +241,7 @@ fn test_tip_swap() -> anyhow::Result<()> {
 #[test]
 fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
@@ -302,7 +300,7 @@ fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
 #[test]
 fn test_cw20_tip() -> anyhow::Result<()> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
@@ -385,7 +383,7 @@ fn test_cw20_tip() -> anyhow::Result<()> {
 #[test]
 fn test_multiple_tippers() -> anyhow::Result<()> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 

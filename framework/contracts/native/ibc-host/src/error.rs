@@ -1,4 +1,7 @@
-use abstract_core::AbstractError;
+use abstract_core::{
+    objects::{ans_host::AnsHostError, version_control::VersionControlError},
+    AbstractError,
+};
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_ownable::OwnershipError;
@@ -24,6 +27,12 @@ pub enum HostError {
 
     #[error("{0}")]
     ParseReply(#[from] ParseReplyError),
+
+    #[error("{0}")]
+    VersionControlError(#[from] VersionControlError),
+
+    #[error("{0}")]
+    AnsHostError(#[from] AnsHostError),
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),

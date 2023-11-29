@@ -8,10 +8,10 @@ pub mod msg {
     pub use abstract_dex_standard::msg::*;
 }
 
+pub use abstract_dex_standard::DEX_ADAPTER_ID;
+
 // Export interface for use in SDK modules
 pub use crate::api::DexInterface;
-//:{Dex, DexInterface};
-pub const DEX_ADAPTER_ID: &str = "abstract:dex";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {

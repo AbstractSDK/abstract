@@ -160,7 +160,7 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResul
 
 #[cfg(test)]
 mod test {
-    use abstract_testing::prelude::TEST_MANAGER;
+    use abstract_testing::prelude::*;
     use cosmwasm_std::testing::mock_dependencies;
     use cosmwasm_std::testing::{
         mock_env, mock_info, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
