@@ -1,14 +1,12 @@
 use std::str::FromStr;
 
-use abstract_core::{
-    objects::{account::AccountTrace, chain_name::ChainName, AccountId},
-    IBC_CLIENT,
-};
+use abstract_core::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 
-use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ManagerQueryFns};
+use abstract_interface::{
+    Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns,
+};
 use anyhow::Result as AnyResult;
-use cosmwasm_std::Empty;
 use cw_orch::prelude::*;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
@@ -54,9 +52,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
     )?;
 
     // We need to register the ibc client as a module of the manager (account specific)
-    origin_account
-        .manager
-        .install_module::<Empty>(IBC_CLIENT, None, None)?;
+    origin_account.manager.update_settings(Some(true))?;
 
     // Now we send a message to the client saying that we want to create an account on the
     // destination chain
@@ -107,9 +103,6 @@ mod test {
     use crate::STARGAZE;
 
     use abstract_core::ans_host::ExecuteMsgFns as AnsExecuteMsgFns;
-    use abstract_core::manager::ModuleInstallConfig;
-    use abstract_core::objects::module::ModuleInfo;
-    use abstract_core::objects::module::ModuleVersion;
     use abstract_core::objects::UncheckedChannelEntry;
     use abstract_core::{
         manager::ExecuteMsg as ManagerExecuteMsg,
@@ -266,9 +259,7 @@ mod test {
             )?;
 
         // We need to register the ibc client as a module of the manager (account specific)
-        origin_account
-            .manager
-            .install_module::<Empty>(IBC_CLIENT, None, None)?;
+        origin_account.manager.update_settings(Some(true))?;
 
         // Now we send a message to the client saying that we want to create an account on the
         // destination chain
@@ -277,19 +268,16 @@ mod test {
 
         mock_interchain.wait_ibc(&JUNO.to_owned(), register_tx)?;
 
-        // Register the IBC_CLIENT on STARGAZE from JUNO.
-        let register_module_tx = origin_account.manager.execute_on_remote(
+        // Enable ibc on STARGAZE from JUNO.
+        let enable_ibc_tx = origin_account.manager.execute_on_remote(
             &ChainName::from_chain_id(STARGAZE).to_string(),
-            ManagerExecuteMsg::InstallModules {
-                modules: vec![ModuleInstallConfig::new(
-                    ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
-                    None,
-                )],
+            ManagerExecuteMsg::UpdateSettings {
+                ibc_enabled: Some(true),
             },
             None,
         )?;
 
-        mock_interchain.wait_ibc(&JUNO.to_owned(), register_module_tx)?;
+        mock_interchain.wait_ibc(&JUNO.to_owned(), enable_ibc_tx)?;
 
         // Create account from JUNO on OSMOSIS by going through STARGAZE
         let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
