@@ -134,7 +134,7 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
-    #[returns(cw_ownable::Ownership<String> )]
+    #[returns(cw_ownable::Ownership<Addr> )]
     Ownership {},
     /// Returns [`ConfigResponse`].
     #[returns(ConfigResponse)]
