@@ -2,8 +2,8 @@ use crate::{
     AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_core::{
-    objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MANAGER, MODULE_FACTORY,
-    PROXY, VERSION_CONTROL,
+    objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY,
+    VERSION_CONTROL,
 };
 
 use cw_orch::prelude::*;
@@ -35,18 +35,14 @@ where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
     let chain = version_control.get_chain().clone();
-    let manager_contract_id = format!("{MANAGER}-{account_id}");
-    let proxy_contract_id = format!("{PROXY}-{account_id}");
 
-    let account_base = version_control.get_account(account_id.clone()).unwrap();
-    chain
-        .state()
-        .set_address(&manager_contract_id, &account_base.manager);
-    chain
-        .state()
-        .set_address(&proxy_contract_id, &account_base.proxy);
     let manager = Manager::new_from_id(&account_id, chain.clone());
     let proxy = Proxy::new_from_id(&account_id, chain);
+
+    let account_base = version_control.get_account(account_id.clone()).unwrap();
+    manager.set_address(&account_base.manager);
+    proxy.set_address(&account_base.proxy);
+
     (manager, proxy)
 }
 
