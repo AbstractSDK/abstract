@@ -85,8 +85,8 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             AccountTrace::try_from((*trace).as_str())?,
         )?;
         // construct manager and proxy ids
-        let manager_id = format!("{MANAGER}-{}", id.to_string());
-        let proxy_id = format!("{PROXY}-{}", id.to_string());
+        let manager_id = format!("{MANAGER}-{id}");
+        let proxy_id = format!("{PROXY}-{id}");
 
         // set addresses
         let manager_address = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
@@ -96,7 +96,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
         let proxy_address = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
         self.get_chain()
             .state()
-            .set_address(PROXY, &Addr::unchecked(proxy_address));
+            .set_address(&proxy_id, &Addr::unchecked(proxy_address));
 
         Ok(AbstractAccount {
             manager: Manager::new(manager_id, self.get_chain().clone()),
