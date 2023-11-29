@@ -4,8 +4,12 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use abstract_core::{ans_host::ExecuteMsgFns, objects::UncheckedChannelEntry, ICS20, PROXY};
-use abstract_interface::{Abstract, ProxyQueryFns};
+use abstract_core::{
+    ans_host::ExecuteMsgFns,
+    objects::{AccountId, UncheckedChannelEntry},
+    ICS20, PROXY,
+};
+use abstract_interface::{Abstract, AbstractAccount, ProxyQueryFns};
 use abstract_interface_integration_tests::{
     interchain_accounts::{create_test_remote_account, set_env},
     JUNO, STARGAZE,
@@ -34,6 +38,8 @@ pub fn test_send_funds() -> AnyResult<()> {
 
     let osmo_abstr: Abstract<Daemon> = Abstract::load_from(osmosis.clone())?;
     let juno_abstr: Abstract<Daemon> = Abstract::load_from(juno.clone())?;
+
+    let osmo_abstr_account = AbstractAccount::new(&osmo_abstr, Some(AccountId::local(0)));
 
     let sender = juno.sender().to_string();
 
@@ -81,12 +87,12 @@ pub fn test_send_funds() -> AnyResult<()> {
     // )?;
 
     // Get the ibc client address
-    let client = osmo_abstr.account.proxy.config()?;
+    let client = osmo_abstr_account.proxy.config()?;
 
     log::info!("client adddress {:?}", client);
 
     // Send funds to the remote account
-    let send_funds_tx = osmo_abstr.account.manager.execute_on_module(
+    let send_funds_tx = osmo_abstr_account.manager.execute_on_module(
         PROXY,
         abstract_core::proxy::ExecuteMsg::IbcAction {
             msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendFunds {
