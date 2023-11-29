@@ -23,8 +23,8 @@ pub struct Abstract<Chain: CwEnv> {
     pub version_control: VersionControl<Chain>,
     pub account_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
-    pub account: AbstractAccount<Chain>,
     pub ibc: IbcAbstract<Chain>,
+    pub(crate) account: AbstractAccount<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
