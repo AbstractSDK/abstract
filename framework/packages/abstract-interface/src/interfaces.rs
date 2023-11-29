@@ -36,13 +36,21 @@ where
 {
     let chain = version_control.get_chain().clone();
     if let Some(account_id) = account_id {
-        let account_base = version_control.get_account(account_id).unwrap();
-        chain.state().set_address(MANAGER, &account_base.manager);
-        chain.state().set_address(PROXY, &account_base.proxy);
-        let manager = Manager::new(MANAGER, chain.clone());
-        let proxy = Proxy::new(PROXY, chain);
+        let manager_contract_id = format!("{MANAGER}-{account_id}");
+        let proxy_contract_id = format!("{PROXY}-{account_id}");
+        
+        let account_base = version_control.get_account(account_id.clone()).unwrap();
+        chain
+            .state()
+            .set_address(&manager_contract_id, &account_base.manager);
+        chain
+            .state()
+            .set_address(&proxy_contract_id, &account_base.proxy);
+        let manager = Manager::new(manager_contract_id, chain.clone());
+        let proxy = Proxy::new(proxy_contract_id, chain);
         (manager, proxy)
     } else {
+        // TODO: shouldn't be used
         let manager = Manager::new(MANAGER, chain.clone());
         let proxy = Proxy::new(PROXY, chain);
         (manager, proxy)
