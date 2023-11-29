@@ -6,26 +6,22 @@ use abstract_core::AbstractError;
 
 use abstract_core::objects::module::assert_module_data_validity;
 use abstract_sdk::feature_objects::VersionControlContract;
-use abstract_sdk::AccountVerification;
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, DepsMut, Empty, Env,
     MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
 };
 
-use abstract_sdk::{
-    core::{
-        manager::InstantiateMsg as ManagerInstantiateMsg,
-        objects::{
-            gov_type::GovernanceDetails, module::Module, module::ModuleInfo,
-            module_reference::ModuleReference,
-        },
-        proxy::InstantiateMsg as ProxyInstantiateMsg,
-        version_control::{
-            AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
-        },
-        AbstractResult, MANAGER, PROXY,
+use abstract_sdk::core::{
+    manager::InstantiateMsg as ManagerInstantiateMsg,
+    objects::{
+        gov_type::GovernanceDetails, module::Module, module::ModuleInfo,
+        module_reference::ModuleReference,
     },
-    cw_helpers::wasm_smart_query,
+    proxy::InstantiateMsg as ProxyInstantiateMsg,
+    version_control::{
+        AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
+    },
+    AbstractResult, MANAGER, PROXY,
 };
 
 use crate::contract::AccountFactoryResponse;
@@ -98,8 +94,7 @@ pub fn execute_create_account(
     let funds_for_install = simulate_resp.total_required_funds;
     let funds_for_namespace_fee = if namespace.is_some() {
         abstract_registry
-            .account_registry(deps.as_ref())
-            .namespace_registration_fee()?
+            .namespace_registration_fee(&deps.querier)?
             .into_iter()
             .collect()
     } else {
@@ -244,12 +239,12 @@ fn query_module(
     version_control_addr: &Addr,
     module_id: &str,
 ) -> AbstractResult<Module> {
-    let ModulesResponse { mut modules } = querier.query(&wasm_smart_query(
+    let ModulesResponse { mut modules } = querier.query_wasm_smart(
         version_control_addr.to_string(),
         &VCQuery::Modules {
             infos: vec![ModuleInfo::from_id_latest(module_id)?],
         },
-    )?)?;
+    )?;
 
     Ok(modules.swap_remove(0).module)
 }

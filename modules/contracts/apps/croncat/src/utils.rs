@@ -1,5 +1,6 @@
-use abstract_sdk::{feature_objects::AnsHost, prelude::*, AbstractSdkResult};
-use cosmwasm_std::{coin, Addr, Api, Coin, Deps, QuerierWrapper};
+use abstract_core::objects::ContractEntry;
+use abstract_sdk::{prelude::*, AbstractNameServiceClient, AbstractSdkResult};
+use cosmwasm_std::{coin, Addr, Api, Coin, Deps};
 use croncat_sdk_manager::msg::ManagerQueryMsg;
 use cw20::Cw20CoinVerified;
 use cw_asset::{AssetError, AssetInfoBase, AssetListUnchecked};
@@ -64,10 +65,9 @@ pub(crate) fn sort_funds(
 }
 
 pub(crate) fn factory_addr(
-    querier: &QuerierWrapper,
-    ans_host: &AnsHost,
+    name_service: &AbstractNameServiceClient<CroncatApp>,
 ) -> Result<Addr, crate::error::AppError> {
-    let factory_entry = CRON_CAT_FACTORY.parse()?;
-    let factory_addr = ans_host.query_contract(querier, &factory_entry)?;
+    let factory_entry: ContractEntry = CRON_CAT_FACTORY.parse()?;
+    let factory_addr = name_service.query(&factory_entry)?;
     Ok(factory_addr)
 }

@@ -9,6 +9,8 @@ use serde::Serialize;
 
 /// Trait to access module information tied directly to the type.
 pub trait RegisteredModule {
+    /// The init message for the module.
+    type InitMsg: Serialize;
     /// The id of the module.
     fn module_id<'a>() -> &'a str;
     /// The version of the module.

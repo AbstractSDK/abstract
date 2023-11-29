@@ -9,12 +9,12 @@ use calendar_app::{
 use chrono::{DateTime, Days, FixedOffset, NaiveDateTime, NaiveTime, TimeZone, Timelike};
 use cw_asset::AssetInfoUnchecked;
 // Use prelude to get all the necessary imports
+use abstract_testing::prelude::*;
 use cw_orch::{anyhow, prelude::*};
 
 use cosmwasm_std::{coins, Addr, BlockInfo, Uint128};
 
 // consts for testing
-const ADMIN: &str = "admin";
 const DENOM: &str = "juno>stake";
 
 const INITIAL_BALANCE: u128 = 10_000;
@@ -87,7 +87,7 @@ fn setup_with_time(
     Application<Mock, CalendarAppInterface<Mock>>,
     AbstractClient<Mock>,
 )> {
-    let client: AbstractClient<Mock> = AbstractClient::builder(ADMIN.to_owned())
+    let client: AbstractClient<Mock> = AbstractClient::builder(OWNER.to_owned())
         .balance("sender1", coins(INITIAL_BALANCE, DENOM))
         .balance("sender2", coins(INITIAL_BALANCE, DENOM))
         .balance("sender", coins(INITIAL_BALANCE, DENOM))
@@ -98,7 +98,7 @@ fn setup_with_time(
     let publisher: Publisher<Mock> = client
         .publisher_builder()
         .governance_details(GovernanceDetails::Monarchy {
-            monarch: ADMIN.to_owned(),
+            monarch: OWNER.to_owned(),
         })
         .namespace("my-namespace")
         .build()?;

@@ -74,7 +74,8 @@ fn create_task(
 
     let (funds, cw20s) = sort_funds(deps.api, assets)?;
 
-    let factory_addr = factory_addr(&deps.querier, &app.ans_host(deps.as_ref())?)?;
+    let name_service = app.name_service(deps.as_ref());
+    let factory_addr = factory_addr(&name_service)?;
     let executor = app.executor(deps.as_ref());
 
     // Getting needed croncat addresses from factory
@@ -139,7 +140,8 @@ fn remove_task(
     let key = (msg_info.sender, task_tag);
     let (task_hash, task_version) = ACTIVE_TASKS.load(deps.storage, key.clone())?;
 
-    let factory_addr = factory_addr(&deps.querier, &app.ans_host(deps.as_ref())?)?;
+    let name_service = app.name_service(deps.as_ref());
+    let factory_addr = factory_addr(&name_service)?;
     let tasks_addr = get_croncat_contract(
         &deps.querier,
         factory_addr.clone(),
@@ -220,7 +222,8 @@ fn refill_task(
 
     let executor = app.executor(deps);
 
-    let factory_addr = factory_addr(&deps.querier, &app.ans_host(deps)?)?;
+    let name_service = app.name_service(deps);
+    let factory_addr = factory_addr(&name_service)?;
     let manager_addr = get_croncat_contract(
         &deps.querier,
         factory_addr,

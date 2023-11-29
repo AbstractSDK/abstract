@@ -1,4 +1,4 @@
-use abstract_core::AbstractError;
+use abstract_core::{objects::ans_host::AnsHostError, AbstractError};
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{StdError, Uint128};
 use cw_asset::AssetError;
@@ -24,6 +24,9 @@ pub enum ProxyError {
 
     #[error("{0}")]
     Parse(#[from] ParseReplyError),
+
+    #[error("{0}")]
+    AnsHostError(#[from] AnsHostError),
 
     #[error("Module with address {0} is already whitelisted")]
     AlreadyWhitelisted(String),
