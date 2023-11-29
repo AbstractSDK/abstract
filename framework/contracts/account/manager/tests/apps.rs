@@ -1,10 +1,10 @@
 mod common;
 use abstract_app::gen_app_mock;
-use abstract_core::objects::account::TEST_ACCOUNT_ID;
 use abstract_core::PROXY;
 use abstract_interface::*;
+use abstract_testing::prelude::*;
 
-use common::{create_default_account, AResult, TEST_COIN};
+use common::{create_default_account, AResult};
 use cosmwasm_std::{coin, Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
@@ -22,10 +22,7 @@ fn execute_on_proxy_through_manager() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
 
     // mint coins to proxy address
-    chain.set_balance(
-        &account.proxy.address()?,
-        vec![Coin::new(100_000, TEST_COIN)],
-    )?;
+    chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
     // mint other coins to owner
     chain.set_balance(&sender, vec![Coin::new(100, "other_coin")])?;
 
@@ -35,9 +32,9 @@ fn execute_on_proxy_through_manager() -> AResult {
         .borrow()
         .wrap()
         .query_all_balances(account.proxy.address()?)?;
-    assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000, TEST_COIN)]);
+    assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000, TTOKEN)]);
 
-    let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TEST_COIN)];
+    let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TTOKEN)];
     let forwarded_coin: Coin = coin(100, "other_coin");
 
     account.manager.exec_on_module(
@@ -56,7 +53,7 @@ fn execute_on_proxy_through_manager() -> AResult {
         .wrap()
         .query_all_balances(account.proxy.address()?)?;
     assert_that!(proxy_balance)
-        .is_equal_to(vec![forwarded_coin, Coin::new(100_000 - 10_000, TEST_COIN)]);
+        .is_equal_to(vec![forwarded_coin, Coin::new(100_000 - 10_000, TTOKEN)]);
 
     take_storage_snapshot!(chain, "execute_on_proxy_through_manager");
 

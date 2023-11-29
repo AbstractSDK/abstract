@@ -11,6 +11,7 @@ abstract-interface = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-manager = { path = "../../contracts/account/manager" }
+semver = { workspace = true }
 
 cw-orch = { workspace = true }
 log = "0.4.14"

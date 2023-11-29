@@ -158,10 +158,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 34
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
     - 34
     - 125
 - - - 109
@@ -220,10 +225,15 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 34
     - 48
     - 46
-    - 49
-    - 57
-    - 46
     - 50
+    - 48
+    - 46
+    - 48
+    - 45
+    - 114
+    - 99
+    - 46
+    - 49
     - 34
     - 44
     - 34

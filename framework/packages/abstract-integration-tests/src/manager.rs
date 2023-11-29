@@ -1,10 +1,17 @@
+use crate::add_mock_adapter_install_fee;
 use crate::create_default_account;
+use crate::init_mock_adapter;
+use crate::install_adapter;
+use crate::install_adapter_with_funds;
 use crate::install_module_version;
 use crate::mock_modules::app_1::*;
 use crate::mock_modules::standalone_cw2;
 use crate::mock_modules::*;
 use crate::AResult;
+use abstract_adapter::mock::MockExecMsg;
+use abstract_adapter::mock::MockReceiveMsg;
 use abstract_app::mock::MockInitMsg;
+use abstract_core::adapter::AdapterRequestMsg;
 use abstract_core::app;
 use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::manager::ModuleVersionsResponse;
@@ -19,11 +26,13 @@ use abstract_core::objects::module_reference::ModuleReference;
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::AccountId;
 use abstract_core::version_control::UpdateModule;
+use abstract_core::PROXY;
 use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 use cosmwasm_std::coin;
 use cosmwasm_std::coins;
+use cosmwasm_std::wasm_execute;
 use cosmwasm_std::Uint128;
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
@@ -354,10 +363,10 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T) -> AResult {
 }
 
 pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
-    let abstr = Abstract::load_from(chain.clone())?;
-    let account = create_default_account(&abstr.account_factory)?;
+    let deployment = Abstract::load_from(chain.clone())?;
+    let account = create_default_account(&deployment.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
-    abstr
+    deployment
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
@@ -382,5 +391,79 @@ pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
     manager.uninstall_module(adapter_1::MOCK_ADAPTER_ID.to_string())?;
     // and adapter 2
     manager.uninstall_module(adapter_2::MOCK_ADAPTER_ID.to_string())?;
+    Ok(())
+}
+
+pub fn installing_one_adapter_with_fee_should_succeed<T: MutCwEnv>(mut chain: T) -> AResult {
+    let sender = chain.sender();
+    let deployment = Abstract::load_from(chain.clone())?;
+    let account = create_default_account(&deployment.account_factory)?;
+    chain.set_balance(&sender, coins(45, "ujunox")).unwrap();
+
+    init_mock_adapter(chain.clone(), &deployment, None)?;
+    add_mock_adapter_install_fee(
+        &deployment,
+        Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
+        None,
+    )?;
+
+    assert_that!(install_adapter_with_funds(
+        &account.manager,
+        adapter_1::MOCK_ADAPTER_ID,
+        &coins(45, "ujunox")
+    ))
+    .is_ok();
+
+    Ok(())
+}
+
+pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
+    let deployment = Abstract::load_from(chain.clone())?;
+    let account = create_default_account(&deployment.account_factory)?;
+    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None)?;
+
+    install_adapter(&account.manager, TEST_MODULE_ID)?;
+
+    let manager_address = account.manager.address()?;
+    staking_adapter.call_as(&manager_address).execute(
+        &abstract_core::adapter::ExecuteMsg::<MockExecMsg, MockReceiveMsg>::Base(
+            abstract_core::adapter::BaseExecuteMsg::UpdateAuthorizedAddresses {
+                to_add: vec![account.proxy.addr_str()?],
+                to_remove: vec![],
+            },
+        ),
+        None,
+    )?;
+
+    chain
+        .set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])
+        .unwrap();
+
+    let adapter_addr = account
+        .manager
+        .module_info(TEST_MODULE_ID)?
+        .expect("test module installed");
+    // proxy should be final executor because of the reply
+    let resp = account.manager.exec_on_module(
+        cosmwasm_std::to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleActionWithData {
+            // execute a message on the adapter, which sets some data in its response
+            msg: wasm_execute(
+                adapter_addr.address,
+                &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Module(
+                    AdapterRequestMsg {
+                        proxy_address: Some(account.proxy.addr_str()?),
+                        request: MockExecMsg,
+                    },
+                ),
+                vec![],
+            )?
+            .into(),
+        })?,
+        PROXY.to_string(),
+        &[],
+    )?;
+
+    let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;
+    assert_that!(response_data_attr_present).is_equal_to("true".to_string());
     Ok(())
 }

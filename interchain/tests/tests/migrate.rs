@@ -52,10 +52,12 @@ fn migrate_infra_success() -> anyhow::Result<()> {
 
 mod manager {
     use super::*;
+
     use abstract_integration_tests::manager::{
         account_install_app, create_account_with_installed_module_monetization_and_init_funds,
         create_sub_account_with_modules_installed, install_app_with_proxy_action,
-        uninstall_modules, update_adapter_with_authorized_addrs,
+        installing_one_adapter_with_fee_should_succeed, uninstall_modules,
+        update_adapter_with_authorized_addrs,
     };
 
     #[test]
@@ -103,5 +105,12 @@ mod manager {
         let (abstr_deployment, chain) = setup()?;
         abstr_deployment.migrate_if_needed()?;
         uninstall_modules(chain)
+    }
+
+    #[test]
+    fn installing_one_adapter_with_fee_should_succeed_after_migrate() -> anyhow::Result<()> {
+        let (abstr_deployment, chain) = setup()?;
+        abstr_deployment.migrate_if_needed()?;
+        installing_one_adapter_with_fee_should_succeed(chain)
     }
 }

@@ -5,6 +5,7 @@ use abstract_core::manager::ManagerModuleInfo;
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::{adapter::BaseQueryMsgFns, *};
+use abstract_integration_tests::{add_mock_adapter_install_fee, init_mock_adapter, install_adapter_with_funds};
 use abstract_interface::*;
 use abstract_testing::prelude::{OWNER, TEST_ACCOUNT_ID, TEST_MODULE_ID, TEST_VERSION};
 use common::*;
@@ -66,7 +67,6 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     init_mock_adapter(chain.clone(), &deployment, None)?;
     add_mock_adapter_install_fee(
-        chain,
         &deployment,
         Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
         None,
@@ -89,26 +89,11 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
 fn installing_one_adapter_with_fee_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    chain.set_balance(&sender, coins(45, "ujunox"))?;
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
-    init_mock_adapter(chain.clone(), &deployment, None)?;
-    add_mock_adapter_install_fee(
+    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    abstract_integration_tests::manager::installing_one_adapter_with_fee_should_succeed(
         chain.clone(),
-        &deployment,
-        Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
-        None,
     )?;
-
-    assert_that!(install_adapter_with_funds(
-        &account.manager,
-        TEST_MODULE_ID,
-        &coins(45, "ujunox")
-    ))
-    .is_ok();
-
     take_storage_snapshot!(chain, "install_one_adapter_with_fee");
-
     Ok(())
 }
 
