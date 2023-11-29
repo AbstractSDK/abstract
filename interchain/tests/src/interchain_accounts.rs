@@ -6,7 +6,7 @@ use abstract_core::{
 };
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 
-use abstract_interface::{Abstract, AccountDetails, ManagerQueryFns};
+use abstract_interface::{Abstract, AccountDetails, ManagerQueryFns, ManagerExecFns};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::Empty;
 use cw_orch::prelude::*;
@@ -33,7 +33,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
     let account_name = TEST_ACCOUNT_NAME.to_string();
     let description = Some(TEST_ACCOUNT_DESCRIPTION.to_string());
     let link = Some(TEST_ACCOUNT_LINK.to_string());
-    origin.account_factory.create_new_account(
+    let account = origin.account_factory.create_new_account(
         AccountDetails {
             name: account_name.clone(),
             description: description.clone(),
@@ -48,11 +48,10 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
         None,
     )?;
 
-    // We need to register the ibc client as a module of the manager (account specific)
-    origin
-        .account
+    // We need to enable IBC on the account.
+    account
         .manager
-        .install_module::<Empty>(IBC_CLIENT, None, None)?;
+        .update_settings(Some(true))?;
 
     // Now we send a message to the client saying that we want to create an account on the
     // destination chain
