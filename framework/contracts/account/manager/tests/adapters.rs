@@ -5,9 +5,11 @@ use abstract_core::manager::ManagerModuleInfo;
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::{adapter::BaseQueryMsgFns, *};
-use abstract_integration_tests::{add_mock_adapter_install_fee, init_mock_adapter, install_adapter_with_funds};
+use abstract_integration_tests::{
+    add_mock_adapter_install_fee, init_mock_adapter, install_adapter, install_adapter_with_funds,
+};
 use abstract_interface::*;
-use abstract_testing::prelude::{OWNER, TEST_ACCOUNT_ID, TEST_MODULE_ID, TEST_VERSION};
+use abstract_testing::prelude::*;
 use common::*;
 use cosmwasm_std::{coin, coins};
 use cosmwasm_std::{Addr, Coin, Empty};
@@ -280,7 +282,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
 #[test]
 fn unauthorized_exec() -> AResult {
-    let sender = Addr::unchecked(OWNER);
+    let sender = Addr::unchecked(common::OWNER);
     let unauthorized = Addr::unchecked("unauthorized");
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
@@ -315,10 +317,7 @@ fn manager_adapter_exec() -> AResult {
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
-    chain.set_balance(
-        &account.proxy.address()?,
-        vec![Coin::new(100_000, TEST_COIN)],
-    )?;
+    chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
 
     account.manager.execute_on_module(
         TEST_MODULE_ID,

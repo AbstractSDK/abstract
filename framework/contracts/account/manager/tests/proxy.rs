@@ -1,6 +1,5 @@
 mod common;
-use abstract_adapter::mock::{MockExecMsg, MockReceiveMsg};
-use abstract_core::adapter::AdapterRequestMsg;
+use abstract_adapter::mock::MockExecMsg;
 use abstract_core::manager::{ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
@@ -9,13 +8,13 @@ use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::{AccountId, ABSTRACT_ACCOUNT_ID};
 use abstract_core::version_control::UpdateModule;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
-use abstract_integration_tests::init_mock_adapter;
+use abstract_integration_tests::{init_mock_adapter, install_adapter};
 use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
-use common::{create_default_account, install_adapter, mock_modules, AResult};
-use cosmwasm_std::{coin, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg};
+use common::{create_default_account, mock_modules, AResult};
+use cosmwasm_std::{coin, to_json_binary, Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
@@ -59,10 +58,7 @@ fn exec_through_manager() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
 
     // mint coins to proxy address
-    chain.set_balance(
-        &account.proxy.address()?,
-        vec![Coin::new(100_000, TTOKEN)],
-    )?;
+    chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
 
     // burn coins from proxy
     let proxy_balance = chain
@@ -105,10 +101,7 @@ fn default_without_response_data() -> AResult {
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
-    chain.set_balance(
-        &account.proxy.address()?,
-        vec![Coin::new(100_000, TTOKEN)],
-    )?;
+    chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
 
     let resp = account.manager.execute_on_module(
         TEST_MODULE_ID,
@@ -124,7 +117,8 @@ fn default_without_response_data() -> AResult {
 fn with_response_data() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    abstract_integration_tests::manager::with_response_data(chain.clone())?;
     take_storage_snapshot!(chain, "proxy_with_response_data");
 
     Ok(())

@@ -57,7 +57,7 @@ mod manager {
         account_install_app, create_account_with_installed_module_monetization_and_init_funds,
         create_sub_account_with_modules_installed, install_app_with_proxy_action,
         installing_one_adapter_with_fee_should_succeed, uninstall_modules,
-        update_adapter_with_authorized_addrs,
+        update_adapter_with_authorized_addrs, with_response_data,
     };
 
     #[test]
@@ -112,5 +112,12 @@ mod manager {
         let (abstr_deployment, chain) = setup()?;
         abstr_deployment.migrate_if_needed()?;
         installing_one_adapter_with_fee_should_succeed(chain)
+    }
+
+    #[test]
+    fn with_response_data_after_migrate() -> anyhow::Result<()> {
+        let (abstr_deployment, chain) = setup()?;
+        abstr_deployment.migrate_if_needed()?;
+        with_response_data(chain)
     }
 }

@@ -11,13 +11,12 @@ use abstract_core::{
         module::{ModuleInfo, ModuleVersion, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
-        AccountId,
     },
     version_control::UpdateModule,
     AbstractError,
 };
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns, Manager,
+    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
     ManagerExecFns, ManagerQueryFns, VCExecFns,
 };
 
@@ -26,7 +25,7 @@ use abstract_integration_tests::{install_module_version, mock_modules::*};
 use abstract_manager::error::ManagerError;
 use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
 use common::*;
-use cosmwasm_std::{coin, coins, to_json_binary, Uint128};
+use cosmwasm_std::{coin, to_json_binary};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;

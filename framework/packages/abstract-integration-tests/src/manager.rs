@@ -280,7 +280,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
             Some(&[coin(18, coin1), coin(20, coin2)]),
         )
         .unwrap();
-    let balances = chain.balance(&account.proxy.address()?, None).unwrap();
+    let balances = chain.balance(account.proxy.address()?, None).unwrap();
     assert_eq!(balances, vec![coin(1, coin1), coin(5, coin2)]);
     Ok(())
 }
@@ -295,20 +295,20 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
     deploy_modules(&chain);
 
     // install adapter 1
-    let adapter1 = install_module_version(&manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     // install adapter 2
-    let adapter2 = install_module_version(&manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
     // Add balance to proxy so
     // app will transfer funds to test addr during instantiation
     chain
         .add_balance(&proxy.address()?, coins(123456, "TEST"))
         .unwrap();
-    let app1 = install_module_version(&manager, app_1::MOCK_APP_ID, V1)?;
+    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
 
     let test_addr_balance = chain
-        .balance(&Addr::unchecked("test_addr"), Some("TEST".to_owned()))
+        .balance(Addr::unchecked("test_addr"), Some("TEST".to_owned()))
         .unwrap();
     assert_eq!(test_addr_balance[0].amount, Uint128::new(123456));
 
