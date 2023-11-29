@@ -786,6 +786,7 @@ pub fn update_ibc_status(
     // only owner can update IBC status
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
+    println!("Past proxy");
 
     let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
 
@@ -813,7 +814,7 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
     let ibc_client_module =
         query_module(deps.as_ref(), ModuleInfo::from_id_latest(IBC_CLIENT)?, None)?;
 
-    let ibc_client_addr = ibc_client_module.module.reference.unwrap_native()?;
+    let ibc_client_addr = ibc_client_module.module.reference.unwrap_adapter()?;
 
     ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
