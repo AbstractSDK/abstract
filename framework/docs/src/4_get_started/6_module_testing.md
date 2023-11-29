@@ -73,7 +73,7 @@ Multi-index maps are currently not supported. PRs on this issue are welcome! ðŸ¤
 
 The easiest and best way to start using the querier is to use
 the `AbstractMockQuerierBuilder::mocked_account_querier_builder()` method. This method sets up a mock querier with an
-initial abstract account.
+initial Abstract Account.
 
 ## Integration Testing
 

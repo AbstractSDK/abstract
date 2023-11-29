@@ -5,10 +5,51 @@ use crate::{
         REV_ASSET_ADDRESSES,
     },
     objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId},
-    AbstractResult,
 };
-use cosmwasm_std::{Addr, QuerierWrapper, StdError};
+use cosmwasm_std::{Addr, QuerierWrapper};
 use cw_asset::AssetInfo;
+use thiserror::Error;
+
+#[derive(Error, Debug, PartialEq)]
+pub enum AnsHostError {
+    #[error(transparent)]
+    StdError(#[from] cosmwasm_std::StdError),
+
+    // contract not found
+    #[error("Contract {contract} not found in ans_host {ans_host}.")]
+    ContractNotFound {
+        contract: ContractEntry,
+        ans_host: Addr,
+    },
+
+    // asset not found
+    #[error("Asset {asset} not found in ans_host {ans_host}.")]
+    AssetNotFound { asset: AssetEntry, ans_host: Addr },
+
+    // cw-asset not found
+    #[error("CW Asset {asset} not found in ans_host {ans_host}.")]
+    CwAssetNotFound { asset: AssetInfo, ans_host: Addr },
+
+    // channel not found
+    #[error("Channel {channel} not found in ans_host {ans_host}.")]
+    ChannelNotFound {
+        channel: ChannelEntry,
+        ans_host: Addr,
+    },
+
+    // dex asset Pairing not found
+    #[error("Asset pairing {pairing} not found in ans_host {ans_host}.")]
+    DexPairingNotFound {
+        pairing: DexAssetPairing,
+        ans_host: Addr,
+    },
+
+    // pool metadata not found
+    #[error("Pool metadata for pool {pool} not found in ans_host {ans_host}.")]
+    PoolMetadataNotFound { pool: UniquePoolId, ans_host: Addr },
+}
+
+pub type AnsHostResult<T> = Result<T, AnsHostError>;
 
 /// Struct that stores the ans-host contract address.
 /// Implements `AbstractNameService` feature
@@ -28,7 +69,7 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         contracts: &[ContractEntry],
-    ) -> AbstractResult<Vec<Addr>> {
+    ) -> AnsHostResult<Vec<Addr>> {
         let mut resolved_contracts: Vec<Addr> = Vec::new();
         // Query over keys
         for key in contracts.iter() {
@@ -43,14 +84,14 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         contract: &ContractEntry,
-    ) -> AbstractResult<Addr> {
+    ) -> AnsHostResult<Addr> {
         let result: Addr = CONTRACT_ADDRESSES
             .query(querier, self.address.clone(), contract)?
-            .ok_or_else(|| {
-                StdError::generic_err(format!("contract {contract} not found in ans_host"))
+            .ok_or_else(|| AnsHostError::ContractNotFound {
+                contract: contract.clone(),
+                ans_host: self.address.clone(),
             })?;
-        // Addresses are checked when stored.
-        Ok(Addr::unchecked(result))
+        Ok(result)
     }
 
     /// Raw Query to AnsHost contract
@@ -58,7 +99,7 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         assets: &[AssetEntry],
-    ) -> AbstractResult<Vec<AssetInfo>> {
+    ) -> AnsHostResult<Vec<AssetInfo>> {
         let mut resolved_assets = Vec::new();
 
         for asset in assets.iter() {
@@ -73,11 +114,12 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         asset: &AssetEntry,
-    ) -> AbstractResult<AssetInfo> {
+    ) -> AnsHostResult<AssetInfo> {
         let result = ASSET_ADDRESSES
             .query(querier, self.address.clone(), asset)?
-            .ok_or_else(|| {
-                StdError::generic_err(format!("asset {} not found in ans_host", &asset))
+            .ok_or_else(|| AnsHostError::AssetNotFound {
+                asset: asset.clone(),
+                ans_host: self.address.clone(),
             })?;
         Ok(result)
     }
@@ -87,7 +129,7 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         assets: &[AssetInfo],
-    ) -> AbstractResult<Vec<AssetEntry>> {
+    ) -> AnsHostResult<Vec<AssetEntry>> {
         // AssetInfo does not implement PartialEq, so we can't use a Vec
         let mut resolved_assets = vec![];
 
@@ -103,11 +145,12 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         asset: &AssetInfo,
-    ) -> AbstractResult<AssetEntry> {
+    ) -> AnsHostResult<AssetEntry> {
         let result = REV_ASSET_ADDRESSES
             .query(querier, self.address.clone(), asset)?
-            .ok_or_else(|| {
-                StdError::generic_err(format!("cw-asset {} not found in ans_host", &asset))
+            .ok_or_else(|| AnsHostError::CwAssetNotFound {
+                asset: asset.clone(),
+                ans_host: self.address.clone(),
             })?;
         Ok(result)
     }
@@ -117,11 +160,12 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         channel: &ChannelEntry,
-    ) -> AbstractResult<String> {
+    ) -> AnsHostResult<String> {
         let result: String = CHANNELS
             .query(querier, self.address.clone(), channel)?
-            .ok_or_else(|| {
-                StdError::generic_err(format!("channel {channel} not found in ans_host"))
+            .ok_or_else(|| AnsHostError::ChannelNotFound {
+                channel: channel.clone(),
+                ans_host: self.address.clone(),
             })?;
         // Addresses are checked when stored.
         Ok(result)
@@ -132,13 +176,12 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         dex_asset_pairing: &DexAssetPairing,
-    ) -> AbstractResult<Vec<PoolReference>> {
+    ) -> AnsHostResult<Vec<PoolReference>> {
         let result: Vec<PoolReference> = ASSET_PAIRINGS
             .query(querier, self.address.clone(), dex_asset_pairing)?
-            .ok_or_else(|| {
-                StdError::generic_err(format!(
-                    "asset pairing {dex_asset_pairing} not found in ans_host"
-                ))
+            .ok_or_else(|| AnsHostError::DexPairingNotFound {
+                pairing: dex_asset_pairing.clone(),
+                ans_host: self.address.clone(),
             })?;
         Ok(result)
     }
@@ -146,15 +189,13 @@ impl AnsHost {
     pub fn query_pool_metadata(
         &self,
         querier: &QuerierWrapper,
-        pool_id: &UniquePoolId,
-    ) -> AbstractResult<PoolMetadata> {
+        pool_id: UniquePoolId,
+    ) -> AnsHostResult<PoolMetadata> {
         let result: PoolMetadata = POOL_METADATA
-            .query(querier, self.address.clone(), *pool_id)?
-            .ok_or_else(|| {
-                StdError::generic_err(format!(
-                    "pool metadata for pool {} not found in ans_host",
-                    pool_id.as_u64()
-                ))
+            .query(querier, self.address.clone(), pool_id)?
+            .ok_or_else(|| AnsHostError::PoolMetadataNotFound {
+                pool: pool_id,
+                ans_host: self.address.clone(),
             })?;
         Ok(result)
     }

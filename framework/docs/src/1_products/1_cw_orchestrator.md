@@ -23,7 +23,7 @@ let mock = Mock::new(&sender);
 let contract = CounterApp::new(COUNTER_ID, mock.clone());
 
 // Deploy Abstract to the mock
-let abstr_deployment = Abstract::deploy_on(mock, Empty{})?;
+let abstr_deployment = Abstract::deploy_on(mock, sender.to_string())?;
 
 // Create a new account to install the app onto
 let account =

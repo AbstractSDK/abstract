@@ -7,14 +7,14 @@ use abstract_core::{
     account_factory,
     ibc_host::state::CONFIG,
     manager::{self, ModuleInstallConfig},
-    objects::{chain_name::ChainName, AccountId, AssetEntry},
+    objects::{chain_name::ChainName, version_control::VersionControlError, AccountId, AssetEntry},
     proxy,
     version_control::AccountBase,
     PROXY,
 };
 use abstract_sdk::{
     core::{objects::ChannelEntry, ICS20},
-    AbstractSdkError, AccountVerification, Resolve,
+    Resolve,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response, SubMsg,
@@ -155,9 +155,7 @@ pub fn send_all_back(
 }
 
 /// get the account base from the version control contract
-pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<AccountBase, AbstractSdkError> {
+pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<AccountBase, VersionControlError> {
     let version_control = CONFIG.load(deps.storage)?.version_control;
-    version_control
-        .account_registry(deps)
-        .account_base(account_id)
+    version_control.account_base(account_id, &deps.querier)
 }

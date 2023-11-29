@@ -1,7 +1,9 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the Account.
 
+use super::{AbstractApi, ApiIdentification};
 use crate::core::objects::module::ModuleId;
+use crate::features::ModuleIdentification;
 use crate::{
     features::{AccountIdentification, Dependencies},
     AbstractSdkResult,
@@ -11,7 +13,7 @@ use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 
 /// Interact with other modules on the Account.
-pub trait ModuleInterface: AccountIdentification + Dependencies {
+pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentification {
     /**
         API for retrieving information about installed modules.
 
@@ -31,7 +33,22 @@ pub trait ModuleInterface: AccountIdentification + Dependencies {
     }
 }
 
-impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies {}
+impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies + ModuleIdentification {}
+
+impl<'a, T: ModuleInterface> AbstractApi<T> for Modules<'a, T> {
+    fn base(&self) -> &T {
+        self.base
+    }
+    fn deps(&self) -> Deps {
+        self.deps
+    }
+}
+
+impl<'a, T: ModuleInterface> ApiIdentification for Modules<'a, T> {
+    fn api_id() -> String {
+        "Modules".to_owned()
+    }
+}
 
 /**
     API for retrieving information about installed modules.
@@ -105,7 +122,7 @@ mod test {
     use super::*;
     use crate::mock_module::*;
 
-    use abstract_testing::prelude::TEST_MODULE_ID;
+    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
     mod assert_module_dependency {

@@ -139,7 +139,7 @@ mod tests {
     }
 
     fn execute_as_owner(deps: DepsMut, msg: ExecuteMsg) -> AccountFactoryResult {
-        execute_as(deps, TEST_ADMIN, msg)
+        execute_as(deps, OWNER, msg)
     }
 
     fn test_only_owner(deps: DepsMut, msg: ExecuteMsg) -> AccountFactoryTestResult {
@@ -356,7 +356,7 @@ mod tests {
 
         assert_that!(ownership.owner)
             .is_some()
-            .is_equal_to(Addr::unchecked(TEST_ADMIN));
+            .is_equal_to(Addr::unchecked(OWNER));
 
         Ok(())
     }

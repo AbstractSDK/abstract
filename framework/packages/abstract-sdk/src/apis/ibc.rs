@@ -2,7 +2,11 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
-use crate::{features::AccountIdentification, AbstractSdkResult, ModuleInterface};
+use super::{AbstractApi, ApiIdentification};
+use crate::{
+    features::{AccountIdentification, ModuleIdentification},
+    AbstractSdkResult, ModuleInterface,
+};
 use abstract_core::{
     ibc::CallbackInfo,
     ibc_client::ExecuteMsg as IbcClientMsg,
@@ -16,7 +20,7 @@ use cosmwasm_std::{to_json_binary, wasm_execute, Coin, CosmosMsg, Deps};
 use serde::Serialize;
 
 /// Interact with other chains over IBC.
-pub trait IbcInterface: AccountIdentification + ModuleInterface {
+pub trait IbcInterface: AccountIdentification + ModuleInterface + ModuleIdentification {
     /**
         API for interacting with the Abstract IBC client.
 
@@ -36,7 +40,22 @@ pub trait IbcInterface: AccountIdentification + ModuleInterface {
     }
 }
 
-impl<T> IbcInterface for T where T: AccountIdentification + ModuleInterface {}
+impl<T> IbcInterface for T where T: AccountIdentification + ModuleInterface + ModuleIdentification {}
+
+impl<'a, T: IbcInterface> AbstractApi<T> for IbcClient<'a, T> {
+    fn base(&self) -> &T {
+        self.base
+    }
+    fn deps(&self) -> Deps {
+        self.deps
+    }
+}
+
+impl<'a, T: IbcInterface> ApiIdentification for IbcClient<'a, T> {
+    fn api_id() -> String {
+        "IbcClient".to_owned()
+    }
+}
 
 #[derive(Clone)]
 /**

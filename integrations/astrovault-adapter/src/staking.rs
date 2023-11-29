@@ -35,7 +35,7 @@ use ::{
         core::objects::{AnsAsset, AssetEntry},
         feature_objects::AnsHost,
         features::AbstractRegistryAccess,
-        AbstractSdkResult, AccountVerification, Resolve,
+        AccountVerification, Resolve,
     },
     abstract_staking_standard::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
@@ -67,10 +67,10 @@ impl CwStakingCommand for Astrovault {
         ans_host: &AnsHost,
         version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
-    ) -> AbstractSdkResult<()> {
+    ) -> Result<(), CwStakingError> {
         self.version_control_contract = Some(version_control_contract);
         let base = info
-            .map(|i| self.account_registry(deps).assert_manager(&i.sender))
+            .map(|i| self.account_registry(deps)?.assert_manager(&i.sender))
             .transpose()?;
         self.local_proxy_addr = base.map(|b| b.proxy);
         self.tokens = lp_tokens
@@ -91,7 +91,7 @@ impl CwStakingCommand for Astrovault {
                     staking_contract_address,
                 })
             })
-            .collect::<AbstractSdkResult<_>>()?;
+            .collect::<Result<_, CwStakingError>>()?;
         Ok(())
     }
 
@@ -369,5 +369,12 @@ impl AbstractRegistryAccess for Astrovault {
                 "version_control address is not set",
             ))
         // We need to get to the version control somehow (possible from Ans Host ?)
+    }
+}
+
+#[cfg(feature = "full_integration")]
+impl abstract_sdk::features::ModuleIdentification for Astrovault {
+    fn module_id(&self) -> abstract_sdk::core::objects::module::ModuleId<'static> {
+        abstract_staking_standard::CW_STAKING_ADAPTER_ID
     }
 }
