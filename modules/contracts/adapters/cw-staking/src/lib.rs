@@ -22,8 +22,8 @@ pub use abstract_staking_standard::error;
 pub mod interface {
     use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg};
     use crate::CW_STAKING_ADAPTER_ID;
-    use abstract_core::objects::{AnsAsset, AssetEntry};
-    use abstract_core::{adapter, MANAGER};
+    use abstract_core::adapter;
+    use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
     use abstract_interface::AbstractInterfaceError;
     use abstract_interface::AdapterDeployer;
     use abstract_interface::Manager;
@@ -72,8 +72,9 @@ pub mod interface {
             stake_asset: AnsAsset,
             provider: String,
             duration: Option<cw_utils::Duration>,
+            account_id: &AccountId,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -93,8 +94,9 @@ pub mod interface {
             stake_asset: AnsAsset,
             provider: String,
             duration: Option<cw_utils::Duration>,
+            account_id: &AccountId,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -113,8 +115,9 @@ pub mod interface {
             &self,
             stake_asset: AssetEntry,
             provider: String,
+            account_id: &AccountId,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let claim_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -132,8 +135,9 @@ pub mod interface {
             &self,
             stake_asset: AssetEntry,
             provider: String,
+            account_id: &AccountId,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let claim_rewards_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {

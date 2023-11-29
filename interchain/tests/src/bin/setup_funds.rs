@@ -39,7 +39,7 @@ pub fn test_send_funds() -> AnyResult<()> {
     let osmo_abstr: Abstract<Daemon> = Abstract::load_from(osmosis.clone())?;
     let juno_abstr: Abstract<Daemon> = Abstract::load_from(juno.clone())?;
 
-    let osmo_abstr_account = AbstractAccount::new(&osmo_abstr, Some(AccountId::local(0)));
+    let osmo_abstr_account = AbstractAccount::new(&osmo_abstr, AccountId::local(0));
 
     let sender = juno.sender().to_string();
 

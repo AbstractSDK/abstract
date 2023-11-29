@@ -1,15 +1,18 @@
-use crate::Manager;
 pub use abstract_core::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
-use abstract_core::{
-    objects::{price_source::UncheckedPriceSource, AssetEntry},
-    proxy::*,
-    MANAGER, PROXY,
-};
+use abstract_core::{objects::AccountId, proxy::*, PROXY};
 
 use cw_orch::{interface, prelude::*};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy<Chain>;
+
+// TODO: would be nice to hide default `new`
+impl<Chain: CwEnv> Proxy<Chain> {
+    pub fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
+        let proxy_id = format!("{PROXY}-{account_id}");
+        Self::new(proxy_id, chain)
+    }
+}
 
 impl<Chain: CwEnv> Uploadable for Proxy<Chain> {
     #[cfg(feature = "integration")]
@@ -32,20 +35,6 @@ impl<Chain: CwEnv> Uploadable for Proxy<Chain> {
 }
 
 impl<Chain: CwEnv> Proxy<Chain> {
-    pub fn set_proxy_asset(
-        &self,
-        to_add: Vec<(AssetEntry, UncheckedPriceSource)>,
-    ) -> Result<(), crate::AbstractInterfaceError> {
-        let manager = Manager::new(MANAGER, self.get_chain().clone());
-        manager.execute_on_module(
-            PROXY,
-            ExecuteMsg::UpdateAssets {
-                to_add,
-                to_remove: vec![],
-            },
-        )?;
-        Ok(())
-    }
     // pub  fn set_vault_assets(&self, path: &str) -> Result<(), crate::AbstractBootError> {
     //     let file = File::open(path).expect(&format!("file should be present at {}", path));
     //     let json: serde_json::Value = from_reader(file)?;

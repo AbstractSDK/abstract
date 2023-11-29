@@ -23,8 +23,7 @@ pub mod interface {
     use crate::{msg::*, DEX_ADAPTER_ID};
     use abstract_core::{
         adapter::{self},
-        objects::{AnsAsset, AssetEntry},
-        MANAGER,
+        objects::{AccountId, AnsAsset, AssetEntry},
     };
     use abstract_interface::AbstractInterfaceError;
     use abstract_interface::AdapterDeployer;
@@ -65,8 +64,9 @@ pub mod interface {
             offer_asset: (&str, u128),
             ask_asset: &str,
             dex: String,
+            account_id: &AccountId,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let asset = AssetEntry::new(offer_asset.0);
             let ask_asset = AssetEntry::new(ask_asset);
 

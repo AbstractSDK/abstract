@@ -6,9 +6,7 @@ use abstract_core::{
 };
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 
-use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns,
-};
+use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ManagerQueryFns};
 use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
 
@@ -29,7 +27,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 ) -> AnyResult<AccountId> {
     let origin_name = ChainName::from_chain_id(origin_id).to_string();
     let destination_name = ChainName::from_chain_id(destination_id).to_string();
-    let origin_account = AbstractAccount::new(origin, Some(AccountId::local(0)));
+    let origin_account = AbstractAccount::new(origin, AccountId::local(0));
 
     // Create a local account for testing
     let account_name = TEST_ACCOUNT_NAME.to_string();
@@ -123,7 +121,6 @@ mod test {
         // We just verified all steps pass
         let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-
         let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
 
         let remote_account_id =
@@ -134,8 +131,8 @@ mod test {
         let new_link = "https://abstract.money";
 
         // Ad client to account
-        let abstr1_account = AbstractAccount::new(&abstr1, Some(AccountId::local(1)));
-        let abstr2_account = AbstractAccount::new(&abstr2, Some(AccountId::local(0)));
+        let abstr1_account = AbstractAccount::new(&abstr1, AccountId::local(1));
+        let abstr2_account = AbstractAccount::new(&abstr2, AccountId::local(0));
 
         // The user on chain 1 want to change the account description
         let ibc_action_result = abstr1_account.manager.execute_on_remote(
@@ -282,7 +279,7 @@ mod test {
             ]),
         )?;
 
-        let account = AbstractAccount::new(&destination, Some(destination_account_id.clone()));
+        let account = AbstractAccount::new(&destination, destination_account_id.clone());
 
         let manager_config = account.manager.config()?;
         assert_eq!(
@@ -311,9 +308,8 @@ mod test {
         let remote_account =
             create_test_remote_account(&abstr_juno, JUNO, STARGAZE, &mock_interchain)?;
 
-        let abstr_juno_account = AbstractAccount::new(&abstr_juno, Some(AccountId::local(1)));
-        let remote_abstract_account =
-            AbstractAccount::new(&abstr_stargaze, Some(remote_account.clone()));
+        let abstr_juno_account = AbstractAccount::new(&abstr_juno, AccountId::local(1));
+        let remote_abstract_account = AbstractAccount::new(&abstr_stargaze, remote_account.clone());
         let remote_manager = remote_abstract_account.manager;
 
         // Now we need to test some things about this account on the juno chain
@@ -385,7 +381,7 @@ mod test {
         // Can get the account from stargaze.
         let account_id = AccountId::new(1, AccountTrace::Local)?;
 
-        let abstr_account = AbstractAccount::new(&abstr_stargaze, Some(account_id));
+        let abstr_account = AbstractAccount::new(&abstr_stargaze, account_id);
 
         let account_info: AccountInfo<Addr> = abstr_account.manager.info()?.info;
 
@@ -448,7 +444,7 @@ mod test {
 
         // We just verified all steps pass
         let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        let abstr2_account = AbstractAccount::new(&abstr2, Some(AccountId::local(0)));
+        let abstr2_account = AbstractAccount::new(&abstr2, AccountId::local(0));
 
         let remote_account_id =
             create_test_remote_account(&abstr1, JUNO, STARGAZE, &mock_interchain)?;
@@ -532,7 +528,7 @@ mod test {
 
         // We just verified all steps pass
         let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        let abstr1_account = AbstractAccount::new(&abstr1, Some(AccountId::local(0)));
+        let abstr1_account = AbstractAccount::new(&abstr1, AccountId::local(0));
 
         let remote_account_id =
             create_test_remote_account(&abstr1, JUNO, STARGAZE, &mock_interchain)?;
@@ -565,7 +561,7 @@ mod test {
 
         // We just verified all steps pass
         let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        let abstr1_account = AbstractAccount::new(&abstr1, Some(AccountId::local(0)));
+        let abstr1_account = AbstractAccount::new(&abstr1, AccountId::local(0));
 
         let remote_account_id =
             create_test_remote_account(&abstr1, JUNO, STARGAZE, &mock_interchain)?;

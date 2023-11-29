@@ -29,32 +29,25 @@ where
 
 pub fn get_account_contracts<Chain: CwEnv>(
     version_control: &VersionControl<Chain>,
-    account_id: Option<AccountId>,
+    account_id: AccountId,
 ) -> (Manager<Chain>, Proxy<Chain>)
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
     let chain = version_control.get_chain().clone();
-    if let Some(account_id) = account_id {
-        let manager_contract_id = format!("{MANAGER}-{account_id}");
-        let proxy_contract_id = format!("{PROXY}-{account_id}");
-        
-        let account_base = version_control.get_account(account_id.clone()).unwrap();
-        chain
-            .state()
-            .set_address(&manager_contract_id, &account_base.manager);
-        chain
-            .state()
-            .set_address(&proxy_contract_id, &account_base.proxy);
-        let manager = Manager::new(manager_contract_id, chain.clone());
-        let proxy = Proxy::new(proxy_contract_id, chain);
-        (manager, proxy)
-    } else {
-        // TODO: shouldn't be used
-        let manager = Manager::new(MANAGER, chain.clone());
-        let proxy = Proxy::new(PROXY, chain);
-        (manager, proxy)
-    }
+    let manager_contract_id = format!("{MANAGER}-{account_id}");
+    let proxy_contract_id = format!("{PROXY}-{account_id}");
+
+    let account_base = version_control.get_account(account_id.clone()).unwrap();
+    chain
+        .state()
+        .set_address(&manager_contract_id, &account_base.manager);
+    chain
+        .state()
+        .set_address(&proxy_contract_id, &account_base.proxy);
+    let manager = Manager::new_from_id(&account_id, chain.clone());
+    let proxy = Proxy::new_from_id(&account_id, chain);
+    (manager, proxy)
 }
 
 pub fn get_ibc_contracts<Chain: CwEnv>(chain: Chain) -> (IbcClient<Chain>, IbcHost<Chain>)
