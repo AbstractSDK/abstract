@@ -181,6 +181,22 @@ impl AccountTrace {
     }
 }
 
+impl TryFrom<&str> for AccountTrace {
+    type Error = AbstractError;
+
+    fn try_from(trace: &str) -> Result<Self, Self::Error> {
+        if trace == LOCAL {
+            Ok(Self::Local)
+        } else {
+            let chain_trace: Vec<ChainName> = trace
+                .split(CHAIN_DELIMITER)
+                .map(|t|ChainName::from_string(t.to_string()))
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(Self::Remote(chain_trace))
+        }
+    }
+}
+
 impl Display for AccountTrace {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
