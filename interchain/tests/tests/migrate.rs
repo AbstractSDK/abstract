@@ -50,46 +50,58 @@ fn migrate_infra_success() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[test]
-fn install_app_after_migrate() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = setup()?;
-    abstr_deployment.migrate_if_needed()?;
-    abstract_integration_tests::manager::account_install_app(chain.clone())
-}
+mod manager {
+    use super::*;
+    use abstract_integration_tests::manager::{
+        account_install_app, create_account_with_installed_module_monetization_and_init_funds,
+        create_sub_account_with_modules_installed, install_app_with_proxy_action,
+        uninstall_modules, update_adapter_with_authorized_addrs,
+    };
 
-#[test]
-fn create_sub_account_after_migrate() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = setup()?;
-    abstr_deployment.migrate_if_needed()?;
-    abstract_integration_tests::manager::create_sub_account_with_modules_installed(chain.clone())
-}
+    #[test]
+    fn install_app_after_migrate() -> anyhow::Result<()> {
+        let (abstr_deployment, chain) = setup()?;
+        abstr_deployment.migrate_if_needed()?;
+        account_install_app(chain)
+    }
 
-#[test]
-fn create_account_with_installed_module_monetization_and_init_funds_after_migrate(
-) -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = setup()?;
-    abstr_deployment.migrate_if_needed()?;
-    // TODO: check if these should be real coins after instantiate2 fixed
-    abstract_integration_tests::manager::create_account_with_installed_module_monetization_and_init_funds(chain.clone(), ("coin1", "coin2"))
-}
+    #[test]
+    fn create_sub_account_after_migrate() -> anyhow::Result<()> {
+        let (abstr_deployment, chain) = setup()?;
+        abstr_deployment.migrate_if_needed()?;
+        create_sub_account_with_modules_installed(chain)
+    }
 
-#[test]
-fn install_app_with_proxy_action_after_migrate() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = setup()?;
-    abstr_deployment.migrate_if_needed()?;
-    abstract_integration_tests::manager::install_app_with_proxy_action(chain)
-}
+    #[test]
+    fn create_account_with_installed_module_monetization_and_init_funds_after_migrate(
+    ) -> anyhow::Result<()> {
+        let (abstr_deployment, chain) = setup()?;
+        abstr_deployment.migrate_if_needed()?;
+        create_account_with_installed_module_monetization_and_init_funds(
+            chain,
+            // // TODO: check if these should be real coins after instantiate2 fixed
+            ("coin1", "coin2"),
+        )
+    }
 
-#[test]
-fn update_adapter_with_authorized_addrs_after_migrate() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = setup()?;
-    abstr_deployment.migrate_if_needed()?;
-    abstract_integration_tests::manager::update_adapter_with_authorized_addrs(chain)
-}
+    #[test]
+    fn install_app_with_proxy_action_after_migrate() -> anyhow::Result<()> {
+        let (abstr_deployment, chain) = setup()?;
+        abstr_deployment.migrate_if_needed()?;
+        install_app_with_proxy_action(chain)
+    }
 
-#[test]
-fn uninstall_modules_after_migrate() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = setup()?;
-    abstr_deployment.migrate_if_needed()?;
-    abstract_integration_tests::manager::uninstall_modules(chain)
+    #[test]
+    fn update_adapter_with_authorized_addrs_after_migrate() -> anyhow::Result<()> {
+        let (abstr_deployment, chain) = setup()?;
+        abstr_deployment.migrate_if_needed()?;
+        update_adapter_with_authorized_addrs(chain)
+    }
+
+    #[test]
+    fn uninstall_modules_after_migrate() -> anyhow::Result<()> {
+        let (abstr_deployment, chain) = setup()?;
+        abstr_deployment.migrate_if_needed()?;
+        uninstall_modules(chain)
+    }
 }
