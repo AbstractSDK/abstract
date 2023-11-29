@@ -6,7 +6,7 @@ use abstract_sdk::core::{
     proxy::state::{ADMIN, ANS_HOST, STATE},
     IBC_CLIENT,
 };
-use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg};
+use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg};
 
 const LIST_SIZE_LIMIT: usize = 15;
 
@@ -63,7 +63,15 @@ pub fn execute_ibc_action(
         })?;
     let client_msgs: Result<Vec<_>, _> = msgs
         .into_iter()
-        .map(|execute_msg| wasm_execute(&ibc_client_address, &execute_msg, vec![]))
+        .map(|execute_msg| {
+            println!("");
+            let funds_to_send = if let IbcClientMsg::SendFunds { funds, .. } = &execute_msg {
+                funds.to_vec()
+            } else {
+                vec![]
+            };
+            return wasm_execute(&ibc_client_address, &execute_msg, funds_to_send);
+        })
         .collect();
 
     Ok(ProxyResponse::action("execute_ibc_action").add_messages(client_msgs?))
