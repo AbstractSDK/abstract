@@ -6,7 +6,7 @@ use abstract_core::{
 };
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 
-use abstract_interface::{Abstract, AccountDetails, ManagerQueryFns};
+use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ManagerQueryFns};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::Empty;
 use cw_orch::prelude::*;
@@ -28,7 +28,7 @@ pub fn create_test_remote_account<IBC: InterchainEnv<Mock>>(
     destination_id: &str,
     interchain: &IBC,
     funds: Option<Vec<Coin>>,
-) -> AnyResult<AccountId> {
+) -> AnyResult<(AbstractAccount<Mock>, AccountId)> {
     let origin_name = ChainName::from_chain_id(origin_id).to_string();
     let destination_name = ChainName::from_chain_id(destination_id).to_string();
 
@@ -36,7 +36,7 @@ pub fn create_test_remote_account<IBC: InterchainEnv<Mock>>(
     let account_name = TEST_ACCOUNT_NAME.to_string();
     let description = Some(TEST_ACCOUNT_DESCRIPTION.to_string());
     let link = Some(TEST_ACCOUNT_LINK.to_string());
-    origin
+    let origin_account = origin
         .account_factory
         .call_as(&Addr::unchecked(SENDER))
         .create_new_account(
@@ -49,30 +49,32 @@ pub fn create_test_remote_account<IBC: InterchainEnv<Mock>>(
                 namespace: None,
             },
             abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
-                monarch: origin.account.manager.get_chain().sender().to_string(),
+                monarch: origin.version_control.get_chain().sender().to_string(),
             },
             funds.as_deref(),
         )?;
 
     // We need to register the ibc client as a module of the manager (account specific)
-    origin
-        .account
+    origin_account
         .manager
         .install_module::<Empty>(IBC_CLIENT, None, None)?;
 
     // Now we send a message to the client saying that we want to create an account on the
     // destination chain
-    let register_tx = origin.account.register_remote_account(&destination_name)?;
+    let register_tx = origin_account.register_remote_account(&destination_name)?;
 
     interchain.wait_ibc(&origin_id.to_owned(), register_tx)?;
 
     // After this is all ended, we return the account id of the account we just created on the remote chain
-    let account_config = origin.account.manager.config()?;
+    let account_config = origin_account.manager.config()?;
 
-    Ok(AccountId::new(
-        account_config.account_id.seq(),
-        AccountTrace::Remote(vec![ChainName::from_str(&origin_name)?]),
-    )?)
+    Ok((
+        origin_account,
+        AccountId::new(
+            account_config.account_id.seq(),
+            AccountTrace::Remote(vec![ChainName::from_str(&origin_name)?]),
+        )?,
+    ))
 }
 
 #[cfg(test)]
@@ -115,12 +117,10 @@ mod test {
         manager::ExecuteMsg as ManagerExecuteMsg,
         objects::{chain_name::ChainName, AccountId},
     };
-    use abstract_interface::VCQueryFns;
     use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
     use cosmwasm_std::{coins, Addr};
     use cw_orch::prelude::ContractInstance;
     use cw_orch_polytone::Polytone;
-    use cw_orch_proto::tokenfactory::{create_denom, create_transfer_channel, get_denom, mint};
     use polytone::handshake::POLYTONE_VERSION;
 
     #[test]
@@ -130,12 +130,12 @@ mod test {
         let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
 
         // We just verified all steps pass
-        let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
+        let (abstr_juno, abstr_stargaze) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
 
-        let remote_account_id =
-            create_test_remote_account(&abstr1, JUNO, STARGAZE, &mock_interchain, None)?;
+        let (origin_account, remote_account_id) =
+            create_test_remote_account(&abstr_juno, JUNO, STARGAZE, &mock_interchain, None)?;
 
         let new_name = "Funky Crazy Name";
         let new_description = "Funky new account with wonderful capabilities";
@@ -145,7 +145,7 @@ mod test {
 
         // The user on chain 1 want to change the account description
 
-        let ibc_action_result = abstr1.account.manager.execute_on_remote(
+        let ibc_action_result = origin_account.manager.execute_on_remote(
             &remote_name,
             ManagerExecuteMsg::UpdateInfo {
                 name: Some(new_name.to_string()),
@@ -158,12 +158,10 @@ mod test {
         mock_interchain.wait_ibc(&JUNO.to_string(), ibc_action_result)?;
 
         // We check the account description changed on chain 2
-        let remote_account = abstr2.version_control.account_base(remote_account_id)?;
+        let remote_abstract_account =
+            AbstractAccount::new(&abstr_stargaze, Some(remote_account_id.clone()));
 
-        let manager = remote_account.account_base.manager;
-        abstr2.account.manager.set_address(&manager);
-
-        let account_info = abstr2.account.manager.info()?;
+        let account_info = abstr_stargaze.account.manager.info()?;
 
         assert_eq!(account_info.info.name, new_name.to_string());
         assert_eq!(
@@ -174,7 +172,7 @@ mod test {
 
         // Verify that remote account has been saved correctly.
         let account_response: AccountResponse =
-            abstr1
+            abstr_juno
                 .ibc
                 .client
                 .query(&abstract_core::ibc_client::QueryMsg::Account {
@@ -184,7 +182,7 @@ mod test {
 
         assert_eq!(
             AccountResponse {
-                remote_proxy_addr: remote_account.account_base.proxy.to_string(),
+                remote_proxy_addr: remote_abstract_account.proxy.address()?.to_string(),
             },
             account_response
         );
@@ -240,7 +238,7 @@ mod test {
         let account_name = TEST_ACCOUNT_NAME.to_string();
         let description = Some(TEST_ACCOUNT_DESCRIPTION.to_string());
         let link = Some(TEST_ACCOUNT_LINK.to_string());
-        origin.account_factory.create_new_account(
+        let origin_account: AbstractAccount<Mock> = origin.account_factory.create_new_account(
             AccountDetails {
                 name: account_name.clone(),
                 description: description.clone(),
@@ -256,21 +254,19 @@ mod test {
         )?;
 
         // We need to register the ibc client as a module of the manager (account specific)
-        origin
-            .account
+        origin_account
             .manager
             .install_module::<Empty>(IBC_CLIENT, None, None)?;
 
         // Now we send a message to the client saying that we want to create an account on the
         // destination chain
-        let register_tx = origin
-            .account
+        let register_tx = origin_account
             .register_remote_account(&ChainName::from_chain_id(STARGAZE).to_string())?;
 
         mock_interchain.wait_ibc(&JUNO.to_owned(), register_tx)?;
 
         // Register the IBC_CLIENT on STARGAZE from JUNO.
-        let register_module_tx = origin.account.manager.execute_on_remote(
+        let register_module_tx = origin_account.manager.execute_on_remote(
             &ChainName::from_chain_id(STARGAZE).to_string(),
             ManagerExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
@@ -284,7 +280,7 @@ mod test {
         mock_interchain.wait_ibc(&JUNO.to_owned(), register_module_tx)?;
 
         // Create account from JUNO on OSMOSIS by going through STARGAZE
-        let create_account_remote_tx = origin.account.manager.execute_on_remote_module(
+        let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
             &ChainName::from_chain_id(STARGAZE).to_string(),
             PROXY,
             to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
@@ -308,9 +304,10 @@ mod test {
             ]),
         )?;
 
-        let account = AbstractAccount::new(&destination, Some(destination_account_id.clone()));
+        let remote_account =
+            AbstractAccount::new(&destination, Some(destination_account_id.clone()));
 
-        let manager_config = account.manager.config()?;
+        let manager_config = remote_account.manager.config()?;
         assert_eq!(
             manager_config,
             ConfigResponse {
@@ -334,11 +331,11 @@ mod test {
         // We just verified all steps pass
         let (abstr_juno, abstr_stargaze) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        let remote_account =
+        let (origin_account, remote_account_id) =
             create_test_remote_account(&abstr_juno, JUNO, STARGAZE, &mock_interchain, None)?;
 
         let remote_abstract_account =
-            AbstractAccount::new(&abstr_stargaze, Some(remote_account.clone()));
+            AbstractAccount::new(&abstr_stargaze, Some(remote_account_id.clone()));
         let remote_manager = remote_abstract_account.manager;
 
         // Now we need to test some things about this account on the juno chain
@@ -346,7 +343,7 @@ mod test {
         assert_eq!(
             manager_config,
             ConfigResponse {
-                account_id: remote_account,
+                account_id: remote_account_id,
                 is_suspended: false,
                 module_factory_address: abstr_stargaze.module_factory.address()?,
                 version_control_address: abstr_stargaze.version_control.address()?,
@@ -379,7 +376,7 @@ mod test {
 
         // ii. Now we test that we can indeed create an account remotely from the interchain account
         let account_name = String::from("Abstract Test Remote Remote account");
-        let create_account_remote_tx = abstr_juno.account.manager.execute_on_remote_module(
+        let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
             &ChainName::from_chain_id(STARGAZE).to_string(),
             PROXY,
             to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
@@ -472,22 +469,19 @@ mod test {
         let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
 
         // We just verified all steps pass
-        let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
+        let (abstr_juno, abstr_stargaze) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        let remote_account_id =
-            create_test_remote_account(&abstr1, JUNO, STARGAZE, &mock_interchain, None)?;
+        let (origin_account, remote_account_id) =
+            create_test_remote_account(&abstr_juno, JUNO, STARGAZE, &mock_interchain, None)?;
 
-        let remote_account = abstr2.version_control.account_base(remote_account_id)?;
-
-        let manager = remote_account.account_base.manager;
-        abstr2.account.manager.set_address(&manager);
+        let remote_account = AbstractAccount::new(&abstr_stargaze, Some(remote_account_id));
 
         let new_name = String::from("Funky Crazy Name");
         let new_description = String::from("Funky new account with wonderful capabilities");
         let new_link = String::from("https://abstract.money");
 
         // Cannot call with sender that is not host.
-        let result = abstr2.account.manager.call_as(&sender).update_info(
+        let result = abstr_stargaze.account.manager.call_as(&sender).update_info(
             Some(new_description.clone()),
             Some(new_link.clone()),
             Some(new_name.clone()),
@@ -496,10 +490,9 @@ mod test {
         assert!(result.is_err());
 
         // Can call with host.
-        let result = abstr2
-            .account
+        let result = remote_account
             .manager
-            .call_as(&abstr2.ibc.host.address()?)
+            .call_as(&abstr_stargaze.ibc.host.address()?)
             .update_info(Some(new_description), Some(new_link), Some(new_name));
 
         assert!(result.is_ok());
@@ -558,7 +551,7 @@ mod test {
         // We just verified all steps pass
         let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        let remote_account_id =
+        let (_origin_account, remote_account_id) =
             create_test_remote_account(&abstr1, JUNO, STARGAZE, &mock_interchain, None)?;
 
         let result = abstr2.ibc.host.execute(
@@ -590,7 +583,7 @@ mod test {
         // We just verified all steps pass
         let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        let remote_account_id =
+        let (_origin_account, remote_account_id) =
             create_test_remote_account(&abstr1, JUNO, STARGAZE, &mock_interchain, None)?;
 
         let result = abstr2.ibc.host.execute(
@@ -623,7 +616,7 @@ mod test {
         // We just verified all steps pass
         let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        let remote_account_id =
+        let (_origin_account, remote_account_id) =
             create_test_remote_account(&abstr1, JUNO, STARGAZE, &mock_interchain, None)?;
 
         let result = abstr2.ibc.host.execute(
@@ -655,7 +648,7 @@ mod test {
             .chain(JUNO)?
             .set_balance(&Addr::unchecked(SENDER), coins(100, "ujuno"))?;
 
-        let remote_account_id = create_test_remote_account(
+        let (origin_account, remote_account_id) = create_test_remote_account(
             &abstr_juno,
             JUNO,
             STARGAZE,
@@ -708,11 +701,11 @@ mod test {
         // Verify local balance before sending funds.
         let local_balance = mock_interchain
             .chain(JUNO)?
-            .query_balance(&abstr_juno.account.proxy.address()?, "ujuno")?;
+            .query_balance(&origin_account.proxy.address()?, "ujuno")?;
         assert_eq!(Uint128::from(10u128), local_balance);
 
         // Send funds from juno to stargaze.
-        let send_funds_tx = abstr_juno.account.manager.execute_on_module(
+        let send_funds_tx = origin_account.manager.execute_on_module(
             PROXY,
             abstract_core::proxy::ExecuteMsg::IbcAction {
                 msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendFunds {
@@ -727,15 +720,15 @@ mod test {
         // Verify local balance after sending funds.
         let local_balance = mock_interchain
             .chain(JUNO)?
-            .query_balance(&abstr_juno.account.proxy.address()?, "ujuno")?;
+            .query_balance(&origin_account.proxy.address()?, "ujuno")?;
         assert_eq!(Uint128::zero(), local_balance);
 
-        let account = AbstractAccount::new(&abstr_stargaze, Some(remote_account_id.clone()));
+        let remote_account = AbstractAccount::new(&abstr_stargaze, Some(remote_account_id.clone()));
 
         // Check balance on remote chain.
         let remote_balance = mock_interchain
             .chain(STARGAZE)?
-            .query_balance(&account.proxy.address()?, "ibc/channel-0/ujuno")?;
+            .query_balance(&remote_account.proxy.address()?, "ibc/channel-0/ujuno")?;
         assert_eq!(Uint128::from(10u128), remote_balance);
 
         // Send all back.
@@ -749,13 +742,13 @@ mod test {
         // Check balance on remote chain.
         let remote_balance = mock_interchain
             .chain(STARGAZE)?
-            .query_balance(&account.proxy.address()?, "ibc/channel-0/ujuno")?;
+            .query_balance(&remote_account.proxy.address()?, "ibc/channel-0/ujuno")?;
         assert_eq!(Uint128::zero(), remote_balance);
 
         // Check balance on local chain.
         let local_balance = mock_interchain
             .chain(JUNO)?
-            .query_balance(&abstr_juno.account.proxy.address()?, "ujuno")?;
+            .query_balance(&origin_account.proxy.address()?, "ujuno")?;
         assert_eq!(Uint128::from(10u128), local_balance);
 
         Ok(())
