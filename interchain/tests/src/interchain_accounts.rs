@@ -15,20 +15,18 @@ pub const TEST_ACCOUNT_NAME: &str = "account-test";
 pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of the account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
 
-pub const SENDER: &str = "sender";
-
 pub fn set_env() {
     std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
     std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
 }
 
-pub fn create_test_remote_account<IBC: InterchainEnv<Mock>>(
-    origin: &Abstract<Mock>,
+pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
+    origin: &Abstract<Chain>,
     origin_id: &str,
     destination_id: &str,
     interchain: &IBC,
     funds: Option<Vec<Coin>>,
-) -> AnyResult<(AbstractAccount<Mock>, AccountId)> {
+) -> AnyResult<(AbstractAccount<Chain>, AccountId)> {
     let origin_name = ChainName::from_chain_id(origin_id).to_string();
     let destination_name = ChainName::from_chain_id(destination_id).to_string();
 
@@ -36,23 +34,20 @@ pub fn create_test_remote_account<IBC: InterchainEnv<Mock>>(
     let account_name = TEST_ACCOUNT_NAME.to_string();
     let description = Some(TEST_ACCOUNT_DESCRIPTION.to_string());
     let link = Some(TEST_ACCOUNT_LINK.to_string());
-    let origin_account = origin
-        .account_factory
-        .call_as(&Addr::unchecked(SENDER))
-        .create_new_account(
-            AccountDetails {
-                name: account_name.clone(),
-                description: description.clone(),
-                link: link.clone(),
-                base_asset: None,
-                install_modules: vec![],
-                namespace: None,
-            },
-            abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
-                monarch: origin.version_control.get_chain().sender().to_string(),
-            },
-            funds.as_deref(),
-        )?;
+    let origin_account = origin.account_factory.create_new_account(
+        AccountDetails {
+            name: account_name.clone(),
+            description: description.clone(),
+            link: link.clone(),
+            base_asset: None,
+            install_modules: vec![],
+            namespace: None,
+        },
+        abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
+            monarch: origin.version_control.get_chain().sender().to_string(),
+        },
+        funds.as_deref(),
+    )?;
 
     // We need to register the ibc client as a module of the manager (account specific)
     origin_account
@@ -644,10 +639,10 @@ mod test {
 
         let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
 
-        mock_interchain
-            .chain(JUNO)?
-            .set_balance(&Addr::unchecked(SENDER), coins(100, "ujuno"))?;
-
+        mock_interchain.chain(JUNO)?.set_balance(
+            &abstr_juno.version_control.get_chain().sender(),
+            coins(100, "ujuno"),
+        )?;
         let (origin_account, remote_account_id) = create_test_remote_account(
             &abstr_juno,
             JUNO,
