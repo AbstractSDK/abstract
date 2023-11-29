@@ -190,7 +190,7 @@ impl TryFrom<&str> for AccountTrace {
         } else {
             let chain_trace: Vec<ChainName> = trace
                 .split(CHAIN_DELIMITER)
-                .map(|t|ChainName::from_string(t.to_string()))
+                .map(|t| ChainName::from_string(t.to_string()))
                 .collect::<Result<Vec<_>, _>>()?;
             Ok(Self::Remote(chain_trace))
         }

@@ -5,7 +5,7 @@ pub use abstract_core::account_factory::{
 use abstract_core::{
     account_factory::*,
     manager::ModuleInstallConfig,
-    objects::{gov_type::GovernanceDetails, AssetEntry, AccountId, account::AccountTrace},
+    objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId, AssetEntry},
     ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
 use cosmwasm_std::Addr;
@@ -80,11 +80,14 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
         // Parse data from events
         let acc_seq = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_sequence")?;
         let trace = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "trace")?;
-        let id = AccountId::new( acc_seq.parse().unwrap(), AccountTrace::try_from((*trace).as_str())?)?;
+        let id = AccountId::new(
+            acc_seq.parse().unwrap(),
+            AccountTrace::try_from((*trace).as_str())?,
+        )?;
         // construct manager and proxy ids
         let manager_id = format!("{MANAGER}-{}", id.to_string());
         let proxy_id = format!("{PROXY}-{}", id.to_string());
-        
+
         // set addresses
         let manager_address = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
         self.get_chain()
@@ -94,7 +97,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
         self.get_chain()
             .state()
             .set_address(PROXY, &Addr::unchecked(proxy_address));
-        
+
         Ok(AbstractAccount {
             manager: Manager::new(manager_id, self.get_chain().clone()),
             proxy: Proxy::new(proxy_id, self.get_chain().clone()),
