@@ -211,6 +211,8 @@ pub enum ExecuteMsg {
     },
     /// Proposes a new Owner
     /// The new owner has to claim ownership through the [`ExecuteMsg::UpdateOwnership`] message.
+    /// The claim action can be called by the new owner directly OR by the owner of a top-level account
+    /// if the new ownership structure is a sub-account.
     ProposeOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
     UpdateStatus { is_suspended: Option<bool> },

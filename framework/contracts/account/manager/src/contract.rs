@@ -208,8 +208,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                         cw_ownable::Action::AcceptOwnership => update_governance(deps.storage)?,
                         _ => vec![],
                     };
+
+                    // If new governance is sub-account, update the sender to let cw-ownable think it was called by the owning-account's proxy.
                     let mut info = info;
-                    // if new governance is sub-account trick cw-ownable to think it was called by proxy
                     if let GovernanceDetails::SubAccount { manager, proxy } =
                         INFO.load(deps.storage)?.governance_details
                     {
@@ -218,6 +219,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                             info.sender = proxy;
                         }
                     }
+
                     let result: ManagerResult = abstract_sdk::execute_update_ownership!(
                         ManagerResponse,
                         deps,
