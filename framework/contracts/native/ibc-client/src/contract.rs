@@ -189,10 +189,13 @@ mod tests {
             ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
         };
 
-        let ownership_resp: Ownership<String> =
+        let ownership_resp: Ownership<Addr> =
             from_json(query(deps.as_ref(), mock_env(), QueryMsg::Ownership {})?)?;
 
-        assert_eq!(ownership_resp.owner, Some(TEST_CREATOR.to_owned()));
+        assert_eq!(
+            ownership_resp.owner,
+            Some(Addr::unchecked(TEST_CREATOR.to_owned()))
+        );
 
         let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();
         assert_that!(actual_config).is_equal_to(expected_config);

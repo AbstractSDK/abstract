@@ -5,7 +5,7 @@ use crate::{
     objects::{account::AccountId, chain_name::ChainName, AssetEntry},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Coin, Empty, QueryRequest};
+use cosmwasm_std::{Addr, Coin, Empty, QueryRequest};
 use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
@@ -140,7 +140,7 @@ pub enum IbcClientCallback {
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(cw_ownable::Ownership<String> )]
+    #[returns(cw_ownable::Ownership<Addr> )]
     Ownership {},
 
     // Returns config
