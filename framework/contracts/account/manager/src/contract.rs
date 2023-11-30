@@ -146,7 +146,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::UpdateInternalConfig(config) => {
                     update_internal_config(deps, info, config)
                 }
-                ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
+                ExecuteMsg::ProposeOwner { owner } => propose_owner(deps, env, info, owner),
 
                 ExecuteMsg::InstallModules { modules } => install_modules(deps, info, env, modules),
                 ExecuteMsg::UninstallModule { module_id } => {
@@ -198,6 +198,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 }
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 ExecuteMsg::UpdateOwnership(action) => {
+                    // Disallow the user from using the TransferOwnership action. 
+                    // 
                     let msgs = match action {
                         // Disallow the user from using the TransferOwnership action
                         cw_ownable::Action::TransferOwnership { .. } => {

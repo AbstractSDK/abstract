@@ -400,7 +400,9 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     )
 }
 
-pub fn set_owner(
+/// Proposes a new owner for the account. 
+/// Use [ExecuteMsg::UpdateOwnership] to claim the ownership. 
+pub fn propose_owner(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
@@ -1093,7 +1095,7 @@ mod tests {
 
         #[test]
         fn only_owner() -> ManagerTestResult {
-            let msg = ExecuteMsg::SetOwner {
+            let msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: "test_owner".to_string(),
                 },
@@ -1107,7 +1109,7 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SetOwner {
+            let msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: "INVALID".to_string(),
                 },
@@ -1131,7 +1133,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let new_owner = "new_owner";
-            let set_owner_msg = ExecuteMsg::SetOwner {
+            let set_owner_msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: new_owner.to_string(),
                 },
@@ -1157,7 +1159,7 @@ mod tests {
 
             let new_gov = "new_gov".to_string();
 
-            let msg = ExecuteMsg::SetOwner {
+            let msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: new_gov.clone(),
                 },
