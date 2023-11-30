@@ -51,7 +51,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
         funds.as_deref(),
     )?;
 
-    // We need to register the ibc client as a module of the manager (account specific)
+    // We need to enable ibc on the account.
     origin_account.manager.update_settings(Some(true))?;
 
     // Now we send a message to the client saying that we want to create an account on the
@@ -258,7 +258,7 @@ mod test {
                 None,
             )?;
 
-        // We need to register the ibc client as a module of the manager (account specific)
+        // We need to enable ibc on the account.
         origin_account.manager.update_settings(Some(true))?;
 
         // Now we send a message to the client saying that we want to create an account on the
