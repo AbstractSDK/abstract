@@ -1,13 +1,13 @@
 mod common;
 
-use abstract_core::PROXY;
 use abstract_core::manager::SubAccountIdsResponse;
 use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
+use abstract_core::PROXY;
 
 use abstract_interface::*;
 use abstract_testing::OWNER;
 use common::*;
-use cosmwasm_std::{wasm_execute, Addr, to_json_binary};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr};
 use cw_orch::contract::Deploy;
 use cw_orch::prelude::*;
 
