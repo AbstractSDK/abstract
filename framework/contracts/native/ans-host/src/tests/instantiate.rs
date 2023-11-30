@@ -1,7 +1,8 @@
 use crate::contract::instantiate;
-use crate::tests::common::{execute_as, TEST_CREATOR};
+use crate::tests::common::execute_as;
 use crate::tests::mock_querier::mock_dependencies;
 use abstract_core::ans_host::*;
+use abstract_testing::OWNER;
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut, MessageInfo};
 use speculoos::prelude::*;
@@ -16,7 +17,7 @@ pub(crate) fn instantiate_msg(info: &MessageInfo) -> InstantiateMsg {
  * Mocks instantiation.
  */
 pub fn mock_instantiate(deps: DepsMut) {
-    let info = mock_info(TEST_CREATOR, &[]);
+    let info = mock_info(OWNER, &[]);
     let msg = InstantiateMsg {
         admin: info.sender.to_string(),
     };
@@ -32,7 +33,7 @@ pub fn mock_instantiate(deps: DepsMut) {
 fn successful_initialization() {
     let mut deps = mock_dependencies(&[]);
 
-    let info = mock_info(TEST_CREATOR, &[]);
+    let info = mock_info(OWNER, &[]);
     let msg = instantiate_msg(&info);
     let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
     assert_eq!(0, res.messages.len());
@@ -50,7 +51,7 @@ fn successful_update_ownership() {
         expiry: None,
     });
 
-    let transfer_res = execute_as(deps.as_mut(), TEST_CREATOR, transfer_msg).unwrap();
+    let transfer_res = execute_as(deps.as_mut(), OWNER, transfer_msg).unwrap();
     assert_eq!(0, transfer_res.messages.len());
 
     // Then update and accept as the new owner

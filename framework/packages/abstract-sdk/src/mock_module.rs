@@ -1,7 +1,7 @@
 //! Mock module for API and feature testing
 
 use abstract_core::objects::dependency::StaticDependency;
-use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
+use abstract_testing::prelude::*;
 use cosmwasm_std::{Addr, Deps};
 
 use crate::core::objects::module::ModuleId;

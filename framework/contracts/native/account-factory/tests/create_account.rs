@@ -15,8 +15,7 @@ use abstract_core::{
 use abstract_interface::{
     AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
 };
-use abstract_testing::addresses::TEST_ACCOUNT_ID;
-use abstract_testing::prelude::TEST_OWNER;
+use abstract_testing::prelude::*;
 use cosmwasm_std::coin;
 use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoBase};
@@ -29,7 +28,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 #[test]
 fn instantiate() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
@@ -49,7 +48,7 @@ fn instantiate() -> AResult {
 
 #[test]
 fn create_one_account() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
@@ -102,7 +101,7 @@ fn create_one_account() -> AResult {
 
 #[test]
 fn create_two_account_s() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
@@ -181,7 +180,7 @@ fn create_two_account_s() -> AResult {
 
 #[test]
 fn sender_is_not_admin_monarchy() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
@@ -189,7 +188,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let version_control = &deployment.version_control;
     let account_creation = factory.create_account(
         GovernanceDetails::Monarchy {
-            monarch: TEST_OWNER.to_string(),
+            monarch: OWNER.to_string(),
         },
         vec![],
         String::from("first_os"),
@@ -233,7 +232,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
 #[test]
 fn sender_is_not_admin_external() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
@@ -241,7 +240,7 @@ fn sender_is_not_admin_external() -> AResult {
     let version_control = &deployment.version_control;
     factory.create_account(
         GovernanceDetails::External {
-            governance_address: TEST_OWNER.to_string(),
+            governance_address: OWNER.to_string(),
             governance_type: "some-gov-type".to_string(),
         },
         vec![],
@@ -269,7 +268,7 @@ fn sender_is_not_admin_external() -> AResult {
 
 #[test]
 fn create_one_account_with_base_asset() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
@@ -312,7 +311,7 @@ fn create_one_account_with_base_asset() -> AResult {
 
 #[test]
 fn create_one_account_with_namespace() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
@@ -354,7 +353,7 @@ fn create_one_account_with_namespace() -> AResult {
 
 #[test]
 fn create_one_account_with_namespace_fee() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 

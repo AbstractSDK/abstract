@@ -1,6 +1,6 @@
 mod common;
 use abstract_adapter::mock::MockExecMsg;
-use abstract_core::adapter::AdapterRequestMsg;
+use abstract_core::adapter::{AdapterBaseMsg, AdapterRequestMsg};
 use abstract_core::manager::{ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
@@ -12,7 +12,8 @@ use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_manager::error::ManagerError;
-use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
+use abstract_testing::prelude::*;
+use abstract_testing::OWNER;
 use common::{
     create_default_account, init_mock_adapter, install_adapter, mock_modules, AResult, TEST_COIN,
 };
@@ -23,7 +24,7 @@ use speculoos::prelude::*;
 
 #[test]
 fn instantiate() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -54,7 +55,7 @@ fn instantiate() -> AResult {
 
 #[test]
 fn exec_through_manager() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -98,7 +99,7 @@ fn exec_through_manager() -> AResult {
 
 #[test]
 fn default_without_response_data() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -123,7 +124,7 @@ fn default_without_response_data() -> AResult {
 
 #[test]
 fn with_response_data() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -135,9 +136,12 @@ fn with_response_data() -> AResult {
         .call_as(&account.manager.address()?)
         .execute(
             &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Base(
-                abstract_core::adapter::BaseExecuteMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![account.proxy.addr_str()?],
-                    to_remove: vec![],
+                abstract_core::adapter::BaseExecuteMsg {
+                    proxy_address: None,
+                    msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                        to_add: vec![account.proxy.addr_str()?],
+                        to_remove: vec![],
+                    },
                 },
             ),
             None,
@@ -181,7 +185,7 @@ fn with_response_data() -> AResult {
 
 #[test]
 fn install_standalone_modules() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AbstractAccount::new(&deployment, Some(AccountId::local(0)));
@@ -237,7 +241,7 @@ fn install_standalone_modules() -> AResult {
 
 #[test]
 fn install_standalone_versions_not_met() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AbstractAccount::new(&deployment, Some(AccountId::local(0)));
@@ -285,7 +289,7 @@ fn install_standalone_versions_not_met() -> AResult {
 
 #[test]
 fn install_multiple_modules() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;

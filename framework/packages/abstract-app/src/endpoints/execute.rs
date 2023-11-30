@@ -122,7 +122,7 @@ mod test {
     use crate::AppError;
     use abstract_core::app::BaseExecuteMsg;
     use abstract_sdk::base::ExecuteEndpoint;
-    use abstract_testing::prelude::TEST_MANAGER;
+    use abstract_testing::prelude::*;
     use cosmwasm_std::Response;
     use cosmwasm_std::{Addr, DepsMut};
     use cw_controllers::AdminError;
@@ -158,7 +158,6 @@ mod test {
 
     mod base {
         use super::*;
-        use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
 
         #[test]
         fn only_manager() -> AppTestResult {

@@ -8,7 +8,7 @@ use cw_orch::{
 
 use abstract_interface::*;
 use croncat_app::{
-    contract::{interface::CroncatApp, CRONCAT_ID},
+    contract::{interface::Croncat, CRONCAT_ID},
     msg::AppInstantiateMsg,
 };
 use dotenv::dotenv;
@@ -26,7 +26,7 @@ fn main() -> anyhow::Result<()> {
         .chain(chain)
         .handle(rt.handle())
         .build()?;
-    let app = CroncatApp::new(CRONCAT_ID, chain.clone());
+    let app = Croncat::new(CRONCAT_ID, chain.clone());
 
     // Create account
     let abstract_deployment = Abstract::load_from(chain.clone())?;

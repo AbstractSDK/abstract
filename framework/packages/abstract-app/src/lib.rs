@@ -21,6 +21,7 @@ pub mod mock {
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{to_json_binary, Response, StdError};
+    use cw_controllers::AdminError;
     use cw_orch::prelude::*;
 
     pub type AppTestResult = Result<(), MockError>;
@@ -35,6 +36,7 @@ pub mod mock {
     #[impl_into(ExecuteMsg)]
     pub enum MockExecMsg {
         DoSomething {},
+        DoSomethingAdmin {},
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -81,6 +83,9 @@ pub mod mock {
 
         #[error("{0}")]
         AbstractSdk(#[from] AbstractSdkError),
+
+        #[error("{0}")]
+        Admin(#[from] AdminError),
     }
 
     pub type MockAppContract = AppContract<
@@ -180,6 +185,15 @@ pub mod mock {
         type Migrate = app::MigrateMsg<MockMigrateMsg>;
         const MOCK_APP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
         .with_dependencies($deps)
+        .with_execute(|deps, _env, info, module, msg| {
+            match msg {
+                MockExecMsg::DoSomethingAdmin{} => {
+                    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+                },
+                _ => {},
+            }
+            Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
+        })
         .with_instantiate(|deps, _env, info, module, msg| {
             let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());
             // See test `create_sub_account_with_installed_module` where this will be triggered.
