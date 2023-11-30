@@ -7,7 +7,7 @@ use crate::{
 };
 use abstract_core::{
     manager::{state::ACCOUNT_MODULES, UpdateSubAccountAction},
-    objects::gov_type::GovernanceDetails,
+    objects::{gov_type::GovernanceDetails, nested_admin::query_top_level_owner},
     PROXY,
 };
 use abstract_sdk::core::{
@@ -206,6 +206,16 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                         cw_ownable::Action::AcceptOwnership => update_governance(deps.storage)?,
                         _ => vec![],
                     };
+                    let mut info = info;
+                    // if new governance is sub-account trick cw-ownable to think it was called by proxy
+                    if let GovernanceDetails::SubAccount { manager, proxy } =
+                        INFO.load(deps.storage)?.governance_details
+                    {
+                        let top_level_owner = query_top_level_owner(&deps.querier, manager)?;
+                        if top_level_owner == info.sender {
+                            info.sender = proxy;
+                        }
+                    }
                     let result: ManagerResult = abstract_sdk::execute_update_ownership!(
                         ManagerResponse,
                         deps,
