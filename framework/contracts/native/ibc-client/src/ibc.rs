@@ -57,11 +57,10 @@ pub fn receive_action_callback(
         }
         IbcClientCallback::CreateAccount { account_id } => {
             // We need to get the address of the remote proxy from the account creation response
-            if let Callback::Execute(Ok(response)) = callback.result.clone() {
-                let account_creation_result = &response.result[0];
+            if let Callback::Execute(Ok(response)) = &callback.result {
+                let account_creation_result = response.result[0].clone();
 
                 let wasm_abstract_attributes: Vec<Attribute> = account_creation_result
-                    .clone()
                     .events
                     .into_iter()
                     .filter(|e| e.ty == "wasm-abstract")
@@ -71,7 +70,7 @@ pub fn receive_action_callback(
                 let remote_proxy_address = &wasm_abstract_attributes
                     .iter()
                     .find(|e| e.key == "proxy_address")
-                    .ok_or(IbcClientError::IbcFailed(callback.clone()))?
+                    .ok_or(IbcClientError::IbcFailed(callback))?
                     .value;
 
                 // We need to store the account address in the IBC client for interactions that may need it locally
