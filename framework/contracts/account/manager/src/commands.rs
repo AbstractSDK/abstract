@@ -400,8 +400,8 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     )
 }
 
-/// Proposes a new owner for the account. 
-/// Use [ExecuteMsg::UpdateOwnership] to claim the ownership. 
+/// Proposes a new owner for the account.
+/// Use [ExecuteMsg::UpdateOwnership] to claim the ownership.
 pub fn propose_owner(
     deps: DepsMut,
     env: Env,

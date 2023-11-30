@@ -238,9 +238,11 @@ fn sub_account_move_ownership() -> AResult {
     );
 
     let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
-    sub_account.manager.propose_owner(GovernanceDetails::Monarchy {
-        monarch: new_owner.to_string(),
-    })?;
+    sub_account
+        .manager
+        .propose_owner(GovernanceDetails::Monarchy {
+            monarch: new_owner.to_string(),
+        })?;
 
     // Make sure it's not updated until claimed
     let sub_accounts: SubAccountIdsResponse = chain.query(
@@ -441,7 +443,10 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
         manager: sub_manager_addr.to_string(),
         proxy: proxy_addr.to_string(),
     };
-    let err = new_account.manager.propose_owner(new_governance).unwrap_err();
+    let err = new_account
+        .manager
+        .propose_owner(new_governance)
+        .unwrap_err();
     let err = err.root().to_string();
     assert!(err.contains("manager and proxy has different account ids"));
     take_storage_snapshot!(chain, "account_move_ownership_to_falsy_sub_account");
@@ -464,10 +469,12 @@ fn account_updated_to_subaccount() -> AResult {
     let manager2_addr = account.manager.address()?;
 
     // Setting account1 as pending owner of account2
-    account.manager.propose_owner(GovernanceDetails::SubAccount {
-        manager: manager1_addr.to_string(),
-        proxy: proxy1_addr.to_string(),
-    })?;
+    account
+        .manager
+        .propose_owner(GovernanceDetails::SubAccount {
+            manager: manager1_addr.to_string(),
+            proxy: proxy1_addr.to_string(),
+        })?;
     account.manager.set_address(&manager1_addr);
     account.proxy.set_address(&proxy1_addr);
 
@@ -503,10 +510,12 @@ fn account_updated_to_subaccount_recursive() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
 
     // Setting account1 as pending owner of account2
-    account.manager.propose_owner(GovernanceDetails::SubAccount {
-        manager: manager1_addr.to_string(),
-        proxy: proxy1_addr.to_string(),
-    })?;
+    account
+        .manager
+        .propose_owner(GovernanceDetails::SubAccount {
+            manager: manager1_addr.to_string(),
+            proxy: proxy1_addr.to_string(),
+        })?;
     // accepting ownership by sender instead of the manager
     account
         .manager

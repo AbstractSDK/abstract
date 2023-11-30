@@ -197,9 +197,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     handle_sub_account_action(deps, info, action)
                 }
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
+                // Used to claim or renounce an ownership change.
                 ExecuteMsg::UpdateOwnership(action) => {
-                    // Disallow the user from using the TransferOwnership action. 
-                    // 
+                    // Disallow the user from using the TransferOwnership action.
                     let msgs = match action {
                         // Disallow the user from using the TransferOwnership action
                         cw_ownable::Action::TransferOwnership { .. } => {
