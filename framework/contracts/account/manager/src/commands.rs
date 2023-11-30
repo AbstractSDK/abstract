@@ -815,7 +815,7 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
     let ibc_client_module =
         query_module(deps.as_ref(), ModuleInfo::from_id_latest(IBC_CLIENT)?, None)?;
 
-    let ibc_client_addr = ibc_client_module.module.reference.unwrap_adapter()?;
+    let ibc_client_addr = ibc_client_module.module.reference.unwrap_native()?;
 
     ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
