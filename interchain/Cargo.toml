@@ -91,6 +91,7 @@ anyhow = "1"
 [patch.crates-io]
 cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/bank-querier", version = "0.18.0" }
 cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/bank-querier", version = "0.18.0" }
+cw-orch-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/bank-querier", version = "0.18.0" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }

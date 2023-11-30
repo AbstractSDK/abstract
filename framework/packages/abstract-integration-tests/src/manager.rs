@@ -26,7 +26,9 @@ use abstract_core::objects::module_reference::ModuleReference;
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::AccountId;
 use abstract_core::version_control::UpdateModule;
+use abstract_core::ACCOUNT_FACTORY;
 use abstract_core::PROXY;
+use abstract_core::VERSION_CONTROL;
 use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
@@ -465,5 +467,70 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
 
     let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;
     assert_that!(response_data_attr_present).is_equal_to("true".to_string());
+    Ok(())
+}
+
+pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) -> AResult {
+    let deployment = Abstract::load_from(chain)?;
+    // let account = create_default_account(&deployment.account_factory)?;
+
+    let af = deployment.account_factory.address()?;
+    let vc = deployment.version_control.address()?;
+    println!("af: {af}\nvc: {vc}");
+
+    let list = deployment.version_control.modules(vec![
+        ModuleInfo::from_id_latest(ACCOUNT_FACTORY)?,
+        ModuleInfo::from_id_latest(VERSION_CONTROL)?,
+    ])?;
+    println!("{list:?}");
+
+    // account.manager.create_sub_account(
+    //     vec![],
+    //     "My subaccount".to_string(),
+    //     None,
+    //     None,
+    //     None,
+    //     None,
+    //     &[],
+    // )?;
+    // let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+    // let sub_manager_addr = sub_account.manager.address()?;
+    // let sub_proxy_addr = sub_account.proxy.address()?;
+
+    // let new_account = create_default_account(&deployment.account_factory)?;
+    // let new_governance = GovernanceDetails::SubAccount {
+    //     manager: sub_manager_addr.to_string(),
+    //     proxy: sub_proxy_addr.to_string(),
+    // };
+    // new_account.manager.set_owner(new_governance.clone())?;
+    // let new_account_manager = new_account.manager.address()?;
+
+    // let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+    // let mock_module = Addr::unchecked("mock_module");
+    // sub_account
+    //     .proxy
+    //     .call_as(&sub_manager_addr)
+    //     .add_modules(vec![mock_module.to_string()])?;
+    // sub_account
+    //     .proxy
+    //     .call_as(&mock_module)
+    //     .module_action(vec![wasm_execute(
+    //         new_account_manager,
+    //         &abstract_core::manager::ExecuteMsg::UpdateOwnership(
+    //             cw_ownable::Action::AcceptOwnership,
+    //         ),
+    //         vec![],
+    //     )?
+    //     .into()])?;
+
+    // // sub-accounts state updated
+    // let sub_ids = sub_account.manager.sub_account_ids(None, None)?;
+    // assert_eq!(sub_ids.sub_accounts, vec![3]);
+
+    // // owner of new_account updated
+    // let new_account = AbstractAccount::new(&deployment, Some(AccountId::local(3)));
+    // let info = new_account.manager.info()?.info;
+    // assert_eq!(new_governance, info.governance_details.into());
+
     Ok(())
 }
