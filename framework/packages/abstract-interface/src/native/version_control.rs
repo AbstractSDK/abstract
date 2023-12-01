@@ -147,7 +147,7 @@ where
         let proposed_abstract_modules = self.module_list(
             Some(ModuleFilter {
                 namespace: Some(ABSTRACT_NAMESPACE.to_string()),
-                status: Some(ModuleStatus::PENDING),
+                status: Some(ModuleStatus::Pending),
                 ..Default::default()
             }),
             None,
