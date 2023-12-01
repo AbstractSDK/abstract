@@ -13,8 +13,6 @@ use abstract_core::{
 use cosmwasm_std::Addr;
 use cw_orch::contract::Contract;
 use cw_orch::interface;
-#[cfg(feature = "daemon")]
-use cw_orch::prelude::Daemon;
 use cw_orch::prelude::*;
 
 type VersionString = String;
