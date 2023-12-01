@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `FeeGrant` API updated.
 - Bump `cw-orch` to `v0.18`.
 - Top level account owner now has admin privileges on the apps and adapters
+- Top level account owner can now claim pending sub-accounts directly
 
 ### Removed
 

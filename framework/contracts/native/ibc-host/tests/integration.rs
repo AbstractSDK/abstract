@@ -234,7 +234,7 @@ fn account_action() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::SetOwner {
+                manager_msg: abstract_core::manager::ExecuteMsg::ProposeOwner {
                     owner: GovernanceDetails::Monarchy {
                         monarch: "new_owner".to_string(),
                     },
@@ -291,7 +291,7 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::SetOwner {
+                manager_msg: abstract_core::manager::ExecuteMsg::ProposeOwner {
                     owner: GovernanceDetails::Monarchy {
                         monarch: "new_owner".to_string(),
                     },

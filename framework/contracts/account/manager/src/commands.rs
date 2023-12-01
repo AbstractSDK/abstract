@@ -10,7 +10,7 @@ use abstract_core::manager::{InternalConfigAction, ModuleInstallConfig, UpdateSu
 use abstract_core::module_factory::FactoryModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{self, assert_module_data_validity};
-use abstract_core::objects::nested_admin::MAX_ADMIN_RECURSION;
+use abstract_core::objects::nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION};
 use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::objects::version_control::VersionControlContract;
@@ -400,7 +400,9 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     )
 }
 
-pub fn set_owner(
+/// Proposes a new owner for the account.
+/// Use [ExecuteMsg::UpdateOwnership] to claim the ownership.
+pub fn propose_owner(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
@@ -443,19 +445,18 @@ pub fn set_owner(
 }
 
 /// Update governance of this account after claim
-pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<CosmosMsg>> {
+pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
-    let mut acc_info = INFO.load(storage)?;
+    let mut acc_info = INFO.load(deps.storage)?;
     let mut account_id = None;
     // Get pending governance and clear it
     let pending_governance = PENDING_GOVERNANCE
-        .may_load(storage)?
+        .may_load(deps.storage)?
         .ok_or(OwnershipError::TransferNotFound)?;
-    PENDING_GOVERNANCE.remove(storage);
 
     // Clear state for previous manager if it was sub-account
     if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
-        let id = ACCOUNT_ID.load(storage)?;
+        let id = ACCOUNT_ID.load(deps.storage)?;
         // For optimizing the gas we save it, in case new owner is sub-account as well
         account_id = Some(id.clone());
         let unregister_message = wasm_execute(
@@ -469,11 +470,11 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
     }
 
     // Update state for new manager if owner will be the sub-account
-    if let GovernanceDetails::SubAccount { manager, .. } = &pending_governance {
+    if let GovernanceDetails::SubAccount { manager, proxy } = &pending_governance {
         let id = if let Some(id) = account_id {
             id
         } else {
-            ACCOUNT_ID.load(storage)?
+            ACCOUNT_ID.load(deps.storage)?
         };
         let register_message = wasm_execute(
             manager,
@@ -483,10 +484,16 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
             vec![],
         )?;
         msgs.push(register_message.into());
+
+        // If called by top-level owner, update the sender to let cw-ownable think it was called by the owning-account's proxy.
+        let top_level_owner = query_top_level_owner(&deps.querier, manager.clone())?;
+        if top_level_owner == *sender {
+            *sender = proxy.clone();
+        }
     }
     // Update governance of this account
     acc_info.governance_details = pending_governance;
-    INFO.save(storage, &acc_info)?;
+    INFO.save(deps.storage, &acc_info)?;
     Ok(msgs)
 }
 
@@ -1093,7 +1100,7 @@ mod tests {
 
         #[test]
         fn only_owner() -> ManagerTestResult {
-            let msg = ExecuteMsg::SetOwner {
+            let msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: "test_owner".to_string(),
                 },
@@ -1107,7 +1114,7 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SetOwner {
+            let msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: "INVALID".to_string(),
                 },
@@ -1131,7 +1138,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let new_owner = "new_owner";
-            let set_owner_msg = ExecuteMsg::SetOwner {
+            let set_owner_msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: new_owner.to_string(),
                 },
@@ -1157,7 +1164,7 @@ mod tests {
 
             let new_gov = "new_gov".to_string();
 
-            let msg = ExecuteMsg::SetOwner {
+            let msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: new_gov.clone(),
                 },
@@ -1935,7 +1942,7 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(ManagerError::MustUseSetOwner {});
+                .is_equal_to(ManagerError::MustUseProposeOwner {});
 
             Ok(())
         }
