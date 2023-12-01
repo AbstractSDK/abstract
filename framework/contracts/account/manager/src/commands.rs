@@ -1937,7 +1937,7 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(ManagerError::MustUseSetOwner {});
+                .is_equal_to(ManagerError::MustUseProposeOwner {});
 
             Ok(())
         }

@@ -203,7 +203,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     let msgs = match action {
                         // Disallow the user from using the TransferOwnership action
                         cw_ownable::Action::TransferOwnership { .. } => {
-                            return Err(ManagerError::MustUseSetOwner {});
+                            return Err(ManagerError::MustUseProposeOwner {});
                         }
                         cw_ownable::Action::AcceptOwnership => update_governance(deps.storage)?,
                         _ => vec![],
