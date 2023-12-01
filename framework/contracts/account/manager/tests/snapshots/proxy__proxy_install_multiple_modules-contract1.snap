@@ -494,13 +494,12 @@ expression: chain.app.borrow().dump_wasm_raw(&contract_addr)
     - 50
   - - 123
     - 34
+    - 110
     - 97
-    - 100
-    - 97
-    - 112
     - 116
+    - 105
+    - 118
     - 101
-    - 114
     - 34
     - 58
     - 34
