@@ -2,8 +2,9 @@ use crate::AbstractAccount;
 pub use abstract_core::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_core::{
     objects::{
-        module::{Module, ModuleInfo, ModuleVersion},
+        module::{Module, ModuleInfo, ModuleStatus, ModuleVersion},
         module_reference::ModuleReference,
+        namespace::ABSTRACT_NAMESPACE,
         AccountId,
     },
     version_control::*,
@@ -138,6 +139,33 @@ where
             ModuleReference::Standalone(c.code_id().unwrap())
         })?;
         self.propose_modules(to_register)?;
+        Ok(())
+    }
+
+    /// Approve any pending modules.
+    pub fn approve_any_abstract_modules(&self) -> Result<(), crate::AbstractInterfaceError> {
+        let proposed_abstract_modules = self.module_list(
+            Some(ModuleFilter {
+                namespace: Some(ABSTRACT_NAMESPACE.to_string()),
+                status: Some(ModuleStatus::PENDING),
+                ..Default::default()
+            }),
+            None,
+            None,
+        )?;
+
+        if proposed_abstract_modules.modules.is_empty() {
+            return Ok(());
+        }
+
+        self.approve_or_reject_modules(
+            proposed_abstract_modules
+                .modules
+                .iter()
+                .map(|m| m.module.info.clone())
+                .collect(),
+            vec![],
+        )?;
         Ok(())
     }
 

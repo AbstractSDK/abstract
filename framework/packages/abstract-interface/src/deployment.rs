@@ -93,6 +93,9 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             .version_control
             .register_natives(deployment.contracts())?;
 
+        // Approve abstract contracts if needed
+        deployment.version_control.approve_any_abstract_modules()?;
+
         // This Ibc Client is actually a module that people need to register on their accounts
         deployment.version_control.register_adapters(vec![(
             deployment.ibc.client.as_instance(),
@@ -185,7 +188,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         self.version_control.instantiate(
             &abstract_core::version_control::InstantiateMsg {
                 admin: admin.clone(),
-                allow_direct_module_registration_and_updates: Some(true),
+                allow_direct_module_registration_and_updates: Some(false),
                 namespace_registration_fee: None,
             },
             Some(sender),
