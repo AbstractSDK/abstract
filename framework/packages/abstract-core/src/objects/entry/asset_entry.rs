@@ -8,7 +8,7 @@ use std::fmt::Display;
 /// An unchecked ANS asset entry. This is a string that is formatted as
 /// `src_chain>[intermediate_chain>]asset_name`
 #[derive(
-    Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Default,
+    Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Default, Hash,
 )]
 pub struct AssetEntry(pub(crate) String);
 

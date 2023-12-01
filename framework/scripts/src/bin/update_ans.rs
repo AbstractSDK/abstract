@@ -12,8 +12,7 @@ use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-// Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
-fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
+fn update_ans(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     for network in networks {
         let chain = DaemonBuilder::default()
@@ -24,6 +23,16 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         let deployment = Abstract::load_from(chain)?;
         // Take the assets, contracts, and pools from resources and upload them to the ans host
         let ans_host = deployment.ans_host;
+
+        // First we get all values
+        let scraped_entries = script_helpers::get_scraped_entries(&ans_host)?;
+        let on_chain_entries = script_helpers::get_on_chain_entries(&ans_host)?;
+
+        // Then we create a diff between the 2 objects
+        let diff = script_helpers::diff(scraped_entries, on_chain_entries)?;
+
+        // Finally we upload on-chain
+        script_helpers::update(&ans_host, diff)?;
         ans_host.update_all_local()?;
     }
     Ok(())
@@ -51,7 +60,7 @@ fn main() {
         .map(|n| parse_network(n))
         .collect::<Vec<_>>();
 
-    if let Err(ref err) = full_deploy(networks) {
+    if let Err(ref err) = update_ans(networks) {
         log::error!("{}", err);
         err.chain()
             .skip(1)

@@ -13,7 +13,9 @@ type DexName = String;
 /// The key for an asset pairing
 /// Consists of the two assets and the dex name
 /// TODO: what if we made keys equal based on the two assets either way?
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
+#[derive(
+    Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Hash,
+)]
 pub struct DexAssetPairing((AssetEntry, AssetEntry, DexName));
 
 impl DexAssetPairing {

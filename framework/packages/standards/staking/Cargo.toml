@@ -42,7 +42,6 @@ abstract-interface = { workspace = true, features = ["daemon"] }
 semver = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }
-dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
 abstract-testing = { workspace = true }

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::{array::TryFromSliceError, convert::TryInto, fmt::Display};
 
 #[derive(
-    Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Copy,
+    Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Copy, Hash,
 )]
 pub struct UniquePoolId(u64);
 

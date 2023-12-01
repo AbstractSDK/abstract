@@ -17,6 +17,7 @@ use cw_orch::{
         *,
     },
 };
+use script_helpers::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
