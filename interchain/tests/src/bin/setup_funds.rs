@@ -82,7 +82,7 @@ pub fn test_send_funds() -> AnyResult<()> {
     // )?;
 
     // Get the ibc client address
-    let remote_account = AbstractAccount::new(&abstr_stargaze, Some(remote_account_id.clone()));
+    let remote_account = AbstractAccount::new(&abstr_stargaze, remote_account_id.clone());
     let client = remote_account.proxy.config()?;
 
     log::info!("client adddress {:?}", client);

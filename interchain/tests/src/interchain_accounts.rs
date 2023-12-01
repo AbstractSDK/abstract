@@ -147,7 +147,7 @@ mod test {
 
         // We check the account description changed on chain 2
         let remote_abstract_account =
-            AbstractAccount::new(&abstr_remote, Some(remote_account_id.clone()));
+            AbstractAccount::new(&abstr_remote, remote_account_id.clone());
 
         let account_info = remote_abstract_account.manager.info()?;
 
@@ -306,7 +306,7 @@ mod test {
 
         let destination_remote_account = AbstractAccount::new(
             &abstr_destination_remote,
-            Some(destination_remote_account_id.clone()),
+            destination_remote_account_id.clone(),
         );
 
         let manager_config = destination_remote_account.manager.config()?;
@@ -337,7 +337,7 @@ mod test {
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
 
         let remote_abstract_account =
-            AbstractAccount::new(&abstr_remote, Some(remote_account_id.clone()));
+            AbstractAccount::new(&abstr_remote, remote_account_id.clone());
 
         let manager_config = remote_abstract_account.manager.config()?;
         assert_eq!(
@@ -407,8 +407,7 @@ mod test {
         // Can get the account from stargaze.
         let created_account_id = AccountId::new(1, AccountTrace::Local)?;
 
-        let created_abstract_account =
-            AbstractAccount::new(&abstr_remote, Some(created_account_id));
+        let created_abstract_account = AbstractAccount::new(&abstr_remote, created_account_id);
 
         let account_info: AccountInfo<Addr> = created_abstract_account.manager.info()?.info;
 
@@ -475,7 +474,7 @@ mod test {
         let (_origin_account, remote_account_id) =
             create_test_remote_account(&abstr_juno, JUNO, STARGAZE, &mock_interchain, None)?;
 
-        let remote_account = AbstractAccount::new(&abstr_stargaze, Some(remote_account_id));
+        let remote_account = AbstractAccount::new(&abstr_stargaze, remote_account_id);
 
         let new_name = String::from("Funky Crazy Name");
         let new_description = String::from("Funky new account with wonderful capabilities");
@@ -724,7 +723,7 @@ mod test {
             .query_balance(&origin_account.proxy.address()?, origin_denom)?;
         assert!(origin_balance.is_zero());
 
-        let remote_account = AbstractAccount::new(&abstr_remote, Some(remote_account_id.clone()));
+        let remote_account = AbstractAccount::new(&abstr_remote, remote_account_id.clone());
 
         // Check balance on remote chain.
         let remote_balance = mock_interchain

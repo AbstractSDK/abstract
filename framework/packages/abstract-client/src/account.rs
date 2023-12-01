@@ -147,7 +147,7 @@ impl<Chain: CwEnv> Account<Chain> {
             .namespace(Namespace::new(namespace)?)?;
 
         let abstract_account: AbstractAccount<Chain> =
-            AbstractAccount::new(abstr, Some(namespace_response.account_id));
+            AbstractAccount::new(abstr, namespace_response.account_id);
 
         Ok(Self::new(abstract_account))
     }
@@ -185,9 +185,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
         let sub_account: AbstractAccount<Chain> = AbstractAccount::new(
             &self.infrastructure()?,
-            Some(AccountId::local(
-                parsed_account_creation_response.sub_account_id,
-            )),
+            AccountId::local(parsed_account_creation_response.sub_account_id),
         );
 
         let contract =
