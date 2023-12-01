@@ -472,28 +472,22 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
 
 pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) -> AResult {
     let deployment = Abstract::load_from(chain)?;
-    // let account = create_default_account(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
 
-    let af = deployment.account_factory.address()?;
-    let vc = deployment.version_control.address()?;
-    println!("af: {af}\nvc: {vc}");
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+        &[],
+    )?;
+    let ids = account.manager.sub_account_ids(None, None)?;
+    println!("ids: {ids:?}");
 
-    let list = deployment.version_control.modules(vec![
-        ModuleInfo::from_id_latest(ACCOUNT_FACTORY)?,
-        ModuleInfo::from_id_latest(VERSION_CONTROL)?,
-    ])?;
-    println!("{list:?}");
-
-    // account.manager.create_sub_account(
-    //     vec![],
-    //     "My subaccount".to_string(),
-    //     None,
-    //     None,
-    //     None,
-    //     None,
-    //     &[],
-    // )?;
-    // let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+    // let sub_account =
+    //     AbstractAccount::new(&deployment, Some(AccountId::local(ids.sub_accounts[0])));
     // let sub_manager_addr = sub_account.manager.address()?;
     // let sub_proxy_addr = sub_account.proxy.address()?;
 
@@ -505,15 +499,11 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     // new_account.manager.set_owner(new_governance.clone())?;
     // let new_account_manager = new_account.manager.address()?;
 
-    // let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
-    // let mock_module = Addr::unchecked("mock_module");
+    // let sub_account =
+    //     AbstractAccount::new(&deployment, Some(AccountId::local(ids.sub_accounts[0])));
     // sub_account
     //     .proxy
     //     .call_as(&sub_manager_addr)
-    //     .add_modules(vec![mock_module.to_string()])?;
-    // sub_account
-    //     .proxy
-    //     .call_as(&mock_module)
     //     .module_action(vec![wasm_execute(
     //         new_account_manager,
     //         &abstract_core::manager::ExecuteMsg::UpdateOwnership(

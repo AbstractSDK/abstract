@@ -125,7 +125,7 @@ mod manager {
     #[test]
     fn account_move_ownership_to_sub_account_after_migrate() -> anyhow::Result<()> {
         let (abstr_deployment, chain) = setup()?;
-        // abstr_deployment.migrate_if_needed()?;
+        abstr_deployment.migrate_if_needed()?;
         account_move_ownership_to_sub_account(chain)
     }
 }
