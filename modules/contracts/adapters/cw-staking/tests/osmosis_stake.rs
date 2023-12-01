@@ -86,9 +86,8 @@ mod osmosis_test {
             stake_assets: Vec<AnsAsset>,
             provider: String,
             duration: Option<cw_utils::Duration>,
-            account_id: &AccountId,
+            account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -99,7 +98,9 @@ mod osmosis_test {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
+            account
+                .manager
+                .execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
             Ok(())
         }
 
@@ -108,9 +109,8 @@ mod osmosis_test {
             stake_assets: Vec<AnsAsset>,
             provider: String,
             duration: Option<cw_utils::Duration>,
-            account_id: &AccountId,
+            account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -121,7 +121,9 @@ mod osmosis_test {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
+            account
+                .manager
+                .execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
             Ok(())
         }
 
@@ -129,9 +131,8 @@ mod osmosis_test {
             &self,
             stake_assets: Vec<AssetEntry>,
             provider: String,
-            account_id: &AccountId,
+            account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let claim_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -141,7 +142,9 @@ mod osmosis_test {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg)?;
+            account
+                .manager
+                .execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg)?;
             Ok(())
         }
 
@@ -149,9 +152,8 @@ mod osmosis_test {
             &self,
             stake_assets: Vec<AssetEntry>,
             provider: String,
-            account_id: &AccountId,
+            account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let claim_rewards_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -161,7 +163,9 @@ mod osmosis_test {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg)?;
+            account
+                .manager
+                .execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg)?;
             Ok(())
         }
     }
@@ -271,12 +275,7 @@ mod osmosis_test {
         let dur = Some(cw_utils::Duration::Time(2));
 
         // stake 100 stake-coins
-        staking.stake(
-            vec![AnsAsset::new(LP, 100u128)],
-            OSMOSIS.into(),
-            dur,
-            &os.id()?,
-        )?;
+        staking.stake(vec![AnsAsset::new(LP, 100u128)], OSMOSIS.into(), dur, &os)?;
 
         tube.wait_seconds(10000)?;
         // query stake
@@ -307,17 +306,11 @@ mod osmosis_test {
     fn unstake_lp() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
         let proxy_addr = os.proxy.address()?;
-        let os_id = os.id()?;
 
         let dur = Some(cw_utils::Duration::Time(2));
 
         // stake 100 EUR
-        staking.stake(
-            vec![AnsAsset::new(LP, 100u128)],
-            OSMOSIS.into(),
-            dur,
-            &os_id,
-        )?;
+        staking.stake(vec![AnsAsset::new(LP, 100u128)], OSMOSIS.into(), dur, &os)?;
 
         // query stake
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
@@ -329,7 +322,7 @@ mod osmosis_test {
         assert_that!(staked_balance.coins[0].amount).is_equal_to(100u128.to_string());
 
         // now unbond 50
-        staking.unstake(vec![AnsAsset::new(LP, 50u128)], OSMOSIS.into(), dur, &os_id)?;
+        staking.unstake(vec![AnsAsset::new(LP, 50u128)], OSMOSIS.into(), dur, &os)?;
         // query unbond
         let unbonding = staking.unbonding(
             OSMOSIS.into(),
@@ -362,17 +355,11 @@ mod osmosis_test {
     fn claim_all() -> anyhow::Result<()> {
         let (tube, _, staking, os) = setup_osmosis()?;
         let proxy_addr = os.proxy.address()?;
-        let os_id = os.id()?;
 
         let dur = Some(cw_utils::Duration::Time(2));
 
         // stake 100 EUR
-        staking.stake(
-            vec![AnsAsset::new(LP, 100u128)],
-            OSMOSIS.into(),
-            dur,
-            &os_id,
-        )?;
+        staking.stake(vec![AnsAsset::new(LP, 100u128)], OSMOSIS.into(), dur, &os)?;
 
         // query stake
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
@@ -384,7 +371,7 @@ mod osmosis_test {
         assert_that!(staked_balance.coins[0].amount).is_equal_to(100u128.to_string());
 
         // now unbond all
-        staking.claim(vec![AssetEntry::new(LP)], OSMOSIS.into(), &os_id)?;
+        staking.claim(vec![AssetEntry::new(LP)], OSMOSIS.into(), &os)?;
         // query unbond
         let unbonding = staking.unbonding(
             OSMOSIS.into(),

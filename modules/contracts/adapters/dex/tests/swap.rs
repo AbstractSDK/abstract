@@ -64,7 +64,7 @@ fn swap_native() -> anyhow::Result<()> {
     let proxy_addr = os.proxy.address()?;
 
     // swap 100 EUR to USD
-    dex_adapter.swap((EUR, 100), USD, WYNDEX.into(), &os.id()?)?;
+    dex_adapter.swap((EUR, 100), USD, WYNDEX.into(), &os)?;
 
     // check balances
     let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
@@ -91,7 +91,7 @@ fn swap_native_without_chain() -> anyhow::Result<()> {
     let proxy_addr = os.proxy.address()?;
 
     // swap 100 EUR to USD
-    dex_adapter.swap((EUR, 100), USD, WYNDEX_WITHOUT_CHAIN.into(), &os.id()?)?;
+    dex_adapter.swap((EUR, 100), USD, WYNDEX_WITHOUT_CHAIN.into(), &os)?;
 
     // check balances
     let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
@@ -123,7 +123,7 @@ fn swap_raw() -> anyhow::Result<()> {
         .transfer(10_000u128.into(), proxy_addr.to_string())?;
 
     // swap 100 RAW to EUR
-    dex_adapter.swap((RAW_TOKEN, 100), EUR, WYNDEX.into(), &os.id()?)?;
+    dex_adapter.swap((RAW_TOKEN, 100), EUR, WYNDEX.into(), &os)?;
 
     // check balances
     let raw_balance = wyndex.raw_token.balance(proxy_addr.to_string())?;

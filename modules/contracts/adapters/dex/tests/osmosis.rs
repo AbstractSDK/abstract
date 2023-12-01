@@ -6,7 +6,6 @@ use abstract_core::adapter;
 use abstract_core::ans_host::ExecuteMsgFns;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::pool_id::PoolAddressBase;
-use abstract_core::objects::AccountId;
 use abstract_core::objects::AnsAsset;
 use abstract_core::objects::AssetEntry;
 use abstract_core::objects::PoolMetadata;
@@ -22,7 +21,6 @@ use abstract_interface::AbstractInterfaceError;
 use abstract_interface::AccountFactory;
 use abstract_interface::AdapterDeployer;
 use abstract_interface::DeployStrategy;
-use abstract_interface::Manager;
 use abstract_osmosis_adapter::OSMOSIS;
 use cosmwasm_std::coin;
 use cosmwasm_std::Decimal;
@@ -72,9 +70,8 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
         offer_asset: (&str, u128),
         ask_asset: &str,
         dex: String,
-        account_id: &AccountId,
+        account: &AbstractAccount<Chain>,
     ) -> Result<(), AbstractInterfaceError> {
-        let manager = Manager::new_from_id(account_id, self.get_chain().clone());
         let asset = AssetEntry::new(offer_asset.0);
         let ask_asset = AssetEntry::new(ask_asset);
 
@@ -90,7 +87,9 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
                 },
             },
         });
-        manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
+        account
+            .manager
+            .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
         Ok(())
     }
     /// Provide liquidity using Abstract's OS (registered in daemon_state).
@@ -99,9 +98,8 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
         asset1: (&str, u128),
         asset2: (&str, u128),
         dex: String,
-        account_id: &AccountId,
+        account: &AbstractAccount<Chain>,
     ) -> Result<(), AbstractInterfaceError> {
-        let manager = Manager::new_from_id(account_id, self.get_chain().clone());
         let asset_entry1 = AssetEntry::new(asset1.0);
         let asset_entry2 = AssetEntry::new(asset2.0);
 
@@ -118,7 +116,9 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
                 },
             },
         });
-        manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
+        account
+            .manager
+            .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
         Ok(())
     }
 
@@ -128,9 +128,8 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
         lp_token: &str,
         amount: impl Into<Uint128>,
         dex: String,
-        account_id: &AccountId,
+        account: &AbstractAccount<Chain>,
     ) -> Result<(), AbstractInterfaceError> {
-        let manager = Manager::new_from_id(account_id, self.get_chain().clone());
         let lp_token = AssetEntry::new(lp_token);
 
         let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
@@ -143,7 +142,9 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
                 },
             },
         });
-        manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
+        account
+            .manager
+            .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
         Ok(())
     }
 }
@@ -244,7 +245,7 @@ fn swap() -> AnyResult<()> {
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert_eq!(balances, coins(swap_value, "uatom"));
     // swap 100_000 uatom to uosmo
-    dex_adapter.swap(("atom", swap_value), "osmo", OSMOSIS.into(), &os.id()?)?;
+    dex_adapter.swap(("atom", swap_value), "osmo", OSMOSIS.into(), &os)?;
 
     // Assert balances
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
@@ -275,7 +276,7 @@ fn provide() -> AnyResult<()> {
         ("atom", provide_value),
         ("osmo", provide_value),
         OSMOSIS.into(),
-        &os.id()?,
+        &os,
     )?;
 
     // After providing, we need to get the liquidity token
@@ -295,7 +296,6 @@ fn withdraw() -> AnyResult<()> {
     let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
 
     let proxy_addr = os.proxy.address()?;
-    let os_id = os.id()?;
 
     let provide_value = 1_000_000_000u128;
 
@@ -310,7 +310,7 @@ fn withdraw() -> AnyResult<()> {
         ("atom", provide_value),
         ("osmo", provide_value),
         OSMOSIS.into(),
-        &os_id,
+        &os,
     )?;
 
     // After providing, we need to get the liquidity token
@@ -321,7 +321,7 @@ fn withdraw() -> AnyResult<()> {
         "osmosis/atom,osmo",
         balance / Uint128::from(2u128),
         OSMOSIS.into(),
-        &os_id,
+        &os,
     )?;
 
     // After withdrawing, we should get some tokens in return and have some lp token left

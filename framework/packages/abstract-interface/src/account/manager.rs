@@ -20,9 +20,8 @@ use serde::Serialize;
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
 
-// TODO: would be nice to hide default `new`
 impl<Chain: CwEnv> Manager<Chain> {
-    pub fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
+    pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
         let manager_id = format!("{MANAGER}-{account_id}");
         Self::new(manager_id, chain)
     }

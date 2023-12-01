@@ -6,9 +6,8 @@ use cw_orch::{interface, prelude::*};
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy<Chain>;
 
-// TODO: would be nice to hide default `new`
 impl<Chain: CwEnv> Proxy<Chain> {
-    pub fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
+    pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
         let proxy_id = format!("{PROXY}-{account_id}");
         Self::new(proxy_id, chain)
     }

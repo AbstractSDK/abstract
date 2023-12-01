@@ -23,11 +23,10 @@ pub mod interface {
     use crate::{msg::*, DEX_ADAPTER_ID};
     use abstract_core::{
         adapter::{self},
-        objects::{AccountId, AnsAsset, AssetEntry},
+        objects::{AnsAsset, AssetEntry},
     };
-    use abstract_interface::AbstractInterfaceError;
     use abstract_interface::AdapterDeployer;
-    use abstract_interface::Manager;
+    use abstract_interface::{AbstractAccount, AbstractInterfaceError};
     use cosmwasm_std::{Decimal, Empty};
     use cw_orch::interface;
     use cw_orch::prelude::*;
@@ -64,9 +63,8 @@ pub mod interface {
             offer_asset: (&str, u128),
             ask_asset: &str,
             dex: String,
-            account_id: &AccountId,
+            account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let asset = AssetEntry::new(offer_asset.0);
             let ask_asset = AssetEntry::new(ask_asset);
 
@@ -82,7 +80,9 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
+            account
+                .manager
+                .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
             Ok(())
         }
     }

@@ -105,17 +105,11 @@ fn staking_inited() -> anyhow::Result<()> {
 fn stake_lp() -> anyhow::Result<()> {
     let (_, _, staking, os) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
-    let os_id = os.id()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
     // stake 100 EUR
-    staking.stake(
-        AnsAsset::new(EUR_USD_LP, 100u128),
-        WYNDEX.into(),
-        dur,
-        &os_id,
-    )?;
+    staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), dur, &os)?;
 
     // query stake
     let staked_balance = staking.staked(
@@ -133,7 +127,6 @@ fn stake_lp() -> anyhow::Result<()> {
 fn stake_lp_wthout_chain() -> anyhow::Result<()> {
     let (_, _, staking, os) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
-    let os_id = os.id()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
@@ -142,7 +135,7 @@ fn stake_lp_wthout_chain() -> anyhow::Result<()> {
         AnsAsset::new(EUR_USD_LP, 100u128),
         WYNDEX_WITHOUT_CHAIN.into(),
         dur,
-        &os_id,
+        &os,
     )?;
 
     // query stake
@@ -161,17 +154,11 @@ fn stake_lp_wthout_chain() -> anyhow::Result<()> {
 fn unstake_lp() -> anyhow::Result<()> {
     let (_, _, staking, os) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
-    let os_id = os.id()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
     // stake 100 EUR
-    staking.stake(
-        AnsAsset::new(EUR_USD_LP, 100u128),
-        WYNDEX.into(),
-        dur,
-        &os_id,
-    )?;
+    staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), dur, &os)?;
 
     // query stake
     let staked_balance = staking.staked(
@@ -183,12 +170,7 @@ fn unstake_lp() -> anyhow::Result<()> {
     assert_that!(staked_balance.amounts[0].u128()).is_equal_to(100u128);
 
     // now unbond 50
-    staking.unstake(
-        AnsAsset::new(EUR_USD_LP, 50u128),
-        WYNDEX.into(),
-        dur,
-        &os_id,
-    )?;
+    staking.unstake(AnsAsset::new(EUR_USD_LP, 50u128), WYNDEX.into(), dur, &os)?;
     // query stake
     let staked_balance = staking.staked(
         WYNDEX.into(),
@@ -204,7 +186,6 @@ fn unstake_lp() -> anyhow::Result<()> {
 fn claim_unbonded_lp() -> anyhow::Result<()> {
     let (chain, wyndex, staking, os) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
-    let os_id = os.id()?;
 
     let dur = cw_utils::Duration::Time(2);
 
@@ -213,7 +194,7 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
         AnsAsset::new(EUR_USD_LP, 100u128),
         WYNDEX.into(),
         Some(dur),
-        &os_id,
+        &os,
     )?;
 
     // now unbond 50
@@ -221,7 +202,7 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
         AnsAsset::new(EUR_USD_LP, 50u128),
         WYNDEX.into(),
         Some(dur),
-        &os_id,
+        &os,
     )?;
 
     let unstake_block_info = chain.block_info()?;
@@ -244,7 +225,7 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
     chain.next_block()?;
 
     // now claim 50
-    staking.claim(AssetEntry::new(EUR_USD_LP), WYNDEX.into(), &os_id)?;
+    staking.claim(AssetEntry::new(EUR_USD_LP), WYNDEX.into(), &os)?;
 
     // query balance
     let balance = wyndex.eur_usd_lp.balance(proxy_addr.to_string())?;
@@ -257,17 +238,11 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
 fn claim_rewards() -> anyhow::Result<()> {
     let (chain, mut wyndex, staking, os) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
-    let os_id = os.id()?;
 
     let dur = Some(cw_utils::Duration::Time(2));
 
     // stake 100 EUR
-    staking.stake(
-        AnsAsset::new(EUR_USD_LP, 100u128),
-        WYNDEX.into(),
-        dur,
-        &os_id,
-    )?;
+    staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), dur, &os)?;
 
     // forward 500 seconds
     chain.wait_blocks(100)?;
@@ -279,7 +254,7 @@ fn claim_rewards() -> anyhow::Result<()> {
         .unwrap();
 
     // now claim rewards
-    staking.claim_rewards(AssetEntry::new(EUR_USD_LP), WYNDEX.into(), &os_id)?;
+    staking.claim_rewards(AssetEntry::new(EUR_USD_LP), WYNDEX.into(), &os)?;
 
     // query balance
     let balance = chain.query_balance(&proxy_addr, WYND_TOKEN)?;

@@ -23,10 +23,9 @@ pub mod interface {
     use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg};
     use crate::CW_STAKING_ADAPTER_ID;
     use abstract_core::adapter;
-    use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
-    use abstract_interface::AbstractInterfaceError;
+    use abstract_core::objects::{AnsAsset, AssetEntry};
     use abstract_interface::AdapterDeployer;
-    use abstract_interface::Manager;
+    use abstract_interface::{AbstractAccount, AbstractInterfaceError};
     use cosmwasm_std::{Addr, Empty};
     use cw_orch::contract::Contract;
     use cw_orch::interface;
@@ -72,9 +71,8 @@ pub mod interface {
             stake_asset: AnsAsset,
             provider: String,
             duration: Option<cw_utils::Duration>,
-            account_id: &AccountId,
+            account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -85,7 +83,9 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
+            account
+                .manager
+                .execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
             Ok(())
         }
 
@@ -94,9 +94,8 @@ pub mod interface {
             stake_asset: AnsAsset,
             provider: String,
             duration: Option<cw_utils::Duration>,
-            account_id: &AccountId,
+            account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -107,7 +106,9 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
+            account
+                .manager
+                .execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
             Ok(())
         }
 
@@ -115,9 +116,8 @@ pub mod interface {
             &self,
             stake_asset: AssetEntry,
             provider: String,
-            account_id: &AccountId,
+            account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let claim_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -127,7 +127,9 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg)?;
+            account
+                .manager
+                .execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg)?;
             Ok(())
         }
 
@@ -135,9 +137,8 @@ pub mod interface {
             &self,
             stake_asset: AssetEntry,
             provider: String,
-            account_id: &AccountId,
+            account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new_from_id(account_id, self.get_chain().clone());
             let claim_rewards_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
@@ -147,7 +148,9 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg)?;
+            account
+                .manager
+                .execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg)?;
             Ok(())
         }
     }
