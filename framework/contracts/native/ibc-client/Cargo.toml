@@ -20,7 +20,7 @@ export = []
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["ibc3", "stargate"] }
 cw-storage-plus = { workspace = true }
-cw-controllers = { workspace = true }
+cw-ownable = { workspace = true }
 cw-utils = { workspace = true }
 cw2 = { workspace = true }
 serde = { workspace = true }

@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Bump `cw-orch` to `v0.18`.
 - Top level account owner now has admin privileges on the apps and adapters
 - Multiple `AbstractAccount`s now don't overlap
+- Top level account owner can now claim pending sub-accounts directly
 
 ### Removed
 
@@ -69,7 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Manager governance now changes only after new "owner" claimed ownership.
 - Fixed and separated cw-staking and dex adapters for kujira.
 - `ExecOnModule` calls now forward any provided funds to the module that is called.
-- Manager queries of standalone module versions will now return version of the contract from the Version Control storage instead of error  
+- Manager queries of standalone module versions will now return version of the contract from the Version Control storage instead of error
 
 ## [0.17.2] - 2023-07-27
 

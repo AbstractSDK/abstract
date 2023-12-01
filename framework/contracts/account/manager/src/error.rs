@@ -88,8 +88,8 @@ pub enum ManagerError {
     #[error("invalid configuration action, {}", error)]
     InvalidConfigAction { error: StdError },
 
-    #[error("Must use SetOwner to change owner")]
-    MustUseSetOwner {},
+    #[error("Must use ProposeOwner to change owner")]
+    MustUseProposeOwner {},
 
     #[error("The address {0} doesn't have an owner, the manager can't determine admin right")]
     NoContractOwner(String),
