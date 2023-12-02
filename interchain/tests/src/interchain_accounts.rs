@@ -74,12 +74,9 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 mod test {
 
     use abstract_app::mock::interface::MockAppInterface;
-    use abstract_app::mock::MockAppContract;
     use abstract_app::mock::MockInitMsg;
     use abstract_app::mock::MockQueryMsgFns;
     use abstract_app::mock::RecievedIbcCallbackStatus;
-    use abstract_app::mock::BASIC_MOCK_APP;
-    use abstract_app::mock::MOCK_APP;
     use abstract_core::ibc::CallbackInfo;
     use abstract_core::ibc_client::AccountResponse;
     use abstract_core::ibc_host::ExecuteMsg as HostExecuteMsg;
@@ -200,11 +197,11 @@ mod test {
         let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
 
         // We just verified all steps pass
-        let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
+        let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
 
-        let (origin_account, remote_account_id) =
+        let (origin_account, _remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
 
         let app = MockAppInterface::new(
