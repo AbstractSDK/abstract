@@ -21,10 +21,6 @@ flowchart LR
     end
 
     Owner -.-> Manager
-
-    style Owner fill: #161b25
-    style Manager fill: #161b25
-    style Proxy fill: #161b25
 ```
 
 The *owner* of the account, can configure the Abstract Account by sending messages to the manager contract. We don't

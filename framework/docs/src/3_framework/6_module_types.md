@@ -81,12 +81,6 @@ flowchart LR
     Adapter1 --> dex1([Osmosis])
     Adapter1 --> dex2([Wyndex])
     Adapter1 --> dex3([Astroport])
-    style App1 fill: #161b25
-    style App2 fill: #161b25
-    style Adapter1 fill: #161b25
-    style dex1 fill: #161b25
-    style dex2 fill: #161b25
-    style dex3 fill: #161b25
 ```
 
 <figcaption align = "center"><b>Two Accounts with the <code>abstract:etf</code> app module installed, using the <code>abstract:dex</code> adapter to interact with multiple dexes</b></figcaption>

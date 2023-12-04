@@ -118,11 +118,6 @@ flowchart LR
     end
 
     User[fa:fa-users Users] ==> Autocompounder
-    style User fill: #161b25
-    style Autocompounder fill: #161b25
-    style Staking fill: #161b25
-    style Dex fill: #161b25
-    style Account fill: #161b25
 ```
 
 Each solid-line arrow represents execution permissions of the autocompounder contract on the account. These permissions

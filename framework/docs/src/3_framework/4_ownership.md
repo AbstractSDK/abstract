@@ -21,8 +21,6 @@ automatically inserted as the owner.
 ```mermaid
 graph TD
     A[Single Account] -->|Controls| B(Abstract Account)
-    style A fill:#161b25
-    style B fill:#161b25
 ```
 
 ## Multi-signature
@@ -53,12 +51,6 @@ graph TD
     A -->|Controls| B(Abstract Account)
 
     B[Abstract Account]
- 
-    style A fill:#2c313d
-    style B fill:#161b25
-    style V1 fill:#161b25
-    style V2 fill:#161b25
-    style V3 fill:#161b25
 ```
 
 Let's look at an example to make it clear how this works.
