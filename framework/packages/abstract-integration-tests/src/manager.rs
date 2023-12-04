@@ -26,9 +26,7 @@ use abstract_core::objects::module_reference::ModuleReference;
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::AccountId;
 use abstract_core::version_control::UpdateModule;
-use abstract_core::ACCOUNT_FACTORY;
 use abstract_core::PROXY;
-use abstract_core::VERSION_CONTROL;
 use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
@@ -484,43 +482,42 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
         &[],
     )?;
     let ids = account.manager.sub_account_ids(None, None)?;
-    println!("ids: {ids:?}");
+    let sub_account_id = ids.sub_accounts[0];
+    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(sub_account_id)));
+    let sub_manager_addr = sub_account.manager.address()?;
+    let sub_proxy_addr = sub_account.proxy.address()?;
 
-    // let sub_account =
-    //     AbstractAccount::new(&deployment, Some(AccountId::local(ids.sub_accounts[0])));
-    // let sub_manager_addr = sub_account.manager.address()?;
-    // let sub_proxy_addr = sub_account.proxy.address()?;
+    let new_account = create_default_account(&deployment.account_factory)?;
+    let new_governance = GovernanceDetails::SubAccount {
+        manager: sub_manager_addr.to_string(),
+        proxy: sub_proxy_addr.to_string(),
+    };
+    new_account.manager.set_owner(new_governance.clone())?;
+    let new_account_manager = new_account.manager.address()?;
+    let new_account_id = new_account.id()?;
 
-    // let new_account = create_default_account(&deployment.account_factory)?;
-    // let new_governance = GovernanceDetails::SubAccount {
-    //     manager: sub_manager_addr.to_string(),
-    //     proxy: sub_proxy_addr.to_string(),
-    // };
-    // new_account.manager.set_owner(new_governance.clone())?;
-    // let new_account_manager = new_account.manager.address()?;
+    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(sub_account_id)));
+    sub_account
+        .proxy
+        .call_as(&sub_manager_addr)
+        .module_action(vec![wasm_execute(
+            new_account_manager,
+            &abstract_core::manager::ExecuteMsg::UpdateOwnership(
+                cw_ownable::Action::AcceptOwnership,
+            ),
+            vec![],
+        )?
+        .into()])?;
 
-    // let sub_account =
-    //     AbstractAccount::new(&deployment, Some(AccountId::local(ids.sub_accounts[0])));
-    // sub_account
-    //     .proxy
-    //     .call_as(&sub_manager_addr)
-    //     .module_action(vec![wasm_execute(
-    //         new_account_manager,
-    //         &abstract_core::manager::ExecuteMsg::UpdateOwnership(
-    //             cw_ownable::Action::AcceptOwnership,
-    //         ),
-    //         vec![],
-    //     )?
-    //     .into()])?;
+    // sub-accounts state updated
+    let sub_ids = sub_account.manager.sub_account_ids(None, None)?;
+    assert_eq!(sub_ids.sub_accounts, vec![new_account_id.seq()]);
 
-    // // sub-accounts state updated
-    // let sub_ids = sub_account.manager.sub_account_ids(None, None)?;
-    // assert_eq!(sub_ids.sub_accounts, vec![3]);
-
-    // // owner of new_account updated
-    // let new_account = AbstractAccount::new(&deployment, Some(AccountId::local(3)));
-    // let info = new_account.manager.info()?.info;
-    // assert_eq!(new_governance, info.governance_details.into());
+    // owner of new_account updated
+    let new_account =
+        AbstractAccount::new(&deployment, Some(AccountId::local(new_account_id.seq())));
+    let info = new_account.manager.info()?.info;
+    assert_eq!(new_governance, info.governance_details.into());
 
     Ok(())
 }
