@@ -30,8 +30,8 @@ pub mod interface {
     use abstract_interface::AdapterDeployer;
     use abstract_interface::Manager;
     use cosmwasm_std::{Decimal, Empty};
-    use cw_orch::{interface, build::BuildPostfix};
     use cw_orch::prelude::*;
+    use cw_orch::{build::BuildPostfix, interface};
 
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct DexAdapter<Chain>;
