@@ -48,16 +48,16 @@ pub mod mock {
         #[returns(MockQueryResponse)]
         GetSomething {},
 
-        #[returns(RecievedIbcCallbackStatus)]
-        GetRecievedIbcCallbackStatus {},
+        #[returns(ReceivedIbcCallbackStatus)]
+        GetReceivedIbcCallbackStatus {},
     }
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockQueryResponse {}
 
     #[cosmwasm_schema::cw_serde]
-    pub struct RecievedIbcCallbackStatus {
-        pub recieved: bool,
+    pub struct ReceivedIbcCallbackStatus {
+        pub received: bool,
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -111,12 +111,12 @@ pub mod mock {
     pub const BASIC_MOCK_APP: MockAppContract =
         MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
-    // Easy way to see if an ibc-callback was actually recieved.
-    pub const IBC_CALLBACK_RECIEVED: Item<bool> = Item::new("ibc_callback_recieved");
+    // Easy way to see if an ibc-callback was actually received.
+    pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
 
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
         .with_instantiate(|deps, _, _, _, _| {
-            IBC_CALLBACK_RECIEVED.save(deps.storage, &false)?;
+            IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
             Ok(Response::new().set_data("mock_init".as_bytes()))
         })
         .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
@@ -124,9 +124,9 @@ pub mod mock {
             MockQueryMsg::GetSomething {} => {
                 to_json_binary(&MockQueryResponse {}).map_err(Into::into)
             }
-            MockQueryMsg::GetRecievedIbcCallbackStatus {} => {
-                to_json_binary(&RecievedIbcCallbackStatus {
-                    recieved: IBC_CALLBACK_RECIEVED.load(deps.storage)?,
+            MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
+                to_json_binary(&ReceivedIbcCallbackStatus {
+                    received: IBC_CALLBACK_RECEIVED.load(deps.storage)?,
                 })
                 .map_err(Into::into)
             }
@@ -134,7 +134,7 @@ pub mod mock {
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
         .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _, _, _| {
-            IBC_CALLBACK_RECIEVED.save(deps.storage, &true).unwrap();
+            IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
             Ok(Response::new().set_data("mock_callback".as_bytes()))
         })])
         .with_replies(&[(1u64, |_, _, _, msg| {
