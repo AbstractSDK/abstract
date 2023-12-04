@@ -129,3 +129,15 @@ mod manager {
         account_move_ownership_to_sub_account(chain)
     }
 }
+
+mod account_factory {
+    use super::*;
+    use abstract_integration_tests::account_factory::create_one_account_with_namespace_fee;
+
+    #[test]
+    fn create_one_account_with_namespace_fee_after_migrate() -> anyhow::Result<()> {
+        let (abstr_deployment, chain) = setup()?;
+        abstr_deployment.migrate_if_needed()?;
+        create_one_account_with_namespace_fee(chain)
+    }
+}

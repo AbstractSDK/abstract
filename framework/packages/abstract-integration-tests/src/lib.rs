@@ -2,10 +2,10 @@
 //!
 //! This module contains testing functions that can be used in different environments.
 
+pub mod account_factory;
 pub mod manager;
 pub mod mock_modules;
 // pub mod proxy;
-// pub mod account_factory;
 
 use abstract_adapter::mock::MockInitMsg;
 use abstract_core::objects::{
