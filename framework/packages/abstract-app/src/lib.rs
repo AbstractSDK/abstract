@@ -57,7 +57,7 @@ pub mod mock {
 
     #[cosmwasm_schema::cw_serde]
     pub struct ReceivedIbcCallbackStatus {
-        pub recieved: bool,
+        pub received: bool,
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -111,8 +111,8 @@ pub mod mock {
     pub const BASIC_MOCK_APP: MockAppContract =
         MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
-    // Easy way to see if an ibc-callback was actually recieved.
-    pub const IBC_CALLBACK_RECIEVED: Item<bool> = Item::new("ibc_callback_recieved");
+    // Easy way to see if an ibc-callback was actually received.
+    pub const IBC_CALLBACK_RECIEVED: Item<bool> = Item::new("ibc_callback_received");
 
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
         .with_instantiate(|deps, _, _, _, _| {
@@ -126,7 +126,7 @@ pub mod mock {
             }
             MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
                 to_json_binary(&ReceivedIbcCallbackStatus {
-                    recieved: IBC_CALLBACK_RECIEVED.load(deps.storage)?,
+                    received: IBC_CALLBACK_RECIEVED.load(deps.storage)?,
                 })
                 .map_err(Into::into)
             }
