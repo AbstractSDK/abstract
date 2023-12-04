@@ -20,6 +20,7 @@ use abstract_interface::Abstract;
 use abstract_interface::AdapterDeployer;
 use abstract_interface::DeployStrategy;
 use abstract_interface::ExecuteMsgFns as InterfaceExecuteMsgFns;
+use abstract_testing::OWNER;
 use cosmwasm_std::Event;
 use cw_orch::deploy::Deploy;
 
@@ -323,27 +324,22 @@ fn account_action() -> anyhow::Result<()> {
 
 #[test]
 fn execute_action_with_account_creation() -> anyhow::Result<()> {
-    let sender = Addr::unchecked("sender");
-    let chain = Mock::new(&sender);
+    let admin = Addr::unchecked(OWNER);
+    let chain = Mock::new(&admin);
 
-    let admin = Addr::unchecked("admin");
-    let mut origin_chain = chain.clone();
-    origin_chain.set_sender(admin.clone());
-
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), admin.to_string())?;
-    let abstr_remote = Abstract::load_from(chain.clone())?;
+    let abstr = Abstract::deploy_on(chain.clone(), admin.to_string())?;
 
     let account_sequence = 1;
     let chain = "juno";
 
     // We need to set the sender as the proxy for juno chain
-    abstr_origin
+    abstr
         .ibc
         .host
-        .register_chain_proxy(chain.into(), sender.to_string())?;
+        .register_chain_proxy(chain.into(), admin.to_string())?;
 
     // We call the action
-    let account_action_response = abstr_remote
+    let account_action_response = abstr
         .ibc
         .host
         .ibc_execute(
@@ -361,7 +357,7 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("_contract_address", abstr_remote.account_factory.address()?)
+            .add_attribute("_contract_address", abstr.account_factory.address()?)
             .add_attribute("contract", ACCOUNT_FACTORY)
             .add_attribute("action", "create_account")
             .add_attribute("account_sequence", account_sequence.to_string())
@@ -380,15 +376,10 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 
 #[test]
 fn execute_send_all_back_action() -> anyhow::Result<()> {
-    let sender = Addr::unchecked("sender");
-    let chain = Mock::new(&sender);
+    let admin = Addr::unchecked(OWNER);
+    let chain = Mock::new(&admin);
 
-    let admin = Addr::unchecked("admin");
-    let mut origin_chain = chain.clone();
-    origin_chain.set_sender(admin.clone());
-
-    let abstr_origin = Abstract::deploy_on(origin_chain.clone(), admin.to_string())?;
-    let abstr_remote = Abstract::load_from(chain.clone())?;
+    let abstr = Abstract::deploy_on(chain.clone(), admin.to_string())?;
 
     let account_sequence = 1;
     let chain = "juno";
@@ -396,13 +387,13 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     let polytone_proxy = Addr::unchecked("polytone_proxy");
 
     // We need to set the sender as the proxy for juno chain
-    abstr_origin
+    abstr
         .ibc
         .host
         .register_chain_proxy(chain.into(), polytone_proxy.to_string())?;
 
     // Add the juno token ics20 channel.
-    abstr_origin.ans_host.update_channels(
+    abstr.ans_host.update_channels(
         vec![(
             UncheckedChannelEntry {
                 connected_chain: chain.to_owned(),
@@ -414,7 +405,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     )?;
 
     // We create the account
-    abstr_remote.ibc.host.call_as(&polytone_proxy).ibc_execute(
+    abstr.ibc.host.call_as(&polytone_proxy).ibc_execute(
         AccountId::local(account_sequence),
         HostAction::Internal(InternalAction::Register {
             name: "Abstract remote account 1".to_string(),
@@ -428,7 +419,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     )?;
 
     // We call the action and verify that it completes without issues.
-    let account_action_response = abstr_remote.ibc.host.call_as(&polytone_proxy).ibc_execute(
+    let account_action_response = abstr.ibc.host.call_as(&polytone_proxy).ibc_execute(
         AccountId::local(account_sequence),
         HostAction::Helpers(abstract_core::ibc_host::HelperAction::SendAllBack {}),
         "proxy_address".to_string(),
