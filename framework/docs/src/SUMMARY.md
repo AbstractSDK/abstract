@@ -5,7 +5,7 @@
 # Framework
 ---
 
-- [Prerequisites](./3_framework/0_prerequisites.md)
+- [Prerequisites](./3_framework/0_technologies.md)
 - [Abstract SDK](./3_framework/1_abstract_sdk.md)
 - [Account Abstraction](./3_framework/2_account_abstraction.md)
 - [Architecture](./3_framework/3_architecture.md)
