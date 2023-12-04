@@ -30,7 +30,7 @@ pub mod interface {
     use abstract_interface::AdapterDeployer;
     use abstract_interface::Manager;
     use cosmwasm_std::{Decimal, Empty};
-    use cw_orch::interface;
+    use cw_orch::{interface, build::BuildPostfix};
     use cw_orch::prelude::*;
 
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
@@ -48,13 +48,12 @@ pub mod interface {
             ))
         }
         fn wasm(&self) -> WasmPath {
-            todo!()
-            // artifacts_dir_from_workspace!()
-            //     .find_wasm_path_with_build_postfix(
-            //         "abstract_dex_adapter",
-            //         BuildPostfix::<Chain>::ChainName(self.get_chain()),
-            //     )
-            //     .unwrap()
+            artifacts_dir_from_workspace!()
+                .find_wasm_path_with_build_postfix(
+                    "abstract_dex_adapter",
+                    BuildPostfix::<Chain>::ChainName(self.get_chain()),
+                )
+                .unwrap()
         }
     }
 
