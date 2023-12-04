@@ -76,7 +76,7 @@ mod test {
     use abstract_app::mock::interface::MockAppInterface;
     use abstract_app::mock::MockInitMsg;
     use abstract_app::mock::MockQueryMsgFns;
-    use abstract_app::mock::RecievedIbcCallbackStatus;
+    use abstract_app::mock::ReceivedIbcCallbackStatus;
     use abstract_core::ibc::CallbackInfo;
     use abstract_core::ibc_client::AccountResponse;
     use abstract_core::ibc_host::ExecuteMsg as HostExecuteMsg;
@@ -264,11 +264,11 @@ mod test {
     }
 
     fn assert_callback_status(app: &MockAppInterface<Mock>, status: bool) -> AnyResult<()> {
-        let get_recieved_ibc_callback_status_res: RecievedIbcCallbackStatus =
+        let get_recieved_ibc_callback_status_res: ReceivedIbcCallbackStatus =
             app.get_recieved_ibc_callback_status()?;
 
         assert_eq!(
-            RecievedIbcCallbackStatus { recieved: status },
+            ReceivedIbcCallbackStatus { recieved: status },
             get_recieved_ibc_callback_status_res
         );
         Ok(())

@@ -48,15 +48,15 @@ pub mod mock {
         #[returns(MockQueryResponse)]
         GetSomething {},
 
-        #[returns(RecievedIbcCallbackStatus)]
-        GetRecievedIbcCallbackStatus {},
+        #[returns(ReceivedIbcCallbackStatus)]
+        GetReceivedIbcCallbackStatus {},
     }
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockQueryResponse {}
 
     #[cosmwasm_schema::cw_serde]
-    pub struct RecievedIbcCallbackStatus {
+    pub struct ReceivedIbcCallbackStatus {
         pub recieved: bool,
     }
 
@@ -124,8 +124,8 @@ pub mod mock {
             MockQueryMsg::GetSomething {} => {
                 to_json_binary(&MockQueryResponse {}).map_err(Into::into)
             }
-            MockQueryMsg::GetRecievedIbcCallbackStatus {} => {
-                to_json_binary(&RecievedIbcCallbackStatus {
+            MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
+                to_json_binary(&ReceivedIbcCallbackStatus {
                     recieved: IBC_CALLBACK_RECIEVED.load(deps.storage)?,
                 })
                 .map_err(Into::into)
