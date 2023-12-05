@@ -159,8 +159,8 @@ where
         self.approve_or_reject_modules(
             proposed_abstract_modules
                 .modules
-                .iter()
-                .map(|m| m.module.info.clone())
+                .into_iter()
+                .map(|m| m.module.info)
                 .collect(),
             vec![],
         )?;
