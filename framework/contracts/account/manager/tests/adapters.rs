@@ -644,7 +644,7 @@ fn subaccount_adapter_ownership() -> AResult {
 
 mod old_mock {
     use super::*;
-    use crate::common::mock_modules::{self, BootMockApp1V2};
+    use crate::common::mock_modules;
     use abstract_adapter::gen_adapter_old_mock;
     use mock_modules::adapter_1::MOCK_ADAPTER_ID;
 

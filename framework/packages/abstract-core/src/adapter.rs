@@ -97,6 +97,7 @@ impl<Request: Serialize> AdapterRequestMsg<Request> {
     }
 }
 
+// We need serde attributes to remain compatible with previous version
 #[cosmwasm_schema::cw_serde]
 pub struct BaseExecuteMsg {
     /// The Proxy address for which to apply the configuration
