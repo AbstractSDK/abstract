@@ -102,8 +102,10 @@ pub struct BaseExecuteMsg {
     /// The Proxy address for which to apply the configuration
     /// If None, the sender must be an Account manager and the configuration is applied to its associated proxy.
     /// If Some, the sender must be a direct or indirect owner (through sub-accounts) of the specified proxy.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub proxy_address: Option<String>,
     // The actual base message
+    #[serde(flatten)]
     pub msg: AdapterBaseMsg,
 }
 
@@ -154,4 +156,28 @@ pub struct AdapterConfigResponse {
 pub struct AuthorizedAddressesResponse {
     /// Contains all authorized addresses
     pub addresses: Vec<Addr>,
+}
+
+#[cfg(test)]
+mod tests {
+    use cosmwasm_std::to_json_binary;
+
+    use super::*;
+
+    type AdapterExecuteMsg = ExecuteMsg<Empty>;
+    type PreviousAdapterExecuteMsg = MiddlewareExecMsg<AdapterBaseMsg, Empty>;
+
+    #[test]
+    fn compatible_msg() {
+        let msg = to_json_binary(&AdapterExecuteMsg::Base(BaseExecuteMsg {
+            proxy_address: None,
+            msg: AdapterBaseMsg::Remove {},
+        }))
+        .unwrap();
+
+        let previous_msg =
+            to_json_binary(&PreviousAdapterExecuteMsg::Base(AdapterBaseMsg::Remove {})).unwrap();
+
+        assert_eq!(msg, previous_msg);
+    }
 }
