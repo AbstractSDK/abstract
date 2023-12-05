@@ -63,7 +63,14 @@ pub fn execute_ibc_action(
         })?;
     let client_msgs: Result<Vec<_>, _> = msgs
         .into_iter()
-        .map(|execute_msg| wasm_execute(&ibc_client_address, &execute_msg, vec![]))
+        .map(|execute_msg| {
+            let funds_to_send = if let IbcClientMsg::SendFunds { funds, .. } = &execute_msg {
+                funds.to_vec()
+            } else {
+                vec![]
+            };
+            wasm_execute(&ibc_client_address, &execute_msg, funds_to_send)
+        })
         .collect();
 
     Ok(ProxyResponse::action("execute_ibc_action").add_messages(client_msgs?))
@@ -396,7 +403,7 @@ mod test {
     mod execute_ibc {
         use abstract_core::{manager, proxy::state::State};
         use abstract_testing::{prelude::TEST_MANAGER, MockQuerierBuilder};
-        use cosmwasm_std::{to_json_binary, SubMsg};
+        use cosmwasm_std::{coins, to_json_binary, SubMsg};
 
         use super::*;
 
@@ -451,6 +458,58 @@ mod test {
                     })
                     .unwrap(),
                     funds: vec![],
+                },
+            )));
+        }
+
+        #[test]
+        fn send_funds() {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+            // whitelist creator
+            STATE
+                .save(
+                    &mut deps.storage,
+                    &State {
+                        modules: vec![Addr::unchecked(TEST_MANAGER)],
+                    },
+                )
+                .unwrap();
+
+            let funds = coins(10, "denom");
+            let msg = ExecuteMsg::IbcAction {
+                msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendFunds {
+                    host_chain: "juno".to_owned(),
+                    funds: funds.clone(),
+                }],
+            };
+
+            let not_whitelisted_info = mock_info(TEST_MANAGER, &[]);
+            execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
+
+            let manager_info = mock_info(TEST_MANAGER, &[]);
+            // ibc not enabled
+            execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
+            // mock enabling ibc
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_map_entry(
+                    TEST_MANAGER,
+                    manager::state::ACCOUNT_MODULES,
+                    (IBC_CLIENT, Addr::unchecked("ibc_client_addr")),
+                )
+                .build();
+
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
+            assert_that(&res.messages).has_length(1);
+            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
+                cosmwasm_std::WasmMsg::Execute {
+                    contract_addr: "ibc_client_addr".into(),
+                    msg: to_json_binary(&abstract_core::ibc_client::ExecuteMsg::SendFunds {
+                        host_chain: "juno".into(),
+                        funds: funds.clone(),
+                    })
+                    .unwrap(),
+                    funds,
                 },
             )));
         }

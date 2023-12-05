@@ -63,6 +63,8 @@ cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.19.2", path = "../framework/packages/abstract-sdk" }
 abstract-core = { version = "0.19.2", path = "../framework/packages/abstract-core" }
+abstract-app = { version = "0.19.2", path = "../framework/packages/abstract-app" }
+abstract-testing = { version = "0.19.2", path = "../framework/packages/abstract-testing" }
 
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat", features = [

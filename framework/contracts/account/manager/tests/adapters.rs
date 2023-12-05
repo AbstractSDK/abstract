@@ -544,7 +544,7 @@ fn subaccount_adapter_ownership() -> AResult {
         &[],
     )?;
 
-    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+    let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
 
     let module = sub_account
         .manager
