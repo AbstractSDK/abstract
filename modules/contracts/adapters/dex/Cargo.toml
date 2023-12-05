@@ -2,7 +2,7 @@
 name = "abstract-dex-adapter"
 description = "The DEX adapter is an Abstract adapter for interacting with usual DEX commands. It provides a common interface for all DEXes"
 
-version = { workspace = true }
+version = "0.19.3"
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
