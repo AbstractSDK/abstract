@@ -16,7 +16,6 @@ use cosmwasm_std::{coin, coins};
 use cosmwasm_std::{Addr, Coin, Empty};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
-// use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 use crate::common::mock_modules::{adapter_1, BootMockAdapter1V1, BootMockAdapter1V2, V1, V2};
@@ -641,4 +640,36 @@ fn subaccount_adapter_ownership() -> AResult {
         })
     );
     Ok(())
+}
+
+mod old_mock {
+    use super::*;
+    use crate::common::mock_modules::{self, BootMockApp1V2};
+    use abstract_adapter::gen_adapter_old_mock;
+    use mock_modules::adapter_1::MOCK_ADAPTER_ID;
+
+    gen_adapter_old_mock!(OldMockAdapter1V1, MOCK_ADAPTER_ID, "1.0.0", &[]);
+
+    #[test]
+    fn old_adapters_migratable() -> AResult {
+        let sender = Addr::unchecked(OWNER);
+        let chain = Mock::new(&sender);
+        let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+        let account = create_default_account(&deployment.account_factory)?;
+
+        deployment
+            .version_control
+            .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
+
+        let old = OldMockAdapter1V1::new_test(chain.clone());
+        old.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
+
+        account.install_adapter(&old, None)?;
+
+        let new = BootMockAdapter1V2::new_test(chain.clone());
+        new.deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
+
+        account.manager.upgrade_module(MOCK_ADAPTER_ID, &Empty {})?;
+        Ok(())
+    }
 }
