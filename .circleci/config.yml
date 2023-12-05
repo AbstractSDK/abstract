@@ -25,14 +25,14 @@ workflows:
   version: 2
   build-and-commit:
     when:
-      equal: [ "build_wasms", << pipeline.parameters.GHA_Meta >>]
+      equal: ["build_wasms", << pipeline.parameters.GHA_Meta >>]
     jobs:
       - build
-              
+
   modules-coverage:
-    when: 
-      equal: [ "modules_coverage", << pipeline.parameters.GHA_Meta >>]
-    jobs: 
+    when:
+      equal: ["modules_coverage", << pipeline.parameters.GHA_Meta >>]
+    jobs:
       - coverage
   # add this to give green ci when nothing is ran
   pass:
@@ -42,7 +42,7 @@ workflows:
   build-commit-deploy:
     when:
       equal: ["build_commit_deploy", << pipeline.parameters.GHA_Meta >>]
-    jobs: 
+    jobs:
       - build
       - deploy:
           requires:
@@ -85,13 +85,16 @@ jobs:
     resource_class: large
     steps:
       - checkout
+      - restore_cache:
+        keys:
+          - cargocache-v2-deploy-rust:1.72.0-{{ checksum "Cargo.toml" }}
       - run:
-          name: Decode and Deploy 
+          name: Decode and Deploy
           command: |
             decoded_value=$(echo "$TEST_MNEMONIC_BASE64" | base64 --decode)
             export TEST_MNEMONIC="$decoded_value"
             cd framework
-            cargo run --bin full_deploy -- --network-ids $NETWORKS 
+            cargo run --bin full_deploy -- --network-ids $NETWORKS
       - run:
           name: Commit and push deploy file
           command: |
@@ -109,6 +112,13 @@ jobs:
             git add ./framework/scripts/state.json
             git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
+      - save_cache:
+          paths:
+            - /usr/local/cargo/registry
+            - framework/target/debug/.fingerprint
+            - framework/target/debug/build
+            - framework/target/debug/deps
+          key: cargocache-v2-deploy-rust:1.72.0-{{ checksum "Cargo.toml" }}
 
   coverage:
     docker:
@@ -125,10 +135,10 @@ jobs:
       - codecov/upload:
           file: ./modules/lcov.info
 
-  pass: 
+  pass:
     docker:
-    # Primary container image where all steps run
-     - image: cimg/base:2022.05
+      # Primary container image where all steps run
+      - image: cimg/base:2022.05
     steps:
       - run:
           name: Pass
