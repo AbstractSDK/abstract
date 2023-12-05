@@ -92,4 +92,4 @@ here</a>.
 
 ## Hosting Layer
 
-The last component in the Abstract stack is the hosting layer. This is the layer that actually host the CosmWasm VM in which the smart-contracts run. Currently the <a href="https://v1.cosmos.network/" target="_blank">Cosmos-SDK</a> is the only officially supported hosting layer, but we are working on adding support for other hosting layers as they roll out.
+The last component in the Abstract stack is the hosting layer. This is the layer that actually hosts the CosmWasm VM in which the smart-contracts run. Currently the <a href="https://v1.cosmos.network/" target="_blank">Cosmos-SDK</a> is the only officially supported hosting layer, but we are working on adding support for other hosting layers as they roll out.

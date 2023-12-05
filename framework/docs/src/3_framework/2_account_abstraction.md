@@ -4,18 +4,15 @@ Abstract uses Account Abstraction as a conceptual framework for building smart-c
 
 ## What is Account Abstraction?
 
-In traditional blockchain interactions, a transaction is typically initiated by a user signing some data with
-their private key and transmitting that data (and its signature) to an endpoint for validation. Account abstraction modifies this process by
-making the transaction initiation and validation programmable. Essentially, it allows the transaction logic to be
-customized within a smart-contract, vastly extending the scope of UX possibilities.
+In traditional blockchain interactions, a transaction is typically initiated by a user signing some data with their private key and transmitting that data (and its signature) to an endpoint for validation. Account abstraction modifies this process by making the transaction initiation and validation programmable. Essentially, it allows the transaction logic to be customized within a smart-contract, vastly extending the scope of UX possibilities.
 
-The Abstract SDK provides what we call an **Abstract Account**, an extensible smart-contract wallet capable of holding
-tokens and interacting with other smart contracts. The ownership structure of the Abstract Account is customizable to
-fit the needs of our users and our developer's use-cases.
+The Abstract SDK provides what we call an **Abstract Account**, an extensible smart-contract wallet capable of holding tokens and interacting with other smart contracts. The ownership structure of an Abstract Account is customizable to fit your use-case.
 
 ```admonish info
 See <a href="https://eips.ethereum.org/EIPS/eip-4337" target="_blank">EIP-4337</a> to read about account abstraction in the Ethereum ecosystem.
 ```
+
+In the next section we'll dig into the architecture of Abstract Accounts.
 
 <!-- This concept of account abstraction can provide numerous benefits:
 

@@ -20,31 +20,23 @@ flowchart LR
     Owner -.-> Manager
 ```
 
-The *owner* of the account, can configure the Abstract Account by sending messages to the manager contract. We don't
-make any assumptions about the nature of this owner, it can be a wallet, multi-sig or any other ownership structure,
-allowing you
-to customize your Abstract Account's ownership to fit your needs.
+As shown in the image above, an *owner* of an account, can configure his Abstract Account by sending messages to the manager contract. We don't make any assumptions about the nature of this owner, it can be a wallet, multi-sig or any other ownership structure, allowing you to customize your ownership structure to fit your needs.
 
 ```admonish info
-You can read up on the different ownership structures in our [Ownership](./4_ownership.md) section.
+You can read up on the different ownership structures that we explicitly support in our [Ownership](./4_ownership.md) section.
 ```
 
-The account's architecture centers around **configurable programmability**. In other words, how can one configure the
-account (install applications, set permissions, etc.) to enable users and developers to easily customize it to do what
-they want?
+The account's architecture centers around **configurable programmability**. In other words, how can one configure the account (install applications, set permissions, etc.) to enable users and developers to easily customize it to do what they want?
 
 Let's dive deeper into the two components of the Abstract Account.
 
 ### Manager Contract
 
-The *Manager* is responsible for the account's configuration and security, serving as the controller of the Abstract
-Account. It is responsible for the account's important operations, including:
+The *Manager* is responsible for the account's configuration and security, serving as the controller of the Abstract Account. It is responsible for the account's important operations, including:
 
-- **Owner Authentication** 🔐: Authenticating privileged calls and ensuring only approved entities can interact with the
-  account.
+- **Authentication** 🔐: Authenticating privileged calls and ensuring only approved entities can interact with the account.
 
-- **Application Management** 📦: Managing and storing information about the applications installed on the account, their
-  inter-dependencies, permissions and configurations.
+- **Application Management** 📦: Managing and storing information about the applications installed on the account, their inter-dependencies, permissions and configurations.
 
 - **Account Details** 📄: Storing the account's details, such as its name, description, and other relevant information.
 

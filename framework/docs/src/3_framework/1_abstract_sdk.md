@@ -89,10 +89,10 @@ We'll dive deeper into the Abstract SDK's APIs in the [Build With Abstract](../4
 
 Our base contracts are generic CosmWasm contract implementations that:
 
-- Already have some state and functionality implemented.
-- Can be extended and composed by implementing your custom logic into them.
+- Have some state and functionality already implemented.
+- Can be extended and composed by appending your custom logic to them.
 
-Think of these bases as the foundation for building your application using the Abstract SDK. There are different
+Think of each of these bases as a foundation for building your application using the Abstract SDK. There are different
 types of bases available, each tailored for specific needs and functionalities.
 
 - <a href="https://crates.io/crates/abstract-app" target="_blank">App</a>
@@ -104,7 +104,7 @@ section.
 ## Example: Autocompounder
 
 Let's take a look at what an `Autocompounder` app built with the Abstract SDK would look like. This `Autocompounder` has
-a dependency on two contracts, a `Dex` and `Staking` contract. The dependency tree would look like this:
+a dependency on two contracts, a `Dex` and `Staking` contract. Drawing out the architecture would result in something like this:
 
 ```mermaid
 flowchart LR
@@ -120,18 +120,12 @@ flowchart LR
     User[fa:fa-users Users] ==> Autocompounder
 ```
 
-Each solid-line arrow represents execution permissions of the autocompounder contract on the account. These permissions
-allow the autocompounder contract to move funds, interact with other contracts through the account, and perform other
-actions. It does this by sending messages to the account, which then executes them on behalf of the autocompounder
+For now, just know that the "account" is a smart-contract that holds funds. Each solid arrow represents permissions to access funds within the account. These permissions
+allow the contracts to move funds, interact with other contracts through the account, and perform other
+actions. It does this by sending messages to the account, which then executes them on behalf of the
 contract. This is the basic idea behind account abstraction and is further elaborated in on
-the [account abstraction](./2_account_abstraction.md) page.
+the [account abstraction](./2_account_abstraction.md) page. Don't let this logic distract you too much, we will elaborate on it further in the docs. For now, let's focus on the dotted arrows.
 
-Each dotted arrow indicates a dependency between the contracts. These dependencies are explicitly defined in the
-autocompounder contract and are asserted when the contract is created. In this example the autocompounder contract is able
-to access
-special functionality (like swapping or staking assets) from its dependencies (the dex and staking contract). Through
-this mechanism, a major reduction in the application's amount of code and complexity is achieved.
+Each dotted arrow indicates a dependency between contracts. These dependencies are explicitly defined in the contract that takes on the dependencies and are asserted when the contract is created. In this example the Autocompounder contract is able to access special functionality (like swapping or staking assets) from its dependencies (the dex and staking contract). Through this mechanism, a major reduction in the application's amount of code and complexity is achieved.
 
-From a developer ecosystem standpoint, this modular approach encourages collaboration and
-cross-team code re-use, a practice that has been proven to accelerate development and increase developers' productivity.
-As the saying goes, *a rising tide lifts all boats.*
+From a developer ecosystem standpoint, this modular approach encourages collaboration and cross-team code re-use, a practice that has been proven to accelerate development and increase developers' productivity.
