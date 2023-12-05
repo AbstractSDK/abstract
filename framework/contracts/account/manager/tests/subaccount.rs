@@ -2,10 +2,11 @@ mod common;
 
 use abstract_core::manager::SubAccountIdsResponse;
 use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
+use abstract_core::PROXY;
 
 use abstract_interface::*;
 use common::*;
-use cosmwasm_std::{wasm_execute, Addr};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr};
 use cw_orch::contract::Deploy;
 use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
@@ -424,5 +425,45 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
     let err = new_account.manager.set_owner(new_governance).unwrap_err();
     let err = err.root().to_string();
     assert!(err.contains("manager and proxy has different account ids"));
+    Ok(())
+}
+
+#[test]
+fn account_updated_to_subaccount() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    // Creating account1
+    let account = create_default_account(&deployment.account_factory)?;
+    let proxy1_addr = account.proxy.address()?;
+    let manager1_addr = account.manager.address()?;
+
+    // Creating account2
+    let account = create_default_account(&deployment.account_factory)?;
+    let manager2_addr = account.manager.address()?;
+
+    // Setting account1 as pending owner of account2
+    account.manager.set_owner(GovernanceDetails::SubAccount {
+        manager: manager1_addr.to_string(),
+        proxy: proxy1_addr.to_string(),
+    })?;
+    account.manager.set_address(&manager1_addr);
+    account.proxy.set_address(&proxy1_addr);
+
+    // account1 accepting account2 as a sub-account
+    let accept_msg =
+        abstract_core::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+    account.manager.exec_on_module(
+        to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+            msgs: vec![wasm_execute(manager2_addr, &accept_msg, vec![])?.into()],
+        })?,
+        PROXY.to_owned(),
+        &[],
+    )?;
+
+    // Check manager knows about his new sub-account
+    let ids = account.manager.sub_account_ids(None, None)?;
+    assert_eq!(ids.sub_accounts.len(), 1);
     Ok(())
 }
