@@ -4,7 +4,6 @@ use crate::init_mock_adapter;
 use crate::install_adapter;
 use crate::install_adapter_with_funds;
 use crate::install_module_version;
-use crate::mock_modules::app_1::*;
 use crate::mock_modules::standalone_cw2;
 use crate::mock_modules::*;
 use crate::AResult;
@@ -40,6 +39,15 @@ use cw_orch::environment::MutCwEnv;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
+mod mock_app {
+    use abstract_app::gen_app_mock;
+
+    pub const APP_ID: &str = "tester:app";
+    pub const APP_VERSION: &str = "1.0.0";
+    gen_app_mock!(MockApp, APP_ID, APP_VERSION, &[]);
+}
+use mock_app::*;
+
 /// Test installing an app on an account
 pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
@@ -47,16 +55,12 @@ pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
 
     deployment
         .version_control
-        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
+        .claim_namespace(account.id()?, "tester".to_owned())?;
 
-    let app = BootMockApp1V1::new_test(chain.clone());
-    BootMockApp1V1::deploy(&app, V1.parse().unwrap(), DeployStrategy::Try)?;
+    let app = MockApp::new_test(chain.clone());
+    MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
     let app_addr = account.install_app(&app, &MockInitMsg, None)?;
-    let module_addr = account
-        .manager
-        .module_info(app_1::MOCK_APP_ID)?
-        .unwrap()
-        .address;
+    let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
     assert_that!(app_addr).is_equal_to(module_addr);
     Ok(())
 }
