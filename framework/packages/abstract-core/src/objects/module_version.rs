@@ -79,10 +79,12 @@ pub fn assert_contract_upgrade(
     to_contract: impl ToString,
     to_version: Version,
 ) -> Result<(), AbstractError> {
+    dbg!("hey");
     let ContractVersion {
         version: from_version,
         contract,
-    } = get_contract_version(storage)?;
+    } = cw2::CONTRACT.load(storage)?;
+    dbg!("not hey");
 
     let to_contract = to_contract.to_string();
 

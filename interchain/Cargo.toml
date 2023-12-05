@@ -56,9 +56,9 @@ polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
 polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
 
 # TODO; Set tag!
-cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "update/add-bank-and-mut-traits" }
-cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "update/add-bank-and-mut-traits" }
-cw-orch-fork-mock = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "update/add-bank-and-mut-traits" }
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "update/add-rust-contracts" }
+cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "update/add-rust-contracts" }
+cw-orch-fork-mock = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "update/add-rust-contracts" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
@@ -89,9 +89,9 @@ speculoos = "0.11.0"
 anyhow = "1"
 
 [patch.crates-io]
-cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/bank-querier", version = "0.18.0" }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/bank-querier", version = "0.18.0" }
-cw-orch-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/bank-querier", version = "0.18.0" }
+cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "update/add-readonly-flag-daemon-state", version = "0.18.0" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "update/add-readonly-flag-daemon-state", version = "0.18.0" }
+cw-orch-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "update/add-readonly-flag-daemon-state", version = "0.18.0" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
