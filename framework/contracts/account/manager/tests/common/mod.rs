@@ -2,11 +2,7 @@
 
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::namespace::Namespace;
-pub use abstract_testing::addresses::TEST_OWNER;
 
-pub const OWNER: &str = TEST_OWNER;
-
-use ::abstract_manager::contract::CONTRACT_VERSION;
 use abstract_adapter::mock::{BootMockAdapter, MockInitMsg};
 use abstract_core::version_control::AccountBase;
 use abstract_core::{objects::gov_type::GovernanceDetails, PROXY};
@@ -16,7 +12,8 @@ use abstract_interface::{
     Proxy, VCExecFns, VersionControl,
 };
 use abstract_interface::{AbstractAccount, AdapterDeployer};
-use abstract_testing::prelude::{TEST_MODULE_NAME, TEST_NAMESPACE};
+use abstract_manager::contract::CONTRACT_VERSION;
+use abstract_testing::prelude::*;
 use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 use semver::Version;

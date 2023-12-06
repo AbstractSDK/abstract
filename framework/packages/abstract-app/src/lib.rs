@@ -21,7 +21,9 @@ pub mod mock {
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{to_json_binary, Response, StdError};
+    use cw_controllers::AdminError;
     use cw_orch::prelude::*;
+    use cw_storage_plus::Item;
 
     pub type AppTestResult = Result<(), MockError>;
 
@@ -35,6 +37,7 @@ pub mod mock {
     #[impl_into(ExecuteMsg)]
     pub enum MockExecMsg {
         DoSomething {},
+        DoSomethingAdmin {},
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -44,10 +47,18 @@ pub mod mock {
     pub enum MockQueryMsg {
         #[returns(MockQueryResponse)]
         GetSomething {},
+
+        #[returns(ReceivedIbcCallbackStatus)]
+        GetReceivedIbcCallbackStatus {},
     }
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockQueryResponse {}
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct ReceivedIbcCallbackStatus {
+        pub received: bool,
+    }
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockMigrateMsg;
@@ -81,6 +92,9 @@ pub mod mock {
 
         #[error("{0}")]
         AbstractSdk(#[from] AbstractSdkError),
+
+        #[error("{0}")]
+        Admin(#[from] AdminError),
     }
 
     pub type MockAppContract = AppContract<
@@ -97,13 +111,30 @@ pub mod mock {
     pub const BASIC_MOCK_APP: MockAppContract =
         MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
+    // Easy way to see if an ibc-callback was actually received.
+    pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
+
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
-        .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
+        .with_instantiate(|deps, _, _, _, _| {
+            IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
+            Ok(Response::new().set_data("mock_init".as_bytes()))
+        })
         .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-        .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into))
+        .with_query(|deps, _, _, msg| match msg {
+            MockQueryMsg::GetSomething {} => {
+                to_json_binary(&MockQueryResponse {}).map_err(Into::into)
+            }
+            MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
+                to_json_binary(&ReceivedIbcCallbackStatus {
+                    received: IBC_CALLBACK_RECEIVED.load(deps.storage)?,
+                })
+                .map_err(Into::into)
+            }
+        })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
+        .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _, _, _| {
+            IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
             Ok(Response::new().set_data("mock_callback".as_bytes()))
         })])
         .with_replies(&[(1u64, |_, _, _, msg| {
@@ -180,6 +211,15 @@ pub mod mock {
         type Migrate = app::MigrateMsg<MockMigrateMsg>;
         const MOCK_APP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
         .with_dependencies($deps)
+        .with_execute(|deps, _env, info, module, msg| {
+            match msg {
+                MockExecMsg::DoSomethingAdmin{} => {
+                    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+                },
+                _ => {},
+            }
+            Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
+        })
         .with_instantiate(|deps, _env, info, module, msg| {
             let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());
             // See test `create_sub_account_with_installed_module` where this will be triggered.

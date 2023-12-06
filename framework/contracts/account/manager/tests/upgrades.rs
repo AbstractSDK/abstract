@@ -23,9 +23,11 @@ use abstract_interface::{
 use abstract_integration_tests::{install_module_version, mock_modules::*};
 
 use abstract_manager::error::ManagerError;
-use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
-use common::*;
-use cosmwasm_std::{coin, to_json_binary};
+use abstract_testing::prelude::*;
+
+use common::mock_modules::*;
+use common::{create_default_account, AResult};
+use cosmwasm_std::{coin, coins, to_json_binary, Uint128};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
@@ -33,7 +35,7 @@ use speculoos::prelude::*;
 
 #[test]
 fn install_app_successful() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -73,7 +75,7 @@ fn install_app_successful() -> AResult {
 
 #[test]
 fn install_app_versions_not_met() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -100,7 +102,7 @@ fn install_app_versions_not_met() -> AResult {
 
 #[test]
 fn upgrade_app() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -270,7 +272,7 @@ fn upgrade_app() -> AResult {
 
 #[test]
 fn uninstall_modules() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::uninstall_modules(chain)
@@ -278,7 +280,7 @@ fn uninstall_modules() -> AResult {
 
 #[test]
 fn update_adapter_with_authorized_addrs() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::update_adapter_with_authorized_addrs(
@@ -289,7 +291,7 @@ fn update_adapter_with_authorized_addrs() -> AResult {
 
 /*#[test]
 fn upgrade_manager_last() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -350,7 +352,7 @@ fn upgrade_manager_last() -> AResult {
 
 #[test]
 fn no_duplicate_migrations() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
@@ -393,7 +395,7 @@ fn no_duplicate_migrations() -> AResult {
 
 #[test]
 fn create_account_with_installed_module() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
@@ -484,7 +486,7 @@ fn create_account_with_installed_module() -> AResult {
 
 #[test]
 fn create_sub_account_with_installed_module() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::create_sub_account_with_modules_installed(chain)
@@ -492,7 +494,7 @@ fn create_sub_account_with_installed_module() -> AResult {
 
 #[test]
 fn create_account_with_installed_module_and_monetization() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     // Adding coins to fill monetization
     chain.add_balance(&sender, vec![coin(10, "coin1"), coin(10, "coin2")])?;
@@ -636,7 +638,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
 
 #[test]
 fn create_account_with_installed_module_and_monetization_should_fail() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     // Adding coins to fill monetization
     chain.add_balance(&sender, vec![coin(10, "coin1"), coin(10, "coin2")])?;
@@ -751,7 +753,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
 
 #[test]
 fn create_account_with_installed_module_and_init_funds() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     // Adding coins to fill monetization
     chain.add_balance(&sender, vec![coin(15, "coin1"), coin(10, "coin2")])?;
@@ -894,7 +896,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
 
 #[test]
 fn create_account_with_installed_module_monetization_and_init_funds() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::create_account_with_installed_module_monetization_and_init_funds(chain, ("coin1", "coin2"))
@@ -903,7 +905,7 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
 // See gen_app_mock for more details
 #[test]
 fn install_app_with_proxy_action() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::install_app_with_proxy_action(chain)

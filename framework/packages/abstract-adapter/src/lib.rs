@@ -27,9 +27,7 @@ pub mod mock {
         objects::dependency::StaticDependency,
     };
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
-    use abstract_testing::prelude::{
-        TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
-    };
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
         to_json_binary, DepsMut, Empty, Response, StdError,
@@ -38,6 +36,8 @@ pub mod mock {
     use thiserror::Error;
 
     use abstract_interface::AdapterDeployer;
+
+    crate::adapter_msg_types!(MockAdapterContract, MockExecMsg, MockQueryMsg);
 
     pub const TEST_METADATA: &str = "test_metadata";
     pub const TEST_AUTHORIZED_ADDRESS: &str = "test_authorized_address";
@@ -63,12 +63,8 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockExecMsg;
 
-    impl abstract_core::adapter::AdapterExecuteMsg for MockExecMsg {}
-
     #[cosmwasm_schema::cw_serde]
     pub struct MockQueryMsg;
-
-    impl abstract_core::adapter::AdapterQueryMsg for MockQueryMsg {}
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockReceiveMsg;
@@ -109,7 +105,7 @@ pub mod mock {
 
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
         let adapter = MOCK_ADAPTER;
-        let info = mock_info(TEST_ADMIN, &[]);
+        let info = mock_info(OWNER, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
@@ -124,7 +120,7 @@ pub mod mock {
         deps: DepsMut,
         adapter: MockAdapterContract,
     ) -> Result<Response, MockError> {
-        let info = mock_info(TEST_ADMIN, &[]);
+        let info = mock_info(OWNER, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
@@ -168,7 +164,8 @@ pub mod mock {
         use ::cw_orch::environment::CwEnv;
 
         const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
-        .with_dependencies($deps);
+        .with_dependencies($deps)
+        .with_execute(|_, _, _, _, _| Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes())));
 
         fn instantiate(
             deps: ::cosmwasm_std::DepsMut,

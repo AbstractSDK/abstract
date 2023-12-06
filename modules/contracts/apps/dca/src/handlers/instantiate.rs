@@ -14,8 +14,8 @@ pub fn instantiate_handler(
     app: DCAApp,
     msg: AppInstantiateMsg,
 ) -> AppResult {
-    let ans_host = app.ans_host(deps.as_ref())?;
-    let asset = ans_host.query_asset(&deps.querier, &msg.native_asset)?;
+    let name_service = app.name_service(deps.as_ref());
+    let asset = name_service.query(&msg.native_asset)?;
     let native_denom = match asset {
         AssetInfoBase::Native(denom) => denom,
         _ => return Err(DCAError::NotNativeAsset {}),

@@ -5,7 +5,7 @@ use crate::state::{State, FEE, STATE};
 use abstract_app::state::AppState;
 use abstract_sdk::{
     core::objects::deposit_info::DepositInfo, core::objects::fee::Fee,
-    core::proxy::AssetsInfoResponse, cw_helpers::wasm_smart_query, features::AbstractResponse, *,
+    core::proxy::AssetsInfoResponse, features::AbstractResponse, *,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response,
@@ -219,9 +219,7 @@ fn set_fee(deps: DepsMut, msg_info: MessageInfo, app: EtfApp, new_fee: Decimal) 
 
 /// helper for CW20 supply query
 fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {
-    let res: TokenInfoResponse = querier.query(&wasm_smart_query(
-        String::from(contract_addr),
-        &Cw20QueryMsg::TokenInfo {},
-    )?)?;
+    let res: TokenInfoResponse =
+        querier.query_wasm_smart(String::from(contract_addr), &Cw20QueryMsg::TokenInfo {})?;
     Ok(res.total_supply)
 }

@@ -26,9 +26,7 @@ use ::{
     },
     abstract_sdk::{
         core::objects::{PoolAddress, UniquePoolId},
-        cw_helpers::wasm_smart_query,
         feature_objects::{AnsHost, VersionControlContract},
-        AbstractSdkResult,
     },
     cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
@@ -201,8 +199,8 @@ impl DexCommand for Astrovault {
         _version_control_contract: VersionControlContract,
         ans_host: AnsHost,
         pool_id: UniquePoolId,
-    ) -> AbstractSdkResult<()> {
-        let pool_metadata = ans_host.query_pool_metadata(&deps.querier, &pool_id)?;
+    ) -> Result<(), DexError> {
+        let pool_metadata = ans_host.query_pool_metadata(&deps.querier, pool_id)?;
         self.pool_type = Some(pool_metadata.pool_type);
         self.proxy_addr = Some(sender);
         Ok(())
@@ -379,26 +377,26 @@ impl DexCommand for Astrovault {
         let pair_assets = match self.pool_type.unwrap() {
             PoolType::ConstantProduct => {
                 let pool_response: astrovault::standard_pool::query_msg::PoolResponse =
-                    deps.querier.query(&wasm_smart_query(
+                    deps.querier.query_wasm_smart(
                         pair_address.to_string(),
                         &astrovault::standard_pool::query_msg::QueryMsg::Pool {},
-                    )?)?;
+                    )?;
                 pool_response.assets.to_vec()
             }
             PoolType::Stable => {
                 let pool_response: astrovault::stable_pool::query_msg::PoolResponse =
-                    deps.querier.query(&wasm_smart_query(
+                    deps.querier.query_wasm_smart(
                         pair_address.to_string(),
                         &astrovault::stable_pool::query_msg::QueryMsg::Pool {},
-                    )?)?;
+                    )?;
                 pool_response.assets
             }
             PoolType::Weighted => {
                 let pool_response: astrovault::ratio_pool::query_msg::PoolResponse =
-                    deps.querier.query(&wasm_smart_query(
+                    deps.querier.query_wasm_smart(
                         pair_address.to_string(),
                         &astrovault::ratio_pool::query_msg::QueryMsg::Pool {},
-                    )?)?;
+                    )?;
                 pool_response.assets.to_vec()
             }
             _ => panic!("Unsupported pool type"),
@@ -549,12 +547,12 @@ impl DexCommand for Astrovault {
                     spread_amount,
                     commission_amount,
                     buybackburn_amount: _,
-                } = deps.querier.query(&wasm_smart_query(
+                } = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
                     &astrovault::standard_pool::query_msg::QueryMsg::Simulation {
                         offer_asset: cw_asset_to_astrovault(&offer_asset)?,
                     },
-                )?)?;
+                )?;
                 // commission paid in result asset
                 Ok((return_amount, spread_amount, commission_amount, false))
             }
@@ -594,16 +592,16 @@ impl DexCommand for Astrovault {
                 let astrovault::stable_pool::query_msg::StablePoolQuerySwapSimulation {
                     from_assets_amount: _,
                     mut swap_to_assets_amount,
-                    mut assets_fee_amount,
+                    assets_fee_amount: _,
                     mint_to_assets_amount: _,
-                } = deps.querier.query(&wasm_smart_query(
+                } = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
                     &astrovault::stable_pool::query_msg::QueryMsg::SwapSimulation {
                         amount: offer_asset.amount,
                         swap_from_asset_index: offer_index as u32,
                         swap_to_asset_index: ask_index as u32,
                     },
-                )?)?;
+                )?;
                 // commission paid in result asset
                 Ok((
                     swap_to_assets_amount.pop().unwrap_or_default(),
@@ -636,13 +634,13 @@ impl DexCommand for Astrovault {
                     from_assets_amount: _,
                     mut to_assets_amount,
                     mut assets_fee_amount,
-                } = deps.querier.query(&wasm_smart_query(
+                } = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
                     &astrovault::ratio_pool::query_msg::QueryMsg::SwapSimulation {
                         amount: offer_asset.amount,
                         swap_from_asset_index: offer_index as u8,
                     },
-                )?)?;
+                )?;
                 // commission paid in result asset
                 Ok((
                     to_assets_amount.pop().unwrap_or_default(),

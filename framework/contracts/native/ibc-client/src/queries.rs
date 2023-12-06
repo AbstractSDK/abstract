@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use abstract_core::{
     ibc_client::{
-        state::{Config, ACCOUNTS, ADMIN, CONFIG, IBC_INFRA},
+        state::{Config, ACCOUNTS, CONFIG, IBC_INFRA},
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
         ListIbcInfrastructureResponse, ListRemoteHostsResponse, ListRemoteProxiesResponse,
     },
@@ -101,9 +101,7 @@ pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
         version_control,
         ans_host,
     } = CONFIG.load(deps.storage)?;
-    let admin = ADMIN.get(deps)?.unwrap();
     Ok(ConfigResponse {
-        admin: admin.into(),
         ans_host: ans_host.address.to_string(),
         version_control_address: version_control.address.into_string(),
     })

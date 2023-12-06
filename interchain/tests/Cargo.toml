@@ -23,6 +23,8 @@ cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-proto = { workspace = true }
 cw-orch-fork-mock = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
+abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-testing = { workspace = true }
 
 abstract-interface = { workspace = true }
 abstract-testing = { workspace = true }

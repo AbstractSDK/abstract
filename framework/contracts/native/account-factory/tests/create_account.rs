@@ -7,7 +7,6 @@ use abstract_core::objects::AccountId;
 use abstract_core::objects::AssetEntry;
 use abstract_core::proxy::BaseAssetResponse;
 use abstract_core::version_control::NamespaceResponse;
-use abstract_core::PROXY;
 use abstract_core::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
     ABSTRACT_EVENT_TYPE,
@@ -15,8 +14,8 @@ use abstract_core::{
 use abstract_interface::{
     AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
 };
-use abstract_testing::addresses::TEST_ACCOUNT_ID;
-use abstract_testing::prelude::TEST_OWNER;
+use abstract_testing::prelude::*;
+use cosmwasm_std::coin;
 use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_orch::deploy::Deploy;
@@ -28,7 +27,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 #[test]
 fn instantiate() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
@@ -48,7 +47,7 @@ fn instantiate() -> AResult {
 
 #[test]
 fn create_one_account() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
@@ -101,7 +100,7 @@ fn create_one_account() -> AResult {
 
 #[test]
 fn create_two_account_s() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
@@ -180,7 +179,7 @@ fn create_two_account_s() -> AResult {
 
 #[test]
 fn sender_is_not_admin_monarchy() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
@@ -188,7 +187,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let version_control = &deployment.version_control;
     let account_creation = factory.create_account(
         GovernanceDetails::Monarchy {
-            monarch: TEST_OWNER.to_string(),
+            monarch: OWNER.to_string(),
         },
         vec![],
         String::from("first_os"),
@@ -205,7 +204,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let account = version_control.account_base(TEST_ACCOUNT_ID)?.account_base;
 
-    let account_1 = AbstractAccount::new(&deployment, Some(TEST_ACCOUNT_ID));
+    let account_1 = AbstractAccount::new(&deployment, TEST_ACCOUNT_ID);
     assert_that!(AccountBase {
         manager: account_1.manager.address()?,
         proxy: account_1.proxy.address()?,
@@ -232,7 +231,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
 #[test]
 fn sender_is_not_admin_external() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
@@ -240,7 +239,7 @@ fn sender_is_not_admin_external() -> AResult {
     let version_control = &deployment.version_control;
     factory.create_account(
         GovernanceDetails::External {
-            governance_address: TEST_OWNER.to_string(),
+            governance_address: OWNER.to_string(),
             governance_type: "some-gov-type".to_string(),
         },
         vec![],
@@ -253,7 +252,7 @@ fn sender_is_not_admin_external() -> AResult {
         &[],
     )?;
 
-    let account = AbstractAccount::new(&deployment, Some(TEST_ACCOUNT_ID));
+    let account = AbstractAccount::new(&deployment, TEST_ACCOUNT_ID);
     let account_config = account.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
@@ -268,7 +267,7 @@ fn sender_is_not_admin_external() -> AResult {
 
 #[test]
 fn create_one_account_with_base_asset() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
@@ -281,26 +280,22 @@ fn create_one_account_with_base_asset() -> AResult {
     let checked_asset = AssetInfo::Native("ujuno".to_string());
     ans_host.update_asset_addresses(vec![(asset_name.to_string(), asset)], vec![])?;
 
-    let account_creation = factory.create_account(
+    let account = factory.create_new_account(
+        AccountDetails {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: None,
+            base_asset: Some(AssetEntry::new(asset_name)),
+            install_modules: vec![],
+        },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        vec![],
-        String::from("first_account"),
         None,
-        Some(AssetEntry::new(asset_name)),
-        Some(String::from("account_description")),
-        Some(String::from("https://account_link_of_at_least_11_char")),
-        None,
-        &[],
     )?;
 
-    let proxy_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
-
-    let proxy = Proxy::new(PROXY, chain.clone());
-    proxy.set_address(&Addr::unchecked(proxy_addr));
-
-    let base_asset = proxy.base_asset()?;
+    let base_asset = account.proxy.base_asset()?;
 
     assert_that!(&base_asset).is_equal_to(&BaseAssetResponse {
         base_asset: checked_asset,
@@ -311,7 +306,7 @@ fn create_one_account_with_base_asset() -> AResult {
 
 #[test]
 fn create_one_account_with_namespace() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
@@ -353,7 +348,7 @@ fn create_one_account_with_namespace() -> AResult {
 
 #[test]
 fn create_one_account_with_namespace_fee() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::account_factory::create_one_account_with_namespace_fee(chain)

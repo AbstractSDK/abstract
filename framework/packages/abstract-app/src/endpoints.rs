@@ -102,10 +102,7 @@ mod test {
         ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
         SudoEndpoint,
     };
-    use abstract_testing::{
-        addresses::test_account_base,
-        prelude::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL},
-    };
+    use abstract_testing::{addresses::test_account_base, prelude::*};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         SubMsgResult,
@@ -132,15 +129,11 @@ mod test {
         let actual_init = instantiate(
             deps.as_mut(),
             mock_env(),
-            mock_info(TEST_ADMIN, &[]),
+            mock_info(OWNER, &[]),
             init_msg.clone(),
         );
-        let expected_init = MOCK_APP.instantiate(
-            deps.as_mut(),
-            mock_env(),
-            mock_info(TEST_ADMIN, &[]),
-            init_msg,
-        );
+        let expected_init =
+            MOCK_APP.instantiate(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), init_msg);
         assert_that!(actual_init).is_equal_to(expected_init);
 
         // exec
@@ -148,15 +141,11 @@ mod test {
         let actual_exec = execute(
             deps.as_mut(),
             mock_env(),
-            mock_info(TEST_ADMIN, &[]),
+            mock_info(OWNER, &[]),
             exec_msg.clone(),
         );
-        let expected_exec = MOCK_APP.execute(
-            deps.as_mut(),
-            mock_env(),
-            mock_info(TEST_ADMIN, &[]),
-            exec_msg,
-        );
+        let expected_exec =
+            MOCK_APP.execute(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), exec_msg);
         assert_that!(actual_exec).is_equal_to(expected_exec);
 
         // query

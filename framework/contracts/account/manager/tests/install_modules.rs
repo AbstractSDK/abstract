@@ -9,7 +9,7 @@ use abstract_core::{
 };
 use abstract_interface::{Abstract, AbstractAccount, VCExecFns};
 use abstract_manager::error::ManagerError;
-use abstract_testing::prelude::TEST_NAMESPACE;
+use abstract_testing::{prelude::TEST_NAMESPACE, OWNER};
 use common::{
     mock_modules::{adapter_1, deploy_modules, V1},
     *,
@@ -23,7 +23,7 @@ use cw_orch::{
 
 #[test]
 fn cannot_reinstall_module() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -67,7 +67,7 @@ fn cannot_reinstall_module() -> AResult {
 
 #[test]
 fn adds_module_to_account_modules() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;

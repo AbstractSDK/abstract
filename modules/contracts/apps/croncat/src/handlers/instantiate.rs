@@ -16,7 +16,8 @@ pub fn instantiate_handler(
 ) -> CroncatResult {
     CONFIG.save(deps.storage, &Config {})?;
 
-    utils::factory_addr(&deps.querier, &app.ans_host(deps.as_ref())?).map_err(|err| {
+    let name_service = app.name_service(deps.as_ref());
+    utils::factory_addr(&name_service).map_err(|err| {
         AbstractSdkError::generic_err(format!("Cron Cat Factory not found in ANS: {err:?}"))
     })?;
     Ok(Response::new())
