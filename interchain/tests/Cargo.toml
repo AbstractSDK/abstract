@@ -27,7 +27,6 @@ abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 
 abstract-interface = { workspace = true }
-abstract-testing = { workspace = true }
 tokio = { workspace = true }
 log = "0.4.14"
 anyhow = { workspace = true }
@@ -47,8 +46,8 @@ async-recursion = "1.0.4"
 base64 = "0.21.0"
 futures = "0.3.28"
 
-ibc-chain-registry = "0.24.1"
-ibc-relayer-types = "0.24.1"
+ibc-chain-registry = "0.25"
+ibc-relayer-types = "0.25"
 
 osmosis-std = "0.16.1"
 cosmrs = "0.14.0"

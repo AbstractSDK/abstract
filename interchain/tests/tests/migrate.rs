@@ -85,7 +85,7 @@ fn old_account_migrate() -> anyhow::Result<()> {
     )?;
 
     let manager_address =
-        Addr::unchecked(&result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?);
+        Addr::unchecked(result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?);
     let res: abstract_core::manager::ConfigResponse = chain.query(
         &abstract_core::manager::QueryMsg::Config {},
         &manager_address,
@@ -94,7 +94,7 @@ fn old_account_migrate() -> anyhow::Result<()> {
     let migrated = abstr_deployment.migrate_if_needed()?;
 
     if migrated {
-        let old_account = AbstractAccount::new(&abstr_deployment, Some(res.account_id));
+        let old_account = AbstractAccount::new(&abstr_deployment, res.account_id);
 
         let account_migrate_modules = vec![
             (

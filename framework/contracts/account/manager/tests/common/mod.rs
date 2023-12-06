@@ -19,7 +19,7 @@ use cw_orch::prelude::*;
 use semver::Version;
 
 pub use abstract_integration_tests::{create_default_account, mock_modules, AResult};
-use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
+use abstract_testing::addresses::TEST_MODULE_ID;
 
 pub fn uninstall_module(manager: &Manager<Mock>, module_id: &str) -> AResult {
     manager

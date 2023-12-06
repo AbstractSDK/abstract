@@ -9,6 +9,7 @@ use crate::mock_modules::*;
 use crate::AResult;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_app::mock::MockInitMsg;
+use abstract_core::adapter::AdapterBaseMsg;
 use abstract_core::adapter::AdapterRequestMsg;
 use abstract_core::app;
 use abstract_core::manager::ModuleInstallConfig;
@@ -119,7 +120,7 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
         .manager
         .sub_account_ids(None, None)?
         .sub_accounts[0];
-    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(sub_account_id)));
+    let sub_account = AbstractAccount::new(&deployment, AccountId::local(sub_account_id));
 
     // Make sure all installed
     let account_module_versions = sub_account.manager.module_versions(vec![
@@ -436,9 +437,12 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
     let manager_address = account.manager.address()?;
     staking_adapter.call_as(&manager_address).execute(
         &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Base(
-            abstract_core::adapter::BaseExecuteMsg::UpdateAuthorizedAddresses {
-                to_add: vec![account.proxy.addr_str()?],
-                to_remove: vec![],
+            abstract_core::adapter::BaseExecuteMsg {
+                proxy_address: None,
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![account.proxy.addr_str()?],
+                    to_remove: vec![],
+                },
             },
         ),
         None,
@@ -492,7 +496,7 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     )?;
     let ids = account.manager.sub_account_ids(None, None)?;
     let sub_account_id = ids.sub_accounts[0];
-    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(sub_account_id)));
+    let sub_account = AbstractAccount::new(&deployment, AccountId::local(sub_account_id));
     let sub_manager_addr = sub_account.manager.address()?;
     let sub_proxy_addr = sub_account.proxy.address()?;
 
@@ -501,11 +505,11 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
         manager: sub_manager_addr.to_string(),
         proxy: sub_proxy_addr.to_string(),
     };
-    new_account.manager.set_owner(new_governance.clone())?;
+    new_account.manager.propose_owner(new_governance.clone())?;
     let new_account_manager = new_account.manager.address()?;
     let new_account_id = new_account.id()?;
 
-    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(sub_account_id)));
+    let sub_account = AbstractAccount::new(&deployment, AccountId::local(sub_account_id));
     sub_account
         .proxy
         .call_as(&sub_manager_addr)
@@ -523,8 +527,7 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     assert_eq!(sub_ids.sub_accounts, vec![new_account_id.seq()]);
 
     // owner of new_account updated
-    let new_account =
-        AbstractAccount::new(&deployment, Some(AccountId::local(new_account_id.seq())));
+    let new_account = AbstractAccount::new(&deployment, AccountId::local(new_account_id.seq()));
     let info = new_account.manager.info()?.info;
     assert_eq!(new_governance, info.governance_details.into());
 

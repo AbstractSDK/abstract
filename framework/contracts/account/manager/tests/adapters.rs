@@ -9,6 +9,7 @@ use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::AccountId;
 use abstract_core::{adapter::BaseQueryMsgFns, *};
+use abstract_integration_tests::mock_modules::adapter_1::{BootMockAdapter1V1, BootMockAdapter1V2};
 use abstract_integration_tests::{
     add_mock_adapter_install_fee, init_mock_adapter, install_adapter, install_adapter_with_funds,
 };
@@ -22,7 +23,7 @@ use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
-use crate::common::mock_modules::{adapter_1, BootMockAdapter1V1, BootMockAdapter1V2, V1, V2};
+use crate::common::mock_modules::{adapter_1, V1, V2};
 
 #[test]
 fn installing_one_adapter_should_succeed() -> AResult {
@@ -284,7 +285,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
 #[test]
 fn unauthorized_exec() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let unauthorized = Addr::unchecked("unauthorized");
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;

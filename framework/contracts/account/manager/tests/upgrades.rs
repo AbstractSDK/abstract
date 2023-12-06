@@ -25,9 +25,8 @@ use abstract_integration_tests::{install_module_version, mock_modules::*};
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 
-use common::mock_modules::*;
 use common::{create_default_account, AResult};
-use cosmwasm_std::{coin, coins, to_json_binary, Uint128};
+use cosmwasm_std::{coin, to_json_binary};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;

@@ -9,8 +9,7 @@ use abstract_core::PROXY;
 use abstract_interface::*;
 use abstract_testing::prelude::*;
 
-use abstract_testing::prelude::*;
-use common::{create_default_account, AResult, TEST_COIN};
+use common::{create_default_account, AResult};
 use cosmwasm_std::{coin, to_json_binary, Addr, Coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
 use cw_orch::deploy::Deploy;
