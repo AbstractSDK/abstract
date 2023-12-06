@@ -1,8 +1,11 @@
 use super::{AssetEntry, ChannelEntry, ContractEntry};
 use crate::{
-    ans_host::state::{
-        ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
-        REV_ASSET_ADDRESSES,
+    ans_host::{
+        state::{
+            ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
+            REGISTERED_DEXES, REV_ASSET_ADDRESSES,
+        },
+        RegisteredDexesResponse,
     },
     objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId},
 };
@@ -198,5 +201,13 @@ impl AnsHost {
                 ans_host: self.address.clone(),
             })?;
         Ok(result)
+    }
+
+    pub fn query_registered_dexes(
+        &self,
+        querier: &QuerierWrapper,
+    ) -> AnsHostResult<RegisteredDexesResponse> {
+        let dexes = REGISTERED_DEXES.query(querier, self.address.clone())?;
+        Ok(RegisteredDexesResponse { dexes })
     }
 }
