@@ -30,7 +30,7 @@ fn reset(deps: DepsMut, info: MessageInfo, count: i32, app: App) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
     COUNT.save(deps.storage, &count)?;
 
-    Ok(app.tag_response(Response::default(), "increment"))
+    Ok(app.tag_response(Response::default(), "reset"))
 }
 
 /// Update the configuration of the app
