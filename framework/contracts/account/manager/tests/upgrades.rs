@@ -616,7 +616,7 @@ fn create_sub_account_with_installed_module() -> AResult {
         &[],
     )?;
 
-    let account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+    let account = AbstractAccount::new(&deployment, AccountId::local(2));
 
     // Make sure all installed
     let account_module_versions = account.manager.module_versions(vec![

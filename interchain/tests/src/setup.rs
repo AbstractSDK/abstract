@@ -9,27 +9,33 @@ use polytone::handshake::POLYTONE_VERSION;
 
 pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     interchain: &IBC,
-    chain_id_1: &str,
-    chain_id_2: &str,
+    origin_chain_id: &str,
+    remote_chain_id: &str,
 ) -> AnyResult<(Abstract<Chain>, Abstract<Chain>)> {
-    let chain1 = interchain.chain(chain_id_1).unwrap();
-    let chain2 = interchain.chain(chain_id_2).unwrap();
+    let origin_chain = interchain.chain(origin_chain_id).unwrap();
+    let remote_chain = interchain.chain(remote_chain_id).unwrap();
 
     // Deploying abstract and the IBC abstract logic
-    let abstr_1 = Abstract::deploy_on(chain1.clone(), chain1.sender().to_string())?;
-    let abstr_2 = Abstract::deploy_on(chain2.clone(), chain2.sender().to_string())?;
+    let abstr_origin =
+        Abstract::deploy_on(origin_chain.clone(), origin_chain.sender().to_string())?;
+    let abstr_remote =
+        Abstract::deploy_on(remote_chain.clone(), remote_chain.sender().to_string())?;
 
     // Deploying polytone on both chains
-    let polytone_1 = Polytone::deploy_on(chain1.clone(), None)?;
-    let polytone_2 = Polytone::deploy_on(chain2.clone(), None)?;
+    let origin_polytone = Polytone::deploy_on(origin_chain.clone(), None)?;
+    let remote_polytone = Polytone::deploy_on(remote_chain.clone(), None)?;
 
     // Creating a connection between 2 polytone deployments
-    interchain.create_contract_channel(&polytone_1.note, &polytone_2.voice, POLYTONE_VERSION)?;
+    interchain.create_contract_channel(
+        &origin_polytone.note,
+        &remote_polytone.voice,
+        POLYTONE_VERSION,
+    )?;
 
     // Create the connection between client and host
-    abstract_ibc_connection_with(&abstr_1, interchain, &abstr_2, &polytone_1)?;
+    abstract_ibc_connection_with(&abstr_origin, interchain, &abstr_remote, &origin_polytone)?;
 
-    Ok((abstr_1, abstr_2))
+    Ok((abstr_origin, abstr_remote))
 }
 
 #[cfg(test)]
@@ -56,15 +62,15 @@ pub mod mock_test {
         let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
 
         // We just verified all steps pass
-        let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
+        let (origin_abstr, remote_abstr) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
         // We verify the host is active on the client on chain JUNO
-        let remote_hosts = abstr1.ibc.client.list_remote_hosts()?;
+        let remote_hosts = origin_abstr.ibc.client.list_remote_hosts()?;
         assert_eq!(remote_hosts.hosts.len(), 1);
         assert_eq!(remote_hosts.hosts[0].0, ChainName::from_chain_id(STARGAZE));
 
         // We verify the client is active on the host chain JUNO
-        let remote_hosts = abstr2.ibc.host.client_proxies(None, None)?;
+        let remote_hosts = remote_abstr.ibc.host.client_proxies(None, None)?;
         assert_eq!(remote_hosts.chains.len(), 1);
         assert_eq!(remote_hosts.chains[0].0, ChainName::from_chain_id(JUNO));
 

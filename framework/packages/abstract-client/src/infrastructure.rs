@@ -26,12 +26,12 @@ impl<Chain: CwEnv> Infrastructure<Chain> for Account<Chain> {
 
 impl<'a, Chain: CwEnv> Infrastructure<Chain> for AccountBuilder<'a, Chain> {
     fn environment(&self) -> Chain {
-        self.abstr.account.proxy.get_chain().clone()
+        self.abstr.version_control.get_chain().clone()
     }
 }
 
 impl<Chain: CwEnv> Infrastructure<Chain> for AbstractClient<Chain> {
     fn environment(&self) -> Chain {
-        self.abstr.account.proxy.get_chain().clone()
+        self.abstr.version_control.get_chain().clone()
     }
 }
