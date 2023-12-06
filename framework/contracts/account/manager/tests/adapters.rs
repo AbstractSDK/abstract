@@ -28,7 +28,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None)?;
+    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
@@ -67,7 +67,7 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
     chain.set_balance(&sender, coins(12, "ujunox"))?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    init_mock_adapter(chain.clone(), &deployment, None)?;
+    init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
     add_mock_adapter_install_fee(
         &deployment,
         Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
@@ -139,7 +139,7 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
+    let staking_adapter = init_mock_adapter(chain, &deployment, None, account.id()?)?;
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
@@ -173,7 +173,7 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None)?;
+    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
@@ -287,7 +287,7 @@ fn unauthorized_exec() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
+    let staking_adapter = init_mock_adapter(chain, &deployment, None, account.id()?)?;
     install_adapter(&account.manager, TEST_MODULE_ID)?;
     // non-authorized address cannot execute
     let res = staking_adapter
@@ -313,7 +313,7 @@ fn manager_adapter_exec() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None)?;
+    let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
