@@ -23,54 +23,13 @@
       ],
       "properties": {
         "module": {
-          "$ref": "#/definitions/AppQueryMsg"
+          "$ref": "#/definitions/CalendarQueryMsg"
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
-    "AppQueryMsg": {
-      "description": "App query messages",
-      "oneOf": [
-        {
-          "description": "Returns the config.",
-          "type": "object",
-          "required": [
-            "config"
-          ],
-          "properties": {
-            "config": {
-              "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Returns the meetings for a given day.",
-          "type": "object",
-          "required": [
-            "meetings"
-          ],
-          "properties": {
-            "meetings": {
-              "type": "object",
-              "required": [
-                "day_datetime"
-              ],
-              "properties": {
-                "day_datetime": {
-                  "$ref": "#/definitions/Int64"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
     "BaseQueryMsg": {
       "oneOf": [
         {
@@ -110,6 +69,47 @@
           "properties": {
             "module_data": {
               "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CalendarQueryMsg": {
+      "description": "App query messages",
+      "oneOf": [
+        {
+          "description": "Returns the config.",
+          "type": "object",
+          "required": [
+            "config"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns the meetings for a given day.",
+          "type": "object",
+          "required": [
+            "meetings"
+          ],
+          "properties": {
+            "meetings": {
+              "type": "object",
+              "required": [
+                "day_datetime"
+              ],
+              "properties": {
+                "day_datetime": {
+                  "$ref": "#/definitions/Int64"
+                }
+              },
               "additionalProperties": false
             }
           },

@@ -118,6 +118,7 @@
     },
     "BaseExecuteMsg": {
       "description": "Configuration message for the adapter",
+      "type": "object",
       "oneOf": [
         {
           "description": "Add or remove authorized addresses If an authorized address is both in to_add and to_remove, it will be removed.",
@@ -165,7 +166,17 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "properties": {
+        "proxy_address": {
+          "description": "The Proxy address for which to apply the configuration If None, the sender must be an Account manager and the configuration is applied to its associated proxy. If Some, the sender must be a direct or indirect owner (through sub-accounts) of the specified proxy.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "Binary": {
       "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
