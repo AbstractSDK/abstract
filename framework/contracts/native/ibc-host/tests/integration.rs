@@ -212,7 +212,7 @@ fn account_creation_full() -> anyhow::Result<()> {
     let mock_adapter = MockAdapter::new_test(chain);
     mock_adapter.call_as(&admin).deploy(
         "1.0.0".parse().unwrap(),
-        MockInitMsg,
+        MockInitMsg {},
         DeployStrategy::Try,
     )?;
 

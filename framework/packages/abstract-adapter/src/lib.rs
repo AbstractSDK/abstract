@@ -58,19 +58,19 @@ pub mod mock {
     }
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockInitMsg;
+    pub struct MockInitMsg {}
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockExecMsg;
+    pub struct MockExecMsg {}
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockQueryMsg;
+    pub struct MockQueryMsg {}
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockReceiveMsg;
+    pub struct MockReceiveMsg {}
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockSudoMsg;
+    pub struct MockSudoMsg {}
 
     /// Mock Adapter type
     pub type MockAdapterContract = AdapterContract<
@@ -111,7 +111,7 @@ pub mod mock {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: TEST_VERSION_CONTROL.into(),
             },
-            module: MockInitMsg,
+            module: MockInitMsg {},
         };
         adapter.instantiate(deps, mock_env(), info, init_msg)
     }
@@ -126,7 +126,7 @@ pub mod mock {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: TEST_VERSION_CONTROL.into(),
             },
-            module: MockInitMsg,
+            module: MockInitMsg {},
         };
         adapter.instantiate(deps, mock_env(), info, init_msg)
     }
@@ -233,7 +233,6 @@ pub mod mock {
     };
 }
 
-    // TODO: Remove after 0.20 migration
     /// Generate a BOOT instance for a 0.19 abstract mock adapter
     /// - $name: name of the contract (&str)
     /// - $id: id of the contract (&str)

@@ -231,7 +231,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
     adapter1
-        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)
         .unwrap();
 
     install_adapter(&account.manager, &adapter1.id())?;
@@ -258,7 +258,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let adapter2 = BootMockAdapter1V2::new_test(chain.clone());
 
     adapter2
-        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)
         .unwrap();
 
     // check that the latest staking version is the new one
@@ -306,14 +306,14 @@ fn unauthorized_exec() -> AResult {
     // non-authorized address cannot execute
     let res = staking_adapter
         .call_as(&unauthorized)
-        .execute(&MockExecMsg.into(), None)
+        .execute(&MockExecMsg {}.into(), None)
         .unwrap_err();
     assert_that!(res.root().to_string()).contains(
         "Sender: unauthorized of request to tester:test-module-id is not a Manager or Authorized Address",
     );
     // neither can the ROOT directly
     let res = staking_adapter
-        .execute(&MockExecMsg.into(), None)
+        .execute(&MockExecMsg {}.into(), None)
         .unwrap_err();
     assert_that!(&res.root().to_string()).contains(
         "Sender: owner of request to tester:test-module-id is not a Manager or Authorized Address",
@@ -338,7 +338,7 @@ fn manager_adapter_exec() -> AResult {
 
     account.manager.execute_on_module(
         TEST_MODULE_ID,
-        Into::<abstract_core::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
+        Into::<abstract_core::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
     )?;
 
     Ok(())
@@ -356,7 +356,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
 
     let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
     adapter1
-        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)
         .unwrap();
 
     let v1_adapter_addr = adapter1.address()?;
@@ -364,7 +364,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let adapter2 = BootMockAdapter1V2::new_test(chain.clone());
 
     adapter2
-        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)
         .unwrap();
 
     let expected_version = "1.0.0".to_string();
@@ -397,7 +397,7 @@ fn account_install_adapter() -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = BootMockAdapter1V1::new_test(chain.clone());
-    adapter.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
+    adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
     let adapter_addr = account.install_adapter(&adapter, None)?;
     let module_addr = account
         .manager
@@ -421,7 +421,7 @@ fn account_adapter_ownership() -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = BootMockAdapter1V1::new_test(chain.clone());
-    adapter.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
+    adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
     account.install_adapter(&adapter, None)?;
 
     let proxy_addr = account.proxy.address()?;
@@ -528,7 +528,7 @@ fn subaccount_adapter_ownership() -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = BootMockAdapter1V1::new_test(chain.clone());
-    adapter.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
+    adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
 
     account.manager.create_sub_account(
         vec![ModuleInstallConfig::new(
@@ -662,12 +662,12 @@ mod old_mock {
             .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
         let old = OldMockAdapter1V1::new_test(chain.clone());
-        old.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
+        old.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
 
         account.install_adapter(&old, None)?;
 
         let new = BootMockAdapter1V2::new_test(chain.clone());
-        new.deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
+        new.deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
 
         account.manager.upgrade_module(MOCK_ADAPTER_ID, &Empty {})?;
         Ok(())

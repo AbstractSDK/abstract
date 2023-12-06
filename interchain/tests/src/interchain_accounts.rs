@@ -225,7 +225,7 @@ mod test {
         )?;
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
-        origin_account.install_app(&app, &MockInitMsg, None)?;
+        origin_account.install_app(&app, &MockInitMsg {}, None)?;
         let res: ModuleAddressesResponse = origin_account
             .manager
             .module_addresses(vec![TEST_MODULE_ID.to_owned()])?;
