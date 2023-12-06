@@ -3,9 +3,13 @@
 
 mod common;
 
-use abstract_interface::Abstract;
+use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::module::ModuleInfo;
+use abstract_core::{ABSTRACT_EVENT_TYPE, MANAGER, PROXY};
+use abstract_interface::{Abstract, AbstractAccount, ManagerExecFns};
+use abstract_testing::prelude::*;
 use anyhow::Ok;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{to_json_binary, Addr};
 use cw_orch::daemon::networks::JUNO_1;
 use cw_orch::prelude::*;
 use cw_orch_fork_mock::ForkMock;
@@ -48,6 +52,64 @@ fn migrate_infra_success() -> anyhow::Result<()> {
     } else {
         // Just so there's something in the log,
         // for the opposite case since this test can be inconsistent
+        println!("Nothing to migrate")
+    }
+    Ok(())
+}
+
+#[test]
+fn old_account_migrate() -> anyhow::Result<()> {
+    let (abstr_deployment, chain) = setup()?;
+
+    // Old message had no account_id field, need something to serialize
+    #[cosmwasm_schema::cw_serde]
+    enum MockAccountFactoryExecuteMsg {
+        CreateAccount {
+            name: String,
+            governance: GovernanceDetails<String>,
+            install_modules: Vec<Empty>,
+        },
+    }
+
+    let account_factory_address = abstr_deployment.account_factory.address()?;
+    let result = chain.execute(
+        &MockAccountFactoryExecuteMsg::CreateAccount {
+            name: "Default name".to_owned(),
+            governance: GovernanceDetails::Monarchy {
+                monarch: chain.sender().to_string(),
+            },
+            install_modules: vec![],
+        },
+        &[],
+        &account_factory_address,
+    )?;
+
+    let manager_address =
+        Addr::unchecked(&result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?);
+    let res: abstract_core::manager::ConfigResponse = chain.query(
+        &abstract_core::manager::QueryMsg::Config {},
+        &manager_address,
+    )?;
+
+    let migrated = abstr_deployment.migrate_if_needed()?;
+
+    if migrated {
+        let old_account = AbstractAccount::new(&abstr_deployment, Some(res.account_id));
+
+        let account_migrate_modules = vec![
+            (
+                ModuleInfo::from_id_latest(MANAGER)?,
+                Some(to_json_binary(&abstract_core::manager::MigrateMsg {})?),
+            ),
+            (
+                ModuleInfo::from_id_latest(PROXY)?,
+                Some(to_json_binary(&abstract_core::proxy::MigrateMsg {})?),
+            ),
+        ];
+        old_account.manager.upgrade(account_migrate_modules)?;
+        let info = old_account.manager.module_info(PROXY)?.unwrap();
+        assert_eq!(info.version.version, TEST_VERSION)
+    } else {
         println!("Nothing to migrate")
     }
     Ok(())

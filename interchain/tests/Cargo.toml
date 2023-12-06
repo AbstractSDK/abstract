@@ -25,6 +25,7 @@ cw-orch-fork-mock = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
 
 abstract-interface = { workspace = true }
+abstract-testing = { workspace = true }
 tokio = { workspace = true }
 log = "0.4.14"
 anyhow = { workspace = true }

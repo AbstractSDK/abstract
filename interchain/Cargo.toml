@@ -65,6 +65,7 @@ cw-orch-fork-mock = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.20.0-rc.1", path = "../framework/packages/abstract-sdk" }
 abstract-core = { version = "0.20.0-rc.1", path = "../framework/packages/abstract-core" }
+abstract-testing = { version = "0.20.0-rc.1", path = "../framework/packages/abstract-testing" }
 
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat", features = [
