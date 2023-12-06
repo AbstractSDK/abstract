@@ -24,11 +24,9 @@ pub mod interface {
     use abstract_core::{
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
-        MANAGER,
     };
-    use abstract_interface::AbstractInterfaceError;
     use abstract_interface::AdapterDeployer;
-    use abstract_interface::Manager;
+    use abstract_interface::{AbstractAccount, AbstractInterfaceError};
     use cosmwasm_std::{Decimal, Empty};
     use cw_orch::prelude::*;
     use cw_orch::{build::BuildPostfix, interface};
@@ -64,8 +62,8 @@ pub mod interface {
             offer_asset: (&str, u128),
             ask_asset: &str,
             dex: String,
+            account: &AbstractAccount<Chain>,
         ) -> Result<(), AbstractInterfaceError> {
-            let manager = Manager::new(MANAGER, self.get_chain().clone());
             let asset = AssetEntry::new(offer_asset.0);
             let ask_asset = AssetEntry::new(ask_asset);
 
@@ -81,7 +79,9 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
+            account
+                .manager
+                .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
             Ok(())
         }
     }

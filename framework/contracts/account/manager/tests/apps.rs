@@ -159,7 +159,7 @@ fn subaccount_app_ownership() -> AResult {
         &[],
     )?;
 
-    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+    let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
     let module = sub_account.manager.module_info(APP_ID)?.unwrap();
     app.set_address(&module.address);
     let admin_res: AdminResponse =

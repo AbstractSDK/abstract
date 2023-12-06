@@ -86,6 +86,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         } => commands::execute_register_account(
             deps,
             info,
+            env,
             host_chain,
             base_asset,
             namespace,
@@ -855,6 +856,7 @@ mod tests {
             mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
         };
         use cosmwasm_std::{from_json, wasm_execute};
+        use polytone::callbacks::CallbackRequest;
 
         use crate::commands::PACKET_LIFETIME;
 
@@ -953,7 +955,12 @@ mod tests {
                         vec![],
                     )?
                     .into()],
-                    callback: None,
+                    callback: Some(CallbackRequest {
+                        receiver: mock_env().contract.address.to_string(),
+                        msg: to_json_binary(&IbcClientCallback::CreateAccount {
+                            account_id: TEST_ACCOUNT_ID,
+                        })?,
+                    }),
                     timeout_seconds: PACKET_LIFETIME.into(),
                 },
                 vec![],
@@ -1426,7 +1433,7 @@ mod tests {
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: remote_proxy.clone(),
                     result: vec![SubMsgResponse {
-                        events: vec![Event::new(String::from("wasm"))
+                        events: vec![Event::new(String::from("wasm-abstract"))
                             .add_attribute("action", "create_proxy")
                             .add_attribute("proxy_address", remote_proxy.clone())],
                         data: None,

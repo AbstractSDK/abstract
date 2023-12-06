@@ -92,7 +92,7 @@ pub enum HostAction {
     Dispatch {
         manager_msg: manager::ExecuteMsg,
     },
-    /// Can't be called by an account directly. These are permissionned messages that only the IBC Client is allowed to call by itself.
+    /// Can't be called by an account directly. These are permissioned messages that only the IBC Client is allowed to call by itself.
     Internal(InternalAction),
     /// Some helpers that allow calling dispatch messages faster (for actions that are called regularly)
     Helpers(HelperAction),
@@ -102,8 +102,7 @@ pub enum HostAction {
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
-    /// Update the Admin
-    UpdateAdmin { admin: String },
+    UpdateOwnership(cw_ownable::Action),
     UpdateConfig {
         ans_host_address: Option<String>,
         account_factory_address: Option<String>,
@@ -111,9 +110,14 @@ pub enum ExecuteMsg {
     },
     /// Register the Polytone proxy for a specific chain.
     /// proxy should be a local address (will be validated)
-    RegisterChainProxy { chain: String, proxy: String },
+    RegisterChainProxy {
+        chain: String,
+        proxy: String,
+    },
     /// Remove the Polytone proxy for a specific chain.
-    RemoveChainProxy { chain: String },
+    RemoveChainProxy {
+        chain: String,
+    },
     /// Allows for remote execution from the Polytone implementation
     #[cfg_attr(feature = "interface", fn_name("ibc_execute"))]
     Execute {
@@ -130,6 +134,8 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
+    #[returns(cw_ownable::Ownership<Addr> )]
+    Ownership {},
     /// Returns [`ConfigResponse`].
     #[returns(ConfigResponse)]
     Config {},
