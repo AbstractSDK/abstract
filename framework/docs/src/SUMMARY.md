@@ -9,7 +9,7 @@
 - [Abstract SDK](./3_framework/1_abstract_sdk.md)
 - [Account Abstraction](./3_framework/2_account_abstraction.md)
 - [Architecture](./3_framework/3_architecture.md)
-- [Modularity](./3_framework/5_modularity.md)
+- [Modules](./3_framework/5_modules.md)
     - [Module Types](./3_framework/6_module_types.md)
     - [Upgradability](./3_framework/7_upgradability.md)
 - [Account Ownership](./3_framework/4_ownership.md)

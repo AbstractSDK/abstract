@@ -1,6 +1,6 @@
 # Module Types
 
-Within the Abstract SDK, a _module_ is a contract that **adds functionality** to your Abstract Account. You can explore
+As explained in the previous section, a _module_ is a smart-contract that **extends an Account's functionality**. You can explore
 all the available modules on the modules tab of your Account through
 the <a href="https://app.abstract.money/" target="_blank">web-app</a>.
 
@@ -15,51 +15,50 @@ Modules are classified in the following categories:
 
 - **App**: modules that add a functionality, exposing new entry-points for you or your users.
 - **Adapter**: modules that act as a standard interface between your Account and external services.
-- **Standalone**: modules not built within Abstract, but registered to your Account so that the manager can execute
-  commands on them.
+- **Standalone**: modules not built within Abstract, but registered to your Account so that you Account can manage them.
+
+## Module IDs
+
+Every module is uniquely identified by a module ID. This ID is a string that follows the following format:
+
+```text
+<namespace>:<name>
+```
+
+The namespace is a string that resembles the publishing domain of a module developer, while the name is the name of the module itself. For example, the `abstract:etf` module is an App module developed by Abstract where `abstract` is the namespace and `etf` is the name of the module.
+
+Additionally each module has a SEMVER version number that can be used to uniquely identify a specific version of a module, or just get the latest version. Module IDs and their versions are used to install modules on an Abstract Account.
+
+A module ID is independent of the kind of module it refers to.
 
 ## Apps
 
-An App module adds additional functionality to your Abstract Account, exposing new entry-points for you or your users.
-This could range from adding advanced financial logic, data management features, or complex computation capabilities,
-depending on your application's needs.
+An App module adds or alters the functionality of an Abstract Account, exposing new functions to you and/or your users.
+This could range from adding advanced financial logic to data management features or permission systems,
+depending on your use-case.
 
-Each App module is exclusive to a single Abstract Account, **meaning the instance is owned by the Account owner**,
-ensuring
-the owner has full control over the module's functionality and lifecycle. This level of control extends to the
-management of upgrades, maintenance, and any customization that might be required for the specific use case of the
-application.
+Each App module instance is exclusive to a single Abstract Account, **meaning the instance is created and owned by the Account**,
+ensuring the owner has full control over the module's functionality and lifecycle. This level of control extends to the management of upgrades, maintenance, and any customization that might be required for the specific use case of the application.
 
-Because each Account has its own instance, App modules can be tightly integrated with the Account's existing
-infrastructure. This includes the ability to interact directly with other modules within the same account, enabling
-powerful synergies and cross-module functionality.
+Because each Account has its own instance of an App, App modules can be tightly integrated with the Account's existing infrastructure. This includes the ability to interact directly with other modules (including Apps) installed on the same account, enabling powerful synergies and cross-module functionality.
 
-> The `abstract:etf` module is an app that exposes entry-points allowing external users to buy and sell "shares" in your
-> Account, representing a portion of the Accounts' value.
+```admonish example
+The `abstract:etf` module is an app that allows external users to buy and sell "shares" in your Account, representing a portion of the Accounts' value.
+```
 
 ## Adapters
 
-Adapters serve as standard interfaces that facilitate communication between your Abstract Account and various external
-services. They act like bridges, enabling your account to interact with different smart contracts and blockchain
-services, thereby enhancing the interoperability of your applications.
+Adapters serve as standard interfaces that facilitate communication between your Abstract Account and various external services. They act like bridges, enabling your account to interact with different smart contracts and blockchain services, thereby enhancing the interoperability of your applications.
 
-The key function of an Adapter is to generalize functionality. Regardless of the underlying blockchain or smart contract
-protocol, the Adapter provides a standard interface that maintains consistency and simplifies the interaction process.
-As such, Adapters significantly simplify the developer experience and reduce the time required to integrate with various
-external systems.
+The key function of an Adapter is to generalize functionality. Regardless of the underlying blockchain or smart contract protocol, the Adapter provides a standard interface that maintains consistency and simplifies the interaction process. As such, Adapters significantly simplify the developer experience and reduce the time required to integrate with various external systems.
 
-Unlike other modules specific to each Abstract Account, Adapters are "global" in nature. This means that they are shared
-between multiple accounts. Due to this, **Adapter modules are not migratable**. This design choice is aimed at
-preventing supply-chain attacks that could potentially compromise the security of the Abstract ecosystem.
+Unlike other modules specific to each Abstract Account, Adapters are "global" in nature. This means that they are shared between multiple accounts. Due to this, **Adapter modules are not migratable**. This design choice is aimed at preventing supply-chain attacks that could potentially compromise the security of the Abstract ecosystem.
 
-While individual Abstract Account owners can decide which Adapters and versions they wish to utilize, the overall
-control and maintenance of Adapters are handled at a platform level. This approach ensures that Adapters remain
-reliable, secure, and consistent across all Accounts.
+While individual Abstract Account owners can decide which Adapters and versions they wish to utilize, the overall control and maintenance of Adapters are handled at a platform level. This approach ensures that Adapters remain reliable, secure, and consistent across all Accounts.
 
-> The `abstract:dex` module allows Accounts to access standard functions on dexes with the same interface, regardless of
-> whether they're local to the chain or across IBC.
-
-## Example
+```admonish example
+The `abstract:dex` module allows Accounts to access standard functions on dexes with the same interface, regardless of whether they're local to the chain or across IBC.
+```
 
 ```mermaid
 flowchart LR
@@ -101,7 +100,7 @@ sequenceDiagram
     participant P as Proxy
     U ->> M: InstallModule
     M ->> MF: InstallModule
-    MF -->>+ VC: Query reference
+    MF -->>+ VC: Query Module Details
     alt adapter
         VC -->>+ MF: Return address
     else app / standalone
@@ -114,6 +113,16 @@ sequenceDiagram
 
 <figcaption align = "center"><b>Installing a Module</b></figcaption>
 
+At this point you should be able to understand the message flow depicted above. Just to be sure, we'll briefly outline the process's steps.
+
+Installing a module starts by the Owner of the Account requesting the installation of the module on the Account. This request is sent to the Manager contract of the Account. The request contains the module ID(s) and possible instantiate messages for any App/Standalone modules that should be installed (aka instantiated).
+
+The Manager contract verifies the request and forwards it to the Module Factory. The Module Factory then queries the Version Control (the on-chain module registry) for the module details. These module details contain both the version of the module as well as its type-specific data. This type-specific data is depicted by the two alternatives (alt) of the returned query.
+
+Either the query returns an Adapter's address (which is already instantiated) or it returns an App/Standalone code-id. This code-id is then used by the Module Factory to instantiate an instance of that module.
+
+After instantiating the modules the Manager registers the modules internally and updates the whitelist on the Account's Proxy contract. This whitelisting provides the modules with the ability to proxy message execution through the Account.
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -121,14 +130,19 @@ sequenceDiagram
     participant M as Manager
     participant P as Proxy
     U ->> M: UninstallModule
-    M --> M: Check dependencies
     M -> M: Deregister module
-    M ->> P: Update module allowlist
+    M ->> P: Update Proxy Whitelist
 ```
 
 <figcaption align = "center"><b>Uninstalling a Module</b></figcaption>
 
-## How to Use Modules in Your Project
+Uninstalling a Module follows a similar execution flow as shown above.
+
+```admonish info
+In both flows we omitted the dependency-check logic, which will be discussed in more detail [later](../4_get_started/8_dependencies.md).
+```
+
+<!-- ## How to Use Modules in Your Project
 
 Leveraging modules in your project can significantly simplify the development process, allowing you to deploy projects
 faster and more cost-effectively than building traditionally. By using pre-built, tested, and community-reviewed
@@ -168,53 +182,41 @@ Test your dApp thoroughly to ensure the modules function as intended and do not 
 behavior.
 
 By leveraging Abstract's modules in this way, you can rapidly build and deploy your DeFi project while benefiting from
-the robustness and flexibility of the Abstract ecosystem.
+the robustness and flexibility of the Abstract ecosystem. -->
 
-## Execute on Modules
+## Example Execution Flows
 
-The following are sequence diagrams of the process of executing a module on an Abstract Account. There are three types
-of
-execution: Owner Execution, Adapter Execution, and Module Execution.
+The following are sequence diagrams of the process of executing a function on a module of an Abstract Account. We show three examples of executing a module: Owner Execution, Adapter Execution, and Dependency Execution.
 
 Let's explore each of them.
 
-## Owner Execution
+### Owner Execution
 
-To execute a message on a specific module, the Owner can call the `ExecOnModule` function on the Manager, providing
-the module id. This diagram depicts how the Manager interacts with any module installed on the account.
+To execute a (permissioned) message on a specific module, the Owner can call the module directly. The Module knows who the Owner of the Account is.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor U as Owner
-    participant M as Manager
     participant Md as Module ("addr123")
-    U ->> M: ExecOnModule
-    Note right of U: ModuleMsg {"module_id": "xyz"}
-    M -->> M: Load module address
-    M ->> Md: Execute
-    Note right of M: ModuleMsg {"module_addr": "addr123"}
+    U ->> Md: Execute
 ```
 
-## Adapter Execution
+### Adapter Execution
 
-In the following example, the `abstract:dex` module is installed on an Account, and the owner requests a swap on a dex.
+In the following example, the `abstract:dex` adapter is installed on an Account, and the Owner requests a swap on a dex. By providing the proxy address of the Account in the call, the adapter can assert that the caller is the Owner of the Account.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor U as Owner
-    participant M as Manager
     participant D as abstract:dex
     participant VC as Version Control
     participant A as ANS
     participant P as Proxy
     participant T as Dex Pool
-    U ->> M: ExecOnModule
-    Note right of U: Dex::Swap
-    M --> M: Load module address
-    M ->> D: Call module
-    Note right of M: Adapter Msg
+    Note right of U: Dex::Swap {proxy: "juno1xd..."}
+    U ->> D: Call module
     D -->+ VC: Load proxy address for Account
     VC -->- D: Address
     D -->>+ A: Resolve asset names
@@ -226,12 +228,11 @@ sequenceDiagram
     Note over VC, A: DexMsg
     P ->> T: Execute
     Note right of P: DexMsg
-
 ```
 
-## Module Execution
+### Dependency Execution
 
-In this example, we use [Equilibrium](../7_use_cases/1_equilibrium.md)'s `Rebalance` function as an example. Modules
+In this example, we use the [Equilibrium App](../7_use_cases/1_equilibrium.md)'s `Rebalance` function as an example. Modules
 with dependencies (`equilibrium:balancer` is dependent on `abstract:etf` and `abstract:dex`) have their addresses
 dynamically resolved when called.
 
@@ -257,6 +258,4 @@ sequenceDiagram
     Note over M: DexMsg
     P ->> T: Execute
     Note over D, M: DexMsg
-
 ```
-
