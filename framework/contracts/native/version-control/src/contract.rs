@@ -152,7 +152,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
                 limit,
             )?)
         }
-        QueryMsg::Ownership {} => to_json_binary(&query_ownership!(deps)?),
+        QueryMsg::Ownership {} => query_ownership!(deps),
     }
     .map_err(Into::into)
 }
