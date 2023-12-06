@@ -233,6 +233,7 @@ pub mod mock {
     };
 }
 
+    // TODO: Remove after 0.20 migration
     /// Generate a BOOT instance for a 0.19 abstract mock adapter
     /// - $name: name of the contract (&str)
     /// - $id: id of the contract (&str)
