@@ -118,7 +118,7 @@ fn install_non_existent_version_should_fail() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    init_mock_adapter(chain, &deployment, None)?;
+    init_mock_adapter(chain, &deployment, None, account.id()?)?;
 
     let res = account.manager.install_module_version(
         TEST_MODULE_ID,

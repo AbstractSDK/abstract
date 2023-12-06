@@ -135,7 +135,7 @@ pub mod mock {
         adapter.instantiate(deps, mock_env(), info, init_msg)
     }
 
-    impl Uploadable for BootMockAdapter<Mock> {
+    impl<T: CwEnv> Uploadable for BootMockAdapter<T> {
         fn wrapper(&self) -> <Mock as cw_orch::environment::TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 self::execute,
@@ -152,7 +152,7 @@ pub mod mock {
     #[cw_orch::interface(Init, Exec, Query, Empty)]
     pub struct BootMockAdapter<Chain>;
 
-    impl AdapterDeployer<Mock, MockInitMsg> for BootMockAdapter<Mock> {}
+    impl<T: CwEnv> AdapterDeployer<T, MockInitMsg> for BootMockAdapter<T> {}
 
     /// Generate a BOOT instance for a mock adapter
     /// - $name: name of the contract (&str)

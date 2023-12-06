@@ -97,7 +97,7 @@ fn default_without_response_data() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None)?;
+    let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 

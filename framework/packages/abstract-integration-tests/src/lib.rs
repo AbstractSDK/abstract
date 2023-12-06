@@ -7,17 +7,17 @@ pub mod manager;
 pub mod mock_modules;
 // pub mod proxy;
 
-use abstract_adapter::mock::MockInitMsg;
+use abstract_adapter::mock::{BootMockAdapter, MockInitMsg};
 use abstract_core::objects::{
-    account::TEST_ACCOUNT_ID,
     module::{ModuleVersion, Monetization},
     namespace::Namespace,
+    AccountId,
 };
 use abstract_interface::*;
 use abstract_sdk::core::objects::gov_type::GovernanceDetails;
-use abstract_testing::addresses::TEST_NAMESPACE;
+use abstract_testing::prelude::*;
 use cw_orch::prelude::*;
-use mock_modules::{adapter_1::BootMockAdapter1V1, V1};
+use mock_modules::V1;
 pub type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 pub fn create_default_account<T: CwEnv>(
@@ -50,14 +50,17 @@ pub fn init_mock_adapter<T: CwEnv>(
     chain: T,
     deployment: &Abstract<T>,
     version: Option<String>,
-) -> anyhow::Result<BootMockAdapter1V1<T>> {
+    account_id: AccountId,
+) -> anyhow::Result<BootMockAdapter<T>> {
     deployment
         .version_control
-        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
-    let staking_adapter = BootMockAdapter1V1::new_test(chain);
-    let version: semver::Version = version.unwrap_or_else(|| V1.to_string()).parse()?;
-    BootMockAdapter1V1::deploy(&staking_adapter, version, MockInitMsg, DeployStrategy::Try)?;
-    Ok(staking_adapter)
+        .claim_namespace(account_id, "tester".to_string())?;
+    let mock_adapter = BootMockAdapter::new(TEST_MODULE_ID, chain);
+    let version: semver::Version = version
+        .unwrap_or_else(|| TEST_VERSION.to_string())
+        .parse()?;
+    BootMockAdapter::deploy(&mock_adapter, version, MockInitMsg, DeployStrategy::Try)?;
+    Ok(mock_adapter)
 }
 
 pub fn add_mock_adapter_install_fee<T: CwEnv>(

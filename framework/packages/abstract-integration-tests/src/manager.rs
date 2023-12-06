@@ -410,7 +410,7 @@ pub fn installing_one_adapter_with_fee_should_succeed<T: MutCwEnv>(mut chain: T)
     let account = create_default_account(&deployment.account_factory)?;
     chain.set_balance(&sender, coins(45, "ujunox")).unwrap();
 
-    init_mock_adapter(chain.clone(), &deployment, None)?;
+    init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
     add_mock_adapter_install_fee(
         &deployment,
         Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
@@ -430,13 +430,14 @@ pub fn installing_one_adapter_with_fee_should_succeed<T: MutCwEnv>(mut chain: T)
 pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None)?;
+
+    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
     let manager_address = account.manager.address()?;
     staking_adapter.call_as(&manager_address).execute(
-        &abstract_core::adapter::ExecuteMsg::<MockExecMsg, MockReceiveMsg>::Base(
+        &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Base(
             abstract_core::adapter::BaseExecuteMsg::UpdateAuthorizedAddresses {
                 to_add: vec![account.proxy.addr_str()?],
                 to_remove: vec![],
