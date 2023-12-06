@@ -80,11 +80,7 @@ mod manager {
     ) -> anyhow::Result<()> {
         let (abstr_deployment, chain) = setup()?;
         abstr_deployment.migrate_if_needed()?;
-        create_account_with_installed_module_monetization_and_init_funds(
-            chain,
-            // TODO: check if these should be real coins after instantiate2 fixed
-            ("coin1", "coin2"),
-        )
+        create_account_with_installed_module_monetization_and_init_funds(chain, ("coin1", "coin2"))
     }
 
     #[test]
@@ -98,6 +94,11 @@ mod manager {
     fn update_adapter_with_authorized_addrs_after_migrate() -> anyhow::Result<()> {
         let (abstr_deployment, chain) = setup()?;
         abstr_deployment.migrate_if_needed()?;
+        // Make this address "valid"
+        chain.set_balance(
+            &Addr::unchecked("authorizee"),
+            cosmwasm_std::coins(1, "ujunox"),
+        )?;
         update_adapter_with_authorized_addrs(chain)
     }
 

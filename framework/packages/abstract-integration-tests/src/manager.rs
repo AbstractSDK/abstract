@@ -116,10 +116,14 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
         &[],
     )?;
 
-    let account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+    let sub_account_id = deployer_acc
+        .manager
+        .sub_account_ids(None, None)?
+        .sub_accounts[0];
+    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(sub_account_id)));
 
     // Make sure all installed
-    let account_module_versions = account.manager.module_versions(vec![
+    let account_module_versions = sub_account.manager.module_versions(vec![
         String::from(adapter_1::MOCK_ADAPTER_ID),
         String::from(adapter_2::MOCK_ADAPTER_ID),
         String::from(app_1::MOCK_APP_ID),
@@ -305,14 +309,14 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
     let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
     // Add balance to proxy so
-    // app will transfer funds to test addr during instantiation
+    // app will transfer funds to adapter1 addr during instantiation
     chain
         .add_balance(&proxy.address()?, coins(123456, "TEST"))
         .unwrap();
     let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
 
     let test_addr_balance = chain
-        .balance(Addr::unchecked("test_addr"), Some("TEST".to_owned()))
+        .balance(Addr::unchecked(&adapter1), Some("TEST".to_owned()))
         .unwrap();
     assert_eq!(test_addr_balance[0].amount, Uint128::new(123456));
 
@@ -329,10 +333,12 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T) -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
+    dbg!("lol");
     // install adapter 1
     let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
     account.expect_modules(vec![adapter1.clone()])?;
 
+    dbg!("lol");
     // register an authorized address on Adapter 1
     let authorizee = "authorizee";
     manager.update_adapter_authorized_addresses(
@@ -341,6 +347,7 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T) -> AResult {
         vec![],
     )?;
 
+    dbg!("lol");
     // upgrade adapter 1 to version 2
     manager.upgrade_module(
         adapter_1::MOCK_ADAPTER_ID,
@@ -350,15 +357,19 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T) -> AResult {
         },
     )?;
     use abstract_core::manager::QueryMsgFns as _;
+
+    dbg!("lol");
     let adapter_v2 = manager.module_addresses(vec![adapter_1::MOCK_ADAPTER_ID.into()])?;
     // assert that the address actually changed
     assert_that!(adapter_v2.modules[0].1).is_not_equal_to(Addr::unchecked(adapter1.clone()));
 
+    dbg!("lol");
     let adapter = adapter_1::BootMockAdapter1V2::new_test(chain);
     use abstract_core::adapter::BaseQueryMsgFns as _;
     let authorized = adapter.authorized_addresses(proxy.addr_str()?)?;
     assert_that!(authorized.addresses).contains(Addr::unchecked(authorizee));
 
+    dbg!("lol");
     // assert that authorized address was removed from old Adapter
     adapter.set_address(&Addr::unchecked(adapter1));
     let authorized = adapter.authorized_addresses(proxy.addr_str()?)?;

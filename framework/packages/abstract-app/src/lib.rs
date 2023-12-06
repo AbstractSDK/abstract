@@ -203,7 +203,7 @@ pub mod mock {
                         .bank(deps.as_ref())
                         .transfer::<::cosmwasm_std::Coin>(
                             vec![balance.into()],
-                            &::cosmwasm_std::Addr::unchecked("test_addr"),
+                            &adapter1_addr.unwrap(),
                         )?;
                     let msg = module.executor(deps.as_ref()).execute(vec![action])?;
                     println!("message: {msg:?}");
