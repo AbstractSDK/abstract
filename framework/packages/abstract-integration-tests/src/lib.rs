@@ -17,7 +17,6 @@ use abstract_interface::*;
 use abstract_sdk::core::objects::gov_type::GovernanceDetails;
 use abstract_testing::prelude::*;
 use cw_orch::prelude::*;
-use mock_modules::V1;
 pub type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 pub fn create_default_account<T: CwEnv>(
@@ -68,9 +67,9 @@ pub fn add_mock_adapter_install_fee<T: CwEnv>(
     monetization: Monetization,
     version: Option<String>,
 ) -> anyhow::Result<()> {
-    let version = version.unwrap_or(V1.to_string());
+    let version = version.unwrap_or(TEST_VERSION.to_string());
     deployment.version_control.update_module_configuration(
-        "mock-adapter1".to_string(),
+        "test-module-id".to_string(),
         Namespace::new(TEST_NAMESPACE).unwrap(),
         abstract_core::version_control::UpdateModule::Versioned {
             version,

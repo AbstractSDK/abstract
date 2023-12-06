@@ -281,7 +281,10 @@ fn update_adapter_with_authorized_addrs() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    abstract_integration_tests::manager::update_adapter_with_authorized_addrs(chain)
+    abstract_integration_tests::manager::update_adapter_with_authorized_addrs(
+        chain,
+        Addr::unchecked("authorizee"),
+    )
 }
 
 /*#[test]

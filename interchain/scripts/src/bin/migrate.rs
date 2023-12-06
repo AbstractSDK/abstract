@@ -23,7 +23,7 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         let deployment = Abstract::load_from(chain)?;
 
-        deployment.migrate()?;
+        deployment.migrate_if_needed()?;
     }
     Ok(())
 }

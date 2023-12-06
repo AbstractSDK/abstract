@@ -1,3 +1,6 @@
+//! Currently you can run only 1 test at a time: `cargo test -- --test-threads=1`
+//! Otherwise you will have too many requests
+
 mod common;
 
 use abstract_interface::Abstract;
@@ -24,7 +27,7 @@ fn rt() -> &'static tokio::runtime::Runtime {
 /// Sets up the forkmock for Juno mainnet.
 /// Returns the abstract deployment and sender (=mainnet admin)
 fn setup() -> anyhow::Result<(Abstract<ForkMock>, ForkMock)> {
-    env_logger::init();
+    let _ = env_logger::builder().is_test(true).try_init();
     let sender = Addr::unchecked(SENDER);
     // Run migration tests against Juno mainnet
     let mut app = ForkMock::new(rt(), JUNO_1)?;
@@ -94,12 +97,9 @@ mod manager {
     fn update_adapter_with_authorized_addrs_after_migrate() -> anyhow::Result<()> {
         let (abstr_deployment, chain) = setup()?;
         abstr_deployment.migrate_if_needed()?;
-        // Make this address "valid"
-        chain.set_balance(
-            &Addr::unchecked("authorizee"),
-            cosmwasm_std::coins(1, "ujunox"),
-        )?;
-        update_adapter_with_authorized_addrs(chain)
+
+        let authorizee = chain.init_account();
+        update_adapter_with_authorized_addrs(chain, authorizee)
     }
 
     #[test]

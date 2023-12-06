@@ -8,7 +8,6 @@ use crate::mock_modules::standalone_cw2;
 use crate::mock_modules::*;
 use crate::AResult;
 use abstract_adapter::mock::MockExecMsg;
-use abstract_adapter::mock::MockReceiveMsg;
 use abstract_app::mock::MockInitMsg;
 use abstract_core::adapter::AdapterRequestMsg;
 use abstract_core::app;
@@ -324,7 +323,7 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
     Ok(())
 }
 
-pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T) -> AResult {
+pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr) -> AResult {
     let abstr = Abstract::load_from(chain.clone())?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy } = &account;
@@ -339,7 +338,6 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T) -> AResult {
     account.expect_modules(vec![adapter1.clone()])?;
 
     // register an authorized address on Adapter 1
-    let authorizee = "authorizee";
     manager.update_adapter_authorized_addresses(
         adapter_1::MOCK_ADAPTER_ID,
         vec![authorizee.to_string()],
@@ -363,7 +361,7 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T) -> AResult {
     let adapter = adapter_1::BootMockAdapter1V2::new_test(chain);
     use abstract_core::adapter::BaseQueryMsgFns as _;
     let authorized = adapter.authorized_addresses(proxy.addr_str()?)?;
-    assert_that!(authorized.addresses).contains(Addr::unchecked(authorizee));
+    assert_that!(authorized.addresses).contains(authorizee);
 
     // assert that authorized address was removed from old Adapter
     adapter.set_address(&Addr::unchecked(adapter1));
@@ -419,7 +417,7 @@ pub fn installing_one_adapter_with_fee_should_succeed<T: MutCwEnv>(mut chain: T)
 
     assert_that!(install_adapter_with_funds(
         &account.manager,
-        adapter_1::MOCK_ADAPTER_ID,
+        TEST_MODULE_ID,
         &coins(45, "ujunox")
     ))
     .is_ok();
