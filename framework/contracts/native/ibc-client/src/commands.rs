@@ -260,6 +260,7 @@ pub fn execute_send_query(
 pub fn execute_register_account(
     deps: DepsMut,
     info: MessageInfo,
+    env: Env,
     host_chain: String,
     base_asset: Option<AssetEntry>,
     namespace: Option<String>,
@@ -284,7 +285,7 @@ pub fn execute_register_account(
 
     let note_message = send_remote_host_action(
         deps.as_ref(),
-        account_id,
+        account_id.clone(),
         account_base,
         host_chain,
         HostAction::Internal(InternalAction::Register {
@@ -295,7 +296,10 @@ pub fn execute_register_account(
             namespace,
             install_modules,
         }),
-        None,
+        Some(CallbackRequest {
+            receiver: env.contract.address.to_string(),
+            msg: to_json_binary(&IbcClientCallback::CreateAccount { account_id })?,
+        }),
     )?;
 
     Ok(IbcClientResponse::action("handle_register").add_message(note_message))

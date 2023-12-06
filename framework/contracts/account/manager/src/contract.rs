@@ -6,7 +6,10 @@ use crate::{
     versioning,
 };
 use abstract_core::{
-    manager::{state::ACCOUNT_MODULES, UpdateSubAccountAction},
+    manager::{
+        state::{ACCOUNT_MODULES, PENDING_GOVERNANCE},
+        UpdateSubAccountAction,
+    },
     objects::gov_type::GovernanceDetails,
     PROXY,
 };
@@ -146,7 +149,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::UpdateInternalConfig(config) => {
                     update_internal_config(deps, info, config)
                 }
-                ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
+                ExecuteMsg::ProposeOwner { owner } => propose_owner(deps, env, info, owner),
 
                 ExecuteMsg::InstallModules { modules } => install_modules(deps, info, env, modules),
                 ExecuteMsg::UninstallModule { module_id } => {
@@ -197,15 +200,23 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     handle_sub_account_action(deps, info, action)
                 }
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
+                // Used to claim or renounce an ownership change.
                 ExecuteMsg::UpdateOwnership(action) => {
+                    let mut info = info;
+                    let mut deps = deps;
                     let msgs = match action {
-                        // Disallow the user from using the TransferOwnership action
+                        // Disallow the user from using the TransferOwnership action.
                         cw_ownable::Action::TransferOwnership { .. } => {
-                            return Err(ManagerError::MustUseSetOwner {});
+                            return Err(ManagerError::MustUseProposeOwner {});
                         }
-                        cw_ownable::Action::AcceptOwnership => update_governance(deps.storage)?,
-                        _ => vec![],
+                        cw_ownable::Action::AcceptOwnership => {
+                            update_governance(deps.branch(), &mut info.sender)?
+                        }
+                        cw_ownable::Action::RenounceOwnership => vec![],
                     };
+                    // Clear pending governance for either renounced or accepted ownership
+                    PENDING_GOVERNANCE.remove(deps.storage);
+
                     let result: ManagerResult = abstract_sdk::execute_update_ownership!(
                         ManagerResponse,
                         deps,
