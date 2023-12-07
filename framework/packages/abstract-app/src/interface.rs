@@ -154,6 +154,9 @@ macro_rules! cw_orch_interface {
                 }
 			}
 
+            // use default implementations
+			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::InstallConfig for $interface_name<Chain> { }
+
 			impl<T: ::cw_orch::prelude::CwEnv> From<::cw_orch::contract::Contract<T>> for $interface_name<T> {
 				fn from(contract: ::cw_orch::contract::Contract<T>) -> Self {
 					Self(contract)

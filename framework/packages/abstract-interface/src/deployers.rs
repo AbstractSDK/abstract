@@ -1,5 +1,7 @@
 use crate::Abstract;
-use abstract_core::objects::module::ModuleVersion;
+use abstract_core::manager::ModuleInstallConfig;
+use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
+use cosmwasm_std::to_json_binary;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::CwOrchError::StdErr;
 use cw_orch::prelude::*;
@@ -15,6 +17,30 @@ pub trait RegisteredModule {
     fn module_id<'a>() -> &'a str;
     /// The version of the module.
     fn module_version<'a>() -> &'a str;
+}
+
+pub trait DependencyCreation {
+    /// Type that exposes the dependencies's configurations if that's required.
+    type DependenciesConfig;
+
+    /// Function that returns the `ModuleInstallConfig` for each dependent module.
+    #[allow(unused_variables)]
+    fn dependency_install_configs(
+        configuration: Self::DependenciesConfig,
+    ) -> Vec<ModuleInstallConfig> {
+        vec![]
+    }
+}
+
+pub trait InstallConfig: RegisteredModule {
+    fn module_info() -> ModuleInfo {
+        ModuleInfo::from_id(Self::module_id(), Self::module_version().into()).unwrap()
+    }
+
+    /// Constructs the ModuleInstallConfig for an App Interface
+    fn install_config(init_msg: &Self::InitMsg) -> ModuleInstallConfig {
+        ModuleInstallConfig::new(Self::module_info(), Some(to_json_binary(init_msg).unwrap()))
+    }
 }
 
 /// Strategy for deploying

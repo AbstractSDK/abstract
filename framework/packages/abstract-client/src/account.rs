@@ -1,16 +1,16 @@
 use abstract_core::{
-    manager::{state::AccountInfo, InfoResponse, ModuleInstallConfig},
-    objects::{
-        gov_type::GovernanceDetails, module::ModuleInfo, namespace::Namespace, AccountId,
-        AssetEntry,
+    manager::{
+        state::AccountInfo, InfoResponse, ModuleAddressesResponse, ModuleInfosResponse,
+        ModuleInstallConfig,
     },
+    objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
     version_control::NamespaceResponse,
 };
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns, RegisteredModule,
-    VCQueryFns,
+    Abstract, AbstractAccount, AccountDetails, DependencyCreation, InstallConfig, ManagerExecFns,
+    ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
-use cosmwasm_std::{to_json_binary, Attribute};
+use cosmwasm_std::Attribute;
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
 
@@ -160,18 +160,73 @@ impl<Chain: CwEnv> Account<Chain> {
     // Install an application on the account
     // creates a new sub-account and installs the application on it.
     pub fn install_app<
-        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
+        M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>> + Clone,
     >(
         &self,
         configuration: &M::InitMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
+        self.install_app_internal(vec![M::install_config(configuration)], funds)
+    }
+
+    pub fn install_app_with_dependencies<
+        M: ContractInstance<Chain>
+            + DependencyCreation
+            + InstallConfig
+            + From<Contract<Chain>>
+            + Clone,
+    >(
+        &self,
+        module_configuration: &M::InitMsg,
+        dependencies_config: M::DependenciesConfig,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let mut install_configs: Vec<ModuleInstallConfig> =
+            M::dependency_install_configs(dependencies_config);
+        install_configs.push(M::install_config(module_configuration));
+
+        self.install_app_internal(install_configs, funds)
+    }
+
+    pub fn admin(&self) -> AbstractClientResult<Addr> {
+        self.abstr_account.manager.address().map_err(Into::into)
+    }
+
+    pub fn module_infos(
+        &self,
+        start_after: Option<String>,
+        limit: Option<u8>,
+    ) -> AbstractClientResult<ModuleInfosResponse> {
+        self.abstr_account
+            .manager
+            .module_infos(limit, start_after)
+            .map_err(Into::into)
+    }
+
+    pub fn module_addresses(
+        &self,
+        ids: Vec<String>,
+    ) -> AbstractClientResult<ModuleAddressesResponse> {
+        self.abstr_account
+            .manager
+            .module_addresses(ids)
+            .map_err(Into::into)
+    }
+
+    pub fn proxy(&self) -> AbstractClientResult<Addr> {
+        self.abstr_account.proxy.address().map_err(Into::into)
+    }
+
+    fn install_app_internal<
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
+    >(
+        &self,
+        modules: Vec<ModuleInstallConfig>,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
         // Create sub account.
         let sub_account_response = self.abstr_account.manager.create_sub_account(
-            vec![ModuleInstallConfig::new(
-                ModuleInfo::from_id(M::module_id(), M::module_version().into())?,
-                Some(to_json_binary(&configuration)?),
-            )],
+            modules,
             "Sub Account".to_owned(),
             None,
             None,
@@ -200,17 +255,12 @@ impl<Chain: CwEnv> Account<Chain> {
         Ok(Application::new(Account::new(sub_account), app))
     }
 
-    pub fn admin(&self) -> AbstractClientResult<Addr> {
-        self.abstr_account.manager.address().map_err(Into::into)
-    }
-
-    pub fn proxy(&self) -> AbstractClientResult<Addr> {
-        self.abstr_account.proxy.address().map_err(Into::into)
-    }
-
     fn parse_account_creation_response(
         response: <Chain as TxHandler>::Response,
     ) -> ParsedAccountCreationResponse {
+        for event in response.events().iter() {
+            println!("{:?}", event);
+        }
         let wasm_abstract_attributes: Vec<Attribute> = response
             .events()
             .into_iter()
@@ -223,15 +273,25 @@ impl<Chain: CwEnv> Account<Chain> {
             .find(|a| a.key == "sub_account_added")
             .map(|a| a.value.parse().unwrap());
 
-        let module_address: Option<String> = wasm_abstract_attributes
+        let module_addresses: Option<String> = wasm_abstract_attributes
             .iter()
             .find(|a| a.key == "new_modules")
             .map(|a| a.value.parse().unwrap());
 
+        // When there are multiple modules registered the addresses are returned in a common
+        // separated list. We want the last one as that is the "top-level" module while the rest
+        // are dependencies.
+        let module_address: String = module_addresses
+            .unwrap()
+            .split(',')
+            .last()
+            .unwrap()
+            .to_string();
+
         ParsedAccountCreationResponse {
             // We expect both of these fields to be present.
             sub_account_id: sub_account_id.unwrap(),
-            module_address: module_address.unwrap(),
+            module_address,
         }
     }
 }

@@ -1,15 +1,22 @@
 use abstract_app::mock::{
-    interface::MockAppInterface, MockExecMsgFns, MockInitMsg, MockQueryMsgFns, MockQueryResponse,
+    interface::MockAppInterface, mock_app_dependency::interface::MockAppDependencyInterface,
+    MockExecMsgFns, MockInitMsg, MockQueryMsgFns, MockQueryResponse,
 };
 use abstract_client::{
     account::Account, application::Application, client::AbstractClient, publisher::Publisher,
 };
 use abstract_core::{
-    manager::state::AccountInfo,
+    manager::{
+        state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
+    },
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
 };
 use abstract_interface::VCQueryFns;
-use cosmwasm_std::Addr;
+use abstract_testing::prelude::{
+    TEST_DEPENDENCY_MODULE_ID, TEST_DEPENDENCY_NAMESPACE, TEST_MODULE_ID, TEST_NAMESPACE,
+    TEST_VERSION,
+};
+use cosmwasm_std::{Addr, Empty};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::{CallAs, Mock};
 
@@ -195,7 +202,10 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
 fn can_publish_and_install_app() -> anyhow::Result<()> {
     let client = AbstractClient::builder(ADMIN).build()?;
 
-    let publisher: Publisher<Mock> = client.publisher_builder().namespace("tester").build()?;
+    let publisher: Publisher<Mock> = client
+        .publisher_builder()
+        .namespace(TEST_NAMESPACE)
+        .build()?;
 
     let publisher_admin = publisher.admin()?;
     let publisher_proxy = publisher.proxy()?;
@@ -260,6 +270,80 @@ fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<
         .build()?;
 
     assert_eq!(account1.get_account_info()?, account2.get_account_info()?);
+
+    Ok(())
+}
+
+#[test]
+fn can_install_module_with_dependencies() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(ADMIN).build()?;
+
+    let app_publisher: Publisher<Mock> = client
+        .publisher_builder()
+        .namespace(TEST_NAMESPACE)
+        .build()?;
+
+    let app_dependency_publisher: Publisher<Mock> = client
+        .publisher_builder()
+        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .build()?;
+
+    app_dependency_publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
+    app_publisher.publish_app::<MockAppInterface<Mock>>()?;
+
+    let my_app: Application<Mock, MockAppInterface<Mock>> = app_publisher
+        .install_app_with_dependencies::<MockAppInterface<Mock>>(&MockInitMsg, Empty {}, &[])?;
+
+    my_app.call_as(&app_publisher.admin()?).do_something()?;
+
+    let something = my_app.get_something()?;
+
+    assert_eq!(MockQueryResponse {}, something);
+
+    let module_infos_response: ModuleInfosResponse = app_publisher.module_infos(None, None)?;
+    let module_addresses_response: ModuleAddressesResponse =
+        app_publisher.account().module_addresses(vec![
+            TEST_MODULE_ID.to_owned(),
+            TEST_DEPENDENCY_MODULE_ID.to_owned(),
+        ])?;
+
+    let app_address: Addr = module_addresses_response
+        .modules
+        .iter()
+        .find(|(module_id, _)| module_id == TEST_MODULE_ID)
+        .unwrap()
+        .clone()
+        .1;
+
+    let app_dependency_address: Addr = module_addresses_response
+        .modules
+        .iter()
+        .find(|(module_id, _)| module_id == TEST_DEPENDENCY_MODULE_ID)
+        .unwrap()
+        .clone()
+        .1;
+
+    assert!(module_infos_response
+        .module_infos
+        .contains(&ManagerModuleInfo {
+            id: TEST_DEPENDENCY_MODULE_ID.to_owned(),
+            version: cw2::ContractVersion {
+                contract: TEST_DEPENDENCY_MODULE_ID.to_owned(),
+                version: TEST_VERSION.to_owned()
+            },
+            address: app_dependency_address,
+        }));
+
+    assert!(module_infos_response
+        .module_infos
+        .contains(&ManagerModuleInfo {
+            id: TEST_MODULE_ID.to_owned(),
+            version: cw2::ContractVersion {
+                contract: TEST_MODULE_ID.to_owned(),
+                version: TEST_VERSION.to_owned()
+            },
+            address: app_address,
+        }));
 
     Ok(())
 }
