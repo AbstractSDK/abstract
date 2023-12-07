@@ -4,12 +4,12 @@ As explained in the previous section, a _module_ is a smart-contract that **exte
 all the available modules on the modules tab of your Account through
 the <a href="https://app.abstract.money/" target="_blank">web-app</a>.
 
-```admonish info
+<!-- ```admonish info
 In the previous sections we referred to these modules as "applications". We did this to simplify the mental framework of 
 the Abstract SDK. However, the term "application" is not entirely accurate, instead we should refer to them as "modules". 
 These modules come in different types, each with their own purpose. The most common of which is the "App" module, or 
 "Abstract App".
-```
+``` -->
 
 Modules are classified in the following categories:
 
