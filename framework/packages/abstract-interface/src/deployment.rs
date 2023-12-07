@@ -127,6 +127,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             Box::new(&mut self.module_factory),
             Box::new(&mut self.account.manager),
             Box::new(&mut self.account.proxy),
+            Box::new(&mut self.ibc.client),
+            Box::new(&mut self.ibc.host),
         ]
     }
 
