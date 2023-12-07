@@ -1,8 +1,9 @@
 use abstract_sdk::base::SudoEndpoint;
 
-use crate::{state::ContractError, AppContract};
+use crate::{better_sdk::execution_stack::DepsAccess, state::ContractError, AppContract};
 
 impl<
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -12,6 +13,8 @@ impl<
         SudoMsg,
     > SudoEndpoint
     for AppContract<
+        '_,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

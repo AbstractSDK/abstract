@@ -1,4 +1,4 @@
-use crate::{state::ContractError, AppContract};
+use crate::{better_sdk::execution_stack::DepsAccess, state::ContractError, AppContract};
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
@@ -8,6 +8,8 @@ use cosmwasm_std::{Addr, Deps};
 
 // ANCHOR: ans
 impl<
+        'app,
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -17,6 +19,8 @@ impl<
         SudoMsg,
     > AbstractNameService
     for AppContract<
+        'app,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -34,6 +38,8 @@ impl<
 // ANCHOR_END: ans
 
 impl<
+        'app,
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -43,6 +49,8 @@ impl<
         SudoMsg,
     > AccountIdentification
     for AppContract<
+        'app,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -58,6 +66,8 @@ impl<
 }
 
 impl<
+        'app,
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -67,6 +77,8 @@ impl<
         SudoMsg,
     > AbstractRegistryAccess
     for AppContract<
+        'app,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

@@ -11,7 +11,7 @@ use abstract_macros::with_abstract_event;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 /// Execute an `AccountAction` on the Account.
-pub trait Execution: AccountIdentification + ModuleIdentification {
+pub trait Execution<'a>: AccountIdentification + ModuleIdentification {
     /**
         API for executing [`AccountAction`]s on the Account.
         Group your actions together in a single execute call if possible.
@@ -29,12 +29,12 @@ pub trait Execution: AccountIdentification + ModuleIdentification {
         let executor: Executor<MockModule>  = module.executor(deps.as_ref());
         ```
     */
-    fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
+    fn executor(&'a self, deps: Deps<'a>) -> Executor<Self> {
         Executor { base: self, deps }
     }
 }
 
-impl<T> Execution for T where T: AccountIdentification + ModuleIdentification {}
+impl<'a, T> Execution<'a> for T where T: AccountIdentification + ModuleIdentification {}
 
 /**
     API for executing [`AccountAction`]s on the Account.
@@ -54,12 +54,12 @@ impl<T> Execution for T where T: AccountIdentification + ModuleIdentification {}
     ```
 */
 #[derive(Clone)]
-pub struct Executor<'a, T: Execution> {
+pub struct Executor<'a, T: Execution<'a>> {
     base: &'a T,
     deps: Deps<'a>,
 }
 
-impl<'a, T: Execution> Executor<'a, T> {
+impl<'a, T: Execution<'a>> Executor<'a, T> {
     /// Execute a single message on the `ModuleActionWithData` endpoint.
     fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
         let msg = wasm_execute(

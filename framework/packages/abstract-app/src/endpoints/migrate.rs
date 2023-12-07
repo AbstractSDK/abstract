@@ -1,3 +1,4 @@
+use crate::better_sdk::execution_stack::DepsAccess;
 use crate::{state::ContractError, AppContract, Handler, MigrateEndpoint};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_core::{app::MigrateMsg, objects::module_version::set_module_data};
@@ -7,6 +8,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -16,6 +18,8 @@ impl<
         SudoMsg,
     > MigrateEndpoint
     for AppContract<
+        '_,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -35,15 +39,15 @@ impl<
     ) -> Result<cosmwasm_std::Response, Self::Error> {
         let (name, version_string, metadata) = self.info();
         let to_version = version_string.parse().unwrap();
-        assert_contract_upgrade(deps.storage, name, to_version)?;
+        assert_contract_upgrade(deps.storage, name.clone(), to_version)?;
         set_module_data(
             deps.storage,
-            name,
-            version_string,
+            name.clone(),
+            version_string.clone(),
             self.dependencies(),
             metadata,
         )?;
-        set_contract_version(deps.storage, name, version_string)?;
+        set_contract_version(deps.storage, &name, &version_string)?;
         if let Some(migrate_fn) = self.maybe_migrate_handler() {
             return migrate_fn(deps, env, self, msg.module);
         }

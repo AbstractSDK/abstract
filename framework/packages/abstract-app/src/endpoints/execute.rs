@@ -1,4 +1,5 @@
 use crate::{
+    better_sdk::execution_stack::DepsAccess,
     state::{AppContract, ContractError},
     AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
 };
@@ -9,6 +10,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
+        T: DepsAccess,
         Error: From<cosmwasm_std::StdError>
             + From<AppError>
             + From<abstract_sdk::AbstractSdkError>
@@ -22,6 +24,8 @@ impl<
         SudoMsg,
     > ExecuteEndpoint
     for AppContract<
+        '_,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -54,6 +58,7 @@ impl<
 }
 
 impl<
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -63,6 +68,8 @@ impl<
         SudoMsg,
     >
     AppContract<
+        '_,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

@@ -61,13 +61,13 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
     store: &mut dyn Storage,
     name: T,
     version: U,
-    dependencies: &[StaticDependency],
+    dependencies: Vec<Dependency>,
     metadata: Option<M>,
 ) -> StdResult<()> {
     let val = ModuleData {
         module: name.into(),
         version: version.into(),
-        dependencies: dependencies.iter().map(Into::into).collect(),
+        dependencies,
         metadata: metadata.map(Into::into),
     };
     MODULE.save(store, &val).map_err(Into::into)
@@ -193,7 +193,7 @@ mod tests {
             &mut store,
             contract_name,
             contract_version,
-            DEPENDENCIES,
+            DEPENDENCIES.iter().map(Into::into).collect(),
             metadata,
         )
         .unwrap();

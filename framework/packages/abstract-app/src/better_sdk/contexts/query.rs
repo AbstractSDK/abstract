@@ -1,5 +1,5 @@
 use abstract_sdk::{feature_objects::AnsHost, AbstractSdkResult};
-use cosmwasm_std::{Addr, CustomQuery, Deps, DepsMut, Empty, Env};
+use cosmwasm_std::{Addr, CustomQuery, Deps, DepsMut, Empty, Env, MessageInfo};
 
 use crate::better_sdk::{
     account_identification::AccountIdentification, execution_stack::DepsAccess,
@@ -24,6 +24,14 @@ impl<'c> DepsAccess for AppQueryCtx<'c> {
 
     fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b, Empty> {
         self.deps
+    }
+
+    fn env(&self) -> Env {
+        self.env.clone()
+    }
+
+    fn message_info(&self) -> MessageInfo {
+        unimplemented!()
     }
 }
 

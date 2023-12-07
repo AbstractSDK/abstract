@@ -1,5 +1,7 @@
 use abstract_sdk::{feature_objects::AnsHost, AbstractSdkResult};
-use cosmwasm_std::{Addr, Attribute, Binary, CustomQuery, DepsMut, Empty, Env, Event, Response};
+use cosmwasm_std::{
+    Addr, Attribute, Binary, CustomQuery, DepsMut, Empty, Env, Event, MessageInfo, Response,
+};
 
 use crate::AppError;
 
@@ -42,6 +44,14 @@ impl<'c> DepsAccess for AppMigrateCtx<'c, Empty> {
 
     fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b, Empty> {
         self.deps.as_ref()
+    }
+
+    fn env(&self) -> Env {
+        self.env.clone()
+    }
+
+    fn message_info(&self) -> MessageInfo {
+        unimplemented!()
     }
 }
 

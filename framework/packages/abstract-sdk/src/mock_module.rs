@@ -1,6 +1,6 @@
 //! Mock module for API and feature testing
 
-use abstract_core::objects::dependency::StaticDependency;
+use abstract_core::objects::dependency::{Dependency, StaticDependency};
 use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
 use cosmwasm_std::{Addr, Deps};
 
@@ -43,8 +43,8 @@ impl AbstractRegistryAccess for MockModule {
 }
 
 impl Dependencies for MockModule {
-    fn dependencies(&self) -> &[StaticDependency] {
-        &[TEST_MODULE_DEP]
+    fn dependencies<'b>(&'b self) -> Vec<Dependency> {
+        vec![(&TEST_MODULE_DEP).into()]
     }
 }
 

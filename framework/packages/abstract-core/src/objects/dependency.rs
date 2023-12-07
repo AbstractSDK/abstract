@@ -6,16 +6,13 @@ use super::module::ModuleId;
 
 /// Statically defined dependency used in-contract
 #[derive(Debug, Clone, PartialEq)]
-pub struct StaticDependency {
-    pub id: ModuleId<'static>,
-    pub version_req: &'static [&'static str],
+pub struct StaticDependency<'a> {
+    pub id: ModuleId<'a>,
+    pub version_req: &'a [&'a str],
 }
 
-impl StaticDependency {
-    pub const fn new(
-        module_id: ModuleId<'static>,
-        version_requirement: &'static [&'static str],
-    ) -> Self {
+impl<'a> StaticDependency<'a> {
+    pub const fn new(module_id: ModuleId<'a>, version_requirement: &'a [&'a str]) -> Self {
         Self {
             id: module_id,
             version_req: version_requirement,
@@ -45,7 +42,7 @@ pub struct Dependency {
     pub version_req: Vec<Comparator>,
 }
 
-impl From<&StaticDependency> for Dependency {
+impl<'a> From<&StaticDependency<'a>> for Dependency {
     fn from(dep: &StaticDependency) -> Self {
         Self {
             id: dep.id.to_string(),

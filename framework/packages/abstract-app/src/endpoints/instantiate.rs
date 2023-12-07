@@ -1,4 +1,8 @@
 use crate::{
+    better_sdk::{
+        contexts::AppInstantiateCtx,
+        execution_stack::{DepsAccess, ResponseGenerator},
+    },
     state::{AppContract, AppState, ContractError},
     Handler, InstantiateEndpoint,
 };
@@ -17,6 +21,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg: Serialize + JsonSchema,
         CustomExecMsg,
@@ -26,6 +31,8 @@ impl<
         SudoMsg,
     > InstantiateEndpoint
     for AppContract<
+        '_,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -36,30 +43,24 @@ impl<
     >
 {
     type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
-    fn instantiate(
-        self,
-        mut deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        msg: Self::InstantiateMsg,
-    ) -> Result<Response, Error> {
+    fn instantiate(mut self, msg: Self::InstantiateMsg) -> Result<Response, Error> {
         let BaseInstantiateMsg {
             ans_host_address,
             version_control_address,
         } = msg.base;
         let ans_host = AnsHost {
-            address: deps.api.addr_validate(&ans_host_address)?,
+            address: self.api().addr_validate(&ans_host_address)?,
         };
         let version_control = VersionControlContract {
-            address: deps.api.addr_validate(&version_control_address)?,
+            address: self.api().addr_validate(&version_control_address)?,
         };
 
         // TODO: Would be nice to remove context
         // Issue: We can't pass easily AccountBase with BaseInstantiateMsg(right now)
 
         // Caller is factory so get proxy and manager (admin) from there
-        let resp: ContextResponse = deps.querier.query(&wasm_smart_query(
-            info.sender.to_string(),
+        let resp: ContextResponse = self.deps().querier.query(&wasm_smart_query(
+            self.message_info().sender.to_string(),
             &FactoryQuery::Context {},
         )?)?;
 
@@ -72,15 +73,25 @@ impl<
             version_control,
         };
         let (name, version, metadata) = self.info();
-        set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
-        set_contract_version(deps.storage, name, version)?;
-        self.base_state.save(deps.storage, &state)?;
-        self.admin.set(deps.branch(), Some(account_base.manager))?;
+        let dependencies = self.dependencies();
+        set_module_data(
+            self.deps.deps_mut().storage,
+            name.clone(),
+            version.clone(),
+            dependencies,
+            metadata,
+        )?;
+        set_contract_version(self.deps_mut().storage, &name, &version)?;
+        self.base_state.save(self.deps.deps_mut().storage, &state)?;
+        self.admin
+            .set(self.deps.deps_mut(), Some(account_base.manager))?;
 
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new());
         };
-        handler(deps, env, info, self, msg.module)
+        handler(&mut self, msg.module)?;
+
+        Ok(self._generate_response()?)
     }
 }
 
@@ -108,9 +119,8 @@ mod test {
             module: MockInitMsg {},
         };
 
-        let res = MOCK_APP
-            .instantiate(deps.as_mut(), mock_env(), info, msg)
-            .unwrap();
+        let ctx = (deps.as_mut(), env, info).into();
+        let res = MOCK_APP.instantiate(ctx, msg).unwrap();
         assert_that!(res.messages).is_empty();
     }
 }

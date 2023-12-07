@@ -1,6 +1,9 @@
-use crate::{state::ContractError, AppContract, ReplyEndpoint};
+use crate::{
+    better_sdk::execution_stack::DepsAccess, state::ContractError, AppContract, ReplyEndpoint,
+};
 
 impl<
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -10,6 +13,8 @@ impl<
         SudoMsg,
     > ReplyEndpoint
     for AppContract<
+        '_,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

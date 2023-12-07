@@ -9,14 +9,14 @@ use crate::{
     },
     AbstractSdkError, AbstractSdkResult,
 };
-use abstract_core::objects::dependency::StaticDependency;
+use abstract_core::objects::dependency::{Dependency, StaticDependency};
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;
 
 /// Accessor trait for an object that wraps an [`AbstractContract`].
 pub trait Handler
 where
-    Self: Sized + 'static,
+    Self: Sized,
 {
     /// Error type for the contract
     type Error: From<AbstractSdkError>;
@@ -33,8 +33,10 @@ where
     /// Sudo message for the contract
     type SudoMsg;
 
+    type InstantiateCtx;
+
     /// Returns the contract object.
-    fn contract(&self) -> &AbstractContract<Self, Self::Error>;
+    fn contract<'b>(&'b self) -> &'b AbstractContract<'b, Self, Self::Error>;
 
     /// Returns the cw2 contract version.
     fn stored_version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
@@ -43,15 +45,19 @@ where
     }
 
     /// Returns the static contract info.
-    fn info(&self) -> (ModuleId, VersionString, ModuleMetadata) {
+    fn info(&self) -> (String, String, Option<String>) {
         let contract = self.contract();
-        contract.info
+        (
+            contract.info.0.to_string(),
+            contract.info.1.to_string(),
+            contract.info.2.map(|s| s.to_string()),
+        )
     }
 
     /// Returns the static contract dependencies.
-    fn dependencies(&self) -> &'static [StaticDependency] {
+    fn dependencies(&self) -> Vec<Dependency> {
         let contract = self.contract();
-        contract.dependencies
+        contract.dependencies.iter().map(|d| d.into()).collect()
     }
     /// Get an execute handler if it exists.
     fn maybe_execute_handler(
@@ -73,15 +79,15 @@ where
     }
 
     /// Get a instantiate handler if it exists.
-    fn maybe_instantiate_handler(
-        &self,
+    fn maybe_instantiate_handler<'a>(
+        &'a self,
     ) -> Option<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
         let contract = self.contract();
         contract.instantiate_handler
     }
     /// Get an instantiate handler or return an error.
-    fn instantiate_handler(
-        &self,
+    fn instantiate_handler<'a>(
+        &'a self,
     ) -> AbstractSdkResult<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Err(AbstractSdkError::MissingHandler {
@@ -177,12 +183,10 @@ where
     }
     /// Get a reply handler if it exists.
     fn maybe_reply_handler(&self, id: u64) -> Option<ReplyHandlerFn<Self, Self::Error>> {
-        let contract = self.contract();
-        for reply_handlers in contract.reply_handlers {
-            for handler in reply_handlers {
-                if handler.0 == id {
-                    return Some(handler.1);
-                }
+        let contract: &AbstractContract<'_, Self, <Self as Handler>::Error> = self.contract();
+        for handler in &contract.reply_handlers {
+            if handler.0 == id {
+                return Some(handler.1);
             }
         }
         None

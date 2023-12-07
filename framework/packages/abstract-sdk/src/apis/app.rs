@@ -52,7 +52,7 @@ pub struct Apps<'a, T: AppInterface> {
 impl<'a, T: AppInterface> Apps<'a, T> {
     /// Construct an app request message.
     pub fn request<M: Serialize>(
-        &self,
+        &'a self,
         app_id: ModuleId,
         message: impl Into<msg::ExecuteMsg<M, Empty>>,
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -65,7 +65,7 @@ impl<'a, T: AppInterface> Apps<'a, T> {
 
     /// Construct an app configuation message
     pub fn configure(
-        &self,
+        &'a self,
         app_id: ModuleId,
         query: msg::BaseExecuteMsg,
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -77,7 +77,7 @@ impl<'a, T: AppInterface> Apps<'a, T> {
 
     /// Smart query an app
     pub fn query<Q: Serialize, R: DeserializeOwned>(
-        &self,
+        &'a self,
         app_id: ModuleId,
         message: impl Into<msg::QueryMsg<Q>>,
     ) -> AbstractSdkResult<R> {

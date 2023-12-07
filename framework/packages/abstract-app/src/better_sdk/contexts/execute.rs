@@ -60,6 +60,14 @@ impl<'c> DepsAccess for AppExecCtx<'c> {
     fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b, Empty> {
         self.deps.as_ref()
     }
+
+    fn env(&self) -> Env {
+        self.env.clone()
+    }
+
+    fn message_info(&self) -> MessageInfo {
+        self.info.clone()
+    }
 }
 
 impl<'a> CustomEvents for AppExecCtx<'a> {

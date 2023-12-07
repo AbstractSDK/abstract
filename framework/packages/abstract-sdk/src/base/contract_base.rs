@@ -6,10 +6,10 @@ use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 use polytone::callbacks::Callback;
 
-pub type ModuleId = &'static str;
+pub type ModuleId<'a> = &'a str;
 /// Version of the contract in str format.
-pub type VersionString = &'static str;
-pub type ModuleMetadata = Option<&'static str>;
+pub type VersionString<'a> = &'a str;
+pub type ModuleMetadata<'a> = Option<&'a str>;
 
 pub trait MessageTypes {
     type CustomInitMsg;
@@ -21,8 +21,8 @@ pub trait MessageTypes {
 }
 // ANCHOR: init
 /// Function signature for an instantiate handler.
-pub type InstantiateHandlerFn<Module, CustomInitMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, CustomInitMsg) -> Result<Response, Error>;
+pub type InstantiateHandlerFn<Module: Handler, CustomInitMsg, Error> =
+    fn(&mut Module, CustomInitMsg) -> Result<(), Error>;
 // ANCHOR_END: init
 
 // ANCHOR: exec
@@ -81,13 +81,13 @@ pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Resu
 const MAX_REPLY_COUNT: usize = 2;
 
 /// Abstract generic contract
-pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkError> + 'static> {
+pub struct AbstractContract<'a, Module: Handler, Error: From<AbstractSdkError> + 'a> {
     /// Static info about the contract, used for migration
-    pub(crate) info: (ModuleId, VersionString, ModuleMetadata),
+    pub(crate) info: (ModuleId<'a>, VersionString<'a>, ModuleMetadata<'a>),
     /// On-chain storage of the same info.
-    pub(crate) version: Item<'static, ContractVersion>,
+    pub(crate) version: Item<'a, ContractVersion>,
     /// Modules that this contract depends on.
-    pub(crate) dependencies: &'static [StaticDependency],
+    pub(crate) dependencies: &'a [StaticDependency<'a>],
     /// Handler of instantiate messages.
     pub(crate) instantiate_handler:
         Option<InstantiateHandlerFn<Module, <Module as Handler>::CustomInitMsg, Error>>,
@@ -103,26 +103,32 @@ pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkEr
     /// Handler for sudo messages.
     pub(crate) sudo_handler: Option<SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>>,
     /// List of reply handlers per reply ID.
-    pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
+    pub reply_handlers: Vec<(u64, ReplyHandlerFn<Module, Error>)>,
     /// Handler of `Receive variant Execute messages.
     pub(crate) receive_handler:
         Option<ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>>,
     /// IBC callbacks handlers following an IBC action, per callback ID.
-    pub(crate) ibc_callback_handlers:
-        &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
+    pub(crate) ibc_callback_handlers: &'a [(&'a str, IbcCallbackHandlerFn<Module, Error>)],
 }
 
-impl<Module, Error: From<AbstractSdkError>> AbstractContract<Module, Error>
+impl<'a, Module, Error: From<AbstractSdkError>> AbstractContract<'a, Module, Error>
 where
     Module: Handler,
 {
     /// Creates a new customizable abstract contract.
-    pub const fn new(name: ModuleId, version: VersionString, metadata: ModuleMetadata) -> Self {
+    pub fn new<'b>(
+        name: ModuleId<'b>,
+        version: VersionString<'b>,
+        metadata: ModuleMetadata<'b>,
+    ) -> Self
+    where
+        'b: 'a,
+    {
         Self {
             info: (name, version, metadata),
             version: CONTRACT,
             ibc_callback_handlers: &[],
-            reply_handlers: [&[], &[]],
+            reply_handlers: vec![],
             dependencies: &[],
             execute_handler: None,
             receive_handler: None,
@@ -141,30 +147,30 @@ where
         self.info
     }
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
+    pub fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.dependencies = dependencies;
         self
     }
     /// Add reply handlers to the contract.
-    pub const fn with_replies(
+    pub fn add_replies(
         mut self,
-        reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
+        reply_handlers: &'a [(u64, ReplyHandlerFn<Module, Error>)],
     ) -> Self {
-        self.reply_handlers = reply_handlers;
+        self.reply_handlers.extend(reply_handlers.to_vec());
         self
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
+    pub fn with_ibc_callbacks(
         mut self,
-        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
+        callbacks: &'a [(&'a str, IbcCallbackHandlerFn<Module, Error>)],
     ) -> Self {
         self.ibc_callback_handlers = callbacks;
         self
     }
 
     /// Add instantiate handler to the contract.
-    pub const fn with_instantiate(
+    pub fn with_instantiate(
         mut self,
         instantiate_handler: InstantiateHandlerFn<
             Module,
@@ -177,7 +183,7 @@ where
     }
 
     /// Add query handler to the contract.
-    pub const fn with_migrate(
+    pub fn with_migrate(
         mut self,
         migrate_handler: MigrateHandlerFn<Module, <Module as Handler>::CustomMigrateMsg, Error>,
     ) -> Self {
@@ -186,7 +192,7 @@ where
     }
 
     /// Add sudo handler to the contract.
-    pub const fn with_sudo(
+    pub fn with_sudo(
         mut self,
         sudo_handler: SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>,
     ) -> Self {
@@ -195,7 +201,7 @@ where
     }
 
     /// Add receive handler to the contract.
-    pub const fn with_receive(
+    pub fn with_receive(
         mut self,
         receive_handler: ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>,
     ) -> Self {
@@ -204,7 +210,7 @@ where
     }
 
     /// Add execute handler to the contract.
-    pub const fn with_execute(
+    pub fn with_execute(
         mut self,
         execute_handler: ExecuteHandlerFn<Module, <Module as Handler>::CustomExecMsg, Error>,
     ) -> Self {
@@ -213,7 +219,7 @@ where
     }
 
     /// Add query handler to the contract.
-    pub const fn with_query(
+    pub fn with_query(
         mut self,
         query_handler: QueryHandlerFn<Module, <Module as Handler>::CustomQueryMsg, Error>,
     ) -> Self {
@@ -257,7 +263,7 @@ mod test {
 
     struct MockModule;
 
-    type MockAppContract = AbstractContract<MockModule, MockError>;
+    type MockAppContract<'a> = AbstractContract<'a, MockModule, MockError>;
 
     impl Handler for MockModule {
         type Error = MockError;
@@ -267,6 +273,7 @@ mod test {
         type CustomMigrateMsg = MockMigrateMsg;
         type ReceiveMsg = MockReceiveMsg;
         type SudoMsg = MockSudoMsg;
+        type InstantiateCtx = Empty;
 
         fn contract(&self) -> &AbstractContract<Self, Self::Error> {
             unimplemented!()
@@ -287,7 +294,7 @@ mod test {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_dependencies(&[]);
 
-        assert!(contract.reply_handlers.iter().all(|x| x.is_empty()));
+        assert!(contract.reply_handlers.is_empty());
 
         assert!(contract.dependencies.is_empty());
         assert!(contract.ibc_callback_handlers.is_empty());
@@ -313,9 +320,8 @@ mod test {
     #[test]
     fn test_with_instantiate() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_instantiate(|_, _, _, _, _| {
-                Ok(Response::default().add_attribute("test", "instantiate"))
-            });
+            .with_instantiate(|_, _| Ok(()));
+        // .with_instantiate(|_, _| Ok(Response::default().add_attribute("test", "instantiate")));
 
         assert!(contract.instantiate_handler.is_some());
     }
@@ -366,10 +372,9 @@ mod test {
         const HANDLER: ReplyHandlerFn<MockModule, MockError> =
             |_, _, _, _| Ok(Response::default().add_attribute("test", "reply"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_replies([&[(REPLY_ID, HANDLER)], &[]]);
+            .add_replies(&[(REPLY_ID, HANDLER)]);
 
-        assert_that!(contract.reply_handlers[0][0].0).is_equal_to(REPLY_ID);
-        assert!(contract.reply_handlers[1].is_empty());
+        assert_that!(contract.reply_handlers[0].0).is_equal_to(REPLY_ID);
     }
 
     #[test]

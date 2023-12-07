@@ -1,4 +1,5 @@
 use crate::{
+    better_sdk::execution_stack::{DepsAccess, ExecutionStack},
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
@@ -45,8 +46,9 @@ pub struct AppState {
     pub version_control: VersionControlContract,
 }
 
-/// The state variables for our AppContract.
 pub struct AppContract<
+    'a,
+    T: DepsAccess,
     Error: ContractError,
     CustomInitMsg: 'static,
     CustomExecMsg: 'static,
@@ -58,12 +60,15 @@ pub struct AppContract<
     // Custom state for every App
     pub admin: Admin<'static>,
     pub(crate) base_state: Item<'static, AppState>,
+    pub deps: T,
     // Scaffolding contract that handles type safety and provides helper methods
-    pub(crate) contract: AbstractContract<Self, Error>,
+    pub(crate) contract: AbstractContract<'a, Self, Error>,
 }
 
 /// Constructor
 impl<
+        'a,
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -73,6 +78,8 @@ impl<
         SudoMsg,
     >
     AppContract<
+        'a,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -82,15 +89,15 @@ impl<
         SudoMsg,
     >
 {
-    pub const fn new(
-        name: &'static str,
-        version: &'static str,
-        metadata: Option<&'static str>,
-    ) -> Self {
+    pub fn new<'b>(deps: T, name: &'b str, version: &'b str, metadata: Option<&'b str>) -> Self
+    where
+        'b: 'a,
+    {
         Self {
             base_state: Item::new(BASE_STATE_NAMESPACE),
             admin: Admin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version, metadata),
+            deps,
         }
     }
 
@@ -99,12 +106,12 @@ impl<
     }
 
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
+    pub fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.contract = self.contract.with_dependencies(dependencies);
         self
     }
 
-    pub const fn with_instantiate(
+    pub fn with_instantiate(
         mut self,
         instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
     ) -> Self {
@@ -112,7 +119,7 @@ impl<
         self
     }
 
-    pub const fn with_execute(
+    pub fn with_execute(
         mut self,
         execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
     ) -> Self {
@@ -120,7 +127,7 @@ impl<
         self
     }
 
-    pub const fn with_query(
+    pub fn with_query(
         mut self,
         query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
     ) -> Self {
@@ -128,7 +135,7 @@ impl<
         self
     }
 
-    pub const fn with_migrate(
+    pub fn with_migrate(
         mut self,
         migrate_handler: MigrateHandlerFn<Self, CustomMigrateMsg, Error>,
     ) -> Self {
@@ -136,20 +143,20 @@ impl<
         self
     }
 
-    pub const fn with_replies(
+    pub fn with_replies(
         mut self,
-        reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
+        reply_handlers: &'a [(u64, ReplyHandlerFn<Self, Error>)],
     ) -> Self {
-        self.contract = self.contract.with_replies([&[], reply_handlers]);
+        self.contract = self.contract.add_replies(&reply_handlers);
         self
     }
 
-    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
+    pub fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
         self.contract = self.contract.with_sudo(sudo_handler);
         self
     }
 
-    pub const fn with_receive(
+    pub fn with_receive(
         mut self,
         receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
     ) -> Self {
@@ -158,9 +165,9 @@ impl<
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
+    pub fn with_ibc_callbacks(
         mut self,
-        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
+        callbacks: &'a [(&'a str, IbcCallbackHandlerFn<Self, Error>)],
     ) -> Self {
         self.contract = self.contract.with_ibc_callbacks(callbacks);
         self
@@ -176,18 +183,23 @@ mod tests {
 
     #[test]
     fn builder() {
-        MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
-            .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
-            .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
-                Ok(Response::new().set_data("mock_callback".as_bytes()))
-            })])
-            .with_replies(&[(1u64, |_, _, _, msg| {
-                Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
-            })])
-            .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
+        MockAppContract::new(
+            (mock_dependencies(), mock_env(), mock_info("sender", &[])),
+            TEST_MODULE_ID,
+            TEST_VERSION,
+            None,
+        )
+        .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
+        .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+        .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
+        .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
+        .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
+        .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
+            Ok(Response::new().set_data("mock_callback".as_bytes()))
+        })])
+        .with_replies(&[(1u64, |_, _, _, msg| {
+            Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
+        })])
+        .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
     }
 }

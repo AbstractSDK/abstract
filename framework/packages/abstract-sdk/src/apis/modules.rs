@@ -26,7 +26,7 @@ pub trait ModuleInterface: AccountIdentification + Dependencies {
         let modules: Modules<MockModule>  = module.modules(deps.as_ref());
         ```
     */
-    fn modules<'a>(&'a self, deps: Deps<'a>) -> Modules<Self> {
+    fn modules<'a>(&'a self, deps: Deps<'a>) -> Modules<'a, Self> {
         Modules { base: self, deps }
     }
 }
@@ -57,7 +57,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     /// Retrieve the address of an application in this Account.
     /// This should **not** be used to execute messages on an `Api`.
     /// Use `Modules::api_request(..)` instead.
-    pub fn module_address(&self, module_id: ModuleId) -> AbstractSdkResult<Addr> {
+    pub fn module_address<'b>(&'b self, module_id: ModuleId<'b>) -> AbstractSdkResult<Addr> {
         let manager_addr = self.base.manager_address(self.deps)?;
         let maybe_module_addr =
             ACCOUNT_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
@@ -72,7 +72,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     /// Retrieve the version of an application in this Account.
     /// Note: this method makes use of the Cw2 query and may not coincide with the version of the
     /// module listed in VersionControl.
-    pub fn module_version(&self, module_id: ModuleId) -> AbstractSdkResult<ContractVersion> {
+    pub fn module_version(&'a self, module_id: ModuleId) -> AbstractSdkResult<ContractVersion> {
         let module_address = self.module_address(module_id)?;
         let req = QueryRequest::Wasm(WasmQuery::Raw {
             contract_addr: module_address.into(),
@@ -85,11 +85,10 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     }
 
     /// Assert that a module is a dependency of this module.
-    pub fn assert_module_dependency(&self, module_id: ModuleId) -> AbstractSdkResult<()> {
+    pub fn assert_module_dependency<'b>(&'b self, module_id: ModuleId) -> AbstractSdkResult<()> {
         let is_dependency = Dependencies::dependencies(self.base)
             .iter()
-            .map(|d| d.id)
-            .any(|x| x == module_id);
+            .any(|d| d.id == module_id);
 
         match is_dependency {
             true => Ok(()),

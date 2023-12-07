@@ -1,4 +1,5 @@
 use crate::{
+    better_sdk::execution_stack::DepsAccess,
     state::{AppContract, ContractError},
     Handler, QueryEndpoint,
 };
@@ -10,6 +11,7 @@ use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 
 impl<
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -19,6 +21,8 @@ impl<
         SudoMsg,
     > QueryEndpoint
     for AppContract<
+        '_,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -40,6 +44,7 @@ impl<
 /// Where we dispatch the queries for the AppContract
 /// These BaseQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -49,6 +54,8 @@ impl<
         SudoMsg,
     >
     AppContract<
+        '_,
+        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

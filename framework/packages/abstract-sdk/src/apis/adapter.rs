@@ -52,7 +52,7 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
     /// Interactions with Abstract Adapters
     /// Construct an adapter request message.
     pub fn request<M: Serialize + Into<abstract_core::adapter::ExecuteMsg<M, Empty>>>(
-        &self,
+        &'a self,
         adapter_id: ModuleId,
         message: M,
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -68,7 +68,7 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
 
     /// Smart query an Adapter
     pub fn query<Q: Serialize, R: DeserializeOwned>(
-        &self,
+        &'a self,
         adapter_id: ModuleId,
         query: impl Into<abstract_core::adapter::QueryMsg<Q>>,
     ) -> AbstractSdkResult<R> {

@@ -33,7 +33,7 @@ pub fn instantiate(
         deps.storage,
         IBC_CLIENT,
         CONTRACT_VERSION,
-        &[],
+        vec![],
         None::<String>,
     )?;
     let cfg = Config {

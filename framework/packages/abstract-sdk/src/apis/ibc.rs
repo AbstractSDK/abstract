@@ -60,7 +60,7 @@ pub struct IbcClient<'a, T: IbcInterface> {
 
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Registers the ibc client to be able to use IBC capabilities
-    pub fn register_ibc_client(&self) -> AbstractSdkResult<CosmosMsg> {
+    pub fn register_ibc_client(&'a self) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.manager_address(self.deps)?,
             &abstract_core::manager::ExecuteMsg::InstallModules {
@@ -76,7 +76,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
 
     /// A simple helper to create and register a remote account
     pub fn create_remote_account(
-        &self,
+        &'a self,
         host_chain: String, // The chain on which you want to create an account
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
@@ -92,7 +92,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// A simple helper to install an app on an account
     /// TODO, too much arguments here, we need to have the remote addresses automatically populated
     pub fn install_remote_app<M: Serialize>(
-        &self,
+        &'a self,
         host_chain: String, // The chain on which you want to create an account,
         remote_ans_host_address: Addr,
         remote_version_control_address: Addr,
@@ -126,7 +126,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// A simple helper install a remote api Module providing only the chain name
     /// TODO, too much arguments here, we need to have the remote addresses automatically populated
     pub fn install_remote_api<M: Serialize>(
-        &self,
+        &'a self,
         host_chain: String, // The chain on which you want to create an account,
         remote_ans_host_address: Addr,
         remote_version_control_address: Addr,
@@ -159,7 +159,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
 
     /// A simple helper to execute on a module
     pub fn execute_on_module<M: Serialize>(
-        &self,
+        &'a self,
         host_chain: String, // The chain on which you want to create an account,
         module_id: String,
         exec_msg: &M,
@@ -177,7 +177,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     }
     /// Call a [`HostAction`] on the host of the provided `host_chain`.
     pub fn host_action(
-        &self,
+        &'a self,
         host_chain: String,
         action: HostAction,
         callback: Option<CallbackInfo>,
@@ -197,7 +197,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     }
     /// IbcClient the provided coins from the Account to its proxy on the `receiving_chain`.
     pub fn ics20_transfer(
-        &self,
+        &'a self,
         receiving_chain: String,
         funds: Vec<Coin>,
     ) -> AbstractSdkResult<CosmosMsg> {

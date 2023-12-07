@@ -1,8 +1,8 @@
 use abstract_core::proxy::ExecuteMsg;
 use abstract_sdk::{AbstractSdkResult, AccountAction};
 use cosmwasm_std::{
-    wasm_execute, Api, Attribute, Binary, CosmosMsg, Deps, DepsMut, Event, ReplyOn, Response,
-    SubMsg,
+    wasm_execute, Api, Attribute, Binary, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo,
+    QuerierWrapper, ReplyOn, Response, SubMsg,
 };
 
 use super::account_identification::AccountIdentification;
@@ -10,6 +10,9 @@ use super::account_identification::AccountIdentification;
 pub trait DepsAccess {
     fn deps_mut<'a: 'b, 'b>(&'a mut self) -> DepsMut<'b>;
     fn deps<'a: 'b, 'b>(&'a self) -> Deps<'b>;
+
+    fn env(&self) -> Env;
+    fn message_info(&self) -> MessageInfo;
 
     fn api<'a: 'b, 'b>(&'a self) -> &'b dyn Api {
         self.deps().api

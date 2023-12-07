@@ -25,74 +25,108 @@ mod sudo;
 /// abstract_app::export_endpoints!(MY_APP, MyApp);
 /// ```
 macro_rules! export_endpoints {
-    ($app_const:expr, $app_type:ty) => {
+    ($app_const:expr, $app_type:ident
+        // only one or none `<>`
+        $(<
+            // match one or more lifetimes separated by a comma
+            $(
+                $lt:lifetime
+                // optional constraint: 'a: 'b
+                $( : $clt:lifetime )?
+            ),*
+        >)?, $deps_lifetime: lifetime) => {
         /// Instantiate entrypoint
         #[::cosmwasm_std::entry_point]
-        pub fn instantiate(
+        pub fn instantiate
+        $(< $( $lt ),+ >)?(
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: <$app_type as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
+            msg: <$app_type<
+            $( $( $lt ),+ )?,
+                (
+                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
+                    ::cosmwasm_std::Env,
+                    ::cosmwasm_std::MessageInfo,
+                ),
+            > as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
+        ) -> Result<
+            ::cosmwasm_std::Response,
+            <$app_type<
+            $( $( $lt ),+ )?,
+                (
+                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
+                    ::cosmwasm_std::Env,
+                    ::cosmwasm_std::MessageInfo,
+                ),
+            > as ::abstract_sdk::base::Handler>::Error,
+        > {
             use ::abstract_sdk::base::InstantiateEndpoint;
-            $app_const.instantiate(deps, env, info, msg)
+            let ctx = (deps, env, info);
+            let app = $app_const(ctx);
+            app.instantiate(msg)
         }
 
-        /// Execute entrypoint
-        #[::cosmwasm_std::entry_point]
-        pub fn execute(
-            deps: ::cosmwasm_std::DepsMut,
-            env: ::cosmwasm_std::Env,
-            info: ::cosmwasm_std::MessageInfo,
-            msg: <$app_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-            use ::abstract_sdk::base::ExecuteEndpoint;
-            $app_const.execute(deps, env, info, msg)
-        }
+        // /// Execute entrypoint
+        // #[::cosmwasm_std::entry_point]
+        // pub fn execute<'a>(
+        //     deps: ::cosmwasm_std::DepsMut,
+        //     env: ::cosmwasm_std::Env,
+        //     info: ::cosmwasm_std::MessageInfo,
+        //     msg: <$app_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
+        // ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
+        //     use ::abstract_sdk::base::ExecuteEndpoint;
+        //     let app = $app_const(Box::new((deps, env, info)));
+        //     app.execute(deps, env, info, msg)
+        // }
 
-        /// Query entrypoint
-        #[::cosmwasm_std::entry_point]
-        pub fn query(
-            deps: ::cosmwasm_std::Deps,
-            env: ::cosmwasm_std::Env,
-            msg: <$app_type as abstract_sdk::base::QueryEndpoint>::QueryMsg,
-        ) -> Result<::cosmwasm_std::Binary, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-            use ::abstract_sdk::base::QueryEndpoint;
-            $app_const.query(deps, env, msg)
-        }
+        // /// Query entrypoint
+        // #[::cosmwasm_std::entry_point]
+        // pub fn query<'a>(
+        //     deps: ::cosmwasm_std::Deps,
+        //     env: ::cosmwasm_std::Env,
+        //     msg: <$app_type as abstract_sdk::base::QueryEndpoint>::QueryMsg,
+        // ) -> Result<::cosmwasm_std::Binary, <$app_type as ::abstract_sdk::base::Handler>::Error> {
+        //     use ::abstract_sdk::base::QueryEndpoint;
+        //     let app = $app_const(Box::new((deps, env)));
+        //     app.query(deps, env, msg)
+        // }
 
-        /// Migrate entrypoint
-        #[::cosmwasm_std::entry_point]
-        pub fn migrate(
-            deps: ::cosmwasm_std::DepsMut,
-            env: ::cosmwasm_std::Env,
-            msg: <$app_type as abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-            use ::abstract_sdk::base::MigrateEndpoint;
-            $app_const.migrate(deps, env, msg)
-        }
+        // /// Migrate entrypoint
+        // #[::cosmwasm_std::entry_point]
+        // pub fn migrate<'a>(
+        //     deps: ::cosmwasm_std::DepsMut,
+        //     env: ::cosmwasm_std::Env,
+        //     msg: <$app_type as abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
+        // ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
+        //     use ::abstract_sdk::base::MigrateEndpoint;
+        //     let app = $app_const(Box::new((deps, env)));
+        //     app.migrate(deps, env, msg)
+        // }
 
-        // Reply entrypoint
-        #[::cosmwasm_std::entry_point]
-        pub fn reply(
-            deps: ::cosmwasm_std::DepsMut,
-            env: ::cosmwasm_std::Env,
-            msg: ::cosmwasm_std::Reply,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-            use ::abstract_sdk::base::ReplyEndpoint;
-            $app_const.reply(deps, env, msg)
-        }
+        // // Reply entrypoint
+        // #[::cosmwasm_std::entry_point]
+        // pub fn reply<'a>(
+        //     deps: ::cosmwasm_std::DepsMut,
+        //     env: ::cosmwasm_std::Env,
+        //     msg: ::cosmwasm_std::Reply,
+        // ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
+        //     use ::abstract_sdk::base::ReplyEndpoint;
+        //     let app = $app_const(Box::new((deps, env)));
+        //     app.reply(deps, env, msg)
+        // }
 
-        // Sudo entrypoint
-        #[::cosmwasm_std::entry_point]
-        pub fn sudo(
-            deps: ::cosmwasm_std::DepsMut,
-            env: ::cosmwasm_std::Env,
-            msg: <$app_type as ::abstract_sdk::base::Handler>::SudoMsg,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-            use ::abstract_sdk::base::SudoEndpoint;
-            $app_const.sudo(deps, env, msg)
-        }
+        // // Sudo entrypoint
+        // #[::cosmwasm_std::entry_point]
+        // pub fn sudo<'a>(
+        //     deps: ::cosmwasm_std::DepsMut,
+        //     env: ::cosmwasm_std::Env,
+        //     msg: <$app_type as ::abstract_sdk::base::Handler>::SudoMsg,
+        // ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
+        //     use ::abstract_sdk::base::SudoEndpoint;
+        //     let app = $app_const(Box::new((deps, env)));
+        //     app.sudo(deps, env, msg)
+        // }
     };
 }
 
@@ -132,9 +166,7 @@ mod test {
             init_msg.clone(),
         );
         let expected_init = MOCK_APP.instantiate(
-            deps.as_mut(),
-            mock_env(),
-            mock_info(TEST_ADMIN, &[]),
+            (deps.as_mut(), mock_env(), mock_info(TEST_ADMIN, &[])).into(),
             init_msg,
         );
         assert_that!(actual_init).is_equal_to(expected_init);

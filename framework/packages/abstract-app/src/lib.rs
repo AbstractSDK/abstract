@@ -8,6 +8,7 @@ pub mod msgs;
 pub mod schema;
 pub mod state;
 pub(crate) use abstract_sdk::base::*;
+// pub mod expand;
 
 pub use crate::state::AppContract;
 pub use error::AppError;
@@ -47,7 +48,7 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockSudoMsg;
 
-    use crate::{AppContract, AppError};
+    use crate::{better_sdk::execution_stack::DepsAccess, AppContract, AppError};
     use abstract_core::{module_factory::ContextResponse, version_control::AccountBase};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
@@ -71,7 +72,9 @@ pub mod mock {
         AbstractSdk(#[from] AbstractSdkError),
     }
 
-    pub type MockAppContract = AppContract<
+    pub type MockAppContract<'a, T> = AppContract<
+        'a,
+        T,
         // MockModule,
         MockError,
         MockInitMsg,
@@ -82,24 +85,27 @@ pub mod mock {
         MockSudoMsg,
     >;
 
-    pub const BASIC_MOCK_APP: MockAppContract =
-        MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
+    pub fn basic_mock_app<'a, T: DepsAccess>(deps: T) -> MockAppContract<'a, T> {
+        MockAppContract::new(deps, TEST_MODULE_ID, TEST_VERSION, None)
+    }
 
-    pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
-        .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
-        .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-        .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
-        .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-        .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
-            Ok(Response::new().set_data("mock_callback".as_bytes()))
-        })])
-        .with_replies(&[(1u64, |_, _, _, msg| {
-            Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
-        })])
-        .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
+    pub fn mock_app<'a, T: DepsAccess>(deps: T) -> MockAppContract<'a, T> {
+        MockAppContract::new(deps, TEST_MODULE_ID, TEST_VERSION, None)
+            .with_instantiate(|_, _| Ok(()))
+            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+            .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
+            .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
+            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
+            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
+                Ok(Response::new().set_data("mock_callback".as_bytes()))
+            })])
+            .with_replies(&[(1u64, |_, _, _, msg| {
+                Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
+            })])
+            .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())))
+    }
 
-    crate::export_endpoints!(MOCK_APP, MockAppContract);
+    crate::export_endpoints!(mock_app, MockAppContract<'b>, 'b);
 
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default().with_smart_handler(
@@ -134,9 +140,10 @@ pub mod mock {
             },
             module: MockInitMsg {},
         };
+        let deps_mut = deps.as_mut();
 
-        BASIC_MOCK_APP
-            .instantiate(deps.as_mut(), mock_env(), info, msg)
+        basic_mock_app((deps_mut, mock_env(), info))
+            .instantiate(msg)
             .unwrap();
 
         deps
@@ -154,10 +161,11 @@ pub mod mock {
 
     impl Uploadable for BootMockApp<Mock> {
         fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
-            Box::new(
-                ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
-                    .with_migrate(self::migrate),
-            )
+            // Box::new(
+            //     ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
+            //         .with_migrate(self::migrate),
+            // )
+            unimplemented!()
         }
     }
 
