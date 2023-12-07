@@ -4,6 +4,7 @@
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_core::{ABSTRACT_EVENT_TYPE, MANAGER, PROXY};
+use abstract_interface::VCExecFns;
 use abstract_interface::{Abstract, AbstractAccount, ManagerExecFns, VCQueryFns};
 use abstract_testing::prelude::*;
 use anyhow::Ok;
@@ -37,6 +38,14 @@ fn setup() -> anyhow::Result<(Abstract<ForkMock>, ForkMock)> {
 
     let abstr_deployment = Abstract::load_from(app.clone())?;
     Ok((abstr_deployment, app))
+}
+
+fn setup_migrate_allowed_direct_module_registration(
+) -> anyhow::Result<(Abstract<ForkMock>, ForkMock)> {
+    let (deployment, chain) = setup()?;
+    deployment.migrate_if_needed()?;
+    deployment.version_control.update_config(Some(true), None);
+    Ok((deployment, chain))
 }
 
 #[test]
@@ -126,37 +135,33 @@ mod manager {
 
     #[test]
     fn install_app_after_migrate() -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = setup()?;
-        abstr_deployment.migrate_if_needed()?;
+        let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
         account_install_app(chain)
     }
 
     #[test]
     fn create_sub_account_after_migrate() -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = setup()?;
-        abstr_deployment.migrate_if_needed()?;
+        let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
         create_sub_account_with_modules_installed(chain)
     }
 
     #[test]
     fn create_account_with_installed_module_monetization_and_init_funds_after_migrate(
     ) -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = setup()?;
-        abstr_deployment.migrate_if_needed()?;
+        let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
         create_account_with_installed_module_monetization_and_init_funds(chain, ("coin1", "coin2"))
     }
 
     #[test]
     fn install_app_with_proxy_action_after_migrate() -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = setup()?;
-        abstr_deployment.migrate_if_needed()?;
+        let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
+
         install_app_with_proxy_action(chain)
     }
 
     #[test]
     fn update_adapter_with_authorized_addrs_after_migrate() -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = setup()?;
-        abstr_deployment.migrate_if_needed()?;
+        let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
 
         let authorizee = chain.init_account();
         update_adapter_with_authorized_addrs(chain, authorizee)
@@ -164,29 +169,29 @@ mod manager {
 
     #[test]
     fn uninstall_modules_after_migrate() -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = setup()?;
-        abstr_deployment.migrate_if_needed()?;
+        let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
+
         uninstall_modules(chain)
     }
 
     #[test]
     fn installing_one_adapter_with_fee_should_succeed_after_migrate() -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = setup()?;
-        abstr_deployment.migrate_if_needed()?;
+        let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
+
         installing_one_adapter_with_fee_should_succeed(chain)
     }
 
     #[test]
     fn with_response_data_after_migrate() -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = setup()?;
-        abstr_deployment.migrate_if_needed()?;
+        let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
+
         with_response_data(chain)
     }
 
     #[test]
     fn account_move_ownership_to_sub_account_after_migrate() -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = setup()?;
-        abstr_deployment.migrate_if_needed()?;
+        let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
+
         account_move_ownership_to_sub_account(chain)
     }
 }
@@ -197,8 +202,8 @@ mod account_factory {
 
     #[test]
     fn create_one_account_with_namespace_fee_after_migrate() -> anyhow::Result<()> {
-        let (abstr_deployment, chain) = setup()?;
-        abstr_deployment.migrate_if_needed()?;
+        let (_, chain) = setup_migrate_allowed_direct_module_registration()?;
+
         create_one_account_with_namespace_fee(chain)
     }
 }
