@@ -1,7 +1,5 @@
-//! Currently you can run only 1 test at a time: `cargo test -- --test-threads=1`
+//! Currently you can run only 1 test at a time: `cargo mt`
 //! Otherwise you will have too many requests
-
-mod common;
 
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::ModuleInfo;
