@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
 use crate::{
-    get_account_contracts, get_ibc_contracts, get_native_contracts, AbstractAccount,
-    AbstractInterfaceError, AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory,
-    Proxy, VersionControl,
+    get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
+    AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_core::account_factory::ExecuteMsgFns as _;
+use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
 use abstract_core::{
     ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
@@ -23,8 +23,8 @@ pub struct Abstract<Chain: CwEnv> {
     pub version_control: VersionControl<Chain>,
     pub account_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
-    pub account: AbstractAccount<Chain>,
     pub ibc: IbcAbstract<Chain>,
+    pub(crate) account: AbstractAccount<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
@@ -93,11 +93,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             .version_control
             .register_natives(deployment.contracts())?;
 
-        // This Ibc Client is actually a module that people need to register on their accounts
-        deployment.version_control.register_adapters(vec![(
-            deployment.ibc.client.as_instance(),
-            ibc_client::contract::CONTRACT_VERSION.to_string(),
-        )])?;
+        // Approve abstract contracts if needed
+        deployment.version_control.approve_any_abstract_modules()?;
 
         // Only the ibc host is allowed to create remote accounts on the account factory
         deployment
@@ -156,8 +153,9 @@ impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
         let (ans_host, account_factory, version_control, module_factory) =
             get_native_contracts(chain.clone());
-        let (ibc_client, ibc_host) = get_ibc_contracts(chain);
-        let (manager, proxy) = get_account_contracts(&version_control, None);
+        let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
+        let manager = Manager::new_from_id(&ABSTRACT_ACCOUNT_ID, chain.clone());
+        let proxy = Proxy::new_from_id(&ABSTRACT_ACCOUNT_ID, chain);
         Self {
             account: AbstractAccount { manager, proxy },
             ans_host,
@@ -185,7 +183,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
         self.version_control.instantiate(
             &abstract_core::version_control::InstantiateMsg {
                 admin: admin.clone(),
+                #[cfg(feature = "integration")]
                 allow_direct_module_registration_and_updates: Some(true),
+                #[cfg(not(feature = "integration"))]
+                allow_direct_module_registration_and_updates: Some(false),
                 namespace_registration_fee: None,
             },
             Some(sender),
@@ -253,6 +254,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
             (
                 self.module_factory.as_instance(),
                 module_factory::contract::CONTRACT_VERSION.to_string(),
+            ),
+            (
+                self.ibc.client.as_instance(),
+                ibc_client::contract::CONTRACT_VERSION.to_string(),
             ),
         ]
     }

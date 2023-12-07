@@ -20,6 +20,7 @@ pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> HostResult<Binary> {
             to_json_binary(&registered_chains(deps, start_after, limit)?)
         }
         QueryMsg::ClientProxy { chain } => to_json_binary(&associated_client(deps, chain)?),
+        QueryMsg::Ownership {} => to_json_binary(&cw_ownable::get_ownership(deps.storage)?),
     }
     .map_err(Into::into)
 }

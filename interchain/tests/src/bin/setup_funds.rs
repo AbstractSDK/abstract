@@ -5,7 +5,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use abstract_core::{ans_host::ExecuteMsgFns, objects::UncheckedChannelEntry, ICS20, PROXY};
-use abstract_interface::{Abstract, ProxyQueryFns};
+use abstract_interface::{Abstract, AbstractAccount, ProxyQueryFns};
 use abstract_interface_integration_tests::{
     interchain_accounts::{create_test_remote_account, set_env},
     JUNO, STARGAZE,
@@ -30,10 +30,10 @@ pub fn test_send_funds() -> AnyResult<()> {
     let interchain = starship.interchain_env();
 
     let juno = interchain.chain(JUNO).unwrap();
-    let osmosis = interchain.chain(STARGAZE).unwrap();
+    let stargaze = interchain.chain(STARGAZE).unwrap();
 
-    let osmo_abstr: Abstract<Daemon> = Abstract::load_from(osmosis.clone())?;
-    let juno_abstr: Abstract<Daemon> = Abstract::load_from(juno.clone())?;
+    let abstr_stargaze: Abstract<Daemon> = Abstract::load_from(stargaze.clone())?;
+    let abstr_juno: Abstract<Daemon> = Abstract::load_from(juno.clone())?;
 
     let sender = juno.sender().to_string();
 
@@ -56,7 +56,7 @@ pub fn test_send_funds() -> AnyResult<()> {
     let interchain_channel = create_transfer_channel(JUNO, STARGAZE, &interchain)?;
 
     // Register this channel with the abstract ibc implementation for sending tokens
-    osmo_abstr.ans_host.update_channels(
+    abstr_stargaze.ans_host.update_channels(
         vec![(
             UncheckedChannelEntry {
                 connected_chain: "juno".to_string(),
@@ -73,7 +73,8 @@ pub fn test_send_funds() -> AnyResult<()> {
 
     // Create a test account + Remote account
 
-    let account_id = create_test_remote_account(&osmo_abstr, STARGAZE, JUNO, &interchain)?;
+    let (origin_account, remote_account_id) =
+        create_test_remote_account(&abstr_stargaze, STARGAZE, JUNO, &interchain, None)?;
     // let account_config = osmo_abstr.account.manager.config()?;
     // let account_id = AccountId::new(
     //     account_config.account_id.seq(),
@@ -81,17 +82,18 @@ pub fn test_send_funds() -> AnyResult<()> {
     // )?;
 
     // Get the ibc client address
-    let client = osmo_abstr.account.proxy.config()?;
+    let remote_account = AbstractAccount::new(&abstr_stargaze, remote_account_id.clone());
+    let client = remote_account.proxy.config()?;
 
     log::info!("client adddress {:?}", client);
 
     // Send funds to the remote account
-    let send_funds_tx = osmo_abstr.account.manager.execute_on_module(
+    let send_funds_tx = origin_account.manager.execute_on_module(
         PROXY,
         abstract_core::proxy::ExecuteMsg::IbcAction {
             msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendFunds {
                 host_chain: "juno".into(),
-                funds: coins(test_amount, get_denom(&osmosis, token_subdenom.as_str())),
+                funds: coins(test_amount, get_denom(&stargaze, token_subdenom.as_str())),
             }],
         },
     )?;
@@ -99,7 +101,9 @@ pub fn test_send_funds() -> AnyResult<()> {
     interchain.wait_ibc(&STARGAZE.to_string(), send_funds_tx)?;
 
     // Verify the funds have been received
-    let remote_account_config = juno_abstr.version_control.get_account(account_id.clone())?;
+    let remote_account_config = abstr_juno
+        .version_control
+        .get_account(remote_account_id.clone())?;
 
     let balance = rt.block_on(
         juno.query_client::<Bank>()
