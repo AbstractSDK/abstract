@@ -93,6 +93,9 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             .version_control
             .register_natives(deployment.contracts())?;
 
+        // Approve abstract contracts if needed
+        deployment.version_control.approve_any_abstract_modules()?;
+
         // Only the ibc host is allowed to create remote accounts on the account factory
         deployment
             .account_factory
@@ -180,7 +183,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
         self.version_control.instantiate(
             &abstract_core::version_control::InstantiateMsg {
                 admin: admin.clone(),
+                #[cfg(feature = "integration")]
                 allow_direct_module_registration_and_updates: Some(true),
+                #[cfg(not(feature = "integration"))]
+                allow_direct_module_registration_and_updates: Some(false),
                 namespace_registration_fee: None,
             },
             Some(sender),
