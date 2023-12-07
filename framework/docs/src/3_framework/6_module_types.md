@@ -17,6 +17,8 @@ Modules are classified in the following categories:
 - **Adapter**: modules that act as a standard interface between your Account and external services.
 - **Standalone**: modules not built within Abstract, but registered to your Account so that you Account can manage them.
 
+<img src="../assets/modules.svg" alt="drawing" width="400" style="vertical-align:middle"/>
+
 ## Module IDs
 
 Every module is uniquely identified by a module ID. This ID is a string that follows the following format:

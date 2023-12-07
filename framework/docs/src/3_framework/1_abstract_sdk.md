@@ -1,13 +1,8 @@
 # Abstract SDK
 
-The attentive reader will already know that the Abstract SDK is a Rust library that is tightly integrated with Abstract's
-on-chain infrastructure.
+The attentive reader will already know that the Abstract SDK is a Rust library that is tightly integrated with Abstract's on-chain infrastructure. More importantly though, the Abstract SDK is a tool that allows developers to easily perform accounting-based operations and interactions with other smart contracts within their own module.
 
-From a high-level perspective, smart-contracts built with the Abstract SDK can use on-chain dependencies (other
-smart-contracts) to isolate specific functionalities. In this way, a smart-contract built with the Abstract SDK can
-explicitly define its dependencies and use them to perform complex multi-contract interactions with very minimal code.
-This, in turn, allows you to focus on the novel functionality of your application without inheriting the complexity of
-the underlying infrastructure.
+From a high-level perspective, modules built with the Abstract SDK can use on-chain dependencies (other modules) to isolate specific functionalities. In this way, a module built with the Abstract SDK can explicitly define its dependencies and use them to perform complex multi-contract interactions with very minimal code. This, in turn, allows you to focus on the novel functionality of your application without inheriting the complexity of the underlying infrastructure.
 
 <!-- ## Why build with Abstract?
 
@@ -68,9 +63,9 @@ At the heart of the Abstract SDK are "features" - Rust traits that can be seen a
 
 ## APIs
 
-Abstract APIs are Rust structs that can be constructed from within a smart contract if that contract implements a set of features. Most of these features will already be implemented by us, so don't have to worry about their implementation.
+Abstract APIs are Rust structs that can be constructed from within a module if that module implements a set of features. Most of these features will already be implemented by us, so don't have to worry about their implementation.
 
-These retrievable API objects then exposes functions that simplify smart-contract development.
+These retrievable API objects then exposes functions that simplify module development.
 
 For example, the `Bank` API allows developers to transfer assets from and to an address. The `Bank` API can be constructed and used as follows:
 
@@ -85,15 +80,14 @@ let transfer_action: AccountAction = bank.transfer(vec![asset.clone()], recipien
 
 We'll dive deeper into the Abstract SDK's APIs in the [Build With Abstract](../4_get_started/1_index.md) section.
 
-## Base Contracts
+## Module Bases
 
-Our base contracts are generic CosmWasm contract implementations that:
+Our module bases are generic CosmWasm contract implementations that:
 
 - Have some state and functionality already implemented.
 - Can be extended and composed by appending your custom logic to them.
 
-Think of each of these bases as a foundation for building your application using the Abstract SDK. There are different
-types of bases available, each tailored for specific needs and functionalities.
+Think of each of these bases as a foundation for building your application using the Abstract SDK. There are different types of bases available, each tailored for specific needs and functionalities.
 
 - <a href="https://crates.io/crates/abstract-app" target="_blank">App</a>
 - <a href="https://crates.io/crates/abstract-adapter" target="_blank">Adapter</a>
@@ -103,8 +97,7 @@ section.
 
 ## Example: Autocompounder
 
-Let's take a look at what an `Autocompounder` app built with the Abstract SDK would look like. This `Autocompounder` has
-a dependency on two contracts, a `Dex` and `Staking` contract. Drawing out the architecture would result in something like this:
+Let's take a look at what an `Autocompounder` app built with the Abstract SDK would look like. This `Autocompounder` has a dependency on two adapters, a `Dex` and `Staking` adapter. Drawing out the architecture would result in something like this:
 
 ```mermaid
 flowchart LR
@@ -120,12 +113,12 @@ flowchart LR
     User[fa:fa-users Users] ==> Autocompounder
 ```
 
-For now, just know that the "account" is a smart-contract that holds funds. Each solid arrow represents permissions to access funds within the account. These permissions
-allow the contracts to move funds, interact with other contracts through the account, and perform other
-actions. It does this by sending messages to the account, which then executes them on behalf of the
-contract. This is the basic idea behind account abstraction and is further elaborated in on
-the [account abstraction](./2_account_abstraction.md) page. Don't let this logic distract you too much, we will elaborate on it further in the docs. For now, let's focus on the dotted arrows.
+```admonish reminder
+The `Account` is a set of smart-contracts that function as smart-contract wallet infrastructure. It holds the application's funds. We covered the `Account` architecture in detail [here](./3_architecture.md.md).
+```
 
-Each dotted arrow indicates a dependency between contracts. These dependencies are explicitly defined in the contract that takes on the dependencies and are asserted when the contract is created. In this example the Autocompounder contract is able to access special functionality (like swapping or staking assets) from its dependencies (the dex and staking contract). Through this mechanism, a major reduction in the application's amount of code and complexity is achieved.
+Each solid arrow represents permissions to perform actions on behalf of the account. These permissions allow the contracts to move funds, interact with other contracts through the account, and perform other actions. It does this by sending messages to the account, which then executes them on behalf of the module. This is the basic idea behind account abstraction and is further elaborated in on the [account abstraction](./2_account_abstraction.md) page. Now, let's focus on the dotted arrows.
+
+Each dotted arrow indicates a dependency between modules. These dependencies are explicitly defined in the module that takes on the dependencies and are asserted when the module is installed. In this example the Autocompounder module is able to access special functionality (like swapping or staking assets) from its dependencies (the dex and staking adapters). Through this mechanism, a major reduction in the application's amount of code and complexity is achieved.
 
 From a developer ecosystem standpoint, this modular approach encourages collaboration and cross-team code re-use, a practice that has been proven to accelerate development and increase developers' productivity.

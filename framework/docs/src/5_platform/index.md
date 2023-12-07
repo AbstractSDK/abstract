@@ -1,5 +1,9 @@
 # Framework Components
 
+```admonish info
+At this point you have enough knowledge to start building your own Abstract Module. If you want to start building, head over to our [Getting Started](../4_get_started/1_index.md) section! 🛠️
+```
+
 In the previous sections, we covered different aspects of the Abstract framework on a higher level. In this section, we
 will explore the different components under the hood of the Abstract framework that makes it powerful and
 unique, enabling it to work the way it does.

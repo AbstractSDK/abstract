@@ -3,8 +3,6 @@
 
 ![SDK Background](resources/abstract_platform/twitter_cover-1.png)
 
-# Introduction
-
 Welcome to the Abstract Documentation!
 
 This first part of our documentation aims to provide you with the conceptual knowledge you need to understand the Abstract framework. The second part is a step-by-step guide on how to use the Abstract SDK to build your decentralized application.
