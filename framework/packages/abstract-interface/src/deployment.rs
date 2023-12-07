@@ -5,7 +5,6 @@ use crate::{
     AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_core::account_factory::ExecuteMsgFns as _;
-use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
 use abstract_core::{
     ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
