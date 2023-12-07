@@ -10,8 +10,14 @@ pub const TIP_COUNT: Item<u32> = Item::new("tip-count");
 
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
-    pub desired_asset: Option<AssetEntry>,
+    pub desired_asset: Option<DesiredAsset>,
     pub exchanges: Vec<DexName>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct DesiredAsset {
+    pub asset: AssetEntry,
+    pub denom: String,
 }
 
 #[cosmwasm_schema::cw_serde]

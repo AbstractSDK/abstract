@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use abstract_core::objects::{AssetEntry, DexName};
+use abstract_core::objects::DexName;
 use abstract_dex_adapter::DexInterface;
 use abstract_sdk::core::ans_host;
 use abstract_sdk::core::ans_host::{AssetPairingFilter, PoolAddressListResponse};
@@ -18,7 +18,7 @@ const MAX_SPREAD_PERCENT: u64 = 20;
 
 use crate::error::AppError;
 use crate::msg::AppExecuteMsg;
-use crate::state::{CONFIG, TIPPERS, TIP_COUNT};
+use crate::state::{DesiredAsset, CONFIG, TIPPERS, TIP_COUNT};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -61,7 +61,11 @@ pub fn tip(
     // swap the asset(s) to the desired asset is set
     let config = CONFIG.load(deps.storage)?;
     // If there is no desired asset specified, just forward the payment.
-    let Some(desired_asset) = config.desired_asset else {
+    let Some(DesiredAsset {
+        asset: desired_asset,
+        ..
+    }) = config.desired_asset
+    else {
         // Tipper history will not contain any info for "amount tipped" as it doesn't really make
         // sense when there isn't a desired asset. However the number of times tipped will be
         // stored.
@@ -145,7 +149,7 @@ fn update_config(
     deps: DepsMut,
     msg_info: MessageInfo,
     app: PaymentApp,
-    desired_asset: Option<AssetEntry>,
+    desired_asset: Option<DesiredAsset>,
     exchanges: Option<Vec<DexName>>,
 ) -> AppResult {
     // Only the admin should be able to call this
@@ -155,7 +159,7 @@ fn update_config(
     let mut config = CONFIG.load(deps.storage)?;
     if let Some(asset) = desired_asset {
         name_service
-            .query(&asset)
+            .query(&asset.asset)
             .map_err(|_| AppError::DesiredAssetDoesNotExist {})?;
         config.desired_asset = Some(asset)
     }

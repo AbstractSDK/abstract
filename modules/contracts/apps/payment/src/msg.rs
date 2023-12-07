@@ -1,8 +1,8 @@
-use abstract_core::objects::{AssetEntry, DexName};
+use abstract_core::objects::DexName;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Uint128};
 
-use crate::contract::PaymentApp;
+use crate::{contract::PaymentApp, state::DesiredAsset};
 
 // This is used for type safety
 // The second part is used to indicate the messages are used as the apps messages
@@ -19,7 +19,7 @@ abstract_app::app_msg_types!(PaymentApp, AppExecuteMsg, AppQueryMsg);
 /// PaymentApp instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct AppInstantiateMsg {
-    pub desired_asset: Option<AssetEntry>,
+    pub desired_asset: Option<DesiredAsset>,
     pub exchanges: Vec<DexName>,
 }
 
@@ -31,7 +31,7 @@ pub enum AppExecuteMsg {
     #[cfg_attr(feature = "interface", payable)]
     Tip {},
     UpdateConfig {
-        desired_asset: Option<AssetEntry>,
+        desired_asset: Option<DesiredAsset>,
         exchanges: Option<Vec<DexName>>,
     },
 }
@@ -62,7 +62,7 @@ pub struct Cw20TipMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub desired_asset: Option<AssetEntry>,
+    pub desired_asset: Option<DesiredAsset>,
     pub exchanges: Vec<DexName>,
 }
 

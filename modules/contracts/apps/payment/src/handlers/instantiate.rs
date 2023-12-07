@@ -17,7 +17,7 @@ pub fn instantiate_handler(
 
     if let Some(asset) = &msg.desired_asset {
         name_service
-            .query(asset)
+            .query(&asset.asset)
             .map_err(|_| AppError::DesiredAssetDoesNotExist {})?;
     }
     let ans_dexes = name_service.registered_dexes()?;

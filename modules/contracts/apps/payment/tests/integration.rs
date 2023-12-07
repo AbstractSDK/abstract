@@ -13,6 +13,7 @@ use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{AppInstantiateMsg, ConfigResponse, TipCountResponse, TipperResponse, TippersResponse},
+    state::DesiredAsset,
     *,
 };
 use wyndex_bundle::WynDex;
@@ -28,7 +29,7 @@ type PaymentTestSetup = (
     WynDex,
 );
 /// Set up the test environment with the contract installed
-fn setup(mock: Mock, desired_asset: Option<AssetEntry>) -> anyhow::Result<PaymentTestSetup> {
+fn setup(mock: Mock, desired_asset: Option<DesiredAsset>) -> anyhow::Result<PaymentTestSetup> {
     let app = PaymentAppInterface::new(APP_ID, mock.clone());
 
     let abstr_deployment = Abstract::deploy_on(mock.clone(), mock.sender().to_string())?;
@@ -113,8 +114,13 @@ fn test_update_config() -> anyhow::Result<()> {
     let mock = Mock::new(&sender);
 
     // Set up the environment and contract
-    let (account, abstr, app, wyndex) =
-        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
+    let (account, abstr, app, wyndex) = setup(
+        mock.clone(),
+        Some(DesiredAsset {
+            denom: "Dollah".to_owned(),
+            asset: AssetEntry::new(wyndex_bundle::USD),
+        }),
+    )?;
 
     let new_target_currency = wyndex.eur_token.to_string();
 
@@ -125,7 +131,10 @@ fn test_update_config() -> anyhow::Result<()> {
         .update_dexes(vec![dex_name.clone()], vec![])?;
 
     app.call_as(&account.manager.address()?).update_config(
-        Some(AssetEntry::new(&new_target_currency)),
+        Some(DesiredAsset {
+            denom: "Ye-uh-roah".to_owned(),
+            asset: AssetEntry::new(&new_target_currency),
+        }),
         Some(vec![dex_name.clone()]),
     )?;
 
@@ -133,7 +142,10 @@ fn test_update_config() -> anyhow::Result<()> {
     assert_eq!(
         config,
         ConfigResponse {
-            desired_asset: Some(AssetEntry::new(wyndex_bundle::EUR)),
+            desired_asset: Some(DesiredAsset {
+                denom: "Ye-uh-roah".to_owned(),
+                asset: AssetEntry::new(wyndex_bundle::EUR),
+            }),
             exchanges: vec![dex_name]
         }
     );
@@ -194,8 +206,13 @@ fn test_tip_swap() -> anyhow::Result<()> {
     // Create the mock
     let mock = Mock::new(&sender);
 
-    let (account, _abstr_deployment, app, wyndex) =
-        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
+    let (account, _abstr_deployment, app, wyndex) = setup(
+        mock.clone(),
+        Some(DesiredAsset {
+            denom: "Dollah".to_owned(),
+            asset: AssetEntry::new(wyndex_bundle::USD),
+        }),
+    )?;
 
     let WynDex {
         eur_token,
@@ -243,8 +260,13 @@ fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
     // Create the mock
     let mock = Mock::new(&sender);
 
-    let (account, abstr_deployment, app, wyndex) =
-        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
+    let (account, abstr_deployment, app, wyndex) = setup(
+        mock.clone(),
+        Some(DesiredAsset {
+            denom: "Dollah".to_owned(),
+            asset: AssetEntry::new(wyndex_bundle::USD),
+        }),
+    )?;
 
     let WynDex {
         eur_token,
@@ -299,8 +321,13 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     // Create the mock
     let mock = Mock::new(&sender);
 
-    let (account, abstr_deployment, app, _wyndex) =
-        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
+    let (account, abstr_deployment, app, _wyndex) = setup(
+        mock.clone(),
+        Some(DesiredAsset {
+            denom: "Dollah".to_owned(),
+            asset: AssetEntry::new(wyndex_bundle::USD),
+        }),
+    )?;
 
     let tipper = Addr::unchecked("tipper");
     let tip_amount = 100u128;
