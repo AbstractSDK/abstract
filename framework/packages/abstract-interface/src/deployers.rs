@@ -19,6 +19,7 @@ pub trait RegisteredModule {
     fn module_version<'a>() -> &'a str;
 }
 
+/// Trait to access module dependency information tied directly to the type.
 pub trait DependencyCreation {
     /// Type that exposes the dependencies's configurations if that's required.
     type DependenciesConfig;
@@ -32,7 +33,10 @@ pub trait DependencyCreation {
     }
 }
 
+/// Trait to make it easier to construct `ModuleInfo` and `ModuleInstallConfig` for a
+/// `RegisteredModule`.
 pub trait InstallConfig: RegisteredModule {
+    /// Constructs the `ModuleInfo` by using information from `RegisteredModule`.
     fn module_info() -> ModuleInfo {
         ModuleInfo::from_id(Self::module_id(), Self::module_version().into()).unwrap()
     }

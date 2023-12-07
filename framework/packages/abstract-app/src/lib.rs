@@ -129,6 +129,7 @@ pub mod mock {
 
     crate::cw_orch_interface!(MOCK_APP, MockAppContract, MockAppInterface);
 
+    // Needs to be in a separate module due to the `interface` module names colliding otherwise.
     pub mod mock_app_dependency {
         use abstract_testing::prelude::{TEST_DEPENDENCY_MODULE_ID, TEST_VERSION};
         use cosmwasm_std::{to_json_binary, Response};

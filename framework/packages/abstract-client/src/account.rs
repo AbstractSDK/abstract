@@ -258,9 +258,6 @@ impl<Chain: CwEnv> Account<Chain> {
     fn parse_account_creation_response(
         response: <Chain as TxHandler>::Response,
     ) -> ParsedAccountCreationResponse {
-        for event in response.events().iter() {
-            println!("{:?}", event);
-        }
         let wasm_abstract_attributes: Vec<Attribute> = response
             .events()
             .into_iter()
