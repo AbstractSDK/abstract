@@ -45,6 +45,8 @@ pub mod state {
 pub struct InstantiateMsg {
     pub account_id: AccountId,
     pub ans_host_address: String,
+    pub manager_addr: String,
+    pub base_asset: Option<AssetEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]

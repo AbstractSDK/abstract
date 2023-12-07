@@ -3,6 +3,7 @@ use crate::queries::*;
 use crate::{commands::*, reply};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_core::objects::oracle::Oracle;
+use abstract_core::objects::price_source::UncheckedPriceSource;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
@@ -36,23 +37,38 @@ pub type ProxyResult<T = Response> = Result<T, ProxyError>;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
-    deps: DepsMut,
+    mut deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> ProxyResult {
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
+
+    let manager_addr = deps.api.addr_validate(&msg.manager_addr)?;
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
-    STATE.save(deps.storage, &State { modules: vec![] })?;
-    ANS_HOST.save(
+    STATE.save(
         deps.storage,
-        &AnsHost {
-            address: deps.api.addr_validate(&msg.ans_host_address)?,
+        &State {
+            modules: vec![manager_addr.clone()],
         },
     )?;
-    let admin_addr = Some(info.sender);
-    ADMIN.set(deps, admin_addr)?;
+    let ans_host = AnsHost {
+        address: deps.api.addr_validate(&msg.ans_host_address)?,
+    };
+    ANS_HOST.save(deps.storage, &ans_host)?;
+    let admin_addr = Some(manager_addr);
+    ADMIN.set(deps.branch(), admin_addr)?;
+
+    if let Some(base_asset) = msg.base_asset {
+        let oracle = Oracle::new();
+        oracle.update_assets(
+            deps,
+            &ans_host,
+            vec![(base_asset, UncheckedPriceSource::None)],
+            vec![],
+        )?;
+    }
     Ok(Response::default())
 }
 

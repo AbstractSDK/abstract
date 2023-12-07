@@ -6,15 +6,15 @@ use crate::{
 use abstract_core::{
     account_factory,
     ibc_host::state::CONFIG,
-    manager,
-    objects::{chain_name::ChainName, AccountId},
+    manager::{self, ModuleInstallConfig},
+    objects::{chain_name::ChainName, version_control::VersionControlError, AccountId, AssetEntry},
     proxy,
     version_control::AccountBase,
     PROXY,
 };
 use abstract_sdk::{
     core::{objects::ChannelEntry, ICS20},
-    AbstractSdkError, AccountVerification, Resolve,
+    Resolve,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response, SubMsg,
@@ -32,6 +32,9 @@ pub fn receive_register(
     name: String,
     description: Option<String>,
     link: Option<String>,
+    base_asset: Option<AssetEntry>,
+    namespace: Option<String>,
+    install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
 ) -> HostResult {
     let cfg = CONFIG.load(deps.storage)?;
@@ -53,9 +56,9 @@ pub fn receive_register(
             // provide the origin chain id
             account_id: Some(account_id.clone()),
 
-            base_asset: None,
-            install_modules: vec![],
-            namespace: None,
+            base_asset,
+            install_modules,
+            namespace,
         },
         vec![],
     )?;
@@ -152,9 +155,7 @@ pub fn send_all_back(
 }
 
 /// get the account base from the version control contract
-pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<AccountBase, AbstractSdkError> {
+pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<AccountBase, VersionControlError> {
     let version_control = CONFIG.load(deps.storage)?.version_control;
-    version_control
-        .account_registry(deps)
-        .account_base(account_id)
+    version_control.account_base(account_id, &deps.querier)
 }

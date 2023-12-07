@@ -31,7 +31,7 @@ use {
     abstract_sdk::{
         core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
-        AbstractSdkError, Resolve,
+        Resolve,
     },
     abstract_staking_standard::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
@@ -64,7 +64,7 @@ impl CwStakingCommand for WynDex {
         ans_host: &AnsHost,
         _version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
-    ) -> std::result::Result<(), AbstractSdkError> {
+    ) -> Result<(), CwStakingError> {
         self.tokens = lp_tokens
             .into_iter()
             .map(|entry| {
@@ -85,7 +85,7 @@ impl CwStakingCommand for WynDex {
                     staking_contract_address,
                 })
             })
-            .collect::<std::result::Result<_, AbstractSdkError>>()?;
+            .collect::<std::result::Result<_, CwStakingError>>()?;
 
         Ok(())
     }

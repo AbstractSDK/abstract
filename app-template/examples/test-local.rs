@@ -59,7 +59,7 @@ fn main() -> anyhow::Result<()> {
     app.deploy(version)?;
 
     // Install app
-    account.install_app(app, &AppInstantiateMsg {}, None)?;
+    account.install_app(app, &AppInstantiateMsg { count: 0 }, None)?;
 
     assert_that!(account.manager.is_module_installed(APP_ID).unwrap()).is_true();
     Ok(())

@@ -1,12 +1,15 @@
 pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_core::{
-    adapter,
+    adapter::{self, AdapterBaseMsg},
     ibc::CallbackInfo,
     ibc_host::{HelperAction, HostAction},
     manager::*,
-    module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse},
-    objects::module::{ModuleInfo, ModuleVersion},
-    PROXY,
+    module_factory::SimulateInstallModulesResponse,
+    objects::{
+        module::{ModuleInfo, ModuleVersion},
+        AccountId,
+    },
+    MANAGER, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Binary, Empty};
 use cw_orch::environment::TxHandler;
@@ -17,6 +20,13 @@ use serde::Serialize;
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
 
+impl<Chain: CwEnv> Manager<Chain> {
+    pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
+        let manager_id = format!("{MANAGER}-{account_id}");
+        Self::new(manager_id, chain)
+    }
+}
+
 impl<Chain: CwEnv> Uploadable for Manager<Chain> {
     fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
         Box::new(
@@ -25,7 +35,8 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
                 ::manager::contract::instantiate,
                 ::manager::contract::query,
             )
-            .with_migrate(::manager::contract::migrate),
+            .with_migrate(::manager::contract::migrate)
+            .with_reply(::manager::contract::reply),
         )
     }
     fn wasm(&self) -> WasmPath {
@@ -61,7 +72,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         // this should check if installed?
         self.uninstall_module(module_id.to_string())?;
 
-        self.install_module(module_id, &Empty {}, funds)?;
+        self.install_module::<Empty>(module_id, None, funds)?;
         Ok(())
     }
 
@@ -95,7 +106,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     pub fn install_module<TInitMsg: Serialize>(
         &self,
         module_id: &str,
-        init_msg: &TInitMsg,
+        init_msg: Option<&TInitMsg>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.install_module_version(module_id, ModuleVersion::Latest, init_msg, funds)
@@ -105,14 +116,14 @@ impl<Chain: CwEnv> Manager<Chain> {
         &self,
         module_id: &str,
         version: ModuleVersion,
-        init_msg: &M,
+        init_msg: Option<&M>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id(module_id, version)?,
-                    Some(to_json_binary(init_msg).unwrap()),
+                    init_msg.map(to_json_binary).transpose().unwrap(),
                 )],
             },
             funds,
@@ -144,9 +155,10 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<(), crate::AbstractInterfaceError> {
         self.execute_on_module(
             module_id,
-            adapter::ExecuteMsg::<Empty, Empty>::Base(
-                adapter::BaseExecuteMsg::UpdateAuthorizedAddresses { to_add, to_remove },
-            ),
+            adapter::ExecuteMsg::<Empty, Empty>::Base(adapter::BaseExecuteMsg {
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
+                proxy_address: None,
+            }),
         )?;
 
         Ok(())
@@ -182,6 +194,9 @@ impl<Chain: CwEnv> Manager<Chain> {
             to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
                 msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
                     host_chain: host_chain.into(),
+                    base_asset: None,
+                    namespace: None,
+                    install_modules: vec![],
                 }],
             })?,
             PROXY.to_string(),

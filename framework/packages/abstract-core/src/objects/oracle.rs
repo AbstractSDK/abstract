@@ -521,10 +521,7 @@ pub struct AccountValue {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::prelude::EUR;
-    use abstract_testing::prelude::TEST_ANS_HOST;
-    use abstract_testing::prelude::TEST_DEX;
-    use abstract_testing::prelude::USD;
+    use abstract_testing::prelude::*;
     use abstract_testing::MockAnsHost;
     use cosmwasm_std::coin;
     use cosmwasm_std::testing::*;

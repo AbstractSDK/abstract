@@ -89,16 +89,12 @@ pub fn execute(
 
 /// This just stores the result for future query
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> AccountFactoryResult {
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
     match msg {
-        Reply {
-            id: commands::CREATE_ACCOUNT_PROXY_MSG_ID,
-            result,
-        } => commands::after_proxy_create_manager(deps, env, result),
         Reply {
             id: commands::CREATE_ACCOUNT_MANAGER_MSG_ID,
             result,
-        } => commands::after_proxy_add_to_manager_and_set_admin(deps, result),
+        } => commands::validate_instantiated_account(deps, result),
         _ => Err(AccountFactoryError::UnexpectedReply {}),
     }
 }
@@ -143,7 +139,7 @@ mod tests {
     }
 
     fn execute_as_owner(deps: DepsMut, msg: ExecuteMsg) -> AccountFactoryResult {
-        execute_as(deps, TEST_ADMIN, msg)
+        execute_as(deps, OWNER, msg)
     }
 
     fn test_only_owner(deps: DepsMut, msg: ExecuteMsg) -> AccountFactoryTestResult {
@@ -360,7 +356,7 @@ mod tests {
 
         assert_that!(ownership.owner)
             .is_some()
-            .is_equal_to(Addr::unchecked(TEST_ADMIN));
+            .is_equal_to(Addr::unchecked(OWNER));
 
         Ok(())
     }

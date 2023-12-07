@@ -1,14 +1,14 @@
-use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
+use abstract_core::objects::gov_type::GovernanceDetails;
 use cw_orch::{
     anyhow,
     deploy::Deploy,
-    prelude::{networks::parse_network, ContractInstance, DaemonBuilder, TxHandler},
+    prelude::{networks::parse_network, DaemonBuilder, TxHandler},
     tokio::runtime::Runtime,
 };
 
 use abstract_interface::*;
 use croncat_app::{
-    contract::{interface::CroncatApp, CRONCAT_ID},
+    contract::{interface::Croncat, CRONCAT_ID},
     msg::AppInstantiateMsg,
 };
 use dotenv::dotenv;
@@ -26,7 +26,7 @@ fn main() -> anyhow::Result<()> {
         .chain(chain)
         .handle(rt.handle())
         .build()?;
-    let app = CroncatApp::new(CRONCAT_ID, chain.clone());
+    let app = Croncat::new(CRONCAT_ID, chain.clone());
 
     // Create account
     let abstract_deployment = Abstract::load_from(chain.clone())?;
@@ -53,16 +53,6 @@ fn main() -> anyhow::Result<()> {
     app.deploy(version, DeployStrategy::Try)?;
 
     // Install app
-    account.install_module(
-        CRONCAT_ID,
-        &croncat_app::msg::InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstract_deployment.ans_host.addr_str()?,
-                version_control_address: abstract_deployment.version_control.addr_str()?,
-            },
-            module: AppInstantiateMsg {},
-        },
-        None,
-    )?;
+    account.install_app(&app, &AppInstantiateMsg {}, None)?;
     Ok(())
 }

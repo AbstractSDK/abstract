@@ -2,9 +2,9 @@ mod common;
 
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_core::{
-    app::{self, BaseInstantiateMsg},
-    manager::ModuleVersionsResponse,
-    module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse},
+    app,
+    manager::{ModuleInstallConfig, ModuleVersionsResponse},
+    module_factory::SimulateInstallModulesResponse,
     objects::{
         fee::FixedFee,
         gov_type::GovernanceDetails,
@@ -22,11 +22,11 @@ use abstract_interface::{
 };
 
 use abstract_manager::error::ManagerError;
-use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
+use abstract_testing::prelude::*;
 
 use common::mock_modules::*;
 use common::{create_default_account, AResult};
-use cosmwasm_std::{coin, to_json_binary};
+use cosmwasm_std::{coin, coins, to_json_binary, Uint128};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
@@ -34,20 +34,13 @@ use speculoos::prelude::*;
 
 fn install_module_version(
     manager: &Manager<Mock>,
-    abstr: &Abstract<Mock>,
     module: &str,
     version: &str,
 ) -> anyhow::Result<String> {
     manager.install_module_version(
         module,
         ModuleVersion::Version(version.to_string()),
-        &app::InstantiateMsg {
-            module: MockInitMsg,
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.addr_str()?,
-                version_control_address: abstr.version_control.addr_str()?,
-            },
-        },
+        Some(&MockInitMsg),
         None,
     )?;
 
@@ -56,7 +49,7 @@ fn install_module_version(
 
 #[test]
 fn install_app_successful() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -67,27 +60,28 @@ fn install_app_successful() -> AResult {
     deploy_modules(&chain);
 
     // dependency for mock_adapter1 not met
-    let res = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1);
+    let res = install_module_version(manager, app_1::MOCK_APP_ID, V1);
     assert_that!(&res).is_err();
     assert_that!(res.unwrap_err().root_cause().to_string()).contains(
-        "module tester:mock-adapter1 is a dependency of tester:mock-app1 and is not installed.",
+        // Error from macro
+        "no address",
     );
 
     // install adapter 1
-    let adapter1 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     // second dependency still not met
-    let res = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1);
+    let res = install_module_version(manager, app_1::MOCK_APP_ID, V1);
     assert_that!(&res).is_err();
     assert_that!(res.unwrap_err().root_cause().to_string()).contains(
         "module tester:mock-adapter2 is a dependency of tester:mock-app1 and is not installed.",
     );
 
     // install adapter 2
-    let adapter2 = install_module_version(manager, &abstr, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
     // successfully install app 1
-    let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
+    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
 
     account.expect_modules(vec![adapter1, adapter2, app1])?;
     Ok(())
@@ -95,7 +89,7 @@ fn install_app_successful() -> AResult {
 
 #[test]
 fn install_app_versions_not_met() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -106,14 +100,14 @@ fn install_app_versions_not_met() -> AResult {
     deploy_modules(&chain);
 
     // install adapter 2
-    let _adapter2 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let _adapter2 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     // successfully install app 1
-    let _app1 = install_module_version(manager, &abstr, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let _app1 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
     // attempt to install app with version 2
 
-    let res = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V2);
+    let res = install_module_version(manager, app_1::MOCK_APP_ID, V2);
     assert_that!(&res).is_err();
     assert_that!(res.unwrap_err().root_cause().to_string())
         .contains("Module tester:mock-adapter1 with version 1.0.0 does not fit requirement ^2.0.0");
@@ -122,7 +116,7 @@ fn install_app_versions_not_met() -> AResult {
 
 #[test]
 fn upgrade_app() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -133,13 +127,13 @@ fn upgrade_app() -> AResult {
     deploy_modules(&chain);
 
     // install adapter 1
-    let adapter1 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     // install adapter 2
-    let adapter2 = install_module_version(manager, &abstr, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
 
     // successfully install app 1
-    let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
+    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
     account.expect_modules(vec![adapter1, adapter2, app1])?;
 
     // attempt upgrade app 1 to version 2
@@ -292,7 +286,7 @@ fn upgrade_app() -> AResult {
 
 #[test]
 fn uninstall_modules() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -302,9 +296,9 @@ fn uninstall_modules() -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
-    let adapter1 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
-    let adapter2 = install_module_version(manager, &abstr, adapter_2::MOCK_ADAPTER_ID, V1)?;
-    let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
+    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
+    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
     account.expect_modules(vec![adapter1, adapter2, app1])?;
 
     let res = manager.uninstall_module(adapter_1::MOCK_ADAPTER_ID.to_string());
@@ -327,7 +321,7 @@ fn uninstall_modules() -> AResult {
 
 #[test]
 fn update_adapter_with_authorized_addrs() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -338,7 +332,7 @@ fn update_adapter_with_authorized_addrs() -> AResult {
     deploy_modules(&chain);
 
     // install adapter 1
-    let adapter1 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
     account.expect_modules(vec![adapter1.clone()])?;
 
     // register an authorized address on Adapter 1
@@ -376,7 +370,7 @@ fn update_adapter_with_authorized_addrs() -> AResult {
 
 /*#[test]
 fn upgrade_manager_last() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
@@ -437,7 +431,7 @@ fn upgrade_manager_last() -> AResult {
 
 #[test]
 fn no_duplicate_migrations() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
@@ -450,7 +444,7 @@ fn no_duplicate_migrations() -> AResult {
     deploy_modules(&chain);
 
     // Install adapter 1
-    let adapter1 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
+    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
 
     account.expect_modules(vec![adapter1])?;
 
@@ -480,7 +474,7 @@ fn no_duplicate_migrations() -> AResult {
 
 #[test]
 fn create_account_with_installed_module() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
@@ -530,13 +524,7 @@ fn create_account_with_installed_module() -> AResult {
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_json_binary(&app::InstantiateMsg {
-                            module: MockInitMsg,
-                            base: BaseInstantiateMsg {
-                                ans_host_address: deployment.ans_host.addr_str()?,
-                                version_control_address: deployment.version_control.addr_str()?,
-                            },
-                        })?),
+                        Some(to_json_binary(&MockInitMsg)?),
                     ),
                 ],
             },
@@ -577,7 +565,7 @@ fn create_account_with_installed_module() -> AResult {
 
 #[test]
 fn create_sub_account_with_installed_module() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
@@ -617,13 +605,7 @@ fn create_sub_account_with_installed_module() -> AResult {
             ),
             ModuleInstallConfig::new(
                 ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                Some(to_json_binary(&app::InstantiateMsg {
-                    module: MockInitMsg,
-                    base: BaseInstantiateMsg {
-                        ans_host_address: deployment.ans_host.addr_str()?,
-                        version_control_address: deployment.ans_host.addr_str()?,
-                    },
-                })?),
+                Some(to_json_binary(&MockInitMsg)?),
             ),
         ],
         String::from("sub_account"),
@@ -634,7 +616,7 @@ fn create_sub_account_with_installed_module() -> AResult {
         &[],
     )?;
 
-    let account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+    let account = AbstractAccount::new(&deployment, AccountId::local(2));
 
     // Make sure all installed
     let account_module_versions = account.manager.module_versions(vec![
@@ -666,7 +648,7 @@ fn create_sub_account_with_installed_module() -> AResult {
 
 #[test]
 fn create_account_with_installed_module_and_monetization() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     // Adding coins to fill monetization
     chain.add_balance(&sender, vec![coin(10, "coin1"), coin(10, "coin2")])?;
@@ -767,13 +749,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_json_binary(&app::InstantiateMsg {
-                            module: MockInitMsg,
-                            base: BaseInstantiateMsg {
-                                ans_host_address: deployment.ans_host.addr_str()?,
-                                version_control_address: deployment.version_control.addr_str()?,
-                            },
-                        })?),
+                        Some(to_json_binary(&MockInitMsg)?),
                     ),
                 ],
             },
@@ -816,7 +792,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
 
 #[test]
 fn create_account_with_installed_module_and_monetization_should_fail() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     // Adding coins to fill monetization
     chain.add_balance(&sender, vec![coin(10, "coin1"), coin(10, "coin2")])?;
@@ -906,13 +882,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
                 ),
                 ModuleInstallConfig::new(
                     ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                    Some(to_json_binary(&app::InstantiateMsg {
-                        module: MockInitMsg,
-                        base: BaseInstantiateMsg {
-                            ans_host_address: deployment.ans_host.addr_str()?,
-                            version_control_address: deployment.version_control.addr_str()?,
-                        },
-                    })?),
+                    Some(to_json_binary(&MockInitMsg)?),
                 ),
             ],
         },
@@ -937,7 +907,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
 
 #[test]
 fn create_account_with_installed_module_and_init_funds() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     // Adding coins to fill monetization
     chain.add_balance(&sender, vec![coin(15, "coin1"), coin(10, "coin2")])?;
@@ -1053,13 +1023,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_json_binary(&app::InstantiateMsg {
-                            module: MockInitMsg,
-                            base: BaseInstantiateMsg {
-                                ans_host_address: deployment.ans_host.addr_str()?,
-                                version_control_address: deployment.version_control.addr_str()?,
-                            },
-                        })?),
+                        Some(to_json_binary(&MockInitMsg)?),
                     ),
                     ModuleInstallConfig::new(
                         ModuleInfo {
@@ -1086,7 +1050,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
 
 #[test]
 fn create_account_with_installed_module_monetization_and_init_funds() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     // Adding coins to fill monetization
     chain.add_balance(&sender, vec![coin(18, "coin1"), coin(20, "coin2")])?;
@@ -1205,13 +1169,7 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_json_binary(&app::InstantiateMsg {
-                            module: MockInitMsg,
-                            base: BaseInstantiateMsg {
-                                ans_host_address: deployment.ans_host.addr_str()?,
-                                version_control_address: deployment.version_control.addr_str()?,
-                            },
-                        })?),
+                        Some(to_json_binary(&MockInitMsg)?),
                     ),
                     ModuleInstallConfig::new(
                         ModuleInfo {
@@ -1233,6 +1191,37 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
     let balances = chain.query_all_balances(&account.proxy.address()?)?;
     assert_eq!(balances, vec![coin(1, "coin1"), coin(5, "coin2")]);
     // Make sure all installed
+    Ok(())
+}
+
+// See gen_app_mock for more details
+#[test]
+fn install_app_with_proxy_action() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy } = &account;
+    abstr
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
+    deploy_modules(&chain);
+
+    // install adapter 1
+    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
+
+    // install adapter 2
+    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
+
+    // Add balance to proxy so
+    // app will transfer funds to test addr during instantiation
+    chain.add_balance(&proxy.address()?, coins(123456, "TEST"))?;
+    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
+
+    let test_addr_balance = chain.query_balance(&Addr::unchecked("test_addr"), "TEST")?;
+    assert_eq!(test_addr_balance, Uint128::new(123456));
+
+    account.expect_modules(vec![adapter1, adapter2, app1])?;
     Ok(())
 }
 

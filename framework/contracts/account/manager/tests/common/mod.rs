@@ -3,12 +3,9 @@ pub mod mock_modules;
 
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::namespace::Namespace;
-pub use abstract_testing::addresses::TEST_OWNER;
 
-pub const OWNER: &str = TEST_OWNER;
 pub const TEST_COIN: &str = "ucoin";
 
-use ::abstract_manager::contract::CONTRACT_VERSION;
 use abstract_adapter::mock::{BootMockAdapter, MockInitMsg};
 use abstract_core::version_control::AccountBase;
 use abstract_core::{objects::gov_type::GovernanceDetails, PROXY};
@@ -18,7 +15,8 @@ use abstract_interface::{
     Proxy, VCExecFns, VersionControl,
 };
 use abstract_interface::{AbstractAccount, AdapterDeployer};
-use abstract_testing::prelude::{TEST_MODULE_NAME, TEST_NAMESPACE};
+use abstract_manager::contract::CONTRACT_VERSION;
+use abstract_testing::prelude::*;
 use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 use semver::Version;
@@ -33,8 +31,6 @@ pub(crate) fn create_default_account(
     })?;
     Ok(account)
 }
-
-use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
 
 pub(crate) fn init_mock_adapter(
     chain: Mock,
@@ -73,7 +69,7 @@ pub(crate) fn add_mock_adapter_install_fee(
 }
 
 pub fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
-    manager.install_module(adapter_id, &Empty {}, None)?;
+    manager.install_module::<Empty>(adapter_id, None, None)?;
     Ok(())
 }
 
@@ -82,7 +78,7 @@ pub fn install_adapter_with_funds(
     adapter_id: &str,
     funds: &[Coin],
 ) -> AResult {
-    manager.install_module(adapter_id, &Empty {}, Some(funds))?;
+    manager.install_module::<Empty>(adapter_id, None, Some(funds))?;
     Ok(())
 }
 

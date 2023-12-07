@@ -10,17 +10,29 @@ pub enum AdapterError {
     #[error(transparent)]
     AbstractSdk(#[from] AbstractSdkError),
 
-    #[error("Sender: {sender} of request to {adapter} is not a Manager")]
+    #[error("Sender: {sender} of request to {adapter} is not a Manager or top-level owner")]
     UnauthorizedAdapterRequest { adapter: String, sender: String },
 
     #[error("Sender: {sender} of request to {adapter} is not a Manager or Authorized Address")]
     UnauthorizedAddressAdapterRequest { adapter: String, sender: String },
 
-    #[error("The authorized address to remove: {} was not present.", address)]
-    AuthorizedAddressNotPresent { address: String },
+    #[error(
+        "The authorized address or module_id to remove: {} was not present.",
+        addr_or_module_id
+    )]
+    AuthorizedAddressOrModuleIdNotPresent { addr_or_module_id: String },
 
-    #[error("The authorized address to add: {} is already present", address)]
-    AuthorizedAddressAlreadyPresent { address: String },
+    #[error(
+        "The authorized address or module_id to add : {} was not valid.",
+        addr_or_module_id
+    )]
+    AuthorizedAddressOrModuleIdNotValid { addr_or_module_id: String },
+
+    #[error(
+        "The authorized address or module_id to add: {} is already present",
+        addr_or_module_id
+    )]
+    AuthorizedAddressOrModuleIdAlreadyPresent { addr_or_module_id: String },
 
     #[error("Maximum authorized addresses ({}) reached", max)]
     TooManyAuthorizedAddresses { max: u32 },

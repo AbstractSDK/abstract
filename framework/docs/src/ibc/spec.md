@@ -6,7 +6,7 @@ This standard document specifies packet data structure, state machine handling l
 
 ### Motivation
 
-Users of a set of chains connected over the IBC protocol might wish to interact with smart-contracts and dapps present on another chain than their origin, while not having to onboard the remote chain, create a new wallet or transfer the necessary funds to this other chain. This application-layer standard describes a protocol for interacting with a remote chain and creating abstract account on chains connected with IBC which preserves asset ownership, limits the impact of Byzantine faults, and requires no additional permissioning.
+Users of a set of chains connected over the IBC protocol might wish to interact with smart-contracts and dapps present on another chain than their origin, while not having to onboard the remote chain, create a new wallet or transfer the necessary funds to this other chain. This application-layer standard describes a protocol for interacting with a remote chain and creating Abstract Account on chains connected with IBC which preserves asset ownership, limits the impact of Byzantine faults, and requires no additional permissioning.
 
 ### Definitions
 

@@ -60,7 +60,7 @@ developers to transfer assets
 from and to the Account. We now want to use this API to create a `Splitter` API that splits the transfer of some amount
 of funds between a set of receivers.
 
-> The code behind this example is available [here](https://github.com/AbstractSDK/abstract/blob/main/packages/abstract-sdk/src/apis/splitter.rs).
+> The code behind this example is available <a href="https://github.com/AbstractSDK/abstract/blob/main/framework/packages/abstract-sdk/src/apis/splitter.rs" target="_blank">here</a>.
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:splitter }}
@@ -117,7 +117,9 @@ and Adapter structs. Here's the implementation for the App:
 So when you're building your application the module struct already has the features and data required to do the basic
 abstract operations. With this in place we can start creating more advanced functionality.
 
-> Other structs that implement a feature without being module bases are called *Feature Objects*.
+```admonish info
+Other structs that implement a feature without being module bases are called *Feature Objects*.
+```
 
 ## Usage
 

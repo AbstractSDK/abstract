@@ -60,7 +60,6 @@ deploy-to-all-chains:
   just run-script full_deploy uni-6 pisco-1 juno-1 phoenix-1
 
 
-# TODO this doesn't work for contracts like the croncat one which is the croncat prefix
 publish-schemas:
   SCHEMA_OUT_DIR=$(cd ../../schemas && echo "$PWD") \
     cargo ws exec --no-bail bash -lc 'cargo schema && { jq -r .contract_version schema/module-schema.json > _version.txt; outdir="$SCHEMA_OUT_DIR/abstract/${PWD##*/}/$(cat _version.txt)"; mkdir -p "$outdir"; rm -rf "schema/raw"; cp -a "schema/." "$outdir"; rm _version.txt; }'

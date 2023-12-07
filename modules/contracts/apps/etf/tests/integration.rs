@@ -2,14 +2,14 @@
 // mod test_utils;
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, DeployStrategy,
-    ManagerQueryFns, ProxyExecFns, ProxyQueryFns,
+    Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, DeployStrategy, ProxyExecFns,
+    ProxyQueryFns,
 };
 
 use abstract_core::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
 use abstract_sdk::core as abstract_core;
 
-use abstract_testing::prelude::TEST_ADMIN;
+use abstract_testing::OWNER;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw_orch::prelude::*;
@@ -20,7 +20,7 @@ use cw_asset::{AssetInfo, AssetUnchecked};
 use cw_orch::deploy::Deploy;
 
 use etf_app::{
-    contract::interface::EtfApp,
+    contract::interface::Etf,
     msg::Cw20HookMsg,
     msg::{EtfExecuteMsgFns, EtfQueryMsgFns},
     ETF_APP_ID,
@@ -37,7 +37,7 @@ const ETF_TOKEN: &str = "etf_token";
 
 pub struct EtfEnv<Chain: CwEnv> {
     pub account: AbstractAccount<Chain>,
-    pub etf: EtfApp<Chain>,
+    pub etf: Etf<Chain>,
     pub share_token: AbstractCw20Base<Chain>,
     pub wyndex: WynDex,
     pub abstract_core: Abstract<Chain>,
@@ -57,7 +57,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     // Deploy mock dex
     let wyndex = WynDex::deploy_on(mock.clone(), Empty {})?;
 
-    let etf = EtfApp::new(ETF_APP_ID, mock.clone());
+    let etf = Etf::new(ETF_APP_ID, mock.clone());
     etf.deploy(version, DeployStrategy::Try)?;
 
     let etf_token = AbstractCw20Base::new(ETF_TOKEN, mock.clone());
@@ -72,32 +72,17 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     )?;
 
     // install etf
-    account.manager.install_module(
-        ETF_APP_ID,
-        &abstract_core::app::InstantiateMsg {
-            module: etf_app::msg::EtfInstantiateMsg {
-                fee: Decimal::percent(5),
-                manager_addr: ETF_MANAGER.into(),
-                token_code_id: etf_token_code_id,
-                token_name: Some("Test ETF Shares".into()),
-                token_symbol: Some("TETF".into()),
-            },
-            base: abstract_core::app::BaseInstantiateMsg {
-                ans_host_address: abstract_.ans_host.addr_str()?,
-                version_control_address: abstract_.version_control.addr_str()?,
-            },
+    account.install_app(
+        &etf,
+        &etf_app::msg::EtfInstantiateMsg {
+            fee: Decimal::percent(5),
+            manager_addr: ETF_MANAGER.into(),
+            token_code_id: etf_token_code_id,
+            token_name: Some("Test ETF Shares".into()),
+            token_symbol: Some("TETF".into()),
         },
         None,
     )?;
-    // get its address
-    let etf_addr = account
-        .manager
-        .module_addresses(vec![ETF_APP_ID.into()])?
-        .modules[0]
-        .1
-        .clone();
-    // set the address on the contract
-    etf.set_address(&Addr::unchecked(etf_addr.clone()));
 
     // set the etf token address
     let etf_config = etf.state()?;
@@ -114,7 +99,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
 
 #[test]
 fn proper_initialization() -> AResult {
-    let owner = Addr::unchecked(TEST_ADMIN);
+    let owner = Addr::unchecked(OWNER);
 
     // create testing environment
     let mock = Mock::new(&owner);

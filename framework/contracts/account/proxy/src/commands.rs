@@ -63,7 +63,14 @@ pub fn execute_ibc_action(
         })?;
     let client_msgs: Result<Vec<_>, _> = msgs
         .into_iter()
-        .map(|execute_msg| wasm_execute(&ibc_client_address, &execute_msg, vec![]))
+        .map(|execute_msg| {
+            let funds_to_send = if let IbcClientMsg::SendFunds { funds, .. } = &execute_msg {
+                funds.to_vec()
+            } else {
+                vec![]
+            };
+            wasm_execute(&ibc_client_address, &execute_msg, funds_to_send)
+        })
         .collect();
 
     Ok(ProxyResponse::action("execute_ibc_action").add_messages(client_msgs?))
@@ -95,6 +102,7 @@ pub fn add_modules(deps: DepsMut, msg_info: MessageInfo, modules: Vec<String>) -
     if state.modules.len() >= LIST_SIZE_LIMIT {
         return Err(ProxyError::ModuleLimitReached {});
     }
+
     for module in modules.iter() {
         let module_addr = deps.api.addr_validate(module)?;
 
@@ -105,6 +113,7 @@ pub fn add_modules(deps: DepsMut, msg_info: MessageInfo, modules: Vec<String>) -
         // Add contract to whitelist.
         state.modules.push(module_addr);
     }
+
     STATE.save(deps.storage, &state)?;
 
     // Respond and note the change
@@ -151,7 +160,7 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResul
 
 #[cfg(test)]
 mod test {
-    use abstract_testing::prelude::TEST_MANAGER;
+    use abstract_testing::prelude::*;
     use cosmwasm_std::testing::mock_dependencies;
     use cosmwasm_std::testing::{
         mock_env, mock_info, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
@@ -216,7 +225,8 @@ mod test {
             assert_that(&res).is_ok();
 
             let actual_modules = load_modules(&deps.storage);
-            assert_that(&actual_modules).has_length(1);
+            // Plus manager
+            assert_that(&actual_modules).has_length(2);
             assert_that(&actual_modules).contains(&Addr::unchecked(TEST_MODULE));
         }
 
@@ -247,7 +257,8 @@ mod test {
                 modules: vec![TEST_MODULE.to_string()],
             };
 
-            for i in 0..LIST_SIZE_LIMIT {
+            // -1 because manager counts as module as well
+            for i in 0..LIST_SIZE_LIMIT - 1 {
                 msg = ExecuteMsg::AddModules {
                     modules: vec![format!("module_{i}")],
                 };
@@ -392,7 +403,7 @@ mod test {
     mod execute_ibc {
         use abstract_core::{manager, proxy::state::State};
         use abstract_testing::{prelude::TEST_MANAGER, MockQuerierBuilder};
-        use cosmwasm_std::{to_json_binary, SubMsg};
+        use cosmwasm_std::{coins, to_json_binary, SubMsg};
 
         use super::*;
 
@@ -413,6 +424,9 @@ mod test {
             let msg = ExecuteMsg::IbcAction {
                 msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
                     host_chain: "juno".into(),
+                    base_asset: None,
+                    namespace: None,
+                    install_modules: vec![],
                 }],
             };
 
@@ -438,9 +452,64 @@ mod test {
                     contract_addr: "ibc_client_addr".into(),
                     msg: to_json_binary(&abstract_core::ibc_client::ExecuteMsg::Register {
                         host_chain: "juno".into(),
+                        base_asset: None,
+                        namespace: None,
+                        install_modules: vec![],
                     })
                     .unwrap(),
                     funds: vec![],
+                },
+            )));
+        }
+
+        #[test]
+        fn send_funds() {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+            // whitelist creator
+            STATE
+                .save(
+                    &mut deps.storage,
+                    &State {
+                        modules: vec![Addr::unchecked(TEST_MANAGER)],
+                    },
+                )
+                .unwrap();
+
+            let funds = coins(10, "denom");
+            let msg = ExecuteMsg::IbcAction {
+                msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendFunds {
+                    host_chain: "juno".to_owned(),
+                    funds: funds.clone(),
+                }],
+            };
+
+            let not_whitelisted_info = mock_info(TEST_MANAGER, &[]);
+            execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
+
+            let manager_info = mock_info(TEST_MANAGER, &[]);
+            // ibc not enabled
+            execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
+            // mock enabling ibc
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_map_entry(
+                    TEST_MANAGER,
+                    manager::state::ACCOUNT_MODULES,
+                    (IBC_CLIENT, Addr::unchecked("ibc_client_addr")),
+                )
+                .build();
+
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
+            assert_that(&res.messages).has_length(1);
+            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
+                cosmwasm_std::WasmMsg::Execute {
+                    contract_addr: "ibc_client_addr".into(),
+                    msg: to_json_binary(&abstract_core::ibc_client::ExecuteMsg::SendFunds {
+                        host_chain: "juno".into(),
+                        funds: funds.clone(),
+                    })
+                    .unwrap(),
+                    funds,
                 },
             )));
         }

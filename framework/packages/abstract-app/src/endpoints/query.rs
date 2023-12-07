@@ -97,11 +97,13 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use super::QueryMsg as SuperQueryMsg;
     use crate::mock::*;
+    use abstract_sdk::base::QueryEndpoint;
+    use cosmwasm_std::{Binary, Deps};
     use speculoos::prelude::*;
 
-    type AppQueryMsg = QueryMsg<MockQueryMsg>;
+    type AppQueryMsg = SuperQueryMsg<MockQueryMsg>;
 
     fn query_helper(deps: Deps, msg: AppQueryMsg) -> Result<Binary, MockError> {
         BASIC_MOCK_APP.query(deps, mock_env(), msg)
@@ -110,11 +112,12 @@ mod test {
     mod app_query {
         use super::*;
         use abstract_sdk::AbstractSdkError;
+        use cosmwasm_std::{to_json_binary, Env};
 
         #[test]
         fn without_handler() {
             let deps = mock_init();
-            let msg = AppQueryMsg::Module(MockQueryMsg);
+            let msg = AppQueryMsg::Module(MockQueryMsg::GetSomething {});
 
             let res = query_helper(deps.as_ref(), msg);
 
@@ -142,20 +145,22 @@ mod test {
         #[test]
         fn with_handler() {
             let deps = mock_init();
-            let msg = AppQueryMsg::Module(MockQueryMsg);
+            let msg = AppQueryMsg::Module(MockQueryMsg::GetSomething {});
 
             let with_mocked_query = BASIC_MOCK_APP.with_query(mock_query_handler);
             let res = with_mocked_query.query(deps.as_ref(), mock_env(), msg);
 
-            let expected = to_json_binary(&MockQueryMsg).unwrap();
+            let expected = to_json_binary(&MockQueryMsg::GetSomething {}).unwrap();
             assert_that!(res).is_ok().is_equal_to(expected);
         }
     }
 
     mod base_query {
         use super::*;
-        use abstract_testing::prelude::{TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY};
+        use abstract_core::app::{AppConfigResponse, BaseQueryMsg};
+        use abstract_testing::prelude::*;
         use cosmwasm_std::{from_json, Addr};
+        use cw_controllers::AdminResponse;
 
         #[test]
         fn config() -> AppTestResult {

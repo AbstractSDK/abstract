@@ -1,8 +1,8 @@
-use abstract_core::objects::validation::ValidationError;
+use abstract_core::objects::{validation::ValidationError, version_control::VersionControlError};
 use abstract_core::AbstractError;
 use abstract_sdk::core::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;
 
@@ -25,6 +25,12 @@ pub enum ManagerError {
 
     #[error("{0}")]
     Ownership(#[from] cw_ownable::OwnershipError),
+
+    #[error("{0}")]
+    Instantiate2AddressError(#[from] Instantiate2AddressError),
+
+    #[error("{0}")]
+    VersionControlError(#[from] VersionControlError),
 
     #[error("Module with id: {0} is already installed")]
     ModuleAlreadyInstalled(String),
@@ -82,8 +88,8 @@ pub enum ManagerError {
     #[error("invalid configuration action, {}", error)]
     InvalidConfigAction { error: StdError },
 
-    #[error("Must use SetOwner to change owner")]
-    MustUseSetOwner {},
+    #[error("Must use ProposeOwner to change owner")]
+    MustUseProposeOwner {},
 
     #[error("The address {0} doesn't have an owner, the manager can't determine admin right")]
     NoContractOwner(String),

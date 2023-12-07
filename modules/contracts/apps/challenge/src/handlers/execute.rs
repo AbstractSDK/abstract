@@ -285,7 +285,7 @@ fn cast_vote(
     let proposal_id = get_or_create_active_proposal(&mut deps, &env, challenge_id, app)?;
 
     let voter = match app
-        .account_registry(deps.as_ref())
+        .account_registry(deps.as_ref())?
         .assert_proxy(&info.sender)
     {
         Ok(base) => base.manager,
@@ -402,7 +402,7 @@ fn charge_penalty(
             let recipent = match friend {
                 Friend::Addr(addr) => addr.address,
                 Friend::AbstractAccount(account_id) => {
-                    app.account_registry(deps.as_ref())
+                    app.account_registry(deps.as_ref())?
                         .account_base(&account_id)?
                         .proxy
                 }

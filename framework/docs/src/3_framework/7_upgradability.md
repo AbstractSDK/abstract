@@ -18,7 +18,7 @@ There are two types of possible migration paths, although they appear the same t
 
 ## Migration Update
 
-Most module updates will perform a contract migration. The migration can be evoked by the root user and is executed by
+Most module updates will perform a contract migration. The migration can be evoked by the owner and is executed by
 the manager contract. You can learn more about contract migrations in
 the <a href="https://docs.cosmwasm.com/docs/smart-contracts/migration" target="_blank">CosmWasm documentation</a>.
 
@@ -51,7 +51,7 @@ The process for upgrading modules is shown in the following diagram:
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as User
+    actor U as Owner
     participant M as Manager
     participant VC as Version Control
     participant P as Proxy

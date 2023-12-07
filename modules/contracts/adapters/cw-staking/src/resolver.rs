@@ -53,6 +53,10 @@ pub(crate) fn resolve_local_provider(
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
         }
+        #[cfg(feature = "astrovault")]
+        abstract_astrovault_adapter::ASTROVAULT => {
+            Ok(Box::<abstract_astrovault_adapter::staking::Astrovault>::default())
+        }
         _ => Err(CwStakingError::ForeignDex(name.to_owned())),
     }
 }

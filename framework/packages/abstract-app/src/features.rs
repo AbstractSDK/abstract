@@ -85,9 +85,7 @@ impl<
 mod test {
     use super::*;
     use abstract_core::version_control::AccountBase;
-    use abstract_sdk::{
-        features::ModuleIdentification, AccountVerification, ModuleRegistryInterface,
-    };
+    use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
     use abstract_testing::{
         mock_querier,
         prelude::{
@@ -136,7 +134,7 @@ mod test {
         assert_eq!(host, AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
 
         // AccountRegistry
-        let account_registry = MOCK_APP.account_registry(deps.as_ref());
+        let account_registry = MOCK_APP.account_registry(deps.as_ref()).unwrap();
         let base = account_registry.account_base(&TEST_ACCOUNT_ID)?;
         assert_eq!(base, test_account_base);
 
