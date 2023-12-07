@@ -28,8 +28,8 @@ pub trait DependencyCreation {
     #[allow(unused_variables)]
     fn dependency_install_configs(
         configuration: Self::DependenciesConfig,
-    ) -> Vec<ModuleInstallConfig> {
-        vec![]
+    ) -> Result<Vec<ModuleInstallConfig>, crate::AbstractInterfaceError> {
+        Ok(vec![])
     }
 }
 
@@ -37,13 +37,18 @@ pub trait DependencyCreation {
 /// `RegisteredModule`.
 pub trait InstallConfig: RegisteredModule {
     /// Constructs the `ModuleInfo` by using information from `RegisteredModule`.
-    fn module_info() -> ModuleInfo {
-        ModuleInfo::from_id(Self::module_id(), Self::module_version().into()).unwrap()
+    fn module_info() -> Result<ModuleInfo, crate::AbstractInterfaceError> {
+        ModuleInfo::from_id(Self::module_id(), Self::module_version().into()).map_err(Into::into)
     }
 
     /// Constructs the ModuleInstallConfig for an App Interface
-    fn install_config(init_msg: &Self::InitMsg) -> ModuleInstallConfig {
-        ModuleInstallConfig::new(Self::module_info(), Some(to_json_binary(init_msg).unwrap()))
+    fn install_config(
+        init_msg: &Self::InitMsg,
+    ) -> Result<ModuleInstallConfig, crate::AbstractInterfaceError> {
+        Ok(ModuleInstallConfig::new(
+            Self::module_info()?,
+            Some(to_json_binary(init_msg)?),
+        ))
     }
 }
 

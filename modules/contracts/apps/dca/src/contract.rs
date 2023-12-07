@@ -52,28 +52,27 @@ impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
 
     fn dependency_install_configs(
         _configuration: Self::DependenciesConfig,
-    ) -> Vec<ModuleInstallConfig> {
+    ) -> Result<Vec<ModuleInstallConfig>, abstract_interface::AbstractInterfaceError> {
         let croncat_dependency_install_configs: Vec<ModuleInstallConfig> =
             <Croncat<Chain> as abstract_interface::DependencyCreation>::dependency_install_configs(
                 cosmwasm_std::Empty {},
-            );
+            )?;
         let adapter_install_config = ModuleInstallConfig::new(
             ModuleInfo::from_id(
                 abstract_dex_adapter::DEX_ADAPTER_ID,
                 abstract_dex_adapter::contract::CONTRACT_VERSION.into(),
-            )
-            .unwrap(),
+            )?,
             None,
         );
         let croncat_install_config =
             <Croncat<Chain> as abstract_interface::InstallConfig>::install_config(
                 &croncat_app::msg::AppInstantiateMsg {},
-            );
+            )?;
 
-        vec![
+        Ok([
             croncat_dependency_install_configs,
             vec![croncat_install_config, adapter_install_config],
         ]
-        .concat()
+        .concat())
     }
 }

@@ -181,12 +181,12 @@ pub mod mock {
         type DependenciesConfig = Empty;
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
-        ) -> Vec<ModuleInstallConfig> {
+        ) -> Result<Vec<ModuleInstallConfig>, abstract_interface::AbstractInterfaceError> {
             let install_config = ModuleInstallConfig::new(
-                ModuleInfo::from_id(TEST_DEPENDENCY_MODULE_ID, TEST_VERSION.into()).unwrap(),
-                Some(to_json_binary(&MockInitMsg {}).unwrap()),
+                ModuleInfo::from_id(TEST_DEPENDENCY_MODULE_ID, TEST_VERSION.into())?,
+                Some(to_json_binary(&MockInitMsg {})?),
             );
-            vec![install_config]
+            Ok(vec![install_config])
         }
     }
 

@@ -12,19 +12,20 @@ use abstract_core::{
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
 };
 use abstract_interface::VCQueryFns;
-use abstract_testing::prelude::{
-    TEST_DEPENDENCY_MODULE_ID, TEST_DEPENDENCY_NAMESPACE, TEST_MODULE_ID, TEST_NAMESPACE,
-    TEST_VERSION,
+use abstract_testing::{
+    prelude::{
+        TEST_DEPENDENCY_MODULE_ID, TEST_DEPENDENCY_NAMESPACE, TEST_MODULE_ID, TEST_NAMESPACE,
+        TEST_VERSION,
+    },
+    OWNER,
 };
 use cosmwasm_std::{Addr, Empty};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::{CallAs, Mock};
 
-const ADMIN: &str = "admin";
-
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let account: Account<Mock> = client.account_builder().build()?;
 
@@ -35,7 +36,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
             governance_details: GovernanceDetails::Monarchy {
-                monarch: Addr::unchecked(ADMIN)
+                monarch: Addr::unchecked(OWNER)
             },
             link: None,
         },
@@ -49,7 +50,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
 fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let asset = "asset";
 
-    let client = AbstractClient::builder(ADMIN)
+    let client = AbstractClient::builder(OWNER)
         .asset(asset, AssetInfoUnchecked::native(asset))
         .build()?;
 
@@ -95,7 +96,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_account_from_namespace() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = "namespace";
     let account: Account<Mock> = client.account_builder().namespace(namespace).build()?;
@@ -112,7 +113,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
 
 #[test]
 fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let publisher: Publisher<Mock> = client.publisher_builder().build()?;
 
@@ -123,7 +124,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
             governance_details: GovernanceDetails::Monarchy {
-                monarch: Addr::unchecked(ADMIN)
+                monarch: Addr::unchecked(OWNER)
             },
             link: None,
         },
@@ -136,7 +137,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
 #[test]
 fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let asset = "asset";
-    let client = AbstractClient::builder(ADMIN)
+    let client = AbstractClient::builder(OWNER)
         .asset(asset, AssetInfoUnchecked::native(asset))
         .build()?;
 
@@ -182,7 +183,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = "namespace";
     let publisher: Publisher<Mock> = client.publisher_builder().namespace(namespace).build()?;
@@ -200,7 +201,7 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
 
 #[test]
 fn can_publish_and_install_app() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let publisher: Publisher<Mock> = client
         .publisher_builder()
@@ -241,7 +242,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
 #[test]
 fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = "namespace";
 
@@ -257,7 +258,7 @@ fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Res
 
 #[test]
 fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = "namespace";
 
@@ -276,7 +277,7 @@ fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<
 
 #[test]
 fn can_install_module_with_dependencies() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let app_publisher: Publisher<Mock> = client
         .publisher_builder()
@@ -300,9 +301,9 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
 
     assert_eq!(MockQueryResponse {}, something);
 
-    let module_infos_response: ModuleInfosResponse = app_publisher.module_infos(None, None)?;
+    let module_infos_response: ModuleInfosResponse = my_app.account().module_infos(None, None)?;
     let module_addresses_response: ModuleAddressesResponse =
-        app_publisher.account().module_addresses(vec![
+        my_app.account().module_addresses(vec![
             TEST_MODULE_ID.to_owned(),
             TEST_DEPENDENCY_MODULE_ID.to_owned(),
         ])?;

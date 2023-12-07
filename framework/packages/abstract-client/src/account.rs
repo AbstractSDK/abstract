@@ -166,7 +166,7 @@ impl<Chain: CwEnv> Account<Chain> {
         configuration: &M::InitMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
-        self.install_app_internal(vec![M::install_config(configuration)], funds)
+        self.install_app_internal(vec![M::install_config(configuration)?], funds)
     }
 
     pub fn install_app_with_dependencies<
@@ -182,8 +182,8 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         let mut install_configs: Vec<ModuleInstallConfig> =
-            M::dependency_install_configs(dependencies_config);
-        install_configs.push(M::install_config(module_configuration));
+            M::dependency_install_configs(dependencies_config)?;
+        install_configs.push(M::install_config(module_configuration)?);
 
         self.install_app_internal(install_configs, funds)
     }
