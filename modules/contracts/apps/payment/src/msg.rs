@@ -31,6 +31,7 @@ pub enum AppExecuteMsg {
     #[cfg_attr(feature = "interface", payable)]
     Tip {},
     UpdateConfig {
+        desired_asset: Option<AssetEntry>,
         exchanges: Option<Vec<DexName>>,
     },
 }

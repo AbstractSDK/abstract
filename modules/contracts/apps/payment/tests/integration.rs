@@ -36,7 +36,9 @@ fn setup(
     let abstr_deployment = if should_load_abstract {
         Abstract::load_from(mock.clone())?
     } else {
-        Abstract::deploy_on(mock.clone(), mock.sender().to_string())?
+        let abstr = Abstract::deploy_on(mock.clone(), mock.sender().to_string())?;
+        abstr.version_control.update_config(Some(true), None)?;
+        abstr
     };
 
     let dex_adapter = abstract_dex_adapter::interface::DexAdapter::new(
@@ -74,7 +76,7 @@ fn setup(
         &app,
         &AppInstantiateMsg {
             desired_asset,
-            exchanges: vec!["wyndex".to_string()],
+            exchanges: vec![wyndex_bundle::WYNDEX.to_owned()],
         },
         None,
     )?;
@@ -121,12 +123,22 @@ fn test_update_config() -> anyhow::Result<()> {
     let mock = Mock::new(&sender);
 
     // Set up the environment and contract
-    let (account, _abstr, app) = setup(mock, None, false)?;
+    let (account, _abstr, app) = setup(
+        mock.clone(),
+        Some(AssetEntry::new(wyndex_bundle::USD)),
+        false,
+    )?;
+
+    let WynDex { eur_token, .. } = wyndex_deployment(&mock);
+
+    let new_target_currency = eur_token.to_string();
 
     let dex_name = String::from("osmosis");
 
-    app.call_as(&account.manager.address()?)
-        .update_config(Some(vec![dex_name.clone()]))?;
+    app.call_as(&account.manager.address()?).update_config(
+        Some(AssetEntry::new(&new_target_currency)),
+        Some(vec![dex_name.clone()]),
+    )?;
 
     let config = app.config()?;
     assert_eq!(

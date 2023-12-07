@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use abstract_core::objects::DexName;
+use abstract_core::objects::{AssetEntry, DexName};
 use abstract_dex_adapter::DexInterface;
 use abstract_sdk::core::ans_host;
 use abstract_sdk::core::ans_host::{AssetPairingFilter, PoolAddressListResponse};
@@ -14,6 +14,8 @@ use cw_asset::{Asset, AssetList};
 
 use crate::contract::{AppResult, PaymentApp};
 
+const MAX_SPREAD_PERCENT: u64 = 20;
+
 use crate::error::AppError;
 use crate::msg::AppExecuteMsg;
 use crate::state::{CONFIG, TIPPERS, TIP_COUNT};
@@ -26,14 +28,17 @@ pub fn execute_handler(
     msg: AppExecuteMsg,
 ) -> AppResult {
     match msg {
-        AppExecuteMsg::UpdateConfig { exchanges } => update_config(deps, info, app, exchanges),
+        AppExecuteMsg::UpdateConfig {
+            desired_asset,
+            exchanges,
+        } => update_config(deps, info, app, desired_asset, exchanges),
         AppExecuteMsg::Tip {} => tip(deps, info, app, None),
     }
 }
 
 // Called when a payment is made to the app
 pub fn tip(
-    deps: DepsMut<'_>,
+    deps: DepsMut,
     info: MessageInfo,
     app: PaymentApp,
     cw20_receipt: Option<Asset>,
@@ -96,14 +101,11 @@ pub fn tip(
                 let trigger_swap_msg = dex.swap(
                     pay_asset.clone(),
                     desired_asset.clone(),
-                    None,
+                    Some(Decimal::percent(MAX_SPREAD_PERCENT)),
                     None,
                 )?;
                 swap_msgs.push(trigger_swap_msg);
-                attrs.push((
-                    "swap",
-                    format!("{} for {}", pay_asset.name, desired_asset.clone()),
-                ));
+                attrs.push(("swap", format!("{} for {}", pay_asset.name, desired_asset)));
 
                 total_amount += dex
                     .simulate_swap(pay_asset, desired_asset.clone())?
@@ -143,13 +145,27 @@ fn update_config(
     deps: DepsMut,
     msg_info: MessageInfo,
     app: PaymentApp,
+    desired_asset: Option<AssetEntry>,
     exchanges: Option<Vec<DexName>>,
 ) -> AppResult {
     // Only the admin should be able to call this
     app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    let name_service = app.name_service(deps.as_ref());
 
     let mut config = CONFIG.load(deps.storage)?;
+    if let Some(asset) = desired_asset {
+        name_service
+            .query(&asset)
+            .map_err(|_| AppError::DesiredAssetDoesNotExist {})?;
+        config.desired_asset = Some(asset)
+    }
     if let Some(exchanges) = exchanges {
+        let ans_dexes = name_service.registered_dexes()?;
+        for dex in exchanges.iter() {
+            if !ans_dexes.dexes.contains(dex) {
+                return Err(AppError::DexNotRegistered(dex.to_owned()));
+            }
+        }
         config.exchanges = exchanges;
     }
 
