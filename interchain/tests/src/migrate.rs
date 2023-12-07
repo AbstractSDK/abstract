@@ -2,9 +2,9 @@
 //! Otherwise you will have too many requests
 
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::module::ModuleInfo;
+use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_core::{ABSTRACT_EVENT_TYPE, MANAGER, PROXY};
-use abstract_interface::{Abstract, AbstractAccount, ManagerExecFns};
+use abstract_interface::{Abstract, AbstractAccount, ManagerExecFns, VCQueryFns};
 use abstract_testing::prelude::*;
 use anyhow::Ok;
 use cosmwasm_std::{to_json_binary, Addr};

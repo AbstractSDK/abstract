@@ -154,8 +154,8 @@ impl<Chain: CwEnv> Abstract<Chain> {
         let (ans_host, account_factory, version_control, module_factory) =
             get_native_contracts(chain.clone());
         let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
-        let manager = Manager::new_from_id(&ABSTRACT_ACCOUNT_ID, chain.clone());
-        let proxy = Proxy::new_from_id(&ABSTRACT_ACCOUNT_ID, chain);
+        let manager = Manager::new(MANAGER, chain.clone());
+        let proxy = Proxy::new(PROXY, chain);
         Self {
             account: AbstractAccount { manager, proxy },
             ans_host,

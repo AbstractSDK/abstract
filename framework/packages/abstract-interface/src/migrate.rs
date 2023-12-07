@@ -28,6 +28,8 @@ impl<T: CwEnv> Abstract<T> {
             .account
             .upload_and_register_if_needed(&self.version_control)?;
 
+        self.version_control.approve_any_abstract_modules()?;
+
         Ok(account_factory.is_some()
             || module_factory.is_some()
             || version_control.is_some()
