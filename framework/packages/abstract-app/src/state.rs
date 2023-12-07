@@ -2,7 +2,7 @@ use crate::{
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
-use abstract_core::objects::dependency::StaticDependency;
+use abstract_core::objects::{dependency::StaticDependency, nested_admin::NestedAdmin};
 use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,
@@ -11,7 +11,6 @@ use abstract_sdk::{
     AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
-use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -56,7 +55,7 @@ pub struct AppContract<
     SudoMsg: 'static = Empty,
 > {
     // Custom state for every App
-    pub admin: Admin<'static>,
+    pub admin: NestedAdmin<'static>,
     pub(crate) base_state: Item<'static, AppState>,
 
     // Scaffolding contract that handles type safety and provides helper methods
@@ -90,7 +89,7 @@ impl<
     ) -> Self {
         Self {
             base_state: Item::new(BASE_STATE),
-            admin: Admin::new(ADMIN_NAMESPACE),
+            admin: NestedAdmin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version, metadata),
         }
     }
@@ -178,7 +177,7 @@ impl<
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};
+    use abstract_testing::prelude::*;
     use cosmwasm_std::Response;
 
     use crate::mock::MockAppContract;

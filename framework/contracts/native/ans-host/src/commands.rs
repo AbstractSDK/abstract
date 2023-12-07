@@ -371,7 +371,7 @@ mod test {
     use abstract_testing::map_tester::CwMapTester;
 
     use super::*;
-    use abstract_testing::prelude::TEST_CREATOR;
+    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
     use crate::test_common::*;
@@ -379,7 +379,7 @@ mod test {
     type AnsHostTestResult = Result<(), AnsHostError>;
 
     fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> AnsHostTestResult {
-        contract::execute(deps, mock_env(), mock_info(TEST_CREATOR, &[]), msg)?;
+        contract::execute(deps, mock_env(), mock_info(OWNER, &[]), msg)?;
         Ok(())
     }
 
@@ -406,7 +406,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(TEST_CREATOR, &[]);
+            let info = mock_info(OWNER, &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -427,7 +427,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(TEST_CREATOR, &[]);
+            let info = mock_info(OWNER, &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -448,7 +448,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(TEST_CREATOR, &[]);
+            let info = mock_info(OWNER, &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -469,7 +469,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(TEST_CREATOR, &[]);
+            let info = mock_info(OWNER, &[]);
             let new_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -489,7 +489,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(TEST_CREATOR, &[]);
+            let info = mock_info(OWNER, &[]);
             let new_dexes = vec!["test_dex".to_string(), "test_dex_2".to_string()];
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -509,7 +509,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
-            let info = mock_info(TEST_CREATOR, &[]);
+            let info = mock_info(OWNER, &[]);
             let missing_dex = "test_dex".to_string();
 
             let msg = ExecuteMsg::UpdateDexes {
@@ -588,7 +588,7 @@ mod test {
             UncheckedContractEntry,
             String,
         > {
-            let info = mock_info(TEST_CREATOR, &[]);
+            let info = mock_info(OWNER, &[]);
 
             let tester = CwMapTesterBuilder::default()
                 .info(info)
@@ -673,7 +673,7 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
             let mut map_tester = setup_map_tester();
 
-            let _info = mock_info(TEST_CREATOR, &[]);
+            let _info = mock_info(OWNER, &[]);
             let new_entry_1 =
                 contract_address_map_entry("test_namespace", "test_contract", "test_address");
             let new_entry_2 =
@@ -772,7 +772,7 @@ mod test {
             String,
             AssetInfoUnchecked,
         > {
-            let info = mock_info(TEST_CREATOR, &[]);
+            let info = mock_info(OWNER, &[]);
 
             let tester = CwMapTesterBuilder::default()
                 .info(info)
@@ -971,7 +971,7 @@ mod test {
             UncheckedChannelEntry,
             String,
         > {
-            let info = mock_info(TEST_CREATOR, &[]);
+            let info = mock_info(OWNER, &[]);
 
             let tester = CwMapTesterBuilder::default()
                 .info(info)

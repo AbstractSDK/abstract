@@ -33,4 +33,4 @@ pub const CRONCAT_APP: CroncatApp = CroncatApp::new(CRONCAT_ID, CRONCAT_MODULE_V
 abstract_app::export_endpoints!(CRONCAT_APP, CroncatApp);
 
 #[cfg(feature = "interface")]
-abstract_app::cw_orch_interface!(CRONCAT_APP, CroncatApp, CroncatApp);
+abstract_app::cw_orch_interface!(CRONCAT_APP, CroncatApp, Croncat);

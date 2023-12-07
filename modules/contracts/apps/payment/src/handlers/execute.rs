@@ -8,7 +8,7 @@ use cosmwasm_std::{Addr, Storage, Uint128};
 
 use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_sdk::features::{AbstractNameService, AccountIdentification};
-use abstract_sdk::{cw_helpers, AbstractResponse};
+use abstract_sdk::AbstractResponse;
 use cosmwasm_std::{CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response};
 use cw_asset::{Asset, AssetList};
 
@@ -80,18 +80,17 @@ pub fn tip(
     // Search for trading pairs between the deposited assets and the desired asset
     for pay_asset in asset_entries {
         // query the pools that contain the desired asset
-        let query = cw_helpers::wasm_smart_query(
-            &ans.host.address,
-            &ans_host::QueryMsg::PoolList {
-                filter: Some(AssetPairingFilter {
-                    asset_pair: Some((desired_asset.clone(), pay_asset.name.clone())),
-                    dex: None,
-                }),
-                start_after: None,
-                limit: None,
-            },
-        )?;
-        let resp: PoolAddressListResponse = deps.querier.query(&query)?;
+        let query_msg = ans_host::QueryMsg::PoolList {
+            filter: Some(AssetPairingFilter {
+                asset_pair: Some((desired_asset.clone(), pay_asset.name.clone())),
+                dex: None,
+            }),
+            start_after: None,
+            limit: None,
+        };
+        let resp: PoolAddressListResponse = deps
+            .querier
+            .query_wasm_smart(&ans.host.address, &query_msg)?;
         // use the first pair you find to swap on
         for (pair, refs) in resp.pools {
             if !refs.is_empty() && exchange_strs.contains(&pair.dex()) {

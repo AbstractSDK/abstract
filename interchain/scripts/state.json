@@ -38,6 +38,24 @@
     }
   },
   "osmosis": {
+    "osmosis-1": {
+      "code_ids": {
+        "abstract:account-factory": 298,
+        "abstract:ans-host": 296,
+        "abstract:manager": 300,
+        "abstract:module-factory": 299,
+        "abstract:proxy": 301,
+        "abstract:version-control": 297
+      },
+      "default": {
+        "abstract:account-factory": "osmo1clft6l9xdnfl543746hmqzksc9wrdwm24znfkact3xjln5z0v0xq78pg6a",
+        "abstract:ans-host": "osmo17ytzaykjflxfrh3cnp7wz5a73q6ylu0de27rje4adgkslsfurxhsrkq9es",
+        "abstract:manager": "osmo1n3a07gl57uyynwfa7ekvm7tturx7uxecwrlrd9h0wq450smun0wq7ekz6p",
+        "abstract:module-factory": "osmo1n28c9mtw9ehcddpaffewq4sczv4q0y3pfl76ll9v9alxx37rqdyqk89zsv",
+        "abstract:proxy": "osmo16a0jnv8dcse7jdqqrp6s3kayvvjhnq7fftv8cxz8m6hk29phajdsmzvrnn",
+        "abstract:version-control": "osmo12wgxrzspr655r9zxmfmrzygxvvukdg9xt5xu2sw5zsrrjsvzlpmqp7jrg2"
+      }
+    },
     "osmo-test-5": {
       "code_ids": {
         "abstract:account-factory": 4583,

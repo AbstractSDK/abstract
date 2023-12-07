@@ -143,6 +143,8 @@ macro_rules! cw_orch_interface {
 			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<Chain> for $interface_name<Chain> {}
 
 			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::RegisteredModule for $interface_name<Chain> {
+                type InitMsg = <$app_type as ::abstract_sdk::base::Handler>::CustomInitMsg;
+
 				fn module_id<'a>() -> &'a str {
                     $app_const.module_id()
 				}

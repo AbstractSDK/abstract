@@ -16,11 +16,11 @@ pub type ModuleId<'a> = &'a str;
 #[cosmwasm_schema::cw_serde]
 pub enum ModuleStatus {
     /// Modules in use
-    REGISTERED,
+    Registered,
     /// Pending modules
-    PENDING,
+    Pending,
     /// Yanked modules
-    YANKED,
+    Yanked,
 }
 
 /// Stores the namespace, name, and version of an Abstract module.

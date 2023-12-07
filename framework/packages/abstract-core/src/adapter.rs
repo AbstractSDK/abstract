@@ -97,11 +97,19 @@ impl<Request: Serialize> AdapterRequestMsg<Request> {
     }
 }
 
+#[cosmwasm_schema::cw_serde]
+pub struct BaseExecuteMsg {
+    /// The Proxy address for which to apply the configuration
+    /// If None, the sender must be an Account manager and the configuration is applied to its associated proxy.
+    /// If Some, the sender must be a direct or indirect owner (through sub-accounts) of the specified proxy.
+    pub proxy_address: Option<String>,
+    // The actual base message
+    pub msg: AdapterBaseMsg,
+}
+
 /// Configuration message for the adapter
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg<T>))]
-pub enum BaseExecuteMsg {
+pub enum AdapterBaseMsg {
     /// Add or remove authorized addresses
     /// If an authorized address is both in to_add and to_remove, it will be removed.
     UpdateAuthorizedAddresses {
