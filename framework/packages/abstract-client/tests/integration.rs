@@ -204,16 +204,16 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     let publisher: Publisher<Mock> = client
         .publisher_builder()
-        .namespace(TEST_NAMESPACE)
+        .namespace(TEST_DEPENDENCY_NAMESPACE)
         .build()?;
 
     let publisher_admin = publisher.admin()?;
     let publisher_proxy = publisher.proxy()?;
 
-    publisher.publish_app::<MockAppInterface<Mock>>()?;
+    publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
 
-    let my_app: Application<Mock, MockAppInterface<Mock>> =
-        publisher.install_app::<MockAppInterface<Mock>>(&MockInitMsg, &[])?;
+    let my_app: Application<Mock, MockAppDependencyInterface<Mock>> =
+        publisher.install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg, &[])?;
 
     my_app.call_as(&publisher.admin()?).do_something()?;
 

@@ -17,7 +17,10 @@ use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
 pub mod mock {
     pub use abstract_core::app;
-    use abstract_core::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
+    use abstract_core::{
+        manager::ModuleInstallConfig,
+        objects::{dependency::StaticDependency, module::ModuleInfo},
+    };
     use abstract_interface::{AppDeployer, DependencyCreation};
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::*;
@@ -115,6 +118,10 @@ pub mod mock {
         .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
             Ok(Response::new().set_data("mock_callback".as_bytes()))
         })])
+        .with_dependencies(&[StaticDependency::new(
+            TEST_DEPENDENCY_MODULE_ID,
+            &[TEST_VERSION],
+        )])
         .with_replies(&[(1u64, |_, _, _, msg| {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
@@ -124,11 +131,17 @@ pub mod mock {
 
     pub mod mock_app_dependency {
         use abstract_testing::prelude::{TEST_DEPENDENCY_MODULE_ID, TEST_VERSION};
+        use cosmwasm_std::{to_json_binary, Response};
 
-        use super::MockAppContract;
+        use super::{MockAppContract, MockQueryResponse};
 
         pub const MOCK_APP_DEPENDENCY: MockAppContract =
-            MockAppContract::new(TEST_DEPENDENCY_MODULE_ID, TEST_VERSION, None);
+            MockAppContract::new(TEST_DEPENDENCY_MODULE_ID, TEST_VERSION, None)
+                .with_instantiate(|_, _, _, _, _| {
+                    Ok(Response::new().set_data("mock_init".as_bytes()))
+                })
+                .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+                .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into));
 
         crate::cw_orch_interface!(
             MOCK_APP_DEPENDENCY,
