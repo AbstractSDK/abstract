@@ -1,7 +1,10 @@
 /// ANCHOR: ans
 use crate::{ans_resolve::Resolve, cw_helpers::ApiQuery, AbstractSdkResult};
 use abstract_core::{
-    ans_host::{AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, QueryMsg},
+    ans_host::{
+        AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, QueryMsg,
+        RegisteredDexesResponse,
+    },
     objects::{ans_host::AnsHost, DexAssetPairing},
 };
 use cosmwasm_std::Deps;
@@ -79,5 +82,11 @@ impl<'a, T: ModuleIdentification + AbstractNameService> AbstractNameServiceClien
             },
         )?;
         Ok(resp.pools)
+    }
+    /// Raw-query the available dexes on the chain.
+    pub fn registered_dexes(&self) -> AbstractSdkResult<RegisteredDexesResponse> {
+        self.host
+            .query_registered_dexes(&self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 }

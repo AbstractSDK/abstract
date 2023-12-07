@@ -4,7 +4,7 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use crate::contract::{App, AppResult};
 
 use crate::msg::AppExecuteMsg;
-use crate::state::CONFIG;
+use crate::state::{CONFIG, COUNT};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -14,8 +14,23 @@ pub fn execute_handler(
     msg: AppExecuteMsg,
 ) -> AppResult {
     match msg {
+        AppExecuteMsg::Increment {} => increment(deps, app),
+        AppExecuteMsg::Reset { count } => reset(deps, info, count, app),
         AppExecuteMsg::UpdateConfig {} => update_config(deps, info, app),
     }
+}
+
+fn increment(deps: DepsMut, app: App) -> AppResult {
+    COUNT.update(deps.storage, |count| AppResult::Ok(count + 1))?;
+
+    Ok(app.tag_response(Response::default(), "increment"))
+}
+
+fn reset(deps: DepsMut, info: MessageInfo, count: i32, app: App) -> AppResult {
+    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    COUNT.save(deps.storage, &count)?;
+
+    Ok(app.tag_response(Response::default(), "reset"))
 }
 
 /// Update the configuration of the app

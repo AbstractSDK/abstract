@@ -2,8 +2,9 @@ use crate::AbstractAccount;
 pub use abstract_core::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_core::{
     objects::{
-        module::{Module, ModuleInfo, ModuleVersion},
+        module::{Module, ModuleInfo, ModuleStatus, ModuleVersion},
         module_reference::ModuleReference,
+        namespace::ABSTRACT_NAMESPACE,
         AccountId,
     },
     version_control::*,
@@ -12,8 +13,6 @@ use abstract_core::{
 use cosmwasm_std::Addr;
 use cw_orch::contract::Contract;
 use cw_orch::interface;
-#[cfg(feature = "daemon")]
-use cw_orch::prelude::Daemon;
 use cw_orch::prelude::*;
 
 type VersionString = String;
@@ -141,6 +140,33 @@ where
         Ok(())
     }
 
+    /// Approve any abstract-namespaced pending modules.
+    pub fn approve_any_abstract_modules(&self) -> Result<(), crate::AbstractInterfaceError> {
+        let proposed_abstract_modules = self.module_list(
+            Some(ModuleFilter {
+                namespace: Some(ABSTRACT_NAMESPACE.to_string()),
+                status: Some(ModuleStatus::Pending),
+                ..Default::default()
+            }),
+            None,
+            None,
+        )?;
+
+        if proposed_abstract_modules.modules.is_empty() {
+            return Ok(());
+        }
+
+        self.approve_or_reject_modules(
+            proposed_abstract_modules
+                .modules
+                .into_iter()
+                .map(|m| m.module.info)
+                .collect(),
+            vec![],
+        )?;
+        Ok(())
+    }
+
     fn contracts_into_module_entries<RefFn>(
         &self,
         modules: Vec<(&Contract<Chain>, VersionString)>,
@@ -195,98 +221,32 @@ where
     }
 }
 
-#[cfg(feature = "daemon")]
-impl VersionControl<Daemon> {
-    // pub fn update_code_ids(&self, new_version: Version) -> anyhow::Result<()> {
-    //     let code_ids = self.get_chain().state().get_all_code_ids()?;
-    //     for (contract_id, code_id) in code_ids {
-    //         if NATIVE_CONTRACTS.contains(&contract_id.as_str()) {
-    //             continue;
-    //         }
+impl VersionControl<Mock> {
+    /// Approve any pending modules.
+    pub fn approve_any_modules(&self) -> Result<(), crate::AbstractInterfaceError> {
+        let proposed_abstract_modules = self.module_list(
+            Some(ModuleFilter {
+                status: Some(ModuleStatus::Pending),
+                ..Default::default()
+            }),
+            None,
+            None,
+        )?;
 
-    //         // Get latest code id
-    //         let resp: Result<QueryCodeIdResponse, crate::AbstractBootError> = self.query(&QueryMsg::CodeId {
-    //             module: ModuleInfo {
-    //                 name: contract_id.clone(),
-    //                 version: None,
-    //             },
-    //         });
-    //         log::debug!("{:?}", resp);
-    //         if new_version.pre.is_empty() {
-    //             match resp {
-    //                 Ok(resp) => {
-    //                     let registered_code_id = resp.code_id.u64();
-    //                     // If equal, continue
-    //                     if registered_code_id == code_id {
-    //                         continue;
-    //                     } else {
-    //                         let latest_version = resp.info.version;
-    //                         version = latest_version.parse().unwrap();
-    //                         // bump patch
-    //                         version.patch += 1;
-    //                     }
-    //                 }
-    //                 Err(_) => (),
-    //             };
-    //         }
+        if proposed_abstract_modules.modules.is_empty() {
+            return Ok(());
+        }
 
-    //         self.execute(
-    //             &ExecuteMsg::AddCodeId {
-    //                 module: contract_id.to_string(),
-    //                 version: version.to_string(),
-    //                 code_id,
-    //             },
-    //             None,
-    //         )?;
-    //     }
-    //     Ok(())
-    // }
-
-    // pub fn update_adapters(&self) -> anyhow::Result<()> {
-    //     for contract_name in chain_state.keys() {
-    //         if !API_CONTRACTS.contains(&contract_name.as_str()) {
-    //             continue;
-    //         }
-
-    //         // Get local addr
-    //         let address: String = chain_state[contract_name].as_str().unwrap().into();
-
-    //         // Get latest addr
-    //         let resp: Result<QueryApiAddressResponse, crate::AbstractBootError> =
-    //             self.query(&QueryMsg::ApiAddress {
-    //                 module: ModuleInfo {
-    //                     name: contract_name.clone(),
-    //                     version: None,
-    //                 },
-    //             });
-    //         log::debug!("{:?}", resp);
-    //         let mut version = self.deployment_version.clone();
-    //         match resp {
-    //             Ok(resp) => {
-    //                 let registered_addr = resp.address.to_string();
-
-    //                 // If equal, continue
-    //                 if registered_addr == address {
-    //                     continue;
-    //                 } else {
-    //                     let latest_version = resp.info.version;
-    //                     version = latest_version.parse().unwrap();
-    //                     // bump patch
-    //                     version.patch += 1;
-    //                 }
-    //             }
-    //             Err(_) => (),
-    //         };
-
-    //         self.execute(
-    //             &ExecuteMsg::AddApi {
-    //                 module: contract_name.to_string(),
-    //                 version: version.to_string(),
-    //                 address,
-    //             },
-    //             None,
-    //         )?;
-    //     }
-    //     Ok(())
-    // }
+        let owner = self.ownership()?;
+        self.call_as(&Addr::unchecked(owner.owner.unwrap()))
+            .approve_or_reject_modules(
+                proposed_abstract_modules
+                    .modules
+                    .iter()
+                    .map(|m| m.module.info.clone())
+                    .collect(),
+                vec![],
+            )?;
+        Ok(())
+    }
 }
