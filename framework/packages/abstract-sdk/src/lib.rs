@@ -26,6 +26,8 @@ pub use crate::apis::{
     verify::*, version_registry::*,
 };
 
+pub use crate::features::AbstractNameServiceClient;
+
 pub use account_action::AccountAction;
 
 #[cfg(feature = "stargate")]

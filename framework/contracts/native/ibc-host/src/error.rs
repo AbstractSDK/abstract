@@ -1,7 +1,10 @@
-use abstract_core::AbstractError;
+use abstract_core::{
+    objects::{ans_host::AnsHostError, version_control::VersionControlError},
+    AbstractError,
+};
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
-use cw_controllers::AdminError;
+use cw_ownable::OwnershipError;
 use cw_utils::ParseReplyError;
 use thiserror::Error;
 
@@ -20,10 +23,16 @@ pub enum HostError {
     NoCustomQueries,
 
     #[error("{0}")]
-    AdminError(#[from] AdminError),
+    OwnershipError(#[from] OwnershipError),
 
     #[error("{0}")]
     ParseReply(#[from] ParseReplyError),
+
+    #[error("{0}")]
+    VersionControlError(#[from] VersionControlError),
+
+    #[error("{0}")]
+    AnsHostError(#[from] AnsHostError),
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),
@@ -33,9 +42,6 @@ pub enum HostError {
 
     #[error("Chain or proxy address already registered.")]
     ProxyAddressExists {},
-
-    #[error("Unauthorized action")]
-    Unauthorized {},
 }
 
 impl From<semver::Error> for HostError {

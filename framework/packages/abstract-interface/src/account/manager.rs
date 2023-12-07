@@ -1,12 +1,15 @@
 pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_core::{
-    adapter,
+    adapter::{self, AdapterBaseMsg},
     ibc::CallbackInfo,
     ibc_host::{HelperAction, HostAction},
     manager::*,
     module_factory::SimulateInstallModulesResponse,
-    objects::module::{ModuleInfo, ModuleVersion},
-    PROXY,
+    objects::{
+        module::{ModuleInfo, ModuleVersion},
+        AccountId,
+    },
+    MANAGER, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Binary, Empty};
 use cw_orch::environment::TxHandler;
@@ -16,6 +19,13 @@ use serde::Serialize;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
+
+impl<Chain: CwEnv> Manager<Chain> {
+    pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
+        let manager_id = format!("{MANAGER}-{account_id}");
+        Self::new(manager_id, chain)
+    }
+}
 
 impl<Chain: CwEnv> Uploadable for Manager<Chain> {
     fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
@@ -145,9 +155,10 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<(), crate::AbstractInterfaceError> {
         self.execute_on_module(
             module_id,
-            adapter::ExecuteMsg::<Empty, Empty>::Base(
-                adapter::BaseExecuteMsg::UpdateAuthorizedAddresses { to_add, to_remove },
-            ),
+            adapter::ExecuteMsg::<Empty, Empty>::Base(adapter::BaseExecuteMsg {
+                msg: AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove },
+                proxy_address: None,
+            }),
         )?;
 
         Ok(())

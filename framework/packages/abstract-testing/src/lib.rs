@@ -17,9 +17,6 @@ pub mod addresses {
     use abstract_core::version_control::AccountBase;
     use cosmwasm_std::Addr;
 
-    pub const TEST_CREATOR: &str = "creator";
-    pub const TEST_ADMIN: &str = "admin";
-    pub use abstract_core::objects::account::TEST_ACCOUNT_ID;
     /// use the package version as test version, breaks tests otherwise.
     pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
     pub const TEST_PROXY: &str = "proxy_address";
@@ -31,7 +28,6 @@ pub mod addresses {
     pub const TEST_MODULE_ADDRESS: &str = "test_module_address";
     pub const TEST_MODULE_ID: &str = "tester:test-module-id";
     pub const TEST_MODULE_NAME: &str = "test-module-id";
-    pub const TEST_OWNER: &str = "owner";
     pub const TEST_NAMESPACE: &str = "tester";
 
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
@@ -70,6 +66,7 @@ pub mod prelude {
 
     pub use super::MockAnsHost;
     pub use super::MockDeps;
+    pub use abstract_core::objects::account::TEST_ACCOUNT_ID;
 
     pub use cosmwasm_std::{
         from_json,

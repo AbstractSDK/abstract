@@ -21,7 +21,6 @@ use ::{
     abstract_dex_standard::DexError,
     abstract_dex_standard::{coins_in_assets, cw_approve_msgs},
     abstract_dex_standard::{DexCommand, Fee, FeeOnInput, Return, Spread},
-    abstract_sdk::cw_helpers::wasm_smart_query,
     cosmwasm_std::{
         to_json_binary, wasm_execute, Coin, CosmosMsg, Decimal, Deps, Fraction, Uint128, WasmMsg,
     },
@@ -43,10 +42,9 @@ impl DexCommand for JunoSwap {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
 
-        let pair_config: InfoResponse = deps.querier.query(&wasm_smart_query(
-            pair_address.to_string(),
-            &QueryMsg::Info {},
-        )?)?;
+        let pair_config: InfoResponse = deps
+            .querier
+            .query_wasm_smart(pair_address.to_string(), &QueryMsg::Info {})?;
 
         let (offer_token, price) =
             if denom_and_asset_match(&pair_config.token1_denom, &offer_asset.info)? {
@@ -119,10 +117,9 @@ impl DexCommand for JunoSwap {
         if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
         }
-        let pair_config: InfoResponse = deps.querier.query(&wasm_smart_query(
-            pair_address.to_string(),
-            &QueryMsg::Info {},
-        )?)?;
+        let pair_config: InfoResponse = deps
+            .querier
+            .query_wasm_smart(pair_address.to_string(), &QueryMsg::Info {})?;
         let (token1, token2) =
             if denom_and_asset_match(&pair_config.token1_denom, &offer_assets[0].info)? {
                 (&offer_assets[0], &offer_assets[1])
@@ -172,10 +169,9 @@ impl DexCommand for JunoSwap {
             return Err(DexError::TooManyAssets(2));
         }
         // Get pair info
-        let pair_config: InfoResponse = deps.querier.query(&wasm_smart_query(
-            pair_address.to_string(),
-            &QueryMsg::Info {},
-        )?)?;
+        let pair_config: InfoResponse = deps
+            .querier
+            .query_wasm_smart(pair_address.to_string(), &QueryMsg::Info {})?;
         // because of the token1 / token2 thing we need to figure out what the offer asset is and calculate the required amount of the other asset.
         let (token_1_amount, token_2_amount, other_asset) =
             if denom_and_asset_match(&pair_config.token1_denom, &offer_asset.info)? {
@@ -257,10 +253,9 @@ impl DexCommand for JunoSwap {
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
         let pair_address = pool_id.expect_contract()?;
 
-        let pair_config: InfoResponse = deps.querier.query(&wasm_smart_query(
-            pair_address.to_string(),
-            &QueryMsg::Info {},
-        )?)?;
+        let pair_config: InfoResponse = deps
+            .querier
+            .query_wasm_smart(pair_address.to_string(), &QueryMsg::Info {})?;
 
         let (return_amount, spread_amount) =
             if denom_and_asset_match(&pair_config.token1_denom, &offer_asset.info)? {

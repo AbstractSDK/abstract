@@ -93,8 +93,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
     let namespace = "namespace";
     let account: Account<Mock> = client.account_builder().namespace(namespace).build()?;
 
-    let account_from_namespace: Account<Mock> =
-        client.get_account_from_namespace(namespace.to_owned())?;
+    let account_from_namespace: Account<Mock> = client.get_account_from_namespace(namespace)?;
 
     assert_eq!(
         account.get_account_info()?,
@@ -182,7 +181,7 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let publisher: Publisher<Mock> = client.publisher_builder().namespace(namespace).build()?;
 
     let publisher_from_namespace: Publisher<Mock> =
-        client.get_publisher_from_namespace(namespace.to_owned())?;
+        client.get_publisher_from_namespace(namespace)?;
 
     assert_eq!(
         publisher.account().get_account_info()?,
@@ -204,7 +203,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     publisher.publish_app::<MockAppInterface<Mock>>()?;
 
     let my_app: Application<Mock, MockAppInterface<Mock>> =
-        publisher.install_app::<MockAppInterface<Mock>, MockInitMsg>(&MockInitMsg, &[])?;
+        publisher.install_app::<MockAppInterface<Mock>>(&MockInitMsg, &[])?;
 
     my_app.call_as(&publisher.admin()?).do_something()?;
 
@@ -226,6 +225,41 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
         },
         sub_account_details
     );
+
+    Ok(())
+}
+
+#[test]
+fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(ADMIN).build()?;
+
+    let namespace = "namespace";
+
+    // First call succeeds.
+    client.account_builder().namespace(namespace).build()?;
+
+    // Second call fails
+    let result = client.account_builder().namespace(namespace).build();
+    assert!(result.is_err());
+
+    Ok(())
+}
+
+#[test]
+fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(ADMIN).build()?;
+
+    let namespace = "namespace";
+
+    let account1 = client.account_builder().namespace(namespace).build()?;
+
+    let account2 = client
+        .account_builder()
+        .namespace(namespace)
+        .fetch_if_namespace_claimed(true)
+        .build()?;
+
+    assert_eq!(account1.get_account_info()?, account2.get_account_info()?);
 
     Ok(())
 }

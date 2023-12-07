@@ -1,9 +1,9 @@
 use crate::contract::execute;
 use crate::error::AnsHostError;
-use crate::tests::common::TEST_CREATOR;
 use crate::tests::instantiate::mock_instantiate;
 use crate::tests::mock_querier::mock_dependencies;
 use abstract_core::ans_host::*;
+use abstract_testing::OWNER;
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cw_asset::AssetInfo;
 use std::convert::TryInto;
@@ -67,7 +67,7 @@ fn authorized_ans_host_update() {
         to_remove: vec![],
     };
 
-    let info = mock_info(TEST_CREATOR, &[]);
+    let info = mock_info(OWNER, &[]);
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg);
 
     match res {

@@ -220,8 +220,6 @@ pub fn list_pool_entries(
                 let pairing = &e.as_ref().unwrap().0;
                 dex_filter.as_ref().map_or(true, |f| f == pairing.dex())
             })
-            // TODO: is this necessary?
-            .map(|e| e.map(|(k, v)| (k, v)))
             .collect();
         res?
     };
@@ -283,7 +281,6 @@ pub fn list_pool_metadata_entries(
             pool_type_filter.as_ref().map_or(true, |f| f == pool_type)
         })
         .take(limit)
-        .map(|e| e.map(|(k, v)| (k, v)))
         .collect();
 
     to_json_binary(&PoolMetadataListResponse { metadatas: res? })
@@ -305,6 +302,7 @@ mod test {
     use abstract_core::ans_host::*;
     use abstract_core::objects::chain_name::ChainName;
     use abstract_core::objects::PoolType;
+    use abstract_testing::OWNER;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
     use cosmwasm_std::{from_json, Addr, DepsMut};
 
@@ -320,10 +318,8 @@ mod test {
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 
-    const TEST_CREATOR: &str = "creator";
-
     fn mock_init(mut deps: DepsMut) -> AnsHostResult {
-        let info = mock_info(TEST_CREATOR, &[]);
+        let info = mock_info(OWNER, &[]);
         let admin = info.sender.to_string();
 
         instantiate(deps.branch(), mock_env(), info, InstantiateMsg { admin })

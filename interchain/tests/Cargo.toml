@@ -22,6 +22,8 @@ cw20-base = { workspace = true }
 cw-orch = { workspace = true }
 cw-orch-proto = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
+abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-testing = { workspace = true }
 
 abstract-interface = { workspace = true }
 tokio = { workspace = true }

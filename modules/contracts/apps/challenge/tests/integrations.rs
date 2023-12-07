@@ -6,6 +6,7 @@ use abstract_core::objects::{
     AssetEntry,
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
+use abstract_testing::OWNER;
 use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     error::AppError,
@@ -22,7 +23,6 @@ use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 use lazy_static::lazy_static;
 
-const ADMIN: &str = "admin";
 const DENOM: &str = "TOKEN";
 const FIRST_CHALLENGE_ID: u64 = 1;
 
@@ -76,18 +76,18 @@ lazy_static! {
 
 #[allow(unused)]
 struct DeployedApps {
-    challenge_app: ChallengeApp<Mock>,
+    challenge_app: Challenge<Mock>,
 }
 
 #[allow(clippy::type_complexity)]
 fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, DeployedApps)> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
     mock.set_balance(&sender, vec![coin(INITIAL_BALANCE, DENOM)])?;
 
-    let mut challenge_app = ChallengeApp::new(CHALLENGE_APP_ID, mock.clone());
+    let mut challenge_app = Challenge::new(CHALLENGE_APP_ID, mock.clone());
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
 
@@ -118,7 +118,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
     let account = abstr_deployment.account_factory.create_new_account(
         account_details,
         GovernanceDetails::Monarchy {
-            monarch: ADMIN.to_string(),
+            monarch: OWNER.to_string(),
         },
         None,
     )?;
@@ -280,7 +280,7 @@ fn test_add_single_friend_for_challenge() -> anyhow::Result<()> {
         abstr
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_string(),
+                monarch: OWNER.to_string(),
             })?;
     let new_friend: Friend<String> = Friend::AbstractAccount(new_account.id()?);
 

@@ -9,6 +9,7 @@ use abstract_core::{
     },
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_testing::OWNER;
 
 use common::contracts;
 use croncat_app::{
@@ -16,7 +17,7 @@ use croncat_app::{
     error::AppError,
     msg::{ActiveTasksByCreatorResponse, ActiveTasksResponse, AppInstantiateMsg, ConfigResponse},
     state::Config,
-    AppExecuteMsgFns, AppQueryMsgFns, CroncatApp, CRON_CAT_FACTORY,
+    AppExecuteMsgFns, AppQueryMsgFns, Croncat, CRON_CAT_FACTORY,
 };
 
 use croncat_integration_utils::{AGENTS_NAME, MANAGER_NAME, TASKS_NAME};
@@ -43,7 +44,6 @@ use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 use crate::common::contracts::TasksResponseCaster;
 use cosmwasm_std::{coins, to_json_binary, Addr, BankMsg, Uint128, WasmMsg};
 // consts for testing
-const ADMIN: &str = "admin";
 const AGENT: &str = "agent";
 const VERSION: &str = "1.0";
 const DENOM: &str = "abstr";
@@ -53,7 +53,7 @@ fn setup_croncat_contracts(
     mut app: RefMut<App>,
     proxy_addr: String,
 ) -> anyhow::Result<(Addr, Addr)> {
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     let pause_admin = Addr::unchecked(PAUSE_ADMIN);
 
     // Instantiate cw20
@@ -219,7 +219,7 @@ struct TestingSetup {
     account: AbstractAccount<Mock>,
     #[allow(unused)]
     abstr_deployment: Abstract<Mock>,
-    module_contract: CroncatApp<Mock>,
+    module_contract: Croncat<Mock>,
     cw20_addr: Addr,
     mock: Mock,
 }
@@ -227,13 +227,13 @@ struct TestingSetup {
 /// Set up the test environment with the contract installed
 fn setup() -> anyhow::Result<TestingSetup> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
     mock.set_balance(&Addr::unchecked(AGENT), coins(500_000, DENOM))?;
     // Construct the counter interface
-    let mut contract = CroncatApp::new(CRONCAT_ID, mock.clone());
+    let mut contract = Croncat::new(CRONCAT_ID, mock.clone());
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
     // Create a new account to install the app onto
@@ -241,7 +241,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_string(),
+                monarch: OWNER.to_string(),
             })?;
     // claim the namespace so app can be deployed
     abstr_deployment.version_control.claim_namespace(

@@ -1,10 +1,16 @@
 /// ANCHOR: ans
-use crate::{ans_resolve::Resolve, cw_helpers::wasm_smart_query, AbstractSdkResult};
+use crate::{ans_resolve::Resolve, cw_helpers::ApiQuery, AbstractSdkResult};
 use abstract_core::{
-    ans_host::{AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, QueryMsg},
+    ans_host::{
+        AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, QueryMsg,
+        RegisteredDexesResponse,
+    },
     objects::{ans_host::AnsHost, DexAssetPairing},
 };
 use cosmwasm_std::Deps;
+
+use super::ModuleIdentification;
+use crate::apis::{AbstractApi, ApiIdentification};
 
 /// Accessor to the Abstract Name Service.
 pub trait AbstractNameService: Sized {
@@ -26,13 +32,37 @@ pub trait AbstractNameService: Sized {
 pub struct AbstractNameServiceClient<'a, T: AbstractNameService> {
     _base: &'a T,
     deps: Deps<'a>,
+    /// Abstract Name Service Contract
     pub host: AnsHost,
 }
 
-impl<'a, T: AbstractNameService> AbstractNameServiceClient<'a, T> {
-    pub fn query<R: Resolve>(&self, entry: &R) -> AbstractSdkResult<R::Output> {
-        entry.resolve(&self.deps.querier, &self.host)
+impl<'a, T: ModuleIdentification + AbstractNameService> AbstractApi<T>
+    for AbstractNameServiceClient<'a, T>
+{
+    fn base(&self) -> &T {
+        self._base
     }
+    fn deps(&self) -> Deps {
+        self.deps
+    }
+}
+
+impl<'a, T: ModuleIdentification + AbstractNameService> ApiIdentification
+    for AbstractNameServiceClient<'a, T>
+{
+    fn api_id() -> String {
+        "AbstractNameServiceClient".to_owned()
+    }
+}
+
+impl<'a, T: ModuleIdentification + AbstractNameService> AbstractNameServiceClient<'a, T> {
+    /// Query ans entry
+    pub fn query<R: Resolve>(&self, entry: &R) -> AbstractSdkResult<R::Output> {
+        entry
+            .resolve(&self.deps.querier, &self.host)
+            .map_err(|error| self.wrap_query_error(error))
+    }
+    /// Get AnsHost
     pub fn host(&self) -> &AnsHost {
         &self.host
     }
@@ -43,7 +73,7 @@ impl<'a, T: AbstractNameService> AbstractNameServiceClient<'a, T> {
         page_limit: Option<u8>,
         start_after: Option<DexAssetPairing>,
     ) -> AbstractSdkResult<Vec<AssetPairingMapEntry>> {
-        let query = wasm_smart_query(
+        let resp: PoolAddressListResponse = self.smart_query(
             &self.host.address,
             &QueryMsg::PoolList {
                 filter,
@@ -51,7 +81,12 @@ impl<'a, T: AbstractNameService> AbstractNameServiceClient<'a, T> {
                 limit: page_limit,
             },
         )?;
-        let resp: PoolAddressListResponse = self.deps.querier.query(&query)?;
         Ok(resp.pools)
+    }
+    /// Raw-query the available dexes on the chain.
+    pub fn registered_dexes(&self) -> AbstractSdkResult<RegisteredDexesResponse> {
+        self.host
+            .query_registered_dexes(&self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 }

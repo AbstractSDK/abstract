@@ -95,9 +95,9 @@ pub fn handle_module_list_query(
     } = filter.unwrap_or_default();
 
     let mod_lib = match status {
-        Some(ModuleStatus::REGISTERED) => &REGISTERED_MODULES,
-        Some(ModuleStatus::PENDING) => &PENDING_MODULES,
-        Some(ModuleStatus::YANKED) => &YANKED_MODULES,
+        Some(ModuleStatus::Registered) => &REGISTERED_MODULES,
+        Some(ModuleStatus::Pending) => &PENDING_MODULES,
+        Some(ModuleStatus::Yanked) => &YANKED_MODULES,
         None => &REGISTERED_MODULES,
     };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
@@ -258,10 +258,7 @@ fn filter_modules_by_namespace(
 #[cfg(test)]
 mod test {
     use abstract_core::objects::account::AccountTrace;
-    use abstract_testing::prelude::{
-        test_account_base, TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_MANAGER,
-        TEST_MODULE_FACTORY, TEST_VERSION_CONTROL,
-    };
+    use abstract_testing::prelude::*;
     use abstract_testing::{MockQuerierBuilder, MockQuerierOwnership};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{to_json_binary, Addr, Binary, DepsMut, StdError};
@@ -275,8 +272,6 @@ mod test {
     use super::*;
 
     type VersionControlTestResult = Result<(), VCError>;
-
-    const TEST_ADMIN: &str = "testadmin";
 
     const TEST_OTHER: &str = "testother";
     const TEST_OTHER_ACCOUNT_ID: AccountId = AccountId::const_new(2, AccountTrace::Local);
@@ -313,12 +308,12 @@ mod test {
                     _ => panic!("unexpected message"),
                 }
             })
-            .with_owner(TEST_MANAGER, Some(TEST_ADMIN))
+            .with_owner(TEST_MANAGER, Some(OWNER))
             .with_owner(TEST_OTHER_MANAGER_ADDR, Some(TEST_OTHER))
     }
 
     fn mock_init(mut deps: DepsMut) -> VersionControlTestResult {
-        let info = mock_info(TEST_ADMIN, &[]);
+        let info = mock_info(OWNER, &[]);
         let admin = info.sender.to_string();
 
         contract::instantiate(
@@ -372,7 +367,7 @@ mod test {
     }
 
     fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> VCResult {
-        contract::execute(deps, mock_env(), mock_info(TEST_ADMIN, &[]), msg)
+        contract::execute(deps, mock_env(), mock_info(OWNER, &[]), msg)
     }
 
     fn query_helper(deps: Deps, msg: QueryMsg) -> VCResult<Binary> {
@@ -538,11 +533,7 @@ mod test {
     fn init_with_mods(mut deps: DepsMut) {
         mock_init_with_account(deps.branch()).unwrap();
 
-        add_namespaces(
-            deps.branch(),
-            vec![(TEST_ACCOUNT_ID, "cw-plus")],
-            TEST_ADMIN,
-        );
+        add_namespaces(deps.branch(), vec![(TEST_ACCOUNT_ID, "cw-plus")], OWNER);
         add_namespaces(
             deps.branch(),
             vec![(TEST_OTHER_ACCOUNT_ID, "4t2")],
@@ -554,7 +545,7 @@ mod test {
             ModuleInfo::from_id("cw-plus:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("cw-plus:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        propose_modules(deps.branch(), cw_mods, TEST_ADMIN);
+        propose_modules(deps.branch(), cw_mods, OWNER);
 
         let fortytwo_mods = vec![
             ModuleInfo::from_id("4t2:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
@@ -678,7 +669,7 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            propose_modules(deps.as_mut(), cw_mods, TEST_ADMIN);
+            propose_modules(deps.as_mut(), cw_mods, OWNER);
             yank_module(
                 deps.as_mut(),
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -727,7 +718,7 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            propose_modules(deps.as_mut(), cw_mods, TEST_ADMIN);
+            propose_modules(deps.as_mut(), cw_mods, OWNER);
             yank_module(
                 deps.as_mut(),
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -742,7 +733,7 @@ mod test {
             let filtered_namespace = "cw-plus".to_string();
 
             let filter = ModuleFilter {
-                status: Some(ModuleStatus::YANKED),
+                status: Some(ModuleStatus::Yanked),
                 namespace: Some(filtered_namespace.clone()),
                 ..Default::default()
             };
@@ -772,17 +763,13 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut()).unwrap();
-            add_namespaces(
-                deps.as_mut(),
-                vec![(TEST_ACCOUNT_ID, "cw-plus")],
-                TEST_ADMIN,
-            );
+            add_namespaces(deps.as_mut(), vec![(TEST_ACCOUNT_ID, "cw-plus")], OWNER);
             let cw_mods = vec![ModuleInfo::from_id(
                 "cw-plus:module1",
                 ModuleVersion::Version("0.1.2".into()),
             )
             .unwrap()];
-            propose_modules(deps.as_mut(), cw_mods, TEST_ADMIN);
+            propose_modules(deps.as_mut(), cw_mods, OWNER);
 
             let filtered_namespace = "cw-plus".to_string();
 
@@ -850,7 +837,7 @@ mod test {
                     ModuleVersion::Version("0.1.3".into()),
                 )
                 .unwrap()],
-                TEST_ADMIN,
+                OWNER,
             );
 
             let filter = ModuleFilter {
@@ -1024,7 +1011,6 @@ mod test {
 
     mod handle_account_address_query {
         use super::*;
-        use abstract_testing::prelude::test_account_base;
 
         #[test]
         fn not_registered_should_be_unknown() -> VersionControlTestResult {

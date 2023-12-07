@@ -5,7 +5,7 @@ use cw_orch::{
 };
 
 use abstract_interface::{AppDeployer, DeployStrategy};
-use challenge_app::{contract::CHALLENGE_APP_ID, ChallengeApp};
+use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -21,7 +21,7 @@ fn main() -> anyhow::Result<()> {
         .chain(chain)
         .handle(rt.handle())
         .build()?;
-    let app = ChallengeApp::new(CHALLENGE_APP_ID, chain);
+    let app = Challenge::new(CHALLENGE_APP_ID, chain);
 
     app.deploy(version, DeployStrategy::Try)?;
     Ok(())

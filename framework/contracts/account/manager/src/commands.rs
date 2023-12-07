@@ -3,13 +3,14 @@ use crate::{validation, versioning};
 use abstract_core::manager::state::{PENDING_GOVERNANCE, SUB_ACCOUNTS};
 
 use abstract_core::adapter::{
-    AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
-    QueryMsg as AdapterQuery,
+    AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
+    ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
 };
 use abstract_core::manager::{InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction};
 use abstract_core::module_factory::FactoryModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{self, assert_module_data_validity};
+use abstract_core::objects::nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION};
 use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::objects::version_control::VersionControlContract;
@@ -18,25 +19,21 @@ use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
 
-use abstract_sdk::{
-    core::{
-        manager::state::DEPENDENTS,
-        manager::state::{
-            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS,
-        },
-        manager::{CallbackMsg, ExecuteMsg},
-        module_factory::ExecuteMsg as ModuleFactoryMsg,
-        objects::{
-            dependency::Dependency,
-            module::{Module, ModuleInfo, ModuleVersion},
-            module_reference::ModuleReference,
-            validation::{validate_description, validate_link, validate_name},
-        },
-        proxy::ExecuteMsg as ProxyMsg,
-        IBC_CLIENT, MANAGER, PROXY,
+use abstract_sdk::core::{
+    manager::state::DEPENDENTS,
+    manager::state::{
+        AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS,
     },
-    cw_helpers::wasm_smart_query,
-    ModuleRegistryInterface,
+    manager::{CallbackMsg, ExecuteMsg},
+    module_factory::ExecuteMsg as ModuleFactoryMsg,
+    objects::{
+        dependency::Dependency,
+        module::{Module, ModuleInfo, ModuleVersion},
+        module_reference::ModuleReference,
+        validation::{validate_description, validate_link, validate_name},
+    },
+    proxy::ExecuteMsg as ProxyMsg,
+    IBC_CLIENT, MANAGER, PROXY,
 };
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
@@ -49,8 +46,6 @@ use cw_storage_plus::Item;
 use semver::Version;
 
 pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
-
-pub const MAX_ADMIN_RECURSION: usize = 2;
 
 #[abstract_response(MANAGER)]
 pub struct ManagerResponse;
@@ -140,9 +135,7 @@ pub(crate) fn install_modules_internal(
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
-    let modules = version_control
-        .module_registry(deps.as_ref())
-        .query_modules_configs(infos)?;
+    let modules = version_control.query_modules_configs(infos, &deps.querier)?;
 
     let mut install_context = Vec::with_capacity(modules.len());
     let mut to_add = Vec::with_capacity(modules.len());
@@ -407,7 +400,9 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     )
 }
 
-pub fn set_owner(
+/// Proposes a new owner for the account.
+/// Use [ExecuteMsg::UpdateOwnership] to claim the ownership.
+pub fn propose_owner(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
@@ -450,19 +445,18 @@ pub fn set_owner(
 }
 
 /// Update governance of this account after claim
-pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<CosmosMsg>> {
+pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
-    let mut acc_info = INFO.load(storage)?;
+    let mut acc_info = INFO.load(deps.storage)?;
     let mut account_id = None;
     // Get pending governance and clear it
     let pending_governance = PENDING_GOVERNANCE
-        .may_load(storage)?
+        .may_load(deps.storage)?
         .ok_or(OwnershipError::TransferNotFound)?;
-    PENDING_GOVERNANCE.remove(storage);
 
     // Clear state for previous manager if it was sub-account
     if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
-        let id = ACCOUNT_ID.load(storage)?;
+        let id = ACCOUNT_ID.load(deps.storage)?;
         // For optimizing the gas we save it, in case new owner is sub-account as well
         account_id = Some(id.clone());
         let unregister_message = wasm_execute(
@@ -476,11 +470,11 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
     }
 
     // Update state for new manager if owner will be the sub-account
-    if let GovernanceDetails::SubAccount { manager, .. } = &pending_governance {
+    if let GovernanceDetails::SubAccount { manager, proxy } = &pending_governance {
         let id = if let Some(id) = account_id {
             id
         } else {
-            ACCOUNT_ID.load(storage)?
+            ACCOUNT_ID.load(deps.storage)?
         };
         let register_message = wasm_execute(
             manager,
@@ -490,10 +484,16 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
             vec![],
         )?;
         msgs.push(register_message.into());
+
+        // If called by top-level owner, update the sender to let cw-ownable think it was called by the owning-account's proxy.
+        let top_level_owner = query_top_level_owner(&deps.querier, manager.clone())?;
+        if top_level_owner == *sender {
+            *sender = proxy.clone();
+        }
     }
     // Update governance of this account
     acc_info.governance_details = pending_governance;
-    INFO.save(storage, &acc_info)?;
+    INFO.save(deps.storage, &acc_info)?;
     Ok(msgs)
 }
 
@@ -695,12 +695,12 @@ pub fn replace_adapter(
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
     let AuthorizedAddressesResponse {
         addresses: authorized_addresses,
-    } = deps.querier.query(&wasm_smart_query(
+    } = deps.querier.query_wasm_smart(
         old_adapter_addr.to_string(),
         &<AdapterQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
             proxy_address: proxy_addr.to_string(),
         }),
-    )?)?;
+    )?;
     let authorized_to_migrate: Vec<String> = authorized_addresses
         .into_iter()
         .map(|addr| addr.into_string())
@@ -708,22 +708,31 @@ pub fn replace_adapter(
     // Remove authorized addresses from old
     msgs.push(configure_adapter(
         &old_adapter_addr,
-        BaseExecuteMsg::UpdateAuthorizedAddresses {
-            to_add: vec![],
-            to_remove: authorized_to_migrate.clone(),
+        BaseExecuteMsg {
+            msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: vec![],
+                to_remove: authorized_to_migrate.clone(),
+            },
+            proxy_address: Some(proxy_addr.to_string()),
         },
     )?);
     // Remove adapter as authorized address on dependencies
     msgs.push(configure_adapter(
         &old_adapter_addr,
-        BaseExecuteMsg::Remove {},
+        BaseExecuteMsg {
+            msg: AdapterBaseMsg::Remove {},
+            proxy_address: Some(proxy_addr.to_string()),
+        },
     )?);
     // Add authorized addresses to new
     msgs.push(configure_adapter(
         &new_adapter_addr,
-        BaseExecuteMsg::UpdateAuthorizedAddresses {
-            to_add: authorized_to_migrate,
-            to_remove: vec![],
+        BaseExecuteMsg {
+            msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: authorized_to_migrate,
+                to_remove: vec![],
+            },
+            proxy_address: Some(proxy_addr.to_string()),
         },
     )?);
     // Remove adapter permissions from proxy
@@ -838,7 +847,6 @@ fn query_module(
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
     let version_control = VersionControlContract::new(config.version_control_address);
-    let version_registry = version_control.module_registry(deps);
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
@@ -855,12 +863,13 @@ fn query_module(
             }
             Module {
                 info: module_info.clone(),
-                reference: version_registry.query_module_reference_raw(&module_info)?,
+                reference: version_control
+                    .query_module_reference_raw(&module_info, &deps.querier)?,
             }
         }
         ModuleVersion::Latest => {
             // Query latest version of contract
-            version_registry.query_module(module_info.clone())?
+            version_control.query_module(module_info.clone(), &deps.querier)?
         }
     };
 
@@ -869,9 +878,7 @@ fn query_module(
             info: module.info,
             reference: module.reference,
         },
-        config: version_control
-            .module_registry(deps)
-            .query_config(module_info)?,
+        config: version_control.query_config(module_info, &deps.querier)?,
     })
 }
 
@@ -1043,7 +1050,7 @@ mod tests {
     const TEST_PROXY_ADDR: &str = "proxy";
 
     fn mock_installed_proxy(deps: DepsMut) -> StdResult<()> {
-        let _info = mock_info(TEST_OWNER, &[]);
+        let _info = mock_info(OWNER, &[]);
         ACCOUNT_MODULES.save(deps.storage, PROXY, &Addr::unchecked(TEST_PROXY_ADDR))
     }
 
@@ -1056,7 +1063,7 @@ mod tests {
     }
 
     fn execute_as_owner(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-        execute_as(deps, TEST_OWNER, msg)
+        execute_as(deps, OWNER, msg)
     }
 
     fn init_with_proxy(deps: &mut MockDeps) {
@@ -1093,7 +1100,7 @@ mod tests {
 
         #[test]
         fn only_owner() -> ManagerTestResult {
-            let msg = ExecuteMsg::SetOwner {
+            let msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: "test_owner".to_string(),
                 },
@@ -1107,7 +1114,7 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SetOwner {
+            let msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: "INVALID".to_string(),
                 },
@@ -1131,7 +1138,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let new_owner = "new_owner";
-            let set_owner_msg = ExecuteMsg::SetOwner {
+            let set_owner_msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: new_owner.to_string(),
                 },
@@ -1157,7 +1164,7 @@ mod tests {
 
             let new_gov = "new_gov".to_string();
 
-            let msg = ExecuteMsg::SetOwner {
+            let msg = ExecuteMsg::ProposeOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: new_gov.clone(),
                 },
@@ -1853,7 +1860,6 @@ mod tests {
 
     mod add_module_upgrade_to_context {
         use super::*;
-        use abstract_testing::prelude::TEST_MODULE_ID;
         use cosmwasm_std::testing::mock_dependencies;
 
         #[test]
@@ -1936,7 +1942,7 @@ mod tests {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(ManagerError::MustUseSetOwner {});
+                .is_equal_to(ManagerError::MustUseProposeOwner {});
 
             Ok(())
         }

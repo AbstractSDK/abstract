@@ -17,13 +17,13 @@ use abstract_core::{
 };
 use abstract_sdk::{
     core::{
-        ibc_client::state::{ACCOUNTS, ADMIN, CONFIG},
+        ibc_client::state::{ACCOUNTS, CONFIG},
         ibc_host::{HostAction, InternalAction},
         objects::{ans_host::AnsHost, version_control::VersionControlContract, ChannelEntry},
         ICS20,
     },
     features::AccountIdentification,
-    AccountVerification, Resolve,
+    Resolve,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo,
@@ -41,7 +41,7 @@ pub fn execute_update_config(
     new_version_control: Option<String>,
 ) -> IbcClientResult {
     // auth check
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut cfg = CONFIG.load(deps.storage)?;
 
     if let Some(ans_host) = new_ans_host {
@@ -73,7 +73,7 @@ pub fn execute_register_infrastructure(
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
     // auth check
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let note = deps.api.addr_validate(&note)?;
     // Can't allow if it already exists
@@ -119,7 +119,7 @@ pub fn execute_remove_host(
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
     // auth check
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     if let Some(ibc_infra) = IBC_INFRA.may_load(deps.storage, &host_chain)? {
         REVERSE_POLYTONE_NOTE.remove(deps.storage, &ibc_infra.polytone_note);
@@ -208,8 +208,7 @@ pub fn execute_send_packet(
     // Verify that the sender is a proxy contract
     let account_base = cfg
         .version_control
-        .account_registry(deps.as_ref())
-        .assert_proxy(&info.sender)?;
+        .assert_proxy(&info.sender, &deps.querier)?;
 
     // get account_id
     let account_id = account_base.account_id(deps.as_ref())?;
@@ -261,6 +260,7 @@ pub fn execute_send_query(
 pub fn execute_register_account(
     deps: DepsMut,
     info: MessageInfo,
+    env: Env,
     host_chain: String,
     base_asset: Option<AssetEntry>,
     namespace: Option<String>,
@@ -272,8 +272,7 @@ pub fn execute_register_account(
     // Verify that the sender is a proxy contract
     let account_base = cfg
         .version_control
-        .account_registry(deps.as_ref())
-        .assert_proxy(&info.sender)?;
+        .assert_proxy(&info.sender, &deps.querier)?;
 
     // get account_id
     let account_id = account_base.account_id(deps.as_ref())?;
@@ -286,7 +285,7 @@ pub fn execute_register_account(
 
     let note_message = send_remote_host_action(
         deps.as_ref(),
-        account_id,
+        account_id.clone(),
         account_base,
         host_chain,
         HostAction::Internal(InternalAction::Register {
@@ -297,7 +296,10 @@ pub fn execute_register_account(
             namespace,
             install_modules,
         }),
-        None,
+        Some(CallbackRequest {
+            receiver: env.contract.address.to_string(),
+            msg: to_json_binary(&IbcClientCallback::CreateAccount { account_id })?,
+        }),
     )?;
 
     Ok(IbcClientResponse::action("handle_register").add_message(note_message))
@@ -317,8 +319,7 @@ pub fn execute_send_funds(
 
     let account_base = cfg
         .version_control
-        .account_registry(deps.as_ref())
-        .assert_proxy(&info.sender)?;
+        .assert_proxy(&info.sender, &deps.querier)?;
 
     // get account_id of Account
     let account_id = account_base.account_id(deps.as_ref())?;
