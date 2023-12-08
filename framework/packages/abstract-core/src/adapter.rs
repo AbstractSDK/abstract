@@ -171,12 +171,20 @@ mod tests {
     fn compatible_msg() {
         let msg = to_json_binary(&AdapterExecuteMsg::Base(BaseExecuteMsg {
             proxy_address: None,
-            msg: AdapterBaseMsg::Remove {},
+            msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: vec![String::from("abc")],
+                to_remove: vec![],
+            },
         }))
         .unwrap();
 
-        let previous_msg =
-            to_json_binary(&PreviousAdapterExecuteMsg::Base(AdapterBaseMsg::Remove {})).unwrap();
+        let previous_msg = to_json_binary(&PreviousAdapterExecuteMsg::Base(
+            AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: vec![String::from("abc")],
+                to_remove: vec![],
+            },
+        ))
+        .unwrap();
 
         assert_eq!(msg, previous_msg);
     }
