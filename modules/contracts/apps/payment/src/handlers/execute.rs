@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use abstract_core::objects::DexName;
+use abstract_core::objects::{AssetEntry, DexName};
 use abstract_dex_adapter::DexInterface;
 use abstract_sdk::core::ans_host;
 use abstract_sdk::core::ans_host::{AssetPairingFilter, PoolAddressListResponse};
@@ -18,7 +18,7 @@ const MAX_SPREAD_PERCENT: u64 = 20;
 
 use crate::error::AppError;
 use crate::msg::AppExecuteMsg;
-use crate::state::{DesiredAsset, CONFIG, TIPPERS, TIP_COUNT};
+use crate::state::{CONFIG, TIPPERS, TIP_COUNT};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -30,8 +30,9 @@ pub fn execute_handler(
     match msg {
         AppExecuteMsg::UpdateConfig {
             desired_asset,
+            denom_asset,
             exchanges,
-        } => update_config(deps, info, app, desired_asset, exchanges),
+        } => update_config(deps, info, app, desired_asset, denom_asset, exchanges),
         AppExecuteMsg::Tip {} => tip(deps, info, app, None),
     }
 }
@@ -60,22 +61,21 @@ pub fn tip(
 
     // swap the asset(s) to the desired asset is set
     let config = CONFIG.load(deps.storage)?;
-    // If there is no desired asset specified, just forward the payment.
-    let Some(DesiredAsset {
-        asset: desired_asset,
-        ..
-    }) = config.desired_asset
-    else {
-        // Tipper history will not contain any info for "amount tipped" as it doesn't really make
-        // sense when there isn't a desired asset. However the number of times tipped will be
-        // stored.
-        update_tipper_history(deps.storage, &info.sender, Uint128::zero())?;
-        return Ok(app_resp);
-    };
 
     // Reverse query the deposited assets
     let ans = app.name_service(deps.as_ref());
     let asset_entries = ans.query(&deposited_assets.to_vec())?;
+
+    // If there is no desired asset specified, just forward the payment.
+    let Some(desired_asset) = config.desired_asset else {
+        // Tipper history will not contain any info for "amount tipped" as it doesn't really make
+        // sense when there isn't a desired asset. However the number of times tipped will be
+        // stored.
+        for asset in asset_entries {
+            update_tipper_history(deps.storage, &info.sender, &asset.name, asset.amount)?;
+        }
+        return Ok(app_resp);
+    };
 
     let mut swap_msgs: Vec<CosmosMsg> = Vec::new();
     let mut attrs: Vec<(&str, String)> = Vec::new();
@@ -121,7 +121,7 @@ pub fn tip(
     }
 
     // Tip history
-    update_tipper_history(deps.storage, &info.sender, total_amount)?;
+    update_tipper_history(deps.storage, &info.sender, &desired_asset, total_amount)?;
 
     // forward deposit and execute swaps if there are any
     Ok(app_resp
@@ -132,14 +132,17 @@ pub fn tip(
 fn update_tipper_history(
     storage: &mut dyn Storage,
     sender: &Addr,
-    total_amount: Uint128,
+    asset: &AssetEntry,
+    amount: Uint128,
 ) -> Result<(), AppError> {
     let tip_count = TIP_COUNT.may_load(storage)?.unwrap_or_default();
     TIP_COUNT.save(storage, &(tip_count + 1))?;
 
-    let mut tipper = TIPPERS.may_load(storage, sender)?.unwrap_or_default();
-    tipper.add_tip(total_amount);
-    TIPPERS.save(storage, sender, &tipper)?;
+    let mut total_amount = TIPPERS
+        .may_load(storage, (sender, asset))?
+        .unwrap_or_default();
+    total_amount += amount;
+    TIPPERS.save(storage, (sender, asset), &total_amount)?;
 
     Ok(())
 }
@@ -149,7 +152,8 @@ fn update_config(
     deps: DepsMut,
     msg_info: MessageInfo,
     app: PaymentApp,
-    desired_asset: Option<DesiredAsset>,
+    desired_asset: Option<AssetEntry>,
+    denom_asset: Option<String>,
     exchanges: Option<Vec<DexName>>,
 ) -> AppResult {
     // Only the admin should be able to call this
@@ -157,11 +161,11 @@ fn update_config(
     let name_service = app.name_service(deps.as_ref());
 
     let mut config = CONFIG.load(deps.storage)?;
-    if let Some(asset) = desired_asset {
+    if let Some(desired_asset) = desired_asset {
         name_service
-            .query(&asset.asset)
+            .query(&desired_asset)
             .map_err(|_| AppError::DesiredAssetDoesNotExist {})?;
-        config.desired_asset = Some(asset)
+        config.desired_asset = Some(desired_asset)
     }
     if let Some(exchanges) = exchanges {
         let ans_dexes = name_service.registered_dexes()?;
@@ -171,6 +175,9 @@ fn update_config(
             }
         }
         config.exchanges = exchanges;
+    }
+    if let Some(denom_asset) = denom_asset {
+        config.denom_asset = denom_asset;
     }
 
     CONFIG.save(deps.storage, &config)?;

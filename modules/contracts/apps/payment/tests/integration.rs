@@ -1,6 +1,6 @@
 use abstract_core::{
     ans_host::ExecuteMsgFns,
-    objects::{gov_type::GovernanceDetails, AccountId, AssetEntry},
+    objects::{gov_type::GovernanceDetails, AccountId, AnsAsset, AssetEntry},
 };
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg};
 use abstract_interface::{
@@ -13,7 +13,6 @@ use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{AppInstantiateMsg, ConfigResponse, TipCountResponse, TipperResponse, TippersResponse},
-    state::DesiredAsset,
     *,
 };
 use wyndex_bundle::WynDex;
@@ -29,7 +28,7 @@ type PaymentTestSetup = (
     WynDex,
 );
 /// Set up the test environment with the contract installed
-fn setup(mock: Mock, desired_asset: Option<DesiredAsset>) -> anyhow::Result<PaymentTestSetup> {
+fn setup(mock: Mock, desired_asset: Option<AssetEntry>) -> anyhow::Result<PaymentTestSetup> {
     let app = PaymentAppInterface::new(APP_ID, mock.clone());
 
     let abstr_deployment = Abstract::deploy_on(mock.clone(), mock.sender().to_string())?;
@@ -71,6 +70,7 @@ fn setup(mock: Mock, desired_asset: Option<DesiredAsset>) -> anyhow::Result<Paym
         &app,
         &AppInstantiateMsg {
             desired_asset,
+            denom_asset: "Dollah".to_owned(),
             exchanges: vec![wyndex_bundle::WYNDEX.to_owned()],
         },
         None,
@@ -100,6 +100,7 @@ fn successful_install() -> anyhow::Result<()> {
         config,
         ConfigResponse {
             desired_asset: None,
+            denom_asset: "Dollah".to_owned(),
             exchanges: vec!["wyndex".to_string()]
         }
     );
@@ -114,13 +115,8 @@ fn test_update_config() -> anyhow::Result<()> {
     let mock = Mock::new(&sender);
 
     // Set up the environment and contract
-    let (account, abstr, app, wyndex) = setup(
-        mock.clone(),
-        Some(DesiredAsset {
-            denom: "Dollah".to_owned(),
-            asset: AssetEntry::new(wyndex_bundle::USD),
-        }),
-    )?;
+    let (account, abstr, app, wyndex) =
+        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
 
     let new_target_currency = wyndex.eur_token.to_string();
 
@@ -131,10 +127,8 @@ fn test_update_config() -> anyhow::Result<()> {
         .update_dexes(vec![dex_name.clone()], vec![])?;
 
     app.call_as(&account.manager.address()?).update_config(
-        Some(DesiredAsset {
-            denom: "Ye-uh-roah".to_owned(),
-            asset: AssetEntry::new(&new_target_currency),
-        }),
+        Some("Ye-uh-roah".to_owned()),
+        Some(AssetEntry::new(&new_target_currency)),
         Some(vec![dex_name.clone()]),
     )?;
 
@@ -142,10 +136,8 @@ fn test_update_config() -> anyhow::Result<()> {
     assert_eq!(
         config,
         ConfigResponse {
-            desired_asset: Some(DesiredAsset {
-                denom: "Ye-uh-roah".to_owned(),
-                asset: AssetEntry::new(wyndex_bundle::EUR),
-            }),
+            desired_asset: Some(AssetEntry::new(wyndex_bundle::EUR)),
+            denom_asset: "Ye-uh-roah".to_owned(),
             exchanges: vec![dex_name]
         }
     );
@@ -183,11 +175,10 @@ fn test_simple_tip() -> anyhow::Result<()> {
     assert_eq!(1, tip_count_response.count);
 
     // Query tipper
-    let tipper_response: TipperResponse = app.tipper(tipper.to_string())?;
+    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None)?;
     let expected_tipper = TipperResponse {
         address: tipper,
-        count: 1,
-        total_amount: Uint128::zero(),
+        total_amounts: vec![AnsAsset::new(wyndex_bundle::EUR, Uint128::new(100))],
     };
     assert_eq!(expected_tipper, tipper_response);
 
@@ -206,13 +197,8 @@ fn test_tip_swap() -> anyhow::Result<()> {
     // Create the mock
     let mock = Mock::new(&sender);
 
-    let (account, _abstr_deployment, app, wyndex) = setup(
-        mock.clone(),
-        Some(DesiredAsset {
-            denom: "Dollah".to_owned(),
-            asset: AssetEntry::new(wyndex_bundle::USD),
-        }),
-    )?;
+    let (account, _abstr_deployment, app, wyndex) =
+        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
 
     let WynDex {
         eur_token,
@@ -240,9 +226,8 @@ fn test_tip_swap() -> anyhow::Result<()> {
     assert_eq!(1, tip_count_response.count);
 
     // Query tipper
-    let tipper_response: TipperResponse = app.tipper(tipper.to_string())?;
-    assert_eq!(1, tipper_response.count);
-    assert!(!tipper_response.total_amount.is_zero());
+    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None)?;
+    assert_eq!(1, tipper_response.total_amounts.len());
 
     // List tippers
     let tippers_response: TippersResponse = app.list_tippers(None, None)?;
@@ -260,13 +245,8 @@ fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
     // Create the mock
     let mock = Mock::new(&sender);
 
-    let (account, abstr_deployment, app, wyndex) = setup(
-        mock.clone(),
-        Some(DesiredAsset {
-            denom: "Dollah".to_owned(),
-            asset: AssetEntry::new(wyndex_bundle::USD),
-        }),
-    )?;
+    let (account, abstr_deployment, app, wyndex) =
+        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
 
     let WynDex {
         eur_token,
@@ -321,13 +301,8 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     // Create the mock
     let mock = Mock::new(&sender);
 
-    let (account, abstr_deployment, app, _wyndex) = setup(
-        mock.clone(),
-        Some(DesiredAsset {
-            denom: "Dollah".to_owned(),
-            asset: AssetEntry::new(wyndex_bundle::USD),
-        }),
-    )?;
+    let (account, abstr_deployment, app, _wyndex) =
+        setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
 
     let tipper = Addr::unchecked("tipper");
     let tip_amount = 100u128;
@@ -384,11 +359,10 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     assert_eq!(1, tip_count_response.count);
 
     // Query tipper
-    let tipper_response: TipperResponse = app.tipper(tipper.to_string())?;
+    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None)?;
     let expected_tipper = TipperResponse {
         address: tipper,
-        count: 1,
-        total_amount: Uint128::zero(),
+        total_amounts: vec![AnsAsset::new(wyndex_bundle::USD, Uint128::zero())],
     };
     assert_eq!(expected_tipper, tipper_response);
 
@@ -437,20 +411,18 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
     assert_eq!(2, tip_count_response.count);
 
     // Query first tipper
-    let tipper_response1: TipperResponse = app.tipper(tipper1.to_string())?;
+    let tipper_response1: TipperResponse = app.tipper(tipper1.to_string(), None, None)?;
     let expected_tipper = TipperResponse {
         address: tipper1,
-        count: 1,
-        total_amount: Uint128::zero(),
+        total_amounts: vec![AnsAsset::new(wyndex_bundle::EUR, Uint128::new(100))],
     };
     assert_eq!(expected_tipper, tipper_response1);
 
     // Query second tipper
-    let tipper_response2: TipperResponse = app.tipper(tipper2.to_string())?;
+    let tipper_response2: TipperResponse = app.tipper(tipper2.to_string(), None, None)?;
     let expected_tipper = TipperResponse {
         address: tipper2,
-        count: 1,
-        total_amount: Uint128::zero(),
+        total_amounts: vec![AnsAsset::new(wyndex_bundle::EUR, Uint128::new(200))],
     };
     assert_eq!(expected_tipper, tipper_response2);
 

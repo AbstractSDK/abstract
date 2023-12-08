@@ -17,7 +17,7 @@ pub fn instantiate_handler(
 
     if let Some(asset) = &msg.desired_asset {
         name_service
-            .query(&asset.asset)
+            .query(&asset)
             .map_err(|_| AppError::DesiredAssetDoesNotExist {})?;
     }
     let ans_dexes = name_service.registered_dexes()?;
@@ -29,6 +29,7 @@ pub fn instantiate_handler(
 
     let config: Config = Config {
         desired_asset: msg.desired_asset,
+        denom_asset: msg.denom_asset,
         exchanges: msg.exchanges,
     };
 

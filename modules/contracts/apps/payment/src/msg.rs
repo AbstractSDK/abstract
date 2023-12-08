@@ -1,8 +1,8 @@
-use abstract_core::objects::DexName;
+use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Uint128};
+use cosmwasm_std::Addr;
 
-use crate::{contract::PaymentApp, state::DesiredAsset};
+use crate::contract::PaymentApp;
 
 // This is used for type safety
 // The second part is used to indicate the messages are used as the apps messages
@@ -19,7 +19,8 @@ abstract_app::app_msg_types!(PaymentApp, AppExecuteMsg, AppQueryMsg);
 /// PaymentApp instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct AppInstantiateMsg {
-    pub desired_asset: Option<DesiredAsset>,
+    pub desired_asset: Option<AssetEntry>,
+    pub denom_asset: String,
     pub exchanges: Vec<DexName>,
 }
 
@@ -31,7 +32,8 @@ pub enum AppExecuteMsg {
     #[cfg_attr(feature = "interface", payable)]
     Tip {},
     UpdateConfig {
-        desired_asset: Option<DesiredAsset>,
+        desired_asset: Option<AssetEntry>,
+        denom_asset: Option<String>,
         exchanges: Option<Vec<DexName>>,
     },
 }
@@ -44,7 +46,11 @@ pub enum AppQueryMsg {
     #[returns(ConfigResponse)]
     Config {},
     #[returns(TipperResponse)]
-    Tipper { address: String },
+    Tipper {
+        address: String,
+        start_after: Option<AssetEntry>,
+        limit: Option<u32>,
+    },
     #[returns(TipCountResponse)]
     TipCount {},
     #[returns(TippersResponse)]
@@ -62,15 +68,15 @@ pub struct Cw20TipMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub desired_asset: Option<DesiredAsset>,
+    pub desired_asset: Option<AssetEntry>,
+    pub denom_asset: String,
     pub exchanges: Vec<DexName>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct TipperResponse {
     pub address: Addr,
-    pub total_amount: Uint128,
-    pub count: u32,
+    pub total_amounts: Vec<AnsAsset>,
 }
 
 #[cosmwasm_schema::cw_serde]
