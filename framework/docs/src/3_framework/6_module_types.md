@@ -15,7 +15,7 @@ Modules are classified in the following categories:
 
 - **App**: modules that add a functionality, exposing new entry-points for you or your users.
 - **Adapter**: modules that act as a standard interface between your Account and external services.
-- **Standalone**: modules not built within Abstract, but registered to your Account so that you Account can manage them.
+- **Standalone**: modules not built within Abstract, but registered to your Account so that your Account can manage them.
 
 <img src="../assets/modules.svg" alt="drawing" width="400" style="vertical-align:middle"/>
 
