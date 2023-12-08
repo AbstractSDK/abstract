@@ -14,14 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     steps:
-      - name: Checkout 🛎
-        uses: actions/checkout@v3
       - name: Tickle CircleCI
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
-          chmod +x ./scripts/cancel-wasm.sh
-          ./scripts/cancel-wasm.sh
           curl -X POST \
           -H "Circle-Token: ${CCI_TOKEN}" \
           -H 'Content-Type: application/json' \
