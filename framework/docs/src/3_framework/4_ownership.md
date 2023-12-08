@@ -108,3 +108,7 @@ Owner -.Configure Account....-> ManagerC
 ```
 
 As a result of this structure, complex multi-account systems can easily be transferred between governance systems by simply changing the owner of the top-level account.
+
+```admonish info
+Sub-accounts have a depth of 2. I.e. an account can have sub-accounts, and those sub-accounts can have sub-accounts themselves, but no further.
+```

@@ -30,7 +30,7 @@ the manager contract. Migrations apply to the App and Standalone module types.
 Adapter modules can not undergo any migrations. Therefore, each Adapter version is instantiated on a different
 address.
 
-When a user decide to upgrade an Adapter module, the abstract infrastructure **moves** that user's configuration on that Adapter  to the new Adapter and removes the permissions of the old Adapter.
+When a user decides to upgrade an Adapter module, the abstract infrastructure **moves** that user's configuration on that Adapter  to the new Adapter and removes the permissions of the old Adapter.
 
 However, any modules that depend on the upgraded Adapter module don't have to update any of their state as a module's address is resolved dynamically through the manager contract, similar to how DNS works! This is explained in more detail in the [dependency execution flow](./6_module_types.md#dependency-execution) of the last section.
 
@@ -42,7 +42,7 @@ You can skip this section if you're not interested in the technical details of h
 
 Abstract manages the state-management related to module upgrades for you, ensuring your infrastructure remains intact and your applications continue to function smoothly through every upgrade.
 
-Upgrades is carried out in a manner that consistently maintains the integrity and security of your system. I.e. we programmed the system to **disallow** any upgrade actions that would break your system's version requirements.
+Upgrades are carried out in a manner that consistently maintains the integrity and security of your system. I.e. we programmed the system to **disallow** any upgrade actions that would break your system's version requirements.
 
 The process for upgrading modules is shown in the following diagram:
 
