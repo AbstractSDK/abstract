@@ -24,7 +24,7 @@ pub trait DependencyCreation {
     /// Type that exposes the dependencies's configurations if that's required.
     type DependenciesConfig;
 
-    /// Function that returns the `ModuleInstallConfig` for each dependent module.
+    /// Function that returns the [`ModuleInstallConfig`] for each dependent module.
     #[allow(unused_variables)]
     fn dependency_install_configs(
         configuration: Self::DependenciesConfig,
@@ -33,15 +33,15 @@ pub trait DependencyCreation {
     }
 }
 
-/// Trait to make it easier to construct `ModuleInfo` and `ModuleInstallConfig` for a
-/// `RegisteredModule`.
+/// Trait to make it easier to construct [`ModuleInfo`] and [`ModuleInstallConfig`] for a
+/// [`RegisteredModule`].
 pub trait InstallConfig: RegisteredModule {
-    /// Constructs the `ModuleInfo` by using information from `RegisteredModule`.
+    /// Constructs the [`ModuleInfo`] by using information from [`RegisteredModule`].
     fn module_info() -> Result<ModuleInfo, crate::AbstractInterfaceError> {
         ModuleInfo::from_id(Self::module_id(), Self::module_version().into()).map_err(Into::into)
     }
 
-    /// Constructs the ModuleInstallConfig for an App Interface
+    /// Constructs the [`ModuleInstallConfig`] for an App Interface
     fn install_config(
         init_msg: &Self::InitMsg,
     ) -> Result<ModuleInstallConfig, crate::AbstractInterfaceError> {

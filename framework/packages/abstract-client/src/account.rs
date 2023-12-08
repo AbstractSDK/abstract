@@ -282,7 +282,8 @@ impl<Chain: CwEnv> Account<Chain> {
 
         // When there are multiple modules registered the addresses are returned in a common
         // separated list. We want the last one as that is the "top-level" module while the rest
-        // are dependencies.
+        // are dependencies, since in the sub-account creation call, we pass in the top-level
+        // module last.
         let module_address: String = module_addresses
             .unwrap()
             .split(',')
