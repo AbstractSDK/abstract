@@ -18,6 +18,7 @@ jobs:
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
+          ls
           bash ./scripts/cancel-wasm.sh
           curl -X POST \
           -H "Circle-Token: ${CCI_TOKEN}" \
