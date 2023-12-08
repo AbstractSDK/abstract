@@ -133,4 +133,4 @@ jobs:
       - run:
           name: Pass
           command: |
-            echo "Pass"
+            echo "Pass."
