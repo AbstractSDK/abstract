@@ -143,12 +143,8 @@ impl<Chain: CwEnv> Publisher<Chain> {
         self.account.proxy()
     }
 
-    pub fn module_infos(
-        &self,
-        start_after: Option<String>,
-        limit: Option<u8>,
-    ) -> AbstractClientResult<ModuleInfosResponse> {
-        self.account.module_infos(start_after, limit)
+    pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
+        self.account.module_infos()
     }
 
     pub fn module_addresses(

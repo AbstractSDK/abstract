@@ -301,7 +301,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
 
     assert_eq!(MockQueryResponse {}, something);
 
-    let module_infos_response: ModuleInfosResponse = my_app.account().module_infos(None, None)?;
+    let module_infos_response: ModuleInfosResponse = my_app.account().module_infos()?;
     let module_addresses_response: ModuleAddressesResponse =
         my_app.account().module_addresses(vec![
             TEST_MODULE_ID.to_owned(),

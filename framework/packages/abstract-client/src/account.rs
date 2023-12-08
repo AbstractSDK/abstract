@@ -1,7 +1,7 @@
 use abstract_core::{
     manager::{
-        state::AccountInfo, InfoResponse, ModuleAddressesResponse, ModuleInfosResponse,
-        ModuleInstallConfig,
+        state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
+        ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
     version_control::NamespaceResponse,
@@ -192,15 +192,22 @@ impl<Chain: CwEnv> Account<Chain> {
         self.abstr_account.manager.address().map_err(Into::into)
     }
 
-    pub fn module_infos(
-        &self,
-        start_after: Option<String>,
-        limit: Option<u8>,
-    ) -> AbstractClientResult<ModuleInfosResponse> {
-        self.abstr_account
-            .manager
-            .module_infos(limit, start_after)
-            .map_err(Into::into)
+    pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
+        let mut module_infos: Vec<ManagerModuleInfo> = vec![];
+        loop {
+            let last_module_id: Option<String> = module_infos
+                .last()
+                .map(|module_info| module_info.id.clone());
+            let res: ModuleInfosResponse = self
+                .abstr_account
+                .manager
+                .module_infos(None, last_module_id)?;
+            if res.module_infos.is_empty() {
+                break;
+            }
+            module_infos.extend(res.module_infos);
+        }
+        Ok(ModuleInfosResponse { module_infos })
     }
 
     pub fn module_addresses(
