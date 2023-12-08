@@ -18,8 +18,8 @@ jobs:
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
-          ls
-          bash ./scripts/cancel-wasm.sh
+          chmod +x ./scripts/cancel-wasm.sh
+          ./scripts/cancel-wasm.sh
           curl -X POST \
           -H "Circle-Token: ${CCI_TOKEN}" \
           -H 'Content-Type: application/json' \
@@ -30,3 +30,4 @@ jobs:
             "GHA_Meta": "build_wasms"
           }
           }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+        shell: bash
