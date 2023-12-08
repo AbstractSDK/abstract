@@ -68,7 +68,7 @@ jobs:
       #           echo "more recent commit to branch, exiting"
       #           curl -X POST "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN"
       #         fi
-      #       done
+      #       done .
       - run:
           name: Build WASM artifacts
           command: |
