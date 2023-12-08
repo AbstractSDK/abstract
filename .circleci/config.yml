@@ -57,18 +57,18 @@ jobs:
       - setup_remote_docker:
           version: 20.10.14
       - checkout
-      - run:
-          name: "Check for newer workflow"
-          background: true
-          command: |
-            while true; do
-              sleep 5
-              LATEST_COMMIT=$(git ls-remote $CIRCLE_REPOSITORY_URL | grep $CIRCLE_BRANCH | cut -f 1)
-              if [ "$LATEST_COMMIT" != "$CIRCLE_SHA1" ]; then
-                echo "more recent commit to branch, exiting"
-                curl -X POST "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN"
-              fi
-            done
+      # - run:
+      #     name: "Check for newer workflow"
+      #     background: true
+      #     command: |
+      #       while true; do
+      #         sleep 5
+      #         LATEST_COMMIT=$(git ls-remote $CIRCLE_REPOSITORY_URL | grep $CIRCLE_BRANCH | cut -f 1)
+      #         if [ "$LATEST_COMMIT" != "$CIRCLE_SHA1" ]; then
+      #           echo "more recent commit to branch, exiting"
+      #           curl -X POST "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN"
+      #         fi
+      #       done
       - run:
           name: Build WASM artifacts
           command: |
