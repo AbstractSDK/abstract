@@ -52,6 +52,9 @@ pub trait InstallConfig: RegisteredModule {
     }
 }
 
+// Blanket implemention.
+impl<T> InstallConfig for T where T: RegisteredModule {}
+
 /// Strategy for deploying
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DeployStrategy {
