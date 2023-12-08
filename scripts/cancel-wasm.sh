@@ -15,6 +15,8 @@ for WORKFLOW_ID in $(echo $WORKFLOWS | jq -r '.items[] | select(.name == "build-
     JOBS=$(curl -s -H "Circle-Token: $CIRCLECI_TOKEN" \
                 "https://circleci.com/api/v2/workflow/$WORKFLOW_ID/job")
 
+    echo $JOBS
+
     # Iterate over each job and cancel if it is running
     for JOB_ID in $(echo $JOBS | jq -r '.items[] | select(.status == "running") | .id'); do
         curl -X POST -H "Circle-Token: $CIRCLECI_TOKEN" \
