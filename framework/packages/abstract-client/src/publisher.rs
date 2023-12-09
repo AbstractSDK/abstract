@@ -136,7 +136,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
     }
 
     pub fn admin(&self) -> AbstractClientResult<Addr> {
-        self.account.admin()
+        self.account.direct_admin()
     }
 
     pub fn proxy(&self) -> AbstractClientResult<Addr> {

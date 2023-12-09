@@ -22,6 +22,7 @@ use abstract_testing::{
 use cosmwasm_std::{Addr, Empty};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::{CallAs, Mock};
+use cw_ownable::Ownership;
 
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
@@ -41,6 +42,16 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
             link: None,
         },
         account_info
+    );
+
+    let ownership: Ownership<String> = account.account_owner()?;
+    assert_eq!(
+        Ownership {
+            owner: Some(OWNER.to_owned()),
+            pending_owner: None,
+            pending_expiry: None
+        },
+        ownership
     );
 
     Ok(())

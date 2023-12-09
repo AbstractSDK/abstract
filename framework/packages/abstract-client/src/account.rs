@@ -188,8 +188,12 @@ impl<Chain: CwEnv> Account<Chain> {
         self.install_app_internal(install_configs, funds)
     }
 
-    pub fn admin(&self) -> AbstractClientResult<Addr> {
+    pub fn direct_admin(&self) -> AbstractClientResult<Addr> {
         self.abstr_account.manager.address().map_err(Into::into)
+    }
+
+    pub fn account_owner(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
+        self.abstr_account.manager.ownership().map_err(Into::into)
     }
 
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
