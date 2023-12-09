@@ -6,7 +6,7 @@ use crate::apis::stargate::feegrant::{AllowedMsgAllowance, BasicAllowance, Perio
 use crate::features::AccountIdentification;
 use crate::AbstractSdkResult;
 
-use cosmos_sdk_proto::traits::Name;
+use cosmos_sdk_proto::traits::TypeUrl;
 use cosmos_sdk_proto::{cosmos::feegrant, traits::Message};
 use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
 use std::time::Duration;
@@ -77,7 +77,7 @@ impl FeeGranter {
         .encode_to_vec();
 
         CosmosMsg::Stargate {
-            type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
+            type_url: feegrant::v1beta1::MsgRevokeAllowance::TYPE_URL.to_owned(),
             value: Binary(msg),
         }
     }
@@ -97,7 +97,7 @@ impl FeeGranter {
         .encode_to_vec();
 
         CosmosMsg::Stargate {
-            type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
+            type_url: feegrant::v1beta1::MsgGrantAllowance::TYPE_URL.to_owned(),
             value: Binary(msg),
         }
     }
@@ -180,7 +180,7 @@ mod test {
         allowance: impl StargateMessage,
     ) -> CosmosMsg {
         CosmosMsg::Stargate {
-            type_url: feegrant::v1beta1::MsgGrantAllowance::type_url(),
+            type_url: feegrant::v1beta1::MsgGrantAllowance::TYPE_URL.to_owned(),
             value: Binary(
                 feegrant::v1beta1::MsgGrantAllowance {
                     granter: granter.to_string(),
@@ -287,7 +287,7 @@ mod test {
             let revoke_msg = fee_granter.revoke_allowance(&grantee);
 
             let expected_msg = CosmosMsg::Stargate {
-                type_url: feegrant::v1beta1::MsgRevokeAllowance::type_url(),
+                type_url: feegrant::v1beta1::MsgRevokeAllowance::TYPE_URL.to_owned(),
                 value: Binary(
                     feegrant::v1beta1::MsgRevokeAllowance {
                         granter: granter.to_string(),

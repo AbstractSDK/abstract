@@ -13,6 +13,8 @@ resolver = "2"
 [features]
 default = []
 stargate = ["dep:cosmos-sdk-proto", "dep:prost-types"]
+# TODO: replace with anybuf @CyberHoward
+osmosis-token-factory = ["stargate", "dep:osmosis-std", "dep:osmo-bindings"]
 
 # Expose MockModule for testing with other Adapters
 test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
@@ -23,8 +25,8 @@ cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
-cosmos-sdk-proto = { version = "0.20.0", optional = true, default-features = false }
-prost-types = { version = "0.12.1", optional = true }
+cosmos-sdk-proto = { version = "0.19.0", optional = true, default-features = false }
+prost-types = { version = "0.11", optional = true }
 schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
@@ -32,6 +34,9 @@ cw-asset = { workspace = true }
 abstract-core = { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true }
+# TODO: replace with anybuf @CyberHoward
+osmosis-std = { version = "=0.19.1", optional = true }
+osmo-bindings = { version = "0.6.0", optional = true }
 
 # test-utils feature
 abstract-testing = { workspace = true, optional = true }

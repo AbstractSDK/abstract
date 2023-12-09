@@ -21,3 +21,5 @@ pub mod distribution;
 pub mod feegrant;
 #[cfg(feature = "stargate")]
 pub mod stargate;
+#[cfg(feature = "stargate")]
+pub mod token_factory;
