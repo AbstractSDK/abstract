@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use abstract_core::objects::{AssetEntry, DexName};
+use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
 use abstract_dex_adapter::DexInterface;
 use abstract_sdk::core::ans_host;
 use abstract_sdk::core::ans_host::{AssetPairingFilter, PoolAddressListResponse};
@@ -68,12 +68,8 @@ pub fn tip(
 
     // If there is no desired asset specified, just forward the payment.
     let Some(desired_asset) = config.desired_asset else {
-        // Tipper history will not contain any info for "amount tipped" as it doesn't really make
-        // sense when there isn't a desired asset. However the number of times tipped will be
-        // stored.
-        for asset in asset_entries {
-            update_tipper_history(deps.storage, &info.sender, &asset.name, asset.amount)?;
-        }
+        // Add assets as is
+        update_tipper_history(deps.storage, &info.sender, &asset_entries)?;
         return Ok(app_resp);
     };
 
@@ -82,13 +78,15 @@ pub fn tip(
     let exchange_strs: HashSet<&str> = config.exchanges.iter().map(AsRef::as_ref).collect();
 
     // For tip history
-    let mut total_amount = Uint128::zero();
+    let mut desired_asset_amount = Uint128::zero();
+    // For updating tipper history
+    let mut assets_to_add = vec![];
 
     // Search for trading pairs between the deposited assets and the desired asset
     for pay_asset in asset_entries {
         // No need to swap if desired asset sent
         if pay_asset.name == desired_asset {
-            total_amount += pay_asset.amount;
+            desired_asset_amount += pay_asset.amount;
             continue;
         }
         // query the pools that contain the desired asset
@@ -103,30 +101,42 @@ pub fn tip(
         let resp: PoolAddressListResponse = deps
             .querier
             .query_wasm_smart(&ans.host.address, &query_msg)?;
+
         // use the first pair you find to swap on
-        for (pair, refs) in resp.pools {
-            if !refs.is_empty() && exchange_strs.contains(&pair.dex()) {
-                let dex = app.dex(deps.as_ref(), pair.dex().to_owned());
-                let trigger_swap_msg = dex.swap(
-                    pay_asset.clone(),
-                    desired_asset.clone(),
-                    Some(Decimal::percent(MAX_SPREAD_PERCENT)),
-                    None,
-                )?;
-                swap_msgs.push(trigger_swap_msg);
-                attrs.push(("swap", format!("{} for {}", pay_asset.name, desired_asset)));
+        if let Some((pair, _refs)) = resp
+            .pools
+            .into_iter()
+            .find(|(pair, refs)| !refs.is_empty() && exchange_strs.contains(&pair.dex()))
+        {
+            let dex = app.dex(deps.as_ref(), pair.dex().to_owned());
+            let trigger_swap_msg = dex.swap(
+                pay_asset.clone(),
+                desired_asset.clone(),
+                Some(Decimal::percent(MAX_SPREAD_PERCENT)),
+                None,
+            )?;
+            swap_msgs.push(trigger_swap_msg);
+            attrs.push(("swap", format!("{} for {}", pay_asset.name, desired_asset)));
 
-                total_amount += dex
-                    .simulate_swap(pay_asset, desired_asset.clone())?
-                    .return_amount;
-
-                break;
-            }
+            desired_asset_amount += dex
+                .simulate_swap(pay_asset.clone(), desired_asset.clone())?
+                .return_amount;
+        } else {
+            // If swap not found just accept payment
+            assets_to_add.push(pay_asset);
         }
     }
 
+    // Add desired asset after swaps
+    if !desired_asset_amount.is_zero() {
+        assets_to_add.push(AnsAsset {
+            name: desired_asset,
+            amount: desired_asset_amount,
+        })
+    }
+
     // Tip history
-    update_tipper_history(deps.storage, &info.sender, &desired_asset, total_amount)?;
+    update_tipper_history(deps.storage, &info.sender, &assets_to_add)?;
 
     // forward deposit and execute swaps if there are any
     Ok(app_resp
@@ -137,8 +147,7 @@ pub fn tip(
 fn update_tipper_history(
     storage: &mut dyn Storage,
     sender: &Addr,
-    asset: &AssetEntry,
-    amount: Uint128,
+    assets: &[AnsAsset],
 ) -> Result<(), AppError> {
     // Update total counts
     let total_count = TIP_COUNT.load(storage)?;
@@ -148,11 +157,13 @@ fn update_tipper_history(
     TIPPER_COUNT.save(storage, sender, &(tipper_count + 1))?;
 
     // Update tipper amount
-    let mut total_tipper_amount = TIPPERS
-        .may_load(storage, (sender, asset))?
-        .unwrap_or_default();
-    total_tipper_amount += amount;
-    TIPPERS.save(storage, (sender, asset), &total_tipper_amount)?;
+    for asset in assets {
+        let mut total_tipper_amount = TIPPERS
+            .may_load(storage, (sender, &asset.name))?
+            .unwrap_or_default();
+        total_tipper_amount += &asset.amount;
+        TIPPERS.save(storage, (sender, &asset.name), &total_tipper_amount)?;
+    }
 
     Ok(())
 }

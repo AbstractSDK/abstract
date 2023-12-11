@@ -379,7 +379,7 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     let expected_tipper = TipperResponse {
         address: tipper,
         tip_count: 1,
-        total_amounts: vec![AnsAsset::new(wyndex_bundle::USD, Uint128::zero())],
+        total_amounts: vec![AnsAsset::new(cw20_token.addr_str()?, Uint128::new(100))],
     };
     assert_eq!(expected_tipper, tipper_response);
 

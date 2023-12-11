@@ -32,6 +32,7 @@ pub enum AppExecuteMsg {
     #[cfg_attr(feature = "interface", payable)]
     Tip {},
     UpdateConfig {
+        // TODO: Clearable #ABS-269
         desired_asset: Option<AssetEntry>,
         denom_asset: Option<String>,
         exchanges: Option<Vec<DexName>>,
