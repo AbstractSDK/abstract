@@ -4,7 +4,7 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use crate::contract::{AppResult, PaymentApp};
 use crate::error::AppError;
 use crate::msg::AppInstantiateMsg;
-use crate::state::{Config, CONFIG};
+use crate::state::{Config, CONFIG, TIP_COUNT};
 
 pub fn instantiate_handler(
     deps: DepsMut,
@@ -34,6 +34,7 @@ pub fn instantiate_handler(
     };
 
     CONFIG.save(deps.storage, &config)?;
+    TIP_COUNT.save(deps.storage, &0)?;
 
     // Example instantiation that doesn't do anything
     Ok(Response::new())

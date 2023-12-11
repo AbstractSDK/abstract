@@ -53,8 +53,8 @@ pub enum AppQueryMsg {
     },
     #[returns(TipCountResponse)]
     TipCount {},
-    #[returns(TippersResponse)]
-    ListTippers {
+    #[returns(TippersCountResponse)]
+    ListTippersCount {
         start_after: Option<String>,
         limit: Option<u32>,
     },
@@ -76,12 +76,19 @@ pub struct ConfigResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct TipperResponse {
     pub address: Addr,
+    pub tip_count: u32,
     pub total_amounts: Vec<AnsAsset>,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct TippersResponse {
-    pub tippers: Vec<TipperResponse>,
+pub struct TipperCountResponse {
+    pub address: Addr,
+    pub count: u32,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct TippersCountResponse {
+    pub tippers: Vec<TipperCountResponse>,
 }
 
 #[cosmwasm_schema::cw_serde]

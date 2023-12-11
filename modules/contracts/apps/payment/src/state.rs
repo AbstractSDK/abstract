@@ -7,6 +7,7 @@ pub const CONFIG: Item<Config> = Item::new("cfg");
 // The sender address is used here for querying by tipper
 pub const TIPPERS: Map<(&Addr, &AssetEntry), Uint128> = Map::new("tps");
 pub const TIP_COUNT: Item<u32> = Item::new("tip-count");
+pub const TIPPER_COUNT: Map<&Addr, u32> = Map::new("tps-count");
 
 #[cosmwasm_schema::cw_serde]
 pub struct Config {

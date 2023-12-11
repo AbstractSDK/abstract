@@ -18,7 +18,7 @@ const MAX_SPREAD_PERCENT: u64 = 20;
 
 use crate::error::AppError;
 use crate::msg::AppExecuteMsg;
-use crate::state::{CONFIG, TIPPERS, TIP_COUNT};
+use crate::state::{CONFIG, TIPPERS, TIPPER_COUNT, TIP_COUNT};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -86,6 +86,11 @@ pub fn tip(
 
     // Search for trading pairs between the deposited assets and the desired asset
     for pay_asset in asset_entries {
+        // No need to swap if desired asset sent
+        if pay_asset.name == desired_asset {
+            total_amount += pay_asset.amount;
+            continue;
+        }
         // query the pools that contain the desired asset
         let query_msg = ans_host::QueryMsg::PoolList {
             filter: Some(AssetPairingFilter {
@@ -135,14 +140,19 @@ fn update_tipper_history(
     asset: &AssetEntry,
     amount: Uint128,
 ) -> Result<(), AppError> {
-    let tip_count = TIP_COUNT.may_load(storage)?.unwrap_or_default();
-    TIP_COUNT.save(storage, &(tip_count + 1))?;
+    // Update total counts
+    let total_count = TIP_COUNT.load(storage)?;
+    TIP_COUNT.save(storage, &(total_count + 1))?;
+    // Update tipper counts
+    let tipper_count = TIPPER_COUNT.may_load(storage, sender)?.unwrap_or_default();
+    TIPPER_COUNT.save(storage, sender, &(tipper_count + 1))?;
 
-    let mut total_amount = TIPPERS
+    // Update tipper amount
+    let mut total_tipper_amount = TIPPERS
         .may_load(storage, (sender, asset))?
         .unwrap_or_default();
-    total_amount += amount;
-    TIPPERS.save(storage, (sender, asset), &total_amount)?;
+    total_tipper_amount += amount;
+    TIPPERS.save(storage, (sender, asset), &total_tipper_amount)?;
 
     Ok(())
 }
