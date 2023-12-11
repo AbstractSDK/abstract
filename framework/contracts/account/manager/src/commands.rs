@@ -716,14 +716,6 @@ pub fn replace_adapter(
             proxy_address: Some(proxy_addr.to_string()),
         },
     )?);
-    // Remove adapter as authorized address on dependencies
-    msgs.push(configure_adapter(
-        &old_adapter_addr,
-        BaseExecuteMsg {
-            msg: AdapterBaseMsg::Remove {},
-            proxy_address: Some(proxy_addr.to_string()),
-        },
-    )?);
     // Add authorized addresses to new
     msgs.push(configure_adapter(
         &new_adapter_addr,
