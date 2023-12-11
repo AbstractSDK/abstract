@@ -5,13 +5,10 @@
 //! requiring the usage of a base contract.
 
 use crate::core::PROXY;
-use crate::{
-    features::{AccountIdentification, ModuleIdentification},
-    AbstractSdkResult,
-};
+use crate::{features::ModuleIdentification, AbstractSdkResult};
 pub use abstract_core::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 use abstract_core::version_control::AccountBase;
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::Addr;
 
 /// Store a proxy contract address.
 /// Implements [`AccountIdentification`].
@@ -30,47 +27,27 @@ impl ProxyContract {
     }
 }
 
-impl AccountIdentification for ProxyContract {
-    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+impl ProxyContract {
+    /// Return the proxy_address for this object
+    pub fn proxy_address(&self) -> AbstractSdkResult<Addr> {
         Ok(self.contract_address.clone())
     }
 }
 
 impl ModuleIdentification for ProxyContract {
-    fn module_id(&self) -> &'static str {
-        PROXY
+    fn module_id(&self) -> String {
+        PROXY.to_string()
     }
 }
-
-impl AccountIdentification for AccountBase {
-    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.proxy.clone())
-    }
-
-    fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.manager.clone())
-    }
-
-    fn account_base(&self, _deps: Deps) -> AbstractSdkResult<AccountBase> {
-        Ok(self.clone())
-    }
-}
-
 impl ModuleIdentification for AccountBase {
     /// Any actions executed by the core will be by the proxy address
-    fn module_id(&self) -> &'static str {
-        PROXY
+    fn module_id(&self) -> String {
+        PROXY.to_string()
     }
 }
 
 impl crate::features::AbstractRegistryAccess for VersionControlContract {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-        Ok(self.clone())
-    }
-}
-
-impl crate::features::AbstractNameService for AnsHost {
-    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn abstract_registry(&self) -> AbstractSdkResult<VersionControlContract> {
         Ok(self.clone())
     }
 }
@@ -92,11 +69,7 @@ mod tests {
             let address = Addr::unchecked("version");
             let vc = VersionControlContract::new(address.clone());
 
-            let deps = mock_dependencies();
-
-            assert_that!(vc.abstract_registry(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(vc);
+            assert_that!(vc.abstract_registry()).is_ok().is_equal_to(vc);
         }
     }
 
@@ -110,7 +83,7 @@ mod tests {
             let proxy = ProxyContract::new(address.clone());
             let deps = mock_dependencies();
 
-            assert_that!(proxy.proxy_address(deps.as_ref()))
+            assert_that!(proxy.proxy_address())
                 .is_ok()
                 .is_equal_to(address);
         }
@@ -119,7 +92,7 @@ mod tests {
         fn should_identify_self_as_abstract_proxy() {
             let proxy = ProxyContract::new(Addr::unchecked(TEST_PROXY));
 
-            assert_that!(proxy.module_id()).is_equal_to(PROXY);
+            assert_that!(proxy.module_id()).is_equal_to(PROXY.to_string());
         }
     }
 
@@ -141,9 +114,7 @@ mod tests {
 
             let deps = mock_dependencies();
 
-            assert_that!(account_base.proxy_address(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(address);
+            assert_that!(account_base.proxy_address()).is_equal_to(address);
         }
 
         #[test]
@@ -153,9 +124,7 @@ mod tests {
 
             let deps = mock_dependencies();
 
-            assert_that!(account_base.manager_address(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(manager_addrsess);
+            assert_that!(account_base.manager_address()).is_equal_to(manager_addrsess);
         }
 
         #[test]
@@ -164,16 +133,14 @@ mod tests {
 
             let deps = mock_dependencies();
 
-            assert_that!(account_base.account_base(deps.as_ref()))
-                .is_ok()
-                .is_equal_to(account_base);
+            assert_that!(account_base.account_base()).is_equal_to(account_base);
         }
 
         #[test]
         fn should_identify_self_as_abstract_proxy() {
             let account_base = test_account_base();
 
-            assert_that!(account_base.module_id()).is_equal_to(PROXY);
+            assert_that!(account_base.module_id()).is_equal_to(PROXY.to_string());
         }
     }
 }

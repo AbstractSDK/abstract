@@ -12,7 +12,7 @@ use abstract_core::{
     proxy::ExecuteMsg,
     IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg};
 use serde::Serialize;
 
 /// Interact with other chains over IBC.
@@ -31,8 +31,8 @@ pub trait IbcInterface: AccountIdentification + ModuleInterface {
         let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
         ```
     */
-    fn ibc_client<'a>(&'a self, deps: Deps<'a>) -> IbcClient<Self> {
-        IbcClient { base: self, deps }
+    fn ibc_client(&self) -> IbcClient<Self> {
+        IbcClient { base: self }
     }
 }
 
@@ -55,14 +55,13 @@ impl<T> IbcInterface for T where T: AccountIdentification + ModuleInterface {}
 */
 pub struct IbcClient<'a, T: IbcInterface> {
     base: &'a T,
-    deps: Deps<'a>,
 }
 
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Registers the ibc client to be able to use IBC capabilities
     pub fn register_ibc_client(&'a self) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.manager_address(self.deps)?,
+            self.base.manager_address()?,
             &abstract_core::manager::ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
@@ -80,7 +79,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         host_chain: String, // The chain on which you want to create an account
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
+            self.base.proxy_address()?.to_string(),
             &ExecuteMsg::IbcAction {
                 msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register { host_chain }],
             },
@@ -176,6 +175,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         )
     }
     /// Call a [`HostAction`] on the host of the provided `host_chain`.
+    /// TODO, the messages are not returned here, they are executed directly (with ExecutableStack)
     pub fn host_action(
         &'a self,
         host_chain: String,
@@ -183,7 +183,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         callback: Option<CallbackInfo>,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
+            self.base.proxy_address()?.to_string(),
             &ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain,
@@ -196,13 +196,14 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         .into())
     }
     /// IbcClient the provided coins from the Account to its proxy on the `receiving_chain`.
+    /// TODO, use executable stack here
     pub fn ics20_transfer(
         &'a self,
         receiving_chain: String,
         funds: Vec<Coin>,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
+            self.base.proxy_address()?.to_string(),
             &ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::SendFunds {
                     host_chain: receiving_chain,
@@ -227,9 +228,9 @@ mod test {
     /// Tests that a host_action can be built with no callback
     #[test]
     fn test_host_action_no_callback() {
-        let deps = mock_dependencies();
-        let stub = MockModule::new();
-        let client = stub.ibc_client(deps.as_ref());
+        let mut deps = mock_dependencies();
+        let stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+        let client = stub.ibc_client();
         let msg = client.host_action(
             TEST_HOST_CHAIN.into(),
             HostAction::Dispatch {
@@ -263,9 +264,9 @@ mod test {
     /// Tests that a host_action can be built with a callback with more retries
     #[test]
     fn test_host_action_with_callback() {
-        let deps = mock_dependencies();
-        let stub = MockModule::new();
-        let client = stub.ibc_client(deps.as_ref());
+        let mut deps = mock_dependencies();
+        let stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+        let client = stub.ibc_client();
 
         let expected_callback = CallbackInfo {
             receiver: "callback_receiver".to_string(),
@@ -308,9 +309,9 @@ mod test {
     /// Tests that the ics_20 transfer can be built and that the funds are passed into the sendFunds message not the execute message
     #[test]
     fn test_ics20_transfer() {
-        let deps = mock_dependencies();
-        let stub = MockModule::new();
-        let client = stub.ibc_client(deps.as_ref());
+        let mut deps = mock_dependencies();
+        let stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+        let client = stub.ibc_client();
 
         let expected_funds = coins(100, "denom");
 

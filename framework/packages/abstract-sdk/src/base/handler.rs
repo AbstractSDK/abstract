@@ -2,14 +2,8 @@ use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
 };
-use crate::{
-    base::{
-        contract_base::{ModuleId, ModuleMetadata, VersionString},
-        ReplyHandlerFn,
-    },
-    AbstractSdkError, AbstractSdkResult,
-};
-use abstract_core::objects::dependency::{Dependency, StaticDependency};
+use crate::{base::ReplyHandlerFn, AbstractSdkError, AbstractSdkResult};
+use abstract_core::objects::dependency::Dependency;
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;
 
@@ -33,10 +27,8 @@ where
     /// Sudo message for the contract
     type SudoMsg;
 
-    type InstantiateCtx;
-
     /// Returns the contract object.
-    fn contract<'b>(&'b self) -> &'b AbstractContract<'b, Self, Self::Error>;
+    fn contract(&self) -> &AbstractContract<Self, Self::Error>;
 
     /// Returns the cw2 contract version.
     fn stored_version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
@@ -79,15 +71,15 @@ where
     }
 
     /// Get a instantiate handler if it exists.
-    fn maybe_instantiate_handler<'a>(
-        &'a self,
+    fn maybe_instantiate_handler(
+        &self,
     ) -> Option<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
         let contract = self.contract();
         contract.instantiate_handler
     }
     /// Get an instantiate handler or return an error.
-    fn instantiate_handler<'a>(
-        &'a self,
+    fn instantiate_handler(
+        &self,
     ) -> AbstractSdkResult<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Err(AbstractSdkError::MissingHandler {

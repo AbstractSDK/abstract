@@ -13,10 +13,7 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::Error> {
         // Todo: Change to use version control instead?
-        let ibc_client = self
-            .modules(deps.as_ref())
-            .module_address(IBC_CLIENT)?
-            .clone();
+        let ibc_client = self.modules().module_address(IBC_CLIENT)?.clone();
         if info.sender.ne(&ibc_client) {
             return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
                 caller: info.sender,

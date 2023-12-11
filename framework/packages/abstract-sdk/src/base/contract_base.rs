@@ -21,7 +21,7 @@ pub trait MessageTypes {
 }
 // ANCHOR: init
 /// Function signature for an instantiate handler.
-pub type InstantiateHandlerFn<Module: Handler, CustomInitMsg, Error> =
+pub type InstantiateHandlerFn<Module, CustomInitMsg, Error> =
     fn(&mut Module, CustomInitMsg) -> Result<(), Error>;
 // ANCHOR_END: init
 
@@ -273,7 +273,6 @@ mod test {
         type CustomMigrateMsg = MockMigrateMsg;
         type ReceiveMsg = MockReceiveMsg;
         type SudoMsg = MockSudoMsg;
-        type InstantiateCtx = Empty;
 
         fn contract(&self) -> &AbstractContract<Self, Self::Error> {
             unimplemented!()

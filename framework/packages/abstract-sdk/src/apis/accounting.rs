@@ -7,7 +7,7 @@ use crate::{
     AbstractSdkResult,
 };
 use abstract_core::{objects::AssetEntry, proxy::QueryMsg};
-use cosmwasm_std::{Deps, Uint128};
+use cosmwasm_std::Uint128;
 
 use abstract_core::{
     objects::oracle::{self, AccountValue},
@@ -31,8 +31,8 @@ pub trait AccountingInterface: AbstractNameService + AccountIdentification {
         let accountant: Accountant<MockModule>  = module.accountant(deps.as_ref());
         ```
     */
-    fn accountant<'a>(&'a self, deps: Deps<'a>) -> Accountant<Self> {
-        Accountant { base: self, deps }
+    fn accountant(&self) -> Accountant<Self> {
+        Accountant { base: self }
     }
 }
 
@@ -55,16 +55,14 @@ impl<T> AccountingInterface for T where T: AbstractNameService + AccountIdentifi
 */
 pub struct Accountant<'a, T: AccountingInterface> {
     base: &'a T,
-    deps: Deps<'a>,
 }
 
 impl<'a, T: AccountingInterface> Accountant<'a, T> {
     /// Query the total value denominated in the base asset
     /// The provided address must implement the TotalValue Query
     pub fn query_total_value(&self) -> AbstractSdkResult<AccountValue> {
-        let querier = self.deps.querier;
-        let proxy_address = self.base.proxy_address(self.deps)?;
-        let response: AccountValue = querier.query(&wasm_smart_query(
+        let proxy_address = self.base.proxy_address()?;
+        let response: AccountValue = self.base.deps().querier.query(&wasm_smart_query(
             proxy_address.to_string(),
             &QueryMsg::TotalValue {},
         )?)?;
@@ -74,9 +72,8 @@ impl<'a, T: AccountingInterface> Accountant<'a, T> {
 
     /// Query the asset value denominated in the base asset
     pub fn asset_value(&self, asset_entry: AssetEntry) -> AbstractSdkResult<Uint128> {
-        let querier = self.deps.querier;
-        let proxy_address = self.base.proxy_address(self.deps)?;
-        let response: TokenValueResponse = querier.query(&wasm_smart_query(
+        let proxy_address = self.base.proxy_address()?;
+        let response: TokenValueResponse = self.base.deps().querier.query(&wasm_smart_query(
             proxy_address.to_string(),
             &QueryMsg::TokenValue {
                 identifier: asset_entry,
@@ -88,9 +85,8 @@ impl<'a, T: AccountingInterface> Accountant<'a, T> {
 
     /// Return the proxy's base asset
     pub fn base_asset(&self) -> AbstractSdkResult<BaseAssetResponse> {
-        let querier = self.deps.querier;
-        let proxy_address = self.base.proxy_address(self.deps)?;
-        let response: BaseAssetResponse = querier.query(&wasm_smart_query(
+        let proxy_address = self.base.proxy_address()?;
+        let response: BaseAssetResponse = self.base.deps().querier.query(&wasm_smart_query(
             proxy_address.to_string(),
             &QueryMsg::BaseAsset {},
         )?)?;
@@ -100,10 +96,9 @@ impl<'a, T: AccountingInterface> Accountant<'a, T> {
 
     /// List enabled assets (AssetInfos)
     pub fn assets_list(&self) -> AbstractSdkResult<AssetsInfoResponse> {
-        let querier = self.deps.querier;
-        let proxy_address = self.base.proxy_address(self.deps)?;
+        let proxy_address = self.base.proxy_address()?;
 
-        let resp: AssetsInfoResponse = querier.query_wasm_smart(
+        let resp: AssetsInfoResponse = self.base.deps().querier.query_wasm_smart(
             proxy_address,
             &QueryMsg::AssetsInfo {
                 start_after: None,

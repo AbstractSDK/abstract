@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::{AbstractSdkResult, AccountAction, ModuleInterface};
+use crate::{features::DepsAccess, AbstractSdkResult, AccountAction, ModuleInterface};
 use abstract_core::objects::module::ModuleId;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
@@ -7,7 +7,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use abstract_core::app as msg;
 
 /// Interact with other modules on the Account.
-pub trait AppInterface: ModuleInterface {
+pub trait AppInterface: ModuleInterface + DepsAccess {
     /**
         API for accessing Abstract Apps installed on the account.
 
@@ -22,8 +22,8 @@ pub trait AppInterface: ModuleInterface {
         let apps: Apps<MockModule>  = module.apps(deps.as_ref());
         ```
     */
-    fn apps<'a>(&'a self, deps: Deps<'a>) -> Apps<Self> {
-        Apps { base: self, deps }
+    fn apps(&self) -> Apps<Self> {
+        Apps { base: self }
     }
 }
 
@@ -46,7 +46,6 @@ impl<T> AppInterface for T where T: ModuleInterface {}
 #[derive(Clone)]
 pub struct Apps<'a, T: AppInterface> {
     base: &'a T,
-    deps: Deps<'a>,
 }
 
 impl<'a, T: AppInterface> Apps<'a, T> {
@@ -56,7 +55,7 @@ impl<'a, T: AppInterface> Apps<'a, T> {
         app_id: ModuleId,
         message: impl Into<msg::ExecuteMsg<M, Empty>>,
     ) -> AbstractSdkResult<CosmosMsg> {
-        let modules = self.base.modules(self.deps);
+        let modules = self.base.modules();
         modules.assert_module_dependency(app_id)?;
         let app_msg: msg::ExecuteMsg<M, Empty> = message.into();
         let app_address = modules.module_address(app_id)?;
@@ -70,7 +69,7 @@ impl<'a, T: AppInterface> Apps<'a, T> {
         query: msg::BaseExecuteMsg,
     ) -> AbstractSdkResult<CosmosMsg> {
         let app_query: msg::ExecuteMsg<Empty, Empty> = query.into();
-        let modules = self.base.modules(self.deps);
+        let modules = self.base.modules();
         let app_address = modules.module_address(app_id)?;
         Ok(wasm_execute(app_address, &app_query, vec![])?.into())
     }
@@ -81,10 +80,11 @@ impl<'a, T: AppInterface> Apps<'a, T> {
         app_id: ModuleId,
         message: impl Into<msg::QueryMsg<Q>>,
     ) -> AbstractSdkResult<R> {
-        let modules = self.base.modules(self.deps);
+        let modules = self.base.modules();
         let app_msg: msg::QueryMsg<Q> = message.into();
         let app_address = modules.module_address(app_id)?;
-        self.deps
+        self.base
+            .deps()
             .querier
             .query_wasm_smart(app_address, &app_msg)
             .map_err(Into::into)
@@ -101,16 +101,16 @@ mod tests {
     pub use super::*;
     /// Helper to check that the method is not callable when the module is not a dependency
     fn fail_when_not_dependency_test<T: std::fmt::Debug>(
-        modules_fn: impl FnOnce(&MockModule, Deps) -> AbstractSdkResult<T>,
+        modules_fn: impl FnOnce(&MockModule<(Deps, Env)>) -> AbstractSdkResult<T>,
         fake_module: ModuleId,
     ) {
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
-        let app = MockModule::new();
+        let app = MockModule::new((deps.as_ref(), mock_env()));
 
-        let _mods = app.apps(deps.as_ref());
+        let _mods = app.apps();
 
-        let res = modules_fn(&app, deps.as_ref());
+        let res = modules_fn(&app);
 
         assert_that!(res)
             .is_err()
@@ -126,8 +126,8 @@ mod tests {
         #[test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
-                |app, deps| {
-                    let mods = app.apps(deps);
+                |app| {
+                    let mods = app.apps();
                     mods.request(FAKE_MODULE_ID, MockModuleExecuteMsg {})
                 },
                 FAKE_MODULE_ID,
@@ -138,9 +138,9 @@ mod tests {
         fn expected_app_request() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
-            let app = MockModule::new();
+            let app = MockModule::new((deps.as_ref(), mock_env()));
 
-            let mods = app.apps(deps.as_ref());
+            let mods = app.apps();
 
             let res = mods.request(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
@@ -165,8 +165,8 @@ mod tests {
         #[test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
-                |app, deps| {
-                    let mods = app.apps(deps);
+                |app| {
+                    let mods = app.apps();
                     mods.configure(
                         FAKE_MODULE_ID,
                         app::BaseExecuteMsg::UpdateConfig {
@@ -183,9 +183,9 @@ mod tests {
         fn expected_configure_msg() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
-            let app = MockModule::new();
+            let app = MockModule::new((deps.as_ref(), mock_env()));
 
-            let mods = app.apps(deps.as_ref());
+            let mods = app.apps();
 
             let res = mods.configure(
                 TEST_MODULE_ID,
@@ -217,8 +217,8 @@ mod tests {
         #[test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
-                |app, deps| {
-                    let mods = app.apps(deps);
+                |app| {
+                    let mods = app.apps();
                     mods.query::<_, Empty>(FAKE_MODULE_ID, Empty {})
                 },
                 FAKE_MODULE_ID,
@@ -229,9 +229,9 @@ mod tests {
         fn expected_app_query() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
-            let app = MockModule::new();
+            let app = MockModule::new((deps.as_ref(), mock_env()));
 
-            let mods = app.apps(deps.as_ref());
+            let mods = app.apps();
 
             let res = mods.query::<_, String>(TEST_MODULE_ID, Empty {});
 

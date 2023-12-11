@@ -2,16 +2,17 @@
 //! The Module interface provides helper functions to execute functions on other modules installed on the Account.
 
 use crate::core::objects::module::ModuleId;
+use crate::features::DepsAccess;
 use crate::{
     features::{AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
 use abstract_core::manager::state::ACCOUNT_MODULES;
-use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
+use cosmwasm_std::{Addr, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 
 /// Interact with other modules on the Account.
-pub trait ModuleInterface: AccountIdentification + Dependencies {
+pub trait ModuleInterface: AccountIdentification + Dependencies + DepsAccess {
     /**
         API for retrieving information about installed modules.
 
@@ -26,12 +27,12 @@ pub trait ModuleInterface: AccountIdentification + Dependencies {
         let modules: Modules<MockModule>  = module.modules(deps.as_ref());
         ```
     */
-    fn modules<'a>(&'a self, deps: Deps<'a>) -> Modules<'a, Self> {
-        Modules { base: self, deps }
+    fn modules(&self) -> Modules<Self> {
+        Modules { base: self }
     }
 }
 
-impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies {}
+impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies + DepsAccess {}
 
 /**
     API for retrieving information about installed modules.
@@ -50,7 +51,6 @@ impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies {}
 #[derive(Clone)]
 pub struct Modules<'a, T: ModuleInterface> {
     base: &'a T,
-    deps: Deps<'a>,
 }
 
 impl<'a, T: ModuleInterface> Modules<'a, T> {
@@ -58,9 +58,9 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     /// This should **not** be used to execute messages on an `Api`.
     /// Use `Modules::api_request(..)` instead.
     pub fn module_address<'b>(&'b self, module_id: ModuleId<'b>) -> AbstractSdkResult<Addr> {
-        let manager_addr = self.base.manager_address(self.deps)?;
+        let manager_addr = self.base.manager_address()?;
         let maybe_module_addr =
-            ACCOUNT_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
+            ACCOUNT_MODULES.query(&self.base.deps().querier, manager_addr, module_id)?;
         let Some(module_addr) = maybe_module_addr else {
             return Err(crate::AbstractSdkError::MissingModule {
                 module: module_id.to_string(),
@@ -78,14 +78,15 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
             contract_addr: module_address.into(),
             key: CONTRACT.as_slice().into(),
         });
-        self.deps
+        self.base
+            .deps()
             .querier
             .query::<ContractVersion>(&req)
             .map_err(Into::into)
     }
 
     /// Assert that a module is a dependency of this module.
-    pub fn assert_module_dependency<'b>(&'b self, module_id: ModuleId) -> AbstractSdkResult<()> {
+    pub fn assert_module_dependency(&self, module_id: ModuleId) -> AbstractSdkResult<()> {
         let is_dependency = Dependencies::dependencies(self.base)
             .iter()
             .any(|d| d.id == module_id);
@@ -114,9 +115,9 @@ mod test {
         #[test]
         fn should_return_ok_if_dependency() {
             let deps = mock_dependencies();
-            let app = MockModule::new();
+            let app = MockModule::new((deps.as_ref(), mock_env()));
 
-            let mods = app.modules(deps.as_ref());
+            let mods = app.modules();
 
             let res = mods.assert_module_dependency(TEST_MODULE_ID);
             assert_that!(res).is_ok();
@@ -125,9 +126,9 @@ mod test {
         #[test]
         fn should_return_err_if_not_dependency() {
             let deps = mock_dependencies();
-            let app = MockModule::new();
+            let app = MockModule::new((deps.as_ref(), mock_env()));
 
-            let mods = app.modules(deps.as_ref());
+            let mods = app.modules();
 
             let fake_module = "lol_no_chance";
             let res = mods.assert_module_dependency(fake_module);

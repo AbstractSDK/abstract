@@ -1,6 +1,7 @@
 use crate::{
-    cw_helpers::wasm_smart_query, features::AbstractRegistryAccess, AbstractSdkError,
-    AbstractSdkResult,
+    cw_helpers::wasm_smart_query,
+    features::{AbstractRegistryAccess, DepsAccess},
+    AbstractSdkError, AbstractSdkResult,
 };
 use abstract_core::{
     objects::{
@@ -13,10 +14,9 @@ use abstract_core::{
         ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse, QueryMsg,
     },
 };
-use cosmwasm_std::Deps;
 
 /// Access the Abstract Version Control and access module information.
-pub trait ModuleRegistryInterface: AbstractRegistryAccess {
+pub trait ModuleRegistryInterface: AbstractRegistryAccess + DepsAccess {
     /**
         API for querying module information from the Abstract version control contract.
 
@@ -31,12 +31,12 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess {
         let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref());
         ```
     */
-    fn module_registry<'a>(&'a self, deps: Deps<'a>) -> ModuleRegistry<Self> {
-        ModuleRegistry { base: self, deps }
+    fn module_registry(&self) -> ModuleRegistry<Self> {
+        ModuleRegistry { base: self }
     }
 }
 
-impl<T> ModuleRegistryInterface for T where T: AbstractRegistryAccess {}
+impl<T> ModuleRegistryInterface for T where T: AbstractRegistryAccess + DepsAccess {}
 
 #[derive(Clone)]
 /**
@@ -55,7 +55,6 @@ impl<T> ModuleRegistryInterface for T where T: AbstractRegistryAccess {}
 */
 pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
     base: &'a T,
-    deps: Deps<'a>,
 }
 
 impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
@@ -64,9 +63,13 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         &self,
         module_info: &ModuleInfo,
     ) -> AbstractSdkResult<ModuleReference> {
-        let registry_addr = self.base.abstract_registry(self.deps)?.address;
+        let registry_addr = self.base.abstract_registry()?.address;
         REGISTERED_MODULES
-            .query(&self.deps.querier, registry_addr.clone(), module_info)?
+            .query(
+                &self.base.deps().querier,
+                registry_addr.clone(),
+                module_info,
+            )?
             .ok_or_else(|| AbstractSdkError::ModuleNotFound {
                 module: module_info.to_string(),
                 registry_addr,
@@ -94,8 +97,8 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         &self,
         infos: Vec<ModuleInfo>,
     ) -> AbstractSdkResult<Vec<ModuleResponse>> {
-        let registry_addr = self.base.abstract_registry(self.deps)?.address;
-        let ModulesResponse { modules } = self.deps.querier.query(&wasm_smart_query(
+        let registry_addr = self.base.abstract_registry()?.address;
+        let ModulesResponse { modules } = self.base.deps().querier.query(&wasm_smart_query(
             registry_addr.into_string(),
             &QueryMsg::Modules { infos },
         )?)?;
@@ -105,19 +108,20 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     /// Queries the account that owns the namespace
     /// Is also returns the base modules of that account (AccountBase)
     pub fn query_namespace(&self, namespace: Namespace) -> AbstractSdkResult<NamespaceResponse> {
-        let registry_addr = self.base.abstract_registry(self.deps)?.address;
-        let namespace_response: NamespaceResponse = self.deps.querier.query(&wasm_smart_query(
-            registry_addr.into_string(),
-            &QueryMsg::Namespace { namespace },
-        )?)?;
+        let registry_addr = self.base.abstract_registry()?.address;
+        let namespace_response: NamespaceResponse =
+            self.base.deps().querier.query(&wasm_smart_query(
+                registry_addr.into_string(),
+                &QueryMsg::Namespace { namespace },
+            )?)?;
         Ok(namespace_response)
     }
 
     /// Queries the module info of the standalone code id
     pub fn query_standalone_info(&self, code_id: u64) -> AbstractSdkResult<Option<ModuleInfo>> {
-        let registry_addr = self.base.abstract_registry(self.deps)?.address;
+        let registry_addr = self.base.abstract_registry()?.address;
 
-        let info = STANDALONE_INFOS.query(&self.deps.querier, registry_addr, code_id)?;
+        let info = STANDALONE_INFOS.query(&self.base.deps().querier, registry_addr, code_id)?;
         Ok(info)
     }
 }

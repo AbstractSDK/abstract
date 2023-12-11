@@ -91,6 +91,20 @@ pub struct AccountBase {
     pub proxy: Addr,
 }
 
+impl AccountBase {
+    pub fn proxy_address(&self) -> Addr {
+        self.proxy.clone()
+    }
+
+    pub fn manager_address(&self) -> Addr {
+        self.manager.clone()
+    }
+
+    pub fn account_base(&self) -> AccountBase {
+        self.clone()
+    }
+}
+
 /// Version Control Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {

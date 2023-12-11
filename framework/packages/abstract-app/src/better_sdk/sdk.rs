@@ -1,37 +1,21 @@
-use crate::{
-    better_sdk::contexts::AppExecCtx, mock::MockError, state::AppState, AppContract, AppError,
-};
+use crate::{state::AppState, AppContract, AppError};
 use abstract_core::{
-    app::{AppConfigResponse, BaseInstantiateMsg, BaseMigrateMsg},
-    module_factory::{ContextResponse, QueryMsg as FactoryQuery},
-    objects::{
-        dependency::{Dependency, StaticDependency},
-        module::ModuleId,
-        module_version::{assert_contract_upgrade, set_module_data, ModuleDataResponse, MODULE},
-    },
+    objects::{dependency::Dependency, module::ModuleId},
     IBC_CLIENT,
 };
 use abstract_sdk::{
     base::VersionString,
-    cw_helpers::wasm_smart_query,
-    feature_objects::{AnsHost, VersionControlContract},
+    feature_objects::AnsHost,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE},
     AbstractSdkError,
 };
-use cosmwasm_std::{
-    coins, Addr, BankMsg, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, ReplyOn, Response,
-    StdError,
-};
-use cw2::set_contract_version;
-use cw_controllers::{Admin, AdminResponse};
+use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo};
+use cw_controllers::Admin;
 use cw_storage_plus::Item;
 
 use super::{
     account_identification::AccountIdentification,
-    contexts::{AppInstantiateCtx, AppMigrateCtx, AppQueryCtx},
     execution_stack::{CustomData, CustomEvents, DepsAccess},
-    module_identification::ModuleIdentification,
-    modules::ModuleInterface,
     nameservice::AbstractNameService,
 };
 
@@ -65,60 +49,6 @@ impl ModuleStateInfo {
             version,
             metadata,
         }
-    }
-}
-
-impl DepsAccess for (DepsMut<'_>, Env, MessageInfo) {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        self.0.branch()
-    }
-
-    fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b> {
-        self.0.as_ref()
-    }
-
-    fn env(&self) -> Env {
-        self.1.clone()
-    }
-
-    fn message_info(&self) -> MessageInfo {
-        self.2.clone()
-    }
-}
-
-impl DepsAccess for (DepsMut<'_>, Env) {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        self.0.branch()
-    }
-
-    fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b> {
-        self.0.as_ref()
-    }
-
-    fn env(&self) -> Env {
-        self.1.clone()
-    }
-
-    fn message_info(&self) -> MessageInfo {
-        unimplemented!()
-    }
-}
-
-impl DepsAccess for (Deps<'_>, Env) {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        unimplemented!()
-    }
-
-    fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b> {
-        self.0
-    }
-
-    fn env(&self) -> Env {
-        self.1.clone()
-    }
-
-    fn message_info(&self) -> MessageInfo {
-        unimplemented!()
     }
 }
 
@@ -477,25 +407,25 @@ impl<
 //     }
 // }
 
-pub trait BaseIbcCallback {
-    fn base_ibc(&self, ctx: &mut AppExecCtx) -> Result<(), AppError> {
-        let ibc_client = ctx.modules().module_address(IBC_CLIENT)?;
-        if ctx.info.sender.ne(&ibc_client) {
-            return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
-                caller: ctx.info.sender.clone(),
-                client_addr: ibc_client,
-                module: ctx.module_id()?,
-            }
-            .into());
-        };
-        Ok(())
-    }
-}
+// pub trait BaseIbcCallback {
+//     fn base_ibc(&self, ctx: &mut AppExecCtx) -> Result<(), AppError> {
+//         let ibc_client = ctx.modules().module_address(IBC_CLIENT)?;
+//         if ctx.info.sender.ne(&ibc_client) {
+//             return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
+//                 caller: ctx.info.sender.clone(),
+//                 client_addr: ibc_client,
+//                 module: ctx.module_id()?,
+//             }
+//             .into());
+//         };
+//         Ok(())
+//     }
+// }
 
-impl<T> BaseIbcCallback for T {}
+// impl<T> BaseIbcCallback for T {}
 
-pub struct AbstractApp;
-impl SylviaAbstractContract for AbstractApp {
-    type BaseInstantiateMsg = abstract_core::app::BaseInstantiateMsg;
-    type BaseMigrateMsg = abstract_core::app::BaseMigrateMsg;
-}
+// pub struct AbstractApp;
+// impl SylviaAbstractContract for AbstractApp {
+//     type BaseInstantiateMsg = abstract_core::app::BaseInstantiateMsg;
+//     type BaseMigrateMsg = abstract_core::app::BaseMigrateMsg;
+// }

@@ -1,7 +1,6 @@
 use crate::{
-    better_sdk::{contexts::AppInstantiateCtx, execution_stack::DepsAccess},
-    state::ContractError,
-    AbstractContract, AppContract, Handler,
+    better_sdk::execution_stack::DepsAccess, state::ContractError, AbstractContract, AppContract,
+    Handler,
 };
 
 impl<
@@ -24,8 +23,6 @@ impl<
     type CustomMigrateMsg = MigrateMsg;
     type ReceiveMsg = ReceiveMsg;
     type SudoMsg = SudoMsg;
-
-    type InstantiateCtx = AppInstantiateCtx<'a>;
 
     fn contract(&self) -> &AbstractContract<Self, Error> {
         &self.contract

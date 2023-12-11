@@ -3,37 +3,39 @@ use abstract_core::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
     version_control::AccountBase,
 };
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
 
 // see core::proxy::state::ADMIN
 use crate::{AbstractSdkError, AbstractSdkResult};
 
+use super::DepsAccess;
+
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 
 /// Retrieve identifying information about an Account.
 /// This includes the manager, proxy, core and account_id.
-pub trait AccountIdentification: Sized {
+pub trait AccountIdentification: DepsAccess + Sized {
     /// Get the proxy address for the current account.
-    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr>;
+    fn proxy_address(&self) -> AbstractSdkResult<Addr>;
     /// Get the manager address for the current account.
-    fn manager_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
-        let maybe_proxy_manager = MANAGER.query(&deps.querier, self.proxy_address(deps)?)?;
+    fn manager_address(&self) -> AbstractSdkResult<Addr> {
+        let maybe_proxy_manager = MANAGER.query(&self.deps().querier, self.proxy_address()?)?;
         maybe_proxy_manager.ok_or_else(|| AbstractSdkError::AdminNotSet {
-            proxy_addr: self.proxy_address(deps).unwrap(),
+            proxy_addr: self.proxy_address().unwrap(),
         })
     }
     /// Get the AccountBase for the current account.
-    fn account_base(&self, deps: Deps) -> AbstractSdkResult<AccountBase> {
+    fn account_base(&self) -> AbstractSdkResult<AccountBase> {
         Ok(AccountBase {
-            manager: self.manager_address(deps)?,
-            proxy: self.proxy_address(deps)?,
+            manager: self.manager_address()?,
+            proxy: self.proxy_address()?,
         })
     }
     /// Get the Account id for the current account.
-    fn account_id(&self, deps: Deps) -> AbstractSdkResult<AccountId> {
+    fn account_id(&self) -> AbstractSdkResult<AccountId> {
         ACCOUNT_ID
-            .query(&deps.querier, self.proxy_address(deps)?)
+            .query(&self.deps().querier, self.proxy_address()?)
             .map_err(Into::into)
     }
 }
@@ -42,12 +44,33 @@ pub trait AccountIdentification: Sized {
 mod test {
     use super::*;
     use abstract_testing::prelude::*;
+    use cosmwasm_std::DepsMut;
     use speculoos::prelude::*;
 
-    struct MockBinding;
+    struct MockBinding<'a> {
+        deps: DepsMut<'a>,
+    }
 
-    impl AccountIdentification for MockBinding {
-        fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+    impl<'a> DepsAccess for MockBinding<'a> {
+        fn deps_mut<'b: 'c, 'c>(&'b mut self) -> cosmwasm_std::DepsMut<'c> {
+            self.deps.branch()
+        }
+
+        fn deps<'b: 'c, 'c>(&'b self) -> cosmwasm_std::Deps<'c> {
+            self.deps.as_ref()
+        }
+
+        fn env(&self) -> cosmwasm_std::Env {
+            unimplemented!()
+        }
+
+        fn message_info(&self) -> cosmwasm_std::MessageInfo {
+            unimplemented!()
+        }
+    }
+
+    impl<'a> AccountIdentification for MockBinding<'a> {
+        fn proxy_address(&self) -> AbstractSdkResult<Addr> {
             Ok(Addr::unchecked(TEST_PROXY))
         }
     }
@@ -58,10 +81,12 @@ mod test {
 
         #[test]
         fn test_proxy_address() {
-            let binding = MockBinding;
-            let deps = mock_dependencies();
+            let mut deps = mock_dependencies();
+            let binding = MockBinding {
+                deps: deps.as_mut(),
+            };
 
-            let res = binding.proxy_address(deps.as_ref());
+            let res = binding.proxy_address();
             assert_that!(res)
                 .is_ok()
                 .is_equal_to(Addr::unchecked(TEST_PROXY));
@@ -69,14 +94,16 @@ mod test {
 
         #[test]
         fn test_manager_address() {
-            let binding = MockBinding;
             let mut deps = mock_dependencies();
 
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)))
                 .build();
+            let binding = MockBinding {
+                deps: deps.as_mut(),
+            };
 
-            assert_that!(binding.manager_address(deps.as_ref()))
+            assert_that!(binding.manager_address())
                 .is_ok()
                 .is_equal_to(Addr::unchecked(TEST_MANAGER));
         }
@@ -87,14 +114,16 @@ mod test {
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)))
                 .build();
+            let binding = MockBinding {
+                deps: deps.as_mut(),
+            };
 
             let expected_account_base = AccountBase {
                 manager: Addr::unchecked(TEST_MANAGER),
                 proxy: Addr::unchecked(TEST_PROXY),
             };
 
-            let binding = MockBinding;
-            assert_that!(binding.account_base(deps.as_ref()))
+            assert_that!(binding.account_base())
                 .is_ok()
                 .is_equal_to(expected_account_base);
         }
@@ -106,8 +135,10 @@ mod test {
                 .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .build();
 
-            let binding = MockBinding;
-            assert_that!(binding.account_id(deps.as_ref()))
+            let binding = MockBinding {
+                deps: deps.as_mut(),
+            };
+            assert_that!(binding.account_id())
                 .is_ok()
                 .is_equal_to(TEST_ACCOUNT_ID);
         }

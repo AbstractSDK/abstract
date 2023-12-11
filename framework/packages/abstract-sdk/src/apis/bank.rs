@@ -1,17 +1,18 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
+use crate::account_action::{ExecuteOptions, ReplyOptions};
 use crate::core::objects::{AnsAsset, AssetEntry};
 use crate::features::AccountIdentification;
-use crate::AccountAction;
+use crate::Execution;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
-use cosmwasm_std::to_json_binary;
-use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
+use cosmwasm_std::{to_json_binary, ReplyOn};
+use cosmwasm_std::{Addr, Coin, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
 
 /// Query and Transfer assets from and to the Abstract Account.
-pub trait TransferInterface: AbstractNameService + AccountIdentification {
+pub trait TransferInterface: AbstractNameService + AccountIdentification + Execution {
     /**
         API for transferring funds to and from the account.
 
@@ -26,12 +27,15 @@ pub trait TransferInterface: AbstractNameService + AccountIdentification {
         let bank: Bank<MockModule>  = module.bank(deps.as_ref());
         ```
     */
-    fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
-        Bank { base: self, deps }
+    fn bank(&mut self) -> Bank<Self> {
+        Bank {
+            base: self,
+            options: ExecuteOptions::default(),
+        }
     }
 }
 
-impl<T> TransferInterface for T where T: AbstractNameService + AccountIdentification {}
+impl<T> TransferInterface for T where T: AbstractNameService + AccountIdentification + Execution {}
 
 /**
     API for transferring funds to and from the account.
@@ -47,13 +51,31 @@ impl<T> TransferInterface for T where T: AbstractNameService + AccountIdentifica
     let bank: Bank<MockModule>  = module.bank(deps.as_ref());
     ```
 */
-#[derive(Clone)]
 pub struct Bank<'a, T: TransferInterface> {
-    base: &'a T,
-    deps: Deps<'a>,
+    base: &'a mut T,
+    options: ExecuteOptions,
 }
 
 impl<'a, T: TransferInterface> Bank<'a, T> {
+    /// Registers the reply that will be used when executing the message
+    pub fn with_reply(mut self, reply_on: ReplyOn, id: u64) -> Self {
+        self.options.reply = Some(ReplyOptions {
+            reply_on,
+            id,
+            with_data: false,
+        });
+        self
+    }
+    /// Allows for reflecting the data on the reply handler
+    pub fn with_reply_and_data(mut self, reply_on: ReplyOn, id: u64) -> Self {
+        self.options.reply = Some(ReplyOptions {
+            reply_on,
+            id,
+            with_data: true,
+        });
+        self
+    }
+
     /// Get the balances of the provided assets.
     pub fn balances(&self, assets: &[AssetEntry]) -> AbstractSdkResult<Vec<Asset>> {
         assets
@@ -63,9 +85,9 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
     /// Get the balance of the provided asset.
     pub fn balance(&self, asset: &AssetEntry) -> AbstractSdkResult<Asset> {
-        let resolved_info = asset.resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)?;
+        let resolved_info = asset.resolve(&self.base.deps().querier, &self.base.ans_host()?)?;
         let balance =
-            resolved_info.query_balance(&self.deps.querier, self.base.proxy_address(self.deps)?)?;
+            resolved_info.query_balance(&self.base.deps().querier, self.base.proxy_address()?)?;
         Ok(Asset::new(resolved_info, balance))
     }
 
@@ -109,43 +131,43 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     ///         .add_attribute("asset_sent", requested_asset.to_string()))
     /// }
     /// ```
+
     pub fn transfer<R: Transferable>(
-        &self,
+        &mut self,
         funds: Vec<R>,
         recipient: &Addr,
-    ) -> AbstractSdkResult<AccountAction> {
+    ) -> AbstractSdkResult<()> {
         let transferable_funds = funds
             .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .map(|asset| asset.transferable_asset(self.base, self.base.deps()))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         let msgs = transferable_funds
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(AccountAction::from_vec(msgs))
+        self.base
+            .executor()
+            .execute_with_options(msgs, self.options.clone())
     }
 
     /// Move funds from the contract into the Account.
-    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
-        let recipient = self.base.proxy_address(self.deps)?;
+    pub fn deposit<R: Transferable>(&mut self, funds: Vec<R>) -> AbstractSdkResult<()> {
+        let recipient = self.base.proxy_address()?;
         let transferable_funds = funds
             .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .map(|asset| asset.transferable_asset(self.base, self.base.deps()))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
-        transferable_funds
+        let msgs = transferable_funds
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(Into::into)
+            .collect::<Result<Vec<_>, _>>()?;
+        self.base.push_app_messages(msgs);
+        Ok(())
     }
 
     /// Withdraw funds from the Account to this contract.
-    pub fn withdraw<R: Transferable>(
-        &self,
-        env: &Env,
-        funds: Vec<R>,
-    ) -> AbstractSdkResult<AccountAction> {
+    pub fn withdraw<R: Transferable>(&mut self, env: &Env, funds: Vec<R>) -> AbstractSdkResult<()> {
         let recipient = &env.contract.address;
         self.transfer(funds, recipient)
     }
@@ -156,16 +178,16 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     ///
     /// In order to send funds with your message, you need to construct the message yourself
     pub fn send<R: Transferable, M: Serialize>(
-        &self,
+        &mut self,
         funds: R,
         recipient: &Addr,
         message: &M,
-    ) -> AbstractSdkResult<AccountAction> {
-        let transferable_funds = funds.transferable_asset(self.base, self.deps)?;
+    ) -> AbstractSdkResult<()> {
+        let transferable_funds = funds.transferable_asset(self.base, self.base.deps())?;
 
-        let msgs = transferable_funds.send_msg(recipient, to_json_binary(message)?)?;
+        let msg = transferable_funds.send_msg(recipient, to_json_binary(message)?)?;
 
-        Ok(AccountAction::from_vec(vec![msgs]))
+        self.base.executor().execute(vec![msg])
     }
 }
 
@@ -185,7 +207,7 @@ impl Transferable for &AnsAsset {
         base: &T,
         deps: Deps,
     ) -> AbstractSdkResult<Asset> {
-        self.resolve(&deps.querier, &base.ans_host(deps)?)
+        self.resolve(&deps.querier, &base.ans_host()?)
     }
 }
 
@@ -195,7 +217,7 @@ impl Transferable for AnsAsset {
         base: &T,
         deps: Deps,
     ) -> AbstractSdkResult<Asset> {
-        self.resolve(&deps.querier, &base.ans_host(deps)?)
+        self.resolve(&deps.querier, &base.ans_host()?)
     }
 }
 
@@ -226,29 +248,28 @@ mod test {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
+    pub type ExecutionEnv<'a> = (DepsMut<'a>, Env, MessageInfo);
+    use crate::base::features::ResponseGenerator;
 
     mod transfer_coins {
         use abstract_core::proxy::ExecuteMsg;
-
-        use crate::{Execution, Executor, ExecutorMsg};
 
         use super::*;
 
         #[test]
         fn transfer_asset_to_sender() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
+            let mut deps = mock_dependencies();
+            let mut app = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
 
             // ANCHOR: transfer
             let recipient: Addr = Addr::unchecked("recipient");
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let mut bank: Bank<'_, MockModule<ExecutionEnv>> = app.bank();
             let coins: Vec<Coin> = coins(100u128, "asset");
-            let bank_transfer: AccountAction = bank.transfer(coins.clone(), &recipient).unwrap();
-
-            let executor: Executor<'_, MockModule> = app.executor(deps.as_ref());
-            let account_message: ExecutorMsg = executor.execute(vec![bank_transfer]).unwrap();
-            let response: Response = Response::new().add_message(account_message);
+            /*let bank_transfer = */
+            bank.transfer(coins.clone(), &recipient).unwrap();
             // ANCHOR_END: transfer
+
+            let response: Response = app._generate_response().unwrap();
 
             let expected_msg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: recipient.to_string(),
@@ -276,19 +297,19 @@ mod test {
 
         #[test]
         fn deposit() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
+            let mut deps = mock_dependencies();
+            let mut app = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
 
             // ANCHOR: deposit
             // Get bank API struct from the app
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let mut bank: Bank<'_, MockModule<ExecutionEnv>> = app.bank();
             // Create coins to deposit
             let coins: Vec<Coin> = coins(100u128, "asset");
             // Construct messages for deposit (transfer from this contract to the account)
-            let deposit_msgs: Vec<CosmosMsg> = bank.deposit(coins.clone()).unwrap();
-            // Add to response
-            let response: Response = Response::new().add_messages(deposit_msgs);
+            bank.deposit(coins.clone()).unwrap();
             // ANCHOR_END: deposit
+            // Add to response
+            let response: Response = app._generate_response().unwrap();
 
             let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: TEST_PROXY.to_string(),
@@ -300,25 +321,29 @@ mod test {
     }
 
     mod withdraw_coins {
+        use crate::{features::Executable, AccountAction};
+
         use super::*;
 
         #[test]
         fn withdraw_coins() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
+            let mut deps = mock_dependencies();
+            let mut app = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
             let expected_amount = 100u128;
             let env = mock_env();
 
-            let bank = app.bank(deps.as_ref());
+            let mut bank = app.bank();
             let coins = coins(expected_amount, "asset");
-            let actual_res = bank.withdraw(&env, coins.clone());
+            bank.withdraw(&env, coins.clone()).unwrap();
 
             let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: env.contract.address.to_string(),
                 amount: coins,
             });
 
-            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
+            assert_that!(app.executables.0[0]).is_equal_to(Executable::AccountAction(
+                AccountAction::from_vec(vec![expected_msg]),
+            ));
         }
     }
 
@@ -326,22 +351,22 @@ mod test {
         use cw20::Cw20ExecuteMsg;
         use cw_asset::AssetError;
 
-        use crate::AbstractSdkError;
+        use crate::{features::Executable, AbstractSdkError, AccountAction};
 
         use super::*;
 
         #[test]
         fn send_cw20() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
+            let mut deps = mock_dependencies();
+            let mut app = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
             let expected_amount = 100u128;
             let expected_recipient = Addr::unchecked("recipient");
 
-            let bank = app.bank(deps.as_ref());
+            let mut bank = app.bank();
             let hook_msg = Empty {};
             let asset = Addr::unchecked("asset");
             let coin = Asset::cw20(asset.clone(), expected_amount);
-            let actual_res = bank.send(coin, &expected_recipient, &hook_msg);
+            bank.send(coin, &expected_recipient, &hook_msg).unwrap();
 
             let expected_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: asset.to_string(),
@@ -354,17 +379,19 @@ mod test {
                 funds: vec![],
             });
 
-            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
+            assert_that!(app.executables.0[0]).is_equal_to(Executable::AccountAction(
+                AccountAction::from_vec(vec![expected_msg]),
+            ));
         }
 
         #[test]
         fn send_coins() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
+            let mut deps = mock_dependencies();
+            let mut app = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
             let expected_amount = 100u128;
             let expected_recipient = Addr::unchecked("recipient");
 
-            let bank = app.bank(deps.as_ref());
+            let mut bank = app.bank();
             let coin = coin(expected_amount, "asset");
             let hook_msg = Empty {};
             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);

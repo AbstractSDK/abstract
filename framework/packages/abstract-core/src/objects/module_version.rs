@@ -17,7 +17,7 @@ For more information on this specification, please check out the
 [README](https://github.com/CosmWasm/cw-plus/blob/main/packages/cw2/README.md).
  */
 
-use super::dependency::{Dependency, DependencyResponse, StaticDependency};
+use super::dependency::{Dependency, DependencyResponse};
 use crate::AbstractError;
 use cosmwasm_std::{
     ensure, ensure_eq, Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Storage, WasmQuery,
@@ -172,6 +172,8 @@ pub fn query_module_data<Q: Querier, T: Into<String>>(
 
 #[cfg(test)]
 mod tests {
+    use crate::objects::dependency::StaticDependency;
+
     use super::*;
     use cosmwasm_std::testing::MockStorage;
 
