@@ -1,23 +1,32 @@
 use abstract_app::mock::{
-    interface::MockAppInterface, MockExecMsgFns, MockInitMsg, MockQueryMsgFns, MockQueryResponse,
+    interface::MockAppInterface, mock_app_dependency::interface::MockAppDependencyInterface,
+    MockExecMsgFns, MockInitMsg, MockQueryMsgFns, MockQueryResponse,
 };
 use abstract_client::{
     account::Account, application::Application, client::AbstractClient, publisher::Publisher,
 };
 use abstract_core::{
-    manager::state::AccountInfo,
+    manager::{
+        state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
+    },
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
 };
 use abstract_interface::VCQueryFns;
-use cosmwasm_std::Addr;
+use abstract_testing::{
+    prelude::{
+        TEST_DEPENDENCY_MODULE_ID, TEST_DEPENDENCY_NAMESPACE, TEST_MODULE_ID, TEST_NAMESPACE,
+        TEST_VERSION,
+    },
+    OWNER,
+};
+use cosmwasm_std::{Addr, Empty};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::{CallAs, Mock};
-
-const ADMIN: &str = "admin";
+use cw_ownable::Ownership;
 
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let account: Account<Mock> = client.account_builder().build()?;
 
@@ -28,11 +37,21 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
             governance_details: GovernanceDetails::Monarchy {
-                monarch: Addr::unchecked(ADMIN)
+                monarch: Addr::unchecked(OWNER)
             },
             link: None,
         },
         account_info
+    );
+
+    let ownership: Ownership<String> = account.ownership()?;
+    assert_eq!(
+        Ownership {
+            owner: Some(OWNER.to_owned()),
+            pending_owner: None,
+            pending_expiry: None
+        },
+        ownership
     );
 
     Ok(())
@@ -42,7 +61,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
 fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let asset = "asset";
 
-    let client = AbstractClient::builder(ADMIN)
+    let client = AbstractClient::builder(OWNER)
         .asset(asset, AssetInfoUnchecked::native(asset))
         .build()?;
 
@@ -88,7 +107,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_account_from_namespace() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = "namespace";
     let account: Account<Mock> = client.account_builder().namespace(namespace).build()?;
@@ -105,7 +124,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
 
 #[test]
 fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let publisher: Publisher<Mock> = client.publisher_builder().build()?;
 
@@ -116,7 +135,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
             governance_details: GovernanceDetails::Monarchy {
-                monarch: Addr::unchecked(ADMIN)
+                monarch: Addr::unchecked(OWNER)
             },
             link: None,
         },
@@ -129,7 +148,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
 #[test]
 fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let asset = "asset";
-    let client = AbstractClient::builder(ADMIN)
+    let client = AbstractClient::builder(OWNER)
         .asset(asset, AssetInfoUnchecked::native(asset))
         .build()?;
 
@@ -175,7 +194,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = "namespace";
     let publisher: Publisher<Mock> = client.publisher_builder().namespace(namespace).build()?;
@@ -193,17 +212,20 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
 
 #[test]
 fn can_publish_and_install_app() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
-    let publisher: Publisher<Mock> = client.publisher_builder().namespace("tester").build()?;
+    let publisher: Publisher<Mock> = client
+        .publisher_builder()
+        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .build()?;
 
     let publisher_admin = publisher.admin()?;
     let publisher_proxy = publisher.proxy()?;
 
-    publisher.publish_app::<MockAppInterface<Mock>>()?;
+    publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
 
-    let my_app: Application<Mock, MockAppInterface<Mock>> =
-        publisher.install_app::<MockAppInterface<Mock>>(&MockInitMsg, &[])?;
+    let my_app: Application<Mock, MockAppDependencyInterface<Mock>> =
+        publisher.install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg, &[])?;
 
     my_app.call_as(&publisher.admin()?).do_something()?;
 
@@ -231,7 +253,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
 #[test]
 fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = "namespace";
 
@@ -247,7 +269,7 @@ fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Res
 
 #[test]
 fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(ADMIN).build()?;
+    let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = "namespace";
 
@@ -260,6 +282,80 @@ fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<
         .build()?;
 
     assert_eq!(account1.get_account_info()?, account2.get_account_info()?);
+
+    Ok(())
+}
+
+#[test]
+fn can_install_module_with_dependencies() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(OWNER).build()?;
+
+    let app_publisher: Publisher<Mock> = client
+        .publisher_builder()
+        .namespace(TEST_NAMESPACE)
+        .build()?;
+
+    let app_dependency_publisher: Publisher<Mock> = client
+        .publisher_builder()
+        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .build()?;
+
+    app_dependency_publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
+    app_publisher.publish_app::<MockAppInterface<Mock>>()?;
+
+    let my_app: Application<Mock, MockAppInterface<Mock>> = app_publisher
+        .install_app_with_dependencies::<MockAppInterface<Mock>>(&MockInitMsg, Empty {}, &[])?;
+
+    my_app.call_as(&app_publisher.admin()?).do_something()?;
+
+    let something = my_app.get_something()?;
+
+    assert_eq!(MockQueryResponse {}, something);
+
+    let module_infos_response: ModuleInfosResponse = my_app.account().module_infos()?;
+    let module_addresses_response: ModuleAddressesResponse =
+        my_app.account().module_addresses(vec![
+            TEST_MODULE_ID.to_owned(),
+            TEST_DEPENDENCY_MODULE_ID.to_owned(),
+        ])?;
+
+    let app_address: Addr = module_addresses_response
+        .modules
+        .iter()
+        .find(|(module_id, _)| module_id == TEST_MODULE_ID)
+        .unwrap()
+        .clone()
+        .1;
+
+    let app_dependency_address: Addr = module_addresses_response
+        .modules
+        .iter()
+        .find(|(module_id, _)| module_id == TEST_DEPENDENCY_MODULE_ID)
+        .unwrap()
+        .clone()
+        .1;
+
+    assert!(module_infos_response
+        .module_infos
+        .contains(&ManagerModuleInfo {
+            id: TEST_DEPENDENCY_MODULE_ID.to_owned(),
+            version: cw2::ContractVersion {
+                contract: TEST_DEPENDENCY_MODULE_ID.to_owned(),
+                version: TEST_VERSION.to_owned()
+            },
+            address: app_dependency_address,
+        }));
+
+    assert!(module_infos_response
+        .module_infos
+        .contains(&ManagerModuleInfo {
+            id: TEST_MODULE_ID.to_owned(),
+            version: cw2::ContractVersion {
+                contract: TEST_MODULE_ID.to_owned(),
+                version: TEST_VERSION.to_owned()
+            },
+            address: app_address,
+        }));
 
     Ok(())
 }

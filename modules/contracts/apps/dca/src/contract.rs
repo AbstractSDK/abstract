@@ -8,6 +8,12 @@ use abstract_core::objects::dependency::StaticDependency;
 use cosmwasm_std::{Empty, Response};
 use croncat_app::contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION};
 
+#[cfg(feature = "interface")]
+use croncat_app::contract::interface::Croncat;
+
+#[cfg(feature = "interface")]
+use abstract_core::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
+
 /// The version of your app
 pub const DCA_APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// The id of the app
@@ -37,3 +43,36 @@ abstract_app::export_endpoints!(DCA_APP, DCAApp);
 
 #[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(DCA_APP, DCAApp, DCA);
+
+#[cfg(feature = "interface")]
+impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
+    for crate::DCA<Chain>
+{
+    type DependenciesConfig = cosmwasm_std::Empty;
+
+    fn dependency_install_configs(
+        _configuration: Self::DependenciesConfig,
+    ) -> Result<Vec<ModuleInstallConfig>, abstract_interface::AbstractInterfaceError> {
+        let croncat_dependency_install_configs: Vec<ModuleInstallConfig> =
+            <Croncat<Chain> as abstract_interface::DependencyCreation>::dependency_install_configs(
+                cosmwasm_std::Empty {},
+            )?;
+        let adapter_install_config = ModuleInstallConfig::new(
+            ModuleInfo::from_id(
+                abstract_dex_adapter::DEX_ADAPTER_ID,
+                abstract_dex_adapter::contract::CONTRACT_VERSION.into(),
+            )?,
+            None,
+        );
+        let croncat_install_config =
+            <Croncat<Chain> as abstract_interface::InstallConfig>::install_config(
+                &croncat_app::msg::AppInstantiateMsg {},
+            )?;
+
+        Ok([
+            croncat_dependency_install_configs,
+            vec![croncat_install_config, adapter_install_config],
+        ]
+        .concat())
+    }
+}
