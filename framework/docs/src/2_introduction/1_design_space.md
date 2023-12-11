@@ -31,9 +31,6 @@ flowchart LR
     end
 
     User[fa:fa-users Users] ==> A
-
-    style User fill: #161b25
-    style A fill: #161b25
 ```
 
 #### Building a Hosted Auto-Compounder
@@ -63,12 +60,6 @@ flowchart LR
     end
 
     User[fa:fa-users Users] ==> Autocompounder
-
-    style User fill: #161b25
-    style Autocompounder fill: #161b25
-    style Staking fill: #161b25
-    style Dex fill: #161b25
-    style Account fill: #161b25
 ```
 
 This approach offers two significant benefits:
@@ -115,16 +106,6 @@ flowchart LR
     Store -.-> Ap3
 
     A ==> Store[fa:fa-store App Store]
-
-    style A fill: #161b25
-    style Store fill: #161b25
-    style Ap1 fill: #161b25
-    style Ap2 fill: #161b25
-    style Ap3 fill: #161b25
-    style A1 fill: #161b25
-    style A2 fill: #161b25
-    style A3 fill: #161b25
-
 ```
 
 This approach offers two significant benefits:
