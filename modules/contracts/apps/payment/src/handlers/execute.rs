@@ -8,7 +8,7 @@ use cosmwasm_std::{Addr, Storage, Uint128};
 
 use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_sdk::features::{AbstractNameService, AccountIdentification};
-use abstract_sdk::AbstractResponse;
+use abstract_sdk::prelude::*;
 use cosmwasm_std::{CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response};
 use cw_asset::{Asset, AssetList};
 
@@ -51,8 +51,9 @@ pub fn tip(
         deposited_assets.add(cw20_deposit)?;
     }
 
+    
     // forward payment to the proxy contract
-    let forward_payment_msgs = deposited_assets.transfer_msgs(app.proxy_address(deps.as_ref())?)?;
+    let forward_payment_msgs = app.bank(deps.as_ref()).deposit(deposited_assets.to_vec())?;
 
     // resp
     let app_resp = app.tag_response(
