@@ -1,6 +1,4 @@
-use cosmwasm_std::{
-    to_json_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, Uint128,
-};
+use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use cw_semver::Version;
 
@@ -55,10 +53,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
         &Config {
             allow_direct_module_registration_and_updates:
                 allow_direct_module_registration_and_updates.unwrap_or(false),
-            namespace_registration_fee: namespace_registration_fee.unwrap_or(Coin {
-                denom: "none".to_string(),
-                amount: Uint128::zero(),
-            }),
+            namespace_registration_fee: namespace_registration_fee.unwrap_or_default(),
         },
     )?;
 
@@ -131,8 +126,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             to_json_binary(&queries::handle_namespace_query(deps, namespace)?)
         }
         QueryMsg::Config {} => {
-            let factory = FACTORY.get(deps)?.unwrap();
-            to_json_binary(&ConfigResponse { factory })
+            let config = CONFIG.load(deps.storage)?;
+            to_json_binary(&ConfigResponse {
+                allow_direct_module_registration_and_updates: config
+                    .allow_direct_module_registration_and_updates,
+                namespace_registration_fee: config.namespace_registration_fee,
+            })
         }
         QueryMsg::ModuleList {
             filter,

@@ -23,13 +23,12 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        account::AccountId, common_namespace::ADMIN_NAMESPACE, module::ModuleInfo,
-        module_reference::ModuleReference, namespace::Namespace,
+        account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
+        namespace::Namespace,
     };
 
     use super::{AccountBase, Config, ModuleConfiguration, ModuleDefaultConfiguration};
 
-    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const FACTORY: Admin = Admin::new("fac");
 
     pub const CONFIG: Item<Config> = Item::new("cfg");
@@ -319,7 +318,8 @@ pub struct NamespaceListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub factory: Addr,
+    pub allow_direct_module_registration_and_updates: bool,
+    pub namespace_registration_fee: cosmwasm_std::Coin,
 }
 
 #[cosmwasm_schema::cw_serde]
