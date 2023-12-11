@@ -68,7 +68,7 @@ sequenceDiagram
         end
     end
 
-    alt
+    opt
         M -> M: Migrate self
     end
     M -> M: Update dependencies

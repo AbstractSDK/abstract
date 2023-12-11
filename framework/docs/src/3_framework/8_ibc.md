@@ -24,7 +24,7 @@ out <a href="https://mapofzones.com/home?columnKey=ibcVolume&period=24h" target=
 
 Developers quickly started developing applications with IBC after its release. But they quickly ran into a major
 problem. **IBC is not developer friendly.** It's a low-level protocol that requires extensive knowledge about its inner
-workings. These problems were quickly recognized by the CosmWasm community. In response DOA-DAO
+workings. These problems were quickly recognized by the CosmWasm community. In response DAO-DAO
 built <a href="https://github.com/DA0-DA0/polytone" target="_blank">`Polytone`</a>, an Interchain Account (ICA) solution for CosmWasm
 smart-contracts. This was a great step forward for interchain CosmWasm development, but it introduced its own
 complexities and knowledge requirements.
