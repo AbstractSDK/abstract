@@ -22,7 +22,7 @@ use crate::state::{CONFIG, TIPPERS, TIPPER_COUNT, TIP_COUNT};
 
 pub fn execute_handler(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     app: PaymentApp,
     msg: AppExecuteMsg,
@@ -33,13 +33,14 @@ pub fn execute_handler(
             denom_asset,
             exchanges,
         } => update_config(deps, info, app, desired_asset, denom_asset, exchanges),
-        AppExecuteMsg::Tip {} => tip(deps, info, app, None),
+        AppExecuteMsg::Tip {} => tip(deps, env, info, app, None),
     }
 }
 
 // Called when a payment is made to the app
 pub fn tip(
     deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     app: PaymentApp,
     cw20_receipt: Option<Asset>,
@@ -69,7 +70,7 @@ pub fn tip(
     // If there is no desired asset specified, just forward the payment.
     let Some(desired_asset) = config.desired_asset else {
         // Add assets as is
-        update_tipper_history(deps.storage, &info.sender, &asset_entries)?;
+        update_tipper_history(deps.storage, &info.sender, &asset_entries, env.block.height)?;
         return Ok(app_resp);
     };
 
@@ -136,7 +137,7 @@ pub fn tip(
     }
 
     // Tip history
-    update_tipper_history(deps.storage, &info.sender, &assets_to_add)?;
+    update_tipper_history(deps.storage, &info.sender, &assets_to_add, env.block.height)?;
 
     // forward deposit and execute swaps if there are any
     Ok(app_resp
@@ -148,6 +149,7 @@ fn update_tipper_history(
     storage: &mut dyn Storage,
     sender: &Addr,
     assets: &[AnsAsset],
+    height: u64,
 ) -> Result<(), AppError> {
     // Update total counts
     let total_count = TIP_COUNT.load(storage)?;
@@ -162,7 +164,7 @@ fn update_tipper_history(
             .may_load(storage, (sender, &asset.name))?
             .unwrap_or_default();
         total_tipper_amount += &asset.amount;
-        TIPPERS.save(storage, (sender, &asset.name), &total_tipper_amount)?;
+        TIPPERS.save(storage, (sender, &asset.name), &total_tipper_amount, height)?;
     }
 
     Ok(())

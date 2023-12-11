@@ -13,8 +13,8 @@ use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{
-        AppInstantiateMsg, ConfigResponse, TipCountResponse, TipperCountResponse, TipperResponse,
-        TippersCountResponse,
+        AppInstantiateMsg, ConfigResponse, TipAmountAtHeightResponse, TipCountResponse,
+        TipperCountResponse, TipperResponse, TippersCountResponse,
     },
     *,
 };
@@ -154,7 +154,7 @@ fn test_simple_tip() -> anyhow::Result<()> {
     // Create the mock
     let mock = Mock::new(&sender);
 
-    let (account, abstr_deployment, app, wyndex) = setup(mock, None)?;
+    let (account, abstr_deployment, app, wyndex) = setup(mock.clone(), None)?;
     let mock: Mock = abstr_deployment.ans_host.get_chain().clone();
     let WynDex {
         eur_token,
@@ -191,11 +191,29 @@ fn test_simple_tip() -> anyhow::Result<()> {
     let tippers = tippers_response.tippers;
     assert_eq!(
         vec![TipperCountResponse {
-            address: tipper,
+            address: tipper.clone(),
             count: 1,
         }],
         tippers
     );
+
+    // Tip amount at height
+    mock.next_block()?;
+    let current_block_height = mock.block_info()?.height;
+    let amount_response: TipAmountAtHeightResponse = app.tip_at_height(
+        tipper.to_string(),
+        AssetEntry::new(wyndex_bundle::EUR),
+        current_block_height,
+    )?;
+    assert_eq!(amount_response.amount, Some(Uint128::new(tip_amount)));
+
+    let before_snapshot_amount_response: TipAmountAtHeightResponse = app.tip_at_height(
+        tipper.to_string(),
+        AssetEntry::new(wyndex_bundle::EUR),
+        // Previous block
+        current_block_height - 1,
+    )?;
+    assert_eq!(before_snapshot_amount_response.amount, None);
 
     Ok(())
 }

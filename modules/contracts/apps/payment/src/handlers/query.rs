@@ -1,13 +1,14 @@
 use crate::contract::{AppResult, PaymentApp};
-use crate::msg::TipperResponse;
 use crate::msg::TippersCountResponse;
 use crate::msg::{AppQueryMsg, ConfigResponse};
+use crate::msg::{TipAmountAtHeightResponse, TipperResponse};
 use crate::msg::{TipCountResponse, TipperCountResponse};
 use crate::state::{CONFIG, TIPPERS, TIPPER_COUNT, TIP_COUNT};
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, Order, StdResult};
-use cw_paginate::paginate_map_prefix;
 use cw_storage_plus::Bound;
+
+const DEFAULT_LIMIT: u32 = 10;
 
 pub fn query_handler(
     deps: Deps,
@@ -26,6 +27,11 @@ pub fn query_handler(
             start_after,
             limit,
         } => to_json_binary(&query_tipper(deps, address, start_after, limit)?),
+        AppQueryMsg::TipAtHeight {
+            address,
+            asset,
+            height,
+        } => to_json_binary(&query_tip_at_height(deps, address, asset, height)?),
     }
     .map_err(Into::into)
 }
@@ -51,14 +57,18 @@ fn query_tipper(
     limit: Option<u32>,
 ) -> AppResult<TipperResponse> {
     let address = deps.api.addr_validate(&address)?;
-    let amounts = paginate_map_prefix(
-        &TIPPERS,
-        deps.storage,
-        &address,
-        start_after.as_ref().map(Bound::exclusive),
-        limit,
-        |asset, amount| AppResult::Ok(AnsAsset::new(asset, amount)),
-    )?;
+    let amounts = TIPPERS
+        .prefix(&address)
+        .range(
+            deps.storage,
+            start_after.as_ref().map(Bound::exclusive),
+            None,
+            Order::Ascending,
+        )
+        .take(limit.unwrap_or(DEFAULT_LIMIT) as usize)
+        .map(|item| item.map(|(asset, amount)| AnsAsset::new(asset, amount)))
+        .collect::<StdResult<_>>()?;
+
     let count = TIPPER_COUNT
         .may_load(deps.storage, &address)?
         .unwrap_or_default();
@@ -85,9 +95,21 @@ fn query_list_tippers_count(
             None,
             Order::Ascending,
         )
-        .take(limit.unwrap_or(cw_paginate::DEFAULT_LIMIT) as usize)
+        .take(limit.unwrap_or(DEFAULT_LIMIT) as usize)
         .map(|res| res.map(|(address, count)| TipperCountResponse { address, count }))
         .collect::<StdResult<_>>()?;
 
     Ok(TippersCountResponse { tippers })
+}
+
+fn query_tip_at_height(
+    deps: Deps,
+    address: String,
+    asset: AssetEntry,
+    height: u64,
+) -> AppResult<TipAmountAtHeightResponse> {
+    let address = deps.api.addr_validate(&address)?;
+
+    let amount = TIPPERS.may_load_at_height(deps.storage, (&address, &asset), height)?;
+    Ok(TipAmountAtHeightResponse { amount })
 }

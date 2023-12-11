@@ -6,7 +6,7 @@ use crate::contract::{AppResult, PaymentApp};
 
 pub fn receive_handler(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     mut info: MessageInfo,
     app: PaymentApp,
     msg: Cw20ReceiveMsg,
@@ -20,5 +20,5 @@ pub fn receive_handler(
     let receipt = Asset::cw20(info.sender, amount);
 
     info.sender = deps.api.addr_validate(&sender)?;
-    crate::handlers::execute::tip(deps, info, app, Some(receipt))
+    crate::handlers::execute::tip(deps, env, info, app, Some(receipt))
 }
