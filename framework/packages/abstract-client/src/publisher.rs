@@ -134,9 +134,9 @@ impl<Chain: CwEnv> Publisher<Chain> {
     pub fn account(&self) -> &Account<Chain> {
         &self.account
     }
-
+    // TODO: add `account_admin` fn to get the (Sub-)Account's admin.
     pub fn admin(&self) -> AbstractClientResult<Addr> {
-        self.account.direct_admin()
+        self.account.manager()
     }
 
     pub fn proxy(&self) -> AbstractClientResult<Addr> {
