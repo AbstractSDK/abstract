@@ -211,7 +211,8 @@ impl<Chain: CwEnv> Account<Chain> {
                         .query::<_, InfoResponse>(
                             &abstract_core::manager::QueryMsg::Info {},
                             manager,
-                        ).map_err(|err| err.into())?
+                        )
+                        .map_err(|err| err.into())?
                         .info
                         .governance_details;
                 }
