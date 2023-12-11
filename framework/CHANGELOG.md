@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Namespace registration fee fixed
+- Version Control smart query now returns Version Control config instead of factory address
 
 ## [0.19.0] - 2023-09-26
 
