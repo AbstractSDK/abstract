@@ -44,7 +44,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
         account_info
     );
 
-    let ownership: Ownership<String> = account.account_owner()?;
+    let ownership: Ownership<String> = account.ownership()?;
     assert_eq!(
         Ownership {
             owner: Some(OWNER.to_owned()),

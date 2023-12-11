@@ -3,12 +3,15 @@ use abstract_core::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
     },
-    objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
+    objects::{
+        gov_type::GovernanceDetails, namespace::Namespace, nested_admin::MAX_ADMIN_RECURSION,
+        AccountId, AssetEntry,
+    },
     version_control::NamespaceResponse,
 };
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, DependencyCreation, InstallConfig, ManagerExecFns,
-    ManagerQueryFns, RegisteredModule, VCQueryFns,
+    Abstract, AbstractAccount, AccountDetails, DependencyCreation, InstallConfig, Manager,
+    ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
 use cosmwasm_std::Attribute;
 use cw_orch::contract::Contract;
@@ -152,6 +155,8 @@ impl<Chain: CwEnv> Account<Chain> {
         Ok(Self::new(abstract_account))
     }
 
+    // TODO: remove `get_account` prefix
+    // Getters are not prefixed with `get_` in rust.
     pub fn get_account_info(&self) -> AbstractClientResult<AccountInfo<Addr>> {
         let info_response: InfoResponse = self.abstr_account.manager.info()?;
         Ok(info_response.info)
@@ -188,8 +193,34 @@ impl<Chain: CwEnv> Account<Chain> {
         self.install_app_internal(install_configs, funds)
     }
 
-    pub fn account_owner(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
+    pub fn ownership(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
         self.abstr_account.manager.ownership().map_err(Into::into)
+    }
+
+    /// Returns the owner address of the account.
+    /// If the account is a sub-account, it will return the top-level owner address.
+    pub fn owner(&self) -> AbstractClientResult<Addr> {
+        let mut governance = self.abstr_account.manager.info()?.info.governance_details;
+
+        let environment = self.environment();
+        // Get sub-accounts until we get non-sub-account governance or reach recursion limit
+        for _ in 0..MAX_ADMIN_RECURSION {
+            match &governance {
+                GovernanceDetails::SubAccount { manager, .. } => {
+                    governance = environment
+                        .query::<_, InfoResponse>(
+                            &abstract_core::manager::QueryMsg::Info {},
+                            manager,
+                        ).map_err(|err| err.into())?
+                        .info
+                        .governance_details;
+                }
+                _ => break,
+            }
+        }
+
+        // Get top level account owner address
+        Ok(governance.owner_address())
     }
 
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {

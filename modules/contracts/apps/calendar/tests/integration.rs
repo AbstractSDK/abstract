@@ -1132,7 +1132,7 @@ fn slash_full_stake() -> anyhow::Result<()> {
     // Set up the environment and contract
     let (mut app, client) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
-    let admin = app.account().direct_admin()?;
+    let admin = app.account().owner()?;
     let proxy = app.account().proxy()?;
 
     let config: ConfigResponse = app.config()?;
@@ -1183,7 +1183,7 @@ fn return_stake() -> anyhow::Result<()> {
     // Set up the environment and contract
     let (mut app, client) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
-    let admin = app.account().direct_admin()?;
+    let admin = app.account().owner()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -1241,7 +1241,7 @@ fn slash_partial_stake() -> anyhow::Result<()> {
     // Set up the environment and contract
     let (mut app, client) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
-    let admin = app.account().direct_admin()?;
+    let admin = app.account().owner()?;
     let proxy = app.account().proxy()?;
 
     let config: ConfigResponse = app.config()?;
