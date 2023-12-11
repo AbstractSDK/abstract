@@ -6,9 +6,9 @@ the [Account Console](4_account_console.md).
 
 To recap from [that chapter](../3_framework/6_module_types.md), there are three types of modules: App, Adapter, and Standalone.
 
-# Flow Diagrams
+## Flow Diagrams
 
-## Install Module
+### Install Module
 
 When a developer requests the installation of a module, the following internal process is initiated:
 
@@ -47,18 +47,13 @@ Once the module is installed, there are essentially three ways to interact with 
 sequenceDiagram
     autonumber
     actor U as Owner
-    participant M as Manager
-    participant Md as Module
-
-    U ->> M: ExecOnModule
+    participant Md as Module ("addr123")
     Note right of U: ModuleMsg
 
-    M -->> M: Load module address
-    M ->> Md: Execute
-    Note right of M: ModuleMsg
+    U ->> Md: Execute
 ```
 
-<figcaption align = "center"><b>Non-dependent Execution</b></figcaption>
+<figcaption align = "center"><b>Module Execution</b></figcaption>
 
 ### Adapter Execution
 
@@ -68,37 +63,29 @@ In the following example, the `abstract:dex` module is installed on an Account, 
 sequenceDiagram
     autonumber
     actor U as Owner
-    participant M as Manager
     participant D as abstract:dex
     participant VC as Version Control
     participant A as ANS
     participant P as Proxy
     participant T as Dex Pool
-
-    U ->> M: ExecOnModule
-    Note right of U: Dex::Swap
-    M --> M: Load module address
-    M ->> D: Call module
-    Note right of M: Adapter Msg
+    Note right of U: Dex::Swap {proxy: "juno1xd..."}
+    U ->> D: Call module
     D -->+ VC: Load proxy address for Account
     VC -->- D: Address
-
     D -->>+ A: Resolve asset names
     A -->> D: Asset infos
     D --> A: Resolve dex pool
     A -->>- D: Pool metadata
     D --> D: Build swap msg for target dex
-
     D ->> P: Forward execution
     Note over VC, A: DexMsg
     P ->> T: Execute
     Note right of P: DexMsg
-
 ```
 
 <figcaption align = "center"><b>Adapter Execution</b></figcaption>
 
-### User Execution
+### App Execution w/ Dependencies
 
 In this example, we use [Equilibrium](../../use_cases/equilibrium.md)'s `Rebalance` permissionless function as an example. Modules with
 dependencies (`equilibrium:balancer` is dependent on `abstract:etf` and `abstract:dex`) have their addresses dynamically
@@ -132,4 +119,4 @@ sequenceDiagram
     Note over D, M: DexMsg
 ```
 
-<figcaption align = "center"><b>Module-dependent Execution</b></figcaption>
+<figcaption align = "center"><b>Dependent Execution</b></figcaption>

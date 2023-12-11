@@ -12,6 +12,10 @@ and infrastructure for composable smart-contract applications.
 A unique entity within the Abstract framework that can have modules installed onto it, enabling various functionalities.
 It consists of a Manager and a Proxy contract.
 
+## Account
+
+Short for Abstract Account.
+
 ## Abstract Account Console
 
 A web-based interface that provides functionalities like account management, module management, name service, dev tools,
