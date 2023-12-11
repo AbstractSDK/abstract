@@ -10,8 +10,8 @@ use abstract_core::{
     version_control::NamespaceResponse,
 };
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, DependencyCreation, InstallConfig, Manager,
-    ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    Abstract, AbstractAccount, AccountDetails, DependencyCreation, InstallConfig, ManagerExecFns,
+    ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
 use cosmwasm_std::Attribute;
 use cw_orch::contract::Contract;
