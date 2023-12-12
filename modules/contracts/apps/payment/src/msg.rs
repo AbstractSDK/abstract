@@ -1,4 +1,5 @@
 use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
+use abstract_sdk::cw_helpers::Clearable;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
@@ -32,8 +33,7 @@ pub enum AppExecuteMsg {
     #[cfg_attr(feature = "interface", payable)]
     Tip {},
     UpdateConfig {
-        // TODO: Clearable #ABS-269
-        desired_asset: Option<AssetEntry>,
+        desired_asset: Option<Clearable<AssetEntry>>,
         denom_asset: Option<String>,
         exchanges: Option<Vec<DexName>>,
     },

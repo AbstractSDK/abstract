@@ -6,7 +6,7 @@ use abstract_dex_adapter::DexInterface;
 use abstract_sdk::core::ans_host::AssetPairingFilter;
 use cosmwasm_std::{Addr, Storage, Uint128};
 
-use abstract_sdk::cw_helpers::AbstractAttributes;
+use abstract_sdk::cw_helpers::{AbstractAttributes, Clearable};
 use abstract_sdk::features::{AbstractNameService, AccountIdentification};
 use abstract_sdk::AbstractResponse;
 use cosmwasm_std::{CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response};
@@ -171,7 +171,7 @@ fn update_config(
     deps: DepsMut,
     msg_info: MessageInfo,
     app: PaymentApp,
-    desired_asset: Option<AssetEntry>,
+    desired_asset: Option<Clearable<AssetEntry>>,
     denom_asset: Option<String>,
     exchanges: Option<Vec<DexName>>,
 ) -> AppResult {
@@ -181,10 +181,12 @@ fn update_config(
 
     let mut config = CONFIG.load(deps.storage)?;
     if let Some(desired_asset) = desired_asset {
-        name_service
-            .query(&desired_asset)
-            .map_err(|_| AppError::DesiredAssetDoesNotExist {})?;
-        config.desired_asset = Some(desired_asset)
+        if let Clearable::Set(desired_asset) = &desired_asset {
+            name_service
+                .query(desired_asset)
+                .map_err(|_| AppError::DesiredAssetDoesNotExist {})?;
+        }
+        config.desired_asset = desired_asset.into()
     }
     if let Some(exchanges) = exchanges {
         let ans_dexes = name_service.registered_dexes()?;
