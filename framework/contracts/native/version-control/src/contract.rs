@@ -1,6 +1,4 @@
-use cosmwasm_std::{
-    to_json_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, Uint128,
-};
+use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use cw_semver::Version;
 
@@ -11,12 +9,12 @@ use abstract_sdk::core::{
     objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
     version_control::namespaces_info,
     version_control::{
-        state::{CONFIG, FACTORY},
-        ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+        state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     VERSION_CONTROL,
 };
 use abstract_sdk::{execute_update_ownership, query_ownership};
+use cw_storage_plus::KeyDeserialize;
 
 use crate::commands::*;
 use crate::error::VCError;
@@ -34,6 +32,16 @@ pub struct VcResponse;
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let to_version: Version = CONTRACT_VERSION.parse()?;
+
+    // TODO: test it in migration tests
+    let vc_addr_raw = deps.storage.get(b"fac");
+    if let Some(vc_addr) = vc_addr_raw {
+        let vc_addr = cosmwasm_std::Addr::from_vec(vc_addr)?;
+        CONFIG.update(deps.storage, |mut cfg| {
+            cfg.account_factory_address = Some(vc_addr);
+            VCResult::Ok(cfg)
+        })?;
+    }
 
     assert_cw_contract_upgrade(deps.storage, VERSION_CONTROL, to_version)?;
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
@@ -53,6 +61,8 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
     CONFIG.save(
         deps.storage,
         &Config {
+            // Account factory should be set by `update_config`
+            account_factory_address: None,
             allow_direct_module_registration_and_updates:
                 allow_direct_module_registration_and_updates.unwrap_or(false),
             namespace_registration_fee,
@@ -68,8 +78,6 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
         &Namespace::new(ABSTRACT_NAMESPACE)?,
         &ABSTRACT_ACCOUNT_ID,
     )?;
-
-    FACTORY.set(deps, None)?;
 
     Ok(VcResponse::action("instantiate"))
 }
@@ -99,15 +107,16 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             namespace,
         } => add_account(deps, info, account_id, base, namespace),
         ExecuteMsg::UpdateConfig {
+            account_factory_address,
             allow_direct_module_registration_and_updates,
             namespace_registration_fee,
         } => update_config(
             deps,
             info,
+            account_factory_address,
             allow_direct_module_registration_and_updates,
             namespace_registration_fee,
         ),
-        ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(VcResponse, deps, env, info, action)
         }
@@ -128,8 +137,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             to_json_binary(&queries::handle_namespace_query(deps, namespace)?)
         }
         QueryMsg::Config {} => {
-            let factory = FACTORY.get(deps)?.unwrap();
-            to_json_binary(&ConfigResponse { factory })
+            let config = CONFIG.load(deps.storage)?;
+            to_json_binary(&ConfigResponse {
+                account_factory_address: config.account_factory_address,
+                allow_direct_module_registration_and_updates: config
+                    .allow_direct_module_registration_and_updates,
+                namespace_registration_fee: config.namespace_registration_fee,
+            })
         }
         QueryMsg::ModuleList {
             filter,

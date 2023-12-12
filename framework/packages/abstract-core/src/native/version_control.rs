@@ -13,24 +13,20 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 /// Contains configuration info of version control.
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
+    pub account_factory_address: Option<Addr>,
     pub allow_direct_module_registration_and_updates: bool,
     pub namespace_registration_fee: Option<Coin>,
 }
 
 pub mod state {
-
-    use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        account::AccountId, common_namespace::ADMIN_NAMESPACE, module::ModuleInfo,
-        module_reference::ModuleReference, namespace::Namespace,
+        account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
+        namespace::Namespace,
     };
 
     use super::{AccountBase, Config, ModuleConfiguration, ModuleDefaultConfiguration};
-
-    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
-    pub const FACTORY: Admin = Admin::new("fac");
 
     pub const CONFIG: Item<Config> = Item::new("cfg");
 
@@ -149,14 +145,14 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
     },
     /// Updates configuration of the VC contract. Available Config :
-    /// 1. Whether the contract allows direct module registration
-    /// 2. the number of namespaces an Account can claim
+    /// 1. Address of the account factory
+    /// 2. Whether the contract allows direct module registration
+    /// 3. the number of namespaces an Account can claim
     UpdateConfig {
+        account_factory_address: Option<String>,
         allow_direct_module_registration_and_updates: Option<bool>,
         namespace_registration_fee: Option<Clearable<Coin>>,
     },
-    /// Sets a new Factory
-    SetFactory { new_factory: String },
 }
 
 #[non_exhaustive]
@@ -320,7 +316,9 @@ pub struct NamespaceListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub factory: Addr,
+    pub account_factory_address: Option<Addr>,
+    pub allow_direct_module_registration_and_updates: bool,
+    pub namespace_registration_fee: Coin,
 }
 
 #[cosmwasm_schema::cw_serde]
