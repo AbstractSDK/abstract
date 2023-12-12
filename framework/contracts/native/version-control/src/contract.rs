@@ -9,8 +9,7 @@ use abstract_sdk::core::{
     objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
     version_control::namespaces_info,
     version_control::{
-        state::{CONFIG, FACTORY},
-        ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+        state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     VERSION_CONTROL,
 };
@@ -51,6 +50,8 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
     CONFIG.save(
         deps.storage,
         &Config {
+            // Account factory should be set by `update_config`
+            account_factory_address: None,
             allow_direct_module_registration_and_updates:
                 allow_direct_module_registration_and_updates.unwrap_or(false),
             namespace_registration_fee: namespace_registration_fee.unwrap_or_default(),
@@ -66,8 +67,6 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
         &Namespace::new(ABSTRACT_NAMESPACE)?,
         &ABSTRACT_ACCOUNT_ID,
     )?;
-
-    FACTORY.set(deps, None)?;
 
     Ok(VcResponse::action("instantiate"))
 }
@@ -97,15 +96,16 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             namespace,
         } => add_account(deps, info, account_id, base, namespace),
         ExecuteMsg::UpdateConfig {
+            account_factory_address,
             allow_direct_module_registration_and_updates,
             namespace_registration_fee,
         } => update_config(
             deps,
             info,
+            account_factory_address,
             allow_direct_module_registration_and_updates,
             namespace_registration_fee,
         ),
-        ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(VcResponse, deps, env, info, action)
         }
@@ -128,6 +128,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
         QueryMsg::Config {} => {
             let config = CONFIG.load(deps.storage)?;
             to_json_binary(&ConfigResponse {
+                account_factory_address: config.account_factory_address,
                 allow_direct_module_registration_and_updates: config
                     .allow_direct_module_registration_and_updates,
                 namespace_registration_fee: config.namespace_registration_fee,
