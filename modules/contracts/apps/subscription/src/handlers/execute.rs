@@ -5,6 +5,7 @@ use crate::state::{
     INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
 use crate::SubscriptionError;
+use abstract_sdk::cw_helpers::Clearable;
 use abstract_sdk::{AbstractResponse, AccountAction, Execution, TransferInterface};
 use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfoUnchecked};
@@ -297,7 +298,7 @@ pub fn update_subscription_config(
     payment_asset: Option<AssetInfoUnchecked>,
     subscription_cost_per_second: Option<Decimal>,
     subscription_per_second_emissions: Option<EmissionType<String>>,
-    unsubscription_hook_addr: Option<String>,
+    unsubscription_hook_addr: Option<Clearable<String>>,
 ) -> SubscriptionResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -317,8 +318,8 @@ pub fn update_subscription_config(
             subscription_per_second_emissions.check(deps.api)?;
     }
 
-    if let Some(human) = unsubscription_hook_addr {
-        config.unsubscription_hook_addr = Some(deps.api.addr_validate(&human)?);
+    if let Some(clearable_hook_addr) = unsubscription_hook_addr {
+        config.unsubscription_hook_addr = clearable_hook_addr.check(deps.api)?.into();
     }
 
     SUBSCRIPTION_CONFIG.save(deps.storage, &config)?;

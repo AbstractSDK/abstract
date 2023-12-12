@@ -318,7 +318,7 @@ pub struct NamespaceListResponse {
 pub struct ConfigResponse {
     pub account_factory_address: Option<Addr>,
     pub allow_direct_module_registration_and_updates: bool,
-    pub namespace_registration_fee: Coin,
+    pub namespace_registration_fee: Option<Coin>,
 }
 
 #[cosmwasm_schema::cw_serde]

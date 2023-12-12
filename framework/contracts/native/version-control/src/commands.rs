@@ -411,7 +411,7 @@ pub fn claim_namespace(
 /// Claim namespace internal
 fn claim_namespace_internal(
     storage: &mut dyn Storage,
-    fee: Coin,
+    fee: Option<Coin>,
     msg_info: MessageInfo,
     account_id: AccountId,
     namespace_to_claim: &str,
@@ -432,7 +432,7 @@ fn claim_namespace_internal(
         });
     }
 
-    let fee_msg = if !fee.amount.is_zero() {
+    let fee_msg = if let Some(fee) = fee {
         // assert it is paid
         FixedFee::new(&fee).assert_payment(&msg_info)?;
 
@@ -535,13 +535,14 @@ pub fn update_config(
 
     if let Some(fee) = namespace_registration_fee {
         let previous_fee = config.namespace_registration_fee;
+        let fee: Option<Coin> = fee.into();
         config.namespace_registration_fee = fee.clone();
         attributes.extend(vec![
             (
                 "previous_namespace_registration_fee",
                 format!("{:?}", previous_fee),
             ),
-            ("namespace_registration_fee", fee.to_string()),
+            ("namespace_registration_fee", format!("{fee:?}")),
         ])
     }
 
@@ -883,7 +884,7 @@ mod test {
                 ExecuteMsg::UpdateConfig {
                     account_factory_address: None,
                     allow_direct_module_registration_and_updates: None,
-                    namespace_registration_fee: Some(one_namespace_fee.clone()),
+                    namespace_registration_fee: Clearable::new_opt(one_namespace_fee.clone()),
                 },
             )
             .unwrap();
@@ -1136,7 +1137,7 @@ mod test {
             let msg = ExecuteMsg::UpdateConfig {
                 account_factory_address: None,
                 allow_direct_module_registration_and_updates: None,
-                namespace_registration_fee: Some(Coin {
+                namespace_registration_fee: Clearable::new_opt(Coin {
                     denom: "ujunox".to_string(),
                     amount: Uint128::one(),
                 }),
@@ -1163,7 +1164,7 @@ mod test {
             let msg = ExecuteMsg::UpdateConfig {
                 account_factory_address: None,
                 allow_direct_module_registration_and_updates: None,
-                namespace_registration_fee: Some(new_fee.clone()),
+                namespace_registration_fee: Clearable::new_opt(new_fee.clone()),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg);
@@ -1175,7 +1176,7 @@ mod test {
                     .unwrap()
                     .namespace_registration_fee
             )
-            .is_equal_to(new_fee);
+            .is_equal_to(Some(new_fee));
 
             Ok(())
         }
