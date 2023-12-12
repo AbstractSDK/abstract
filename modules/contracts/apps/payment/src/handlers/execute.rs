@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
+use abstract_core::ans_host::AssetPairingMapEntry;
 use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
 use abstract_dex_adapter::DexInterface;
-use abstract_sdk::core::ans_host;
-use abstract_sdk::core::ans_host::{AssetPairingFilter, PoolAddressListResponse};
+use abstract_sdk::core::ans_host::AssetPairingFilter;
 use cosmwasm_std::{Addr, Storage, Uint128};
 
 use abstract_sdk::cw_helpers::AbstractAttributes;
@@ -91,21 +91,17 @@ pub fn tip(
             continue;
         }
         // query the pools that contain the desired asset
-        let query_msg = ans_host::QueryMsg::PoolList {
-            filter: Some(AssetPairingFilter {
+        let resp: Vec<AssetPairingMapEntry> = ans.pool_list(
+            Some(AssetPairingFilter {
                 asset_pair: Some((desired_asset.clone(), pay_asset.name.clone())),
                 dex: None,
             }),
-            start_after: None,
-            limit: None,
-        };
-        let resp: PoolAddressListResponse = deps
-            .querier
-            .query_wasm_smart(&ans.host.address, &query_msg)?;
+            None,
+            None,
+        )?;
 
         // use the first pair you find to swap on
         if let Some((pair, _refs)) = resp
-            .pools
             .into_iter()
             .find(|(pair, refs)| !refs.is_empty() && exchange_strs.contains(&pair.dex()))
         {
