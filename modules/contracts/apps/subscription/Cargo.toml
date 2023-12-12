@@ -46,6 +46,7 @@ abstract-interface = { workspace = true, optional = true }
 cw-address-like = { workspace = true }
 
 [dev-dependencies]
+abstract-client = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 cw20 = { workspace = true, features = ["interface"] }
 # Deploy

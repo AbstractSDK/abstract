@@ -57,10 +57,19 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ) -> AbstractClientResult<Account<Chain>> {
         Account::from_namespace(&self.abstr, namespace)
     }
+
+    pub fn chain(&self) -> Chain {
+        self.environment()
+    }
 }
 
 #[cfg(feature = "test-utils")]
 mod test_utils {
+    use std::{
+        cell::{Ref, RefCell},
+        rc::Rc,
+    };
+
     use abstract_core::{
         self,
         objects::{
@@ -69,10 +78,11 @@ mod test_utils {
         },
     };
     use abstract_interface::{Abstract, ExecuteMsgFns};
-    use cosmwasm_std::{Addr, Coin, Uint128};
+    use cosmwasm_std::{Addr, Coin, Empty, QuerierWrapper, Uint128};
     use cw_asset::AssetInfoUnchecked;
     use cw_orch::{
         deploy::Deploy,
+        mock::cw_multi_test::BasicApp,
         prelude::{Mock, TxHandler},
     };
 
@@ -87,6 +97,10 @@ mod test_utils {
 
         pub fn wait_blocks(&self, amount: u64) -> AbstractClientResult<()> {
             self.environment().wait_blocks(amount).map_err(Into::into)
+        }
+
+        pub fn wait_seconds(&self, amount: u64) -> AbstractClientResult<()> {
+            self.environment().wait_seconds(amount).map_err(Into::into)
         }
 
         // TODO: Also have this in non `Mock` case
@@ -182,8 +196,11 @@ mod test_utils {
             self
         }
 
-        pub fn balances(&mut self, balances: Vec<(String, Vec<Coin>)>) -> &mut Self {
-            self.balances = balances;
+        pub fn balances(&mut self, balances: Vec<(impl Into<String>, &[Coin])>) -> &mut Self {
+            self.balances = balances
+                .into_iter()
+                .map(|b| (b.0.into(), b.1.to_vec()))
+                .collect();
             self
         }
 
