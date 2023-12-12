@@ -14,6 +14,7 @@ use abstract_core::{
 };
 use abstract_sdk::{
     core::{objects::ChannelEntry, ICS20},
+    feature_objects::Feature,
     AbstractSdkError, AccountVerification, Resolve,
 };
 use cosmwasm_std::{
@@ -154,7 +155,7 @@ pub fn send_all_back(
 /// get the account base from the version control contract
 pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<AccountBase, AbstractSdkError> {
     let version_control = CONFIG.load(deps.storage)?.version_control;
-    version_control
-        .account_registry(deps)
+    Feature::from_contract(&version_control, deps)
+        .account_registry()
         .account_base(account_id)
 }

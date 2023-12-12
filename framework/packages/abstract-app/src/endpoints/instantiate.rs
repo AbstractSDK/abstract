@@ -1,5 +1,4 @@
 use crate::{
-    better_sdk::execution_stack::{DepsAccess, ResponseGenerator},
     state::{AppContract, AppState, ContractError},
     Handler, InstantiateEndpoint,
 };
@@ -11,14 +10,15 @@ use abstract_sdk::{
     core::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
     cw_helpers::wasm_smart_query,
     feature_objects::{AnsHost, VersionControlContract},
+    features::{DepsAccess, ResponseGenerator},
 };
-use cosmwasm_std::Response;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        T: DepsAccess,
+        'a,
         Error: ContractError,
         CustomInitMsg: Serialize + JsonSchema,
         CustomExecMsg,
@@ -28,8 +28,8 @@ impl<
         SudoMsg,
     > InstantiateEndpoint
     for AppContract<
-        '_,
-        T,
+        'a,
+        (DepsMut<'a>, Env, MessageInfo),
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -72,7 +72,7 @@ impl<
         let (name, version, metadata) = self.info();
         let dependencies = self.dependencies();
         set_module_data(
-            self.deps.deps_mut().storage,
+            self.deps_mut().storage,
             name.clone(),
             version.clone(),
             dependencies,
@@ -116,7 +116,7 @@ mod test {
             module: MockInitMsg {},
         };
 
-        let ctx = (deps.as_mut(), env, info).into();
+        let ctx = (deps.as_mut(), mock_env(), info).into();
         let res = MOCK_APP.instantiate(ctx, msg).unwrap();
         assert_that!(res.messages).is_empty();
     }

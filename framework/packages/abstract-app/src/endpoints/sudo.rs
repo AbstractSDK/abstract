@@ -1,6 +1,6 @@
-use abstract_sdk::base::SudoEndpoint;
+use abstract_sdk::{base::SudoEndpoint, features::DepsAccess};
 
-use crate::{better_sdk::execution_stack::DepsAccess, state::ContractError, AppContract};
+use crate::{state::ContractError, AppContract};
 
 impl<
         T: DepsAccess,

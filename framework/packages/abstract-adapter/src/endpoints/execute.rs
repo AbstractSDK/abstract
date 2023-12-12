@@ -9,11 +9,11 @@ use abstract_core::{
     adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
     version_control::AccountBase,
 };
-use abstract_sdk::AccountAction;
+use abstract_sdk::features::DepsAccess;
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
-    AbstractResponse, AccountVerification, Execution, ModuleInterface,
+    AbstractResponse, AccountVerification, ModuleInterface,
 };
 use cosmwasm_std::{
     wasm_execute, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError,
@@ -22,6 +22,8 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
+        'a,
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg: Serialize + JsonSchema + AdapterExecuteMsg,
@@ -29,7 +31,16 @@ impl<
         ReceiveMsg: Serialize + JsonSchema,
         SudoMsg,
     > ExecuteEndpoint
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<
+        'a,
+        T,
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
@@ -54,8 +65,17 @@ impl<
 }
 
 /// The api-contract base implementation.
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        'a,
+        T: DepsAccess,
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
+    AdapterContract<'a, T, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn base_execute(
         &mut self,
@@ -89,7 +109,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             sender: sender.to_string(),
         };
 
-        let account_registry = self.account_registry(deps.as_ref());
+        let account_registry = self.account_registry();
 
         let account_base = match request.proxy_address {
             // The sender must either be an authorized address or manager.
@@ -137,7 +157,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     ) -> AdapterResult {
         // Only the manager can remove the Adapter as a dependency.
         let account_base = self
-            .account_registry(deps)
+            .account_registry()
             .assert_manager(&info.sender)
             .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
                 adapter: self.module_id().to_string(),
@@ -147,9 +167,9 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
         let dependencies = self.dependencies();
         let mut msgs: Vec<CosmosMsg> = vec![];
-        let modules = self.modules(deps);
+        let modules = self.modules();
         for dep in dependencies {
-            let adapter_addr = modules.module_address(dep.id);
+            let adapter_addr = modules.module_address(&dep.id);
             // just skip if dep is already removed. This means all the authorized addresses are already removed.
             if adapter_addr.is_err() {
                 continue;
@@ -166,12 +186,14 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                 .into(),
             );
         }
-        self.executor(deps)
-            .execute_with_response(
-                vec![AccountAction::from_vec(msgs)],
-                "remove_adapter_from_dependencies",
-            )
-            .map_err(Into::into)
+        // TODO, @Nicoco change when execute endpoint returns an empty object instead of a response
+        // self.executor()
+        //     .execute_with_response(
+        //         vec![AccountAction::from_vec(msgs)],
+        //         "remove_adapter_from_dependencies",
+        //     )
+        //     .map_err(Into::into)
+        Ok(Response::new())
     }
 
     /// Update authorized addresses from the adapter.
@@ -187,7 +209,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             proxy,
             ..
         } = self
-            .account_registry(deps.as_ref())
+            .account_registry()
             .assert_manager(&info.sender.clone())?;
 
         let mut authorized_addrs = self

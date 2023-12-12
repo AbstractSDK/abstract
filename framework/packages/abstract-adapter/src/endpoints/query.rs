@@ -5,12 +5,17 @@ use abstract_core::{
     },
     objects::module_version::{ModuleDataResponse, MODULE},
 };
-use abstract_sdk::base::{Handler, QueryEndpoint};
+use abstract_sdk::{
+    base::{Handler, QueryEndpoint},
+    features::DepsAccess,
+};
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, StdResult};
 
 /// Where we dispatch the queries for the AdapterContract
 /// These AdapterQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
+        'a,
+        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -18,7 +23,16 @@ impl<
         ReceiveMsg,
         SudoMsg,
     > QueryEndpoint
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<
+        'a,
+        T,
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
     type QueryMsg = QueryMsg<CustomQueryMsg>;
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
@@ -29,8 +43,17 @@ impl<
     }
 }
 
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        'a,
+        T: DepsAccess,
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
+    AdapterContract<'a, T, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {

@@ -18,6 +18,7 @@ pub mod msgs;
 #[cfg(feature = "schema")]
 pub mod schema;
 pub mod state;
+mod traits;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
@@ -26,18 +27,18 @@ pub mod mock {
         adapter::{self, *},
         objects::dependency::StaticDependency,
     };
-    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
+    use abstract_interface::AdapterDeployer;
+    use abstract_sdk::features::CustomData;
+    use abstract_sdk::{base::InstantiateEndpoint, features::DepsAccess, AbstractSdkError};
     use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
     };
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
-        to_json_binary, DepsMut, Empty, Response, StdError,
+        to_json_binary, DepsMut, Empty, Env, MessageInfo, Response, StdError,
     };
     use cw_orch::prelude::*;
     use thiserror::Error;
-
-    use abstract_interface::AdapterDeployer;
 
     pub const TEST_METADATA: &str = "test_metadata";
     pub const TEST_AUTHORIZED_ADDRESS: &str = "test_authorized_address";
@@ -77,7 +78,9 @@ pub mod mock {
     pub struct MockSudoMsg;
 
     /// Mock Adapter type
-    pub type MockAdapterContract = AdapterContract<
+    pub type MockAdapterContract<'a, T: DepsAccess> = AdapterContract<
+        'a,
+        T,
         MockError,
         MockInitMsg,
         MockExecMsg,
@@ -89,9 +92,12 @@ pub mod mock {
     pub const MOCK_DEP: StaticDependency = StaticDependency::new("module_id", &[">0.0.0"]);
 
     /// use for testing
-    pub const MOCK_ADAPTER: MockAdapterContract =
-        MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
+    pub fn mock_adapter<'a, T: DepsAccess>(deps: T) -> MockAdapterContract<'a, T> {
+        MockAdapterContract::new(deps, TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
+            .with_instantiate(|app, _| {
+                app.set_data("mock_init".as_bytes());
+                Ok(())
+            })
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
             .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
@@ -101,15 +107,16 @@ pub mod mock {
             })])
             .with_replies(&[(1u64, |_, _, _, msg| {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
-            })]);
+            })])
+    }
 
     pub type AdapterMockResult = Result<(), MockError>;
     // export these for upload usage
-    crate::export_endpoints!(MOCK_ADAPTER, MockAdapterContract);
+    crate::export_endpoints!(mock_adapter, MockAdapterContract<'b>, 'b);
 
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
-        let adapter = MOCK_ADAPTER;
         let info = mock_info(TEST_ADMIN, &[]);
+        let adapter = mock_adapter((deps, mock_env(), info));
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
@@ -117,12 +124,14 @@ pub mod mock {
             },
             module: MockInitMsg,
         };
-        adapter.instantiate(deps, mock_env(), info, init_msg)
+        adapter.instantiate(init_msg)
     }
 
-    pub fn mock_init_custom(
-        deps: DepsMut,
-        adapter: MockAdapterContract,
+    pub fn mock_init_custom<'a>(
+        deps: DepsMut<'a>,
+        adapter: fn(
+            deps: (DepsMut<'a>, Env, MessageInfo),
+        ) -> MockAdapterContract<'a, (DepsMut<'a>, Env, MessageInfo)>,
     ) -> Result<Response, MockError> {
         let info = mock_info(TEST_ADMIN, &[]);
         let init_msg = InstantiateMsg {
@@ -132,7 +141,8 @@ pub mod mock {
             },
             module: MockInitMsg,
         };
-        adapter.instantiate(deps, mock_env(), info, init_msg)
+        let adapter = adapter((deps, mock_env(), info));
+        adapter.instantiate(init_msg)
     }
 
     impl Uploadable for BootMockAdapter<Mock> {

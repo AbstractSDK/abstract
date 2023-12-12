@@ -1,5 +1,4 @@
 use crate::{
-    better_sdk::execution_stack::DepsAccess,
     state::{AppContract, ContractError},
     Handler, QueryEndpoint,
 };
@@ -7,6 +6,7 @@ use abstract_core::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
     objects::module_version::{ModuleDataResponse, MODULE},
 };
+use abstract_sdk::features::DepsAccess;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 

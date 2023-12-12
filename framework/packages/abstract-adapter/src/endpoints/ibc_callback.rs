@@ -1,9 +1,26 @@
 use crate::{state::ContractError, AdapterContract};
-use abstract_sdk::base::IbcCallbackEndpoint;
+use abstract_sdk::{base::IbcCallbackEndpoint, features::DepsAccess};
 
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    IbcCallbackEndpoint
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        'a,
+        T: DepsAccess,
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    > IbcCallbackEndpoint
+    for AdapterContract<
+        'a,
+        T,
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
 }
 

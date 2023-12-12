@@ -1,5 +1,6 @@
+use abstract_sdk::features::DepsAccess;
+
 use crate::{
-    better_sdk::execution_stack::DepsAccess,
     state::{AppContract, ContractError},
     ReceiveEndpoint,
 };

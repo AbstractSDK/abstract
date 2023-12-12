@@ -5,10 +5,47 @@
 //! requiring the usage of a base contract.
 
 use crate::core::PROXY;
+use crate::features::{AbstractRegistryAccess, AccountIdentification, DepsAccess};
 use crate::{features::ModuleIdentification, AbstractSdkResult};
 pub use abstract_core::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 use abstract_core::version_control::AccountBase;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Deps};
+
+/// Temporary features struct to be able to use those traits inside contracts
+pub struct Feature<'a, T> {
+    contract: &'a T,
+    deps: Deps<'a>,
+}
+
+impl<'a, T> Feature<'a, T> {
+    /// Creates a feature from a core struct to query abstract information on it directly
+    pub fn from_contract(contract: &'a T, deps: Deps<'a>) -> Self {
+        Self { contract, deps }
+    }
+}
+
+impl<'a, T: AbstractRegistryAccess> AbstractRegistryAccess for Feature<'a, T> {
+    fn abstract_registry(&self) -> AbstractSdkResult<VersionControlContract> {
+        self.contract.abstract_registry()
+    }
+}
+
+impl<'a, T: ModuleIdentification> ModuleIdentification for Feature<'a, T> {
+    fn module_id(&self) -> String {
+        self.contract.module_id()
+    }
+}
+
+impl<'a> AccountIdentification for Feature<'a, ProxyContract> {
+    fn proxy_address(&self) -> AbstractSdkResult<Addr> {
+        Ok(self.contract.contract_address.clone())
+    }
+}
+impl<'a> AccountIdentification for Feature<'a, AccountBase> {
+    fn proxy_address(&self) -> AbstractSdkResult<Addr> {
+        Ok(self.contract.proxy.clone())
+    }
+}
 
 /// Store a proxy contract address.
 /// Implements [`AccountIdentification`].
@@ -27,13 +64,6 @@ impl ProxyContract {
     }
 }
 
-impl ProxyContract {
-    /// Return the proxy_address for this object
-    pub fn proxy_address(&self) -> AbstractSdkResult<Addr> {
-        Ok(self.contract_address.clone())
-    }
-}
-
 impl ModuleIdentification for ProxyContract {
     fn module_id(&self) -> String {
         PROXY.to_string()
@@ -46,9 +76,27 @@ impl ModuleIdentification for AccountBase {
     }
 }
 
-impl crate::features::AbstractRegistryAccess for VersionControlContract {
+impl AbstractRegistryAccess for VersionControlContract {
     fn abstract_registry(&self) -> AbstractSdkResult<VersionControlContract> {
         Ok(self.clone())
+    }
+}
+
+impl<'m, T> DepsAccess for Feature<'m, T> {
+    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
+        unimplemented!()
+    }
+
+    fn deps<'a: 'b, 'b>(&'a self) -> Deps<'b> {
+        self.deps
+    }
+
+    fn env(&self) -> cosmwasm_std::Env {
+        unimplemented!()
+    }
+
+    fn message_info(&self) -> cosmwasm_std::MessageInfo {
+        unimplemented!()
     }
 }
 
@@ -83,7 +131,7 @@ mod tests {
             let proxy = ProxyContract::new(address.clone());
             let deps = mock_dependencies();
 
-            assert_that!(proxy.proxy_address())
+            assert_that!(Feature::from_contract(&proxy, deps.as_ref()).proxy_address())
                 .is_ok()
                 .is_equal_to(address);
         }

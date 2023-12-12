@@ -1,7 +1,6 @@
-use crate::{
-    better_sdk::execution_stack::DepsAccess, state::ContractError, AbstractContract, AppContract,
-    Handler,
-};
+use abstract_sdk::features::DepsAccess;
+
+use crate::{state::ContractError, AbstractContract, AppContract, Handler};
 
 impl<
         'a,

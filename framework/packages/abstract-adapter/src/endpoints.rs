@@ -8,63 +8,129 @@ mod sudo;
 
 #[macro_export]
 macro_rules! export_endpoints {
-    ($api_const:expr, $api_type:ty) => {
+    ($api_func:expr, $api_type:ident
+        // only one or none `<>`
+        $(<
+            // match one or more lifetimes separated by a comma
+            $(
+                $lt:lifetime
+                // optional constraint: 'a: 'b
+                $( : $clt:lifetime )?
+            ),*
+        >)?, $deps_lifetime: lifetime) => {
         /// Instantiate entrypoint
         #[::cosmwasm_std::entry_point]
-        pub fn instantiate(
+        pub fn instantiate
+        $(< $( $lt ),+ >)?(
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: <$api_type as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
-        ) -> Result<::cosmwasm_std::Response, <$api_type as ::abstract_sdk::base::Handler>::Error> {
+            msg: <$api_type<
+            $( $( $lt ),+ )?,
+                (
+                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
+                    ::cosmwasm_std::Env,
+                    ::cosmwasm_std::MessageInfo,
+                ),
+            > as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
+        ) -> Result<
+        ::cosmwasm_std::Response,
+            <$api_type<
+            $( $( $lt ),+ )?,
+                (
+                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
+                    ::cosmwasm_std::Env,
+                    ::cosmwasm_std::MessageInfo,
+                ),
+            > as ::abstract_sdk::base::Handler>::Error,
+        > {
             use ::abstract_sdk::base::InstantiateEndpoint;
-            $api_const.instantiate(deps, env, info, msg)
+            let ctx = (deps, env, info);
+            let api = $api_func(ctx);
+            api.instantiate(msg)
         }
 
         /// Execute entrypoint
         #[::cosmwasm_std::entry_point]
-        pub fn execute(
+        pub fn execute
+        $(< $( $lt ),+ >)?(
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: <$api_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
-        ) -> Result<::cosmwasm_std::Response, <$api_type as ::abstract_sdk::base::Handler>::Error> {
+            msg: <$api_type<
+            $( $( $lt ),+ )?,
+                (
+                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
+                    ::cosmwasm_std::Env,
+                    ::cosmwasm_std::MessageInfo,
+                ),
+            > as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
+        ) -> Result<
+        ::cosmwasm_std::Response,
+            <$api_type<
+            $( $( $lt ),+ )?,
+                (
+                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
+                    ::cosmwasm_std::Env,
+                    ::cosmwasm_std::MessageInfo,
+                ),
+            > as ::abstract_sdk::base::Handler>::Error,
+        > {
             use ::abstract_sdk::base::ExecuteEndpoint;
-            $api_const.execute(deps, env, info, msg)
+            let ctx = (deps, env, info);
+            let api = $api_func(ctx);
+            api.execute(deps, env, info,msg)
         }
 
         /// Query entrypoint
         #[::cosmwasm_std::entry_point]
-        pub fn query(
+        pub fn query
+        $(< $( $lt ),+ >)?(
             deps: ::cosmwasm_std::Deps,
             env: ::cosmwasm_std::Env,
-            msg: <$api_type as ::abstract_sdk::base::QueryEndpoint>::QueryMsg,
-        ) -> Result<::cosmwasm_std::Binary, <$api_type as ::abstract_sdk::base::Handler>::Error> {
+            msg: <$api_type<
+            $( $( $lt ),+ )?,
+                (
+                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
+                    ::cosmwasm_std::Env,
+                    ::cosmwasm_std::MessageInfo,
+                ),
+            > as ::abstract_sdk::base::QueryEndpoint>::QueryMsg,
+        ) -> Result<::cosmwasm_std::Binary, <$api_type<
+        $( $( $lt ),+ )?,
+            (
+                ::cosmwasm_std::DepsMut<$deps_lifetime>,
+                ::cosmwasm_std::Env,
+                ::cosmwasm_std::MessageInfo,
+            ),
+        > as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::QueryEndpoint;
-            $api_const.query(deps, env, msg)
+            let ctx = (deps, env);
+            let api = $api_func(ctx);
+            api.query(deps, env, msg)
         }
 
-        // Reply entrypoint
-        #[::cosmwasm_std::entry_point]
-        pub fn reply(
-            deps: ::cosmwasm_std::DepsMut,
-            env: ::cosmwasm_std::Env,
-            msg: ::cosmwasm_std::Reply,
-        ) -> Result<::cosmwasm_std::Response, <$api_type as ::abstract_sdk::base::Handler>::Error> {
-            use ::abstract_sdk::base::ReplyEndpoint;
-            $api_const.reply(deps, env, msg)
-        }
+        // // Reply entrypoint
+        // #[::cosmwasm_std::entry_point]
+        // pub fn reply(
+        //     deps: ::cosmwasm_std::DepsMut,
+        //     env: ::cosmwasm_std::Env,
+        //     msg: ::cosmwasm_std::Reply,
+        // ) -> Result<::cosmwasm_std::Response, <$api_type as ::abstract_sdk::base::Handler>::Error> {
+        //     use ::abstract_sdk::base::ReplyEndpoint;
+        //     $api_const.reply(deps, env, msg)
+        // }
 
-        // Sudo entrypoint
-        #[::cosmwasm_std::entry_point]
-        pub fn sudo(
-            deps: ::cosmwasm_std::DepsMut,
-            env: ::cosmwasm_std::Env,
-            msg: <$api_type as ::abstract_sdk::base::Handler>::SudoMsg,
-        ) -> Result<::cosmwasm_std::Response, <$api_type as ::abstract_sdk::base::Handler>::Error> {
-            use ::abstract_sdk::base::SudoEndpoint;
-            $api_const.sudo(deps, env, msg)
-        }
+        // // Sudo entrypoint
+        // #[::cosmwasm_std::entry_point]
+        // pub fn sudo(
+        //     deps: ::cosmwasm_std::DepsMut,
+        //     env: ::cosmwasm_std::Env,
+        //     msg: <$api_type as ::abstract_sdk::base::Handler>::SudoMsg,
+        // ) -> Result<::cosmwasm_std::Response, <$api_type as ::abstract_sdk::base::Handler>::Error> {
+        //     use ::abstract_sdk::base::SudoEndpoint;
+        //     $api_const.sudo(deps, env, msg)
+        // }
     };
 }
 

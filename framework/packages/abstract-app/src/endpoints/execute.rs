@@ -1,10 +1,12 @@
 use crate::{
-    better_sdk::execution_stack::DepsAccess,
     state::{AppContract, ContractError},
     AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
 };
 use abstract_core::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
-use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
+use abstract_sdk::{
+    base::ReceiveEndpoint,
+    features::{AbstractResponse, DepsAccess},
+};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;

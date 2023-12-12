@@ -1,4 +1,3 @@
-pub mod better_sdk;
 mod endpoints;
 pub mod error;
 pub mod features;
@@ -8,8 +7,8 @@ pub mod msgs;
 pub mod schema;
 pub mod state;
 pub(crate) use abstract_sdk::base::*;
-// pub mod expand;
 
+mod traits;
 pub use crate::state::AppContract;
 pub use error::AppError;
 pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
@@ -48,9 +47,13 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockSudoMsg;
 
-    use crate::{better_sdk::execution_stack::DepsAccess, AppContract, AppError};
+    use crate::{AppContract, AppError};
     use abstract_core::{module_factory::ContextResponse, version_control::AccountBase};
-    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
+    use abstract_sdk::{
+        base::InstantiateEndpoint,
+        features::{CustomData, DepsAccess},
+        AbstractSdkError,
+    };
     use abstract_testing::prelude::{
         MockDeps, MockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
         TEST_MODULE_ID, TEST_PROXY, TEST_VERSION, TEST_VERSION_CONTROL,
@@ -91,7 +94,10 @@ pub mod mock {
 
     pub fn mock_app<'a, T: DepsAccess>(deps: T) -> MockAppContract<'a, T> {
         MockAppContract::new(deps, TEST_MODULE_ID, TEST_VERSION, None)
-            .with_instantiate(|_, _| Ok(()))
+            .with_instantiate(|app, _| {
+                app.set_data("mock_init".as_bytes());
+                Ok(())
+            })
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
             .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))

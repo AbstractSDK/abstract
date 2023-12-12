@@ -1,10 +1,10 @@
-use crate::{better_sdk::execution_stack::DepsAccess, state::ContractError, AppContract};
+use crate::{state::ContractError, AppContract};
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification, DepsAccess},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::Addr;
 
 // ANCHOR: ans
 impl<
@@ -30,9 +30,9 @@ impl<
         SudoMsg,
     >
 {
-    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
+    fn ans_host(&self) -> AbstractSdkResult<AnsHost> {
         // Retrieve the ANS host address from the base state.
-        Ok(self.base_state.load(deps.storage)?.ans_host)
+        Ok(self.base_state.load(self.deps().storage)?.ans_host)
     }
 }
 // ANCHOR_END: ans
@@ -60,8 +60,8 @@ impl<
         SudoMsg,
     >
 {
-    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.base_state.load(deps.storage)?.proxy_address)
+    fn proxy_address(&self) -> AbstractSdkResult<Addr> {
+        Ok(self.base_state.load(self.deps().storage)?.proxy_address)
     }
 }
 
@@ -88,8 +88,8 @@ impl<
         SudoMsg,
     >
 {
-    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-        Ok(self.base_state.load(deps.storage)?.version_control)
+    fn abstract_registry(&self) -> AbstractSdkResult<VersionControlContract> {
+        Ok(self.base_state.load(self.deps().storage)?.version_control)
     }
 }
 

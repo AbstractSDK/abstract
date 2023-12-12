@@ -7,6 +7,7 @@ use abstract_sdk::{
     },
     core::version_control::AccountBase,
     feature_objects::{AnsHost, VersionControlContract},
+    features::DepsAccess,
     namespaces::BASE_STATE_NAMESPACE,
     AbstractSdkError,
 };
@@ -40,6 +41,8 @@ pub struct ApiState {
 
 /// The state variables for our AdapterContract.
 pub struct AdapterContract<
+    'a,
+    T: DepsAccess,
     Error: ContractError,
     CustomInitMsg: 'static,
     CustomExecMsg: 'static,
@@ -49,8 +52,9 @@ pub struct AdapterContract<
 > where
     Self: Handler,
 {
-    pub(crate) contract: AbstractContract<Self, Error>,
+    pub(crate) contract: AbstractContract<'a, Self, Error>,
     pub(crate) base_state: Item<'static, ApiState>,
+    pub deps: T,
     /// Map ProxyAddr -> AuthorizedAddrs
     pub authorized_addresses: Map<'static, Addr, Vec<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_core::adapter::ExecuteMsg::Base`] handler.
@@ -58,19 +62,30 @@ pub struct AdapterContract<
 }
 
 /// Constructor
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        'a,
+        T: DepsAccess,
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
+    AdapterContract<'a, T, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
-    pub const fn new(
-        name: &'static str,
-        version: &'static str,
-        metadata: Option<&'static str>,
+    pub fn new(
+        deps: T,
+        name: &'a str,
+        version: &'a str,
+        metadata: Option<&'a str>,
     ) -> Self {
         Self {
             contract: AbstractContract::new(name, version, metadata),
             base_state: Item::new(BASE_STATE_NAMESPACE),
             authorized_addresses: Map::new(AUTHORIZED_ADDRESSES_NAMESPACE),
             target_account: None,
+            deps,
         }
     }
 
@@ -88,12 +103,12 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             .proxy)
     }
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
+    pub fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.contract = self.contract.with_dependencies(dependencies);
         self
     }
 
-    pub const fn with_instantiate(
+    pub fn with_instantiate(
         mut self,
         instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
     ) -> Self {
@@ -101,7 +116,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self
     }
 
-    pub const fn with_execute(
+    pub fn with_execute(
         mut self,
         execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
     ) -> Self {
@@ -109,7 +124,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self
     }
 
-    pub const fn with_query(
+    pub fn with_query(
         mut self,
         query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
     ) -> Self {
@@ -117,20 +132,20 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self
     }
 
-    pub const fn with_replies(
+    pub fn with_replies(
         mut self,
-        reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
+        reply_handlers: &'a [(u64, ReplyHandlerFn<Self, Error>)],
     ) -> Self {
-        self.contract = self.contract.with_replies([&[], reply_handlers]);
+        self.contract = self.contract.add_replies(reply_handlers);
         self
     }
 
-    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
+    pub fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
         self.contract = self.contract.with_sudo(sudo_handler);
         self
     }
 
-    pub const fn with_receive(
+    pub fn with_receive(
         mut self,
         receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
     ) -> Self {
@@ -139,9 +154,9 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
+    pub fn with_ibc_callbacks(
         mut self,
-        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
+        callbacks: &'a [(&'a str, IbcCallbackHandlerFn<Self, Error>)],
     ) -> Self {
         self.contract = self.contract.with_ibc_callbacks(callbacks);
         self

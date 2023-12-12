@@ -20,6 +20,7 @@ use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
 
+use abstract_sdk::feature_objects::Feature;
 use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
@@ -142,8 +143,8 @@ pub(crate) fn install_modules_internal(
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
-    let modules = version_control
-        .module_registry(deps.as_ref())
+    let modules = Feature::from_contract(&version_control, deps.as_ref())
+        .module_registry()
         .query_modules_configs(infos)?;
 
     let mut install_context = Vec::with_capacity(modules.len());
@@ -840,7 +841,8 @@ fn query_module(
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
     let version_control = VersionControlContract::new(config.version_control_address);
-    let version_registry = version_control.module_registry(deps);
+    let binding = Feature::from_contract(&version_control, deps);
+    let version_registry = binding.module_registry();
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
@@ -871,8 +873,8 @@ fn query_module(
             info: module.info,
             reference: module.reference,
         },
-        config: version_control
-            .module_registry(deps)
+        config: Feature::from_contract(&version_control, deps)
+            .module_registry()
             .query_config(module_info)?,
     })
 }

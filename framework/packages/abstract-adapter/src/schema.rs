@@ -2,16 +2,21 @@ use std::path::Path;
 
 use abstract_core::adapter;
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
-use cosmwasm_std::Empty;
+use cosmwasm_std::{Deps, DepsMut, Empty, Env, MessageInfo};
 use schemars::JsonSchema;
 use serde::Serialize;
 
 use abstract_core::adapter::{AdapterExecuteMsg, AdapterQueryMsg};
-use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
+use abstract_sdk::{
+    base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
+    features::DepsAccess,
+};
 
 use crate::{AdapterContract, AdapterError};
 
 impl<
+        'a,
+        T: DepsAccess,
         Error: From<cosmwasm_std::StdError>
             + From<AdapterError>
             + From<abstract_sdk::AbstractSdkError>
@@ -21,7 +26,8 @@ impl<
         CustomQueryMsg: Serialize + JsonSchema + AdapterQueryMsg + QueryResponses,
         ReceiveMsg: Serialize + JsonSchema,
         SudoMsg,
-    > AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    >
+    AdapterContract<'a, T, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         write_api! {
@@ -42,17 +48,50 @@ impl<
         };
 
         export_schema_with_title(
-            &schema_for!(<Self as ExecuteEndpoint>::ExecuteMsg),
+            &schema_for!(
+                <AdapterContract<
+                    'a,
+                    (DepsMut<'a>, Env, MessageInfo),
+                    Error,
+                    CustomInitMsg,
+                    CustomExecMsg,
+                    CustomQueryMsg,
+                    ReceiveMsg,
+                    SudoMsg,
+                > as ExecuteEndpoint>::ExecuteMsg
+            ),
             out_dir,
             "ExecuteMsg",
         );
         export_schema_with_title(
-            &schema_for!(<Self as InstantiateEndpoint>::InstantiateMsg),
+            &schema_for!(
+                <AdapterContract<
+                    'a,
+                    (DepsMut<'a>, Env, MessageInfo),
+                    Error,
+                    CustomInitMsg,
+                    CustomExecMsg,
+                    CustomQueryMsg,
+                    ReceiveMsg,
+                    SudoMsg,
+                > as InstantiateEndpoint>::InstantiateMsg
+            ),
             out_dir,
             "InstantiateMsg",
         );
         export_schema_with_title(
-            &schema_for!(<Self as QueryEndpoint>::QueryMsg),
+            &schema_for!(
+                <AdapterContract<
+                    'a,
+                    (Deps<'a>, Env),
+                    Error,
+                    CustomInitMsg,
+                    CustomExecMsg,
+                    CustomQueryMsg,
+                    ReceiveMsg,
+                    SudoMsg,
+                > as QueryEndpoint>::QueryMsg
+            ),
             out_dir,
             "QueryMsg",
         );

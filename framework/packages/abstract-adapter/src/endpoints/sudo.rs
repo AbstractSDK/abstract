@@ -1,10 +1,27 @@
 use abstract_sdk::base::SudoEndpoint;
+use cosmwasm_std::{DepsMut, Env};
 
 use crate::{state::ContractError, AdapterContract};
 
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    SudoEndpoint
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        'a,
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    > SudoEndpoint
+    for AdapterContract<
+        'a,
+        (DepsMut<'a>, Env),
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
 }
 

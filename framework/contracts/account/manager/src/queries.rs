@@ -6,7 +6,7 @@ use abstract_sdk::core::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     ModuleVersionsResponse,
 };
-use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::feature_objects::{Feature, VersionControlContract};
 use abstract_sdk::ModuleRegistryInterface;
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult};
 use cw2::ContractVersion;
@@ -104,7 +104,8 @@ pub fn query_module_version(
     module_addr: Addr,
     version_control: &VersionControlContract,
 ) -> StdResult<ContractVersion> {
-    let module_registry = version_control.module_registry(deps);
+    let binding = Feature::from_contract(version_control, deps);
+    let module_registry = binding.module_registry();
 
     if let Ok(info) = cw2::query_contract_info(&deps.querier, module_addr.to_string()) {
         // Check if it's abstract format and return now

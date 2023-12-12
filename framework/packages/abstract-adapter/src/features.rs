@@ -1,26 +1,60 @@
 use crate::{state::ContractError, AdapterContract};
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification, DepsAccess},
     AbstractSdkResult,
 };
-use cosmwasm_std::{Addr, Deps, StdError};
+use cosmwasm_std::{Addr, StdError};
 
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    AbstractNameService
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        'a,
+        T: DepsAccess,
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    > AbstractNameService
+    for AdapterContract<
+        'a,
+        T,
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
-    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
-        Ok(self.base_state.load(deps.storage)?.ans_host)
+    fn ans_host(&self) -> AbstractSdkResult<AnsHost> {
+        Ok(self.base_state.load(self.deps.deps().storage)?.ans_host)
     }
 }
 
 /// Retrieve identifying information about the calling Account
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    AccountIdentification
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        'a,
+        T: DepsAccess,
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    > AccountIdentification
+    for AdapterContract<
+        'a,
+        T,
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
-    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+    fn proxy_address(&self) -> AbstractSdkResult<Addr> {
         if let Some(target) = &self.target_account {
             Ok(target.proxy.clone())
         } else {
@@ -28,7 +62,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         }
     }
 
-    fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+    fn manager_address(&self) -> AbstractSdkResult<Addr> {
         if let Some(target) = &self.target_account {
             Ok(target.manager.clone())
         } else {
@@ -36,10 +70,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         }
     }
 
-    fn account_base(
-        &self,
-        _deps: Deps,
-    ) -> AbstractSdkResult<abstract_sdk::core::version_control::AccountBase> {
+    fn account_base(&self) -> AbstractSdkResult<abstract_sdk::core::version_control::AccountBase> {
         if let Some(target) = &self.target_account {
             Ok(target.clone())
         } else {
@@ -49,12 +80,29 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 }
 
 /// Get the version control contract
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    AbstractRegistryAccess
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        'a,
+        T: DepsAccess,
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    > AbstractRegistryAccess
+    for AdapterContract<
+        'a,
+        T,
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
-    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
-        Ok(self.state(deps.storage)?.version_control)
+    fn abstract_registry(&self) -> AbstractSdkResult<VersionControlContract> {
+        Ok(self.state(self.deps().storage)?.version_control)
     }
 }
 #[cfg(test)]

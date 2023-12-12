@@ -1,9 +1,27 @@
 use crate::state::{AdapterContract, ContractError};
-use abstract_sdk::base::ReceiveEndpoint;
+use abstract_sdk::{base::ReceiveEndpoint, features::DepsAccess};
+use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    ReceiveEndpoint
-    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        'a,
+        T: DepsAccess,
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    > ReceiveEndpoint
+    for AdapterContract<
+        'a,
+        T,
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
 }
 

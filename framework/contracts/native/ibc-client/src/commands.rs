@@ -21,6 +21,7 @@ use abstract_sdk::{
         objects::{ans_host::AnsHost, version_control::VersionControlContract, ChannelEntry},
         ICS20,
     },
+    feature_objects::Feature,
     features::AccountIdentification,
     AccountVerification, Resolve,
 };
@@ -205,13 +206,12 @@ pub fn execute_send_packet(
     let cfg = CONFIG.load(deps.storage)?;
 
     // Verify that the sender is a proxy contract
-    let account_base = cfg
-        .version_control
-        .account_registry(deps.as_ref())
+    let account_base = Feature::from_contract(&cfg.version_control, deps.as_ref())
+        .account_registry()
         .assert_proxy(&info.sender)?;
 
     // get account_id
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let account_id = Feature::from_contract(&account_base, deps.as_ref()).account_id()?;
 
     // Can only call non-internal actions
     if let HostAction::Internal(_) = action {
@@ -266,13 +266,12 @@ pub fn execute_register_account(
     let cfg = CONFIG.load(deps.storage)?;
 
     // Verify that the sender is a proxy contract
-    let account_base = cfg
-        .version_control
-        .account_registry(deps.as_ref())
+    let account_base = Feature::from_contract(&cfg.version_control, deps.as_ref())
+        .account_registry()
         .assert_proxy(&info.sender)?;
 
     // get account_id
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let account_id = Feature::from_contract(&account_base, deps.as_ref()).account_id()?;
     // get auxiliary information
 
     let account_info: manager::InfoResponse = deps
@@ -308,13 +307,12 @@ pub fn execute_send_funds(
     let ans = cfg.ans_host;
     // Verify that the sender is a proxy contract
 
-    let account_base = cfg
-        .version_control
-        .account_registry(deps.as_ref())
+    let account_base = Feature::from_contract(&cfg.version_control, deps.as_ref())
+        .account_registry()
         .assert_proxy(&info.sender)?;
 
     // get account_id of Account
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let account_id = Feature::from_contract(&account_base, deps.as_ref()).account_id()?;
     // load remote account
     let remote_addr = ACCOUNTS.load(
         deps.storage,

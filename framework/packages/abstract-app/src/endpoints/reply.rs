@@ -1,6 +1,6 @@
-use crate::{
-    better_sdk::execution_stack::DepsAccess, state::ContractError, AppContract, ReplyEndpoint,
-};
+use abstract_sdk::features::DepsAccess;
+
+use crate::{state::ContractError, AppContract, ReplyEndpoint};
 
 impl<
         T: DepsAccess,

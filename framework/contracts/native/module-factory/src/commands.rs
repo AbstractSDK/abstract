@@ -1,4 +1,5 @@
 use abstract_core::objects::module;
+use abstract_sdk::feature_objects::Feature;
 
 use crate::contract::ModuleFactoryResponse;
 use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
@@ -30,9 +31,10 @@ pub fn execute_create_modules(
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
     let binding = VersionControlContract::new(config.version_control_address);
+    let binding = Feature::from_contract(&binding, deps.as_ref());
 
-    let version_registry = binding.module_registry(deps.as_ref());
-    let account_registry = binding.account_registry(deps.as_ref());
+    let version_registry = binding.module_registry();
+    let account_registry = binding.account_registry();
 
     // assert that sender is manager
     let account_base = account_registry.assert_manager(&info.sender)?;

@@ -1,5 +1,4 @@
 use crate::{
-    better_sdk::execution_stack::{DepsAccess, ExecutionStack},
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
@@ -8,6 +7,7 @@ use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,
     feature_objects::{AnsHost, VersionControlContract},
+    features::DepsAccess,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE},
     AbstractSdkError,
 };
@@ -147,7 +147,7 @@ impl<
         mut self,
         reply_handlers: &'a [(u64, ReplyHandlerFn<Self, Error>)],
     ) -> Self {
-        self.contract = self.contract.add_replies(&reply_handlers);
+        self.contract = self.contract.add_replies(reply_handlers);
         self
     }
 
@@ -177,14 +177,21 @@ impl<
 #[cfg(test)]
 mod tests {
     use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};
-    use cosmwasm_std::Response;
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        Response,
+    };
 
     use crate::mock::MockAppContract;
 
     #[test]
     fn builder() {
         MockAppContract::new(
-            (mock_dependencies(), mock_env(), mock_info("sender", &[])),
+            (
+                mock_dependencies().as_mut(),
+                mock_env(),
+                mock_info("sender", &[]),
+            ),
             TEST_MODULE_ID,
             TEST_VERSION,
             None,

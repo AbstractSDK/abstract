@@ -6,7 +6,7 @@ use abstract_core::objects::{
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{module_factory::*, MODULE_FACTORY},
-    feature_objects::VersionControlContract,
+    feature_objects::{Feature, VersionControlContract},
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
@@ -96,7 +96,8 @@ pub fn query_simulate_install_modules(
 ) -> StdResult<SimulateInstallModulesResponse> {
     let config = CONFIG.load(deps.storage)?;
     let binding = VersionControlContract::new(config.version_control_address);
-    let version_registry = binding.module_registry(deps);
+    let binding = Feature::from_contract(&binding, deps);
+    let version_registry = binding.module_registry();
 
     let module_responses = version_registry
         .query_modules_configs(modules)

@@ -1,9 +1,12 @@
 use crate::{state::ContractError, AdapterContract};
-use abstract_sdk::base::{AbstractContract, Handler};
+use abstract_sdk::{
+    base::{AbstractContract, Handler},
+    features::DepsAccess,
+};
 use cosmwasm_std::Empty;
 
-impl<Error: ContractError, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg> Handler
-    for AdapterContract<Error, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg>
+impl<'a, T: DepsAccess, Error: ContractError, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg>
+    Handler for AdapterContract<'a, T, Error, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg>
 {
     type Error = Error;
     type CustomInitMsg = InitMsg;

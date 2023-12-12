@@ -1,7 +1,7 @@
-use crate::better_sdk::execution_stack::DepsAccess;
 use crate::{state::ContractError, AppContract, Handler, MigrateEndpoint};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_core::{app::MigrateMsg, objects::module_version::set_module_data};
+use abstract_sdk::features::DepsAccess;
 use cosmwasm_std::Response;
 use cw2::set_contract_version;
 use schemars::JsonSchema;
