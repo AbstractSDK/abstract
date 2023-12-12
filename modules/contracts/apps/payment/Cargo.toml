@@ -45,7 +45,6 @@ abstract-dex-adapter = { workspace = true, default-features = false }
 # Dependencies for interface
 abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
-cw-paginate = "0.2.1"
 
 [dev-dependencies]
 payment-app = { path = ".", features = ["interface"] }
