@@ -13,8 +13,8 @@ use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{
-        AppInstantiateMsg, ConfigResponse, TipAmountAtHeightResponse, TipCountResponse,
-        TipperCountResponse, TipperResponse, TippersCountResponse,
+        AppInstantiateMsg, ConfigResponse, TipCountResponse, TipperCountResponse, TipperResponse,
+        TippersCountResponse,
     },
     *,
 };
@@ -178,7 +178,7 @@ fn test_simple_tip() -> anyhow::Result<()> {
     assert_eq!(1, tip_count_response.count);
 
     // Query tipper
-    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None)?;
+    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None, None)?;
     let expected_tipper = TipperResponse {
         address: tipper.clone(),
         tip_count: 1,
@@ -200,20 +200,30 @@ fn test_simple_tip() -> anyhow::Result<()> {
     // Tip amount at height
     mock.next_block()?;
     let current_block_height = mock.block_info()?.height;
-    let amount_response: TipAmountAtHeightResponse = app.tip_at_height(
-        tipper.to_string(),
-        AssetEntry::new(wyndex_bundle::EUR),
-        current_block_height,
-    )?;
-    assert_eq!(amount_response.amount, Some(Uint128::new(tip_amount)));
+    let tipper_response: TipperResponse =
+        app.tipper(tipper.to_string(), Some(current_block_height), None, None)?;
+    assert_eq!(
+        tipper_response.total_amounts,
+        vec![AnsAsset::new(
+            AssetEntry::new(wyndex_bundle::EUR),
+            Uint128::new(tip_amount)
+        )]
+    );
 
-    let before_snapshot_amount_response: TipAmountAtHeightResponse = app.tip_at_height(
+    let tipper_response: TipperResponse = app.tipper(
         tipper.to_string(),
-        AssetEntry::new(wyndex_bundle::EUR),
-        // Previous block
-        current_block_height - 1,
+        // previous block
+        Some(current_block_height - 1),
+        None,
+        None,
     )?;
-    assert_eq!(before_snapshot_amount_response.amount, None);
+    assert_eq!(
+        tipper_response.total_amounts,
+        vec![AnsAsset::new(
+            AssetEntry::new(wyndex_bundle::EUR),
+            Uint128::zero()
+        )]
+    );
 
     Ok(())
 }
@@ -254,7 +264,7 @@ fn test_tip_swap() -> anyhow::Result<()> {
     assert_eq!(1, tip_count_response.count);
 
     // Query tipper
-    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None)?;
+    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None, None)?;
     assert_eq!(1, tipper_response.total_amounts.len());
 
     // List tippers
@@ -393,7 +403,7 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     assert_eq!(1, tip_count_response.count);
 
     // Query tipper
-    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None)?;
+    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None, None)?;
     let expected_tipper = TipperResponse {
         address: tipper,
         tip_count: 1,
@@ -446,7 +456,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
     assert_eq!(2, tip_count_response.count);
 
     // Query first tipper
-    let tipper_response1: TipperResponse = app.tipper(tipper1.to_string(), None, None)?;
+    let tipper_response1: TipperResponse = app.tipper(tipper1.to_string(), None, None, None)?;
     let expected_tipper = TipperResponse {
         address: tipper1.clone(),
         tip_count: 1,
@@ -455,7 +465,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
     assert_eq!(expected_tipper, tipper_response1);
 
     // Query second tipper
-    let tipper_response2: TipperResponse = app.tipper(tipper2.to_string(), None, None)?;
+    let tipper_response2: TipperResponse = app.tipper(tipper2.to_string(), None, None, None)?;
     let expected_tipper = TipperResponse {
         address: tipper2.clone(),
         tip_count: 1,
@@ -504,7 +514,7 @@ fn test_sent_desired_asset() -> anyhow::Result<()> {
     app.call_as(&tipper).tip(&tip_coins)?;
 
     // Query tipper
-    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None)?;
+    let tipper_response: TipperResponse = app.tipper(tipper.to_string(), None, None, None)?;
     let expected_tipper = TipperResponse {
         address: tipper.clone(),
         tip_count: 1,

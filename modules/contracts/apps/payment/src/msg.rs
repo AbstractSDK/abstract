@@ -1,6 +1,6 @@
 use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Uint128};
+use cosmwasm_std::Addr;
 
 use crate::contract::PaymentApp;
 
@@ -51,6 +51,7 @@ pub enum AppQueryMsg {
         address: String,
         start_after: Option<AssetEntry>,
         limit: Option<u32>,
+        at_height: Option<u64>,
     },
     #[returns(TipCountResponse)]
     TipCount {},
@@ -58,13 +59,6 @@ pub enum AppQueryMsg {
     ListTippersCount {
         start_after: Option<String>,
         limit: Option<u32>,
-    },
-    /// Returns tipped amount of given asset at block height
-    #[returns(TipAmountAtHeightResponse)]
-    TipAtHeight {
-        address: String,
-        asset: AssetEntry,
-        height: u64,
     },
 }
 
@@ -102,9 +96,4 @@ pub struct TippersCountResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct TipCountResponse {
     pub count: u32,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct TipAmountAtHeightResponse {
-    pub amount: Option<Uint128>,
 }

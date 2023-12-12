@@ -1,11 +1,11 @@
 use crate::contract::{AppResult, PaymentApp};
+use crate::msg::TipperResponse;
 use crate::msg::TippersCountResponse;
 use crate::msg::{AppQueryMsg, ConfigResponse};
-use crate::msg::{TipAmountAtHeightResponse, TipperResponse};
 use crate::msg::{TipCountResponse, TipperCountResponse};
 use crate::state::{CONFIG, TIPPERS, TIPPER_COUNT, TIP_COUNT};
 use abstract_core::objects::{AnsAsset, AssetEntry};
-use cosmwasm_std::{to_json_binary, Binary, Deps, Env, Order, StdResult};
+use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, Order, StdResult};
 use cw_storage_plus::Bound;
 
 const DEFAULT_LIMIT: u32 = 10;
@@ -26,12 +26,8 @@ pub fn query_handler(
             address,
             start_after,
             limit,
-        } => to_json_binary(&query_tipper(deps, address, start_after, limit)?),
-        AppQueryMsg::TipAtHeight {
-            address,
-            asset,
-            height,
-        } => to_json_binary(&query_tip_at_height(deps, address, asset, height)?),
+            at_height,
+        } => to_json_binary(&query_tipper(deps, address, start_after, limit, at_height)?),
     }
     .map_err(Into::into)
 }
@@ -55,8 +51,13 @@ fn query_tipper(
     address: String,
     start_after: Option<AssetEntry>,
     limit: Option<u32>,
+    at_height: Option<u64>,
 ) -> AppResult<TipperResponse> {
     let address = deps.api.addr_validate(&address)?;
+    // Load tipper at height if provided
+    if let Some(height) = at_height {
+        return tipper_at_height(deps, address, start_after, limit, height);
+    }
     let amounts = TIPPERS
         .prefix(&address)
         .range(
@@ -102,14 +103,44 @@ fn query_list_tippers_count(
     Ok(TippersCountResponse { tippers })
 }
 
-fn query_tip_at_height(
+fn tipper_at_height(
     deps: Deps,
-    address: String,
-    asset: AssetEntry,
+    address: Addr,
+    start_after: Option<AssetEntry>,
+    limit: Option<u32>,
     height: u64,
-) -> AppResult<TipAmountAtHeightResponse> {
-    let address = deps.api.addr_validate(&address)?;
+) -> AppResult<TipperResponse> {
+    // Load current keys for future queries
+    let entries: Vec<AssetEntry> = TIPPERS
+        .prefix(&address)
+        .keys(
+            deps.storage,
+            start_after.as_ref().map(Bound::exclusive),
+            None,
+            Order::Ascending,
+        )
+        .take(limit.unwrap_or(DEFAULT_LIMIT) as usize)
+        .collect::<StdResult<_>>()?;
 
-    let amount = TIPPERS.may_load_at_height(deps.storage, (&address, &asset), height)?;
-    Ok(TipAmountAtHeightResponse { amount })
+    let total_amounts: Vec<AnsAsset> = entries
+        .into_iter()
+        .map(|entry| {
+            let res = TIPPERS.may_load_at_height(deps.storage, (&address, &entry), height)?;
+            Ok(AnsAsset {
+                name: entry,
+                amount: res.unwrap_or_default(),
+            })
+        })
+        .collect::<AppResult<_>>()?;
+
+    // Get count at height
+    let count = TIPPER_COUNT
+        .may_load_at_height(deps.storage, &address, height)?
+        .unwrap_or_default();
+
+    Ok(TipperResponse {
+        address,
+        tip_count: count,
+        total_amounts,
+    })
 }

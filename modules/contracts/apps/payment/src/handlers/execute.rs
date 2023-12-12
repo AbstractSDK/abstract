@@ -152,7 +152,7 @@ fn update_tipper_history(
     TIP_COUNT.save(storage, &(total_count + 1))?;
     // Update tipper counts
     let tipper_count = TIPPER_COUNT.may_load(storage, sender)?.unwrap_or_default();
-    TIPPER_COUNT.save(storage, sender, &(tipper_count + 1))?;
+    TIPPER_COUNT.save(storage, sender, &(tipper_count + 1), height)?;
 
     // Update tipper amount
     for asset in assets {
