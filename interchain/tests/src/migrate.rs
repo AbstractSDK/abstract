@@ -2,10 +2,10 @@
 //! Otherwise you will have too many requests
 
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_core::objects::module::ModuleInfo;
 use abstract_core::{ABSTRACT_EVENT_TYPE, MANAGER, PROXY};
 use abstract_interface::VCExecFns;
-use abstract_interface::{Abstract, AbstractAccount, ManagerExecFns, VCQueryFns};
+use abstract_interface::{Abstract, AbstractAccount, ManagerExecFns};
 use abstract_testing::prelude::*;
 use anyhow::Ok;
 use cosmwasm_std::{to_json_binary, Addr};
@@ -44,7 +44,7 @@ fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<ForkMock>, ForkMock)> {
     let (deployment, chain) = setup()?;
     deployment.migrate_if_needed()?;
-    deployment.version_control.update_config(Some(true), None);
+    deployment.version_control.update_config(Some(true), None)?;
     Ok((deployment, chain))
 }
 
