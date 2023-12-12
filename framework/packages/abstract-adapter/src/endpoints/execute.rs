@@ -23,7 +23,6 @@ use serde::Serialize;
 
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg: Serialize + JsonSchema + AdapterExecuteMsg,
@@ -33,7 +32,6 @@ impl<
     > ExecuteEndpoint
     for AdapterContract<
         'a,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -67,7 +65,6 @@ impl<
 /// The api-contract base implementation.
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -75,7 +72,7 @@ impl<
         ReceiveMsg,
         SudoMsg,
     >
-    AdapterContract<'a, T, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AdapterContract<'a, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn base_execute(
         &mut self,

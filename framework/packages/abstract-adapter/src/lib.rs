@@ -28,7 +28,7 @@ pub mod mock {
         objects::dependency::StaticDependency,
     };
     use abstract_interface::AdapterDeployer;
-    use abstract_sdk::features::CustomData;
+    use abstract_sdk::features::{CustomData, DepsType};
     use abstract_sdk::{base::InstantiateEndpoint, features::DepsAccess, AbstractSdkError};
     use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
@@ -78,9 +78,8 @@ pub mod mock {
     pub struct MockSudoMsg;
 
     /// Mock Adapter type
-    pub type MockAdapterContract<'a, T: DepsAccess> = AdapterContract<
+    pub type MockAdapterContract<'a> = AdapterContract<
         'a,
-        T,
         MockError,
         MockInitMsg,
         MockExecMsg,
@@ -92,7 +91,7 @@ pub mod mock {
     pub const MOCK_DEP: StaticDependency = StaticDependency::new("module_id", &[">0.0.0"]);
 
     /// use for testing
-    pub fn mock_adapter<'a, T: DepsAccess>(deps: T) -> MockAdapterContract<'a, T> {
+    pub fn mock_adapter<'a>(deps: DepsType<'a>) -> MockAdapterContract<'a> {
         MockAdapterContract::new(deps, TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
             .with_instantiate(|app, _| {
                 app.set_data("mock_init".as_bytes());
@@ -116,7 +115,7 @@ pub mod mock {
 
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
         let info = mock_info(TEST_ADMIN, &[]);
-        let adapter = mock_adapter((deps, mock_env(), info));
+        let adapter = mock_adapter((deps, mock_env(), info).into());
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
@@ -129,9 +128,7 @@ pub mod mock {
 
     pub fn mock_init_custom<'a>(
         deps: DepsMut<'a>,
-        adapter: fn(
-            deps: (DepsMut<'a>, Env, MessageInfo),
-        ) -> MockAdapterContract<'a, (DepsMut<'a>, Env, MessageInfo)>,
+        adapter: fn(deps: DepsType<'a>) -> MockAdapterContract<'a>,
     ) -> Result<Response, MockError> {
         let info = mock_info(TEST_ADMIN, &[]);
         let init_msg = InstantiateMsg {
@@ -141,7 +138,7 @@ pub mod mock {
             },
             module: MockInitMsg,
         };
-        let adapter = adapter((deps, mock_env(), info));
+        let adapter = adapter((deps, mock_env(), info).into());
         adapter.instantiate(init_msg)
     }
 

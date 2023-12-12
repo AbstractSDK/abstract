@@ -12,7 +12,6 @@ use serde::Serialize;
 
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg: Serialize + JsonSchema,
         CustomExecMsg,
@@ -22,7 +21,6 @@ impl<
     > InstantiateEndpoint
     for AdapterContract<
         'a,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

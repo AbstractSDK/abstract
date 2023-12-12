@@ -7,11 +7,10 @@ use abstract_core::{
     objects::module_version::{ModuleDataResponse, MODULE},
 };
 use abstract_sdk::features::DepsAccess;
-use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
+use cosmwasm_std::{to_json_binary, Binary, StdResult};
 use cw_controllers::AdminResponse;
 
 impl<
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -22,7 +21,6 @@ impl<
     > QueryEndpoint
     for AppContract<
         '_,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -34,17 +32,16 @@ impl<
 {
     type QueryMsg = QueryMsg<CustomQueryMsg>;
 
-    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
+    fn query(&self, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
-            QueryMsg::Base(msg) => self.base_query(deps, env, msg).map_err(Into::into),
-            QueryMsg::Module(msg) => self.query_handler()?(deps, env, self, msg),
+            QueryMsg::Base(msg) => self.base_query(msg).map_err(Into::into),
+            QueryMsg::Module(msg) => self.query_handler()?(self, msg),
         }
     }
 }
 /// Where we dispatch the queries for the AppContract
 /// These BaseQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -55,7 +52,6 @@ impl<
     >
     AppContract<
         '_,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -65,17 +61,17 @@ impl<
         SudoMsg,
     >
 {
-    pub fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
+    pub fn base_query(&self, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
-            BaseQueryMsg::BaseConfig {} => to_json_binary(&self.dapp_config(deps)?),
-            BaseQueryMsg::BaseAdmin {} => to_json_binary(&self.admin(deps)?),
-            BaseQueryMsg::ModuleData {} => to_json_binary(&self.module_data(deps)?),
+            BaseQueryMsg::BaseConfig {} => to_json_binary(&self.dapp_config()?),
+            BaseQueryMsg::BaseAdmin {} => to_json_binary(&self.admin()?),
+            BaseQueryMsg::ModuleData {} => to_json_binary(&self.module_data()?),
         }
     }
 
-    fn dapp_config(&self, deps: Deps) -> StdResult<AppConfigResponse> {
-        let state = self.base_state.load(deps.storage)?;
-        let admin = self.admin.get(deps)?.unwrap();
+    fn dapp_config(&self) -> StdResult<AppConfigResponse> {
+        let state = self.base_state.load(self.deps().storage)?;
+        let admin = self.admin.get(self.deps())?.unwrap();
         Ok(AppConfigResponse {
             proxy_address: state.proxy_address,
             ans_host_address: state.ans_host.address,
@@ -83,12 +79,12 @@ impl<
         })
     }
 
-    fn admin(&self, deps: Deps) -> StdResult<AdminResponse> {
-        self.admin.query_admin(deps)
+    fn admin(&self) -> StdResult<AdminResponse> {
+        self.admin.query_admin(self.deps())
     }
 
-    fn module_data(&self, deps: Deps) -> StdResult<ModuleDataResponse> {
-        let module_data = MODULE.load(deps.storage)?;
+    fn module_data(&self) -> StdResult<ModuleDataResponse> {
+        let module_data = MODULE.load(self.deps().storage)?;
         Ok(ModuleDataResponse {
             module_id: module_data.module,
             version: module_data.version,
@@ -106,12 +102,13 @@ impl<
 mod test {
     use super::*;
     use crate::mock::*;
+    use cosmwasm_std::Deps;
     use speculoos::prelude::*;
 
     type AppQueryMsg = QueryMsg<MockQueryMsg>;
 
     fn query_helper(deps: Deps, msg: AppQueryMsg) -> Result<Binary, MockError> {
-        BASIC_MOCK_APP.query(deps, mock_env(), msg)
+        basic_mock_app((deps, mock_env()).into()).query(msg)
     }
 
     mod app_query {
@@ -137,8 +134,6 @@ mod test {
         }
 
         fn mock_query_handler(
-            _deps: Deps,
-            _env: Env,
             _contract: &MockAppContract,
             msg: MockQueryMsg,
         ) -> Result<Binary, MockError> {
@@ -151,8 +146,9 @@ mod test {
             let deps = mock_init();
             let msg = AppQueryMsg::Module(MockQueryMsg);
 
-            let with_mocked_query = BASIC_MOCK_APP.with_query(mock_query_handler);
-            let res = with_mocked_query.query(deps.as_ref(), mock_env(), msg);
+            let with_mocked_query =
+                basic_mock_app((deps.as_ref(), mock_env()).into()).with_query(mock_query_handler);
+            let res = with_mocked_query.query(msg);
 
             let expected = to_json_binary(&MockQueryMsg).unwrap();
             assert_that!(res).is_ok().is_equal_to(expected);

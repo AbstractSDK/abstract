@@ -53,7 +53,8 @@ clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
 # cw-orch = { version = "0.16.1" }
-cw-orch = { version = "0.16.3" }
+# cw-orch = { version = "0.16.3" }
+cw-orch = { path = "../../cw-orchestrator/cw-orch" }
 tokio = { version = "1.4", features = ["full"] }
 polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }
 polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }

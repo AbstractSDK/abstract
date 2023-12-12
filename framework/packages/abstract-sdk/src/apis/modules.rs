@@ -115,7 +115,7 @@ mod test {
         #[test]
         fn should_return_ok_if_dependency() {
             let deps = mock_dependencies();
-            let app = MockModule::new((deps.as_ref(), mock_env()));
+            let app = MockModule::new((deps.as_ref(), mock_env()).into());
 
             let mods = app.modules();
 
@@ -126,7 +126,7 @@ mod test {
         #[test]
         fn should_return_err_if_not_dependency() {
             let deps = mock_dependencies();
-            let app = MockModule::new((deps.as_ref(), mock_env()));
+            let app = MockModule::new((deps.as_ref(), mock_env()).into());
 
             let mods = app.modules();
 

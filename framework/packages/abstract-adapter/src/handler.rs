@@ -5,8 +5,8 @@ use abstract_sdk::{
 };
 use cosmwasm_std::Empty;
 
-impl<'a, T: DepsAccess, Error: ContractError, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg>
-    Handler for AdapterContract<'a, T, Error, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg>
+impl<'a, Error: ContractError, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg> Handler
+    for AdapterContract<'a, Error, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg>
 {
     type Error = Error;
     type CustomInitMsg = InitMsg;

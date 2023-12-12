@@ -29,7 +29,7 @@ abstract_app::app_msg_types!(CounterApp, CounterExecMsg, CounterQueryMsg);
 
 use abstract_app::{AppContract, AppError};
 
-use abstract_sdk::AbstractSdkError;
+use abstract_sdk::{features::DepsType, AbstractSdkError};
 
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -55,7 +55,8 @@ pub enum CounterError {
 // ANCHOR_END: error
 
 // ANCHOR: counter_app
-pub type CounterApp = AppContract<
+pub type CounterApp<'a> = AppContract<
+    'a,
     CounterError,
     CounterInitMsg,
     CounterExecMsg,
@@ -71,65 +72,111 @@ const APP_VERSION: &str = "1.0.0";
 
 // ANCHOR: handlers
 // ANCHOR: new
-pub const COUNTER_APP: CounterApp = CounterApp::new(COUNTER_ID, APP_VERSION, None)
-    // ANCHOR_END: new
-    .with_instantiate(handlers::instantiate)
-    .with_execute(handlers::execute)
-    .with_query(handlers::query)
-    .with_sudo(handlers::sudo)
-    .with_receive(handlers::receive)
-    .with_replies(&[(1u64, handlers::reply)])
-    .with_migrate(handlers::migrate);
+
+pub fn counter(deps: DepsType) -> CounterApp {
+    CounterApp::new(deps, COUNTER_ID, APP_VERSION, None)
+        // ANCHOR_END: new
+        .with_instantiate(handlers::instantiate)
+        .with_execute(handlers::execute)
+        .with_query(handlers::query)
+        .with_sudo(handlers::sudo)
+        .with_receive(handlers::receive)
+        .with_replies(&[(1u64, handlers::reply)])
+        .with_migrate(handlers::migrate)
+}
 // ANCHOR_END: handlers
 
 // ANCHOR: export
-abstract_app::export_endpoints!(COUNTER_APP, CounterApp);
+abstract_app::export_endpoints!(counter, CounterApp);
 // ANCHOR_END: export
 
 // ANCHOR: interface
 abstract_app::cw_orch_interface!(COUNTER_APP, CounterApp, CounterAppInterface);
+
+// Testing here to see if something is possible with lifetimes
+
+// This struct represents the interface to the contract.
+pub struct CounterAppInterface<'a, Chain: ::cw_orch::prelude::CwEnv>(
+    ::cw_orch::contract::Contract<Chain>,
+    ::std::marker::PhantomData<&'a ()>,
+);
+
+impl<'a, Chain: ::cw_orch::prelude::CwEnv> CounterAppInterface<'a, Chain> {
+    /// Constructor for the contract interface
+    pub fn new(contract_id: impl ToString, chain: Chain) -> Self {
+        Self(
+            ::cw_orch::contract::Contract::new(contract_id, chain),
+            ::std::marker::PhantomData,
+        )
+    }
+}
+
+// Traits for signaling cw-orchestrator with what messages to call the contract's entry points.
+impl<'a, Chain: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::InstantiableContract
+    for CounterAppInterface<'a, Chain>
+{
+    type InstantiateMsg = InstantiateMsg<'a>;
+}
+impl<'a, Chain: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::ExecutableContract
+    for CounterAppInterface<'a, Chain>
+{
+    type ExecuteMsg = ExecuteMsg<'a>;
+}
+
 // ANCHOR_END: interface
 
 mod handlers {
     #![allow(non_upper_case_globals)]
-    use abstract_sdk::{base::*, AbstractResponse};
+    use abstract_sdk::{
+        features::{CustomData, DepsAccess},
+        AbstractResponse,
+    };
     use cosmwasm_std::*;
 
     use super::*;
 
-    pub const instantiate: InstantiateHandlerFn<CounterApp, CounterInitMsg, CounterError> =
-        |_, _, _, _, _| Ok(Response::new().set_data("counter_init".as_bytes()));
-    pub const query: QueryHandlerFn<CounterApp, CounterQueryMsg, CounterError> =
-        |_, _, _, _| to_json_binary("counter_query").map_err(Into::into);
-    pub const sudo: SudoHandlerFn<CounterApp, CounterSudoMsg, CounterError> =
-        |_, _, _, _| Ok(Response::new().set_data("counter_sudo".as_bytes()));
-    pub const receive: ReceiveHandlerFn<CounterApp, CounterReceiveMsg, CounterError> =
-        |_, _, _, _, _| Ok(Response::new().set_data("counter_receive".as_bytes()));
-    pub const reply: ReplyHandlerFn<CounterApp, CounterError> =
-        |_, _, _, msg| Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()));
-    pub const migrate: MigrateHandlerFn<CounterApp, CounterMigrateMsg, CounterError> =
-        |_, _, _, _| Ok(Response::new().set_data("counter_migrate".as_bytes()));
+    pub fn instantiate(app: &mut CounterApp, _msg: CounterInitMsg) -> CounterResult<()> {
+        app.set_data("counter_init".as_bytes());
+        Ok(())
+    }
+    pub fn query(_app: &CounterApp, _msg: CounterQueryMsg) -> CounterResult<Binary> {
+        to_json_binary("counter_query").map_err(Into::into)
+    }
+    pub fn sudo(app: &mut CounterApp, _msg: CounterSudoMsg) -> CounterResult<()> {
+        app.set_data("counter_sudo".as_bytes());
+        Ok(())
+    }
+    pub fn receive(app: &mut CounterApp, _msg: CounterReceiveMsg) -> CounterResult<()> {
+        app.set_data("counter_receive".as_bytes());
+        Ok(())
+    }
+    pub fn reply(app: &mut CounterApp, msg: Reply) -> CounterResult<()> {
+        app.set_data(msg.result.unwrap().data.unwrap());
+        Ok(())
+    }
+    pub fn migrate(app: &mut CounterApp, _msg: CounterMigrateMsg) -> CounterResult<()> {
+        app.set_data("counter_migrate".as_bytes());
+        Ok(())
+    }
     // ANCHOR: execute
     pub fn execute(
-        deps: DepsMut,
-        _env: Env,
-        info: MessageInfo,
-        app: CounterApp, // <-- Notice how the `CounterApp` is available here
+        app: &mut CounterApp, // <-- Notice how the `CounterApp` is available here
         msg: CounterExecMsg,
-    ) -> CounterResult {
+    ) -> CounterResult<()> {
         match msg {
-            CounterExecMsg::UpdateConfig {} => update_config(deps, info, app),
+            CounterExecMsg::UpdateConfig {} => update_config(app),
         }
     }
 
     /// Update the configuration of the app
-    fn update_config(deps: DepsMut, msg_info: MessageInfo, app: CounterApp) -> CounterResult {
+    fn update_config(app: &mut CounterApp) -> CounterResult<()> {
         // Only the admin should be able to call this
-        app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+        app.admin
+            .assert_admin(app.deps.deps(), &app.message_info().sender)?;
 
-        Ok(app
-            .tag_response(Response::default(), "update_config")
-            .set_data("counter_exec".as_bytes()))
+        app.tag_response("update_config");
+        app.set_data("counter_exec".as_bytes());
+        Ok(())
     }
     // ANCHOR_END: execute
 }

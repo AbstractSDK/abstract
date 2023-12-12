@@ -2,7 +2,9 @@ use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
 };
-use crate::{base::ReplyHandlerFn, AbstractSdkError, AbstractSdkResult};
+use crate::{
+    base::ReplyHandlerFn, features::ResponseGenerator, AbstractSdkError, AbstractSdkResult,
+};
 use abstract_core::objects::dependency::Dependency;
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;
@@ -10,7 +12,7 @@ use cw2::ContractVersion;
 /// Accessor trait for an object that wraps an [`AbstractContract`].
 pub trait Handler
 where
-    Self: Sized,
+    Self: Sized + ResponseGenerator,
 {
     /// Error type for the contract
     type Error: From<AbstractSdkError>;

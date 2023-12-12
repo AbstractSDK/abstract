@@ -1,12 +1,9 @@
-use abstract_sdk::features::DepsAccess;
-
 use crate::{
     state::{AppContract, ContractError},
     ReceiveEndpoint,
 };
 
 impl<
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -17,7 +14,6 @@ impl<
     > ReceiveEndpoint
     for AppContract<
         '_,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

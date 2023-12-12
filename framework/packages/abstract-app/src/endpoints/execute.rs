@@ -5,14 +5,13 @@ use crate::{
 use abstract_core::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
 use abstract_sdk::{
     base::ReceiveEndpoint,
-    features::{AbstractResponse, DepsAccess},
+    features::{AbstractResponse, DepsAccess, ResponseGenerator},
 };
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
+use cosmwasm_std::{Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        T: DepsAccess,
         Error: From<cosmwasm_std::StdError>
             + From<AppError>
             + From<abstract_sdk::AbstractSdkError>
@@ -27,7 +26,6 @@ impl<
     > ExecuteEndpoint
     for AppContract<
         '_,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -39,20 +37,15 @@ impl<
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
-    fn execute(
-        self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        msg: Self::ExecuteMsg,
-    ) -> Result<Response, Error> {
+    fn execute(mut self, msg: Self::ExecuteMsg) -> Result<Response, Error> {
         match msg {
-            ExecuteMsg::Module(request) => self.execute_handler()?(deps, env, info, self, request),
-            ExecuteMsg::Base(exec_msg) => self
-                .base_execute(deps, env, info, exec_msg)
-                .map_err(From::from),
-            ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
-            ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
+            ExecuteMsg::Module(request) => {
+                self.execute_handler()?(&mut self, request)?;
+                Ok(self._generate_response()?)
+            }
+            ExecuteMsg::Base(exec_msg) => self.base_execute(exec_msg).map_err(From::from),
+            ExecuteMsg::IbcCallback(msg) => self.ibc_callback(msg),
+            ExecuteMsg::Receive(msg) => self.receive(msg),
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported App execute message variant").into()),
         }
@@ -60,7 +53,6 @@ impl<
 }
 
 impl<
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -71,7 +63,6 @@ impl<
     >
     AppContract<
         '_,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -81,46 +72,42 @@ impl<
         SudoMsg,
     >
 {
-    fn base_execute(
-        &self,
-        deps: DepsMut,
-        _env: Env,
-        info: MessageInfo,
-        message: BaseExecuteMsg,
-    ) -> AppResult {
+    fn base_execute(&mut self, message: BaseExecuteMsg) -> AppResult {
         match message {
             BaseExecuteMsg::UpdateConfig {
                 ans_host_address,
                 version_control_address,
-            } => self.update_config(deps, info, ans_host_address, version_control_address),
-        }
+            } => self.update_config(ans_host_address, version_control_address)?,
+        };
+        Ok(self._generate_response()?)
     }
 
     fn update_config(
-        &self,
-        deps: DepsMut,
-        info: MessageInfo,
+        &mut self,
         ans_host_address: Option<String>,
         version_control_address: Option<String>,
-    ) -> AppResult {
+    ) -> Result<(), AppError> {
         // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
-        self.admin.assert_admin(deps.as_ref(), &info.sender)?;
+        self.admin
+            .assert_admin(self.deps(), &self.message_info().sender)?;
 
-        let mut state = self.base_state.load(deps.storage)?;
+        let mut state = self.base_state.load(self.deps().storage)?;
 
         if let Some(ans_host_address) = ans_host_address {
-            state.ans_host.address = deps.api.addr_validate(ans_host_address.as_str())?;
+            state.ans_host.address = self.api().addr_validate(ans_host_address.as_str())?;
         }
 
         if let Some(version_control_address) = version_control_address {
             state.version_control.address =
-                deps.api.addr_validate(version_control_address.as_str())?;
+                self.api().addr_validate(version_control_address.as_str())?;
         }
 
-        self.base_state.save(deps.storage, &state)?;
+        self.base_state.save(self.deps.deps_mut().storage, &state)?;
 
-        Ok(self.tag_response(Response::default(), "update_config"))
+        self.tag_response("update_config");
+
+        Ok(())
     }
 }
 
@@ -129,7 +116,7 @@ mod test {
     use super::*;
     use crate::mock::*;
     use abstract_testing::prelude::TEST_MANAGER;
-    use cosmwasm_std::Addr;
+    use cosmwasm_std::{Addr, DepsMut};
     use cw_controllers::AdminError;
     use speculoos::prelude::*;
 
@@ -137,7 +124,7 @@ mod test {
 
     fn execute_as(deps: DepsMut, sender: &str, msg: AppExecuteMsg) -> Result<Response, MockError> {
         let info = mock_info(sender, &[]);
-        MOCK_APP.execute(deps, mock_env(), info, msg)
+        mock_app((deps, mock_env(), info).into()).execute(msg)
     }
 
     fn execute_as_manager(deps: DepsMut, msg: AppExecuteMsg) -> Result<Response, MockError> {
@@ -193,7 +180,9 @@ mod test {
                 res
             });
 
-            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+            let state = mock_app((deps.as_ref(), mock_env()).into())
+                .base_state
+                .load(deps.as_ref().storage)?;
 
             assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
             assert_that!(state.version_control.address)
@@ -218,7 +207,9 @@ mod test {
                 res
             });
 
-            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+            let state = mock_app((deps.as_ref(), mock_env()).into())
+                .base_state
+                .load(deps.as_ref().storage)?;
 
             assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
             assert_that!(state.version_control.address)

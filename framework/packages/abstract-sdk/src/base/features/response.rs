@@ -1,8 +1,5 @@
 use abstract_core::proxy::ExecuteMsg;
-use cosmwasm_std::{
-    wasm_execute, Attribute, Binary, CosmosMsg, DepsMut, Env, Event, MessageInfo, ReplyOn,
-    Response, SubMsg,
-};
+use cosmwasm_std::{wasm_execute, Attribute, Binary, CosmosMsg, Event, ReplyOn, Response, SubMsg};
 
 use crate::{AbstractSdkResult, AccountAction};
 
@@ -172,9 +169,44 @@ pub trait ResponseGenerator: ExecutionStack + CustomEvents + CustomData {
 
 impl<T> ResponseGenerator for T where T: ExecutionStack + CustomEvents + CustomData {}
 
-/// Allows to detect which environment is currently being executed on
-pub trait HasExecutableEnv {}
+#[derive(Default)]
+pub struct ModuleEndpointResponse {
+    pub executables: Executables,
+    pub events: Vec<Event>,
+    pub attributes: Vec<Attribute>,
+    pub data: Option<Binary>,
+}
 
-impl HasExecutableEnv for (DepsMut<'_>, Env, MessageInfo) {}
+impl CustomEvents for ModuleEndpointResponse {
+    fn add_event<A: Into<Attribute>>(
+        &mut self,
+        event_name: &str,
+        attributes: impl IntoIterator<Item = A>,
+    ) {
+        let event = Event::new(event_name).add_attributes(attributes);
+        self.events.push(event)
+    }
 
-impl HasExecutableEnv for (DepsMut<'_>, Env) {}
+    fn events(&self) -> Vec<Event> {
+        self.events.clone()
+    }
+
+    fn add_attributes<A: Into<Attribute>>(&mut self, attributes: impl IntoIterator<Item = A>) {
+        self.attributes
+            .extend(attributes.into_iter().map(Into::into))
+    }
+
+    fn attributes(&self) -> Vec<Attribute> {
+        self.attributes.clone()
+    }
+}
+
+impl CustomData for ModuleEndpointResponse {
+    fn data(&self) -> Option<Binary> {
+        self.data.clone()
+    }
+
+    fn set_data(&mut self, data: impl Into<Binary>) {
+        self.data = Some(data.into())
+    }
+}

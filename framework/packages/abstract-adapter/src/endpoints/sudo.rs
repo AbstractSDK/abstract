@@ -14,7 +14,6 @@ impl<
     > SudoEndpoint
     for AdapterContract<
         'a,
-        (DepsMut<'a>, Env),
         Error,
         CustomInitMsg,
         CustomExecMsg,

@@ -9,10 +9,5 @@ pub trait MigrateEndpoint: Handler {
     type MigrateMsg: Serialize + JsonSchema;
 
     /// Handler for the Migrate endpoint.
-    fn migrate(
-        self,
-        deps: DepsMut,
-        env: Env,
-        msg: Self::MigrateMsg,
-    ) -> Result<Response, Self::Error>;
+    fn migrate(self, msg: Self::MigrateMsg) -> Result<Response, Self::Error>;
 }

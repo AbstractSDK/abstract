@@ -25,108 +25,89 @@ mod sudo;
 /// abstract_app::export_endpoints!(MY_APP, MyApp);
 /// ```
 macro_rules! export_endpoints {
-    ($app_const:expr, $app_type:ident
-        // only one or none `<>`
-        $(<
-            // match one or more lifetimes separated by a comma
-            $(
-                $lt:lifetime
-                // optional constraint: 'a: 'b
-                $( : $clt:lifetime )?
-            ),*
-        >)?, $deps_lifetime: lifetime) => {
+    ($app_const:expr, $app_type:ident) => {
         /// Instantiate entrypoint
         #[::cosmwasm_std::entry_point]
-        pub fn instantiate
-        $(< $( $lt ),+ >)?(
-            deps: ::cosmwasm_std::DepsMut,
+        pub fn instantiate<'a>(
+            deps: ::cosmwasm_std::DepsMut<'a>,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: <$app_type<
-            $( $( $lt ),+ )?,
-                (
-                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
-                    ::cosmwasm_std::Env,
-                    ::cosmwasm_std::MessageInfo,
-                ),
-            > as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
+            msg: <$app_type<'a> as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
         ) -> Result<
             ::cosmwasm_std::Response,
-            <$app_type<
-            $( $( $lt ),+ )?,
-                (
-                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
-                    ::cosmwasm_std::Env,
-                    ::cosmwasm_std::MessageInfo,
-                ),
-            > as ::abstract_sdk::base::Handler>::Error,
+            <$app_type<'a> as ::abstract_sdk::base::Handler>::Error,
         > {
             use ::abstract_sdk::base::InstantiateEndpoint;
-            let ctx = (deps, env, info);
+            let ctx = (deps, env, info).into();
             let app = $app_const(ctx);
             app.instantiate(msg)
         }
 
-        // /// Execute entrypoint
-        // #[::cosmwasm_std::entry_point]
-        // pub fn execute<'a>(
-        //     deps: ::cosmwasm_std::DepsMut,
-        //     env: ::cosmwasm_std::Env,
-        //     info: ::cosmwasm_std::MessageInfo,
-        //     msg: <$app_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
-        // ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-        //     use ::abstract_sdk::base::ExecuteEndpoint;
-        //     let app = $app_const(Box::new((deps, env, info)));
-        //     app.execute(deps, env, info, msg)
-        // }
+        /// Execute entrypoint
+        #[::cosmwasm_std::entry_point]
+        pub fn execute<'a>(
+            deps: ::cosmwasm_std::DepsMut<'a>,
+            env: ::cosmwasm_std::Env,
+            info: ::cosmwasm_std::MessageInfo,
+            msg: <$app_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
+        ) -> Result<::cosmwasm_std::Response, <$app_type<'a> as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::ExecuteEndpoint;
+            let ctx = (deps, env, info).into();
+            let app = $app_const(ctx);
+            app.execute(msg)
+        }
 
-        // /// Query entrypoint
-        // #[::cosmwasm_std::entry_point]
-        // pub fn query<'a>(
-        //     deps: ::cosmwasm_std::Deps,
-        //     env: ::cosmwasm_std::Env,
-        //     msg: <$app_type as abstract_sdk::base::QueryEndpoint>::QueryMsg,
-        // ) -> Result<::cosmwasm_std::Binary, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-        //     use ::abstract_sdk::base::QueryEndpoint;
-        //     let app = $app_const(Box::new((deps, env)));
-        //     app.query(deps, env, msg)
-        // }
+        /// Query entrypoint
+        #[::cosmwasm_std::entry_point]
+        pub fn query<'a>(
+            deps: ::cosmwasm_std::Deps,
+            env: ::cosmwasm_std::Env,
+            msg: <$app_type as abstract_sdk::base::QueryEndpoint>::QueryMsg,
+        ) -> Result<::cosmwasm_std::Binary, <$app_type<'a> as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::QueryEndpoint;
+            let ctx = (deps, env).into();
+            let app = $app_const(ctx);
+            app.query(msg)
+        }
 
-        // /// Migrate entrypoint
-        // #[::cosmwasm_std::entry_point]
-        // pub fn migrate<'a>(
-        //     deps: ::cosmwasm_std::DepsMut,
-        //     env: ::cosmwasm_std::Env,
-        //     msg: <$app_type as abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
-        // ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-        //     use ::abstract_sdk::base::MigrateEndpoint;
-        //     let app = $app_const(Box::new((deps, env)));
-        //     app.migrate(deps, env, msg)
-        // }
+        /// Migrate entrypoint
+        #[::cosmwasm_std::entry_point]
+        pub fn migrate<'a>(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            msg: <$app_type as abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
+        ) -> Result<::cosmwasm_std::Response, <$app_type<'a> as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::MigrateEndpoint;
+            let ctx = (deps, env).into();
+            let app = $app_const(ctx);
+            app.migrate(msg)
+        }
 
-        // // Reply entrypoint
-        // #[::cosmwasm_std::entry_point]
-        // pub fn reply<'a>(
-        //     deps: ::cosmwasm_std::DepsMut,
-        //     env: ::cosmwasm_std::Env,
-        //     msg: ::cosmwasm_std::Reply,
-        // ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-        //     use ::abstract_sdk::base::ReplyEndpoint;
-        //     let app = $app_const(Box::new((deps, env)));
-        //     app.reply(deps, env, msg)
-        // }
+        // Reply entrypoint
+        #[::cosmwasm_std::entry_point]
+        pub fn reply<'a>(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            msg: ::cosmwasm_std::Reply,
+        ) -> Result<::cosmwasm_std::Response, <$app_type<'a> as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::ReplyEndpoint;
+            let ctx = (deps, env).into();
+            let app = $app_const(ctx);
+            app.reply(msg)
+        }
 
-        // // Sudo entrypoint
-        // #[::cosmwasm_std::entry_point]
-        // pub fn sudo<'a>(
-        //     deps: ::cosmwasm_std::DepsMut,
-        //     env: ::cosmwasm_std::Env,
-        //     msg: <$app_type as ::abstract_sdk::base::Handler>::SudoMsg,
-        // ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
-        //     use ::abstract_sdk::base::SudoEndpoint;
-        //     let app = $app_const(Box::new((deps, env)));
-        //     app.sudo(deps, env, msg)
-        // }
+        // Sudo entrypoint
+        #[::cosmwasm_std::entry_point]
+        pub fn sudo<'a>(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            msg: <$app_type as ::abstract_sdk::base::Handler>::SudoMsg,
+        ) -> Result<::cosmwasm_std::Response, <$app_type<'a> as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::SudoEndpoint;
+            let ctx = (deps, env).into();
+            let app = $app_const(ctx);
+            app.sudo(msg)
+        }
     };
 }
 
@@ -147,7 +128,7 @@ mod test {
 
     #[test]
     fn exports_endpoints() {
-        export_endpoints!(MOCK_APP, MockAppContract);
+        export_endpoints!(mock_app, MockAppContract);
 
         let mut deps = mock_dependencies();
 
@@ -165,21 +146,16 @@ mod test {
             mock_info(TEST_ADMIN, &[]),
             init_msg.clone(),
         );
-        let expected_init = MOCK_APP.instantiate(
-            (deps.as_mut(), mock_env(), mock_info(TEST_ADMIN, &[])).into(),
-            init_msg,
-        );
+        let expected_init =
+            mock_app((deps.as_mut(), mock_env(), mock_info(TEST_ADMIN, &[])).into())
+                .instantiate(init_msg);
         assert_that!(actual_init).is_equal_to(expected_init);
 
         // exec
         let exec_msg = app::ExecuteMsg::Module(MockExecMsg);
-        let actual_exec = execute(
-            deps.as_mut(),
-            mock_env(),
-            mock_info(TEST_ADMIN, &[]),
-            exec_msg.clone(),
-        );
-        let expected_exec = MOCK_APP.execute(
+        let actual_exec = mock_app((deps.as_mut(), mock_env(), mock_info(TEST_ADMIN, &[])).into())
+            .execute(exec_msg.clone());
+        let expected_exec = execute(
             deps.as_mut(),
             mock_env(),
             mock_info(TEST_ADMIN, &[]),
@@ -190,7 +166,7 @@ mod test {
         // query
         let query_msg = app::QueryMsg::Module(MockQueryMsg);
         let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
-        let expected_query = MOCK_APP.query(deps.as_ref(), mock_env(), query_msg);
+        let expected_query = mock_app((deps.as_ref(), mock_env()).into()).query(query_msg);
         assert_that!(actual_query).is_equal_to(expected_query);
 
         // migrate
@@ -199,13 +175,13 @@ mod test {
             module: MockMigrateMsg,
         };
         let actual_migrate = migrate(deps.as_mut(), mock_env(), migrate_msg.clone());
-        let expected_migrate = MOCK_APP.migrate(deps.as_mut(), mock_env(), migrate_msg);
+        let expected_migrate = mock_app((deps.as_mut(), mock_env()).into()).migrate(migrate_msg);
         assert_that!(actual_migrate).is_equal_to(expected_migrate);
 
         // sudo
         let sudo_msg = MockSudoMsg {};
         let actual_sudo = sudo(deps.as_mut(), mock_env(), sudo_msg.clone());
-        let expected_sudo = MOCK_APP.sudo(deps.as_mut(), mock_env(), sudo_msg);
+        let expected_sudo = mock_app((deps.as_mut(), mock_env()).into()).sudo(sudo_msg);
         assert_that!(actual_sudo).is_equal_to(expected_sudo);
 
         // reply
@@ -214,7 +190,7 @@ mod test {
             result: SubMsgResult::Err("test".into()),
         };
         let actual_reply = reply(deps.as_mut(), mock_env(), reply_msg.clone());
-        let expected_reply = MOCK_APP.reply(deps.as_mut(), mock_env(), reply_msg);
+        let expected_reply = mock_app((deps.as_mut(), mock_env()).into()).reply(reply_msg);
         assert_that!(actual_reply).is_equal_to(expected_reply);
     }
 }

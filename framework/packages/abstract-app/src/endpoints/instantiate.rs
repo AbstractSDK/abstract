@@ -12,7 +12,7 @@ use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
     features::{DepsAccess, ResponseGenerator},
 };
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::Response;
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::Serialize;
@@ -29,7 +29,6 @@ impl<
     > InstantiateEndpoint
     for AppContract<
         'a,
-        (DepsMut<'a>, Env, MessageInfo),
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -116,8 +115,9 @@ mod test {
             module: MockInitMsg {},
         };
 
-        let ctx = (deps.as_mut(), mock_env(), info).into();
-        let res = MOCK_APP.instantiate(ctx, msg).unwrap();
+        let res = mock_app((deps.as_mut(), mock_env(), info).into())
+            .instantiate(msg)
+            .unwrap();
         assert_that!(res.messages).is_empty();
     }
 }

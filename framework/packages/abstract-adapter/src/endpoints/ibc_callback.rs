@@ -3,7 +3,6 @@ use abstract_sdk::{base::IbcCallbackEndpoint, features::DepsAccess};
 
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -13,7 +12,6 @@ impl<
     > IbcCallbackEndpoint
     for AdapterContract<
         'a,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

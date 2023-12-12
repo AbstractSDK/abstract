@@ -26,26 +26,16 @@ macro_rules! export_endpoints {
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
             msg: <$api_type<
-            $( $( $lt ),+ )?,
-                (
-                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
-                    ::cosmwasm_std::Env,
-                    ::cosmwasm_std::MessageInfo,
-                ),
+            $( $( $lt ),+ )?
             > as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
         ) -> Result<
         ::cosmwasm_std::Response,
             <$api_type<
-            $( $( $lt ),+ )?,
-                (
-                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
-                    ::cosmwasm_std::Env,
-                    ::cosmwasm_std::MessageInfo,
-                ),
+            $( $( $lt ),+ )?
             > as ::abstract_sdk::base::Handler>::Error,
         > {
             use ::abstract_sdk::base::InstantiateEndpoint;
-            let ctx = (deps, env, info);
+            let ctx = (deps, env, info).into();
             let api = $api_func(ctx);
             api.instantiate(msg)
         }
@@ -58,26 +48,16 @@ macro_rules! export_endpoints {
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
             msg: <$api_type<
-            $( $( $lt ),+ )?,
-                (
-                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
-                    ::cosmwasm_std::Env,
-                    ::cosmwasm_std::MessageInfo,
-                ),
+            $( $( $lt ),+ )?
             > as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
         ) -> Result<
         ::cosmwasm_std::Response,
             <$api_type<
-            $( $( $lt ),+ )?,
-                (
-                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
-                    ::cosmwasm_std::Env,
-                    ::cosmwasm_std::MessageInfo,
-                ),
+            $( $( $lt ),+ )?
             > as ::abstract_sdk::base::Handler>::Error,
         > {
             use ::abstract_sdk::base::ExecuteEndpoint;
-            let ctx = (deps, env, info);
+            let ctx = (deps, env, info).into();
             let api = $api_func(ctx);
             api.execute(deps, env, info,msg)
         }
@@ -89,23 +69,13 @@ macro_rules! export_endpoints {
             deps: ::cosmwasm_std::Deps,
             env: ::cosmwasm_std::Env,
             msg: <$api_type<
-            $( $( $lt ),+ )?,
-                (
-                    ::cosmwasm_std::DepsMut<$deps_lifetime>,
-                    ::cosmwasm_std::Env,
-                    ::cosmwasm_std::MessageInfo,
-                ),
+            $( $( $lt ),+ )?
             > as ::abstract_sdk::base::QueryEndpoint>::QueryMsg,
         ) -> Result<::cosmwasm_std::Binary, <$api_type<
-        $( $( $lt ),+ )?,
-            (
-                ::cosmwasm_std::DepsMut<$deps_lifetime>,
-                ::cosmwasm_std::Env,
-                ::cosmwasm_std::MessageInfo,
-            ),
+        $( $( $lt ),+ )?
         > as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::QueryEndpoint;
-            let ctx = (deps, env);
+            let ctx = (deps, env).into();
             let api = $api_func(ctx);
             api.query(deps, env, msg)
         }

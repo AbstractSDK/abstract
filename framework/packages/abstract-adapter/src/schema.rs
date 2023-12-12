@@ -2,21 +2,17 @@ use std::path::Path;
 
 use abstract_core::adapter;
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
-use cosmwasm_std::{Deps, DepsMut, Empty, Env, MessageInfo};
+use cosmwasm_std::Empty;
 use schemars::JsonSchema;
 use serde::Serialize;
 
 use abstract_core::adapter::{AdapterExecuteMsg, AdapterQueryMsg};
-use abstract_sdk::{
-    base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
-    features::DepsAccess,
-};
+use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
 
 use crate::{AdapterContract, AdapterError};
 
 impl<
         'a,
-        T: DepsAccess,
         Error: From<cosmwasm_std::StdError>
             + From<AdapterError>
             + From<abstract_sdk::AbstractSdkError>
@@ -27,7 +23,7 @@ impl<
         ReceiveMsg: Serialize + JsonSchema,
         SudoMsg,
     >
-    AdapterContract<'a, T, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AdapterContract<'a, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         write_api! {
@@ -51,7 +47,6 @@ impl<
             &schema_for!(
                 <AdapterContract<
                     'a,
-                    (DepsMut<'a>, Env, MessageInfo),
                     Error,
                     CustomInitMsg,
                     CustomExecMsg,
@@ -67,7 +62,6 @@ impl<
             &schema_for!(
                 <AdapterContract<
                     'a,
-                    (DepsMut<'a>, Env, MessageInfo),
                     Error,
                     CustomInitMsg,
                     CustomExecMsg,
@@ -83,7 +77,6 @@ impl<
             &schema_for!(
                 <AdapterContract<
                     'a,
-                    (Deps<'a>, Env),
                     Error,
                     CustomInitMsg,
                     CustomExecMsg,

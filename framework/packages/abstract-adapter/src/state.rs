@@ -7,7 +7,7 @@ use abstract_sdk::{
     },
     core::version_control::AccountBase,
     feature_objects::{AnsHost, VersionControlContract},
-    features::DepsAccess,
+    features::{DepsAccess, DepsType},
     namespaces::BASE_STATE_NAMESPACE,
     AbstractSdkError,
 };
@@ -42,7 +42,6 @@ pub struct ApiState {
 /// The state variables for our AdapterContract.
 pub struct AdapterContract<
     'a,
-    T: DepsAccess,
     Error: ContractError,
     CustomInitMsg: 'static,
     CustomExecMsg: 'static,
@@ -54,7 +53,7 @@ pub struct AdapterContract<
 {
     pub(crate) contract: AbstractContract<'a, Self, Error>,
     pub(crate) base_state: Item<'static, ApiState>,
-    pub deps: T,
+    pub deps: DepsType<'a>,
     /// Map ProxyAddr -> AuthorizedAddrs
     pub authorized_addresses: Map<'static, Addr, Vec<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_core::adapter::ExecuteMsg::Base`] handler.
@@ -64,7 +63,6 @@ pub struct AdapterContract<
 /// Constructor
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -72,9 +70,14 @@ impl<
         ReceiveMsg,
         SudoMsg,
     >
-    AdapterContract<'a, T, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AdapterContract<'a, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
-    pub fn new(deps: T, name: &'a str, version: &'a str, metadata: Option<&'a str>) -> Self {
+    pub fn new(
+        deps: DepsType<'a>,
+        name: &'a str,
+        version: &'a str,
+        metadata: Option<&'a str>,
+    ) -> Self {
         Self {
             contract: AbstractContract::new(name, version, metadata),
             base_state: Item::new(BASE_STATE_NAMESPACE),

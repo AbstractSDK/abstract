@@ -20,7 +20,7 @@ pub mod mock {
     pub use abstract_core::app;
     use abstract_interface::AppDeployer;
     pub use cosmwasm_std::testing::*;
-    use cosmwasm_std::{from_json, to_json_binary, Addr, Response, StdError};
+    use cosmwasm_std::{from_json, to_json_binary, Addr, StdError};
     use cw_orch::prelude::*;
 
     pub type AppTestResult = Result<(), MockError>;
@@ -51,7 +51,7 @@ pub mod mock {
     use abstract_core::{module_factory::ContextResponse, version_control::AccountBase};
     use abstract_sdk::{
         base::InstantiateEndpoint,
-        features::{CustomData, DepsAccess},
+        features::{CustomData, DepsType},
         AbstractSdkError,
     };
     use abstract_testing::prelude::{
@@ -75,9 +75,8 @@ pub mod mock {
         AbstractSdk(#[from] AbstractSdkError),
     }
 
-    pub type MockAppContract<'a, T> = AppContract<
+    pub type MockAppContract<'a> = AppContract<
         'a,
-        T,
         // MockModule,
         MockError,
         MockInitMsg,
@@ -88,30 +87,44 @@ pub mod mock {
         MockSudoMsg,
     >;
 
-    pub fn basic_mock_app<'a, T: DepsAccess>(deps: T) -> MockAppContract<'a, T> {
+    pub fn basic_mock_app(deps: DepsType) -> MockAppContract {
         MockAppContract::new(deps, TEST_MODULE_ID, TEST_VERSION, None)
     }
 
-    pub fn mock_app<'a, T: DepsAccess>(deps: T) -> MockAppContract<'a, T> {
+    pub fn mock_app(deps: DepsType) -> MockAppContract {
         MockAppContract::new(deps, TEST_MODULE_ID, TEST_VERSION, None)
             .with_instantiate(|app, _| {
                 app.set_data("mock_init".as_bytes());
                 Ok(())
             })
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
-            .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
-                Ok(Response::new().set_data("mock_callback".as_bytes()))
+            .with_execute(|app, _| {
+                app.set_data("mock_exec".as_bytes());
+                Ok(())
+            })
+            .with_query(|_, _| to_json_binary("mock_query").map_err(Into::into))
+            .with_sudo(|app, _| {
+                app.set_data("mock_sudo".as_bytes());
+                Ok(())
+            })
+            .with_receive(|app, _| {
+                app.set_data("mock_receive".as_bytes());
+                Ok(())
+            })
+            .with_ibc_callbacks(&[("c_id", |app, _, _, _| {
+                app.set_data("mock_callback".as_bytes());
+                Ok(())
             })])
-            .with_replies(&[(1u64, |_, _, _, msg| {
-                Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
+            .with_replies(&[(1u64, |app, msg| {
+                app.set_data(msg.result.unwrap().data.unwrap());
+                Ok(())
             })])
-            .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())))
+            .with_migrate(|app, _| {
+                app.set_data("mock_migrate".as_bytes());
+                Ok(())
+            })
     }
 
-    crate::export_endpoints!(mock_app, MockAppContract<'b>, 'b);
+    crate::export_endpoints!(mock_app, MockAppContract);
 
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default().with_smart_handler(
@@ -148,7 +161,7 @@ pub mod mock {
         };
         let deps_mut = deps.as_mut();
 
-        basic_mock_app((deps_mut, mock_env(), info))
+        basic_mock_app((deps_mut, mock_env(), info).into())
             .instantiate(msg)
             .unwrap();
 

@@ -259,11 +259,12 @@ mod test {
         #[test]
         fn transfer_asset_to_sender() {
             let mut deps = mock_dependencies();
-            let mut app = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+            let mut app =
+                MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
 
             // ANCHOR: transfer
             let recipient: Addr = Addr::unchecked("recipient");
-            let mut bank: Bank<'_, MockModule<ExecutionEnv>> = app.bank();
+            let mut bank: Bank<'_, MockModule> = app.bank();
             let coins: Vec<Coin> = coins(100u128, "asset");
             /*let bank_transfer = */
             bank.transfer(coins.clone(), &recipient).unwrap();
@@ -298,11 +299,12 @@ mod test {
         #[test]
         fn deposit() {
             let mut deps = mock_dependencies();
-            let mut app = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+            let mut app =
+                MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
 
             // ANCHOR: deposit
             // Get bank API struct from the app
-            let mut bank: Bank<'_, MockModule<ExecutionEnv>> = app.bank();
+            let mut bank: Bank<'_, MockModule> = app.bank();
             // Create coins to deposit
             let coins: Vec<Coin> = coins(100u128, "asset");
             // Construct messages for deposit (transfer from this contract to the account)
@@ -328,7 +330,8 @@ mod test {
         #[test]
         fn withdraw_coins() {
             let mut deps = mock_dependencies();
-            let mut app = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+            let mut app =
+                MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
             let expected_amount = 100u128;
             let env = mock_env();
 
@@ -341,7 +344,7 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(app.executables.0[0]).is_equal_to(Executable::AccountAction(
+            assert_that!(app.response.executables.0[0]).is_equal_to(Executable::AccountAction(
                 AccountAction::from_vec(vec![expected_msg]),
             ));
         }
@@ -358,7 +361,8 @@ mod test {
         #[test]
         fn send_cw20() {
             let mut deps = mock_dependencies();
-            let mut app = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+            let mut app =
+                MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
             let expected_amount = 100u128;
             let expected_recipient = Addr::unchecked("recipient");
 
@@ -379,7 +383,7 @@ mod test {
                 funds: vec![],
             });
 
-            assert_that!(app.executables.0[0]).is_equal_to(Executable::AccountAction(
+            assert_that!(app.response.executables.0[0]).is_equal_to(Executable::AccountAction(
                 AccountAction::from_vec(vec![expected_msg]),
             ));
         }
@@ -387,7 +391,8 @@ mod test {
         #[test]
         fn send_coins() {
             let mut deps = mock_dependencies();
-            let mut app = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+            let mut app =
+                MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
             let expected_amount = 100u128;
             let expected_recipient = Addr::unchecked("recipient");
 

@@ -117,21 +117,6 @@ impl<'a, T: Execution> Executor<'a, T> {
             },
         )
     }
-
-    /// TODO, how do we format that ? We need to add events into the object maybe
-    /// Execute the msgs on the Account.
-    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    /// Return a "standard" response for the executed messages. (with the provided action).
-    pub fn abstract_response(&mut self, action: &str) -> AbstractSdkResult<()> {
-        self.base.add_event(
-            "abstract",
-            vec![
-                ("contract", self.base.module_id().as_str()),
-                ("action", action),
-            ],
-        );
-        Ok(())
-    }
 }
 
 /// CosmosMsg from the executor methods
@@ -170,7 +155,8 @@ mod test {
         #[test]
         fn empty_actions() {
             let mut deps = mock_dependencies();
-            let mut stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+            let mut stub =
+                MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
             let mut executor = stub.executor();
 
             let messages = vec![];
@@ -190,7 +176,8 @@ mod test {
         #[test]
         fn with_actions() {
             let mut deps = mock_dependencies();
-            let mut stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+            let mut stub =
+                MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
             let mut executor = stub.executor();
 
             // build a bank message
@@ -218,7 +205,8 @@ mod test {
         #[test]
         fn empty_actions() {
             let mut deps = mock_dependencies();
-            let mut stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+            let mut stub =
+                MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
             let mut executor = stub.executor();
 
             let empty_actions = vec![];
@@ -252,7 +240,8 @@ mod test {
         #[test]
         fn with_actions() {
             let mut deps = mock_dependencies();
-            let mut stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+            let mut stub =
+                MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
             let mut executor = stub.executor();
 
             // build a bank message
@@ -281,78 +270,6 @@ mod test {
             };
 
             assert_that!(stub._generate_response().unwrap().messages[0]).is_equal_to(expected);
-        }
-    }
-
-    mod execute_with_response {
-        use super::*;
-        use cosmwasm_std::coins;
-
-        /// Tests that no error is thrown with empty messages provided
-        #[test]
-        fn empty_actions() {
-            let mut deps = mock_dependencies();
-            let mut stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
-            let mut executor = stub.executor();
-
-            let empty_actions = vec![];
-            let expected_action = "THIS IS AN ACTION";
-
-            executor.execute(empty_actions.clone()).unwrap();
-            executor.abstract_response(expected_action).unwrap();
-
-            let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
-                    msgs: empty_actions,
-                })
-                .unwrap(),
-                funds: vec![],
-            });
-
-            let expected = Response::new()
-                .add_event(
-                    Event::new("abstract")
-                        .add_attribute("contract", stub.module_id())
-                        .add_attribute("action", expected_action),
-                )
-                .add_message(expected_msg);
-
-            assert_that!(stub._generate_response())
-                .is_ok()
-                .is_equal_to(expected);
-        }
-
-        #[test]
-        fn with_actions() {
-            let mut deps = mock_dependencies();
-            let mut stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
-            let mut executor = stub.executor();
-
-            // build a bank message
-            let action = vec![mock_bank_send(coins(1, "denom"))];
-            let expected_action = "provide liquidity";
-
-            executor.execute(action.clone()).unwrap();
-            executor.abstract_response(expected_action).unwrap();
-
-            let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction { msgs: action }).unwrap(),
-                // funds should be empty
-                funds: vec![],
-            });
-            let expected = Response::new()
-                .add_event(
-                    Event::new("abstract")
-                        .add_attribute("contract", stub.module_id())
-                        .add_attribute("action", expected_action),
-                )
-                .add_message(expected_msg);
-
-            assert_that!(stub._generate_response())
-                .is_ok()
-                .is_equal_to(expected);
         }
     }
 }

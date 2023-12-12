@@ -1,19 +1,7 @@
-use abstract_sdk::features::DepsAccess;
-
 use crate::{state::ContractError, AbstractContract, AppContract, Handler};
 
-impl<
-        'a,
-        T: DepsAccess,
-        Error: ContractError,
-        InitMsg,
-        ExecMsg,
-        QueryMsg,
-        MigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    > Handler
-    for AppContract<'a, T, Error, InitMsg, ExecMsg, QueryMsg, MigrateMsg, ReceiveMsg, SudoMsg>
+impl<'a, Error: ContractError, InitMsg, ExecMsg, QueryMsg, MigrateMsg, ReceiveMsg, SudoMsg> Handler
+    for AppContract<'a, Error, InitMsg, ExecMsg, QueryMsg, MigrateMsg, ReceiveMsg, SudoMsg>
 {
     type Error = Error;
     type CustomInitMsg = InitMsg;

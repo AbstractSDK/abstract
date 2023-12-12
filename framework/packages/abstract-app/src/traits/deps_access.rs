@@ -6,7 +6,6 @@ use crate::{state::ContractError, AppContract};
 /// The state variables for our AppContract.
 impl<
         'app,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg: 'static,
         CustomExecMsg: 'static,
@@ -17,7 +16,6 @@ impl<
     > DepsAccess
     for AppContract<
         'app,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

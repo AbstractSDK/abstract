@@ -8,7 +8,6 @@ use crate::{state::ContractError, AdapterContract};
 /// TODO : We need to make sure that for queries, this is not used
 impl<
         'app,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg: 'static,
         CustomExecMsg: 'static,
@@ -18,7 +17,6 @@ impl<
     > ExecutionStack
     for AdapterContract<
         'app,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -34,7 +32,6 @@ impl<
 /// The events for all executable environments
 impl<
         'app,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg: 'static,
         CustomExecMsg: 'static,
@@ -44,7 +41,6 @@ impl<
     > CustomEvents
     for AdapterContract<
         'app,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -78,7 +74,6 @@ impl<
 }
 impl<
         'app,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg: 'static,
         CustomExecMsg: 'static,
@@ -88,7 +83,6 @@ impl<
     > CustomData
     for AdapterContract<
         'app,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

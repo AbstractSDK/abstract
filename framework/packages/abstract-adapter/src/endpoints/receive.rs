@@ -4,7 +4,6 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -14,7 +13,6 @@ impl<
     > ReceiveEndpoint
     for AdapterContract<
         'a,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

@@ -1,7 +1,7 @@
 use super::handler::Handler;
 use crate::core::objects::dependency::StaticDependency;
 use crate::{AbstractSdkError, AbstractSdkResult};
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
+use cosmwasm_std::{Binary, DepsMut, Env, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 use polytone::callbacks::Callback;
@@ -28,51 +28,44 @@ pub type InstantiateHandlerFn<Module, CustomInitMsg, Error> =
 // ANCHOR: exec
 /// Function signature for an execute handler.
 pub type ExecuteHandlerFn<Module, CustomExecMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, CustomExecMsg) -> Result<Response, Error>;
+    fn(&mut Module, CustomExecMsg) -> Result<(), Error>;
 // ANCHOR_END: exec
 
 // ANCHOR: query
 /// Function signature for a query handler.
 pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
-    fn(Deps, Env, &Module, CustomQueryMsg) -> Result<Binary, Error>;
+    fn(&Module, CustomQueryMsg) -> Result<Binary, Error>;
 // ANCHOR_END: query
 
 type CallbackId = String;
 type CallbackMessage = Option<Binary>;
 // ANCHOR: ibc
 /// Function signature for an IBC callback handler.
-pub type IbcCallbackHandlerFn<Module, Error> = fn(
-    DepsMut,
-    Env,
-    MessageInfo,
-    Module,
-    CallbackId,
-    CallbackMessage,
-    Callback,
-) -> Result<Response, Error>;
+pub type IbcCallbackHandlerFn<Module, Error> =
+    fn(&mut Module, CallbackId, CallbackMessage, Callback) -> Result<(), Error>;
 // ANCHOR_END: ibc
 
 // ANCHOR: mig
 /// Function signature for a migrate handler.
 pub type MigrateHandlerFn<Module, CustomMigrateMsg, Error> =
-    fn(DepsMut, Env, Module, CustomMigrateMsg) -> Result<Response, Error>;
+    fn(&mut Module, CustomMigrateMsg) -> Result<(), Error>;
 // ANCHOR_END: mig
 
 // ANCHOR: rec
 /// Function signature for a receive handler.
 pub type ReceiveHandlerFn<Module, ReceiveMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, ReceiveMsg) -> Result<Response, Error>;
+    fn(&mut Module, ReceiveMsg) -> Result<(), Error>;
 // ANCHOR_END: rec
 
 // ANCHOR: sudo
 /// Function signature for a sudo handler.
 pub type SudoHandlerFn<Module, CustomSudoMsg, Error> =
-    fn(DepsMut, Env, Module, CustomSudoMsg) -> Result<Response, Error>;
+    fn(&mut Module, CustomSudoMsg) -> Result<(), Error>;
 // ANCHOR_END: sudo
 
 // ANCHOR: reply
 /// Function signature for a reply handler.
-pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
+pub type ReplyHandlerFn<Module, Error> = fn(&mut Module, Reply) -> Result<(), Error>;
 // ANCHOR_END: reply
 
 /// There can be two locations where reply handlers are added.
@@ -147,7 +140,7 @@ where
         self.info
     }
     /// add dependencies to the contract
-    pub fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
+    pub fn with_dependencies(mut self, dependencies: &'a [StaticDependency]) -> Self {
         self.dependencies = dependencies;
         self
     }
@@ -230,9 +223,13 @@ where
 
 #[cfg(test)]
 mod test {
+    use crate::features::{
+        AccountIdentification, CustomData, CustomEvents, DepsAccess, Executables, ExecutionStack,
+    };
+
     use super::*;
 
-    use cosmwasm_std::Empty;
+    use cosmwasm_std::{Attribute, Deps, Empty, Event};
     use speculoos::assert_that;
 
     #[cosmwasm_schema::cw_serde]
@@ -262,6 +259,68 @@ mod test {
     }
 
     struct MockModule;
+
+    impl DepsAccess for MockModule {
+        fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
+            unimplemented!()
+        }
+
+        fn deps<'a: 'b, 'b>(&'a self) -> Deps<'b> {
+            unimplemented!()
+        }
+
+        fn env(&self) -> cosmwasm_std::Env {
+            unimplemented!()
+        }
+
+        fn message_info(&self) -> cosmwasm_std::MessageInfo {
+            unimplemented!()
+        }
+    }
+
+    impl ExecutionStack for MockModule {
+        fn stack_mut(&mut self) -> &mut Executables {
+            unimplemented!()
+        }
+    }
+
+    impl AccountIdentification for MockModule {
+        fn proxy_address(&self) -> AbstractSdkResult<cosmwasm_std::Addr> {
+            unimplemented!()
+        }
+    }
+
+    impl CustomEvents for MockModule {
+        fn add_event<A: Into<Attribute>>(
+            &mut self,
+            event_name: &str,
+            attributes: impl IntoIterator<Item = A>,
+        ) {
+            unimplemented!()
+        }
+
+        fn events(&self) -> Vec<Event> {
+            unimplemented!()
+        }
+
+        fn add_attributes<A: Into<Attribute>>(&mut self, attributes: impl IntoIterator<Item = A>) {
+            unimplemented!()
+        }
+
+        fn attributes(&self) -> Vec<Attribute> {
+            unimplemented!()
+        }
+    }
+
+    impl CustomData for MockModule {
+        fn data(&self) -> Option<Binary> {
+            unimplemented!()
+        }
+
+        fn set_data(&mut self, data: impl Into<Binary>) {
+            unimplemented!()
+        }
+    }
 
     type MockAppContract<'a> = AbstractContract<'a, MockModule, MockError>;
 
@@ -328,7 +387,10 @@ mod test {
     #[test]
     fn test_with_receive() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_receive(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "receive")));
+            .with_receive(|app, _| {
+                app.add_attribute("test", "receive");
+                Ok(())
+            });
 
         assert!(contract.receive_handler.is_some());
     }
@@ -336,7 +398,10 @@ mod test {
     #[test]
     fn test_with_sudo() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_sudo(|_, _, _, _| Ok(Response::default().add_attribute("test", "sudo")));
+            .with_sudo(|app, _| {
+                app.add_attribute("test", "sudo");
+                Ok(())
+            });
 
         assert!(contract.sudo_handler.is_some());
     }
@@ -344,7 +409,10 @@ mod test {
     #[test]
     fn test_with_execute() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_execute(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "execute")));
+            .with_execute(|app, _| {
+                app.add_attribute("test", "execute");
+                Ok(())
+            });
 
         assert!(contract.execute_handler.is_some());
     }
@@ -352,7 +420,7 @@ mod test {
     #[test]
     fn test_with_query() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_query(|_, _, _, _| Ok(cosmwasm_std::to_json_binary(&Empty {}).unwrap()));
+            .with_query(|_, _| Ok(cosmwasm_std::to_json_binary(&Empty {}).unwrap()));
 
         assert!(contract.query_handler.is_some());
     }
@@ -360,7 +428,10 @@ mod test {
     #[test]
     fn test_with_migrate() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_migrate(|_, _, _, _| Ok(Response::default().add_attribute("test", "migrate")));
+            .with_migrate(|app, _| {
+                app.add_attribute("test", "migrate");
+                Ok(())
+            });
 
         assert!(contract.migrate_handler.is_some());
     }
@@ -368,8 +439,10 @@ mod test {
     #[test]
     fn test_with_reply_handlers() {
         const REPLY_ID: u64 = 50u64;
-        const HANDLER: ReplyHandlerFn<MockModule, MockError> =
-            |_, _, _, _| Ok(Response::default().add_attribute("test", "reply"));
+        const HANDLER: ReplyHandlerFn<MockModule, MockError> = |app, _| {
+            app.add_attribute("test", "reply");
+            Ok(())
+        };
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .add_replies(&[(REPLY_ID, HANDLER)]);
 
@@ -379,8 +452,10 @@ mod test {
     #[test]
     fn test_with_ibc_callback_handlers() {
         const IBC_ID: &str = "aoeu";
-        const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
-            |_, _, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
+        const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> = |app, _, _, _| {
+            app.add_attribute("test", "ibc");
+            Ok(())
+        };
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_ibc_callbacks(&[(IBC_ID, HANDLER)]);
 

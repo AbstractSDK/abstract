@@ -1,14 +1,13 @@
 use crate::{state::ContractError, AppContract, Handler, MigrateEndpoint};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_core::{app::MigrateMsg, objects::module_version::set_module_data};
-use abstract_sdk::features::DepsAccess;
+use abstract_sdk::features::{DepsAccess, ResponseGenerator};
 use cosmwasm_std::Response;
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -19,7 +18,6 @@ impl<
     > MigrateEndpoint
     for AppContract<
         '_,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -31,25 +29,22 @@ impl<
 {
     type MigrateMsg = MigrateMsg<CustomMigrateMsg>;
 
-    fn migrate(
-        self,
-        deps: cosmwasm_std::DepsMut,
-        env: cosmwasm_std::Env,
-        msg: Self::MigrateMsg,
-    ) -> Result<cosmwasm_std::Response, Self::Error> {
+    fn migrate(mut self, msg: Self::MigrateMsg) -> Result<cosmwasm_std::Response, Self::Error> {
         let (name, version_string, metadata) = self.info();
+        let dependencies = self.dependencies();
         let to_version = version_string.parse().unwrap();
-        assert_contract_upgrade(deps.storage, name.clone(), to_version)?;
+        assert_contract_upgrade(self.deps().storage, name.clone(), to_version)?;
         set_module_data(
-            deps.storage,
+            self.deps_mut().storage,
             name.clone(),
             version_string.clone(),
-            self.dependencies(),
+            dependencies,
             metadata,
         )?;
-        set_contract_version(deps.storage, &name, &version_string)?;
+        set_contract_version(self.deps_mut().storage, &name, &version_string)?;
         if let Some(migrate_fn) = self.maybe_migrate_handler() {
-            return migrate_fn(deps, env, self, msg.module);
+            migrate_fn(&mut self, msg.module)?;
+            return Ok(self._generate_response()?);
         }
         Ok(Response::default())
     }

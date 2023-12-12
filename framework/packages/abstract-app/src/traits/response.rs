@@ -1,6 +1,4 @@
-use abstract_sdk::features::{
-    CustomData, CustomEvents, DepsAccess, ExecutionStack, HasExecutableEnv,
-};
+use abstract_sdk::features::{CustomData, CustomEvents, ExecutionStack};
 
 use crate::{state::ContractError, AppContract};
 
@@ -8,7 +6,6 @@ use crate::{state::ContractError, AppContract};
 /// TODO : We need to make sure that for queries, this is not used
 impl<
         'app,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg: 'static,
         CustomExecMsg: 'static,
@@ -19,7 +16,6 @@ impl<
     > ExecutionStack
     for AppContract<
         'app,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -30,13 +26,12 @@ impl<
     >
 {
     fn stack_mut(&mut self) -> &mut abstract_sdk::features::Executables {
-        todo!()
+        &mut self.response.executables
     }
 }
 /// The events for all executable environments
 impl<
         'app,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg: 'static,
         CustomExecMsg: 'static,
@@ -47,7 +42,6 @@ impl<
     > CustomEvents
     for AppContract<
         'app,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -62,27 +56,26 @@ impl<
         event_name: &str,
         attributes: impl IntoIterator<Item = A>,
     ) {
-        todo!()
+        self.response.add_event(event_name, attributes)
     }
 
     fn events(&self) -> Vec<cosmwasm_std::Event> {
-        todo!()
+        self.response.events()
     }
 
     fn add_attributes<A: Into<cosmwasm_std::Attribute>>(
         &mut self,
         attributes: impl IntoIterator<Item = A>,
     ) {
-        todo!()
+        self.response.add_attributes(attributes)
     }
 
     fn attributes(&self) -> Vec<cosmwasm_std::Attribute> {
-        todo!()
+        self.response.attributes()
     }
 }
 impl<
         'app,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg: 'static,
         CustomExecMsg: 'static,
@@ -93,7 +86,6 @@ impl<
     > CustomData
     for AppContract<
         'app,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -104,10 +96,10 @@ impl<
     >
 {
     fn data(&self) -> Option<cosmwasm_std::Binary> {
-        todo!()
+        self.response.data()
     }
 
     fn set_data(&mut self, data: impl Into<cosmwasm_std::Binary>) {
-        todo!()
+        self.response.set_data(data)
     }
 }

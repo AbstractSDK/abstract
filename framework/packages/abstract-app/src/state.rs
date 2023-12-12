@@ -7,7 +7,7 @@ use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,
     feature_objects::{AnsHost, VersionControlContract},
-    features::DepsAccess,
+    features::{DepsType, ModuleEndpointResponse},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE_NAMESPACE},
     AbstractSdkError,
 };
@@ -48,7 +48,6 @@ pub struct AppState {
 
 pub struct AppContract<
     'a,
-    T: DepsAccess,
     Error: ContractError,
     CustomInitMsg: 'static,
     CustomExecMsg: 'static,
@@ -60,7 +59,8 @@ pub struct AppContract<
     // Custom state for every App
     pub admin: Admin<'static>,
     pub(crate) base_state: Item<'static, AppState>,
-    pub deps: T,
+    pub deps: DepsType<'a>,
+    pub response: ModuleEndpointResponse,
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<'a, Self, Error>,
 }
@@ -68,7 +68,6 @@ pub struct AppContract<
 /// Constructor
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -79,7 +78,6 @@ impl<
     >
     AppContract<
         'a,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -89,15 +87,18 @@ impl<
         SudoMsg,
     >
 {
-    pub fn new<'b>(deps: T, name: &'b str, version: &'b str, metadata: Option<&'b str>) -> Self
-    where
-        'b: 'a,
-    {
+    pub fn new(
+        deps: DepsType<'a>,
+        name: &'a str,
+        version: &'a str,
+        metadata: Option<&'a str>,
+    ) -> Self {
         Self {
             base_state: Item::new(BASE_STATE_NAMESPACE),
             admin: Admin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version, metadata),
             deps,
+            response: ModuleEndpointResponse::default(),
         }
     }
 
@@ -106,7 +107,7 @@ impl<
     }
 
     /// add dependencies to the contract
-    pub fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
+    pub fn with_dependencies(mut self, dependencies: &'a [StaticDependency]) -> Self {
         self.contract = self.contract.with_dependencies(dependencies);
         self
     }
@@ -176,13 +177,16 @@ impl<
 
 #[cfg(test)]
 mod tests {
+    use abstract_sdk::features::CustomData;
     use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        Response,
-    };
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 
-    use crate::mock::MockAppContract;
+    use crate::mock::{MockAppContract, MockError, MockInitMsg};
+
+    fn instantiate(app: &mut MockAppContract<'_>, _msg: MockInitMsg) -> Result<(), MockError> {
+        app.set_data("mock_init".as_bytes());
+        Ok(())
+    }
 
     #[test]
     fn builder() {
@@ -191,22 +195,37 @@ mod tests {
                 mock_dependencies().as_mut(),
                 mock_env(),
                 mock_info("sender", &[]),
-            ),
+            )
+                .into(),
             TEST_MODULE_ID,
             TEST_VERSION,
             None,
         )
-        .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
-        .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-        .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
-        .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-        .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
-            Ok(Response::new().set_data("mock_callback".as_bytes()))
+        .with_instantiate(instantiate)
+        .with_execute(|app, _| {
+            app.set_data("mock_exec".as_bytes());
+            Ok(())
+        })
+        .with_query(|_, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
+        .with_sudo(|app, _| {
+            app.set_data("mock_sudo".as_bytes());
+            Ok(())
+        })
+        .with_receive(|app, _| {
+            app.set_data("mock_receive".as_bytes());
+            Ok(())
+        })
+        .with_ibc_callbacks(&[("c_id", |app, _, _, _| {
+            app.set_data("mock_callback".as_bytes());
+            Ok(())
         })])
-        .with_replies(&[(1u64, |_, _, _, msg| {
-            Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
+        .with_replies(&[(1u64, |app, msg| {
+            app.set_data(msg.result.unwrap().data.unwrap());
+            Ok(())
         })])
-        .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
+        .with_migrate(|app, _| {
+            app.set_data("mock_migrate".as_bytes());
+            Ok(())
+        });
     }
 }

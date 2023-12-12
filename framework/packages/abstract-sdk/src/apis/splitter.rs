@@ -58,7 +58,8 @@ mod test {
 
     fn split() -> Result<Response, AbstractSdkError> {
         let mut deps = mock_dependencies();
-        let mut module = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+        let mut module =
+            MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
         // ANCHOR: usage
         let asset = AnsAsset {
             amount: Uint128::from(100u128),

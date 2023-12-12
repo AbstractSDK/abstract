@@ -8,7 +8,6 @@ use cosmwasm_std::{Addr, StdError};
 
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -18,7 +17,6 @@ impl<
     > AbstractNameService
     for AdapterContract<
         'a,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -35,7 +33,6 @@ impl<
 /// Retrieve identifying information about the calling Account
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -45,7 +42,6 @@ impl<
     > AccountIdentification
     for AdapterContract<
         'a,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -82,7 +78,6 @@ impl<
 /// Get the version control contract
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -92,7 +87,6 @@ impl<
     > AbstractRegistryAccess
     for AdapterContract<
         'a,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,

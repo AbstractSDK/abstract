@@ -14,7 +14,6 @@ impl<
     > ReplyEndpoint
     for AdapterContract<
         'a,
-        (DepsMut<'a>, Env),
         Error,
         CustomInitMsg,
         CustomExecMsg,

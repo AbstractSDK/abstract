@@ -15,7 +15,6 @@ use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, StdResult};
 /// These AdapterQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -25,7 +24,6 @@ impl<
     > QueryEndpoint
     for AdapterContract<
         'a,
-        T,
         Error,
         CustomInitMsg,
         CustomExecMsg,
@@ -45,7 +43,6 @@ impl<
 
 impl<
         'a,
-        T: DepsAccess,
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
@@ -53,7 +50,7 @@ impl<
         ReceiveMsg,
         SudoMsg,
     >
-    AdapterContract<'a, T, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AdapterContract<'a, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {

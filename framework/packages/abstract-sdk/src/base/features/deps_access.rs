@@ -12,56 +12,60 @@ pub trait DepsAccess {
     }
 }
 
-impl DepsAccess for (DepsMut<'_>, Env, MessageInfo) {
+pub enum DepsType<'a> {
+    User(DepsMut<'a>, Env, MessageInfo),
+    Query(Deps<'a>, Env),
+    Blockchain(DepsMut<'a>, Env),
+}
+
+impl DepsAccess for DepsType<'_> {
     fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        self.0.branch()
+        match self {
+            DepsType::User(deps, _, _) => deps.branch(),
+            DepsType::Blockchain(deps, _) => deps.branch(),
+            DepsType::Query(_, _) => unimplemented!(),
+        }
     }
 
     fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b> {
-        self.0.as_ref()
+        match self {
+            DepsType::User(deps, _, _) => deps.as_ref(),
+            DepsType::Blockchain(deps, _) => deps.as_ref(),
+            DepsType::Query(deps, _) => *deps,
+        }
     }
 
     fn env(&self) -> Env {
-        self.1.clone()
+        match self {
+            DepsType::User(_, env, _) => env.clone(),
+            DepsType::Blockchain(_, env) => env.clone(),
+            DepsType::Query(_, env) => env.clone(),
+        }
     }
 
     fn message_info(&self) -> MessageInfo {
-        self.2.clone()
+        match self {
+            DepsType::User(_, _, info) => info.clone(),
+            DepsType::Blockchain(_, _) => unimplemented!(),
+            DepsType::Query(_, _) => unimplemented!(),
+        }
     }
 }
 
-impl DepsAccess for (DepsMut<'_>, Env) {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        self.0.branch()
-    }
-
-    fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b> {
-        self.0.as_ref()
-    }
-
-    fn env(&self) -> Env {
-        self.1.clone()
-    }
-
-    fn message_info(&self) -> MessageInfo {
-        unimplemented!()
+impl<'a> From<(DepsMut<'a>, Env, MessageInfo)> for DepsType<'a> {
+    fn from(value: (DepsMut<'a>, Env, MessageInfo)) -> Self {
+        DepsType::User(value.0, value.1, value.2)
     }
 }
 
-impl DepsAccess for (Deps<'_>, Env) {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        unimplemented!()
+impl<'a> From<(DepsMut<'a>, Env)> for DepsType<'a> {
+    fn from(value: (DepsMut<'a>, Env)) -> Self {
+        DepsType::Blockchain(value.0, value.1)
     }
+}
 
-    fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b> {
-        self.0
-    }
-
-    fn env(&self) -> Env {
-        self.1.clone()
-    }
-
-    fn message_info(&self) -> MessageInfo {
-        unimplemented!()
+impl<'a> From<(Deps<'a>, Env)> for DepsType<'a> {
+    fn from(value: (Deps<'a>, Env)) -> Self {
+        DepsType::Query(value.0, value.1)
     }
 }

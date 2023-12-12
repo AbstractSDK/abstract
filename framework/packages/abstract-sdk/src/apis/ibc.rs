@@ -229,7 +229,7 @@ mod test {
     #[test]
     fn test_host_action_no_callback() {
         let mut deps = mock_dependencies();
-        let stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+        let stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
         let client = stub.ibc_client();
         let msg = client.host_action(
             TEST_HOST_CHAIN.into(),
@@ -265,7 +265,7 @@ mod test {
     #[test]
     fn test_host_action_with_callback() {
         let mut deps = mock_dependencies();
-        let stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+        let stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
         let client = stub.ibc_client();
 
         let expected_callback = CallbackInfo {
@@ -310,7 +310,7 @@ mod test {
     #[test]
     fn test_ics20_transfer() {
         let mut deps = mock_dependencies();
-        let stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])));
+        let stub = MockModule::new((deps.as_mut(), mock_env(), mock_info("sender", &[])).into());
         let client = stub.ibc_client();
 
         let expected_funds = coins(100, "denom");

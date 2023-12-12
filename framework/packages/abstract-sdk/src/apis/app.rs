@@ -101,12 +101,12 @@ mod tests {
     pub use super::*;
     /// Helper to check that the method is not callable when the module is not a dependency
     fn fail_when_not_dependency_test<T: std::fmt::Debug>(
-        modules_fn: impl FnOnce(&MockModule<(Deps, Env)>) -> AbstractSdkResult<T>,
+        modules_fn: impl FnOnce(&MockModule) -> AbstractSdkResult<T>,
         fake_module: ModuleId,
     ) {
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
-        let app = MockModule::new((deps.as_ref(), mock_env()));
+        let app = MockModule::new((deps.as_ref(), mock_env()).into());
 
         let _mods = app.apps();
 
@@ -138,7 +138,7 @@ mod tests {
         fn expected_app_request() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
-            let app = MockModule::new((deps.as_ref(), mock_env()));
+            let app = MockModule::new((deps.as_ref(), mock_env()).into());
 
             let mods = app.apps();
 
@@ -183,7 +183,7 @@ mod tests {
         fn expected_configure_msg() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
-            let app = MockModule::new((deps.as_ref(), mock_env()));
+            let app = MockModule::new((deps.as_ref(), mock_env()).into());
 
             let mods = app.apps();
 
@@ -229,7 +229,7 @@ mod tests {
         fn expected_app_query() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
-            let app = MockModule::new((deps.as_ref(), mock_env()));
+            let app = MockModule::new((deps.as_ref(), mock_env()).into());
 
             let mods = app.apps();
 

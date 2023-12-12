@@ -108,7 +108,6 @@ mod tests {
 
     mod version_control {
         use super::*;
-        use cosmwasm_std::testing::mock_dependencies;
 
         use crate::features::AbstractRegistryAccess;
 
