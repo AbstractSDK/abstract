@@ -3,14 +3,10 @@
   "title": "ConfigResponse",
   "type": "object",
   "required": [
-    "admin",
     "ans_host",
     "version_control_address"
   ],
   "properties": {
-    "admin": {
-      "type": "string"
-    },
     "ans_host": {
       "type": "string"
     },

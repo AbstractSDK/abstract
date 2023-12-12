@@ -34,7 +34,7 @@ pub mod mock {
     crate::app_msg_types!(MockAppContract, MockExecMsg, MockQueryMsg);
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockInitMsg;
+    pub struct MockInitMsg {}
 
     #[cosmwasm_schema::cw_serde]
     #[derive(cw_orch::ExecuteFns)]

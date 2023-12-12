@@ -253,7 +253,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Register a new Account to the deployed Accounts. Only Factory can call this",
+        "description": "Register a new Account to the deployed Accounts. Claims namespace if provided. Only Factory can call this",
         "type": "object",
         "required": [
           "add_account"
@@ -271,6 +271,12 @@
               },
               "account_id": {
                 "$ref": "#/definitions/AccountId"
+              },
+              "namespace": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
             "additionalProperties": false

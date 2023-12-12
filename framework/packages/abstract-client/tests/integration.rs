@@ -225,7 +225,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
 
     let my_app: Application<Mock, MockAppDependencyInterface<Mock>> =
-        publisher.install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg, &[])?;
+        publisher.install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg {}, &[])?;
 
     my_app.call_as(&publisher.admin()?).do_something()?;
 
@@ -304,7 +304,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
     app_publisher.publish_app::<MockAppInterface<Mock>>()?;
 
     let my_app: Application<Mock, MockAppInterface<Mock>> = app_publisher
-        .install_app_with_dependencies::<MockAppInterface<Mock>>(&MockInitMsg, Empty {}, &[])?;
+        .install_app_with_dependencies::<MockAppInterface<Mock>>(&MockInitMsg {}, Empty {}, &[])?;
 
     my_app.call_as(&app_publisher.admin()?).do_something()?;
 
