@@ -14,6 +14,7 @@ use abstract_sdk::core::{
     VERSION_CONTROL,
 };
 use abstract_sdk::{execute_update_ownership, query_ownership};
+use cw_storage_plus::KeyDeserialize;
 
 use crate::commands::*;
 use crate::error::VCError;
@@ -31,6 +32,16 @@ pub struct VcResponse;
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let to_version: Version = CONTRACT_VERSION.parse()?;
+
+    // TODO: test it in migration tests
+    let vc_addr_raw = deps.storage.get(b"fac");
+    if let Some(vc_addr) = vc_addr_raw {
+        let vc_addr = cosmwasm_std::Addr::from_vec(vc_addr)?;
+        CONFIG.update(deps.storage, |mut cfg| {
+            cfg.account_factory_address = Some(vc_addr);
+            VCResult::Ok(cfg)
+        })?;
+    }
 
     assert_cw_contract_upgrade(deps.storage, VERSION_CONTROL, to_version)?;
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
