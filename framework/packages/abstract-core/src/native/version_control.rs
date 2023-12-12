@@ -14,7 +14,7 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
     pub allow_direct_module_registration_and_updates: bool,
-    pub namespace_registration_fee: cosmwasm_std::Coin,
+    pub namespace_registration_fee: Option<Coin>,
 }
 
 pub mod state {
@@ -80,6 +80,7 @@ use crate::objects::{
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Coin, Storage};
 
+use cw_clearable::Clearable;
 use cw_storage_plus::{Index, IndexList, IndexedMap, MultiIndex};
 
 use self::state::{MODULE_CONFIG, MODULE_DEFAULT_CONFIG};
@@ -152,7 +153,7 @@ pub enum ExecuteMsg {
     /// 2. the number of namespaces an Account can claim
     UpdateConfig {
         allow_direct_module_registration_and_updates: Option<bool>,
-        namespace_registration_fee: Option<Coin>,
+        namespace_registration_fee: Option<Clearable<Coin>>,
     },
     /// Sets a new Factory
     SetFactory { new_factory: String },

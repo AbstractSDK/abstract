@@ -12,14 +12,17 @@ use cosmwasm_std::{
     QuerierWrapper, Response, StdResult, Storage,
 };
 
-use abstract_sdk::core::{
-    objects::{
-        module::{ModuleInfo, ModuleVersion},
-        module_reference::ModuleReference,
-        namespace::Namespace,
-        AccountId,
+use abstract_sdk::{
+    core::{
+        objects::{
+            module::{ModuleInfo, ModuleVersion},
+            module_reference::ModuleReference,
+            namespace::Namespace,
+            AccountId,
+        },
+        version_control::{namespaces_info, state::*, AccountBase, Config},
     },
-    version_control::{namespaces_info, state::*, AccountBase, Config},
+    cw_helpers::Clearable,
 };
 
 use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
@@ -491,7 +494,7 @@ pub fn update_config(
     deps: DepsMut,
     info: MessageInfo,
     allow_direct_module_registration_and_updates: Option<bool>,
-    namespace_registration_fee: Option<Coin>,
+    namespace_registration_fee: Option<Clearable<Coin>>,
 ) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;

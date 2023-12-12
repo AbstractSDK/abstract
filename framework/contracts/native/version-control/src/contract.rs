@@ -55,10 +55,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
         &Config {
             allow_direct_module_registration_and_updates:
                 allow_direct_module_registration_and_updates.unwrap_or(false),
-            namespace_registration_fee: namespace_registration_fee.unwrap_or(Coin {
-                denom: "none".to_string(),
-                amount: Uint128::zero(),
-            }),
+            namespace_registration_fee,
         },
     )?;
 
