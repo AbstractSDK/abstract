@@ -45,7 +45,7 @@ fn main() {
     let networks = args
         .network_ids
         .iter()
-        .map(|n| parse_network(n))
+        .map(|n| parse_network(n).unwrap())
         .collect::<Vec<_>>();
 
     if let Err(ref err) = migrate(networks) {
