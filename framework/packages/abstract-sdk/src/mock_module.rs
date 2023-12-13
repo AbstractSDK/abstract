@@ -9,17 +9,13 @@ use cosmwasm_std::{Addr, Attribute, Binary, Deps, Event};
 use crate::core::objects::module::ModuleId;
 use crate::features::{
     AbstractNameService, AbstractRegistryAccess, AccountIdentification, CustomData, CustomEvents,
-    Dependencies, DepsAccess, Executables, ExecutionStack, HasExecutableEnv, ModuleIdentification,
+    Dependencies, DepsAccess, Executables, ExecutionStack, HasExecutableEnv, ModuleIdentification, DepsMutAccess,
 };
 use crate::AbstractSdkResult;
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::version_control::VersionControlContract;
 
 impl<'m, T: DepsAccess> DepsAccess for MockModule<'m, T> {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        self.deps.deps_mut()
-    }
-
     fn deps<'a: 'b, 'b>(&'a self) -> Deps<'b> {
         self.deps.deps()
     }
@@ -30,6 +26,13 @@ impl<'m, T: DepsAccess> DepsAccess for MockModule<'m, T> {
 
     fn message_info(&self) -> cosmwasm_std::MessageInfo {
         self.deps.message_info()
+    }
+}
+
+
+impl<'m, T: DepsMutAccess> DepsMutAccess for MockModule<'m, T> {
+    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
+        self.deps.deps_mut()
     }
 }
 

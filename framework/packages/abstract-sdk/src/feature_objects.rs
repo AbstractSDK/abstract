@@ -83,10 +83,6 @@ impl AbstractRegistryAccess for VersionControlContract {
 }
 
 impl<'m, T> DepsAccess for Feature<'m, T> {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        unimplemented!()
-    }
-
     fn deps<'a: 'b, 'b>(&'a self) -> Deps<'b> {
         self.deps
     }

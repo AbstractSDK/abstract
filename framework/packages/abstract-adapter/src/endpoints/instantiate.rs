@@ -3,7 +3,7 @@ use abstract_core::{adapter::InstantiateMsg, objects::module_version::set_module
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
     feature_objects::{AnsHost, VersionControlContract},
-    features::{DepsAccess, ResponseGenerator},
+    features::{DepsAccess, ResponseGenerator, DepsMutAccess},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
@@ -12,7 +12,7 @@ use serde::Serialize;
 
 impl<
         'a,
-        T: DepsAccess,
+        T: DepsMutAccess,
         Error: ContractError,
         CustomInitMsg: Serialize + JsonSchema,
         CustomExecMsg,

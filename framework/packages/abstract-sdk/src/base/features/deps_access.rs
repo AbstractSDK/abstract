@@ -1,7 +1,6 @@
 use cosmwasm_std::{Api, Deps, DepsMut, Env, MessageInfo};
 
 pub trait DepsAccess {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> DepsMut<'b>;
     fn deps<'a: 'b, 'b>(&'a self) -> Deps<'b>;
 
     fn env(&self) -> Env;
@@ -13,10 +12,6 @@ pub trait DepsAccess {
 }
 
 impl DepsAccess for (DepsMut<'_>, Env, MessageInfo) {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        self.0.branch()
-    }
-
     fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b> {
         self.0.as_ref()
     }
@@ -31,10 +26,6 @@ impl DepsAccess for (DepsMut<'_>, Env, MessageInfo) {
 }
 
 impl DepsAccess for (DepsMut<'_>, Env) {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        self.0.branch()
-    }
-
     fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b> {
         self.0.as_ref()
     }
@@ -49,10 +40,6 @@ impl DepsAccess for (DepsMut<'_>, Env) {
 }
 
 impl DepsAccess for (Deps<'_>, Env) {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        unimplemented!()
-    }
-
     fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b> {
         self.0
     }

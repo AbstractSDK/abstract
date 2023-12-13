@@ -10,7 +10,7 @@ use abstract_sdk::{
     core::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
     cw_helpers::wasm_smart_query,
     feature_objects::{AnsHost, VersionControlContract},
-    features::{DepsAccess, ResponseGenerator},
+    features::{DepsMutAccess, DepsAccess, ResponseGenerator},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;

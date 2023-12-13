@@ -1,4 +1,4 @@
-use abstract_sdk::features::DepsAccess;
+use abstract_sdk::features::{DepsAccess, DepsMutAccess};
 use cosmwasm_std::{Env, MessageInfo};
 
 use crate::{state::ContractError, AppContract};
@@ -27,10 +27,6 @@ impl<
         SudoMsg,
     >
 {
-    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-        self.deps.deps_mut()
-    }
-
     fn deps<'a: 'b, 'b>(&'a self) -> cosmwasm_std::Deps<'b> {
         self.deps.deps()
     }
@@ -43,3 +39,33 @@ impl<
         self.deps.message_info()
     }
 }
+
+/// The state variables for our AppContract.
+impl<
+        'app,
+        T: DepsMutAccess,
+        Error: ContractError,
+        CustomInitMsg: 'static,
+        CustomExecMsg: 'static,
+        CustomQueryMsg: 'static,
+        CustomMigrateMsg: 'static,
+        ReceiveMsg: 'static,
+        SudoMsg: 'static,
+    > DepsMutAccess
+    for AppContract<
+        'app,
+        T,
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
+{
+    fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
+    self.deps.deps_mut()
+    }
+}
+
