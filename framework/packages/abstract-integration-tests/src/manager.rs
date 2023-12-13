@@ -39,7 +39,7 @@ use cw_orch::environment::MutCwEnv;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
-mod mock_app {
+pub mod mock_app {
     use abstract_app::gen_app_mock;
 
     pub const APP_ID: &str = "tester:app";
