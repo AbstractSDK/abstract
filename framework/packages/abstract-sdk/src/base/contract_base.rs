@@ -1,7 +1,7 @@
 use super::handler::Handler;
 use crate::core::objects::dependency::StaticDependency;
 use crate::{AbstractSdkError, AbstractSdkResult};
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 use polytone::callbacks::Callback;
@@ -224,9 +224,13 @@ where
 
 #[cfg(test)]
 mod test {
+    use crate::features::{
+        AccountIdentification, CustomData, CustomEvents, Executables, ExecutionStack,
+    };
+
     use super::*;
 
-    use cosmwasm_std::Empty;
+    use cosmwasm_std::{Attribute, Empty, Event};
     use speculoos::assert_that;
 
     #[cosmwasm_schema::cw_serde]
@@ -272,6 +276,49 @@ mod test {
             unimplemented!()
         }
     }
+    impl AccountIdentification for MockModule {
+        fn proxy_address(&self, _: Deps) -> AbstractSdkResult<cosmwasm_std::Addr> {
+            unimplemented!()
+        }
+    }
+
+    impl ExecutionStack for MockModule {
+        fn stack_mut(&mut self) -> &mut Executables {
+            unimplemented!()
+        }
+    }
+
+    impl CustomEvents for MockModule {
+        fn add_event<A: Into<Attribute>>(
+            &mut self,
+            event_name: &str,
+            attributes: impl IntoIterator<Item = A>,
+        ) {
+            unimplemented!()
+        }
+
+        fn events(&self) -> Vec<Event> {
+            unimplemented!()
+        }
+
+        fn add_attributes<A: Into<Attribute>>(&mut self, attributes: impl IntoIterator<Item = A>) {
+            unimplemented!()
+        }
+
+        fn attributes(&self) -> Vec<Attribute> {
+            unimplemented!()
+        }
+    }
+
+    impl CustomData for MockModule {
+        fn data(&self) -> Option<Binary> {
+            unimplemented!()
+        }
+
+        fn set_data(&mut self, data: impl Into<Binary>) {
+            unimplemented!()
+        }
+    }
 
     #[test]
     fn test_info() {
@@ -313,8 +360,10 @@ mod test {
     #[test]
     fn test_with_instantiate() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_instantiate(|_, _, _, _, _| {
-                Ok(Response::default().add_attribute("test", "instantiate"))
+            .with_instantiate(|_, _, _, app, _| {
+                app.add_attribute("test", "instantiate");
+
+                Ok(())
             });
 
         assert!(contract.instantiate_handler.is_some());
@@ -323,7 +372,10 @@ mod test {
     #[test]
     fn test_with_receive() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_receive(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "receive")));
+            .with_receive(|_, _, _, app, _| {
+                app.add_attribute("test", "receive");
+                Ok(())
+            });
 
         assert!(contract.receive_handler.is_some());
     }
@@ -331,7 +383,10 @@ mod test {
     #[test]
     fn test_with_sudo() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_sudo(|_, _, _, _| Ok(Response::default().add_attribute("test", "sudo")));
+            .with_sudo(|_, _, app, _| {
+                app.add_attribute("test", "sudo");
+                Ok(())
+            });
 
         assert!(contract.sudo_handler.is_some());
     }
@@ -339,7 +394,10 @@ mod test {
     #[test]
     fn test_with_execute() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_execute(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "execute")));
+            .with_execute(|_, _, _, app, _| {
+                app.add_attribute("test", "execute");
+                Ok(())
+            });
 
         assert!(contract.execute_handler.is_some());
     }
@@ -355,7 +413,10 @@ mod test {
     #[test]
     fn test_with_migrate() {
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_migrate(|_, _, _, _| Ok(Response::default().add_attribute("test", "migrate")));
+            .with_migrate(|_, _, app, _| {
+                app.add_attribute("test", "migrate");
+                Ok(())
+            });
 
         assert!(contract.migrate_handler.is_some());
     }
@@ -363,8 +424,10 @@ mod test {
     #[test]
     fn test_with_reply_handlers() {
         const REPLY_ID: u64 = 50u64;
-        const HANDLER: ReplyHandlerFn<MockModule, MockError> =
-            |_, _, _, _| Ok(Response::default().add_attribute("test", "reply"));
+        const HANDLER: ReplyHandlerFn<MockModule, MockError> = |_, _, app, _| {
+            app.add_attribute("test", "reply");
+            Ok(())
+        };
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_replies([&[(REPLY_ID, HANDLER)], &[]]);
 
@@ -375,8 +438,10 @@ mod test {
     #[test]
     fn test_with_ibc_callback_handlers() {
         const IBC_ID: &str = "aoeu";
-        const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
-            |_, _, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
+        const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> = |_, _, _, app, _, _, _| {
+            app.add_attribute("test", "ibc");
+            Ok(())
+        };
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_ibc_callbacks(&[(IBC_ID, HANDLER)]);
 

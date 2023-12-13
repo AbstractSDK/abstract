@@ -1,6 +1,7 @@
 use crate::{state::ContractError, AppContract, Handler, MigrateEndpoint};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_core::{app::MigrateMsg, objects::module_version::set_module_data};
+use abstract_sdk::features::ResponseGenerator;
 use cosmwasm_std::Response;
 use cw2::set_contract_version;
 use schemars::JsonSchema;
@@ -28,8 +29,8 @@ impl<
     type MigrateMsg = MigrateMsg<CustomMigrateMsg>;
 
     fn migrate(
-        self,
-        deps: cosmwasm_std::DepsMut,
+        mut self,
+        mut deps: cosmwasm_std::DepsMut,
         env: cosmwasm_std::Env,
         msg: Self::MigrateMsg,
     ) -> Result<cosmwasm_std::Response, Self::Error> {
@@ -45,7 +46,8 @@ impl<
         )?;
         set_contract_version(deps.storage, name, version_string)?;
         if let Some(migrate_fn) = self.maybe_migrate_handler() {
-            return migrate_fn(deps, env, self, msg.module);
+            migrate_fn(deps.branch(), env, &mut self, msg.module)?;
+            return Ok(self._generate_response(deps.as_ref())?);
         }
         Ok(Response::default())
     }

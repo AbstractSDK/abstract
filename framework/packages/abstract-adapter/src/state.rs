@@ -7,6 +7,7 @@ use abstract_sdk::{
     },
     core::version_control::AccountBase,
     feature_objects::{AnsHost, VersionControlContract},
+    features::ModuleEndpointResponse,
     namespaces::BASE_STATE,
     AbstractSdkError,
 };
@@ -55,22 +56,20 @@ pub struct AdapterContract<
     pub authorized_addresses: Map<'static, Addr, Vec<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_core::adapter::ExecuteMsg::Base`] handler.
     pub target_account: Option<AccountBase>,
+    pub response: ModuleEndpointResponse,
 }
 
 /// Constructor
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
-    pub const fn new(
-        name: &'static str,
-        version: &'static str,
-        metadata: Option<&'static str>,
-    ) -> Self {
+    pub fn new(name: &'static str, version: &'static str, metadata: Option<&'static str>) -> Self {
         Self {
             contract: AbstractContract::new(name, version, metadata),
             base_state: Item::new(BASE_STATE),
             authorized_addresses: Map::new(AUTHORIZED_ADDRESSES_NAMESPACE),
             target_account: None,
+            response: ModuleEndpointResponse::default(),
         }
     }
 
@@ -88,12 +87,12 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             .proxy)
     }
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
+    pub fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.contract = self.contract.with_dependencies(dependencies);
         self
     }
 
-    pub const fn with_instantiate(
+    pub fn with_instantiate(
         mut self,
         instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
     ) -> Self {
@@ -101,7 +100,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self
     }
 
-    pub const fn with_execute(
+    pub fn with_execute(
         mut self,
         execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
     ) -> Self {
@@ -109,7 +108,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self
     }
 
-    pub const fn with_query(
+    pub fn with_query(
         mut self,
         query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
     ) -> Self {
@@ -117,7 +116,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self
     }
 
-    pub const fn with_replies(
+    pub fn with_replies(
         mut self,
         reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
     ) -> Self {
@@ -125,12 +124,12 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self
     }
 
-    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
+    pub fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
         self.contract = self.contract.with_sudo(sudo_handler);
         self
     }
 
-    pub const fn with_receive(
+    pub fn with_receive(
         mut self,
         receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
     ) -> Self {
@@ -139,7 +138,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
+    pub fn with_ibc_callbacks(
         mut self,
         callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
     ) -> Self {
@@ -151,16 +150,17 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 #[cfg(test)]
 mod tests {
 
+    use abstract_sdk::features::CustomData;
     use abstract_testing::prelude::*;
     use cosmwasm_std::Response;
 
     use super::*;
-    use crate::mock::{AdapterMockResult, MOCK_ADAPTER, TEST_METADATA};
+    use crate::mock::{mock_adapter, AdapterMockResult, TEST_METADATA};
 
     #[test]
     fn set_and_get_target() -> AdapterMockResult {
-        let mut mock = MOCK_ADAPTER;
         let target = Addr::unchecked("target");
+        let mut mock = mock_adapter();
         mock.target_account = Some(AccountBase {
             proxy: target.clone(),
             manager: Addr::unchecked("manager"),
@@ -172,16 +172,32 @@ mod tests {
     #[test]
     fn builder_functions() {
         crate::mock::MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
-            .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
-                Ok(Response::new().set_data("mock_callback".as_bytes()))
+            .with_instantiate(|_, _, _, app, _| {
+                app.set_data("mock_init".as_bytes());
+                Ok(())
+            })
+            .with_execute(|_, _, _, app, _| {
+                app.set_data("mock_exec".as_bytes());
+                Ok(())
+            })
+            .with_query(|_, _, app, msg| {
+                cosmwasm_std::to_json_binary("mock_query").map_err(Into::into)
+            })
+            .with_sudo(|_, _, app, _| {
+                app.set_data("mock_sudo".as_bytes());
+                Ok(())
+            })
+            .with_receive(|_, _, _, app, _| {
+                app.set_data("mock_receive".as_bytes());
+                Ok(())
+            })
+            .with_ibc_callbacks(&[("c_id", |_, _, _, app, _, _, _| {
+                app.set_data("mock_callback".as_bytes());
+                Ok(())
             })])
-            .with_replies(&[(1u64, |_, _, _, msg| {
-                Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
+            .with_replies(&[(1u64, |_, _, app, msg| {
+                app.set_data(msg.result.unwrap().data.unwrap());
+                Ok(())
             })]);
     }
 }

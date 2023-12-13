@@ -10,21 +10,17 @@ pub(crate) use abstract_sdk::base::*;
 
 pub use crate::state::AppContract;
 pub use error::AppError;
-pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
+pub type AppResult<T = ()> = Result<T, AppError>;
 mod interface;
 
-use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
 pub mod mock {
     pub use abstract_core::app;
-    use abstract_core::{
-        manager::ModuleInstallConfig,
-        objects::{dependency::StaticDependency, module::ModuleInfo},
-    };
+    use abstract_core::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
     use abstract_interface::{AppDeployer, DependencyCreation};
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::*;
-    use cosmwasm_std::{to_json_binary, Response, StdError};
+    use cosmwasm_std::{to_json_binary, StdError};
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;
     use cw_storage_plus::Item;
@@ -74,7 +70,7 @@ pub mod mock {
     pub struct MockSudoMsg;
 
     use crate::{AppContract, AppError};
-    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
+    use abstract_sdk::{base::InstantiateEndpoint, features::CustomData, AbstractSdkError};
     use abstract_testing::{
         addresses::{test_account_base, TEST_ANS_HOST, TEST_VERSION_CONTROL},
         prelude::{
@@ -115,63 +111,83 @@ pub mod mock {
         MockSudoMsg,
     >;
 
-    pub const BASIC_MOCK_APP: MockAppContract =
-        MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
+    pub fn basic_mock_app() -> MockAppContract {
+        MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
+    }
 
     // Easy way to see if an ibc-callback was actually received.
     pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
 
-    pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
-        .with_instantiate(|deps, _, _, _, _| {
-            IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
-            Ok(Response::new().set_data("mock_init".as_bytes()))
-        })
-        .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-        .with_query(|deps, _, _, msg| match msg {
-            MockQueryMsg::GetSomething {} => {
-                to_json_binary(&MockQueryResponse {}).map_err(Into::into)
-            }
-            MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
-                to_json_binary(&ReceivedIbcCallbackStatus {
-                    received: IBC_CALLBACK_RECEIVED.load(deps.storage)?,
-                })
-                .map_err(Into::into)
-            }
-        })
-        .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-        .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _, _, _| {
-            IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
-            Ok(Response::new().set_data("mock_callback".as_bytes()))
-        })])
-        .with_dependencies(&[StaticDependency::new(
-            TEST_DEPENDENCY_MODULE_ID,
-            &[TEST_VERSION],
-        )])
-        .with_replies(&[(1u64, |_, _, _, msg| {
-            Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
-        })])
-        .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
+    pub fn mock_app() -> MockAppContract {
+        MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
+            .with_instantiate(|deps, _, _, app, _| {
+                IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
+                app.set_data("mock_init".as_bytes());
+                Ok(())
+            })
+            .with_execute(|_, _, _, app, _| {
+                app.set_data("mock_exec".as_bytes());
+                Ok(())
+            })
+            .with_query(|deps, _, app, msg| match msg {
+                MockQueryMsg::GetSomething {} => {
+                    to_json_binary(&MockQueryResponse {}).map_err(Into::into)
+                }
+                MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
+                    to_json_binary(&ReceivedIbcCallbackStatus {
+                        received: IBC_CALLBACK_RECEIVED.load(deps.storage)?,
+                    })
+                    .map_err(Into::into)
+                }
+            })
+            .with_sudo(|_, _, app, _| {
+                app.set_data("mock_sudo".as_bytes());
+                Ok(())
+            })
+            .with_receive(|_, _, _, app, _| {
+                app.set_data("mock_receive".as_bytes());
+                Ok(())
+            })
+            .with_ibc_callbacks(&[("c_id", |deps, _, _, app, _, _, _| {
+                IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
+                app.set_data("mock_callback".as_bytes());
+                Ok(())
+            })])
+            .with_replies(&[(1u64, |_, _, app, msg| {
+                app.set_data(msg.result.unwrap().data.unwrap());
+                Ok(())
+            })])
+            .with_migrate(|_, _, app, _| {
+                app.set_data("mock_migrate".as_bytes());
+                Ok(())
+            })
+    }
 
-    crate::cw_orch_interface!(MOCK_APP, MockAppContract, MockAppInterface);
+    crate::cw_orch_interface!(mock_app, MockAppContract, MockAppInterface);
 
     // Needs to be in a separate module due to the `interface` module names colliding otherwise.
     pub mod mock_app_dependency {
+        use abstract_sdk::features::CustomData;
         use abstract_testing::prelude::{TEST_DEPENDENCY_MODULE_ID, TEST_VERSION};
-        use cosmwasm_std::{to_json_binary, Response};
+        use cosmwasm_std::to_json_binary;
 
         use super::{MockAppContract, MockQueryResponse};
 
-        pub const MOCK_APP_DEPENDENCY: MockAppContract =
+        fn mock_app_dependency() -> MockAppContract {
             MockAppContract::new(TEST_DEPENDENCY_MODULE_ID, TEST_VERSION, None)
-                .with_instantiate(|_, _, _, _, _| {
-                    Ok(Response::new().set_data("mock_init".as_bytes()))
+                .with_instantiate(|_, _, _, app, _| {
+                    app.set_data("mock_init".as_bytes());
+                    Ok(())
                 })
-                .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-                .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into));
+                .with_execute(|_, _, _, app, _| {
+                    app.set_data("mock_exec".as_bytes());
+                    Ok(())
+                })
+                .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into))
+        }
 
         crate::cw_orch_interface!(
-            MOCK_APP_DEPENDENCY,
+            mock_app_dependency,
             MockAppContract,
             MockAppDependencyInterface
         );
@@ -190,7 +206,7 @@ pub mod mock {
         }
     }
 
-    crate::export_endpoints!(MOCK_APP, MockAppContract);
+    crate::export_endpoints!(mock_app, MockAppContract);
 
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default()
@@ -214,7 +230,7 @@ pub mod mock {
             module: MockInitMsg {},
         };
 
-        BASIC_MOCK_APP
+        basic_mock_app()
             .instantiate(deps.as_mut(), mock_env(), info, msg)
             .unwrap();
 
@@ -249,56 +265,58 @@ pub mod mock {
         use ::abstract_sdk::base::Handler;
         use ::abstract_sdk::features::AccountIdentification;
         use ::abstract_sdk::{Execution, TransferInterface};
-
+        use ::abstract_sdk::features::CustomData;
 
         type Exec = app::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
         type Query = app::QueryMsg<MockQueryMsg>;
         type Init = app::InstantiateMsg<MockInitMsg>;
         type Migrate = app::MigrateMsg<MockMigrateMsg>;
-        const MOCK_APP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
-        .with_dependencies($deps)
-        .with_execute(|deps, _env, info, module, msg| {
-            match msg {
-                MockExecMsg::DoSomethingAdmin{} => {
-                    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
-                },
-                _ => {},
-            }
-            Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
-        })
-        .with_instantiate(|deps, _env, info, module, msg| {
-            let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());
-            // See test `create_sub_account_with_installed_module` where this will be triggered.
-            if module.info().0 == "tester:mock-app1" {
-                println!("checking address of adapter1");
-                let manager = module.admin.get(deps.as_ref())?.unwrap();
-                // Check if the adapter has access to its dependency during instantiation.
-                let adapter1_addr = ::abstract_core::manager::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
-                // We have address!
-                ::cosmwasm_std::ensure!(
-                    adapter1_addr.is_some(),
-                    ::cosmwasm_std::StdError::generic_err("no address")
-                );
-                println!("adapter_addr: {adapter1_addr:?}");
-                // See test `install_app_with_proxy_action` where this transfer will happen.
-                let proxy_addr = module.proxy_address(deps.as_ref())?;
-                let balance = deps.querier.query_balance(proxy_addr, "TEST")?;
-                if !balance.amount.is_zero() {
-                println!("sending amount from proxy: {balance:?}");
-                    let action = module
-                        .bank(deps.as_ref())
-                        .transfer::<::cosmwasm_std::Coin>(
-                            vec![balance.into()],
-                            &::cosmwasm_std::Addr::unchecked("test_addr"),
-                        )?;
-                    let msg = module.executor(deps.as_ref()).execute(vec![action])?;
-                    println!("message: {msg:?}");
-                    response = response.add_message(msg);
-                }
-                Ok(response)}
-            else {
-                Ok(response)}
-            });
+        pub fn mock_app() ->::abstract_app::mock::MockAppContract{
+            ::abstract_app::mock::MockAppContract::new($id, $version, None)
+                .with_dependencies($deps)
+                .with_execute(|deps, _env, info, module, msg| {
+                    match msg {
+                        MockExecMsg::DoSomethingAdmin{} => {
+                            module.admin.assert_admin(deps.as_ref(), &info.sender)?;
+                        },
+                        _ => {},
+                    }
+                    module.set_data("mock_exec".as_bytes());
+                    Ok(())
+                })
+                .with_instantiate(|deps, _env, info, module, msg| {
+                    module.set_data("mock_init".as_bytes());
+                    // See test `create_sub_account_with_installed_module` where this will be triggered.
+                    if module.info().0 == "tester:mock-app1" {
+                        println!("checking address of adapter1");
+                        let manager = module.admin.get(deps.as_ref())?.unwrap();
+                        // Check if the adapter has access to its dependency during instantiation.
+                        let adapter1_addr = ::abstract_core::manager::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
+                        // We have address!
+                        ::cosmwasm_std::ensure!(
+                            adapter1_addr.is_some(),
+                            ::cosmwasm_std::StdError::generic_err("no address")
+                        );
+                        println!("adapter_addr: {adapter1_addr:?}");
+                        // See test `install_app_with_proxy_action` where this transfer will happen.
+                        let proxy_addr = module.proxy_address(deps.as_ref())?;
+                        let balance = deps.querier.query_balance(proxy_addr, "TEST")?;
+                        if !balance.amount.is_zero() {
+                        println!("sending amount from proxy: {balance:?}");
+                            let action = module
+                                .bank(deps.as_ref())
+                                .transfer::<::cosmwasm_std::Coin>(
+                                    vec![balance.into()],
+                                    &::cosmwasm_std::Addr::unchecked("test_addr"),
+                                )?;
+                            println!("message: {msg:?}");
+                        }
+                        Ok(())}
+                    else {
+                        Ok(())
+                    }
+                })
+        }
 
         fn mock_instantiate(
             deps: ::cosmwasm_std::DepsMut,
@@ -307,7 +325,7 @@ pub mod mock {
             msg: <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
         ) -> Result<::cosmwasm_std::Response, <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::InstantiateEndpoint;
-            MOCK_APP.instantiate(deps, env, info, msg)
+            mock_app().instantiate(deps, env, info, msg)
         }
 
         /// Execute entrypoint
@@ -318,7 +336,7 @@ pub mod mock {
             msg: <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
         ) -> Result<::cosmwasm_std::Response, <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::ExecuteEndpoint;
-            MOCK_APP.execute(deps, env, info, msg)
+            mock_app().execute(deps, env, info, msg)
         }
 
         /// Query entrypoint
@@ -328,7 +346,7 @@ pub mod mock {
             msg: <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::QueryEndpoint>::QueryMsg,
         ) -> Result<::cosmwasm_std::Binary, <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::QueryEndpoint;
-            MOCK_APP.query(deps, env, msg)
+            mock_app().query(deps, env, msg)
         }
 
         fn mock_migrate(
@@ -337,7 +355,7 @@ pub mod mock {
             msg: <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
         ) -> Result<::cosmwasm_std::Response, <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::MigrateEndpoint;
-            MOCK_APP.migrate(deps, env, msg)
+            mock_app().migrate(deps, env, msg)
         }
 
         #[cw_orch::interface(Init, Exec, Query, Migrate)]

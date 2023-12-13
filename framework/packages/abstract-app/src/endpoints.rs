@@ -25,7 +25,7 @@ mod sudo;
 /// abstract_app::export_endpoints!(MY_APP, MyApp);
 /// ```
 macro_rules! export_endpoints {
-    ($app_const:expr, $app_type:ty) => {
+    ($app_func:expr, $app_type:ty) => {
         /// Instantiate entrypoint
         #[::cosmwasm_std::entry_point]
         pub fn instantiate(
@@ -35,7 +35,7 @@ macro_rules! export_endpoints {
             msg: <$app_type as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
         ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::InstantiateEndpoint;
-            $app_const.instantiate(deps, env, info, msg)
+            $app_func().instantiate(deps, env, info, msg)
         }
 
         /// Execute entrypoint
@@ -47,7 +47,7 @@ macro_rules! export_endpoints {
             msg: <$app_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
         ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::ExecuteEndpoint;
-            $app_const.execute(deps, env, info, msg)
+            $app_func().execute(deps, env, info, msg)
         }
 
         /// Query entrypoint
@@ -58,7 +58,7 @@ macro_rules! export_endpoints {
             msg: <$app_type as abstract_sdk::base::QueryEndpoint>::QueryMsg,
         ) -> Result<::cosmwasm_std::Binary, <$app_type as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::QueryEndpoint;
-            $app_const.query(deps, env, msg)
+            $app_func().query(deps, env, msg)
         }
 
         /// Migrate entrypoint
@@ -69,7 +69,7 @@ macro_rules! export_endpoints {
             msg: <$app_type as abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
         ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::MigrateEndpoint;
-            $app_const.migrate(deps, env, msg)
+            $app_func().migrate(deps, env, msg)
         }
 
         // Reply entrypoint
@@ -80,7 +80,7 @@ macro_rules! export_endpoints {
             msg: ::cosmwasm_std::Reply,
         ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::ReplyEndpoint;
-            $app_const.reply(deps, env, msg)
+            $app_func().reply(deps, env, msg)
         }
 
         // Sudo entrypoint
@@ -91,7 +91,7 @@ macro_rules! export_endpoints {
             msg: <$app_type as ::abstract_sdk::base::Handler>::SudoMsg,
         ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::SudoEndpoint;
-            $app_const.sudo(deps, env, msg)
+            $app_func().sudo(deps, env, msg)
         }
     };
 }
@@ -113,7 +113,7 @@ mod test {
 
     #[test]
     fn exports_endpoints() {
-        export_endpoints!(MOCK_APP, MockAppContract);
+        export_endpoints!(mock_app, MockAppContract);
 
         let mut deps = mock_dependencies();
 
@@ -133,7 +133,7 @@ mod test {
             init_msg.clone(),
         );
         let expected_init =
-            MOCK_APP.instantiate(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), init_msg);
+            mock_app().instantiate(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), init_msg);
         assert_that!(actual_init).is_equal_to(expected_init);
 
         // exec
@@ -145,13 +145,13 @@ mod test {
             exec_msg.clone(),
         );
         let expected_exec =
-            MOCK_APP.execute(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), exec_msg);
+            mock_app().execute(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), exec_msg);
         assert_that!(actual_exec).is_equal_to(expected_exec);
 
         // query
         let query_msg = app::QueryMsg::Module(MockQueryMsg::GetSomething {});
         let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
-        let expected_query = MOCK_APP.query(deps.as_ref(), mock_env(), query_msg);
+        let expected_query = mock_app().query(deps.as_ref(), mock_env(), query_msg);
         assert_that!(actual_query).is_equal_to(expected_query);
 
         // migrate
@@ -160,13 +160,13 @@ mod test {
             module: MockMigrateMsg,
         };
         let actual_migrate = migrate(deps.as_mut(), mock_env(), migrate_msg.clone());
-        let expected_migrate = MOCK_APP.migrate(deps.as_mut(), mock_env(), migrate_msg);
+        let expected_migrate = mock_app().migrate(deps.as_mut(), mock_env(), migrate_msg);
         assert_that!(actual_migrate).is_equal_to(expected_migrate);
 
         // sudo
         let sudo_msg = MockSudoMsg {};
         let actual_sudo = sudo(deps.as_mut(), mock_env(), sudo_msg.clone());
-        let expected_sudo = MOCK_APP.sudo(deps.as_mut(), mock_env(), sudo_msg);
+        let expected_sudo = mock_app().sudo(deps.as_mut(), mock_env(), sudo_msg);
         assert_that!(actual_sudo).is_equal_to(expected_sudo);
 
         // reply
@@ -175,7 +175,7 @@ mod test {
             result: SubMsgResult::Err("test".into()),
         };
         let actual_reply = reply(deps.as_mut(), mock_env(), reply_msg.clone());
-        let expected_reply = MOCK_APP.reply(deps.as_mut(), mock_env(), reply_msg);
+        let expected_reply = mock_app().reply(deps.as_mut(), mock_env(), reply_msg);
         assert_that!(actual_reply).is_equal_to(expected_reply);
     }
 }

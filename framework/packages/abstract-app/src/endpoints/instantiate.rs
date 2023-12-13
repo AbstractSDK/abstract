@@ -6,7 +6,10 @@ use abstract_core::{
     app::{BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
 };
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::{
+    feature_objects::{AnsHost, VersionControlContract},
+    features::ResponseGenerator,
+};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
@@ -33,7 +36,7 @@ impl<
 {
     type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
     fn instantiate(
-        self,
+        mut self,
         mut deps: DepsMut,
         env: Env,
         info: MessageInfo,
@@ -69,7 +72,9 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new());
         };
-        handler(deps, env, info, self, module_msg)
+
+        handler(deps.branch(), env, info, &mut self, module_msg)?;
+        Ok(self._generate_response(deps.as_ref())?)
     }
 }
 
@@ -103,7 +108,7 @@ mod test {
             module: MockInitMsg {},
         };
 
-        let res = MOCK_APP
+        let res = mock_app()
             .instantiate(deps.as_mut(), mock_env(), info, msg)
             .unwrap();
         assert_that!(res.messages).is_empty();

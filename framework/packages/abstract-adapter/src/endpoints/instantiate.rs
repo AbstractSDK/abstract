@@ -3,6 +3,7 @@ use abstract_core::{adapter::InstantiateMsg, objects::module_version::set_module
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
     feature_objects::{AnsHost, VersionControlContract},
+    features::ResponseGenerator,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
@@ -22,8 +23,8 @@ impl<
     type InstantiateMsg = InstantiateMsg<CustomInitMsg>;
     /// Instantiate the api
     fn instantiate(
-        self,
-        deps: DepsMut,
+        mut self,
+        mut deps: DepsMut,
         env: Env,
         info: MessageInfo,
         msg: Self::InstantiateMsg,
@@ -49,7 +50,8 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new());
         };
-        handler(deps, env, info, self, msg.module)
+        handler(deps.branch(), env, info, &mut self, msg.module)?;
+        Ok(self._generate_response(deps.as_ref())?)
     }
 }
 
@@ -71,14 +73,14 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::{
-        mock::{AdapterMockResult, MockInitMsg, MOCK_ADAPTER, MOCK_DEP, TEST_METADATA},
+        mock::{mock_adapter, AdapterMockResult, MockInitMsg, MOCK_DEP, TEST_METADATA},
         state::ApiState,
     };
     use abstract_testing::prelude::*;
 
     #[test]
     fn successful() -> AdapterMockResult {
-        let api = MOCK_ADAPTER.with_dependencies(&[MOCK_DEP]);
+        let api = mock_adapter().with_dependencies(&[MOCK_DEP]);
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
@@ -109,7 +111,7 @@ mod tests {
             version: TEST_VERSION.into(),
         });
 
-        let api = MOCK_ADAPTER;
+        let api = mock_adapter();
         let none_authorized = api.authorized_addresses.is_empty(&deps.storage);
         assert!(none_authorized);
 
@@ -127,7 +129,7 @@ mod tests {
 
     #[test]
     fn invalid_ans_host() -> AdapterMockResult {
-        let api = MOCK_ADAPTER;
+        let api = mock_adapter();
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
@@ -148,7 +150,7 @@ mod tests {
 
     #[test]
     fn invalid_version_control() -> AdapterMockResult {
-        let api = MOCK_ADAPTER;
+        let api = mock_adapter();
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();

@@ -180,11 +180,11 @@ mod test {
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
 
-    fn mock_bank_send(amount: Vec<Coin>) -> AccountAction {
-        AccountAction::from(CosmosMsg::Bank(BankMsg::Send {
+    fn mock_bank_send(amount: Vec<Coin>) -> CosmosMsg {
+        CosmosMsg::Bank(BankMsg::Send {
             to_address: "to_address".to_string(),
             amount,
-        }))
+        })
     }
 
     fn flatten_actions(actions: Vec<AccountAction>) -> Vec<CosmosMsg> {
@@ -192,6 +192,8 @@ mod test {
     }
 
     mod execute {
+        use crate::features::ResponseGenerator;
+
         use super::*;
         use cosmwasm_std::to_json_binary;
 
@@ -199,30 +201,28 @@ mod test {
         #[test]
         fn empty_actions() {
             let deps = mock_dependencies();
-            let stub = MockModule::new();
-            let executor = stub.executor(deps.as_ref());
+            let mut stub = MockModule::new();
+            let mut executor = stub.executor(deps.as_ref());
 
             let messages = vec![];
 
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
-            let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
+            let expected = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
-                    msgs: flatten_actions(messages),
-                })
-                .unwrap(),
+                msg: to_json_binary(&ExecuteMsg::ModuleAction { msgs: messages }).unwrap(),
                 funds: vec![],
-            }));
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            });
+            assert_that!(stub._generate_response(deps.as_ref()).unwrap().messages[0])
+                .is_equal_to(SubMsg::new(expected));
         }
 
         #[test]
         fn with_actions() {
             let deps = mock_dependencies();
-            let stub = MockModule::new();
-            let executor = stub.executor(deps.as_ref());
+            let mut stub = MockModule::new();
+            let mut executor = stub.executor(deps.as_ref());
 
             // build a bank message
             let messages = vec![mock_bank_send(coins(100, "juno"))];
@@ -232,26 +232,27 @@ mod test {
 
             let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
-                    msgs: flatten_actions(messages),
-                })
-                .unwrap(),
+                msg: to_json_binary(&ExecuteMsg::ModuleAction { msgs: messages }).unwrap(),
                 // funds should be empty
                 funds: vec![],
             }));
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+
+            assert_that!(stub._generate_response(deps.as_ref()).unwrap().messages[0])
+                .is_equal_to(SubMsg::new(expected));
         }
     }
 
     mod execute_with_reply {
+        use crate::features::ResponseGenerator;
+
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
         #[test]
         fn empty_actions() {
             let deps = mock_dependencies();
-            let stub = MockModule::new();
-            let executor = stub.executor(deps.as_ref());
+            let mut stub = MockModule::new();
+            let mut executor = stub.executor(deps.as_ref());
 
             let empty_actions = vec![];
             let expected_reply_on = ReplyOn::Success;
@@ -269,7 +270,7 @@ mod test {
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_PROXY.to_string(),
                     msg: to_json_binary(&ExecuteMsg::ModuleAction {
-                        msgs: flatten_actions(empty_actions),
+                        msgs: empty_actions,
                     })
                     .unwrap(),
                     funds: vec![],
@@ -277,14 +278,16 @@ mod test {
                 gas_limit: None,
                 reply_on: expected_reply_on,
             };
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+
+            assert_that!(stub._generate_response(deps.as_ref()).unwrap().messages[0])
+                .is_equal_to(expected);
         }
 
         #[test]
         fn with_actions() {
             let deps = mock_dependencies();
-            let stub = MockModule::new();
-            let executor = stub.executor(deps.as_ref());
+            let mut stub = MockModule::new();
+            let mut executor = stub.executor(deps.as_ref());
 
             // build a bank message
             let action = vec![mock_bank_send(coins(1, "denom"))];
@@ -303,85 +306,16 @@ mod test {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_PROXY.to_string(),
-                    msg: to_json_binary(&ExecuteMsg::ModuleAction {
-                        msgs: flatten_actions(action),
-                    })
-                    .unwrap(),
+                    msg: to_json_binary(&ExecuteMsg::ModuleAction { msgs: action }).unwrap(),
                     // funds should be empty
                     funds: vec![],
                 }),
                 gas_limit: None,
                 reply_on: expected_reply_on,
             };
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
-        }
-    }
 
-    mod execute_with_response {
-        use super::*;
-        use cosmwasm_std::coins;
-
-        /// Tests that no error is thrown with empty messages provided
-        #[test]
-        fn empty_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new();
-            let executor = stub.executor(deps.as_ref());
-
-            let empty_actions = vec![];
-            let expected_action = "THIS IS AN ACTION";
-
-            let actual_res = executor.execute_with_response(empty_actions.clone(), expected_action);
-
-            let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
-                    msgs: flatten_actions(empty_actions),
-                })
-                .unwrap(),
-                funds: vec![],
-            });
-
-            let expected = Response::new()
-                .add_event(
-                    Event::new("abstract")
-                        .add_attribute("contract", stub.module_id())
-                        .add_attribute("action", expected_action),
-                )
-                .add_message(expected_msg);
-
-            assert_that!(actual_res).is_ok().is_equal_to(expected);
-        }
-
-        #[test]
-        fn with_actions() {
-            let deps = mock_dependencies();
-            let stub = MockModule::new();
-            let executor = stub.executor(deps.as_ref());
-
-            // build a bank message
-            let action = vec![mock_bank_send(coins(1, "denom"))];
-            let expected_action = "provide liquidity";
-
-            let actual_res = executor.execute_with_response(action.clone(), expected_action);
-
-            let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: TEST_PROXY.to_string(),
-                msg: to_json_binary(&ExecuteMsg::ModuleAction {
-                    msgs: flatten_actions(action),
-                })
-                .unwrap(),
-                // funds should be empty
-                funds: vec![],
-            });
-            let expected = Response::new()
-                .add_event(
-                    Event::new("abstract")
-                        .add_attribute("contract", stub.module_id())
-                        .add_attribute("action", expected_action),
-                )
-                .add_message(expected_msg);
-            assert_that!(actual_res).is_ok().is_equal_to(expected);
+            assert_that!(stub._generate_response(deps.as_ref()).unwrap().messages[0])
+                .is_equal_to(expected);
         }
     }
 }

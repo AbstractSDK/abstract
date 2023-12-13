@@ -3,7 +3,7 @@
 //! Basis for an interfacing contract to an external service.
 use cosmwasm_std::{Empty, Response};
 
-pub type AdapterResult<C = Empty> = Result<Response<C>, AdapterError>;
+pub type AdapterResult<T = ()> = Result<T, AdapterError>;
 // Default to Empty
 
 pub use crate::state::AdapterContract;
@@ -26,7 +26,7 @@ pub mod mock {
         adapter::{self, *},
         objects::dependency::StaticDependency,
     };
-    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
+    use abstract_sdk::{base::InstantiateEndpoint, features::CustomData, AbstractSdkError};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
@@ -85,26 +85,41 @@ pub mod mock {
     pub const MOCK_DEP: StaticDependency = StaticDependency::new("module_id", &[">0.0.0"]);
 
     /// use for testing
-    pub const MOCK_ADAPTER: MockAdapterContract =
+    pub fn mock_adapter() -> MockAdapterContract {
         MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
-            .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
-                Ok(Response::new().set_data("mock_callback".as_bytes()))
+            .with_instantiate(|_, _, _, app, _| {
+                app.set_data("mock_init".as_bytes());
+                Ok(())
+            })
+            .with_execute(|_, _, _, app, _| {
+                app.set_data("mock_exec".as_bytes());
+                Ok(())
+            })
+            .with_query(|_, _, app, _| to_json_binary("mock_query").map_err(Into::into))
+            .with_sudo(|_, _, app, _| {
+                app.set_data("mock_sudo".as_bytes());
+                Ok(())
+            })
+            .with_receive(|_, _, _, app, _| {
+                app.set_data("mock_receive".as_bytes());
+                Ok(())
+            })
+            .with_ibc_callbacks(&[("c_id", |_, _, _, app, _, _, _| {
+                app.set_data("mock_callback".as_bytes());
+                Ok(())
             })])
-            .with_replies(&[(1u64, |_, _, _, msg| {
-                Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
-            })]);
+            .with_replies(&[(1u64, |_, _, app, msg| {
+                app.set_data(msg.result.unwrap().data.unwrap());
+                Ok(())
+            })])
+    }
 
     pub type AdapterMockResult = Result<(), MockError>;
     // export these for upload usage
-    crate::export_endpoints!(MOCK_ADAPTER, MockAdapterContract);
+    crate::export_endpoints!(mock_adapter, MockAdapterContract);
 
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
-        let adapter = MOCK_ADAPTER;
+        let adapter = mock_adapter();
         let info = mock_info(OWNER, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
@@ -162,10 +177,16 @@ pub mod mock {
         use ::cosmwasm_std::Empty;
         use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
+        use abstract_sdk::features::CustomData;
 
-        const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
-        .with_dependencies($deps)
-        .with_execute(|_, _, _, _, _| Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes())));
+        pub fn mock_adapter() -> ::abstract_adapter::mock::MockAdapterContract {
+            ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
+            .with_dependencies($deps)
+            .with_execute(|_, _, _, app, _| {
+                app.set_data("mock_exec".as_bytes());
+                Ok(())
+            })
+        }
 
         fn instantiate(
             deps: ::cosmwasm_std::DepsMut,
@@ -174,7 +195,7 @@ pub mod mock {
             msg: <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
         ) -> Result<::cosmwasm_std::Response, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::InstantiateEndpoint;
-            MOCK_ADAPTER.instantiate(deps, env, info, msg)
+            mock_adapter().instantiate(deps, env, info, msg)
         }
 
         /// Execute entrypoint
@@ -185,7 +206,7 @@ pub mod mock {
             msg: <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
         ) -> Result<::cosmwasm_std::Response, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::ExecuteEndpoint;
-            MOCK_ADAPTER.execute(deps, env, info, msg)
+            mock_adapter().execute(deps, env, info, msg)
         }
 
         /// Query entrypoint
@@ -195,7 +216,7 @@ pub mod mock {
             msg: <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::QueryEndpoint>::QueryMsg,
         ) -> Result<::cosmwasm_std::Binary, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::QueryEndpoint;
-            MOCK_ADAPTER.query(deps, env, msg)
+            mock_adapter().query(deps, env, msg)
         }
 
         type Exec = ::abstract_core::adapter::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
@@ -246,8 +267,10 @@ pub mod mock {
         use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
 
-        const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
-        .with_dependencies($deps);
+        pub fn mock_adapter() -> ::abstract_adapter::mock::MockAdapterContract{
+            ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
+            .with_dependencies($deps)
+        }
 
         fn instantiate(
             deps: ::cosmwasm_std::DepsMut,
@@ -256,7 +279,7 @@ pub mod mock {
             msg: <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
         ) -> Result<::cosmwasm_std::Response, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::InstantiateEndpoint;
-            MOCK_ADAPTER.instantiate(deps, env, info, msg)
+            mock_adapter().instantiate(deps, env, info, msg)
         }
 
         /// Execute entrypoint
@@ -277,7 +300,7 @@ pub mod mock {
             msg: <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::QueryEndpoint>::QueryMsg,
         ) -> Result<::cosmwasm_std::Binary, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::QueryEndpoint;
-            MOCK_ADAPTER.query(deps, env, msg)
+            mock_adapter().query(deps, env, msg)
         }
 
         type Exec = ::abstract_core::base::ExecuteMsg<::abstract_core::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>;

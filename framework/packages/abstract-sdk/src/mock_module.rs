@@ -2,18 +2,57 @@
 
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_testing::prelude::*;
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::{Addr, Attribute, Binary, Deps, Event};
 
 use crate::core::objects::module::ModuleId;
 use crate::features::{
-    AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies,
-    ModuleIdentification,
+    AbstractNameService, AbstractRegistryAccess, AccountIdentification, CustomData, CustomEvents,
+    Dependencies, Executables, ExecutionStack, ModuleEndpointResponse, ModuleIdentification,
 };
 use crate::AbstractSdkResult;
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::version_control::VersionControlContract;
 
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
+
+impl ExecutionStack for MockModule {
+    fn stack_mut(&mut self) -> &mut Executables {
+        &mut self.response.executables
+    }
+}
+
+impl CustomEvents for MockModule {
+    fn add_event<A: Into<Attribute>>(
+        &mut self,
+        event_name: &str,
+        attributes: impl IntoIterator<Item = A>,
+    ) {
+        self.response.add_event(event_name, attributes)
+    }
+
+    fn events(&self) -> Vec<Event> {
+        self.response.events()
+    }
+
+    fn add_attributes<A: Into<Attribute>>(&mut self, attributes: impl IntoIterator<Item = A>) {
+        self.response.add_attributes(attributes)
+    }
+
+    fn attributes(&self) -> Vec<Attribute> {
+        self.response.attributes()
+    }
+}
+
+impl CustomData for MockModule {
+    fn data(&self) -> Option<Binary> {
+        self.response.data()
+    }
+
+    fn set_data(&mut self, data: impl Into<Binary>) {
+        self.response.set_data(data)
+    }
+}
+
 impl AccountIdentification for MockModule {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(Addr::unchecked(TEST_PROXY))
@@ -55,12 +94,16 @@ pub const FAKE_MODULE_ID: ModuleId = "fake_module";
 
 /// A mock module that can be used for testing.
 /// Identifies itself as [`TEST_MODULE_ID`].
-pub struct MockModule {}
+#[derive(Default)]
+pub struct MockModule {
+    /// The Cosmwasm response gets created inside the module structure
+    pub response: ModuleEndpointResponse,
+}
 
 impl MockModule {
     /// mock constructor
-    pub const fn new() -> Self {
-        Self {}
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 

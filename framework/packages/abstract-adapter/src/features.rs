@@ -67,12 +67,12 @@ mod tests {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        DepsMut, Env, MessageInfo, Response,
+        DepsMut, Env, MessageInfo,
     };
     use speculoos::prelude::*;
 
     use crate::mock::{
-        mock_init, mock_init_custom, MockAdapterContract, MockError, MockExecMsg, MOCK_ADAPTER,
+        mock_adapter, mock_init, mock_init_custom, MockAdapterContract, MockError, MockExecMsg,
         TEST_METADATA,
     };
 
@@ -82,9 +82,9 @@ mod tests {
         deps: DepsMut,
         _env: Env,
         _info: MessageInfo,
-        adapter: MockAdapterContract,
+        adapter: &mut MockAdapterContract,
         _msg: MockExecMsg,
-    ) -> Result<Response, MockError> {
+    ) -> Result<(), MockError> {
         let proxy = adapter.proxy_address(deps.as_ref())?;
         // assert with test values
         assert_that!(proxy.as_str()).is_equal_to(TEST_PROXY);
@@ -104,7 +104,7 @@ mod tests {
 
         adapter.target()?;
 
-        Ok(Response::default())
+        Ok(())
     }
 
     pub fn featured_adapter() -> MockAdapterContract {
@@ -141,13 +141,13 @@ mod tests {
 
         mock_init(deps.as_mut()).unwrap();
 
-        let res = MOCK_ADAPTER.proxy_address(deps.as_ref());
+        let res = mock_adapter().proxy_address(deps.as_ref());
         assert_that!(res).is_err();
 
-        let res = MOCK_ADAPTER.manager_address(deps.as_ref());
+        let res = mock_adapter().manager_address(deps.as_ref());
         assert_that!(res).is_err();
 
-        let res = MOCK_ADAPTER.account_base(deps.as_ref());
+        let res = mock_adapter().account_base(deps.as_ref());
         assert_that!(res).is_err();
     }
 }

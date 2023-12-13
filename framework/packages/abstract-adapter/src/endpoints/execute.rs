@@ -9,6 +9,7 @@ use abstract_core::adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMs
 use abstract_core::manager::state::ACCOUNT_MODULES;
 use abstract_core::objects::nested_admin::query_top_level_owner;
 
+use abstract_sdk::features::ResponseGenerator;
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
@@ -59,11 +60,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 {
     fn base_execute(
         &mut self,
-        deps: DepsMut,
+        mut deps: DepsMut,
         _env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
-    ) -> AdapterResult {
+    ) -> AdapterResult<Response> {
         let BaseExecuteMsg { proxy_address, msg } = message;
         let account_registry = self.account_registry(deps.as_ref())?;
         let account_base = match proxy_address {
@@ -98,9 +99,10 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self.target_account = Some(account_base);
         match msg {
             AdapterBaseMsg::UpdateAuthorizedAddresses { to_add, to_remove } => {
-                self.update_authorized_addresses(deps, info, to_add, to_remove)
+                self.update_authorized_addresses(deps.branch(), info, to_add, to_remove)?
             }
         }
+        Ok(self._generate_response(deps.as_ref())?)
     }
 
     /// Handle a custom execution message sent to this api.
@@ -109,7 +111,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     /// 2. The sender is a manager of the given proxy address.
     fn handle_app_msg(
         mut self,
-        deps: DepsMut,
+        mut deps: DepsMut,
         env: Env,
         info: MessageInfo,
         request: AdapterRequestMsg<CustomExecMsg>,
@@ -156,12 +158,13 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                 .map_err(|_| unauthorized_sender())?,
         };
         self.target_account = Some(account_base);
-        self.execute_handler()?(deps, env, info, self, request.request)
+        self.execute_handler()?(deps.branch(), env, info, &mut self, request.request)?;
+        Ok(self._generate_response(deps.as_ref())?)
     }
 
     /// Update authorized addresses from the adapter.
     fn update_authorized_addresses(
-        &self,
+        &mut self,
         deps: DepsMut,
         info: MessageInfo,
         to_add: Vec<String>,
@@ -217,11 +220,9 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
         self.authorized_addresses
             .save(deps.storage, proxy.clone(), &authorized_addrs)?;
-        Ok(self.custom_tag_response(
-            Response::new(),
-            "update_authorized_addresses",
-            vec![("proxy", proxy)],
-        ))
+
+        self.custom_tag_response("update_authorized_addresses", vec![("proxy", proxy)]);
+        Ok(())
     }
 }
 
@@ -256,7 +257,7 @@ mod tests {
     };
 
     use crate::mock::{
-        mock_init, AdapterMockResult, MockError, MockExecMsg, MockReceiveMsg, MOCK_ADAPTER,
+        mock_adapter, mock_init, AdapterMockResult, MockError, MockExecMsg, MockReceiveMsg,
     };
     use speculoos::prelude::*;
 
@@ -265,7 +266,7 @@ mod tests {
         sender: &str,
         msg: ExecuteMsg<MockExecMsg, MockReceiveMsg>,
     ) -> Result<Response, MockError> {
-        MOCK_ADAPTER.execute(deps, mock_env(), mock_info(sender, &[]), msg)
+        mock_adapter().execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
 
     fn base_execute_as(
@@ -277,12 +278,12 @@ mod tests {
     }
 
     mod update_authorized_addresses {
-        use crate::mock::TEST_AUTHORIZED_ADDRESS;
+        use crate::mock::{mock_adapter, TEST_AUTHORIZED_ADDRESS};
 
         use super::*;
 
         fn load_test_proxy_authorized_addresses(storage: &dyn Storage) -> Vec<Addr> {
-            MOCK_ADAPTER
+            mock_adapter()
                 .authorized_addresses
                 .load(storage, Addr::unchecked(TEST_PROXY))
                 .unwrap()
@@ -295,7 +296,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let _api = MOCK_ADAPTER;
+            let _api = mock_adapter();
             let msg = BaseExecuteMsg {
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
@@ -306,7 +307,7 @@ mod tests {
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
 
-            let api = MOCK_ADAPTER;
+            let api = mock_adapter();
             assert_that!(api.authorized_addresses.is_empty(&deps.storage)).is_false();
 
             let test_proxy_authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
@@ -324,7 +325,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let _api = MOCK_ADAPTER;
+            let _api = mock_adapter();
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
@@ -359,7 +360,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let _api = MOCK_ADAPTER;
+            let _api = mock_adapter();
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
@@ -400,7 +401,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let _api = MOCK_ADAPTER;
+            let _api = mock_adapter();
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
@@ -426,7 +427,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let _api = MOCK_ADAPTER;
+            let _api = mock_adapter();
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
@@ -453,7 +454,7 @@ mod tests {
     mod execute_app {
         use super::*;
 
-        use crate::mock::{MOCK_ADAPTER, TEST_AUTHORIZED_ADDRESS};
+        use crate::mock::TEST_AUTHORIZED_ADDRESS;
 
         use abstract_core::objects::{account::AccountTrace, AccountId};
 
@@ -466,7 +467,7 @@ mod tests {
         fn setup_with_authorized_addresses(mut deps: DepsMut, authorized: Vec<&str>) {
             mock_init(deps.branch()).unwrap();
 
-            let _api = MOCK_ADAPTER;
+            let _api = mock_adapter();
             let msg = BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {

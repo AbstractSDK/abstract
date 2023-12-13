@@ -14,9 +14,9 @@ pub trait RegisteredModule {
     /// The init message for the module.
     type InitMsg: Serialize;
     /// The id of the module.
-    fn module_id<'a>() -> &'a str;
+    fn module_id<'a>() -> String;
     /// The version of the module.
-    fn module_version<'a>() -> &'a str;
+    fn module_version<'a>() -> String;
 }
 
 /// Trait to access module dependency information tied directly to the type.
@@ -38,7 +38,7 @@ pub trait DependencyCreation {
 pub trait InstallConfig: RegisteredModule {
     /// Constructs the [`ModuleInfo`] by using information from [`RegisteredModule`].
     fn module_info() -> Result<ModuleInfo, crate::AbstractInterfaceError> {
-        ModuleInfo::from_id(Self::module_id(), Self::module_version().into()).map_err(Into::into)
+        ModuleInfo::from_id(&Self::module_id(), Self::module_version().into()).map_err(Into::into)
     }
 
     /// Constructs the [`ModuleInstallConfig`] for an App Interface

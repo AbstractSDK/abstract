@@ -65,13 +65,13 @@ mod test {
     use cosmwasm_std::{testing::mock_dependencies, Addr, CosmosMsg, Response, StdError, Uint128};
 
     use crate::{
-        apis::splitter::SplitterInterface, mock_module::MockModule, AbstractSdkError, Execution,
-        ExecutorMsg,
+        apis::splitter::SplitterInterface, features::ResponseGenerator, mock_module::MockModule,
+        AbstractSdkError, Execution, ExecutorMsg,
     };
 
     fn split() -> Result<Response, AbstractSdkError> {
         let deps = mock_dependencies();
-        let module = MockModule::new();
+        let mut module = MockModule::new();
         // ANCHOR: usage
         let asset = AnsAsset {
             amount: Uint128::from(100u128),
@@ -85,11 +85,8 @@ mod test {
         ];
 
         let split_funds = module.splitter(deps.as_ref()).split(asset, &receivers)?;
-        assert_eq!(split_funds.messages().len(), 3);
-
-        let msg: ExecutorMsg = module.executor(deps.as_ref()).execute(vec![split_funds])?;
-
-        Ok(Response::new().add_message(msg))
         // ANCHOR_END: usage
+
+        Ok(module._generate_response(deps.as_ref())?)
     }
 }

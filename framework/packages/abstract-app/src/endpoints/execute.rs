@@ -3,7 +3,10 @@ use crate::{
     AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
 };
 use abstract_core::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
-use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
+use abstract_sdk::{
+    base::ReceiveEndpoint,
+    features::{AbstractResponse, ResponseGenerator},
+};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
@@ -34,14 +37,17 @@ impl<
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
     fn execute(
-        self,
-        deps: DepsMut,
+        mut self,
+        mut deps: DepsMut,
         env: Env,
         info: MessageInfo,
         msg: Self::ExecuteMsg,
     ) -> Result<Response, Error> {
         match msg {
-            ExecuteMsg::Module(request) => self.execute_handler()?(deps, env, info, self, request),
+            ExecuteMsg::Module(request) => {
+                self.execute_handler()?(deps.branch(), env, info, &mut self, request)?;
+                Ok(self._generate_response(deps.as_ref())?)
+            }
             ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
@@ -73,22 +79,29 @@ impl<
     >
 {
     fn base_execute(
-        &self,
-        deps: DepsMut,
+        &mut self,
+        mut deps: DepsMut,
         _env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
-    ) -> AppResult {
+    ) -> AppResult<Response> {
         match message {
             BaseExecuteMsg::UpdateConfig {
                 ans_host_address,
                 version_control_address,
-            } => self.update_config(deps, info, ans_host_address, version_control_address),
-        }
+            } => self.update_config(
+                deps.branch(),
+                info,
+                ans_host_address,
+                version_control_address,
+            )?,
+        };
+
+        Ok(self._generate_response(deps.as_ref())?)
     }
 
     fn update_config(
-        &self,
+        &mut self,
         deps: DepsMut,
         info: MessageInfo,
         ans_host_address: Option<String>,
@@ -110,8 +123,8 @@ impl<
         }
 
         self.base_state.save(deps.storage, &state)?;
-
-        Ok(self.tag_response(Response::default(), "update_config"))
+        self.tag_response("update_config");
+        Ok(())
     }
 }
 
@@ -132,7 +145,7 @@ mod test {
 
     fn execute_as(deps: DepsMut, sender: &str, msg: AppExecuteMsg) -> Result<Response, MockError> {
         let info = mock_info(sender, &[]);
-        MOCK_APP.execute(deps, mock_env(), info, msg)
+        mock_app().execute(deps, mock_env(), info, msg)
     }
 
     fn execute_as_manager(deps: DepsMut, msg: AppExecuteMsg) -> Result<Response, MockError> {
@@ -187,7 +200,7 @@ mod test {
                 res
             });
 
-            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+            let state = mock_app().base_state.load(deps.as_ref().storage)?;
 
             assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
             assert_that!(state.version_control.address)
@@ -212,7 +225,7 @@ mod test {
                 res
             });
 
-            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+            let state = mock_app().base_state.load(deps.as_ref().storage)?;
 
             assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
             assert_that!(state.version_control.address)

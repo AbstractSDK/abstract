@@ -292,25 +292,23 @@ mod test {
     mod transfer_coins {
         use abstract_core::proxy::ExecuteMsg;
 
-        use crate::{Execution, Executor, ExecutorMsg};
+        use crate::{features::ResponseGenerator, Execution, Executor, ExecutorMsg};
 
         use super::*;
 
         #[test]
         fn transfer_asset_to_sender() {
-            let app = MockModule::new();
+            let mut app = MockModule::new();
             let deps = mock_dependencies();
 
             // ANCHOR: transfer
             let recipient: Addr = Addr::unchecked("recipient");
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let mut bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
             let coins: Vec<Coin> = coins(100u128, "asset");
-            let bank_transfer: AccountAction = bank.transfer(coins.clone(), &recipient).unwrap();
-
-            let executor: Executor<'_, MockModule> = app.executor(deps.as_ref());
-            let account_message: ExecutorMsg = executor.execute(vec![bank_transfer]).unwrap();
-            let response: Response = Response::new().add_message(account_message);
+            bank.transfer(coins.clone(), &recipient).unwrap();
             // ANCHOR_END: transfer
+
+            let response: Response = app._generate_response(deps.as_ref()).unwrap();
 
             let expected_msg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: recipient.to_string(),
@@ -334,6 +332,8 @@ mod test {
     // transfer must be tested via integration test
 
     mod deposit {
+        use crate::features::ResponseGenerator;
+
         use super::*;
 
         #[test]
@@ -343,14 +343,14 @@ mod test {
 
             // ANCHOR: deposit
             // Get bank API struct from the app
-            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let mut bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
             // Create coins to deposit
             let coins: Vec<Coin> = coins(100u128, "asset");
             // Construct messages for deposit (transfer from this contract to the account)
-            let deposit_msgs: Vec<CosmosMsg> = bank.deposit(coins.clone()).unwrap();
-            // Add to response
-            let response: Response = Response::new().add_messages(deposit_msgs);
+            bank.deposit(coins.clone()).unwrap();
             // ANCHOR_END: deposit
+            // Add to response
+            let response: Response = app._generate_response(deps.as_ref()).unwrap();
 
             let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: TEST_PROXY.to_string(),
@@ -362,6 +362,8 @@ mod test {
     }
 
     mod withdraw_coins {
+        use crate::features::Executable;
+
         use super::*;
 
         #[test]
@@ -371,16 +373,18 @@ mod test {
             let expected_amount = 100u128;
             let env = mock_env();
 
-            let bank = app.bank(deps.as_ref());
+            let mut bank = app.bank(deps.as_ref());
             let coins = coins(expected_amount, "asset");
-            let actual_res = bank.withdraw(&env, coins.clone());
+            bank.withdraw(&env, coins.clone()).unwrap();
 
             let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: env.contract.address.to_string(),
                 amount: coins,
             });
 
-            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
+            assert_that!(app.response.executables.0[0]).is_equal_to(Executable::AccountAction(
+                AccountAction::from_vec(vec![expected_msg]),
+            ));
         }
     }
 

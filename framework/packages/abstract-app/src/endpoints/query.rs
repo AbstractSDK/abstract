@@ -106,7 +106,7 @@ mod test {
     type AppQueryMsg = SuperQueryMsg<MockQueryMsg>;
 
     fn query_helper(deps: Deps, msg: AppQueryMsg) -> Result<Binary, MockError> {
-        BASIC_MOCK_APP.query(deps, mock_env(), msg)
+        basic_mock_app().query(deps, mock_env(), msg)
     }
 
     mod app_query {
@@ -147,7 +147,7 @@ mod test {
             let deps = mock_init();
             let msg = AppQueryMsg::Module(MockQueryMsg::GetSomething {});
 
-            let with_mocked_query = BASIC_MOCK_APP.with_query(mock_query_handler);
+            let with_mocked_query = basic_mock_app().with_query(mock_query_handler);
             let res = with_mocked_query.query(deps.as_ref(), mock_env(), msg);
 
             let expected = to_json_binary(&MockQueryMsg::GetSomething {}).unwrap();

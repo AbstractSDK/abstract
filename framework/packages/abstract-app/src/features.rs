@@ -101,7 +101,7 @@ mod test {
     fn test_ans_host() -> AppTestResult {
         let deps = mock_init();
 
-        let ans_host = MOCK_APP.ans_host(deps.as_ref())?;
+        let ans_host = mock_app().ans_host(deps.as_ref())?;
 
         assert_that!(ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
         Ok(())
@@ -111,7 +111,7 @@ mod test {
     fn test_abstract_registry() -> AppTestResult {
         let deps = mock_init();
 
-        let abstract_registry = MOCK_APP.abstract_registry(deps.as_ref())?;
+        let abstract_registry = mock_app().abstract_registry(deps.as_ref())?;
 
         assert_that!(abstract_registry.address).is_equal_to(Addr::unchecked(TEST_VERSION_CONTROL));
         Ok(())
@@ -126,20 +126,21 @@ mod test {
             proxy: Addr::unchecked(TEST_PROXY),
         };
         // Account identification
-        let base = MOCK_APP.account_base(deps.as_ref())?;
+        let base = mock_app().account_base(deps.as_ref())?;
         assert_eq!(base, test_account_base.clone());
 
         // AbstractNameService
-        let host = MOCK_APP.name_service(deps.as_ref()).host().clone();
+        let host = mock_app().name_service(deps.as_ref()).host().clone();
         assert_eq!(host, AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
 
         // AccountRegistry
-        let account_registry = MOCK_APP.account_registry(deps.as_ref()).unwrap();
+        let app = mock_app();
+        let account_registry = app.account_registry(deps.as_ref()).unwrap();
         let base = account_registry.account_base(&TEST_ACCOUNT_ID)?;
         assert_eq!(base, test_account_base);
 
         // TODO: Make some of the module_registry queries raw as well?
-        let _module_registry = MOCK_APP.module_registry(deps.as_ref());
+        let _module_registry = mock_app().module_registry(deps.as_ref());
         // _module_registry.query_namespace(Namespace::new(TEST_NAMESPACE)?)?;
 
         Ok(())
@@ -149,7 +150,7 @@ mod test {
     fn test_proxy_address() -> AppTestResult {
         let deps = mock_init();
 
-        let proxy_address = MOCK_APP.proxy_address(deps.as_ref())?;
+        let proxy_address = mock_app().proxy_address(deps.as_ref())?;
 
         assert_that!(proxy_address).is_equal_to(Addr::unchecked(TEST_PROXY));
 
@@ -158,7 +159,8 @@ mod test {
 
     #[test]
     fn test_module_id() -> AppTestResult {
-        let module_id = MOCK_APP.module_id();
+        let app = mock_app();
+        let module_id = app.module_id();
 
         assert_that!(module_id).is_equal_to(TEST_MODULE_ID);
 

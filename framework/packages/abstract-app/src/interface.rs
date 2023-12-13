@@ -45,7 +45,7 @@
 /// }
 /// ```
 macro_rules! cw_orch_interface {
-    ($app_const:expr, $app_type:ty, $interface_name: ident) => {
+    ($app_func:expr, $app_type:ty, $interface_name: ident) => {
     	mod _wrapper_fns{
     		use super::*;
 	        pub fn instantiate(
@@ -55,7 +55,7 @@ macro_rules! cw_orch_interface {
 	            msg: <$app_type as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
 	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
 	            use ::abstract_sdk::base::InstantiateEndpoint;
-	            $app_const.instantiate(deps, env, info, msg)
+	            $app_func().instantiate(deps, env, info, msg)
 	        }
 
 	        pub fn execute(
@@ -65,7 +65,7 @@ macro_rules! cw_orch_interface {
 	            msg: <$app_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
 	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
 	            use ::abstract_sdk::base::ExecuteEndpoint;
-	            $app_const.execute(deps, env, info, msg)
+	            $app_func().execute(deps, env, info, msg)
 	        }
 
 	        pub fn query(
@@ -74,7 +74,7 @@ macro_rules! cw_orch_interface {
 	            msg: <$app_type as abstract_sdk::base::QueryEndpoint>::QueryMsg,
 	        ) -> Result<::cosmwasm_std::Binary, <$app_type as ::abstract_sdk::base::Handler>::Error> {
 	            use ::abstract_sdk::base::QueryEndpoint;
-	            $app_const.query(deps, env, msg)
+	            $app_func().query(deps, env, msg)
 	        }
 
 	        pub fn migrate(
@@ -83,7 +83,7 @@ macro_rules! cw_orch_interface {
 	            msg: <$app_type as abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
 	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
 	            use ::abstract_sdk::base::MigrateEndpoint;
-	            $app_const.migrate(deps, env, msg)
+	            $app_func().migrate(deps, env, msg)
 	        }
 
 	        pub fn reply(
@@ -92,7 +92,7 @@ macro_rules! cw_orch_interface {
 	            msg: ::cosmwasm_std::Reply,
 	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
 	            use ::abstract_sdk::base::ReplyEndpoint;
-	            $app_const.reply(deps, env, msg)
+	            $app_func().reply(deps, env, msg)
 	        }
 
 	        pub fn sudo(
@@ -101,7 +101,7 @@ macro_rules! cw_orch_interface {
 	            msg: <$app_type as ::abstract_sdk::base::Handler>::SudoMsg,
 	        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
 	            use ::abstract_sdk::base::SudoEndpoint;
-	            $app_const.sudo(deps, env, msg)
+	            $app_func().sudo(deps, env, msg)
 	        }
 
 	        pub type InstantiateMsg = <$app_type as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
@@ -145,12 +145,12 @@ macro_rules! cw_orch_interface {
 			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::RegisteredModule for $interface_name<Chain> {
                 type InitMsg = <$app_type as ::abstract_sdk::base::Handler>::CustomInitMsg;
 
-				fn module_id<'a>() -> &'a str {
-                    $app_const.module_id()
+				fn module_id<'a>() -> String {
+                    $app_func().module_id().to_string()
 				}
 
-                fn module_version<'a>() -> &'a str {
-                    $app_const.version()
+                fn module_version<'a>() -> String {
+                    $app_func().version().to_string()
                 }
 			}
 

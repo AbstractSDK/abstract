@@ -12,5 +12,6 @@ pub use dependencies::Dependencies;
 pub use identification::AccountIdentification;
 pub use module_identification::ModuleIdentification;
 pub use response::{
-    CustomData, CustomEvents, Executable, Executables, ExecutionStack, ResponseGenerator,
+    CustomData, CustomEvents, Executable, Executables, ExecutionStack, ModuleEndpointResponse,
+    ResponseGenerator,
 };
