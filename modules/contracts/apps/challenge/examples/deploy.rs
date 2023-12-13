@@ -13,7 +13,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 fn main() -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::init();
-    let chain = parse_network("uni-6");
+    let chain = parse_network("uni-6").unwrap();
     use dotenv::dotenv;
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let rt = Runtime::new()?;
