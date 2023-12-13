@@ -487,7 +487,7 @@ mod tests {
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: None,
-                request: MockExecMsg,
+                request: MockExecMsg {},
             });
 
             let unauthorized: String = "someoone".into();
@@ -517,7 +517,7 @@ mod tests {
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: None,
-                request: MockExecMsg,
+                request: MockExecMsg {},
             });
 
             let res = execute_as(deps.as_mut(), TEST_MANAGER, msg);
@@ -534,7 +534,7 @@ mod tests {
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: None,
-                request: MockExecMsg,
+                request: MockExecMsg {},
             });
 
             let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);
@@ -551,7 +551,7 @@ mod tests {
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: Some(TEST_PROXY.into()),
-                request: MockExecMsg,
+                request: MockExecMsg {},
             });
 
             let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);
@@ -575,7 +575,7 @@ mod tests {
 
             let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: Some(other_proxy.into()),
-                request: MockExecMsg,
+                request: MockExecMsg {},
             });
 
             let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);

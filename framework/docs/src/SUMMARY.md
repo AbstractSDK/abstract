@@ -5,13 +5,13 @@
 # Framework
 ---
 
-- [Prerequisites](./3_framework/0_prerequisites.md)
-- [Abstract SDK](./3_framework/1_abstract_sdk.md)
+- [Prerequisites](./3_framework/0_technologies.md)
 - [Account Abstraction](./3_framework/2_account_abstraction.md)
-- [Architecture](./3_framework/3_architecture.md)
-- [Modularity](./3_framework/5_modularity.md)
+- [Accounts](./3_framework/3_architecture.md)
+- [Modules](./3_framework/5_modules.md)
     - [Module Types](./3_framework/6_module_types.md)
     - [Upgradability](./3_framework/7_upgradability.md)
+    - [Abstract SDK](./3_framework/1_abstract_sdk.md)
 - [Account Ownership](./3_framework/4_ownership.md)
 - [Interchain Abstract Accounts](./3_framework/8_ibc.md)
 
@@ -19,10 +19,10 @@
     - [Abstract Name Service](./5_platform/1_ans.md)
     - [Version Control](./5_platform/2_version_control.md)
     - [Account Factory](./5_platform/3_account_factory.md)
-    - [Account Console](./5_platform/4_account_console.md)
     - [Module Factory](./5_platform/5_module_factory.md)
-    - [Monetization](./5_platform/6_monetization.md)
     - [Oracle](./5_platform/7_oracle.md)
+    - [Monetization](./5_platform/6_monetization.md)
+    - [Account Console](./5_platform/4_account_console.md)
 
 - [Abstract Products](1_products/index.md)
   - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)
@@ -30,19 +30,19 @@
   - [Abstract App Template](./1_products/2_abstract_app_template.md)
   - [Abstract Testing](./1_products/3_abstract_testing.md)
 
+- [Application Design Space](./2_introduction/1_design_space.md)
   
 # Build With Abstract
 ---
 
-- [Application Design Space](./2_introduction/1_design_space.md)
-- [Getting Started](./4_get_started/1_index.md)
-    - [Installation](./4_get_started/2_installation.md)
-    - [Module Builder](./4_get_started/3_module_builder.md)
-    - [Account Abstraction SDK](./4_get_started/4_sdk.md)
-    - [Account Creation](./4_get_started/5_account_creation.md)
-    - [Module Testing](./4_get_started/6_module_testing.md)
-    - [Module Deployment](./4_get_started/7_module_deployment.md)
-    - [Module Dependencies](./4_get_started/8_dependencies.md)
+- [Introduction](./4_get_started/1_index.md)
+- [Setup](./4_get_started/2_installation.md)
+- [Module Builder](./4_get_started/3_module_builder.md)
+- [Account Abstraction SDK](./4_get_started/4_sdk.md)
+- [Account Creation](./4_get_started/5_account_creation.md)
+- [Module Testing](./4_get_started/6_module_testing.md)
+- [Module Deployment](./4_get_started/7_module_deployment.md)
+- [Module Dependencies](./4_get_started/8_dependencies.md)
 
 
 # Case Studies

@@ -1,5 +1,11 @@
-use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
-use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule};
+use abstract_core::{
+    manager::{ModuleAddressesResponse, ModuleInfosResponse},
+    objects::{gov_type::GovernanceDetails, AssetEntry},
+};
+use abstract_interface::{
+    AdapterDeployer, AppDeployer, DependencyCreation, DeployStrategy, InstallConfig,
+    RegisteredModule,
+};
 use cosmwasm_std::{Addr, Coin};
 use cw_orch::{
     contract::Contract,
@@ -73,13 +79,29 @@ impl<Chain: CwEnv> Publisher<Chain> {
     }
 
     pub fn install_app<
-        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
+        M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>> + Clone,
     >(
         &self,
         configuration: &M::InitMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         self.account.install_app(configuration, funds)
+    }
+
+    pub fn install_app_with_dependencies<
+        M: ContractInstance<Chain>
+            + DependencyCreation
+            + InstallConfig
+            + From<Contract<Chain>>
+            + Clone,
+    >(
+        &self,
+        module_configuration: &M::InitMsg,
+        dependencies_config: M::DependenciesConfig,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        self.account
+            .install_app_with_dependencies(module_configuration, dependencies_config, funds)
     }
 
     pub fn publish_app<
@@ -112,12 +134,23 @@ impl<Chain: CwEnv> Publisher<Chain> {
     pub fn account(&self) -> &Account<Chain> {
         &self.account
     }
-
+    // TODO: add `account_admin` fn to get the (Sub-)Account's admin.
     pub fn admin(&self) -> AbstractClientResult<Addr> {
-        self.account.admin()
+        self.account.manager()
     }
 
     pub fn proxy(&self) -> AbstractClientResult<Addr> {
         self.account.proxy()
+    }
+
+    pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
+        self.account.module_infos()
+    }
+
+    pub fn module_addresses(
+        &self,
+        ids: Vec<String>,
+    ) -> AbstractClientResult<ModuleAddressesResponse> {
+        self.account.module_addresses(ids)
     }
 }

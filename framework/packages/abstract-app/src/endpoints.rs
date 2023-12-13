@@ -124,7 +124,7 @@ mod test {
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 account_base: test_account_base(),
             },
-            module: MockInitMsg,
+            module: MockInitMsg {},
         };
         let actual_init = instantiate(
             deps.as_mut(),

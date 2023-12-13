@@ -67,5 +67,3 @@ let ans_host = AnsHost {address: "juno1...."};
 let juno_name = AssetEntry::new("juno");
 let juno_asset_info = ans_host.query_asset(deps, &juno_name)?;
 ```
-
-

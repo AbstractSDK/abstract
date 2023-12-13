@@ -60,22 +60,81 @@
     "AdapterRequestMsg_for_DexExecuteMsg": {
       "description": "An adapter request. If proxy is None, then the sender must be an Account manager and the proxy address is extrapolated from the Account id.",
       "type": "object",
-      "required": [
-        "request"
+      "oneOf": [
+        {
+          "description": "Update the fee",
+          "type": "object",
+          "required": [
+            "update_fee"
+          ],
+          "properties": {
+            "update_fee": {
+              "type": "object",
+              "properties": {
+                "recipient_account": {
+                  "description": "New recipient account for fees",
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint32",
+                  "minimum": 0.0
+                },
+                "swap_fee": {
+                  "description": "New fee to set",
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Action to perform on the DEX",
+          "type": "object",
+          "required": [
+            "action"
+          ],
+          "properties": {
+            "action": {
+              "type": "object",
+              "required": [
+                "action",
+                "dex"
+              ],
+              "properties": {
+                "action": {
+                  "description": "The action to perform",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/DexAction"
+                    }
+                  ]
+                },
+                "dex": {
+                  "description": "The name of the dex to interact with",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
       ],
       "properties": {
         "proxy_address": {
           "type": [
             "string",
             "null"
-          ]
-        },
-        "request": {
-          "description": "The actual request",
-          "allOf": [
-            {
-              "$ref": "#/definitions/DexExecuteMsg"
-            }
           ]
         }
       },
@@ -118,6 +177,7 @@
     },
     "BaseExecuteMsg": {
       "description": "Configuration message for the adapter",
+      "type": "object",
       "oneOf": [
         {
           "description": "Add or remove authorized addresses If an authorized address is both in to_add and to_remove, it will be removed.",
@@ -165,7 +225,17 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "properties": {
+        "proxy_address": {
+          "description": "The Proxy address for which to apply the configuration If None, the sender must be an Account manager and the configuration is applied to its associated proxy. If Some, the sender must be a direct or indirect owner (through sub-accounts) of the specified proxy.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "Binary": {
       "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
@@ -380,79 +450,6 @@
                       "$ref": "#/definitions/AnsAsset"
                     }
                   ]
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "DexExecuteMsg": {
-      "description": "Dex Execute msg",
-      "oneOf": [
-        {
-          "description": "Update the fee",
-          "type": "object",
-          "required": [
-            "update_fee"
-          ],
-          "properties": {
-            "update_fee": {
-              "type": "object",
-              "properties": {
-                "recipient_account": {
-                  "description": "New recipient account for fees",
-                  "type": [
-                    "integer",
-                    "null"
-                  ],
-                  "format": "uint32",
-                  "minimum": 0.0
-                },
-                "swap_fee": {
-                  "description": "New fee to set",
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Decimal"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Action to perform on the DEX",
-          "type": "object",
-          "required": [
-            "action"
-          ],
-          "properties": {
-            "action": {
-              "type": "object",
-              "required": [
-                "action",
-                "dex"
-              ],
-              "properties": {
-                "action": {
-                  "description": "The action to perform",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/DexAction"
-                    }
-                  ]
-                },
-                "dex": {
-                  "description": "The name of the dex to interact with",
-                  "type": "string"
                 }
               },
               "additionalProperties": false
