@@ -74,12 +74,7 @@ impl<
     >
     AdapterContract<'a, T, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
-    pub fn new(
-        deps: T,
-        name: &'a str,
-        version: &'a str,
-        metadata: Option<&'a str>,
-    ) -> Self {
+    pub fn new(deps: T, name: &'a str, version: &'a str, metadata: Option<&'a str>) -> Self {
         Self {
             contract: AbstractContract::new(name, version, metadata),
             base_state: Item::new(BASE_STATE_NAMESPACE),

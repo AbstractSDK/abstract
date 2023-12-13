@@ -65,7 +65,6 @@ impl<
     >
 {
     fn deps_mut<'a: 'b, 'b>(&'a mut self) -> cosmwasm_std::DepsMut<'b> {
-    self.deps.deps_mut()
+        self.deps.deps_mut()
     }
 }
-
