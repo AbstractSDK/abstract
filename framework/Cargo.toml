@@ -52,7 +52,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.18.2" }
+cw-orch = { version = "0.19.0" }
 tokio = { version = "1.4", features = ["full"] }
 polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
 polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
@@ -96,10 +96,6 @@ abstract-integration-tests = { path = "packages/abstract-integration-tests" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
-
-[patch.crates-io]
-cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "update/add-readonly-flag-daemon-state", version = "0.18.0" }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "update/add-readonly-flag-daemon-state", version = "0.18.0" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

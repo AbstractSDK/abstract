@@ -90,9 +90,6 @@ speculoos = "0.11.0"
 anyhow = "1"
 
 [patch.crates-io]
-cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "update/add-readonly-flag-daemon-state", version = "0.18.0" }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "update/add-readonly-flag-daemon-state", version = "0.18.0" }
-cw-orch-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "update/add-readonly-flag-daemon-state", version = "0.18.0" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
