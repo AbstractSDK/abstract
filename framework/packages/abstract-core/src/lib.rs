@@ -42,6 +42,7 @@
 /// Result type for Abstract objects
 pub type AbstractResult<T> = Result<T, error::AbstractError>;
 
+mod adapter_deserialize;
 pub mod base;
 
 pub use registry::*;

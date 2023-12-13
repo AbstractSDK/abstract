@@ -16,6 +16,7 @@ use crate::{
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
+use schemars::JsonSchema;
 use serde::Serialize;
 
 pub type ExecuteMsg<Request = Empty, ReceiveMsg = Empty> =
@@ -81,7 +82,9 @@ impl<RequestMsg, Request, BaseExecMsg> From<AdapterRequestMsg<RequestMsg>>
 
 /// An adapter request.
 /// If proxy is None, then the sender must be an Account manager and the proxy address is extrapolated from the Account id.
-#[cosmwasm_schema::cw_serde]
+#[derive(Serialize, Clone, Debug, PartialEq, JsonSchema)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[serde(deny_unknown_fields)]
 pub struct AdapterRequestMsg<Request> {
     pub proxy_address: Option<String>,
     /// The actual request
@@ -99,7 +102,9 @@ impl<Request: Serialize> AdapterRequestMsg<Request> {
 }
 
 // serde attributes remain it compatible with previous versions in cases where proxy_address is omitted
-#[cosmwasm_schema::cw_serde]
+#[derive(Serialize, Clone, Debug, PartialEq, JsonSchema)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[serde(deny_unknown_fields)]
 pub struct BaseExecuteMsg {
     /// The Proxy address for which to apply the configuration
     /// If None, the sender must be an Account manager and the configuration is applied to its associated proxy.

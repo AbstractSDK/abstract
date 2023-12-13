@@ -32,6 +32,7 @@ cw-orch = { workspace = true, optional = true }
 cw-ownable = { workspace = true }
 polytone = { workspace = true }
 sha256 = { version = "1", default-features = false }
+serde-cw-value = "0.7.0"
 
 [dev-dependencies]
 speculoos = { workspace = true }
