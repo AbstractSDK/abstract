@@ -1,5 +1,5 @@
 use abstract_sdk::features::{
-    CustomData, CustomEvents, DepsAccess, ExecutionStack, HasExecutableEnv,
+    CustomData, CustomEvents, DepsAccess, ExecutionStack, HasExecutableEnv, DepsMutAccess,
 };
 
 use crate::{state::ContractError, AppContract};
@@ -8,7 +8,7 @@ use crate::{state::ContractError, AppContract};
 /// TODO : We need to make sure that for queries, this is not used
 impl<
         'app,
-        T: DepsAccess,
+        T: DepsMutAccess,
         Error: ContractError,
         CustomInitMsg: 'static,
         CustomExecMsg: 'static,

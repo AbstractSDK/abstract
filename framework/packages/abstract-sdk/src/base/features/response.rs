@@ -6,7 +6,7 @@ use cosmwasm_std::{
 
 use crate::{AbstractSdkResult, AccountAction};
 
-use super::AccountIdentification;
+use super::{AccountIdentification, DepsMutAccess};
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum Executable {
@@ -34,7 +34,7 @@ impl Executables {
     }
 }
 
-pub trait ExecutionStack: Sized + AccountIdentification {
+pub trait ExecutionStack: Sized + AccountIdentification + DepsMutAccess {
     fn stack_mut(&mut self) -> &mut Executables;
     /// Push an executable to the stack
     fn push_executable(&mut self, executable: Executable) {
