@@ -1,41 +1,46 @@
 use std::collections::HashSet;
 
-use abstract_core::objects::DexName;
+use abstract_core::ans_host::AssetPairingMapEntry;
+use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
 use abstract_dex_adapter::DexInterface;
-use abstract_sdk::core::ans_host;
-use abstract_sdk::core::ans_host::{AssetPairingFilter, PoolAddressListResponse};
+use abstract_sdk::core::ans_host::AssetPairingFilter;
 use cosmwasm_std::{Addr, Storage, Uint128};
 
 use abstract_sdk::cw_helpers::AbstractAttributes;
-use abstract_sdk::features::{AbstractNameService, AccountIdentification};
-use abstract_sdk::AbstractResponse;
+use abstract_sdk::features::AbstractNameService;
+use abstract_sdk::prelude::*;
 use cosmwasm_std::{CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response};
 use cw_asset::{Asset, AssetList};
 
 use crate::contract::{AppResult, PaymentApp};
 
+const MAX_SPREAD_PERCENT: u64 = 20;
+
 use crate::error::AppError;
 use crate::msg::AppExecuteMsg;
-use crate::state::{CONFIG, TIPPERS, TIP_COUNT};
-
-const MAX_SPREAD_PERCENT: u64 = 20;
+use crate::state::{CONFIG, TIPPERS, TIPPER_COUNT, TIP_COUNT};
 
 pub fn execute_handler(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     app: PaymentApp,
     msg: AppExecuteMsg,
 ) -> AppResult {
     match msg {
-        AppExecuteMsg::UpdateConfig { exchanges } => update_config(deps, info, app, exchanges),
-        AppExecuteMsg::Tip {} => tip(deps, info, app, None),
+        AppExecuteMsg::UpdateConfig {
+            desired_asset,
+            denom_asset,
+            exchanges,
+        } => update_config(deps, info, app, desired_asset, denom_asset, exchanges),
+        AppExecuteMsg::Tip {} => tip(deps, env, info, app, None),
     }
 }
 
 // Called when a payment is made to the app
 pub fn tip(
-    deps: DepsMut<'_>,
+    deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     app: PaymentApp,
     cw20_receipt: Option<Asset>,
@@ -47,7 +52,7 @@ pub fn tip(
     }
 
     // forward payment to the proxy contract
-    let forward_payment_msgs = deposited_assets.transfer_msgs(app.proxy_address(deps.as_ref())?)?;
+    let forward_payment_msgs = app.bank(deps.as_ref()).deposit(deposited_assets.to_vec())?;
 
     // resp
     let app_resp = app.tag_response(
@@ -57,67 +62,78 @@ pub fn tip(
 
     // swap the asset(s) to the desired asset is set
     let config = CONFIG.load(deps.storage)?;
-    // If there is no desired asset specified, just forward the payment.
-    let Some(desired_asset) = config.desired_asset else {
-        // Tipper history will not contain any info for "amount tipped" as it doesn't really make
-        // sense when there isn't a desired asset. However the number of times tipped will be
-        // stored.
-        update_tipper_history(deps.storage, &info.sender, Uint128::zero())?;
-        return Ok(app_resp);
-    };
 
     // Reverse query the deposited assets
     let ans = app.name_service(deps.as_ref());
     let asset_entries = ans.query(&deposited_assets.to_vec())?;
+
+    // If there is no desired asset specified, just forward the payment.
+    let Some(desired_asset) = config.desired_asset else {
+        // Add assets as is
+        update_tipper_history(deps.storage, &info.sender, &asset_entries, env.block.height)?;
+        return Ok(app_resp);
+    };
 
     let mut swap_msgs: Vec<CosmosMsg> = Vec::new();
     let mut attrs: Vec<(&str, String)> = Vec::new();
     let exchange_strs: HashSet<&str> = config.exchanges.iter().map(AsRef::as_ref).collect();
 
     // For tip history
-    let mut total_amount = Uint128::zero();
+    let mut desired_asset_amount = Uint128::zero();
+    // For updating tipper history
+    let mut assets_to_add = vec![];
 
     // Search for trading pairs between the deposited assets and the desired asset
     for pay_asset in asset_entries {
+        // No need to swap if desired asset sent
+        if pay_asset.name == desired_asset {
+            desired_asset_amount += pay_asset.amount;
+            continue;
+        }
         // query the pools that contain the desired asset
-        let query_msg = ans_host::QueryMsg::PoolList {
-            filter: Some(AssetPairingFilter {
+        let resp: Vec<AssetPairingMapEntry> = ans.pool_list(
+            Some(AssetPairingFilter {
                 asset_pair: Some((desired_asset.clone(), pay_asset.name.clone())),
                 dex: None,
             }),
-            start_after: None,
-            limit: None,
-        };
-        let resp: PoolAddressListResponse = deps
-            .querier
-            .query_wasm_smart(&ans.host.address, &query_msg)?;
+            None,
+            None,
+        )?;
+
         // use the first pair you find to swap on
-        for (pair, refs) in resp.pools {
-            if !refs.is_empty() && exchange_strs.contains(&pair.dex()) {
-                let dex = app.dex(deps.as_ref(), pair.dex().to_owned());
-                let trigger_swap_msg = dex.swap(
-                    pay_asset.clone(),
-                    desired_asset.clone(),
-                    Some(Decimal::percent(MAX_SPREAD_PERCENT)),
-                    None,
-                )?;
-                swap_msgs.push(trigger_swap_msg);
-                attrs.push((
-                    "swap",
-                    format!("{} for {}", pay_asset.name, desired_asset.clone()),
-                ));
+        if let Some((pair, _refs)) = resp
+            .into_iter()
+            .find(|(pair, refs)| !refs.is_empty() && exchange_strs.contains(&pair.dex()))
+        {
+            let dex = app.dex(deps.as_ref(), pair.dex().to_owned());
+            let trigger_swap_msg = dex.swap(
+                pay_asset.clone(),
+                desired_asset.clone(),
+                Some(Decimal::percent(MAX_SPREAD_PERCENT)),
+                None,
+            )?;
+            swap_msgs.push(trigger_swap_msg);
+            attrs.push(("swap", format!("{} for {}", pay_asset.name, desired_asset)));
 
-                total_amount += dex
-                    .simulate_swap(pay_asset, desired_asset.clone())?
-                    .return_amount;
-
-                break;
-            }
+            desired_asset_amount += dex
+                .simulate_swap(pay_asset.clone(), desired_asset.clone())?
+                .return_amount;
+        } else {
+            // If swap not found just accept payment
+            assets_to_add.push(pay_asset);
         }
     }
 
+    // Add desired asset after swaps
+    if !desired_asset_amount.is_zero() {
+        assets_to_add.push(AnsAsset {
+            name: desired_asset,
+            amount: desired_asset_amount,
+        })
+    }
+
     // Tip history
-    update_tipper_history(deps.storage, &info.sender, total_amount)?;
+    update_tipper_history(deps.storage, &info.sender, &assets_to_add, env.block.height)?;
 
     // forward deposit and execute swaps if there are any
     Ok(app_resp
@@ -128,14 +144,24 @@ pub fn tip(
 fn update_tipper_history(
     storage: &mut dyn Storage,
     sender: &Addr,
-    total_amount: Uint128,
+    assets: &[AnsAsset],
+    height: u64,
 ) -> Result<(), AppError> {
-    let tip_count = TIP_COUNT.may_load(storage)?.unwrap_or_default();
-    TIP_COUNT.save(storage, &(tip_count + 1))?;
+    // Update total counts
+    let total_count = TIP_COUNT.load(storage)?;
+    TIP_COUNT.save(storage, &(total_count + 1))?;
+    // Update tipper counts
+    let tipper_count = TIPPER_COUNT.may_load(storage, sender)?.unwrap_or_default();
+    TIPPER_COUNT.save(storage, sender, &(tipper_count + 1), height)?;
 
-    let mut tipper = TIPPERS.may_load(storage, sender)?.unwrap_or_default();
-    tipper.add_tip(total_amount);
-    TIPPERS.save(storage, sender, &tipper)?;
+    // Update tipper amount
+    for asset in assets {
+        let mut total_tipper_amount = TIPPERS
+            .may_load(storage, (sender, &asset.name))?
+            .unwrap_or_default();
+        total_tipper_amount += &asset.amount;
+        TIPPERS.save(storage, (sender, &asset.name), &total_tipper_amount, height)?;
+    }
 
     Ok(())
 }
@@ -145,14 +171,32 @@ fn update_config(
     deps: DepsMut,
     msg_info: MessageInfo,
     app: PaymentApp,
+    desired_asset: Option<AssetEntry>,
+    denom_asset: Option<String>,
     exchanges: Option<Vec<DexName>>,
 ) -> AppResult {
     // Only the admin should be able to call this
     app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    let name_service = app.name_service(deps.as_ref());
 
     let mut config = CONFIG.load(deps.storage)?;
+    if let Some(desired_asset) = desired_asset {
+        name_service
+            .query(&desired_asset)
+            .map_err(|_| AppError::DesiredAssetDoesNotExist {})?;
+        config.desired_asset = Some(desired_asset)
+    }
     if let Some(exchanges) = exchanges {
+        let ans_dexes = name_service.registered_dexes()?;
+        for dex in exchanges.iter() {
+            if !ans_dexes.dexes.contains(dex) {
+                return Err(AppError::DexNotRegistered(dex.to_owned()));
+            }
+        }
         config.exchanges = exchanges;
+    }
+    if let Some(denom_asset) = denom_asset {
+        config.denom_asset = denom_asset;
     }
 
     CONFIG.save(deps.storage, &config)?;
