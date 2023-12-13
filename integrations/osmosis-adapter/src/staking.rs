@@ -38,7 +38,9 @@ pub mod fns {
     use std::str::FromStr;
 
     use abstract_sdk::core::objects::ans_host::AnsHost;
-    use abstract_sdk::core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference};
+    use abstract_sdk::core::objects::{
+        AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference, PoolType,
+    };
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
     use abstract_staking_standard::{CwStakingCommand, CwStakingError};
@@ -90,6 +92,13 @@ pub mod fns {
                     let found: &PoolReference = pool_ref.first().ok_or(StdError::generic_err(
                         format!("No pool found for asset pairing {:?}", dex_pair),
                     ))?;
+                    let metadata = ans_host.query_pool_metadata(querier, found.unique_id)?;
+                    if metadata.pool_type == PoolType::ConcentratedLiquidity {
+                        return Err(CwStakingError::NotSupportedPoolType(
+                            metadata.pool_type.to_string(),
+                            self.name().to_owned(),
+                        ));
+                    }
 
                     let pool_id = found.pool_address.expect_id()?;
                     let lp_token = format!("gamm/pool/{pool_id}");

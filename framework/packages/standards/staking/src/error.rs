@@ -64,4 +64,7 @@ pub enum CwStakingError {
 
     #[error("Unbonding period {0} not supported for staking {1}")]
     UnbondingPeriodNotSupported(String, String),
+
+    #[error("Pool type {0} not supported for dex {1}")]
+    NotSupportedPoolType(String, String),
 }
