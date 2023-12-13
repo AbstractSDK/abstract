@@ -141,8 +141,6 @@ expression: all_storage
   - - ownership
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "tester:test-module-id":
-  - - "\u0000\u0014authorized_addressesØJ\\Ì1¬´B´ÛWn\"\u001b\u0012`±¿9½\u0005\u0002Íºñù¬"
-    - "[\"ØJ\\\\Ì1¬´B´ÛWn\\\"\\u001B\\u0012`±¿9½\\u0005\\u0002Íºñù¬\"]"
   - - base_state
     - "{\"version_control\":{\"address\":\"contract1\"},\"ans_host\":{\"address\":\"contract0\"}}"
   - - contract_info

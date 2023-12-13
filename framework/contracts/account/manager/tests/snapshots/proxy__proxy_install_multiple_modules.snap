@@ -4,7 +4,7 @@ expression: all_storage
 ---
 "abstract:account-factory":
   - - acseq
-    - "2"
+    - "1"
   - - cfg
     - "{\"version_control_contract\":\"contract1\",\"ans_host_contract\":\"contract0\",\"module_factory_address\":\"contract2\",\"ibc_host\":\"contract5\"}"
   - - contract_info
@@ -39,6 +39,10 @@ expression: all_storage
 "abstract:manager-local-0":
   - - "\u0000\u0007modulesabstract:proxy"
     - "\"v\\u0005 W$ÛÒyø<\\\\wÃ\\u0001\\u001Bµg)[3>)¼â\\u001A\\u0002&·ù\\\"m\""
+  - - "\u0000\u0007modulesabstract:standalone1"
+    - "\"ôlÝ 9ç5ÌëHÂñÙpWj\\u0015}¶yÍåfØ¸;í\""
+  - - "\u0000\u0007modulesabstract:standalone2"
+    - "\"\u007fæCÊ¼ï\\b{* \\u0002pÿðÓFÎâÆèN5ùfÁâ¬\\\\\\u0013¦\""
   - - "\u0000{12}is_suspended"
     - "false"
   - - "\u0000{4}info"
@@ -51,27 +55,8 @@ expression: all_storage
     - "[]"
   - - contract_info
     - "{\"contract\":\"abstract:manager\",\"version\":\"0.20.0\"}"
-  - - ownership
-    - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
-"abstract:manager-local-1":
-  - - "\u0000\u0007modulesabstract:proxy"
-    - "\"ØJ\\\\Ì1¬´B´ÛWn\\\"\\u001B\\u0012`±¿9½\\u0005\\u0002Íºñù¬\""
-  - - "\u0000\u0007modulestester:test-module-id"
-    - "\"contract10\""
-  - - "\u0000{12}is_suspended"
-    - "false"
-  - - "\u0000{4}info"
-    - "{\"name\":\"Default Abstract Account\",\"governance_details\":{\"Monarchy\":{\"monarch\":\"owner\"}},\"chain_id\":\"cosmos-testnet-14002\",\"description\":null,\"link\":null}"
-  - - "\u0000{6}config"
-    - "{\"version_control_address\":\"contract1\",\"module_factory_address\":\"contract2\"}"
-  - - acc_id
-    - "{\"trace\":\"local\",\"seq\":1}"
-  - - context
-    - "[]"
-  - - contract_info
-    - "{\"contract\":\"abstract:manager\",\"version\":\"0.20.0\"}"
   - - icontext
-    - "[[{\"info\":{\"namespace\":\"tester\",\"name\":\"test-module-id\",\"version\":{\"version\":\"0.20.0\"}},\"reference\":{\"adapter\":\"contract10\"}},null]]"
+    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":9}},\"ôlÝ 9ç5ÌëHÂñÙpWj\\u0015}¶yÍåfØ¸;í\"],[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":10}},\"\u007fæCÊ¼ï\\b{* \\u0002pÿðÓFÎâÆèN5ùfÁâ¬\\\\\\u0013¦\"]]"
   - - ownership
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:module-factory":
@@ -83,7 +68,7 @@ expression: all_storage
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:proxy-local-0":
   - - "\u0000{5}state"
-    - "{\"modules\":[\"D?Ê\\u0014¬å[#^,¡4\\r\\u000E\\r¡éÓ¯:5Z\\u000EÑüF%¾á\\b\"]}"
+    - "{\"modules\":[\"D?Ê\\u0014¬å[#^,¡4\\r\\u000E\\r¡éÓ¯:5Z\\u000EÑüF%¾á\\b\",\"ôlÝ 9ç5ÌëHÂñÙpWj\\u0015}¶yÍåfØ¸;í\",\"\u007fæCÊ¼ï\\b{* \\u0002pÿðÓFÎâÆèN5ùfÁâ¬\\\\\\u0013¦\"]}"
   - - "\u0000{6}ans_host"
     - "{\"address\":\"contract0\"}"
   - - acc_id
@@ -92,20 +77,11 @@ expression: all_storage
     - "\"D?Ê\\u0014¬å[#^,¡4\\r\\u000E\\r¡éÓ¯:5Z\\u000EÑüF%¾á\\b\""
   - - contract_info
     - "{\"contract\":\"abstract:proxy\",\"version\":\"0.20.0\"}"
-"abstract:proxy-local-1":
-  - - "\u0000{5}state"
-    - "{\"modules\":[\"úÃº\\u000F¡f9Ê\\u000E/´K}\\u001D)¨\\u00167ÐvNÚ¡ëã}|d\",\"contract10\"]}"
-  - - "\u0000{6}ans_host"
-    - "{\"address\":\"contract0\"}"
-  - - acc_id
-    - "{\"trace\":\"local\",\"seq\":1}"
-  - - admin
-    - "\"úÃº\\u000F¡f9Ê\\u000E/´K}\\u001D)¨\\u00167ÐvNÚ¡ëã}|d\""
-  - - contract_info
-    - "{\"contract\":\"abstract:proxy\",\"version\":\"0.20.0\"}"
 "abstract:version-control":
-  - - "\u0000\u0003lib\u0000\u0006tester\u0000\u000etest-module-id0.20.0"
-    - "{\"adapter\":\"contract10\"}"
+  - - "\u0000\u0003cfg\u0000\babstract\u0000\u000bstandalone11.0.0"
+    - "{\"monetization\":{\"install_fee\":{\"fee\":{\"denom\":\"token1\",\"amount\":\"42\"}}},\"metadata\":null,\"instantiation_funds\":[]}"
+  - - "\u0000\u0003cfg\u0000\babstract\u0000\u000bstandalone21.0.0"
+    - "{\"monetization\":\"none\",\"metadata\":null,\"instantiation_funds\":[{\"denom\":\"token1\",\"amount\":\"42\"},{\"denom\":\"token2\",\"amount\":\"500\"}]}"
   - - "\u0000\u0003lib\u0000\babstract\u0000\u0005proxy0.20.0"
     - "{\"account_base\":6}"
   - - "\u0000\u0003lib\u0000\babstract\u0000\u0007manager0.20.0"
@@ -114,6 +90,10 @@ expression: all_storage
     - "{\"native\":\"contract0\"}"
   - - "\u0000\u0003lib\u0000\babstract\u0000\nibc-client0.20.0"
     - "{\"native\":\"contract4\"}"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\u000bstandalone11.0.0"
+    - "{\"standalone\":9}"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\u000bstandalone21.0.0"
+    - "{\"standalone\":10}"
   - - "\u0000\u0003lib\u0000\babstract\u0000\u000emodule-factory0.20.0"
     - "{\"native\":\"contract2\"}"
   - - "\u0000\u0003lib\u0000\babstract\u0000\u000faccount-factory0.20.0"
@@ -122,16 +102,14 @@ expression: all_storage
     - "{\"native\":\"contract1\"}"
   - - "\u0000\u0004accs\u0000\u0005local\u0000\u0000\u0000\u0000"
     - "{\"manager\":\"D?Ê\\u0014¬å[#^,¡4\\r\\u000E\\r¡éÓ¯:5Z\\u000EÑüF%¾á\\b\",\"proxy\":\"v\\u0005 W$ÛÒyø<\\\\wÃ\\u0001\\u001Bµg)[3>)¼â\\u001A\\u0002&·ù\\\"m\"}"
-  - - "\u0000\u0004accs\u0000\u0005local\u0000\u0000\u0000\u0001"
-    - "{\"manager\":\"úÃº\\u000F¡f9Ê\\u000E/´K}\\u001D)¨\\u00167ÐvNÚ¡ëã}|d\",\"proxy\":\"ØJ\\\\Ì1¬´B´ÛWn\\\"\\u001B\\u0012`±¿9½\\u0005\\u0002Íºñù¬\"}"
+  - - "\u0000\u0004stli\u0000\u0000\u0000\u0000\u0000\u0000\u0000\t"
+    - "{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}}"
+  - - "\u0000\u0004stli\u0000\u0000\u0000\u0000\u0000\u0000\u0000\n"
+    - "{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}}"
   - - "\u0000\u0005nmspcabstract"
     - "{\"trace\":\"local\",\"seq\":0}"
-  - - "\u0000\u0005nmspctester"
-    - "{\"trace\":\"local\",\"seq\":1}"
   - - "\u0000\u0007nmspc_a\u0000\u0005local\u0000\u0004\u0000\u0000\u0000\u0000abstract"
     - "8"
-  - - "\u0000\u0007nmspc_a\u0000\u0005local\u0000\u0004\u0000\u0000\u0000\u0001tester"
-    - "6"
   - - cfg
     - "{\"allow_direct_module_registration_and_updates\":true,\"namespace_registration_fee\":{\"denom\":\"none\",\"amount\":\"0\"}}"
   - - contract_info
@@ -140,13 +118,4 @@ expression: all_storage
     - "\"contract3\""
   - - ownership
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
-"tester:test-module-id":
-  - - "\u0000\u0014authorized_addressesØJ\\Ì1¬´B´ÛWn\"\u001b\u0012`±¿9½\u0005\u0002Íºñù¬"
-    - "[\"ØJ\\\\Ì1¬´B´ÛWn\\\"\\u001B\\u0012`±¿9½\\u0005\\u0002Íºñù¬\"]"
-  - - base_state
-    - "{\"version_control\":{\"address\":\"contract1\"},\"ans_host\":{\"address\":\"contract0\"}}"
-  - - contract_info
-    - "{\"contract\":\"tester:test-module-id\",\"version\":\"0.20.0\"}"
-  - - module_data
-    - "{\"module\":\"tester:test-module-id\",\"version\":\"0.20.0\",\"dependencies\":[],\"metadata\":\"test_metadata\"}"
 

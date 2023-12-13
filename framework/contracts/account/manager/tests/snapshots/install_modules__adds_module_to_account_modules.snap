@@ -1,5 +1,5 @@
 ---
-source: contracts/account/manager/tests/proxy.rs
+source: contracts/account/manager/tests/install_modules.rs
 expression: all_storage
 ---
 "abstract:account-factory":
@@ -56,7 +56,7 @@ expression: all_storage
 "abstract:manager-local-1":
   - - "\u0000\u0007modulesabstract:proxy"
     - "\"ØJ\\\\Ì1¬´B´ÛWn\\\"\\u001B\\u0012`±¿9½\\u0005\\u0002Íºñù¬\""
-  - - "\u0000\u0007modulestester:test-module-id"
+  - - "\u0000\u0007modulestester:mock-adapter1"
     - "\"contract10\""
   - - "\u0000{12}is_suspended"
     - "false"
@@ -71,7 +71,7 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:manager\",\"version\":\"0.20.0\"}"
   - - icontext
-    - "[[{\"info\":{\"namespace\":\"tester\",\"name\":\"test-module-id\",\"version\":{\"version\":\"0.20.0\"}},\"reference\":{\"adapter\":\"contract10\"}},null]]"
+    - "[[{\"info\":{\"namespace\":\"tester\",\"name\":\"mock-adapter1\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"adapter\":\"contract10\"}},null]]"
   - - ownership
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:module-factory":
@@ -104,8 +104,18 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:proxy\",\"version\":\"0.20.0\"}"
 "abstract:version-control":
-  - - "\u0000\u0003lib\u0000\u0006tester\u0000\u000etest-module-id0.20.0"
+  - - "\u0000\u0003lib\u0000\u0006tester\u0000\tmock-app11.0.0"
+    - "{\"app\":13}"
+  - - "\u0000\u0003lib\u0000\u0006tester\u0000\tmock-app12.0.0"
+    - "{\"app\":14}"
+  - - "\u0000\u0003lib\u0000\u0006tester\u0000\rmock-adapter11.0.0"
     - "{\"adapter\":\"contract10\"}"
+  - - "\u0000\u0003lib\u0000\u0006tester\u0000\rmock-adapter12.0.0"
+    - "{\"adapter\":\"contract11\"}"
+  - - "\u0000\u0003lib\u0000\u0006tester\u0000\rmock-adapter21.0.0"
+    - "{\"adapter\":\"contract12\"}"
+  - - "\u0000\u0003lib\u0000\u0006tester\u0000\rmock-adapter22.0.0"
+    - "{\"adapter\":\"contract13\"}"
   - - "\u0000\u0003lib\u0000\babstract\u0000\u0005proxy0.20.0"
     - "{\"account_base\":6}"
   - - "\u0000\u0003lib\u0000\babstract\u0000\u0007manager0.20.0"
@@ -140,13 +150,18 @@ expression: all_storage
     - "\"contract3\""
   - - ownership
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
-"tester:test-module-id":
-  - - "\u0000\u0014authorized_addressesØJ\\Ì1¬´B´ÛWn\"\u001b\u0012`±¿9½\u0005\u0002Íºñù¬"
-    - "[\"ØJ\\\\Ì1¬´B´ÛWn\\\"\\u001B\\u0012`±¿9½\\u0005\\u0002Íºñù¬\"]"
+"tester:mock-adapter1":
   - - base_state
     - "{\"version_control\":{\"address\":\"contract1\"},\"ans_host\":{\"address\":\"contract0\"}}"
   - - contract_info
-    - "{\"contract\":\"tester:test-module-id\",\"version\":\"0.20.0\"}"
+    - "{\"contract\":\"tester:mock-adapter1\",\"version\":\"2.0.0\"}"
   - - module_data
-    - "{\"module\":\"tester:test-module-id\",\"version\":\"0.20.0\",\"dependencies\":[],\"metadata\":\"test_metadata\"}"
+    - "{\"module\":\"tester:mock-adapter1\",\"version\":\"2.0.0\",\"dependencies\":[],\"metadata\":null}"
+"tester:mock-adapter2":
+  - - base_state
+    - "{\"version_control\":{\"address\":\"contract1\"},\"ans_host\":{\"address\":\"contract0\"}}"
+  - - contract_info
+    - "{\"contract\":\"tester:mock-adapter2\",\"version\":\"2.0.0\"}"
+  - - module_data
+    - "{\"module\":\"tester:mock-adapter2\",\"version\":\"2.0.0\",\"dependencies\":[],\"metadata\":null}"
 
