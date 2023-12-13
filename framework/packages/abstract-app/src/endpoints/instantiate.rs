@@ -6,7 +6,10 @@ use abstract_core::{
     app::{BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
 };
-use abstract_sdk::{feature_objects::{AnsHost, VersionControlContract}, features::{DepsAccess, ResponseGenerator}};
+use abstract_sdk::{
+    feature_objects::{AnsHost, VersionControlContract},
+    features::{DepsAccess, ResponseGenerator},
+};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
