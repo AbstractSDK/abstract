@@ -44,7 +44,7 @@ pub(crate) fn init_mock_adapter(
     let version: Version = version
         .unwrap_or_else(|| CONTRACT_VERSION.to_string())
         .parse()?;
-    staking_adapter.deploy(version, MockInitMsg, DeployStrategy::Try)?;
+    staking_adapter.deploy(version, MockInitMsg {}, DeployStrategy::Try)?;
     Ok(staking_adapter)
 }
 

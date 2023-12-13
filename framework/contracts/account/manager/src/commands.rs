@@ -713,9 +713,10 @@ pub fn replace_adapter(
                 to_add: vec![],
                 to_remove: authorized_to_migrate.clone(),
             },
-            proxy_address: Some(proxy_addr.to_string()),
+            proxy_address: None,
         },
     )?);
+
     // Add authorized addresses to new
     msgs.push(configure_adapter(
         &new_adapter_addr,
@@ -724,7 +725,7 @@ pub fn replace_adapter(
                 to_add: authorized_to_migrate,
                 to_remove: vec![],
             },
-            proxy_address: Some(proxy_addr.to_string()),
+            proxy_address: None,
         },
     )?);
     // Remove adapter permissions from proxy

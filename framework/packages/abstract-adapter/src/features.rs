@@ -121,7 +121,7 @@ mod tests {
 
         let msg = ExecuteMsg::Module(AdapterRequestMsg {
             proxy_address: None,
-            request: MockExecMsg,
+            request: MockExecMsg {},
         });
 
         let res = featured_adapter().execute(

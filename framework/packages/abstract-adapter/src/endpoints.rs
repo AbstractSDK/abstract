@@ -94,7 +94,7 @@ mod test {
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
             },
-            module: MockInitMsg,
+            module: MockInitMsg {},
         };
         let actual_init = instantiate(
             deps.as_mut(),
@@ -107,7 +107,7 @@ mod test {
         assert_that!(actual_init).is_equal_to(expected_init);
 
         // exec
-        let exec_msg = adapter::ExecuteMsg::Module(AdapterRequestMsg::new(None, MockExecMsg));
+        let exec_msg = adapter::ExecuteMsg::Module(AdapterRequestMsg::new(None, MockExecMsg {}));
         let actual_exec = execute(
             deps.as_mut(),
             mock_env(),
@@ -119,7 +119,7 @@ mod test {
         assert_that!(actual_exec).is_equal_to(expected_exec);
 
         // query
-        let query_msg = adapter::QueryMsg::Module(MockQueryMsg);
+        let query_msg = adapter::QueryMsg::Module(MockQueryMsg {});
         let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
         let expected_query = MOCK_ADAPTER.query(deps.as_ref(), mock_env(), query_msg);
         assert_that!(actual_query).is_equal_to(expected_query);

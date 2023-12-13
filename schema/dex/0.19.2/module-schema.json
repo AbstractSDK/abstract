@@ -16,7 +16,7 @@
         "description": "Recipient account for fees.",
         "type": "integer",
         "format": "uint32",
-        "minimum": 0
+        "minimum": 0.0
       },
       "swap_fee": {
         "description": "Fee charged on each swap.",
@@ -57,7 +57,7 @@
                   "null"
                 ],
                 "format": "uint32",
-                "minimum": 0
+                "minimum": 0.0
               },
               "swap_fee": {
                 "description": "New fee to set",
@@ -606,7 +606,7 @@
                       "null"
                     ],
                     "format": "uint32",
-                    "minimum": 0
+                    "minimum": 0.0
                   },
                   "swap_fee": {
                     "description": "New fee to set",
@@ -983,7 +983,7 @@
                     "proposal_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0
+                      "minimum": 0.0
                     },
                     "vote": {
                       "description": "The vote option.\n\nThis should be called \"option\" for consistency with Cosmos SDK. Sorry for that. See <https://github.com/CosmWasm/cosmwasm/issues/1571>.",
@@ -1021,7 +1021,7 @@
                     "proposal_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0
+                      "minimum": 0.0
                     }
                   }
                 }
@@ -1173,13 +1173,13 @@
               "description": "block height after which the packet times out. the height within the given revision",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0
+              "minimum": 0.0
             },
             "revision": {
               "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0
+              "minimum": 0.0
             }
           }
         },
@@ -1357,7 +1357,7 @@
                     "code_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0
+                      "minimum": 0.0
                     },
                     "funds": {
                       "type": "array",
@@ -1408,7 +1408,7 @@
                     "code_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0
+                      "minimum": 0.0
                     },
                     "funds": {
                       "type": "array",
@@ -1466,7 +1466,7 @@
                       "description": "the code_id of the new logic to place in the given contract",
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0
+                      "minimum": 0.0
                     }
                   }
                 }
