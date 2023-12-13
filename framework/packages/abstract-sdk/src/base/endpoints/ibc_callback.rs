@@ -1,13 +1,13 @@
-use crate::{base::Handler, AbstractSdkError, ModuleInterface};
+use crate::{base::Handler, features::ResponseGenerator, AbstractSdkError, ModuleInterface};
 use abstract_core::{ibc::IbcResponseMsg, IBC_CLIENT};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 /// Trait for a contract's IBC callback ExecuteMsg variant.
-pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
+pub trait IbcCallbackEndpoint: Handler + ModuleInterface + ResponseGenerator {
     /// Handler for the `ExecuteMsg::IbcCallback()` variant.
     fn ibc_callback(
-        self,
-        deps: DepsMut,
+        mut self,
+        mut deps: DepsMut,
         env: Env,
         info: MessageInfo,
         msg: IbcResponseMsg,
@@ -30,7 +30,18 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
         let maybe_handler = self.maybe_ibc_callback_handler(&id);
         maybe_handler.map_or_else(
             || Ok(Response::new()),
-            |handler| handler(deps, env, info, self, id, callback_msg, result),
+            |handler| {
+                handler(
+                    deps.branch(),
+                    env,
+                    info,
+                    &mut self,
+                    id,
+                    callback_msg,
+                    result,
+                )?;
+                Ok(self._generate_response(deps.as_ref())?)
+            },
         )
     }
 }

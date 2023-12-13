@@ -1,12 +1,12 @@
-use crate::{base::handler::Handler, AbstractSdkError};
+use crate::{base::handler::Handler, features::ResponseGenerator, AbstractSdkError};
 use cosmwasm_std::{DepsMut, Env, Response};
 
 /// Trait for a contract's Sudo entry point.
-pub trait SudoEndpoint: Handler {
+pub trait SudoEndpoint: Handler + ResponseGenerator {
     /// Handler for the Sudo endpoint.
     fn sudo(
-        self,
-        deps: DepsMut,
+        mut self,
+        mut deps: DepsMut,
         env: Env,
         msg: <Self as Handler>::SudoMsg,
     ) -> Result<Response, Self::Error> {
@@ -17,7 +17,10 @@ pub trait SudoEndpoint: Handler {
                     endpoint: "sudo".to_string(),
                 }))
             },
-            |f| f(deps, env, self, msg),
+            |f| {
+                f(deps.branch(), env, &mut self, msg)?;
+                Ok(self._generate_response(deps.as_ref())?)
+            },
         )
     }
 }

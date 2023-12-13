@@ -1,12 +1,12 @@
-use crate::{base::Handler, AbstractSdkError};
+use crate::{base::Handler, features::ResponseGenerator, AbstractSdkError};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 /// Trait for a contract's Receive ExecuteMsg variant.
-pub trait ReceiveEndpoint: Handler {
+pub trait ReceiveEndpoint: Handler + ResponseGenerator {
     /// Handler for the `ExecuteMsg::Receive()` variant.
     fn receive(
-        self,
-        deps: DepsMut,
+        mut self,
+        mut deps: DepsMut,
         env: Env,
         info: MessageInfo,
         msg: <Self as Handler>::ReceiveMsg,
@@ -18,7 +18,10 @@ pub trait ReceiveEndpoint: Handler {
                     endpoint: "receive".to_string(),
                 }))
             },
-            |f| f(deps, env, info, self, msg),
+            |f| {
+                f(deps.branch(), env, info, &mut self, msg)?;
+                Ok(self._generate_response(deps.as_ref())?)
+            },
         )
     }
 }

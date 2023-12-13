@@ -9,7 +9,7 @@ use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
 pub trait SplitterInterface: TransferInterface + ModuleIdentification {
-    fn splitter<'a>(&'a self, deps: Deps<'a>) -> Splitter<Self> {
+    fn splitter<'a>(&'a mut self, deps: Deps<'a>) -> Splitter<Self> {
         Splitter { base: self, deps }
     }
 }
@@ -32,15 +32,14 @@ impl<'a, T: SplitterInterface> ApiIdentification for Splitter<'a, T> {
     }
 }
 
-#[derive(Clone)]
 pub struct Splitter<'a, T: SplitterInterface> {
-    base: &'a T,
+    base: &'a mut T,
     deps: Deps<'a>,
 }
 
 impl<'a, T: SplitterInterface> Splitter<'a, T> {
     /// Split an asset to multiple users
-    pub fn split(&self, asset: AnsAsset, receivers: &[Addr]) -> AbstractSdkResult<AccountAction> {
+    pub fn split(&mut self, asset: AnsAsset, receivers: &[Addr]) -> AbstractSdkResult<()> {
         // split the asset between all receivers
         let receives_each = AnsAsset {
             amount: asset
@@ -50,21 +49,12 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
         };
 
         // Retrieve the bank API
-        let bank = self.base.bank(self.deps);
-        receivers
-            .iter()
-            .map(|receiver| {
-                // Construct the transfer message
-                bank.transfer(vec![&receives_each], receiver)
-            })
-            .try_fold(AccountAction::new(), |mut acc, v| match v {
-                Ok(action) => {
-                    // Merge two AccountAction objects
-                    acc.merge(action);
-                    Ok(acc)
-                }
-                Err(e) => Err(e),
-            })
+        let mut bank = self.base.bank(self.deps);
+        receivers.iter().try_for_each(|receiver| {
+            // Construct the transfer message
+            // TODO, ability to merge consecutive account actions ?
+            bank.transfer(vec![&receives_each], receiver)
+        })
     }
 }
 // ANCHOR_END: splitter

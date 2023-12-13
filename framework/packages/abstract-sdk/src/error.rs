@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 use crate::core::{objects::AssetEntry, AbstractError};
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, CosmosMsg};
 use cw_asset::AssetError;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
@@ -63,6 +63,13 @@ pub enum AbstractSdkError {
         module_id: String,
         error: Box<AbstractError>,
     },
+
+    // Too much messages sent to be able to get the data
+    #[error(
+        "You can't send multiple messages and hope to get the response data in return : {:?}",
+        msgs
+    )]
+    TooMuchMessages { msgs: Vec<CosmosMsg> },
 }
 
 impl AbstractSdkError {

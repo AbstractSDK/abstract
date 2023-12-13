@@ -22,13 +22,13 @@ pub trait MessageTypes {
 // ANCHOR: init
 /// Function signature for an instantiate handler.
 pub type InstantiateHandlerFn<Module, CustomInitMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, CustomInitMsg) -> Result<Response, Error>;
+    fn(DepsMut, Env, MessageInfo, &mut Module, CustomInitMsg) -> Result<(), Error>;
 // ANCHOR_END: init
 
 // ANCHOR: exec
 /// Function signature for an execute handler.
 pub type ExecuteHandlerFn<Module, CustomExecMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, CustomExecMsg) -> Result<Response, Error>;
+    fn(DepsMut, Env, MessageInfo, &mut Module, CustomExecMsg) -> Result<(), Error>;
 // ANCHOR_END: exec
 
 // ANCHOR: query
@@ -45,34 +45,34 @@ pub type IbcCallbackHandlerFn<Module, Error> = fn(
     DepsMut,
     Env,
     MessageInfo,
-    Module,
+    &mut Module,
     CallbackId,
     CallbackMessage,
     Callback,
-) -> Result<Response, Error>;
+) -> Result<(), Error>;
 // ANCHOR_END: ibc
 
 // ANCHOR: mig
 /// Function signature for a migrate handler.
 pub type MigrateHandlerFn<Module, CustomMigrateMsg, Error> =
-    fn(DepsMut, Env, Module, CustomMigrateMsg) -> Result<Response, Error>;
+    fn(DepsMut, Env, &mut Module, CustomMigrateMsg) -> Result<(), Error>;
 // ANCHOR_END: mig
 
 // ANCHOR: rec
 /// Function signature for a receive handler.
 pub type ReceiveHandlerFn<Module, ReceiveMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, ReceiveMsg) -> Result<Response, Error>;
+    fn(DepsMut, Env, MessageInfo, &mut Module, ReceiveMsg) -> Result<(), Error>;
 // ANCHOR_END: rec
 
 // ANCHOR: sudo
 /// Function signature for a sudo handler.
 pub type SudoHandlerFn<Module, CustomSudoMsg, Error> =
-    fn(DepsMut, Env, Module, CustomSudoMsg) -> Result<Response, Error>;
+    fn(DepsMut, Env, &mut Module, CustomSudoMsg) -> Result<(), Error>;
 // ANCHOR_END: sudo
 
 // ANCHOR: reply
 /// Function signature for a reply handler.
-pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
+pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, &mut Module, Reply) -> Result<(), Error>;
 // ANCHOR_END: reply
 
 /// There can be two locations where reply handlers are added.
@@ -117,7 +117,7 @@ where
     Module: Handler,
 {
     /// Creates a new customizable abstract contract.
-    pub const fn new(name: ModuleId, version: VersionString, metadata: ModuleMetadata) -> Self {
+    pub fn new(name: ModuleId, version: VersionString, metadata: ModuleMetadata) -> Self {
         Self {
             info: (name, version, metadata),
             version: CONTRACT,
@@ -141,12 +141,12 @@ where
         self.info
     }
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
+    pub fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.dependencies = dependencies;
         self
     }
     /// Add reply handlers to the contract.
-    pub const fn with_replies(
+    pub fn with_replies(
         mut self,
         reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
     ) -> Self {
@@ -155,7 +155,7 @@ where
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
+    pub fn with_ibc_callbacks(
         mut self,
         callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
     ) -> Self {
@@ -164,7 +164,7 @@ where
     }
 
     /// Add instantiate handler to the contract.
-    pub const fn with_instantiate(
+    pub fn with_instantiate(
         mut self,
         instantiate_handler: InstantiateHandlerFn<
             Module,
@@ -177,7 +177,7 @@ where
     }
 
     /// Add query handler to the contract.
-    pub const fn with_migrate(
+    pub fn with_migrate(
         mut self,
         migrate_handler: MigrateHandlerFn<Module, <Module as Handler>::CustomMigrateMsg, Error>,
     ) -> Self {
@@ -186,7 +186,7 @@ where
     }
 
     /// Add sudo handler to the contract.
-    pub const fn with_sudo(
+    pub fn with_sudo(
         mut self,
         sudo_handler: SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>,
     ) -> Self {
@@ -195,7 +195,7 @@ where
     }
 
     /// Add receive handler to the contract.
-    pub const fn with_receive(
+    pub fn with_receive(
         mut self,
         receive_handler: ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>,
     ) -> Self {
@@ -204,7 +204,7 @@ where
     }
 
     /// Add execute handler to the contract.
-    pub const fn with_execute(
+    pub fn with_execute(
         mut self,
         execute_handler: ExecuteHandlerFn<Module, <Module as Handler>::CustomExecMsg, Error>,
     ) -> Self {
@@ -213,7 +213,7 @@ where
     }
 
     /// Add query handler to the contract.
-    pub const fn with_query(
+    pub fn with_query(
         mut self,
         query_handler: QueryHandlerFn<Module, <Module as Handler>::CustomQueryMsg, Error>,
     ) -> Self {

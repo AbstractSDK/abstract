@@ -4,7 +4,8 @@
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
-    features::{AccountIdentification, ModuleIdentification},
+    account_action::{ExecuteOptions, ReplyOptions},
+    features::{AccountIdentification, Executable, ExecutionStack, ModuleIdentification},
     AbstractSdkResult, AccountAction,
 };
 use abstract_core::proxy::ExecuteMsg;
@@ -12,7 +13,7 @@ use abstract_macros::with_abstract_event;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 /// Execute an `AccountAction` on the Account.
-pub trait Execution: AccountIdentification + ModuleIdentification {
+pub trait Execution: AccountIdentification + ModuleIdentification + ExecutionStack {
     /**
         API for executing [`AccountAction`]s on the Account.
         Group your actions together in a single execute call if possible.
@@ -30,12 +31,12 @@ pub trait Execution: AccountIdentification + ModuleIdentification {
         let executor: Executor<MockModule>  = module.executor(deps.as_ref());
         ```
     */
-    fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
+    fn executor<'a>(&'a mut self, deps: Deps<'a>) -> Executor<Self> {
         Executor { base: self, deps }
     }
 }
 
-impl<T> Execution for T where T: AccountIdentification + ModuleIdentification {}
+impl<T> Execution for T where T: AccountIdentification + ModuleIdentification + ExecutionStack {}
 
 impl<'a, T: Execution> AbstractApi<T> for Executor<'a, T> {
     fn base(&self) -> &T {
@@ -69,9 +70,8 @@ impl<'a, T: Execution> ApiIdentification for Executor<'a, T> {
     let executor: Executor<MockModule>  = module.executor(deps.as_ref());
     ```
 */
-#[derive(Clone)]
 pub struct Executor<'a, T: Execution> {
-    base: &'a T,
+    base: &'a mut T,
     deps: Deps<'a>,
 }
 
@@ -89,67 +89,74 @@ impl<'a, T: Execution> Executor<'a, T> {
 
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    pub fn execute(&self, actions: Vec<AccountAction>) -> AbstractSdkResult<ExecutorMsg> {
-        let msgs = actions.into_iter().flat_map(|a| a.messages()).collect();
-        let msg: CosmosMsg = wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::ModuleAction { msgs },
-            vec![],
-        )?
-        .into();
-        Ok(ExecutorMsg(msg))
+    pub fn execute(&mut self, actions: Vec<CosmosMsg>) -> AbstractSdkResult<()> {
+        self.execute_with_options(actions, ExecuteOptions::default())
     }
+
+    // pub fn execute(&self, actions: Vec<AccountAction>) -> AbstractSdkResult<ExecutorMsg> {
+    //     let msgs = actions.into_iter().flat_map(|a| a.messages()).collect();
+    //     let msg: CosmosMsg = wasm_execute(
+    //         self.base.proxy_address(self.deps)?.to_string(),
+    //         &ExecuteMsg::ModuleAction { msgs },
+    //         vec![],
+    //     )?
+    //     .into();
+    //     Ok(ExecutorMsg(msg))
+    // }
 
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     /// The execution will be executed in a submessage and the reply will be sent to the provided `reply_on`.
     pub fn execute_with_reply(
-        &self,
-        actions: Vec<AccountAction>,
+        &mut self,
+        msgs: Vec<CosmosMsg>,
         reply_on: ReplyOn,
         id: u64,
-    ) -> AbstractSdkResult<SubMsg> {
-        let msg = self.execute(actions)?;
-        let sub_msg = SubMsg {
-            id,
-            msg: msg.into(),
-            gas_limit: None,
-            reply_on,
-        };
-        Ok(sub_msg)
+    ) -> AbstractSdkResult<()> {
+        self.execute_with_options(
+            msgs,
+            ExecuteOptions {
+                reply: Some(ReplyOptions {
+                    reply_on,
+                    id,
+                    with_data: false,
+                }),
+            },
+        )
     }
 
     /// Execute a single msg on the Account.
     /// This message will be executed on the proxy contract. Any data returned from the execution will be forwarded to the proxy's response through a reply.
     /// The resulting data should be available in the reply of the specified ID.
     pub fn execute_with_reply_and_data(
-        &self,
-        actions: CosmosMsg,
+        &mut self,
+        action: CosmosMsg,
         reply_on: ReplyOn,
         id: u64,
-    ) -> AbstractSdkResult<SubMsg> {
-        let msg = self.execute_with_data(actions)?;
-        let sub_msg = SubMsg {
-            id,
-            msg: msg.into(),
-            gas_limit: None,
-            reply_on,
-        };
-        Ok(sub_msg)
+    ) -> AbstractSdkResult<()> {
+        self.execute_with_options(
+            vec![action],
+            ExecuteOptions {
+                reply: Some(ReplyOptions {
+                    reply_on,
+                    id,
+                    with_data: true,
+                }),
+            },
+        )
     }
 
-    /// Execute the msgs on the Account.
-    /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    /// Return a "standard" response for the executed messages. (with the provided action).
-    pub fn execute_with_response(
-        &self,
-        actions: Vec<AccountAction>,
-        action: &str,
-    ) -> AbstractSdkResult<Response> {
-        let msg = self.execute(actions)?;
-        let resp = Response::default();
-
-        Ok(with_abstract_event!(resp, self.base.module_id(), action).add_message(msg))
+    /// Executes multiple messages with options on the underlying account
+    /// The messages will be executed on the proxy contract.
+    pub fn execute_with_options(
+        &mut self,
+        msgs: Vec<CosmosMsg>,
+        options: ExecuteOptions,
+    ) -> AbstractSdkResult<()> {
+        self.base.push_executable(Executable::AccountAction(
+            AccountAction::from_vec_with_options(msgs, options)?,
+        ));
+        Ok(())
     }
 }
 
