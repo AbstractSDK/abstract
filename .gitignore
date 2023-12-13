@@ -38,3 +38,6 @@ framework/contracts/**/schema
 
 # logs
 **/logs
+
+# New snapshots
+**/snapshots/*.snap.new

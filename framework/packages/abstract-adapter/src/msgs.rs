@@ -27,14 +27,16 @@
 /// impl abstract_core::adapter::AdapterQueryMsg for MyAdapterQueryMsg {}
 /// ```
 macro_rules! adapter_msg_types {
-    ($adapter_type:ty, $adapter_execute_msg: ty, $adapter_query_msg: ty) => {
+    ($adapter_type:ident, $adapter_execute_msg: ty, $adapter_query_msg: ty) => {
         /// Top-level Abstract Adapter instantiate message. This is the message that is passed to the `instantiate` entrypoint of the smart-contract.
-        pub type InstantiateMsg =
-            <$adapter_type as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
+        pub type InstantiateMsg<'a> =
+            <$adapter_type<'a> as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
         /// Top-level Abstract Adapter execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
-        pub type ExecuteMsg = <$adapter_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
+        pub type ExecuteMsg<'a> =
+            <$adapter_type<'a> as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
         /// Top-level Abstract Adapter query message. This is the message that is passed to the `query` entrypoint of the smart-contract.
-        pub type QueryMsg = <$adapter_type as ::abstract_sdk::base::QueryEndpoint>::QueryMsg;
+        pub type QueryMsg<'a> =
+            <$adapter_type<'a> as ::abstract_sdk::base::QueryEndpoint>::QueryMsg;
 
         impl ::abstract_core::adapter::AdapterExecuteMsg for $adapter_execute_msg {}
         impl ::abstract_core::adapter::AdapterQueryMsg for $adapter_query_msg {}

@@ -7,13 +7,13 @@ use cosmwasm_std::{
 use cw_asset::AssetInfoBase;
 use cw_utils::must_pay;
 
-use crate::contract::{App, AppResult};
+use crate::contract::{CalendarApp, CalendarAppResult};
 
-use crate::error::AppError;
-use crate::msg::AppExecuteMsg;
+use crate::error::CalendarError;
+use crate::msg::CalendarExecuteMsg;
 use crate::state::{Meeting, CALENDAR, CONFIG};
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::{Resolve, TransferInterface};
+use abstract_sdk::TransferInterface;
 
 enum StakeAction {
     Return,
@@ -25,15 +25,15 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: App,
-    msg: AppExecuteMsg,
-) -> AppResult {
+    app: CalendarApp,
+    msg: CalendarExecuteMsg,
+) -> CalendarAppResult {
     match msg {
-        AppExecuteMsg::RequestMeeting {
+        CalendarExecuteMsg::RequestMeeting {
             start_time,
             end_time,
         } => request_meeting(deps, info, app, env, start_time, end_time),
-        AppExecuteMsg::SlashFullStake {
+        CalendarExecuteMsg::SlashFullStake {
             day_datetime,
             meeting_index,
         } => handle_stake(
@@ -45,7 +45,7 @@ pub fn execute_handler(
             meeting_index,
             StakeAction::FullSlash,
         ),
-        AppExecuteMsg::SlashPartialStake {
+        CalendarExecuteMsg::SlashPartialStake {
             day_datetime,
             meeting_index,
             minutes_late,
@@ -58,7 +58,7 @@ pub fn execute_handler(
             meeting_index,
             StakeAction::PartialSlash { minutes_late },
         ),
-        AppExecuteMsg::ReturnStake {
+        CalendarExecuteMsg::ReturnStake {
             day_datetime,
             meeting_index,
         } => handle_stake(
@@ -70,7 +70,7 @@ pub fn execute_handler(
             meeting_index,
             StakeAction::Return,
         ),
-        AppExecuteMsg::UpdateConfig {
+        CalendarExecuteMsg::UpdateConfig {
             price_per_minute,
             denom,
         } => update_config(deps, info, app, price_per_minute, denom),
@@ -80,16 +80,16 @@ pub fn execute_handler(
 fn request_meeting(
     deps: DepsMut,
     info: MessageInfo,
-    app: App,
+    app: CalendarApp,
     env: Env,
     meeting_start_time: Int64,
     meeting_end_time: Int64,
-) -> AppResult {
+) -> CalendarAppResult {
     let config = CONFIG.load(deps.storage)?;
     let amount_sent = must_pay(&info, &config.denom)?;
 
     let timezone: FixedOffset =
-        FixedOffset::east_opt(config.utc_offset).ok_or(AppError::InvalidUtcOffset {})?;
+        FixedOffset::east_opt(config.utc_offset).ok_or(CalendarError::InvalidUtcOffset {})?;
 
     let meeting_start_datetime: DateTime<FixedOffset> =
         get_date_time(timezone, meeting_start_time)?;
@@ -116,7 +116,7 @@ fn request_meeting(
 
     let expected_amount = duration_in_minutes * config.price_per_minute;
     if amount_sent != expected_amount {
-        return Err(AppError::InvalidStakeAmountSent { expected_amount });
+        return Err(CalendarError::InvalidStakeAmountSent { expected_amount });
     }
 
     // Get unix start date of the current day
@@ -139,7 +139,7 @@ fn request_meeting(
                 && meeting_end_timestamp <= meeting.end_time;
 
             if start_time_conflicts || end_time_conflicts {
-                return Err(AppError::MeetingConflictExists {});
+                return Err(CalendarError::MeetingConflictExists {});
             }
         }
     }
@@ -158,34 +158,34 @@ fn request_meeting(
 fn handle_stake(
     deps: DepsMut,
     info: MessageInfo,
-    app: App,
+    app: CalendarApp,
     env: Env,
     day_datetime: Int64,
     meeting_index: u32,
     stake_action: StakeAction,
-) -> AppResult {
+) -> CalendarAppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
     let meetings = CALENDAR.may_load(deps.storage, day_datetime.i64())?;
     if meetings.is_none() {
-        return Err(AppError::NoMeetingsAtGivenDayDateTime {});
+        return Err(CalendarError::NoMeetingsAtGivenDayDateTime {});
     }
     let mut meetings = meetings.unwrap();
     if meeting_index as usize >= meetings.len() {
-        return Err(AppError::MeetingDoesNotExist {});
+        return Err(CalendarError::MeetingDoesNotExist {});
     }
     let meeting: &mut Meeting = meetings.get_mut(meeting_index as usize).unwrap();
 
     if (env.block.time.seconds() as i64) <= meeting.end_time {
-        return Err(AppError::MeetingNotFinishedYet {});
+        return Err(CalendarError::MeetingNotFinishedYet {});
     }
 
     let amount_staked = meeting.amount_staked;
     let requester = meeting.requester.to_string();
     if amount_staked.is_zero() {
-        return Err(AppError::StakeAlreadyHandled {});
+        return Err(CalendarError::StakeAlreadyHandled {});
     }
 
     meeting.amount_staked = Uint128::zero();
@@ -212,7 +212,7 @@ fn handle_stake(
             let meeting_duration_in_minutes: u32 =
                 ((meeting.end_time - meeting.start_time) / 60) as u32;
             if minutes_late > meeting_duration_in_minutes {
-                return Err(AppError::MinutesLateCannotExceedDurationOfMeeting {});
+                return Err(CalendarError::MinutesLateCannotExceedDurationOfMeeting {});
             }
             let amount_to_slash =
                 amount_staked.multiply_ratio(minutes_late, meeting_duration_in_minutes as u128);
@@ -245,10 +245,10 @@ fn handle_stake(
 fn update_config(
     deps: DepsMut,
     info: MessageInfo,
-    app: App,
+    app: CalendarApp,
     price_per_minute: Option<Uint128>,
     denom: Option<AssetEntry>,
-) -> AppResult {
+) -> CalendarAppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
     let mut attrs = vec![];
@@ -265,9 +265,13 @@ fn update_config(
     Ok(app.custom_tag_response(Response::new(), "update_config", attrs))
 }
 
-pub fn resolve_native_ans_denom(deps: Deps, app: &App, denom: AssetEntry) -> AppResult<String> {
-    let ans_host = app.ans_host(deps)?;
-    let resolved_denom = denom.resolve(&deps.querier, &ans_host)?;
+pub fn resolve_native_ans_denom(
+    deps: Deps,
+    app: &CalendarApp,
+    denom: AssetEntry,
+) -> CalendarAppResult<String> {
+    let name_service = app.name_service(deps);
+    let resolved_denom = name_service.query(&denom)?;
     let denom = match resolved_denom {
         AssetInfoBase::Native(denom) => Ok(denom),
         _ => Err(StdError::generic_err("Non-native denom not supported")),
@@ -275,10 +279,13 @@ pub fn resolve_native_ans_denom(deps: Deps, app: &App, denom: AssetEntry) -> App
     Ok(denom)
 }
 
-fn get_date_time(timezone: FixedOffset, timestamp: Int64) -> AppResult<DateTime<FixedOffset>> {
+fn get_date_time(
+    timezone: FixedOffset,
+    timestamp: Int64,
+) -> CalendarAppResult<DateTime<FixedOffset>> {
     if let LocalResult::Single(value) = timezone.timestamp_opt(timestamp.i64(), 0) {
         Ok(value)
     } else {
-        Err(AppError::InvalidTime {})
+        Err(CalendarError::InvalidTime {})
     }
 }

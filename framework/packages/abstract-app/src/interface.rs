@@ -122,7 +122,7 @@ macro_rules! cw_orch_interface {
                 $app_const.sudo(msg)
             }
 
-            pub type InstantiateMsg =
+            pub type InstantiateMsg<'a> =
                 <$app_type<'a> as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
             pub type ExecuteMsg<'a> =
                 <$app_type<'a> as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
@@ -132,15 +132,11 @@ macro_rules! cw_orch_interface {
                 <$app_type<'a> as ::abstract_sdk::base::MigrateEndpoint>::MigrateMsg;
         }
 
-        pub mod interface {
-            use super::_wrapper_fns;
-            #[::cw_orch::interface(
-                _wrapper_fns::InstantiateMsg,
-                _wrapper_fns::ExecuteMsg,
-                _wrapper_fns::QueryMsg,
-                _wrapper_fns::MigrateMsg
-            )]
-            pub struct $interface_name;
+	    pub mod interface{
+            use super::*;
+	    	use super::_wrapper_fns;
+	    	#[::cw_orch::interface(_wrapper_fns::InstantiateMsg, _wrapper_fns::ExecuteMsg, _wrapper_fns::QueryMsg, _wrapper_fns::MigrateMsg)]
+			pub struct $interface_name;
 
             impl<Chain: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::Uploadable
                 for $interface_name<Chain>
@@ -154,26 +150,50 @@ macro_rules! cw_orch_interface {
                     .unwrap()
                 }
 
-                fn wrapper(
-                    &self,
-                ) -> Box<
-                    dyn ::cw_orch::prelude::MockContract<
-                        ::cosmwasm_std::Empty,
-                        ::cosmwasm_std::Empty,
-                    >,
-                > {
-                    Box::new(
-                        ::cw_orch::prelude::ContractWrapper::new_with_empty(
-                            _wrapper_fns::execute,
-                            _wrapper_fns::instantiate,
-                            _wrapper_fns::query,
-                        )
-                        .with_reply(_wrapper_fns::reply)
-                        .with_migrate(_wrapper_fns::migrate)
-                        .with_sudo(_wrapper_fns::sudo),
-                    )
+			impl <Chain: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::Uploadable for $interface_name<Chain> {
+			    fn wasm(&self) -> ::cw_orch::prelude::WasmPath {
+			    	let wasm_name = env!("CARGO_CRATE_NAME").replace('-', "_");
+			        ::cw_orch::prelude::ArtifactsDir::auto(Some(env!("CARGO_MANIFEST_DIR").to_string()))
+			        	.find_wasm_path(&wasm_name).unwrap()
+			    }
+
+			    fn wrapper(
+			        &self,
+			    ) -> Box<dyn ::cw_orch::prelude::MockContract<::cosmwasm_std::Empty, ::cosmwasm_std::Empty>> {
+			        Box::new(
+			            ::cw_orch::prelude::ContractWrapper::new_with_empty(
+			                _wrapper_fns::execute,
+			                _wrapper_fns::instantiate,
+			                _wrapper_fns::query,
+			            )
+			            .with_reply(_wrapper_fns::reply)
+			            .with_migrate(_wrapper_fns::migrate)
+						.with_sudo(_wrapper_fns::sudo),
+			        )
+			    }
+			}
+
+			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<Chain> for $interface_name<Chain> {}
+
+			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::RegisteredModule for $interface_name<Chain> {
+                type InitMsg = <$app_type as ::abstract_sdk::base::Handler>::CustomInitMsg;
+
+				fn module_id<'a>() -> &'a str {
+                    $app_const.module_id()
+				}
+
+                fn module_version<'a>() -> &'a str {
+                    $app_const.version()
                 }
+			}
+
+			impl<T: ::cw_orch::prelude::CwEnv> From<::cw_orch::contract::Contract<T>> for $interface_name<T> {
+				fn from(contract: ::cw_orch::contract::Contract<T>) -> Self {
+					Self(contract)
+				}
             }
+	    }
+
 
             impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<Chain>
                 for $interface_name<Chain>

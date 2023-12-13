@@ -5,8 +5,8 @@ pub use abstract_core::account_factory::{
 use abstract_core::{
     account_factory::*,
     manager::ModuleInstallConfig,
-    objects::{gov_type::GovernanceDetails, AssetEntry},
-    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
+    objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId, AssetEntry},
+    ABSTRACT_EVENT_TYPE,
 };
 use cosmwasm_std::Addr;
 use cw_orch::{interface, prelude::*};
@@ -77,18 +77,24 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             funds,
         )?;
 
-        let manager_address = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
-        self.get_chain()
-            .state()
-            .set_address(MANAGER, &Addr::unchecked(manager_address));
-        let proxy_address = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
-        self.get_chain()
-            .state()
-            .set_address(PROXY, &Addr::unchecked(proxy_address));
-        Ok(AbstractAccount {
-            manager: Manager::new(MANAGER, self.get_chain().clone()),
-            proxy: Proxy::new(PROXY, self.get_chain().clone()),
-        })
+        // Parse data from events
+        let acc_seq = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_sequence")?;
+        let trace = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "trace")?;
+        let id = AccountId::new(
+            acc_seq.parse().unwrap(),
+            AccountTrace::try_from((*trace).as_str())?,
+        )?;
+        // construct manager and proxy ids
+        let manager = Manager::new_from_id(&id, self.get_chain().clone());
+        let proxy = Proxy::new_from_id(&id, self.get_chain().clone());
+
+        // set addresses
+        let manager_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
+        manager.set_address(&Addr::unchecked(manager_address));
+        let proxy_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
+        proxy.set_address(&Addr::unchecked(proxy_address));
+
+        Ok(AbstractAccount { manager, proxy })
     }
 
     pub fn create_default_account(

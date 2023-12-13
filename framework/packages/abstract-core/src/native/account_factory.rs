@@ -8,18 +8,16 @@
 //! Call [`ExecuteMsg::CreateAccount`] on this contract along with a [`crate::objects::gov_type`] and name you'd like to display on your Account.
 //!
 pub mod state {
-    use cosmwasm_std::{Addr, Coin};
+    use cosmwasm_std::Addr;
     use cw_storage_plus::Item;
     use serde::{Deserialize, Serialize};
 
     use crate::{
-        manager::ModuleInstallConfig,
         objects::{
             account::{AccountId, AccountSequence},
-            gov_type::GovernanceDetails,
             module::Module,
-            AssetEntry,
         },
+        version_control::AccountBase,
     };
 
     /// Account Factory configuration
@@ -34,25 +32,10 @@ pub mod state {
     /// Account Factory context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
-        pub account_proxy_address: Option<Addr>,
-        pub manager_module: Option<Module>,
-        pub proxy_module: Option<Module>,
+        pub account_base: AccountBase,
+        pub manager_module: Module,
+        pub proxy_module: Module,
         pub account_id: AccountId,
-
-        pub additional_config: AdditionalContextConfig,
-        pub install_modules: Vec<ModuleInstallConfig>,
-        pub funds_for_install: Vec<Coin>,
-    }
-
-    /// Account Factory additional config context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
-    #[derive(Serialize, Deserialize, Clone, Debug)]
-    pub struct AdditionalContextConfig {
-        pub namespace: Option<String>,
-        pub base_asset: Option<AssetEntry>,
-        pub name: String,
-        pub description: Option<String>,
-        pub link: Option<String>,
-        pub owner: GovernanceDetails<String>,
     }
 
     pub const CONFIG: Item<Config> = Item::new("cfg");
@@ -103,6 +86,7 @@ pub enum ExecuteMsg {
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
+    #[cfg_attr(feature = "interface", payable)]
     CreateAccount {
         // Governance details
         governance: GovernanceDetails<String>,

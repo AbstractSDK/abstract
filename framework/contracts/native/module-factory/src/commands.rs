@@ -1,5 +1,5 @@
 use abstract_core::objects::module;
-use abstract_sdk::feature_objects::Feature;
+use serde_cw_value::Value;
 
 use crate::contract::ModuleFactoryResponse;
 use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
@@ -14,8 +14,8 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps, DepsMut, Env, MessageInfo,
-    StdResult, WasmMsg,
+    from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
+    DepsMut, Env, MessageInfo, StdResult, WasmMsg,
 };
 
 /// Function that starts the creation of the Modules
@@ -30,20 +30,16 @@ pub fn execute_create_modules(
     let block_height = env.block.height;
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
-    let binding = VersionControlContract::new(config.version_control_address);
-    let binding = Feature::from_contract(&binding, deps.as_ref());
-
-    let version_registry = binding.module_registry();
-    let account_registry = binding.account_registry();
+    let version_control = VersionControlContract::new(config.version_control_address);
 
     // assert that sender is manager
-    let account_base = account_registry.assert_manager(&info.sender)?;
+    let account_base = version_control.assert_manager(&info.sender, &deps.querier)?;
 
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
 
-    let modules_responses = version_registry.query_modules_configs(infos)?;
+    let modules_responses = version_control.query_modules_configs(infos, &deps.querier)?;
 
     // fees
     let mut fee_msgs = vec![];
@@ -73,8 +69,8 @@ pub fn execute_create_modules(
                 let fee = f.fee();
                 sum_of_monetization.add(fee.clone())?;
                 // We transfer that fee to the namespace owner if there is
-                let namespace_account =
-                    version_registry.query_namespace(new_module.info.namespace.clone())?;
+                let namespace_account = version_control
+                    .query_namespace(new_module.info.namespace.clone(), &deps.querier)?;
                 fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
                     to_address: namespace_account.account_base.proxy.to_string(),
                     amount: vec![fee],
@@ -91,12 +87,25 @@ pub fn execute_create_modules(
 
         match &new_module.reference {
             ModuleReference::App(code_id) => {
+                let init_msg = owner_init_msg.unwrap();
+                let init_msg_as_value: Value = from_json(init_msg)?;
+                // App base message
+                let app_base_msg = abstract_core::app::BaseInstantiateMsg {
+                    ans_host_address: config.ans_host_address.to_string(),
+                    version_control_address: version_control.address.to_string(),
+                    account_base: account_base.clone(),
+                };
+
+                let app_init_msg = abstract_core::app::InstantiateMsg::<Value> {
+                    base: app_base_msg,
+                    module: init_msg_as_value,
+                };
                 let (addr, init_msg) = instantiate2_contract(
                     deps.as_ref(),
                     canonical_contract_addr.clone(),
                     block_height,
                     *code_id,
-                    owner_init_msg.unwrap(),
+                    to_json_binary(&app_init_msg)?,
                     salt.clone(),
                     Some(account_base.manager.clone()),
                     new_module_init_funds,
@@ -138,9 +147,6 @@ pub fn execute_create_modules(
         ))
         .into());
     }
-
-    let context = Context { account_base };
-    CONTEXT.save(deps.storage, &context)?;
 
     let new_modules = new_module_addrs(&modules_to_register)?;
 
@@ -252,6 +258,7 @@ pub fn update_factory_binaries(
 #[cfg(test)]
 mod test {
     use super::*;
+    use abstract_testing::OWNER;
     use speculoos::prelude::*;
 
     use crate::contract::execute;
@@ -267,7 +274,7 @@ mod test {
     }
 
     fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute_as(deps, "admin", msg)
+        execute_as(deps, OWNER, msg)
     }
 
     fn test_only_admin(msg: ExecuteMsg) -> ModuleFactoryTestResult {
@@ -428,7 +435,6 @@ mod test {
         use super::*;
         use abstract_core::{objects::module::ModuleVersion, AbstractError};
         use abstract_testing::map_tester::*;
-        use abstract_testing::prelude::TEST_ADMIN;
 
         fn update_module_msgs_builder(
             to_add: Vec<(ModuleInfo, Binary)>,
@@ -454,7 +460,7 @@ mod test {
             ModuleInfo,
             Binary,
         > {
-            let info = mock_info(TEST_ADMIN, &[]);
+            let info = mock_info(OWNER, &[]);
 
             let tester = CwMapTesterBuilder::default()
                 .info(info)

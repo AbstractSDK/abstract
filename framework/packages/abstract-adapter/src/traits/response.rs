@@ -1,6 +1,4 @@
-use abstract_sdk::features::{
-    CustomData, CustomEvents, DepsAccess, ExecutionStack, HasExecutableEnv,
-};
+use abstract_sdk::features::{CustomData, CustomEvents, DepsAccess, ExecutionStack};
 
 use crate::{state::ContractError, AdapterContract};
 

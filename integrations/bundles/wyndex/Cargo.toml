@@ -8,11 +8,11 @@ edition = "2021"
 
 
 [dependencies]
-wyndex-multi-hop = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
-wyndex-factory = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
-wyndex-pair = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
-wyndex-stake = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
-wyndex = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
+wyndex-multi-hop = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
+wyndex-factory = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
+wyndex-pair = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
+wyndex-stake = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
+wyndex = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
 cw-controllers = "1.0.1"
 # TODO: remove when we update cw-orch to 0.17
 cw-multi-test = { version = "0.16.5", features = [

@@ -86,18 +86,19 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::{
-        mock::{AdapterMockResult, MockInitMsg, MOCK_ADAPTER, MOCK_DEP, TEST_METADATA},
+        mock::{mock_adapter, AdapterMockResult, MockInitMsg, MOCK_DEP, TEST_METADATA},
         state::ApiState,
     };
     use abstract_testing::prelude::*;
 
     #[test]
     fn successful() -> AdapterMockResult {
-        let api = MOCK_ADAPTER.with_dependencies(&[MOCK_DEP]);
-        let env = mock_env();
-        let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
+        let env = mock_env();
+        let info = mock_info(TEST_MANAGER, &[]);
+        let api = mock_adapter((deps.as_mut(), env, info).into()).with_dependencies(&[MOCK_DEP]);
+
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
@@ -105,7 +106,7 @@ mod tests {
             },
             module: MockInitMsg,
         };
-        let res = api.instantiate(deps.as_mut(), env, info, init_msg)?;
+        let res = api.instantiate(init_msg)?;
         assert_that!(&res.messages.len()).is_equal_to(0);
         // confirm mock init handler executed
         assert_that!(&res.data).is_equal_to(Some("mock_init".as_bytes().into()));
@@ -124,7 +125,7 @@ mod tests {
             version: TEST_VERSION.into(),
         });
 
-        let api = MOCK_ADAPTER;
+        let api = mock_adapter((deps.as_ref(), mock_env()).into());
         let none_authorized = api.authorized_addresses.is_empty(&deps.storage);
         assert!(none_authorized);
 
@@ -142,11 +143,12 @@ mod tests {
 
     #[test]
     fn invalid_ans_host() -> AdapterMockResult {
-        let api = MOCK_ADAPTER;
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
+        let api = mock_adapter((deps.as_mut(), env, info).into());
+
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
@@ -154,7 +156,7 @@ mod tests {
             },
             module: MockInitMsg,
         };
-        let res = api.instantiate(deps.as_mut(), env, info, init_msg);
+        let res = api.instantiate(init_msg);
         assert_that!(&res).is_err_containing(
             &StdError::generic_err("Invalid input: human address too short for this mock implementation (must be >= 3).").into(),
         );
@@ -163,11 +165,12 @@ mod tests {
 
     #[test]
     fn invalid_version_control() -> AdapterMockResult {
-        let api = MOCK_ADAPTER;
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
+        let api = mock_adapter((deps.as_mut(), env, info).into());
+
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
@@ -175,7 +178,7 @@ mod tests {
             },
             module: MockInitMsg,
         };
-        let res = api.instantiate(deps.as_mut(), env, info, init_msg);
+        let res = api.instantiate(init_msg);
         assert_that!(&res).is_err_containing(
             &StdError::generic_err("Invalid input: human address too short for this mock implementation (must be >= 3).").into(),
         );

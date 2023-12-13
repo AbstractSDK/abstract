@@ -33,10 +33,10 @@ impl<
     >
 {
     type QueryMsg = QueryMsg<CustomQueryMsg>;
-    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
+    fn query(&self, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
-            QueryMsg::Module(msg) => self.query_handler()?(deps, env, self, msg),
-            QueryMsg::Base(msg) => self.base_query(deps, env, msg),
+            QueryMsg::Module(msg) => self.query_handler()?(self, msg),
+            QueryMsg::Base(msg) => self.base_query(msg),
         }
     }
 }
@@ -52,16 +52,16 @@ impl<
     >
     AdapterContract<'a, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
-    fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
+    fn base_query(&self, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {
             BaseQueryMsg::BaseConfig {} => {
-                to_json_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
+                to_json_binary(&self.dapp_config().map_err(Error::from)?).map_err(Into::into)
             }
             BaseQueryMsg::AuthorizedAddresses { proxy_address } => {
-                let proxy_address = deps.api.addr_validate(&proxy_address)?;
+                let proxy_address = self.api().addr_validate(&proxy_address)?;
                 let authorized_addrs: Vec<Addr> = self
                     .authorized_addresses
-                    .may_load(deps.storage, proxy_address)?
+                    .may_load(self.deps().storage, proxy_address)?
                     .unwrap_or_default();
 
                 to_json_binary(&AuthorizedAddressesResponse {
@@ -70,13 +70,13 @@ impl<
                 .map_err(Into::into)
             }
             BaseQueryMsg::ModuleData {} => {
-                to_json_binary(&self.module_data(deps).map_err(Error::from)?).map_err(Into::into)
+                to_json_binary(&self.module_data().map_err(Error::from)?).map_err(Into::into)
             }
         }
     }
 
-    fn dapp_config(&self, deps: Deps) -> StdResult<AdapterConfigResponse> {
-        let state = self.base_state.load(deps.storage)?;
+    fn dapp_config(&self) -> StdResult<AdapterConfigResponse> {
+        let state = self.base_state.load(self.deps().storage)?;
         Ok(AdapterConfigResponse {
             version_control_address: state.version_control.address,
             ans_host_address: state.ans_host.address,
@@ -88,8 +88,8 @@ impl<
         })
     }
 
-    fn module_data(&self, deps: Deps) -> StdResult<ModuleDataResponse> {
-        let module_data = MODULE.load(deps.storage)?;
+    fn module_data(&self) -> StdResult<ModuleDataResponse> {
+        let module_data = MODULE.load(self.deps().storage)?;
         Ok(ModuleDataResponse {
             module_id: module_data.module,
             version: module_data.version,

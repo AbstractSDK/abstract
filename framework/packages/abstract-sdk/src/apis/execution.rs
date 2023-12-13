@@ -2,6 +2,7 @@
 //! The executor provides function for executing commands on the Account.
 //!
 
+use super::{AbstractApi, ApiIdentification};
 use crate::{
     account_action::{ExecuteOptions, ReplyOptions},
     features::{CustomEvents, Executable, ExecutionStack, ModuleIdentification},
@@ -34,6 +35,18 @@ pub trait Execution: ExecutionStack + CustomEvents + ModuleIdentification {
 }
 
 impl<T> Execution for T where T: ExecutionStack + CustomEvents + ModuleIdentification {}
+
+impl<'a, T: Execution> AbstractApi<T> for Executor<'a, T> {
+    fn base(&self) -> &T {
+        self.base
+    }
+}
+
+impl<'a, T: Execution> ApiIdentification for Executor<'a, T> {
+    fn api_id() -> String {
+        "Executor".to_owned()
+    }
+}
 
 /**
     API for executing [`AccountAction`]s on the Account.

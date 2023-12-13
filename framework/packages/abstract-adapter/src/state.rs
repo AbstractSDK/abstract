@@ -164,15 +164,21 @@ impl<
 #[cfg(test)]
 mod tests {
 
-    use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};
-    use cosmwasm_std::Response;
+    use abstract_sdk::features::CustomData;
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env},
+        Response,
+    };
 
     use super::*;
-    use crate::mock::{AdapterMockResult, MOCK_ADAPTER, TEST_METADATA};
+    use crate::mock::{mock_adapter, AdapterMockResult, TEST_METADATA};
 
     #[test]
     fn set_and_get_target() -> AdapterMockResult {
-        let mut mock = MOCK_ADAPTER;
+        let deps = mock_dependencies();
+
+        let mut mock = mock_adapter((deps.as_ref(), mock_env()).into());
         let target = Addr::unchecked("target");
         mock.target_account = Some(AccountBase {
             proxy: target.clone(),
@@ -184,17 +190,37 @@ mod tests {
 
     #[test]
     fn builder_functions() {
-        crate::mock::MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
-            .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
-            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
-                Ok(Response::new().set_data("mock_callback".as_bytes()))
-            })])
-            .with_replies(&[(1u64, |_, _, _, msg| {
-                Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
-            })]);
+        let deps = mock_dependencies();
+        crate::mock::MockAdapterContract::new(
+            (deps.as_ref(), mock_env()).into(),
+            TEST_MODULE_ID,
+            TEST_VERSION,
+            Some(TEST_METADATA),
+        )
+        .with_instantiate(|app, _| {
+            app.set_data("mock_init".as_bytes());
+            Ok(())
+        })
+        .with_execute(|app, _| {
+            app.set_data("mock_exec".as_bytes());
+            Ok(())
+        })
+        .with_query(|app, msg| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
+        .with_sudo(|app, _| {
+            app.set_data("mock_sudo".as_bytes());
+            Ok(())
+        })
+        .with_receive(|app, _| {
+            app.set_data("mock_receive".as_bytes());
+            Ok(())
+        })
+        .with_ibc_callbacks(&[("c_id", |app, _, _, _| {
+            app.set_data("mock_callback".as_bytes());
+            Ok(())
+        })])
+        .with_replies(&[(1u64, |app, msg| {
+            app.set_data(msg.result.unwrap().data.unwrap());
+            Ok(())
+        })]);
     }
 }

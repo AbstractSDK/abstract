@@ -1,13 +1,13 @@
 use abstract_core::manager::state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS};
 use abstract_core::manager::SubAccountIdsResponse;
 use abstract_core::objects::module::{self, ModuleInfo};
+use abstract_core::AbstractError;
 use abstract_sdk::core::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
 use abstract_sdk::core::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     ModuleVersionsResponse,
 };
-use abstract_sdk::feature_objects::{Feature, VersionControlContract};
-use abstract_sdk::ModuleRegistryInterface;
+use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_storage_plus::Bound;
@@ -18,7 +18,7 @@ const MAX_LIMIT: u8 = 10;
 
 pub fn handle_module_address_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
     let contracts = query_module_addresses(deps, &env.contract.address, &ids)?;
-    let vector = contracts.into_iter().map(|(v, k)| (v, k)).collect();
+    let vector = contracts.into_iter().collect();
     to_json_binary(&ModuleAddressesResponse { modules: vector })
 }
 
@@ -104,9 +104,6 @@ pub fn query_module_version(
     module_addr: Addr,
     version_control: &VersionControlContract,
 ) -> StdResult<ContractVersion> {
-    let binding = Feature::from_contract(version_control, deps);
-    let module_registry = binding.module_registry();
-
     if let Ok(info) = cw2::query_contract_info(&deps.querier, module_addr.to_string()) {
         // Check if it's abstract format and return now
         if ModuleInfo::from_id(
@@ -127,18 +124,16 @@ pub fn query_module_version(
         .querier
         .query_wasm_contract_info(module_addr.to_string())?
         .code_id;
-    module_registry
-        .query_standalone_info(code_id)
+    let module_version = version_control
+        .query_standalone_info_raw(code_id, &deps.querier)
+        .map_err(AbstractError::from)
         .and_then(|module_info| {
-            let module_info =
-                module_info.ok_or(abstract_sdk::AbstractSdkError::StandaloneNotFound {
-                    code_id,
-                    registry_addr: version_control.address.clone(),
-                })?;
             let version = ContractVersion::try_from(module_info)?;
             Ok(version)
         })
-        .map_err(|e| StdError::generic_err(e.to_string()))
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
+
+    Ok(module_version)
 }
 
 /// RawQuery the module versions of the modules part of the Account

@@ -6,8 +6,7 @@ use abstract_core::objects::{
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{module_factory::*, MODULE_FACTORY},
-    feature_objects::{Feature, VersionControlContract},
-    ModuleRegistryInterface,
+    feature_objects::VersionControlContract,
 };
 use cosmwasm_std::{
     to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
@@ -72,7 +71,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
-        QueryMsg::Context {} => to_json_binary(&query_context(deps)?),
         QueryMsg::SimulateInstallModules { modules } => {
             to_json_binary(&query_simulate_install_modules(deps, modules)?)
         }
@@ -95,12 +93,10 @@ pub fn query_simulate_install_modules(
     modules: Vec<ModuleInfo>,
 ) -> StdResult<SimulateInstallModulesResponse> {
     let config = CONFIG.load(deps.storage)?;
-    let binding = VersionControlContract::new(config.version_control_address);
-    let binding = Feature::from_contract(&binding, deps);
-    let version_registry = binding.module_registry();
+    let version_control = VersionControlContract::new(config.version_control_address);
 
-    let module_responses = version_registry
-        .query_modules_configs(modules)
+    let module_responses = version_control
+        .query_modules_configs(modules, &deps.querier)
         .map_err(|e| cosmwasm_std::StdError::generic_err(e.to_string()))?;
 
     let mut coins = Coins::default();
@@ -127,13 +123,6 @@ pub fn query_simulate_install_modules(
         monetization_funds: install_funds,
         initialization_funds: init_funds,
     };
-    Ok(resp)
-}
-
-pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
-    let Context { account_base }: Context = CONTEXT.load(deps.storage)?;
-    let resp = ContextResponse { account_base };
-
     Ok(resp)
 }
 

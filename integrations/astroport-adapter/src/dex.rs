@@ -20,7 +20,6 @@ use ::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
     abstract_sdk::core::objects::PoolAddress,
-    abstract_sdk::cw_helpers::wasm_smart_query,
     astroport::pair::{PoolResponse, SimulationResponse},
     cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
@@ -178,10 +177,10 @@ impl DexCommand for Astroport {
             return Err(DexError::TooManyAssets(2));
         }
         // Get pair info
-        let pair_config: PoolResponse = deps.querier.query(&wasm_smart_query(
+        let pair_config: PoolResponse = deps.querier.query_wasm_smart(
             pair_address.to_string(),
             &astroport::pair::QueryMsg::Pool {},
-        )?)?;
+        )?;
         let astroport_offer_asset = cw_asset_to_astroport(&offer_asset)?;
         let other_asset = if pair_config.assets[0].info == astroport_offer_asset.info {
             let price =
@@ -264,13 +263,13 @@ impl DexCommand for Astroport {
             return_amount,
             spread_amount,
             commission_amount,
-        } = deps.querier.query(&wasm_smart_query(
+        } = deps.querier.query_wasm_smart(
             pair_address.to_string(),
             &astroport::pair::QueryMsg::Simulation {
                 offer_asset: cw_asset_to_astroport(&offer_asset)?,
                 ask_asset_info: None,
             },
-        )?)?;
+        )?;
         // commission paid in result asset
         Ok((return_amount, spread_amount, commission_amount, false))
     }

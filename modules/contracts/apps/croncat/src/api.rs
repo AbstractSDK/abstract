@@ -1,6 +1,6 @@
 use abstract_core::objects::module::ModuleId;
 use abstract_sdk::{
-    features::{AccountIdentification, Dependencies},
+    features::{AccountIdentification, Dependencies, ModuleIdentification},
     AbstractSdkResult,
 };
 use abstract_sdk::{AppInterface, ModuleInterface};
@@ -18,7 +18,7 @@ pub const CRON_CAT_FACTORY: &str = "croncat:factory";
 
 // API for Abstract SDK users
 /// Interact with the cron_cat adapter in your module.
-pub trait CronCatInterface: AccountIdentification + Dependencies {
+pub trait CronCatInterface: AccountIdentification + Dependencies + ModuleIdentification {
     /// Construct a new cron_cat interface
     fn cron_cat<'a>(&'a self, deps: Deps<'a>) -> CronCat<Self> {
         CronCat {
@@ -29,7 +29,7 @@ pub trait CronCatInterface: AccountIdentification + Dependencies {
     }
 }
 
-impl<T: AccountIdentification + Dependencies> CronCatInterface for T {}
+impl<T: AccountIdentification + Dependencies + ModuleIdentification> CronCatInterface for T {}
 
 #[derive(Clone)]
 pub struct CronCat<'a, T: CronCatInterface> {

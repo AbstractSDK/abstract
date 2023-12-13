@@ -1,18 +1,19 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
+use super::{AbstractApi, ApiIdentification};
 use crate::{
-    features::{AbstractRegistryAccess, DepsAccess},
-    AbstractSdkError, AbstractSdkResult,
+    cw_helpers::ApiQuery,
+    features::{AbstractRegistryAccess, DepsAccess, ModuleIdentification},
+    AbstractSdkResult,
 };
 use abstract_core::{
-    manager::state::ACCOUNT_ID,
-    objects::AccountId,
-    version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
+    objects::{version_control::VersionControlContract, AccountId},
+    version_control::AccountBase,
 };
 use cosmwasm_std::Addr;
 
 /// Verify if an addresses is associated with an Abstract Account.
-pub trait AccountVerification: AbstractRegistryAccess + DepsAccess {
+pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification + DepsAccess {
     /**
         API for querying and verifying a sender's identity in the context of Abstract Accounts.
 
@@ -27,12 +28,26 @@ pub trait AccountVerification: AbstractRegistryAccess + DepsAccess {
         let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref());
         ```
     */
-    fn account_registry(&self) -> AccountRegistry<Self> {
-        AccountRegistry { base: self }
+    fn account_registry<'a>(&'a self) -> AbstractSdkResult<AccountRegistry<Self>> {
+        let vc = self.abstract_registry()?;
+        Ok(AccountRegistry { base: self, vc })
     }
 }
 
-impl<T> AccountVerification for T where T: AbstractRegistryAccess + DepsAccess {}
+impl<T> AccountVerification for T where T: AbstractRegistryAccess + ModuleIdentification + DepsAccess
+{}
+
+impl<'a, T: AccountVerification> AbstractApi<T> for AccountRegistry<'a, T> {
+    fn base(&self) -> &T {
+        self.base
+    }
+}
+
+impl<'a, T: AccountVerification> ApiIdentification for AccountRegistry<'a, T> {
+    fn api_id() -> String {
+        "AccountRegistry".to_owned()
+    }
+}
 
 /**
     API for querying and verifying a sender's identity in the context of Abstract Accounts.
@@ -51,32 +66,22 @@ impl<T> AccountVerification for T where T: AbstractRegistryAccess + DepsAccess {
 #[derive(Clone)]
 pub struct AccountRegistry<'a, T: AccountVerification> {
     base: &'a T,
+    vc: VersionControlContract,
 }
 
 impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
-        let account_id = self.account_id(maybe_manager)?;
-        let account_base = self.account_base(&account_id)?;
-        if account_base.manager.ne(maybe_manager) {
-            Err(AbstractSdkError::NotManager(
-                maybe_manager.clone(),
-                account_id,
-            ))
-        } else {
-            Ok(account_base)
-        }
+        self.vc
+            .assert_manager(maybe_manager, &self.base.deps().querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Verify if the provided proxy address is indeed a user.
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
-        let account_id = self.account_id(maybe_proxy)?;
-        let account_base = self.account_base(&account_id)?;
-        if account_base.proxy.ne(maybe_proxy) {
-            Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), account_id))
-        } else {
-            Ok(account_base)
-        }
+        self.vc
+            .assert_proxy(maybe_proxy, &self.base.deps().querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Get the proxy address for a given account id.
@@ -93,27 +98,23 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
 
     /// Get the account base for a given account id.
     pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<AccountBase> {
-        let maybe_account = ACCOUNT_ADDRESSES.query(
-            &self.base.deps().querier,
-            self.base.abstract_registry()?.address,
-            account_id,
-        )?;
-        match maybe_account {
-            None => Err(AbstractSdkError::UnknownAccountId {
-                account_id: account_id.clone(),
-                version_control_addr: self.base.abstract_registry()?.address,
-            }),
-            Some(account_base) => Ok(account_base),
-        }
+        self.vc
+            .account_base(account_id, &self.base.deps().querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 
     /// Get AccountId for given manager or proxy address.
     pub fn account_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<AccountId> {
-        ACCOUNT_ID
-            .query(&self.base.deps().querier, maybe_core_contract_addr.clone())
-            .map_err(|_| AbstractSdkError::FailedToQueryAccountId {
-                contract_addr: maybe_core_contract_addr.clone(),
-            })
+        self.vc
+            .account_id(maybe_core_contract_addr, &self.base.deps().querier)
+            .map_err(|error| self.wrap_query_error(error))
+    }
+
+    /// Get namespace registration fee
+    pub fn namespace_registration_fee(&self) -> AbstractSdkResult<Option<cosmwasm_std::Coin>> {
+        self.vc
+            .namespace_registration_fee(&self.base.deps().querier)
+            .map_err(|error| self.wrap_query_error(error))
     }
 }
 
@@ -121,8 +122,12 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
 mod test {
 
     use super::*;
+    use crate::AbstractSdkError;
     use abstract_core::objects::account::AccountTrace;
+    use abstract_core::objects::module::ModuleId;
     use abstract_core::objects::version_control::VersionControlContract;
+    use abstract_core::objects::version_control::VersionControlError;
+    use abstract_core::{proxy::state::ACCOUNT_ID, version_control::state::ACCOUNT_ADDRESSES};
     use abstract_testing::*;
     use cosmwasm_std::{testing::*, Deps, Env};
 
@@ -151,11 +156,17 @@ mod test {
         }
     }
 
-    impl<'a> AbstractRegistryAccess for MockBinding<'a> {
+    impl<'m> AbstractRegistryAccess for MockBinding<'m> {
         fn abstract_registry(&self) -> AbstractSdkResult<VersionControlContract> {
-            Ok(VersionControlContract {
-                address: Addr::unchecked(TEST_VERSION_CONTROL),
-            })
+            Ok(VersionControlContract::new(Addr::unchecked(
+                TEST_VERSION_CONTROL,
+            )))
+        }
+    }
+
+    impl<'m> ModuleIdentification for MockBinding<'m> {
+        fn module_id(&self) -> &str {
+            ModuleId::from("module")
         }
     }
 
@@ -183,11 +194,12 @@ mod test {
 
             let res = binding
                 .account_registry()
+                .unwrap()
                 .assert_proxy(&Addr::unchecked("not_proxy"));
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::NotProxy(..)))
+                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
                 .matches(|e| e.to_string().contains("not_proxy"));
         }
 
@@ -205,14 +217,20 @@ mod test {
             };
             let res = binding
                 .account_registry()
+                .unwrap()
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::UnknownAccountId { .. }))
+                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
                 .matches(|e| {
-                    e.to_string()
-                        .contains(format!("Unknown Account id {}", TEST_ACCOUNT_ID).as_str())
+                    e.to_string().contains(
+                        &VersionControlError::UnknownAccountId {
+                            account_id: TEST_ACCOUNT_ID,
+                            registry_addr: Addr::unchecked(TEST_VERSION_CONTROL),
+                        }
+                        .to_string(),
+                    )
                 });
         }
 
@@ -234,6 +252,7 @@ mod test {
             };
             let res = binding
                 .account_registry()
+                .unwrap()
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
             assert_that!(res).is_ok().is_equal_to(test_account_base());
@@ -263,6 +282,7 @@ mod test {
             };
             let res = binding
                 .account_registry()
+                .unwrap()
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
             assert_that!(res)
@@ -292,11 +312,12 @@ mod test {
             };
             let res = binding
                 .account_registry()
+                .unwrap()
                 .assert_manager(&Addr::unchecked("not_manager"));
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::NotManager(..)))
+                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
                 .matches(|e| e.to_string().contains("not_manager is not the Manager"));
         }
 
@@ -314,15 +335,20 @@ mod test {
             };
             let res = binding
                 .account_registry()
+                .unwrap()
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::UnknownAccountId { .. }))
+                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
                 .matches(|e| {
-                    e.to_string().contains(&format!(
-                        "Unknown Account id {TEST_ACCOUNT_ID} on version control {TEST_VERSION_CONTROL}"
-                    ))
+                    e.to_string().contains(
+                        &VersionControlError::UnknownAccountId {
+                            account_id: TEST_ACCOUNT_ID,
+                            registry_addr: Addr::unchecked(TEST_VERSION_CONTROL),
+                        }
+                        .to_string(),
+                    )
                 });
         }
 
@@ -344,6 +370,7 @@ mod test {
             };
             let res = binding
                 .account_registry()
+                .unwrap()
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
             assert_that!(res).is_ok().is_equal_to(test_account_base());
@@ -373,13 +400,21 @@ mod test {
             };
             let res = binding
                 .account_registry()
+                .unwrap()
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::NotManager(..)))
-                .matches(|e| e.to_string().contains("not the Manager"))
-                .matches(|e| e.to_string().contains(TEST_MANAGER));
+                .matches(|e| matches!(e, AbstractSdkError::ApiQuery { .. }))
+                .matches(|e| {
+                    e.to_string().contains(
+                        &VersionControlError::NotManager(
+                            Addr::unchecked(TEST_MANAGER),
+                            TEST_ACCOUNT_ID,
+                        )
+                        .to_string(),
+                    )
+                });
         }
     }
 }

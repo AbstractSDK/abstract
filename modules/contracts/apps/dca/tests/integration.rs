@@ -1,31 +1,32 @@
 mod common;
 use std::cell::RefMut;
 
+use abstract_core::objects::ans_host::AnsHostError;
+use abstract_core::objects::DexAssetPairing;
 use abstract_core::objects::{
     dependency::DependencyResponse, module_version::ModuleDataResponse, AccountId, AssetEntry,
     PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
 };
 use abstract_core::AbstractError;
-use abstract_core::{
-    app::{BaseInstantiateMsg, BaseQueryMsgFns},
-    objects::gov_type::GovernanceDetails,
-};
+use abstract_core::{app::BaseQueryMsgFns, objects::gov_type::GovernanceDetails};
 use abstract_dex_adapter::interface::DexAdapter;
 use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
 use abstract_dex_adapter::DEX_ADAPTER_ID;
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use abstract_sdk::AbstractSdkError;
+use abstract_testing::OWNER;
 use dca_app::msg::{DCAResponse, Frequency};
 use dca_app::state::{DCAEntry, DCAId};
 use dca_app::{
     contract::{DCA_APP_ID, DCA_APP_VERSION},
-    msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
+    msg::{AppInstantiateMsg, ConfigResponse},
     *,
 };
 
 use common::contracts;
 
 use croncat_app::contract::CRONCAT_MODULE_VERSION;
-use croncat_app::{contract::CRONCAT_ID, AppQueryMsgFns, CroncatApp, CRON_CAT_FACTORY};
+use croncat_app::{contract::CRONCAT_ID, AppQueryMsgFns, Croncat, CRON_CAT_FACTORY};
 
 use croncat_app::croncat_integration_utils::{AGENTS_NAME, MANAGER_NAME, TASKS_NAME};
 use croncat_sdk_agents::msg::InstantiateMsg as AgentsInstantiateMsg;
@@ -56,13 +57,12 @@ struct CronCatAddrs {
 
 #[allow(unused)]
 struct DeployedApps {
-    dca_app: DCAApp<Mock>,
+    dca_app: DCA<Mock>,
     dex_adapter: DexAdapter<Mock>,
-    cron_cat_app: CroncatApp<Mock>,
+    cron_cat_app: Croncat<Mock>,
     wyndex: WynDex,
 }
 // consts for testing
-const ADMIN: &str = "admin";
 const AGENT: &str = "agent";
 const VERSION: &str = "1.0";
 const DENOM: &str = "abstr";
@@ -72,7 +72,7 @@ fn setup_croncat_contracts(
     mut app: RefMut<App>,
     proxy_addr: String,
 ) -> anyhow::Result<(CronCatAddrs, Addr)> {
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     let pause_admin = Addr::unchecked(PAUSE_ADMIN);
 
     // Instantiate cw20
@@ -274,7 +274,7 @@ fn setup() -> anyhow::Result<(
     CronCatAddrs,
 )> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
 
     // Create the mock
     let mock = Mock::new(&sender);
@@ -287,7 +287,7 @@ fn setup() -> anyhow::Result<(
         setup_croncat_contracts(mock.app.as_ref().borrow_mut(), sender.to_string())?;
 
     // Construct the DCA interface
-    let mut dca_app = DCAApp::new(DCA_APP_ID, mock.clone());
+    let mut dca_app = DCA::new(DCA_APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
@@ -313,12 +313,12 @@ fn setup() -> anyhow::Result<(
         DeployStrategy::Try,
     )?;
 
-    let mut cron_cat_app = CroncatApp::new(CRONCAT_ID, mock.clone());
+    let mut cron_cat_app = Croncat::new(CRONCAT_ID, mock.clone());
     // Create account for croncat namespace
     abstr_deployment
         .account_factory
         .create_default_account(GovernanceDetails::Monarchy {
-            monarch: ADMIN.to_string(),
+            monarch: OWNER.to_string(),
         })?;
     abstr_deployment
         .version_control
@@ -342,60 +342,32 @@ fn setup() -> anyhow::Result<(
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_string(),
+                monarch: OWNER.to_string(),
             })?;
     // Install DEX
-    account
-        .manager
-        .install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
-    let module_addr = account
-        .manager
-        .module_info(DEX_ADAPTER_ID)?
-        .unwrap()
-        .address;
-    dex_adapter.set_address(&module_addr);
+    account.install_adapter(&dex_adapter, None)?;
 
     // Install croncat
-    account.install_module(
-        CRONCAT_ID,
-        &croncat_app::msg::InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr_deployment.ans_host.addr_str()?,
-                version_control_address: abstr_deployment.version_control.addr_str()?,
-            },
-            module: croncat_app::msg::AppInstantiateMsg {},
-        },
-        None,
-    )?;
-    let module_addr = account.manager.module_info(CRONCAT_ID)?.unwrap().address;
-    cron_cat_app.set_address(&module_addr);
+    account.install_app(&cron_cat_app, &croncat_app::msg::AppInstantiateMsg {}, None)?;
     let manager_addr = account.manager.address()?;
     cron_cat_app.set_sender(&manager_addr);
 
     // Install DCA
     dca_app.deploy(DCA_APP_VERSION.parse()?, DeployStrategy::Try)?;
-    account.install_module(
-        DCA_APP_ID,
-        &InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr_deployment.ans_host.addr_str()?,
-                version_control_address: abstr_deployment.version_control.addr_str()?,
-            },
-            module: AppInstantiateMsg {
-                native_asset: AssetEntry::new("denom"),
-                dca_creation_amount: Uint128::new(5_000_000),
-                refill_threshold: Uint128::new(1_000_000),
-                max_spread: Decimal::percent(30),
-            },
+    account.install_app(
+        &dca_app,
+        &AppInstantiateMsg {
+            native_asset: AssetEntry::new("denom"),
+            dca_creation_amount: Uint128::new(5_000_000),
+            refill_threshold: Uint128::new(1_000_000),
+            max_spread: Decimal::percent(30),
         },
         None,
     )?;
 
-    let module_addr = account.manager.module_info(DCA_APP_ID)?.unwrap().address;
-    dca_app.set_address(&module_addr);
     account.manager.update_adapter_authorized_addresses(
         DEX_ADAPTER_ID,
-        vec![module_addr.to_string()],
+        vec![dca_app.addr_str()?],
         vec![],
     )?;
 
@@ -421,12 +393,12 @@ fn setup() -> anyhow::Result<(
 }
 
 fn assert_querrier_err_eq(left: CwOrchError, right: StdError) {
-    let querier_contract_err =
-        |err| StdError::generic_err(format!("Querier contract error: {}", err));
-    assert_eq!(
-        left.root().to_string(),
-        querier_contract_err(right).to_string()
-    )
+    let querier_contract_err = || AbstractSdkError::ApiQuery {
+        api: "Adapters".to_owned(),
+        module_id: DCA_APP_ID.to_owned(),
+        error: Box::new(StdError::generic_err(format!("Querier contract error: {right}")).into()),
+    };
+    assert_eq!(left.root().to_string(), querier_contract_err().to_string())
 }
 
 #[test]
@@ -574,9 +546,14 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
             "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
             offer_asset = OfferAsset::new(USD, 100_u128),
             target_asset = AssetEntry::new(USD),
-            e = AbstractError::from(StdError::generic_err(
-                "asset pairing wyndex/usd,usd not found in ans_host"
-            ))
+            e = AbstractError::from(AnsHostError::DexPairingNotFound {
+                pairing: DexAssetPairing::new(
+                    AssetEntry::new(USD),
+                    AssetEntry::new(USD),
+                    WYNDEX_WITHOUT_CHAIN
+                ),
+                ans_host: _abstr.ans_host.address()?
+            })
         )),
     );
 
@@ -732,9 +709,14 @@ fn update_dca_negative() -> anyhow::Result<()> {
             "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
             offer_asset = OfferAsset::new(USD, 200_u128),
             target_asset = AssetEntry::new(USD),
-            e = AbstractError::from(StdError::generic_err(
-                "asset pairing wyndex/usd,usd not found in ans_host"
-            ))
+            e = AbstractError::from(AnsHostError::DexPairingNotFound {
+                pairing: DexAssetPairing::new(
+                    AssetEntry::new(USD),
+                    AssetEntry::new(USD),
+                    WYNDEX_WITHOUT_CHAIN
+                ),
+                ans_host: _abstr.ans_host.address()?
+            })
         )),
     );
 

@@ -99,7 +99,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         ExecuteMsg::AddAccount {
             account_id,
             account_base: base,
-        } => add_account(deps, info, account_id, base),
+            namespace,
+        } => add_account(deps, info, account_id, base, namespace),
         ExecuteMsg::UpdateConfig {
             allow_direct_module_registration_and_updates,
             namespace_registration_fee,
@@ -151,7 +152,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
                 limit,
             )?)
         }
-        QueryMsg::Ownership {} => to_json_binary(&query_ownership!(deps)?),
+        QueryMsg::Ownership {} => query_ownership!(deps),
     }
     .map_err(Into::into)
 }

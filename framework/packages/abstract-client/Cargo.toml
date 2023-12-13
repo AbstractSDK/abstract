@@ -1,0 +1,39 @@
+[package]
+name = "abstract-client"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["test-utils"]
+test-utils = ["cw-asset"]
+
+[dependencies]
+cosmwasm-std.workspace = true
+abstract-interface.workspace = true
+abstract-core.workspace = true
+cw-orch.workspace = true
+serde.workspace = true
+semver.workspace = true
+thiserror.workspace = true
+
+# Used for test-utils feature
+cw-asset = { workspace = true, optional = true }
+abstract-testing = { workspace = true, optional = true }
+
+[dev-dependencies]
+abstract-client = { path = ".", features = ["test-utils"] }
+cw-asset.workspace = true
+cw-controllers.workspace = true
+abstract-app = { workspace = true, features = ["test-utils"] }
+anyhow.workspace = true
+cosmwasm-schema.workspace = true
+cw-storage-plus.workspace = true
+cw2.workspace = true

@@ -1,12 +1,17 @@
 #![allow(dead_code)]
 
-use crate::{features::DepsAccess, AbstractSdkResult, ModuleInterface};
+use super::{AbstractApi, ApiIdentification};
+use crate::{
+    cw_helpers::ApiQuery,
+    features::{DepsAccess, ModuleIdentification},
+    AbstractSdkResult, ModuleInterface,
+};
 use abstract_core::{adapter::AdapterRequestMsg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
 /// Interact with other modules on the Account.
-pub trait AdapterInterface: ModuleInterface + DepsAccess {
+pub trait AdapterInterface: ModuleInterface + DepsAccess + ModuleIdentification {
     /**
         API for accessing Abstract Adapters installed on the account.
 
@@ -26,7 +31,19 @@ pub trait AdapterInterface: ModuleInterface + DepsAccess {
     }
 }
 
-impl<T> AdapterInterface for T where T: ModuleInterface {}
+impl<T> AdapterInterface for T where T: ModuleInterface + ModuleIdentification + DepsAccess {}
+
+impl<'a, T: AdapterInterface> AbstractApi<T> for Adapters<'a, T> {
+    fn base(&self) -> &T {
+        self.base
+    }
+}
+
+impl<'a, T: AdapterInterface> ApiIdentification for Adapters<'a, T> {
+    fn api_id() -> String {
+        "Adapters".to_owned()
+    }
+}
 
 /**
     API for accessing Abstract Adapters installed on the account.
@@ -74,11 +91,7 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
         let adapter_query: abstract_core::adapter::QueryMsg<Q> = query.into();
         let modules = self.base.modules();
         let adapter_address = modules.module_address(adapter_id)?;
-        self.base
-            .deps()
-            .querier
-            .query_wasm_smart(adapter_address, &adapter_query)
-            .map_err(Into::into)
+        self.smart_query(adapter_address, &adapter_query)
     }
 }
 
@@ -177,7 +190,7 @@ mod tests {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(abstract_testing::prelude::TEST_MODULE_RESPONSE.to_string());
+                .is_equal_to(TEST_MODULE_RESPONSE.to_string());
         }
     }
 }

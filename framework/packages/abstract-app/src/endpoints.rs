@@ -117,7 +117,7 @@ mod test {
         ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
         SudoEndpoint,
     };
-    use abstract_testing::prelude::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use abstract_testing::{addresses::test_account_base, prelude::*};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         SubMsgResult,
@@ -137,34 +137,29 @@ mod test {
             base: app::BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
+                account_base: test_account_base(),
             },
             module: MockInitMsg,
         };
         let actual_init = instantiate(
             deps.as_mut(),
             mock_env(),
-            mock_info(TEST_ADMIN, &[]),
+            mock_info(OWNER, &[]),
             init_msg.clone(),
         );
-        let expected_init =
-            mock_app((deps.as_mut(), mock_env(), mock_info(TEST_ADMIN, &[])).into())
-                .instantiate(init_msg);
+        let expected_init = mock_app((deps.as_mut(), mock_env(), mock_info(OWNER, &[])).into())
+            .instantiate(init_msg);
         assert_that!(actual_init).is_equal_to(expected_init);
 
         // exec
-        let exec_msg = app::ExecuteMsg::Module(MockExecMsg);
-        let actual_exec = mock_app((deps.as_mut(), mock_env(), mock_info(TEST_ADMIN, &[])).into())
+        let exec_msg = app::ExecuteMsg::Module(MockExecMsg::DoSomething {});
+        let actual_exec = mock_app((deps.as_mut(), mock_env(), mock_info(OWNER, &[])).into())
             .execute(exec_msg.clone());
-        let expected_exec = execute(
-            deps.as_mut(),
-            mock_env(),
-            mock_info(TEST_ADMIN, &[]),
-            exec_msg,
-        );
+        let expected_exec = execute(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), exec_msg);
         assert_that!(actual_exec).is_equal_to(expected_exec);
 
         // query
-        let query_msg = app::QueryMsg::Module(MockQueryMsg);
+        let query_msg = app::QueryMsg::Module(MockQueryMsg::GetSomething {});
         let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
         let expected_query = mock_app((deps.as_ref(), mock_env()).into()).query(query_msg);
         assert_that!(actual_query).is_equal_to(expected_query);

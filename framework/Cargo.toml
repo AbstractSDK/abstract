@@ -31,7 +31,7 @@ license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
 [workspace.dependencies]
-cosmwasm-std = { version = "1.2", features = ["cosmwasm_1_2"] }
+cosmwasm-std = { version = "1.5.0", features = ["cosmwasm_1_2"] }
 cosmwasm-schema = { version = "1.2" }
 cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
@@ -52,12 +52,11 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-# cw-orch = { version = "0.16.1" }
-# cw-orch = { version = "0.16.3" }
+# cw-orch = { version = "0.18.2" }
 cw-orch = { path = "../../cw-orchestrator/cw-orch" }
 tokio = { version = "1.4", features = ["full"] }
-polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }
-polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }
+polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
+polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
 
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -98,7 +97,6 @@ sylvia = { version = "0.9.0", git = "https://github.com/AbstractSDK/sylvia", rev
 
 
 ## Testing
-cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"

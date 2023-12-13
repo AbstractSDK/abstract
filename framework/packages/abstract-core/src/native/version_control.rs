@@ -153,11 +153,13 @@ pub enum ExecuteMsg {
     /// Remove namespace claims
     /// Only admin or root user can call this
     RemoveNamespaces { namespaces: Vec<String> },
-    /// Register a new Account to the deployed Accounts.  
+    /// Register a new Account to the deployed Accounts.
+    /// Claims namespace if provided.  
     /// Only Factory can call this
     AddAccount {
         account_id: AccountId,
         account_base: AccountBase,
+        namespace: Option<String>,
     },
     /// Updates configuration of the VC contract. Available Config :
     /// 1. Whether the contract allows direct module registration

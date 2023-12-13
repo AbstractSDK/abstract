@@ -1,6 +1,6 @@
-use abstract_core::AbstractError;
+use abstract_core::{objects::version_control::VersionControlError, AbstractError};
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_asset::AssetError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -24,6 +24,12 @@ pub enum AccountFactoryError {
 
     #[error("{0}")]
     Admin(#[from] AdminError),
+
+    #[error("{0}")]
+    Instantiate2AddressError(#[from] Instantiate2AddressError),
+
+    #[error("{0}")]
+    VersionControlError(#[from] VersionControlError),
 
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),

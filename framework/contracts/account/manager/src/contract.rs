@@ -5,10 +5,17 @@ use crate::{
     queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
     versioning,
 };
-use abstract_core::manager::state::MODULE_QUEUE;
+use abstract_core::{
+    manager::{
+        state::{ACCOUNT_MODULES, PENDING_GOVERNANCE},
+        UpdateSubAccountAction,
+    },
+    objects::gov_type::GovernanceDetails,
+    PROXY,
+};
 use abstract_sdk::core::{
     manager::{
-        state::{AccountInfo, Config, ACCOUNT_FACTORY, CONFIG, INFO, SUSPENSION_STATUS},
+        state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     objects::module_version::assert_contract_upgrade,
@@ -17,7 +24,8 @@ use abstract_sdk::core::{
     MANAGER,
 };
 use cosmwasm_std::{
-    ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError, StdResult,
+    ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
+    StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
@@ -37,7 +45,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
@@ -46,14 +54,15 @@ pub fn instantiate(
     let module_factory_address = deps.api.addr_validate(&msg.module_factory_address)?;
     let version_control_address = deps.api.addr_validate(&msg.version_control_address)?;
 
+    // Save account id
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
-    CONFIG.save(
-        deps.storage,
-        &Config {
-            version_control_address: version_control_address.clone(),
-            module_factory_address: module_factory_address.clone(),
-        },
-    )?;
+
+    // Save config
+    let config = Config {
+        version_control_address: version_control_address.clone(),
+        module_factory_address: module_factory_address.clone(),
+    };
+    CONFIG.save(deps.storage, &config)?;
 
     // Verify info
     validate_description(msg.description.as_deref())?;
@@ -65,7 +74,7 @@ pub fn instantiate(
 
     let account_info = AccountInfo {
         name: msg.name,
-        governance_details: governance_details.clone(),
+        governance_details,
         chain_id: env.block.chain_id,
         description: msg.description,
         link: msg.link,
@@ -74,21 +83,51 @@ pub fn instantiate(
     INFO.save(deps.storage, &account_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
-    // Save queue for modules to be installed
-    MODULE_QUEUE.save(deps.storage, &msg.install_modules)?;
+    // Add proxy to modules
+    ACCOUNT_MODULES.save(
+        deps.storage,
+        PROXY,
+        &deps.api.addr_validate(&msg.proxy_addr)?,
+    )?;
 
     // Set owner
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner.as_str()))?;
     SUSPENSION_STATUS.save(deps.storage, &false)?;
-    ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
 
-    let response = ManagerResponse::new(
+    let mut response = ManagerResponse::new(
         "instantiate",
         vec![
-            ("account_id", msg.account_id.to_string()),
-            ("owner", owner.to_string()),
+            ("account_id".to_owned(), msg.account_id.to_string()),
+            ("owner".to_owned(), owner.to_string()),
         ],
     );
+
+    if !msg.install_modules.is_empty() {
+        // Install modules
+        let (add_to_proxy, install_msg, install_attribute) = install_modules_internal(
+            deps.branch(),
+            env.block.height,
+            msg.install_modules,
+            config.module_factory_address,
+            config.version_control_address,
+            info.funds,
+        )?;
+        response = response
+            .add_message(add_to_proxy)
+            .add_submessage(install_msg)
+            .add_attribute(install_attribute.key, install_attribute.value);
+    }
+
+    // Register on manager if it's sub-account
+    if let GovernanceDetails::SubAccount { manager, .. } = account_info.governance_details {
+        response = response.add_message(wasm_execute(
+            manager,
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+                id: ACCOUNT_ID.load(deps.storage)?.seq(),
+            }),
+            vec![],
+        )?);
+    }
 
     Ok(response)
 }
@@ -108,9 +147,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 
             match msg {
                 ExecuteMsg::UpdateInternalConfig(config) => {
-                    update_internal_config(deps, env, info, config)
+                    update_internal_config(deps, info, config)
                 }
-                ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
+                ExecuteMsg::ProposeOwner { owner } => propose_owner(deps, env, info, owner),
 
                 ExecuteMsg::InstallModules { modules } => install_modules(deps, info, env, modules),
                 ExecuteMsg::UninstallModule { module_id } => {
@@ -161,15 +200,23 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     handle_sub_account_action(deps, info, action)
                 }
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
+                // Used to claim or renounce an ownership change.
                 ExecuteMsg::UpdateOwnership(action) => {
+                    let mut info = info;
+                    let mut deps = deps;
                     let msgs = match action {
-                        // Disallow the user from using the TransferOwnership action
+                        // Disallow the user from using the TransferOwnership action.
                         cw_ownable::Action::TransferOwnership { .. } => {
-                            return Err(ManagerError::MustUseSetOwner {});
+                            return Err(ManagerError::MustUseProposeOwner {});
                         }
-                        cw_ownable::Action::AcceptOwnership => update_governance(deps.storage)?,
-                        _ => vec![],
+                        cw_ownable::Action::AcceptOwnership => {
+                            update_governance(deps.branch(), &mut info.sender)?
+                        }
+                        cw_ownable::Action::RenounceOwnership => vec![],
                     };
+                    // Clear pending governance for either renounced or accepted ownership
+                    PENDING_GOVERNANCE.remove(deps.storage);
+
                     let result: ManagerResult = abstract_sdk::execute_update_ownership!(
                         ManagerResponse,
                         deps,

@@ -3,7 +3,6 @@ use crate::{CwStakingError, Identify};
 use abstract_core::objects::AnsAsset;
 use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
-use abstract_sdk::AbstractSdkResult;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper};
 use std::error::Error;
 
@@ -23,7 +22,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         deps: Deps,
         ans_host: &AnsHost,
         token: &AssetEntry,
-    ) -> AbstractSdkResult<Addr> {
+    ) -> Result<Addr, CwStakingError> {
         let staking_contract = self.staking_entry(token);
 
         ans_host
@@ -40,7 +39,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         ans_host: &AnsHost,
         version_control_contract: VersionControlContract,
         staking_assets: Vec<AssetEntry>,
-    ) -> AbstractSdkResult<()>;
+    ) -> Result<(), CwStakingError>;
 
     /// Stake the provided asset into the staking contract
     fn stake(

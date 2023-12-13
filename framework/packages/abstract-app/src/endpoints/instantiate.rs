@@ -6,21 +6,16 @@ use abstract_core::{
     app::{BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
 };
-use abstract_sdk::{
-    core::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
-    cw_helpers::wasm_smart_query,
-    feature_objects::{AnsHost, VersionControlContract},
-    features::{DepsAccess, ResponseGenerator},
-};
-use cosmwasm_std::Response;
+use abstract_sdk::{feature_objects::{AnsHost, VersionControlContract}, features::{DepsAccess, ResponseGenerator}};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 
 impl<
         'a,
         Error: ContractError,
-        CustomInitMsg: Serialize + JsonSchema,
+        CustomInitMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
@@ -43,24 +38,17 @@ impl<
         let BaseInstantiateMsg {
             ans_host_address,
             version_control_address,
+            account_base,
         } = msg.base;
+
+        let module_msg = msg.module;
+
         let ans_host = AnsHost {
             address: self.api().addr_validate(&ans_host_address)?,
         };
         let version_control = VersionControlContract {
             address: self.api().addr_validate(&version_control_address)?,
         };
-
-        // TODO: Would be nice to remove context
-        // Issue: We can't pass easily AccountBase with BaseInstantiateMsg(right now)
-
-        // Caller is factory so get proxy and manager (admin) from there
-        let resp: ContextResponse = self.deps().querier.query(&wasm_smart_query(
-            self.message_info().sender.to_string(),
-            &FactoryQuery::Context {},
-        )?)?;
-
-        let account_base = resp.account_base;
 
         // Base state
         let state = AppState {
@@ -85,19 +73,23 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new());
         };
-        handler(&mut self, msg.module)?;
-
+        handler(&mut self, module_msg)?;
         Ok(self._generate_response()?)
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use super::InstantiateMsg as SuperInstantiateMsg;
     use crate::mock::*;
+    use abstract_core::app::BaseInstantiateMsg;
+    use abstract_sdk::base::InstantiateEndpoint;
     use speculoos::prelude::*;
 
-    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL};
+    use abstract_testing::{
+        addresses::test_account_base,
+        prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL},
+    };
     use speculoos::assert_that;
 
     #[test]
@@ -107,10 +99,11 @@ mod test {
 
         deps.querier = app_base_mock_querier().build();
 
-        let msg = InstantiateMsg {
+        let msg = SuperInstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
+                account_base: test_account_base(),
             },
             module: MockInitMsg {},
         };

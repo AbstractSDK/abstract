@@ -7,7 +7,7 @@ mod module_identification;
 mod response;
 
 pub use crate::apis::respond::AbstractResponse;
-pub use abstract_name_service::AbstractNameService;
+pub use abstract_name_service::{AbstractNameService, AbstractNameServiceClient};
 pub use abstract_registry_access::AbstractRegistryAccess;
 pub use dependencies::Dependencies;
 pub use deps_access::{DepsAccess, DepsType};

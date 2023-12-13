@@ -1,6 +1,6 @@
 mod common;
 use abstract_adapter::mock::MockExecMsg;
-use abstract_core::adapter::AdapterRequestMsg;
+use abstract_core::adapter::{AdapterBaseMsg, AdapterRequestMsg};
 use abstract_core::manager::{ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
@@ -12,7 +12,8 @@ use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_manager::error::ManagerError;
-use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
+use abstract_testing::prelude::*;
+use abstract_testing::OWNER;
 use common::{
     create_default_account, init_mock_adapter, install_adapter, mock_modules, AResult, TEST_COIN,
 };
@@ -23,9 +24,9 @@ use speculoos::prelude::*;
 
 #[test]
 fn instantiate() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
     let modules = account.manager.module_infos(None, None)?.module_infos;
@@ -48,12 +49,13 @@ fn instantiate() -> AResult {
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
     });
+    take_storage_snapshot!(chain, "instantiate_proxy");
     Ok(())
 }
 
 #[test]
 fn exec_through_manager() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -90,13 +92,14 @@ fn exec_through_manager() -> AResult {
         .wrap()
         .query_all_balances(account.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TEST_COIN)]);
+    take_storage_snapshot!(chain, "exec_through_manager");
 
     Ok(())
 }
 
 #[test]
 fn default_without_response_data() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -114,13 +117,14 @@ fn default_without_response_data() -> AResult {
         Into::<abstract_core::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
     )?;
     assert_that!(resp.data).is_none();
+    take_storage_snapshot!(chain, "default_without_response_data");
 
     Ok(())
 }
 
 #[test]
 fn with_response_data() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -132,9 +136,12 @@ fn with_response_data() -> AResult {
         .call_as(&account.manager.address()?)
         .execute(
             &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Base(
-                abstract_core::adapter::BaseExecuteMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![account.proxy.addr_str()?],
-                    to_remove: vec![],
+                abstract_core::adapter::BaseExecuteMsg {
+                    proxy_address: None,
+                    msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
+                        to_add: vec![account.proxy.addr_str()?],
+                        to_remove: vec![],
+                    },
                 },
             ),
             None,
@@ -171,16 +178,17 @@ fn with_response_data() -> AResult {
 
     let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;
     assert_that!(response_data_attr_present).is_equal_to("true".to_string());
+    take_storage_snapshot!(chain, "proxy_with_response_data");
 
     Ok(())
 }
 
 #[test]
 fn install_standalone_modules() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(AccountId::local(0)));
+    let account = AbstractAccount::new(&deployment, AccountId::local(0));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -208,7 +216,7 @@ fn install_standalone_modules() -> AResult {
 
     account.install_module(
         "abstract:standalone1",
-        &mock_modules::standalone_cw2::MockMsg,
+        Some(&mock_modules::standalone_cw2::MockMsg),
         None,
     )?;
 
@@ -224,18 +232,19 @@ fn install_standalone_modules() -> AResult {
 
     account.install_module(
         "abstract:standalone2",
-        &mock_modules::standalone_no_cw2::MockMsg,
+        Some(&mock_modules::standalone_no_cw2::MockMsg),
         None,
     )?;
+    take_storage_snapshot!(chain, "proxy_install_standalone_modules");
     Ok(())
 }
 
 #[test]
 fn install_standalone_versions_not_met() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(AccountId::local(0)));
+    let account = AbstractAccount::new(&deployment, AccountId::local(0));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -257,7 +266,7 @@ fn install_standalone_versions_not_met() -> AResult {
     let err = account
         .install_module(
             "abstract:standalone1",
-            &mock_modules::standalone_cw2::MockMsg,
+            Some(&mock_modules::standalone_cw2::MockMsg),
             None,
         )
         .unwrap_err();
@@ -280,11 +289,11 @@ fn install_standalone_versions_not_met() -> AResult {
 
 #[test]
 fn install_multiple_modules() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
+    let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(ABSTRACT_ACCOUNT_ID));
+    let account = AbstractAccount::new(&deployment, ABSTRACT_ACCOUNT_ID);
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -414,5 +423,7 @@ fn install_multiple_modules() -> AResult {
 
     assert!(s1_balance.is_empty());
     assert_eq!(s2_balance, vec![coin(42, "token1"), coin(500, "token2")]);
+    take_storage_snapshot!(chain, "proxy_install_multiple_modules");
+
     Ok(())
 }

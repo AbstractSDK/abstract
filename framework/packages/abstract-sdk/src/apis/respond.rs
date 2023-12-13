@@ -14,9 +14,11 @@ pub trait AbstractResponse: ModuleIdentification + CustomEvents {
         action: impl Into<String>,
         attributes: impl IntoIterator<Item = impl Into<Attribute>>,
     ) {
+        let module_id = self.module_id().to_string();
+
         self.add_event(
             "abstract",
-            vec![("contract", self.module_id()), ("action", action.into())],
+            vec![("contract", module_id), ("action", action.into())],
         );
         self.add_attributes(attributes);
     }

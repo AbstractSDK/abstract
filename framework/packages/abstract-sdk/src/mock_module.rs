@@ -1,7 +1,7 @@
 //! Mock module for API and feature testing
 
 use abstract_core::objects::dependency::{Dependency, StaticDependency};
-use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
+use abstract_testing::prelude::*;
 use cosmwasm_std::{Addr, Attribute, Binary, Deps, Event};
 
 use crate::core::objects::module::ModuleId;
@@ -78,8 +78,8 @@ impl<'m> AccountIdentification for MockModule<'m> {
 }
 
 impl<'m> ModuleIdentification for MockModule<'m> {
-    fn module_id(&self) -> String {
-        "mock_module".to_string()
+    fn module_id(&self) -> &str {
+        "mock_module"
     }
 }
 
@@ -113,7 +113,9 @@ pub const FAKE_MODULE_ID: ModuleId = "fake_module";
 /// A mock module that can be used for testing.
 /// Identifies itself as [`TEST_MODULE_ID`].
 pub struct MockModule<'a> {
+    /// Cosmwasm imports are registered directly inside the module structure
     pub deps: DepsType<'a>,
+    /// The Cosmwasm response gets created inside the module structure
     pub response: ModuleEndpointResponse,
 }
 

@@ -10,6 +10,7 @@ use abstract_subscription::{
     state::{EmissionType, Subscriber, SubscriptionConfig},
     SubscriptionError,
 };
+use abstract_testing::OWNER;
 
 pub const WEEK_IN_SECONDS: u64 = 7 * 24 * 60 * 60;
 
@@ -24,7 +25,6 @@ use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 use cosmwasm_std::{coins, Addr, Decimal, StdError, Uint128, Uint64};
 
 // consts for testing
-const ADMIN: &str = "admin";
 const DENOM: &str = "abstr";
 // 3 days
 const INCOME_AVERAGING_PERIOD: Uint64 = Uint64::new(259200);
@@ -63,7 +63,7 @@ fn deploy_emission(chain: &Mock) -> anyhow::Result<Cw20Base<Mock>> {
 /// Set up the test environment with the contract installed
 fn setup_cw20() -> anyhow::Result<Subscription> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
@@ -98,14 +98,14 @@ fn setup_cw20() -> anyhow::Result<Subscription> {
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_string(),
+                monarch: OWNER.to_string(),
             })?;
 
     subscription_app.deploy(CONTRACT_VERSION.parse()?, DeployStrategy::Try)?;
 
     let cw20_addr = cw20.address()?;
     account.install_app(
-        subscription_app.clone(),
+        &subscription_app,
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::cw20(cw20_addr.clone()),
             subscription_cost_per_second: Decimal::from_str("0.000037")?,
@@ -129,7 +129,7 @@ fn setup_cw20() -> anyhow::Result<Subscription> {
 /// Set up the test environment with the contract installed
 fn setup_native() -> anyhow::Result<Subscription> {
     // Create a sender
-    let sender = Addr::unchecked(ADMIN);
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
     let mock = Mock::new(&sender);
 
@@ -144,14 +144,14 @@ fn setup_native() -> anyhow::Result<Subscription> {
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_string(),
+                monarch: OWNER.to_string(),
             })?;
 
     let emissions = deploy_emission(&mock)?;
     subscription_app.deploy(CONTRACT_VERSION.parse()?, DeployStrategy::Try)?;
 
     account.install_app(
-        subscription_app.clone(),
+        &subscription_app,
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::native(DENOM),
             // https://github.com/AbstractSDK/abstract/pull/92#discussion_r1371693550

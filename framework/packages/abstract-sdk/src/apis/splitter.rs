@@ -1,5 +1,6 @@
 #![allow(unused)]
-use crate::features::DepsAccess;
+use super::{AbstractApi, ApiIdentification};
+use crate::features::ModuleIdentification;
 use crate::AccountAction;
 use crate::{AbstractSdkResult, TransferInterface};
 use abstract_core::objects::AnsAsset;
@@ -7,14 +8,26 @@ use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
 // ANCHOR: splitter
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
-pub trait SplitterInterface: TransferInterface {
-    fn splitter(&mut self) -> Splitter<Self> {
+pub trait SplitterInterface: TransferInterface + ModuleIdentification {
+    fn splitter<'a>(&'a mut self) -> Splitter<Self> {
         Splitter { base: self }
     }
 }
 
 // Implement for every object that can transfer funds
-impl<T> SplitterInterface for T where T: TransferInterface {}
+impl<T> SplitterInterface for T where T: TransferInterface + ModuleIdentification {}
+
+impl<'a, T: SplitterInterface> AbstractApi<T> for Splitter<'a, T> {
+    fn base(&self) -> &T {
+        self.base
+    }
+}
+
+impl<'a, T: SplitterInterface> ApiIdentification for Splitter<'a, T> {
+    fn api_id() -> String {
+        "Splitter".to_owned()
+    }
+}
 
 pub struct Splitter<'a, T: SplitterInterface> {
     base: &'a mut T,

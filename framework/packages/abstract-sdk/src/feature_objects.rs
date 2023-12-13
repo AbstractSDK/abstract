@@ -31,7 +31,7 @@ impl<'a, T: AbstractRegistryAccess> AbstractRegistryAccess for Feature<'a, T> {
 }
 
 impl<'a, T: ModuleIdentification> ModuleIdentification for Feature<'a, T> {
-    fn module_id(&self) -> String {
+    fn module_id(&self) -> &str {
         self.contract.module_id()
     }
 }
@@ -65,14 +65,14 @@ impl ProxyContract {
 }
 
 impl ModuleIdentification for ProxyContract {
-    fn module_id(&self) -> String {
-        PROXY.to_string()
+    fn module_id(&self) -> &str {
+        PROXY
     }
 }
 impl ModuleIdentification for AccountBase {
     /// Any actions executed by the core will be by the proxy address
-    fn module_id(&self) -> String {
-        PROXY.to_string()
+    fn module_id(&self) -> &str {
+        PROXY
     }
 }
 
@@ -103,7 +103,7 @@ impl<'m, T> DepsAccess for Feature<'m, T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_testing::prelude::{TEST_MANAGER, TEST_PROXY};
+    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
     mod version_control {
@@ -139,13 +139,12 @@ mod tests {
         fn should_identify_self_as_abstract_proxy() {
             let proxy = ProxyContract::new(Addr::unchecked(TEST_PROXY));
 
-            assert_that!(proxy.module_id()).is_equal_to(PROXY.to_string());
+            assert_that!(proxy.module_id()).is_equal_to(PROXY);
         }
     }
 
     mod base {
         use super::*;
-        use cosmwasm_std::testing::mock_dependencies;
 
         fn test_account_base() -> AccountBase {
             AccountBase {
@@ -159,8 +158,6 @@ mod tests {
             let address = Addr::unchecked(TEST_PROXY);
             let account_base = test_account_base();
 
-            let deps = mock_dependencies();
-
             assert_that!(account_base.proxy_address()).is_equal_to(address);
         }
 
@@ -169,16 +166,12 @@ mod tests {
             let manager_addrsess = Addr::unchecked(TEST_MANAGER);
             let account_base = test_account_base();
 
-            let deps = mock_dependencies();
-
             assert_that!(account_base.manager_address()).is_equal_to(manager_addrsess);
         }
 
         #[test]
         fn test_account() {
             let account_base = test_account_base();
-
-            let deps = mock_dependencies();
 
             assert_that!(account_base.account_base()).is_equal_to(account_base);
         }
@@ -187,7 +180,7 @@ mod tests {
         fn should_identify_self_as_abstract_proxy() {
             let account_base = test_account_base();
 
-            assert_that!(account_base.module_id()).is_equal_to(PROXY.to_string());
+            assert_that!(account_base.module_id()).is_equal_to(PROXY);
         }
     }
 }

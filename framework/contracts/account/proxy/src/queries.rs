@@ -118,8 +118,6 @@ mod test {
 
     use super::*;
 
-    const TEST_CREATOR: &str = "creator";
-
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     pub fn base_asset() -> (AssetEntry, UncheckedPriceSource) {
@@ -136,16 +134,18 @@ mod test {
     }
 
     fn mock_init(deps: DepsMut) {
-        let info = mock_info(TEST_CREATOR, &[]);
+        let info = mock_info(OWNER, &[]);
         let msg = InstantiateMsg {
             account_id: TEST_ACCOUNT_ID,
             ans_host_address: TEST_ANS_HOST.to_string(),
+            manager_addr: TEST_MANAGER.to_string(),
+            base_asset: None,
         };
         let _res = instantiate(deps, mock_env(), info, msg).unwrap();
     }
 
     pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
-        let info = mock_info(TEST_CREATOR, &[]);
+        let info = mock_info(TEST_MANAGER, &[]);
         execute(deps.as_mut(), mock_env(), info, msg)
     }
 
@@ -205,7 +205,7 @@ mod test {
         assert_eq!(
             config,
             ConfigResponse {
-                modules: vec!["test_module".to_string()],
+                modules: vec!["manager_address".to_string(), "test_module".to_string()],
             }
         );
     }

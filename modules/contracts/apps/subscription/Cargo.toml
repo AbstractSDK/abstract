@@ -46,6 +46,7 @@ abstract-interface = { workspace = true, optional = true }
 cw-address-like = { workspace = true }
 
 [dev-dependencies]
+abstract-testing = { workspace = true }
 cw20 = { workspace = true, features = ["interface"] }
 # Deploy
 dotenv = "0.15.0"

@@ -2,7 +2,7 @@ use crate::{
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
-use abstract_core::objects::dependency::StaticDependency;
+use abstract_core::objects::{dependency::StaticDependency, nested_admin::NestedAdmin};
 use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,
@@ -12,7 +12,6 @@ use abstract_sdk::{
     AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
-use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -57,7 +56,7 @@ pub struct AppContract<
     SudoMsg: 'static = Empty,
 > {
     // Custom state for every App
-    pub admin: Admin<'static>,
+    pub admin: NestedAdmin<'static>,
     pub(crate) base_state: Item<'static, AppState>,
     pub deps: DepsType<'a>,
     pub response: ModuleEndpointResponse,
@@ -95,11 +94,19 @@ impl<
     ) -> Self {
         Self {
             base_state: Item::new(BASE_STATE_NAMESPACE),
-            admin: Admin::new(ADMIN_NAMESPACE),
+            admin: NestedAdmin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version, metadata),
             deps,
             response: ModuleEndpointResponse::default(),
         }
+    }
+
+    pub fn module_id(&self) -> &str {
+        self.contract.info().0
+    }
+
+    pub fn version(&self) -> &str {
+        self.contract.info().1
     }
 
     pub fn load_state(&self, store: &dyn Storage) -> StdResult<AppState> {
@@ -177,9 +184,8 @@ impl<
 
 #[cfg(test)]
 mod tests {
-    use abstract_sdk::features::CustomData;
-    use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::Response;
 
     use crate::mock::{MockAppContract, MockError, MockInitMsg};
 
@@ -190,7 +196,7 @@ mod tests {
 
     #[test]
     fn builder() {
-        MockAppContract::new(
+        let app = MockAppContract::new(
             (
                 mock_dependencies().as_mut(),
                 mock_env(),
@@ -227,5 +233,7 @@ mod tests {
             app.set_data("mock_migrate".as_bytes());
             Ok(())
         });
+        assert_eq!(app.module_id(), TEST_MODULE_ID);
+        assert_eq!(app.version(), TEST_VERSION);
     }
 }

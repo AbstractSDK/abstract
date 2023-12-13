@@ -26,10 +26,12 @@ pub use crate::apis::{
     verify::*, version_registry::*,
 };
 
+pub use crate::features::AbstractNameServiceClient;
+
 pub use account_action::AccountAction;
 
 #[cfg(feature = "stargate")]
-pub use crate::apis::{distribution::*, grant::*};
+pub use crate::apis::{authz::*, distribution::*, feegrant::*};
 
 pub mod features {
     //! # Feature traits
