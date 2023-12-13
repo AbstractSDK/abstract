@@ -9,7 +9,7 @@ use abstract_core::{
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
-    QuerierWrapper, Response, StdResult, Storage,
+    QuerierWrapper, StdResult, Storage,
 };
 
 use abstract_sdk::core::{
@@ -34,8 +34,17 @@ pub fn add_account(
     account_base: AccountBase,
     namespace: Option<String>,
 ) -> VCResult {
+    let config = CONFIG.load(deps.storage)?;
+
     // Only Factory can add new Account
-    FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    let is_factory = config
+        .account_factory_address
+        .map(|addr| addr == msg_info.sender)
+        .unwrap_or(false);
+    if !is_factory {
+        return Err(VCError::NotAccountFactory {});
+    }
+
     // Check if account already exists
     ensure!(
         !ACCOUNT_ADDRESSES.has(deps.storage, &account_id),
@@ -45,7 +54,13 @@ pub fn add_account(
     ACCOUNT_ADDRESSES.save(deps.storage, &account_id, &account_base)?;
 
     let fee_msg = if let Some(namespace) = &namespace {
-        claim_namespace_internal(deps.storage, msg_info, account_id.clone(), namespace)?
+        claim_namespace_internal(
+            deps.storage,
+            config.namespace_registration_fee,
+            msg_info,
+            account_id.clone(),
+            namespace,
+        )?
     } else {
         None
     };
@@ -364,8 +379,13 @@ pub fn claim_namespace(
         });
     }
 
+    let Config {
+        namespace_registration_fee: fee,
+        ..
+    } = CONFIG.load(deps.storage)?;
     let fee_msg = claim_namespace_internal(
         deps.storage,
+        fee,
         msg_info,
         account_id.clone(),
         &namespace_to_claim,
@@ -388,6 +408,7 @@ pub fn claim_namespace(
 /// Claim namespace internal
 fn claim_namespace_internal(
     storage: &mut dyn Storage,
+    fee: Coin,
     msg_info: MessageInfo,
     account_id: AccountId,
     namespace_to_claim: &str,
@@ -407,11 +428,6 @@ fn claim_namespace_internal(
             current: 1,
         });
     }
-
-    let Config {
-        namespace_registration_fee: fee,
-        ..
-    } = CONFIG.load(storage)?;
 
     let fee_msg = if !fee.amount.is_zero() {
         // assert it is paid
@@ -490,6 +506,7 @@ pub fn remove_namespaces(
 pub fn update_config(
     deps: DepsMut,
     info: MessageInfo,
+    account_factory_address: Option<String>,
     allow_direct_module_registration_and_updates: Option<bool>,
     namespace_registration_fee: Option<Coin>,
 ) -> VCResult {
@@ -503,7 +520,7 @@ pub fn update_config(
         config.allow_direct_module_registration_and_updates = allow;
         attributes.extend(vec![
             (
-                "previous_allow_direct_module_registration",
+                "previous_allow_direct_module_registration_and_updates",
                 previous_allow.to_string(),
             ),
             (
@@ -518,13 +535,21 @@ pub fn update_config(
         config.namespace_registration_fee = fee.clone();
         attributes.extend(vec![
             (
-                "previous_allow_direct_module_registration",
+                "previous_namespace_registration_fee",
                 format!("{:?}", previous_fee),
             ),
-            (
-                "allow_direct_module_registration_and_updates",
-                fee.to_string(),
-            ),
+            ("namespace_registration_fee", fee.to_string()),
+        ])
+    }
+
+    if let Some(account_factory) = account_factory_address {
+        let previous_addr = config.account_factory_address.clone();
+
+        let addr = deps.api.addr_validate(&account_factory)?;
+        config.account_factory_address = Some(addr);
+        attributes.extend(vec![
+            ("previous_account_factory", format!("{previous_addr:?}")),
+            ("account_factory", account_factory),
         ])
     }
 
@@ -568,20 +593,11 @@ pub fn validate_account_owner(
     Ok(())
 }
 
-pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCResult {
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
-
-    let new_factory_addr = deps.api.addr_validate(&new_admin)?;
-    FACTORY.set(deps, Some(new_factory_addr))?;
-    Ok(Response::new().add_attribute("set_factory", new_admin))
-}
-
 #[cfg(test)]
 mod test {
     use abstract_core::objects::account::AccountTrace;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{from_json, to_json_binary, Addr, Coin};
-    use cw_controllers::AdminError;
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
 
@@ -645,8 +661,10 @@ mod test {
         )?;
         execute_as_admin(
             deps,
-            ExecuteMsg::SetFactory {
-                new_factory: TEST_ACCOUNT_FACTORY.to_string(),
+            ExecuteMsg::UpdateConfig {
+                account_factory_address: Some(TEST_ACCOUNT_FACTORY.to_string()),
+                allow_direct_module_registration_and_updates: None,
+                namespace_registration_fee: None,
             },
         )
     }
@@ -668,8 +686,10 @@ mod test {
         )?;
         execute_as_admin(
             deps.branch(),
-            ExecuteMsg::SetFactory {
-                new_factory: TEST_ACCOUNT_FACTORY.to_string(),
+            ExecuteMsg::UpdateConfig {
+                account_factory_address: Some(TEST_ACCOUNT_FACTORY.to_string()),
+                allow_direct_module_registration_and_updates: None,
+                namespace_registration_fee: None,
             },
         )?;
         execute_as(
@@ -749,8 +769,10 @@ mod test {
 
         #[test]
         fn only_admin_factory() -> VersionControlTestResult {
-            let msg = ExecuteMsg::SetFactory {
-                new_factory: "new_factory".to_string(),
+            let msg = ExecuteMsg::UpdateConfig {
+                account_factory_address: Some("new_factory".to_string()),
+                allow_direct_module_registration_and_updates: None,
+                namespace_registration_fee: None,
             };
             test_only_admin(msg)
         }
@@ -788,14 +810,16 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let new_factory = "new_factory";
-            let msg = ExecuteMsg::SetFactory {
-                new_factory: new_factory.to_string(),
+            let msg = ExecuteMsg::UpdateConfig {
+                account_factory_address: Some(new_factory.to_string()),
+                allow_direct_module_registration_and_updates: None,
+                namespace_registration_fee: None,
             };
 
             let res = execute_as_admin(deps.as_mut(), msg);
             assert_that!(&res).is_ok();
 
-            let actual_factory = FACTORY.get(deps.as_ref())?.unwrap();
+            let actual_factory = CONFIG.load(&deps.storage)?.account_factory_address.unwrap();
 
             assert_that!(&actual_factory).is_equal_to(Addr::unchecked(new_factory));
             Ok(())
@@ -854,6 +878,7 @@ mod test {
             execute_as_admin(
                 deps.as_mut(),
                 ExecuteMsg::UpdateConfig {
+                    account_factory_address: None,
                     allow_direct_module_registration_and_updates: None,
                     namespace_registration_fee: Some(one_namespace_fee.clone()),
                 },
@@ -1050,6 +1075,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateConfig {
+                account_factory_address: None,
                 allow_direct_module_registration_and_updates: Some(false),
                 namespace_registration_fee: None,
             };
@@ -1068,6 +1094,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateConfig {
+                account_factory_address: None,
                 allow_direct_module_registration_and_updates: Some(false),
                 namespace_registration_fee: None,
             };
@@ -1104,6 +1131,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateConfig {
+                account_factory_address: None,
                 allow_direct_module_registration_and_updates: None,
                 namespace_registration_fee: Some(Coin {
                     denom: "ujunox".to_string(),
@@ -1130,6 +1158,7 @@ mod test {
             };
 
             let msg = ExecuteMsg::UpdateConfig {
+                account_factory_address: None,
                 allow_direct_module_registration_and_updates: None,
                 namespace_registration_fee: Some(new_fee.clone()),
             };
@@ -2154,13 +2183,13 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+                .is_equal_to(&VCError::NotAccountFactory {});
 
             // as admin
             let res = execute_as_admin(deps.as_mut(), msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+                .is_equal_to(&VCError::NotAccountFactory {});
 
             // as factory
             execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg)?;
@@ -2208,15 +2237,17 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SetFactory {
-                new_factory: TEST_ACCOUNT_FACTORY.into(),
+            let msg = ExecuteMsg::UpdateConfig {
+                account_factory_address: Some(TEST_ACCOUNT_FACTORY.into()),
+                allow_direct_module_registration_and_updates: None,
+                namespace_registration_fee: None,
             };
 
             test_only_admin(msg.clone())?;
 
             execute_as_admin(deps.as_mut(), msg)?;
-            let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
-            assert_that!(new_factory).is_equal_to(&Some(TEST_ACCOUNT_FACTORY.into()));
+            let new_factory = CONFIG.load(&deps.storage)?.account_factory_address;
+            assert_that!(new_factory).is_equal_to(&Some(Addr::unchecked(TEST_ACCOUNT_FACTORY)));
             Ok(())
         }
     }
