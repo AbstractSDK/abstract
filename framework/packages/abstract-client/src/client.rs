@@ -187,7 +187,7 @@ pub mod test_utils {
             pub fn instantiate_with_id(&self, id: &str) -> AbstractClientResult<Cw20Base<Mock>> {
                 let cw20 = Cw20Base::new(id, self.chain.clone());
 
-                // TODO: Consider adding error if the code-ide is already uploaded. This would
+                // TODO: Consider adding error if the code-id is already uploaded. This would
                 // imply that the user is trying to instantiate twice using the same id which would
                 // overwrite the state.
                 cw20.upload()?;
