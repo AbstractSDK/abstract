@@ -501,7 +501,10 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
 }
 
 // Submessage, Old adapter address, authorized addresses
-type RemoveAdapterAuthorized = (SubMsg, (Addr, Vec<String>));
+pub(crate) struct RemoveAdapterAuthorized {
+    sent_count: u64,
+    sub_msgs: Vec<SubMsg>,
+}
 
 /// Migrate modules through address updates or contract migrations
 /// The dependency store is updated during migration
@@ -518,7 +521,10 @@ pub fn upgrade_modules(
 
     let mut upgrade_msgs = vec![];
 
-    let mut remove_adapter_authorized = vec![];
+    let mut remove_adapter_authorized = RemoveAdapterAuthorized {
+        sent_count: 0,
+        sub_msgs: vec![],
+    };
 
     let mut manager_migrate_info = None;
 
@@ -565,20 +571,18 @@ pub fn upgrade_modules(
     )?;
 
     // Save context
-    let (remove_authorized_submsgs, mut remove_authorized_context): (
-        Vec<SubMsg>,
-        Vec<(Addr, Vec<String>)>,
-    ) = remove_adapter_authorized.into_iter().unzip();
-
-    // reversing for popping it from behind
-    remove_authorized_context.reverse();
-    REMOVE_ADAPTER_AUTHORIZED_CONTEXT.save(deps.storage, &remove_authorized_context)?;
+    // TODO: remove after next patch
+    let RemoveAdapterAuthorized {
+        sent_count,
+        sub_msgs,
+    } = remove_adapter_authorized;
+    REMOVE_ADAPTER_AUTHORIZED_CONTEXT.save(deps.storage, &sent_count)?;
 
     Ok(ManagerResponse::new(
         "upgrade_modules",
         vec![("upgraded_modules", upgraded_module_ids.join(","))],
     )
-    .add_submessages(remove_authorized_submsgs)
+    .add_submessages(sub_msgs)
     .add_messages(upgrade_msgs)
     .add_message(callback_msg))
 }
@@ -588,7 +592,7 @@ pub fn set_migrate_msgs_and_context(
     module_info: ModuleInfo,
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
-    remove_adapter_authorized: &mut Vec<RemoveAdapterAuthorized>,
+    remove_adapter_authorized: &mut RemoveAdapterAuthorized,
 ) -> Result<(), ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     let version_control = VersionControlContract::new(config.version_control_address);
@@ -607,7 +611,12 @@ pub fn set_migrate_msgs_and_context(
                 old_module_addr,
                 new_adapter_addr,
             )?;
-            remove_adapter_authorized.push(remove_authorized_submsg);
+            remove_adapter_authorized
+                .sub_msgs
+                .extend(remove_authorized_submsg);
+            // we send 2 messages, one will succeed and other fail -
+            // so we count down to make sure we get expected amount of failed "updates"
+            remove_adapter_authorized.sent_count += 1;
             msgs
         }
         ModuleReference::App(code_id) => handle_app_migration(
@@ -637,7 +646,7 @@ fn handle_adapter_migration(
     module_info: ModuleInfo,
     old_adapter_addr: Addr,
     new_adapter_addr: Addr,
-) -> ManagerResult<(RemoveAdapterAuthorized, Vec<CosmosMsg>)> {
+) -> ManagerResult<([SubMsg; 2], Vec<CosmosMsg>)> {
     let module_id = module_info.id();
     versioning::assert_migrate_requirements(
         deps.as_ref(),
@@ -715,7 +724,7 @@ pub fn replace_adapter(
     deps: DepsMut,
     new_adapter_addr: Addr,
     old_adapter_addr: Addr,
-) -> Result<(RemoveAdapterAuthorized, Vec<CosmosMsg>), ManagerError> {
+) -> Result<([SubMsg; 2], Vec<CosmosMsg>), ManagerError> {
     let mut msgs = vec![];
     // Makes sure we already have the adapter installed
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
@@ -731,36 +740,38 @@ pub fn replace_adapter(
         .into_iter()
         .map(|addr| addr.into_string())
         .collect();
-    // Remove authorized addresses from old
+    // Remove authorized addresses
     // If removing of authorized addresses on adapter failed - maybe it's old adapter
     // and we need to retry it with old base message
-    let remove_authorized_submsg: SubMsg = SubMsg::reply_always(
+    let remove_authorized_submsg: SubMsg = SubMsg::reply_on_error(
         configure_adapter(
             &old_adapter_addr,
-            BaseExecuteMsg {
-                msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![],
-                    to_remove: authorized_to_migrate.clone(),
-                },
-                proxy_address: None,
+            AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: vec![],
+                to_remove: authorized_to_migrate.clone(),
             },
         )?,
         HANDLE_ADAPTER_AUTHORIZED_REMOVE,
     );
-    let remove_authorized_address = (
-        remove_authorized_submsg,
-        (old_adapter_addr.clone(), authorized_to_migrate.clone()),
+    // If removing of authorized addresses on adapter failed - maybe it's old adapter
+    // and we need to retry it with old base message
+    let remove_old_authorized_submsg: SubMsg = SubMsg::reply_on_error(
+        configure_old_adapter(
+            &old_adapter_addr,
+            AdapterBaseMsg::UpdateAuthorizedAddresses {
+                to_add: vec![],
+                to_remove: authorized_to_migrate.clone(),
+            },
+        )?,
+        HANDLE_ADAPTER_AUTHORIZED_REMOVE,
     );
 
     // Add authorized addresses to new
     msgs.push(configure_adapter(
         &new_adapter_addr,
-        BaseExecuteMsg {
-            msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                to_add: authorized_to_migrate,
-                to_remove: vec![],
-            },
-            proxy_address: None,
+        AdapterBaseMsg::UpdateAuthorizedAddresses {
+            to_add: authorized_to_migrate,
+            to_remove: vec![],
         },
     )?);
     // Remove adapter permissions from proxy
@@ -774,7 +785,10 @@ pub fn replace_adapter(
         vec![new_adapter_addr.into_string()],
     )?);
 
-    Ok((remove_authorized_address, msgs))
+    Ok((
+        [remove_authorized_submsg, remove_old_authorized_submsg],
+        msgs,
+    ))
 }
 
 /// Update the Account information
@@ -961,9 +975,25 @@ fn remove_module_from_proxy(
 #[inline(always)]
 fn configure_adapter(
     adapter_address: impl Into<String>,
-    message: BaseExecuteMsg,
+    message: AdapterBaseMsg,
 ) -> StdResult<CosmosMsg> {
-    let adapter_msg: AdapterExecMsg<Empty> = message.into();
+    let adapter_msg: AdapterExecMsg = BaseExecuteMsg {
+        proxy_address: None,
+        msg: message,
+    }
+    .into();
+    Ok(wasm_execute(adapter_address, &adapter_msg, vec![])?.into())
+}
+
+// TODO: remove after patch
+#[inline(always)]
+fn configure_old_adapter(
+    adapter_address: impl Into<String>,
+    message: AdapterBaseMsg,
+) -> StdResult<CosmosMsg> {
+    type OldAdapterBaseExecuteMsg = abstract_core::base::ExecuteMsg<AdapterBaseMsg, Empty, Empty>;
+
+    let adapter_msg = OldAdapterBaseExecuteMsg::Base(message);
     Ok(wasm_execute(adapter_address, &adapter_msg, vec![])?.into())
 }
 
@@ -1060,23 +1090,13 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
 }
 
 pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> ManagerResult {
-    type OldAdapterBaseExecuteMsg = abstract_core::base::ExecuteMsg<AdapterBaseMsg, Empty, Empty>;
-
-    let mut response = Response::new();
-    let mut adapters = REMOVE_ADAPTER_AUTHORIZED_CONTEXT.load(deps.storage)?;
-    let current_adapter = adapters.pop().unwrap();
-    // if error - try to remove again
-    if result.is_err() {
-        response = response.add_message(wasm_execute(
-            current_adapter.0,
-            &OldAdapterBaseExecuteMsg::Base(AdapterBaseMsg::UpdateAuthorizedAddresses {
-                to_add: vec![],
-                to_remove: current_adapter.1,
-            }),
-            vec![],
-        )?);
-    }
-    Ok(response)
+    REMOVE_ADAPTER_AUTHORIZED_CONTEXT.update(deps.storage, |count| {
+        count
+            .checked_sub(1)
+            // If we got more errors than expected - return errors from now on
+            .ok_or(StdError::generic_err(result.unwrap_err()))
+    })?;
+    Ok(Response::new())
 }
 
 #[cfg(test)]

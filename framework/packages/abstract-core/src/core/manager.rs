@@ -91,8 +91,7 @@ pub mod state {
     /// Pending new governance
     pub const PENDING_GOVERNANCE: Item<GovernanceDetails<Addr>> = Item::new("pgov");
     /// Context for old adapters that are currently removing authorized addresses
-    pub const REMOVE_ADAPTER_AUTHORIZED_CONTEXT: Item<Vec<(Addr, Vec<String>)>> =
-        Item::new("rm_a_auth");
+    pub const REMOVE_ADAPTER_AUTHORIZED_CONTEXT: Item<u64> = Item::new("rm_a_auth");
 }
 
 use self::state::AccountInfo;
