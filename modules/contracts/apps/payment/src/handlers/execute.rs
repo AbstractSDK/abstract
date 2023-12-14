@@ -7,8 +7,8 @@ use abstract_sdk::core::ans_host::AssetPairingFilter;
 use cosmwasm_std::{Addr, Storage, Uint128};
 
 use abstract_sdk::cw_helpers::{AbstractAttributes, Clearable};
-use abstract_sdk::features::{AbstractNameService, AccountIdentification};
-use abstract_sdk::AbstractResponse;
+use abstract_sdk::features::AbstractNameService;
+use abstract_sdk::{AbstractResponse, TransferInterface};
 use cosmwasm_std::{CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response};
 use cw_asset::{Asset, AssetList};
 
