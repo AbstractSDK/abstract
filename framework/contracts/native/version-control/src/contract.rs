@@ -39,6 +39,12 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
         let vc_addr = cosmwasm_std::Addr::from_vec(vc_addr)?;
         CONFIG.update(deps.storage, |mut cfg| {
             cfg.account_factory_address = Some(vc_addr);
+            if let Some(fee) = &cfg.namespace_registration_fee {
+                if fee.amount.is_zero() {
+                    // registration_fee is Option now, but was 0 in previous version
+                    cfg.namespace_registration_fee = None;
+                }
+            }
             VCResult::Ok(cfg)
         })?;
     }
