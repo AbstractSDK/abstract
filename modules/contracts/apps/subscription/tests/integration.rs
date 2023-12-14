@@ -1,12 +1,13 @@
 use std::str::FromStr;
 
-use abstract_client::{application::Application, client::AbstractClient, publisher::Publisher};
-use abstract_core::objects::{
-    gov_type::GovernanceDetails, time_weighted_average::TimeWeightedAverageData,
+use abstract_client::{
+    application::Application,
+    client::{test_utils::cw20_builder, AbstractClient},
+    publisher::Publisher,
 };
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy};
+use abstract_core::objects::time_weighted_average::TimeWeightedAverageData;
 use abstract_subscription::{
-    contract::{interface::SubscriptionInterface, CONTRACT_VERSION},
+    contract::interface::SubscriptionInterface,
     msg::{SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg, SubscriptionQueryMsgFns},
     state::{EmissionType, Subscriber, SubscriptionConfig},
     SubscriptionError,
@@ -15,13 +16,10 @@ use abstract_testing::OWNER;
 
 pub const WEEK_IN_SECONDS: u64 = 7 * 24 * 60 * 60;
 
-use abstract_subscription::contract::SUBSCRIPTION_ID;
-use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
-use cw20_base::msg::QueryMsgFns;
+use cw20_builder::{Cw20Base, Cw20Coin, Cw20ExecuteMsgFns, Cw20QueryMsgFns};
 use cw_asset::{AssetInfo, AssetInfoBase, AssetInfoUnchecked};
-use cw_plus_interface::cw20_base::Cw20Base;
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, deploy::Deploy, prelude::*};
+use cw_orch::{anyhow, prelude::*};
 
 use cosmwasm_std::{coins, Addr, Decimal, StdError, Uint128, Uint64};
 
@@ -30,59 +28,45 @@ const DENOM: &str = "abstr";
 // 3 days
 const INCOME_AVERAGING_PERIOD: Uint64 = Uint64::new(259200);
 
-struct Subscription {
+struct NativeSubscription {
+    client: AbstractClient<Mock>,
+    subscription_app: Application<Mock, SubscriptionInterface<Mock>>,
+    payment_asset: AssetInfo,
+    emission_cw20: Cw20Base<Mock>,
+}
+
+#[allow(dead_code)]
+struct Cw20Subscription {
     client: AbstractClient<Mock>,
     subscription_app: Application<Mock, SubscriptionInterface<Mock>>,
     payment_asset: AssetInfo,
 }
 
-fn deploy_emission(chain: &Mock) -> anyhow::Result<Cw20Base<Mock>> {
-    let emission_cw20 = Cw20Base::new("abstract:emission_cw20", chain.clone());
-    let sender = chain.sender();
-
-    emission_cw20.upload()?;
-    emission_cw20.instantiate(
-        &cw20_base::msg::InstantiateMsg {
-            decimals: 6,
-            mint: None,
-            symbol: "test".to_string(),
-            name: "test".to_string(),
-            initial_balances: vec![Cw20Coin {
-                address: sender.to_string(),
-                amount: Uint128::new(1_000_000),
-            }],
-            marketing: None,
-        },
-        Some(&sender),
-        None,
-    )?;
-    Ok(emission_cw20)
+fn deploy_emission(client: &AbstractClient<Mock>) -> anyhow::Result<Cw20Base<Mock>> {
+    let sender = client.sender();
+    Ok(client
+        .cw20_builder("test", "test", 6)
+        .initial_balance(Cw20Coin {
+            address: sender.to_string(),
+            amount: Uint128::new(1_000_000),
+        })
+        .admin(sender.to_string())
+        .instantiate_with_id("emission_cw20")?)
 }
 
 /// Set up the test environment with the contract installed
-fn setup_cw20() -> anyhow::Result<Subscription> {
+fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
     let client = AbstractClient::builder(OWNER).build()?;
 
     // Deploy factory_token
-    // TODO: Add support to client to create cw20base.
-    let cw20 = Cw20Base::new("abstract:cw20", client.chain().clone());
-
-    cw20.upload()?;
-    cw20.instantiate(
-        &cw20_base::msg::InstantiateMsg {
-            decimals: 6,
-            mint: None,
-            symbol: "test".to_string(),
-            name: "test".to_string(),
-            initial_balances: vec![Cw20Coin {
-                address: OWNER.to_owned(),
-                amount: Uint128::new(1_000_000),
-            }],
-            marketing: None,
-        },
-        Some(&Addr::unchecked(OWNER)),
-        None,
-    )?;
+    let cw20 = client
+        .cw20_builder("test", "test", 6)
+        .initial_balance(Cw20Coin {
+            address: OWNER.to_owned(),
+            amount: Uint128::new(1_000_000),
+        })
+        .admin(OWNER.to_owned())
+        .instantiate_with_id("cw20")?;
 
     let publisher: Publisher<Mock> = client.publisher_builder().build()?;
     publisher.publish_app::<SubscriptionInterface<Mock>>()?;
@@ -100,7 +84,7 @@ fn setup_cw20() -> anyhow::Result<Subscription> {
         &[],
     )?;
 
-    Ok(Subscription {
+    Ok(Cw20Subscription {
         client,
         subscription_app,
         payment_asset: AssetInfo::cw20(cw20_addr),
@@ -108,13 +92,13 @@ fn setup_cw20() -> anyhow::Result<Subscription> {
 }
 
 /// Set up the test environment with the contract installed
-fn setup_native(balances: Vec<(&Addr, &[Coin])>) -> anyhow::Result<Subscription> {
+fn setup_native(balances: Vec<(&Addr, &[Coin])>) -> anyhow::Result<NativeSubscription> {
     let client = AbstractClient::builder(OWNER).balances(balances).build()?;
 
     let publisher: Publisher<Mock> = client.publisher_builder().build()?;
     publisher.publish_app::<SubscriptionInterface<Mock>>()?;
 
-    let emissions = deploy_emission(&client.chain())?;
+    let emissions = deploy_emission(&client)?;
 
     let subscription_app: Application<Mock, SubscriptionInterface<Mock>> = publisher.install_app(
         &SubscriptionInstantiateMsg {
@@ -136,24 +120,25 @@ fn setup_native(balances: Vec<(&Addr, &[Coin])>) -> anyhow::Result<Subscription>
         subscription_app.account().proxy()?.to_string(),
     )?;
 
-    Ok(Subscription {
+    Ok(NativeSubscription {
         client,
         subscription_app,
         payment_asset: AssetInfo::native(DENOM),
+        emission_cw20: emissions,
     })
 }
 
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let Subscription {
-        client,
+    let NativeSubscription {
+        client: _,
         subscription_app,
         payment_asset,
+        emission_cw20,
     } = setup_native(vec![])?;
 
-    let cw20_emis = Cw20Base::new("abstract:emission_cw20", client.chain().clone());
-    let addr = cw20_emis.address()?;
+    let addr = emission_cw20.address()?;
     let config = subscription_app.config()?;
     assert_eq!(
         config,
@@ -168,7 +153,7 @@ fn successful_install() -> anyhow::Result<()> {
         }
     );
 
-    let Subscription {
+    let Cw20Subscription {
         client: _,
         subscription_app,
         payment_asset,
@@ -195,10 +180,11 @@ fn subscribe() -> anyhow::Result<()> {
     let subscriber4 = Addr::unchecked("subscriber4");
 
     let sub_amount = coins(500, DENOM);
-    let Subscription {
+    let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
+        emission_cw20: _,
     } = setup_native(vec![
         (&subscriber1, &sub_amount),
         (&subscriber2, &sub_amount),
@@ -272,10 +258,11 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
     let subscriber1 = Addr::unchecked("subscriber1");
     let subscriber2 = Addr::unchecked("subscriber2");
     let sub_amount = coins(500, DENOM);
-    let Subscription {
+    let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
+        emission_cw20,
     } = setup_native(vec![
         (&subscriber1, &sub_amount),
         (&subscriber2, &sub_amount),
@@ -291,24 +278,22 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
 
     client.wait_seconds(WEEK_IN_SECONDS)?;
 
-    let emis = Cw20Base::new("abstract:emission_cw20", client.chain());
-
     subscription_app.claim_emissions(subscriber1.to_string())?;
     subscription_app.claim_emissions(subscriber2.to_string())?;
     // check balances
-    let balance1 = emis.balance(subscriber1.to_string())?;
+    let balance1 = emission_cw20.balance(subscriber1.to_string())?;
     let total_amount = Decimal::from_str("0.00005")? * Uint128::from(WEEK_IN_SECONDS);
     // 2 users
     let expected_balance = total_amount / Uint128::new(2);
     assert_eq!(balance1.balance, expected_balance);
-    let balance2 = emis.balance(subscriber2.to_string())?;
+    let balance2 = emission_cw20.balance(subscriber2.to_string())?;
     assert_eq!(balance2.balance, expected_balance);
 
     // wait 20 seconds
     client.wait_seconds(20)?;
     // no double-claims
     subscription_app.claim_emissions(subscriber1.to_string())?;
-    let balance = emis.balance(subscriber1.to_string())?;
+    let balance = emission_cw20.balance(subscriber1.to_string())?;
     assert_eq!(balance.balance, expected_balance);
 
     // two weeks -20 seconds because he claimed nothing last time
@@ -317,14 +302,14 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
     subscription_app.claim_emissions(subscriber1.to_string())?;
     subscription_app.claim_emissions(subscriber2.to_string())?;
     // check balances
-    let balance1 = emis.balance(subscriber1.to_string())?;
+    let balance1 = emission_cw20.balance(subscriber1.to_string())?;
     assert_eq!(
         balance1.balance,
         // 3 weeks in total
         expected_balance * Uint128::new(3)
     );
 
-    let balance2 = emis.balance(subscriber2.to_string())?;
+    let balance2 = emission_cw20.balance(subscriber2.to_string())?;
     assert_eq!(balance2.balance, expected_balance * Uint128::new(3));
     Ok(())
 }
@@ -333,10 +318,11 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
 fn claim_emissions_none() -> anyhow::Result<()> {
     let subscriber1 = Addr::unchecked("subscriber1");
     let sub_amount = coins(500, DENOM);
-    let Subscription {
+    let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
+        emission_cw20: _,
     } = setup_native(vec![(&subscriber1, &sub_amount)])?;
 
     subscription_app
@@ -364,16 +350,15 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
     let subscriber2 = Addr::unchecked("subscriber2");
     let sub_amount = coins(500, DENOM);
 
-    let Subscription {
+    let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
+        emission_cw20,
     } = setup_native(vec![
         (&subscriber1, &sub_amount),
         (&subscriber2, &sub_amount),
     ])?;
-
-    let emis = Cw20Base::new("abstract:emission_cw20", client.chain());
 
     subscription_app
         .call_as(&subscription_app.account().manager()?)
@@ -382,7 +367,7 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
             None,
             Some(EmissionType::SecondPerUser(
                 Decimal::from_str("0.00005")?,
-                AssetInfoBase::Cw20(emis.addr_str()?),
+                AssetInfoBase::Cw20(emission_cw20.addr_str()?),
             )),
             None,
         )?;
@@ -397,9 +382,6 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
 
     client.wait_seconds(WEEK_IN_SECONDS)?;
 
-    // TODO: Can we remove this?
-    let emis = Cw20Base::new("abstract:emission_cw20", client.chain());
-
     // Both users claim emissions
     subscription_app.claim_emissions(subscriber1.to_string())?;
     subscription_app.claim_emissions(subscriber2.to_string())?;
@@ -407,18 +389,18 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
     let expected_balance = Decimal::from_str("0.00005")? * Uint128::from(WEEK_IN_SECONDS);
 
     // check balance of user1
-    let balance1 = emis.balance(subscriber1.to_string())?;
+    let balance1 = emission_cw20.balance(subscriber1.to_string())?;
     assert_eq!(balance1.balance, expected_balance);
 
     // check balance of user2
-    let balance2 = emis.balance(subscriber2.to_string())?;
+    let balance2 = emission_cw20.balance(subscriber2.to_string())?;
     assert_eq!(balance2.balance, expected_balance);
 
     // wait 20 seconds
     client.wait_seconds(20)?;
     // no double-claims
     subscription_app.claim_emissions(subscriber1.to_string())?;
-    let balance = emis.balance(subscriber1.to_string())?;
+    let balance = emission_cw20.balance(subscriber1.to_string())?;
     assert_eq!(balance.balance, expected_balance);
 
     // two weeks -20 seconds because he claimed nothing last time
@@ -428,13 +410,13 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
     subscription_app.claim_emissions(subscriber2.to_string())?;
 
     // check balances
-    let balance1 = emis.balance(subscriber1.to_string())?;
+    let balance1 = emission_cw20.balance(subscriber1.to_string())?;
     assert_eq!(
         balance1.balance,
         // tree weeks in total
         expected_balance * Uint128::new(3)
     );
-    let balance2 = emis.balance(subscriber2.to_string())?;
+    let balance2 = emission_cw20.balance(subscriber2.to_string())?;
     assert_eq!(balance2.balance, expected_balance * Uint128::new(3));
 
     Ok(())
@@ -445,10 +427,11 @@ fn claim_emissions_errors() -> anyhow::Result<()> {
     let subscriber1 = Addr::unchecked("subscriber1");
 
     let sub_amount = coins(500, DENOM);
-    let Subscription {
+    let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
+        emission_cw20: _,
     } = setup_native(vec![(&subscriber1, &sub_amount)])?;
 
     // no subs
@@ -488,10 +471,11 @@ fn unsubscribe() -> anyhow::Result<()> {
     // For 4 weeks with few hours
     let sub_amount = coins(90, DENOM);
 
-    let Subscription {
+    let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
+        emission_cw20,
     } = setup_native(vec![(&subscriber1, &sub_amount)])?;
 
     subscription_app
@@ -527,8 +511,7 @@ fn unsubscribe() -> anyhow::Result<()> {
         current_time
     );
 
-    let emis = Cw20Base::new("abstract:emission_cw20", client.chain());
-    let b = emis.balance(subscriber1.to_string())?;
+    let b = emission_cw20.balance(subscriber1.to_string())?;
     // 5 weeks passed until unsubscription
     assert_eq!(
         b.balance,
@@ -550,10 +533,11 @@ fn unsubscribe() -> anyhow::Result<()> {
 fn unsubscribe_part_of_list() -> anyhow::Result<()> {
     let subscriber1 = Addr::unchecked("subscriber1");
     let subscriber2 = Addr::unchecked("subscriber2");
-    let Subscription {
+    let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
+        emission_cw20: _,
     } = setup_native(vec![
         (&subscriber1, &coins(2200, DENOM)),
         (&subscriber2, &coins(220, DENOM)),

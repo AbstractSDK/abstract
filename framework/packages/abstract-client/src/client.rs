@@ -1,5 +1,5 @@
 use abstract_interface::{Abstract, AnsHost, VersionControl};
-use cosmwasm_std::BlockInfo;
+use cosmwasm_std::{Addr, BlockInfo};
 use cw_orch::{deploy::Deploy, prelude::CwEnv};
 
 use crate::{
@@ -60,6 +60,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     pub fn chain(&self) -> Chain {
         self.environment()
+    }
+
+    pub fn sender(&self) -> Addr {
+        self.environment().sender()
     }
 }
 
