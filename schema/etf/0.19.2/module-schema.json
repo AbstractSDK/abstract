@@ -29,7 +29,7 @@
         "description": "Code-id used to create the LP token",
         "type": "integer",
         "format": "uint64",
-        "minimum": 0
+        "minimum": 0.0
       },
       "token_name": {
         "description": "Name of the etf token",

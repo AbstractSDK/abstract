@@ -83,7 +83,9 @@ fn create_one_account() -> AResult {
 
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
-        factory: factory.address()?,
+        account_factory_address: Some(factory.address()?),
+        allow_direct_module_registration_and_updates: true,
+        namespace_registration_fee: Default::default(),
     };
 
     assert_that!(&vc_config).is_equal_to(&expected);
@@ -157,7 +159,9 @@ fn create_two_account_s() -> AResult {
 
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
-        factory: factory.address()?,
+        account_factory_address: Some(factory.address()?),
+        allow_direct_module_registration_and_updates: true,
+        namespace_registration_fee: Default::default(),
     };
 
     assert_that!(&vc_config).is_equal_to(&expected);
@@ -358,7 +362,7 @@ fn create_one_account_with_namespace_fee() -> AResult {
     // Update namespace fee
     let namespace_fee = coin(10, "token");
     chain.set_balance(&sender, vec![namespace_fee.clone()])?;
-    version_control.update_config(None, Some(namespace_fee.clone()))?;
+    version_control.update_config(None, None, Some(namespace_fee.clone()))?;
 
     let namespace_to_claim = "namespace-to-claim";
 
