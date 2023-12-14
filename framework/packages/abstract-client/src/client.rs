@@ -145,7 +145,7 @@ pub mod test_utils {
         }
 
         impl Cw20Builder {
-            /// Creates a new [`Cw20Builder`]. Call [`AbstractClient`] to create.
+            /// Creates a new [`Cw20Builder`]. Call [`crate::client::AbstractClient`] to create.
             pub(crate) fn new(chain: Mock, name: String, symbol: String, decimals: u8) -> Self {
                 Self {
                     chain,
@@ -185,7 +185,7 @@ pub mod test_utils {
             }
 
             pub fn instantiate_with_id(&self, id: &str) -> AbstractClientResult<Cw20Base<Mock>> {
-                let cw20 = Cw20Base::new(format!("abstract:{}", id), self.chain.clone());
+                let cw20 = Cw20Base::new(id, self.chain.clone());
 
                 // TODO: Consider adding error if the code-ide is already uploaded. This would
                 // imply that the user is trying to instantiate twice using the same id which would

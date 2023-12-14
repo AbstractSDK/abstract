@@ -396,7 +396,7 @@ fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
             project: Some(project.to_owned()),
             marketing: Some(marketing.to_owned()),
         })
-        .instantiate_with_id("test_cw20")?;
+        .instantiate_with_id("abstract:test_cw20")?;
 
     let actual_minter_response: cw20_builder::MinterResponse = cw20.minter()?;
     assert_eq!(minter_response, actual_minter_response);
@@ -444,7 +444,7 @@ fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
 
     let cw20: cw20_builder::Cw20Base<Mock> = client
         .cw20_builder(name, symbol, decimals)
-        .instantiate_with_id("test_cw20")?;
+        .instantiate_with_id("abstract:test_cw20")?;
 
     let minter_response = cw20.minter();
     assert!(minter_response.is_err());

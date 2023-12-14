@@ -43,5 +43,3 @@ anyhow.workspace = true
 cosmwasm-schema.workspace = true
 cw-storage-plus.workspace = true
 cw2.workspace = true
-# Cw20 dependencies
-#cw-plus-interface.workspace = true

@@ -51,7 +51,7 @@ fn deploy_emission(client: &AbstractClient<Mock>) -> anyhow::Result<Cw20Base<Moc
             amount: Uint128::new(1_000_000),
         })
         .admin(sender.to_string())
-        .instantiate_with_id("emission_cw20")?)
+        .instantiate_with_id("abstract:emission_cw20")?)
 }
 
 /// Set up the test environment with the contract installed
@@ -66,7 +66,7 @@ fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
             amount: Uint128::new(1_000_000),
         })
         .admin(OWNER.to_owned())
-        .instantiate_with_id("cw20")?;
+        .instantiate_with_id("abstract:cw20")?;
 
     let publisher: Publisher<Mock> = client.publisher_builder().build()?;
     publisher.publish_app::<SubscriptionInterface<Mock>>()?;
