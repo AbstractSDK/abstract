@@ -71,7 +71,6 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 }
 
 #[cfg(test)]
-#[cfg(not(feature = "migration-tests"))]
 mod test {
 
     use abstract_app::mock::interface::MockAppInterface;

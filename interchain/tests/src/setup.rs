@@ -39,7 +39,6 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
 }
 
 #[cfg(test)]
-#[cfg(not(feature = "migration-tests"))]
 pub mod mock_test {
     use abstract_core::{
         ibc_client::QueryMsgFns, ibc_host::QueryMsgFns as _, objects::chain_name::ChainName,

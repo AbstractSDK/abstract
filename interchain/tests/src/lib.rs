@@ -6,6 +6,5 @@ pub mod interchain_accounts;
 
 pub mod setup;
 
-#[cfg(feature = "migration-tests")]
 #[cfg(test)]
 pub mod migrate;
