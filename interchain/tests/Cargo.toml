@@ -3,10 +3,6 @@ name = "abstract-interface-integration-tests"
 version = { workspace = true }
 edition = { workspace = true }
 
-
-[features]
-migration-tests = []
-
 [lib]
 
 
