@@ -67,7 +67,3 @@ abstract-dex-adapter = { workspace = true, features = [
   "wynd",
   "testing",
 ] }
-
-#[patch.crates-io]
-# Update deps to ~0.13.1 after when its released
-#cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/add-mock-querier" }

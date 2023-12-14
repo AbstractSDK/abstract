@@ -52,7 +52,7 @@ pub fn tip(
     }
 
     // forward payment to the proxy contract
-    let forward_payment_msgs = deposited_assets.transfer_msgs(app.proxy_address(deps.as_ref())?)?;
+    let forward_payment_msgs = app.bank(deps.as_ref()).deposit(deposited_assets.to_vec())?;
 
     // resp
     let app_resp = app.tag_response(

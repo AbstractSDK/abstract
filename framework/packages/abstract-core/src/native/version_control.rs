@@ -144,13 +144,13 @@ pub enum ExecuteMsg {
         account_base: AccountBase,
         namespace: Option<String>,
     },
-    /// Updates configuration of the VC contract. Available Config :
-    /// 1. Address of the account factory
-    /// 2. Whether the contract allows direct module registration
-    /// 3. the number of namespaces an Account can claim
+    /// Updates configuration of the VC contract
     UpdateConfig {
+        /// Address of the account factory
         account_factory_address: Option<String>,
+        /// Whether the contract allows direct module registration
         allow_direct_module_registration_and_updates: Option<bool>,
+        /// The fee charged when registering a namespace
         namespace_registration_fee: Option<Clearable<Coin>>,
     },
 }
