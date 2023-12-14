@@ -13,7 +13,7 @@ keywords.workspace = true
 
 [features]
 default = ["test-utils"]
-test-utils = ["cw-asset"]
+test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
 
 [dependencies]
 cosmwasm-std.workspace = true
@@ -28,6 +28,11 @@ cw-ownable.workspace = true
 # Used for test-utils feature
 cw-asset = { workspace = true, optional = true }
 
+# For Cw20 builder
+cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", optional = true }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", optional = true, features = ["interface"] }
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", optional = true, features = ["interface"] }
+
 [dev-dependencies]
 abstract-testing.workspace = true
 abstract-client = { path = ".", features = ["test-utils"] }
@@ -38,3 +43,5 @@ anyhow.workspace = true
 cosmwasm-schema.workspace = true
 cw-storage-plus.workspace = true
 cw2.workspace = true
+# Cw20 dependencies
+#cw-plus-interface.workspace = true
