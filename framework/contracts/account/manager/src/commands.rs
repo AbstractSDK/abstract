@@ -587,7 +587,7 @@ pub fn upgrade_modules(
     .add_message(callback_msg))
 }
 
-pub fn set_migrate_msgs_and_context(
+pub(crate) fn set_migrate_msgs_and_context(
     deps: DepsMut,
     module_info: ModuleInfo,
     migrate_msg: Option<Binary>,
