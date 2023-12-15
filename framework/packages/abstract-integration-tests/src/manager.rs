@@ -333,7 +333,6 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
         .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
-    dbg!(manager.addr_str()?);
     // install adapter 1
     let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
     account.expect_modules(vec![adapter1.clone()])?;
