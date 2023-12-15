@@ -1,4 +1,4 @@
-workspaces := "./framework ./modules ./app-template"
+workspaces := "./framework ./modules ./app-template ./interchain"
 
 # Pull a specific repo from its main remote
 pull repo:
@@ -17,6 +17,9 @@ cargo-all *command:
     (cd $path; cargo {{command}}); 
   done
   set +e
+
+test-all:
+  just cargo-all test
 
 check path:
     (cd {{path}}; cargo check)

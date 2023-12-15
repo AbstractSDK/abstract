@@ -33,7 +33,6 @@ pub struct VcResponse;
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let to_version: Version = CONTRACT_VERSION.parse()?;
 
-    // TODO: test it in migration tests
     let vc_addr_raw = deps.storage.get(b"fac");
     if let Some(vc_addr) = vc_addr_raw {
         let vc_addr = cosmwasm_std::Addr::from_vec(vc_addr)?;

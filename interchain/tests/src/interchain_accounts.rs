@@ -77,6 +77,7 @@ mod test {
     use abstract_app::mock::MockInitMsg;
     use abstract_app::mock::MockQueryMsgFns;
     use abstract_app::mock::ReceivedIbcCallbackStatus;
+    use abstract_app::mock::mock_app_dependency::interface::MockAppDependencyInterface;
     use abstract_core::ibc::CallbackInfo;
     use abstract_core::ibc_client::AccountResponse;
     use abstract_core::ibc_host::ExecuteMsg as HostExecuteMsg;
@@ -95,6 +96,8 @@ mod test {
     use abstract_interface::DeployStrategy;
     use abstract_interface::VCExecFns;
     use abstract_interface::{ManagerExecFns, ManagerQueryFns};
+    use abstract_testing::addresses::TEST_DEPENDENCY_MODULE_ID;
+    use abstract_testing::addresses::TEST_DEPENDENCY_NAMESPACE;
     use abstract_testing::prelude::TEST_MODULE_ID;
     use abstract_testing::prelude::TEST_NAMESPACE;
     use abstract_testing::prelude::TEST_VERSION;
@@ -208,6 +211,9 @@ mod test {
             TEST_MODULE_ID,
             abstr_origin.version_control.get_chain().clone(),
         );
+
+        let app_dep = MockAppDependencyInterface::new(TEST_DEPENDENCY_MODULE_ID, abstr_origin.version_control.get_chain().clone());
+        
         let app_account =
             abstr_origin
                 .account_factory
@@ -219,12 +225,30 @@ mod test {
                         .into_string(),
                 })?;
 
+        let app_deps_account =
+                abstr_origin
+                    .account_factory
+                    .create_default_account(GovernanceDetails::Monarchy {
+                        monarch: abstr_origin
+                            .version_control
+                            .get_chain()
+                            .sender()
+                            .into_string(),
+                    })?;
+
         abstr_origin.version_control.claim_namespace(
             app_account.manager.config()?.account_id,
             TEST_NAMESPACE.to_owned(),
         )?;
+        abstr_origin.version_control.claim_namespace(
+            app_deps_account.manager.config()?.account_id,
+            TEST_DEPENDENCY_NAMESPACE.to_owned(),
+        )?;
+        
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
+        app_dep.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
+        origin_account.install_app(&app_dep, &MockInitMsg {}, None)?;
         origin_account.install_app(&app, &MockInitMsg {}, None)?;
         let res: ModuleAddressesResponse = origin_account
             .manager
