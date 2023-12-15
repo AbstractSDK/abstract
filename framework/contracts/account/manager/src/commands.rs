@@ -500,7 +500,7 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
     Ok(msgs)
 }
 
-// Submessage, Old adapter address, authorized addresses
+// How many adapters removed, list of submessages
 pub(crate) struct RemoveAdapterAuthorized {
     sent_count: u64,
     sub_msgs: Vec<SubMsg>,
