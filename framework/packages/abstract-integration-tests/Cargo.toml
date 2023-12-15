@@ -1,0 +1,26 @@
+[package]
+name = "abstract-integration-tests"
+version = "0.20.0-rc.1"
+edition = { workspace = true }
+license = { workspace = true }
+description = "Package with environment-agnonstic tests"
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+abstract-interface = { workspace = true }
+abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-adapter = { workspace = true, features = ["test-utils"] }
+abstract-manager = { path = "../../contracts/account/manager" }
+semver = { workspace = true }
+
+cw-ownable = { workspace = true }
+cw-orch = { workspace = true }
+log = "0.4.14"
+speculoos = { workspace = true }
+abstract-core.workspace = true
+abstract-sdk.workspace = true
+anyhow.workspace = true
+abstract-testing.workspace = true
+cosmwasm-schema = { workspace = true }
+cw2 = { workspace = true }
+cw-asset = { workspace = true }

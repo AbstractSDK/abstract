@@ -20,7 +20,7 @@ fn full_deploy() -> anyhow::Result<()> {
 
     let deployment = Abstract::<Daemon>::get_all_deployed_chains();
     // let networks: Vec<ChainInfo> = deployment.iter().map(|n| parse_network(n)).collect();
-    let networks: Vec<ChainInfo> = vec![parse_network("osmosis-1")];
+    let networks: Vec<ChainInfo> = vec![parse_network("osmosis-1").unwrap()];
 
     for network in networks {
         let chain = DaemonBuilder::default()

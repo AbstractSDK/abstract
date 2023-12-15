@@ -11,41 +11,26 @@ use abstract_core::{
         module::{ModuleInfo, ModuleVersion, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
-        AccountId,
     },
     version_control::UpdateModule,
     AbstractError,
 };
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns, Manager,
+    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
     ManagerExecFns, ManagerQueryFns, VCExecFns,
 };
+
+use abstract_integration_tests::{install_module_version, mock_modules::*};
 
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 
-use common::mock_modules::*;
 use common::{create_default_account, AResult};
-use cosmwasm_std::{coin, coins, to_json_binary, Uint128};
+use cosmwasm_std::{coin, to_json_binary};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
-
-fn install_module_version(
-    manager: &Manager<Mock>,
-    module: &str,
-    version: &str,
-) -> anyhow::Result<String> {
-    manager.install_module_version(
-        module,
-        ModuleVersion::Version(version.to_string()),
-        Some(&MockInitMsg),
-        None,
-    )?;
-
-    Ok(manager.module_info(module)?.unwrap().address.to_string())
-}
 
 #[test]
 fn install_app_successful() -> AResult {
@@ -288,84 +273,19 @@ fn upgrade_app() -> AResult {
 fn uninstall_modules() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy: _ } = &account;
-    abstr
-        .version_control
-        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
-    deploy_modules(&chain);
-
-    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
-    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
-    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
-    account.expect_modules(vec![adapter1, adapter2, app1])?;
-
-    let res = manager.uninstall_module(adapter_1::MOCK_ADAPTER_ID.to_string());
-    // fails because app is depends on adapter 1
-    assert_that!(res.unwrap_err().root().to_string())
-        .contains(ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
-    // same for adapter 2
-    let res = manager.uninstall_module(adapter_2::MOCK_ADAPTER_ID.to_string());
-    assert_that!(res.unwrap_err().root().to_string())
-        .contains(ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
-
-    // we can only uninstall if the app is uninstalled first
-    manager.uninstall_module(app_1::MOCK_APP_ID.to_string())?;
-    // now we can uninstall adapter 1
-    manager.uninstall_module(adapter_1::MOCK_ADAPTER_ID.to_string())?;
-    // and adapter 2
-    manager.uninstall_module(adapter_2::MOCK_ADAPTER_ID.to_string())?;
-    Ok(())
+    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    abstract_integration_tests::manager::uninstall_modules(chain)
 }
 
 #[test]
 fn update_adapter_with_authorized_addrs() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy } = &account;
-    abstr
-        .version_control
-        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
-    deploy_modules(&chain);
-
-    // install adapter 1
-    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
-    account.expect_modules(vec![adapter1.clone()])?;
-
-    // register an authorized address on Adapter 1
-    let authorizee = "authorizee";
-    manager.update_adapter_authorized_addresses(
-        adapter_1::MOCK_ADAPTER_ID,
-        vec![authorizee.to_string()],
-        vec![],
-    )?;
-
-    // upgrade adapter 1 to version 2
-    manager.upgrade_module(
-        adapter_1::MOCK_ADAPTER_ID,
-        &app::MigrateMsg {
-            base: app::BaseMigrateMsg {},
-            module: Empty {},
-        },
-    )?;
-    use abstract_core::manager::QueryMsgFns as _;
-    let adapter_v2 = manager.module_addresses(vec![adapter_1::MOCK_ADAPTER_ID.into()])?;
-    // assert that the address actually changed
-    assert_that!(adapter_v2.modules[0].1).is_not_equal_to(Addr::unchecked(adapter1.clone()));
-
-    let adapter = adapter_1::BootMockAdapter1V2::new_test(chain);
-    use abstract_core::adapter::BaseQueryMsgFns as _;
-    let authorized = adapter.authorized_addresses(proxy.addr_str()?)?;
-    assert_that!(authorized.addresses).contains(Addr::unchecked(authorizee));
-
-    // assert that authorized address was removed from old Adapter
-    adapter.set_address(&Addr::unchecked(adapter1));
-    let authorized = adapter.authorized_addresses(proxy.addr_str()?)?;
-    assert_that!(authorized.addresses).is_empty();
-    Ok(())
+    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    abstract_integration_tests::manager::update_adapter_with_authorized_addrs(
+        chain,
+        Addr::unchecked("authorizee"),
+    )
 }
 
 /*#[test]
@@ -567,83 +487,8 @@ fn create_account_with_installed_module() -> AResult {
 fn create_sub_account_with_installed_module() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-
-    let factory = &deployment.account_factory;
-
-    let _deployer_acc = factory.create_new_account(
-        AccountDetails {
-            name: String::from("first_account"),
-            description: Some(String::from("account_description")),
-            link: Some(String::from("https://account_link_of_at_least_11_char")),
-            namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
-            install_modules: vec![],
-        },
-        GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
-        },
-        None,
-    )?;
-    deploy_modules(&chain);
-
-    _deployer_acc.manager.create_sub_account(
-        vec![
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id(
-                    adapter_1::MOCK_ADAPTER_ID,
-                    ModuleVersion::Version(V1.to_owned()),
-                )?,
-                None,
-            ),
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id(
-                    adapter_2::MOCK_ADAPTER_ID,
-                    ModuleVersion::Version(V1.to_owned()),
-                )?,
-                None,
-            ),
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                Some(to_json_binary(&MockInitMsg)?),
-            ),
-        ],
-        String::from("sub_account"),
-        None,
-        Some(String::from("account_description")),
-        None,
-        None,
-        &[],
-    )?;
-
-    let account = AbstractAccount::new(&deployment, AccountId::local(2));
-
-    // Make sure all installed
-    let account_module_versions = account.manager.module_versions(vec![
-        String::from(adapter_1::MOCK_ADAPTER_ID),
-        String::from(adapter_2::MOCK_ADAPTER_ID),
-        String::from(app_1::MOCK_APP_ID),
-    ])?;
-    assert_eq!(
-        account_module_versions,
-        ModuleVersionsResponse {
-            versions: vec![
-                ContractVersion {
-                    contract: String::from(adapter_1::MOCK_ADAPTER_ID),
-                    version: String::from(V1)
-                },
-                ContractVersion {
-                    contract: String::from(adapter_2::MOCK_ADAPTER_ID),
-                    version: String::from(V1)
-                },
-                ContractVersion {
-                    contract: String::from(app_1::MOCK_APP_ID),
-                    version: String::from(V1)
-                }
-            ]
-        }
-    );
-    Ok(())
+    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    abstract_integration_tests::manager::create_sub_account_with_modules_installed(chain)
 }
 
 #[test]
@@ -1052,146 +897,8 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
 fn create_account_with_installed_module_monetization_and_init_funds() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
-    // Adding coins to fill monetization
-    chain.add_balance(&sender, vec![coin(18, "coin1"), coin(20, "coin2")])?;
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-
-    let factory = &deployment.account_factory;
-
-    let _deployer_acc = factory.create_new_account(
-        AccountDetails {
-            name: String::from("first_account"),
-            description: Some(String::from("account_description")),
-            link: Some(String::from("https://account_link_of_at_least_11_char")),
-            namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
-            install_modules: vec![],
-        },
-        GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
-        },
-        None,
-    )?;
-    deploy_modules(&chain);
-
-    let standalone_contract = Box::new(ContractWrapper::new(
-        standalone_cw2::mock_execute,
-        standalone_cw2::mock_instantiate,
-        standalone_cw2::mock_query,
-    ));
-    let standalone_id = chain.app.borrow_mut().store_code(standalone_contract);
-
-    deployment.version_control.propose_modules(vec![(
-        ModuleInfo {
-            namespace: Namespace::new("tester")?,
-            name: "standalone".to_owned(),
-            version: ModuleVersion::Version(V1.to_owned()),
-        },
-        ModuleReference::Standalone(standalone_id),
-    )])?;
-
-    // Add init_funds
-    deployment.version_control.update_module_configuration(
-        "mock-app1".to_owned(),
-        Namespace::new("tester").unwrap(),
-        UpdateModule::Versioned {
-            version: V1.to_owned(),
-            metadata: None,
-            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(10, "coin2")))),
-            instantiation_funds: Some(vec![coin(3, "coin1"), coin(5, "coin2")]),
-        },
-    )?;
-    deployment.version_control.update_module_configuration(
-        "standalone".to_owned(),
-        Namespace::new("tester").unwrap(),
-        UpdateModule::Versioned {
-            version: V1.to_owned(),
-            metadata: None,
-            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(8, "coin1")))),
-            instantiation_funds: Some(vec![coin(6, "coin1")]),
-        },
-    )?;
-
-    // Check how much we need
-    let simulate_response = deployment.module_factory.simulate_install_modules(vec![
-        ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
-        ModuleInfo::from_id(adapter_2::MOCK_ADAPTER_ID, V1.into()).unwrap(),
-        ModuleInfo::from_id(app_1::MOCK_APP_ID, V1.into()).unwrap(),
-        ModuleInfo {
-            namespace: Namespace::new("tester")?,
-            name: "standalone".to_owned(),
-            version: V1.into(),
-        },
-    ])?;
-    assert_eq!(
-        simulate_response,
-        SimulateInstallModulesResponse {
-            total_required_funds: vec![coin(17, "coin1"), coin(15, "coin2")],
-            monetization_funds: vec![
-                (app_1::MOCK_APP_ID.to_string(), coin(10, "coin2")),
-                ("tester:standalone".to_string(), coin(8, "coin1"))
-            ],
-            initialization_funds: vec![
-                (
-                    app_1::MOCK_APP_ID.to_string(),
-                    vec![coin(3, "coin1"), coin(5, "coin2")]
-                ),
-                ("tester:standalone".to_string(), vec![coin(6, "coin1")]),
-            ],
-        }
-    );
-
-    let account = factory
-        .create_new_account(
-            AccountDetails {
-                name: String::from("second_account"),
-                description: None,
-                link: None,
-                namespace: None,
-                base_asset: None,
-                install_modules: vec![
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            adapter_1::MOCK_ADAPTER_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        None,
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            adapter_2::MOCK_ADAPTER_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        None,
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo::from_id(
-                            app_1::MOCK_APP_ID,
-                            ModuleVersion::Version(V1.to_owned()),
-                        )?,
-                        Some(to_json_binary(&MockInitMsg)?),
-                    ),
-                    ModuleInstallConfig::new(
-                        ModuleInfo {
-                            namespace: Namespace::new("tester")?,
-                            name: "standalone".to_owned(),
-                            version: V1.into(),
-                        },
-                        Some(to_json_binary(&MockInitMsg)?),
-                    ),
-                ],
-            },
-            GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
-            },
-            // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
-            Some(&[coin(18, "coin1"), coin(20, "coin2")]),
-        )
-        .unwrap();
-    let balances = chain.query_all_balances(&account.proxy.address()?)?;
-    assert_eq!(balances, vec![coin(1, "coin1"), coin(5, "coin2")]);
-    // Make sure all installed
-    Ok(())
+    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    abstract_integration_tests::manager::create_account_with_installed_module_monetization_and_init_funds(chain, ("coin1", "coin2"))
 }
 
 // See gen_app_mock for more details
@@ -1199,30 +906,8 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
 fn install_app_with_proxy_action() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy } = &account;
-    abstr
-        .version_control
-        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
-    deploy_modules(&chain);
-
-    // install adapter 1
-    let adapter1 = install_module_version(manager, adapter_1::MOCK_ADAPTER_ID, V1)?;
-
-    // install adapter 2
-    let adapter2 = install_module_version(manager, adapter_2::MOCK_ADAPTER_ID, V1)?;
-
-    // Add balance to proxy so
-    // app will transfer funds to test addr during instantiation
-    chain.add_balance(&proxy.address()?, coins(123456, "TEST"))?;
-    let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
-
-    let test_addr_balance = chain.query_balance(&Addr::unchecked("test_addr"), "TEST")?;
-    assert_eq!(test_addr_balance, Uint128::new(123456));
-
-    account.expect_modules(vec![adapter1, adapter2, app1])?;
-    Ok(())
+    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    abstract_integration_tests::manager::install_app_with_proxy_action(chain)
 }
 
 // TODO:

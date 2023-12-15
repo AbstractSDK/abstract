@@ -36,3 +36,4 @@ abstract-interface = { path = "../../packages/abstract-interface", version = "0.
 cosmwasm-schema = { workspace = true }
 speculoos = { workspace = true }
 abstract-app = { path = ".", features = ["test-utils"] }
+abstract-integration-tests = { workspace = true }

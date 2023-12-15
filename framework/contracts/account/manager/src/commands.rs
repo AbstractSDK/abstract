@@ -290,6 +290,8 @@ pub fn create_sub_account(
     .reference
     .unwrap_native()?;
 
+    println!("afa: {account_factory_addr}");
+
     // Call factory and attach all funds that were provided.
     let account_creation_message =
         wasm_execute(account_factory_addr, create_account_msg, msg_info.funds)?;

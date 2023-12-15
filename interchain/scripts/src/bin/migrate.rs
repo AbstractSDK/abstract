@@ -23,7 +23,7 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         let deployment = Abstract::load_from(chain)?;
 
-        deployment.migrate()?;
+        deployment.migrate_if_needed()?;
     }
     Ok(())
 }
@@ -45,7 +45,7 @@ fn main() {
     let networks = args
         .network_ids
         .iter()
-        .map(|n| parse_network(n))
+        .map(|n| parse_network(n).unwrap())
         .collect::<Vec<_>>();
 
     if let Err(ref err) = migrate(networks) {
