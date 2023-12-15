@@ -39,7 +39,8 @@ jobs:
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./interchain
         run: cargo generate-lockfile
+      - uses: taiki-e/install-action@nextest
       # https://twitter.com/jonhoo/status/1571290371124260865
       - name: cargo test --locked
         working-directory: ./interchain
-        run: cargo test --locked -- --test-threads=1
+        run: cargo nextest run --test-threads 1 --retries 3
