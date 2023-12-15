@@ -30,8 +30,12 @@ cw-asset = { workspace = true, optional = true }
 
 # For Cw20 builder
 cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", optional = true }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", optional = true, features = ["interface"] }
-cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", optional = true, features = ["interface"] }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", optional = true, features = [
+  "interface",
+] }
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", optional = true, features = [
+  "interface",
+] }
 
 [dev-dependencies]
 abstract-testing.workspace = true
