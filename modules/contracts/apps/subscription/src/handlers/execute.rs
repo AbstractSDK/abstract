@@ -318,7 +318,7 @@ pub fn update_subscription_config(
             subscription_per_second_emissions.check(deps.api)?;
     }
 
-    if let Some(clearable_hook_addr) = unsubscription_hook_addr {
+    if let Some(clearable_hook_addr) = unsubscribe_hook_addr {
         config.unsubscribe_hook_addr = clearable_hook_addr.check(deps.api)?.into();
     }
 
