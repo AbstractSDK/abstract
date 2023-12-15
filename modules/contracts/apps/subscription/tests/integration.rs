@@ -79,7 +79,7 @@ fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
             subscription_per_second_emissions: EmissionType::None,
             // 3 days
             income_averaging_period: INCOME_AVERAGING_PERIOD,
-            unsubscription_hook_addr: None,
+            unsubscribe_hook_addr: None,
         },
         &[],
     )?;
@@ -110,7 +110,7 @@ fn setup_native(balances: Vec<(&Addr, &[Coin])>) -> anyhow::Result<NativeSubscri
                 AssetInfoBase::Cw20(emissions.addr_str()?),
             ),
             income_averaging_period: INCOME_AVERAGING_PERIOD,
-            unsubscription_hook_addr: None,
+            unsubscribe_hook_addr: None,
         },
         &[],
     )?;
@@ -149,7 +149,7 @@ fn successful_install() -> anyhow::Result<()> {
                 Decimal::from_str("0.00005")?,
                 AssetInfoBase::Cw20(addr)
             ),
-            unsubscription_hook_addr: None
+            unsubscribe_hook_addr: None
         }
     );
 
@@ -166,7 +166,7 @@ fn successful_install() -> anyhow::Result<()> {
             payment_asset,
             subscription_cost_per_second: Decimal::from_str("0.000037")?,
             subscription_per_second_emissions: EmissionType::None,
-            unsubscription_hook_addr: None
+            unsubscribe_hook_addr: None
         }
     );
     Ok(())
@@ -512,7 +512,7 @@ fn unsubscribe() -> anyhow::Result<()> {
     );
 
     let b = emission_cw20.balance(subscriber1.to_string())?;
-    // 5 weeks passed until unsubscription
+    // 5 weeks passed until unsubscribe
     assert_eq!(
         b.balance,
         Decimal::from_str("0.00005")? * Uint128::from(WEEK_IN_SECONDS * 5)

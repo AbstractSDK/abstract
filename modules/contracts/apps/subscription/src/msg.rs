@@ -56,7 +56,7 @@ pub struct SubscriptionInstantiateMsg {
     /// How often update income average
     pub income_averaging_period: Uint64,
     /// Unsubscription hook addr to send [unsubscribe message](`crate::msg::UnsubscribedHookMsg`)
-    pub unsubscription_hook_addr: Option<String>,
+    pub unsubscribe_hook_addr: Option<String>,
 }
 
 /// App execution messages
@@ -89,9 +89,9 @@ pub enum SubscriptionExecuteMsg {
         subscription_cost_per_second: Option<Decimal>,
         /// Subscription emissions per second
         subscription_per_second_emissions: Option<EmissionType<String>>,
-        /// New unsubscription hook addr
+        /// New unsubscribe hook addr
         /// TODO: do we need to have option to disable it?
-        unsubscription_hook_addr: Option<String>,
+        unsubscribe_hook_addr: Option<String>,
     },
     /// Refresh TWA value
     RefreshTWA {},
