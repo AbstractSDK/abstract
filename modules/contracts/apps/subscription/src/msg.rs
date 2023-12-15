@@ -30,6 +30,7 @@
 
 use super::state::{EmissionType, Subscriber, SubscriptionConfig, SubscriptionState};
 use crate::contract::SubscriptionApp;
+use abstract_sdk::cw_helpers::Clearable;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{to_json_binary, Addr, Binary, CosmosMsg, Decimal, StdResult, Uint64, WasmMsg};
 use cw_asset::{Asset, AssetInfoUnchecked};
@@ -89,9 +90,8 @@ pub enum SubscriptionExecuteMsg {
         subscription_cost_per_second: Option<Decimal>,
         /// Subscription emissions per second
         subscription_per_second_emissions: Option<EmissionType<String>>,
-        /// New unsubscribe hook addr
-        /// TODO: do we need to have option to disable it?
-        unsubscribe_hook_addr: Option<String>,
+        /// New unsubscribe_hook_addr hook addr
+        unsubscribe_hook_addr: Option<Clearable<String>>,
     },
     /// Refresh TWA value
     RefreshTWA {},

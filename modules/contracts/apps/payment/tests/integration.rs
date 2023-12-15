@@ -6,6 +6,7 @@ use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg};
 use abstract_interface::{
     Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, VCExecFns,
 };
+use abstract_sdk::cw_helpers::Clearable;
 use abstract_testing::OWNER;
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
 use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
@@ -131,7 +132,7 @@ fn test_update_config() -> anyhow::Result<()> {
 
     app.call_as(&account.manager.address()?).update_config(
         Some("Ye-uh-roah".to_owned()),
-        Some(AssetEntry::new(&new_target_currency)),
+        Clearable::new_opt(AssetEntry::new(&new_target_currency)),
         Some(vec![dex_name.clone()]),
     )?;
 

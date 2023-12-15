@@ -38,10 +38,23 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     if let Some(vc_addr) = vc_addr_raw {
         let vc_addr = cosmwasm_std::Addr::from_vec(vc_addr)?;
         CONFIG.update(deps.storage, |mut cfg| {
+            // Save factory address to a new place
             cfg.account_factory_address = Some(vc_addr);
+            // Check if fee requires in migration
+            if cfg
+                .namespace_registration_fee
+                .as_ref()
+                .map(|fee| fee.amount.is_zero())
+                .unwrap_or(false)
+            {
+                // registration_fee is Option now, but was 0 in previous version
+                cfg.namespace_registration_fee = None;
+            }
             VCResult::Ok(cfg)
         })?;
     }
+    // Remove old factory
+    deps.storage.remove(b"fac");
 
     assert_cw_contract_upgrade(deps.storage, VERSION_CONTROL, to_version)?;
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
@@ -65,7 +78,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
             account_factory_address: None,
             allow_direct_module_registration_and_updates:
                 allow_direct_module_registration_and_updates.unwrap_or(false),
-            namespace_registration_fee: namespace_registration_fee.unwrap_or_default(),
+            namespace_registration_fee,
         },
     )?;
 

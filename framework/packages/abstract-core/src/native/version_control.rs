@@ -15,7 +15,7 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 pub struct Config {
     pub account_factory_address: Option<Addr>,
     pub allow_direct_module_registration_and_updates: bool,
-    pub namespace_registration_fee: Coin,
+    pub namespace_registration_fee: Option<Coin>,
 }
 
 pub mod state {
@@ -76,6 +76,7 @@ use crate::objects::{
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Coin, Storage};
 
+use cw_clearable::Clearable;
 use cw_storage_plus::{Index, IndexList, IndexedMap, MultiIndex};
 
 use self::state::{MODULE_CONFIG, MODULE_DEFAULT_CONFIG};
@@ -150,7 +151,7 @@ pub enum ExecuteMsg {
         /// Whether the contract allows direct module registration
         allow_direct_module_registration_and_updates: Option<bool>,
         /// The fee charged when registering a namespace
-        namespace_registration_fee: Option<Coin>,
+        namespace_registration_fee: Option<Clearable<Coin>>,
     },
 }
 
@@ -317,7 +318,7 @@ pub struct NamespaceListResponse {
 pub struct ConfigResponse {
     pub account_factory_address: Option<Addr>,
     pub allow_direct_module_registration_and_updates: bool,
-    pub namespace_registration_fee: Coin,
+    pub namespace_registration_fee: Option<Coin>,
 }
 
 #[cosmwasm_schema::cw_serde]
