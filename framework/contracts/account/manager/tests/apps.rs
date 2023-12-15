@@ -89,7 +89,7 @@ fn account_app_ownership() -> AResult {
 
     let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    account.install_app(&app, &MockInitMsg, None)?;
+    account.install_app(&app, &MockInitMsg {}, None)?;
 
     let admin_res: AdminResponse =
         app.query(&mock::QueryMsg::Base(app::BaseQueryMsg::BaseAdmin {}))?;

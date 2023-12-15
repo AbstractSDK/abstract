@@ -3,7 +3,7 @@ use crate::{
     error::AppError,
     handlers,
     msg::{AppExecuteMsg, AppInstantiateMsg, AppQueryMsg},
-    replies::{self},
+    replies,
 };
 use abstract_app::AppContract;
 use cosmwasm_std::{Empty, Response};
@@ -34,3 +34,10 @@ abstract_app::export_endpoints!(CRONCAT_APP, CroncatApp);
 
 #[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(CRONCAT_APP, CroncatApp, Croncat);
+
+#[cfg(feature = "interface")]
+impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
+    for crate::Croncat<Chain>
+{
+    type DependenciesConfig = Empty;
+}

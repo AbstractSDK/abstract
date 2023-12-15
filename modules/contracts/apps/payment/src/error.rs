@@ -28,4 +28,10 @@ pub enum AppError {
 
     #[error("Tipper does not exist")]
     TipperDoesNotExist {},
+
+    #[error("Desired asset does not exist on Abstract Name Service")]
+    DesiredAssetDoesNotExist {},
+
+    #[error("Dex {0} is not registered on Abstract Name Service")]
+    DexNotRegistered(String),
 }

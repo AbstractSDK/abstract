@@ -20,7 +20,7 @@ mod tests {
         let info = mock_info("sender", &[]);
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
-        let msg = MockReceiveMsg;
+        let msg = MockReceiveMsg {};
         let res = execute(deps.as_mut(), env, info, ExecuteMsg::Receive(msg))?;
         assert_that!(&res.messages.len()).is_equal_to(0);
         // confirm data is set

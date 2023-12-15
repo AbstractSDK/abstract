@@ -19,20 +19,20 @@
       "description": "custom migrate msg",
       "allOf": [
         {
-          "$ref": "#/definitions/AppMigrateMsg"
+          "$ref": "#/definitions/CalendarMigrateMsg"
         }
       ]
     }
   },
   "additionalProperties": false,
   "definitions": {
-    "AppMigrateMsg": {
-      "type": "string",
-      "enum": []
-    },
     "BaseMigrateMsg": {
       "type": "object",
       "additionalProperties": false
+    },
+    "CalendarMigrateMsg": {
+      "type": "string",
+      "enum": []
     }
   }
 }

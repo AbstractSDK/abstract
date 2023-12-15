@@ -173,11 +173,7 @@ impl VersionControlContract {
         querier: &QuerierWrapper,
     ) -> VersionControlResult<Option<cosmwasm_std::Coin>> {
         let config = CONFIG.query(querier, self.address.clone())?;
-        if config.namespace_registration_fee.amount.is_zero() {
-            Ok(None)
-        } else {
-            Ok(Some(config.namespace_registration_fee))
-        }
+        Ok(config.namespace_registration_fee)
     }
 
     /// Verify if the provided manager address is indeed a user.

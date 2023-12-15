@@ -8,13 +8,27 @@
     "type": "object",
     "required": [
       "account_id",
-      "ans_host_address"
+      "ans_host_address",
+      "manager_addr"
     ],
     "properties": {
       "account_id": {
         "$ref": "#/definitions/AccountId"
       },
       "ans_host_address": {
+        "type": "string"
+      },
+      "base_asset": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/AssetEntry"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "manager_addr": {
         "type": "string"
       }
     },
@@ -70,6 +84,10 @@
             "additionalProperties": false
           }
         ]
+      },
+      "AssetEntry": {
+        "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+        "type": "string"
       },
       "ChainName": {
         "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
@@ -400,6 +418,27 @@
       },
       "BankQuery": {
         "oneOf": [
+          {
+            "description": "This calls into the native bank module for querying the total supply of one denomination. It does the same as the SupplyOf call in Cosmos SDK's RPC API. Return value is of type SupplyResponse.",
+            "type": "object",
+            "required": [
+              "supply"
+            ],
+            "properties": {
+              "supply": {
+                "type": "object",
+                "required": [
+                  "denom"
+                ],
+                "properties": {
+                  "denom": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
           {
             "description": "This calls into the native bank module for one denomination Return value is BalanceResponse",
             "type": "object",
@@ -813,23 +852,14 @@
       "ExecuteMsg": {
         "oneOf": [
           {
-            "description": "Update the Admin",
+            "description": "Update the ownership.",
             "type": "object",
             "required": [
-              "update_admin"
+              "update_ownership"
             ],
             "properties": {
-              "update_admin": {
-                "type": "object",
-                "required": [
-                  "admin"
-                ],
-                "properties": {
-                  "admin": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
+              "update_ownership": {
+                "$ref": "#/definitions/Action"
               }
             },
             "additionalProperties": false
@@ -933,11 +963,34 @@
               "register": {
                 "type": "object",
                 "required": [
-                  "host_chain"
+                  "host_chain",
+                  "install_modules"
                 ],
                 "properties": {
+                  "base_asset": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/AssetEntry"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "host_chain": {
                     "type": "string"
+                  },
+                  "install_modules": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/ModuleInstallConfig"
+                    }
+                  },
+                  "namespace": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "additionalProperties": false
@@ -1117,31 +1170,6 @@
             "additionalProperties": false
           },
           {
-            "description": "Registers a module after creation. Used as a callback *only* by the Module Factory to register the module on the Account.",
-            "type": "object",
-            "required": [
-              "register_modules"
-            ],
-            "properties": {
-              "register_modules": {
-                "type": "object",
-                "required": [
-                  "modules"
-                ],
-                "properties": {
-                  "modules": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/RegisterModuleData"
-                    }
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
             "description": "Uninstall a module given its ID.",
             "type": "object",
             "required": [
@@ -1297,13 +1325,13 @@
             "additionalProperties": false
           },
           {
-            "description": "Sets a new Owner New owner will have to claim ownership",
+            "description": "Proposes a new Owner The new owner has to claim ownership through the [`ExecuteMsg::UpdateOwnership`] message. The claim action can be called by the new owner directly OR by the owner of a top-level account if the new ownership structure is a sub-account.",
             "type": "object",
             "required": [
-              "set_owner"
+              "propose_owner"
             ],
             "properties": {
-              "set_owner": {
+              "propose_owner": {
                 "type": "object",
                 "required": [
                   "owner"
@@ -1505,6 +1533,36 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "description": "This maps directly to [MsgVoteWeighted](https://github.com/cosmos/cosmos-sdk/blob/v0.45.8/proto/cosmos/gov/v1beta1/tx.proto#L66-L78) in the Cosmos SDK with voter set to the contract address.",
+            "type": "object",
+            "required": [
+              "vote_weighted"
+            ],
+            "properties": {
+              "vote_weighted": {
+                "type": "object",
+                "required": [
+                  "options",
+                  "proposal_id"
+                ],
+                "properties": {
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/WeightedVoteOption"
+                    }
+                  },
+                  "proposal_id": {
+                    "type": "integer",
+                    "format": "uint64",
+                    "minimum": 0.0
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },
@@ -1625,7 +1683,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Can't be called by an account directly. These are permissionned messages that only the IBC Client is allowed to call by itself.",
+            "description": "Can't be called by an account directly. These are permissioned messages that only the IBC Client is allowed to call by itself.",
             "type": "object",
             "required": [
               "internal"
@@ -1883,14 +1941,31 @@
               "register": {
                 "type": "object",
                 "required": [
+                  "install_modules",
                   "name"
                 ],
                 "properties": {
+                  "base_asset": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/AssetEntry"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "description": {
                     "type": [
                       "string",
                       "null"
                     ]
+                  },
+                  "install_modules": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/ModuleInstallConfig"
+                    }
                   },
                   "link": {
                     "type": [
@@ -1900,6 +1975,12 @@
                   },
                   "name": {
                     "type": "string"
+                  },
+                  "namespace": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "additionalProperties": false
@@ -1908,22 +1989,6 @@
             "additionalProperties": false
           }
         ]
-      },
-      "Module": {
-        "type": "object",
-        "required": [
-          "info",
-          "reference"
-        ],
-        "properties": {
-          "info": {
-            "$ref": "#/definitions/ModuleInfo"
-          },
-          "reference": {
-            "$ref": "#/definitions/ModuleReference"
-          }
-        },
-        "additionalProperties": false
       },
       "ModuleInfo": {
         "description": "Stores the namespace, name, and version of an Abstract module.",
@@ -1979,81 +2044,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "ModuleReference": {
-        "oneOf": [
-          {
-            "description": "Core Abstract Contracts",
-            "type": "object",
-            "required": [
-              "account_base"
-            ],
-            "properties": {
-              "account_base": {
-                "type": "integer",
-                "format": "uint64",
-                "minimum": 0.0
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Native Abstract Contracts",
-            "type": "object",
-            "required": [
-              "native"
-            ],
-            "properties": {
-              "native": {
-                "$ref": "#/definitions/Addr"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Installable adapters",
-            "type": "object",
-            "required": [
-              "adapter"
-            ],
-            "properties": {
-              "adapter": {
-                "$ref": "#/definitions/Addr"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Installable apps",
-            "type": "object",
-            "required": [
-              "app"
-            ],
-            "properties": {
-              "app": {
-                "type": "integer",
-                "format": "uint64",
-                "minimum": 0.0
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "A stand-alone contract",
-            "type": "object",
-            "required": [
-              "standalone"
-            ],
-            "properties": {
-              "standalone": {
-                "type": "integer",
-                "format": "uint64",
-                "minimum": 0.0
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
       },
       "ModuleVersion": {
         "oneOf": [
@@ -2175,22 +2165,6 @@
             "additionalProperties": false
           }
         ]
-      },
-      "RegisterModuleData": {
-        "type": "object",
-        "required": [
-          "module",
-          "module_address"
-        ],
-        "properties": {
-          "module": {
-            "$ref": "#/definitions/Module"
-          },
-          "module_address": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
       },
       "Result_of_Array_of_Binary_or_ErrorResponse": {
         "oneOf": [
@@ -2682,6 +2656,60 @@
             "additionalProperties": false
           },
           {
+            "description": "Instantiates a new contracts from previously uploaded Wasm code using a predictable address derivation algorithm implemented in [`cosmwasm_std::instantiate2_address`].\n\nThis is translated to a [MsgInstantiateContract2](https://github.com/CosmWasm/wasmd/blob/v0.29.2/proto/cosmwasm/wasm/v1/tx.proto#L73-L96). `sender` is automatically filled with the current contract's address. `fix_msg` is automatically set to false.",
+            "type": "object",
+            "required": [
+              "instantiate2"
+            ],
+            "properties": {
+              "instantiate2": {
+                "type": "object",
+                "required": [
+                  "code_id",
+                  "funds",
+                  "label",
+                  "msg",
+                  "salt"
+                ],
+                "properties": {
+                  "admin": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "code_id": {
+                    "type": "integer",
+                    "format": "uint64",
+                    "minimum": 0.0
+                  },
+                  "funds": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/Coin"
+                    }
+                  },
+                  "label": {
+                    "description": "A human-readable label for the contract.\n\nValid values should: - not be empty - not be bigger than 128 bytes (or some chain-specific limit) - not start / end with whitespace",
+                    "type": "string"
+                  },
+                  "msg": {
+                    "description": "msg is the JSON-encoded InstantiateMsg struct (as raw Binary)",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/Binary"
+                      }
+                    ]
+                  },
+                  "salt": {
+                    "$ref": "#/definitions/Binary"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
             "description": "Migrates a given contracts to use new wasm code. Passes a MigrateMsg to allow us to customize behavior.\n\nOnly the contract admin (as defined in wasmd), if any, is able to make this call.\n\nThis is translated to a [MsgMigrateContract](https://github.com/CosmWasm/wasmd/blob/v0.14.0/x/wasm/internal/types/tx.proto#L86-L96). `sender` is automatically filled with the current contract's address.",
             "type": "object",
             "required": [
@@ -2848,8 +2876,46 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "description": "Returns a [`CodeInfoResponse`] with metadata of the code",
+            "type": "object",
+            "required": [
+              "code_info"
+            ],
+            "properties": {
+              "code_info": {
+                "type": "object",
+                "required": [
+                  "code_id"
+                ],
+                "properties": {
+                  "code_id": {
+                    "type": "integer",
+                    "format": "uint64",
+                    "minimum": 0.0
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           }
         ]
+      },
+      "WeightedVoteOption": {
+        "type": "object",
+        "required": [
+          "option",
+          "weight"
+        ],
+        "properties": {
+          "option": {
+            "$ref": "#/definitions/VoteOption"
+          },
+          "weight": {
+            "$ref": "#/definitions/Decimal"
+          }
+        }
       }
     }
   },

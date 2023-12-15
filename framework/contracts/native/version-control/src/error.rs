@@ -1,6 +1,5 @@
 use cosmwasm_std::Coin;
 use cosmwasm_std::{Addr, StdError};
-use cw_controllers::AdminError;
 use thiserror::Error;
 
 use abstract_core::objects::namespace::Namespace;
@@ -19,9 +18,6 @@ pub enum VCError {
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),
-
-    #[error("{0}")]
-    Admin(#[from] AdminError),
 
     #[error("{0}")]
     Validation(#[from] ValidationError),
@@ -83,6 +79,9 @@ pub enum VCError {
 
     #[error("Initialization funds can only be specified for apps and standalone modules")]
     RedundantInitFunds {},
+
+    #[error("Only account factory is allowed to add new accounts")]
+    NotAccountFactory {},
 }
 
 impl From<cw_semver::Error> for VCError {

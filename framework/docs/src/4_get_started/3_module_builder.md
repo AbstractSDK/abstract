@@ -41,7 +41,7 @@ the app:
 
 The constructor takes three variables:
 
-1. `contract_id`: The contract ID is a string that will be saved to a `cw2` storage item. It's an important security
+1. `module_id`: The module ID is a string that will be saved to a `cw2` storage item. It's an important security
    measure as this ensures that the contract can not be migrated to a different contract with a different function and
    also acts as an informational tag for off-chain processes.
 2. `contract_version`: The contract version should be the version of the crate, it is also stored in the `cw2` item and

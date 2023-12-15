@@ -1,6 +1,8 @@
 mod common;
 use std::cell::RefMut;
 
+use abstract_client::account::Account;
+use abstract_client::client::AbstractClient;
 use abstract_core::objects::ans_host::AnsHostError;
 use abstract_core::objects::DexAssetPairing;
 use abstract_core::objects::{
@@ -399,6 +401,58 @@ fn assert_querrier_err_eq(left: CwOrchError, right: StdError) {
         error: Box::new(StdError::generic_err(format!("Querier contract error: {right}")).into()),
     };
     assert_eq!(left.root().to_string(), querier_contract_err().to_string())
+}
+
+#[test]
+fn can_install_using_abstract_client() -> anyhow::Result<()> {
+    // TODO: re-write this set-up code also using abstract-client.
+    let (mock, _account, _abstr, _apps, _manager_addr) = setup()?;
+    let client = AbstractClient::new(mock)?;
+    let account: Account<Mock> = client.account_builder().build()?;
+    let dca_app = account.install_app_with_dependencies::<DCA<Mock>>(
+        &AppInstantiateMsg {
+            native_asset: AssetEntry::new("denom"),
+            dca_creation_amount: Uint128::new(5_000_000),
+            refill_threshold: Uint128::new(1_000_000),
+            max_spread: Decimal::percent(30),
+        },
+        Empty {},
+        &[],
+    )?;
+    let config: ConfigResponse = dca_app.config()?;
+    assert_eq!(
+        config,
+        ConfigResponse {
+            native_asset: AssetEntry::from("denom"),
+            dca_creation_amount: Uint128::new(5_000_000),
+            refill_threshold: Uint128::new(1_000_000),
+            max_spread: Decimal::percent(30),
+        }
+    );
+
+    let module_data = dca_app.module_data()?;
+    assert_eq!(
+        module_data,
+        ModuleDataResponse {
+            module_id: DCA_APP_ID.to_owned(),
+            version: DCA_APP_VERSION.to_owned(),
+            dependencies: vec![
+                DependencyResponse {
+                    id: CRONCAT_ID.to_owned(),
+                    version_req: vec![format!("^{}", CRONCAT_MODULE_VERSION)]
+                },
+                DependencyResponse {
+                    id: DEX_ADAPTER_ID.to_owned(),
+                    version_req: vec![format!(
+                        "^{}",
+                        abstract_dex_adapter::contract::CONTRACT_VERSION.to_owned()
+                    )]
+                }
+            ],
+            metadata: None
+        }
+    );
+    Ok(())
 }
 
 #[test]

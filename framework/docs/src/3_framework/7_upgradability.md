@@ -1,50 +1,48 @@
 # Module Upgradability
 
 Smart-contract migrations are a highly-debated feature in smart-contract development. Nonetheless Abstract believes it
-to be a powerful feature that allows for fast product iteration. In the spirit of crypto we've designed a system that
-allows for *permissionless software upgrades while maintaining trustlessness.*
+to be a powerful feature that allows for fast product iteration and bug-fixing. In the spirit of crypto we've designed a system that
+allows for **permissionless software upgrades while maintaining trustlessness.**
 
-## Module version storage
+```admonish info
+If this is the first time you hear about smart-contract migrations, we recommend you to read the <a href="https://docs.cosmwasm.com/docs/smart-contracts/migration" target="_blank">CosmWasm documentation</a> on the topic.
+```
 
-Permissionless software upgradeability is provided by a module version storage in
+## Module Version Registry
+
+Upgrading a module is facilitated by the module version registry in
 the [version control contract](../5_platform/2_version_control.md). The mapping allows your Account to:
 
-- Instantiate a module of the latest versions.
-- Upgrade a module to a new version as soon as it's available.
+- Instantiate a module of the latest versions. (see the previous section on [modules](./6_module_types.md#installing-and-uninstalling-modules))
+- Upgrade a module to a new version.
 - Provide custom modules to other developers.
-- Do all this without any third-party permissions.
+- Do all this without losing sovereignty.
 
-There are two types of possible migration paths, although they appear the same to you as a developer.
+There are two types of possible upgrade paths, although they appear the same to you as a developer.
 
-## Migration Update
+## Migration Upgrade
 
 Most module updates will perform a contract migration. The migration can be evoked by the owner and is executed by
-the manager contract. You can learn more about contract migrations in
-the <a href="https://docs.cosmwasm.com/docs/smart-contracts/migration" target="_blank">CosmWasm documentation</a>.
+the manager contract. Migrations apply to the App and Standalone module types.
 
-## Move Updates
+## Move Upgrade
 
-Some modules will not perform a regular contract migration, and this has to do with our module classification system.
-Adapter modules for instance should not be migratable because it would remove the trustlessness of the system.
-
-Therefore, if we still want to allow for upgradeable Adapters we need instantiate each Adapter version on a different
+Adapter modules can not undergo any migrations. Therefore, each Adapter version is instantiated on a different
 address.
-When you as a developer decide to upgrade an Adapter module, the abstract infrastructure **moves** your Adapter
-configuration to
-the new addresses and removes the permissions of the old Adapter contract.
 
-However, all other modules that depend on the upgraded Adapter module don't have to change any stored addresses as
-module
-address resolution is performed through the manager contract, similar to how DNS works!
+When a user decides to upgrade an Adapter module, the abstract infrastructure **moves** that user's configuration on that Adapter  to the new Adapter and removes the permissions of the old Adapter.
 
-## Upgrading Modules
+However, any modules that depend on the upgraded Adapter module don't have to update any of their state as a module's address is resolved dynamically through the manager contract, similar to how DNS works! This is explained in more detail in the [dependency execution flow](./6_module_types.md#dependency-execution) of the last section.
 
-One of the key strengths of Abstract is that it is designed to minimize your maintenance workload while maximizing the
-control you have over your infrastructure.
+## Module Upgrade Flow
 
-Abstract manages module upgrades for you, ensuring your infrastructure remains intact and your workflows continue to
-function smoothly through every upgrade. This process is carried out in a manner that consistently maintains the
-integrity and security of your system.
+```mermaid info
+You can skip this section if you're not interested in the technical details of how module upgrades work.
+```
+
+Abstract manages the state-management related to module upgrades for you, ensuring your infrastructure remains intact and your applications continue to function smoothly through every upgrade.
+
+Upgrades are carried out in a manner that consistently maintains the integrity and security of your system. I.e. we programmed the system to **disallow** any upgrade actions that would break your system's version requirements.
 
 The process for upgrading modules is shown in the following diagram:
 
@@ -70,14 +68,13 @@ sequenceDiagram
         end
     end
 
-    alt
+    opt
         M -> M: Migrate self
     end
     M -> M: Update dependencies
     M --> M: Check dependencies  
 ```
 
-An important aspect to point out of this process is how the integrity of the modules is ensured while performing the
-upgrades. Proposed module upgrades are performed sequentially and keeping track of the changes in each module upgrade.
-Additionally, version requirements and dependency checks are performed at the end of all the migrations to ensure module
-compatibility.
+An important aspect of this process is how the integrity of the modules is ensured.
+
+Proposed module upgrades are performed sequentially and atomically while keeping track of all changes. As the last step in the upgrade flow a collection of version requirements and dependency checks are performed to ensure that module's dependencies are present and version-compatible.
