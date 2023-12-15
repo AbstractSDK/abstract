@@ -38,7 +38,7 @@ pub fn install_module_version<T: CwEnv>(
     manager.install_module_version(
         module,
         ModuleVersion::Version(version.to_string()),
-        Some(&MockInitMsg),
+        Some(&MockInitMsg {}),
         None,
     )?;
 
@@ -58,7 +58,7 @@ pub fn init_mock_adapter<T: CwEnv>(
     let version: semver::Version = version
         .unwrap_or_else(|| TEST_VERSION.to_string())
         .parse()?;
-    BootMockAdapter::deploy(&mock_adapter, version, MockInitMsg, DeployStrategy::Try)?;
+    BootMockAdapter::deploy(&mock_adapter, version, MockInitMsg {}, DeployStrategy::Try)?;
     Ok(mock_adapter)
 }
 

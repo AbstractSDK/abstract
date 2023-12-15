@@ -7,6 +7,7 @@ use cosmwasm_std::coin;
 use cw_orch::{
     contract::interface_traits::ContractInstance, deploy::Deploy, environment::MutCwEnv,
 };
+use abstract_sdk::cw_helpers::Clearable;
 
 use crate::AResult;
 
@@ -22,7 +23,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
     chain
         .set_balance(&sender, vec![namespace_fee.clone()])
         .unwrap();
-    version_control.update_config(None, Some(namespace_fee.clone()))?;
+    version_control.update_config(None, None, Some(Clearable::Set(namespace_fee.clone())))?;
 
     let namespace_to_claim = "namespace-to-claim";
 

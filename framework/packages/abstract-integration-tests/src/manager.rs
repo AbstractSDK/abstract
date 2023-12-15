@@ -59,7 +59,7 @@ pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
 
     let app = MockApp::new_test(chain.clone());
     MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    let app_addr = account.install_app(&app, &MockInitMsg, None)?;
+    let app_addr = account.install_app(&app, &MockInitMsg {}, None)?;
     let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
     assert_that!(app_addr).is_equal_to(module_addr);
     Ok(())
@@ -105,7 +105,7 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
             ),
             ModuleInstallConfig::new(
                 ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                Some(to_json_binary(&MockInitMsg)?),
+                Some(to_json_binary(&MockInitMsg {})?),
             ),
         ],
         String::from("sub_account"),
@@ -269,7 +269,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_json_binary(&MockInitMsg)?),
+                        Some(to_json_binary(&MockInitMsg {})?),
                     ),
                     ModuleInstallConfig::new(
                         ModuleInfo {
@@ -277,7 +277,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
                             name: "standalone".to_owned(),
                             version: V1.into(),
                         },
-                        Some(to_json_binary(&MockInitMsg)?),
+                        Some(to_json_binary(&MockInitMsg {})?),
                     ),
                 ],
             },
@@ -464,7 +464,7 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
                 &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Module(
                     AdapterRequestMsg {
                         proxy_address: Some(account.proxy.addr_str()?),
-                        request: MockExecMsg,
+                        request: MockExecMsg {},
                     },
                 ),
                 vec![],

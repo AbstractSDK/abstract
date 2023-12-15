@@ -46,7 +46,7 @@ fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<ForkMock>, ForkMock)> {
     let (deployment, chain) = setup()?;
     deployment.migrate_if_needed()?;
-    deployment.version_control.update_config(Some(true), None)?;
+    deployment.version_control.update_config(None, Some(true), None)?;
     Ok((deployment, chain))
 }
 
@@ -170,7 +170,7 @@ fn old_account_functions() -> anyhow::Result<()> {
         // Allow registration
         abstr_deployment
             .version_control
-            .update_config(Some(true), None)?;
+            .update_config(None, Some(true), None)?;
         // Try to install
         let app = MockApp::new_test(chain.clone());
         MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;

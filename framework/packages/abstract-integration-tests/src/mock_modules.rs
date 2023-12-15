@@ -19,22 +19,22 @@ pub const V2: &str = "2.0.0";
 /// deploys different version adapters and app for migration testing
 pub fn deploy_modules<T: CwEnv>(chain: &T) {
     adapter_1::BootMockAdapter1V1::new_test(chain.clone())
-        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
+        .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
     adapter_1::BootMockAdapter1V2::new_test(chain.clone())
-        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
+        .deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // and now for adapter 2
     adapter_2::BootMockAdapter2V1::new_test(chain.clone())
-        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
+        .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
     adapter_2::BootMockAdapter2V2::new_test(chain.clone())
-        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
+        .deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // and now for app 1
