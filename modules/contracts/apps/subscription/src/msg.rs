@@ -90,7 +90,7 @@ pub enum SubscriptionExecuteMsg {
         subscription_cost_per_second: Option<Decimal>,
         /// Subscription emissions per second
         subscription_per_second_emissions: Option<EmissionType<String>>,
-        /// New unsubscribe_hook_addr hook addr
+        /// New unsubscribe_hook_addr
         unsubscribe_hook_addr: Option<Clearable<String>>,
     },
     /// Refresh TWA value
