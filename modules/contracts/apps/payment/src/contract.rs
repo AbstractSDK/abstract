@@ -26,8 +26,10 @@ pub type PaymentApp = AppContract<
     cw20::Cw20ReceiveMsg,
 >;
 
-const DEX_DEPENDENCY: StaticDependency =
-    StaticDependency::new(abstract_dex_adapter::DEX_ADAPTER_ID, &[abstract_dex_adapter::contract::CONTRACT_VERSION]);
+const DEX_DEPENDENCY: StaticDependency = StaticDependency::new(
+    abstract_dex_adapter::DEX_ADAPTER_ID,
+    &[abstract_dex_adapter::contract::CONTRACT_VERSION],
+);
 
 const APP: PaymentApp = PaymentApp::new(APP_ID, APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)

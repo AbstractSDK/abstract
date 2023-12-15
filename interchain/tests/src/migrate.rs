@@ -46,7 +46,9 @@ fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<ForkMock>, ForkMock)> {
     let (deployment, chain) = setup()?;
     deployment.migrate_if_needed()?;
-    deployment.version_control.update_config(None, Some(true), None)?;
+    deployment
+        .version_control
+        .update_config(None, Some(true), None)?;
     Ok((deployment, chain))
 }
 
