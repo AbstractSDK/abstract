@@ -132,7 +132,7 @@ pub mod gen_mock {
     macro_rules! gen_standalone_mock {
         ($name:ident, $id:expr, $version:expr, $cw2:expr) => {
             #[cosmwasm_schema::cw_serde]
-            pub struct MockMsg;
+            pub struct MockMsg {}
 
             pub fn mock_instantiate(
                 deps: ::cosmwasm_std::DepsMut,
