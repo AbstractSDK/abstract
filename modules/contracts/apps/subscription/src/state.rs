@@ -45,7 +45,7 @@ pub struct SubscriptionConfig {
     /// Subscription emissions per second
     pub subscription_per_second_emissions: EmissionType<Addr>,
     /// Unsubscription hook addr
-    pub unsubscription_hook_addr: Option<Addr>,
+    pub unsubscribe_hook_addr: Option<Addr>,
 }
 
 /// Keeps track of the active subscribers.

@@ -19,8 +19,8 @@ pub fn instantiate_handler(
         payment_asset: msg.payment_asset.check(deps.api, None)?,
         subscription_cost_per_second: msg.subscription_cost_per_second,
         subscription_per_second_emissions: msg.subscription_per_second_emissions.check(deps.api)?,
-        unsubscription_hook_addr: msg
-            .unsubscription_hook_addr
+        unsubscribe_hook_addr: msg
+            .unsubscribe_hook_addr
             .map(|human| deps.api.addr_validate(&human))
             .transpose()?,
     };

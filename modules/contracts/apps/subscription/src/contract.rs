@@ -34,6 +34,13 @@ abstract_app::export_endpoints!(SUBSCRIPTION_MODULE, SubscriptionApp);
 #[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(SUBSCRIPTION_MODULE, SubscriptionApp, SubscriptionInterface);
 
+#[cfg(feature = "interface")]
+impl<Chain: cw_orch::prelude::CwEnv> abstract_interface::DependencyCreation
+    for self::interface::SubscriptionInterface<Chain>
+{
+    type DependenciesConfig = cosmwasm_std::Empty;
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
@@ -70,7 +77,7 @@ mod tests {
                     payment_asset: cw_asset::AssetInfoBase::Native("token".to_owned()),
                     subscription_cost_per_second: Decimal::from_str("0.1").unwrap(),
                     subscription_per_second_emissions: crate::state::EmissionType::None,
-                    unsubscription_hook_addr: None,
+                    unsubscribe_hook_addr: None,
                 },
             )
             .unwrap();
@@ -111,7 +118,7 @@ mod tests {
                     payment_asset: cw_asset::AssetInfoBase::Native("token".to_owned()),
                     subscription_cost_per_second: Decimal::from_str("0.1").unwrap(),
                     subscription_per_second_emissions: crate::state::EmissionType::None,
-                    unsubscription_hook_addr: Some(Addr::unchecked("alice")),
+                    unsubscribe_hook_addr: Some(Addr::unchecked("alice")),
                 },
             )
             .unwrap();

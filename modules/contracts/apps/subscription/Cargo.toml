@@ -46,12 +46,10 @@ abstract-interface = { workspace = true, optional = true }
 cw-address-like = { workspace = true }
 
 [dev-dependencies]
+abstract-client = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
-cw20 = { workspace = true, features = ["interface"] }
 # Deploy
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
-cw-plus-interface = { workspace = true }
 abstract-subscription = { path = ".", features = ["interface"] }
-cw20-base = { workspace = true, features = ["interface"] }
