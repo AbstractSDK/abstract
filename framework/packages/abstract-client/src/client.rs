@@ -1,11 +1,11 @@
 use abstract_interface::{Abstract, AnsHost, VersionControl};
-use cosmwasm_std::{Addr, BlockInfo};
-use cw_orch::{deploy::Deploy, prelude::CwEnv};
+use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
+use cw_orch::{deploy::Deploy, environment::MutCwEnv, prelude::CwEnv};
 
 use crate::{
     account::{Account, AccountBuilder},
     error::AbstractClientError,
-    infrastructure::Infrastructure,
+    infrastructure::{Environment, Infrastructure},
     publisher::{Publisher, PublisherBuilder},
 };
 
@@ -58,12 +58,59 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Account::from_namespace(&self.abstr, namespace)
     }
 
-    pub fn chain(&self) -> Chain {
-        self.environment()
-    }
-
     pub fn sender(&self) -> Addr {
         self.environment().sender()
+    }
+
+    pub fn query_balance(
+        &self,
+        address: &Addr,
+        denom: impl Into<String>,
+    ) -> AbstractClientResult<Uint128> {
+        let coins = self.balance(address, Some(denom.into()))?;
+        // There will always be a single element in this case.
+        Ok(coins[0].amount)
+    }
+
+    pub fn query_balances(&self, address: &Addr) -> AbstractClientResult<Vec<Coin>> {
+        self.balance(address, None)
+    }
+
+    pub fn wait_blocks(&self, amount: u64) -> AbstractClientResult<()> {
+        self.environment()
+            .wait_blocks(amount)
+            .map_err(Into::into)
+            .map_err(Into::into)
+    }
+
+    pub fn wait_seconds(&self, amount: u64) -> AbstractClientResult<()> {
+        self.environment()
+            .wait_seconds(amount)
+            .map_err(Into::into)
+            .map_err(Into::into)
+    }
+
+    pub fn next_block(&self) -> AbstractClientResult<()> {
+        self.environment()
+            .next_block()
+            .map_err(Into::into)
+            .map_err(Into::into)
+    }
+}
+
+impl<Chain: MutCwEnv> AbstractClient<Chain> {
+    pub fn set_balance(&self, address: &Addr, amount: Vec<Coin>) -> AbstractClientResult<()> {
+        self.environment()
+            .set_balance(address, amount)
+            .map_err(Into::into)
+            .map_err(Into::into)
+    }
+
+    pub fn add_balance(&self, address: &Addr, amount: Vec<Coin>) -> AbstractClientResult<()> {
+        self.environment()
+            .add_balance(address, amount)
+            .map_err(Into::into)
+            .map_err(Into::into)
     }
 }
 
@@ -77,14 +124,11 @@ pub mod test_utils {
         },
     };
     use abstract_interface::{Abstract, ExecuteMsgFns};
-    use cosmwasm_std::{Addr, Coin, Uint128};
+    use cosmwasm_std::{Addr, Coin};
     use cw_asset::AssetInfoUnchecked;
-    use cw_orch::{
-        deploy::Deploy,
-        prelude::{Mock, TxHandler},
-    };
+    use cw_orch::{deploy::Deploy, prelude::Mock};
 
-    use crate::infrastructure::Infrastructure;
+    use crate::infrastructure::Environment;
 
     use self::cw20_builder::Cw20Builder;
 
@@ -102,21 +146,6 @@ pub mod test_utils {
             decimals: u8,
         ) -> Cw20Builder {
             Cw20Builder::new(self.environment(), name.into(), symbol.into(), decimals)
-        }
-
-        pub fn wait_blocks(&self, amount: u64) -> AbstractClientResult<()> {
-            self.environment().wait_blocks(amount).map_err(Into::into)
-        }
-
-        pub fn wait_seconds(&self, amount: u64) -> AbstractClientResult<()> {
-            self.environment().wait_seconds(amount).map_err(Into::into)
-        }
-
-        // TODO: Also have this in non `Mock` case
-        pub fn query_balance(&self, address: &Addr, denom: &str) -> AbstractClientResult<Uint128> {
-            self.environment()
-                .query_balance(address, denom)
-                .map_err(Into::into)
         }
     }
 

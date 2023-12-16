@@ -3,6 +3,7 @@ use std::str::FromStr;
 use abstract_client::{
     application::Application,
     client::{test_utils::cw20_builder, AbstractClient},
+    infrastructure::Environment,
     publisher::Publisher,
 };
 use abstract_core::objects::time_weighted_average::TimeWeightedAverageData;
@@ -201,7 +202,7 @@ fn subscribe() -> anyhow::Result<()> {
     subscription_app
         .call_as(&subscriber2)
         .pay(None, &sub_amount)?;
-    let twa = query_twa(&client.chain(), subscription_addr.clone());
+    let twa = query_twa(&client.environment(), subscription_addr.clone());
     // No income yet
     assert_eq!(twa.cumulative_value, 0);
     assert_eq!(twa.average_value, Decimal::zero());
@@ -215,7 +216,7 @@ fn subscribe() -> anyhow::Result<()> {
     // refresh twa
     subscription_app.refresh_twa()?;
     // It should contain income of previous 2 subscribers
-    let twa = query_twa(&client.chain(), subscription_addr.clone());
+    let twa = query_twa(&client.environment(), subscription_addr.clone());
 
     // expected value for 2 subscribers (cost * period)
     let two_subs_per_second = Decimal::from_str("0.000037")? * Decimal::from_str("2.0")?;
@@ -230,7 +231,7 @@ fn subscribe() -> anyhow::Result<()> {
     client.wait_seconds(INCOME_AVERAGING_PERIOD.u64())?;
     subscription_app.refresh_twa()?;
 
-    let twa = query_twa(&client.chain(), subscription_addr.clone());
+    let twa = query_twa(&client.environment(), subscription_addr.clone());
 
     // 0 new subscribers in this period
     assert_eq!(twa.average_value, Decimal::percent(0));
@@ -247,7 +248,7 @@ fn subscribe() -> anyhow::Result<()> {
 
     let expected_value = first_two_subs + third_sub;
 
-    let twa = query_twa(&client.chain(), subscription_addr);
+    let twa = query_twa(&client.environment(), subscription_addr);
     // assert it's equal to the 3 subscribers
     assert_eq!(twa.cumulative_value, expected_value.u128());
     Ok(())
