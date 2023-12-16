@@ -1,10 +1,8 @@
 use std::str::FromStr;
 
 use abstract_client::{
-    application::Application,
-    client::{test_utils::cw20_builder, AbstractClient},
-    infrastructure::Environment,
-    publisher::Publisher,
+    application::Application, client::AbstractClient, infrastructure::Environment,
+    publisher::Publisher, test_utils::cw20_builder,
 };
 use abstract_core::objects::time_weighted_average::TimeWeightedAverageData;
 use abstract_subscription::{

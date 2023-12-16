@@ -5,9 +5,9 @@ use abstract_app::mock::{
 use abstract_client::{
     account::Account,
     application::Application,
-    client::test_utils::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
     client::AbstractClient,
     publisher::Publisher,
+    test_utils::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
 };
 use abstract_core::{
     manager::{
