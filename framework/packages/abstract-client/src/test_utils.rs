@@ -31,94 +31,6 @@ impl AbstractClient<Mock> {
     }
 }
 
-pub mod cw20_builder {
-    // Re-exports to limit dependencies for consumer.
-    pub use cw20::{msg::Cw20ExecuteMsgFns, *};
-    pub use cw20_base::msg::{InstantiateMarketingInfo, QueryMsgFns as Cw20QueryMsgFns};
-    pub use cw_plus_interface::cw20_base::Cw20Base;
-
-    use cosmwasm_std::Addr;
-
-    use cw_orch::prelude::{CwOrchInstantiate, CwOrchUpload, Mock};
-    use cw_plus_interface::cw20_base::InstantiateMsg;
-
-    use crate::client::AbstractClientResult;
-
-    pub struct Cw20Builder {
-        chain: Mock,
-        name: String,
-        symbol: String,
-        decimals: u8,
-        initial_balances: Vec<Cw20Coin>,
-        mint: Option<MinterResponse>,
-        marketing: Option<InstantiateMarketingInfo>,
-        admin: Option<Addr>,
-    }
-
-    impl Cw20Builder {
-        /// Creates a new [`Cw20Builder`]. Call [`crate::client::AbstractClient`] to create.
-        pub(crate) fn new(chain: Mock, name: String, symbol: String, decimals: u8) -> Self {
-            Self {
-                chain,
-                name,
-                symbol,
-                decimals,
-                initial_balances: vec![],
-                mint: None,
-                marketing: None,
-                admin: None,
-            }
-        }
-
-        pub fn initial_balances(&mut self, initial_balances: Vec<Cw20Coin>) -> &mut Self {
-            self.initial_balances = initial_balances;
-            self
-        }
-
-        pub fn initial_balance(&mut self, initial_balance: Cw20Coin) -> &mut Self {
-            self.initial_balances.push(initial_balance);
-            self
-        }
-
-        pub fn mint(&mut self, mint: MinterResponse) -> &mut Self {
-            self.mint = Some(mint);
-            self
-        }
-
-        pub fn marketing(&mut self, marketing: InstantiateMarketingInfo) -> &mut Self {
-            self.marketing = Some(marketing);
-            self
-        }
-
-        pub fn admin(&mut self, admin: impl Into<String>) -> &mut Self {
-            self.admin = Some(Addr::unchecked(admin.into()));
-            self
-        }
-
-        pub fn instantiate_with_id(&self, id: &str) -> AbstractClientResult<Cw20Base<Mock>> {
-            let cw20 = Cw20Base::new(id, self.chain.clone());
-
-            // TODO: Consider adding error if the code-id is already uploaded. This would
-            // imply that the user is trying to instantiate twice using the same id which would
-            // overwrite the state.
-            cw20.upload()?;
-            cw20.instantiate(
-                &InstantiateMsg {
-                    decimals: self.decimals,
-                    mint: self.mint.clone(),
-                    symbol: self.symbol.clone(),
-                    name: self.name.clone(),
-                    initial_balances: self.initial_balances.clone(),
-                    marketing: self.marketing.clone(),
-                },
-                self.admin.as_ref(),
-                None,
-            )?;
-            Ok(cw20)
-        }
-    }
-}
-
 pub struct AbstractClientBuilder {
     mock: Mock,
     sender: String,
@@ -240,5 +152,93 @@ impl AbstractClientBuilder {
         abstr.ans_host.update_pools(self.pools.clone(), vec![])?;
 
         Ok(())
+    }
+}
+
+pub mod cw20_builder {
+    // Re-exports to limit dependencies for consumer.
+    pub use cw20::{msg::Cw20ExecuteMsgFns, *};
+    pub use cw20_base::msg::{InstantiateMarketingInfo, QueryMsgFns as Cw20QueryMsgFns};
+    pub use cw_plus_interface::cw20_base::Cw20Base;
+
+    use cosmwasm_std::Addr;
+
+    use cw_orch::prelude::{CwOrchInstantiate, CwOrchUpload, Mock};
+    use cw_plus_interface::cw20_base::InstantiateMsg;
+
+    use crate::client::AbstractClientResult;
+
+    pub struct Cw20Builder {
+        chain: Mock,
+        name: String,
+        symbol: String,
+        decimals: u8,
+        initial_balances: Vec<Cw20Coin>,
+        mint: Option<MinterResponse>,
+        marketing: Option<InstantiateMarketingInfo>,
+        admin: Option<Addr>,
+    }
+
+    impl Cw20Builder {
+        /// Creates a new [`Cw20Builder`]. Call [`crate::client::AbstractClient`] to create.
+        pub(crate) fn new(chain: Mock, name: String, symbol: String, decimals: u8) -> Self {
+            Self {
+                chain,
+                name,
+                symbol,
+                decimals,
+                initial_balances: vec![],
+                mint: None,
+                marketing: None,
+                admin: None,
+            }
+        }
+
+        pub fn initial_balances(&mut self, initial_balances: Vec<Cw20Coin>) -> &mut Self {
+            self.initial_balances = initial_balances;
+            self
+        }
+
+        pub fn initial_balance(&mut self, initial_balance: Cw20Coin) -> &mut Self {
+            self.initial_balances.push(initial_balance);
+            self
+        }
+
+        pub fn mint(&mut self, mint: MinterResponse) -> &mut Self {
+            self.mint = Some(mint);
+            self
+        }
+
+        pub fn marketing(&mut self, marketing: InstantiateMarketingInfo) -> &mut Self {
+            self.marketing = Some(marketing);
+            self
+        }
+
+        pub fn admin(&mut self, admin: impl Into<String>) -> &mut Self {
+            self.admin = Some(Addr::unchecked(admin.into()));
+            self
+        }
+
+        pub fn instantiate_with_id(&self, id: &str) -> AbstractClientResult<Cw20Base<Mock>> {
+            let cw20 = Cw20Base::new(id, self.chain.clone());
+
+            // TODO: Consider adding error if the code-id is already uploaded. This would
+            // imply that the user is trying to instantiate twice using the same id which would
+            // overwrite the state.
+            cw20.upload()?;
+            cw20.instantiate(
+                &InstantiateMsg {
+                    decimals: self.decimals,
+                    mint: self.mint.clone(),
+                    symbol: self.symbol.clone(),
+                    name: self.name.clone(),
+                    initial_balances: self.initial_balances.clone(),
+                    marketing: self.marketing.clone(),
+                },
+                self.admin.as_ref(),
+                None,
+            )?;
+            Ok(cw20)
+        }
     }
 }
