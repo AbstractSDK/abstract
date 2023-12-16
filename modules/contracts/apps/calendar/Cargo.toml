@@ -18,6 +18,10 @@ crate-type = ["cdylib", "rlib"]
 name = "schema"
 required-features = ["schema"]
 
+[[example]]
+name = "deploy"
+required-features = ["interface"]
+
 [features]
 default = ["export"]
 export = []
