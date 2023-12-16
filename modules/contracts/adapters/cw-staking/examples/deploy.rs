@@ -102,7 +102,7 @@ fn main() -> anyhow::Result<()> {
         code_id,
     } = Arguments::parse();
 
-    let network = cw_orch::prelude::networks::parse_network(&network_id);
+    let network = cw_orch::prelude::networks::parse_network(&network_id).unwrap();
 
     deploy_cw_staking(network, prev_version, code_id)
 }
