@@ -25,7 +25,7 @@ pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref());
+        let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
         ```
     */
     fn account_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<AccountRegistry<Self>> {
@@ -66,7 +66,7 @@ impl<'a, T: AccountVerification> ApiIdentification for AccountRegistry<'a, T> {
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref());
+    let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref()).unwrap();
     ```
 */
 #[derive(Clone)]

@@ -28,7 +28,7 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref());
+        let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref()).unwrap();
         ```
     */
     fn module_registry<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<ModuleRegistry<Self>> {
@@ -70,7 +70,7 @@ impl<'a, T: ModuleRegistryInterface> ApiIdentification for ModuleRegistry<'a, T>
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref());
+    let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref()).unwrap();
     ```
 */
 pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
