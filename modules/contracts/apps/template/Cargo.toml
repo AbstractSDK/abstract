@@ -37,22 +37,22 @@ cw-storage-plus = { workspace = true }
 thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
-abstract-core = { workspace = true  }
-abstract-app = { workspace = true  }
-abstract-sdk = { workspace = true  }
+abstract-core = { workspace = true }
+abstract-app = { workspace = true }
+abstract-sdk = { workspace = true }
 
 # Dependencies for interface
-abstract-interface = { workspace = true , optional = true }
-cw-orch = { workspace = true , optional = true }
+abstract-interface = { workspace = true, optional = true }
+cw-orch = { workspace = true, optional = true }
 
 [dev-dependencies]
 app = { path = ".", features = ["interface"] }
-abstract-interface = { workspace = true , features = ["daemon"] }
-abstract-testing = { workspace = true  }
-abstract-sdk = { workspace = true , features = ["test-utils"] }
+abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-testing = { workspace = true }
+abstract-sdk = { workspace = true, features = ["test-utils"] }
 speculoos = { workspace = true }
 semver = { workspace = true }
 dotenv = { workspace = true }
 env_logger = { workspace = true }
-cw-orch = { workspace = true , features = ["daemon"] }
-clap = { workspace = true,  features = ["derive"] }
+cw-orch = { workspace = true, features = ["daemon"] }
+clap = { workspace = true, features = ["derive"] }
