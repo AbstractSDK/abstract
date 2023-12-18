@@ -97,9 +97,14 @@ jobs:
     resource_class: large
     steps:
       - checkout
+      - run:
+        name: Generate lockfile
+        command: |
+          cd framework
+          cargo generate-lockfile
       - restore_cache:
         keys:
-          - cargocache-v2-deploy-rust:1.72.0-{{ checksum "Cargo.toml" }}
+          - cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Decode and Deploy
           command: |
@@ -130,7 +135,7 @@ jobs:
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
             - framework/target/debug/deps
-          key: cargocache-v2-deploy-rust:1.72.0-{{ checksum "Cargo.toml" }}
+          key: cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
 
   coverage:
     docker:
@@ -141,11 +146,26 @@ jobs:
           version: 20.10.14
       - checkout
       - run:
+        name: Generate lockfile
+        command: |
+          cd modules
+          cargo generate-lockfile
+      - restore_cache:
+        keys:
+          - cargocache-v2-coverage-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
+      - run:
           name: Run tests with coverage for modules
           command: |
             ./scripts/modules-coverage.sh
       - codecov/upload:
           file: ./modules/lcov.info
+      - save_cache:
+          paths:
+            - /usr/local/cargo/registry
+            - modules/target/debug/.fingerprint
+            - modules/target/debug/build
+            - modules/target/debug/deps
+          key: cargocache-v2-deploy-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
 
   pass:
     docker:
