@@ -118,11 +118,10 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
                 },
             };
             self.instantiate(&init_msg, None, None)?;
-    
+
             abstr
                 .version_control
                 .register_adapters(vec![(self.as_instance(), version.to_string())])?;
-
         }
         Ok(())
     }
@@ -168,8 +167,8 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
 
         if self.upload_if_needed()?.is_some() {
             abstr
-            .version_control
-            .register_apps(vec![(self.as_instance(), version.to_string())])?;
+                .version_control
+                .register_apps(vec![(self.as_instance(), version.to_string())])?;
         }
 
         Ok(())
