@@ -172,7 +172,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         }
     }
 
-    pub fn instantiate(&mut self, chain: &Chain, admin: String) -> Result<(), CwOrchError> {
+    pub fn instantiate(&mut self, _chain: &Chain, admin: String) -> Result<(), CwOrchError> {
         let admin = Addr::unchecked(admin);
 
         self.ans_host.instantiate(

@@ -14,7 +14,6 @@ use abstract_sdk::core::{
     VERSION_CONTROL,
 };
 use abstract_sdk::{execute_update_ownership, query_ownership};
-use cw_storage_plus::KeyDeserialize;
 
 use crate::commands::*;
 use crate::error::VCError;
