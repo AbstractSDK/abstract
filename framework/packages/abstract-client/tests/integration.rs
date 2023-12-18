@@ -3,7 +3,11 @@ use abstract_app::mock::{
     MockExecMsgFns, MockInitMsg, MockQueryMsgFns, MockQueryResponse,
 };
 use abstract_client::{
-    account::Account, application::Application, client::AbstractClient, publisher::Publisher,
+    account::Account,
+    application::Application,
+    client::test_utils::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
+    client::AbstractClient,
+    publisher::Publisher,
 };
 use abstract_core::{
     manager::{
@@ -19,7 +23,7 @@ use abstract_testing::{
     },
     OWNER,
 };
-use cosmwasm_std::{Addr, Empty};
+use cosmwasm_std::{Addr, Empty, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::{CallAs, Mock};
 use cw_ownable::Ownership;
@@ -356,6 +360,113 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
             },
             address: app_address,
         }));
+
+    Ok(())
+}
+
+#[test]
+fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(OWNER).build()?;
+
+    let name = "name";
+    let symbol = "symbol";
+    let decimals = 6;
+    let description = "A test cw20 token";
+    let logo = "link-to-logo";
+    let project = "project";
+    let marketing = "marketing";
+    let cap = Uint128::from(100u128);
+    let starting_balance = Uint128::from(100u128);
+    let minter_response = cw20_builder::MinterResponse {
+        minter: OWNER.to_owned(),
+        cap: Some(cap),
+    };
+
+    let cw20: cw20_builder::Cw20Base<Mock> = client
+        .cw20_builder(name, symbol, decimals)
+        .initial_balance(cw20_builder::Cw20Coin {
+            address: OWNER.to_owned(),
+            amount: starting_balance,
+        })
+        .admin(OWNER)
+        .mint(minter_response.clone())
+        .marketing(cw20_builder::InstantiateMarketingInfo {
+            description: Some(description.to_owned()),
+            logo: Some(cw20_builder::Logo::Url(logo.to_owned())),
+            project: Some(project.to_owned()),
+            marketing: Some(marketing.to_owned()),
+        })
+        .instantiate_with_id("abstract:test_cw20")?;
+
+    let actual_minter_response: cw20_builder::MinterResponse = cw20.minter()?;
+    assert_eq!(minter_response, actual_minter_response);
+
+    let marketing_info_response: cw20_builder::MarketingInfoResponse = cw20.marketing_info()?;
+    assert_eq!(
+        cw20_builder::MarketingInfoResponse {
+            description: Some(description.to_owned()),
+            logo: Some(cw20_builder::LogoInfo::Url(logo.to_owned())),
+            project: Some(project.to_owned()),
+            marketing: Some(Addr::unchecked(marketing)),
+        },
+        marketing_info_response
+    );
+
+    let owner_balance: cw20_builder::BalanceResponse = cw20.balance(OWNER.to_owned())?;
+    assert_eq!(
+        cw20_builder::BalanceResponse {
+            balance: starting_balance
+        },
+        owner_balance
+    );
+    let transfer_amount = Uint128::from(50u128);
+    let recipient = "user";
+    cw20.transfer(transfer_amount, recipient.to_owned())?;
+
+    let recipient_balance = cw20.balance(recipient.to_owned())?;
+    assert_eq!(
+        cw20_builder::BalanceResponse {
+            balance: transfer_amount
+        },
+        recipient_balance
+    );
+
+    Ok(())
+}
+
+#[test]
+fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(OWNER).build()?;
+
+    let name = "name";
+    let symbol = "symbol";
+    let decimals = 6;
+
+    let cw20: cw20_builder::Cw20Base<Mock> = client
+        .cw20_builder(name, symbol, decimals)
+        .instantiate_with_id("abstract:test_cw20")?;
+
+    let minter_response = cw20.minter();
+    assert!(minter_response.is_err());
+
+    let marketing_info_response: cw20_builder::MarketingInfoResponse = cw20.marketing_info()?;
+    assert_eq!(
+        cw20_builder::MarketingInfoResponse {
+            description: None,
+            logo: None,
+            project: None,
+            marketing: None,
+        },
+        marketing_info_response
+    );
+
+    let owner_balance: cw20_builder::BalanceResponse = cw20.balance(OWNER.to_owned())?;
+    assert_eq!(
+        cw20_builder::BalanceResponse {
+            balance: Uint128::zero(),
+        },
+        owner_balance
+    );
 
     Ok(())
 }

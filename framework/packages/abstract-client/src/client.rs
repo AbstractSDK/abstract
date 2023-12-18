@@ -1,5 +1,5 @@
 use abstract_interface::{Abstract, AnsHost, VersionControl};
-use cosmwasm_std::BlockInfo;
+use cosmwasm_std::{Addr, BlockInfo};
 use cw_orch::{deploy::Deploy, prelude::CwEnv};
 
 use crate::{
@@ -57,10 +57,18 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ) -> AbstractClientResult<Account<Chain>> {
         Account::from_namespace(&self.abstr, namespace)
     }
+
+    pub fn chain(&self) -> Chain {
+        self.environment()
+    }
+
+    pub fn sender(&self) -> Addr {
+        self.environment().sender()
+    }
 }
 
 #[cfg(feature = "test-utils")]
-mod test_utils {
+pub mod test_utils {
     use abstract_core::{
         self,
         objects::{
@@ -78,6 +86,8 @@ mod test_utils {
 
     use crate::infrastructure::Infrastructure;
 
+    use self::cw20_builder::Cw20Builder;
+
     use super::{AbstractClient, AbstractClientResult};
 
     impl AbstractClient<Mock> {
@@ -85,8 +95,21 @@ mod test_utils {
             AbstractClientBuilder::new(sender.into())
         }
 
+        pub fn cw20_builder(
+            &self,
+            name: impl Into<String>,
+            symbol: impl Into<String>,
+            decimals: u8,
+        ) -> Cw20Builder {
+            Cw20Builder::new(self.environment(), name.into(), symbol.into(), decimals)
+        }
+
         pub fn wait_blocks(&self, amount: u64) -> AbstractClientResult<()> {
             self.environment().wait_blocks(amount).map_err(Into::into)
+        }
+
+        pub fn wait_seconds(&self, amount: u64) -> AbstractClientResult<()> {
+            self.environment().wait_seconds(amount).map_err(Into::into)
         }
 
         // TODO: Also have this in non `Mock` case
@@ -94,6 +117,94 @@ mod test_utils {
             self.environment()
                 .query_balance(address, denom)
                 .map_err(Into::into)
+        }
+    }
+
+    pub mod cw20_builder {
+        // Re-exports to limit dependencies for consumer.
+        pub use cw20::{msg::Cw20ExecuteMsgFns, *};
+        pub use cw20_base::msg::{InstantiateMarketingInfo, QueryMsgFns as Cw20QueryMsgFns};
+        pub use cw_plus_interface::cw20_base::Cw20Base;
+
+        use cosmwasm_std::Addr;
+
+        use cw_orch::prelude::{CwOrchInstantiate, CwOrchUpload, Mock};
+        use cw_plus_interface::cw20_base::InstantiateMsg;
+
+        use crate::client::AbstractClientResult;
+
+        pub struct Cw20Builder {
+            chain: Mock,
+            name: String,
+            symbol: String,
+            decimals: u8,
+            initial_balances: Vec<Cw20Coin>,
+            mint: Option<MinterResponse>,
+            marketing: Option<InstantiateMarketingInfo>,
+            admin: Option<Addr>,
+        }
+
+        impl Cw20Builder {
+            /// Creates a new [`Cw20Builder`]. Call [`crate::client::AbstractClient`] to create.
+            pub(crate) fn new(chain: Mock, name: String, symbol: String, decimals: u8) -> Self {
+                Self {
+                    chain,
+                    name,
+                    symbol,
+                    decimals,
+                    initial_balances: vec![],
+                    mint: None,
+                    marketing: None,
+                    admin: None,
+                }
+            }
+
+            pub fn initial_balances(&mut self, initial_balances: Vec<Cw20Coin>) -> &mut Self {
+                self.initial_balances = initial_balances;
+                self
+            }
+
+            pub fn initial_balance(&mut self, initial_balance: Cw20Coin) -> &mut Self {
+                self.initial_balances.push(initial_balance);
+                self
+            }
+
+            pub fn mint(&mut self, mint: MinterResponse) -> &mut Self {
+                self.mint = Some(mint);
+                self
+            }
+
+            pub fn marketing(&mut self, marketing: InstantiateMarketingInfo) -> &mut Self {
+                self.marketing = Some(marketing);
+                self
+            }
+
+            pub fn admin(&mut self, admin: impl Into<String>) -> &mut Self {
+                self.admin = Some(Addr::unchecked(admin.into()));
+                self
+            }
+
+            pub fn instantiate_with_id(&self, id: &str) -> AbstractClientResult<Cw20Base<Mock>> {
+                let cw20 = Cw20Base::new(id, self.chain.clone());
+
+                // TODO: Consider adding error if the code-id is already uploaded. This would
+                // imply that the user is trying to instantiate twice using the same id which would
+                // overwrite the state.
+                cw20.upload()?;
+                cw20.instantiate(
+                    &InstantiateMsg {
+                        decimals: self.decimals,
+                        mint: self.mint.clone(),
+                        symbol: self.symbol.clone(),
+                        name: self.name.clone(),
+                        initial_balances: self.initial_balances.clone(),
+                        marketing: self.marketing.clone(),
+                    },
+                    self.admin.as_ref(),
+                    None,
+                )?;
+                Ok(cw20)
+            }
         }
     }
 
@@ -108,7 +219,7 @@ mod test_utils {
     }
 
     impl AbstractClientBuilder {
-        pub fn new(sender: impl Into<String>) -> Self {
+        pub(crate) fn new(sender: impl Into<String>) -> Self {
             let sender: String = sender.into();
             Self {
                 mock: Mock::new(&Addr::unchecked(&sender)),
@@ -182,8 +293,11 @@ mod test_utils {
             self
         }
 
-        pub fn balances(&mut self, balances: Vec<(String, Vec<Coin>)>) -> &mut Self {
-            self.balances = balances;
+        pub fn balances(&mut self, balances: Vec<(impl Into<String>, &[Coin])>) -> &mut Self {
+            self.balances = balances
+                .into_iter()
+                .map(|b| (b.0.into(), b.1.to_vec()))
+                .collect();
             self
         }
 
