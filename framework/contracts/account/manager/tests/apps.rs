@@ -4,6 +4,7 @@ use abstract_app::{gen_app_mock, mock};
 use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::objects::account::TEST_ACCOUNT_ID;
 use abstract_core::objects::module::ModuleInfo;
+use abstract_core::objects::nested_admin::TopLevelOwnerResponse;
 use abstract_core::objects::AccountId;
 use abstract_core::PROXY;
 use abstract_interface::*;
@@ -162,6 +163,12 @@ fn subaccount_app_ownership() -> AResult {
     let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
     let module = sub_account.manager.module_info(APP_ID)?.unwrap();
     app.set_address(&module.address);
+
+    // Check query gives us right Top Level Owner
+    let top_level_owner_res: TopLevelOwnerResponse =
+        app.query(&mock::QueryMsg::Base(app::BaseQueryMsg::TopLevelOwner {}))?;
+    assert_eq!(top_level_owner_res.address, sender);
+
     let admin_res: AdminResponse =
         app.query(&mock::QueryMsg::Base(app::BaseQueryMsg::BaseAdmin {}))?;
     assert_eq!(admin_res.admin.unwrap(), sub_account.manager.address()?);

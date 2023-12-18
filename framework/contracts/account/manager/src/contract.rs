@@ -1,9 +1,7 @@
 use crate::{
     commands::{self, *},
     error::ManagerError,
-    queries::{self, handle_sub_accounts_query},
-    queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
-    versioning,
+    queries, versioning,
 };
 use abstract_core::{
     manager::{
@@ -238,14 +236,15 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::ModuleVersions { ids } => queries::handle_contract_versions_query(deps, env, ids),
         QueryMsg::ModuleAddresses { ids } => queries::handle_module_address_query(deps, env, ids),
         QueryMsg::ModuleInfos { start_after, limit } => {
-            handle_module_info_query(deps, start_after, limit)
+            queries::handle_module_info_query(deps, start_after, limit)
         }
-        QueryMsg::Info {} => handle_account_info_query(deps),
-        QueryMsg::Config {} => handle_config_query(deps),
+        QueryMsg::Info {} => queries::handle_account_info_query(deps),
+        QueryMsg::Config {} => queries::handle_config_query(deps),
         QueryMsg::Ownership {} => abstract_sdk::query_ownership!(deps),
         QueryMsg::SubAccountIds { start_after, limit } => {
-            handle_sub_accounts_query(deps, start_after, limit)
+            queries::handle_sub_accounts_query(deps, start_after, limit)
         }
+        QueryMsg::TopLevelOwner {} => queries::handle_top_level_owner_query(deps, env),
     }
 }
 

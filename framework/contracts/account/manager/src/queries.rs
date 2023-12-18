@@ -1,6 +1,7 @@
 use abstract_core::manager::state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS};
 use abstract_core::manager::SubAccountIdsResponse;
 use abstract_core::objects::module::{self, ModuleInfo};
+use abstract_core::objects::nested_admin::{query_top_level_owner, TopLevelOwnerResponse};
 use abstract_core::AbstractError;
 use abstract_sdk::core::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
 use abstract_sdk::core::manager::{
@@ -96,6 +97,12 @@ pub fn handle_sub_accounts_query(
         .collect::<StdResult<Vec<u32>>>()?;
 
     to_json_binary(&SubAccountIdsResponse { sub_accounts: res })
+}
+
+pub fn handle_top_level_owner_query(deps: Deps, env: Env) -> StdResult<Binary> {
+    let addr = query_top_level_owner(&deps.querier, env.contract.address)?;
+
+    to_json_binary(&TopLevelOwnerResponse { address: addr })
 }
 
 /// RawQuery the version of an enabled module
