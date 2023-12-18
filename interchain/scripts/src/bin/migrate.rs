@@ -18,7 +18,6 @@ use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-// Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     for network in networks {
@@ -60,7 +59,14 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             challenge_app::contract::CHALLENGE_APP_VERSION.parse()?,
             DeployStrategy::Try,
         )?;
+
+        // deployment.ibc.upload()?;
+        // deployment.ibc.instantiate(&deployment, &chain.sender())?;
+        // deployment.ibc.register(&deployment.version_control)?;
+
+        deployment.version_control.approve_any_abstract_modules()?;
     }
+
     Ok(())
 }
 
