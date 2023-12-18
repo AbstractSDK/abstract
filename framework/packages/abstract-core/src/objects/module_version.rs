@@ -120,7 +120,7 @@ pub fn assert_contract_upgrade(
         (major == 0 && minor == 0)
           => true,
         (Some(major), None)
-        // major upgrade - minor sub overflowed (0.1.1 -> 0.2.0) 
+        // major upgrade - minor sub overflowed (0.1.0 -> 1.0.0) 
         if major == 1 => true,
         _ => false,
     };
