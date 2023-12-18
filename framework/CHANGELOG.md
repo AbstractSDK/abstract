@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added snapshot tests
 - Method `query_account_owner()` for Apps Admin object
 - Query `registered_dexes` for `AbstractNameServiceClient`
+- Query `top_level_owner` for manager and apps(as base query)
 
 ### Changed
 
