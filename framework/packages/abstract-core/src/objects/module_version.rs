@@ -107,6 +107,31 @@ pub fn assert_contract_upgrade(
             to: to_version,
         }
     );
+    // Must be 1 major or 1 minor version bump, not more
+    let major_diff = to_version.major.checked_sub(from_version.major);
+    let minor_diff = to_version.minor.checked_sub(from_version.minor);
+    let no_skips = match (major_diff, minor_diff) {
+        (Some(major), Some(minor)) if
+        // major upgrade - minor should stay the same (1.0.0 -> 2.0.0)
+        (major == 1 && minor == 0 && to_version.minor == 0) ||
+        // minor upgrade - major should stay the same (1.0.0 -> 1.1.0)
+        (major == 0 && minor == 1) ||
+        // patch upgrade - minor and major stays the same (1.0.0 -> 1.0.1)
+        (major == 0 && minor == 0)
+          => true,
+        (Some(major), None)
+        // major upgrade - minor sub overflowed (0.1.1 -> 0.2.0) 
+        if major == 1 => true,
+        _ => false,
+    };
+    ensure!(
+        no_skips,
+        AbstractError::CannotSkipVersion {
+            contract,
+            from: from_version,
+            to: to_version,
+        }
+    );
     Ok(())
 }
 
@@ -206,5 +231,93 @@ mod tests {
             metadata: metadata.map(Into::into),
         };
         assert_eq!(expected, loaded);
+    }
+
+    #[test]
+    fn module_upgrade() {
+        let mut store = MockStorage::new();
+        let contract_name = "abstract:manager";
+        let contract_version = "0.19.2";
+        cw2::CONTRACT
+            .save(
+                &mut store,
+                &ContractVersion {
+                    contract: contract_name.to_owned(),
+                    version: contract_version.to_owned(),
+                },
+            )
+            .unwrap();
+
+        // Patch upgrade
+        let to_version = "0.19.3".parse().unwrap();
+        let res = assert_contract_upgrade(&store, contract_name, to_version);
+        assert!(res.is_ok());
+
+        // Minor upgrade
+        let to_version = "0.20.0".parse().unwrap();
+        let res = assert_contract_upgrade(&store, contract_name, to_version);
+        assert!(res.is_ok());
+
+        // Minor with patch upgrade
+        let to_version = "0.20.1".parse().unwrap();
+        let res = assert_contract_upgrade(&store, contract_name, to_version);
+        assert!(res.is_ok());
+
+        // Major upgrade
+        let to_version = "1.0.0".parse().unwrap();
+        let res = assert_contract_upgrade(&store, contract_name, to_version);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn module_upgrade_err() {
+        let mut store = MockStorage::new();
+        let contract_name = "abstract:manager";
+        let contract_version = "0.19.2";
+        cw2::CONTRACT
+            .save(
+                &mut store,
+                &ContractVersion {
+                    contract: contract_name.to_owned(),
+                    version: contract_version.to_owned(),
+                },
+            )
+            .unwrap();
+
+        // Downgrade
+        let to_version: Version = "0.19.1".parse().unwrap();
+        let err = assert_contract_upgrade(&store, contract_name, to_version.clone()).unwrap_err();
+        assert_eq!(
+            err,
+            AbstractError::CannotDowngradeContract {
+                contract: contract_name.to_string(),
+                from: contract_version.parse().unwrap(),
+                to: to_version
+            }
+        );
+
+        // Minor upgrade
+        let to_version: Version = "0.21.0".parse().unwrap();
+        let err = assert_contract_upgrade(&store, contract_name, to_version.clone()).unwrap_err();
+        assert_eq!(
+            err,
+            AbstractError::CannotSkipVersion {
+                contract: contract_name.to_string(),
+                from: contract_version.parse().unwrap(),
+                to: to_version
+            }
+        );
+
+        // Major upgrade
+        let to_version: Version = "2.0.0".parse().unwrap();
+        let err = assert_contract_upgrade(&store, contract_name, to_version.clone()).unwrap_err();
+        assert_eq!(
+            err,
+            AbstractError::CannotSkipVersion {
+                contract: contract_name.to_string(),
+                from: contract_version.parse().unwrap(),
+                to: to_version
+            }
+        );
     }
 }

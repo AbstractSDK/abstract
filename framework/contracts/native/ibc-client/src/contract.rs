@@ -292,10 +292,14 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let small_version = "0.0.0";
-            cw2::set_contract_version(deps.as_mut().storage, IBC_CLIENT, small_version)?;
-
             let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let small_version = Version {
+                minor: version.minor - 1,
+                ..version.clone()
+            }
+            .to_string();
+            cw2::set_contract_version(deps.as_mut().storage, IBC_CLIENT, small_version)?;
 
             let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
             assert_that!(res.messages).has_length(0);
