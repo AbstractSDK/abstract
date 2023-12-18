@@ -1,0 +1,58 @@
+[package]
+name = "app"
+version = "0.0.1"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Adair <adair@abstract.money>",
+  "Abstract Money <contact@abstract.money>",
+]
+edition = "2021"
+homepage = ""
+documentation = ""
+repository = ""
+license = "GPL-3.0-or-later"
+keywords = ["cosmos", "cosmwasm", "abstractsdk"]
+resolver = "2"
+
+exclude = ["contract.wasm", "hash.txt"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
+[features]
+default = ["export"]
+export = []
+interface = ["export", "dep:abstract-interface", "dep:cw-orch"]
+schema = ["abstract-app/schema"]
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+thiserror = { workspace = true }
+schemars = { workspace = true }
+cw-asset = { workspace = true }
+abstract-core = { workspace = true  }
+abstract-app = { workspace = true  }
+abstract-sdk = { workspace = true  }
+
+# Dependencies for interface
+abstract-interface = { workspace = true , optional = true }
+cw-orch = { workspace = true , optional = true }
+
+[dev-dependencies]
+app = { path = ".", features = ["interface"] }
+abstract-interface = { workspace = true , features = ["daemon"] }
+abstract-testing = { workspace = true  }
+abstract-sdk = { workspace = true , features = ["test-utils"] }
+speculoos = { workspace = true }
+semver = { workspace = true }
+dotenv = { workspace = true }
+env_logger = { workspace = true }
+cw-orch = { workspace = true , features = ["daemon"] }
+clap = { workspace = true,  features = ["derive"] }
