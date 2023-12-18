@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::{
-    get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
+    get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
     AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_core::account_factory::ExecuteMsgFns as _;
@@ -12,17 +12,12 @@ use abstract_core::{
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
-pub struct IbcAbstract<Chain: CwEnv> {
-    pub client: IbcClient<Chain>,
-    pub host: IbcHost<Chain>,
-}
-
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
     pub version_control: VersionControl<Chain>,
     pub account_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
-    pub ibc: IbcAbstract<Chain>,
+    pub ibc: AbstractIbc<Chain>,
     pub(crate) account: AbstractAccount<Chain>,
 }
 
@@ -43,14 +38,14 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let ibc_host = IbcHost::new(IBC_HOST, chain.clone());
 
         let mut account = AbstractAccount { manager, proxy };
+        let ibc_infra = AbstractIbc::new(&chain);
 
         ans_host.upload()?;
         version_control.upload()?;
         account_factory.upload()?;
         module_factory.upload()?;
         account.upload()?;
-        ibc_client.upload()?;
-        ibc_host.upload()?;
+        ibc_infra.upload()?;
 
         let deployment = Abstract {
             ans_host,
@@ -58,10 +53,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             version_control,
             module_factory,
             account,
-            ibc: IbcAbstract {
-                client: ibc_client,
-                host: ibc_host,
-            },
+            ibc: ibc_infra,
         };
 
         Ok(deployment)
@@ -165,7 +157,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
             version_control,
             account_factory,
             module_factory,
-            ibc: IbcAbstract {
+            ibc: AbstractIbc {
                 client: ibc_client,
                 host: ibc_host,
             },
@@ -218,24 +210,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         )?;
 
         // We also instantiate ibc contracts
-        self.ibc.client.instantiate(
-            &abstract_core::ibc_client::InstantiateMsg {
-                ans_host_address: self.ans_host.addr_str()?,
-                version_control_address: self.version_control.addr_str()?,
-            },
-            Some(&admin),
-            None,
-        )?;
-
-        self.ibc.host.instantiate(
-            &abstract_core::ibc_host::InstantiateMsg {
-                ans_host_address: self.ans_host.addr_str()?,
-                account_factory_address: self.account_factory.addr_str()?,
-                version_control_address: self.version_control.addr_str()?,
-            },
-            Some(&admin),
-            None,
-        )?;
+        self.ibc.instantiate(&self, &admin)?;
 
         Ok(())
     }
