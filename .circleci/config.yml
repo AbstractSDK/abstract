@@ -87,8 +87,8 @@ jobs:
           name: Generate schemas
           command: |
             cargo install cargo-workspaces || true
-            ./scripts/framework-schema.sh
-            ./scripts/modules-schema.sh
+            cargo install just || true
+            just schema
       - run:
           name: Commit and push artifacts
           command: |
