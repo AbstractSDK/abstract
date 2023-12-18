@@ -23,22 +23,22 @@ pub const V2: &str = "2.0.0";
 /// deploys different version adapters and app for migration testing
 pub fn deploy_modules(mock: &Mock) {
     self::BootMockAdapter1V1::new_test(mock.clone())
-        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
+        .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
     self::BootMockAdapter1V2::new_test(mock.clone())
-        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
+        .deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // and now for adapter 2
     self::BootMockAdapter2V1::new_test(mock.clone())
-        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
+        .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
     self::BootMockAdapter2V2::new_test(mock.clone())
-        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
+        .deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // and now for app 1
@@ -131,11 +131,10 @@ pub mod app_1 {
 
 // this standalone have cw2
 pub mod standalone_cw2 {
+    use abstract_adapter::mock::{MockExecMsg, MockQueryMsg};
+
     pub use super::*;
     pub const MOCK_STANDALONE_ID: &str = "crate.io:mock-standalone1";
-
-    #[cosmwasm_schema::cw_serde]
-    pub struct MockMsg;
 
     pub fn mock_instantiate(
         deps: cosmwasm_std::DepsMut,
@@ -152,7 +151,7 @@ pub mod standalone_cw2 {
         deps: cosmwasm_std::DepsMut,
         env: cosmwasm_std::Env,
         info: cosmwasm_std::MessageInfo,
-        msg: MockMsg,
+        msg: MockExecMsg,
     ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
         Ok(cosmwasm_std::Response::new())
     }
@@ -161,7 +160,7 @@ pub mod standalone_cw2 {
     pub fn mock_query(
         deps: cosmwasm_std::Deps,
         env: cosmwasm_std::Env,
-        msg: MockMsg,
+        msg: MockQueryMsg,
     ) -> cosmwasm_std::StdResult<cosmwasm_std::Binary> {
         Ok(cosmwasm_std::Binary::default())
     }
@@ -172,7 +171,7 @@ pub mod standalone_no_cw2 {
     pub use super::*;
     pub const MOCK_STANDALONE_ID: &str = "crates.io:mock-standalone2";
 
-    pub use super::standalone_cw2::{mock_execute, mock_query, MockMsg};
+    pub use super::standalone_cw2::{mock_execute, mock_query};
 
     pub fn mock_instantiate(
         deps: cosmwasm_std::DepsMut,

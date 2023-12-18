@@ -82,7 +82,7 @@ fn account_install_app() -> AResult {
 
     let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    let app_addr = account.install_app(&app, &MockInitMsg, None)?;
+    let app_addr = account.install_app(&app, &MockInitMsg {}, None)?;
     let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
     assert_that!(app_addr).is_equal_to(module_addr);
     take_storage_snapshot!(chain, "account_install_app");
@@ -102,7 +102,7 @@ fn account_app_ownership() -> AResult {
 
     let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    account.install_app(&app, &MockInitMsg, None)?;
+    account.install_app(&app, &MockInitMsg {}, None)?;
 
     let admin_res: AdminResponse =
         app.query(&mock::QueryMsg::Base(app::BaseQueryMsg::BaseAdmin {}))?;
@@ -159,7 +159,7 @@ fn subaccount_app_ownership() -> AResult {
         &[],
     )?;
 
-    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+    let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
     let module = sub_account.manager.module_info(APP_ID)?.unwrap();
     app.set_address(&module.address);
     let admin_res: AdminResponse =

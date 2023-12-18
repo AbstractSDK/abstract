@@ -40,7 +40,7 @@ fn install_module_version(
     manager.install_module_version(
         module,
         ModuleVersion::Version(version.to_string()),
-        Some(&MockInitMsg),
+        Some(&MockInitMsg {}),
         None,
     )?;
 
@@ -524,7 +524,7 @@ fn create_account_with_installed_module() -> AResult {
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_json_binary(&MockInitMsg)?),
+                        Some(to_json_binary(&MockInitMsg {})?),
                     ),
                 ],
             },
@@ -605,7 +605,7 @@ fn create_sub_account_with_installed_module() -> AResult {
             ),
             ModuleInstallConfig::new(
                 ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                Some(to_json_binary(&MockInitMsg)?),
+                Some(to_json_binary(&MockInitMsg {})?),
             ),
         ],
         String::from("sub_account"),
@@ -616,7 +616,7 @@ fn create_sub_account_with_installed_module() -> AResult {
         &[],
     )?;
 
-    let account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+    let account = AbstractAccount::new(&deployment, AccountId::local(2));
 
     // Make sure all installed
     let account_module_versions = account.manager.module_versions(vec![
@@ -749,7 +749,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_json_binary(&MockInitMsg)?),
+                        Some(to_json_binary(&MockInitMsg {})?),
                     ),
                 ],
             },
@@ -882,7 +882,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
                 ),
                 ModuleInstallConfig::new(
                     ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                    Some(to_json_binary(&MockInitMsg)?),
+                    Some(to_json_binary(&MockInitMsg {})?),
                 ),
             ],
         },
@@ -1023,7 +1023,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_json_binary(&MockInitMsg)?),
+                        Some(to_json_binary(&MockInitMsg {})?),
                     ),
                     ModuleInstallConfig::new(
                         ModuleInfo {
@@ -1031,7 +1031,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                             name: "standalone".to_owned(),
                             version: V1.into(),
                         },
-                        Some(to_json_binary(&MockInitMsg)?),
+                        Some(to_json_binary(&MockInitMsg {})?),
                     ),
                 ],
             },
@@ -1169,7 +1169,7 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
-                        Some(to_json_binary(&MockInitMsg)?),
+                        Some(to_json_binary(&MockInitMsg {})?),
                     ),
                     ModuleInstallConfig::new(
                         ModuleInfo {
@@ -1177,7 +1177,7 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
                             name: "standalone".to_owned(),
                             version: V1.into(),
                         },
-                        Some(to_json_binary(&MockInitMsg)?),
+                        Some(to_json_binary(&MockInitMsg {})?),
                     ),
                 ],
             },

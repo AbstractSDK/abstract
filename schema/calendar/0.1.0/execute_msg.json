@@ -24,7 +24,7 @@
       ],
       "properties": {
         "module": {
-          "$ref": "#/definitions/AppExecuteMsg"
+          "$ref": "#/definitions/CalendarExecuteMsg"
         }
       },
       "additionalProperties": false
@@ -57,7 +57,63 @@
     }
   ],
   "definitions": {
-    "AppExecuteMsg": {
+    "AssetEntry": {
+      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+      "type": "string"
+    },
+    "Attribute": {
+      "description": "An key value pair that is used in the context of event attributes in logs",
+      "type": "object",
+      "required": [
+        "key",
+        "value"
+      ],
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "BaseExecuteMsg": {
+      "oneOf": [
+        {
+          "description": "Updates the base config",
+          "type": "object",
+          "required": [
+            "update_config"
+          ],
+          "properties": {
+            "update_config": {
+              "type": "object",
+              "properties": {
+                "ans_host_address": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "version_control_address": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+      "type": "string"
+    },
+    "CalendarExecuteMsg": {
       "description": "App execute messages",
       "oneOf": [
         {
@@ -244,62 +300,6 @@
           "additionalProperties": false
         }
       ]
-    },
-    "AssetEntry": {
-      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
-      "type": "string"
-    },
-    "Attribute": {
-      "description": "An key value pair that is used in the context of event attributes in logs",
-      "type": "object",
-      "required": [
-        "key",
-        "value"
-      ],
-      "properties": {
-        "key": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        }
-      }
-    },
-    "BaseExecuteMsg": {
-      "oneOf": [
-        {
-          "description": "Updates the base config",
-          "type": "object",
-          "required": [
-            "update_config"
-          ],
-          "properties": {
-            "update_config": {
-              "type": "object",
-              "properties": {
-                "ans_host_address": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "version_control_address": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "Binary": {
-      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
-      "type": "string"
     },
     "Callback": {
       "oneOf": [

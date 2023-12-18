@@ -1,5 +1,5 @@
 mod common;
-use abstract_adapter::mock::MockExecMsg;
+use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_core::adapter::{AdapterBaseMsg, AdapterRequestMsg};
 use abstract_core::manager::{ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;
@@ -114,7 +114,7 @@ fn default_without_response_data() -> AResult {
 
     let resp = account.manager.execute_on_module(
         TEST_MODULE_ID,
-        Into::<abstract_core::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
+        Into::<abstract_core::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
     )?;
     assert_that!(resp.data).is_none();
     take_storage_snapshot!(chain, "default_without_response_data");
@@ -165,7 +165,7 @@ fn with_response_data() -> AResult {
                 &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Module(
                     AdapterRequestMsg {
                         proxy_address: Some(account.proxy.addr_str()?),
-                        request: MockExecMsg,
+                        request: MockExecMsg {},
                     },
                 ),
                 vec![],
@@ -188,7 +188,7 @@ fn install_standalone_modules() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(AccountId::local(0)));
+    let account = AbstractAccount::new(&deployment, AccountId::local(0));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -214,11 +214,7 @@ fn install_standalone_modules() -> AResult {
         ModuleReference::Standalone(standalone1_id),
     )])?;
 
-    account.install_module(
-        "abstract:standalone1",
-        Some(&mock_modules::standalone_cw2::MockMsg),
-        None,
-    )?;
+    account.install_module("abstract:standalone1", Some(&MockInitMsg {}), None)?;
 
     // install second standalone
     deployment.version_control.propose_modules(vec![(
@@ -230,11 +226,7 @@ fn install_standalone_modules() -> AResult {
         ModuleReference::Standalone(standalone2_id),
     )])?;
 
-    account.install_module(
-        "abstract:standalone2",
-        Some(&mock_modules::standalone_no_cw2::MockMsg),
-        None,
-    )?;
+    account.install_module("abstract:standalone2", Some(&MockInitMsg {}), None)?;
     take_storage_snapshot!(chain, "proxy_install_standalone_modules");
     Ok(())
 }
@@ -244,7 +236,7 @@ fn install_standalone_versions_not_met() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(AccountId::local(0)));
+    let account = AbstractAccount::new(&deployment, AccountId::local(0));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -264,11 +256,7 @@ fn install_standalone_versions_not_met() -> AResult {
     )])?;
 
     let err = account
-        .install_module(
-            "abstract:standalone1",
-            Some(&mock_modules::standalone_cw2::MockMsg),
-            None,
-        )
+        .install_module("abstract:standalone1", Some(&MockInitMsg {}), None)
         .unwrap_err();
 
     if let AbstractInterfaceError::Orch(err) = err {
@@ -293,7 +281,7 @@ fn install_multiple_modules() -> AResult {
     let chain = Mock::new(&sender);
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(ABSTRACT_ACCOUNT_ID));
+    let account = AbstractAccount::new(&deployment, ABSTRACT_ACCOUNT_ID);
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -360,11 +348,11 @@ fn install_multiple_modules() -> AResult {
             vec![
                 ModuleInstallConfig::new(
                     ModuleInfo::from_id_latest("abstract:standalone1")?,
-                    Some(to_json_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
+                    Some(to_json_binary(&MockInitMsg {}).unwrap()),
                 ),
                 ModuleInstallConfig::new(
                     ModuleInfo::from_id_latest("abstract:standalone2")?,
-                    Some(to_json_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
+                    Some(to_json_binary(&MockInitMsg {}).unwrap()),
                 ),
             ],
             Some(&[coin(86, "token1"), coin(500, "token2")]),
@@ -380,11 +368,11 @@ fn install_multiple_modules() -> AResult {
     account.install_modules_auto(vec![
         ModuleInstallConfig::new(
             ModuleInfo::from_id_latest("abstract:standalone1")?,
-            Some(to_json_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
+            Some(to_json_binary(&MockInitMsg {}).unwrap()),
         ),
         ModuleInstallConfig::new(
             ModuleInfo::from_id_latest("abstract:standalone2")?,
-            Some(to_json_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
+            Some(to_json_binary(&MockInitMsg {}).unwrap()),
         ),
     ])?;
 

@@ -3,7 +3,7 @@ name: Manual CircleCI Wasm Builder
 # Job that updates the wasms of the mono-repo only if it is triggered manually.
 
 on:
-  workflow_dispatch: # Trigger manually on any branch
+  workflow_dispatch: # Trigger manually on any branch.
 
 jobs:
   build:

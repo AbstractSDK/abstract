@@ -146,7 +146,7 @@
                   "null"
                 ],
                 "format": "uint32",
-                "minimum": 0
+                "minimum": 0.0
               },
               "start_after": {
                 "type": [
@@ -238,7 +238,7 @@
             "count": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0
+              "minimum": 0.0
             },
             "total_amount": {
               "$ref": "#/definitions/Uint128"
@@ -263,7 +263,7 @@
         "count": {
           "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0.0
         }
       },
       "additionalProperties": false
@@ -284,7 +284,7 @@
         "count": {
           "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0.0
         },
         "total_amount": {
           "$ref": "#/definitions/Uint128"

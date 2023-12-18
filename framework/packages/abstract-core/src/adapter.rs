@@ -97,6 +97,7 @@ impl<Request: Serialize> AdapterRequestMsg<Request> {
     }
 }
 
+// serde attributes remain it compatible with previous versions in cases where proxy_address is omitted
 #[cosmwasm_schema::cw_serde]
 pub struct BaseExecuteMsg {
     /// The Proxy address for which to apply the configuration
@@ -116,8 +117,6 @@ pub enum AdapterBaseMsg {
         to_add: Vec<String>,
         to_remove: Vec<String>,
     },
-    /// Remove the adapter
-    Remove {},
 }
 
 /// Query adapter message

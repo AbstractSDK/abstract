@@ -17,19 +17,24 @@ use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
 pub mod mock {
     pub use abstract_core::app;
-    use abstract_interface::AppDeployer;
+    use abstract_core::{
+        manager::ModuleInstallConfig,
+        objects::{dependency::StaticDependency, module::ModuleInfo},
+    };
+    use abstract_interface::{AppDeployer, DependencyCreation};
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{to_json_binary, Response, StdError};
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;
+    use cw_storage_plus::Item;
 
     pub type AppTestResult = Result<(), MockError>;
 
     crate::app_msg_types!(MockAppContract, MockExecMsg, MockQueryMsg);
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockInitMsg;
+    pub struct MockInitMsg {}
 
     #[cosmwasm_schema::cw_serde]
     #[derive(cw_orch::ExecuteFns)]
@@ -46,10 +51,18 @@ pub mod mock {
     pub enum MockQueryMsg {
         #[returns(MockQueryResponse)]
         GetSomething {},
+
+        #[returns(ReceivedIbcCallbackStatus)]
+        GetReceivedIbcCallbackStatus {},
     }
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockQueryResponse {}
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct ReceivedIbcCallbackStatus {
+        pub received: bool,
+    }
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockMigrateMsg;
@@ -65,10 +78,13 @@ pub mod mock {
     use abstract_testing::{
         addresses::{test_account_base, TEST_ANS_HOST, TEST_VERSION_CONTROL},
         prelude::{
-            MockDeps, MockQuerierBuilder, TEST_MODULE_FACTORY, TEST_MODULE_ID, TEST_VERSION,
+            MockDeps, MockQuerierBuilder, TEST_DEPENDENCY_MODULE_ID, TEST_MODULE_FACTORY,
+            TEST_MODULE_ID, TEST_VERSION,
         },
     };
     use thiserror::Error;
+
+    use self::interface::MockAppInterface;
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
@@ -102,21 +118,77 @@ pub mod mock {
     pub const BASIC_MOCK_APP: MockAppContract =
         MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
+    // Easy way to see if an ibc-callback was actually received.
+    pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
+
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
-        .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
+        .with_instantiate(|deps, _, _, _, _| {
+            IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
+            Ok(Response::new().set_data("mock_init".as_bytes()))
+        })
         .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-        .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into))
+        .with_query(|deps, _, _, msg| match msg {
+            MockQueryMsg::GetSomething {} => {
+                to_json_binary(&MockQueryResponse {}).map_err(Into::into)
+            }
+            MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
+                to_json_binary(&ReceivedIbcCallbackStatus {
+                    received: IBC_CALLBACK_RECEIVED.load(deps.storage)?,
+                })
+                .map_err(Into::into)
+            }
+        })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
+        .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _, _, _| {
+            IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
             Ok(Response::new().set_data("mock_callback".as_bytes()))
         })])
+        .with_dependencies(&[StaticDependency::new(
+            TEST_DEPENDENCY_MODULE_ID,
+            &[TEST_VERSION],
+        )])
         .with_replies(&[(1u64, |_, _, _, msg| {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
 
     crate::cw_orch_interface!(MOCK_APP, MockAppContract, MockAppInterface);
+
+    // Needs to be in a separate module due to the `interface` module names colliding otherwise.
+    pub mod mock_app_dependency {
+        use abstract_testing::prelude::{TEST_DEPENDENCY_MODULE_ID, TEST_VERSION};
+        use cosmwasm_std::{to_json_binary, Response};
+
+        use super::{MockAppContract, MockQueryResponse};
+
+        pub const MOCK_APP_DEPENDENCY: MockAppContract =
+            MockAppContract::new(TEST_DEPENDENCY_MODULE_ID, TEST_VERSION, None)
+                .with_instantiate(|_, _, _, _, _| {
+                    Ok(Response::new().set_data("mock_init".as_bytes()))
+                })
+                .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+                .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into));
+
+        crate::cw_orch_interface!(
+            MOCK_APP_DEPENDENCY,
+            MockAppContract,
+            MockAppDependencyInterface
+        );
+    }
+
+    impl<Chain: CwEnv> DependencyCreation for MockAppInterface<Chain> {
+        type DependenciesConfig = Empty;
+        fn dependency_install_configs(
+            _configuration: Self::DependenciesConfig,
+        ) -> Result<Vec<ModuleInstallConfig>, abstract_interface::AbstractInterfaceError> {
+            let install_config = ModuleInstallConfig::new(
+                ModuleInfo::from_id(TEST_DEPENDENCY_MODULE_ID, TEST_VERSION.into())?,
+                Some(to_json_binary(&MockInitMsg {})?),
+            );
+            Ok(vec![install_config])
+        }
+    }
 
     crate::export_endpoints!(MOCK_APP, MockAppContract);
 

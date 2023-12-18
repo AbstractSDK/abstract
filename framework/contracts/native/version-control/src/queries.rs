@@ -95,9 +95,9 @@ pub fn handle_module_list_query(
     } = filter.unwrap_or_default();
 
     let mod_lib = match status {
-        Some(ModuleStatus::REGISTERED) => &REGISTERED_MODULES,
-        Some(ModuleStatus::PENDING) => &PENDING_MODULES,
-        Some(ModuleStatus::YANKED) => &YANKED_MODULES,
+        Some(ModuleStatus::Registered) => &REGISTERED_MODULES,
+        Some(ModuleStatus::Pending) => &PENDING_MODULES,
+        Some(ModuleStatus::Yanked) => &YANKED_MODULES,
         None => &REGISTERED_MODULES,
     };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
@@ -328,8 +328,10 @@ mod test {
         )?;
         execute_as_admin(
             deps.branch(),
-            ExecuteMsg::SetFactory {
-                new_factory: TEST_ACCOUNT_FACTORY.to_string(),
+            ExecuteMsg::UpdateConfig {
+                account_factory_address: Some(TEST_ACCOUNT_FACTORY.to_string()),
+                allow_direct_module_registration_and_updates: None,
+                namespace_registration_fee: None,
             },
         )?;
 
@@ -733,7 +735,7 @@ mod test {
             let filtered_namespace = "cw-plus".to_string();
 
             let filter = ModuleFilter {
-                status: Some(ModuleStatus::YANKED),
+                status: Some(ModuleStatus::Yanked),
                 namespace: Some(filtered_namespace.clone()),
                 ..Default::default()
             };

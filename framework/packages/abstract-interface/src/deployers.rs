@@ -1,5 +1,7 @@
 use crate::Abstract;
-use abstract_core::objects::module::ModuleVersion;
+use abstract_core::manager::ModuleInstallConfig;
+use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
+use cosmwasm_std::to_json_binary;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::CwOrchError::StdErr;
 use cw_orch::prelude::*;
@@ -16,6 +18,42 @@ pub trait RegisteredModule {
     /// The version of the module.
     fn module_version<'a>() -> &'a str;
 }
+
+/// Trait to access module dependency information tied directly to the type.
+pub trait DependencyCreation {
+    /// Type that exposes the dependencies's configurations if that's required.
+    type DependenciesConfig;
+
+    /// Function that returns the [`ModuleInstallConfig`] for each dependent module.
+    #[allow(unused_variables)]
+    fn dependency_install_configs(
+        configuration: Self::DependenciesConfig,
+    ) -> Result<Vec<ModuleInstallConfig>, crate::AbstractInterfaceError> {
+        Ok(vec![])
+    }
+}
+
+/// Trait to make it easier to construct [`ModuleInfo`] and [`ModuleInstallConfig`] for a
+/// [`RegisteredModule`].
+pub trait InstallConfig: RegisteredModule {
+    /// Constructs the [`ModuleInfo`] by using information from [`RegisteredModule`].
+    fn module_info() -> Result<ModuleInfo, crate::AbstractInterfaceError> {
+        ModuleInfo::from_id(Self::module_id(), Self::module_version().into()).map_err(Into::into)
+    }
+
+    /// Constructs the [`ModuleInstallConfig`] for an App Interface
+    fn install_config(
+        init_msg: &Self::InitMsg,
+    ) -> Result<ModuleInstallConfig, crate::AbstractInterfaceError> {
+        Ok(ModuleInstallConfig::new(
+            Self::module_info()?,
+            Some(to_json_binary(init_msg)?),
+        ))
+    }
+}
+
+// Blanket implemention.
+impl<T> InstallConfig for T where T: RegisteredModule {}
 
 /// Strategy for deploying
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

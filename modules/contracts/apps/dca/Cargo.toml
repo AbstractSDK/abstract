@@ -55,6 +55,7 @@ abstract-dex-adapter = { workspace = true, default-features = false }
 dca-app = { path = ".", features = ["interface"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
+abstract-client = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"

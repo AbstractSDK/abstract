@@ -1,16 +1,19 @@
 use abstract_core::{
-    manager::{state::AccountInfo, InfoResponse, ModuleInstallConfig},
+    manager::{
+        state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
+        ModuleInfosResponse, ModuleInstallConfig,
+    },
     objects::{
-        gov_type::GovernanceDetails, module::ModuleInfo, namespace::Namespace, AccountId,
-        AssetEntry,
+        gov_type::GovernanceDetails, namespace::Namespace, nested_admin::MAX_ADMIN_RECURSION,
+        AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
 };
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns, RegisteredModule,
-    VCQueryFns,
+    Abstract, AbstractAccount, AccountDetails, DependencyCreation, InstallConfig, ManagerExecFns,
+    ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
-use cosmwasm_std::{to_json_binary, Attribute};
+use cosmwasm_std::Attribute;
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
 
@@ -147,11 +150,13 @@ impl<Chain: CwEnv> Account<Chain> {
             .namespace(Namespace::new(namespace)?)?;
 
         let abstract_account: AbstractAccount<Chain> =
-            AbstractAccount::new(abstr, Some(namespace_response.account_id));
+            AbstractAccount::new(abstr, namespace_response.account_id);
 
         Ok(Self::new(abstract_account))
     }
 
+    // TODO: remove `get_account` prefix
+    // Getters are not prefixed with `get_` in rust.
     pub fn get_account_info(&self) -> AbstractClientResult<AccountInfo<Addr>> {
         let info_response: InfoResponse = self.abstr_account.manager.info()?;
         Ok(info_response.info)
@@ -160,18 +165,111 @@ impl<Chain: CwEnv> Account<Chain> {
     // Install an application on the account
     // creates a new sub-account and installs the application on it.
     pub fn install_app<
-        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
+        M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>> + Clone,
     >(
         &self,
         configuration: &M::InitMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
+        self.install_app_internal(vec![M::install_config(configuration)?], funds)
+    }
+
+    pub fn install_app_with_dependencies<
+        M: ContractInstance<Chain>
+            + DependencyCreation
+            + InstallConfig
+            + From<Contract<Chain>>
+            + Clone,
+    >(
+        &self,
+        module_configuration: &M::InitMsg,
+        dependencies_config: M::DependenciesConfig,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let mut install_configs: Vec<ModuleInstallConfig> =
+            M::dependency_install_configs(dependencies_config)?;
+        install_configs.push(M::install_config(module_configuration)?);
+
+        self.install_app_internal(install_configs, funds)
+    }
+
+    pub fn ownership(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
+        self.abstr_account.manager.ownership().map_err(Into::into)
+    }
+
+    /// Returns the owner address of the account.
+    /// If the account is a sub-account, it will return the top-level owner address.
+    pub fn owner(&self) -> AbstractClientResult<Addr> {
+        let mut governance = self.abstr_account.manager.info()?.info.governance_details;
+
+        let environment = self.environment();
+        // Get sub-accounts until we get non-sub-account governance or reach recursion limit
+        for _ in 0..MAX_ADMIN_RECURSION {
+            match &governance {
+                GovernanceDetails::SubAccount { manager, .. } => {
+                    governance = environment
+                        .query::<_, InfoResponse>(
+                            &abstract_core::manager::QueryMsg::Info {},
+                            manager,
+                        )
+                        .map_err(|err| err.into())?
+                        .info
+                        .governance_details;
+                }
+                _ => break,
+            }
+        }
+
+        // Get top level account owner address
+        Ok(governance.owner_address())
+    }
+
+    pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
+        let mut module_infos: Vec<ManagerModuleInfo> = vec![];
+        loop {
+            let last_module_id: Option<String> = module_infos
+                .last()
+                .map(|module_info| module_info.id.clone());
+            let res: ModuleInfosResponse = self
+                .abstr_account
+                .manager
+                .module_infos(None, last_module_id)?;
+            if res.module_infos.is_empty() {
+                break;
+            }
+            module_infos.extend(res.module_infos);
+        }
+        Ok(ModuleInfosResponse { module_infos })
+    }
+
+    pub fn module_addresses(
+        &self,
+        ids: Vec<String>,
+    ) -> AbstractClientResult<ModuleAddressesResponse> {
+        self.abstr_account
+            .manager
+            .module_addresses(ids)
+            .map_err(Into::into)
+    }
+
+    pub fn proxy(&self) -> AbstractClientResult<Addr> {
+        self.abstr_account.proxy.address().map_err(Into::into)
+    }
+
+    pub fn manager(&self) -> AbstractClientResult<Addr> {
+        self.abstr_account.manager.address().map_err(Into::into)
+    }
+
+    fn install_app_internal<
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
+    >(
+        &self,
+        modules: Vec<ModuleInstallConfig>,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
         // Create sub account.
         let sub_account_response = self.abstr_account.manager.create_sub_account(
-            vec![ModuleInstallConfig::new(
-                ModuleInfo::from_id(M::module_id(), M::module_version().into())?,
-                Some(to_json_binary(&configuration)?),
-            )],
+            modules,
             "Sub Account".to_owned(),
             None,
             None,
@@ -185,9 +283,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
         let sub_account: AbstractAccount<Chain> = AbstractAccount::new(
             &self.infrastructure()?,
-            Some(AccountId::local(
-                parsed_account_creation_response.sub_account_id,
-            )),
+            AccountId::local(parsed_account_creation_response.sub_account_id),
         );
 
         let contract =
@@ -198,14 +294,6 @@ impl<Chain: CwEnv> Account<Chain> {
         let app: M = contract.into();
 
         Ok(Application::new(Account::new(sub_account), app))
-    }
-
-    pub fn admin(&self) -> AbstractClientResult<Addr> {
-        self.abstr_account.manager.address().map_err(Into::into)
-    }
-
-    pub fn proxy(&self) -> AbstractClientResult<Addr> {
-        self.abstr_account.proxy.address().map_err(Into::into)
     }
 
     fn parse_account_creation_response(
@@ -223,15 +311,26 @@ impl<Chain: CwEnv> Account<Chain> {
             .find(|a| a.key == "sub_account_added")
             .map(|a| a.value.parse().unwrap());
 
-        let module_address: Option<String> = wasm_abstract_attributes
+        let module_addresses: Option<String> = wasm_abstract_attributes
             .iter()
             .find(|a| a.key == "new_modules")
             .map(|a| a.value.parse().unwrap());
 
+        // When there are multiple modules registered the addresses are returned in a common
+        // separated list. We want the last one as that is the "top-level" module while the rest
+        // are dependencies, since in the sub-account creation call, we pass in the top-level
+        // module last.
+        let module_address: String = module_addresses
+            .unwrap()
+            .split(',')
+            .last()
+            .unwrap()
+            .to_string();
+
         ParsedAccountCreationResponse {
             // We expect both of these fields to be present.
             sub_account_id: sub_account_id.unwrap(),
-            module_address: module_address.unwrap(),
+            module_address,
         }
     }
 }
