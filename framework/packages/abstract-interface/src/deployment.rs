@@ -173,47 +173,47 @@ impl<Chain: CwEnv> Abstract<Chain> {
     }
 
     pub fn instantiate(&mut self, chain: &Chain, admin: String) -> Result<(), CwOrchError> {
-        let sender = &chain.sender();
+        let admin = Addr::unchecked(admin);
 
         self.ans_host.instantiate(
             &abstract_core::ans_host::InstantiateMsg {
-                admin: admin.clone(),
+                admin: admin.to_string(),
             },
-            Some(sender),
+            Some(&admin),
             None,
         )?;
 
         self.version_control.instantiate(
             &abstract_core::version_control::InstantiateMsg {
-                admin: admin.clone(),
+                admin: admin.to_string(),
                 #[cfg(feature = "integration")]
                 allow_direct_module_registration_and_updates: Some(true),
                 #[cfg(not(feature = "integration"))]
                 allow_direct_module_registration_and_updates: Some(false),
                 namespace_registration_fee: None,
             },
-            Some(sender),
+            Some(&admin),
             None,
         )?;
 
         self.module_factory.instantiate(
             &abstract_core::module_factory::InstantiateMsg {
-                admin: admin.clone(),
+                admin: admin.to_string(),
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
             },
-            Some(sender),
+            Some(&admin),
             None,
         )?;
 
         self.account_factory.instantiate(
             &abstract_core::account_factory::InstantiateMsg {
-                admin,
+                admin: admin.to_string(),
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
                 module_factory_address: self.module_factory.address()?.into_string(),
             },
-            Some(sender),
+            Some(&admin),
             None,
         )?;
 
@@ -223,7 +223,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 ans_host_address: self.ans_host.addr_str()?,
                 version_control_address: self.version_control.addr_str()?,
             },
-            None,
+            Some(&admin),
             None,
         )?;
 
@@ -233,7 +233,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 account_factory_address: self.account_factory.addr_str()?,
                 version_control_address: self.version_control.addr_str()?,
             },
-            None,
+            Some(&admin),
             None,
         )?;
 
