@@ -20,12 +20,12 @@
         },
         "uni-6": {
             "code_ids": {
-                "abstract:account-factory": 3713,
-                "abstract:ans-host": 3711,
-                "abstract:manager": 3715,
-                "abstract:module-factory": 3714,
-                "abstract:proxy": 3716,
-                "abstract:version-control": 3712
+                "abstract:account-factory": 4032,
+                "abstract:ans-host": 4035,
+                "abstract:manager": 4036,
+                "abstract:module-factory": 4033,
+                "abstract:proxy": 4037,
+                "abstract:version-control": 4034
             },
             "default": {
                 "abstract:account-factory": "juno1czkm9gq96zwwncxusgzruvpuex4wjf4ak7lms6q698938k529q3shmfl90",
