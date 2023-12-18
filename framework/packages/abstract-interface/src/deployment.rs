@@ -2,13 +2,10 @@ use std::path::PathBuf;
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
-    AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory, Proxy, VersionControl,
+    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_core::account_factory::ExecuteMsgFns as _;
-use abstract_core::{
-    ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MANAGER, MODULE_FACTORY, PROXY,
-    VERSION_CONTROL,
-};
+use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
@@ -33,9 +30,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
         let manager = Manager::new(MANAGER, chain.clone());
         let proxy = Proxy::new(PROXY, chain.clone());
-
-        let ibc_client = IbcClient::new(IBC_CLIENT, chain.clone());
-        let ibc_host = IbcHost::new(IBC_HOST, chain.clone());
 
         let mut account = AbstractAccount { manager, proxy };
         let ibc_infra = AbstractIbc::new(&chain);

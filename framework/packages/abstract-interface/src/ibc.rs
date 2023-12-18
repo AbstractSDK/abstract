@@ -1,4 +1,4 @@
-use abstract_core::{ibc_client::ExecuteMsgFns, IBC_CLIENT, IBC_HOST};
+use abstract_core::{IBC_CLIENT, IBC_HOST};
 use cw_orch::prelude::*;
 
 use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, VersionControl};

@@ -1,6 +1,6 @@
 mod common;
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
-use abstract_core::adapter::{AdapterBaseMsg, AdapterRequestMsg};
+
 use abstract_core::manager::{ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};

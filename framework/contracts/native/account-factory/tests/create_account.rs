@@ -14,7 +14,7 @@ use abstract_core::{
 use abstract_interface::{
     AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
 };
-use abstract_sdk::cw_helpers::Clearable;
+
 use abstract_testing::prelude::*;
 use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoBase};
