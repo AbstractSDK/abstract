@@ -70,10 +70,24 @@ jobs:
               fi
             done
       - run:
+        name: Generate lockfiles
+        command: |
+          (cd framework ; cargo generate-lockfile)
+          (cd modules ; cargo generate-lockfile)
+      - restore_cache:
+        keys:
+          - cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
+      - run:
           name: Build WASM artifacts
           command: |
             set -e
             ./scripts/wasm-all-ci.sh
+      - run:
+          name: Generate schemas
+          command: |
+            set -e
+            ./scripts/framework-schema.sh
+            ./scripts/modules-schema.sh
       - run:
           name: Commit and push artifacts
           command: |
@@ -81,11 +95,25 @@ jobs:
             git config --global user.email 'circleci@example.com'
             # Pull latest changes
             git pull origin $CIRCLE_BRANCH
-            # Check for changes
+            # Check for wasm changes
             git add framework/artifacts --force
             git add modules/artifacts --force
             git commit -m 'Update WASM binaries [skip ci]'  || true
             git push origin $CIRCLE_BRANCH || true
+            # Check for schema changes
+            git add schema --force
+            git commit -m 'Update Schemas [skip ci]' || true
+
+      - save_cache:
+          paths:
+            - /usr/local/cargo/registry
+            - framework/target/debug/.fingerprint
+            - framework/target/debug/build
+            - framework/target/debug/deps
+            - modules/target/debug/.fingerprint
+            - modules/target/debug/build
+            - modules/target/debug/deps
+          key: cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
