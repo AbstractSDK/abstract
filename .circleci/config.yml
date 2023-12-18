@@ -70,13 +70,14 @@ jobs:
               fi
             done
       - run:
-        name: Generate lockfiles
-        command: |
-          (cd framework ; cargo generate-lockfile)
-          (cd modules ; cargo generate-lockfile)
+          name: Generate lockfiles
+          command: |
+            set -e
+            (cd framework ; cargo generate-lockfile)
+            (cd modules ; cargo generate-lockfile)
       - restore_cache:
-        keys:
-          - cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
+          keys:
+            - cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
       - run:
           name: Build WASM artifacts
           command: |
@@ -103,7 +104,6 @@ jobs:
             # Check for schema changes
             git add schema --force
             git commit -m 'Update Schemas [skip ci]' || true
-
       - save_cache:
           paths:
             - /usr/local/cargo/registry
@@ -126,13 +126,13 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Generate lockfile
-        command: |
-          cd framework
-          cargo generate-lockfile
+          name: Generate lockfile
+          command: |
+            cd framework
+            cargo generate-lockfile
       - restore_cache:
-        keys:
-          - cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
+          keys:
+            - cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Decode and Deploy
           command: |
@@ -174,13 +174,13 @@ jobs:
           version: 20.10.14
       - checkout
       - run:
-        name: Generate lockfile
-        command: |
-          cd modules
-          cargo generate-lockfile
+          name: Generate lockfile
+          command: |
+            cd modules
+            cargo generate-lockfile
       - restore_cache:
-        keys:
-          - cargocache-v2-coverage-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
+          keys:
+            - cargocache-v2-coverage-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
       - run:
           name: Run tests with coverage for modules
           command: |
