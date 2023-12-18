@@ -119,9 +119,8 @@ pub fn assert_contract_upgrade(
         // patch upgrade - minor and major stays the same (1.0.0 -> 1.0.1)
         (major == 0 && minor == 0)
           => true,
-        (Some(major), None)
         // major upgrade - minor sub overflowed (0.1.0 -> 1.0.0) 
-        if major == 1 => true,
+        (Some(1), None) => true,
         _ => false,
     };
     ensure!(
