@@ -133,11 +133,9 @@ expression: all_storage
   - - "\u0000\u0007nmspc_a\u0000\u0005local\u0000\u0004\u0000\u0000\u0000\u0001tester"
     - "6"
   - - cfg
-    - "{\"allow_direct_module_registration_and_updates\":true,\"namespace_registration_fee\":{\"denom\":\"none\",\"amount\":\"0\"}}"
+    - "{\"account_factory_address\":\"contract3\",\"allow_direct_module_registration_and_updates\":true,\"namespace_registration_fee\":null}"
   - - contract_info
     - "{\"contract\":\"abstract:version-control\",\"version\":\"0.20.0\"}"
-  - - fac
-    - "\"contract3\""
   - - ownership
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "tester:mock-adapter1":
