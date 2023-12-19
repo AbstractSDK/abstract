@@ -144,7 +144,7 @@ jobs:
           name: Modules tests
           command: |
             cd modules
-            cargo test --locked --all-targets # Manually enable features if required, osmosis test tube requires golang to function
+            cargo test --locked --all-targets -j 2 # Manually enable features if required, osmosis test tube requires golang to function
       - save_cache:
           paths:
             - /usr/local/cargo/registry
