@@ -11,6 +11,7 @@ mod osmosis_test {
     use abstract_core::objects::pool_id::PoolAddressBase;
     use abstract_core::objects::AccountId;
     use abstract_core::objects::PoolMetadata;
+    use abstract_core::objects::PoolType;
     use abstract_core::MANAGER;
     use abstract_cw_staking::contract::CONTRACT_VERSION;
     use abstract_cw_staking::msg::StakingQueryMsgFns;
@@ -447,7 +448,18 @@ mod osmosis_test {
         let dur = Some(cw_utils::Duration::Time(2));
 
         // stake 100 EUR
-        staking.stake(vec![AnsAsset::new(lp, 100u128)], OSMOSIS.into(), dur, &os)?;
+        let err = staking
+            .stake(vec![AnsAsset::new(lp, 100u128)], OSMOSIS.into(), dur, &os)
+            .unwrap_err();
+        if let AbstractInterfaceError::Orch(CwOrchError::StdErr(e)) = err {
+            let expected_err = CwStakingError::NotSupportedPoolType(
+                PoolType::ConcentratedLiquidity.to_string(),
+                "osmosis".to_owned(),
+            );
+            assert!(e.contains(&expected_err.to_string()));
+        } else {
+            panic!("Expected stderror");
+        };
         Ok(())
     }
 }
