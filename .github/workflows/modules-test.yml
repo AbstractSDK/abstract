@@ -34,6 +34,26 @@ jobs:
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./modules
         run: cargo generate-lockfile
+  # Triggers the circleci tests job
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: tickle tests
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+          CIRCLE_BRANCH: ${{ github.head_ref }}
+        run: |
+          echo $CIRCLE_BRANCH;
+          curl -X POST \
+          -H "Circle-Token: ${CCI_TOKEN}" \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d "{
+            \"branch\": \"${CIRCLE_BRANCH}\",
+            \"parameters\": {
+              \"GHA_Meta\": \"modules_tests\"
+            }
+          }" https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
   # Triggers the circleci codecov job
   coverage:
     runs-on: ubuntu-latest

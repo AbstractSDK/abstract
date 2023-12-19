@@ -34,6 +34,13 @@ workflows:
       equal: ["modules_coverage", << pipeline.parameters.GHA_Meta >>]
     jobs:
       - coverage
+
+  modules-tests:
+    when:
+      equal: ["modules_tests", << pipeline.parameters.GHA_Meta >>]
+    jobs:
+      - tests
+
   # add this to give green ci when nothing is ran
   pass:
     jobs:
