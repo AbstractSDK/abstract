@@ -55,10 +55,9 @@ cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.
 polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.2" }
 polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.2" }
 
-# TODO; Set tag!
-cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "update/add-rust-contracts" }
-cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "update/add-rust-contracts" }
-cw-orch-fork-mock = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "update/add-rust-contracts" }
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.1" }
+cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.1" }
+cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.1" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required

@@ -349,7 +349,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-asset",
  "cw-controllers",
- "cw-orch-fork-mock",
+ "cw-orch-clone-testing",
  "cw-orch-interchain",
  "cw-orch-polytone",
  "cw-orch-proto",
@@ -1796,8 +1796,8 @@ dependencies = [
 
 [[package]]
 name = "cw-multi-test"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-multi-test?branch=update/add_rust_contracts#28b1d837ea9ecdadad5949ba87b7b53467e9ce92"
+version = "0.19.4"
+source = "git+https://github.com/AbstractSDK/cw-multi-test?tag=localv0.19.4#bd3181e1cd7c485db67251f8c8826b0bd2efd362"
 dependencies = [
  "anyhow",
  "bech32",
@@ -1851,6 +1851,21 @@ dependencies = [
  "serde",
  "thiserror",
  "tokio",
+]
+
+[[package]]
+name = "cw-orch-clone-testing"
+version = "0.19.1"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.1#c54d6ed7708707cf6ae9d759558cb0a6ea174a2b"
+dependencies = [
+ "cosmwasm-std",
+ "cw-multi-test",
+ "cw-orch",
+ "cw-utils 1.0.3",
+ "ibc-chain-registry",
+ "itertools 0.12.0",
+ "log",
+ "serde",
 ]
 
 [[package]]
@@ -1937,24 +1952,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "cw-orch-fork-mock"
-version = "0.16.3"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
-dependencies = [
- "cosmwasm-std",
- "cw-multi-test",
- "cw-orch",
- "cw-utils 1.0.3",
- "ibc-chain-registry",
- "itertools 0.12.0",
- "log",
- "serde",
-]
-
-[[package]]
 name = "cw-orch-interchain"
-version = "0.16.2"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.1"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.1#c54d6ed7708707cf6ae9d759558cb0a6ea174a2b"
 dependencies = [
  "cosmwasm-std",
  "cw-orch",
@@ -1971,8 +1971,8 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-interchain-core"
-version = "0.18.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.0"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.1#c54d6ed7708707cf6ae9d759558cb0a6ea174a2b"
 dependencies = [
  "anyhow",
  "base64 0.21.5",
@@ -1989,8 +1989,8 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-interchain-daemon"
-version = "0.18.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.0"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.1#c54d6ed7708707cf6ae9d759558cb0a6ea174a2b"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2017,12 +2017,12 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-interchain-mock"
-version = "0.18.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.0"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.1#c54d6ed7708707cf6ae9d759558cb0a6ea174a2b"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
- "cosmrs 0.14.0",
+ "cosmrs 0.15.0",
  "cosmwasm-std",
  "cw-orch",
  "cw-orch-interchain-core",
@@ -2070,11 +2070,10 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-proto"
-version = "0.18.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.0"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.1#c54d6ed7708707cf6ae9d759558cb0a6ea174a2b"
 dependencies = [
  "anyhow",
- "cosmos-sdk-proto 0.19.0",
  "cosmrs 0.14.0",
  "cosmwasm-std",
  "cw-orch",
@@ -2089,8 +2088,8 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-starship"
-version = "0.16.1"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.0"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.1#c54d6ed7708707cf6ae9d759558cb0a6ea174a2b"
 dependencies = [
  "cosmwasm-std",
  "cw-orch",
