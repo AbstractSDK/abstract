@@ -13,6 +13,9 @@ Since the state is well-defined, we do not need to support any "smart queries".
 We do provide a helper to construct a "raw query" to read the ContractInfo
 of any CW2-compliant module.
 
+Additionally, it's worth noting that `ModuleData` is utilized by native
+abstract contracts.
+
 For more information on this specification, please check out the
 [README](https://github.com/CosmWasm/cw-plus/blob/main/packages/cw2/README.md).
  */
@@ -30,6 +33,7 @@ use serde::{Deserialize, Serialize};
 // ANCHOR: metadata
 pub const MODULE: Item<ModuleData> = Item::new("module_data");
 
+/// Represents metadata for abstract modules and abstract native contracts.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ModuleData {
     /// The name of the module, which should be composed of
