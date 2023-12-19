@@ -30,7 +30,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 ans_host_address: abstr.ans_host.addr_str()?,
                 version_control_address: abstr.version_control.addr_str()?,
             },
-            Some(&admin),
+            Some(admin),
             None,
         )?;
 
@@ -40,7 +40,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
                 account_factory_address: abstr.account_factory.addr_str()?,
                 version_control_address: abstr.version_control.addr_str()?,
             },
-            Some(&admin),
+            Some(admin),
             None,
         )?;
         Ok(())

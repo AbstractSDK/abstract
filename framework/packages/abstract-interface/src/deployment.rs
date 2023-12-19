@@ -204,7 +204,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         )?;
 
         // We also instantiate ibc contracts
-        self.ibc.instantiate(&self, &admin)?;
+        self.ibc.instantiate(self, &admin)?;
 
         Ok(())
     }
