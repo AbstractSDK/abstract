@@ -119,6 +119,33 @@ jobs:
           failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
           webhook: "${DISCORD_STATUS_WEBHOOK}"
 
+  tests:
+    docker:
+      - image: cimg/rust:1.72.0
+    resource_class: xlarge
+    steps:
+      - checkout
+      - run:
+          name: Generate lockfile
+          command: |
+            cd modules
+            cargo generate-lockfile
+      - restore_cache:
+          keys:
+            - cargocache-v2-tests-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
+      - run:
+          name: Modules tests
+          command: |
+            cd modules
+            cargo test --locked --all-features --all-targets
+      - save_cache:
+          paths:
+            - /usr/local/cargo/registry
+            - modules/target/debug/.fingerprint
+            - modules/target/debug/build
+            - modules/target/debug/deps
+          key: cargocache-v2-tests-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
+
   deploy:
     docker:
       - image: cimg/rust:1.72.0
