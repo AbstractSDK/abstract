@@ -108,19 +108,17 @@ pub fn assert_contract_upgrade(
         }
     );
     // Must be 1 major or 1 minor version bump, not more
+    // Patches we ignore
     let major_diff = to_version.major.checked_sub(from_version.major);
     let minor_diff = to_version.minor.checked_sub(from_version.minor);
     let no_skips = match (major_diff, minor_diff) {
-        (Some(major), Some(minor)) if
-        // major upgrade - minor should stay the same (1.0.0 -> 2.0.0)
-        (major == 1 && minor == 0 && to_version.minor == 0) ||
+        // 1) major upgrade - minor should stay the same (1.0.0 -> 2.0.0)
+        // 2) major upgrade - minor sub overflowed (0.1.0 -> 1.0.0)
+        (Some(1), _) if to_version.minor == 0 => true,
         // minor upgrade - major should stay the same (1.0.0 -> 1.1.0)
-        (major == 0 && minor == 1) ||
+        (Some(0), Some(1)) => true,
         // patch upgrade - minor and major stays the same (1.0.0 -> 1.0.1)
-        (major == 0 && minor == 0)
-          => true,
-        // major upgrade - minor sub overflowed (0.1.0 -> 1.0.0) 
-        (Some(1), None) => true,
+        (Some(0), Some(0)) => true,
         _ => false,
     };
     ensure!(
