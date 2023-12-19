@@ -32,6 +32,7 @@ cw-asset = { workspace = true }
 abstract-core = { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true }
+cw-clearable = { workspace = true }
 
 # test-utils feature
 abstract-testing = { workspace = true, optional = true }

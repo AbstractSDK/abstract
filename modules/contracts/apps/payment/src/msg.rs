@@ -1,6 +1,7 @@
-use abstract_core::objects::{AssetEntry, DexName};
+use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
+use abstract_sdk::cw_helpers::Clearable;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Uint128};
+use cosmwasm_std::Addr;
 
 use crate::contract::PaymentApp;
 
@@ -20,6 +21,7 @@ abstract_app::app_msg_types!(PaymentApp, AppExecuteMsg, AppQueryMsg);
 #[cosmwasm_schema::cw_serde]
 pub struct AppInstantiateMsg {
     pub desired_asset: Option<AssetEntry>,
+    pub denom_asset: String,
     pub exchanges: Vec<DexName>,
 }
 
@@ -31,6 +33,8 @@ pub enum AppExecuteMsg {
     #[cfg_attr(feature = "interface", payable)]
     Tip {},
     UpdateConfig {
+        desired_asset: Option<Clearable<AssetEntry>>,
+        denom_asset: Option<String>,
         exchanges: Option<Vec<DexName>>,
     },
 }
@@ -43,11 +47,16 @@ pub enum AppQueryMsg {
     #[returns(ConfigResponse)]
     Config {},
     #[returns(TipperResponse)]
-    Tipper { address: String },
+    Tipper {
+        address: String,
+        start_after: Option<AssetEntry>,
+        limit: Option<u32>,
+        at_height: Option<u64>,
+    },
     #[returns(TipCountResponse)]
     TipCount {},
-    #[returns(TippersResponse)]
-    ListTippers {
+    #[returns(TippersCountResponse)]
+    ListTippersCount {
         start_after: Option<String>,
         limit: Option<u32>,
     },
@@ -62,19 +71,26 @@ pub struct Cw20TipMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub desired_asset: Option<AssetEntry>,
+    pub denom_asset: String,
     pub exchanges: Vec<DexName>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct TipperResponse {
     pub address: Addr,
-    pub total_amount: Uint128,
+    pub tip_count: u32,
+    pub total_amounts: Vec<AnsAsset>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct TipperCountResponse {
+    pub address: Addr,
     pub count: u32,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct TippersResponse {
-    pub tippers: Vec<TipperResponse>,
+pub struct TippersCountResponse {
+    pub tippers: Vec<TipperCountResponse>,
 }
 
 #[cosmwasm_schema::cw_serde]

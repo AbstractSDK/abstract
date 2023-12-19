@@ -328,8 +328,10 @@ mod test {
         )?;
         execute_as_admin(
             deps.branch(),
-            ExecuteMsg::SetFactory {
-                new_factory: TEST_ACCOUNT_FACTORY.to_string(),
+            ExecuteMsg::UpdateConfig {
+                account_factory_address: Some(TEST_ACCOUNT_FACTORY.to_string()),
+                allow_direct_module_registration_and_updates: None,
+                namespace_registration_fee: None,
             },
         )?;
 

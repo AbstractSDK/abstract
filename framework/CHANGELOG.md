@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Top level account owner now has admin privileges on the apps and adapters
 - Multiple `AbstractAccount`s now don't overlap
 - Top level account owner can now claim pending sub-accounts directly
+- `Clearable` helper type was added to the messages where clearing optional state could be useful
 
 ### Removed
 
@@ -41,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Namespace registration fee fixed
+- Version Control smart query now returns Version Control config instead of factory address
 
 ## [0.19.0] - 2023-09-26
 
