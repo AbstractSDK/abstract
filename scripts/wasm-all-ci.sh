@@ -44,7 +44,8 @@ docker cp Cargo.lock with_code:/code
 docker cp ./contracts with_code:/code
 docker cp ./packages with_code:/code
 # Copy cache if any
-docker cp ./target with_code:/code || true
+docker cp ./target/release/build with_code:/target/release/build || true
+docker cp ./target/release/deps with_code:/target/release/deps || true
 docker cp /usr/local/cargo/registry with_code:/usr/local/cargo/registry || true
 # Run the build
 docker run --name build_with_code --volumes-from with_code ${abstract_image}:0.15.0
@@ -85,7 +86,8 @@ fi
 docker cp Cargo.toml modules_with_code:/code
 docker cp Cargo.lock modules_with_code:/code
 # Copy cache if any
-docker cp ./target modules_with_code:/code || true
+docker cp ./target/release/build modules_with_code:/target/release/build || true
+docker cp ./target/release/build modules_with_code:/target/release/deps || true
 docker cp /usr/local/cargo/registry modules_with_code:/usr/local/cargo/registry || true
 # copy code into this volume
 docker cp ./contracts modules_with_code:/code
