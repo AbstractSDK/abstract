@@ -13,7 +13,7 @@ use anyhow::Ok;
 use cosmwasm_std::{to_json_binary, Addr};
 use cw_orch::daemon::networks::JUNO_1;
 use cw_orch::prelude::*;
-use cw_orch_fork_mock::ForkMock;
+use cw_orch_clone_testing::ForkMock;
 
 // owner of the abstract infra
 const SENDER: &str = "juno1kjzpqv393k4g064xh04j4hwy5d0s03wfvqejga";

@@ -20,7 +20,7 @@ cw20-base = { workspace = true }
 
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-proto = { workspace = true }
-cw-orch-fork-mock = { workspace = true }
+cw-orch-clone-testing = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
 abstract-sdk = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }

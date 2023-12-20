@@ -349,7 +349,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-asset",
  "cw-controllers",
- "cw-orch-fork-mock",
+ "cw-orch-clone-testing",
  "cw-orch-interchain",
  "cw-orch-polytone",
  "cw-orch-proto",
@@ -1796,8 +1796,8 @@ dependencies = [
 
 [[package]]
 name = "cw-multi-test"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-multi-test?branch=update/add_rust_contracts#28b1d837ea9ecdadad5949ba87b7b53467e9ce92"
+version = "0.19.4"
+source = "git+https://github.com/AbstractSDK/cw-multi-test?tag=localv0.19.4#bd3181e1cd7c485db67251f8c8826b0bd2efd362"
 dependencies = [
  "anyhow",
  "bech32",
@@ -1850,6 +1850,22 @@ dependencies = [
  "serde",
  "thiserror",
  "tokio",
+]
+
+[[package]]
+name = "cw-orch-clone-testing"
+version = "0.19.1"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
+dependencies = [
+ "cosmwasm-std",
+ "cw-multi-test",
+ "cw-orch",
+ "cw-utils 1.0.3",
+ "ibc-chain-registry",
+ "itertools 0.12.0",
+ "log",
+ "serde",
+ "sha256",
 ]
 
 [[package]]
@@ -1992,24 +2008,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "cw-orch-fork-mock"
-version = "0.16.3"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
-dependencies = [
- "cosmwasm-std",
- "cw-multi-test",
- "cw-orch",
- "cw-utils 1.0.3",
- "ibc-chain-registry",
- "itertools 0.12.0",
- "log",
- "serde",
-]
-
-[[package]]
 name = "cw-orch-interchain"
-version = "0.16.2"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.1"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
 dependencies = [
  "cosmwasm-std",
  "cw-orch",
@@ -2026,8 +2027,8 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-interchain-core"
-version = "0.18.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.0"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
 dependencies = [
  "anyhow",
  "base64 0.21.5",
@@ -2044,8 +2045,8 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-interchain-daemon"
-version = "0.18.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.0"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2072,12 +2073,12 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-interchain-mock"
-version = "0.18.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.0"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
- "cosmrs 0.14.0",
+ "cosmrs 0.15.0",
  "cosmwasm-std",
  "cw-orch",
  "cw-orch-interchain-core",
@@ -2135,11 +2136,10 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-proto"
-version = "0.18.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.0"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
 dependencies = [
  "anyhow",
- "cosmos-sdk-proto 0.19.0",
  "cosmrs 0.14.0",
  "cosmwasm-std",
  "cw-orch",
@@ -2154,8 +2154,8 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-starship"
-version = "0.16.1"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=update/add-rust-contracts#6f01b7dbebd88b24410fbf5b9f939834068f7f53"
+version = "0.19.0"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
 dependencies = [
  "cosmwasm-std",
  "cw-orch",
@@ -3446,9 +3446,9 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
 name = "hyper"
-version = "0.14.27"
+version = "0.14.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffb1cfd654a8219eaef89881fdb3bb3b1cdc5fa75ded05d6933b2b382e395468"
+checksum = "bf96e135eb83a2a8ddf766e426a841d8ddd7449d5f00d34ea02b41d2f19eef80"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -3461,7 +3461,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2",
  "tokio",
  "tower-service",
  "tracing",
@@ -4739,9 +4739,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.11.22"
+version = "0.11.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "046cd98826c46c2ac8ddecae268eb5c2e58628688a5fc7a2643704a73faba95b"
+checksum = "37b1ae8d9ac08420c66222fb9096fc5de435c3c48542bc5336c51892cffafb41"
 dependencies = [
  "base64 0.21.5",
  "bytes",
@@ -4831,12 +4831,13 @@ dependencies = [
 
 [[package]]
 name = "rkyv"
-version = "0.7.42"
+version = "0.7.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0200c8230b013893c0b2d6213d6ec64ed2b9be2e0e016682b7224ff82cff5c58"
+checksum = "527a97cdfef66f65998b5f3b637c26f5a5ec09cc52a3f9932313ac645f4190f5"
 dependencies = [
  "bitvec",
  "bytecheck",
+ "bytes",
  "hashbrown 0.12.3",
  "indexmap 1.9.3",
  "ptr_meta",
@@ -4849,9 +4850,9 @@ dependencies = [
 
 [[package]]
 name = "rkyv_derive"
-version = "0.7.42"
+version = "0.7.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2e06b915b5c230a17d7a736d1e2e63ee753c256a8614ef3f5147b13a4f5541d"
+checksum = "b5c462a1328c8e67e4d6dbad1eb0355dd43e8ab432c6e227a43657f16ade5033"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5426,16 +5427,6 @@ checksum = "4dccd0940a2dcdf68d092b8cbab7dc0ad8fa938bf95787e1b916b0e3d0e8e970"
 
 [[package]]
 name = "socket2"
-version = "0.4.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f7916fc008ca5542385b89a3d3ce689953c143e9304a9bf8beec1de48994c0d"
-dependencies = [
- "libc",
- "winapi",
-]
-
-[[package]]
-name = "socket2"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b5fac59a5cb5dd637972e5fca70daf0523c9067fcdc4842f053dae04a18f8e9"
@@ -5806,18 +5797,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.50"
+version = "1.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9a7210f5c9a7156bb50aa36aed4c95afb51df0df00713949448cf9e97d382d2"
+checksum = "f11c217e1416d6f036b870f14e0413d480dbf28edbee1f877abaf0206af43bb7"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.50"
+version = "1.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "266b2e40bc00e5a6c09c3584011e08b06f123c00362c92b975ba9843aaaa14b8"
+checksum = "01742297787513b79cf8e29d1056ede1313e2420b7b3b15d0a768b4921f549df"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5836,9 +5827,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.30"
+version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4a34ab300f2dee6e562c10a046fc05e358b29f9bf92277f30c3c8d82275f6f5"
+checksum = "f657ba42c3f86e7680e53c8cd3af8abbe56b5491790b46e22e19c0d57463583e"
 dependencies = [
  "deranged",
  "powerfmt",
@@ -5855,9 +5846,9 @@ checksum = "ef927ca75afb808a4d64dd374f00a2adf8d0fcff8e7b184af886c3c87ec4a3f3"
 
 [[package]]
 name = "time-macros"
-version = "0.2.15"
+version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ad70d68dba9e1f8aceda7aa6711965dfec1cac869f311a51bd08b3a2ccbce20"
+checksum = "26197e33420244aeb70c3e8c78376ca46571bc4e701e4791c2cd9f57dcb3a43f"
 dependencies = [
  "time-core",
 ]
@@ -5879,9 +5870,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.35.0"
+version = "1.35.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "841d45b238a16291a4e1584e61820b8ae57d696cc5015c459c229ccc6990cc1c"
+checksum = "c89b4efa943be685f629b149f53829423f8f5531ea21249408e8e2f8671ec104"
 dependencies = [
  "backtrace",
  "bytes",
@@ -5891,7 +5882,7 @@ dependencies = [
  "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
- "socket2 0.5.5",
+ "socket2",
  "tokio-macros",
  "windows-sys 0.48.0",
 ]
