@@ -10,30 +10,7 @@ on:
     paths:
       - modules/**
 
-env:
-  SCCACHE_GHA_ENABLED: "true"
-  RUSTC_WRAPPER: "sccache"
-
 jobs:
-  required:
-    runs-on: ubuntu-latest
-    name: ubuntu / stable
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
-        with:
-          version: "v0.4.2"
-      - name: Install stable
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-      - name: cargo generate-lockfile
-        if: hashFiles('Cargo.lock') == ''
-        working-directory: ./modules
-        run: cargo generate-lockfile
   # Triggers the circleci tests job
   tests:
     runs-on: ubuntu-latest

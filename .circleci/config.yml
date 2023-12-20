@@ -143,8 +143,7 @@ jobs:
       - run:
           name: Modules tests
           command: |
-            cd modules
-            cargo test --locked --all-targets -j 2 # Manually enable features if required, osmosis test tube requires golang to function
+            ./scripts/modules-coverage.sh
       - save_cache:
           paths:
             - /usr/local/cargo/registry
