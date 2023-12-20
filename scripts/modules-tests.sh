@@ -23,7 +23,7 @@ echo "export GOPATH=$HOME/go" >> ~/.bash_profile
 echo "export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin" >> ~/.bash_profile
 
 # Install nextest
-curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
+curl -LsSf https://get.nexte.st/0.9.53/linux | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
 
 # Load the environment variables
 source ~/.bash_profile
@@ -32,4 +32,4 @@ source ~/.bash_profile
 go version
 cargo nextest -V
 
-cargo test --locked --all-features --all-targets -j 2
+cargo nextest run --locked --all-features --all-targets -j 2
