@@ -50,8 +50,8 @@ docker run --volumes-from with_code ${abstract_image}:0.15.0
 # Copy the artifacts back out
 docker cp with_code:/code/artifacts/ .
 # Copy cache back out
-docker cp with_code:/code/target/debug/build ./target/debug/build
-docker cp with_code:/code/target/debug/deps ./target/debug/deps
+docker cp with_code:/target/debug/build ./target/debug/build
+docker cp with_code:/target/debug/deps ./target/debug/deps
 ls artifacts
 
 cd $starting_dir
@@ -91,7 +91,7 @@ docker run --volumes-from modules_with_code ${abstract_image}:0.15.0
 # Copy the artifacts back out
 docker cp modules_with_code:/code/artifacts/ .
 # Copy cache back out
-docker cp modules_with_code:/code/target/debug/build ./target/debug/build
-docker cp modules_with_code:/code/target/debug/deps ./target/debug/deps
+docker cp modules_with_code:/target/debug/build ./target/debug/build
+docker cp modules_with_code:/target/debug/deps ./target/debug/deps
 ls artifacts
 cd $starting_dir
