@@ -144,7 +144,7 @@ jobs:
       - run:
           name: Modules tests
           command: |
-            ./scripts/modules-coverage.sh
+            ./scripts/modules-tests.sh
       - save_cache:
           paths:
             - /usr/local/cargo/registry
@@ -218,7 +218,7 @@ jobs:
       - run:
           name: Run tests with coverage for modules
           command: |
-            ./scripts/modules-tests.sh
+            ./scripts/modules-coverage.sh
       - codecov/upload:
           file: ./modules/lcov.info
       - save_cache:
