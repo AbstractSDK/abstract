@@ -6,6 +6,9 @@ if [ ! -f Cargo.lock ]; then
   cargo generate-lockfile
 fi
 
+# Force recompile osmosis test tube so build.rs is runned
+cargo clean -p osmosis-test-tube
+
 sudo apt-get update && sudo apt-get install libclang-dev -y
 
 # Set Go version
@@ -32,4 +35,4 @@ source ~/.bash_profile
 go version
 cargo nextest -V
 
-cargo nextest run --locked --all-features --all-targets --build-jobs 2
+cargo nextest run --locked --all-features --all-targets --build-jobs 3
