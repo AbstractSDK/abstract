@@ -49,6 +49,9 @@ docker cp /usr/local/cargo/registry with_code:/usr/local/cargo/registry || true
 docker run --volumes-from with_code ${abstract_image}:0.15.0
 # Copy the artifacts back out
 docker cp with_code:/code/artifacts/ .
+# Copy cache back out
+docker cp with_code:/code/target/debug/build .
+docker cp with_code:/code/target/debug/deps .
 ls artifacts
 
 cd $starting_dir
@@ -87,5 +90,8 @@ docker cp ./contracts modules_with_code:/code
 docker run --volumes-from modules_with_code ${abstract_image}:0.15.0
 # Copy the artifacts back out
 docker cp modules_with_code:/code/artifacts/ .
+# Copy cache back out
+docker cp modules_with_code:/code/target/debug/build .
+docker cp modules_with_code:/code/target/debug/deps .
 ls artifacts
 cd $starting_dir
