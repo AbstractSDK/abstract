@@ -47,7 +47,7 @@ fn update_config(deps: DepsMut, msg_info: MessageInfo, app: CroncatApp) -> Cronc
     app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     CONFIG.save(deps.storage, &Config {})?;
-    Ok(app.tag_response("update_config"))
+    Ok(app.response("update_config"))
 }
 
 /// Create a task
@@ -117,7 +117,7 @@ fn create_task(
 
     TEMP_TASK_KEY.save(deps.storage, &key)?;
     Ok(app
-        .tag_response("create_task")
+        .response("create_task")
         .add_messages(messages)
         .add_submessage(create_task_submessage))
 }
@@ -163,7 +163,7 @@ fn remove_task(
         },
     )?;
 
-    let response = app.tag_response("remove_task");
+    let response = app.response("remove_task");
     // If there is still task by this hash on contract send remove message
     // If not - check if there is anything to withdraw and withdraw if needed
     let response = if task_response.task.is_some() {
@@ -261,7 +261,7 @@ fn refill_task(
     }
     let msg = executor.execute(vec![account_action])?;
 
-    Ok(app.tag_response("refill_task").add_message(msg))
+    Ok(app.response("refill_task").add_message(msg))
 }
 
 fn purge(
@@ -283,5 +283,5 @@ fn purge(
     for tag in task_tags {
         ACTIVE_TASKS.remove(deps.storage, (msg_info.sender.clone(), tag));
     }
-    Ok(app.tag_response("purge"))
+    Ok(app.response("purge"))
 }

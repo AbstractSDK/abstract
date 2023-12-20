@@ -18,7 +18,7 @@ pub fn create_task_reply(deps: DepsMut, _env: Env, app: CroncatApp, reply: Reply
     ACTIVE_TASKS.save(deps.storage, key, &(task.task_hash.clone(), task.version))?;
 
     Ok(app
-        .tag_response("create_task_reply")
+        .response("create_task_reply")
         .add_attribute("task_hash", task.task_hash)
         .set_data(bin))
 }
@@ -30,7 +30,7 @@ pub fn task_remove_reply(
     _reply: Reply,
 ) -> CroncatResult {
     let manager_addr = REMOVED_TASK_MANAGER_ADDR.load(deps.storage)?;
-    let response = app.tag_response("task_remove_reply");
+    let response = app.response("task_remove_reply");
     let response = if user_balance_nonempty(
         deps.as_ref(),
         app.proxy_address(deps.as_ref())?,

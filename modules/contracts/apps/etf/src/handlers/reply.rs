@@ -19,7 +19,7 @@ pub fn instantiate_reply(deps: DepsMut, _env: Env, etf: EtfApp, reply: Reply) ->
         Ok(meta)
     })?;
 
-    Ok(etf.custom_tag_response(
+    Ok(etf.custom_response(
         "instantiate_reply",
         vec![("share_token_address", share_token_address)],
     ))

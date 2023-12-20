@@ -98,7 +98,7 @@ fn create_challenge(
     CHALLENGES.save(deps.storage, challenge_id, &challenge)?;
 
     Ok(app
-        .tag_response("create_challenge")
+        .response("create_challenge")
         .add_attribute("challenge_id", challenge_id.to_string()))
 }
 
@@ -130,7 +130,7 @@ fn update_challenge(
     CHALLENGES.save(deps.storage, challenge_id, &loaded_challenge)?;
 
     Ok(app
-        .tag_response("update_challenge")
+        .response("update_challenge")
         .add_attribute("challenge_id", challenge_id.to_string()))
 }
 
@@ -159,7 +159,7 @@ fn cancel_challenge(
     CHALLENGES.save(deps.storage, challenge_id, &challenge)?;
 
     Ok(app
-        .tag_response("cancel_challenge")
+        .response("cancel_challenge")
         .add_attribute("challenge_id", challenge_id.to_string()))
 }
 
@@ -229,7 +229,7 @@ fn update_friends_for_challenge(
         }
     }
     Ok(app
-        .tag_response("update_friends")
+        .response("update_friends")
         .add_attribute("challenge_id", challenge_id.to_string()))
 }
 
@@ -291,7 +291,7 @@ fn cast_vote(
         SIMPLE_VOTING.cast_vote(deps.storage, &env.block, proposal_id, &voter, vote)?;
 
     Ok(app
-        .tag_response("cast_vote")
+        .response("cast_vote")
         .add_attribute("proposal_info", format!("{proposal_info:?}")))
 }
 
@@ -333,7 +333,7 @@ fn veto(
     let proposal_info = SIMPLE_VOTING.veto_proposal(deps.storage, &env.block, proposal_id)?;
 
     Ok(app
-        .tag_response("veto")
+        .response("veto")
         .add_attribute("proposal_info", format!("{proposal_info:?}")))
 }
 
@@ -355,7 +355,7 @@ fn try_finish_challenge(
 
     // Return here if not required to charge penalty
     let res = if !matches!(proposal_outcome, ProposalOutcome::Passed) {
-        app.tag_response("finish_vote")
+        app.response("finish_vote")
     } else {
         charge_penalty(deps, app, challenge, friends)?
     };
@@ -409,7 +409,7 @@ fn charge_penalty(
     let transfer_msg = executor.execute(transfer_actions)?;
 
     Ok(app
-        .tag_response("charge_penalty")
+        .response("charge_penalty")
         .add_message(transfer_msg)
         .add_attribute("remainder", remainder.to_string()))
 }

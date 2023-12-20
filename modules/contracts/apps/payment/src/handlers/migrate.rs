@@ -11,5 +11,5 @@ pub fn migrate_handler(
     app: PaymentApp,
     _msg: AppMigrateMsg,
 ) -> AppResult {
-    Ok(app.tag_response("migrate"))
+    Ok(app.response("migrate"))
 }

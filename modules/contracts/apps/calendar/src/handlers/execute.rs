@@ -148,7 +148,7 @@ fn request_meeting(
     CALENDAR.save(deps.storage, start_of_day_timestamp, &existing_meetings)?;
 
     Ok(app
-        .tag_response("request_meeting")
+        .response("request_meeting")
         .add_attribute("meeting_start_time", meeting_start_timestamp.to_string())
         .add_attribute("meeting_end_time", meeting_end_timestamp.to_string()))
 }
@@ -190,15 +190,14 @@ fn handle_stake(
     let bank = app.bank(deps.as_ref());
 
     let response = match stake_action {
-        StakeAction::Return => app.tag_response("return_stake").add_message(BankMsg::Send {
+        StakeAction::Return => app.response("return_stake").add_message(BankMsg::Send {
             to_address: requester,
             amount: vec![Coin::new(amount_staked.into(), config.denom)],
         }),
         StakeAction::FullSlash => {
             let proxy_deposit_msgs: Vec<CosmosMsg> =
                 bank.deposit(vec![Coin::new(amount_staked.into(), config.denom)])?;
-            app.tag_response("full_slash")
-                .add_messages(proxy_deposit_msgs)
+            app.response("full_slash").add_messages(proxy_deposit_msgs)
         }
         StakeAction::PartialSlash { minutes_late } => {
             // Cast should be safe given we cannot have a meeting longer than 24 hours.
@@ -215,7 +214,7 @@ fn handle_stake(
                 config.denom.clone(),
             )])?;
 
-            app.tag_response("partial_slash")
+            app.response("partial_slash")
                 .add_message(BankMsg::Send {
                     to_address: requester,
                     amount: vec![Coin::new(
@@ -252,7 +251,7 @@ fn update_config(
         attrs.push(("denom", unresolved.to_string()));
     }
     CONFIG.save(deps.storage, &config)?;
-    Ok(app.custom_tag_response("update_config", attrs))
+    Ok(app.custom_response("update_config", attrs))
 }
 
 pub fn resolve_native_ans_denom(

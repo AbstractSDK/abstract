@@ -217,7 +217,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
         self.authorized_addresses
             .save(deps.storage, proxy.clone(), &authorized_addrs)?;
-        Ok(self.custom_tag_response("update_authorized_addresses", vec![("proxy", proxy)]))
+        Ok(self.custom_response("update_authorized_addresses", vec![("proxy", proxy)]))
     }
 }
 

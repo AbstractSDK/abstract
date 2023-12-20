@@ -56,7 +56,7 @@ pub fn tip(
 
     // resp
     let app_resp = app
-        .tag_response("receive_tip")
+        .response("receive_tip")
         .add_messages(forward_payment_msgs);
 
     // swap the asset(s) to the desired asset is set
@@ -202,5 +202,5 @@ fn update_config(
 
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(app.tag_response("update_config"))
+    Ok(app.response("update_config"))
 }

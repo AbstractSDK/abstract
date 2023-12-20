@@ -45,7 +45,7 @@ fn handle_local_request(
 ) -> StakingResult {
     let provider = resolver::resolve_local_provider(&provider_name)?;
     Ok(adapter
-        .custom_tag_response("handle_local_request", vec![("provider", provider_name)])
+        .custom_response("handle_local_request", vec![("provider", provider_name)])
         .add_submessage(adapter.resolve_staking_action(deps, env, info, action, provider)?))
 }
 
@@ -97,7 +97,7 @@ fn handle_ibc_request(
     let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action, callback)?;
 
     Ok(adapter
-        .custom_tag_response("handle_ibc_request", vec![("provider", provider_name)])
+        .custom_response("handle_ibc_request", vec![("provider", provider_name)])
         // call both messages on the proxy
         .add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
 }
