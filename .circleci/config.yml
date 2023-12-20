@@ -93,9 +93,12 @@ jobs:
       - run:
           name: Generate schemas
           command: |
+            # Install deps
+            sudo apt-get update && sudo apt-get install libssl-dev
             curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
             cargo binstall cargo-workspaces -y || true
             cargo binstall just -y || true
+            # Run script
             just schema
       - run:
           name: Commit and push artifacts
