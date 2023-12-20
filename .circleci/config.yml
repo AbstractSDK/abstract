@@ -88,8 +88,8 @@ jobs:
       - run:
           name: Build WASM artifacts
           command: |
-            # set -e
-            # ./scripts/wasm-all-ci.sh
+            set -e
+            ./scripts/wasm-all-ci.sh
       - run:
           name: Generate schemas
           command: |
