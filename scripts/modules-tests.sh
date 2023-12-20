@@ -32,4 +32,4 @@ source ~/.bash_profile
 go version
 cargo nextest -V
 
-cargo nextest run --locked --all-features --all-targets -j 2
+cargo nextest run --locked --all-features --all-targets --build-jobs 2
