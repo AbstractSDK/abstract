@@ -33,6 +33,7 @@ if [ ! -f Cargo.lock ]; then
 fi
 
 docker rm -v with_code || true
+docker rm -v build_with_code || true
 
 # create a dummy container which will hold a volume with config
 docker create -v /code --name with_code alpine /bin/true
@@ -46,12 +47,14 @@ docker cp ./packages with_code:/code
 docker cp ./target with_code:/code || true
 docker cp /usr/local/cargo/registry with_code:/usr/local/cargo/registry || true
 # Run the build
-docker run --volumes-from with_code ${abstract_image}:0.15.0
+docker run --name build_with_code --volumes-from with_code ${abstract_image}:0.15.0
 # Copy the artifacts back out
 docker cp with_code:/code/artifacts/ .
 # Copy cache back out
-docker cp with_code:/target/debug/build ./target/debug/build
-docker cp with_code:/target/debug/deps ./target/debug/deps
+mkdir -p ./target/release/build
+mkdir -p ./target/release/deps
+docker cp build_with_code:/target/release/build ./target/release/build
+docker cp build_with_code:/target/release/deps ./target/release/deps
 ls artifacts
 
 cd $starting_dir
@@ -59,6 +62,7 @@ cd $starting_dir
 echo "Wasming modules"
 
 docker rm -v modules_with_code || true
+docker rm -v build_modules_with_code || true
 
 # create a dummy container which will hold a volume with config
 docker create -v /code -v /integrations -v /framework --name modules_with_code alpine /bin/true
@@ -87,11 +91,13 @@ docker cp /usr/local/cargo/registry modules_with_code:/usr/local/cargo/registry 
 docker cp ./contracts modules_with_code:/code
 
 # Run the build
-docker run --volumes-from modules_with_code ${abstract_image}:0.15.0
+docker run --name build_modules_with_code --volumes-from modules_with_code ${abstract_image}:0.15.0 
 # Copy the artifacts back out
 docker cp modules_with_code:/code/artifacts/ .
 # Copy cache back out
-docker cp modules_with_code:/target/debug/build ./target/debug/build
-docker cp modules_with_code:/target/debug/deps ./target/debug/deps
+mkdir -p ./target/release/build
+mkdir -p ./target/release/deps
+docker cp build_modules_with_code:/target/release/build ./target/release/build
+docker cp build_modules_with_code:/target/release/deps ./target/release/deps
 ls artifacts
 cd $starting_dir
