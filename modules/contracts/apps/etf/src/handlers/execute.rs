@@ -8,8 +8,8 @@ use abstract_sdk::{
     core::proxy::AssetsInfoResponse, features::AbstractResponse, *,
 };
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response,
-    Uint128, WasmMsg,
+    to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Uint128,
+    WasmMsg,
 };
 use cosmwasm_std::{QuerierWrapper, StdResult};
 use cw20::{Cw20ExecuteMsg, Cw20QueryMsg, TokenInfoResponse};
@@ -119,7 +119,7 @@ pub fn try_provide_liquidity(
     let send_to_vault = app.bank(deps.as_ref()).deposit(vec![asset])?;
 
     let response = app
-        .custom_tag_response(Response::default(), "provide_liquidity", attrs)
+        .custom_tag_response("provide_liquidity", attrs)
         .add_message(mint_lp)
         .add_messages(send_to_vault);
 
@@ -197,7 +197,7 @@ pub fn try_withdraw_liquidity(
     .into();
 
     Ok(app
-        .custom_tag_response(Response::default(), "withdraw_liquidity", attrs)
+        .custom_tag_response("withdraw_liquidity", attrs)
         // Burn LP tokens
         .add_message(burn_msg)
         // Send proxy funds to owner
@@ -210,11 +210,7 @@ fn set_fee(deps: DepsMut, msg_info: MessageInfo, app: EtfApp, new_fee: Decimal) 
     let fee = Fee::new(new_fee)?;
 
     FEE.save(deps.storage, &fee)?;
-    Ok(app.custom_tag_response(
-        Response::default(),
-        "set_fee",
-        vec![("fee", new_fee.to_string())],
-    ))
+    Ok(app.custom_tag_response("set_fee", vec![("fee", new_fee.to_string())]))
 }
 
 /// helper for CW20 supply query

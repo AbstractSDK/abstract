@@ -97,10 +97,9 @@ fn create_challenge(
     let challenge = ChallengeEntry::new(challenge_req, end_timestamp)?;
     CHALLENGES.save(deps.storage, challenge_id, &challenge)?;
 
-    Ok(app.tag_response(
-        Response::new().add_attribute("challenge_id", challenge_id.to_string()),
-        "create_challenge",
-    ))
+    Ok(app
+        .tag_response("create_challenge")
+        .add_attribute("challenge_id", challenge_id.to_string()))
 }
 
 fn update_challenge(
@@ -130,10 +129,9 @@ fn update_challenge(
     // Save the updated challenge
     CHALLENGES.save(deps.storage, challenge_id, &loaded_challenge)?;
 
-    Ok(app.tag_response(
-        Response::new().add_attribute("challenge_id", challenge_id.to_string()),
-        "update_challenge",
-    ))
+    Ok(app
+        .tag_response("update_challenge")
+        .add_attribute("challenge_id", challenge_id.to_string()))
 }
 
 fn cancel_challenge(
@@ -160,10 +158,9 @@ fn cancel_challenge(
     challenge.end_timestamp = env.block.time;
     CHALLENGES.save(deps.storage, challenge_id, &challenge)?;
 
-    Ok(app.tag_response(
-        Response::new().add_attribute("challenge_id", challenge_id.to_string()),
-        "cancel_challenge",
-    ))
+    Ok(app
+        .tag_response("cancel_challenge")
+        .add_attribute("challenge_id", challenge_id.to_string()))
 }
 
 fn update_friends_for_challenge(
@@ -231,10 +228,9 @@ fn update_friends_for_challenge(
             })?;
         }
     }
-    Ok(app.tag_response(
-        Response::new().add_attribute("challenge_id", challenge_id.to_string()),
-        "update_friends",
-    ))
+    Ok(app
+        .tag_response("update_friends")
+        .add_attribute("challenge_id", challenge_id.to_string()))
 }
 
 fn get_or_create_active_proposal(
@@ -295,7 +291,7 @@ fn cast_vote(
         SIMPLE_VOTING.cast_vote(deps.storage, &env.block, proposal_id, &voter, vote)?;
 
     Ok(app
-        .tag_response(Response::new(), "cast_vote")
+        .tag_response("cast_vote")
         .add_attribute("proposal_info", format!("{proposal_info:?}")))
 }
 
@@ -336,10 +332,9 @@ fn veto(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let proposal_info = SIMPLE_VOTING.veto_proposal(deps.storage, &env.block, proposal_id)?;
 
-    Ok(app.tag_response(
-        Response::new().add_attribute("proposal_info", format!("{proposal_info:?}")),
-        "veto",
-    ))
+    Ok(app
+        .tag_response("veto")
+        .add_attribute("proposal_info", format!("{proposal_info:?}")))
 }
 
 fn try_finish_challenge(
@@ -360,7 +355,7 @@ fn try_finish_challenge(
 
     // Return here if not required to charge penalty
     let res = if !matches!(proposal_outcome, ProposalOutcome::Passed) {
-        app.tag_response(Response::new(), "finish_vote")
+        app.tag_response("finish_vote")
     } else {
         charge_penalty(deps, app, challenge, friends)?
     };
@@ -414,7 +409,7 @@ fn charge_penalty(
     let transfer_msg = executor.execute(transfer_actions)?;
 
     Ok(app
-        .tag_response(Response::new(), "charge_penalty")
+        .tag_response("charge_penalty")
         .add_message(transfer_msg)
         .add_attribute("remainder", remainder.to_string()))
 }

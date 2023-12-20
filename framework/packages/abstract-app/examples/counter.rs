@@ -128,7 +128,7 @@ mod handlers {
         app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
         Ok(app
-            .tag_response(Response::default(), "update_config")
+            .tag_response("update_config")
             .set_data("counter_exec".as_bytes()))
     }
     // ANCHOR_END: execute

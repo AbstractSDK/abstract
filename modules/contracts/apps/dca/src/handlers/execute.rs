@@ -3,9 +3,7 @@
 use abstract_core::objects::{AssetEntry, DexName};
 use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
-use cosmwasm_std::{
-    wasm_execute, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
-};
+use cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Uint128};
 use cw_asset::{Asset, AssetInfoBase, AssetList};
 
 use crate::contract::{AppResult, DCAApp};
@@ -146,7 +144,7 @@ fn update_config(
         },
     )?;
 
-    Ok(app.tag_response(Response::default(), "update_config"))
+    Ok(app.tag_response("update_config"))
 }
 
 /// Create new DCA
@@ -183,12 +181,10 @@ fn create_dca(
     let cron_cat = app.cron_cat(deps.as_ref());
     let task_msg = create_convert_task_internal(env, dca_entry, dca_id, cron_cat, config)?;
 
-    Ok(app.tag_response(
-        Response::new()
-            .add_message(task_msg)
-            .add_attribute("dca_id", dca_id),
-        "create_dca",
-    ))
+    Ok(app
+        .tag_response("create_dca")
+        .add_message(task_msg)
+        .add_attribute("dca_id", dca_id))
 }
 
 /// Update existing dca
@@ -222,16 +218,17 @@ fn update_dca(
 
     DCA_LIST.save(deps.storage, dca_id, &new_dca)?;
 
+    let response = app.tag_response("update_dca");
     let response = if recreate_task {
         let config = CONFIG.load(deps.storage)?;
         let cron_cat = app.cron_cat(deps.as_ref());
         let remove_task_msg = cron_cat.remove_task(dca_id)?;
         let create_task_msg = create_convert_task_internal(env, new_dca, dca_id, cron_cat, config)?;
-        Response::new().add_messages(vec![remove_task_msg, create_task_msg])
+        response.add_messages(vec![remove_task_msg, create_task_msg])
     } else {
-        Response::new()
+        response
     };
-    Ok(app.tag_response(response, "update_dca"))
+    Ok(response)
 }
 
 /// Remove existing dca, remove task from cron_cat
@@ -243,7 +240,7 @@ fn cancel_dca(deps: DepsMut, info: MessageInfo, app: DCAApp, dca_id: DCAId) -> A
     let cron_cat = app.cron_cat(deps.as_ref());
     let remove_task_msg = cron_cat.remove_task(dca_id)?;
 
-    Ok(app.tag_response(Response::new().add_message(remove_task_msg), "cancel_dca"))
+    Ok(app.tag_response("cancel_dca").add_message(remove_task_msg))
 }
 
 /// Execute swap if called my croncat manager
@@ -287,5 +284,5 @@ fn convert(deps: DepsMut, env: Env, info: MessageInfo, app: DCAApp, dca_id: DCAI
         Some(config.max_spread),
         None,
     )?);
-    Ok(app.tag_response(Response::new().add_messages(messages), "convert"))
+    Ok(app.tag_response("convert").add_messages(messages))
 }

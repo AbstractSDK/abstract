@@ -116,15 +116,13 @@ pub fn try_pay(
         SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
     }
 
-    Ok(app.tag_response(
-        Response::new()
-            .add_attribute("received_funds", asset.to_string())
-            .add_message(
-                // Send the received asset to the proxy
-                asset.transfer_msg(base_state.proxy_address)?,
-            ),
-        "pay",
-    ))
+    Ok(app
+        .tag_response("pay")
+        .add_attribute("received_funds", asset.to_string())
+        .add_message(
+            // Send the received asset to the proxy
+            asset.transfer_msg(base_state.proxy_address)?,
+        ))
 }
 
 pub fn unsubscribe(
@@ -195,10 +193,9 @@ pub fn unsubscribe(
     // update subscription count
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
 
-    let mut response = app.tag_response(
-        Response::new().add_messages(app.executor(deps.as_ref()).execute(claim_actions)),
-        "unsubscribe",
-    );
+    let mut response = app
+        .tag_response("unsubscribe")
+        .add_messages(app.executor(deps.as_ref()).execute(claim_actions));
 
     if let Some(hook) = subscription_config.unsubscribe_hook_addr {
         let msg = UnsubscribedHookMsg {
@@ -281,7 +278,7 @@ pub fn claim_subscriber_emissions(
     )?;
 
     SUBSCRIBERS.save(deps.storage, &subscriber_addr, &subscriber)?;
-    let mut response = app.tag_response(Response::new(), "claim_emissions");
+    let mut response = app.tag_response("claim_emissions");
     if let Some(action) = maybe_action {
         response = response.add_message(app.executor(deps.as_ref()).execute(vec![action])?);
     }
@@ -324,5 +321,5 @@ pub fn update_subscription_config(
 
     SUBSCRIPTION_CONFIG.save(deps.storage, &config)?;
 
-    Ok(app.tag_response(Response::new(), "update_subscription_config"))
+    Ok(app.tag_response("update_subscription_config"))
 }
