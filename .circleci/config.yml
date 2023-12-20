@@ -88,16 +88,14 @@ jobs:
       - run:
           name: Build WASM artifacts
           command: |
-            set -e
-            ./scripts/wasm-all-ci.sh
+            # set -e
+            # ./scripts/wasm-all-ci.sh
       - run:
           name: Generate schemas
           command: |
             # Install deps
-            sudo apt-get update && sudo apt-get install libclang-dev -y
-            curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-            cargo binstall cargo-workspaces -y || true
-            cargo binstall just -y || true
+            cargo install cargo-workspaces
+            cargo install just
             # Run script
             just schema
       - run:
