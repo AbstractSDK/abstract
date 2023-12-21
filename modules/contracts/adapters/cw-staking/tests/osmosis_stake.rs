@@ -11,6 +11,7 @@ mod osmosis_test {
     use abstract_core::objects::pool_id::PoolAddressBase;
     use abstract_core::objects::AccountId;
     use abstract_core::objects::PoolMetadata;
+    use abstract_core::objects::PoolType;
     use abstract_core::MANAGER;
     use abstract_cw_staking::contract::CONTRACT_VERSION;
     use abstract_cw_staking::msg::StakingQueryMsgFns;
@@ -397,6 +398,68 @@ mod osmosis_test {
             },
         )?;
         assert_that!(staked_balance.coins.len()).is_equal_to(0);
+        Ok(())
+    }
+
+    // Currently not supported for provide/withdraw
+    #[test]
+    fn concentrated_liquidity() -> anyhow::Result<()> {
+        let (tube, _, staking, os) = setup_osmosis()?;
+        let proxy_addr = os.proxy.address()?;
+
+        let lp = "osmosis/osmo2,atom2";
+        // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
+        let pool_id = tube.create_pool(vec![coin(1_000, ASSET_1), coin(1_000, ASSET_2)])?;
+
+        let deployment = Abstract::load_from(tube.clone())?;
+        deployment
+            .ans_host
+            .update_asset_addresses(
+                vec![
+                    (
+                        "osmo2".to_string(),
+                        cw_asset::AssetInfoBase::native(ASSET_1),
+                    ),
+                    (
+                        "atom2".to_string(),
+                        cw_asset::AssetInfoBase::native(ASSET_2),
+                    ),
+                    (
+                        lp.to_string(),
+                        cw_asset::AssetInfoBase::native(get_pool_token(pool_id)),
+                    ),
+                ],
+                vec![],
+            )
+            .unwrap();
+        deployment
+            .ans_host
+            .update_pools(
+                vec![(
+                    PoolAddressBase::id(pool_id),
+                    PoolMetadata::concentrated_liquidity(
+                        OSMOSIS,
+                        vec!["osmo2".to_string(), "atom2".to_string()],
+                    ),
+                )],
+                vec![],
+            )
+            .unwrap();
+        let dur = Some(cw_utils::Duration::Time(2));
+
+        // stake 100 EUR
+        let err = staking
+            .stake(vec![AnsAsset::new(lp, 100u128)], OSMOSIS.into(), dur, &os)
+            .unwrap_err();
+        if let AbstractInterfaceError::Orch(CwOrchError::StdErr(e)) = err {
+            let expected_err = CwStakingError::NotSupportedPoolType(
+                PoolType::ConcentratedLiquidity.to_string(),
+                "osmosis".to_owned(),
+            );
+            assert!(e.contains(&expected_err.to_string()));
+        } else {
+            panic!("Expected stderror");
+        };
         Ok(())
     }
 }
