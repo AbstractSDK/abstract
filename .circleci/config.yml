@@ -115,7 +115,7 @@ jobs:
             git commit -m 'Update Schemas [skip ci]' || true
       - save_cache:
           paths:
-            - /usr/local/cargo/registry
+            - ~/.cargo/registry
             # Schema artifacts
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
@@ -156,7 +156,7 @@ jobs:
             ./scripts/modules-tests.sh
       - save_cache:
           paths:
-            - /usr/local/cargo/registry
+            - ~/.cargo/registry
             - modules/target/debug/.fingerprint
             - modules/target/debug/build
             - modules/target/debug/deps
@@ -202,7 +202,7 @@ jobs:
             git push origin $CIRCLE_BRANCH
       - save_cache:
           paths:
-            - /usr/local/cargo/registry
+            - ~/.cargo/registry
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
             - framework/target/debug/deps
@@ -232,7 +232,7 @@ jobs:
           file: ./modules/lcov.info
       - save_cache:
           paths:
-            - /usr/local/cargo/registry
+            - ~/.cargo/registry
             - modules/target/debug/.fingerprint
             - modules/target/debug/build
             - modules/target/debug/deps
