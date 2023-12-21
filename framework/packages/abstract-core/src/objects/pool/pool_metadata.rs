@@ -61,6 +61,13 @@ impl PoolMetadata {
     ) -> Self {
         Self::new(dex_name, PoolType::LiquidityBootstrap, assets)
     }
+
+    pub fn concentrated_liquidity<T: ToString>(
+        dex_name: T,
+        assets: Vec<impl Into<AssetEntry>>,
+    ) -> Self {
+        Self::new(dex_name, PoolType::ConcentratedLiquidity, assets)
+    }
 }
 
 impl FromStr for PoolMetadata {
