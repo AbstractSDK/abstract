@@ -192,7 +192,9 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     });
 
     // uninstall
-    uninstall_module(&account.manager, TEST_MODULE_ID)?;
+    account
+        .manager
+        .uninstall_module(TEST_MODULE_ID.to_string())?;
 
     // None expected
     account.expect_modules(vec![])?;
@@ -237,7 +239,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     });
 
     // uninstall tendermint staking
-    uninstall_module(&account.manager, &adapter1.id())?;
+    account.manager.uninstall_module(adapter1.id())?;
 
     account.expect_modules(vec![])?;
 
