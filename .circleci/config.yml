@@ -98,21 +98,6 @@ jobs:
             cargo install just
             # Run script
             just schema
-      - run:
-          name: Commit and push artifacts
-          command: |
-            git config --global user.name 'CircleCI'
-            git config --global user.email 'circleci@example.com'
-            # Pull latest changes
-            git pull origin $CIRCLE_BRANCH
-            # Check for wasm changes
-            git add framework/artifacts --force
-            git add modules/artifacts --force
-            git commit -m 'Update WASM binaries [skip ci]'  || true
-            git push origin $CIRCLE_BRANCH || true
-            # Check for schema changes
-            git add schema --force
-            git commit -m 'Update Schemas [skip ci]' || true
       - save_cache:
           paths:
             - ~/.cargo/registry
@@ -131,6 +116,21 @@ jobs:
             - modules/target/wasm32-unknown-unknown/release/build
             - modules/target/wasm32-unknown-unknown/release/deps
           key: cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
+      - run:
+          name: Commit and push artifacts
+          command: |
+            git config --global user.name 'CircleCI'
+            git config --global user.email 'circleci@example.com'
+            # Pull latest changes
+            git pull origin $CIRCLE_BRANCH
+            # Check for wasm changes
+            git add framework/artifacts --force
+            git add modules/artifacts --force
+            git commit -m 'Update WASM binaries [skip ci]'  || true
+            git push origin $CIRCLE_BRANCH || true
+            # Check for schema changes
+            git add schema --force
+            git commit -m 'Update Schemas [skip ci]' || true
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
@@ -191,13 +191,6 @@ jobs:
             git add framework/scripts --force
             git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
-      - save_cache:
-          paths:
-            - ~/.cargo/registry
-            - framework/target/debug/.fingerprint
-            - framework/target/debug/build
-            - framework/target/debug/deps
-          key: cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Commit and push state file
           command: |
@@ -207,7 +200,14 @@ jobs:
             git add ./framework/scripts/state.json
             git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
-      
+      - save_cache:
+          paths:
+            - ~/.cargo/registry
+            - framework/target/debug/.fingerprint
+            - framework/target/debug/build
+            - framework/target/debug/deps
+          key: cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
+
   coverage:
     docker:
       - image: cimg/rust:1.72.0
