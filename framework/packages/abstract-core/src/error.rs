@@ -72,6 +72,13 @@ pub enum AbstractError {
 
     #[error("The version or name of this module was not consistent between its stores (cw2: {cw2} and abstract module data: {module}).")]
     UnequalModuleData { cw2: String, module: String },
+
+    #[error("Cannot Skip module version {contract} from {from} to {to}")]
+    CannotSkipVersion {
+        contract: String,
+        from: Version,
+        to: Version,
+    },
 }
 
 impl From<SemverError> for AbstractError {
