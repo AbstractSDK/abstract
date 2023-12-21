@@ -1,6 +1,6 @@
 [package]
 name = "abstract-integration-tests"
-version = "0.20.0-rc.1"
+version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
 description = "Package with environment-agnonstic tests"
