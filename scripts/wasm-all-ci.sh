@@ -47,7 +47,7 @@ docker cp ./packages with_code:/code
 docker cp ./target/wasm32-unknown-unknown/release/.fingerprint with_code:/target/wasm32-unknown-unknown/release/ || true
 docker cp ./target/wasm32-unknown-unknown/release/build with_code:/target/wasm32-unknown-unknown/release/ || true
 docker cp ./target/wasm32-unknown-unknown/release/deps with_code:/target/wasm32-unknown-unknown/release/ || true
-docker cp /usr/local/cargo/registry with_code:/usr/local/cargo/registry || true
+docker cp ~/.cargo/registry with_code:/usr/local/cargo/registry || true
 # Run the build
 docker run --name build_with_code --volumes-from with_code ${abstract_image}:0.15.0
 # Copy the artifacts back out
@@ -90,7 +90,7 @@ docker cp Cargo.lock modules_with_code:/code
 docker cp ./target/wasm32-unknown-unknown/release/.fingerprint modules_with_code:/target/wasm32-unknown-unknown/release/ || true
 docker cp ./target/wasm32-unknown-unknown/release/build modules_with_code:/target/wasm32-unknown-unknown/release/ || true
 docker cp ./target/wasm32-unknown-unknown/release/deps modules_with_code:/target/wasm32-unknown-unknown/release/ || true
-docker cp /usr/local/cargo/registry modules_with_code:/usr/local/cargo/registry || true
+docker cp ~/.cargo/registry modules_with_code:/usr/local/cargo/registry || true
 # copy code into this volume
 docker cp ./contracts modules_with_code:/code
 
