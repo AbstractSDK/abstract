@@ -116,16 +116,20 @@ jobs:
       - save_cache:
           paths:
             - /usr/local/cargo/registry
+            # Schema artifacts
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
             - framework/target/debug/deps
             - modules/target/debug/.fingerprint
             - modules/target/debug/build
             - modules/target/debug/deps
-            - framework/target/release/build
-            - framework/target/release/deps
-            - modules/target/release/build
-            - modules/target/release/deps
+            # wasm builds
+            - framework/target/wasm32-unknown-unknown/release/.fingerprint
+            - framework/target/wasm32-unknown-unknown/release/build
+            - framework/target/wasm32-unknown-unknown/release/deps
+            - modules/target/wasm32-unknown-unknown/release/.fingerprint
+            - modules/target/wasm32-unknown-unknown/release/build
+            - modules/target/wasm32-unknown-unknown/release/deps
           key: cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
       - discord/status:
           fail_only: true
