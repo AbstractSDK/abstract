@@ -177,8 +177,6 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
         // Handle the addition of authorized addresses
         for authorized in to_add {
-            // It's called by the manager but sender is sender of the manager here
-
             // authorized here can either be a contract address or a module id
             let authorized_addr = get_addr_from_module_id_or_addr(
                 deps.as_ref(),
