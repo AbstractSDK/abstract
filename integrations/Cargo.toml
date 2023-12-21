@@ -30,7 +30,7 @@ cosmwasm-schema = { version = "1.2" }
 cw-storage-plus = "1.1"
 cw2 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.2" }
 cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.2" }
-cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.2.1", features = [
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.2.2", features = [
   "library",
 ], tag = "v1.2.2" }
 cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.2.1", tag = "v1.2.2" }
