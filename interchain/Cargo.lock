@@ -1804,8 +1804,8 @@ dependencies = [
  "cosmrs 0.15.0",
  "cosmwasm-std",
  "cosmwasm-vm",
- "cw-orch-daemon 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "cw-orch-networks 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cw-orch-daemon",
+ "cw-orch-networks",
  "cw-storage-plus 1.1.0",
  "cw-utils 1.0.3",
  "derivative",
@@ -1828,20 +1828,21 @@ dependencies = [
 
 [[package]]
 name = "cw-orch"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+version = "0.19.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6cf4d4fb24a6f480a0b2dcc89662a10b8dbddeac2f45686a3405af0a7e6848f3"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
  "cosmrs 0.15.0",
  "cosmwasm-std",
  "cw-orch-contract-derive",
- "cw-orch-core 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload)",
- "cw-orch-daemon 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload)",
+ "cw-orch-core",
+ "cw-orch-daemon",
  "cw-orch-fns-derive",
  "cw-orch-mock",
- "cw-orch-networks 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload)",
- "cw-orch-traits 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload)",
+ "cw-orch-networks",
+ "cw-orch-traits",
  "cw-utils 1.0.3",
  "hex",
  "log",
@@ -1855,7 +1856,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-clone-testing"
 version = "0.19.1"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.2#c27fac1dac16bb57172cfe82f4bed32e623e9fa4"
 dependencies = [
  "cosmwasm-std",
  "cw-multi-test",
@@ -1871,7 +1872,8 @@ dependencies = [
 [[package]]
 name = "cw-orch-contract-derive"
 version = "0.18.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "152f88fea80008fc9a214ee133c6b539e30a8d0dce56d03e61965c8dc746aa20"
 dependencies = [
  "convert_case",
  "quote",
@@ -1880,26 +1882,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-core"
-version = "0.19.0"
+version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90742906d091e509f185bb26c07706c037949ddaaa522bb3f3927b53835cc1fd"
-dependencies = [
- "abstract-cw-multi-test",
- "anyhow",
- "cosmwasm-std",
- "cw-utils 1.0.3",
- "dirs",
- "log",
- "serde",
- "serde_json",
- "sha256",
- "thiserror",
-]
-
-[[package]]
-name = "cw-orch-core"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+checksum = "855087353f8f8cf7ee416793489ea3a82f23f8b86ee8302239d3e41b4436a695"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
@@ -1927,50 +1912,9 @@ dependencies = [
  "chrono",
  "cosmrs 0.15.0",
  "cosmwasm-std",
- "cw-orch-core 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "cw-orch-networks 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "cw-orch-traits 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "dirs",
- "ed25519-dalek",
- "eyre",
- "flate2",
- "hex",
- "hkd32",
- "ibc-chain-registry",
- "ibc-relayer-types",
- "log",
- "prost 0.12.3",
- "prost-types 0.11.9",
- "rand_core 0.6.4",
- "reqwest",
- "ring 0.17.7",
- "ripemd",
- "schemars",
- "secp256k1",
- "serde",
- "serde_json",
- "sha256",
- "thiserror",
- "tokio",
- "tonic 0.10.2",
-]
-
-[[package]]
-name = "cw-orch-daemon"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
-dependencies = [
- "anyhow",
- "async-recursion",
- "base16",
- "base64 0.21.5",
- "bitcoin",
- "chrono",
- "cosmrs 0.15.0",
- "cosmwasm-std",
- "cw-orch-core 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload)",
- "cw-orch-networks 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload)",
- "cw-orch-traits 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload)",
+ "cw-orch-core",
+ "cw-orch-networks",
+ "cw-orch-traits",
  "dirs",
  "ed25519-dalek",
  "eyre",
@@ -1999,7 +1943,8 @@ dependencies = [
 [[package]]
 name = "cw-orch-fns-derive"
 version = "0.18.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "650dd1b708742406023b51e1b49a83a91ba31f8dd653c5b6cc7d3c3c0c214bfd"
 dependencies = [
  "convert_case",
  "proc-macro2",
@@ -2010,7 +1955,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-interchain"
 version = "0.19.1"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.2#c27fac1dac16bb57172cfe82f4bed32e623e9fa4"
 dependencies = [
  "cosmwasm-std",
  "cw-orch",
@@ -2028,7 +1973,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-interchain-core"
 version = "0.19.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.2#c27fac1dac16bb57172cfe82f4bed32e623e9fa4"
 dependencies = [
  "anyhow",
  "base64 0.21.5",
@@ -2046,7 +1991,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-interchain-daemon"
 version = "0.19.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.2#c27fac1dac16bb57172cfe82f4bed32e623e9fa4"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2074,7 +2019,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-interchain-mock"
 version = "0.19.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.2#c27fac1dac16bb57172cfe82f4bed32e623e9fa4"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
@@ -2091,12 +2036,13 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-mock"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+version = "0.19.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3cfa11050f80e13b65a6bf583bfd83055ed180afd87a163e756c9e51271be9e"
 dependencies = [
  "abstract-cw-multi-test",
  "cosmwasm-std",
- "cw-orch-core 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload)",
+ "cw-orch-core",
  "cw-utils 1.0.3",
  "serde",
  "sha256",
@@ -2108,17 +2054,7 @@ version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a08ab813c374ef74560c661c1c444c3ea0425d14938671fa1c529d6efa348b7"
 dependencies = [
- "cw-orch-core 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ibc-chain-registry",
- "serde",
-]
-
-[[package]]
-name = "cw-orch-networks"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
-dependencies = [
- "cw-orch-core 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload)",
+ "cw-orch-core",
  "ibc-chain-registry",
  "serde",
 ]
@@ -2137,7 +2073,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-proto"
 version = "0.19.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.2#c27fac1dac16bb57172cfe82f4bed32e623e9fa4"
 dependencies = [
  "anyhow",
  "cosmrs 0.14.0",
@@ -2155,7 +2091,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-starship"
 version = "0.19.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?branch=fix/conditional_upload#0cd685877d4454259f685f950c8d5460ebadc0c6"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.19.2#c27fac1dac16bb57172cfe82f4bed32e623e9fa4"
 dependencies = [
  "cosmwasm-std",
  "cw-orch",
@@ -2174,17 +2110,7 @@ version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f786295d8d9754466f8bdb94a67d6c9c647937450bcb4bb12403174800ae1ae7"
 dependencies = [
- "cw-orch-core 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "prost 0.11.9",
- "prost-types 0.11.9",
-]
-
-[[package]]
-name = "cw-orch-traits"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
-dependencies = [
- "cw-orch-core 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload)",
+ "cw-orch-core",
  "prost 0.11.9",
  "prost-types 0.11.9",
 ]
@@ -4367,9 +4293,9 @@ dependencies = [
 
 [[package]]
 name = "pkg-config"
-version = "0.3.27"
+version = "0.3.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26072860ba924cbfa98ea39c8c19b4dd6a4a25423dbdf219c1eca91aa0cf6964"
+checksum = "69d3587f8a9e599cc7ec2c00e331f71c4e69a5f9a4b8a6efd5b07466b9736f9a"
 
 [[package]]
 name = "platforms"
@@ -5127,9 +5053,9 @@ dependencies = [
 
 [[package]]
 name = "self_cell"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e388332cd64eb80cd595a00941baf513caffae8dce9cfd0467fc9c66397dade6"
+checksum = "58bf37232d3bb9a2c4e641ca2a11d83b5062066f88df7fed36c28772046d65ba"
 
 [[package]]
 name = "semver"

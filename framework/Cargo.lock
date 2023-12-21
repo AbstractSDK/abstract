@@ -1281,8 +1281,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+version = "0.19.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6cf4d4fb24a6f480a0b2dcc89662a10b8dbddeac2f45686a3405af0a7e6848f3"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
@@ -1309,7 +1310,8 @@ dependencies = [
 [[package]]
 name = "cw-orch-contract-derive"
 version = "0.18.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "152f88fea80008fc9a214ee133c6b539e30a8d0dce56d03e61965c8dc746aa20"
 dependencies = [
  "convert_case",
  "quote",
@@ -1318,8 +1320,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-core"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+version = "0.19.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "855087353f8f8cf7ee416793489ea3a82f23f8b86ee8302239d3e41b4436a695"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
@@ -1336,7 +1339,8 @@ dependencies = [
 [[package]]
 name = "cw-orch-daemon"
 version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95104f4caf23482ac067d67a787dce34391c548fae496210c4b36bb14c9397d9"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -1377,7 +1381,8 @@ dependencies = [
 [[package]]
 name = "cw-orch-fns-derive"
 version = "0.18.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "650dd1b708742406023b51e1b49a83a91ba31f8dd653c5b6cc7d3c3c0c214bfd"
 dependencies = [
  "convert_case",
  "proc-macro2",
@@ -1387,8 +1392,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-mock"
-version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+version = "0.19.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3cfa11050f80e13b65a6bf583bfd83055ed180afd87a163e756c9e51271be9e"
 dependencies = [
  "abstract-cw-multi-test",
  "cosmwasm-std",
@@ -1401,7 +1407,8 @@ dependencies = [
 [[package]]
 name = "cw-orch-networks"
 version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a08ab813c374ef74560c661c1c444c3ea0425d14938671fa1c529d6efa348b7"
 dependencies = [
  "cw-orch-core",
  "ibc-chain-registry",
@@ -1411,7 +1418,8 @@ dependencies = [
 [[package]]
 name = "cw-orch-traits"
 version = "0.19.0"
-source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=fix/conditional_upload#f1e9b3ec646971e6fc8569c8d3a622b91b2f09b3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f786295d8d9754466f8bdb94a67d6c9c647937450bcb4bb12403174800ae1ae7"
 dependencies = [
  "cw-orch-core",
  "prost 0.11.9",

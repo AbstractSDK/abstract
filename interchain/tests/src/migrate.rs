@@ -13,7 +13,7 @@ use anyhow::Ok;
 use cosmwasm_std::{to_json_binary, Addr};
 use cw_orch::daemon::networks::JUNO_1;
 use cw_orch::prelude::*;
-use cw_orch_clone_testing::ForkMock;
+use cw_orch_clone_testing::CloneTesting;
 
 // owner of the abstract infra
 const SENDER: &str = "juno1kjzpqv393k4g064xh04j4hwy5d0s03wfvqejga";
@@ -29,13 +29,13 @@ fn rt() -> &'static tokio::runtime::Runtime {
     &RT
 }
 
-/// Sets up the forkmock for Juno mainnet.
+/// Sets up the CloneTesting for Juno mainnet.
 /// Returns the abstract deployment and sender (=mainnet admin)
-fn setup() -> anyhow::Result<(Abstract<ForkMock>, ForkMock)> {
+fn setup() -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let _ = env_logger::builder().is_test(true).try_init();
     let sender = Addr::unchecked(SENDER);
     // Run migration tests against Juno mainnet
-    let mut app = ForkMock::new(rt(), JUNO_1)?;
+    let mut app = CloneTesting::new(rt(), JUNO_1)?;
     app.set_sender(sender.clone());
 
     let abstr_deployment = Abstract::load_from(app.clone())?;
@@ -43,7 +43,7 @@ fn setup() -> anyhow::Result<(Abstract<ForkMock>, ForkMock)> {
 }
 
 fn setup_migrate_allowed_direct_module_registration(
-) -> anyhow::Result<(Abstract<ForkMock>, ForkMock)> {
+) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let (deployment, chain) = setup()?;
     deployment.migrate_if_needed()?;
     deployment
