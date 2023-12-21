@@ -191,6 +191,13 @@ jobs:
             git add framework/scripts --force
             git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
+      - save_cache:
+          paths:
+            - ~/.cargo/registry
+            - framework/target/debug/.fingerprint
+            - framework/target/debug/build
+            - framework/target/debug/deps
+          key: cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
       - run:
           name: Commit and push state file
           command: |
@@ -200,14 +207,7 @@ jobs:
             git add ./framework/scripts/state.json
             git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
-      - save_cache:
-          paths:
-            - ~/.cargo/registry
-            - framework/target/debug/.fingerprint
-            - framework/target/debug/build
-            - framework/target/debug/deps
-          key: cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
-
+      
   coverage:
     docker:
       - image: cimg/rust:1.72.0
