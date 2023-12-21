@@ -100,6 +100,7 @@ jobs:
             just schema
       - save_cache:
           paths:
+            # Cargo registry
             - ~/.cargo/registry
             # Schema artifacts
             - framework/target/debug/.fingerprint
@@ -108,13 +109,6 @@ jobs:
             - modules/target/debug/.fingerprint
             - modules/target/debug/build
             - modules/target/debug/deps
-            # wasm builds
-            - framework/target/wasm32-unknown-unknown/release/.fingerprint
-            - framework/target/wasm32-unknown-unknown/release/build
-            - framework/target/wasm32-unknown-unknown/release/deps
-            - modules/target/wasm32-unknown-unknown/release/.fingerprint
-            - modules/target/wasm32-unknown-unknown/release/build
-            - modules/target/wasm32-unknown-unknown/release/deps
           key: cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
       - run:
           name: Commit and push artifacts
