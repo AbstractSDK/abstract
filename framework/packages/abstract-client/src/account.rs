@@ -8,12 +8,13 @@ use abstract_core::{
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
+    PROXY,
 };
 use abstract_interface::{
     Abstract, AbstractAccount, AccountDetails, DependencyCreation, InstallConfig, ManagerExecFns,
     ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
-use cosmwasm_std::Attribute;
+use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg};
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
 
@@ -222,6 +223,26 @@ impl<Chain: CwEnv> Account<Chain> {
 
         // Get top level account owner address
         Ok(governance.owner_address())
+    }
+
+    /// Executes a [`CosmosMsg`] on the proxy of the account.
+    pub fn execute(
+        &self,
+        execute_msgs: Vec<CosmosMsg>,
+        funds: &[Coin],
+    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+        self.abstr_account
+            .manager
+            .execute(
+                &abstract_core::manager::ExecuteMsg::ExecOnModule {
+                    module_id: PROXY.to_owned(),
+                    exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+                        msgs: execute_msgs,
+                    })?,
+                },
+                Some(funds),
+            )
+            .map_err(Into::into)
     }
 
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
