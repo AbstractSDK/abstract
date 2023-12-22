@@ -473,3 +473,28 @@ fn account_updated_to_subaccount_recursive() -> AResult {
     assert_eq!(ids.sub_accounts.len(), 1);
     Ok(())
 }
+
+#[test]
+fn top_level_owner() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let account = create_default_account(&deployment.account_factory)?;
+    // Creating sub account
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+        &[],
+    )?;
+    let response = account.manager.sub_account_ids(None, None)?;
+    let sub_account = AbstractAccount::new(&deployment, AccountId::local(response.sub_accounts[0]));
+
+    let top_level_owner = sub_account.manager.top_level_owner()?;
+    assert_eq!(top_level_owner.address, sender);
+    Ok(())
+}

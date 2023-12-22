@@ -9,7 +9,7 @@ use crate::{
         ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
         MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
     },
-    objects::module_version::ModuleDataResponse,
+    objects::{module_version::ModuleDataResponse, nested_admin::TopLevelOwnerResponse},
     version_control::AccountBase,
 };
 
@@ -87,6 +87,9 @@ pub enum BaseQueryMsg {
     /// Returns module data
     #[returns(ModuleDataResponse)]
     ModuleData {},
+    /// Returns top level owner
+    #[returns(TopLevelOwnerResponse)]
+    TopLevelOwner {},
 }
 
 impl<T> From<BaseQueryMsg> for QueryMsg<T> {
