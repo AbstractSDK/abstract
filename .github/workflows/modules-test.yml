@@ -10,39 +10,27 @@ on:
     paths:
       - modules/**
 
-env:
-  SCCACHE_GHA_ENABLED: "true"
-  RUSTC_WRAPPER: "sccache"
-
 jobs:
-  required:
+  # Triggers the circleci tests job
+  tests:
     runs-on: ubuntu-latest
-    name: ubuntu / stable
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
-            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
-        with:
-          version: "v0.4.2"
-      - name: Install stable
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-      - name: cargo generate-lockfile
-        if: hashFiles('Cargo.lock') == ''
-        working-directory: ./modules
-        run: cargo generate-lockfile
-      # https://twitter.com/jonhoo/status/1571290371124260865
-      - name: cargo test --locked
-        working-directory: ./modules
-        run: cargo test --locked --all-features --all-targets
+      - name: tickle tests
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+          CIRCLE_BRANCH: ${{ github.head_ref }}
+        run: |
+          echo $CIRCLE_BRANCH;
+          curl -X POST \
+          -H "Circle-Token: ${CCI_TOKEN}" \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d "{
+            \"branch\": \"${CIRCLE_BRANCH}\",
+            \"parameters\": {
+              \"GHA_Meta\": \"modules_tests\"
+            }
+          }" https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
   # Triggers the circleci codecov job
   coverage:
     runs-on: ubuntu-latest
