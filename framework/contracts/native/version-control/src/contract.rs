@@ -14,7 +14,6 @@ use abstract_sdk::core::{
     VERSION_CONTROL,
 };
 use abstract_sdk::{execute_update_ownership, query_ownership};
-use cw_storage_plus::KeyDeserialize;
 
 use crate::commands::*;
 use crate::error::VCError;
@@ -33,13 +32,13 @@ pub struct VcResponse;
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let to_version: Version = CONTRACT_VERSION.parse()?;
 
-    // TODO: test it in migration tests
     let vc_addr_raw = deps.storage.get(b"fac");
     if let Some(vc_addr) = vc_addr_raw {
-        let vc_addr = cosmwasm_std::Addr::from_vec(vc_addr)?;
+        let vc_addr: Option<cosmwasm_std::Addr> = cosmwasm_std::from_json(vc_addr)?;
+
         CONFIG.update(deps.storage, |mut cfg| {
             // Save factory address to a new place
-            cfg.account_factory_address = Some(vc_addr);
+            cfg.account_factory_address = vc_addr;
             // Check if fee requires in migration
             if cfg
                 .namespace_registration_fee

@@ -12,7 +12,7 @@ members = ["scripts", "tests"]
 resolver = "2"
 
 [workspace.package]
-version = "0.19.2"
+version = "0.20.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -51,21 +51,22 @@ semver = "1.0"
 cw-semver = { version = "1.0" }
 tokio = { version = "1.33.0", features = ["full"] }
 
-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
-polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
-polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.1" }
+cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.2" }
+polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.2" }
+polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.2" }
 
-cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.18.0" }
-cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.18.0" }
+# TODO; Set tag!
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.2" }
+cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.2" }
+cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.2" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { path = "../framework/packages/abstract-interface" }
-abstract-sdk = { version = "0.19.2", path = "../framework/packages/abstract-sdk" }
-abstract-core = { version = "0.19.2", path = "../framework/packages/abstract-core" }
-abstract-app = { version = "0.19.2", path = "../framework/packages/abstract-app" }
-abstract-testing = { version = "0.19.2", path = "../framework/packages/abstract-testing" }
-
+abstract-sdk = { version = "0.20.0", path = "../framework/packages/abstract-sdk" }
+abstract-core = { version = "0.20.0", path = "../framework/packages/abstract-core" }
+abstract-app = { version = "0.20.0", path = "../framework/packages/abstract-app" }
+abstract-testing = { version = "0.20.0", path = "../framework/packages/abstract-testing" }
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat", features = [
   "interface",

@@ -50,7 +50,7 @@ fn main() -> anyhow::Result<()> {
 
     let args = Arguments::parse();
 
-    let network = parse_network(&args.network_id);
+    let network = parse_network(&args.network_id).unwrap();
 
     deploy_dex(network)
 }

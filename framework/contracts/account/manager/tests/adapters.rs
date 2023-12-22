@@ -9,6 +9,10 @@ use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::AccountId;
 use abstract_core::{adapter::BaseQueryMsgFns, *};
+use abstract_integration_tests::mock_modules::adapter_1::{BootMockAdapter1V1, BootMockAdapter1V2};
+use abstract_integration_tests::{
+    add_mock_adapter_install_fee, init_mock_adapter, install_adapter, install_adapter_with_funds,
+};
 use abstract_interface::*;
 use abstract_testing::prelude::*;
 use common::*;
@@ -18,7 +22,7 @@ use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
-use crate::common::mock_modules::{adapter_1, BootMockAdapter1V1, BootMockAdapter1V2, V1, V2};
+use crate::common::mock_modules::{adapter_1, V1, V2};
 
 #[test]
 fn installing_one_adapter_should_succeed() -> AResult {
@@ -26,7 +30,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None)?;
+    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
     let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
@@ -65,9 +69,8 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
     chain.set_balance(&sender, coins(12, "ujunox"))?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    init_mock_adapter(chain.clone(), &deployment, None)?;
+    init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
     add_mock_adapter_install_fee(
-        chain,
         &deployment,
         Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
         None,
@@ -90,26 +93,11 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
 fn installing_one_adapter_with_fee_should_succeed() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
-    chain.set_balance(&sender, coins(45, "ujunox"))?;
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
-    init_mock_adapter(chain.clone(), &deployment, None)?;
-    add_mock_adapter_install_fee(
+    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    abstract_integration_tests::manager::installing_one_adapter_with_fee_should_succeed(
         chain.clone(),
-        &deployment,
-        Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
-        None,
     )?;
-
-    assert_that!(install_adapter_with_funds(
-        &account.manager,
-        TEST_MODULE_ID,
-        &coins(45, "ujunox")
-    ))
-    .is_ok();
-
     take_storage_snapshot!(chain, "install_one_adapter_with_fee");
-
     Ok(())
 }
 
@@ -132,7 +120,7 @@ fn install_non_existent_version_should_fail() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    init_mock_adapter(chain, &deployment, None)?;
+    init_mock_adapter(chain, &deployment, None, account.id()?)?;
 
     let res = account.manager.install_module_version(
         TEST_MODULE_ID,
@@ -153,7 +141,7 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
+    let staking_adapter = init_mock_adapter(chain, &deployment, None, account.id()?)?;
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
@@ -187,7 +175,7 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None)?;
+    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
@@ -204,7 +192,9 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     });
 
     // uninstall
-    uninstall_module(&account.manager, TEST_MODULE_ID)?;
+    account
+        .manager
+        .uninstall_module(TEST_MODULE_ID.to_string())?;
 
     // None expected
     account.expect_modules(vec![])?;
@@ -249,7 +239,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     });
 
     // uninstall tendermint staking
-    uninstall_module(&account.manager, &adapter1.id())?;
+    account.manager.uninstall_module(adapter1.id())?;
 
     account.expect_modules(vec![])?;
 
@@ -301,7 +291,7 @@ fn unauthorized_exec() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
+    let staking_adapter = init_mock_adapter(chain, &deployment, None, account.id()?)?;
     install_adapter(&account.manager, TEST_MODULE_ID)?;
     // non-authorized address cannot execute
     let res = staking_adapter
@@ -327,14 +317,11 @@ fn manager_adapter_exec() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None)?;
+    let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
-    chain.set_balance(
-        &account.proxy.address()?,
-        vec![Coin::new(100_000, TEST_COIN)],
-    )?;
+    chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
 
     account.manager.execute_on_module(
         TEST_MODULE_ID,

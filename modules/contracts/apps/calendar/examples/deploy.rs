@@ -59,6 +59,10 @@ fn main() {
     dotenv::dotenv().ok();
     env_logger::init();
     let args = Arguments::parse();
-    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
+    let networks = args
+        .network_ids
+        .iter()
+        .map(|n| parse_network(n).unwrap())
+        .collect();
     deploy(networks).unwrap();
 }
