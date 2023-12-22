@@ -6,5 +6,4 @@ This app allows users to create subscriptions that other people can subscribe to
 
 When a user does'n top-up their balance, an external call is made to the `subscription` contract to cancel the subscription. The admin can opt to add a cancellation hook that will be called when the subscription is canceled and which contains the addresses of the now ex-subscribers.
 
-## Features
-
+## TODO: Features
