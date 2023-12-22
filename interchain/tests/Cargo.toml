@@ -3,7 +3,6 @@ name = "abstract-interface-integration-tests"
 version = { workspace = true }
 edition = { workspace = true }
 
-
 [lib]
 
 
@@ -19,9 +18,11 @@ cw2 = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
 
-cw-orch = { workspace = true }
+cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-proto = { workspace = true }
+cw-orch-clone-testing = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
+abstract-sdk = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 
@@ -45,8 +46,8 @@ async-recursion = "1.0.4"
 base64 = "0.21.0"
 futures = "0.3.28"
 
-ibc-chain-registry = "0.24.1"
-ibc-relayer-types = "0.24.1"
+ibc-chain-registry = "0.25"
+ibc-relayer-types = "0.25"
 
 osmosis-std = "0.16.1"
 cosmrs = "0.14.0"
@@ -54,3 +55,5 @@ prost = "0.11.9"
 cw-orch-polytone = { workspace = true }
 polytone = { workspace = true }
 abstract-scripts = { path = "../scripts" }
+abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
+lazy_static = "1.4.0"

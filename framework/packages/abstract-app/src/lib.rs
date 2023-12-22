@@ -229,9 +229,9 @@ pub mod mock {
     #[cw_orch::interface(Init, Exec, Query, Migrate)]
     pub struct BootMockApp<Chain>;
 
-    impl AppDeployer<Mock> for BootMockApp<Mock> {}
+    impl<T: cw_orch::prelude::CwEnv> AppDeployer<T> for BootMockApp<T> {}
 
-    impl Uploadable for BootMockApp<Mock> {
+    impl<T: cw_orch::prelude::CwEnv> Uploadable for BootMockApp<T> {
         fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
             Box::new(
                 ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
@@ -289,7 +289,7 @@ pub mod mock {
                         .bank(deps.as_ref())
                         .transfer::<::cosmwasm_std::Coin>(
                             vec![balance.into()],
-                            &::cosmwasm_std::Addr::unchecked("test_addr"),
+                            &adapter1_addr.unwrap(),
                         )?;
                     let msg = module.executor(deps.as_ref()).execute(vec![action])?;
                     println!("message: {msg:?}");
@@ -343,9 +343,9 @@ pub mod mock {
         #[cw_orch::interface(Init, Exec, Query, Migrate)]
         pub struct $name;
 
-        impl ::abstract_interface::AppDeployer<Mock> for $name <Mock> {}
+        impl<T: cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<T> for $name <T> {}
 
-        impl Uploadable for $name<Mock> {
+        impl<T: cw_orch::prelude::CwEnv> Uploadable for $name<T> {
             fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
                     Exec,

@@ -115,7 +115,7 @@ fn swap_raw() -> anyhow::Result<()> {
     let (chain, wyndex, dex_adapter, os, abstr) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
 
-    // trnasfer raw
+    // transfer raw
     let owner = Addr::unchecked(WYNDEX_OWNER);
     wyndex
         .raw_token
