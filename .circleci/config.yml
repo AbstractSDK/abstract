@@ -80,8 +80,12 @@ jobs:
           name: Generate lockfiles
           command: |
             set -e
-            (cd framework ; cargo generate-lockfile)
-            (cd modules ; cargo generate-lockfile)
+            if [ ! -f framework/Cargo.lock ]; then
+              (cd framework ; cargo generate-lockfile)
+            fi
+            if [ ! -f modules/Cargo.lock ]; then
+              (cd modules ; cargo generate-lockfile)
+            fi
       - restore_cache:
           keys:
             - cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
@@ -165,8 +169,10 @@ jobs:
       - run:
           name: Generate lockfile
           command: |
-            cd framework
-            cargo generate-lockfile
+            set -e
+            if [ ! -f framework/Cargo.lock ]; then
+              (cd framework ; cargo generate-lockfile)
+            fi
       - restore_cache:
           keys:
             - cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
@@ -213,8 +219,10 @@ jobs:
       - run:
           name: Generate lockfile
           command: |
-            cd modules
-            cargo generate-lockfile
+            set -e
+            if [ ! -f modules/Cargo.lock ]; then
+              (cd modules ; cargo generate-lockfile)
+            fi
       - restore_cache:
           keys:
             - cargocache-v2-coverage-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
