@@ -496,3 +496,23 @@ fn can_get_module_dependency() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(OWNER).build()?;
+
+    let publisher: Publisher<Mock> = client
+        .publisher_builder()
+        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .build()?;
+
+    publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
+
+    let my_app: Application<Mock, MockAppDependencyInterface<Mock>> =
+        publisher.install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg {}, &[])?;
+
+    let dependency_res = my_app.get_module::<MockAppInterface<Mock>>();
+    assert!(dependency_res.is_err());
+
+    Ok(())
+}
