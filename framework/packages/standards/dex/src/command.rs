@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::error::DexError;
 use abstract_adapter_utils::identity::Identify;
-use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference, UniquePoolId};
+use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference, PoolType, UniquePoolId};
 use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
@@ -27,10 +27,21 @@ pub trait DexCommand<E: Error = DexError>: Identify {
     ) -> Result<PoolReference, DexError> {
         let dex_pair = DexAssetPairing::new(assets.0, assets.1, self.name());
         let mut pool_ref = ans_host.query_asset_pairing(&deps.querier, &dex_pair)?;
-        // Currently takes the first pool found, but should be changed to take the best pool
-        let found: PoolReference = pool_ref.pop().ok_or(DexError::AssetPairingNotFound {
-            asset_pairing: dex_pair,
-        })?;
+
+        // Prioritize concentrated pools
+        let found = if let Some(concentrated_pool) = pool_ref.iter().find(|p| {
+            ans_host
+                .query_pool_metadata(&deps.querier, p.unique_id)
+                .map(|metadata| metadata.pool_type == PoolType::ConcentratedLiquidity)
+                .unwrap_or(false)
+        }) {
+            concentrated_pool.clone()
+        } else {
+            // Currently takes the first pool found, but should be changed to take the best pool
+            pool_ref.pop().ok_or(DexError::AssetPairingNotFound {
+                asset_pairing: dex_pair,
+            })?
+        };
         Ok(found)
     }
 
