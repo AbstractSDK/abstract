@@ -34,6 +34,13 @@ workflows:
       equal: ["modules_coverage", << pipeline.parameters.GHA_Meta >>]
     jobs:
       - coverage
+
+  modules-tests:
+    when:
+      equal: ["modules_tests", << pipeline.parameters.GHA_Meta >>]
+    jobs:
+      - tests
+
   # add this to give green ci when nothing is ran
   pass:
     jobs:
@@ -73,8 +80,12 @@ jobs:
           name: Generate lockfiles
           command: |
             set -e
-            (cd framework ; cargo generate-lockfile)
-            (cd modules ; cargo generate-lockfile)
+            if [ ! -f framework/Cargo.lock ]; then
+              (cd framework ; cargo generate-lockfile)
+            fi
+            if [ ! -f modules/Cargo.lock ]; then
+              (cd modules ; cargo generate-lockfile)
+            fi
       - restore_cache:
           keys:
             - cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
@@ -86,9 +97,23 @@ jobs:
       - run:
           name: Generate schemas
           command: |
-            cargo install cargo-workspaces || true
-            cargo install just || true
+            # Install deps
+            cargo install cargo-workspaces
+            cargo install just
+            # Run script
             just schema
+      - save_cache:
+          paths:
+            # Cargo registry
+            - ~/.cargo/registry
+            # Schema artifacts
+            - framework/target/debug/.fingerprint
+            - framework/target/debug/build
+            - framework/target/debug/deps
+            - modules/target/debug/.fingerprint
+            - modules/target/debug/build
+            - modules/target/debug/deps
+          key: cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
       - run:
           name: Commit and push artifacts
           command: |
@@ -104,20 +129,36 @@ jobs:
             # Check for schema changes
             git add schema --force
             git commit -m 'Update Schemas [skip ci]' || true
-      - save_cache:
-          paths:
-            - /usr/local/cargo/registry
-            - framework/target/debug/.fingerprint
-            - framework/target/debug/build
-            - framework/target/debug/deps
-            - modules/target/debug/.fingerprint
-            - modules/target/debug/build
-            - modules/target/debug/deps
-          key: cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
           webhook: "${DISCORD_STATUS_WEBHOOK}"
+
+  tests:
+    docker:
+      - image: cimg/rust:1.72.0
+    resource_class: xlarge
+    steps:
+      - checkout
+      - run:
+          name: Generate lockfile
+          command: |
+            cd modules
+            cargo generate-lockfile
+      - restore_cache:
+          keys:
+            - cargocache-v2-tests-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
+      - run:
+          name: Modules tests
+          command: |
+            ./scripts/modules-tests.sh
+      - save_cache:
+          paths:
+            - ~/.cargo/registry
+            - modules/target/debug/.fingerprint
+            - modules/target/debug/build
+            - modules/target/debug/deps
+          key: cargocache-v2-tests-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
 
   deploy:
     docker:
@@ -128,8 +169,10 @@ jobs:
       - run:
           name: Generate lockfile
           command: |
-            cd framework
-            cargo generate-lockfile
+            set -e
+            if [ ! -f framework/Cargo.lock ]; then
+              (cd framework ; cargo generate-lockfile)
+            fi
       - restore_cache:
           keys:
             - cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
@@ -159,7 +202,7 @@ jobs:
             git push origin $CIRCLE_BRANCH
       - save_cache:
           paths:
-            - /usr/local/cargo/registry
+            - ~/.cargo/registry
             - framework/target/debug/.fingerprint
             - framework/target/debug/build
             - framework/target/debug/deps
@@ -176,8 +219,10 @@ jobs:
       - run:
           name: Generate lockfile
           command: |
-            cd modules
-            cargo generate-lockfile
+            set -e
+            if [ ! -f modules/Cargo.lock ]; then
+              (cd modules ; cargo generate-lockfile)
+            fi
       - restore_cache:
           keys:
             - cargocache-v2-coverage-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
@@ -189,7 +234,7 @@ jobs:
           file: ./modules/lcov.info
       - save_cache:
           paths:
-            - /usr/local/cargo/registry
+            - ~/.cargo/registry
             - modules/target/debug/.fingerprint
             - modules/target/debug/build
             - modules/target/debug/deps

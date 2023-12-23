@@ -82,6 +82,22 @@
             "update_config": {
               "type": "object",
               "properties": {
+                "denom_asset": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "desired_asset": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Clearable_for_AssetEntry"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "exchanges": {
                   "type": [
                     "array",
@@ -98,6 +114,10 @@
           "additionalProperties": false
         }
       ]
+    },
+    "AssetEntry": {
+      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+      "type": "string"
     },
     "Attribute": {
       "description": "An key value pair that is used in the context of event attributes in logs",
@@ -188,6 +208,31 @@
           "properties": {
             "fatal_error": {
               "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Clearable_for_AssetEntry": {
+      "description": "A type representing a value that can either be cleared or set with a value of type `C`. ``` use cosmwasm_std::{StdResult, Response, DepsMut}; use cw_storage_plus::Item; use cw_clearable::Clearable;\n\nconst FOO: Item<Option<u32>> = Item::new(\"foo\");\n\npub fn update_config(deps: DepsMut, foo: Option<Clearable<u32>>) -> StdResult<Response>{ if let Some(foo) = foo { FOO.save(deps.storage, &foo.into()); } Ok(Response::new()) } ```",
+      "oneOf": [
+        {
+          "description": "Clear the current state.",
+          "type": "string",
+          "enum": [
+            "clear"
+          ]
+        },
+        {
+          "description": "Set state with a value of type `C`.",
+          "type": "object",
+          "required": [
+            "set"
+          ],
+          "properties": {
+            "set": {
+              "$ref": "#/definitions/AssetEntry"
             }
           },
           "additionalProperties": false

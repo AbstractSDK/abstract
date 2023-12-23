@@ -109,20 +109,20 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
             DeployStrategy::Force => {}
         }
 
-        self.upload()?;
-        let init_msg = abstract_core::adapter::InstantiateMsg {
-            module: custom_init_msg,
-            base: abstract_core::adapter::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.address()?.into(),
-                version_control_address: abstr.version_control.address()?.into(),
-            },
-        };
-        self.instantiate(&init_msg, None, None)?;
+        if self.upload_if_needed()?.is_some() {
+            let init_msg = abstract_core::adapter::InstantiateMsg {
+                module: custom_init_msg,
+                base: abstract_core::adapter::BaseInstantiateMsg {
+                    ans_host_address: abstr.ans_host.address()?.into(),
+                    version_control_address: abstr.version_control.address()?.into(),
+                },
+            };
+            self.instantiate(&init_msg, None, None)?;
 
-        abstr
-            .version_control
-            .register_adapters(vec![(self.as_instance(), version.to_string())])?;
-
+            abstr
+                .version_control
+                .register_adapters(vec![(self.as_instance(), version.to_string())])?;
+        }
         Ok(())
     }
 }
@@ -165,11 +165,11 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
             _ => {}
         }
 
-        self.upload()?;
-
-        abstr
-            .version_control
-            .register_apps(vec![(self.as_instance(), version.to_string())])?;
+        if self.upload_if_needed()?.is_some() {
+            abstr
+                .version_control
+                .register_apps(vec![(self.as_instance(), version.to_string())])?;
+        }
 
         Ok(())
     }

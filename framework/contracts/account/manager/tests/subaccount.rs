@@ -279,58 +279,8 @@ fn sub_account_move_ownership() -> AResult {
 fn account_move_ownership_to_sub_account() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = create_default_account(&deployment.account_factory)?;
-
-    account.manager.create_sub_account(
-        vec![],
-        "My subaccount".to_string(),
-        None,
-        None,
-        None,
-        None,
-        &[],
-    )?;
-    let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
-    let sub_manager_addr = sub_account.manager.address()?;
-    let sub_proxy_addr = sub_account.proxy.address()?;
-
-    let new_account = create_default_account(&deployment.account_factory)?;
-    let new_governance = GovernanceDetails::SubAccount {
-        manager: sub_manager_addr.to_string(),
-        proxy: sub_proxy_addr.to_string(),
-    };
-    new_account.manager.propose_owner(new_governance.clone())?;
-    let new_account_manager = new_account.manager.address()?;
-
-    let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
-    let mock_module = Addr::unchecked("mock_module");
-    sub_account
-        .proxy
-        .call_as(&sub_manager_addr)
-        .add_modules(vec![mock_module.to_string()])?;
-    sub_account
-        .proxy
-        .call_as(&mock_module)
-        .module_action(vec![wasm_execute(
-            new_account_manager,
-            &abstract_core::manager::ExecuteMsg::UpdateOwnership(
-                cw_ownable::Action::AcceptOwnership,
-            ),
-            vec![],
-        )?
-        .into()])?;
-
-    // sub-accounts state updated
-    let sub_ids = sub_account.manager.sub_account_ids(None, None)?;
-    assert_eq!(sub_ids.sub_accounts, vec![3]);
-
-    // owner of new_account updated
-    let new_account = AbstractAccount::new(&deployment, AccountId::local(3));
-    let info = new_account.manager.info()?.info;
-    assert_eq!(new_governance, info.governance_details.into());
-    take_storage_snapshot!(chain, "account_move_ownership_to_sub_account");
-
+    Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    abstract_integration_tests::manager::account_move_ownership_to_sub_account(chain)?;
     Ok(())
 }
 
@@ -521,5 +471,30 @@ fn account_updated_to_subaccount_recursive() -> AResult {
     account.manager.set_address(&manager1_addr);
     let ids = account.manager.sub_account_ids(None, None)?;
     assert_eq!(ids.sub_accounts.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn top_level_owner() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let account = create_default_account(&deployment.account_factory)?;
+    // Creating sub account
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+        &[],
+    )?;
+    let response = account.manager.sub_account_ids(None, None)?;
+    let sub_account = AbstractAccount::new(&deployment, AccountId::local(response.sub_accounts[0]));
+
+    let top_level_owner = sub_account.manager.top_level_owner()?;
+    assert_eq!(top_level_owner.address, sender);
     Ok(())
 }

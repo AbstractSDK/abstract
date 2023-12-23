@@ -4,7 +4,10 @@ use crate::{
 };
 use abstract_core::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
-    objects::module_version::{ModuleDataResponse, MODULE},
+    objects::{
+        module_version::{ModuleDataResponse, MODULE},
+        nested_admin::{query_top_level_owner, TopLevelOwnerResponse},
+    },
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
@@ -63,6 +66,7 @@ impl<
             BaseQueryMsg::BaseConfig {} => to_json_binary(&self.dapp_config(deps)?),
             BaseQueryMsg::BaseAdmin {} => to_json_binary(&self.admin(deps)?),
             BaseQueryMsg::ModuleData {} => to_json_binary(&self.module_data(deps)?),
+            BaseQueryMsg::TopLevelOwner {} => to_json_binary(&self.top_level_owner(deps)?),
         }
     }
 
@@ -92,6 +96,12 @@ impl<
                 .collect(),
             metadata: module_data.metadata,
         })
+    }
+
+    fn top_level_owner(&self, deps: Deps) -> StdResult<TopLevelOwnerResponse> {
+        let manager = self.admin.get(deps)?.unwrap();
+        let addr = query_top_level_owner(&deps.querier, manager)?;
+        Ok(TopLevelOwnerResponse { address: addr })
     }
 }
 
