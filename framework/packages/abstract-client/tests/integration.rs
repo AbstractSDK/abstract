@@ -23,7 +23,7 @@ use abstract_testing::{
     },
     OWNER,
 };
-use cosmwasm_std::{coins, Addr, BankMsg, CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{coins, Addr, BankMsg, Empty, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::{CallAs, Mock};
 use cw_ownable::Ownership;
@@ -483,10 +483,10 @@ fn can_execute_on_proxy() -> anyhow::Result<()> {
 
     let amount = 20;
     account.execute(
-        vec![CosmosMsg::Bank(BankMsg::Send {
+        vec![BankMsg::Send {
             to_address: user.clone(),
             amount: coins(20, denom),
-        })],
+        }],
         &coins(amount, denom),
     )?;
 

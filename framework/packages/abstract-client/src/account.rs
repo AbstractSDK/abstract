@@ -228,16 +228,17 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Executes a [`CosmosMsg`] on the proxy of the account.
     pub fn execute(
         &self,
-        execute_msgs: Vec<CosmosMsg>,
+        execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
         funds: &[Coin],
     ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+        let msgs = execute_msgs.into_iter().map(Into::into).collect();
         self.abstr_account
             .manager
             .execute(
                 &abstract_core::manager::ExecuteMsg::ExecOnModule {
                     module_id: PROXY.to_owned(),
                     exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
-                        msgs: execute_msgs,
+                        msgs,
                     })?,
                 },
                 Some(funds),
