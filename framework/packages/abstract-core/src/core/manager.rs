@@ -260,6 +260,8 @@ pub enum QueryMsg {
         start_after: Option<u32>,
         limit: Option<u8>,
     },
+    #[returns(crate::objects::nested_admin::TopLevelOwnerResponse)]
+    TopLevelOwner {},
 }
 
 #[cosmwasm_schema::cw_serde]

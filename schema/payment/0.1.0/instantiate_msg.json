@@ -51,9 +51,13 @@
       "description": "PaymentApp instantiate message",
       "type": "object",
       "required": [
+        "denom_asset",
         "exchanges"
       ],
       "properties": {
+        "denom_asset": {
+          "type": "string"
+        },
         "desired_asset": {
           "anyOf": [
             {

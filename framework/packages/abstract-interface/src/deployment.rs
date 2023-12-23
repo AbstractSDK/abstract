@@ -1,29 +1,20 @@
 use std::path::PathBuf;
 
 use crate::{
-    get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
-    AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory, Proxy, VersionControl,
+    get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
+    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_core::account_factory::ExecuteMsgFns as _;
-use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
-use abstract_core::{
-    ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MANAGER, MODULE_FACTORY, PROXY,
-    VERSION_CONTROL,
-};
+use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
-
-pub struct IbcAbstract<Chain: CwEnv> {
-    pub client: IbcClient<Chain>,
-    pub host: IbcHost<Chain>,
-}
 
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
     pub version_control: VersionControl<Chain>,
     pub account_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
-    pub ibc: IbcAbstract<Chain>,
+    pub ibc: AbstractIbc<Chain>,
     pub(crate) account: AbstractAccount<Chain>,
 }
 
@@ -40,18 +31,15 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let manager = Manager::new(MANAGER, chain.clone());
         let proxy = Proxy::new(PROXY, chain.clone());
 
-        let ibc_client = IbcClient::new(IBC_CLIENT, chain.clone());
-        let ibc_host = IbcHost::new(IBC_HOST, chain.clone());
-
         let mut account = AbstractAccount { manager, proxy };
+        let ibc_infra = AbstractIbc::new(&chain);
 
         ans_host.upload()?;
         version_control.upload()?;
         account_factory.upload()?;
         module_factory.upload()?;
         account.upload()?;
-        ibc_client.upload()?;
-        ibc_host.upload()?;
+        ibc_infra.upload()?;
 
         let deployment = Abstract {
             ans_host,
@@ -59,10 +47,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             version_control,
             module_factory,
             account,
-            ibc: IbcAbstract {
-                client: ibc_client,
-                host: ibc_host,
-            },
+            ibc: ibc_infra,
         };
 
         Ok(deployment)
@@ -129,6 +114,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             Box::new(&mut self.module_factory),
             Box::new(&mut self.account.manager),
             Box::new(&mut self.account.proxy),
+            Box::new(&mut self.ibc.client),
+            Box::new(&mut self.ibc.host),
         ]
     }
 
@@ -156,85 +143,68 @@ impl<Chain: CwEnv> Abstract<Chain> {
         let (ans_host, account_factory, version_control, module_factory) =
             get_native_contracts(chain.clone());
         let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
-        let manager = Manager::new_from_id(&ABSTRACT_ACCOUNT_ID, chain.clone());
-        let proxy = Proxy::new_from_id(&ABSTRACT_ACCOUNT_ID, chain);
+        let manager = Manager::new(MANAGER, chain.clone());
+        let proxy = Proxy::new(PROXY, chain);
         Self {
             account: AbstractAccount { manager, proxy },
             ans_host,
             version_control,
             account_factory,
             module_factory,
-            ibc: IbcAbstract {
+            ibc: AbstractIbc {
                 client: ibc_client,
                 host: ibc_host,
             },
         }
     }
 
-    pub fn instantiate(&mut self, chain: &Chain, admin: String) -> Result<(), CwOrchError> {
-        let sender = &chain.sender();
+    pub fn instantiate(&mut self, _chain: &Chain, admin: String) -> Result<(), CwOrchError> {
+        let admin = Addr::unchecked(admin);
 
         self.ans_host.instantiate(
             &abstract_core::ans_host::InstantiateMsg {
-                admin: admin.clone(),
+                admin: admin.to_string(),
             },
-            Some(sender),
+            Some(&admin),
             None,
         )?;
 
         self.version_control.instantiate(
             &abstract_core::version_control::InstantiateMsg {
-                admin: admin.clone(),
+                admin: admin.to_string(),
                 #[cfg(feature = "integration")]
                 allow_direct_module_registration_and_updates: Some(true),
                 #[cfg(not(feature = "integration"))]
                 allow_direct_module_registration_and_updates: Some(false),
                 namespace_registration_fee: None,
             },
-            Some(sender),
+            Some(&admin),
             None,
         )?;
 
         self.module_factory.instantiate(
             &abstract_core::module_factory::InstantiateMsg {
-                admin: admin.clone(),
+                admin: admin.to_string(),
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
             },
-            Some(sender),
+            Some(&admin),
             None,
         )?;
 
         self.account_factory.instantiate(
             &abstract_core::account_factory::InstantiateMsg {
-                admin,
+                admin: admin.to_string(),
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
                 module_factory_address: self.module_factory.address()?.into_string(),
             },
-            Some(sender),
+            Some(&admin),
             None,
         )?;
 
         // We also instantiate ibc contracts
-        self.ibc.client.instantiate(
-            &abstract_core::ibc_client::InstantiateMsg {
-                ans_host_address: self.ans_host.addr_str()?,
-                version_control_address: self.version_control.addr_str()?,
-            },
-            None,
-            None,
-        )?;
-
-        self.ibc.host.instantiate(
-            &abstract_core::ibc_host::InstantiateMsg {
-                ans_host_address: self.ans_host.addr_str()?,
-                account_factory_address: self.account_factory.addr_str()?,
-                version_control_address: self.version_control.addr_str()?,
-            },
-            None,
-            None,
-        )?;
+        self.ibc.instantiate(self, &admin)?;
 
         Ok(())
     }

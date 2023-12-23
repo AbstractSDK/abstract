@@ -40,7 +40,11 @@ fn main() -> anyhow::Result<()> {
 
     let args = Arguments::parse();
 
-    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
+    let networks = args
+        .network_ids
+        .iter()
+        .map(|n| parse_network(n).unwrap())
+        .collect();
 
     deploy_subscription(networks)
 }
