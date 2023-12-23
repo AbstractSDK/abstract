@@ -491,7 +491,7 @@ fn can_get_module_dependency() -> anyhow::Result<()> {
     let my_app: Application<Mock, MockAppInterface<Mock>> =
         app_publisher.install_app_with_dependencies(&MockInitMsg {}, Empty {}, &[])?;
 
-    let dependency: MockAppDependencyInterface<Mock> = my_app.get_module()?;
+    let dependency: MockAppDependencyInterface<Mock> = my_app.module()?;
     dependency.do_something()?;
 
     Ok(())
@@ -511,7 +511,7 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
     let my_app: Application<Mock, MockAppDependencyInterface<Mock>> =
         publisher.install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg {}, &[])?;
 
-    let dependency_res = my_app.get_module::<MockAppInterface<Mock>>();
+    let dependency_res = my_app.module::<MockAppInterface<Mock>>();
     assert!(dependency_res.is_err());
 
     Ok(())

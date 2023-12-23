@@ -43,19 +43,18 @@ impl<Chain: CwEnv, M> Application<Chain, M> {
 
     /// Attempts to get a module on the application. This would typically be a dependency of the
     /// module of type `M`.
-    pub fn get_module<T: RegisteredModule + From<Contract<Chain>>>(
-        &self,
-    ) -> AbstractClientResult<T> {
+    pub fn module<T: RegisteredModule + From<Contract<Chain>>>(&self) -> AbstractClientResult<T> {
         let module_id = T::module_id();
         let module_info: Option<ManagerModuleInfo> =
             self.account.abstr_account.manager.module_info(module_id)?;
-        if module_info.is_none() {
-            return Err(AbstractClientError::ModuleNotInstalled {});
-        }
-        let contract = Contract::new(module_id.to_owned(), self.account.environment())
-            .with_address(Some(&module_info.unwrap().address));
+        if let Some(module_info) = module_info {
+            let contract = Contract::new(module_id.to_owned(), self.account.environment())
+                .with_address(Some(&module_info.address));
 
-        let module: T = contract.into();
-        Ok(module)
+            let module: T = contract.into();
+            Ok(module)
+        } else {
+            Err(AbstractClientError::ModuleNotInstalled {})
+        }
     }
 }
