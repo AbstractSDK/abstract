@@ -1,4 +1,10 @@
-use abstract_interface::Abstract;
+use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
+use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+use abstract_interface::{Abstract, AdapterDeployer, AppDeployer, DeployStrategy};
+use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
+use cosmwasm_std::Decimal;
+use dca_app::{contract::DCA_APP_ID, DCA};
+use etf_app::{contract::interface::Etf, ETF_APP_ID};
 
 use clap::Parser;
 use cw_orch::{
@@ -12,7 +18,6 @@ use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-// Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     for network in networks {
@@ -21,10 +26,47 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network)
             .build()?;
 
-        let deployment = Abstract::load_from(chain)?;
+        let deployment = Abstract::load_from(chain.clone())?;
 
-        deployment.migrate()?;
+        deployment.migrate_if_needed()?;
+
+        // Deploy Adapters
+        CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone()).deploy(
+            abstract_cw_staking::contract::CONTRACT_VERSION.parse()?,
+            Empty {},
+            DeployStrategy::Try,
+        )?;
+        DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).deploy(
+            abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
+            DexInstantiateMsg {
+                recipient_account: 0,
+                swap_fee: Decimal::permille(3),
+            },
+            DeployStrategy::Try,
+        )?;
+
+        // Deploy apps
+        Etf::new(ETF_APP_ID, chain.clone()).deploy(
+            etf_app::contract::CONTRACT_VERSION.parse()?,
+            DeployStrategy::Try,
+        )?;
+
+        DCA::new(DCA_APP_ID, chain.clone()).deploy(
+            dca_app::contract::DCA_APP_VERSION.parse()?,
+            DeployStrategy::Try,
+        )?;
+        Challenge::new(CHALLENGE_APP_ID, chain.clone()).deploy(
+            challenge_app::contract::CHALLENGE_APP_VERSION.parse()?,
+            DeployStrategy::Try,
+        )?;
+
+        // deployment.ibc.upload()?;
+        // deployment.ibc.instantiate(&deployment, &chain.sender())?;
+        // deployment.ibc.register(&deployment.version_control)?;
+
+        deployment.version_control.approve_any_abstract_modules()?;
     }
+
     Ok(())
 }
 
@@ -45,7 +87,7 @@ fn main() {
     let networks = args
         .network_ids
         .iter()
-        .map(|n| parse_network(n))
+        .map(|n| parse_network(n).unwrap())
         .collect::<Vec<_>>();
 
     if let Err(ref err) = migrate(networks) {

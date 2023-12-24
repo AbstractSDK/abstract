@@ -25,15 +25,22 @@ workflows:
   version: 2
   build-and-commit:
     when:
-      equal: [ "build_wasms", << pipeline.parameters.GHA_Meta >>]
+      equal: ["build_wasms", << pipeline.parameters.GHA_Meta >>]
     jobs:
       - build
-              
+
   modules-coverage:
-    when: 
-      equal: [ "modules_coverage", << pipeline.parameters.GHA_Meta >>]
-    jobs: 
+    when:
+      equal: ["modules_coverage", << pipeline.parameters.GHA_Meta >>]
+    jobs:
       - coverage
+
+  modules-tests:
+    when:
+      equal: ["modules_tests", << pipeline.parameters.GHA_Meta >>]
+    jobs:
+      - tests
+
   # add this to give green ci when nothing is ran
   pass:
     jobs:
@@ -42,7 +49,7 @@ workflows:
   build-commit-deploy:
     when:
       equal: ["build_commit_deploy", << pipeline.parameters.GHA_Meta >>]
-    jobs: 
+    jobs:
       - build
       - deploy:
           requires:
@@ -70,10 +77,43 @@ jobs:
               fi
             done
       - run:
+          name: Generate lockfiles
+          command: |
+            set -e
+            if [ ! -f framework/Cargo.lock ]; then
+              (cd framework ; cargo generate-lockfile)
+            fi
+            if [ ! -f modules/Cargo.lock ]; then
+              (cd modules ; cargo generate-lockfile)
+            fi
+      - restore_cache:
+          keys:
+            - cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
+      - run:
           name: Build WASM artifacts
           command: |
             set -e
             ./scripts/wasm-all-ci.sh
+      - run:
+          name: Generate schemas
+          command: |
+            # Install deps
+            cargo install cargo-workspaces
+            cargo install just
+            # Run script
+            just schema
+      - save_cache:
+          paths:
+            # Cargo registry
+            - ~/.cargo/registry
+            # Schema artifacts
+            - framework/target/debug/.fingerprint
+            - framework/target/debug/build
+            - framework/target/debug/deps
+            - modules/target/debug/.fingerprint
+            - modules/target/debug/build
+            - modules/target/debug/deps
+          key: cargocache-v2-build-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}-{{ checksum "modules/Cargo.lock" }}
       - run:
           name: Commit and push artifacts
           command: |
@@ -81,15 +121,44 @@ jobs:
             git config --global user.email 'circleci@example.com'
             # Pull latest changes
             git pull origin $CIRCLE_BRANCH
-            # Check for changes
+            # Check for wasm changes
             git add framework/artifacts --force
             git add modules/artifacts --force
             git commit -m 'Update WASM binaries [skip ci]'  || true
             git push origin $CIRCLE_BRANCH || true
+            # Check for schema changes
+            git add schema --force
+            git commit -m 'Update Schemas [skip ci]' || true
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
           webhook: "${DISCORD_STATUS_WEBHOOK}"
+
+  tests:
+    docker:
+      - image: cimg/rust:1.72.0
+    resource_class: xlarge
+    steps:
+      - checkout
+      - run:
+          name: Generate lockfile
+          command: |
+            cd modules
+            cargo generate-lockfile
+      - restore_cache:
+          keys:
+            - cargocache-v2-tests-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
+      - run:
+          name: Modules tests
+          command: |
+            ./scripts/modules-tests.sh
+      - save_cache:
+          paths:
+            - ~/.cargo/registry
+            - modules/target/debug/.fingerprint
+            - modules/target/debug/build
+            - modules/target/debug/deps
+          key: cargocache-v2-tests-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
 
   deploy:
     docker:
@@ -98,12 +167,22 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Decode and Deploy 
+          name: Generate lockfile
+          command: |
+            set -e
+            if [ ! -f framework/Cargo.lock ]; then
+              (cd framework ; cargo generate-lockfile)
+            fi
+      - restore_cache:
+          keys:
+            - cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
+      - run:
+          name: Decode and Deploy
           command: |
             decoded_value=$(echo "$TEST_MNEMONIC_BASE64" | base64 --decode)
             export TEST_MNEMONIC="$decoded_value"
             cd framework
-            cargo run --bin full_deploy -- --network-ids $NETWORKS 
+            cargo run --bin full_deploy -- --network-ids $NETWORKS
       - run:
           name: Commit and push deploy file
           command: |
@@ -121,6 +200,13 @@ jobs:
             git add ./framework/scripts/state.json
             git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
+      - save_cache:
+          paths:
+            - ~/.cargo/registry
+            - framework/target/debug/.fingerprint
+            - framework/target/debug/build
+            - framework/target/debug/deps
+          key: cargocache-v2-deploy-rust:1.72.0-{{ checksum "framework/Cargo.lock" }}
 
   coverage:
     docker:
@@ -131,16 +217,33 @@ jobs:
           version: 20.10.14
       - checkout
       - run:
+          name: Generate lockfile
+          command: |
+            set -e
+            if [ ! -f modules/Cargo.lock ]; then
+              (cd modules ; cargo generate-lockfile)
+            fi
+      - restore_cache:
+          keys:
+            - cargocache-v2-coverage-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
+      - run:
           name: Run tests with coverage for modules
           command: |
             ./scripts/modules-coverage.sh
       - codecov/upload:
           file: ./modules/lcov.info
+      - save_cache:
+          paths:
+            - ~/.cargo/registry
+            - modules/target/debug/.fingerprint
+            - modules/target/debug/build
+            - modules/target/debug/deps
+          key: cargocache-v2-deploy-rust:1.72.0-{{ checksum "modules/Cargo.lock" }}
 
-  pass: 
+  pass:
     docker:
-    # Primary container image where all steps run
-     - image: cimg/base:2022.05
+      # Primary container image where all steps run
+      - image: cimg/base:2022.05
     steps:
       - run:
           name: Pass

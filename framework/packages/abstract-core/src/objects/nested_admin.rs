@@ -129,3 +129,8 @@ pub fn query_top_level_owner<Q: CustomQuery>(
     // Get top level account owner address
     current.map(|info| info.governance_details.owner_address())
 }
+
+#[cosmwasm_schema::cw_serde]
+pub struct TopLevelOwnerResponse {
+    pub address: Addr,
+}

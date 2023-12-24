@@ -257,6 +257,69 @@ fn swap() -> AnyResult<()> {
 }
 
 #[test]
+fn swap_concentrated_liquidity() -> AnyResult<()> {
+    // We need to deploy a Testube pool
+    let (chain, dex_adapter, os, deployment, _pool_id) = setup_mock()?;
+
+    let proxy_addr = os.proxy.address()?;
+
+    let swap_value = 1_000_000_000u128;
+
+    chain.bank_send(proxy_addr.to_string(), coins(swap_value, "uatom"))?;
+
+    let lp = "osmosis/osmo2,atom2";
+    let pool_id = chain.create_pool(vec![coin(1_000, "uosmo"), coin(1_000, "uatom")])?;
+
+    deployment
+        .ans_host
+        .update_asset_addresses(
+            vec![
+                (
+                    "osmo2".to_string(),
+                    cw_asset::AssetInfoBase::native("uosmo"),
+                ),
+                (
+                    "atom2".to_string(),
+                    cw_asset::AssetInfoBase::native("uatom"),
+                ),
+                (
+                    lp.to_string(),
+                    cw_asset::AssetInfoBase::native(get_pool_token(pool_id)),
+                ),
+            ],
+            vec![],
+        )
+        .unwrap();
+    deployment
+        .ans_host
+        .update_pools(
+            vec![(
+                PoolAddressBase::id(pool_id),
+                PoolMetadata::concentrated_liquidity(
+                    OSMOSIS,
+                    vec!["osmo2".to_string(), "atom2".to_string()],
+                ),
+            )],
+            vec![],
+        )
+        .unwrap();
+
+    // Before swap, we need to have 0 uosmo and swap_value uatom
+    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    assert_eq!(balances, coins(swap_value, "uatom"));
+    // swap 100_000 uatom to uosmo
+    dex_adapter.swap(("atom2", swap_value), "osmo2", OSMOSIS.into(), &os)?;
+
+    // Assert balances
+    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    assert_eq!(balances.len(), 1);
+    let balance = chain.query_balance(proxy_addr.as_ref(), "uosmo")?;
+    assert!(balance > Uint128::zero());
+
+    Ok(())
+}
+
+#[test]
 fn provide() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
