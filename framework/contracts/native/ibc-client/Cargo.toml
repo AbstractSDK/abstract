@@ -13,7 +13,6 @@ repository = "https://github.com/AbstractSDK/abstract"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-
 default = ["export"]
 export = []
 

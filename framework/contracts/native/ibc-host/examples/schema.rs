@@ -1,4 +1,4 @@
-use abstract_sdk::core::account_factory::*;
+use abstract_sdk::core::ibc_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_schema::write_api;
 
 fn main() {
