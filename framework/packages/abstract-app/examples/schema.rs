@@ -1,22 +1,16 @@
 use abstract_core::app;
-use cosmwasm_schema::{remove_schemas, write_api};
+use cosmwasm_schema::{cw_serde, write_api, QueryResponses};
+use cosmwasm_std::Empty;
 
-mod query {
-    #[cosmwasm_schema::cw_serde]
-    #[derive(cosmwasm_schema::QueryResponses)]
-    pub enum Empty {}
-}
-
-mod execute {
-    #[cosmwasm_schema::cw_serde]
-    pub struct Empty {}
-}
+#[cw_serde]
+#[derive(QueryResponses)]
+pub enum EmptyQuery {}
 
 fn main() {
     write_api! {
         name: "app-schema",
-        instantiate: app::InstantiateMsg<execute::Empty>,
-        query: app::QueryMsg<query::Empty>,
+        instantiate: app::InstantiateMsg<Empty>,
+        query: app::QueryMsg<EmptyQuery>,
         execute: app::ExecuteMsg,
         migrate: app::MigrateMsg,
     };

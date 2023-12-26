@@ -1,23 +1,17 @@
 use abstract_core::adapter;
-use cosmwasm_schema::write_api;
+use cosmwasm_schema::{cw_serde, write_api, QueryResponses};
+use cosmwasm_std::Empty;
 
-mod query {
-    #[cosmwasm_schema::cw_serde]
-    #[derive(cosmwasm_schema::QueryResponses)]
-    pub enum Empty {}
-}
-
-mod execute {
-    #[cosmwasm_schema::cw_serde]
-    pub struct Empty {}
-}
+#[cw_serde]
+#[derive(QueryResponses)]
+pub enum EmptyQuery {}
 
 fn main() {
     write_api! {
         name: "adapter-schema",
-        instantiate: adapter::InstantiateMsg<execute::Empty>,
-        query: adapter::QueryMsg<query::Empty>,
+        instantiate: adapter::InstantiateMsg<Empty>,
+        query: adapter::QueryMsg<EmptyQuery>,
         execute: adapter::ExecuteMsg,
-        migrate: execute::Empty,
+        migrate: Empty,
     };
 }
