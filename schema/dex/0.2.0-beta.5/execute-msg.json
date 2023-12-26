@@ -1,0 +1,456 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "description": "EndpointMsg to the Middleware.",
+  "oneOf": [
+    {
+      "description": "A configuration message.",
+      "type": "object",
+      "required": [
+        "base"
+      ],
+      "properties": {
+        "base": {
+          "$ref": "#/definitions/BaseExecuteMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "An app request.",
+      "type": "object",
+      "required": [
+        "app"
+      ],
+      "properties": {
+        "app": {
+          "$ref": "#/definitions/ExtensionRequestMsg_for_DexRequestMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "IbcReceive to process callbacks",
+      "type": "object",
+      "required": [
+        "ibc_callback"
+      ],
+      "properties": {
+        "ibc_callback": {
+          "$ref": "#/definitions/IbcResponseMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Receive endpoint for CW20 / external service integrations",
+      "type": "object",
+      "required": [
+        "receive"
+      ],
+      "properties": {
+        "receive": {
+          "$ref": "#/definitions/Empty"
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "AnsAsset": {
+      "type": "object",
+      "required": [
+        "amount",
+        "info"
+      ],
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/Uint128"
+        },
+        "info": {
+          "$ref": "#/definitions/AssetEntry"
+        }
+      }
+    },
+    "AssetEntry": {
+      "description": "May key to retrieve information on an asset",
+      "type": "string"
+    },
+    "BaseExecuteMsg": {
+      "description": "Configuration message for the extension",
+      "oneOf": [
+        {
+          "description": "Add or remove traders If a trader is both in to_add and to_remove, it will be removed.",
+          "type": "object",
+          "required": [
+            "update_traders"
+          ],
+          "properties": {
+            "update_traders": {
+              "type": "object",
+              "properties": {
+                "to_add": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "to_remove": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Remove the extension",
+          "type": "object",
+          "required": [
+            "remove"
+          ],
+          "properties": {
+            "remove": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+      "type": "string"
+    },
+    "Decimal": {
+      "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+      "type": "string"
+    },
+    "DexAction": {
+      "description": "Possible actions to perform on the DEX",
+      "oneOf": [
+        {
+          "description": "Provide arbitrary liquidity",
+          "type": "object",
+          "required": [
+            "provide_liquidity"
+          ],
+          "properties": {
+            "provide_liquidity": {
+              "type": "object",
+              "required": [
+                "assets"
+              ],
+              "properties": {
+                "assets": {
+                  "description": "Assets to add",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AnsAsset"
+                  }
+                },
+                "max_spread": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Provide liquidity equally between assets to a pool",
+          "type": "object",
+          "required": [
+            "provide_liquidity_symmetric"
+          ],
+          "properties": {
+            "provide_liquidity_symmetric": {
+              "type": "object",
+              "required": [
+                "offer_asset",
+                "paired_assets"
+              ],
+              "properties": {
+                "offer_asset": {
+                  "$ref": "#/definitions/AnsAsset"
+                },
+                "paired_assets": {
+                  "description": "Assets that are paired with the offered asset",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AssetEntry"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Withdraw liquidity from a pool",
+          "type": "object",
+          "required": [
+            "withdraw_liquidity"
+          ],
+          "properties": {
+            "withdraw_liquidity": {
+              "type": "object",
+              "required": [
+                "amount",
+                "lp_token"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/Uint128"
+                },
+                "lp_token": {
+                  "$ref": "#/definitions/AssetEntry"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Standard swap between one asset to another",
+          "type": "object",
+          "required": [
+            "swap"
+          ],
+          "properties": {
+            "swap": {
+              "type": "object",
+              "required": [
+                "ask_asset",
+                "offer_asset"
+              ],
+              "properties": {
+                "ask_asset": {
+                  "$ref": "#/definitions/AssetEntry"
+                },
+                "belief_price": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "max_spread": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "offer_asset": {
+                  "$ref": "#/definitions/AnsAsset"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Allow alternative swap routers and methods",
+          "type": "object",
+          "required": [
+            "custom_swap"
+          ],
+          "properties": {
+            "custom_swap": {
+              "type": "object",
+              "required": [
+                "ask_assets",
+                "offer_assets"
+              ],
+              "properties": {
+                "ask_assets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AnsAsset"
+                  }
+                },
+                "max_spread": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "offer_assets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AnsAsset"
+                  }
+                },
+                "router": {
+                  "description": "Optionally supply a router to use",
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/SwapRouter"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "DexRequestMsg": {
+      "description": "Dex Execute msg",
+      "type": "object",
+      "required": [
+        "action",
+        "dex"
+      ],
+      "properties": {
+        "action": {
+          "$ref": "#/definitions/DexAction"
+        },
+        "dex": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Empty": {
+      "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
+      "type": "object"
+    },
+    "ExtensionRequestMsg_for_DexRequestMsg": {
+      "description": "An extension request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
+      "type": "object",
+      "required": [
+        "request"
+      ],
+      "properties": {
+        "proxy_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "request": {
+          "description": "The actual request",
+          "allOf": [
+            {
+              "$ref": "#/definitions/DexRequestMsg"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "IbcResponseMsg": {
+      "description": "IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",
+      "type": "object",
+      "required": [
+        "id",
+        "msg"
+      ],
+      "properties": {
+        "id": {
+          "description": "The ID chosen by the caller in the `callback_id`",
+          "type": "string"
+        },
+        "msg": {
+          "$ref": "#/definitions/StdAck"
+        }
+      },
+      "additionalProperties": false
+    },
+    "StdAck": {
+      "description": "This is a generic ICS acknowledgement format. Proto defined here: https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/proto/ibc/core/channel/v1/channel.proto#L141-L147 If ibc_receive_packet returns Err(), then x/wasm runtime will rollback the state and return an error message in this format",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "result"
+          ],
+          "properties": {
+            "result": {
+              "$ref": "#/definitions/Binary"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "error": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "SwapRouter": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "matrix"
+          ]
+        },
+        {
+          "description": "Use a custom router (using String type for cross-chain compatibility)",
+          "type": "object",
+          "required": [
+            "custom"
+          ],
+          "properties": {
+            "custom": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Uint128": {
+      "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
+      "type": "string"
+    }
+  }
+}

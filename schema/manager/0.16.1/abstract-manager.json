@@ -1,6 +1,6 @@
 {
   "contract_name": "abstract-manager",
-  "contract_version": "0.19.2",
+  "contract_version": "0.16.1",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -9,7 +9,6 @@
     "type": "object",
     "required": [
       "account_id",
-      "install_modules",
       "module_factory_address",
       "name",
       "owner",
@@ -17,19 +16,15 @@
     ],
     "properties": {
       "account_id": {
-        "$ref": "#/definitions/AccountId"
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0.0
       },
       "description": {
         "type": [
           "string",
           "null"
         ]
-      },
-      "install_modules": {
-        "type": "array",
-        "items": {
-          "$ref": "#/definitions/ModuleInstallConfig"
-        }
       },
       "link": {
         "type": [
@@ -52,65 +47,6 @@
     },
     "additionalProperties": false,
     "definitions": {
-      "AccountId": {
-        "description": "Unique identifier for an account. On each chain this is unique.",
-        "type": "object",
-        "required": [
-          "seq",
-          "trace"
-        ],
-        "properties": {
-          "seq": {
-            "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
-            "type": "integer",
-            "format": "uint32",
-            "minimum": 0.0
-          },
-          "trace": {
-            "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
-            "allOf": [
-              {
-                "$ref": "#/definitions/AccountTrace"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "AccountTrace": {
-        "description": "The identifier of chain that triggered the account creation",
-        "oneOf": [
-          {
-            "type": "string",
-            "enum": [
-              "local"
-            ]
-          },
-          {
-            "type": "object",
-            "required": [
-              "remote"
-            ],
-            "properties": {
-              "remote": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/ChainName"
-                }
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-      "Binary": {
-        "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
-        "type": "string"
-      },
-      "ChainName": {
-        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
-        "type": "string"
-      },
       "GovernanceDetails_for_String": {
         "description": "Governance types",
         "oneOf": [
@@ -129,33 +65,6 @@
                 "properties": {
                   "monarch": {
                     "description": "The monarch's address",
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Used when the account is a sub-account of another account.",
-            "type": "object",
-            "required": [
-              "SubAccount"
-            ],
-            "properties": {
-              "SubAccount": {
-                "type": "object",
-                "required": [
-                  "manager",
-                  "proxy"
-                ],
-                "properties": {
-                  "manager": {
-                    "description": "The manager of the account of which this account is the sub-account.",
-                    "type": "string"
-                  },
-                  "proxy": {
-                    "description": "The proxy of the account of which this account is the sub-account.",
                     "type": "string"
                   }
                 }
@@ -191,87 +100,6 @@
             "additionalProperties": false
           }
         ]
-      },
-      "ModuleInfo": {
-        "description": "Stores the namespace, name, and version of an Abstract module.",
-        "type": "object",
-        "required": [
-          "name",
-          "namespace",
-          "version"
-        ],
-        "properties": {
-          "name": {
-            "description": "Name of the contract",
-            "type": "string"
-          },
-          "namespace": {
-            "description": "Namespace of the module",
-            "allOf": [
-              {
-                "$ref": "#/definitions/Namespace"
-              }
-            ]
-          },
-          "version": {
-            "description": "Version of the module",
-            "allOf": [
-              {
-                "$ref": "#/definitions/ModuleVersion"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "ModuleInstallConfig": {
-        "description": "Module info and init message",
-        "type": "object",
-        "required": [
-          "module"
-        ],
-        "properties": {
-          "init_msg": {
-            "anyOf": [
-              {
-                "$ref": "#/definitions/Binary"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "module": {
-            "$ref": "#/definitions/ModuleInfo"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ModuleVersion": {
-        "oneOf": [
-          {
-            "type": "string",
-            "enum": [
-              "latest"
-            ]
-          },
-          {
-            "type": "object",
-            "required": [
-              "version"
-            ],
-            "properties": {
-              "version": {
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-      "Namespace": {
-        "description": "Represents an Abstract namespace for modules",
-        "type": "string"
       }
     }
   },
@@ -323,20 +151,27 @@
         "description": "Install module using module factory, callable by Owner",
         "type": "object",
         "required": [
-          "install_modules"
+          "install_module"
         ],
         "properties": {
-          "install_modules": {
+          "install_module": {
             "type": "object",
             "required": [
-              "modules"
+              "module"
             ],
             "properties": {
-              "modules": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/ModuleInstallConfig"
-                }
+              "init_msg": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Binary"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "module": {
+                "$ref": "#/definitions/ModuleInfo"
               }
             },
             "additionalProperties": false
@@ -348,20 +183,21 @@
         "description": "Registers a module after creation. Used as a callback *only* by the Module Factory to register the module on the Account.",
         "type": "object",
         "required": [
-          "register_modules"
+          "register_module"
         ],
         "properties": {
-          "register_modules": {
+          "register_module": {
             "type": "object",
             "required": [
-              "modules"
+              "module",
+              "module_addr"
             ],
             "properties": {
-              "modules": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/RegisterModuleData"
-                }
+              "module": {
+                "$ref": "#/definitions/Module"
+              },
+              "module_addr": {
+                "type": "string"
               }
             },
             "additionalProperties": false
@@ -434,63 +270,6 @@
         "additionalProperties": false
       },
       {
-        "description": "Creates a sub-account on the account",
-        "type": "object",
-        "required": [
-          "create_sub_account"
-        ],
-        "properties": {
-          "create_sub_account": {
-            "type": "object",
-            "required": [
-              "install_modules",
-              "name"
-            ],
-            "properties": {
-              "base_asset": {
-                "anyOf": [
-                  {
-                    "$ref": "#/definitions/AssetEntry"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "description": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "install_modules": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/ModuleInstallConfig"
-                }
-              },
-              "link": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "name": {
-                "type": "string"
-              },
-              "namespace": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
         "description": "Update info",
         "type": "object",
         "required": [
@@ -525,7 +304,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Sets a new Owner New owner will have to claim ownership",
+        "description": "Sets a new Owner",
         "type": "object",
         "required": [
           "set_owner"
@@ -586,19 +365,6 @@
               }
             },
             "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Actions called by internal or external sub-accounts",
-        "type": "object",
-        "required": [
-          "update_sub_account"
-        ],
-        "properties": {
-          "update_sub_account": {
-            "$ref": "#/definitions/UpdateSubAccountAction"
           }
         },
         "additionalProperties": false
@@ -686,10 +452,6 @@
         "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
         "type": "string"
       },
-      "AssetEntry": {
-        "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
-        "type": "string"
-      },
       "Binary": {
         "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
         "type": "string"
@@ -772,33 +534,6 @@
             "additionalProperties": false
           },
           {
-            "description": "Used when the account is a sub-account of another account.",
-            "type": "object",
-            "required": [
-              "SubAccount"
-            ],
-            "properties": {
-              "SubAccount": {
-                "type": "object",
-                "required": [
-                  "manager",
-                  "proxy"
-                ],
-                "properties": {
-                  "manager": {
-                    "description": "The manager of the account of which this account is the sub-account.",
-                    "type": "string"
-                  },
-                  "proxy": {
-                    "description": "The proxy of the account of which this account is the sub-account.",
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
             "description": "An external governance source",
             "type": "object",
             "required": [
@@ -871,29 +606,6 @@
                 "$ref": "#/definitions/ModuleVersion"
               }
             ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "ModuleInstallConfig": {
-        "description": "Module info and init message",
-        "type": "object",
-        "required": [
-          "module"
-        ],
-        "properties": {
-          "init_msg": {
-            "anyOf": [
-              {
-                "$ref": "#/definitions/Binary"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "module": {
-            "$ref": "#/definitions/ModuleInfo"
           }
         },
         "additionalProperties": false
@@ -999,22 +711,6 @@
         "description": "Represents an Abstract namespace for modules",
         "type": "string"
       },
-      "RegisterModuleData": {
-        "type": "object",
-        "required": [
-          "module",
-          "module_address"
-        ],
-        "properties": {
-          "module": {
-            "$ref": "#/definitions/Module"
-          },
-          "module_address": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
       "Timestamp": {
         "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
         "allOf": [
@@ -1026,58 +722,6 @@
       "Uint64": {
         "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
         "type": "string"
-      },
-      "UpdateSubAccountAction": {
-        "oneOf": [
-          {
-            "description": "Unregister sub-account It will unregister sub-account from the state Could be called only by the sub-account itself",
-            "type": "object",
-            "required": [
-              "unregister_sub_account"
-            ],
-            "properties": {
-              "unregister_sub_account": {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "integer",
-                    "format": "uint32",
-                    "minimum": 0.0
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Register sub-account It will register new sub-account into the state Could be called by the sub-account manager Note: since it happens after the claim by this manager state won't have spam accounts",
-            "type": "object",
-            "required": [
-              "register_sub_account"
-            ],
-            "properties": {
-              "register_sub_account": {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "integer",
-                    "format": "uint32",
-                    "minimum": 0.0
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
       }
     }
   },
@@ -1195,37 +839,6 @@
         "additionalProperties": false
       },
       {
-        "type": "object",
-        "required": [
-          "sub_account_ids"
-        ],
-        "properties": {
-          "sub_account_ids": {
-            "type": "object",
-            "properties": {
-              "limit": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "format": "uint8",
-                "minimum": 0.0
-              },
-              "start_after": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "format": "uint32",
-                "minimum": 0.0
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
         "description": "Query the contract's ownership information",
         "type": "object",
         "required": [
@@ -1262,7 +875,7 @@
       ],
       "properties": {
         "account_id": {
-          "$ref": "#/definitions/AccountId"
+          "$ref": "#/definitions/Uint64"
         },
         "is_suspended": {
           "type": "boolean"
@@ -1276,63 +889,12 @@
       },
       "additionalProperties": false,
       "definitions": {
-        "AccountId": {
-          "description": "Unique identifier for an account. On each chain this is unique.",
-          "type": "object",
-          "required": [
-            "seq",
-            "trace"
-          ],
-          "properties": {
-            "seq": {
-              "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
-              "type": "integer",
-              "format": "uint32",
-              "minimum": 0.0
-            },
-            "trace": {
-              "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
-              "allOf": [
-                {
-                  "$ref": "#/definitions/AccountTrace"
-                }
-              ]
-            }
-          },
-          "additionalProperties": false
-        },
-        "AccountTrace": {
-          "description": "The identifier of chain that triggered the account creation",
-          "oneOf": [
-            {
-              "type": "string",
-              "enum": [
-                "local"
-              ]
-            },
-            {
-              "type": "object",
-              "required": [
-                "remote"
-              ],
-              "properties": {
-                "remote": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/ChainName"
-                  }
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
-        },
         "Addr": {
           "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
           "type": "string"
         },
-        "ChainName": {
-          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
           "type": "string"
         }
       }
@@ -1406,41 +968,6 @@
                   "properties": {
                     "monarch": {
                       "description": "The monarch's address",
-                      "allOf": [
-                        {
-                          "$ref": "#/definitions/Addr"
-                        }
-                      ]
-                    }
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "description": "Used when the account is a sub-account of another account.",
-              "type": "object",
-              "required": [
-                "SubAccount"
-              ],
-              "properties": {
-                "SubAccount": {
-                  "type": "object",
-                  "required": [
-                    "manager",
-                    "proxy"
-                  ],
-                  "properties": {
-                    "manager": {
-                      "description": "The manager of the account of which this account is the sub-account.",
-                      "allOf": [
-                        {
-                          "$ref": "#/definitions/Addr"
-                        }
-                      ]
-                    },
-                    "proxy": {
-                      "description": "The proxy of the account of which this account is the sub-account.",
                       "allOf": [
                         {
                           "$ref": "#/definitions/Addr"
@@ -1712,25 +1239,6 @@
           "type": "string"
         }
       }
-    },
-    "sub_account_ids": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "SubAccountIdsResponse",
-      "type": "object",
-      "required": [
-        "sub_accounts"
-      ],
-      "properties": {
-        "sub_accounts": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "uint32",
-            "minimum": 0.0
-          }
-        }
-      },
-      "additionalProperties": false
     }
   }
 }
