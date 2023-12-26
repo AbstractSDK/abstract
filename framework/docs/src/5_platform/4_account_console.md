@@ -1,5 +1,9 @@
 # Account Console
 
+```admonish warning
+The Account Console is in beta. Please report any issues you encounter on our Discord.
+```
+
 The Account Console is a web-based interface that allows you to interact with your Abstract Accounts. It is a powerful
 tool containing all the features you need not only to manage your accounts but also help you develop your application,
 including:

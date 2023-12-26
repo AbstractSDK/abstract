@@ -1,11 +1,10 @@
-# Framework Components
+# Contracts
 
 ```admonish info
 At this point you have enough knowledge to start building your own Abstract Module. If you want to start building, head over to our [Getting Started](../4_get_started/1_index.md) section! 🛠️
 ```
 
-In the previous sections, we covered different high-level aspects of the Abstract framework. In the following sections, we
-will explore the different components of the Abstract framework in more detail.
+In the previous sections, we covered different high-level aspects of the Abstract framework. In the following sections, we will explore the different contracts of the Abstract framework in more detail.
 
 Here's a peek into the key elements that form the foundation of the Abstract framework:
 

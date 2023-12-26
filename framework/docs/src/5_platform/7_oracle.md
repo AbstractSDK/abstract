@@ -1,6 +1,6 @@
-# Account Value Oracle
+# Account Oracle
 
-Have you ever wished to know the value of your portfolio? I'm guessing you have. Luckily Abstract has an integrated system to retrieve the value of your assets, on-chain!
+The Account Oracle is an integrated on-chain service that allows you to retrieve the value of all assets held in an account in terms of a base asset. This simple functionality can be used to create account-based debt positions, automated trading bots and much more!
 
 ```admonish info
 This section is mainly focused on developers. If you're a user feel free to skip this section!
@@ -8,18 +8,18 @@ This section is mainly focused on developers. If you're a user feel free to skip
 
 ## Value is relative
 
-The value of something is always relative to some other thing. A bitcoin isn't valued at 20,000, it's valued at 20,000 **USD**. Likewise the first decision that's required to work with Abstract's oracle is: In what currency do you want your Account's assets to be valued?
+The value of something is always relative to some other thing. A bitcoin isn't valued at 20,000, it's valued at 20,000 **USD**. Likewise the first setting required to configure Abstract's oracle is: In what currency do you want your Account's assets to be valued?
 
 We'll call this currency the *base asset*. There can never be more than one base asset and every asset will be valued in terms of this base asset.
 
-With a base asset selected you can set up a value-reference for each asset that is held in your Account. A value-reference is a configuration that references some data that tells the contract how it should determine the value for that asset. Consequently your base asset won't have an associated value-reference as everything is valued relative to it! Don't worry, we'll show some examples after covering the basics.
+With a base asset selected you can set up a *value-reference* for each asset that is held in your Account. A value-reference is a configuration that references some data that tells the contract how it should determine the value for that asset. Consequently your base asset won't have an associated value-reference as everything is valued relative to it! Don't worry, we'll show some examples after covering the basics.
 
 ## Types of Value-References
 
 To ensure that you configure and use the oracle correctly you'll need to understand, on a high level, how the value-reference system works and what its limitations are. Your app's security might depend on it!
 
 ```admonish hint
-Remember: Every asset, apart from the base asset, has an associated value-reference and that value-reference allows your Account to determine the value of the asset in terms of the base asset.
+Remember: Every asset, apart from the base asset, has an associated value-reference and that value-reference allows the Oracle to determine the value of the asset in terms of the base asset.
 ```
 
 Currently there are four value-reference types that can be applied to an asset. Lets go over them.
@@ -36,15 +36,15 @@ This gives us the value of asset X in terms of asset Y.
 ```admonish example
 Your Account has 10 $JUNO and 50 $USDC. You'd like to be shown the value of your assets in terms of USD.
 1. You identify that you want every asset denominated in US dollars. Therefore you choose $USDC as your base asset.
-2. You identify the easiest route to swap your $JUNO for $USDC which is a trading pair on Junoswap. Therefore you add $JUNO to your Account with a Pool value-reference.
+2. You identify the easiest route to swap your $JUNO for $USDC which is a trading pair on Osmosis. Therefore you add $JUNO to your Account with a Pool value-reference.
 3. The ratio of $JUNO/$USDC in the pool is 1/10 so 1 $JUNO = 10 $USDC.
 
-The Account now knows that if you'd swap your $JUNO to $USDC in that pool, you'd end up getting 10 $USDC. Therefore the total value of your assets is 60 $USDC.
+The Oracle can then presume that if you would swap your $JUNO to $USDC in that pool, you would end up getting 10 $USDC. Therefore the total value of your assets is 60 $USDC.
 ```
 
 ### **2. Liquidity Token**
 
-A liquidity token is nothing more than a claim on a set of assets in a liquidity pool. Therefore the value of each liquidity token is simply the composition of asset held within that pool.
+A liquidity token is nothing more than a claim on a set of assets in a liquidity pool. Therefore the value of each liquidity token is defined by the composition of asset held within that pool.
 
 ### **3. Value As**
 
