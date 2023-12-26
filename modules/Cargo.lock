@@ -1093,7 +1093,7 @@ dependencies = [
 
 [[package]]
 name = "calendar-app"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "abstract-app",
  "abstract-client",
@@ -1145,7 +1145,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "challenge-app"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "abstract-app",
  "abstract-core",
@@ -1491,7 +1491,7 @@ dependencies = [
 
 [[package]]
 name = "croncat-app"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "abstract-app",
  "abstract-core",
@@ -2744,7 +2744,7 @@ dependencies = [
 
 [[package]]
 name = "dca-app"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "abstract-app",
  "abstract-client",
@@ -4411,7 +4411,7 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 
 [[package]]
 name = "payment-app"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "abstract-app",
  "abstract-core",
