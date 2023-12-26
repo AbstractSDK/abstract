@@ -1,5 +1,3 @@
-use std::{env::current_dir, fs::create_dir_all};
-
 use abstract_core::app;
 use cosmwasm_schema::{remove_schemas, write_api};
 
