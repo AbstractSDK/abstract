@@ -451,7 +451,8 @@
           "ConstantProduct",
           "Stable",
           "Weighted",
-          "LiquidityBootstrap"
+          "LiquidityBootstrap",
+          "ConcentratedLiquidity"
         ]
       },
       "Timestamp": {
@@ -1124,7 +1125,8 @@
           "ConstantProduct",
           "Stable",
           "Weighted",
-          "LiquidityBootstrap"
+          "LiquidityBootstrap",
+          "ConcentratedLiquidity"
         ]
       },
       "UniquePoolId": {
@@ -1919,7 +1921,8 @@
             "ConstantProduct",
             "Stable",
             "Weighted",
-            "LiquidityBootstrap"
+            "LiquidityBootstrap",
+            "ConcentratedLiquidity"
           ]
         },
         "UniquePoolId": {
@@ -1988,7 +1991,8 @@
             "ConstantProduct",
             "Stable",
             "Weighted",
-            "LiquidityBootstrap"
+            "LiquidityBootstrap",
+            "ConcentratedLiquidity"
           ]
         },
         "UniquePoolId": {
