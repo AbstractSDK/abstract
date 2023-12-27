@@ -6,13 +6,13 @@ type-safe interfaces for your contracts, it not only enhances the code's readabi
 reduces testing and deployment overhead. These interfaces can be seamlessly combined into a single object, fostering
 easier integration and collaboration.
 
-Furthermore, cw-orchestrator allows for code reusability between testing and deployments, establishing itself as our
-primary tool in making Abstract's infrastructure highly available.
+Furthermore, cw-orchestrator allows for code reusability between testing and deployments, making it our
+primary tool in enabling Abstract's infrastructure to be highly available.
 
 ## Usage
 
 Here's a snippet that sets up the **complete Abstract SDK framework** on a cw-multi-test environment, and deploys the
-Counter App to the framework.
+Counter App to the App store.
 
 ```rust,no_run
 // Create a sender and instantiate the mock environment
