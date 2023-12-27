@@ -17,9 +17,9 @@
 - [Oracle](./5_platform/7_oracle.md)
 - [Monetization](./5_platform/6_monetization.md)
 - [Account Console](./5_platform/4_account_console.md)
+- [Abstract Name Service](./5_platform/1_ans.md)
 
 - [Contracts](./5_platform/index.md)
-    - [Abstract Name Service](./5_platform/1_ans.md)
     - [Version Control](./5_platform/2_version_control.md)
     - [Account Factory](./5_platform/3_account_factory.md)
     - [Module Factory](./5_platform/5_module_factory.md)
