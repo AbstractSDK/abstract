@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use abstract_adapter::gen_adapter_mock;
 use abstract_adapter::mock::MockInitMsg;
 use abstract_adapter::{mock::MockError as AdapterMockError, AdapterContract};
