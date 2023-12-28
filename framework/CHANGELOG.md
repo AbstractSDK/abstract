@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Query `registered_dexes` for `AbstractNameServiceClient`
 - Query `top_level_owner` for manager and apps(as base query)
 - Support of `ConcentratedLiquidity` pool type for swaps. Stake/unstake currently not supported
+- Account namespace is unclaimed after `Renounce`
 
 ### Changed
 
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Top level account owner can now claim pending sub-accounts directly
 - `Clearable` helper type was added to the messages where clearing optional state could be useful
 - Only incremental version migration of modules allowed (0.10 -> 0.11 is allowed but 0.10 -> 0.12 not because it skips 0.11)
+- Having sub accounts will prevent you from `Renounce`
 
 ### Removed
 
