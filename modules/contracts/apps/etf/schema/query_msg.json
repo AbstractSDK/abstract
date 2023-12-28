@@ -73,6 +73,20 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "description": "Returns top level owner",
+          "type": "object",
+          "required": [
+            "top_level_owner"
+          ],
+          "properties": {
+            "top_level_owner": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },

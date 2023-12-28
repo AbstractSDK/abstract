@@ -579,8 +579,8 @@
                     }
                   ]
                 },
-                "unsubscription_hook_addr": {
-                  "description": "New unsubscription hook addr",
+                "unsubscribe_hook_addr": {
+                  "description": "New unsubscribe_hook_addr",
                   "anyOf": [
                     {
                       "$ref": "#/definitions/Clearable_for_String"
