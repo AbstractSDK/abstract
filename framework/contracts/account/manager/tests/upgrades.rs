@@ -1,5 +1,3 @@
-mod common;
-
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_core::{
     app,
@@ -15,6 +13,7 @@ use abstract_core::{
     version_control::UpdateModule,
     AbstractError,
 };
+use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
     ManagerExecFns, ManagerQueryFns, VCExecFns,
@@ -25,7 +24,6 @@ use abstract_integration_tests::{install_module_version, mock_modules::*};
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 
-use common::{create_default_account, AResult};
 use cosmwasm_std::{coin, to_json_binary};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
