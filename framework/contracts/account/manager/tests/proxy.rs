@@ -3,6 +3,7 @@ use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 
 use abstract_core::manager::{ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;
+use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::module_reference::ModuleReference;
 use abstract_core::objects::namespace::Namespace;
@@ -356,5 +357,42 @@ fn install_multiple_modules() -> AResult {
     assert_eq!(s2_balance, vec![coin(42, "token1"), coin(500, "token2")]);
     take_storage_snapshot!(chain, "proxy_install_multiple_modules");
 
+    Ok(())
+}
+
+#[test]
+fn renounce_cleans_namespace() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let account = deployment.account_factory.create_new_account(
+        AccountDetails {
+            name: "foo".to_string(),
+            description: None,
+            link: None,
+            namespace: Some("bar".to_owned()),
+            base_asset: None,
+            install_modules: vec![],
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+
+    let namespace_result = deployment
+        .version_control
+        .namespace(Namespace::unchecked("bar"));
+    assert!(namespace_result.is_ok());
+
+    account
+        .manager
+        .update_ownership(cw_ownable::Action::RenounceOwnership)?;
+
+    let namespace_result = deployment
+        .version_control
+        .namespace(Namespace::unchecked("bar"));
+    assert!(namespace_result.is_err());
     Ok(())
 }

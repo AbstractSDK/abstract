@@ -465,7 +465,7 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
         let unregister_message = wasm_execute(
             manager,
             &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
-                id: id.clone().seq(),
+                id: id.seq(),
             }),
             vec![],
         )?;
@@ -501,7 +501,14 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
 }
 
 /// Update governance of this account after claim
-pub(crate) fn renounce_governance(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>> {
+pub(crate) fn renounce_governance(
+    deps: DepsMut,
+    manager_addr: Addr,
+    sender: &mut Addr,
+) -> ManagerResult<Vec<CosmosMsg>> {
+    let mut msgs = vec![];
+
+    let account_id = ACCOUNT_ID.load(deps.storage)?;
     // Check for any sub accounts
     let sub_account = SUB_ACCOUNTS
         .keys(deps.storage, None, None, cosmwasm_std::Order::Ascending)
@@ -511,24 +518,43 @@ pub(crate) fn renounce_governance(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>
         sub_account.is_none(),
         ManagerError::RenounceWithSubAccount {}
     );
-    let account_id = ACCOUNT_ID.load(deps.storage)?;
+
+    let account_info = INFO.load(deps.storage)?;
+    if let GovernanceDetails::SubAccount { manager, proxy } = account_info.governance_details {
+        // If called by top-level owner, update the sender to let cw-ownable think it was called by the proxy.
+        let top_level_owner = query_top_level_owner(&deps.querier, manager_addr)?;
+        if top_level_owner == *sender {
+            *sender = proxy;
+        }
+        msgs.push(
+            wasm_execute(
+                manager,
+                &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
+                    id: account_id.seq(),
+                }),
+                vec![],
+            )?
+            .into(),
+        );
+    }
+
     let config = CONFIG.load(deps.storage)?;
     let vc = VersionControlContract::new(config.version_control_address);
     let mut namespaces = vc
         .query_namespaces(vec![account_id], &deps.querier)?
         .namespaces;
     let namespace = namespaces.pop();
-    let msgs = if let Some((namespace, _)) = namespace {
-        vec![wasm_execute(
-            vc.address,
-            &abstract_core::version_control::ExecuteMsg::RemoveNamespaces {
-                namespaces: vec![namespace.to_string()],
-            },
-            vec![],
-        )?
-        .into()]
-    } else {
-        vec![]
+    if let Some((namespace, _)) = namespace {
+        msgs.push(
+            wasm_execute(
+                vc.address,
+                &abstract_core::version_control::ExecuteMsg::RemoveNamespaces {
+                    namespaces: vec![namespace.to_string()],
+                },
+                vec![],
+            )?
+            .into(),
+        )
     };
     Ok(msgs)
 }
@@ -2011,18 +2037,6 @@ mod tests {
             let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership {});
 
             execute_as(deps.as_mut(), pending_owner, msg)?;
-
-            Ok(())
-        }
-
-        #[test]
-        fn allows_renouncing() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::RenounceOwnership {});
-
-            execute_as_owner(deps.as_mut(), msg)?;
 
             Ok(())
         }

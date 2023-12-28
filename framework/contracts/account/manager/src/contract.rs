@@ -210,9 +210,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                         cw_ownable::Action::AcceptOwnership => {
                             update_governance(deps.branch(), &mut info.sender)?
                         }
-                        cw_ownable::Action::RenounceOwnership => {
-                            renounce_governance(deps.branch())?
-                        }
+                        cw_ownable::Action::RenounceOwnership => renounce_governance(
+                            deps.branch(),
+                            env.contract.address,
+                            &mut info.sender,
+                        )?,
                     };
                     // Clear pending governance for either renounced or accepted ownership
                     PENDING_GOVERNANCE.remove(deps.storage);
