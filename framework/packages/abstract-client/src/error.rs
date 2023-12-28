@@ -19,4 +19,7 @@ pub enum AbstractClientError {
 
     #[error("{0}")]
     Semver(#[from] semver::Error),
+
+    #[error("Module not installed")]
+    ModuleNotInstalled {},
 }

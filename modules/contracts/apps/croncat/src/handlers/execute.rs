@@ -1,7 +1,7 @@
 use abstract_sdk::features::{AbstractNameService, AbstractResponse, AccountIdentification};
 use abstract_sdk::{prelude::*, AccountAction};
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, ReplyOn, Response,
+    to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, ReplyOn,
 };
 use croncat_integration_utils::task_creation::{get_croncat_contract, get_latest_croncat_contract};
 use croncat_integration_utils::{MANAGER_NAME, TASKS_NAME};
@@ -47,7 +47,7 @@ fn update_config(deps: DepsMut, msg_info: MessageInfo, app: CroncatApp) -> Cronc
     app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     CONFIG.save(deps.storage, &Config {})?;
-    Ok(app.tag_response(Response::default(), "update_config"))
+    Ok(app.response("update_config"))
 }
 
 /// Create a task
@@ -116,10 +116,10 @@ fn create_task(
     }
 
     TEMP_TASK_KEY.save(deps.storage, &key)?;
-    let response = Response::default()
+    Ok(app
+        .response("create_task")
         .add_messages(messages)
-        .add_submessage(create_task_submessage);
-    Ok(app.tag_response(response, "create_task"))
+        .add_submessage(create_task_submessage))
 }
 
 /// Remove a task
@@ -163,6 +163,7 @@ fn remove_task(
         },
     )?;
 
+    let response = app.response("remove_task");
     // If there is still task by this hash on contract send remove message
     // If not - check if there is anything to withdraw and withdraw if needed
     let response = if task_response.task.is_some() {
@@ -178,7 +179,7 @@ fn remove_task(
             TASK_REMOVE_REPLY_ID,
         )?;
         REMOVED_TASK_MANAGER_ADDR.save(deps.storage, &manager_addr)?;
-        Response::new().add_submessage(executor_submessage)
+        response.add_submessage(executor_submessage)
     } else if user_balance_nonempty(
         deps.as_ref(),
         app.proxy_address(deps.as_ref())?,
@@ -194,12 +195,12 @@ fn remove_task(
         let executor_message = app
             .executor(deps.as_ref())
             .execute(vec![withdraw_msg.into()])?;
-        Response::new().add_message(executor_message)
+        response.add_message(executor_message)
     } else {
-        Response::new()
+        response
     };
 
-    Ok(app.tag_response(response, "remove_task"))
+    Ok(response)
 }
 
 /// Refill a task
@@ -260,7 +261,7 @@ fn refill_task(
     }
     let msg = executor.execute(vec![account_action])?;
 
-    Ok(app.tag_response(Response::new().add_message(msg), "refill_task"))
+    Ok(app.response("refill_task").add_message(msg))
 }
 
 fn purge(
@@ -282,5 +283,5 @@ fn purge(
     for tag in task_tags {
         ACTIVE_TASKS.remove(deps.storage, (msg_info.sender.clone(), tag));
     }
-    Ok(app.tag_response(Response::new(), "purge"))
+    Ok(app.response("purge"))
 }
