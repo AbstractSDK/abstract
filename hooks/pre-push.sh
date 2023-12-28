@@ -36,22 +36,22 @@ fi
 # cargo fmt checks
 format_check() {
   printf "Starting file formatting check...\n"
-
   cd $project_toplevel || exit;
-  just cargo-all fmt --all;
-  find . -type f -iname "*.toml" -print0 | xargs -0 taplo format;
-  # cargo workspaces exec --no-bail cargo schema >/dev/null;
-  sleep 3; # Give git time to find changed files.
+  
   staged_files=$(git diff --name-only --cached)
   not_staged_files=$(git diff --name-only)
   if [ -n "$staged_files" ] || [ -n "$not_staged_files" ]; then
-    printf "Found staged or not-staged files. Exiting with error code 1.\n"
+    printf "Found staged or not-staged files. Commit or stash these first.\n"
     exit 1
   else
+    just cargo-all fmt --all;
+    find . -type f -iname "*.toml" -print0 | xargs -0 taplo format;
+    # cargo workspaces exec --no-bail cargo schema >/dev/null;
+    sleep 3; # Give git time to find changed files.
     printf "No staged or not-staged files found. Running formatter...\n"
     git add .
     git commit -m "formatting [skip ci]"
-    git push
+    git push --no-verify
     exit $?
   fi
 }
