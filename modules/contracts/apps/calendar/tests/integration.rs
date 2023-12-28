@@ -1133,7 +1133,6 @@ fn slash_full_stake() -> anyhow::Result<()> {
     let (mut app, client) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
     let admin = app.account().owner()?;
-    let proxy = app.account().proxy()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -1173,7 +1172,7 @@ fn slash_full_stake() -> anyhow::Result<()> {
         meetings_response.meetings
     );
 
-    assert_eq!(Uint128::from(60u128), client.query_balance(&proxy, DENOM)?);
+    assert_eq!(Uint128::from(60u128), app.account().query_balance(DENOM)?);
 
     Ok(())
 }
@@ -1242,7 +1241,6 @@ fn slash_partial_stake() -> anyhow::Result<()> {
     let (mut app, client) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
     let admin = app.account().owner()?;
-    let proxy = app.account().proxy()?;
 
     let config: ConfigResponse = app.config()?;
 
@@ -1293,7 +1291,7 @@ fn slash_partial_stake() -> anyhow::Result<()> {
         client.query_balance(&sender, DENOM)?
     );
 
-    assert_eq!(Uint128::from(20u128), client.query_balance(&proxy, DENOM)?);
+    assert_eq!(Uint128::from(20u128), app.account().query_balance(DENOM)?);
 
     Ok(())
 }

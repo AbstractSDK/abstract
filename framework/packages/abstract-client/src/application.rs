@@ -9,7 +9,7 @@ use cw_orch::prelude::*;
 use crate::account::Account;
 use crate::client::AbstractClientResult;
 use crate::error::AbstractClientError;
-use crate::infrastructure::Infrastructure;
+use crate::infrastructure::Environment;
 
 /// An application represents a module installed on a (sub)-account.
 pub struct Application<T: CwEnv, M> {
