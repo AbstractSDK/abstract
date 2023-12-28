@@ -14,12 +14,15 @@ use abstract_interface::{
     Abstract, AbstractAccount, AccountDetails, DependencyCreation, InstallConfig, ManagerExecFns,
     ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
-use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg};
-use cw_orch::contract::Contract;
+
+use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Uint128};
 use cw_orch::prelude::*;
+use cw_orch::{contract::Contract, environment::MutCwEnv};
 
 use crate::{
-    application::Application, client::AbstractClientResult, infrastructure::Infrastructure,
+    application::Application,
+    client::AbstractClientResult,
+    infrastructure::{Environment, Infrastructure},
 };
 
 pub struct AccountBuilder<'a, Chain: CwEnv> {
@@ -101,7 +104,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             }
         }
 
-        let sender = self.environment().sender().to_string();
+        let chain = self.abstr.version_control.get_chain();
+        let sender = chain.sender().to_string();
         let name = self
             .name
             .clone()
@@ -154,6 +158,23 @@ impl<Chain: CwEnv> Account<Chain> {
             AbstractAccount::new(abstr, namespace_response.account_id);
 
         Ok(Self::new(abstract_account))
+    }
+
+    pub fn query_balance(&self, denom: impl Into<String>) -> AbstractClientResult<Uint128> {
+        let coins = self
+            .environment()
+            .balance(self.proxy()?, Some(denom.into()))
+            .map_err(Into::into)?;
+
+        // There will always be a single element in this case.
+        Ok(coins[0].amount)
+    }
+
+    pub fn query_balances(&self) -> AbstractClientResult<Vec<Coin>> {
+        self.environment()
+            .balance(self.proxy()?, None)
+            .map_err(Into::into)
+            .map_err(Into::into)
     }
 
     // TODO: remove `get_account` prefix
@@ -354,5 +375,21 @@ impl<Chain: CwEnv> Account<Chain> {
             sub_account_id: sub_account_id.unwrap(),
             module_address,
         }
+    }
+}
+
+impl<Chain: MutCwEnv> Account<Chain> {
+    pub fn set_balance(&self, amount: Vec<Coin>) -> AbstractClientResult<()> {
+        self.environment()
+            .set_balance(&self.proxy()?, amount)
+            .map_err(Into::into)
+            .map_err(Into::into)
+    }
+
+    pub fn add_balance(&self, amount: Vec<Coin>) -> AbstractClientResult<()> {
+        self.environment()
+            .add_balance(&self.proxy()?, amount)
+            .map_err(Into::into)
+            .map_err(Into::into)
     }
 }

@@ -17,7 +17,7 @@ use crate::{
     account::{Account, AccountBuilder},
     application::Application,
     client::AbstractClientResult,
-    infrastructure::Infrastructure,
+    infrastructure::Environment,
 };
 
 pub struct PublisherBuilder<'a, Chain: CwEnv> {

@@ -1,5 +1,3 @@
-mod common;
-
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_core::{
     app,
@@ -15,6 +13,7 @@ use abstract_core::{
     version_control::UpdateModule,
     AbstractError,
 };
+use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
     ManagerExecFns, ManagerQueryFns, VCExecFns,

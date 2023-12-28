@@ -1,4 +1,3 @@
-mod common;
 use abstract_app::mock::MockError;
 use abstract_app::{gen_app_mock, mock};
 use abstract_core::manager::ModuleInstallConfig;
@@ -7,10 +6,9 @@ use abstract_core::objects::module::ModuleInfo;
 use abstract_core::objects::nested_admin::TopLevelOwnerResponse;
 use abstract_core::objects::AccountId;
 use abstract_core::PROXY;
-use abstract_integration_tests::*;
+use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
 use abstract_testing::prelude::*;
-
 use cosmwasm_std::{coin, to_json_binary, Addr, Coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
 use cw_orch::deploy::Deploy;

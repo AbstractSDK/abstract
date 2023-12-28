@@ -1,5 +1,5 @@
-mod common;
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
+use abstract_integration_tests::{create_default_account, mock_modules, AResult};
 
 use abstract_core::manager::{ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;

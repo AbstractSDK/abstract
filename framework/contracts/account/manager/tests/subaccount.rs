@@ -1,10 +1,8 @@
-mod common;
-
 use abstract_core::manager::SubAccountIdsResponse;
 use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
 use abstract_core::PROXY;
+use abstract_integration_tests::{create_default_account, AResult};
 
-use abstract_integration_tests::*;
 use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_testing::OWNER;

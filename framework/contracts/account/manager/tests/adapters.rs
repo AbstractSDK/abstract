@@ -1,5 +1,3 @@
-mod common;
-
 use abstract_adapter::mock::{self, MockError};
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_adapter::AdapterError;
@@ -9,8 +7,11 @@ use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::AccountId;
 use abstract_core::{adapter::BaseQueryMsgFns, *};
-use abstract_integration_tests::mock_modules::{adapter_1::*, *};
-use abstract_integration_tests::*;
+use abstract_integration_tests::mock_modules::adapter_1::{BootMockAdapter1V1, BootMockAdapter1V2};
+use abstract_integration_tests::{
+    add_mock_adapter_install_fee, init_mock_adapter, install_adapter, install_adapter_with_funds,
+};
+use abstract_integration_tests::{create_default_account, mock_modules, AResult};
 use abstract_interface::*;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins};
@@ -18,6 +19,8 @@ use cosmwasm_std::{Addr, Coin, Empty};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
+
+use mock_modules::{adapter_1, V1, V2};
 
 #[test]
 fn installing_one_adapter_should_succeed() -> AResult {
@@ -626,6 +629,8 @@ fn subaccount_adapter_ownership() -> AResult {
 
 mod old_mock {
     use super::*;
+    use abstract_integration_tests::{create_default_account, mock_modules, AResult};
+
     use abstract_adapter::gen_adapter_old_mock;
     use mock_modules::adapter_1::MOCK_ADAPTER_ID;
 

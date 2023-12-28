@@ -1,5 +1,3 @@
-mod common;
-
 use abstract_core::{
     manager::{
         ExecuteMsg as ManagerMsg, ModuleAddressesResponse, ModuleInstallConfig,
@@ -7,8 +5,7 @@ use abstract_core::{
     },
     objects::{account::TEST_ACCOUNT_ID, module::ModuleInfo},
 };
-use abstract_integration_tests::*;
-use abstract_integration_tests::mock_modules::*;
+use abstract_integration_tests::{create_default_account, mock_modules, AResult};
 use abstract_interface::{Abstract, AbstractAccount, VCExecFns};
 use abstract_manager::error::ManagerError;
 use abstract_testing::{prelude::TEST_NAMESPACE, OWNER};
@@ -18,6 +15,7 @@ use cw_orch::{
     prelude::{CwOrchExecute, CwOrchQuery, Mock},
     take_storage_snapshot,
 };
+use mock_modules::{adapter_1, deploy_modules, V1};
 
 #[test]
 fn cannot_reinstall_module() -> AResult {
