@@ -2,7 +2,7 @@ use crate::contract::{EtfApp, EtfResult};
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::STATE;
 use abstract_sdk::features::AbstractResponse;
-use cosmwasm_std::{DepsMut, Env, Reply, Response, StdError, StdResult};
+use cosmwasm_std::{DepsMut, Env, Reply, StdError, StdResult};
 use protobuf::Message;
 
 pub fn instantiate_reply(deps: DepsMut, _env: Env, etf: EtfApp, reply: Reply) -> EtfResult {
@@ -19,8 +19,7 @@ pub fn instantiate_reply(deps: DepsMut, _env: Env, etf: EtfApp, reply: Reply) ->
         Ok(meta)
     })?;
 
-    Ok(etf.custom_tag_response(
-        Response::default(),
+    Ok(etf.custom_response(
         "instantiate_reply",
         vec![("share_token_address", share_token_address)],
     ))
