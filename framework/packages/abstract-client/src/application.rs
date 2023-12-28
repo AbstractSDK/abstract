@@ -46,8 +46,11 @@ impl<Chain: CwEnv, M> Application<Chain, M> {
     /// module of type `M`.
     pub fn module<T: RegisteredModule + From<Contract<Chain>>>(&self) -> AbstractClientResult<T> {
         let module_id = T::module_id();
-        let maybe_module_addr: Result<ModuleAddressesResponse,_> =
-            self.account.abstr_account.manager.module_addresses(vec![module_id.to_string()]);
+        let maybe_module_addr: Result<ModuleAddressesResponse, _> = self
+            .account
+            .abstr_account
+            .manager
+            .module_addresses(vec![module_id.to_string()]);
         if let Ok(module_info) = maybe_module_addr {
             let contract = Contract::new(module_id.to_owned(), self.account.environment())
                 .with_address(Some(&module_info.modules[0].1));
