@@ -22,6 +22,7 @@ use cw_orch::{contract::Contract, environment::MutCwEnv};
 use crate::{
     application::Application,
     client::AbstractClientResult,
+    error::AbstractClientError,
     infrastructure::{Environment, Infrastructure},
 };
 
@@ -243,7 +244,9 @@ impl<Chain: CwEnv> Account<Chain> {
         }
 
         // Get top level account owner address
-        Ok(governance.owner_address())
+        governance
+            .owner_address()
+            .ok_or(AbstractClientError::RenouncedAccount {})
     }
 
     /// Executes a [`CosmosMsg`] on the proxy of the account.

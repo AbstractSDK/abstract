@@ -20,7 +20,7 @@ use abstract_sdk::{
             namespace::Namespace,
             AccountId,
         },
-        version_control::{namespaces_info, state::*, AccountBase, Config},
+        version_control::{state::*, AccountBase, Config},
     },
     cw_helpers::Clearable,
 };
@@ -417,7 +417,7 @@ fn claim_namespace_internal(
     namespace_to_claim: &str,
 ) -> VCResult<Option<CosmosMsg>> {
     // check if the account already has a namespace
-    let has_namespace = namespaces_info()
+    let has_namespace = NAMESPACES_INFO
         .idx
         .account_id
         .prefix(account_id.clone())
@@ -447,13 +447,13 @@ fn claim_namespace_internal(
     };
 
     let namespace = Namespace::try_from(namespace_to_claim)?;
-    if let Some(id) = namespaces_info().may_load(storage, &namespace)? {
+    if let Some(id) = NAMESPACES_INFO.may_load(storage, &namespace)? {
         return Err(VCError::NamespaceOccupied {
             namespace: namespace.to_string(),
             id,
         });
     }
-    namespaces_info().save(storage, &namespace, &account_id)?;
+    NAMESPACES_INFO.save(storage, &namespace, &account_id)?;
 
     Ok(fee_msg)
 }
@@ -470,7 +470,7 @@ pub fn remove_namespaces(
     let mut logs = vec![];
     for namespace in namespaces.iter() {
         let namespace = Namespace::try_from(namespace)?;
-        if !namespaces_info().has(deps.storage, &namespace) {
+        if !NAMESPACES_INFO.has(deps.storage, &namespace) {
             return Err(VCError::UnknownNamespace { namespace });
         }
         if !is_admin {
@@ -495,9 +495,9 @@ pub fn remove_namespaces(
         logs.push(format!(
             "({}, {})",
             namespace,
-            namespaces_info().load(deps.storage, &namespace)?
+            NAMESPACES_INFO.load(deps.storage, &namespace)?
         ));
-        namespaces_info().remove(deps.storage, &namespace)?;
+        NAMESPACES_INFO.remove(deps.storage, &namespace)?;
     }
 
     Ok(VcResponse::new(
@@ -581,18 +581,22 @@ pub fn validate_account_owner(
     sender: &Addr,
 ) -> Result<(), VCError> {
     let sender = sender.clone();
-    let account_id = namespaces_info()
+    let account_id = NAMESPACES_INFO
         .may_load(deps.storage, &namespace.clone())?
         .ok_or_else(|| VCError::UnknownNamespace {
             namespace: namespace.to_owned(),
         })?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    let account_owner = query_account_owner(&deps.querier, account_base.manager, &account_id)?;
-    if sender != account_owner {
-        return Err(VCError::AccountOwnerMismatch {
-            sender,
-            owner: account_owner,
-        });
+    let manager = account_base.manager;
+    // Check manager first, manager can call this function to unregister a namespace when renouncing its ownership.
+    if sender != manager {
+        let account_owner = query_account_owner(&deps.querier, manager.clone(), &account_id)?;
+        if sender != account_owner {
+            return Err(VCError::AccountOwnerMismatch {
+                sender,
+                owner: account_owner,
+            });
+        }
     }
     Ok(())
 }
@@ -860,9 +864,9 @@ mod test {
             let res = execute_as(deps.as_mut(), OWNER, msg);
             assert_that!(&res).is_ok();
 
-            let account_id = namespaces_info().load(&deps.storage, &new_namespace1)?;
+            let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace1)?;
             assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
-            let account_id = namespaces_info().load(&deps.storage, &new_namespace2)?;
+            let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace2)?;
             assert_that!(account_id).is_equal_to(SECOND_TEST_ACCOUNT_ID);
             Ok(())
         }
@@ -1215,7 +1219,7 @@ mod test {
             };
             let res = execute_as(deps.as_mut(), OWNER, msg);
             assert_that!(&res).is_ok();
-            let exists = namespaces_info().has(&deps.storage, &new_namespace1);
+            let exists = NAMESPACES_INFO.has(&deps.storage, &new_namespace1);
             assert_that!(exists).is_equal_to(false);
 
             let msg = ExecuteMsg::ClaimNamespace {
@@ -1230,7 +1234,7 @@ mod test {
             };
             let res = execute_as(deps.as_mut(), OWNER, msg);
             assert_that!(&res).is_ok();
-            let exists = namespaces_info().has(&deps.storage, &new_namespace2);
+            let exists = NAMESPACES_INFO.has(&deps.storage, &new_namespace2);
             assert_that!(exists).is_equal_to(false);
             assert_eq!(
                 res.unwrap().events[0].attributes[2],

@@ -419,7 +419,9 @@ pub fn propose_owner(
     // verify the provided governance details
     let config = CONFIG.load(deps.storage)?;
     let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address)?;
-    let new_owner_addr = verified_gov.owner_address();
+    let new_owner_addr = verified_gov
+        .owner_address()
+        .ok_or(ManagerError::ProposeRenounced {})?;
 
     // Check that there are changes
     let acc_info = INFO.load(deps.storage)?;
@@ -452,7 +454,7 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
     let mut msgs = vec![];
     let mut acc_info = INFO.load(deps.storage)?;
     let mut account_id = None;
-    // Get pending governance and clear it
+    // Get pending governance
     let pending_governance = PENDING_GOVERNANCE
         .may_load(deps.storage)?
         .ok_or(OwnershipError::TransferNotFound)?;
@@ -465,7 +467,7 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
         let unregister_message = wasm_execute(
             manager,
             &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
-                id: id.clone().seq(),
+                id: id.seq(),
             }),
             vec![],
         )?;
@@ -497,6 +499,71 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
     // Update governance of this account
     acc_info.governance_details = pending_governance;
     INFO.save(deps.storage, &acc_info)?;
+    Ok(msgs)
+}
+
+/// Renounce ownership of this account \
+/// **WARNING**: This will lock the account, making it unusable.
+pub(crate) fn renounce_governance(
+    deps: DepsMut,
+    manager_addr: Addr,
+    sender: &mut Addr,
+) -> ManagerResult<Vec<CosmosMsg>> {
+    let mut msgs = vec![];
+
+    let account_id = ACCOUNT_ID.load(deps.storage)?;
+    // Check for any sub accounts
+    let sub_account = SUB_ACCOUNTS
+        .keys(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+        .next()
+        .transpose()?;
+    ensure!(
+        sub_account.is_none(),
+        ManagerError::RenounceWithSubAccount {}
+    );
+
+    let mut account_info = INFO.load(deps.storage)?;
+    if let GovernanceDetails::SubAccount { manager, proxy } = account_info.governance_details {
+        // If called by top-level owner, update the sender to let cw-ownable think it was called by the proxy.
+        let top_level_owner = query_top_level_owner(&deps.querier, manager_addr)?;
+        if top_level_owner == *sender {
+            *sender = proxy;
+        }
+        // Unregister itself (sub-account) from the owning account.
+        msgs.push(
+            wasm_execute(
+                manager,
+                &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
+                    id: account_id.seq(),
+                }),
+                vec![],
+            )?
+            .into(),
+        );
+    }
+    // Renounce governance
+    account_info.governance_details = GovernanceDetails::Renounced {};
+    INFO.save(deps.storage, &account_info)?;
+
+    let config = CONFIG.load(deps.storage)?;
+    let vc = VersionControlContract::new(config.version_control_address);
+    let mut namespaces = vc
+        .query_namespaces(vec![account_id], &deps.querier)?
+        .namespaces;
+    let namespace = namespaces.pop();
+    if let Some((namespace, _)) = namespace {
+        // Remove the namespace that this account holds.
+        msgs.push(
+            wasm_execute(
+                vc.address,
+                &abstract_core::version_control::ExecuteMsg::RemoveNamespaces {
+                    namespaces: vec![namespace.to_string()],
+                },
+                vec![],
+            )?
+            .into(),
+        )
+    };
     Ok(msgs)
 }
 
@@ -1241,15 +1308,23 @@ mod tests {
             execute_as_owner(deps.as_mut(), msg)?;
 
             let actual_info = INFO.load(deps.as_ref().storage)?;
-            assert_that!(&actual_info.governance_details.owner_address().to_string())
-                .is_equal_to("owner".to_string());
+            assert_that!(&actual_info
+                .governance_details
+                .owner_address()
+                .unwrap()
+                .to_string())
+            .is_equal_to("owner".to_string());
 
             let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
             execute_as(deps.as_mut(), &new_gov, accept_msg)?;
 
             let actual_info = INFO.load(deps.as_ref().storage)?;
-            assert_that!(&actual_info.governance_details.owner_address().to_string())
-                .is_equal_to("new_gov".to_string());
+            assert_that!(&actual_info
+                .governance_details
+                .owner_address()
+                .unwrap()
+                .to_string())
+            .is_equal_to("new_gov".to_string());
 
             Ok(())
         }
@@ -1978,18 +2053,6 @@ mod tests {
             let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership {});
 
             execute_as(deps.as_mut(), pending_owner, msg)?;
-
-            Ok(())
-        }
-
-        #[test]
-        fn allows_renouncing() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::RenounceOwnership {});
-
-            execute_as_owner(deps.as_mut(), msg)?;
 
             Ok(())
         }

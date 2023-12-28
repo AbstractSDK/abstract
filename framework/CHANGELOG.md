@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Query `registered_dexes` for `AbstractNameServiceClient`
 - Query `top_level_owner` for manager and apps(as base query)
 - Support of `ConcentratedLiquidity` pool type for swaps. Stake/unstake currently not supported
+- Account namespace is unclaimed after `Renounce`
 
 ### Changed
 
@@ -34,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `Clearable` helper type was added to the messages where clearing optional state could be useful
 - Only incremental version migration of modules allowed (0.10 -> 0.11 is allowed but 0.10 -> 0.12 not because it skips 0.11)
 - Module `tag_response` and `custom_tag_response` no longer require `Response` as an argument as well as renamed to `response` and `custom_response` respectively.
+- Having sub accounts will prevent you from `Renounce`
 
 ### Removed
 
@@ -47,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Namespace registration fee fixed
 - Version Control smart query now returns Version Control config instead of factory address
+- Sub accounts now unregister themselves on owning manager if renounced
 
 ## [0.19.0] - 2023-09-26
 

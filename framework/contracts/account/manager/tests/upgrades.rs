@@ -19,7 +19,7 @@ use abstract_interface::{
     ManagerExecFns, ManagerQueryFns, VCExecFns,
 };
 
-use abstract_integration_tests::{install_module_version, mock_modules::*};
+use abstract_integration_tests::{mock_modules::*, *};
 
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;

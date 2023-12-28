@@ -68,7 +68,9 @@ pub fn instantiate(
     validate_name(&msg.name)?;
 
     let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
-    let owner = governance_details.owner_address();
+    let owner = governance_details
+        .owner_address()
+        .ok_or(ManagerError::InitRenounced {})?;
 
     let account_info = AccountInfo {
         name: msg.name,
@@ -210,7 +212,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                         cw_ownable::Action::AcceptOwnership => {
                             update_governance(deps.branch(), &mut info.sender)?
                         }
-                        cw_ownable::Action::RenounceOwnership => vec![],
+                        cw_ownable::Action::RenounceOwnership => renounce_governance(
+                            deps.branch(),
+                            env.contract.address,
+                            &mut info.sender,
+                        )?,
                     };
                     // Clear pending governance for either renounced or accepted ownership
                     PENDING_GOVERNANCE.remove(deps.storage);

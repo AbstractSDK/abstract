@@ -19,7 +19,7 @@ pub struct Config {
 }
 
 pub mod state {
-    use cw_storage_plus::{Item, Map};
+    use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
 
     use crate::objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
@@ -45,26 +45,28 @@ pub mod state {
         Map::new("dcfg");
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<&AccountId, AccountBase> = Map::new("accs");
-}
 
-/// Sub indexes for namespaces.
-pub struct NamespaceIndexes<'a> {
-    pub account_id: MultiIndex<'a, AccountId, AccountId, &'a Namespace>,
-}
-
-impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
-    fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<AccountId>> + '_> {
-        let v: Vec<&dyn Index<AccountId>> = vec![&self.account_id];
-        Box::new(v.into_iter())
+    /// Sub indexes for namespaces.
+    // TODO: move to a two maps, we don't need multiindex for accountid
+    pub struct NamespaceIndexes<'a> {
+        pub account_id: MultiIndex<'a, AccountId, AccountId, &'a Namespace>,
     }
-}
 
-/// Primary index for namespaces.
-pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, NamespaceIndexes<'a>> {
-    let indexes = NamespaceIndexes {
-        account_id: MultiIndex::new(|_pk, d| d.clone(), "nmspc", "nmspc_a"),
-    };
-    IndexedMap::new("nmspc", indexes)
+    impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
+        fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<AccountId>> + '_> {
+            let v: Vec<&dyn Index<AccountId>> = vec![&self.account_id];
+            Box::new(v.into_iter())
+        }
+    }
+
+    /// Primary index for namespaces.
+    pub const NAMESPACES_INFO: IndexedMap<&Namespace, AccountId, NamespaceIndexes> =
+        IndexedMap::new(
+            "nmspc",
+            NamespaceIndexes {
+                account_id: MultiIndex::new(|_pk, d| d.clone(), "nmspc", "nmspc_a"),
+            },
+        );
 }
 
 use crate::objects::{
@@ -77,7 +79,6 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Coin, Storage};
 
 use cw_clearable::Clearable;
-use cw_storage_plus::{Index, IndexList, IndexedMap, MultiIndex};
 
 use self::state::{MODULE_CONFIG, MODULE_DEFAULT_CONFIG};
 

@@ -4,6 +4,7 @@ use abstract_core::PROXY;
 use abstract_integration_tests::{create_default_account, AResult};
 
 use abstract_interface::*;
+use abstract_manager::error::ManagerError;
 use abstract_testing::OWNER;
 use cosmwasm_std::{to_json_binary, wasm_execute, Addr};
 use cw_orch::contract::Deploy;
@@ -494,5 +495,83 @@ fn top_level_owner() -> AResult {
 
     let top_level_owner = sub_account.manager.top_level_owner()?;
     assert_eq!(top_level_owner.address, sender);
+    Ok(())
+}
+
+#[test]
+fn cant_renounce_with_sub_accounts() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let account = create_default_account(&deployment.account_factory)?;
+    // Creating sub account
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+        &[],
+    )?;
+
+    let err: ManagerError = account
+        .manager
+        .update_ownership(cw_ownable::Action::RenounceOwnership)
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(err, ManagerError::RenounceWithSubAccount {});
+    Ok(())
+}
+
+#[test]
+fn can_renounce_sub_accounts() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let account = create_default_account(&deployment.account_factory)?;
+    // Creating sub account
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+        &[],
+    )?;
+
+    let sub_account_id = account.manager.sub_account_ids(None, None)?.sub_accounts[0];
+
+    let sub_account = AbstractAccount::new(&deployment, AccountId::local(sub_account_id));
+
+    sub_account
+        .manager
+        .update_ownership(cw_ownable::Action::RenounceOwnership)?;
+
+    account
+        .manager
+        .update_ownership(cw_ownable::Action::RenounceOwnership)?;
+
+    // No owners
+    let account_owner = account.manager.ownership()?;
+    assert!(account_owner.owner.is_none());
+    let sub_account_owner = sub_account.manager.ownership()?;
+    assert!(sub_account_owner.owner.is_none());
+
+    // Renounced governance
+    let account_info = account.manager.info()?;
+    assert_eq!(
+        account_info.info.governance_details,
+        GovernanceDetails::Renounced {}
+    );
+    let sub_account_info = sub_account.manager.info()?;
+    assert_eq!(
+        sub_account_info.info.governance_details,
+        GovernanceDetails::Renounced {}
+    );
     Ok(())
 }
