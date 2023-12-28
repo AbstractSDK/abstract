@@ -48,7 +48,7 @@ format_check() {
     find . -type f -iname "*.toml" -print0 | xargs -0 taplo format;
     # cargo workspaces exec --no-bail cargo schema >/dev/null;
     sleep 3; # Give git time to find changed files.
-    printf "No staged or not-staged files found. Running formatter...\n"
+    printf "Running formatter...\n"
     git add .
     git commit -m "formatting [skip ci]"
     git push --no-verify
