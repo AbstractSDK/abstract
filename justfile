@@ -45,3 +45,8 @@ schema:
   sh scripts/modules-schema.sh
   sh scripts/framework-schema.sh
   set +e
+
+copy-schema: 
+  #!/usr/bin/env bash
+  set -e
+  cp -r schema/. ../schemas/abstract

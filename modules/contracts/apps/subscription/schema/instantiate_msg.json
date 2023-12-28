@@ -200,7 +200,7 @@
             }
           ]
         },
-        "unsubscription_hook_addr": {
+        "unsubscribe_hook_addr": {
           "description": "Unsubscription hook addr to send [unsubscribe message](`crate::msg::UnsubscribedHookMsg`)",
           "type": [
             "string",

@@ -23,7 +23,7 @@ use abstract_testing::{
     },
     OWNER,
 };
-use cosmwasm_std::{Addr, Empty, Uint128};
+use cosmwasm_std::{coins, Addr, BankMsg, Empty, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::{CallAs, Mock};
 use cw_ownable::Ownership;
@@ -513,6 +513,31 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
 
     let dependency_res = my_app.module::<MockAppInterface<Mock>>();
     assert!(dependency_res.is_err());
+    Ok(())
+}
 
+#[test]
+fn can_execute_on_proxy() -> anyhow::Result<()> {
+    let denom = "denom";
+    let client = AbstractClient::builder(OWNER)
+        .balance(OWNER, coins(100, denom))
+        .build()?;
+    let user = String::from("user");
+
+    let account: Account<Mock> = client.account_builder().build()?;
+
+    let amount = 20;
+    account.execute(
+        vec![BankMsg::Send {
+            to_address: user.clone(),
+            amount: coins(20, denom),
+        }],
+        &coins(amount, denom),
+    )?;
+
+    assert_eq!(
+        amount,
+        client.query_balance(&Addr::unchecked(user), denom)?.into()
+    );
     Ok(())
 }
