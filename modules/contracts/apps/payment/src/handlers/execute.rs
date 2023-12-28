@@ -55,10 +55,9 @@ pub fn tip(
     let forward_payment_msgs = app.bank(deps.as_ref()).deposit(deposited_assets.to_vec())?;
 
     // resp
-    let app_resp = app.tag_response(
-        Response::new().add_messages(forward_payment_msgs),
-        "receive_tip",
-    );
+    let app_resp = app
+        .response("receive_tip")
+        .add_messages(forward_payment_msgs);
 
     // swap the asset(s) to the desired asset is set
     let config = CONFIG.load(deps.storage)?;
@@ -203,5 +202,5 @@ fn update_config(
 
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(app.tag_response(Response::default(), "update_config"))
+    Ok(app.response("update_config"))
 }

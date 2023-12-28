@@ -111,7 +111,7 @@ impl<
 
         self.base_state.save(deps.storage, &state)?;
 
-        Ok(self.tag_response(Response::default(), "update_config"))
+        Ok(self.response("update_config"))
     }
 }
 

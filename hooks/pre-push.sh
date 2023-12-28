@@ -36,17 +36,26 @@ fi
 # cargo fmt checks
 format_check() {
   printf "Starting file formatting check...\n"
-
   cd $project_toplevel || exit;
-  just cargo-all fmt --all;
-  find . -type f -iname "*.toml" -print0 | xargs -0 taplo format;
-  # cargo workspaces exec --no-bail cargo schema >/dev/null;
-  sleep 3; # Give git time to find changed files.
-  not_staged_file=$(git diff --name-only)
-    if [ "$not_staged_file" != "" ]; then # it means the file changed and it's not staged, i.e. rustfmt did the job.
+  
+  staged_files=$(git diff --name-only --cached)
+  not_staged_files=$(git diff --name-only)
+  if [ -n "$staged_files" ] || [ -n "$not_staged_files" ]; then
+    printf "Found staged or not-staged files. Commit or stash these first.\n"
+    exit 1
+  else
+    printf "Running formatter...\n"
+    just cargo-all fmt --all;
+    find . -type f -iname "*.toml" -print0 | xargs -0 taplo format;
+    # cargo workspaces exec --no-bail cargo schema >/dev/null;
+    sleep 1; # Give git time to find changed files.
+    not_staged_files=$(git diff --name-only)
+    if [ -n "$not_staged_files" ]; then
       git add .
-      git commit -m "formatting"
+      git commit -m "formatting [skip ci]"
+      exit $?
     fi
+  fi
 }
 
 format_check

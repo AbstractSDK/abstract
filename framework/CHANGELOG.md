@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Top level account owner can now claim pending sub-accounts directly
 - `Clearable` helper type was added to the messages where clearing optional state could be useful
 - Only incremental version migration of modules allowed (0.10 -> 0.11 is allowed but 0.10 -> 0.12 not because it skips 0.11)
+- Module `tag_response` and `custom_tag_response` no longer require `Response` as an argument as well as renamed to `response` and `custom_response` respectively.
 
 ### Removed
 
