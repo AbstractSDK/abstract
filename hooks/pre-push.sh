@@ -42,11 +42,18 @@ format_check() {
   find . -type f -iname "*.toml" -print0 | xargs -0 taplo format;
   # cargo workspaces exec --no-bail cargo schema >/dev/null;
   sleep 3; # Give git time to find changed files.
-  not_staged_file=$(git diff --name-only)
-    if [ "$not_staged_file" != "" ]; then # it means the file changed and it's not staged, i.e. rustfmt did the job.
-      git add .
-      git commit -m "formatting [skip ci]"
-    fi
+  staged_files=$(git diff --name-only --cached)
+  not_staged_files=$(git diff --name-only)
+  if [ -n "$staged_files" ] || [ -n "$not_staged_files" ]; then
+    printf "Found staged or not-staged files. Exiting with error code 1.\n"
+    exit 1
+  else
+    printf "No staged or not-staged files found. Running formatter...\n"
+    git add .
+    git commit -m "formatting [skip ci]"
+    git push
+    exit $?
+  fi
 }
 
 format_check
