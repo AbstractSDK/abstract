@@ -472,6 +472,51 @@ fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
 }
 
 #[test]
+fn can_get_module_dependency() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(OWNER).build()?;
+
+    let app_publisher: Publisher<Mock> = client
+        .publisher_builder()
+        .namespace(TEST_NAMESPACE)
+        .build()?;
+
+    let app_dependency_publisher: Publisher<Mock> = client
+        .publisher_builder()
+        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .build()?;
+
+    app_dependency_publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
+    app_publisher.publish_app::<MockAppInterface<Mock>>()?;
+
+    let my_app: Application<Mock, MockAppInterface<Mock>> =
+        app_publisher.install_app_with_dependencies(&MockInitMsg {}, Empty {}, &[])?;
+
+    let dependency: MockAppDependencyInterface<Mock> = my_app.module()?;
+    dependency.do_something()?;
+
+    Ok(())
+}
+
+#[test]
+fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(OWNER).build()?;
+
+    let publisher: Publisher<Mock> = client
+        .publisher_builder()
+        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .build()?;
+
+    publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
+
+    let my_app: Application<Mock, MockAppDependencyInterface<Mock>> =
+        publisher.install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg {}, &[])?;
+
+    let dependency_res = my_app.module::<MockAppInterface<Mock>>();
+    assert!(dependency_res.is_err());
+    Ok(())
+}
+
+#[test]
 fn can_execute_on_proxy() -> anyhow::Result<()> {
     let denom = "denom";
     let client = AbstractClient::builder(OWNER)
