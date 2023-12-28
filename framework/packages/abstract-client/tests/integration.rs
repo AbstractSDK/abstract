@@ -23,7 +23,7 @@ use abstract_testing::{
     },
     OWNER,
 };
-use cosmwasm_std::{coins, Addr, BankMsg, Empty, Uint128};
+use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::{CallAs, Mock};
 use cw_ownable::Ownership;
@@ -532,7 +532,7 @@ fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
     assert_eq!(Uint128::zero(), client.query_balance(&user, "denom4")?);
 
     assert_eq!(vec![coin1, coin2, coin3], client.query_balances(&user)?);
-    Ok(()) 
+    Ok(())
 }
 #[test]
 fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {

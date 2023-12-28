@@ -15,7 +15,7 @@ use abstract_interface::{
     ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
 
-use cosmwasm_std::{Attribute, Uint128, CosmosMsg};
+use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Uint128};
 use cw_orch::prelude::*;
 use cw_orch::{contract::Contract, environment::MutCwEnv};
 
