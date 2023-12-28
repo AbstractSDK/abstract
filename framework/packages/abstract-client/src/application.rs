@@ -49,7 +49,8 @@ impl<Chain: CwEnv, M> Application<Chain, M> {
             .account
             .abstr_account
             .manager
-            .module_addresses(vec![module_id.to_string()])?.modules;
+            .module_addresses(vec![module_id.to_string()])?
+            .modules;
         if !maybe_module_addr.is_empty() {
             let contract = Contract::new(module_id.to_owned(), self.account.environment())
                 .with_address(Some(&maybe_module_addr[0].1));
