@@ -44,14 +44,13 @@ format_check() {
     printf "Found staged or not-staged files. Commit or stash these first.\n"
     exit 1
   else
+    printf "Running formatter...\n"
     just cargo-all fmt --all;
     find . -type f -iname "*.toml" -print0 | xargs -0 taplo format;
     # cargo workspaces exec --no-bail cargo schema >/dev/null;
     sleep 3; # Give git time to find changed files.
-    printf "Running formatter...\n"
     git add .
     git commit -m "formatting [skip ci]"
-    git push --no-verify
     exit $?
   fi
 }
