@@ -4,10 +4,10 @@ use abstract_core::manager::SubAccountIdsResponse;
 use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
 use abstract_core::PROXY;
 
+use abstract_integration_tests::*;
 use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_testing::OWNER;
-use common::*;
 use cosmwasm_std::{to_json_binary, wasm_execute, Addr};
 use cw_orch::contract::Deploy;
 use cw_orch::prelude::*;
@@ -558,7 +558,22 @@ fn can_renonuce_sub_accounts() -> AResult {
         .manager
         .update_ownership(cw_ownable::Action::RenounceOwnership)?;
 
-    let owner = account.manager.ownership()?;
-    assert!(owner.owner.is_none());
+    // No owners
+    let account_owner = account.manager.ownership()?;
+    assert!(account_owner.owner.is_none());
+    let sub_account_owner = sub_account.manager.ownership()?;
+    assert!(sub_account_owner.owner.is_none());
+
+    // Renounced governance
+    let account_info = account.manager.info()?;
+    assert_eq!(
+        account_info.info.governance_details,
+        GovernanceDetails::Renounced {}
+    );
+    let sub_account_info = sub_account.manager.info()?;
+    assert_eq!(
+        sub_account_info.info.governance_details,
+        GovernanceDetails::Renounced {}
+    );
     Ok(())
 }

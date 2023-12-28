@@ -7,13 +7,11 @@ use abstract_core::{
     },
     objects::{account::TEST_ACCOUNT_ID, module::ModuleInfo},
 };
+use abstract_integration_tests::*;
+use abstract_integration_tests::mock_modules::*;
 use abstract_interface::{Abstract, AbstractAccount, VCExecFns};
 use abstract_manager::error::ManagerError;
 use abstract_testing::{prelude::TEST_NAMESPACE, OWNER};
-use common::{
-    mock_modules::{adapter_1, deploy_modules, V1},
-    *,
-};
 use cosmwasm_std::Addr;
 use cw_orch::{
     deploy::Deploy,

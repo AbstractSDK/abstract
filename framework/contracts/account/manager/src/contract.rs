@@ -68,7 +68,9 @@ pub fn instantiate(
     validate_name(&msg.name)?;
 
     let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
-    let owner = governance_details.owner_address();
+    let owner = governance_details
+        .owner_address()
+        .ok_or(ManagerError::InitRenounced {})?;
 
     let account_info = AccountInfo {
         name: msg.name,

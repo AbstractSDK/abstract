@@ -419,7 +419,9 @@ pub fn propose_owner(
     // verify the provided governance details
     let config = CONFIG.load(deps.storage)?;
     let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address)?;
-    let new_owner_addr = verified_gov.owner_address();
+    let new_owner_addr = verified_gov
+        .owner_address()
+        .ok_or(ManagerError::ProposeRenounced {})?;
 
     // Check that there are changes
     let acc_info = INFO.load(deps.storage)?;
@@ -519,7 +521,7 @@ pub(crate) fn renounce_governance(
         ManagerError::RenounceWithSubAccount {}
     );
 
-    let account_info = INFO.load(deps.storage)?;
+    let mut account_info = INFO.load(deps.storage)?;
     if let GovernanceDetails::SubAccount { manager, proxy } = account_info.governance_details {
         // If called by top-level owner, update the sender to let cw-ownable think it was called by the proxy.
         let top_level_owner = query_top_level_owner(&deps.querier, manager_addr)?;
@@ -537,6 +539,9 @@ pub(crate) fn renounce_governance(
             .into(),
         );
     }
+    // Renounce governance
+    account_info.governance_details = GovernanceDetails::Renounced {};
+    INFO.save(deps.storage, &account_info)?;
 
     let config = CONFIG.load(deps.storage)?;
     let vc = VersionControlContract::new(config.version_control_address);
@@ -1300,15 +1305,23 @@ mod tests {
             execute_as_owner(deps.as_mut(), msg)?;
 
             let actual_info = INFO.load(deps.as_ref().storage)?;
-            assert_that!(&actual_info.governance_details.owner_address().to_string())
-                .is_equal_to("owner".to_string());
+            assert_that!(&actual_info
+                .governance_details
+                .owner_address()
+                .unwrap()
+                .to_string())
+            .is_equal_to("owner".to_string());
 
             let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
             execute_as(deps.as_mut(), &new_gov, accept_msg)?;
 
             let actual_info = INFO.load(deps.as_ref().storage)?;
-            assert_that!(&actual_info.governance_details.owner_address().to_string())
-                .is_equal_to("new_gov".to_string());
+            assert_that!(&actual_info
+                .governance_details
+                .owner_address()
+                .unwrap()
+                .to_string())
+            .is_equal_to("new_gov".to_string());
 
             Ok(())
         }

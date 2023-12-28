@@ -108,4 +108,10 @@ pub enum ManagerError {
 
     #[error("Can't renounce account, with active sub account")]
     RenounceWithSubAccount {},
+
+    #[error("Can't propose Renounced governance, use update_ownership instead")]
+    ProposeRenounced {},
+
+    #[error("Can't create account with Renounced governance")]
+    InitRenounced {},
 }

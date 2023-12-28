@@ -200,7 +200,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
-    pub fn owner(&self) -> AbstractClientResult<Addr> {
+    pub fn owner(&self) -> AbstractClientResult<Option<Addr>> {
         let mut governance = self.abstr_account.manager.info()?.info.governance_details;
 
         let environment = self.environment();

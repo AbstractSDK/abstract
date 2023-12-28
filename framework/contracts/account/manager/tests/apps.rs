@@ -7,10 +7,10 @@ use abstract_core::objects::module::ModuleInfo;
 use abstract_core::objects::nested_admin::TopLevelOwnerResponse;
 use abstract_core::objects::AccountId;
 use abstract_core::PROXY;
+use abstract_integration_tests::*;
 use abstract_interface::*;
 use abstract_testing::prelude::*;
 
-use common::{create_default_account, AResult};
 use cosmwasm_std::{coin, to_json_binary, Addr, Coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
 use cw_orch::deploy::Deploy;

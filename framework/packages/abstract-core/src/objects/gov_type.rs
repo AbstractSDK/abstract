@@ -35,6 +35,8 @@ pub enum GovernanceDetails<T: AddressLike> {
         /// Governance type used for doing extra off-chain queries depending on the type.
         governance_type: String,
     },
+    /// Renounced account
+    Renounced {},
 }
 
 impl GovernanceDetails<String> {
@@ -114,19 +116,21 @@ impl GovernanceDetails<String> {
                     governance_type,
                 })
             }
+            GovernanceDetails::Renounced {} => Ok(GovernanceDetails::Renounced {}),
         }
     }
 }
 
 impl GovernanceDetails<Addr> {
     /// Get the owner address from the governance details
-    pub fn owner_address(&self) -> Addr {
+    pub fn owner_address(&self) -> Option<Addr> {
         match self {
-            GovernanceDetails::Monarchy { monarch } => monarch.clone(),
-            GovernanceDetails::SubAccount { proxy, .. } => proxy.clone(),
+            GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
+            GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
             GovernanceDetails::External {
                 governance_address, ..
-            } => governance_address.clone(),
+            } => Some(governance_address.clone()),
+            GovernanceDetails::Renounced {} => None,
         }
     }
 }
@@ -148,6 +152,7 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
                 governance_address: governance_address.into_string(),
                 governance_type,
             },
+            GovernanceDetails::Renounced {} => GovernanceDetails::Renounced {},
         }
     }
 }
@@ -160,6 +165,7 @@ impl<T: AddressLike> ToString for GovernanceDetails<T> {
             GovernanceDetails::External {
                 governance_type, ..
             } => governance_type.to_owned(),
+            GovernanceDetails::Renounced {} => "renounced".to_string(),
         }
     }
 }
