@@ -1,5 +1,4 @@
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
-use abstract_core::manager::state::Config;
 use abstract_integration_tests::{create_default_account, mock_modules, AResult};
 
 use abstract_core::manager::{InfoResponse, ModuleInstallConfig, ModuleVersionsResponse};
