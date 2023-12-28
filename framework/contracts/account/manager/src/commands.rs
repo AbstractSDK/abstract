@@ -502,7 +502,8 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
     Ok(msgs)
 }
 
-/// Update governance of this account after claim
+/// Renounce ownership of this account \
+/// **WARNING**: This will lock the account, making it unusable.
 pub(crate) fn renounce_governance(
     deps: DepsMut,
     manager_addr: Addr,
@@ -528,6 +529,7 @@ pub(crate) fn renounce_governance(
         if top_level_owner == *sender {
             *sender = proxy;
         }
+        // Unregister itself (sub-account) from the owning account. 
         msgs.push(
             wasm_execute(
                 manager,
@@ -550,6 +552,7 @@ pub(crate) fn renounce_governance(
         .namespaces;
     let namespace = namespaces.pop();
     if let Some((namespace, _)) = namespace {
+        // Remove the namespace that this account holds.
         msgs.push(
             wasm_execute(
                 vc.address,

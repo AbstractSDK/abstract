@@ -588,7 +588,7 @@ pub fn validate_account_owner(
         })?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
     let manager = account_base.manager;
-    // Check manager first, it has no owner during renounce
+    // Check manager first, manager can call this function to unregister a namespace when renouncing its ownership.
     if sender != manager {
         let account_owner = query_account_owner(&deps.querier, manager.clone(), &account_id)?;
         if sender != account_owner {

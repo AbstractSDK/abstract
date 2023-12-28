@@ -36,6 +36,7 @@ pub enum GovernanceDetails<T: AddressLike> {
         governance_type: String,
     },
     /// Renounced account
+    /// This account no longer has an owner and cannot be used.
     Renounced {},
 }
 

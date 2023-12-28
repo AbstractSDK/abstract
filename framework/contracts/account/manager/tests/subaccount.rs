@@ -499,7 +499,7 @@ fn top_level_owner() -> AResult {
 }
 
 #[test]
-fn cant_renonuce_with_sub_accounts() -> AResult {
+fn cant_renounce_with_sub_accounts() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
@@ -527,7 +527,7 @@ fn cant_renonuce_with_sub_accounts() -> AResult {
 }
 
 #[test]
-fn can_renonuce_sub_accounts() -> AResult {
+fn can_renounce_sub_accounts() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
