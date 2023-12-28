@@ -2,10 +2,7 @@ use abstract_interface::{Abstract, AbstractInterfaceError};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
-use crate::{
-    account::Account,
-    client::{AbstractClient, AbstractClientResult},
-};
+use crate::{account::Account, client::AbstractClient};
 
 pub trait Environment<Chain: CwEnv> {
     /// Get the execution environment
@@ -17,14 +14,6 @@ pub(crate) trait Infrastructure<Chain: CwEnv>: Environment<Chain> {
     fn infrastructure(&self) -> Result<Abstract<Chain>, AbstractInterfaceError> {
         let chain = self.environment();
         Abstract::load_from(chain)
-    }
-
-    /// Query the balance of an address given a denom.
-    fn balance(&self, address: &Addr, denom: Option<String>) -> AbstractClientResult<Vec<Coin>> {
-        self.environment()
-            .balance(address, denom)
-            .map_err(Into::into)
-            .map_err(Into::into)
     }
 }
 

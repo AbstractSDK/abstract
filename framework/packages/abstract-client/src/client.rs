@@ -5,7 +5,7 @@ use cw_orch::{deploy::Deploy, environment::MutCwEnv, prelude::CwEnv};
 use crate::{
     account::{Account, AccountBuilder},
     error::AbstractClientError,
-    infrastructure::{Environment, Infrastructure},
+    infrastructure::Environment,
     publisher::{Publisher, PublisherBuilder},
 };
 
@@ -67,13 +67,19 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         address: &Addr,
         denom: impl Into<String>,
     ) -> AbstractClientResult<Uint128> {
-        let coins = self.balance(address, Some(denom.into()))?;
+        let coins = self
+            .environment()
+            .balance(address, Some(denom.into()))
+            .map_err(Into::into)?;
         // There will always be a single element in this case.
         Ok(coins[0].amount)
     }
 
     pub fn query_balances(&self, address: &Addr) -> AbstractClientResult<Vec<Coin>> {
-        self.balance(address, None)
+        self.environment()
+            .balance(address, None)
+            .map_err(Into::into)
+            .map_err(Into::into)
     }
 
     pub fn wait_blocks(&self, amount: u64) -> AbstractClientResult<()> {
