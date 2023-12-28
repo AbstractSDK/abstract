@@ -161,7 +161,7 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn query_balance(&self, denom: impl Into<String>) -> AbstractClientResult<Uint128> {
         let coins = self
             .environment()
-            .balance(&self.proxy()?, Some(denom.into()))
+            .balance(self.proxy()?, Some(denom.into()))
             .map_err(Into::into)?;
 
         // There will always be a single element in this case.
@@ -170,7 +170,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     pub fn query_balances(&self) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
-            .balance(&self.proxy()?, None)
+            .balance(self.proxy()?, None)
             .map_err(Into::into)
             .map_err(Into::into)
     }
