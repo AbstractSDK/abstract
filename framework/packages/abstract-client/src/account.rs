@@ -22,7 +22,7 @@ use cw_orch::{contract::Contract, environment::MutCwEnv};
 use crate::{
     application::Application,
     client::AbstractClientResult,
-    infrastructure::{Environment, Infrastructure},
+    infrastructure::{Environment, Infrastructure}, error::AbstractClientError,
 };
 
 pub struct AccountBuilder<'a, Chain: CwEnv> {
@@ -221,7 +221,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
-    pub fn owner(&self) -> AbstractClientResult<Option<Addr>> {
+    pub fn owner(&self) -> AbstractClientResult<Addr> {
         let mut governance = self.abstr_account.manager.info()?.info.governance_details;
 
         let environment = self.environment();
@@ -243,7 +243,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
 
         // Get top level account owner address
-        Ok(governance.owner_address())
+        governance.owner_address().ok_or(AbstractClientError::RenouncedAccount{})
     }
 
     /// Executes a [`CosmosMsg`] on the proxy of the account.
