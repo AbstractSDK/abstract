@@ -3,7 +3,8 @@ use thiserror::Error;
 
 use crate::version_control::{
     state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, STANDALONE_INFOS},
-    AccountBase, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse, QueryMsg,
+    AccountBase, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
+    NamespacesResponse, QueryMsg,
 };
 
 use super::{
@@ -124,6 +125,17 @@ impl VersionControlContract {
         let namespace_response: NamespaceResponse = querier
             .query_wasm_smart(self.address.to_string(), &QueryMsg::Namespace { namespace })?;
         Ok(namespace_response)
+    }
+
+    /// Queries the namespaces owned by accounts
+    pub fn query_namespaces(
+        &self,
+        accounts: Vec<AccountId>,
+        querier: &QuerierWrapper,
+    ) -> VersionControlResult<NamespacesResponse> {
+        let namespaces_response: NamespacesResponse = querier
+            .query_wasm_smart(self.address.to_string(), &QueryMsg::Namespaces { accounts })?;
+        Ok(namespaces_response)
     }
 
     /// Queries the module info of the standalone code id

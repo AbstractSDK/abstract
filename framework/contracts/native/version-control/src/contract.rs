@@ -2,12 +2,11 @@ use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Resp
 
 use cw_semver::Version;
 
-use abstract_core::objects::namespace::Namespace;
 use abstract_core::version_control::Config;
+use abstract_core::{objects::namespace::Namespace, version_control::state::NAMESPACES_INFO};
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{
     objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
-    version_control::namespaces_info,
     version_control::{
         state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
@@ -85,7 +84,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(&admin))?;
 
     // Save the abstract namespace to the Abstract admin account
-    namespaces_info().save(
+    NAMESPACES_INFO.save(
         deps.storage,
         &Namespace::new(ABSTRACT_NAMESPACE)?,
         &ABSTRACT_ACCOUNT_ID,
@@ -197,7 +196,7 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let account_id = namespaces_info().load(
+            let account_id = NAMESPACES_INFO.load(
                 deps.as_ref().storage,
                 &Namespace::try_from(ABSTRACT_NAMESPACE)?,
             )?;

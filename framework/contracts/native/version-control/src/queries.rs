@@ -2,7 +2,10 @@ use crate::contract::VCResult;
 use crate::error::VCError;
 use abstract_core::{
     objects::module::ModuleStatus,
-    version_control::{state::PENDING_MODULES, ModuleConfiguration, NamespaceResponse},
+    version_control::{
+        state::{NAMESPACES_INFO, PENDING_MODULES},
+        ModuleConfiguration, NamespaceResponse,
+    },
 };
 use abstract_sdk::core::{
     objects::{
@@ -12,7 +15,6 @@ use abstract_sdk::core::{
         AccountId,
     },
     version_control::{
-        namespaces_info,
         state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES, YANKED_MODULES},
         AccountBaseResponse, ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse,
         NamespaceListResponse,
@@ -156,7 +158,7 @@ pub fn handle_namespaces_query(
     let mut namespaces_response = NamespaceListResponse { namespaces: vec![] };
     for account_id in accounts {
         namespaces_response.namespaces.extend(
-            namespaces_info()
+            NAMESPACES_INFO
                 .idx
                 .account_id
                 .prefix(account_id)
@@ -169,7 +171,7 @@ pub fn handle_namespaces_query(
 }
 
 pub fn handle_namespace_query(deps: Deps, namespace: Namespace) -> StdResult<NamespaceResponse> {
-    let account_id = namespaces_info().load(deps.storage, &namespace)?;
+    let account_id = NAMESPACES_INFO.load(deps.storage, &namespace)?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
 
     Ok(NamespaceResponse {
@@ -186,7 +188,7 @@ pub fn handle_namespace_list_query(
     let start_bound = start_after.as_ref().map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
-    let namespaces = namespaces_info()
+    let namespaces = NAMESPACES_INFO
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect::<StdResult<Vec<_>>>()?;

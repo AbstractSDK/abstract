@@ -452,7 +452,7 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
     let mut msgs = vec![];
     let mut acc_info = INFO.load(deps.storage)?;
     let mut account_id = None;
-    // Get pending governance and clear it
+    // Get pending governance
     let pending_governance = PENDING_GOVERNANCE
         .may_load(deps.storage)?
         .ok_or(OwnershipError::TransferNotFound)?;
@@ -497,6 +497,39 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
     // Update governance of this account
     acc_info.governance_details = pending_governance;
     INFO.save(deps.storage, &acc_info)?;
+    Ok(msgs)
+}
+
+/// Update governance of this account after claim
+pub(crate) fn renounce_governance(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>> {
+    // Check for any sub accounts
+    let sub_account = SUB_ACCOUNTS
+        .keys(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+        .next()
+        .transpose()?;
+    ensure!(
+        sub_account.is_none(),
+        ManagerError::RenounceWithSubAccount {}
+    );
+    let account_id = ACCOUNT_ID.load(deps.storage)?;
+    let config = CONFIG.load(deps.storage)?;
+    let vc = VersionControlContract::new(config.version_control_address);
+    let mut namespaces = vc
+        .query_namespaces(vec![account_id], &deps.querier)?
+        .namespaces;
+    let namespace = namespaces.pop();
+    let msgs = if let Some((namespace, _)) = namespace {
+        vec![wasm_execute(
+            vc.address,
+            &abstract_core::version_control::ExecuteMsg::RemoveNamespaces {
+                namespaces: vec![namespace.to_string()],
+            },
+            vec![],
+        )?
+        .into()]
+    } else {
+        vec![]
+    };
     Ok(msgs)
 }
 

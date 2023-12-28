@@ -5,6 +5,7 @@ use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
 use abstract_core::PROXY;
 
 use abstract_interface::*;
+use abstract_manager::error::ManagerError;
 use abstract_testing::OWNER;
 use common::*;
 use cosmwasm_std::{to_json_binary, wasm_execute, Addr};
@@ -496,5 +497,69 @@ fn top_level_owner() -> AResult {
 
     let top_level_owner = sub_account.manager.top_level_owner()?;
     assert_eq!(top_level_owner.address, sender);
+    Ok(())
+}
+
+#[test]
+fn renounce_cleans_namespace() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let account = deployment.account_factory.create_new_account(
+        AccountDetails {
+            name: "foo".to_string(),
+            description: None,
+            link: None,
+            namespace: Some("bar".to_owned()),
+            base_asset: None,
+            install_modules: vec![],
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+
+    let namespaces1 = deployment.version_control.namespace_list(None, None)?;
+
+    account
+        .manager
+        .update_ownership(cw_ownable::Action::RenounceOwnership)?;
+
+    let namespaces2 = deployment.version_control.namespace_list(None, None)?;
+    // Check that one namespace bar got removed
+    assert_eq!(
+        namespaces1.namespaces.len() - namespaces2.namespaces.len(),
+        1
+    );
+    Ok(())
+}
+
+#[test]
+fn cant_renonuce_with_sub_accounts() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let account = create_default_account(&deployment.account_factory)?;
+    // Creating sub account
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+        &[],
+    )?;
+
+    let err: ManagerError = account
+        .manager
+        .update_ownership(cw_ownable::Action::RenounceOwnership)
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(err, ManagerError::RenounceWithSubAccount {});
     Ok(())
 }

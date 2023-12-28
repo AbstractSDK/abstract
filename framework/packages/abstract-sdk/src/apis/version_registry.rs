@@ -10,8 +10,9 @@ use abstract_core::{
         module_reference::ModuleReference,
         namespace::Namespace,
         version_control::VersionControlContract,
+        AccountId,
     },
-    version_control::{ModuleConfiguration, ModuleResponse, NamespaceResponse},
+    version_control::{ModuleConfiguration, ModuleResponse, NamespaceResponse, NamespacesResponse},
 };
 use cosmwasm_std::Deps;
 
@@ -121,6 +122,16 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     pub fn query_namespace(&self, namespace: Namespace) -> AbstractSdkResult<NamespaceResponse> {
         self.vc
             .query_namespace(namespace, &self.deps.querier)
+            .map_err(|error| self.wrap_query_error(error))
+    }
+
+    /// Queries the namespaces owned by accounts
+    pub fn query_namespaces(
+        &self,
+        accounts: Vec<AccountId>,
+    ) -> AbstractSdkResult<NamespacesResponse> {
+        self.vc
+            .query_namespaces(accounts, &self.deps.querier)
             .map_err(|error| self.wrap_query_error(error))
     }
 

@@ -105,4 +105,7 @@ pub enum ManagerError {
 
     #[error("Register of sub account failed")]
     SubAccountRegisterFailed {},
+
+    #[error("Can't renounce account, with active sub account")]
+    RenounceWithSubAccount {},
 }
