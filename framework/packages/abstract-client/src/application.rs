@@ -1,7 +1,8 @@
 use std::ops::Deref;
 use std::ops::DerefMut;
 
-use abstract_core::manager::ManagerModuleInfo;
+use abstract_core::manager::ModuleAddressesResponse;
+use abstract_interface::ManagerQueryFns;
 use abstract_interface::RegisteredModule;
 use cw_orch::contract::Contract;
 use cw_orch::prelude::*;
@@ -45,12 +46,11 @@ impl<Chain: CwEnv, M> Application<Chain, M> {
     /// module of type `M`.
     pub fn module<T: RegisteredModule + From<Contract<Chain>>>(&self) -> AbstractClientResult<T> {
         let module_id = T::module_id();
-        let module_info: Option<ManagerModuleInfo> =
-            self.account.abstr_account.manager.module_info(module_id)?;
-        if let Some(module_info) = module_info {
+        let maybe_module_addr: Result<ModuleAddressesResponse,_> =
+            self.account.abstr_account.manager.module_addresses(vec![module_id.to_string()]);
+        if let Ok(module_info) = maybe_module_addr {
             let contract = Contract::new(module_id.to_owned(), self.account.environment())
-                .with_address(Some(&module_info.address));
-
+                .with_address(Some(&module_info.modules[0].1));
             let module: T = contract.into();
             Ok(module)
         } else {
