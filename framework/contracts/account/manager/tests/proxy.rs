@@ -2,7 +2,7 @@ use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_core::manager::state::Config;
 use abstract_integration_tests::{create_default_account, mock_modules, AResult};
 
-use abstract_core::manager::{ModuleInstallConfig, ModuleVersionsResponse, InfoResponse};
+use abstract_core::manager::{InfoResponse, ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
@@ -397,7 +397,10 @@ fn renounce_cleans_namespace() -> AResult {
 
     // Governance is in fact renounced
     let acc_cfg: InfoResponse = account.manager.info()?;
-    assert_eq!(acc_cfg.info.governance_details, GovernanceDetails::Renounced {});
+    assert_eq!(
+        acc_cfg.info.governance_details,
+        GovernanceDetails::Renounced {}
+    );
 
     let account_owner = account.manager.ownership()?;
     assert!(account_owner.owner.is_none());

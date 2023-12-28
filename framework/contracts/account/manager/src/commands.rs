@@ -529,7 +529,7 @@ pub(crate) fn renounce_governance(
         if top_level_owner == *sender {
             *sender = proxy;
         }
-        // Unregister itself (sub-account) from the owning account. 
+        // Unregister itself (sub-account) from the owning account.
         msgs.push(
             wasm_execute(
                 manager,
