@@ -48,10 +48,13 @@ format_check() {
     just cargo-all fmt --all;
     find . -type f -iname "*.toml" -print0 | xargs -0 taplo format;
     # cargo workspaces exec --no-bail cargo schema >/dev/null;
-    sleep 3; # Give git time to find changed files.
-    git add .
-    git commit -m "formatting [skip ci]"
-    exit $?
+    sleep 1; # Give git time to find changed files.
+    not_staged_files=$(git diff --name-only)
+    if [ -n "$not_staged_files" ]; then
+      git add .
+      git commit -m "formatting [skip ci]"
+      exit $?
+    fi
   fi
 }
 
