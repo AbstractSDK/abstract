@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Namespace registration fee fixed
 - Version Control smart query now returns Version Control config instead of factory address
+- Sub accounts now unregister themselves on owning manager if renounced
 
 ## [0.19.0] - 2023-09-26
 
