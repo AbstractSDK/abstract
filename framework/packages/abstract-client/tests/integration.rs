@@ -5,9 +5,9 @@ use abstract_app::mock::{
 use abstract_client::{
     account::Account,
     application::Application,
-    client::test_utils::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
     client::AbstractClient,
     publisher::Publisher,
+    test_utils::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
 };
 use abstract_core::{
     manager::{
@@ -23,7 +23,7 @@ use abstract_testing::{
     },
     OWNER,
 };
-use cosmwasm_std::{coins, Addr, BankMsg, Empty, Uint128};
+use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::{CallAs, Mock};
 use cw_ownable::Ownership;
@@ -472,6 +472,25 @@ fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
 }
 
 #[test]
+fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(OWNER).build()?;
+    let account = client.account_builder().build()?;
+
+    let coin1 = Coin::new(50, "denom1");
+    let coin2 = Coin::new(20, "denom2");
+    let coin3 = Coin::new(10, "denom3");
+    account.set_balance(vec![coin1.clone(), coin2.clone()])?;
+    account.add_balance(vec![coin3.clone()])?;
+
+    assert_eq!(coin1.amount, account.query_balance("denom1")?);
+    assert_eq!(coin2.amount, account.query_balance("denom2")?);
+    assert_eq!(coin3.amount, account.query_balance("denom3")?);
+    assert_eq!(Uint128::zero(), account.query_balance("denom4")?);
+
+    assert_eq!(vec![coin1, coin2, coin3], account.query_balances()?);
+    Ok(())
+}
+#[test]
 fn can_get_module_dependency() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
@@ -493,10 +512,28 @@ fn can_get_module_dependency() -> anyhow::Result<()> {
 
     let dependency: MockAppDependencyInterface<Mock> = my_app.module()?;
     dependency.do_something()?;
-
     Ok(())
 }
 
+#[test]
+fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(OWNER).build()?;
+
+    let user = Addr::unchecked("user");
+    let coin1 = Coin::new(50, "denom1");
+    let coin2 = Coin::new(20, "denom2");
+    let coin3 = Coin::new(10, "denom3");
+    client.set_balance(&user, vec![coin1.clone(), coin2.clone()])?;
+    client.add_balance(&user, vec![coin3.clone()])?;
+
+    assert_eq!(coin1.amount, client.query_balance(&user, "denom1")?);
+    assert_eq!(coin2.amount, client.query_balance(&user, "denom2")?);
+    assert_eq!(coin3.amount, client.query_balance(&user, "denom3")?);
+    assert_eq!(Uint128::zero(), client.query_balance(&user, "denom4")?);
+
+    assert_eq!(vec![coin1, coin2, coin3], client.query_balances(&user)?);
+    Ok(())
+}
 #[test]
 fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
