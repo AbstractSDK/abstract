@@ -165,7 +165,7 @@
               "null"
             ],
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "msg": {
             "description": "Supported CosmosMsgs only!",
@@ -681,7 +681,7 @@
                   "proposal_id": {
                     "type": "integer",
                     "format": "uint64",
-                    "minimum": 0.0
+                    "minimum": 0
                   },
                   "vote": {
                     "description": "The vote option.\n\nThis should be called \"option\" for consistency with Cosmos SDK. Sorry for that. See <https://github.com/CosmWasm/cosmwasm/issues/1571>.",
@@ -719,7 +719,7 @@
                   "proposal_id": {
                     "type": "integer",
                     "format": "uint64",
-                    "minimum": 0.0
+                    "minimum": 0
                   }
                 }
               }
@@ -871,13 +871,13 @@
             "description": "block height after which the packet times out. the height within the given revision",
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "revision": {
             "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         }
       },
@@ -908,7 +908,7 @@
               "block": {
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -1103,7 +1103,7 @@
             "description": "Action index to update first action would be \"0\"",
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "action_path": {
             "description": "Action key path to the value that should get replaced for example: X: {Y: {Z: value}} \\[X,Y,Z\\] to reach that value",
@@ -1117,7 +1117,7 @@
             "description": "Query index of the new data for this action first query would be \"0\"",
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "query_response_path": {
             "description": "Query response key's path to the value that needs to be taken to replace value from the above for example query gave that response: A: {B: {C: value}} In order to reach a value \\[A,B,C\\] should be used as input",
@@ -1161,7 +1161,7 @@
               "index": {
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -1242,7 +1242,7 @@
                   "code_id": {
                     "type": "integer",
                     "format": "uint64",
-                    "minimum": 0.0
+                    "minimum": 0
                   },
                   "funds": {
                     "type": "array",
@@ -1293,7 +1293,7 @@
                   "code_id": {
                     "type": "integer",
                     "format": "uint64",
-                    "minimum": 0.0
+                    "minimum": 0
                   },
                   "funds": {
                     "type": "array",
@@ -1351,7 +1351,7 @@
                     "description": "the code_id of the new logic to place in the given contract",
                     "type": "integer",
                     "format": "uint64",
-                    "minimum": 0.0
+                    "minimum": 0
                   }
                 }
               }
@@ -1505,7 +1505,7 @@
                   "code_id": {
                     "type": "integer",
                     "format": "uint64",
-                    "minimum": 0.0
+                    "minimum": 0
                   }
                 }
               }
@@ -1574,7 +1574,7 @@
                   "null"
                 ],
                 "format": "uint32",
-                "minimum": 0.0
+                "minimum": 0
               },
               "start_after": {
                 "description": "The addr and task tag to start listing after.",
@@ -1630,7 +1630,7 @@
                   "null"
                 ],
                 "format": "uint32",
-                "minimum": 0.0
+                "minimum": 0
               },
               "start_after": {
                 "description": "The task tag to start listing after.",
@@ -2063,7 +2063,7 @@
                 "null"
               ],
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             },
             "msg": {
               "description": "Supported CosmosMsgs only!",
@@ -2093,7 +2093,7 @@
             "agent_fee": {
               "type": "integer",
               "format": "uint16",
-              "minimum": 0.0
+              "minimum": 0
             },
             "coin": {
               "type": "array",
@@ -2123,7 +2123,7 @@
             "gas": {
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             },
             "gas_price": {
               "$ref": "#/definitions/GasPrice"
@@ -2131,7 +2131,7 @@
             "treasury_fee": {
               "type": "integer",
               "format": "uint16",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false
@@ -2569,17 +2569,17 @@
               "description": "Denominator is shared",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             },
             "gas_adjustment_numerator": {
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             },
             "numerator": {
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false
@@ -2604,7 +2604,7 @@
                     "proposal_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     },
                     "vote": {
                       "description": "The vote option.\n\nThis should be called \"option\" for consistency with Cosmos SDK. Sorry for that. See <https://github.com/CosmWasm/cosmwasm/issues/1571>.",
@@ -2642,7 +2642,7 @@
                     "proposal_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     }
                   }
                 }
@@ -2794,13 +2794,13 @@
               "description": "block height after which the packet times out. the height within the given revision",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             },
             "revision": {
               "description": "the version that the client is currently on (e.g. after resetting the chain this could increment 1 as height drops to 0)",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             }
           }
         },
@@ -2831,7 +2831,7 @@
                 "block": {
                   "type": "integer",
                   "format": "uint64",
-                  "minimum": 0.0
+                  "minimum": 0
                 }
               },
               "additionalProperties": false
@@ -3022,7 +3022,7 @@
               "description": "Action index to update first action would be \"0\"",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             },
             "action_path": {
               "description": "Action key path to the value that should get replaced for example: X: {Y: {Z: value}} \\[X,Y,Z\\] to reach that value",
@@ -3036,7 +3036,7 @@
               "description": "Query index of the new data for this action first query would be \"0\"",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             },
             "query_response_path": {
               "description": "Query response key's path to the value that needs to be taken to replace value from the above for example query gave that response: A: {B: {C: value}} In order to reach a value \\[A,B,C\\] should be used as input",
@@ -3080,7 +3080,7 @@
                 "index": {
                   "type": "integer",
                   "format": "uint64",
-                  "minimum": 0.0
+                  "minimum": 0
                 }
               },
               "additionalProperties": false
@@ -3161,7 +3161,7 @@
                     "code_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     },
                     "funds": {
                       "type": "array",
@@ -3212,7 +3212,7 @@
                     "code_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     },
                     "funds": {
                       "type": "array",
@@ -3270,7 +3270,7 @@
                       "description": "the code_id of the new logic to place in the given contract",
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     }
                   }
                 }
@@ -3424,7 +3424,7 @@
                     "code_id": {
                       "type": "integer",
                       "format": "uint64",
-                      "minimum": 0.0
+                      "minimum": 0
                     }
                   }
                 }
