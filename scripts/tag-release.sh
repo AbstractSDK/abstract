@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Check if a tag name is provided
 if [ "$#" -ne 1 ]; then
@@ -7,6 +7,15 @@ if [ "$#" -ne 1 ]; then
 fi
 
 TAG_NAME=$1
+
+# Function to check OS type for sed command compatibility
+function sed_in_place() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
 
 # Function to restore the original state in case of an error
 function restore_state {
@@ -20,7 +29,7 @@ function restore_state {
 git stash
 
 # Removing **/Cargo.lock from .gitignore
-sed -i '/\*\*\/Cargo.lock/d' .gitignore
+sed_in_place '/\*\*\/Cargo.lock/d' .gitignore
 
 # Adding Cargo.lock files and committing
 git add $(find . -name Cargo.lock) .gitignore
