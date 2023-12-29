@@ -4,4 +4,3 @@ git-fetch-with-cli = true
 [alias]
 # Migration tests
 mt = "test -- --test-threads=1"
-
