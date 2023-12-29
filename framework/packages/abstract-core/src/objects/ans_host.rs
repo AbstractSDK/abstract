@@ -1,4 +1,6 @@
-use super::{AssetEntry, ChannelEntry, ContractEntry};
+use std::any::type_name;
+
+use super::{AssetEntry, ChannelEntry, ContractEntry, PoolType};
 use crate::{
     ans_host::{
         state::{
@@ -9,7 +11,7 @@ use crate::{
     },
     objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId},
 };
-use cosmwasm_std::{Addr, QuerierWrapper};
+use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 use cw_asset::AssetInfo;
 use thiserror::Error;
 
@@ -50,6 +52,10 @@ pub enum AnsHostError {
     // pool metadata not found
     #[error("Pool metadata for pool {pool} not found in ans_host {ans_host}.")]
     PoolMetadataNotFound { pool: UniquePoolId, ans_host: Addr },
+
+    // Unknown pool type
+    #[error("Unknown pool type for pool {pool}, error: {msg}, please update your contract.")]
+    UnknownPoolType { pool: UniquePoolId, msg: String },
 }
 
 pub type AnsHostResult<T> = Result<T, AnsHostError>;
@@ -195,7 +201,15 @@ impl AnsHost {
         pool_id: UniquePoolId,
     ) -> AnsHostResult<PoolMetadata> {
         let result: PoolMetadata = POOL_METADATA
-            .query(querier, self.address.clone(), pool_id)?
+            .query(querier, self.address.clone(), pool_id)
+            .map_err(|e| match e {
+                StdError::ParseErr { target_type, msg }
+                    if target_type == type_name::<PoolType>() =>
+                {
+                    AnsHostError::UnknownPoolType { pool: pool_id, msg }
+                }
+                _ => AnsHostError::StdError(e),
+            })?
             .ok_or_else(|| AnsHostError::PoolMetadataNotFound {
                 pool: pool_id,
                 ans_host: self.address.clone(),
