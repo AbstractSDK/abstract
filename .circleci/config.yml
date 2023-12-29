@@ -124,11 +124,10 @@ jobs:
             # Check for wasm changes
             git add framework/artifacts --force
             git add modules/artifacts --force
-            git commit -m 'Update WASM binaries [skip ci]'  || true
-            git push origin $CIRCLE_BRANCH || true
             # Check for schema changes
             git add schema --force
-            git commit -m 'Update Schemas [skip ci]' || true
+            git commit -m 'Update WASM & Schemas [skip ci]' || true
+            git push origin $CIRCLE_BRANCH || true
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
