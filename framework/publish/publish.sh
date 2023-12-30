@@ -96,4 +96,4 @@ for pack in $STANDARDS; do
 done
 
 VERSION=$(grep -A1 "\[workspace.package\]" Cargo.toml | awk -F'"' '/version/ {print $2}');
-sh ./tag-release.sh "$VERSION"
+sh ./publish/tag-release.sh "$VERSION"

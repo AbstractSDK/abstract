@@ -30,8 +30,7 @@ check-codecov:
 
 # Publish crates
 publish:
-  cd ./publish
-  ./publish.sh
+  publish/publish.sh
 
 watch:
   cargo watch -x lcheck
