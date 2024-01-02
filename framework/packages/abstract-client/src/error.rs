@@ -1,4 +1,4 @@
-use abstract_core::AbstractError;
+use abstract_core::{objects::validation::ValidationError, AbstractError};
 use abstract_interface::AbstractInterfaceError;
 use cosmwasm_std::StdError;
 use thiserror::Error;
@@ -19,6 +19,9 @@ pub enum AbstractClientError {
 
     #[error("{0}")]
     Semver(#[from] semver::Error),
+
+    #[error("{0}")]
+    VerificationError(#[from] ValidationError),
 
     #[error("Module not installed")]
     ModuleNotInstalled {},

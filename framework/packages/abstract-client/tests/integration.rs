@@ -34,7 +34,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
 
     let account: Account<Mock> = client.account_builder().build()?;
 
-    let account_info = account.get_account_info()?;
+    let account_info = account.info()?;
     assert_eq!(
         AccountInfo {
             name: String::from("Default Abstract Account"),
@@ -87,7 +87,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         .base_asset(base_asset)
         .build()?;
 
-    let account_info = account.get_account_info()?;
+    let account_info = account.info()?;
     assert_eq!(
         AccountInfo {
             name: String::from(name),
@@ -116,11 +116,11 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
     let namespace = "namespace";
     let account: Account<Mock> = client.account_builder().namespace(namespace).build()?;
 
-    let account_from_namespace: Account<Mock> = client.get_account_from_namespace(namespace)?;
+    let account_from_namespace: Account<Mock> = client.account_from_namespace(namespace)?;
 
     assert_eq!(
-        account.get_account_info()?,
-        account_from_namespace.get_account_info()?
+        account.info()?,
+        account_from_namespace.info()?
     );
 
     Ok(())
@@ -132,7 +132,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
 
     let publisher: Publisher<Mock> = client.publisher_builder().build()?;
 
-    let account_info = publisher.account().get_account_info()?;
+    let account_info = publisher.account().info()?;
     assert_eq!(
         AccountInfo {
             name: String::from("Default Abstract Account"),
@@ -174,7 +174,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
         .base_asset(base_asset)
         .build()?;
 
-    let account_info = publisher.account().get_account_info()?;
+    let account_info = publisher.account().info()?;
     assert_eq!(
         AccountInfo {
             name: String::from(name),
@@ -204,11 +204,11 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let publisher: Publisher<Mock> = client.publisher_builder().namespace(namespace).build()?;
 
     let publisher_from_namespace: Publisher<Mock> =
-        client.get_publisher_from_namespace(namespace)?;
+        client.publisher_from_namespace(namespace)?;
 
     assert_eq!(
-        publisher.account().get_account_info()?,
-        publisher_from_namespace.account().get_account_info()?
+        publisher.account().info()?,
+        publisher_from_namespace.account().info()?
     );
 
     Ok(())
@@ -237,7 +237,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     assert_eq!(MockQueryResponse {}, something);
 
-    let sub_account_details = my_app.account().get_account_info()?;
+    let sub_account_details = my_app.account().info()?;
     assert_eq!(
         AccountInfo {
             name: String::from("Sub Account"),
@@ -285,7 +285,7 @@ fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<
         .fetch_if_namespace_claimed(true)
         .build()?;
 
-    assert_eq!(account1.get_account_info()?, account2.get_account_info()?);
+    assert_eq!(account1.info()?, account2.info()?);
 
     Ok(())
 }
