@@ -1,3 +1,4 @@
+use abstract_interface::ManagerQueryFns;
 use abstract_interface::{Abstract, AnsHost, VersionControl};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
 use cw_orch::{deploy::Deploy, environment::MutCwEnv, prelude::CwEnv};
@@ -117,5 +118,58 @@ impl<Chain: MutCwEnv> AbstractClient<Chain> {
             .add_balance(address, amount)
             .map_err(Into::into)
             .map_err(Into::into)
+    }
+}
+
+pub mod daemon {
+    use abstract_core::{objects::AccountId, MANAGER};
+    use abstract_interface::{AbstractAccount};
+    use cw_orch::{
+        daemon::Daemon,
+        environment::TxHandler as _,
+        state::{ChainState, StateInterface},
+    };
+
+    use super::*;
+
+    impl AbstractClient<Daemon> {
+        /// Retrieve the last account created by the client.
+        /// Returns `None` if no account has been created yet.
+        pub fn get_last_account(&self) -> AbstractClientResult<Option<Account<Daemon>>> {
+            let addresses = self.environment().state().get_all_addresses()?;
+
+            // Now search for all the keys that start with "abstract:manager-x" and return the one which has the highest x.
+            let mut last_account: Option<(u32, Account<Daemon>)> = None;
+            for (id, _) in addresses {
+                if !id.starts_with(MANAGER) {
+                    continue;
+                }
+
+                let account_id_str = id.rsplitn(2, '-').next().unwrap();
+                let account_id = AccountId::try_from(account_id_str)?;
+
+                // Only take local accounts into account.
+                if account_id.is_remote() {
+                    continue;
+                }
+
+                // only take accounts that the current sender owns
+                let account = AbstractAccount::new(&self.abstr, account_id.clone());
+                if account.manager.ownership()?.owner
+                    != Some(self.environment().sender().to_string())
+                {
+                    continue;
+                }
+
+                if let Some((last_account_id, _)) = last_account {
+                    if account_id.seq() > last_account_id {
+                        last_account = Some((account_id.seq(), Account::new(account)));
+                    }
+                } else {
+                    last_account = Some((account_id.seq(), Account::new(account)));
+                }
+            }
+            Ok(last_account.map(|(_, account)| account))
+        }
     }
 }
