@@ -14,21 +14,21 @@
     - [Abstract SDK](./3_framework/1_abstract_sdk.md)
 - [Account Ownership](./3_framework/4_ownership.md)
 - [Interchain Abstract Accounts](./3_framework/8_ibc.md)
+- [Oracle](./5_platform/7_oracle.md)
+- [Monetization](./5_platform/6_monetization.md)
+- [Account Console](./5_platform/4_account_console.md)
+- [Abstract Name Service](./5_platform/1_ans.md)
 
-- [Framework Components](./5_platform/index.md)
-    - [Abstract Name Service](./5_platform/1_ans.md)
+- [Contracts](./5_platform/index.md)
     - [Version Control](./5_platform/2_version_control.md)
     - [Account Factory](./5_platform/3_account_factory.md)
     - [Module Factory](./5_platform/5_module_factory.md)
-    - [Oracle](./5_platform/7_oracle.md)
-    - [Monetization](./5_platform/6_monetization.md)
-    - [Account Console](./5_platform/4_account_console.md)
 
-- [Abstract Products](1_products/index.md)
+- [Tools and Libraries](1_products/index.md)
   - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)
   - [Abstract-JS](./1_products/4_abstract_js.md)
   - [Abstract App Template](./1_products/2_abstract_app_template.md)
-  - [Abstract Testing](./1_products/3_abstract_testing.md)
+  <!-- - [Abstract Testing](./1_products/3_abstract_testing.md) -->
 
 - [Application Design Space](./2_introduction/1_design_space.md)
   

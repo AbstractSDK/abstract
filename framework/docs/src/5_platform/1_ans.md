@@ -1,8 +1,6 @@
 # Abstract Name Service
 
-The Abstract Name Service (or ANS in short) is an on-chain store of the most important address space related data of the
-blockchain it is deployed on. It allows for chain-agnostic action execution and dynamic address resolution.
-These features enable both users and developers to engage with the blockchain in a more intuitive manner.
+The Abstract Name Service (or ANS in short) is an on-chain data store of the most important address space related data of the blockchain it is deployed on. It allows for chain-agnostic action execution and dynamic address resolution. These features enable both users and developers to engage with the blockchain in a more intuitive manner.
 
 ## ANS Architecture
 
@@ -32,8 +30,8 @@ The information provided by the ANS is great to have. However, directly calling 
 make your code messy and significantly raise gas usage. For this reason, we offer three methods to efficiently and
 dependably execute low-gas queries on the ANS contract.
 
-> Resolving your asset/contract name to its matching value is much like resolving a domain name like abstract.money to
-> its IP address (172.67.163.181).
+> Resolving your asset/contract name to its matching value is much like resolving a domain name like `abstract.money` to
+> its IP address (`172.67.163.181`).
 
 There are three ways to resolve your entry into its matching value.
 
@@ -43,7 +41,7 @@ Both App and Adapter objects implement the `AbstractNameService` trait which all
 
 ```rust,ignore
 let juno_name = AssetEntry::new("juno");
-let juno_asset_info = module.name_service(deps).query(&juno_name)?;
+let juno_asset_info = my_app.name_service(deps).query(&juno_name)?;
 ```
 
 ### `Resolve` Trait
@@ -52,7 +50,7 @@ Entries that are resolvable by the Abstract Name Service implement the `Resolve`
 be resolved by ANS explicitly.
 
 ```rust,ignore
-let ans_host = module.ans_host(deps)?;
+let ans_host = my_app.ans_host(deps)?;
 let juno_name = AssetEntry::new("juno");
 let juno_asset_info = juno_name.resolve(&deps.querier, &ans_host)?;
 ```

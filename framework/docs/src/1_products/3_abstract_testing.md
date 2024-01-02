@@ -1,3 +1,6 @@
+
+[//]: # (TODO: Re-introduce when this becomes relevant.)
+
 # Abstract-Testing
 
 The `abstract-testing` package is Abstract framework's testing utility, focusing on mocking and querying
@@ -16,7 +19,7 @@ framework's functionalities, and facilitating robust unit testing.
 
 ## Usage
 
-Add the `abstract-testnet` dependency to your Cargo.toml file:
+Add the `abstract-testing` dependency to your Cargo.toml file:
 
 ```toml
 [dependencies]

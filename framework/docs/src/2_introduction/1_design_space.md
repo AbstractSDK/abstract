@@ -1,16 +1,9 @@
-# Expanding The Smart Contract Design Space
-
-If you are well-versed with smart contracts, you will find that the Abstract SDK is a tool that gives you more leverage.
-Enabling you to get things done faster and better. It does this by giving you an extensive design space that transcends
-traditional smart contract capabilities, introducing superior code reusability and an unmatched software distribution
-process.
-
-## Designing with Abstract
+# The Abstract App Design Space
 
 The Abstract SDK broadens your design space beyond traditional smart contract application architectures. While
 applications built with stand-alone smart contracts can also be crafted using the SDK, the Abstract SDK promotes a level
 of code reusability that goes beyond stand-alone smart contract development. It is through this code reusability that
-novel applications can be constructed with little effort in record time.
+novel applications can be constructed with little effort in a short time.
 
 ## Design Spaces Explained
 
