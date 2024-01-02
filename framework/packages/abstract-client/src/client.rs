@@ -123,7 +123,7 @@ impl<Chain: MutCwEnv> AbstractClient<Chain> {
 
 pub mod daemon {
     use abstract_core::{objects::AccountId, MANAGER};
-    use abstract_interface::{AbstractAccount};
+    use abstract_interface::AbstractAccount;
     use cw_orch::{
         daemon::Daemon,
         environment::TxHandler as _,
