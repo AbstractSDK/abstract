@@ -137,21 +137,13 @@ pub mod daemon {
         /// Returns `None` if no account has been created yet.
         pub fn get_last_account(&self) -> AbstractClientResult<Option<Account<Daemon>>> {
             let addresses = self.environment().state().get_all_addresses()?;
-
             // Now search for all the keys that start with "abstract:manager-x" and return the one which has the highest x.
             let mut last_account: Option<(u32, Account<Daemon>)> = None;
             for (id, _) in addresses {
-                if !id.starts_with(MANAGER) {
-                    continue;
-                }
 
-                let account_id_str = id.rsplitn(2, '-').next().unwrap();
-                let account_id = AccountId::try_from(account_id_str)?;
-
-                // Only take local accounts into account.
-                if account_id.is_remote() {
+                let Some(account_id ) = is_local_manager(&id)? else {
                     continue;
-                }
+                };
 
                 // only take accounts that the current sender owns
                 let account = AbstractAccount::new(&self.abstr, account_id.clone());
@@ -169,7 +161,46 @@ pub mod daemon {
                     last_account = Some((account_id.seq(), Account::new(account)));
                 }
             }
-            Ok(last_account.map(|(_, account)| account))
+        Ok(last_account.map(|(_, account)| account))
         }
+    }
+
+    fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountId>> {
+        if !id.starts_with(MANAGER) {
+            return Ok(None)
+        }
+
+        let account_id_str = id.rsplitn(2, '-').next().unwrap();
+        let account_id = AccountId::try_from(account_id_str)?;
+
+        // Only take local accounts into account.
+        if account_id.is_remote() {
+            return Ok(None)
+        }
+
+        Ok(Some(account_id))
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use super::*;
+
+
+    #[test]
+    fn no_newest_owned_account() {
+        let addresses: HashMap<Addr, String> = vec![
+            ("abstract:manager-1".to_string(), "addr1".to_string()),
+            ("abstract:manager-2".to_string(), "addr2".to_string()),
+            ("abstract:manager-3".to_string(), "addr3".to_string()),
+        ]
+        .into_iter()
+        .collect();
+
+        let result = super::search_newest_owned_account(&"addr4".to_string(), &addresses, &super::Abstract::load_from(super::Daemon::default()).unwrap());
+        assert!(result.unwrap().is_none());
     }
 }
