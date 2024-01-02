@@ -140,8 +140,7 @@ pub mod daemon {
             // Now search for all the keys that start with "abstract:manager-x" and return the one which has the highest x.
             let mut last_account: Option<(u32, Account<Daemon>)> = None;
             for (id, _) in addresses {
-
-                let Some(account_id ) = is_local_manager(&id)? else {
+                let Some(account_id) = is_local_manager(&id)? else {
                     continue;
                 };
 
@@ -161,13 +160,13 @@ pub mod daemon {
                     last_account = Some((account_id.seq(), Account::new(account)));
                 }
             }
-        Ok(last_account.map(|(_, account)| account))
+            Ok(last_account.map(|(_, account)| account))
         }
     }
 
     fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountId>> {
         if !id.starts_with(MANAGER) {
-            return Ok(None)
+            return Ok(None);
         }
 
         let account_id_str = id.rsplitn(2, '-').next().unwrap();
@@ -175,20 +174,18 @@ pub mod daemon {
 
         // Only take local accounts into account.
         if account_id.is_remote() {
-            return Ok(None)
+            return Ok(None);
         }
 
         Ok(Some(account_id))
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
 
     use super::*;
-
 
     #[test]
     fn no_newest_owned_account() {
@@ -200,7 +197,11 @@ mod tests {
         .into_iter()
         .collect();
 
-        let result = super::search_newest_owned_account(&"addr4".to_string(), &addresses, &super::Abstract::load_from(super::Daemon::default()).unwrap());
+        let result = super::search_newest_owned_account(
+            &"addr4".to_string(),
+            &addresses,
+            &super::Abstract::load_from(super::Daemon::default()).unwrap(),
+        );
         assert!(result.unwrap().is_none());
     }
 }
