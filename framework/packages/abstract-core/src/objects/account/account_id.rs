@@ -76,6 +76,43 @@ impl AccountId {
     }
 }
 
+impl TryFrom<&str> for AccountId {
+    type Error = AbstractError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let mut val_iter = value.rsplitn(2, '-');
+        let seq: u32 = val_iter
+            .next()
+            .ok_or(AbstractError::FormattingError {
+                object: "AccountId".into(),
+                expected: "trace-999".into(),
+                actual: value.into(),
+            })?
+            .parse()
+            .unwrap();
+        if value.starts_with(super::account_trace::LOCAL) {
+            Ok(AccountId {
+                trace: AccountTrace::Local,
+                seq,
+            })
+        } else {
+            Ok(AccountId {
+                trace: AccountTrace::from_string(
+                    val_iter
+                        .next()
+                        .ok_or(AbstractError::FormattingError {
+                            object: "AccountId".into(),
+                            expected: "trace-999".into(),
+                            actual: value.into(),
+                        })?
+                        .into(),
+                ),
+                seq,
+            })
+        }
+    }
+}
+
 impl<'a> PrimaryKey<'a> for AccountId {
     type Prefix = AccountTrace;
 
@@ -279,6 +316,45 @@ mod test {
             map.save(deps.as_mut().storage, &key, &value).unwrap();
 
             assert_eq!(value, map.load(deps.as_ref().storage, &key).unwrap());
+        }
+    }
+
+    mod try_from {
+        // test that the try_from implementation works
+        use super::*;
+
+        #[test]
+        fn works_with_local() {
+            let account_id = AccountId::try_from("local-1").unwrap();
+            assert_eq!(account_id.seq, 1);
+            assert_eq!(account_id.trace, AccountTrace::Local);
+        }
+
+        #[test]
+        fn works_with_remote() {
+            let account_id = AccountId::try_from("ethereum>bitcoin-1").unwrap();
+            assert_eq!(account_id.seq, 1);
+            assert_eq!(
+                account_id.trace,
+                AccountTrace::Remote(vec![
+                    ChainName::_from_str("ethereum"),
+                    ChainName::_from_str("bitcoin"),
+                ])
+            );
+        }
+
+        #[test]
+        fn works_with_remote_with_multiple_chains() {
+            let account_id = AccountId::try_from("ethereum>bitcoin>cosmos-1").unwrap();
+            assert_eq!(account_id.seq, 1);
+            assert_eq!(
+                account_id.trace,
+                AccountTrace::Remote(vec![
+                    ChainName::_from_str("ethereum"),
+                    ChainName::_from_str("bitcoin"),
+                    ChainName::_from_str("cosmos"),
+                ])
+            );
         }
     }
 }
