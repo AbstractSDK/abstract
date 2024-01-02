@@ -169,7 +169,7 @@
                   "null"
                 ],
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "limit": {
                 "type": [
@@ -177,7 +177,7 @@
                   "null"
                 ],
                 "format": "uint32",
-                "minimum": 0.0
+                "minimum": 0
               },
               "start_after": {
                 "anyOf": [
@@ -223,7 +223,7 @@
                   "null"
                 ],
                 "format": "uint32",
-                "minimum": 0.0
+                "minimum": 0
               },
               "start_after": {
                 "type": [
@@ -324,7 +324,7 @@
             "count": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false
@@ -342,7 +342,7 @@
         "count": {
           "type": "integer",
           "format": "uint32",
-          "minimum": 0.0
+          "minimum": 0
         }
       },
       "additionalProperties": false
@@ -363,7 +363,7 @@
         "tip_count": {
           "type": "integer",
           "format": "uint32",
-          "minimum": 0.0
+          "minimum": 0
         },
         "total_amounts": {
           "type": "array",

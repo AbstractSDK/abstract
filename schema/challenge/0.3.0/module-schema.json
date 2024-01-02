@@ -169,7 +169,7 @@
                 "description": "Id of the challenge to update",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -194,7 +194,7 @@
                 "description": "Challenge Id to cancel",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -221,7 +221,7 @@
                 "description": "Id of the challenge to update",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "friends": {
                 "description": "List of added or removed Friends",
@@ -262,7 +262,7 @@
                 "description": "Challenge Id to cast vote on",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "vote_to_punish": {
                 "description": "Wether voter thinks admin deserves punishment",
@@ -295,7 +295,7 @@
                 "description": "Challenge Id for counting votes",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -320,7 +320,7 @@
                 "description": "Challenge id to do the veto",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -342,7 +342,7 @@
             "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
             "type": "integer",
             "format": "uint32",
-            "minimum": 0.0
+            "minimum": 0
           },
           "trace": {
             "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
@@ -477,7 +477,7 @@
               "null"
             ],
             "format": "uint8",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         "additionalProperties": false
@@ -702,7 +702,7 @@
                 "description": "Id of requested challenge",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -727,7 +727,7 @@
                   "null"
                 ],
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "start_after": {
                 "description": "start after challenge Id",
@@ -736,7 +736,7 @@
                   "null"
                 ],
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -761,7 +761,7 @@
                 "description": "Id of requested challenge",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -787,7 +787,7 @@
                 "description": "Id of requested challenge",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "proposal_id": {
                 "description": "Proposal id of previous proposal Providing None requests last proposal results",
@@ -796,7 +796,7 @@
                   "null"
                 ],
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "voter_addr": {
                 "description": "Addr of the friend",
@@ -825,7 +825,7 @@
                 "description": "Id of requested challenge",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "limit": {
                 "description": "Max amount of challenges in response",
@@ -834,7 +834,7 @@
                   "null"
                 ],
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "proposal_id": {
                 "description": "Proposal id of previous proposal Providing None requests last proposal results",
@@ -843,7 +843,7 @@
                   "null"
                 ],
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "start_after": {
                 "description": "start after Addr",
@@ -879,7 +879,7 @@
                 "description": "Challenge Id for previous votes",
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "limit": {
                 "description": "Max amount of proposals in response",
@@ -888,7 +888,7 @@
                   "null"
                 ],
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "start_after": {
                 "description": "start after ProposalId",
@@ -897,7 +897,7 @@
                   "null"
                 ],
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -952,13 +952,13 @@
               "description": "When num_strikes reached the limit, the challenge will be cancelled.",
               "type": "integer",
               "format": "uint8",
-              "minimum": 0.0
+              "minimum": 0
             },
             "num_strikes": {
               "description": "The number of strikes the admin has incurred.",
               "type": "integer",
               "format": "uint8",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false
@@ -1004,7 +1004,7 @@
               "description": "Id of the challenge,",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             },
             "description": {
               "description": "Description of the challenge",
@@ -1081,17 +1081,17 @@
             "total_voters": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             },
             "votes_against": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             },
             "votes_for": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false
@@ -1271,13 +1271,13 @@
               "description": "When num_strikes reached the limit, the challenge will be cancelled.",
               "type": "integer",
               "format": "uint8",
-              "minimum": 0.0
+              "minimum": 0
             },
             "num_strikes": {
               "description": "The number of strikes the admin has incurred.",
               "type": "integer",
               "format": "uint8",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false
@@ -1323,7 +1323,7 @@
               "description": "Id of the challenge,",
               "type": "integer",
               "format": "uint64",
-              "minimum": 0.0
+              "minimum": 0
             },
             "description": {
               "description": "Description of the challenge",
@@ -1400,17 +1400,17 @@
             "total_voters": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             },
             "votes_against": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             },
             "votes_for": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false
@@ -1591,7 +1591,7 @@
               "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             },
             "trace": {
               "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
@@ -1712,7 +1712,7 @@
               {
                 "type": "integer",
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               {
                 "$ref": "#/definitions/ProposalInfo"
@@ -1757,17 +1757,17 @@
             "total_voters": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             },
             "votes_against": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             },
             "votes_for": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false
