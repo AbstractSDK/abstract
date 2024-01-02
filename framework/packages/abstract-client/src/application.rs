@@ -32,9 +32,11 @@ impl<Chain: CwEnv, M> DerefMut for Application<Chain, M> {
     }
 }
 
-impl<Chain: CwEnv, M> Application<Chain, M> {
-    pub fn new(account: Account<Chain>, module: M) -> Self {
-        Self { account, module }
+impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
+    pub fn new(account: Account<Chain>, module: M) -> AbstractClientResult<Self> {
+        // Sanity check: the module must be installed on the account
+        account.module_addresses(vec![M::module_id().to_string()])?;
+        Ok(Self { account, module })
     }
 
     pub fn account(&self) -> &Account<Chain> {
