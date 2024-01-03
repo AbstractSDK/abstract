@@ -1,6 +1,8 @@
-use abstract_interface::ManagerQueryFns;
+use abstract_core::objects::AccountId;
 use abstract_interface::{Abstract, AnsHost, VersionControl};
+use abstract_interface::{AbstractAccount, ManagerQueryFns};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
+use cw_orch::state::StateInterface;
 use cw_orch::{deploy::Deploy, environment::MutCwEnv, prelude::CwEnv};
 
 use crate::{
@@ -103,6 +105,34 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(Into::into)
             .map_err(Into::into)
     }
+
+    // Retrieve the last account created by the client.
+    /// Returns `None` if no account has been created yet.
+    pub fn get_last_account(&self) -> AbstractClientResult<Option<Account<Chain>>> {
+        let addresses = self.environment().state().get_all_addresses()?;
+        // Now search for all the keys that start with "abstract:manager-x" and return the one which has the highest x.
+        let mut last_account: Option<(u32, Account<Chain>)> = None;
+        for id in addresses.keys() {
+            let Some(account_id) = is_local_manager(id.as_str())? else {
+                continue;
+            };
+
+            // only take accounts that the current sender owns
+            let account = AbstractAccount::new(&self.abstr, account_id.clone());
+            if account.manager.ownership()?.owner != Some(self.environment().sender().to_string()) {
+                continue;
+            }
+
+            if let Some((last_account_id, _)) = last_account {
+                if account_id.seq() > last_account_id {
+                    last_account = Some((account_id.seq(), Account::new(account)));
+                }
+            } else {
+                last_account = Some((account_id.seq(), Account::new(account)));
+            }
+        }
+        Ok(last_account.map(|(_, account)| account))
+    }
 }
 
 impl<Chain: MutCwEnv> AbstractClient<Chain> {
@@ -121,87 +151,41 @@ impl<Chain: MutCwEnv> AbstractClient<Chain> {
     }
 }
 
-pub mod daemon {
-    use abstract_core::{objects::AccountId, MANAGER};
-    use abstract_interface::AbstractAccount;
-    use cw_orch::{
-        daemon::Daemon,
-        environment::TxHandler as _,
-        state::{ChainState, StateInterface},
-    };
-
-    use super::*;
-
-    impl AbstractClient<Daemon> {
-        /// Retrieve the last account created by the client.
-        /// Returns `None` if no account has been created yet.
-        pub fn get_last_account(&self) -> AbstractClientResult<Option<Account<Daemon>>> {
-            let addresses = self.environment().state().get_all_addresses()?;
-            // Now search for all the keys that start with "abstract:manager-x" and return the one which has the highest x.
-            let mut last_account: Option<(u32, Account<Daemon>)> = None;
-            for (id, _) in addresses {
-                let Some(account_id) = is_local_manager(&id)? else {
-                    continue;
-                };
-
-                // only take accounts that the current sender owns
-                let account = AbstractAccount::new(&self.abstr, account_id.clone());
-                if account.manager.ownership()?.owner
-                    != Some(self.environment().sender().to_string())
-                {
-                    continue;
-                }
-
-                if let Some((last_account_id, _)) = last_account {
-                    if account_id.seq() > last_account_id {
-                        last_account = Some((account_id.seq(), Account::new(account)));
-                    }
-                } else {
-                    last_account = Some((account_id.seq(), Account::new(account)));
-                }
-            }
-            Ok(last_account.map(|(_, account)| account))
-        }
+pub(crate) fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountId>> {
+    if !id.starts_with(abstract_core::MANAGER) {
+        return Ok(None);
     }
 
-    fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountId>> {
-        if !id.starts_with(MANAGER) {
-            return Ok(None);
-        }
+    let (_, account_id_str) = id.split_once('-').unwrap();
+    let account_id = AccountId::try_from(account_id_str)?;
 
-        let account_id_str = id.rsplitn(2, '-').next().unwrap();
-        let account_id = AccountId::try_from(account_id_str)?;
-
-        // Only take local accounts into account.
-        if account_id.is_remote() {
-            return Ok(None);
-        }
-
-        Ok(Some(account_id))
+    // Only take local accounts into account.
+    if account_id.is_remote() {
+        return Ok(None);
     }
+
+    Ok(Some(account_id))
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use super::*;
 
     #[test]
-    fn no_newest_owned_account() {
-        let addresses: HashMap<Addr, String> = vec![
-            ("abstract:manager-1".to_string(), "addr1".to_string()),
-            ("abstract:manager-2".to_string(), "addr2".to_string()),
-            ("abstract:manager-3".to_string(), "addr3".to_string()),
-        ]
-        .into_iter()
-        .collect();
+    fn local_account() {
+        let result = is_local_manager("abstract:manager-local-9");
+        assert!(result.unwrap().is_some());
+    }
 
-        let result = super::search_newest_owned_account(
-            &"addr4".to_string(),
-            &addresses,
-            &super::Abstract::load_from(super::Daemon::default()).unwrap(),
-        );
+    #[test]
+    fn remote_account() {
+        let result = is_local_manager("abstract:manager-eth>btc-9");
+        assert!(result.unwrap().is_none());
+    }
+
+    #[test]
+    fn not_manager() {
+        let result = is_local_manager("abstract:proxy-local-9");
         assert!(result.unwrap().is_none());
     }
 }

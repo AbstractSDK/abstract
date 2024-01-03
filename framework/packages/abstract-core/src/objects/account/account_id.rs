@@ -80,14 +80,12 @@ impl TryFrom<&str> for AccountId {
     type Error = AbstractError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let mut val_iter = value.rsplitn(2, '-');
-        let seq: u32 = val_iter
-            .next()
-            .ok_or(AbstractError::FormattingError {
-                object: "AccountId".into(),
-                expected: "trace-999".into(),
-                actual: value.into(),
-            })?
+        let (trace_str, seq_str) = value.split_once('-').ok_or(AbstractError::FormattingError {
+            object: "AccountId".into(),
+            expected: "trace-999".into(),
+            actual: value.into(),
+        })?;
+        let seq: u32 = seq_str
             .parse()
             .unwrap();
         if value.starts_with(super::account_trace::LOCAL) {
@@ -98,14 +96,7 @@ impl TryFrom<&str> for AccountId {
         } else {
             Ok(AccountId {
                 trace: AccountTrace::from_string(
-                    val_iter
-                        .next()
-                        .ok_or(AbstractError::FormattingError {
-                            object: "AccountId".into(),
-                            expected: "trace-999".into(),
-                            actual: value.into(),
-                        })?
-                        .into(),
+                    trace_str.into()
                 ),
                 seq,
             })
