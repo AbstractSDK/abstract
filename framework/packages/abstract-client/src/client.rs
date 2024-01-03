@@ -169,7 +169,7 @@ pub(crate) fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountI
 
 #[cfg(test)]
 mod tests {
-    use cw_orch::{mock::Mock};
+    use cw_orch::mock::Mock;
 
     use super::*;
 
@@ -203,7 +203,15 @@ mod tests {
 
         let other_owner = Addr::unchecked("other_owner");
         // create account with sender as sender but other owner
-        client.account_builder().governance_details(abstract_core::objects::gov_type::GovernanceDetails::Monarchy { monarch: other_owner.to_string() }).build().unwrap();
+        client
+            .account_builder()
+            .governance_details(
+                abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
+                    monarch: other_owner.to_string(),
+                },
+            )
+            .build()
+            .unwrap();
 
         let last_account = client.get_last_account().unwrap().unwrap();
 
