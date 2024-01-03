@@ -1,5 +1,5 @@
 //! # Represents Abstract Application
-//! 
+//!
 //! [`Application`] represents a module installed on a (sub)-account
 
 use std::ops::Deref;

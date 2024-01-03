@@ -1,12 +1,5 @@
-use abstract_core::{
-    manager::{ModuleAddressesResponse, ModuleInfosResponse},
-    objects::{gov_type::GovernanceDetails, AssetEntry},
-};
-use abstract_interface::{
-    AdapterDeployer, AppDeployer, DependencyCreation, DeployStrategy, InstallConfig,
-    RegisteredModule,
-};
-use cosmwasm_std::{Addr, Coin};
+use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
+use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule};
 use cw_orch::{
     contract::Contract,
     prelude::{ContractInstance, CwEnv},
@@ -15,7 +8,6 @@ use serde::Serialize;
 
 use crate::{
     account::{Account, AccountBuilder},
-    application::Application,
     client::AbstractClientResult,
     infrastructure::Environment,
 };
@@ -98,36 +90,6 @@ impl<Chain: CwEnv> Publisher<Chain> {
         Self { account }
     }
 
-    /// Install an application
-    /// creates a new sub-account and installs the application on it.
-    pub fn install_app<
-        M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>> + Clone,
-    >(
-        &self,
-        configuration: &M::InitMsg,
-        funds: &[Coin],
-    ) -> AbstractClientResult<Application<Chain, M>> {
-        self.account.install_app(configuration, funds)
-    }
-
-    /// Install application with it's dependencies with provided dependencies config
-    /// creates a new sub-account and installs the application on it.
-    pub fn install_app_with_dependencies<
-        M: ContractInstance<Chain>
-            + DependencyCreation
-            + InstallConfig
-            + From<Contract<Chain>>
-            + Clone,
-    >(
-        &self,
-        module_configuration: &M::InitMsg,
-        dependencies_config: M::DependenciesConfig,
-        funds: &[Coin],
-    ) -> AbstractClientResult<Application<Chain, M>> {
-        self.account
-            .install_app_with_dependencies(module_configuration, dependencies_config, funds)
-    }
-
     /// Publish Abstract App
     pub fn publish_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + AppDeployer<Chain>,
@@ -141,8 +103,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
     }
 
     /// Publish Abstract Adapter
-    // TODO: why it's publish app and deploy adapter, shouldn't we stick to one way?
-    pub fn deploy_adapter<
+    pub fn publish_adapter<
         CustomInitMsg: Serialize,
         M: ContractInstance<Chain>
             + RegisteredModule
@@ -153,38 +114,14 @@ impl<Chain: CwEnv> Publisher<Chain> {
         init_msg: CustomInitMsg,
     ) -> AbstractClientResult<()> {
         let contract = Contract::new(M::module_id().to_owned(), self.account.environment());
-        let app: M = contract.into();
-        app.deploy(M::module_version().parse()?, init_msg, DeployStrategy::Try)
+        let adapter: M = contract.into();
+        adapter
+            .deploy(M::module_version().parse()?, init_msg, DeployStrategy::Try)
             .map_err(Into::into)
     }
 
     /// Abstract Account of the publisher
     pub fn account(&self) -> &Account<Chain> {
         &self.account
-    }
-
-    // TODO: add `account_admin` fn to get the (Sub-)Account's admin.
-    // TODO: I don't get why it's called admin
-    /// Address of the manager
-    pub fn admin(&self) -> AbstractClientResult<Addr> {
-        self.account.manager()
-    }
-
-    /// Address of the proxy
-    pub fn proxy(&self) -> AbstractClientResult<Addr> {
-        self.account.proxy()
-    }
-
-    /// Module infos of installed modules on account
-    pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
-        self.account.module_infos()
-    }
-
-    /// Addresses of installed modules on account
-    pub fn module_addresses(
-        &self,
-        ids: Vec<String>,
-    ) -> AbstractClientResult<ModuleAddressesResponse> {
-        self.account.module_addresses(ids)
     }
 }

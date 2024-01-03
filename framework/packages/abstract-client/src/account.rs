@@ -19,7 +19,7 @@ use abstract_interface::{
     ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
 
-use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
 use cw_orch::prelude::*;
 use cw_orch::{contract::Contract, environment::MutCwEnv};
 
@@ -229,14 +229,21 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Install an application on the account
     /// creates a new sub-account and installs the application on it.
-    pub fn install_app<
-        M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>> + Clone,
-    >(
+    pub fn install_app<M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         self.install_app_internal(vec![M::install_config(configuration)?], funds)
+    }
+
+    pub fn install_adapter<
+        M: ContractInstance<Chain> + InstallConfig<InitMsg = Empty> + From<Contract<Chain>>,
+    >(
+        &self,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        self.install_app_internal(vec![M::install_config(&Empty {})?], funds)
     }
 
     /// Install application with it's dependencies with provided dependencies config
@@ -356,7 +363,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     fn install_app_internal<
-        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>,
     >(
         &self,
         modules: Vec<ModuleInstallConfig>,
