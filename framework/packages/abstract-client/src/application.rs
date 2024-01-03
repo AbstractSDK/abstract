@@ -1,3 +1,7 @@
+//! # Application
+//! 
+//! [`Application`] represents a module installed on a (sub)-account
+
 use std::ops::Deref;
 use std::ops::DerefMut;
 
@@ -33,6 +37,7 @@ impl<Chain: CwEnv, M> DerefMut for Application<Chain, M> {
 }
 
 impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
+    /// Get module interface installed on provided account
     pub fn new(account: Account<Chain>, module: M) -> AbstractClientResult<Self> {
         // Sanity check: the module must be installed on the account
         account.module_addresses(vec![M::module_id().to_string()])?;

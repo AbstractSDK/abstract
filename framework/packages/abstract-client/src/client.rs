@@ -1,4 +1,34 @@
+//! # Client
 //!
+//! [`AbstractClient`] allows you to do everything you might need to work with the abstract
+//! or to be more precise
+//! - Create or interact with Account
+//! - Install or interact with a module (including apps and adapters)
+//! - Publish modules
+//! - Do integration tests with Abstract
+//!
+//! Example of creating account and installing dex adapter
+//! ```no_run
+//! use cw_orch::prelude::*;
+//! use cw_orch::daemon::{networks::parse_network, Daemon};
+//! use abstract_client::client::AbstractClient;
+//! use abstract_dex_adapter::interface::DexAdapter;
+//! use tokio::runtime::Runtime;
+//!
+//! let rt = Runtime::new()?;
+//! let juno_testnet = Daemon::builder()
+//!         .handle(rt.handle())
+//!         .chain(parse_network("uni-6").unwrap())
+//!         // Your mnemonic
+//!         .mnemonic(TEST_MNEMONIC)
+//!         .build()
+//!         .unwrap();
+//! let client = AbstractClient::new(juno_testnet)?;
+//! let account: Account<Daemon> = client.account_builder().name("Alice").build()?;
+//! account.install_adapter::<DexAdapter<Daemon>>(&[])?;
+//!
+//! # Ok::<(), AbstractClientError>(())
+//! ```
 
 use abstract_interface::{Abstract, VersionControl};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
@@ -11,11 +41,12 @@ use crate::{
     publisher::{Publisher, PublisherBuilder},
 };
 
-/// Client to interact with abstract infrastructure
+/// Client to interact with Abstract accounts and modules
 pub struct AbstractClient<Chain: CwEnv> {
     pub(crate) abstr: Abstract<Chain>,
 }
 
+/// The result type for the Abstract Client.
 pub type AbstractClientResult<T> = Result<T, AbstractClientError>;
 
 impl<Chain: CwEnv> AbstractClient<Chain> {
@@ -38,9 +69,9 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 
     // TODO: No user friendly API for AnsHost
-    pub fn name_service(&self) -> &abstract_interface::AnsHost<Chain> {
-        &self.abstr.ans_host
-    }
+    // pub fn name_service(&self) -> &AnsHost<Chain> {
+    //     &self.abstr.ans_host
+    // }
 
     /// Version Control contract API
     /// ```

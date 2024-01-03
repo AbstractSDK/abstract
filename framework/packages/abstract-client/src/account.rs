@@ -1,3 +1,7 @@
+//! # Account module
+//!
+//! [`Account`] allows you to interact with your or another user Abstract Account
+
 use abstract_core::{
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
@@ -235,6 +239,8 @@ impl<Chain: CwEnv> Account<Chain> {
         self.install_app_internal(vec![M::install_config(configuration)?], funds)
     }
 
+    /// Install application with it's dependencies with provided dependencies config
+    /// creates a new sub-account and installs the application on it.
     pub fn install_app_with_dependencies<
         M: ContractInstance<Chain>
             + DependencyCreation
