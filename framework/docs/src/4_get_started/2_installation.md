@@ -19,6 +19,10 @@ $ rustup target add wasm32-unknown-unknown
 > installing wasm32-unknown-unknown
 ```
 
+## Docker
+
+<a href= "https://www.docker.com/" target="_blank">Docker</a> is used to create a containerized environment for facilitating reproducible builds. Specifically we'll be using a slightly modified builder image available <a href= "https://hub.docker.com/r/abstractmoney/workspace-optimizer" target="_blank">here</a>. You can read about the slight modifications we made in <a href= "https://github.com/CosmWasm/rust-optimizer/pull/130" target="_blank">this PR</a>.
+
 ## Git
 
 You will also need `git` installed to clone our template repository. You can find instructions for installing `git` on your operative system <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git" target="_blank">here</a>.
