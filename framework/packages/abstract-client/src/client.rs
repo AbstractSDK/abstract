@@ -76,8 +76,9 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 
     /// Publisher builder for creating new [`Publisher`] Abstract Account
-    pub fn publisher_builder(&self) -> PublisherBuilder<Chain> {
-        PublisherBuilder::new(AccountBuilder::new(&self.abstr))
+    /// To publish any modules your account requires to have namespace
+    pub fn publisher_builder(&self, namespace: &str) -> PublisherBuilder<Chain> {
+        PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)
     }
 
     /// Publisher builder for creating a new Abstract Account

@@ -118,10 +118,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
 
     let account_from_namespace: Account<Mock> = client.account_from_namespace(namespace)?;
 
-    assert_eq!(
-        account.info()?,
-        account_from_namespace.info()?
-    );
+    assert_eq!(account.info()?, account_from_namespace.info()?);
 
     Ok(())
 }
@@ -130,7 +127,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
 fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
-    let publisher: Publisher<Mock> = client.publisher_builder().build()?;
+    let publisher: Publisher<Mock> = client.publisher_builder(TEST_NAMESPACE).build()?;
 
     let account_info = publisher.account().info()?;
     assert_eq!(
@@ -165,12 +162,11 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let namespace = "test-namespace";
     let base_asset = AssetEntry::new(asset);
     let publisher: Publisher<Mock> = client
-        .publisher_builder()
+        .publisher_builder(namespace)
         .name(name)
         .link(link)
         .description(description)
         .governance_details(governance_details.clone())
-        .namespace(namespace)
         .base_asset(base_asset)
         .build()?;
 
@@ -201,10 +197,9 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = "namespace";
-    let publisher: Publisher<Mock> = client.publisher_builder().namespace(namespace).build()?;
+    let publisher: Publisher<Mock> = client.publisher_builder(namespace).build()?;
 
-    let publisher_from_namespace: Publisher<Mock> =
-        client.publisher_from_namespace(namespace)?;
+    let publisher_from_namespace: Publisher<Mock> = client.publisher_from_namespace(namespace)?;
 
     assert_eq!(
         publisher.account().info()?,
@@ -219,8 +214,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
     let publisher: Publisher<Mock> = client
-        .publisher_builder()
-        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .publisher_builder(TEST_DEPENDENCY_NAMESPACE)
         .build()?;
 
     let publisher_admin = publisher.admin()?;
@@ -294,14 +288,10 @@ fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<
 fn can_install_module_with_dependencies() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
-    let app_publisher: Publisher<Mock> = client
-        .publisher_builder()
-        .namespace(TEST_NAMESPACE)
-        .build()?;
+    let app_publisher: Publisher<Mock> = client.publisher_builder(TEST_NAMESPACE).build()?;
 
     let app_dependency_publisher: Publisher<Mock> = client
-        .publisher_builder()
-        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .publisher_builder(TEST_DEPENDENCY_NAMESPACE)
         .build()?;
 
     app_dependency_publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
@@ -494,14 +484,10 @@ fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
 fn can_get_module_dependency() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
-    let app_publisher: Publisher<Mock> = client
-        .publisher_builder()
-        .namespace(TEST_NAMESPACE)
-        .build()?;
+    let app_publisher: Publisher<Mock> = client.publisher_builder(TEST_NAMESPACE).build()?;
 
     let app_dependency_publisher: Publisher<Mock> = client
-        .publisher_builder()
-        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .publisher_builder(TEST_DEPENDENCY_NAMESPACE)
         .build()?;
 
     app_dependency_publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
@@ -539,8 +525,7 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
     let publisher: Publisher<Mock> = client
-        .publisher_builder()
-        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .publisher_builder(TEST_DEPENDENCY_NAMESPACE)
         .build()?;
 
     publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;

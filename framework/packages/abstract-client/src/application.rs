@@ -39,6 +39,7 @@ impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
         Ok(Self { account, module })
     }
 
+    /// Sub-account on which application is installed
     pub fn account(&self) -> &Account<Chain> {
         &self.account
     }

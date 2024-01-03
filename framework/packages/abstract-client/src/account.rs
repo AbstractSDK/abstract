@@ -223,8 +223,8 @@ impl<Chain: CwEnv> Account<Chain> {
         Ok(info_response.info)
     }
 
-    // Install an application on the account
-    // creates a new sub-account and installs the application on it.
+    /// Install an application on the account
+    /// creates a new sub-account and installs the application on it.
     pub fn install_app<
         M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>> + Clone,
     >(
