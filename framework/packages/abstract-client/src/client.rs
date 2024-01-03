@@ -169,6 +169,8 @@ pub(crate) fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountI
 
 #[cfg(test)]
 mod tests {
+    use cw_orch::{mock::Mock};
+
     use super::*;
 
     #[test]
@@ -187,5 +189,24 @@ mod tests {
     fn not_manager() {
         let result = is_local_manager("abstract:proxy-local-9");
         assert!(result.unwrap().is_none());
+    }
+
+    #[test]
+    fn last_owned_abstract_account() {
+        let sender = Addr::unchecked("sender");
+        let chain = Mock::new(&sender);
+        Abstract::deploy_on(chain.clone(), sender.to_string()).unwrap();
+
+        let client = AbstractClient::new(chain).unwrap();
+        let _acc = client.account_builder().build().unwrap();
+        let acc_2 = client.account_builder().build().unwrap();
+
+        let other_owner = Addr::unchecked("other_owner");
+        // create account with sender as sender but other owner
+        client.account_builder().governance_details(abstract_core::objects::gov_type::GovernanceDetails::Monarchy { monarch: other_owner.to_string() }).build().unwrap();
+
+        let last_account = client.get_last_account().unwrap().unwrap();
+
+        assert_eq!(acc_2.id().unwrap(), last_account.id().unwrap());
     }
 }
