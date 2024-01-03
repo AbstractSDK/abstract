@@ -1,4 +1,4 @@
-//! # Account module
+//! # Represents Abstract Account
 //!
 //! [`Account`] allows you to interact with your or another user Abstract Account
 
@@ -31,7 +31,7 @@ use crate::{
 };
 
 /// AccountBuilder is a builder for creating account.
-/// It's intended to be used from [`crate::client::AbstractClient::account_builder`]
+/// It's intended to be used from [`AbstractClient::account_builder`](crate::client::AbstractClient::account_builder)
 /// and created with method `build`
 ///
 /// ```
@@ -102,7 +102,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
-    /// Try to fetch already created account by the namespace
+    /// Try to fetch instead of creating a new account by the namespace
     pub fn fetch_if_namespace_claimed(&mut self, value: bool) -> &mut Self {
         self.fetch_if_namespace_claimed = value;
         self
@@ -169,7 +169,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 }
 
 /// Existing Abstract account
-/// This structure intended to be created by using [`crate::client::AbstractClient::account_from_namespace`]
+/// This structure intended to be created by using [`AbstractClient::account_from_namespace`](crate::client::AbstractClient::account_from_namespace)
 /// or creating account via [`AccountBuilder`]
 pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,

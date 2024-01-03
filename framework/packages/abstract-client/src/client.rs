@@ -1,4 +1,4 @@
-//! # Client
+//! # Represents Abstract Client
 //!
 //! [`AbstractClient`] allows you to do everything you might need to work with the abstract
 //! or to be more precise
@@ -25,7 +25,7 @@
 //!         .unwrap();
 //! let client = AbstractClient::new(juno_testnet)?;
 //! let account: Account<Daemon> = client.account_builder().name("Alice").build()?;
-//! account.install_adapter::<DexAdapter<Daemon>>(&[])?;
+//! account.install_app::<DexAdapter<Daemon>>(&cosmwasm_std::Empty{ }, &[])?;
 //!
 //! # Ok::<(), AbstractClientError>(())
 //! ```
