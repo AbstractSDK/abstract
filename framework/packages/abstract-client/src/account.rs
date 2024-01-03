@@ -202,7 +202,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Query account balance of a given denom
-    /// TODO: Asset balance?
+    // TODO: Asset balance?
     pub fn query_balance(&self, denom: impl Into<String>) -> AbstractClientResult<Uint128> {
         let coins = self
             .environment()
