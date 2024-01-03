@@ -11,7 +11,7 @@ pub enum AbstractInterfaceError {
     #[error(transparent)]
     Orch(#[from] CwOrchError),
 
-    #[error("JSON Conversion Error")]
+    #[error("JSON Conversion Error: {0}")]
     SerdeJson(#[from] ::serde_json::Error),
 
     #[error("{0}")]
@@ -20,6 +20,9 @@ pub enum AbstractInterfaceError {
     #[cfg(feature = "daemon")]
     #[error(transparent)]
     Daemon(#[from] cw_orch::daemon::DaemonError),
+
+    #[error("Abstract is not deployed on this chain")]
+    NotDeployed {},
 }
 
 impl AbstractInterfaceError {

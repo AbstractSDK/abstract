@@ -63,7 +63,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// # Ok::<(), AbstractClientError>(())
     /// ```
     pub fn new(chain: Chain) -> AbstractClientResult<Self> {
-        // TODO: New error type for not found abstract on this chain?
         let abstr = Abstract::load_from(chain)?;
         Ok(Self { abstr })
     }
