@@ -4,6 +4,7 @@ use cw_orch::prelude::*;
 
 use crate::{account::Account, client::AbstractClient};
 
+/// Trait for retrieving environment of the object
 pub trait Environment<Chain: CwEnv> {
     /// Get the execution environment
     fn environment(&self) -> Chain;

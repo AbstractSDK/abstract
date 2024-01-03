@@ -4,6 +4,7 @@ use cosmwasm_std::StdError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+/// Error type for the abstract client crate.
 pub enum AbstractClientError {
     #[error("{0}")]
     Std(#[from] StdError),

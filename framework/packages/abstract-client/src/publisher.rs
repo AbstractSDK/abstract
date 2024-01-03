@@ -98,7 +98,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
         Self { account }
     }
 
-    /// Install an application on the account
+    /// Install an application
     /// creates a new sub-account and installs the application on it.
     pub fn install_app<
         M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>> + Clone,
@@ -110,6 +110,8 @@ impl<Chain: CwEnv> Publisher<Chain> {
         self.account.install_app(configuration, funds)
     }
 
+    /// Install application with it's dependencies with provided dependencies config
+    /// creates a new sub-account and installs the application on it.
     pub fn install_app_with_dependencies<
         M: ContractInstance<Chain>
             + DependencyCreation
@@ -126,6 +128,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
             .install_app_with_dependencies(module_configuration, dependencies_config, funds)
     }
 
+    /// Publish Abstract App
     pub fn publish_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + AppDeployer<Chain>,
     >(
@@ -137,6 +140,8 @@ impl<Chain: CwEnv> Publisher<Chain> {
             .map_err(Into::into)
     }
 
+    /// Publish Abstract Adapter
+    // TODO: why it's publish app and deploy adapter, shouldn't we stick to one way?
     pub fn deploy_adapter<
         CustomInitMsg: Serialize,
         M: ContractInstance<Chain>
@@ -159,6 +164,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
     }
 
     // TODO: add `account_admin` fn to get the (Sub-)Account's admin.
+    // TODO: I don't get why it's called admin
     /// Address of the manager
     pub fn admin(&self) -> AbstractClientResult<Addr> {
         self.account.manager()
