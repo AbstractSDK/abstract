@@ -131,6 +131,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 }
 
+#[derive(Clone)]
 pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
 }
