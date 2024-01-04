@@ -1,13 +1,15 @@
 //! # Represents Abstract Client
 //!
-//! [`AbstractClient`] allows you to do everything you might need to work with the abstract
+//! [`AbstractClient`] allows you to do everything you might need to work with the Abstract
 //! or to be more precise
+//!
 //! - Create or interact with Account
 //! - Install or interact with a module (including apps and adapters)
 //! - Publish modules
 //! - Do integration tests with Abstract
 //!
 //! Example of publishing mock app
+//!
 //! ```
 //! # use abstract_client::error::AbstractClientError;
 //! use abstract_app::mock::interface::MockAppInterface;
