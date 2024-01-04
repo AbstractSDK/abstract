@@ -108,6 +108,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     // Retrieve the last account created by the client.
     /// Returns `None` if no account has been created yet.
+    /// **Note**: This only returns accounts that were created with the Client. Any accounts created through the web-app will not be returned.
     pub fn get_last_account(&self) -> AbstractClientResult<Option<Account<Chain>>> {
         let addresses = self.environment().state().get_all_addresses()?;
         // Now search for all the keys that start with "abstract:manager-x" and return the one which has the highest x.
