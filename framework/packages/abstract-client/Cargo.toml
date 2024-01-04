@@ -19,7 +19,7 @@ test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
 cosmwasm-std.workspace = true
 abstract-interface.workspace = true
 abstract-core.workspace = true
-cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch.workspace = true
 serde.workspace = true
 semver.workspace = true
 thiserror.workspace = true
