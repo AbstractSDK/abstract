@@ -6,7 +6,7 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use crate::{constants::CHAIN_DELIMITER, objects::chain_name::ChainName, AbstractError};
 
 pub const MAX_TRACE_LENGTH: usize = 6;
-const LOCAL: &str = "local";
+pub(crate) const LOCAL: &str = "local";
 
 /// The identifier of chain that triggered the account creation
 #[cosmwasm_schema::cw_serde]
