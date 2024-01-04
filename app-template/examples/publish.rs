@@ -15,38 +15,49 @@
 //! ```
 use abstract_app::objects::namespace::Namespace;
 use abstract_client::{client::AbstractClient, publisher::Publisher};
-use app::{
-    contract::{APP_ID, APP_VERSION},
-    AppInterface,
-};
+use app::{contract::APP_ID, AppInterface};
 use clap::Parser;
 use cw_orch::{
     anyhow,
-    daemon::ChainInfo,
+    daemon::{ChainInfo, Daemon},
+    environment::TxHandler,
     prelude::{networks::parse_network, DaemonBuilder},
     tokio::runtime::Runtime,
 };
-use semver::Version;
 
 fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // run for each requested network
     for network in networks {
-        let version: Version = APP_VERSION.parse().unwrap();
+        // Setup
         let rt = Runtime::new()?;
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
             .chain(network)
             .build()?;
 
-        // Create an abstract client
-        let abstract_client = AbstractClient::new(chain.clone())?;
+        let app_namespace = Namespace::from_id(APP_ID)?;
 
-        // Get the account that owns the namespace, otherwise create a new one and claim the namespace
+        // Create an [`AbstractClient`]
+        let abstract_client: AbstractClient<Daemon> = AbstractClient::new(chain.clone())?;
+
+        // Get the [`Publisher`] that owns the namespace, otherwise create a new one and claim the namespace
         let publisher: Publisher<_> = abstract_client
             .get_publisher_from_namespace(Namespace::from_id(APP_ID)?)?
-            .or_else(|| abstract_client.publisher_builder().build())?;
+            .unwrap_or_else(|| {
+                // Build a Publisher Account
+                abstract_client
+                    .publisher_builder()
+                    .namespace(app_namespace)
+                    .build()
+                    .expect("Failed to create publisher")
+            });
 
-        let publisher = Publisher::new(account);
+        if publisher.account().owner()? != chain.sender() {
+            panic!("The current sender can not publish to this namespace. Please use the wallet that owns the Account that owns the Namespace.")
+        }
+
+        // Publish the App to the Abstract Platform
+        publisher.publish_app::<AppInterface<Daemon>>()?;
     }
     Ok(())
 }
