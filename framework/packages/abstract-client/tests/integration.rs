@@ -89,7 +89,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         .name(name)
         .link(link)
         .description(description)
-        .governance_details(governance_details.clone())
+        .ownership(governance_details.clone())
         .namespace(namespace)
         .base_asset(base_asset)
         .build()?;
@@ -173,7 +173,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
         .name(name)
         .link(link)
         .description(description)
-        .governance_details(governance_details.clone())
+        .ownership(governance_details.clone())
         .base_asset(base_asset)
         .build()?;
 

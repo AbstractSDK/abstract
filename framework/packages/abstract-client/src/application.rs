@@ -16,7 +16,7 @@ use crate::error::AbstractClientError;
 use crate::infrastructure::Environment;
 
 /// An application represents a module installed on a (sub)-[`Account`]. \
-/// 
+///
 /// It derefs to the module itself, so you can call its methods directly from the application struct.
 pub struct Application<T: CwEnv, M> {
     account: Account<T>,

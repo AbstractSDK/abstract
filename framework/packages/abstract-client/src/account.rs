@@ -129,11 +129,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Governance of the account.
-    /// Defaults to the Monarchy, owned by the sender
-    pub fn ownership(
-        &mut self,
-        ownership: GovernanceDetails<String>,
-    ) -> &mut Self {
+    /// Defaults to the [`GovernanceDetails::Monarchy`] variant, owned by the sender
+    pub fn ownership(&mut self, ownership: GovernanceDetails<String>) -> &mut Self {
         self.ownership = Some(ownership);
         self
     }
@@ -189,7 +186,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 }
 
 /// Represents an existing Abstract account. \
-/// 
+///
 /// Get this struct from [`AbstractClient::account_from_namespace`](crate::client::AbstractClient)
 /// or create a new account with the [`AccountBuilder`].
 pub struct Account<Chain: CwEnv> {
@@ -274,7 +271,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Creates a new sub-account on the current account and
     /// installs an App module and its dependencies with the provided dependencies config. \
-    /// 
+    ///
     /// The returned [`Application`] is a wrapper around the sub-account and simplifies interaction with the App module.
     pub fn install_app_with_dependencies<
         M: ContractInstance<Chain>
@@ -303,7 +300,7 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
-        let mut governance = self.abstr_account.manager.info()?.info.ownership;
+        let mut governance = self.abstr_account.manager.info()?.info.governance_details;
 
         let environment = self.environment();
         // Get sub-accounts until we get non-sub-account governance or reach recursion limit
@@ -317,7 +314,7 @@ impl<Chain: CwEnv> Account<Chain> {
                         )
                         .map_err(|err| err.into())?
                         .info
-                        .ownership;
+                        .governance_details;
                 }
                 _ => break,
             }

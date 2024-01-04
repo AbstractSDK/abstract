@@ -273,7 +273,7 @@ mod tests {
         // create account with sender as sender but other owner
         client
             .account_builder()
-            .governance_details(
+            .ownership(
                 abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
                     monarch: other_owner.to_string(),
                 },
