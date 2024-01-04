@@ -31,6 +31,19 @@ impl Namespace {
         validate_name(&self.0)?;
         Ok(())
     }
+    /// Get the namespace from a module's ID
+    /// Formatted as `namespace:module`
+    pub fn from_id(module_id: &str) -> AbstractResult<Self> {
+        let parts: Vec<&str> = module_id.split(':').collect();
+        if parts.len() != 2 {
+            return Err(AbstractError::FormattingError {
+                object: "module_id".to_string(),
+                expected: "namespace:module".to_string(),
+                actual: module_id.to_string(),
+            });
+        }
+        Self::new(parts[0])
+    }
 }
 
 impl TryFrom<&str> for Namespace {

@@ -31,7 +31,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     name: Option<String>,
     description: Option<String>,
     link: Option<String>,
-    namespace: Option<String>,
+    namespace: Option<Namespace>,
     base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
     governance_details: Option<GovernanceDetails<String>>,
@@ -68,8 +68,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
-    pub fn namespace(&mut self, namespace: impl Into<String>) -> &mut Self {
-        self.namespace = Some(namespace.into());
+    pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
+        self.namespace = Some(namespace);
         self
     }
 
@@ -95,11 +95,11 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         if self.fetch_if_namespace_claimed {
             // Check if namespace already claimed
             if let Some(ref namespace) = self.namespace {
-                let account_from_namespace_result: AbstractClientResult<Account<Chain>> =
-                    Account::from_namespace(self.abstr, namespace);
+                let account_from_namespace_result: Option<Account<Chain>> =
+                    Account::from_namespace(self.abstr, namespace.clone())?;
 
                 // Only return if the account can be retrieved without errors.
-                if let Ok(account_from_namespace) = account_from_namespace_result {
+                if let Some(account_from_namespace) = account_from_namespace_result {
                     return Ok(account_from_namespace);
                 }
             }
@@ -120,7 +120,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 name,
                 description: self.description.clone(),
                 link: self.link.clone(),
-                namespace: self.namespace.clone(),
+                namespace: self.namespace.as_ref().map(ToString::to_string),
                 base_asset: self.base_asset.clone(),
                 install_modules: vec![],
             },
@@ -149,16 +149,15 @@ impl<Chain: CwEnv> Account<Chain> {
 
     pub(crate) fn from_namespace(
         abstr: &Abstract<Chain>,
-        namespace: &str,
-    ) -> AbstractClientResult<Self> {
-        let namespace_response: NamespaceResponse = abstr
-            .version_control
-            .namespace(Namespace::new(namespace)?)?;
-
-        let abstract_account: AbstractAccount<Chain> =
-            AbstractAccount::new(abstr, namespace_response.account_id);
-
-        Ok(Self::new(abstract_account))
+        namespace: Namespace,
+    ) -> AbstractClientResult<Option<Self>> {
+        // TODO: Update `Namespace` query to return Option. 
+        // https://linear.app/abstract-sdk/issue/ABS-288/fix-the-vc-namespace-query
+        let namespace_response: Option<NamespaceResponse> =
+            abstr.version_control.namespace(namespace).ok();
+        Ok(namespace_response
+            .map(|resp| AbstractAccount::new(abstr, resp.account_id))
+            .map(Self::new))
     }
 
     /// Get the [`AccountId`] of the Account

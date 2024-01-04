@@ -13,7 +13,8 @@
 //! ```bash
 //! $ just deploy uni-6 osmo-test-5
 //! ```
-use abstract_client::client::AbstractClient;
+use abstract_app::objects::namespace::Namespace;
+use abstract_client::{client::AbstractClient, publisher::Publisher};
 use app::{
     contract::{APP_ID, APP_VERSION},
     AppInterface,
@@ -37,11 +38,15 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network)
             .build()?;
 
+        // Create an abstract client
         let abstract_client = AbstractClient::new(chain.clone())?;
-        let account = abstract_client.get_last_account()?.unwrap_or_else(|| {
-            abstract_client.account_builder().build()?
-        });
 
+        // Get the account that owns the namespace, otherwise create a new one and claim the namespace
+        let publisher: Publisher<_> = abstract_client
+            .get_publisher_from_namespace(Namespace::from_id(APP_ID)?)?
+            .or_else(|| abstract_client.publisher_builder().build())?;
+
+        let publisher = Publisher::new(account);
     }
     Ok(())
 }

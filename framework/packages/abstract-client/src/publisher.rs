@@ -1,6 +1,6 @@
 use abstract_core::{
     manager::{ModuleAddressesResponse, ModuleInfosResponse},
-    objects::{gov_type::GovernanceDetails, AssetEntry},
+    objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry},
 };
 use abstract_interface::{
     AdapterDeployer, AppDeployer, DependencyCreation, DeployStrategy, InstallConfig,
@@ -44,7 +44,7 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         self
     }
 
-    pub fn namespace(&mut self, namespace: impl Into<String>) -> &mut Self {
+    pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
         self.account_builder.namespace(namespace);
         self
     }
@@ -74,7 +74,7 @@ pub struct Publisher<Chain: CwEnv> {
 }
 
 impl<Chain: CwEnv> Publisher<Chain> {
-    pub(crate) fn new(account: Account<Chain>) -> Self {
+    pub fn new(account: Account<Chain>) -> Self {
         Self { account }
     }
 
@@ -152,5 +152,11 @@ impl<Chain: CwEnv> Publisher<Chain> {
         ids: Vec<String>,
     ) -> AbstractClientResult<ModuleAddressesResponse> {
         self.account.module_addresses(ids)
+    }
+}
+
+impl<Chain: CwEnv> From<Account<Chain>> for Publisher<Chain> {
+    fn from(value: Account<Chain>) -> Self {
+        Self::new(value)
     }
 }

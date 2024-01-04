@@ -540,7 +540,7 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
 
     let publisher: Publisher<Mock> = client
         .publisher_builder()
-        .namespace(TEST_DEPENDENCY_NAMESPACE)
+        .namespace(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
         .build()?;
 
     publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
