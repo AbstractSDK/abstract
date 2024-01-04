@@ -71,7 +71,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     namespace: Option<String>,
     base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
-    governance_details: Option<GovernanceDetails<String>>,
+    ownership: Option<GovernanceDetails<String>>,
     // TODO: How to handle install_modules?
     fetch_if_namespace_claimed: bool,
 }
@@ -85,7 +85,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             link: None,
             namespace: None,
             base_asset: None,
-            governance_details: None,
+            ownership: None,
             fetch_if_namespace_claimed: false,
         }
     }
@@ -130,11 +130,11 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
     /// Governance of the account.
     /// Defaults to the Monarchy, owned by the sender
-    pub fn governance_details(
+    pub fn ownership(
         &mut self,
-        governance_details: GovernanceDetails<String>,
+        ownership: GovernanceDetails<String>,
     ) -> &mut Self {
-        self.governance_details = Some(governance_details);
+        self.ownership = Some(ownership);
         self
     }
 
@@ -159,8 +159,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             .name
             .clone()
             .unwrap_or_else(|| String::from("Default Abstract Account"));
-        let governance_details = self
-            .governance_details
+        let ownership = self
+            .ownership
             .clone()
             .unwrap_or(GovernanceDetails::Monarchy { monarch: sender });
 
@@ -181,7 +181,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 base_asset: self.base_asset.clone(),
                 install_modules: vec![],
             },
-            governance_details,
+            ownership,
             Some(&[]),
         )?;
         Ok(Account::new(abstract_account))
@@ -303,7 +303,7 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
-        let mut governance = self.abstr_account.manager.info()?.info.governance_details;
+        let mut governance = self.abstr_account.manager.info()?.info.ownership;
 
         let environment = self.environment();
         // Get sub-accounts until we get non-sub-account governance or reach recursion limit
@@ -317,7 +317,7 @@ impl<Chain: CwEnv> Account<Chain> {
                         )
                         .map_err(|err| err.into())?
                         .info
-                        .governance_details;
+                        .ownership;
                 }
                 _ => break,
             }
