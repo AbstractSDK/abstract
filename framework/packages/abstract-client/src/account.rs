@@ -184,7 +184,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 }
 
-/// Existing Abstract account
+/// Existing Abstract account.
 /// This structure intended to be created by using [`AbstractClient::account_from_namespace`](crate::client::AbstractClient::account_from_namespace)
 /// or creating account via [`AccountBuilder`]
 pub struct Account<Chain: CwEnv> {
