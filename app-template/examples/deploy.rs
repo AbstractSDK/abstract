@@ -13,8 +13,7 @@
 //! ```bash
 //! $ just deploy uni-6 osmo-test-5
 //! ```
-
-use abstract_app::abstract_interface::{AppDeployer, DeployStrategy};
+use abstract_client::client::AbstractClient;
 use app::{
     contract::{APP_ID, APP_VERSION},
     AppInterface,
@@ -38,7 +37,11 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network)
             .build()?;
 
+        let abstract_client = AbstractClient::new(chain.clone())?;
+        abstract_client.
         let app = AppInterface::new(APP_ID, chain);
+
+
         app.deploy(version, DeployStrategy::Try)?;
 
         // Create an account on our front-end to install the module!

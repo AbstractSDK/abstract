@@ -40,7 +40,6 @@ cw-storage-plus = "1.1.0"
 thiserror = { version = "1.0.50" }
 schemars = "0.8"
 cw-asset = { version = "3.0" }
-
 abstract-app = { path = "../framework/packages/abstract-app" }
 
 # Dependencies for interface
