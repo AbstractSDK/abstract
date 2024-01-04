@@ -70,14 +70,14 @@ Go ahead and read through the readme of the template repository to learn how it 
 
 The template contains a scaffold contract that you can use as a starting point for your own contract. The contract is located in the `src` directory and is structured as follows:
 
-- `contract.rs`: This file is the top-level file for your module. It contains the type definition of you module and the const builder that constructs your contract. It also contains a macro that exports your contract's entry points. You can also specify the contract's dependencies here.
-- `error.rs`: This file contains the error types that your contract can return.
-- `msg.rs`: This file contains the custom message types that your contract can receive. These messages also have `cw-orchestrator` macros attached to them which comes in useful when you are writing your integration tests.
-- `state.rs`: This file contains the state types that your contract will use to store state to the blockchain.
-- `interface.rs`: This file contains the interface that your contract will use to interact with the `cw-orchestrator`
+- `contract.rs`: Top-level file for your module. It contains the type definition of you module and the const builder that constructs your contract. It also contains a macro that exports your contract's entry points. You can also specify the contract's dependencies here.
+- `error.rs`: Error types that your contract can return.
+- `msg.rs`: Custom message types that your contract can receive. These messages also have `cw-orchestrator` macros attached to them which comes in useful when you are writing your integration tests.
+- `state.rs`: State types that your contract will use to store state to the blockchain.
+- `interface.rs`: Interface that your contract will use to interact with the `cw-orchestrator`
   library.
-- `replies/`: This directory contains the reply handlers that your contract will use to handle replies.
-- `handlers/`: This directory contains the message handlers that your contract will use to handle the different messages it can receive.
+- `replies/`: Reply handlers that your contract will use to handle replies.
+- `handlers/`: Message handlers that your contract will use to handle the different messages it can receive.
 
 If there's anything you don't understand about the template please don't hesitate to reach out to us on our <a href="https://discord.com/invite/uch3Tq3aym" target="_blank">Discord</a> server.
 
@@ -88,12 +88,12 @@ To generate the front-end scaffold, you can run `just ts-codegen`, which will ru
 Once the script is complete, you will find the newly generated code under `typescript/src`, and it's structured as
 follows:
 
-- `index.ts`: The index file bundles and exports all the functionalities from the generated files (Template.types, Template.client, Template.message-composer, Template.msg-builder) under a single namespace called contracts, making it easier to access the various functionalities encapsulated in the other files.
-- `Template.client.ts`: The client file contains classes for creating client instances to query and interact with a blockchain module. These client instances can be used to retrieve module configurations or to connect a signing client for transaction functionalities.
-- `Template.message-composer.ts`: This file aids in crafting messages necessary for interacting with a specific
+- `index.ts`: Index file bundles and exports all the functionalities from the generated files (Template.types, Template.client, Template.message-composer, Template.msg-builder) under a single namespace called contracts, making it easier to access the various functionalities encapsulated in the other files.
+- `Template.client.ts`: Client file contains classes for creating client instances to query and interact with a blockchain module. These client instances can be used to retrieve module configurations or to connect a signing client for transaction functionalities.
+- `Template.message-composer.ts`: Aids in crafting messages necessary for interacting with a specific
   blockchain contract, particularly for updating configurations. It contains a class that generates message objects that can be sent to the blockchain for execution.
-- `Template.msg-builder.ts`: In this file, abstract classes provide static methods to create message objects for querying or executing actions on the blockchain. It essentially facilitates the building of structured messages for blockchain interactions.
-- `Template.types.ts`: The types file defines various data structures and types that represent the structure of messages and responses within the blockchain module, aiding in maintaining consistency across different operations in the module.
+- `Template.msg-builder.ts`: Provide static methods on abstract classes to create message objects for querying or executing actions on the blockchain. It essentially facilitates the building of structured messages for blockchain interactions.
+- `Template.types.ts`: Defines various data structures and types that represent the structure of messages and responses within the blockchain module, aiding in maintaining consistency across different operations in the module.
 
 ## Tools used in the template
 

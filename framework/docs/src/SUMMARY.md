@@ -39,8 +39,8 @@
 - [Setup](./4_get_started/2_installation.md)
 - [Module Builder](./4_get_started/3_module_builder.md)
 - [Account Abstraction SDK](./4_get_started/4_sdk.md)
-- [Account Creation](./4_get_started/5_account_creation.md)
 - [Module Testing](./4_get_started/6_module_testing.md)
+- [Becoming a Publisher](./4_get_started/5_account_creation.md)
 - [Module Deployment](./4_get_started/7_module_deployment.md)
 - [Module Dependencies](./4_get_started/8_dependencies.md)
 
