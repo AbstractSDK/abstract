@@ -8,7 +8,7 @@
 //! use abstract_client::{client::AbstractClient, account::Account};
 //! use cw_orch::prelude::Mock;
 //!
-//! # let client = AbstractClient::builder("sender").build()?;
+//! # let client: AbstractClient<Mock> = AbstractClient::builder("sender").build()?;
 //!
 //! let alice_account: Account<Mock> = client
 //!     .account_builder()
@@ -46,9 +46,9 @@ use crate::{
     infrastructure::{Environment, Infrastructure},
 };
 
-/// AccountBuilder is a builder for creating account.
-/// It's intended to be used from [`AbstractClient::account_builder`](crate::client::AbstractClient::account_builder)
-/// and created with method `build`
+/// A builder for creating [`Accounts`](Account).
+/// Get the builder from [`AbstractClient::account_builder`](crate::client::AbstractClient)
+/// and create the account with the `build` method.
 ///
 /// ```
 /// # use abstract_client::{error::AbstractClientError, infrastructure::Environment};
@@ -57,7 +57,10 @@ use crate::{
 /// use abstract_client::client::AbstractClient;
 ///
 /// let client = AbstractClient::new(chain)?;
-/// let account = client.account_builder().name("alice").build()?;
+/// let account = client.account_builder()
+///     .name("alice")
+///     // other account configuration
+///     .build()?;
 /// # Ok::<(), AbstractClientError>(())
 /// ```
 pub struct AccountBuilder<'a, Chain: CwEnv> {
@@ -107,6 +110,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Unique namespace for the account
+    /// Setting this will claim the namespace for the account on construction.
     pub fn namespace(&mut self, namespace: impl Into<String>) -> &mut Self {
         self.namespace = Some(namespace.into());
         self
@@ -118,7 +122,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
-    /// Try to fetch instead of creating a new account by the namespace
+    /// Try to fetch the account before creating it if the namespace is already claimed.
     pub fn fetch_if_namespace_claimed(&mut self, value: bool) -> &mut Self {
         self.fetch_if_namespace_claimed = value;
         self
@@ -134,7 +138,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
-    /// Create account with current configuration
+    /// Builds the [`Account`].
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
         if self.fetch_if_namespace_claimed {
             // Check if namespace already claimed
@@ -184,9 +188,10 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 }
 
-/// Existing Abstract account.
-/// This structure intended to be created by using [`AbstractClient::account_from_namespace`](crate::client::AbstractClient::account_from_namespace)
-/// or creating account via [`AccountBuilder`]
+/// Represents an existing Abstract account. \
+/// 
+/// Get this struct from [`AbstractClient::account_from_namespace`](crate::client::AbstractClient)
+/// or create a new account with the [`AccountBuilder`].
 pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
 }
@@ -248,8 +253,8 @@ impl<Chain: CwEnv> Account<Chain> {
         Ok(info_response.info)
     }
 
-    /// Install an application on the account
-    /// creates a new sub-account and installs the application on it.
+    /// Install an application on the account.
+    /// This creates a new sub-account and installs the application on it.
     pub fn install_app<M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
@@ -267,8 +272,10 @@ impl<Chain: CwEnv> Account<Chain> {
         self.install_app_internal(vec![M::install_config(&Empty {})?], funds)
     }
 
-    /// Install application with it's dependencies with provided dependencies config
-    /// creates a new sub-account and installs the application on it.
+    /// Creates a new sub-account on the current account and
+    /// installs an App module and its dependencies with the provided dependencies config. \
+    /// 
+    /// The returned [`Application`] is a wrapper around the sub-account and simplifies interaction with the App module.
     pub fn install_app_with_dependencies<
         M: ContractInstance<Chain>
             + DependencyCreation

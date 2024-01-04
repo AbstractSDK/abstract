@@ -64,8 +64,8 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         self
     }
 
-    /// Governance of the account.
-    /// Defaults to the Monarchy, owned by the sender
+    /// Governance and ownership of the account.
+    /// Defaults to `Monarchy`, set to the sender.
     pub fn governance_details(
         &mut self,
         governance_details: GovernanceDetails<String>,
