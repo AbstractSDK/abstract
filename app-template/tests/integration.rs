@@ -40,7 +40,6 @@ fn setup(
 
 #[test]
 fn successful_install() -> anyhow::Result<()> {
-    // Set up the environment and contract
     let (_, app) = setup(0)?;
 
     let config = app.config()?;
@@ -50,7 +49,6 @@ fn successful_install() -> anyhow::Result<()> {
 
 #[test]
 fn successful_increment() -> anyhow::Result<()> {
-    // Set up the environment and contract
     let (_, app) = setup(0)?;
 
     app.increment()?;
@@ -61,7 +59,6 @@ fn successful_increment() -> anyhow::Result<()> {
 
 #[test]
 fn successful_reset() -> anyhow::Result<()> {
-    // Set up the environment and contract
     let (_, app) = setup(0)?;
 
     app.reset(42)?;
@@ -72,7 +69,6 @@ fn successful_reset() -> anyhow::Result<()> {
 
 #[test]
 fn failed_reset() -> anyhow::Result<()> {
-    // Set up the environment and contract
     let (_, app) = setup(0)?;
 
     let err: AppError = app
