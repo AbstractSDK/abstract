@@ -83,7 +83,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         .link(link)
         .description(description)
         .governance_details(governance_details.clone())
-        .namespace(namespace)
+        .namespace(namespace.clone())
         .base_asset(base_asset)
         .build()?;
 
@@ -111,7 +111,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = Namespace::new("namespace")?;
-    let account: Account<Mock> = client.account_builder().namespace(namespace).build()?;
+    let account: Account<Mock> = client.account_builder().namespace(namespace.clone()).build()?;
 
     let account_from_namespace: Account<Mock> =
         client.get_account_from_namespace(namespace)?.unwrap();
@@ -168,7 +168,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
         .link(link)
         .description(description)
         .governance_details(governance_details.clone())
-        .namespace(namespace)
+        .namespace(namespace.clone())
         .base_asset(base_asset)
         .build()?;
 
@@ -196,7 +196,7 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = Namespace::new("namespace")?;
-    let publisher: Publisher<Mock> = client.publisher_builder().namespace(namespace).build()?;
+    let publisher: Publisher<Mock> = client.publisher_builder().namespace(namespace.clone()).build()?;
 
     let publisher_from_namespace: Publisher<Mock> =
         client.get_publisher_from_namespace(namespace)?.unwrap();
@@ -257,7 +257,7 @@ fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Res
     let namespace = Namespace::new("namespace")?;
 
     // First call succeeds.
-    client.account_builder().namespace(namespace).build()?;
+    client.account_builder().namespace(namespace.clone()).build()?;
 
     // Second call fails
     let result = client.account_builder().namespace(namespace).build();
@@ -272,7 +272,7 @@ fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<
 
     let namespace = Namespace::new("namespace")?;
 
-    let account1 = client.account_builder().namespace(namespace).build()?;
+    let account1 = client.account_builder().namespace(namespace.clone()).build()?;
 
     let account2 = client
         .account_builder()
