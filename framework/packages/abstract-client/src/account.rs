@@ -151,7 +151,7 @@ impl<Chain: CwEnv> Account<Chain> {
         abstr: &Abstract<Chain>,
         namespace: Namespace,
     ) -> AbstractClientResult<Option<Self>> {
-        // TODO: Update `Namespace` query to return Option. 
+        // TODO: Update `Namespace` query to return Option.
         // https://linear.app/abstract-sdk/issue/ABS-288/fix-the-vc-namespace-query
         let namespace_response: Option<NamespaceResponse> =
             abstr.version_control.namespace(namespace).ok();

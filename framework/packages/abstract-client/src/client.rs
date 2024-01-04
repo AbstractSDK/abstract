@@ -44,7 +44,9 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         &self,
         namespace: Namespace,
     ) -> AbstractClientResult<Option<Publisher<Chain>>> {
-        Ok(self.get_account_from_namespace(namespace)?.map(Publisher::new))
+        Ok(self
+            .get_account_from_namespace(namespace)?
+            .map(Publisher::new))
     }
 
     pub fn publisher_builder(&self) -> PublisherBuilder<Chain> {
