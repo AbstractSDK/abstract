@@ -1,57 +1,47 @@
-use abstract_app::abstract_interface::*;
 use abstract_app::abstract_testing::OWNER;
-use abstract_app::objects::{gov_type::GovernanceDetails, AccountId};
+use abstract_app::objects::namespace::Namespace;
+
+use abstract_client::application::Application;
+use abstract_client::client::AbstractClient;
+
 use app::{
-    contract::{APP_ID, APP_VERSION},
+    contract::APP_ID,
     error::AppError,
     msg::{AppInstantiateMsg, ConfigResponse, CountResponse},
     *,
 };
 use cw_controllers::AdminError;
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, deploy::Deploy, prelude::*};
+use cw_orch::{anyhow, prelude::*};
 
-use cosmwasm_std::Addr;
+use cosmwasm_std::{coins, Addr};
 
-/// Set up the test environment with the contract installed
+/// Set up the test environment with an Account that has the App installed
 fn setup(
     count: i32,
-) -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterface<Mock>)> {
+) -> anyhow::Result<(AbstractClient<Mock>, Application<Mock, AppInterface<Mock>>)> {
     // Create a sender
     let sender = Addr::unchecked(OWNER);
-    // Create the mock
-    let mock = Mock::new(&sender);
+    let namespace = Namespace::from_id(APP_ID)?;
 
-    // Construct the counter interface
-    let app = AppInterface::new(APP_ID, mock.clone());
+    // You can set up Abstract with a builder.
+    // The builder supports setting balances for addresses and configuring ANS.
+    let client = AbstractClient::builder(&sender)
+        .balance(&sender, coins(123, "ucosm"))
+        .build()?;
 
-    // Deploy Abstract to the mock
-    let abstr_deployment = Abstract::deploy_on(mock, sender.to_string())?;
+    // Build a Publisher Account
+    let publisher = client.publisher_builder().namespace(namespace).build()?;
 
-    // Create a new account to install the app onto
-    let account =
-        abstr_deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: OWNER.to_string(),
-            })?;
+    let app = publisher.install_app::<AppInterface<_>>(&AppInstantiateMsg { count }, &[])?;
 
-    // claim the namespace so app can be deployed
-    abstr_deployment
-        .version_control
-        .claim_namespace(AccountId::local(1), "my-namespace".to_string())?;
-
-    app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;
-
-    account.install_app(&app, &AppInstantiateMsg { count }, None)?;
-
-    Ok((account, abstr_deployment, app))
+    Ok((client, app))
 }
 
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (_account, _abstr, app) = setup(0)?;
+    let (_, app) = setup(0)?;
 
     let config = app.config()?;
     assert_eq!(config, ConfigResponse {});
@@ -61,7 +51,7 @@ fn successful_install() -> anyhow::Result<()> {
 #[test]
 fn successful_increment() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (_account, _abstr, app) = setup(0)?;
+    let (_, app) = setup(0)?;
 
     app.increment()?;
     let count: CountResponse = app.count()?;
@@ -72,9 +62,9 @@ fn successful_increment() -> anyhow::Result<()> {
 #[test]
 fn successful_reset() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (account, _abstr, app) = setup(0)?;
+    let (_, app) = setup(0)?;
 
-    app.call_as(&account.manager.address()?).reset(42)?;
+    app.reset(42)?;
     let count: CountResponse = app.count()?;
     assert_eq!(count.count, 6);
     Ok(())
@@ -83,7 +73,7 @@ fn successful_reset() -> anyhow::Result<()> {
 #[test]
 fn failed_reset() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (_account, _abstr, app) = setup(0)?;
+    let (_, app) = setup(0)?;
 
     let err: AppError = app
         .call_as(&Addr::unchecked("NotAdmin"))

@@ -75,7 +75,7 @@ fn main() -> anyhow::Result<()> {
     // Query the App again
     assert_that!(app.count()?.count).is_equal_to(1);
 
-    // Note: the App is installed on a sub-account of the main account! 
+    // Note: the App is installed on a sub-account of the main account!
     assert_ne!(account.id()?, app.account().id()?);
 
     Ok(())
