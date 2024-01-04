@@ -1,3 +1,7 @@
+//! # Represents chain infrastructure
+//!
+//! [`Environment`] allows you to get chain environment of the object
+
 use abstract_interface::{Abstract, AbstractInterfaceError};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;

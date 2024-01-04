@@ -22,8 +22,6 @@ pub mod state;
 #[cfg(feature = "test-utils")]
 pub mod mock {
     use crate::{AdapterContract, AdapterError};
-    use ::abstract_interface::RegisteredModule;
-    use ::cw_orch::prelude::CwEnv;
     use abstract_core::{
         adapter::{self, *},
         objects::dependency::StaticDependency,
@@ -39,7 +37,7 @@ pub mod mock {
     use cw_orch::{contract::Contract, prelude::*};
     use thiserror::Error;
 
-    use abstract_interface::AdapterDeployer;
+    use abstract_interface::{AdapterDeployer, RegisteredModule};
 
     crate::adapter_msg_types!(MockAdapterContract, MockExecMsg, MockQueryMsg);
 

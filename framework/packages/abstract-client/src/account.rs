@@ -31,8 +31,8 @@ use abstract_core::{
     PROXY,
 };
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, DependencyCreation, InstallConfig, ManagerExecFns,
-    ManagerQueryFns, RegisteredModule, VCQueryFns,
+    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
+    InstallConfig, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
 
 use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
@@ -260,13 +260,25 @@ impl<Chain: CwEnv> Account<Chain> {
         self.install_app_internal(vec![M::install_config(configuration)?], funds)
     }
 
+    /// Install an application on current account.
     pub fn install_adapter<
         M: ContractInstance<Chain> + InstallConfig<InitMsg = Empty> + From<Contract<Chain>>,
     >(
         &self,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
-        self.install_app_internal(vec![M::install_config(&Empty {})?], funds)
+        let install_adapter_response = self
+            .abstr_account
+            .manager
+            .install_modules(vec![M::install_config(&Empty {})?], Some(funds))?;
+
+        let adapter_addr = Self::parse_adapter_installing_response(install_adapter_response);
+        let contract = Contract::new(M::module_id().to_owned(), self.environment())
+            .with_address(Some(&adapter_addr));
+
+        let adapter: M = contract.into();
+
+        Application::new(Account::new(self.abstr_account.clone()), adapter)
     }
 
     /// Creates a new sub-account on the current account and
@@ -340,7 +352,8 @@ impl<Chain: CwEnv> Account<Chain> {
                     module_id: PROXY.to_owned(),
                     exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
                         msgs,
-                    })?,
+                    })
+                    .map_err(AbstractInterfaceError::from)?,
                 },
                 Some(funds),
             )
@@ -459,6 +472,23 @@ impl<Chain: CwEnv> Account<Chain> {
             sub_account_id: sub_account_id.unwrap(),
             module_address,
         }
+    }
+
+    fn parse_adapter_installing_response(response: <Chain as TxHandler>::Response) -> Addr {
+        let wasm_abstract_attributes: Vec<Attribute> = response
+            .events()
+            .into_iter()
+            .filter(|e| e.ty == "wasm-abstract")
+            .flat_map(|e| e.attributes)
+            .collect();
+
+        let module_addresses: Option<String> = wasm_abstract_attributes
+            .iter()
+            .find(|a| a.key == "new_modules")
+            .map(|a| a.value.parse().unwrap());
+
+        // We install only one adapter
+        Addr::unchecked(module_addresses.unwrap())
     }
 }
 
