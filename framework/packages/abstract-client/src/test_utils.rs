@@ -17,8 +17,8 @@ use crate::{
 use self::cw20_builder::Cw20Builder;
 
 impl AbstractClient<Mock> {
-    pub fn builder(sender: impl Into<String>) -> AbstractClientBuilder {
-        AbstractClientBuilder::new(sender.into())
+    pub fn builder(sender: impl Into<String>) -> AbstractMockClientBuilder {
+        AbstractMockClientBuilder::new(sender.into())
     }
 
     pub fn cw20_builder(
@@ -31,7 +31,7 @@ impl AbstractClient<Mock> {
     }
 }
 
-pub struct AbstractClientBuilder {
+pub struct AbstractMockClientBuilder {
     mock: Mock,
     sender: String,
     balances: Vec<(String, Vec<Coin>)>,
@@ -41,7 +41,7 @@ pub struct AbstractClientBuilder {
     pools: Vec<(UncheckedPoolAddress, PoolMetadata)>,
 }
 
-impl AbstractClientBuilder {
+impl AbstractMockClientBuilder {
     pub(crate) fn new(sender: impl Into<String>) -> Self {
         let sender: String = sender.into();
         Self {
