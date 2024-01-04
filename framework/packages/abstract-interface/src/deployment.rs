@@ -134,7 +134,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let mut abstr = Self::new(chain);
         // We register all the contracts default state
         abstr.set_contracts_state(None);
-        
+
         // Check if abstract deployed, for successful load
         if let Err(CwOrchError::AddrNotInStore(_)) = abstr.version_control.address() {
             return Err(AbstractInterfaceError::NotDeployed {});

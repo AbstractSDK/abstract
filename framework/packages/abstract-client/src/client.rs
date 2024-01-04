@@ -7,26 +7,21 @@
 //! - Publish modules
 //! - Do integration tests with Abstract
 //!
-//! Example of creating account and installing dex adapter
-//! ```no_run
-//! use cw_orch::prelude::*;
-//! use cw_orch::daemon::{networks::parse_network, Daemon};
-//! use abstract_client::client::AbstractClient;
-//! use abstract_dex_adapter::interface::DexAdapter;
-//! use tokio::runtime::Runtime;
+//! Example of publishing mock app
+//! ```
+//! # use abstract_client::error::AbstractClientError;
+//! use abstract_app::mock::interface::MockAppInterface;
+//! use cw_orch::prelude::Mock;
+//! use abstract_client::{client::AbstractClient, publisher::Publisher};
 //!
-//! let rt = Runtime::new()?;
-//! let juno_testnet = Daemon::builder()
-//!         .handle(rt.handle())
-//!         .chain(parse_network("uni-6").unwrap())
-//!         // Your mnemonic
-//!         .mnemonic(TEST_MNEMONIC)
-//!         .build()
-//!         .unwrap();
-//! let client = AbstractClient::new(juno_testnet)?;
-//! let account: Account<Daemon> = client.account_builder().name("Alice").build()?;
-//! account.install_app::<DexAdapter<Daemon>>(&cosmwasm_std::Empty{ }, &[])?;
+//! let client = AbstractClient::builder("sender").build()?;
 //!
+//! let namespace = "tester";
+//! let publisher: Publisher<Mock> = client
+//!     .publisher_builder(namespace)
+//!     .build()?;
+//!
+//! publisher.publish_app::<MockAppInterface<Mock>>()?;
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
@@ -54,10 +49,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// already deployed on this chain
     ///
     /// ```
-    /// # use abstract_client::error::AbstractClientError;
-    /// # let sender = cosmwasm_std::Addr::unchecked("sender");
-    /// # let chain = cw_orch::prelude::Mock::new(&sender);
     /// use abstract_client::client::AbstractClient;
+    /// # use abstract_client::{infrastructure::Environment, error::AbstractClientError};
+    /// # let client = AbstractClient::builder("sender").build().unwrap(); // Deploy mock abstract
+    /// # let chain = client.environment();
     ///
     /// let client = AbstractClient::new(chain)?;
     /// # Ok::<(), AbstractClientError>(())
@@ -74,9 +69,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     /// Version Control contract API
     /// ```
-    /// # use abstract_client::__doc_setup_mock;
     /// # use abstract_client::error::AbstractClientError;
-    /// # let client = __doc_setup_mock!();
+    /// # let client = abstract_client::client::AbstractClient::builder("sender").build().unwrap();
     /// use abstract_core::objects::{module_reference::ModuleReference, module::ModuleInfo};
     /// // For getting version control address
     /// use cw_orch::prelude::*;

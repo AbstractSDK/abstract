@@ -261,9 +261,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
-    let publisher: Publisher<Mock> = client
-        .publisher_builder("tester")
-        .build()?;
+    let publisher: Publisher<Mock> = client.publisher_builder("tester").build()?;
 
     let publisher_manager = publisher.account().manager()?;
 

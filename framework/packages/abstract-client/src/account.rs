@@ -1,7 +1,23 @@
 //! # Represents Abstract Account
 //!
 //! [`Account`] allows you to interact with your or another user Abstract Account
-
+//!
+//! Example of creating an account
+//! ```
+//! # use abstract_client::error::AbstractClientError;
+//! use abstract_client::{client::AbstractClient, account::Account};
+//! use cw_orch::prelude::Mock;
+//!
+//! # let client = AbstractClient::builder("sender").build()?;
+//!
+//! let alice_account: Account<Mock> = client
+//!     .account_builder()
+//!     .name("Alice")
+//!     .build()?;
+//!
+//! assert_eq!(alice_account.owner()?, client.sender());
+//! # Ok::<(), AbstractClientError>(())
+//! ```
 use abstract_core::{
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
@@ -35,8 +51,8 @@ use crate::{
 /// and created with method `build`
 ///
 /// ```
-/// # use abstract_client::{__doc_setup_mock, error::AbstractClientError, infrastructure::Environment};
-/// # let abstr_client = __doc_setup_mock!();
+/// # use abstract_client::{error::AbstractClientError, infrastructure::Environment};
+/// # let abstr_client = abstract_client::client::AbstractClient::builder("sender").build().unwrap();
 /// # let chain = abstr_client.environment();
 /// use abstract_client::client::AbstractClient;
 ///

@@ -17,13 +17,13 @@ use crate::{
 /// and created with method `build`
 ///
 /// ```
-/// # use abstract_client::{__doc_setup_mock, error::AbstractClientError, infrastructure::Environment};
-/// # let abstr_client = __doc_setup_mock!();
+/// # use abstract_client::{error::AbstractClientError, infrastructure::Environment};
+/// # let abstr_client = abstract_client::client::AbstractClient::builder("sender").build().unwrap();
 /// # let chain = abstr_client.environment();
 /// use abstract_client::client::AbstractClient;
 ///
 /// let client = AbstractClient::new(chain)?;
-/// let account = client.publisher_builder().name("alice").build()?;
+/// let account = client.publisher_builder("alice-namespace").name("alice").build()?;
 /// # Ok::<(), AbstractClientError>(())
 /// ```
 pub struct PublisherBuilder<'a, Chain: CwEnv> {
