@@ -38,14 +38,10 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .build()?;
 
         let abstract_client = AbstractClient::new(chain.clone())?;
-        abstract_client.
-        let app = AppInterface::new(APP_ID, chain);
+        let account = abstract_client.get_last_account()?.unwrap_or_else(|| {
+            abstract_client.account_builder().build()?
+        });
 
-
-        app.deploy(version, DeployStrategy::Try)?;
-
-        // Create an account on our front-end to install the module!
-        // https://app.abstract.money
     }
     Ok(())
 }
