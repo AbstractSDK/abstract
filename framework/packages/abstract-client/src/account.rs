@@ -217,6 +217,11 @@ impl<Chain: CwEnv> Account<Chain> {
         Ok(Self::new(abstract_account))
     }
 
+    /// Get the [`AccountId`] of the Account
+    pub fn id(&self) -> AbstractClientResult<AccountId> {
+        self.abstr_account.id().map_err(Into::into)
+    }
+
     /// Query account balance of a given denom
     // TODO: Asset balance?
     pub fn query_balance(&self, denom: impl Into<String>) -> AbstractClientResult<Uint128> {

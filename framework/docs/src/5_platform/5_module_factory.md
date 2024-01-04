@@ -1,8 +1,6 @@
 # Module Factory
 
-The Module Factory is a contract that allows you to install and manage Abstract Modules via the Account Manager. You can
-install modules by interacting with the Account Manager directly, i.e. via CLI, or by using
-the [Account Console](4_account_console.md).
+The Module Factory is a contract that allows Account owners to install and manage Abstract Modules for their Account. You can install modules by interacting with the Account Manager directly, i.e. via CLI, or by using the [Account Console](4_account_console.md).
 
 To recap from [that chapter](../3_framework/6_module_types.md), there are three types of modules: App, Adapter, and Standalone.
 
@@ -43,6 +41,8 @@ Once the module is installed, there are essentially three ways to interact with 
 
 ### Owner Execution
 
+The owner of an Account can always execute on the module directly, even if the module is installed on a sub-account.
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -57,28 +57,25 @@ sequenceDiagram
 
 ### Adapter Execution
 
-In the following example, the `abstract:dex` module is installed on an Account, and the user requests a swap on a dex.
+In the following example, the `abstract:dex` module is installed on an Account and the user requests a swap on a dex. This swap will use the funds held in the Account to execute the swap on the target dex.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor U as Owner
     participant D as abstract:dex
-    participant VC as Version Control
     participant A as ANS
     participant P as Proxy
     participant T as Dex Pool
     Note right of U: Dex::Swap {proxy: "juno1xd..."}
     U ->> D: Call module
-    D -->+ VC: Load proxy address for Account
-    VC -->- D: Address
     D -->>+ A: Resolve asset names
     A -->> D: Asset infos
     D --> A: Resolve dex pool
     A -->>- D: Pool metadata
     D --> D: Build swap msg for target dex
     D ->> P: Forward execution
-    Note over VC, A: DexMsg
+    Note over D, A: DexMsg
     P ->> T: Execute
     Note right of P: DexMsg
 ```
@@ -102,7 +99,7 @@ sequenceDiagram
     participant T as Target Dex
 
     U ->> B: Rebalance
-    B -->>+ P: Query Allocations
+    B -->>+ P: Query Allocations (Oracle)
     P -->>- B: Allocations
     B --> B: Calculate rebalancing requirements
 

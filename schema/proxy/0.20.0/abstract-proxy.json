@@ -1644,6 +1644,19 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "description": "Renounced account This account no longer has an owner and cannot be used.",
+            "type": "object",
+            "required": [
+              "Renounced"
+            ],
+            "properties": {
+              "Renounced": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },
