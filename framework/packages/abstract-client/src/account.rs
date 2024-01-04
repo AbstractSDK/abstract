@@ -47,7 +47,7 @@ use crate::{
 };
 
 /// A builder for creating [`Accounts`](Account).
-/// Get the builder from [`AbstractClient::account_builder`](crate::client::AbstractClient)
+/// Get the builder from the [`AbstractClient::account_builder`](crate::client::AbstractClient)
 /// and create the account with the `build` method.
 ///
 /// ```
@@ -57,7 +57,7 @@ use crate::{
 /// use abstract_client::client::AbstractClient;
 ///
 /// let client = AbstractClient::new(chain)?;
-/// let account = client.account_builder()
+/// let account: Account<Mock> = client.account_builder()
 ///     .name("alice")
 ///     // other account configuration
 ///     .build()?;
@@ -185,7 +185,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 }
 
-/// Represents an existing Abstract account. \
+/// Represents an existing Abstract account.
 ///
 /// Get this struct from [`AbstractClient::account_from_namespace`](crate::client::AbstractClient)
 /// or create a new account with the [`AccountBuilder`].

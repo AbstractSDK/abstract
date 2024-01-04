@@ -12,9 +12,9 @@ use crate::{
     infrastructure::Environment,
 };
 
-/// PublisherBuilder is a builder for creating publisher account.
-/// It's intended to be used from [`crate::client::AbstractClient::publisher_builder`]
-/// and created with method `build`
+/// A builder for creating [`Publishers`](Account).
+/// Get the builder from the [`AbstractClient::publisher_builder`](crate::client::AbstractClient)
+/// and create the account with the `build` method.
 ///
 /// ```
 /// # use abstract_client::{error::AbstractClientError, infrastructure::Environment};
@@ -23,7 +23,10 @@ use crate::{
 /// use abstract_client::client::AbstractClient;
 ///
 /// let client = AbstractClient::new(chain)?;
-/// let account = client.publisher_builder("alice-namespace").name("alice").build()?;
+/// let publisher: Publisher<Mock> = client.publisher_builder("alice-namespace")
+///     .name("alice")
+///     // other configurations
+///     .build()?;
 /// # Ok::<(), AbstractClientError>(())
 /// ```
 pub struct PublisherBuilder<'a, Chain: CwEnv> {
@@ -36,6 +39,7 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         namespace: impl Into<String>,
     ) -> Self {
         account_builder.namespace(namespace);
+        account_builder.fetch_if_namespace_claimed(true);
         Self { account_builder }
     }
 
@@ -71,13 +75,15 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         self
     }
 
+    /// Builds the [`Publisher`].
+    /// Creates an account if the namespace is not already owned.
     pub fn build(&self) -> AbstractClientResult<Publisher<Chain>> {
         let account = self.account_builder.build()?;
         Ok(Publisher { account })
     }
 }
 
-/// A publisher represents an account that owns a namespace with the goal of publishing software to the module-store.
+/// A Publisher represents an account that owns a namespace with the goal of publishing modules to the on-chain module-store.
 pub struct Publisher<Chain: CwEnv> {
     account: Account<Chain>,
 }
@@ -87,7 +93,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
         Self { account }
     }
 
-    /// Publish Abstract App
+    /// Publish an Abstract App
     pub fn publish_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + AppDeployer<Chain>,
     >(
@@ -99,7 +105,7 @@ impl<Chain: CwEnv> Publisher<Chain> {
             .map_err(Into::into)
     }
 
-    /// Publish Abstract Adapter
+    /// Publish an Abstract Adapter
     pub fn publish_adapter<
         CustomInitMsg: Serialize,
         M: ContractInstance<Chain>

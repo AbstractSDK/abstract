@@ -14,7 +14,8 @@ Example of publishing mock app
 use abstract_app::mock::interface::MockAppInterface;
 use cw_orch::prelude::Mock;
 use abstract_client::{client::AbstractClient, publisher::Publisher};
-let client = AbstractClient::builder("sender").build()?;
+
+let client: AbstractClient<Mock> = AbstractClient::builder("sender").build()?;
 let namespace = "tester";
 let publisher: Publisher<Mock> = client
     .publisher_builder(namespace)
