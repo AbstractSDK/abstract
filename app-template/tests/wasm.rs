@@ -1,7 +1,7 @@
 use app::contract::APP_ID;
 use app::AppInterface;
 
-use abstract_testing::OWNER;
+use abstract_app::abstract_testing::OWNER;
 use cw_orch::prelude::*;
 
 #[test]

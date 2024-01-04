@@ -1,6 +1,6 @@
-use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
-use abstract_testing::OWNER;
+use abstract_app::objects::{gov_type::GovernanceDetails, AccountId};
+use abstract_app::abstract_testing::OWNER;
+use abstract_app::abstract_interface::*;
 use app::{
     contract::{APP_ID, APP_VERSION},
     error::AppError,
@@ -41,9 +41,9 @@ fn setup(
         .version_control
         .claim_namespace(AccountId::local(1), "my-namespace".to_string())?;
 
-    app.deploy(APP_VERSION.parse()?)?;
+    app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;
 
-    account.install_app(app.clone(), &AppInstantiateMsg { count }, None)?;
+    account.install_app(&app, &AppInstantiateMsg { count }, None)?;
 
     Ok((account, abstr_deployment, app))
 }

@@ -7,8 +7,8 @@
 //!
 //! `cargo run --example test-local`
 
-use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_interface::{Abstract, AppDeployer, VCExecFns};
+use abstract_app::objects::gov_type::GovernanceDetails;
+use abstract_app::abstract_interface::{Abstract, AppDeployer, VCExecFns, DeployStrategy};
 use app::{
     contract::{APP_ID, APP_VERSION},
     msg::AppInstantiateMsg,
@@ -56,10 +56,10 @@ fn main() -> anyhow::Result<()> {
         .claim_namespace(account.id()?, "my-namespace".to_owned())?;
 
     // Deploy
-    app.deploy(version)?;
+    app.deploy(version, DeployStrategy::Try)?;
 
     // Install app
-    account.install_app(app, &AppInstantiateMsg { count: 0 }, None)?;
+    account.install_app(&app, &AppInstantiateMsg { count: 0 }, None)?;
 
     assert_that!(account.manager.is_module_installed(APP_ID).unwrap()).is_true();
     Ok(())

@@ -14,7 +14,7 @@
 //! $ just deploy uni-6 osmo-test-5
 //! ```
 
-use abstract_interface::AppDeployer;
+use abstract_app::abstract_interface::{DeployStrategy, AppDeployer};
 use app::{
     contract::{APP_ID, APP_VERSION},
     AppInterface,
@@ -39,7 +39,7 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .build()?;
 
         let app = AppInterface::new(APP_ID, chain);
-        app.deploy(version)?;
+        app.deploy(version, DeployStrategy::Try)?;
 
         // Create an account on our front-end to install the module!
         // https://app.abstract.money
@@ -59,6 +59,6 @@ fn main() {
     dotenv::dotenv().ok();
     env_logger::init();
     let args = Arguments::parse();
-    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
+    let networks = args.network_ids.iter().map(|n| parse_network(n).unwrap()).collect();
     deploy(networks).unwrap();
 }
