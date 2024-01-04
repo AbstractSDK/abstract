@@ -12,7 +12,11 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 interface-macro = ["dep:abstract-interface", "dep:cw-orch"]
-test-utils = ["dep:abstract-testing", "interface-macro", "abstract-sdk/test-utils"]
+test-utils = [
+  "dep:abstract-testing",
+  "interface-macro",
+  "abstract-sdk/test-utils",
+]
 schema = []
 
 [dependencies]

@@ -7,8 +7,8 @@
 //!
 //! `cargo run --example test-local`
 
+use abstract_app::abstract_interface::{Abstract, AppDeployer, DeployStrategy, VCExecFns};
 use abstract_app::objects::gov_type::GovernanceDetails;
-use abstract_app::abstract_interface::{Abstract, AppDeployer, VCExecFns, DeployStrategy};
 use app::{
     contract::{APP_ID, APP_VERSION},
     msg::AppInstantiateMsg,

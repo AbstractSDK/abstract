@@ -1,6 +1,6 @@
-use abstract_app::objects::{gov_type::GovernanceDetails, AccountId};
-use abstract_app::abstract_testing::OWNER;
 use abstract_app::abstract_interface::*;
+use abstract_app::abstract_testing::OWNER;
+use abstract_app::objects::{gov_type::GovernanceDetails, AccountId};
 use app::{
     contract::{APP_ID, APP_VERSION},
     error::AppError,

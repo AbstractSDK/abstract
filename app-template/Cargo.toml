@@ -49,7 +49,9 @@ cw-orch = { version = "0.19.1", optional = true }
 [dev-dependencies]
 app = { path = ".", features = ["interface"] }
 abstract-client = { path = "../framework/packages/abstract-client" }
-abstract-app = { path = "../framework/packages/abstract-app", features = ["test-utils"] }
+abstract-app = { path = "../framework/packages/abstract-app", features = [
+  "test-utils",
+] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"

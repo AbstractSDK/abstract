@@ -33,11 +33,13 @@ macro_rules! app_msg_types {
         pub type InstantiateMsg =
             <$app_type as $crate::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
         /// Top-level Abstract App execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
-        pub type ExecuteMsg = <$app_type as $crate::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
+        pub type ExecuteMsg =
+            <$app_type as $crate::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
         /// Top-level Abstract App query message. This is the message that is passed to the `query` entrypoint of the smart-contract.
         pub type QueryMsg = <$app_type as $crate::abstract_sdk::base::QueryEndpoint>::QueryMsg;
         /// Top-level Abstract App migrate message. This is the message that is passed to the `migrate` entrypoint of the smart-contract.
-        pub type MigrateMsg = <$app_type as $crate::abstract_sdk::base::MigrateEndpoint>::MigrateMsg;
+        pub type MigrateMsg =
+            <$app_type as $crate::abstract_sdk::base::MigrateEndpoint>::MigrateMsg;
 
         impl $crate::abstract_core::app::AppExecuteMsg for $app_execute_msg {}
         impl $crate::abstract_core::app::AppQueryMsg for $app_query_msg {}

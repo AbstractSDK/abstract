@@ -13,8 +13,8 @@ pub use error::AppError;
 pub type AppResult<C = cosmwasm_std::Empty> = Result<cosmwasm_std::Response<C>, AppError>;
 
 // Useful re-exports
-pub use abstract_sdk;
 pub use abstract_core;
+pub use abstract_sdk;
 // re-export objects specifically
 pub use abstract_core::objects;
 pub mod traits {

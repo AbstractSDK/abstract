@@ -14,7 +14,7 @@
 //! $ just deploy uni-6 osmo-test-5
 //! ```
 
-use abstract_app::abstract_interface::{DeployStrategy, AppDeployer};
+use abstract_app::abstract_interface::{AppDeployer, DeployStrategy};
 use app::{
     contract::{APP_ID, APP_VERSION},
     AppInterface,
@@ -59,6 +59,10 @@ fn main() {
     dotenv::dotenv().ok();
     env_logger::init();
     let args = Arguments::parse();
-    let networks = args.network_ids.iter().map(|n| parse_network(n).unwrap()).collect();
+    let networks = args
+        .network_ids
+        .iter()
+        .map(|n| parse_network(n).unwrap())
+        .collect();
     deploy(networks).unwrap();
 }
