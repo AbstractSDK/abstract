@@ -146,7 +146,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         Ok(proxy_whitelist)
     }
 
-    /// Gets the account ID of the account in the local store.
+    /// Gets the account ID of the account.
     pub fn id(&self) -> Result<AccountId, crate::AbstractInterfaceError> {
         Ok(self.manager.config()?.account_id)
     }
