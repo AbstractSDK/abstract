@@ -67,6 +67,7 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         self
     }
 
+    /// Overwrite the configured namespace
     pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
         self.account_builder.namespace(namespace);
         self
