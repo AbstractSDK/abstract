@@ -26,16 +26,18 @@ pub mod mock {
         adapter::{self, *},
         objects::dependency::StaticDependency,
     };
-    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
+    use abstract_sdk::{
+        base::InstantiateEndpoint, features::ModuleIdentification, AbstractSdkError,
+    };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
         to_json_binary, DepsMut, Empty, Response, StdError,
     };
-    use cw_orch::prelude::*;
+    use cw_orch::{contract::Contract, prelude::*};
     use thiserror::Error;
 
-    use abstract_interface::AdapterDeployer;
+    use abstract_interface::{AdapterDeployer, RegisteredModule};
 
     crate::adapter_msg_types!(MockAdapterContract, MockExecMsg, MockQueryMsg);
 
@@ -147,6 +149,23 @@ pub mod mock {
 
     #[cw_orch::interface(Init, Exec, Query, Empty)]
     pub struct BootMockAdapter<Chain>;
+
+    impl<Chain: CwEnv> RegisteredModule for BootMockAdapter<Chain> {
+        type InitMsg = Empty;
+
+        fn module_id<'a>() -> &'a str {
+            MOCK_ADAPTER.module_id()
+        }
+        fn module_version<'a>() -> &'a str {
+            MOCK_ADAPTER.version()
+        }
+    }
+
+    impl<Chain: CwEnv> From<Contract<Chain>> for BootMockAdapter<Chain> {
+        fn from(value: Contract<Chain>) -> Self {
+            BootMockAdapter(value)
+        }
+    }
 
     impl<T: CwEnv> AdapterDeployer<T, MockInitMsg> for BootMockAdapter<T> {}
 

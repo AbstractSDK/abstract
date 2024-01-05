@@ -1,13 +1,13 @@
-use abstract_core::AbstractError;
+//! # Represents Abstract Client Errors
+
+use abstract_core::{objects::validation::ValidationError, AbstractError};
 use abstract_interface::AbstractInterfaceError;
-use cosmwasm_std::StdError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+/// Error type for the abstract client crate.
+#[allow(missing_docs)] // Error type names should be self-explanatory
 pub enum AbstractClientError {
-    #[error("{0}")]
-    Std(#[from] StdError),
-
     #[error("{0}")]
     Abstract(#[from] AbstractError),
 
@@ -19,6 +19,9 @@ pub enum AbstractClientError {
 
     #[error("{0}")]
     Semver(#[from] semver::Error),
+
+    #[error("{0}")]
+    ValidationError(#[from] ValidationError),
 
     #[error("Module not installed")]
     ModuleNotInstalled {},
