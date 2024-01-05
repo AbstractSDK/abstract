@@ -1,6 +1,11 @@
 //! # Represents chain infrastructure
 //!
-//! [`Environment`] allows you to get chain environment of the object
+//! [`Environment`] allows you to get the execution environment of the object.
+//! 
+//! You might want to do this to get the cw-orchestrator type of the infrastructure which enables you to 
+//! call some environment-specific methods or do low-level operations.
+//! 
+//! You also sometimes need to provide the environment as a parameter to some methods, e.g. when you want to deploy a contract.
 
 use abstract_interface::{Abstract, AbstractInterfaceError};
 use cw_orch::deploy::Deploy;

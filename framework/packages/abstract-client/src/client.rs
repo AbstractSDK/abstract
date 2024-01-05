@@ -50,8 +50,8 @@ pub struct AbstractClient<Chain: CwEnv> {
 pub type AbstractClientResult<T> = Result<T, AbstractClientError>;
 
 impl<Chain: CwEnv> AbstractClient<Chain> {
-    /// Get abstract client from a chosen network. Abstract should be
-    /// already deployed on this chain
+    /// Get [`AbstractClient`] from a chosen environment. [`Abstract`] should 
+    /// already be deployed on this environment.
     ///
     /// ```
     /// use abstract_client::client::AbstractClient;
@@ -73,6 +73,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     // }
 
     /// Version Control contract API
+    /// 
+    /// The Version Control contract is a database contract that stores all module-related information.
     /// ```
     /// # use abstract_client::error::AbstractClientError;
     /// # let client = abstract_client::client::AbstractClient::builder("sender").build().unwrap();
@@ -105,12 +107,12 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 
     /// Publisher builder for creating new [`Publisher`] Abstract Account
-    /// To publish any modules your account requires to have namespace
+    /// To publish any modules your account requires to have claimed a namespace.
     pub fn publisher_builder(&self, namespace: &str) -> PublisherBuilder<Chain> {
         PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)
     }
 
-    /// Publisher builder for creating a new Abstract Account
+    /// Publisher builder for creating a new Abstract [`Account`].
     pub fn account_builder(&self) -> AccountBuilder<Chain> {
         AccountBuilder::new(&self.abstr)
     }
@@ -125,7 +127,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         self.environment().sender()
     }
 
-    /// Retrieve denom balance for chosen address
+    /// Retrieve denom balance for provided address
     pub fn query_balance(
         &self,
         address: &Addr,
@@ -139,7 +141,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(coins[0].amount)
     }
 
-    /// Retrieve balances of all denoms for chosen address
+    /// Retrieve balances of all denoms for provided address
     pub fn query_balances(&self, address: &Addr) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
             .balance(address, None)
