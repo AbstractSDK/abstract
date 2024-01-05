@@ -90,7 +90,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         .link(link)
         .description(description)
         .ownership(governance_details.clone())
-        .namespace(namespace.clone())
+        .namespace(namespace)
         .base_asset(base_asset)
         .build()?;
 
@@ -107,7 +107,11 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     );
 
     // Namespace is claimed.
-    let account_id = client.version_control().namespace(namespace)?.account_id;
+    let account_id = client
+        .version_control()
+        .namespace(Namespace::new(namespace)?)?
+        .unwrap()
+        .account_id;
     assert_eq!(account_id, AccountId::local(1));
 
     Ok(())
@@ -124,8 +128,10 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
         .build()?;
 
     let account_from_namespace: Account<Mock> = client
-        .account_from_namespace(namespace)?
-        .expect("account exists");
+        .account_builder()
+        .fetch_if_namespace_claimed(true)
+        .namespace(namespace)
+        .build()?;
 
     assert_eq!(account.info()?, account_from_namespace.info()?);
 
@@ -194,7 +200,11 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     );
 
     // Namespace is claimed.
-    let account_id = client.version_control().namespace(namespace)?.account_id;
+    let account_id = client
+        .version_control()
+        .namespace(Namespace::new(namespace)?)?
+        .unwrap()
+        .account_id;
     assert_eq!(account_id, AccountId::local(1));
 
     Ok(())
@@ -233,6 +243,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
 
+    // Install app on sub-account
     let my_app: Application<Mock, MockAppDependencyInterface<Mock>> =
         publisher_account.install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg {}, &[])?;
 
@@ -249,7 +260,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
             governance_details: GovernanceDetails::SubAccount {
-                manager: publisher_manager,
+                manager: publisher_manager.clone(),
                 proxy: publisher_proxy
             },
             link: None,
@@ -257,6 +268,101 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
         sub_account_details
     );
 
+    // Install app on current account
+    let publisher = client
+        .publisher_builder("tester")
+        .install_on_sub_account(false)
+        .build()?;
+    let my_adapter: Application<Mock, MockAppDependencyInterface<Mock>> =
+        publisher.account().install_app(&MockInitMsg {}, &[])?;
+
+    my_adapter.call_as(&publisher_manager).do_something()?;
+    let mock_query: MockQueryResponse = my_adapter.get_something()?;
+
+    assert_eq!(MockQueryResponse {}, mock_query);
+
+    let sub_account_details = my_adapter.account().info()?;
+    assert_eq!(
+        AccountInfo {
+            name: String::from("Default Abstract Account"),
+            chain_id: String::from("cosmos-testnet-14002"),
+            description: None,
+            governance_details: GovernanceDetails::Monarchy {
+                monarch: client.sender()
+            },
+            link: None,
+        },
+        sub_account_details
+    );
+
+    Ok(())
+}
+
+#[test]
+fn can_publish_and_install_adapter() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(OWNER).build()?;
+
+    let publisher: Publisher<Mock> = client.publisher_builder("tester").build()?;
+
+    let publisher_manager = publisher.account().manager()?;
+    let publisher_proxy = publisher.account().proxy()?;
+
+    publisher.publish_adapter::<BootMockInitMsg, BootMockAdapter<Mock>>(BootMockInitMsg {})?;
+
+    // Install adapter on sub-account
+    let my_adapter: Application<Mock, BootMockAdapter<Mock>> =
+        publisher.account().install_adapter(&[])?;
+
+    my_adapter
+        .call_as(&publisher_manager)
+        .execute(&BootMockExecMsg {}.into(), None)?;
+    let mock_query: String = my_adapter.query(&BootMockQueryMsg {}.into())?;
+
+    assert_eq!(String::from("mock_query"), mock_query);
+
+    let sub_account_details = my_adapter.account().info()?;
+    assert_eq!(
+        AccountInfo {
+            name: String::from("Sub Account"),
+            chain_id: String::from("cosmos-testnet-14002"),
+            description: None,
+            governance_details: GovernanceDetails::SubAccount {
+                manager: publisher_manager.clone(),
+                proxy: publisher_proxy
+            },
+            link: None,
+        },
+        sub_account_details
+    );
+
+    // Install adapter on current account
+    let publisher = client
+        .publisher_builder("tester")
+        .install_on_sub_account(false)
+        .build()?;
+    let my_adapter: Application<Mock, BootMockAdapter<Mock>> =
+        publisher.account().install_adapter(&[])?;
+
+    my_adapter
+        .call_as(&publisher_manager)
+        .execute(&BootMockExecMsg {}.into(), None)?;
+    let mock_query: String = my_adapter.query(&BootMockQueryMsg {}.into())?;
+
+    assert_eq!(String::from("mock_query"), mock_query);
+
+    let sub_account_details = my_adapter.account().info()?;
+    assert_eq!(
+        AccountInfo {
+            name: String::from("Default Abstract Account"),
+            chain_id: String::from("cosmos-testnet-14002"),
+            description: None,
+            governance_details: GovernanceDetails::Monarchy {
+                monarch: client.sender()
+            },
+            link: None,
+        },
+        sub_account_details
+    );
     Ok(())
 }
 

@@ -39,7 +39,7 @@ use crate::{
     account::{Account, AccountBuilder},
     error::AbstractClientError,
     infrastructure::Environment,
-    publisher::{Publisher, PublisherBuilder},
+    publisher::PublisherBuilder,
 };
 
 /// Client to interact with Abstract accounts and modules
@@ -94,14 +94,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(|e| AbstractClientError::CwOrch(e.into()))
     }
 
-    /// Retrieve [`Publisher`] that holds this namespace
-    pub fn publisher_from_namespace(
-        &self,
-        namespace: Namespace,
-    ) -> AbstractClientResult<Option<Publisher<Chain>>> {
-        Ok(self.account_from_namespace(namespace)?.map(Publisher::new))
-    }
-
     /// Publisher builder for creating new [`Publisher`] Abstract Account
     /// To publish any modules your account requires to have claimed a namespace.
     pub fn publisher_builder(&self, namespace: Namespace) -> PublisherBuilder<Chain> {
@@ -111,14 +103,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Publisher builder for creating a new Abstract [`Account`].
     pub fn account_builder(&self) -> AccountBuilder<Chain> {
         AccountBuilder::new(&self.abstr)
-    }
-
-    /// Retrieve Abstract [`Account`] that holds this namespace
-    pub fn account_from_namespace(
-        &self,
-        namespace: Namespace,
-    ) -> AbstractClientResult<Option<Account<Chain>>> {
-        Account::from_namespace(&self.abstr, namespace)
     }
 
     /// Address of the sender
@@ -192,10 +176,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
             if let Some((last_account_id, _)) = last_account {
                 if account_id.seq() > last_account_id {
-                    last_account = Some((account_id.seq(), Account::new(account)));
+                    last_account = Some((account_id.seq(), Account::new(account, true)));
                 }
             } else {
-                last_account = Some((account_id.seq(), Account::new(account)));
+                last_account = Some((account_id.seq(), Account::new(account, true)));
             }
         }
         Ok(last_account.map(|(_, account)| account))

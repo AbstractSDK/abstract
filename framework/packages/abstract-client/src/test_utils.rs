@@ -22,8 +22,8 @@ use self::cw20_builder::Cw20Builder;
 
 impl AbstractClient<Mock> {
     /// Abstract client builder
-    pub fn builder(sender: impl Into<String>) -> AbstractMockClientBuilder {
-        AbstractMockClientBuilder::new(sender.into())
+    pub fn builder(sender: impl Into<String>) -> AbstractClientBuilder {
+        AbstractClientBuilder::new(sender.into())
     }
 
     /// Cw20 contract builder
@@ -38,7 +38,7 @@ impl AbstractClient<Mock> {
 }
 
 /// A builder for setting up tests for `Abstract` in a [`Mock`] environment.
-pub struct AbstractMockClientBuilder {
+pub struct AbstractClientBuilder {
     mock: Mock,
     sender: String,
     balances: Vec<(String, Vec<Coin>)>,
@@ -48,7 +48,7 @@ pub struct AbstractMockClientBuilder {
     pools: Vec<(UncheckedPoolAddress, PoolMetadata)>,
 }
 
-impl AbstractMockClientBuilder {
+impl AbstractClientBuilder {
     pub(crate) fn new(sender: impl Into<String>) -> Self {
         let sender: String = sender.into();
         Self {
