@@ -51,7 +51,7 @@ pub struct AbstractClient<Chain: CwEnv> {
 pub type AbstractClientResult<T> = Result<T, AbstractClientError>;
 
 impl<Chain: CwEnv> AbstractClient<Chain> {
-    /// Get [`AbstractClient`] from a chosen environment. [`Abstract`] should 
+    /// Get [`AbstractClient`] from a chosen environment. [`Abstract`] should
     /// already be deployed on this environment.
     ///
     /// ```
@@ -74,7 +74,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     // }
 
     /// Version Control contract API
-    /// 
+    ///
     /// The Version Control contract is a database contract that stores all module-related information.
     /// ```
     /// # use abstract_client::error::AbstractClientError;
@@ -104,14 +104,12 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         &self,
         namespace: Namespace,
     ) -> AbstractClientResult<Option<Publisher<Chain>>> {
-        Ok(self
-            .get_account_from_namespace(namespace)?
-            .map(Publisher::new))
+        Ok(self.account_from_namespace(namespace)?.map(Publisher::new))
     }
 
     /// Publisher builder for creating new [`Publisher`] Abstract Account
     /// To publish any modules your account requires to have claimed a namespace.
-    pub fn publisher_builder(&self, namespace: &str) -> PublisherBuilder<Chain> {
+    pub fn publisher_builder(&self, namespace: Namespace) -> PublisherBuilder<Chain> {
         PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)
     }
 
@@ -121,7 +119,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 
     /// Retrieve Abstract [`Account`] that holds this namespace
-    pub fn account_from_namespace(&self, namespace: Namespace) -> AbstractClientResult<Account<Chain>> {
+    pub fn account_from_namespace(
+        &self,
+        namespace: Namespace,
+    ) -> AbstractClientResult<Option<Account<Chain>>> {
         Account::from_namespace(&self.abstr, namespace)
     }
 

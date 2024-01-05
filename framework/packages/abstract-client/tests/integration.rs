@@ -90,7 +90,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         .link(link)
         .description(description)
         .ownership(governance_details.clone())
-        .namespace(namespace)
+        .namespace(namespace.clone())
         .base_asset(base_asset)
         .build()?;
 
@@ -123,7 +123,9 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
         .namespace(namespace.clone())
         .build()?;
 
-    let account_from_namespace: Account<Mock> = client.account_from_namespace(namespace)?;
+    let account_from_namespace: Account<Mock> = client
+        .account_from_namespace(namespace)?
+        .expect("account exists");
 
     assert_eq!(account.info()?, account_from_namespace.info()?);
 
@@ -134,7 +136,9 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
 fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
-    let publisher: Publisher<Mock> = client.publisher_builder(TEST_NAMESPACE).build()?;
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
 
     let account_info = publisher.account().info()?;
     assert_eq!(
@@ -169,7 +173,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let namespace = Namespace::new("test-namespace")?;
     let base_asset = AssetEntry::new(asset);
     let publisher: Publisher<Mock> = client
-        .publisher_builder(namespace)
+        .publisher_builder(namespace.clone())
         .name(name)
         .link(link)
         .description(description)
@@ -201,9 +205,11 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
     let namespace = Namespace::new("namespace")?;
-    let publisher: Publisher<Mock> = client.publisher_builder(namespace).build()?;
+    let publisher: Publisher<Mock> = client.publisher_builder(namespace.clone()).build()?;
 
-    let publisher_from_namespace: Publisher<Mock> = client.publisher_from_namespace(namespace)?;
+    let publisher_from_namespace: Publisher<Mock> = client
+        .publisher_from_namespace(namespace)?
+        .expect("publisher exists");
 
     assert_eq!(
         publisher.account().info()?,
@@ -258,7 +264,9 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
-    let publisher: Publisher<Mock> = client.publisher_builder("tester").build()?;
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new("tester")?)
+        .build()?;
 
     let publisher_manager = publisher.account().manager()?;
 

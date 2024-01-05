@@ -24,8 +24,8 @@ use abstract_core::{
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        gov_type::GovernanceDetails, module, namespace::Namespace,
-        nested_admin::MAX_ADMIN_RECURSION, validation::verifiers, AccountId, AssetEntry,
+        gov_type::GovernanceDetails, namespace::Namespace, nested_admin::MAX_ADMIN_RECURSION,
+        validation::verifiers, AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
     PROXY,
@@ -165,9 +165,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         verifiers::validate_name(&name)?;
         verifiers::validate_description(self.description.as_deref())?;
         verifiers::validate_link(self.link.as_deref())?;
-        if let Some(namespace) = &self.namespace {
-            module::validate_name(namespace)?;
-        }
 
         let abstract_account = self.abstr.account_factory.create_new_account(
             AccountDetails {
@@ -217,11 +214,6 @@ impl<Chain: CwEnv> Account<Chain> {
         Ok(namespace_response
             .map(|resp| AbstractAccount::new(abstr, resp.account_id))
             .map(Self::new))
-    }
-
-    /// Get the [`AccountId`] of the Account
-    pub fn id(&self) -> AbstractClientResult<AccountId> {
-        self.abstr_account.id().map_err(Into::into)
     }
 
     /// Get the [`AccountId`] of the Account

@@ -15,15 +15,7 @@ use crate::{
     client::AbstractClientResult,
     infrastructure::Environment,
 };
-use abstract_core::{
-    manager::{ModuleAddressesResponse, ModuleInfosResponse},
-    objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry},
-};
-use abstract_interface::{
-    AdapterDeployer, AppDeployer, DependencyCreation, DeployStrategy, InstallConfig,
-    RegisteredModule,
-};
-use cosmwasm_std::{Addr, Coin};
+use abstract_core::objects::namespace::Namespace;
 
 /// A builder for creating [`Publishers`](Account).
 /// Get the builder from the [`AbstractClient::publisher_builder`](crate::client::AbstractClient)
@@ -49,7 +41,7 @@ pub struct PublisherBuilder<'a, Chain: CwEnv> {
 impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
     pub(crate) fn new(
         mut account_builder: AccountBuilder<'a, Chain>,
-        namespace: impl Into<String>,
+        namespace: Namespace,
     ) -> Self {
         account_builder.namespace(namespace);
         account_builder.fetch_if_namespace_claimed(true);
@@ -107,6 +99,7 @@ pub struct Publisher<Chain: CwEnv> {
 }
 
 impl<Chain: CwEnv> Publisher<Chain> {
+    /// Create a publisher from an existing account
     pub fn new(account: Account<Chain>) -> Self {
         Self { account }
     }
