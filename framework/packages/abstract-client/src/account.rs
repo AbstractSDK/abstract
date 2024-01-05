@@ -74,6 +74,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     ownership: Option<GovernanceDetails<String>>,
     // TODO: How to handle install_modules?
     fetch_if_namespace_claimed: bool,
+    install_on_sub_account: bool,
 }
 
 impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
@@ -86,7 +87,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: None,
             base_asset: None,
             ownership: None,
-            fetch_if_namespace_claimed: false,
+            fetch_if_namespace_claimed: true,
+            install_on_sub_account: true,
         }
     }
 
@@ -123,8 +125,16 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Try to fetch the account before creating it if the namespace is already claimed.
+    /// Defaults to `true`.
     pub fn fetch_if_namespace_claimed(&mut self, value: bool) -> &mut Self {
         self.fetch_if_namespace_claimed = value;
+        self
+    }
+
+    /// Install modules on a new sub-account instead of current account.
+    /// Defaults to `true`
+    pub fn install_on_sub_account(&mut self, value: bool) -> &mut Self {
+        self.install_on_sub_account = value;
         self
     }
 
@@ -141,7 +151,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             // Check if namespace already claimed
             if let Some(ref namespace) = self.namespace {
                 let account_from_namespace_result: AbstractClientResult<Account<Chain>> =
-                    Account::from_namespace(self.abstr, namespace);
+                    Account::from_namespace(self.abstr, namespace, self.install_on_sub_account);
 
                 // Only return if the account can be retrieved without errors.
                 if let Ok(account_from_namespace) = account_from_namespace_result {
@@ -181,7 +191,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             ownership,
             Some(&[]),
         )?;
-        Ok(Account::new(abstract_account))
+        Ok(Account::new(abstract_account, self.install_on_sub_account))
     }
 }
 
@@ -191,6 +201,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 /// or create a new account with the [`AccountBuilder`].
 pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
+    install_on_sub_account: bool,
 }
 
 struct ParsedAccountCreationResponse {
@@ -199,15 +210,20 @@ struct ParsedAccountCreationResponse {
 }
 
 impl<Chain: CwEnv> Account<Chain> {
-    pub(crate) fn new(abstract_account: AbstractAccount<Chain>) -> Self {
+    pub(crate) fn new(
+        abstract_account: AbstractAccount<Chain>,
+        install_on_sub_account: bool,
+    ) -> Self {
         Self {
             abstr_account: abstract_account,
+            install_on_sub_account,
         }
     }
 
     pub(crate) fn from_namespace(
         abstr: &Abstract<Chain>,
         namespace: &str,
+        install_on_sub_account: bool,
     ) -> AbstractClientResult<Self> {
         let namespace_response: NamespaceResponse = abstr
             .version_control
@@ -216,7 +232,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let abstract_account: AbstractAccount<Chain> =
             AbstractAccount::new(abstr, namespace_response.account_id);
 
-        Ok(Self::new(abstract_account))
+        Ok(Self::new(abstract_account, install_on_sub_account))
     }
 
     /// Get the [`AccountId`] of the Account
@@ -257,7 +273,11 @@ impl<Chain: CwEnv> Account<Chain> {
         configuration: &M::InitMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
-        self.install_app_internal(vec![M::install_config(configuration)?], funds)
+        let modules = vec![M::install_config(configuration)?];
+        match self.install_on_sub_account {
+            true => self.install_module_sub_internal(modules, funds),
+            false => self.install_module_current_internal(modules, funds),
+        }
     }
 
     /// Install an application on current account.
@@ -267,18 +287,12 @@ impl<Chain: CwEnv> Account<Chain> {
         &self,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
-        let install_adapter_response = self
-            .abstr_account
-            .manager
-            .install_modules(vec![M::install_config(&Empty {})?], Some(funds))?;
-
-        let adapter_addr = Self::parse_adapter_installing_response(install_adapter_response);
-        let contract = Contract::new(M::module_id().to_owned(), self.environment())
-            .with_address(Some(&adapter_addr));
-
-        let adapter: M = contract.into();
-
-        Application::new(Account::new(self.abstr_account.clone()), adapter)
+        let modules = vec![M::install_config(&Empty {})?];
+        dbg!(self.install_on_sub_account);
+        match self.install_on_sub_account {
+            true => self.install_module_sub_internal(modules, funds),
+            false => self.install_module_current_internal(modules, funds),
+        }
     }
 
     /// Creates a new sub-account on the current account and
@@ -301,7 +315,10 @@ impl<Chain: CwEnv> Account<Chain> {
             M::dependency_install_configs(dependencies_config)?;
         install_configs.push(M::install_config(module_configuration)?);
 
-        self.install_app_internal(install_configs, funds)
+        match self.install_on_sub_account {
+            true => self.install_module_sub_internal(install_configs, funds),
+            false => self.install_module_current_internal(install_configs, funds),
+        }
     }
 
     /// Returns owner of the account
@@ -400,7 +417,33 @@ impl<Chain: CwEnv> Account<Chain> {
         self.abstr_account.manager.address().map_err(Into::into)
     }
 
-    fn install_app_internal<
+    /// Install module on current account
+    fn install_module_current_internal<
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>,
+    >(
+        &self,
+        modules: Vec<ModuleInstallConfig>,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let install_module_response = self
+            .abstr_account
+            .manager
+            .install_modules(modules, Some(funds))?;
+
+        let module_addr = Self::parse_modules_installing_response(install_module_response);
+        let contract = Contract::new(M::module_id().to_owned(), self.environment())
+            .with_address(Some(&module_addr));
+
+        let adapter: M = contract.into();
+
+        Application::new(
+            Account::new(self.abstr_account.clone(), self.install_on_sub_account),
+            adapter,
+        )
+    }
+
+    /// Installs module on sub account
+    fn install_module_sub_internal<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>,
     >(
         &self,
@@ -433,7 +476,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
         let app: M = contract.into();
 
-        Application::new(Account::new(sub_account), app)
+        Application::new(Account::new(sub_account, false), app)
     }
 
     fn parse_account_creation_response(
@@ -474,7 +517,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    fn parse_adapter_installing_response(response: <Chain as TxHandler>::Response) -> Addr {
+    fn parse_modules_installing_response(response: <Chain as TxHandler>::Response) -> Addr {
         let wasm_abstract_attributes: Vec<Attribute> = response
             .events()
             .into_iter()
@@ -482,13 +525,20 @@ impl<Chain: CwEnv> Account<Chain> {
             .flat_map(|e| e.attributes)
             .collect();
 
-        let module_addresses: Option<String> = wasm_abstract_attributes
+        let module_addresses: String = wasm_abstract_attributes
             .iter()
             .find(|a| a.key == "new_modules")
-            .map(|a| a.value.parse().unwrap());
+            .map(|a| a.value.parse().unwrap())
+            .unwrap();
 
-        // We install only one adapter
-        Addr::unchecked(module_addresses.unwrap())
+        // When there are multiple modules registered the addresses are returned in a common
+        // separated list. We want the last one as that is the "top-level" module while the rest
+        // are dependencies, since in the sub-account creation call, we pass in the top-level
+        // module last.
+        let module_address = module_addresses.split(',').last().unwrap();
+
+        // We install only one module
+        Addr::unchecked(module_address)
     }
 }
 

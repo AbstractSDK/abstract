@@ -79,6 +79,19 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         self
     }
 
+    /// Install modules on a new sub-account instead of current account.
+    /// Defaults to `true`
+    pub fn install_on_sub_account(&mut self, value: bool) -> &mut Self {
+        self.account_builder.install_on_sub_account(value);
+        self
+    }
+
+    /// Update publisher namespace
+    pub fn namespace(&mut self, namespace: impl Into<String>) -> &mut Self {
+        self.account_builder.namespace(namespace);
+        self
+    }
+
     /// Builds the [`Publisher`].
     /// Creates an account if the namespace is not already owned.
     pub fn build(&self) -> AbstractClientResult<Publisher<Chain>> {

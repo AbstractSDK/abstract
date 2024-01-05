@@ -50,7 +50,7 @@ pub struct AbstractClient<Chain: CwEnv> {
 pub type AbstractClientResult<T> = Result<T, AbstractClientError>;
 
 impl<Chain: CwEnv> AbstractClient<Chain> {
-    /// Get [`AbstractClient`] from a chosen environment. [`Abstract`] should 
+    /// Get [`AbstractClient`] from a chosen environment. [`Abstract`] should
     /// already be deployed on this environment.
     ///
     /// ```
@@ -73,7 +73,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     // }
 
     /// Version Control contract API
-    /// 
+    ///
     /// The Version Control contract is a database contract that stores all module-related information.
     /// ```
     /// # use abstract_client::error::AbstractClientError;
@@ -119,7 +119,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     /// Retrieve Abstract [`Account`] that holds this namespace
     pub fn account_from_namespace(&self, namespace: &str) -> AbstractClientResult<Account<Chain>> {
-        Account::from_namespace(&self.abstr, namespace)
+        Account::from_namespace(&self.abstr, namespace, true)
     }
 
     /// Address of the sender
@@ -193,10 +193,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
             if let Some((last_account_id, _)) = last_account {
                 if account_id.seq() > last_account_id {
-                    last_account = Some((account_id.seq(), Account::new(account)));
+                    last_account = Some((account_id.seq(), Account::new(account, true)));
                 }
             } else {
-                last_account = Some((account_id.seq(), Account::new(account)));
+                last_account = Some((account_id.seq(), Account::new(account, true)));
             }
         }
         Ok(last_account.map(|(_, account)| account))
