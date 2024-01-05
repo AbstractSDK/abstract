@@ -123,7 +123,11 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
     let namespace = "namespace";
     let account: Account<Mock> = client.account_builder().namespace(namespace).build()?;
 
-    let account_from_namespace: Account<Mock> = client.account_from_namespace(namespace)?;
+    let account_from_namespace: Account<Mock> = client
+        .account_builder()
+        .fetch_if_namespace_claimed(true)
+        .namespace(namespace)
+        .build()?;
 
     assert_eq!(account.info()?, account_from_namespace.info()?);
 
@@ -206,7 +210,7 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let namespace = "namespace";
     let publisher: Publisher<Mock> = client.publisher_builder(namespace).build()?;
 
-    let publisher_from_namespace: Publisher<Mock> = client.publisher_from_namespace(namespace)?;
+    let publisher_from_namespace: Publisher<Mock> = client.publisher_builder(namespace).build()?;
 
     assert_eq!(
         publisher.account().info()?,

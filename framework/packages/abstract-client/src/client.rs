@@ -38,7 +38,7 @@ use crate::{
     account::{Account, AccountBuilder},
     error::AbstractClientError,
     infrastructure::Environment,
-    publisher::{Publisher, PublisherBuilder},
+    publisher::PublisherBuilder,
 };
 
 /// Client to interact with Abstract accounts and modules
@@ -98,14 +98,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(|e| AbstractClientError::CwOrch(e.into()))
     }
 
-    /// Retrieve [`Publisher`] that holds this namespace
-    pub fn publisher_from_namespace(
-        &self,
-        namespace: &str,
-    ) -> AbstractClientResult<Publisher<Chain>> {
-        Ok(Publisher::new(self.account_from_namespace(namespace)?))
-    }
-
     /// Publisher builder for creating new [`Publisher`] Abstract Account
     /// To publish any modules your account requires to have claimed a namespace.
     pub fn publisher_builder(&self, namespace: &str) -> PublisherBuilder<Chain> {
@@ -115,11 +107,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Publisher builder for creating a new Abstract [`Account`].
     pub fn account_builder(&self) -> AccountBuilder<Chain> {
         AccountBuilder::new(&self.abstr)
-    }
-
-    /// Retrieve Abstract [`Account`] that holds this namespace
-    pub fn account_from_namespace(&self, namespace: &str) -> AbstractClientResult<Account<Chain>> {
-        Account::from_namespace(&self.abstr, namespace, true)
     }
 
     /// Address of the sender

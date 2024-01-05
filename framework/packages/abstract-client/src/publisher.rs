@@ -106,10 +106,6 @@ pub struct Publisher<Chain: CwEnv> {
 }
 
 impl<Chain: CwEnv> Publisher<Chain> {
-    pub(crate) fn new(account: Account<Chain>) -> Self {
-        Self { account }
-    }
-
     /// Publish an Abstract App
     pub fn publish_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + AppDeployer<Chain>,
