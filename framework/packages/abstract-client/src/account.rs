@@ -224,7 +224,6 @@ impl<Chain: CwEnv> Account<Chain> {
         abstr: &Abstract<Chain>,
         namespace: &str,
         install_on_sub_account: bool,
-    ) -> AbstractClientResult<Self> {
     ) -> AbstractClientResult<Option<Self>> {
         let namespace_response: NamespaceResponse = abstr
             .version_control
