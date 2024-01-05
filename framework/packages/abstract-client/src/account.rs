@@ -87,7 +87,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: None,
             base_asset: None,
             ownership: None,
-            fetch_if_namespace_claimed: true,
+            fetch_if_namespace_claimed: false,
             install_on_sub_account: true,
         }
     }
