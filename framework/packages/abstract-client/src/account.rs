@@ -24,8 +24,8 @@ use abstract_core::{
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        gov_type::GovernanceDetails, module, namespace::Namespace,
-        nested_admin::MAX_ADMIN_RECURSION, validation::verifiers, AccountId, AssetEntry,
+        gov_type::GovernanceDetails, namespace::Namespace, nested_admin::MAX_ADMIN_RECURSION,
+        validation::verifiers, AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
     PROXY,
@@ -151,7 +151,11 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             // Check if namespace already claimed
             if let Some(ref namespace) = self.namespace {
                 let account_from_namespace_result: Option<Account<Chain>> =
-                    Account::from_namespace(self.abstr, namespace.clone(), true)?;
+                    Account::from_namespace(
+                        self.abstr,
+                        namespace.clone(),
+                        self.install_on_sub_account,
+                    )?;
 
                 // Only return if the account can be retrieved without errors.
                 if let Some(account_from_namespace) = account_from_namespace_result {
@@ -223,9 +227,7 @@ impl<Chain: CwEnv> Account<Chain> {
         namespace: Namespace,
         install_on_sub_account: bool,
     ) -> AbstractClientResult<Option<Self>> {
-        let namespace_response: NamespaceResponse = abstr
-            .version_control
-            .namespace(Namespace::new(namespace)?)?;
+        let namespace_response: NamespaceResponse = abstr.version_control.namespace(namespace)?;
 
         let NamespaceResponse::Claimed(info) = namespace_response else {
             return Ok(None);

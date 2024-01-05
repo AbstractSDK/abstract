@@ -90,7 +90,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         .link(link)
         .description(description)
         .ownership(governance_details.clone())
-        .namespace(namespace)
+        .namespace(namespace.clone())
         .base_asset(base_asset)
         .build()?;
 
@@ -109,7 +109,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     // Namespace is claimed.
     let account_id = client
         .version_control()
-        .namespace(Namespace::new(namespace)?)?
+        .namespace(namespace)?
         .unwrap()
         .account_id;
     assert_eq!(account_id, AccountId::local(1));
@@ -202,7 +202,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     // Namespace is claimed.
     let account_id = client
         .version_control()
-        .namespace(Namespace::new(namespace)?)?
+        .namespace(namespace)?
         .unwrap()
         .account_id;
     assert_eq!(account_id, AccountId::local(1));
@@ -217,9 +217,7 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let namespace = Namespace::new("namespace")?;
     let publisher: Publisher<Mock> = client.publisher_builder(namespace.clone()).build()?;
 
-    let publisher_from_namespace: Publisher<Mock> = client
-        .publisher_from_namespace(namespace)?
-        .expect("publisher exists");
+    let publisher_from_namespace: Publisher<Mock> = client.publisher_builder(namespace).build()?;
 
     assert_eq!(
         publisher.account().info()?,
@@ -270,7 +268,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     // Install app on current account
     let publisher = client
-        .publisher_builder("tester")
+        .publisher_builder(Namespace::new("tester")?)
         .install_on_sub_account(false)
         .build()?;
     let my_adapter: Application<Mock, MockAppDependencyInterface<Mock>> =
@@ -302,7 +300,9 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let client = AbstractClient::builder(OWNER).build()?;
 
-    let publisher: Publisher<Mock> = client.publisher_builder("tester").build()?;
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new("tester")?)
+        .build()?;
 
     let publisher_manager = publisher.account().manager()?;
     let publisher_proxy = publisher.account().proxy()?;
@@ -337,7 +337,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 
     // Install adapter on current account
     let publisher = client
-        .publisher_builder("tester")
+        .publisher_builder(Namespace::new("tester")?)
         .install_on_sub_account(false)
         .build()?;
     let my_adapter: Application<Mock, BootMockAdapter<Mock>> =
@@ -363,31 +363,6 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
         },
         sub_account_details
     );
-    Ok(())
-}
-
-#[test]
-fn can_publish_and_install_adapter() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
-
-    let publisher: Publisher<Mock> = client
-        .publisher_builder(Namespace::new("tester")?)
-        .build()?;
-
-    let publisher_manager = publisher.account().manager()?;
-
-    publisher.publish_adapter::<BootMockInitMsg, BootMockAdapter<Mock>>(BootMockInitMsg {})?;
-
-    let my_adapter: Application<Mock, BootMockAdapter<Mock>> =
-        publisher.account().install_adapter(&[])?;
-
-    my_adapter
-        .call_as(&publisher_manager)
-        .execute(&BootMockExecMsg {}.into(), None)?;
-    let mock_query: String = my_adapter.query(&BootMockQueryMsg {}.into())?;
-
-    assert_eq!(String::from("mock_query"), mock_query);
-
     Ok(())
 }
 
