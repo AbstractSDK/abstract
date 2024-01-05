@@ -274,6 +274,7 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         let modules = vec![M::install_config(configuration)?];
+
         match self.install_on_sub_account {
             true => self.install_module_sub_internal(modules, funds),
             false => self.install_module_current_internal(modules, funds),
@@ -288,7 +289,7 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         let modules = vec![M::install_config(&Empty {})?];
-        dbg!(self.install_on_sub_account);
+
         match self.install_on_sub_account {
             true => self.install_module_sub_internal(modules, funds),
             false => self.install_module_current_internal(modules, funds),
