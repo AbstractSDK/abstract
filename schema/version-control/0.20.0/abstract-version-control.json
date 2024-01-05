@@ -1855,20 +1855,33 @@
     "namespace": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "NamespaceResponse",
-      "type": "object",
-      "required": [
-        "account_base",
-        "account_id"
-      ],
-      "properties": {
-        "account_base": {
-          "$ref": "#/definitions/AccountBase"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "claimed"
+          ],
+          "properties": {
+            "claimed": {
+              "$ref": "#/definitions/NamespaceInfo"
+            }
+          },
+          "additionalProperties": false
         },
-        "account_id": {
-          "$ref": "#/definitions/AccountId"
+        {
+          "type": "object",
+          "required": [
+            "unclaimed"
+          ],
+          "properties": {
+            "unclaimed": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
-      },
-      "additionalProperties": false,
+      ],
       "definitions": {
         "AccountBase": {
           "description": "Contains the minimal Abstract Account contract addresses.",
@@ -1945,6 +1958,22 @@
         "ChainName": {
           "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
           "type": "string"
+        },
+        "NamespaceInfo": {
+          "type": "object",
+          "required": [
+            "account_base",
+            "account_id"
+          ],
+          "properties": {
+            "account_base": {
+              "$ref": "#/definitions/AccountBase"
+            },
+            "account_id": {
+              "$ref": "#/definitions/AccountId"
+            }
+          },
+          "additionalProperties": false
         }
       }
     },
