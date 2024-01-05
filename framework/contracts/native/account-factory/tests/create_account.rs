@@ -6,6 +6,7 @@ use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::AccountId;
 use abstract_core::objects::AssetEntry;
 use abstract_core::proxy::BaseAssetResponse;
+use abstract_core::version_control::NamespaceInfo;
 use abstract_core::version_control::NamespaceResponse;
 use abstract_core::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
@@ -339,11 +340,13 @@ fn create_one_account_with_namespace() -> AResult {
     // We need to check if the namespace is associated with this account
     let namespace = version_control.namespace(Namespace::new(namespace_to_claim)?)?;
 
-    assert_that!(&namespace).is_equal_to(&NamespaceResponse {
-        account_id: TEST_ACCOUNT_ID,
-        account_base: AccountBase {
-            manager: Addr::unchecked(manager_addr),
-            proxy: Addr::unchecked(proxy_addr),
+    assert_that!(&namespace).is_equal_to(&NamespaceResponse::Claimed {
+        info: NamespaceInfo {
+            account_id: TEST_ACCOUNT_ID,
+            account_base: AccountBase {
+                manager: Addr::unchecked(manager_addr),
+                proxy: Addr::unchecked(proxy_addr),
+            },
         },
     });
 

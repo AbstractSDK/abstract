@@ -42,8 +42,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn get_publisher_from_namespace(
         &self,
         namespace: &str,
-    ) -> AbstractClientResult<Publisher<Chain>> {
-        Ok(Publisher::new(self.get_account_from_namespace(namespace)?))
+    ) -> AbstractClientResult<Option<Publisher<Chain>>> {
+        Ok(self
+            .get_account_from_namespace(namespace)?
+            .map(Publisher::new))
     }
 
     pub fn publisher_builder(&self) -> PublisherBuilder<Chain> {
@@ -57,7 +59,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     pub fn get_account_from_namespace(
         &self,
         namespace: &str,
-    ) -> AbstractClientResult<Account<Chain>> {
+    ) -> AbstractClientResult<Option<Account<Chain>>> {
         Account::from_namespace(&self.abstr, namespace)
     }
 

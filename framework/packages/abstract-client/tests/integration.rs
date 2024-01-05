@@ -103,6 +103,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let account_id = client
         .version_control()
         .namespace(Namespace::new(namespace)?)?
+        .unwrap()
         .account_id;
     assert_eq!(account_id, AccountId::local(1));
 
@@ -116,7 +117,8 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
     let namespace = "namespace";
     let account: Account<Mock> = client.account_builder().namespace(namespace).build()?;
 
-    let account_from_namespace: Account<Mock> = client.get_account_from_namespace(namespace)?;
+    let account_from_namespace: Account<Mock> =
+        client.get_account_from_namespace(namespace)?.unwrap();
 
     assert_eq!(
         account.get_account_info()?,
@@ -190,6 +192,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let account_id = client
         .version_control()
         .namespace(Namespace::new(namespace)?)?
+        .unwrap()
         .account_id;
     assert_eq!(account_id, AccountId::local(1));
 
@@ -204,7 +207,7 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
     let publisher: Publisher<Mock> = client.publisher_builder().namespace(namespace).build()?;
 
     let publisher_from_namespace: Publisher<Mock> =
-        client.get_publisher_from_namespace(namespace)?;
+        client.get_publisher_from_namespace(namespace)?.unwrap();
 
     assert_eq!(
         publisher.account().get_account_info()?,

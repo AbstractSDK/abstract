@@ -1,6 +1,6 @@
 use abstract_core::{
     objects::{gov_type::GovernanceDetails, namespace::Namespace},
-    version_control::{AccountBase, NamespaceResponse},
+    version_control::{AccountBase, NamespaceInfo, NamespaceResponse},
 };
 use abstract_interface::{Abstract, AccountDetails, AccountFactoryExecFns, VCExecFns, VCQueryFns};
 use abstract_sdk::cw_helpers::Clearable;
@@ -72,12 +72,14 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
 
     assert_eq!(
         namespace,
-        NamespaceResponse {
-            account_id: account.id()?,
-            account_base: AccountBase {
-                manager: manager_addr,
-                proxy: proxy_addr,
-            },
+        NamespaceResponse::Claimed {
+            info: NamespaceInfo {
+                account_id: account.id()?,
+                account_base: AccountBase {
+                    manager: manager_addr,
+                    proxy: proxy_addr,
+                }
+            }
         }
     );
 

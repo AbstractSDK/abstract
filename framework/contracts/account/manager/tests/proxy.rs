@@ -8,7 +8,7 @@ use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::module_reference::ModuleReference;
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::{AccountId, ABSTRACT_ACCOUNT_ID};
-use abstract_core::version_control::UpdateModule;
+use abstract_core::version_control::{NamespaceResponse, UpdateModule};
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_integration_tests::*;
 use abstract_interface::*;
@@ -391,8 +391,8 @@ fn renounce_cleans_namespace() -> AResult {
 
     let namespace_result = deployment
         .version_control
-        .namespace(Namespace::unchecked("bar"));
-    assert!(namespace_result.is_err());
+        .namespace(Namespace::unchecked("bar"))?;
+    assert_eq!(namespace_result, NamespaceResponse::Unclaimed {});
 
     // Governance is in fact renounced
     let acc_cfg: InfoResponse = account.manager.info()?;
