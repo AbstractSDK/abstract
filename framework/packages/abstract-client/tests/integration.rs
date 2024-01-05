@@ -110,6 +110,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let account_id = client
         .version_control()
         .namespace(Namespace::new(namespace)?)?
+        .unwrap()
         .account_id;
     assert_eq!(account_id, AccountId::local(1));
 
@@ -197,6 +198,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let account_id = client
         .version_control()
         .namespace(Namespace::new(namespace)?)?
+        .unwrap()
         .account_id;
     assert_eq!(account_id, AccountId::local(1));
 

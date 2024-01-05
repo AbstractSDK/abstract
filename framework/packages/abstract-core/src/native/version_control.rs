@@ -300,7 +300,24 @@ pub struct ModulesListResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct NamespaceResponse {
+pub enum NamespaceResponse {
+    Claimed(NamespaceInfo),
+    Unclaimed {},
+}
+
+impl NamespaceResponse {
+    pub fn unwrap(self) -> NamespaceInfo {
+        match self {
+            NamespaceResponse::Claimed(info) => info,
+            NamespaceResponse::Unclaimed {} => {
+                panic!("called `NamespaceResponse::unwrap()` on a `Unclaimed` value")
+            }
+        }
+    }
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct NamespaceInfo {
     pub account_id: AccountId,
     pub account_base: AccountBase,
 }

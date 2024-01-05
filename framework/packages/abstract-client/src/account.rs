@@ -150,11 +150,11 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         if self.fetch_if_namespace_claimed {
             // Check if namespace already claimed
             if let Some(ref namespace) = self.namespace {
-                let account_from_namespace_result: AbstractClientResult<Account<Chain>> =
+                let account_from_namespace_result: AbstractClientResult<Option<Account<Chain>>> =
                     Account::from_namespace(self.abstr, namespace, self.install_on_sub_account);
 
                 // Only return if the account can be retrieved without errors.
-                if let Ok(account_from_namespace) = account_from_namespace_result {
+                if let Ok(Some(account_from_namespace)) = account_from_namespace_result {
                     return Ok(account_from_namespace);
                 }
             }
@@ -224,15 +224,18 @@ impl<Chain: CwEnv> Account<Chain> {
         abstr: &Abstract<Chain>,
         namespace: &str,
         install_on_sub_account: bool,
-    ) -> AbstractClientResult<Self> {
+    ) -> AbstractClientResult<Option<Self>> {
         let namespace_response: NamespaceResponse = abstr
             .version_control
             .namespace(Namespace::new(namespace)?)?;
 
-        let abstract_account: AbstractAccount<Chain> =
-            AbstractAccount::new(abstr, namespace_response.account_id);
+        let NamespaceResponse::Claimed(info) = namespace_response else {
+            return Ok(None);
+        };
 
-        Ok(Self::new(abstract_account, install_on_sub_account))
+        let abstract_account: AbstractAccount<Chain> = AbstractAccount::new(abstr, info.account_id);
+
+        Ok(Some(Self::new(abstract_account, install_on_sub_account)))
     }
 
     /// Get the [`AccountId`] of the Account
