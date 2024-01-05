@@ -301,14 +301,14 @@ pub struct ModulesListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub enum NamespaceResponse {
-    Claimed { info: NamespaceInfo },
+    Claimed(NamespaceInfo),
     Unclaimed {},
 }
 
 impl NamespaceResponse {
     pub fn unwrap(self) -> NamespaceInfo {
         match self {
-            NamespaceResponse::Claimed { info } => info,
+            NamespaceResponse::Claimed(info) => info,
             NamespaceResponse::Unclaimed {} => {
                 panic!("called `NamespaceResponse::unwrap()` on a `Unclaimed` value")
             }

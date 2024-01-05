@@ -72,15 +72,13 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
 
     assert_eq!(
         namespace,
-        NamespaceResponse::Claimed {
-            info: NamespaceInfo {
-                account_id: account.id()?,
-                account_base: AccountBase {
-                    manager: manager_addr,
-                    proxy: proxy_addr,
-                }
+        NamespaceResponse::Claimed(NamespaceInfo {
+            account_id: account.id()?,
+            account_base: AccountBase {
+                manager: manager_addr,
+                proxy: proxy_addr,
             }
-        }
+        })
     );
 
     Ok(())

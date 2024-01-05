@@ -177,12 +177,10 @@ pub fn handle_namespace_query(deps: Deps, namespace: Namespace) -> StdResult<Nam
     };
 
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    Ok(NamespaceResponse::Claimed {
-        info: NamespaceInfo {
-            account_id,
-            account_base,
-        },
-    })
+    Ok(NamespaceResponse::Claimed(NamespaceInfo {
+        account_id,
+        account_base,
+    }))
 }
 
 pub fn handle_namespace_list_query(

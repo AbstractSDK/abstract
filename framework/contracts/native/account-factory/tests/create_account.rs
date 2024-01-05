@@ -340,15 +340,13 @@ fn create_one_account_with_namespace() -> AResult {
     // We need to check if the namespace is associated with this account
     let namespace = version_control.namespace(Namespace::new(namespace_to_claim)?)?;
 
-    assert_that!(&namespace).is_equal_to(&NamespaceResponse::Claimed {
-        info: NamespaceInfo {
-            account_id: TEST_ACCOUNT_ID,
-            account_base: AccountBase {
-                manager: Addr::unchecked(manager_addr),
-                proxy: Addr::unchecked(proxy_addr),
-            },
+    assert_that!(&namespace).is_equal_to(&NamespaceResponse::Claimed(NamespaceInfo {
+        account_id: TEST_ACCOUNT_ID,
+        account_base: AccountBase {
+            manager: Addr::unchecked(manager_addr),
+            proxy: Addr::unchecked(proxy_addr),
         },
-    });
+    }));
 
     Ok(())
 }

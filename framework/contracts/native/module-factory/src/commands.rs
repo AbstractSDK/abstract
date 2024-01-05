@@ -71,7 +71,8 @@ pub fn execute_create_modules(
                 // We transfer that fee to the namespace owner if there is
                 let namespace_account = version_control
                     .query_namespace(new_module.info.namespace.clone(), &deps.querier)?
-                    // Modules gets auto removed when namespace is unclaimed
+                    // It's safe to assume this namespace is claimed because
+                    // modules gets unregistered when namespace is unclaimed
                     .unwrap();
                 fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
                     to_address: namespace_account.account_base.proxy.to_string(),

@@ -229,7 +229,7 @@ impl<Chain: CwEnv> Account<Chain> {
             .version_control
             .namespace(Namespace::new(namespace)?)?;
 
-        let NamespaceResponse::Claimed { info } = namespace_response else {
+        let NamespaceResponse::Claimed(info) = namespace_response else {
             return Ok(None);
         };
 
