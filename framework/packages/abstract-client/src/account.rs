@@ -1,21 +1,41 @@
+//! # Represents Abstract Account
+//!
+//! [`Account`] allows you to interact with your or another user Abstract Account
+//!
+//! Example of creating an account
+//! ```
+//! # use abstract_client::error::AbstractClientError;
+//! use abstract_client::{client::AbstractClient, account::Account};
+//! use cw_orch::prelude::Mock;
+//!
+//! # let client: AbstractClient<Mock> = AbstractClient::builder("sender").build()?;
+//!
+//! let alice_account: Account<Mock> = client
+//!     .account_builder()
+//!     .name("Alice")
+//!     .build()?;
+//!
+//! assert_eq!(alice_account.owner()?, client.sender());
+//! # Ok::<(), AbstractClientError>(())
+//! ```
 use abstract_core::{
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        gov_type::GovernanceDetails, namespace::Namespace, nested_admin::MAX_ADMIN_RECURSION,
-        AccountId, AssetEntry,
+        gov_type::GovernanceDetails, module, namespace::Namespace,
+        nested_admin::MAX_ADMIN_RECURSION, validation::verifiers, AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
     PROXY,
 };
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, DependencyCreation, InstallConfig, ManagerExecFns,
-    ManagerQueryFns, RegisteredModule, VCQueryFns,
+    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
+    InstallConfig, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
 
-use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
 use cw_orch::prelude::*;
 use cw_orch::{contract::Contract, environment::MutCwEnv};
 
@@ -26,6 +46,23 @@ use crate::{
     infrastructure::{Environment, Infrastructure},
 };
 
+/// A builder for creating [`Accounts`](Account).
+/// Get the builder from the [`AbstractClient::account_builder`](crate::client::AbstractClient)
+/// and create the account with the `build` method.
+///
+/// ```
+/// # use abstract_client::{error::AbstractClientError, infrastructure::Environment};
+/// # let abstr_client = abstract_client::client::AbstractClient::builder("sender").build().unwrap();
+/// # let chain = abstr_client.environment();
+/// use abstract_client::client::AbstractClient;
+///
+/// let client = AbstractClient::new(chain)?;
+/// let account: Account<Mock> = client.account_builder()
+///     .name("alice")
+///     // other account configuration
+///     .build()?;
+/// # Ok::<(), AbstractClientError>(())
+/// ```
 pub struct AccountBuilder<'a, Chain: CwEnv> {
     pub(crate) abstr: &'a Abstract<Chain>,
     name: Option<String>,
@@ -34,7 +71,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     namespace: Option<Namespace>,
     base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
-    governance_details: Option<GovernanceDetails<String>>,
+    ownership: Option<GovernanceDetails<String>>,
     // TODO: How to handle install_modules?
     fetch_if_namespace_claimed: bool,
 }
@@ -48,49 +85,57 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             link: None,
             namespace: None,
             base_asset: None,
-            governance_details: None,
+            ownership: None,
             fetch_if_namespace_claimed: false,
         }
     }
 
+    /// Username for the account
+    /// Defaults to "Default Abstract Account"
     pub fn name(&mut self, name: impl Into<String>) -> &mut Self {
         self.name = Some(name.into());
         self
     }
 
+    /// Description for the account
     pub fn description(&mut self, description: impl Into<String>) -> &mut Self {
         self.description = Some(description.into());
         self
     }
 
+    /// http(s) or ipfs link for the account
     pub fn link(&mut self, link: impl Into<String>) -> &mut Self {
         self.link = Some(link.into());
         self
     }
 
+    /// Unique namespace for the account
+    /// Setting this will claim the namespace for the account on construction.
     pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
         self.namespace = Some(namespace);
         self
     }
 
+    /// Base Asset for the account
     pub fn base_asset(&mut self, base_asset: AssetEntry) -> &mut Self {
         self.base_asset = Some(base_asset);
         self
     }
 
+    /// Try to fetch the account before creating it if the namespace is already claimed.
     pub fn fetch_if_namespace_claimed(&mut self, value: bool) -> &mut Self {
         self.fetch_if_namespace_claimed = value;
         self
     }
 
-    pub fn governance_details(
-        &mut self,
-        governance_details: GovernanceDetails<String>,
-    ) -> &mut Self {
-        self.governance_details = Some(governance_details);
+    /// Governance of the account.
+    /// Defaults to the [`GovernanceDetails::Monarchy`] variant, owned by the sender
+    pub fn ownership(&mut self, ownership: GovernanceDetails<String>) -> &mut Self {
+        self.ownership = Some(ownership);
         self
     }
 
+    /// Builds the [`Account`].
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
         if self.fetch_if_namespace_claimed {
             // Check if namespace already claimed
@@ -111,10 +156,19 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             .name
             .clone()
             .unwrap_or_else(|| String::from("Default Abstract Account"));
-        let governance_details = self
-            .governance_details
+        let ownership = self
+            .ownership
             .clone()
             .unwrap_or(GovernanceDetails::Monarchy { monarch: sender });
+
+        // Validate everything before sending tx
+        verifiers::validate_name(&name)?;
+        verifiers::validate_description(self.description.as_deref())?;
+        verifiers::validate_link(self.link.as_deref())?;
+        if let Some(namespace) = &self.namespace {
+            module::validate_name(namespace)?;
+        }
+
         let abstract_account = self.abstr.account_factory.create_new_account(
             AccountDetails {
                 name,
@@ -124,13 +178,17 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 base_asset: self.base_asset.clone(),
                 install_modules: vec![],
             },
-            governance_details,
+            ownership,
             Some(&[]),
         )?;
         Ok(Account::new(abstract_account))
     }
 }
 
+/// Represents an existing Abstract account.
+///
+/// Get this struct from [`AbstractClient::account_from_namespace`](crate::client::AbstractClient)
+/// or create a new account with the [`AccountBuilder`].
 #[derive(Clone)]
 pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
@@ -166,6 +224,13 @@ impl<Chain: CwEnv> Account<Chain> {
         self.abstr_account.id().map_err(Into::into)
     }
 
+    /// Get the [`AccountId`] of the Account
+    pub fn id(&self) -> AbstractClientResult<AccountId> {
+        self.abstr_account.id().map_err(Into::into)
+    }
+
+    /// Query account balance of a given denom
+    // TODO: Asset balance?
     pub fn query_balance(&self, denom: impl Into<String>) -> AbstractClientResult<Uint128> {
         let coins = self
             .environment()
@@ -176,6 +241,7 @@ impl<Chain: CwEnv> Account<Chain> {
         Ok(coins[0].amount)
     }
 
+    /// Query account balances of all denoms
     pub fn query_balances(&self) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
             .balance(self.proxy()?, None)
@@ -183,18 +249,15 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
-    // TODO: remove `get_account` prefix
-    // Getters are not prefixed with `get_` in rust.
-    pub fn get_account_info(&self) -> AbstractClientResult<AccountInfo<Addr>> {
+    /// Query account info
+    pub fn info(&self) -> AbstractClientResult<AccountInfo<Addr>> {
         let info_response: InfoResponse = self.abstr_account.manager.info()?;
         Ok(info_response.info)
     }
 
-    // Install an application on the account
-    // creates a new sub-account and installs the application on it.
-    pub fn install_app<
-        M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>> + Clone,
-    >(
+    /// Install an application on the account.
+    /// This creates a new sub-account and installs the application on it.
+    pub fn install_app<M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
         funds: &[Coin],
@@ -202,6 +265,31 @@ impl<Chain: CwEnv> Account<Chain> {
         self.install_app_internal(vec![M::install_config(configuration)?], funds)
     }
 
+    /// Install an application on current account.
+    pub fn install_adapter<
+        M: ContractInstance<Chain> + InstallConfig<InitMsg = Empty> + From<Contract<Chain>>,
+    >(
+        &self,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let install_adapter_response = self
+            .abstr_account
+            .manager
+            .install_modules(vec![M::install_config(&Empty {})?], Some(funds))?;
+
+        let adapter_addr = Self::parse_adapter_installing_response(install_adapter_response);
+        let contract = Contract::new(M::module_id().to_owned(), self.environment())
+            .with_address(Some(&adapter_addr));
+
+        let adapter: M = contract.into();
+
+        Application::new(Account::new(self.abstr_account.clone()), adapter)
+    }
+
+    /// Creates a new sub-account on the current account and
+    /// installs an App module and its dependencies with the provided dependencies config. \
+    ///
+    /// The returned [`Application`] is a wrapper around the sub-account and simplifies interaction with the App module.
     pub fn install_app_with_dependencies<
         M: ContractInstance<Chain>
             + DependencyCreation
@@ -221,6 +309,7 @@ impl<Chain: CwEnv> Account<Chain> {
         self.install_app_internal(install_configs, funds)
     }
 
+    /// Returns owner of the account
     pub fn ownership(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
         self.abstr_account.manager.ownership().map_err(Into::into)
     }
@@ -268,13 +357,15 @@ impl<Chain: CwEnv> Account<Chain> {
                     module_id: PROXY.to_owned(),
                     exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
                         msgs,
-                    })?,
+                    })
+                    .map_err(AbstractInterfaceError::from)?,
                 },
                 Some(funds),
             )
             .map_err(Into::into)
     }
 
+    /// Module infos of installed modules on account
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
         let mut module_infos: Vec<ManagerModuleInfo> = vec![];
         loop {
@@ -293,6 +384,7 @@ impl<Chain: CwEnv> Account<Chain> {
         Ok(ModuleInfosResponse { module_infos })
     }
 
+    /// Addresses of installed modules on account
     pub fn module_addresses(
         &self,
         ids: Vec<String>,
@@ -303,16 +395,18 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
+    /// Address of the proxy
     pub fn proxy(&self) -> AbstractClientResult<Addr> {
         self.abstr_account.proxy.address().map_err(Into::into)
     }
 
+    /// Address of the manager
     pub fn manager(&self) -> AbstractClientResult<Addr> {
         self.abstr_account.manager.address().map_err(Into::into)
     }
 
     fn install_app_internal<
-        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + Clone,
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>,
     >(
         &self,
         modules: Vec<ModuleInstallConfig>,
@@ -344,7 +438,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
         let app: M = contract.into();
 
-        Ok(Application::new(Account::new(sub_account), app))
+        Application::new(Account::new(sub_account), app)
     }
 
     fn parse_account_creation_response(
@@ -384,9 +478,27 @@ impl<Chain: CwEnv> Account<Chain> {
             module_address,
         }
     }
+
+    fn parse_adapter_installing_response(response: <Chain as TxHandler>::Response) -> Addr {
+        let wasm_abstract_attributes: Vec<Attribute> = response
+            .events()
+            .into_iter()
+            .filter(|e| e.ty == "wasm-abstract")
+            .flat_map(|e| e.attributes)
+            .collect();
+
+        let module_addresses: Option<String> = wasm_abstract_attributes
+            .iter()
+            .find(|a| a.key == "new_modules")
+            .map(|a| a.value.parse().unwrap());
+
+        // We install only one adapter
+        Addr::unchecked(module_addresses.unwrap())
+    }
 }
 
 impl<Chain: MutCwEnv> Account<Chain> {
+    /// Set balance for the Proxy
     pub fn set_balance(&self, amount: Vec<Coin>) -> AbstractClientResult<()> {
         self.environment()
             .set_balance(&self.proxy()?, amount)
@@ -394,6 +506,7 @@ impl<Chain: MutCwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
+    /// Add balance to the Proxy
     pub fn add_balance(&self, amount: Vec<Coin>) -> AbstractClientResult<()> {
         self.environment()
             .add_balance(&self.proxy()?, amount)

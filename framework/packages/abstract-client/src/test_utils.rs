@@ -1,3 +1,7 @@
+//! # Abstract client Test utilities
+//!
+//! This module provides useful helpers for integration tests
+
 use abstract_core::{
     self,
     objects::{
@@ -17,10 +21,12 @@ use crate::{
 use self::cw20_builder::Cw20Builder;
 
 impl AbstractClient<Mock> {
+    /// Abstract client builder
     pub fn builder(sender: impl Into<String>) -> AbstractMockClientBuilder {
         AbstractMockClientBuilder::new(sender.into())
     }
 
+    /// Cw20 contract builder
     pub fn cw20_builder(
         &self,
         name: impl Into<String>,
@@ -31,6 +37,7 @@ impl AbstractClient<Mock> {
     }
 }
 
+/// A builder for setting up tests for `Abstract` in a [`Mock`] environment.
 pub struct AbstractMockClientBuilder {
     mock: Mock,
     sender: String,
@@ -55,6 +62,7 @@ impl AbstractMockClientBuilder {
         }
     }
 
+    /// Register contract on Abstract Name Service
     pub fn contract(
         &mut self,
         contract_entry: UncheckedContractEntry,
@@ -64,21 +72,25 @@ impl AbstractMockClientBuilder {
         self
     }
 
+    /// Register contracts on Abstract Name Service
     pub fn contracts(&mut self, contracts: Vec<(UncheckedContractEntry, String)>) -> &mut Self {
         self.contracts = contracts;
         self
     }
 
+    /// Register asset on Abstract Name Service
     pub fn asset(&mut self, name: impl Into<String>, asset_info: AssetInfoUnchecked) -> &mut Self {
         self.assets.push((name.into(), asset_info));
         self
     }
 
+    /// Register assets on Abstract Name Service
     pub fn assets(&mut self, assets: Vec<(String, AssetInfoUnchecked)>) -> &mut Self {
         self.assets = assets;
         self
     }
 
+    /// Register ibc channel on Abstract Name Service
     pub fn channel(
         &mut self,
         channel_entry: UncheckedChannelEntry,
@@ -88,11 +100,13 @@ impl AbstractMockClientBuilder {
         self
     }
 
+    /// Register ibc channels on Abstract Name Service
     pub fn channels(&mut self, channels: Vec<(UncheckedChannelEntry, String)>) -> &mut Self {
         self.channels = channels;
         self
     }
 
+    /// Register liquidity pool on Abstract Name Service
     pub fn pool(
         &mut self,
         pool_address: UncheckedPoolAddress,
@@ -102,16 +116,19 @@ impl AbstractMockClientBuilder {
         self
     }
 
+    /// Register liquidity pools on Abstract Name Service
     pub fn pools(&mut self, pools: Vec<(UncheckedPoolAddress, PoolMetadata)>) -> &mut Self {
         self.pools = pools;
         self
     }
 
+    /// Set on chain balance of address
     pub fn balance(&mut self, address: impl Into<String>, amount: Vec<Coin>) -> &mut Self {
         self.balances.push((address.into(), amount));
         self
     }
 
+    /// Set on chain balances of addresses
     pub fn balances(&mut self, balances: Vec<(impl Into<String>, &[Coin])>) -> &mut Self {
         self.balances = balances
             .into_iter()
@@ -120,6 +137,7 @@ impl AbstractMockClientBuilder {
         self
     }
 
+    /// Deploy abstract with current configuration
     pub fn build(&self) -> AbstractClientResult<AbstractClient<Mock>> {
         let abstr = Abstract::deploy_on(self.mock.clone(), self.sender.clone())?;
         self.update_ans(&abstr)?;
@@ -156,6 +174,8 @@ impl AbstractMockClientBuilder {
 }
 
 pub mod cw20_builder {
+    //! # CW20 Builder
+
     // Re-exports to limit dependencies for consumer.
     pub use cw20::{msg::Cw20ExecuteMsgFns, *};
     pub use cw20_base::msg::{InstantiateMarketingInfo, QueryMsgFns as Cw20QueryMsgFns};
@@ -168,6 +188,7 @@ pub mod cw20_builder {
 
     use crate::client::AbstractClientResult;
 
+    /// A builder for creating and deploying `Cw20` contract in a [`Mock`] environment.
     pub struct Cw20Builder {
         chain: Mock,
         name: String,
@@ -194,31 +215,38 @@ pub mod cw20_builder {
             }
         }
 
-        pub fn initial_balances(&mut self, initial_balances: Vec<Cw20Coin>) -> &mut Self {
-            self.initial_balances = initial_balances;
-            self
-        }
-
+        /// Set initial cw20 balance
         pub fn initial_balance(&mut self, initial_balance: Cw20Coin) -> &mut Self {
             self.initial_balances.push(initial_balance);
             self
         }
 
+        /// Set initial cw20 balances
+        pub fn initial_balances(&mut self, initial_balances: Vec<Cw20Coin>) -> &mut Self {
+            self.initial_balances = initial_balances;
+            self
+        }
+
+        /// Set minter
         pub fn mint(&mut self, mint: MinterResponse) -> &mut Self {
             self.mint = Some(mint);
             self
         }
 
+        /// Set marketing info
         pub fn marketing(&mut self, marketing: InstantiateMarketingInfo) -> &mut Self {
             self.marketing = Some(marketing);
             self
         }
 
+        /// Set admin
         pub fn admin(&mut self, admin: impl Into<String>) -> &mut Self {
             self.admin = Some(Addr::unchecked(admin.into()));
             self
         }
 
+        /// Instantiate with provided module id
+        // TODO: we can rename it to `build()` as other methods and take {module-id}-{symbol} as id instead
         pub fn instantiate_with_id(&self, id: &str) -> AbstractClientResult<Cw20Base<Mock>> {
             let cw20 = Cw20Base::new(id, self.chain.clone());
 

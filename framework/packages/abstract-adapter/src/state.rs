@@ -74,6 +74,10 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         }
     }
 
+    pub fn version(&self) -> &'static str {
+        self.contract.info().1
+    }
+
     pub fn state(&self, store: &dyn Storage) -> StdResult<ApiState> {
         self.base_state.load(store)
     }
