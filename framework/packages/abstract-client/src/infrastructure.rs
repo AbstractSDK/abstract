@@ -1,9 +1,19 @@
+//! # Represents chain infrastructure
+//!
+//! [`Environment`] allows you to get the execution environment of the object.
+//!
+//! You might want to do this to get the cw-orchestrator type of the infrastructure which enables you to
+//! call some environment-specific methods or do low-level operations.
+//!
+//! You also sometimes need to provide the environment as a parameter to some methods, e.g. when you want to deploy a contract.
+
 use abstract_interface::{Abstract, AbstractInterfaceError};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
 use crate::{account::Account, client::AbstractClient};
 
+/// Trait for retrieving the CosmWasm environment that is being used.
 pub trait Environment<Chain: CwEnv> {
     /// Get the execution environment
     fn environment(&self) -> Chain;

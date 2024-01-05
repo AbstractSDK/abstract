@@ -1,3 +1,6 @@
+#![warn(missing_docs)]
+#![doc = include_str!("../README.md")]
+
 pub mod account;
 pub mod application;
 pub mod client;
