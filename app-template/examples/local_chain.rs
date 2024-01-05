@@ -40,18 +40,11 @@ fn main() -> anyhow::Result<()> {
     // Create an [`AbstractClient`]
     let abstract_client: AbstractClient<Daemon> = AbstractClient::new(daemon.clone())?;
 
-    // Get the [`Publisher`] that owns the namespace, otherwise create a new one and claim the namespace
-    let publisher: Publisher<_> = abstract_client
-        .get_publisher_from_namespace(Namespace::from_id(APP_ID)?)?
-        .unwrap_or_else(|| {
-            // Build a Publisher Account
-            abstract_client
-                .publisher_builder()
-                .namespace(app_namespace)
-                .build()
-                .expect("Failed to create publisher")
-        });
+    // Get the [`Publisher`] that owns the namespace.
+    // If there isn't one, it creates an Account and claims the namespace.
+    let publisher: Publisher<_> = abstract_client.publisher_builder(app_namespace).build()?;
 
+    // Ensure the current sender owns the namespace
     if publisher.account().owner()? != daemon.sender() {
         panic!("The current sender can not publish to this namespace. Please use the wallet that owns the Account that owns the Namespace.")
     }

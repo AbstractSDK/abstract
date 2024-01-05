@@ -68,11 +68,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(Self { abstr })
     }
 
-    // TODO: No user friendly API for AnsHost
-    // pub fn name_service(&self) -> &AnsHost<Chain> {
-    //     &self.abstr.ans_host
-    // }
-
     /// Version Control contract API
     ///
     /// The Version Control contract is a database contract that stores all module-related information.
