@@ -25,10 +25,9 @@ fn setup(
     let namespace = Namespace::from_id(APP_ID)?;
 
     // You can set up Abstract with a builder.
-    // The builder supports setting balances for addresses and configuring ANS.
-    let client = AbstractClient::builder(&sender)
-        .balance(&sender, coins(123, "ucosm"))
-        .build()?;
+    let client = AbstractClient::builder(Mock::new(&sender)).build()?;
+    // The client supports setting balances for addresses and configuring ANS.
+    client.update_balance(&sender, coins(123, "ucosm"))?;
 
     // Build a Publisher Account
     let publisher = client.publisher_builder(namespace).build()?;

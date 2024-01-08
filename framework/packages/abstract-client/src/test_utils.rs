@@ -146,6 +146,18 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
 
 // Can't include it in builder, open RFC: https://rust-lang.github.io/rfcs/1210-impl-specialization.html
 impl<Chain: MutCwEnv> AbstractClient<Chain> {
+    /// Set on chain balances of address
+    pub fn update_balance<S: Into<String>>(
+        &self,
+        address: S,
+        amount: Vec<Coin>,
+    ) -> AbstractClientResult<()> {
+        self.environment()
+            .set_balance(&Addr::unchecked(address), amount)
+            .map_err(Into::into)
+            .map_err(Into::into)
+    }
+
     /// Set on chain balances of addresses
     pub fn update_balances<S: Into<String>>(
         &self,
@@ -153,12 +165,7 @@ impl<Chain: MutCwEnv> AbstractClient<Chain> {
     ) -> AbstractClientResult<()> {
         balances
             .into_iter()
-            .try_for_each(|(address, amount)| -> AbstractClientResult<()> {
-                self.environment()
-                    .set_balance(&Addr::unchecked(address), amount)
-                    .map_err(Into::into)?;
-                Ok(())
-            })?;
+            .try_for_each(|(address, amount)| self.update_balance(address, amount))?;
         Ok(())
     }
 }
