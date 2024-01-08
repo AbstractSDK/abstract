@@ -37,7 +37,7 @@ use cw_ownable::Ownership;
 
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let account: Account<Mock> = client.account_builder().build()?;
 
@@ -72,7 +72,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
 fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let asset = "asset";
 
-    let client = AbstractClient::builder(OWNER)
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)))
         .asset(asset, AssetInfoUnchecked::native(asset))
         .build()?;
 
@@ -119,7 +119,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_account_from_namespace() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let namespace = Namespace::new("namespace")?;
     let account: Account<Mock> = client
@@ -140,7 +140,7 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
 
 #[test]
 fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let publisher: Publisher<Mock> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -166,7 +166,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
 #[test]
 fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let asset = "asset";
-    let client = AbstractClient::builder(OWNER)
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)))
         .asset(asset, AssetInfoUnchecked::native(asset))
         .build()?;
 
@@ -212,7 +212,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let namespace = Namespace::new("namespace")?;
     let publisher: Publisher<Mock> = client.publisher_builder(namespace.clone()).build()?;
@@ -229,7 +229,7 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
 
 #[test]
 fn can_publish_and_install_app() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let publisher: Publisher<Mock> = client
         .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
@@ -298,7 +298,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
 #[test]
 fn can_publish_and_install_adapter() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let publisher: Publisher<Mock> = client
         .publisher_builder(Namespace::new("tester")?)
@@ -368,7 +368,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 
 #[test]
 fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let namespace = Namespace::new("namespace")?;
 
@@ -387,7 +387,7 @@ fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Res
 
 #[test]
 fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let namespace = Namespace::new("namespace")?;
 
@@ -409,7 +409,7 @@ fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<
 
 #[test]
 fn can_install_module_with_dependencies() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let app_publisher: Publisher<Mock> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -488,7 +488,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
 
 #[test]
 fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let name = "name";
     let symbol = "symbol";
@@ -558,7 +558,7 @@ fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
 
 #[test]
 fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let name = "name";
     let symbol = "symbol";
@@ -595,7 +595,7 @@ fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
 
 #[test]
 fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
     let account = client.account_builder().build()?;
 
     let coin1 = Coin::new(50, "denom1");
@@ -614,7 +614,7 @@ fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
 }
 #[test]
 fn can_get_module_dependency() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let app_publisher: Publisher<Mock> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
@@ -638,7 +638,7 @@ fn can_get_module_dependency() -> anyhow::Result<()> {
 
 #[test]
 fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let user = Addr::unchecked("user");
     let coin1 = Coin::new(50, "denom1");
@@ -657,7 +657,7 @@ fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
 }
 #[test]
 fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let publisher: Publisher<Mock> = client
         .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
@@ -678,9 +678,9 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
 #[test]
 fn can_execute_on_proxy() -> anyhow::Result<()> {
     let denom = "denom";
-    let client = AbstractClient::builder(OWNER)
-        .balance(OWNER, coins(100, denom))
-        .build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    client.update_balances(vec![(OWNER, coins(100, denom))])?;
+
     let user = String::from("user");
 
     let account: Account<Mock> = client.account_builder().build()?;
