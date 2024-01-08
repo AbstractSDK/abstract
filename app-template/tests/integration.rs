@@ -31,9 +31,11 @@ fn setup(
         .build()?;
 
     // Build a Publisher Account
-    let publisher = client.publisher_builder().namespace(namespace).build()?;
+    let publisher = client.publisher_builder(namespace).build()?;
 
-    let app = publisher.install_app::<AppInterface<_>>(&AppInstantiateMsg { count }, &[])?;
+    let app = publisher
+        .account()
+        .install_app::<AppInterface<_>>(&AppInstantiateMsg { count }, &[])?;
 
     Ok((client, app))
 }
