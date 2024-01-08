@@ -10,10 +10,26 @@ pub(crate) use abstract_sdk::base::*;
 
 pub use crate::state::AppContract;
 pub use error::AppError;
-pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
-mod interface;
+pub type AppResult<C = cosmwasm_std::Empty> = Result<cosmwasm_std::Response<C>, AppError>;
 
-use cosmwasm_std::{Empty, Response};
+// Useful re-exports
+pub use abstract_core;
+pub use abstract_sdk;
+// re-export objects specifically
+pub use abstract_core::objects;
+pub mod traits {
+    pub use abstract_sdk::features::*;
+    pub use abstract_sdk::prelude::*;
+}
+
+#[cfg(feature = "interface-macro")]
+mod interface;
+#[cfg(feature = "interface-macro")]
+pub use abstract_interface;
+
+#[cfg(feature = "test-utils")]
+pub use abstract_testing;
+
 #[cfg(feature = "test-utils")]
 pub mod mock {
     pub use abstract_core::app;

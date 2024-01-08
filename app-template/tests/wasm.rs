@@ -1,9 +1,11 @@
 use app::contract::APP_ID;
 use app::AppInterface;
 
-use abstract_testing::OWNER;
+use abstract_app::abstract_testing::OWNER;
 use cw_orch::prelude::*;
 
+/// This is the raw way to access the cw-orchestrator logic.
+/// I.e. this does not use the AbstractClient.
 #[test]
 fn successful_wasm() {
     // Create a sender

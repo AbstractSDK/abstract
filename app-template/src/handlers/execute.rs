@@ -1,5 +1,5 @@
-use abstract_sdk::features::AbstractResponse;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use abstract_app::traits::AbstractResponse;
+use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
 use crate::contract::{App, AppResult};
 
@@ -23,14 +23,14 @@ pub fn execute_handler(
 fn increment(deps: DepsMut, app: App) -> AppResult {
     COUNT.update(deps.storage, |count| AppResult::Ok(count + 1))?;
 
-    Ok(app.tag_response(Response::default(), "increment"))
+    Ok(app.response("increment"))
 }
 
 fn reset(deps: DepsMut, info: MessageInfo, count: i32, app: App) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
     COUNT.save(deps.storage, &count)?;
 
-    Ok(app.tag_response(Response::default(), "reset"))
+    Ok(app.response("reset"))
 }
 
 /// Update the configuration of the app
@@ -39,5 +39,5 @@ fn update_config(deps: DepsMut, msg_info: MessageInfo, app: App) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let mut _config = CONFIG.load(deps.storage)?;
 
-    Ok(app.tag_response(Response::default(), "update_config"))
+    Ok(app.response("update_config"))
 }

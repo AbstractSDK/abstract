@@ -45,6 +45,19 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "count"
+          ],
+          "properties": {
+            "count": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -86,6 +99,20 @@
           ],
           "properties": {
             "module_data": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns top level owner",
+          "type": "object",
+          "required": [
+            "top_level_owner"
+          ],
+          "properties": {
+            "top_level_owner": {
               "type": "object",
               "additionalProperties": false
             }

@@ -27,6 +27,7 @@
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
+use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::AccountId;
 use abstract_interface::{Abstract, VersionControl};
 use abstract_interface::{AbstractAccount, ManagerQueryFns};
@@ -67,11 +68,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(Self { abstr })
     }
 
-    // TODO: No user friendly API for AnsHost
-    // pub fn name_service(&self) -> &AnsHost<Chain> {
-    //     &self.abstr.ans_host
-    // }
-
     /// Version Control contract API
     ///
     /// The Version Control contract is a database contract that stores all module-related information.
@@ -100,7 +96,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     /// Publisher builder for creating new [`Publisher`] Abstract Account
     /// To publish any modules your account requires to have claimed a namespace.
-    pub fn publisher_builder(&self, namespace: &str) -> PublisherBuilder<Chain> {
+    pub fn publisher_builder(&self, namespace: Namespace) -> PublisherBuilder<Chain> {
         PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)
     }
 
