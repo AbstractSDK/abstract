@@ -379,7 +379,11 @@ fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Res
         .build()?;
 
     // Second call fails
-    let result = client.account_builder().namespace(namespace).build();
+    let result = client
+        .account_builder()
+        .fetch_if_namespace_claimed(false)
+        .namespace(namespace)
+        .build();
     assert!(result.is_err());
 
     Ok(())

@@ -44,7 +44,6 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         namespace: Namespace,
     ) -> Self {
         account_builder.namespace(namespace);
-        account_builder.fetch_if_namespace_claimed(true);
         Self { account_builder }
     }
 
