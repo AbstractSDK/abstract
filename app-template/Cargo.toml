@@ -26,9 +26,6 @@ required-features = ["schema"]
 [features]
 default = ["export"]
 export = []
-# enable node-backed tests (ensure Docker is running)
-# run with `cargo test --jobs 1 --features node-tests`
-node-tests = ["interface"]
 interface = ["export", "abstract-app/interface-macro", "dep:cw-orch"]
 schema = ["abstract-app/schema"]
 
