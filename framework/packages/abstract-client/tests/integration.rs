@@ -9,9 +9,9 @@ use abstract_app::mock::{
 use abstract_client::{
     account::Account,
     application::Application,
+    builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
     client::AbstractClient,
     publisher::Publisher,
-    test_utils::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
 };
 use abstract_core::{
     manager::{
@@ -679,7 +679,7 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
 fn can_execute_on_proxy() -> anyhow::Result<()> {
     let denom = "denom";
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
-    client.update_balances(vec![(OWNER, coins(100, denom))])?;
+    client.set_balances(vec![(&client.sender(), coins(100, denom))])?;
 
     let user = String::from("user");
 

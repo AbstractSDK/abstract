@@ -9,12 +9,8 @@ use abstract_core::{
     },
 };
 use abstract_interface::{Abstract, ExecuteMsgFns};
-use cosmwasm_std::{Addr, Coin};
 use cw_asset::AssetInfoUnchecked;
-use cw_orch::{
-    deploy::Deploy,
-    environment::{CwEnv, MutCwEnv},
-};
+use cw_orch::{deploy::Deploy, environment::CwEnv};
 
 use crate::{
     client::{AbstractClient, AbstractClientResult},
@@ -140,32 +136,6 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
             .update_channels(self.channels.clone(), vec![])?;
         abstr.ans_host.update_pools(self.pools.clone(), vec![])?;
 
-        Ok(())
-    }
-}
-
-// Can't include it in builder, open RFC: https://rust-lang.github.io/rfcs/1210-impl-specialization.html
-impl<Chain: MutCwEnv> AbstractClient<Chain> {
-    /// Set on chain balances of address
-    pub fn update_balance<S: Into<String>>(
-        &self,
-        address: S,
-        amount: Vec<Coin>,
-    ) -> AbstractClientResult<()> {
-        self.environment()
-            .set_balance(&Addr::unchecked(address), amount)
-            .map_err(Into::into)
-            .map_err(Into::into)
-    }
-
-    /// Set on chain balances of addresses
-    pub fn update_balances<S: Into<String>>(
-        &self,
-        balances: impl IntoIterator<Item = (S, Vec<Coin>)>,
-    ) -> AbstractClientResult<()> {
-        balances
-            .into_iter()
-            .try_for_each(|(address, amount)| self.update_balance(address, amount))?;
         Ok(())
     }
 }

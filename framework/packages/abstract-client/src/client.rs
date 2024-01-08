@@ -33,7 +33,7 @@ use abstract_interface::{Abstract, VersionControl};
 use abstract_interface::{AbstractAccount, ManagerQueryFns};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
 use cw_orch::state::StateInterface;
-use cw_orch::{deploy::Deploy, environment::MutCwEnv, prelude::CwEnv};
+use cw_orch::{deploy::Deploy, prelude::CwEnv};
 
 use crate::{
     account::{Account, AccountBuilder},
@@ -183,24 +183,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             }
         }
         Ok(last_account.map(|(_, account)| account))
-    }
-}
-
-impl<Chain: MutCwEnv> AbstractClient<Chain> {
-    /// Set balance for an address
-    pub fn set_balance(&self, address: &Addr, amount: Vec<Coin>) -> AbstractClientResult<()> {
-        self.environment()
-            .set_balance(address, amount)
-            .map_err(Into::into)
-            .map_err(Into::into)
-    }
-
-    /// Add balance for the address
-    pub fn add_balance(&self, address: &Addr, amount: Vec<Coin>) -> AbstractClientResult<()> {
-        self.environment()
-            .add_balance(address, amount)
-            .map_err(Into::into)
-            .map_err(Into::into)
     }
 }
 
