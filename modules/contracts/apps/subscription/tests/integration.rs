@@ -2,9 +2,9 @@ use std::str::FromStr;
 
 use abstract_client::{
     application::Application, client::AbstractClient, infrastructure::Environment,
-    publisher::Publisher, test_utils::cw20_builder,
+    publisher::Publisher, builder::cw20_builder,
 };
-use abstract_core::objects::time_weighted_average::TimeWeightedAverageData;
+use abstract_core::objects::{time_weighted_average::TimeWeightedAverageData, namespace::Namespace};
 use abstract_subscription::{
     contract::interface::SubscriptionInterface,
     msg::{SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg, SubscriptionQueryMsgFns},
@@ -55,7 +55,7 @@ fn deploy_emission(client: &AbstractClient<Mock>) -> anyhow::Result<Cw20Base<Moc
 
 /// Set up the test environment with the contract installed
 fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     // Deploy factory_token
     let cw20 = client
@@ -67,11 +67,11 @@ fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
         .admin(OWNER.to_owned())
         .instantiate_with_id("abstract:cw20")?;
 
-    let publisher: Publisher<Mock> = client.publisher_builder().build()?;
+    let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("abstract")?).build()?;
     publisher.publish_app::<SubscriptionInterface<Mock>>()?;
 
     let cw20_addr = cw20.address()?;
-    let subscription_app: Application<Mock, SubscriptionInterface<Mock>> = publisher.install_app(
+    let subscription_app: Application<Mock, SubscriptionInterface<Mock>> = publisher.account().install_app(
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::cw20(cw20_addr.clone()),
             subscription_cost_per_second: Decimal::from_str("0.000037")?,
@@ -92,14 +92,14 @@ fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
 
 /// Set up the test environment with the contract installed
 fn setup_native(balances: Vec<(&Addr, &[Coin])>) -> anyhow::Result<NativeSubscription> {
-    let client = AbstractClient::builder(OWNER).balances(balances).build()?;
-
-    let publisher: Publisher<Mock> = client.publisher_builder().build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    client.set_balances(balances)?;
+    let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("abstract")?).build()?;
     publisher.publish_app::<SubscriptionInterface<Mock>>()?;
 
     let emissions = deploy_emission(&client)?;
 
-    let subscription_app: Application<Mock, SubscriptionInterface<Mock>> = publisher.install_app(
+    let subscription_app: Application<Mock, SubscriptionInterface<Mock>> = publisher.account().install_app(
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::native(DENOM),
             // https://github.com/AbstractSDK/abstract/pull/92#discussion_r1371693550
@@ -538,8 +538,8 @@ fn unsubscribe_part_of_list() -> anyhow::Result<()> {
         payment_asset: _,
         emission_cw20: _,
     } = setup_native(vec![
-        (&subscriber1, &coins(2200, DENOM)),
-        (&subscriber2, &coins(220, DENOM)),
+        (&subscriber1, coins(2200, DENOM).as_slice()),
+        (&subscriber2, coins(220, DENOM).as_slice()),
     ])?;
 
     subscription_app

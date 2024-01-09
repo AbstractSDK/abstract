@@ -17,6 +17,7 @@ use cw_orch::{anyhow, prelude::*};
 use cosmwasm_std::{coins, Addr};
 
 /// Set up the test environment with an Account that has the App installed
+#[allow(clippy::type_complexity)]
 fn setup(
     count: i32,
 ) -> anyhow::Result<(AbstractClient<Mock>, Application<Mock, AppInterface<Mock>>)> {
@@ -27,7 +28,7 @@ fn setup(
     // You can set up Abstract with a builder.
     let client = AbstractClient::builder(Mock::new(&sender)).build()?;
     // The client supports setting balances for addresses and configuring ANS.
-    client.set_balance(&sender, coins(123, "ucosm"))?;
+    client.set_balance(&sender, &coins(123, "ucosm"))?;
 
     // Build a Publisher Account
     let publisher = client.publisher_builder(namespace).build()?;

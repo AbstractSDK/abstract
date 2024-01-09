@@ -648,8 +648,8 @@ fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
     let coin1 = Coin::new(50, "denom1");
     let coin2 = Coin::new(20, "denom2");
     let coin3 = Coin::new(10, "denom3");
-    client.set_balance(&user, vec![coin1.clone(), coin2.clone()])?;
-    client.add_balance(&user, vec![coin3.clone()])?;
+    client.set_balance(&user, &[coin1.clone(), coin2.clone()])?;
+    client.add_balance(&user, &[coin3.clone()])?;
 
     assert_eq!(coin1.amount, client.query_balance(&user, "denom1")?);
     assert_eq!(coin2.amount, client.query_balance(&user, "denom2")?);
@@ -683,7 +683,7 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
 fn can_execute_on_proxy() -> anyhow::Result<()> {
     let denom = "denom";
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
-    client.set_balances(vec![(&client.sender(), coins(100, denom))])?;
+    client.set_balances([(client.sender(), coins(100, denom).as_slice())])?;
 
     let user = String::from("user");
 
