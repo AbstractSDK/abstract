@@ -1,5 +1,5 @@
 use abstract_client::{application::Application, client::AbstractClient, publisher::Publisher};
-use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry, namespace::Namespace};
+use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
 use calendar_app::{
     error::CalendarError,
     msg::{CalendarExecuteMsg, CalendarInstantiateMsg, ConfigResponse, Time},
@@ -87,13 +87,16 @@ fn setup_with_time(
     Application<Mock, CalendarAppInterface<Mock>>,
     AbstractClient<Mock>,
 )> {
-    let client: AbstractClient<Mock> = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)).to_owned())
-        .asset(DENOM, AssetInfoUnchecked::native(DENOM))
-        .build()?;
+    let client: AbstractClient<Mock> =
+        AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)).to_owned())
+            .asset(DENOM, AssetInfoUnchecked::native(DENOM))
+            .build()?;
 
-    client.set_balances(vec![("sender1", coins(INITIAL_BALANCE, DENOM).as_slice()),
-    ("sender2", coins(INITIAL_BALANCE, DENOM).as_slice()),
-    ("sender", coins(INITIAL_BALANCE, DENOM).as_slice())])?;
+    client.set_balances(vec![
+        ("sender1", coins(INITIAL_BALANCE, DENOM).as_slice()),
+        ("sender2", coins(INITIAL_BALANCE, DENOM).as_slice()),
+        ("sender", coins(INITIAL_BALANCE, DENOM).as_slice()),
+    ])?;
 
     // Create account to install app onto as well as claim namespace.
     let publisher: Publisher<Mock> = client

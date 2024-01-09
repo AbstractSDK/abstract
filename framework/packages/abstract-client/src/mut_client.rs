@@ -37,7 +37,11 @@ impl<Chain: MutCwEnv> AbstractClient<Chain> {
     }
 
     /// Add balance for the address
-    pub fn add_balance(&self, address: impl Into<String>, amount: &[Coin]) -> AbstractClientResult<()> {
+    pub fn add_balance(
+        &self,
+        address: impl Into<String>,
+        amount: &[Coin],
+    ) -> AbstractClientResult<()> {
         self.environment()
             .add_balance(&Addr::unchecked(address), amount.to_vec())
             .map_err(Into::into)
