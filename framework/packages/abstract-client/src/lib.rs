@@ -1,12 +1,21 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
-pub mod account;
-pub mod application;
+mod account;
+mod application;
 pub mod builder;
-pub mod client;
-pub mod error;
-pub mod infrastructure;
+mod client;
+mod error;
+mod infrastructure;
 #[cfg(feature = "test-utils")]
-pub mod mut_client;
-pub mod publisher;
+mod mut_client;
+mod publisher;
+
+pub use account::{Account, AccountBuilder};
+pub use application::Application;
+pub use builder::AbstractClientBuilder;
+pub use client::AbstractClient;
+pub use error::AbstractClientError;
+pub use infrastructure::Environment;
+pub use publisher::{Publisher,PublisherBuilder};
+
