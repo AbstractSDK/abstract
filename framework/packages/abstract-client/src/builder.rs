@@ -171,7 +171,7 @@ pub mod cw20_builder {
     }
 
     impl<Chain: CwEnv> Cw20Builder<Chain> {
-        /// Creates a new [`Cw20Builder`]. Call [`crate::client::AbstractClient`] to create.
+        /// Creates a new [`Cw20Builder`]. Call [`crate::AbstractClient`] to create.
         pub(crate) fn new(chain: Chain, name: String, symbol: String, decimals: u8) -> Self {
             Self {
                 chain,

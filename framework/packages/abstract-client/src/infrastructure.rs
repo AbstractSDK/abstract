@@ -11,7 +11,7 @@ use abstract_interface::{Abstract, AbstractInterfaceError};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
-use crate::{account::Account, client::AbstractClient};
+use crate::{account::Account, AbstractClient};
 
 /// Trait for retrieving the CosmWasm environment that is being used.
 pub trait Environment<Chain: CwEnv> {

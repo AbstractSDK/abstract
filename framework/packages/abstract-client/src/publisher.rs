@@ -18,14 +18,14 @@ use crate::{
 use abstract_core::objects::namespace::Namespace;
 
 /// A builder for creating [`Publishers`](Account).
-/// Get the builder from the [`AbstractClient::publisher_builder`](crate::client::AbstractClient)
+/// Get the builder from the [`AbstractClient::publisher_builder`](crate::AbstractClient)
 /// and create the account with the `build` method.
 ///
 /// ```
 /// # use abstract_client::{error::AbstractClientError, infrastructure::Environment};
-/// # let abstr_client = abstract_client::client::AbstractClient::builder("sender").build().unwrap();
+/// # let abstr_client = abstract_AbstractClient::builder("sender").build().unwrap();
 /// # let chain = abstr_client.environment();
-/// use abstract_client::client::AbstractClient;
+/// use abstract_AbstractClient;
 ///
 /// let client = AbstractClient::new(chain)?;
 /// let publisher: Publisher<Mock> = client.publisher_builder("alice-namespace")

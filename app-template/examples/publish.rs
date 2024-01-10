@@ -14,7 +14,7 @@
 //! $ just deploy uni-6 osmo-test-5
 //! ```
 use abstract_app::objects::namespace::Namespace;
-use abstract_client::{client::AbstractClient, publisher::Publisher};
+use abstract_client::{AbstractClient, Publisher};
 use app::{contract::APP_ID, AppInterface};
 use clap::Parser;
 use cw_orch::{

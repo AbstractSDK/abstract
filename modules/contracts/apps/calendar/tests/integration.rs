@@ -1,4 +1,4 @@
-use abstract_client::{application::Application, client::AbstractClient, publisher::Publisher};
+use abstract_client::{AbstractClient, Application, Publisher};
 use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
 use calendar_app::{
     error::CalendarError,

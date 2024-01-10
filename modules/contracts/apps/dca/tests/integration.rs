@@ -1,8 +1,8 @@
 mod common;
 use std::cell::RefMut;
 
-use abstract_client::account::Account;
-use abstract_client::client::AbstractClient;
+use abstract_client::AbstractClient;
+use abstract_client::Account;
 use abstract_core::objects::ans_host::AnsHostError;
 use abstract_core::objects::DexAssetPairing;
 use abstract_core::objects::{

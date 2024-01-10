@@ -1,9 +1,6 @@
 use std::str::FromStr;
 
-use abstract_client::{
-    application::Application, builder::cw20_builder, client::AbstractClient,
-    infrastructure::Environment, publisher::Publisher,
-};
+use abstract_client::{builder::cw20_builder, AbstractClient, Application, Environment, Publisher};
 use abstract_core::objects::{
     namespace::Namespace, time_weighted_average::TimeWeightedAverageData,
 };

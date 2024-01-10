@@ -41,7 +41,7 @@ When working with a local deployment (mock, or local daemon), you will need to d
 use abstract_app::mock::interface::MockAppInterface;
 use abstract_testing::prelude::TEST_MODULE_ID;
 use cw_orch::prelude::{Mock, DaemonBuilder};
-use abstract_client::{AbstractClient, publisher::Publisher};
+use abstract_client::{AbstractClient, Publisher};
 
 // Build the client, which will deploy the infrastructure
 let client: AbstractClient<Mock> = AbstractClient::builder("sender").build()?;
