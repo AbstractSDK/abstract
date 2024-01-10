@@ -1,8 +1,8 @@
 use abstract_app::abstract_testing::OWNER;
 use abstract_app::objects::namespace::Namespace;
 
-use abstract_client::Application;
 use abstract_client::AbstractClient;
+use abstract_client::Application;
 
 use app::{
     contract::APP_ID,
