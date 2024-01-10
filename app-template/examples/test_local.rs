@@ -6,7 +6,7 @@
 //!
 //! # Run
 //!
-//! `cargo run --example test-local`
+//! `cargo run --example test_local`
 
 use abstract_app::objects::namespace::Namespace;
 use abstract_client::{client::AbstractClient, publisher::Publisher};
