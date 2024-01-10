@@ -11,7 +11,12 @@ crate-type = ["cdylib", "rlib"]
 
 
 [features]
-test-utils = ["dep:abstract-testing", "dep:abstract-interface", "dep:cw-orch"]
+interface-macro = ["dep:abstract-interface", "dep:cw-orch"]
+test-utils = [
+  "dep:abstract-testing",
+  "interface-macro",
+  "abstract-sdk/test-utils",
+]
 schema = []
 
 [dependencies]
@@ -29,7 +34,7 @@ abstract-sdk = { workspace = true }
 abstract-core = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
-# Keep this as a version and update when publishing new versions
+
 abstract-interface = { path = "../../packages/abstract-interface", version = "0.20.0", optional = true }
 
 [dev-dependencies]

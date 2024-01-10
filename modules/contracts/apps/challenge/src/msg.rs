@@ -6,11 +6,11 @@ use crate::{
         AdminStrikes, ChallengeEntry, ChallengeEntryUpdate, StrikeStrategy, UpdateFriendsOpKind,
     },
 };
-use abstract_core::objects::{
+use abstract_app::abstract_core::objects::{
     voting::{ProposalId, ProposalInfo, Vote, VoteConfig},
     AccountId, AssetEntry,
 };
-use abstract_sdk::{AbstractSdkResult, AccountVerification};
+use abstract_app::abstract_sdk::{AbstractSdkResult, AccountVerification};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Deps, StdResult, Timestamp, Uint64};
 use cw_address_like::AddressLike;

@@ -27,12 +27,13 @@
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
+use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::AccountId;
 use abstract_interface::{Abstract, VersionControl};
 use abstract_interface::{AbstractAccount, ManagerQueryFns};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
 use cw_orch::state::StateInterface;
-use cw_orch::{deploy::Deploy, environment::MutCwEnv, prelude::CwEnv};
+use cw_orch::{deploy::Deploy, prelude::CwEnv};
 
 use crate::{
     account::{Account, AccountBuilder},
@@ -67,11 +68,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(Self { abstr })
     }
 
-    // TODO: No user friendly API for AnsHost
-    // pub fn name_service(&self) -> &AnsHost<Chain> {
-    //     &self.abstr.ans_host
-    // }
-
     /// Version Control contract API
     ///
     /// The Version Control contract is a database contract that stores all module-related information.
@@ -100,7 +96,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     /// Publisher builder for creating new [`Publisher`] Abstract Account
     /// To publish any modules your account requires to have claimed a namespace.
-    pub fn publisher_builder(&self, namespace: &str) -> PublisherBuilder<Chain> {
+    pub fn publisher_builder(&self, namespace: Namespace) -> PublisherBuilder<Chain> {
         PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)
     }
 
@@ -187,24 +183,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             }
         }
         Ok(last_account.map(|(_, account)| account))
-    }
-}
-
-impl<Chain: MutCwEnv> AbstractClient<Chain> {
-    /// Set balance for an address
-    pub fn set_balance(&self, address: &Addr, amount: Vec<Coin>) -> AbstractClientResult<()> {
-        self.environment()
-            .set_balance(address, amount)
-            .map_err(Into::into)
-            .map_err(Into::into)
-    }
-
-    /// Add balance for the address
-    pub fn add_balance(&self, address: &Addr, amount: Vec<Coin>) -> AbstractClientResult<()> {
-        self.environment()
-            .add_balance(address, amount)
-            .map_err(Into::into)
-            .map_err(Into::into)
     }
 }
 

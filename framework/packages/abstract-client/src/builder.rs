@@ -9,9 +9,8 @@ use abstract_core::{
     },
 };
 use abstract_interface::{Abstract, ExecuteMsgFns};
-use cosmwasm_std::{Addr, Coin};
 use cw_asset::AssetInfoUnchecked;
-use cw_orch::{deploy::Deploy, prelude::Mock};
+use cw_orch::{deploy::Deploy, environment::CwEnv};
 
 use crate::{
     client::{AbstractClient, AbstractClientResult},
@@ -20,10 +19,10 @@ use crate::{
 
 use self::cw20_builder::Cw20Builder;
 
-impl AbstractClient<Mock> {
+impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Abstract client builder
-    pub fn builder(sender: impl Into<String>) -> AbstractClientBuilder {
-        AbstractClientBuilder::new(sender.into())
+    pub fn builder(chain: Chain) -> AbstractClientBuilder<Chain> {
+        AbstractClientBuilder::new(chain)
     }
 
     /// Cw20 contract builder
@@ -32,29 +31,24 @@ impl AbstractClient<Mock> {
         name: impl Into<String>,
         symbol: impl Into<String>,
         decimals: u8,
-    ) -> Cw20Builder {
+    ) -> Cw20Builder<Chain> {
         Cw20Builder::new(self.environment(), name.into(), symbol.into(), decimals)
     }
 }
 
 /// A builder for setting up tests for `Abstract` in a [`Mock`] environment.
-pub struct AbstractClientBuilder {
-    mock: Mock,
-    sender: String,
-    balances: Vec<(String, Vec<Coin>)>,
+pub struct AbstractClientBuilder<Chain: CwEnv> {
+    chain: Chain,
     contracts: Vec<(UncheckedContractEntry, String)>,
     assets: Vec<(String, AssetInfoUnchecked)>,
     channels: Vec<(UncheckedChannelEntry, String)>,
     pools: Vec<(UncheckedPoolAddress, PoolMetadata)>,
 }
 
-impl AbstractClientBuilder {
-    pub(crate) fn new(sender: impl Into<String>) -> Self {
-        let sender: String = sender.into();
+impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
+    pub(crate) fn new(chain: Chain) -> Self {
         Self {
-            mock: Mock::new(&Addr::unchecked(&sender)),
-            sender,
-            balances: vec![],
+            chain,
             contracts: vec![],
             assets: vec![],
             channels: vec![],
@@ -122,42 +116,15 @@ impl AbstractClientBuilder {
         self
     }
 
-    /// Set on chain balance of address
-    pub fn balance(&mut self, address: impl Into<String>, amount: Vec<Coin>) -> &mut Self {
-        self.balances.push((address.into(), amount));
-        self
-    }
-
-    /// Set on chain balances of addresses
-    pub fn balances(&mut self, balances: Vec<(impl Into<String>, &[Coin])>) -> &mut Self {
-        self.balances = balances
-            .into_iter()
-            .map(|b| (b.0.into(), b.1.to_vec()))
-            .collect();
-        self
-    }
-
     /// Deploy abstract with current configuration
-    pub fn build(&self) -> AbstractClientResult<AbstractClient<Mock>> {
-        let abstr = Abstract::deploy_on(self.mock.clone(), self.sender.clone())?;
+    pub fn build(&self) -> AbstractClientResult<AbstractClient<Chain>> {
+        let abstr = Abstract::deploy_on(self.chain.clone(), self.chain.sender().into_string())?;
         self.update_ans(&abstr)?;
-        self.update_balances()?;
 
-        AbstractClient::new(self.mock.clone())
+        AbstractClient::new(self.chain.clone())
     }
 
-    fn update_balances(&self) -> AbstractClientResult<()> {
-        self.balances
-            .iter()
-            .try_for_each(|(address, amount)| -> AbstractClientResult<()> {
-                self.mock
-                    .set_balance(&Addr::unchecked(address), amount.to_vec())?;
-                Ok(())
-            })?;
-        Ok(())
-    }
-
-    fn update_ans(&self, abstr: &Abstract<Mock>) -> AbstractClientResult<()> {
+    fn update_ans(&self, abstr: &Abstract<Chain>) -> AbstractClientResult<()> {
         abstr
             .ans_host
             .update_contract_addresses(self.contracts.clone(), vec![])?;
@@ -183,14 +150,17 @@ pub mod cw20_builder {
 
     use cosmwasm_std::Addr;
 
-    use cw_orch::prelude::{CwOrchInstantiate, CwOrchUpload, Mock};
+    use cw_orch::{
+        environment::CwEnv,
+        prelude::{CwOrchInstantiate, CwOrchUpload},
+    };
     use cw_plus_interface::cw20_base::InstantiateMsg;
 
     use crate::client::AbstractClientResult;
 
     /// A builder for creating and deploying `Cw20` contract in a [`Mock`] environment.
-    pub struct Cw20Builder {
-        chain: Mock,
+    pub struct Cw20Builder<Chain: CwEnv> {
+        chain: Chain,
         name: String,
         symbol: String,
         decimals: u8,
@@ -200,9 +170,9 @@ pub mod cw20_builder {
         admin: Option<Addr>,
     }
 
-    impl Cw20Builder {
+    impl<Chain: CwEnv> Cw20Builder<Chain> {
         /// Creates a new [`Cw20Builder`]. Call [`crate::client::AbstractClient`] to create.
-        pub(crate) fn new(chain: Mock, name: String, symbol: String, decimals: u8) -> Self {
+        pub(crate) fn new(chain: Chain, name: String, symbol: String, decimals: u8) -> Self {
             Self {
                 chain,
                 name,
@@ -247,7 +217,7 @@ pub mod cw20_builder {
 
         /// Instantiate with provided module id
         // TODO: we can rename it to `build()` as other methods and take {module-id}-{symbol} as id instead
-        pub fn instantiate_with_id(&self, id: &str) -> AbstractClientResult<Cw20Base<Mock>> {
+        pub fn instantiate_with_id(&self, id: &str) -> AbstractClientResult<Cw20Base<Chain>> {
             let cw20 = Cw20Base::new(id, self.chain.clone());
 
             // TODO: Consider adding error if the code-id is already uploaded. This would

@@ -24,8 +24,8 @@ use abstract_core::{
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        gov_type::GovernanceDetails, module, namespace::Namespace,
-        nested_admin::MAX_ADMIN_RECURSION, validation::verifiers, AccountId, AssetEntry,
+        gov_type::GovernanceDetails, namespace::Namespace, nested_admin::MAX_ADMIN_RECURSION,
+        validation::verifiers, AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
     PROXY,
@@ -68,7 +68,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     name: Option<String>,
     description: Option<String>,
     link: Option<String>,
-    namespace: Option<String>,
+    namespace: Option<Namespace>,
     base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
     ownership: Option<GovernanceDetails<String>>,
@@ -87,7 +87,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: None,
             base_asset: None,
             ownership: None,
-            fetch_if_namespace_claimed: false,
+            fetch_if_namespace_claimed: true,
             install_on_sub_account: true,
         }
     }
@@ -113,8 +113,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
     /// Unique namespace for the account
     /// Setting this will claim the namespace for the account on construction.
-    pub fn namespace(&mut self, namespace: impl Into<String>) -> &mut Self {
-        self.namespace = Some(namespace.into());
+    pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
+        self.namespace = Some(namespace);
         self
     }
 
@@ -150,11 +150,15 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         if self.fetch_if_namespace_claimed {
             // Check if namespace already claimed
             if let Some(ref namespace) = self.namespace {
-                let account_from_namespace_result: AbstractClientResult<Option<Account<Chain>>> =
-                    Account::from_namespace(self.abstr, namespace, self.install_on_sub_account);
+                let account_from_namespace_result: Option<Account<Chain>> =
+                    Account::from_namespace(
+                        self.abstr,
+                        namespace.clone(),
+                        self.install_on_sub_account,
+                    )?;
 
                 // Only return if the account can be retrieved without errors.
-                if let Ok(Some(account_from_namespace)) = account_from_namespace_result {
+                if let Some(account_from_namespace) = account_from_namespace_result {
                     return Ok(account_from_namespace);
                 }
             }
@@ -175,16 +179,13 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         verifiers::validate_name(&name)?;
         verifiers::validate_description(self.description.as_deref())?;
         verifiers::validate_link(self.link.as_deref())?;
-        if let Some(namespace) = &self.namespace {
-            module::validate_name(namespace)?;
-        }
 
         let abstract_account = self.abstr.account_factory.create_new_account(
             AccountDetails {
                 name,
                 description: self.description.clone(),
                 link: self.link.clone(),
-                namespace: self.namespace.clone(),
+                namespace: self.namespace.as_ref().map(ToString::to_string),
                 base_asset: self.base_asset.clone(),
                 install_modules: vec![],
             },
@@ -199,6 +200,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 ///
 /// Get this struct from [`AbstractClient::account_from_namespace`](crate::client::AbstractClient)
 /// or create a new account with the [`AccountBuilder`].
+#[derive(Clone)]
 pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
     install_on_sub_account: bool,
@@ -222,12 +224,10 @@ impl<Chain: CwEnv> Account<Chain> {
 
     pub(crate) fn from_namespace(
         abstr: &Abstract<Chain>,
-        namespace: &str,
+        namespace: Namespace,
         install_on_sub_account: bool,
     ) -> AbstractClientResult<Option<Self>> {
-        let namespace_response: NamespaceResponse = abstr
-            .version_control
-            .namespace(Namespace::new(namespace)?)?;
+        let namespace_response: NamespaceResponse = abstr.version_control.namespace(namespace)?;
 
         let NamespaceResponse::Claimed(info) = namespace_response else {
             return Ok(None);

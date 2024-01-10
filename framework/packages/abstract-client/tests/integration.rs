@@ -9,9 +9,9 @@ use abstract_app::mock::{
 use abstract_client::{
     account::Account,
     application::Application,
+    builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
     client::AbstractClient,
     publisher::Publisher,
-    test_utils::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
 };
 use abstract_core::{
     manager::{
@@ -37,7 +37,7 @@ use cw_ownable::Ownership;
 
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let account: Account<Mock> = client.account_builder().build()?;
 
@@ -72,7 +72,7 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
 fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let asset = "asset";
 
-    let client = AbstractClient::builder(OWNER)
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)))
         .asset(asset, AssetInfoUnchecked::native(asset))
         .build()?;
 
@@ -82,7 +82,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let governance_details = GovernanceDetails::Monarchy {
         monarch: String::from("monarch"),
     };
-    let namespace = "test-namespace";
+    let namespace = Namespace::new("test-namespace")?;
     let base_asset = AssetEntry::new(asset);
     let account: Account<Mock> = client
         .account_builder()
@@ -90,7 +90,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         .link(link)
         .description(description)
         .ownership(governance_details.clone())
-        .namespace(namespace)
+        .namespace(namespace.clone())
         .base_asset(base_asset)
         .build()?;
 
@@ -109,7 +109,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     // Namespace is claimed.
     let account_id = client
         .version_control()
-        .namespace(Namespace::new(namespace)?)?
+        .namespace(namespace)?
         .unwrap()
         .account_id;
     assert_eq!(account_id, AccountId::local(1));
@@ -119,10 +119,13 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_account_from_namespace() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let namespace = "namespace";
-    let account: Account<Mock> = client.account_builder().namespace(namespace).build()?;
+    let namespace = Namespace::new("namespace")?;
+    let account: Account<Mock> = client
+        .account_builder()
+        .namespace(namespace.clone())
+        .build()?;
 
     let account_from_namespace: Account<Mock> = client
         .account_builder()
@@ -137,9 +140,11 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
 
 #[test]
 fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let publisher: Publisher<Mock> = client.publisher_builder(TEST_NAMESPACE).build()?;
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
 
     let account_info = publisher.account().info()?;
     assert_eq!(
@@ -161,7 +166,7 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
 #[test]
 fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let asset = "asset";
-    let client = AbstractClient::builder(OWNER)
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)))
         .asset(asset, AssetInfoUnchecked::native(asset))
         .build()?;
 
@@ -171,10 +176,10 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let governance_details = GovernanceDetails::Monarchy {
         monarch: String::from("monarch"),
     };
-    let namespace = "test-namespace";
+    let namespace = Namespace::new("test-namespace")?;
     let base_asset = AssetEntry::new(asset);
     let publisher: Publisher<Mock> = client
-        .publisher_builder(namespace)
+        .publisher_builder(namespace.clone())
         .name(name)
         .link(link)
         .description(description)
@@ -197,7 +202,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     // Namespace is claimed.
     let account_id = client
         .version_control()
-        .namespace(Namespace::new(namespace)?)?
+        .namespace(namespace)?
         .unwrap()
         .account_id;
     assert_eq!(account_id, AccountId::local(1));
@@ -207,10 +212,10 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let namespace = "namespace";
-    let publisher: Publisher<Mock> = client.publisher_builder(namespace).build()?;
+    let namespace = Namespace::new("namespace")?;
+    let publisher: Publisher<Mock> = client.publisher_builder(namespace.clone()).build()?;
 
     let publisher_from_namespace: Publisher<Mock> = client.publisher_builder(namespace).build()?;
 
@@ -224,10 +229,10 @@ fn can_get_publisher_from_namespace() -> anyhow::Result<()> {
 
 #[test]
 fn can_publish_and_install_app() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let publisher: Publisher<Mock> = client
-        .publisher_builder(TEST_DEPENDENCY_NAMESPACE)
+        .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
         .build()?;
 
     let publisher_account = publisher.account();
@@ -263,7 +268,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     // Install app on current account
     let publisher = client
-        .publisher_builder("tester")
+        .publisher_builder(Namespace::new("tester")?)
         .install_on_sub_account(false)
         .build()?;
     let my_adapter: Application<Mock, MockAppDependencyInterface<Mock>> =
@@ -293,9 +298,11 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
 #[test]
 fn can_publish_and_install_adapter() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let publisher: Publisher<Mock> = client.publisher_builder("tester").build()?;
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new("tester")?)
+        .build()?;
 
     let publisher_manager = publisher.account().manager()?;
     let publisher_proxy = publisher.account().proxy()?;
@@ -330,7 +337,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 
     // Install adapter on current account
     let publisher = client
-        .publisher_builder("tester")
+        .publisher_builder(Namespace::new("tester")?)
         .install_on_sub_account(false)
         .build()?;
     let my_adapter: Application<Mock, BootMockAdapter<Mock>> =
@@ -361,15 +368,22 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 
 #[test]
 fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let namespace = "namespace";
+    let namespace = Namespace::new("namespace")?;
 
     // First call succeeds.
-    client.account_builder().namespace(namespace).build()?;
+    client
+        .account_builder()
+        .namespace(namespace.clone())
+        .build()?;
 
     // Second call fails
-    let result = client.account_builder().namespace(namespace).build();
+    let result = client
+        .account_builder()
+        .fetch_if_namespace_claimed(false)
+        .namespace(namespace)
+        .build();
     assert!(result.is_err());
 
     Ok(())
@@ -377,11 +391,14 @@ fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Res
 
 #[test]
 fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let namespace = "namespace";
+    let namespace = Namespace::new("namespace")?;
 
-    let account1 = client.account_builder().namespace(namespace).build()?;
+    let account1 = client
+        .account_builder()
+        .namespace(namespace.clone())
+        .build()?;
 
     let account2 = client
         .account_builder()
@@ -396,12 +413,14 @@ fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<
 
 #[test]
 fn can_install_module_with_dependencies() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let app_publisher: Publisher<Mock> = client.publisher_builder(TEST_NAMESPACE).build()?;
+    let app_publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
 
     let app_dependency_publisher: Publisher<Mock> = client
-        .publisher_builder(TEST_DEPENDENCY_NAMESPACE)
+        .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
         .build()?;
 
     app_dependency_publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
@@ -473,7 +492,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
 
 #[test]
 fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let name = "name";
     let symbol = "symbol";
@@ -543,7 +562,7 @@ fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
 
 #[test]
 fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let name = "name";
     let symbol = "symbol";
@@ -580,7 +599,7 @@ fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
 
 #[test]
 fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
     let account = client.account_builder().build()?;
 
     let coin1 = Coin::new(50, "denom1");
@@ -599,12 +618,14 @@ fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
 }
 #[test]
 fn can_get_module_dependency() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let app_publisher: Publisher<Mock> = client.publisher_builder(TEST_NAMESPACE).build()?;
+    let app_publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
 
     let app_dependency_publisher: Publisher<Mock> = client
-        .publisher_builder(TEST_DEPENDENCY_NAMESPACE)
+        .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
         .build()?;
 
     app_dependency_publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
@@ -621,14 +642,14 @@ fn can_get_module_dependency() -> anyhow::Result<()> {
 
 #[test]
 fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let user = Addr::unchecked("user");
     let coin1 = Coin::new(50, "denom1");
     let coin2 = Coin::new(20, "denom2");
     let coin3 = Coin::new(10, "denom3");
-    client.set_balance(&user, vec![coin1.clone(), coin2.clone()])?;
-    client.add_balance(&user, vec![coin3.clone()])?;
+    client.set_balance(&user, &[coin1.clone(), coin2.clone()])?;
+    client.add_balance(&user, &[coin3.clone()])?;
 
     assert_eq!(coin1.amount, client.query_balance(&user, "denom1")?);
     assert_eq!(coin2.amount, client.query_balance(&user, "denom2")?);
@@ -640,10 +661,10 @@ fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
 }
 #[test]
 fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
-    let client = AbstractClient::builder(OWNER).build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let publisher: Publisher<Mock> = client
-        .publisher_builder(TEST_DEPENDENCY_NAMESPACE)
+        .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
         .build()?;
 
     publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
@@ -661,9 +682,9 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
 #[test]
 fn can_execute_on_proxy() -> anyhow::Result<()> {
     let denom = "denom";
-    let client = AbstractClient::builder(OWNER)
-        .balance(OWNER, coins(100, denom))
-        .build()?;
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    client.set_balances([(client.sender(), coins(100, denom).as_slice())])?;
+
     let user = String::from("user");
 
     let account: Account<Mock> = client.account_builder().build()?;

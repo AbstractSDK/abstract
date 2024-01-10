@@ -3,9 +3,10 @@
 
 pub mod account;
 pub mod application;
+pub mod builder;
 pub mod client;
 pub mod error;
 pub mod infrastructure;
-pub mod publisher;
 #[cfg(feature = "test-utils")]
-pub mod test_utils;
+pub mod mut_client;
+pub mod publisher;

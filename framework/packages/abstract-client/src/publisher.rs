@@ -15,6 +15,7 @@ use crate::{
     client::AbstractClientResult,
     infrastructure::Environment,
 };
+use abstract_core::objects::namespace::Namespace;
 
 /// A builder for creating [`Publishers`](Account).
 /// Get the builder from the [`AbstractClient::publisher_builder`](crate::client::AbstractClient)
@@ -40,10 +41,9 @@ pub struct PublisherBuilder<'a, Chain: CwEnv> {
 impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
     pub(crate) fn new(
         mut account_builder: AccountBuilder<'a, Chain>,
-        namespace: impl Into<String>,
+        namespace: Namespace,
     ) -> Self {
         account_builder.namespace(namespace);
-        account_builder.fetch_if_namespace_claimed(true);
         Self { account_builder }
     }
 
@@ -66,6 +66,12 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
         self
     }
 
+    /// Overwrite the configured namespace
+    pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
+        self.account_builder.namespace(namespace);
+        self
+    }
+
     /// Base Asset for the account
     pub fn base_asset(&mut self, base_asset: AssetEntry) -> &mut Self {
         self.account_builder.base_asset(base_asset);
@@ -83,12 +89,6 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
     /// Defaults to `true`
     pub fn install_on_sub_account(&mut self, value: bool) -> &mut Self {
         self.account_builder.install_on_sub_account(value);
-        self
-    }
-
-    /// Update publisher namespace
-    pub fn namespace(&mut self, namespace: impl Into<String>) -> &mut Self {
-        self.account_builder.namespace(namespace);
         self
     }
 

@@ -23,7 +23,12 @@ export = []
 # enable node-backed tests (ensure Docker is running)
 # run with `cargo test --jobs 1 --features node-tests`
 node-tests = ["interface"]
-interface = ["export", "dep:abstract-interface", "dep:cw-orch"]
+interface = [
+  "export",
+  "dep:abstract-interface",
+  "dep:cw-orch",
+  "abstract-app/interface-macro",
+]
 schema = ["abstract-app/schema"]
 
 [dependencies]
