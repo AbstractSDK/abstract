@@ -2,12 +2,9 @@
 
 [![](https://img.shields.io/crates/v/abstract-client.svg)](https://crates.io/crates/abstract-client) [![Docs](https://docs.rs/abstract-client/badge.svg)](https://docs.rs/abstract-client)
 
-The Abstract Client crate is a client-oriented way of interacting with the Abstract framework. The crate facilitates the following:
+This crate provides a central `AbstractClient` object that facilitates interacting with the Abstract framework. The client exposes two builders, an `account_builder` and `publisher_builder` that can be used to retrieve and create accounts.
 
-- Create and interact with Accounts.
-- Install and interact modules.
-- Publish modules.
-- Configure and write integration tests.
+Applications and their dependencies can then be installed on the `Account` using the `install_app` or `install_app_with_dependencies` functions.
 
 ## Getting Started
 
@@ -35,7 +32,7 @@ let client: AbstractClient<Daemon> = AbstractClient::new(juno_testnet)?;
 
 ### Creating an `AbstractClient` For a Local Deployment
 
-When working with a local deployment (mock, or local daemon), you will need to deploy Abstract before you can interact with it. To do this you can use the `AbstractClient::builder` function which will deploy the infrastructure and return a client.
+When working with a local deployment (mock, or local daemon), you will need to deploy Abstract before you can interact with it. To do this you can use the `AbstractClient::builder` function which will deploy the infrastructure when the builder is built and return a client.
 
 ```rust
 use cw_orch::prelude::*;
@@ -44,7 +41,10 @@ use abstract_client::AbstractClient;
 let chain = Mock::new(&Addr::unchecked("sender"));
 
 // Build the client, which will deploy the infrastructure
-let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
+let client: AbstractClient<Mock> = 
+            AbstractClient::builder(chain)
+            // ... Configure builder 
+            .build()?;
 
 Ok::<(), abstract_client::AbstractClientError>(())
 ```
