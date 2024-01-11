@@ -90,9 +90,12 @@ However, unlike an `Account` a `Publisher` **must** have a namespace. If a names
 
 The `Publisher` can then be used to publish modules to the abstract app store, as shown below.
 
+After the `App` is published it can be installed on accounts.
+
 ```rust
 use cw_orch::prelude::*;
-use abstract_client::{AbstractClient, Namespace, Publisher};
+use abstract_client::{AbstractClient, Namespace, Publisher, Application};
+use abstract_app::mock::{mock_app_dependency::interface::MockAppDependencyI, MockInitMsg};
 
 let chain = Mock::new(&Addr::unchecked("sender"));
 
@@ -100,20 +103,19 @@ let chain = Mock::new(&Addr::unchecked("sender"));
 let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 
 // Build a Publisher
-let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("my-namespace")?)
+let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("tester-dependency")?)
 .build()?;
 
-publisher.publish_app::<MockAppDependencyI<Mock>>()?;
+publisher.publish_app::<MockAppDependencyI<_>>()?;
+
+// Install the published app
+let app: Application<Mock, MockAppDependencyI<Mock>> =
+            publisher.account().install_app::<MockAppDependencyI<Mock>>(&MockInitMsg {}, &[])?;
+
 
 Ok::<(), abstract_client::AbstractClientError>(())
 ```
 
-
-
-```
-
-
-```
 ### Client Test Helpers
 
 Additionally the client supports a set of helper functions you can explore <a href="TODO" target="_blank">here</a>.

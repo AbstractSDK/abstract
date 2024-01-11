@@ -186,11 +186,7 @@ pub mod mock {
                 .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
                 .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into));
 
-        crate::cw_orch_interface!(
-            MOCK_APP_DEPENDENCY,
-            MockAppContract,
-            MockAppDependencyI
-        );
+        crate::cw_orch_interface!(MOCK_APP_DEPENDENCY, MockAppContract, MockAppDependencyI);
     }
 
     impl<Chain: CwEnv> DependencyCreation for MockAppI<Chain> {
