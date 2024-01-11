@@ -1,12 +1,24 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
-pub mod account;
-pub mod application;
+pub(crate) mod account;
+mod application;
 pub mod builder;
-pub mod client;
-pub mod error;
-pub mod infrastructure;
+mod client;
+mod error;
+pub(crate) mod infrastructure;
 #[cfg(feature = "test-utils")]
-pub mod mut_client;
-pub mod publisher;
+mod mut_client;
+mod publisher;
+
+pub use account::{Account, AccountBuilder};
+pub use application::Application;
+pub use builder::AbstractClientBuilder;
+pub use client::AbstractClient;
+pub use error::AbstractClientError;
+pub use infrastructure::Environment;
+pub use publisher::{Publisher, PublisherBuilder};
+
+// Re-export common used types
+pub use abstract_core::objects::gov_type::GovernanceDetails;
+pub use abstract_core::objects::namespace::Namespace;

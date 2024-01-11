@@ -100,7 +100,7 @@ pub mod mock {
     };
     use thiserror::Error;
 
-    use self::interface::MockAppInterface;
+    use self::interface::MockAppI;
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
@@ -169,7 +169,7 @@ pub mod mock {
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
 
-    crate::cw_orch_interface!(MOCK_APP, MockAppContract, MockAppInterface);
+    crate::cw_orch_interface!(MOCK_APP, MockAppContract, MockAppI);
 
     // Needs to be in a separate module due to the `interface` module names colliding otherwise.
     pub mod mock_app_dependency {
@@ -186,14 +186,10 @@ pub mod mock {
                 .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
                 .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into));
 
-        crate::cw_orch_interface!(
-            MOCK_APP_DEPENDENCY,
-            MockAppContract,
-            MockAppDependencyInterface
-        );
+        crate::cw_orch_interface!(MOCK_APP_DEPENDENCY, MockAppContract, MockAppDependencyI);
     }
 
-    impl<Chain: CwEnv> DependencyCreation for MockAppInterface<Chain> {
+    impl<Chain: CwEnv> DependencyCreation for MockAppI<Chain> {
         type DependenciesConfig = Empty;
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,

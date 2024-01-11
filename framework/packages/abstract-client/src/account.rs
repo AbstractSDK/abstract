@@ -4,11 +4,12 @@
 //!
 //! Example of creating an account
 //! ```
-//! # use abstract_client::error::AbstractClientError;
-//! use abstract_client::{client::AbstractClient, account::Account};
-//! use cw_orch::prelude::Mock;
+//! # use abstract_client::AbstractClientError;
+//! use abstract_client::{AbstractClient, Account};
+//! use cw_orch::prelude::*;
 //!
-//! # let client: AbstractClient<Mock> = AbstractClient::builder("sender").build()?;
+//! # let chain = Mock::new(&Addr::unchecked("sender"));
+//! # let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 //!
 //! let alice_account: Account<Mock> = client
 //!     .account_builder()
@@ -40,21 +41,22 @@ use cw_orch::prelude::*;
 use cw_orch::{contract::Contract, environment::MutCwEnv};
 
 use crate::{
-    application::Application,
     client::AbstractClientResult,
-    error::AbstractClientError,
     infrastructure::{Environment, Infrastructure},
+    AbstractClientError, Application,
 };
 
 /// A builder for creating [`Accounts`](Account).
-/// Get the builder from the [`AbstractClient::account_builder`](crate::client::AbstractClient)
+/// Get the builder from the [`AbstractClient::account_builder`](crate::AbstractClient)
 /// and create the account with the `build` method.
 ///
 /// ```
-/// # use abstract_client::{error::AbstractClientError, infrastructure::Environment};
-/// # let abstr_client = abstract_client::client::AbstractClient::builder("sender").build().unwrap();
+/// # use cw_orch::prelude::*;
+/// # use abstract_client::{AbstractClientError, Environment};
+/// # let chain = Mock::new(&Addr::unchecked("sender"));
+/// # let abstr_client = abstract_client::AbstractClient::builder(chain).build().unwrap();
 /// # let chain = abstr_client.environment();
-/// use abstract_client::client::AbstractClient;
+/// use abstract_client::{AbstractClient, Account};
 ///
 /// let client = AbstractClient::new(chain)?;
 /// let account: Account<Mock> = client.account_builder()
@@ -198,7 +200,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
 /// Represents an existing Abstract account.
 ///
-/// Get this struct from [`AbstractClient::account_from_namespace`](crate::client::AbstractClient)
+/// Get this struct from [`AbstractClient::account_from_namespace`](crate::AbstractClient)
 /// or create a new account with the [`AccountBuilder`].
 #[derive(Clone)]
 pub struct Account<Chain: CwEnv> {
