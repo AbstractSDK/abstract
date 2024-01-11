@@ -3,8 +3,8 @@ use abstract_adapter::mock::{
     MockQueryMsg as BootMockQueryMsg,
 };
 use abstract_app::mock::{
-    interface::MockAppI, mock_app_dependency::interface::MockAppDependencyI,
-    MockExecMsgFns, MockInitMsg, MockQueryMsgFns, MockQueryResponse,
+    interface::MockAppI, mock_app_dependency::interface::MockAppDependencyI, MockExecMsgFns,
+    MockInitMsg, MockQueryMsgFns, MockQueryResponse,
 };
 use abstract_client::{
     builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
@@ -425,11 +425,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
 
     let my_app: Application<Mock, MockAppI<Mock>> = app_publisher
         .account()
-        .install_app_with_dependencies::<MockAppI<Mock>>(
-        &MockInitMsg {},
-        Empty {},
-        &[],
-    )?;
+        .install_app_with_dependencies::<MockAppI<Mock>>(&MockInitMsg {}, Empty {}, &[])?;
 
     my_app
         .call_as(&app_publisher.account().manager()?)
