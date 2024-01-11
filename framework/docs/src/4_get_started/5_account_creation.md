@@ -12,14 +12,12 @@ You can either do this through our [web-app](https://console.abstract.money) or 
 
 The script we'll outline here is provided in the app-template `deploy.rs` file. You can find it [here](https://github.com/AbstractSDK/abstract/blob/main/app-template/examples/publish.rs)
 
-A module namespace is your (or your team's) publishing domain for Abstract modules. Through this design you can monetize your product through a namespace or per-modules basis as explained in more detail in the [monetization](../5_platform/6_monetization.md) section.
+A module namespace is your (or your team's) publishing domain for Abstract modules. Through this design you can monetize your product through a namespace or on a per-modules basis as explained in more detail in the [monetization](../5_platform/6_monetization.md) section.
 
-## Monetization
-We know you're really excited to start playing with your module but there's one more thing you need to do first.
-Abstract cares about your efforts, and we believe you should have the ability to monetize your modules in any way that
-you see fit. To help us provide that feature we created the concept of **module namespaces**. 
+### The `abstract-client` Package
 
-Each namespace must be associated with an Abstract Account, hence you will need to create one.
+To easily test and publish modules programmatically, we've created the `abstract-client` package. This package is a client library that allows you to interact with the Abstract platform.
 
-To create an Abstract Account and claim your Namespace, please follow the instructions in
-this [section](../5_platform/4_account_console.md#accessing-the-account-console).
+We highly recommend you use this package to interact with the Abstract platform. It will make your life a lot easier.
+
+You can read more about the `abstract-client` package [here](TODO: abstract-client url), or proceed with reading as we'll show you some usage of this package in the following sections.

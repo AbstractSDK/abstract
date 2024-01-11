@@ -24,7 +24,7 @@ use abstract_testing::{
     },
     OWNER,
 };
-use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
+use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128, Coins};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{
     contract::interface_traits::{CwOrchExecute, CwOrchQuery},
@@ -598,8 +598,8 @@ fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
     let coin1 = Coin::new(50, "denom1");
     let coin2 = Coin::new(20, "denom2");
     let coin3 = Coin::new(10, "denom3");
-    account.set_balance(vec![coin1.clone(), coin2.clone()])?;
-    account.add_balance(vec![coin3.clone()])?;
+    account.set_balance(&[coin1.clone(), coin2.clone()])?;
+    account.add_balance(&[coin3.clone()])?;
 
     assert_eq!(coin1.amount, account.query_balance("denom1")?);
     assert_eq!(coin2.amount, account.query_balance("denom2")?);
@@ -652,6 +652,7 @@ fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
     assert_eq!(vec![coin1, coin2, coin3], client.query_balances(&user)?);
     Ok(())
 }
+
 #[test]
 fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
@@ -695,5 +696,70 @@ fn can_execute_on_proxy() -> anyhow::Result<()> {
         amount,
         client.query_balance(&Addr::unchecked(user), denom)?.into()
     );
+    Ok(())
+}
+
+#[test]
+fn doc_example_test() -> anyhow::Result<()> {
+    // ## ANCHOR: build_client
+    // Create environment
+    let sender: Addr = Addr::unchecked("sender");
+    let env: Mock = Mock::new(&sender);
+
+    // Build the client
+    let client: AbstractClient<Mock> = AbstractClient::builder(env).build()?;
+    // ## ANCHOR_END: build_client
+
+    // ## ANCHOR: balances
+    let coins = &[Coin::new(50, "eth"), Coin::new(20, "btc")];
+    
+    // Set a balance
+    client.set_balance(&sender, coins)?;
+    
+    // Add to an address's balance
+    client.add_balance(&sender, &[Coin::new(50, "eth")])?;
+
+    // Query an address's balance
+    let coin1_balance = client.query_balance(&sender, "eth")?;
+
+    assert_eq!(coin1_balance.u128(), 100);
+    // ## ANCHOR_END: balances
+
+    // ## ANCHOR: publisher
+    // Create a publisher
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::from_id(TEST_MODULE_ID)?)
+        .build()?;
+
+    // Publish an app
+    publisher.publish_app::<MockAppI<Mock>>()?;
+    // ## ANCHOR_END: publisher
+
+    // ## ANCHOR: account
+    let account: Account<Mock> = client.account_builder().build()?;
+
+    // ## ANCHOR: app_interface
+    // Install an app
+    let app: Application<Mock, MockAppI<Mock>> = account
+        .install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
+    // ## ANCHOR_END: account
+    // Call a function on the app
+    app.do_something()?;
+
+    // ## ANCHOR_END: app_interface
+
+
+    // ## ANCHOR: account_helpers
+    // Get account info
+    let account_info: AccountInfo = account.info()?;
+    // Get the owner
+    let owner: Addr = account.owner()?;
+    // Add or set balance
+    account.add_balance(&[Coin::new(100, "btc")])?;
+    // ## ANCHOR_END: account_helpers
+
+
+        
+    
     Ok(())
 }
