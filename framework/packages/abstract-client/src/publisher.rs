@@ -13,7 +13,7 @@ use serde::Serialize;
 use crate::{
     account::{Account, AccountBuilder},
     client::AbstractClientResult,
-    infrastructure::Environment,
+    Environment,
 };
 use abstract_core::objects::namespace::Namespace;
 
@@ -22,13 +22,17 @@ use abstract_core::objects::namespace::Namespace;
 /// and create the account with the `build` method.
 ///
 /// ```
-/// # use abstract_client::{error::AbstractClientError, infrastructure::Environment};
-/// # let abstr_client = abstract_AbstractClient::builder("sender").build().unwrap();
+/// # use abstract_client::{AbstractClientError, Environment};
+/// # use cw_orch::prelude::*;
+/// # let chain = Mock::new(&Addr::unchecked("sender"));
+/// # let abstr_client = abstract_client::AbstractClient::builder(chain).build().unwrap();
 /// # let chain = abstr_client.environment();
-/// use abstract_AbstractClient;
+/// use abstract_client::{AbstractClient, Publisher, Namespace};
 ///
 /// let client = AbstractClient::new(chain)?;
-/// let publisher: Publisher<Mock> = client.publisher_builder("alice-namespace")
+///
+/// let namespace = Namespace::new("alice-namespace")?;
+/// let publisher: Publisher<Mock> = client.publisher_builder(namespace)
 ///     .name("alice")
 ///     // other configurations
 ///     .build()?;

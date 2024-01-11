@@ -12,8 +12,8 @@ use cw_orch::prelude::*;
 
 use crate::account::Account;
 use crate::client::AbstractClientResult;
-use crate::error::AbstractClientError;
-use crate::infrastructure::Environment;
+use crate::AbstractClientError;
+use crate::Environment;
 
 /// An application represents a module installed on a (sub)-[`Account`].
 ///

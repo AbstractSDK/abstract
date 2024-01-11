@@ -14,7 +14,7 @@ use cw_orch::{deploy::Deploy, environment::CwEnv};
 
 use crate::{
     client::{AbstractClient, AbstractClientResult},
-    infrastructure::Environment,
+    Environment,
 };
 
 use self::cw20_builder::Cw20Builder;
