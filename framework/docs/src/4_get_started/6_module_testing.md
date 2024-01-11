@@ -130,9 +130,9 @@ You can explore more of its functions in [the type's documentation](TODO).
 
 ##### Your App Interface
 
-The `Application<_, MockAppI<_>>` object returned from the `install_app` function is a wrapper around an `Account` that has an App installed on it (in this case `MockAppI`).
+The `Application<_, MockAppWithDepI<_>>` object returned from the `install_app` function is a wrapper around an `Account` that has an App installed on it (in this case `MockAppWithDepI`).
 
-The `MockAppI` is a <a href="https://orchestrator.abstract.money/contracts/interfaces.html" target="_blank">cw-orchestrator *interface*</a> that exposes the contract's functions as methods. This allows you to easily interact with your module directly or as a different address.
+The `MockAppWithDepI` is a <a href="https://orchestrator.abstract.money/contracts/interfaces.html" target="_blank">cw-orchestrator *interface*</a> that exposes the contract's functions as methods. This allows you to easily interact with your module directly or as a different address.
 
 ```rust
 {{ #include ../../../packages/abstract-client/tests/integration.rs:app_interface }}

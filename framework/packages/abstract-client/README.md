@@ -62,7 +62,7 @@ To create an account you can use the `AbstractClient::account_builder` function.
 ```rust no_run
 use cw_orch::prelude::*;
 use abstract_client::{AbstractClient, Account, Application};
-use abstract_app::mock::{mock_app_dependency::interface::MockAppDependencyI as App, MockInitMsg as AppInitMsg};
+use abstract_app::mock::{mock_app_dependency::interface::MockAppI as App, MockInitMsg as AppInitMsg};
 
 let chain = Mock::new(&Addr::unchecked("sender"));
 
@@ -94,7 +94,7 @@ After the `App` is published it can be installed on accounts.
 ```rust
 use cw_orch::prelude::*;
 use abstract_client::{AbstractClient, Namespace, Publisher, Application};
-use abstract_app::mock::{mock_app_dependency::interface::MockAppDependencyI, MockInitMsg};
+use abstract_app::mock::{mock_app_dependency::interface::MockAppI, MockInitMsg};
 
 let chain = Mock::new(&Addr::unchecked("sender"));
 
@@ -105,11 +105,11 @@ let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("tester-dependency")?)
         .build()?;
 
-publisher.publish_app::<MockAppDependencyI<_>>()?;
+publisher.publish_app::<MockAppI<_>>()?;
 
 // Install the published app
-let app: Application<Mock, MockAppDependencyI<Mock>> =
-        publisher.account().install_app::<MockAppDependencyI<Mock>>(&MockInitMsg {}, &[])?;
+let app: Application<Mock, MockAppI<Mock>> =
+        publisher.account().install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
 
 
 Ok::<(), abstract_client::AbstractClientError>(())
