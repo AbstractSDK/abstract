@@ -16,6 +16,12 @@ use std::env;
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
 
+impl<Chain: CwEnv> AnsHost<Chain> {
+    pub fn resolve<R: Resolver<Chain>>(&self, item: &R) -> Result<R::Output, CwOrchError> {
+        item.resolve(self)
+    }
+}
+
 impl<Chain: CwEnv> Uploadable for AnsHost<Chain> {
     #[cfg(feature = "integration")]
     fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {

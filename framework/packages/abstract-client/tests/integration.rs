@@ -25,7 +25,7 @@ use abstract_testing::{
     OWNER,
 };
 use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
-use cw_asset::{AssetInfoBase, AssetInfoUnchecked, AssetInfo};
+use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::{
     contract::interface_traits::{CwOrchExecute, CwOrchQuery},
     prelude::{CallAs, Mock},
@@ -709,6 +709,10 @@ fn resolve_works() -> anyhow::Result<()> {
     let name_service = client.name_service();
     let asset_entry = AssetEntry::new(entry);
     let asset = asset_entry.resolve(name_service)?;
+    assert_eq!(asset, AssetInfo::Native(denom.to_owned()));
+
+    // Or use it on AnsHost object
+    let asset = name_service.resolve(&asset_entry)?;
     assert_eq!(asset, AssetInfo::Native(denom.to_owned()));
     Ok(())
 }
