@@ -761,6 +761,7 @@ fn doc_example_test() -> anyhow::Result<()> {
     let owner: Addr = account.owner()?;
     // Add or set balance
     account.add_balance(&[Coin::new(100, "btc")])?;
+    // ...
     // ## ANCHOR_END: account_helpers
 
     assert_eq!(

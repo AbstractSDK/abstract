@@ -126,6 +126,8 @@ The `Account` object also has some useful helper methods:
 {{ #include ../../../packages/abstract-client/tests/integration.rs:account_helpers }}
 ```
 
+You can explore more of its functions in [the type's documentation](TODO).
+
 ##### Your App Interface
 
 The `Application<_, MockAppI<_>>` object returned from the `install_app` function is a wrapper around an `Account` that has an App installed on it (in this case `MockAppI`).
@@ -152,7 +154,6 @@ You can test the module using the different provided methods.
 
 1. **Integration testing:**
 2. **Local Daemon:**
-
 
 <!-- 
 **Example**
