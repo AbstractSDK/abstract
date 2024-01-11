@@ -777,7 +777,7 @@ fn doc_example_test() -> anyhow::Result<()> {
     );
 
     assert_eq!(owner, sender);
-    assert_eq!(something, MockQueryResponse{} );
+    assert_eq!(something, MockQueryResponse {});
 
     Ok(())
 }
