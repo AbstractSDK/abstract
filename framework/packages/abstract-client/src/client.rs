@@ -30,7 +30,7 @@
 
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::AccountId;
-use abstract_interface::{Abstract, VersionControl};
+use abstract_interface::{Abstract, AnsHost, VersionControl};
 use abstract_interface::{AbstractAccount, ManagerQueryFns};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
 use cw_orch::state::StateInterface;
@@ -86,6 +86,33 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// ```
     pub fn version_control(&self) -> &VersionControl<Chain> {
         &self.abstr.version_control
+    }
+
+    /// Abstract Name Service contract API
+    ///
+    /// The Abstract Name Service contract is a database contract that stores all asset-related information.
+    /// ```
+    /// # use abstract_client::AbstractClientError;
+    /// use abstract_client::{AbstractClient, Resolver};
+    /// use cw_asset::AssetInfo;
+    /// use abstract_app::objects::AssetEntry;
+    /// // For getting version control address
+    /// use cw_orch::prelude::*;
+    ///
+    /// let denom = "test_denom";
+    /// let entry = "denom";
+    /// # let client = AbstractClient::builder(Mock::new(&Addr::unchecked("sender")))
+    /// #     .asset(entry, cw_asset::AssetInfoBase::Native(denom.to_owned()))
+    /// #     .build()?;
+    ///
+    /// let name_service = client.name_service();
+    /// let asset_entry = AssetEntry::new(entry);
+    /// let asset = asset_entry.resolve(name_service)?;
+    /// assert_eq!(asset, AssetInfo::Native(denom.to_owned()));
+    /// # Ok::<(), AbstractClientError>(())
+    /// ```
+    pub fn name_service(&self) -> &AnsHost<Chain> {
+        &self.abstr.ans_host
     }
 
     /// Return current block info see [`BlockInfo`].
