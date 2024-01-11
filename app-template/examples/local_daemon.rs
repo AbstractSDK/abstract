@@ -6,10 +6,10 @@
 //!
 //! # Run
 //!
-//! `cargo run --example test_local`
+//! `cargo run --example local_daemon`
 
 use abstract_app::objects::namespace::Namespace;
-use abstract_client::{client::AbstractClient, publisher::Publisher};
+use abstract_client::{AbstractClient, Publisher};
 use app::{
     contract::{APP_ID, APP_VERSION},
     msg::AppInstantiateMsg,

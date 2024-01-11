@@ -11,19 +11,20 @@
 //! Example of publishing mock app
 //!
 //! ```
-//! # use abstract_client::error::AbstractClientError;
-//! use abstract_app::mock::interface::MockAppInterface;
-//! use cw_orch::prelude::Mock;
-//! use abstract_client::{client::AbstractClient, publisher::Publisher};
+//! # use abstract_client::AbstractClientError;
+//! use abstract_app::mock::interface::MockAppI;
+//! use cw_orch::prelude::*;
+//! use abstract_client::{AbstractClient, Publisher, Namespace};
 //!
-//! let client = AbstractClient::builder("sender").build()?;
+//! let chain = Mock::new(&Addr::unchecked("sender"));
+//! let client = AbstractClient::builder(chain).build()?;
 //!
-//! let namespace = "tester";
+//! let namespace = Namespace::new("tester")?;
 //! let publisher: Publisher<Mock> = client
 //!     .publisher_builder(namespace)
 //!     .build()?;
 //!
-//! publisher.publish_app::<MockAppInterface<Mock>>()?;
+//! publisher.publish_app::<MockAppI<Mock>>()?;
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
@@ -37,9 +38,7 @@ use cw_orch::{deploy::Deploy, prelude::CwEnv};
 
 use crate::{
     account::{Account, AccountBuilder},
-    error::AbstractClientError,
-    infrastructure::Environment,
-    publisher::PublisherBuilder,
+    AbstractClientError, Environment, PublisherBuilder,
 };
 
 /// Client to interact with Abstract accounts and modules
@@ -52,13 +51,14 @@ pub type AbstractClientResult<T> = Result<T, AbstractClientError>;
 
 impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Get [`AbstractClient`] from a chosen environment. [`Abstract`] should
-    /// already be deployed on this environment.
+    /// already be deployed to this environment.
     ///
     /// ```
-    /// use abstract_client::client::AbstractClient;
-    /// # use abstract_client::{infrastructure::Environment, error::AbstractClientError};
-    /// # let client = AbstractClient::builder("sender").build().unwrap(); // Deploy mock abstract
-    /// # let chain = client.environment();
+    /// use abstract_client::AbstractClient;
+    /// # use abstract_client::{Environment, AbstractClientError};
+    /// # use cw_orch::prelude::*;
+    /// # let chain = Mock::new(&Addr::unchecked("sender"));
+    /// # let client = AbstractClient::builder(chain.clone()).build().unwrap(); // Deploy mock abstract
     ///
     /// let client = AbstractClient::new(chain)?;
     /// # Ok::<(), AbstractClientError>(())
@@ -72,8 +72,9 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ///
     /// The Version Control contract is a database contract that stores all module-related information.
     /// ```
-    /// # use abstract_client::error::AbstractClientError;
-    /// # let client = abstract_client::client::AbstractClient::builder("sender").build().unwrap();
+    /// # use abstract_client::AbstractClientError;
+    /// # let chain = cw_orch::prelude::Mock::new(&Addr::unchecked("sender"));
+    /// # let client = abstract_client::AbstractClient::builder(chain).build().unwrap();
     /// use abstract_core::objects::{module_reference::ModuleReference, module::ModuleInfo};
     /// // For getting version control address
     /// use cw_orch::prelude::*;

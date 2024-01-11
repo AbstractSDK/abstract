@@ -8,7 +8,7 @@ use cw_orch::environment::MutCwEnv;
 
 use crate::{
     client::{AbstractClient, AbstractClientResult},
-    infrastructure::Environment,
+    Environment,
 };
 
 impl<Chain: MutCwEnv> AbstractClient<Chain> {
