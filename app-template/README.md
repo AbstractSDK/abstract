@@ -21,7 +21,7 @@ The setup will suggest you to install a few tools that are used in the template.
 
 ## Using the Justfile
 
-This repository comes with a [`justfile`](https://github.com/casey/just), which is a handy task runner that helps with building, testing, and deploying your Abstract app module.
+This repository comes with a [`justfile`](https://github.com/casey/just), which is a handy task runner that helps with building, testing, and publishing your Abstract app module.
 
 ### Installing Tools
 
@@ -40,7 +40,7 @@ Here are some of the tasks available in the `justfile`:
 - `lintfix`: Fix linting errors automatically.
 - `watch`: Watch the codebase and run `cargo check` on changes.
 - `check`: Check the codebase for issues.
-- `deploy {{chain-id}}`: Deploy the App to a network.
+- `publish {{chain-id}}`: Publish the App to a network.
 - `wasm`: Optimize the contract.
 - `schema`: Generate the json schemas for the contract
 - `ts-codegen`: Generate the typescript client code for the contract
@@ -53,18 +53,18 @@ You can see the full list of tasks available by running `just --list`.
 
 You can test the module using the different provided methods.
 
-1. **Integration testing:** We provide an integration testing setup [here](./tests/integration.rs). You should use this to set up your environment and test the different execution and query entry-points of your module. Once you are satisfied with the results you can try deploying it to a real chain.
+1. **Integration testing:** We provide an integration testing setup [here](./tests/integration.rs). You should use this to set up your environment and test the different execution and query entry-points of your module. Once you are satisfied with the results you can try publishing it to a real chain.
 2. **Local Daemon:** Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [test-local](./examples/test-local.rs) example, which uses a locally running juno daemon to deploy to. You can setup local juno using `just juno-local` command. At this point you can also test your front-end with the contracts.
 
 Once testing is done you can attempt an actual deployment on test and mainnet.
 
-### Deploying
+### Publishing
 
-Before attempting to deploy your app you need to add your mnemonic to the `.env` file. **Don't use a mnemonic that has mainnet funds for this.**
+Before attempting to publish your app you need to add your mnemonic to the `.env` file. **Don't use a mnemonic that has mainnet funds for this.**
 
-<!-- It's also assumed that you have an account and module namespace claimed with this account before performing the deployment. You can read how to do that [here](https://docs.abstract.money/4_get_started/5_account_creation.html). -->
+<!-- It's also assumed that you have an account and module namespace claimed with this account before publishing. You can read how to do that [here](https://docs.abstract.money/4_get_started/5_account_creation.html). -->
 
-You can now use `just deploy {{chain-id}}` to run the [`examples/deploy.rs`](./examples/deploy.rs) script. The script will deploy the app to the networks that you provided. Make sure you have enough funds in your wallet on the different networks you aim to deploy on.
+You can now use `just publish {{chain-id}}` to run the [`examples/publish.rs`](./examples/publish.rs) script. The script will publish the app to the networks that you provided. Make sure you have enough funds in your wallet on the different networks you aim to publish on.
 
 ### Generating Typescript Client Code
 
