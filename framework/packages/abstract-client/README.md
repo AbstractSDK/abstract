@@ -70,8 +70,7 @@ let chain = Mock::new(&Addr::unchecked("sender"));
 let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 
 // Build a new account.
-let account: Account<Mock> = client.account_builder()
-.build()?;
+let account: Account<Mock> = client.account_builder().build()?;
 
 // Install an application.
 let my_app: Application<Mock, App<Mock>> =
@@ -104,13 +103,13 @@ let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 
 // Build a Publisher
 let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("tester-dependency")?)
-.build()?;
+        .build()?;
 
 publisher.publish_app::<MockAppDependencyI<_>>()?;
 
 // Install the published app
 let app: Application<Mock, MockAppDependencyI<Mock>> =
-            publisher.account().install_app::<MockAppDependencyI<Mock>>(&MockInitMsg {}, &[])?;
+        publisher.account().install_app::<MockAppDependencyI<Mock>>(&MockInitMsg {}, &[])?;
 
 
 Ok::<(), abstract_client::AbstractClientError>(())
