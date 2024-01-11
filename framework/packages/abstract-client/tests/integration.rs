@@ -24,7 +24,7 @@ use abstract_testing::{
     },
     OWNER,
 };
-use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128, Coins};
+use cosmwasm_std::{coins, Addr, BankMsg, Coin, Coins, Empty, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{
     contract::interface_traits::{CwOrchExecute, CwOrchQuery},
@@ -712,10 +712,10 @@ fn doc_example_test() -> anyhow::Result<()> {
 
     // ## ANCHOR: balances
     let coins = &[Coin::new(50, "eth"), Coin::new(20, "btc")];
-    
+
     // Set a balance
     client.set_balance(&sender, coins)?;
-    
+
     // Add to an address's balance
     client.add_balance(&sender, &[Coin::new(50, "eth")])?;
 
@@ -740,14 +740,19 @@ fn doc_example_test() -> anyhow::Result<()> {
 
     // ## ANCHOR: app_interface
     // Install an app
-    let app: Application<Mock, MockAppI<Mock>> = account
-        .install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
+    let app: Application<Mock, MockAppI<Mock>> =
+        account.install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
     // ## ANCHOR_END: account
     // Call a function on the app
     app.do_something()?;
 
-    // ## ANCHOR_END: app_interface
+    // Call as someone else
+    let manager: Addr = account.manager()?;
+    app.call_as(&manager).do_something()?;
 
+    // Query the app
+    let something: MockQueryResponse = app.get_something()?;
+    // ## ANCHOR_END: app_interface
 
     // ## ANCHOR: account_helpers
     // Get account info
@@ -758,8 +763,21 @@ fn doc_example_test() -> anyhow::Result<()> {
     account.add_balance(&[Coin::new(100, "btc")])?;
     // ## ANCHOR_END: account_helpers
 
+    assert_eq!(
+        AccountInfo {
+            name: String::from("Default Abstract Account"),
+            chain_id: String::from("cosmos-testnet-14002"),
+            description: None,
+            governance_details: GovernanceDetails::Monarchy {
+                monarch: sender.clone()
+            },
+            link: None,
+        },
+        account_info
+    );
 
-        
-    
+    assert_eq!(owner, sender);
+    assert_eq!(something, MockQueryResponse{} );
+
     Ok(())
 }
