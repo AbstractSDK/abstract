@@ -6,13 +6,13 @@ This crate provides a central `AbstractClient` object that facilitates interacti
 
 Applications and their dependencies can then be installed on the `Account` using the `install_app` or `install_app_with_dependencies` functions.
 
-## Getting Started
+## Creating an `AbstractClient`
 
 To get started you will need to create an `Abstract Client`. The client is the main entry point for interacting with the Abstract framework.
 
 There are two ways to create a client, depending on the environment.
 
-### Creating an `AbstractClient` For a Public Deployment
+### For a Public Deployment
 
 If you want to interact with a public deployment of Abstract (like a testnet or mainnet) then you can use the `Abstract::new` function like below:
 
@@ -30,7 +30,7 @@ let juno_testnet: Daemon = DaemonBuilder::default()
 let client: AbstractClient<Daemon> = AbstractClient::new(juno_testnet)?;
 ```
 
-### Creating an `AbstractClient` For a Local Deployment
+### For a Local Deployment
 
 When working with a local deployment (mock, or local daemon), you will need to deploy Abstract before you can interact with it. To do this you can use the `AbstractClient::builder` function which will deploy the infrastructure when the builder is built and return a client.
 
@@ -62,7 +62,7 @@ To create an account you can use the `AbstractClient::account_builder` function.
 ```rust no_run
 use cw_orch::prelude::*;
 use abstract_client::{AbstractClient, Account, Application};
-use abstract_app::mock::{mock_app_dependency::interface::MockAppDependencyInterface, MockInitMsg};
+use abstract_app::mock::{mock_app_dependency::interface::MockAppDependencyI as App, MockInitMsg as AppInitMsg};
 
 let chain = Mock::new(&Addr::unchecked("sender"));
 
@@ -74,8 +74,8 @@ let account: Account<Mock> = client.account_builder()
 .build()?;
 
 // Install an application.
-let my_app: Application<Mock, MockAppDependencyInterface<Mock>> =
-        account.install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg {}, &[])?;
+let my_app: Application<Mock, App<Mock>> =
+        account.install_app::<App<Mock>>(&AppInitMsg {}, &[])?;
 
 Ok::<(), abstract_client::AbstractClientError>(())
 ```
@@ -87,6 +87,8 @@ See the [`AccountBuilder`](TODO) documentation for more information on how to cu
 Creating a `Publisher` follows a similar process to creating an account. You can use the `AbstractClient::publisher_builder` function to create a `PublisherBuilder` that you can configure to build a `Publisher`.
 
 However, unlike an `Account` a `Publisher` **must** have a namespace. If a namespace is not yet claimed, the builder will create a new account and claim the namespace. `Publisher` is simply a wrapper around an `Account`.
+
+The `Publisher` can then be used to publish modules to the abstract app store, as shown below.
 
 ```rust
 use cw_orch::prelude::*;
@@ -101,9 +103,17 @@ let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("my-namespace")?)
 .build()?;
 
+publisher.publish_app::<MockAppDependencyI<Mock>>()?;
+
 Ok::<(), abstract_client::AbstractClientError>(())
 ```
 
+
+
+```
+
+
+```
 ### Client Test Helpers
 
 Additionally the client supports a set of helper functions you can explore <a href="TODO" target="_blank">here</a>.

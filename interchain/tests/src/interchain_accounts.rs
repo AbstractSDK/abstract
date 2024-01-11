@@ -74,7 +74,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 mod test {
 
     use abstract_app::mock::interface::MockAppInterface;
-    use abstract_app::mock::mock_app_dependency::interface::MockAppDependencyInterface;
+    use abstract_app::mock::mock_app_dependency::interface::MockAppDependencyI;
     use abstract_app::mock::MockInitMsg;
     use abstract_app::mock::MockQueryMsgFns;
     use abstract_app::mock::ReceivedIbcCallbackStatus;
@@ -212,7 +212,7 @@ mod test {
             abstr_origin.version_control.get_chain().clone(),
         );
 
-        let app_dep = MockAppDependencyInterface::new(
+        let app_dep = MockAppDependencyI::new(
             TEST_DEPENDENCY_MODULE_ID,
             abstr_origin.version_control.get_chain().clone(),
         );

@@ -3,7 +3,7 @@ use abstract_adapter::mock::{
     MockQueryMsg as BootMockQueryMsg,
 };
 use abstract_app::mock::{
-    interface::MockAppInterface, mock_app_dependency::interface::MockAppDependencyInterface,
+    interface::MockAppInterface, mock_app_dependency::interface::MockAppDependencyI,
     MockExecMsgFns, MockInitMsg, MockQueryMsgFns, MockQueryResponse,
 };
 use abstract_client::{
@@ -236,11 +236,11 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let publisher_manager = publisher_account.manager()?;
     let publisher_proxy = publisher_account.proxy()?;
 
-    publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
+    publisher.publish_app::<MockAppDependencyI<Mock>>()?;
 
     // Install app on sub-account
-    let my_app: Application<Mock, MockAppDependencyInterface<Mock>> =
-        publisher_account.install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg {}, &[])?;
+    let my_app: Application<Mock, MockAppDependencyI<Mock>> =
+        publisher_account.install_app::<MockAppDependencyI<Mock>>(&MockInitMsg {}, &[])?;
 
     my_app.call_as(&publisher_manager).do_something()?;
 
@@ -268,7 +268,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
         .publisher_builder(Namespace::new("tester")?)
         .install_on_sub_account(false)
         .build()?;
-    let my_adapter: Application<Mock, MockAppDependencyInterface<Mock>> =
+    let my_adapter: Application<Mock, MockAppDependencyI<Mock>> =
         publisher.account().install_app(&MockInitMsg {}, &[])?;
 
     my_adapter.call_as(&publisher_manager).do_something()?;
@@ -420,7 +420,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
         .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
         .build()?;
 
-    app_dependency_publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
+    app_dependency_publisher.publish_app::<MockAppDependencyI<Mock>>()?;
     app_publisher.publish_app::<MockAppInterface<Mock>>()?;
 
     let my_app: Application<Mock, MockAppInterface<Mock>> = app_publisher
@@ -625,14 +625,14 @@ fn can_get_module_dependency() -> anyhow::Result<()> {
         .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
         .build()?;
 
-    app_dependency_publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
+    app_dependency_publisher.publish_app::<MockAppDependencyI<Mock>>()?;
     app_publisher.publish_app::<MockAppInterface<Mock>>()?;
 
     let my_app: Application<Mock, MockAppInterface<Mock>> = app_publisher
         .account()
         .install_app_with_dependencies(&MockInitMsg {}, Empty {}, &[])?;
 
-    let dependency: MockAppDependencyInterface<Mock> = my_app.module()?;
+    let dependency: MockAppDependencyI<Mock> = my_app.module()?;
     dependency.do_something()?;
     Ok(())
 }
@@ -664,12 +664,12 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
         .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
         .build()?;
 
-    publisher.publish_app::<MockAppDependencyInterface<Mock>>()?;
+    publisher.publish_app::<MockAppDependencyI<Mock>>()?;
 
-    let my_app: Application<Mock, MockAppDependencyInterface<Mock>> =
+    let my_app: Application<Mock, MockAppDependencyI<Mock>> =
         publisher
             .account()
-            .install_app::<MockAppDependencyInterface<Mock>>(&MockInitMsg {}, &[])?;
+            .install_app::<MockAppDependencyI<Mock>>(&MockInitMsg {}, &[])?;
 
     let dependency_res = my_app.module::<MockAppInterface<Mock>>();
     assert!(dependency_res.is_err());
