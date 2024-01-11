@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Only incremental version migration of modules allowed (0.10 -> 0.11 is allowed but 0.10 -> 0.12 not because it skips 0.11)
 - Module `tag_response` and `custom_tag_response` no longer require `Response` as an argument as well as renamed to `response` and `custom_response` respectively.
 - Having sub accounts will prevent you from `Renounce`
+- Version Control `Namespace` query now doesn't return an error when namespace is unclaimed
+- `NamespaceResponse` type updated to be able to represent claimed and unclaimed namespace
 
 ### Removed
 

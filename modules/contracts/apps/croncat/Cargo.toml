@@ -36,7 +36,12 @@ required-features = ["schema"]
 [features]
 default = ["export"]
 export = []
-interface = ["export", "dep:abstract-interface", "dep:cw-orch"]
+interface = [
+  "export",
+  "dep:abstract-interface",
+  "dep:cw-orch",
+  "abstract-app/interface-macro",
+]
 schema = ["abstract-app/schema"]
 
 [dependencies]

@@ -1,5 +1,5 @@
-use abstract_client::{application::Application, client::AbstractClient, publisher::Publisher};
-use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
+use abstract_client::{AbstractClient, Application, Publisher};
+use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
 use calendar_app::{
     error::CalendarError,
     msg::{CalendarExecuteMsg, CalendarInstantiateMsg, ConfigResponse, Time},
@@ -87,25 +87,28 @@ fn setup_with_time(
     Application<Mock, CalendarAppInterface<Mock>>,
     AbstractClient<Mock>,
 )> {
-    let client: AbstractClient<Mock> = AbstractClient::builder(OWNER.to_owned())
-        .balance("sender1", coins(INITIAL_BALANCE, DENOM))
-        .balance("sender2", coins(INITIAL_BALANCE, DENOM))
-        .balance("sender", coins(INITIAL_BALANCE, DENOM))
-        .asset(DENOM, AssetInfoUnchecked::native(DENOM))
-        .build()?;
+    let client: AbstractClient<Mock> =
+        AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)).to_owned())
+            .asset(DENOM, AssetInfoUnchecked::native(DENOM))
+            .build()?;
+
+    client.set_balances(vec![
+        ("sender1", coins(INITIAL_BALANCE, DENOM).as_slice()),
+        ("sender2", coins(INITIAL_BALANCE, DENOM).as_slice()),
+        ("sender", coins(INITIAL_BALANCE, DENOM).as_slice()),
+    ])?;
 
     // Create account to install app onto as well as claim namespace.
     let publisher: Publisher<Mock> = client
-        .publisher_builder()
-        .governance_details(GovernanceDetails::Monarchy {
+        .publisher_builder(Namespace::new("abstract")?)
+        .ownership(GovernanceDetails::Monarchy {
             monarch: OWNER.to_owned(),
         })
-        .namespace("my-namespace")
         .build()?;
 
     publisher.publish_app::<CalendarAppInterface<Mock>>()?;
 
-    let app: Application<Mock, CalendarAppInterface<Mock>> = publisher.install_app(
+    let app: Application<Mock, CalendarAppInterface<Mock>> = publisher.account().install_app(
         &CalendarInstantiateMsg {
             price_per_minute: Uint128::from(1u128),
             denom: AssetEntry::from(DENOM),

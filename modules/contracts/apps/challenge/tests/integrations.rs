@@ -1,12 +1,12 @@
 use crate::msg::QueryMsg;
-use abstract_core::objects::{
+use abstract_app::abstract_core::objects::{
     gov_type::GovernanceDetails,
     module::{ModuleInfo, ModuleVersion},
     voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
     AssetEntry,
 };
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
-use abstract_testing::OWNER;
+use abstract_app::abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
+use abstract_app::abstract_testing::OWNER;
 use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     error::AppError,
@@ -99,7 +99,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
     )?;
 
     abstr_deployment.ans_host.execute(
-        &abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
+        &abstract_app::abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
             to_add: vec![("denom".to_owned(), AssetInfo::native(DENOM).into())],
             to_remove: vec![],
         },

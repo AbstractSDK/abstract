@@ -13,36 +13,42 @@
 //! ```bash
 //! $ just deploy uni-6 osmo-test-5
 //! ```
-
-use abstract_interface::AppDeployer;
-use app::{
-    contract::{APP_ID, APP_VERSION},
-    AppInterface,
-};
+use abstract_app::objects::namespace::Namespace;
+use abstract_client::{AbstractClient, Publisher};
+use app::{contract::APP_ID, AppInterface};
 use clap::Parser;
 use cw_orch::{
     anyhow,
-    daemon::ChainInfo,
+    daemon::{ChainInfo, Daemon},
+    environment::TxHandler,
     prelude::{networks::parse_network, DaemonBuilder},
     tokio::runtime::Runtime,
 };
-use semver::Version;
 
 fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // run for each requested network
     for network in networks {
-        let version: Version = APP_VERSION.parse().unwrap();
+        // Setup
         let rt = Runtime::new()?;
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
             .chain(network)
             .build()?;
 
-        let app = AppInterface::new(APP_ID, chain);
-        app.deploy(version)?;
+        let app_namespace = Namespace::from_id(APP_ID)?;
 
-        // Create an account on our front-end to install the module!
-        // https://app.abstract.money
+        // Create an [`AbstractClient`]
+        let abstract_client: AbstractClient<Daemon> = AbstractClient::new(chain.clone())?;
+
+        // Get the [`Publisher`] that owns the namespace, otherwise create a new one and claim the namespace
+        let publisher: Publisher<_> = abstract_client.publisher_builder(app_namespace).build()?;
+
+        if publisher.account().owner()? != chain.sender() {
+            panic!("The current sender can not publish to this namespace. Please use the wallet that owns the Account that owns the Namespace.")
+        }
+
+        // Publish the App to the Abstract Platform
+        publisher.publish_app::<AppInterface<Daemon>>()?;
     }
     Ok(())
 }
@@ -59,6 +65,10 @@ fn main() {
     dotenv::dotenv().ok();
     env_logger::init();
     let args = Arguments::parse();
-    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
+    let networks = args
+        .network_ids
+        .iter()
+        .map(|n| parse_network(n).unwrap())
+        .collect();
     deploy(networks).unwrap();
 }

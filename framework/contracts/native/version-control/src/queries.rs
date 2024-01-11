@@ -4,7 +4,7 @@ use abstract_core::{
     objects::module::ModuleStatus,
     version_control::{
         state::{NAMESPACES_INFO, PENDING_MODULES},
-        ModuleConfiguration, NamespaceResponse,
+        ModuleConfiguration, NamespaceInfo, NamespaceResponse,
     },
 };
 use abstract_sdk::core::{
@@ -171,13 +171,16 @@ pub fn handle_namespaces_query(
 }
 
 pub fn handle_namespace_query(deps: Deps, namespace: Namespace) -> StdResult<NamespaceResponse> {
-    let account_id = NAMESPACES_INFO.load(deps.storage, &namespace)?;
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+    let account_id = NAMESPACES_INFO.may_load(deps.storage, &namespace)?;
+    let Some(account_id) = account_id else {
+        return Ok(NamespaceResponse::Unclaimed {});
+    };
 
-    Ok(NamespaceResponse {
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+    Ok(NamespaceResponse::Claimed(NamespaceInfo {
         account_id,
         account_base,
-    })
+    }))
 }
 
 pub fn handle_namespace_list_query(

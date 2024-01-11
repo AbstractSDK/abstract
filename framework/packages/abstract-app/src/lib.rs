@@ -10,10 +10,26 @@ pub(crate) use abstract_sdk::base::*;
 
 pub use crate::state::AppContract;
 pub use error::AppError;
-pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
-mod interface;
+pub type AppResult<C = cosmwasm_std::Empty> = Result<cosmwasm_std::Response<C>, AppError>;
 
-use cosmwasm_std::{Empty, Response};
+// Useful re-exports
+pub use abstract_core;
+pub use abstract_sdk;
+// re-export objects specifically
+pub use abstract_core::objects;
+pub mod traits {
+    pub use abstract_sdk::features::*;
+    pub use abstract_sdk::prelude::*;
+}
+
+#[cfg(feature = "interface-macro")]
+mod interface;
+#[cfg(feature = "interface-macro")]
+pub use abstract_interface;
+
+#[cfg(feature = "test-utils")]
+pub use abstract_testing;
+
 #[cfg(feature = "test-utils")]
 pub mod mock {
     pub use abstract_core::app;
@@ -84,7 +100,7 @@ pub mod mock {
     };
     use thiserror::Error;
 
-    use self::interface::MockAppInterface;
+    use self::interface::MockAppI;
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
@@ -153,7 +169,7 @@ pub mod mock {
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
 
-    crate::cw_orch_interface!(MOCK_APP, MockAppContract, MockAppInterface);
+    crate::cw_orch_interface!(MOCK_APP, MockAppContract, MockAppI);
 
     // Needs to be in a separate module due to the `interface` module names colliding otherwise.
     pub mod mock_app_dependency {
@@ -170,14 +186,10 @@ pub mod mock {
                 .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
                 .with_query(|_, _, _, _| to_json_binary(&MockQueryResponse {}).map_err(Into::into));
 
-        crate::cw_orch_interface!(
-            MOCK_APP_DEPENDENCY,
-            MockAppContract,
-            MockAppDependencyInterface
-        );
+        crate::cw_orch_interface!(MOCK_APP_DEPENDENCY, MockAppContract, MockAppDependencyI);
     }
 
-    impl<Chain: CwEnv> DependencyCreation for MockAppInterface<Chain> {
+    impl<Chain: CwEnv> DependencyCreation for MockAppI<Chain> {
         type DependenciesConfig = Empty;
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,

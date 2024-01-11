@@ -1,3 +1,7 @@
+//! # Represents Abstract Application
+//!
+//! [`Application`] represents a module installed on a (sub-)account
+
 use std::ops::Deref;
 use std::ops::DerefMut;
 
@@ -8,10 +12,12 @@ use cw_orch::prelude::*;
 
 use crate::account::Account;
 use crate::client::AbstractClientResult;
-use crate::error::AbstractClientError;
-use crate::infrastructure::Environment;
+use crate::AbstractClientError;
+use crate::Environment;
 
-/// An application represents a module installed on a (sub)-account.
+/// An application represents a module installed on a (sub)-[`Account`].
+///
+/// It derefs to the module itself, so you can call its methods directly from the application struct.
 pub struct Application<T: CwEnv, M> {
     account: Account<T>,
     module: M,
@@ -32,11 +38,15 @@ impl<Chain: CwEnv, M> DerefMut for Application<Chain, M> {
     }
 }
 
-impl<Chain: CwEnv, M> Application<Chain, M> {
-    pub fn new(account: Account<Chain>, module: M) -> Self {
-        Self { account, module }
+impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
+    /// Get module interface installed on provided account
+    pub fn new(account: Account<Chain>, module: M) -> AbstractClientResult<Self> {
+        // Sanity check: the module must be installed on the account
+        account.module_addresses(vec![M::module_id().to_string()])?;
+        Ok(Self { account, module })
     }
 
+    /// Sub-account on which application is installed
     pub fn account(&self) -> &Account<Chain> {
         &self.account
     }
