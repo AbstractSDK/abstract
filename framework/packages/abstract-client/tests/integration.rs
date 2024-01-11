@@ -3,7 +3,7 @@ use abstract_adapter::mock::{
     MockQueryMsg as BootMockQueryMsg,
 };
 use abstract_app::mock::{
-    interface::MockAppInterface, mock_app_dependency::interface::MockAppDependencyI,
+    interface::MockAppI, mock_app_dependency::interface::MockAppDependencyI,
     MockExecMsgFns, MockInitMsg, MockQueryMsgFns, MockQueryResponse,
 };
 use abstract_client::{
@@ -421,11 +421,11 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
         .build()?;
 
     app_dependency_publisher.publish_app::<MockAppDependencyI<Mock>>()?;
-    app_publisher.publish_app::<MockAppInterface<Mock>>()?;
+    app_publisher.publish_app::<MockAppI<Mock>>()?;
 
-    let my_app: Application<Mock, MockAppInterface<Mock>> = app_publisher
+    let my_app: Application<Mock, MockAppI<Mock>> = app_publisher
         .account()
-        .install_app_with_dependencies::<MockAppInterface<Mock>>(
+        .install_app_with_dependencies::<MockAppI<Mock>>(
         &MockInitMsg {},
         Empty {},
         &[],
@@ -626,9 +626,9 @@ fn can_get_module_dependency() -> anyhow::Result<()> {
         .build()?;
 
     app_dependency_publisher.publish_app::<MockAppDependencyI<Mock>>()?;
-    app_publisher.publish_app::<MockAppInterface<Mock>>()?;
+    app_publisher.publish_app::<MockAppI<Mock>>()?;
 
-    let my_app: Application<Mock, MockAppInterface<Mock>> = app_publisher
+    let my_app: Application<Mock, MockAppI<Mock>> = app_publisher
         .account()
         .install_app_with_dependencies(&MockInitMsg {}, Empty {}, &[])?;
 
@@ -671,7 +671,7 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
             .account()
             .install_app::<MockAppDependencyI<Mock>>(&MockInitMsg {}, &[])?;
 
-    let dependency_res = my_app.module::<MockAppInterface<Mock>>();
+    let dependency_res = my_app.module::<MockAppI<Mock>>();
     assert!(dependency_res.is_err());
     Ok(())
 }
