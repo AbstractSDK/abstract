@@ -29,8 +29,8 @@ pub mod interface {
     use abstract_sdk::base::Handler;
     use abstract_sdk::features::ModuleIdentification;
     use cosmwasm_std::{Decimal, Empty};
-    use cw_orch::prelude::*;
     use cw_orch::{build::BuildPostfix, interface};
+    use cw_orch::{contract::Contract, prelude::*};
 
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct DexAdapter<Chain>;
@@ -96,6 +96,12 @@ pub mod interface {
 
         fn module_version<'a>() -> &'a str {
             DEX_ADAPTER.version()
+        }
+    }
+
+    impl<Chain: CwEnv> From<Contract<Chain>> for DexAdapter<Chain> {
+        fn from(contract: Contract<Chain>) -> Self {
+            Self(contract)
         }
     }
 }
