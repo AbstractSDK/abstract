@@ -22,7 +22,7 @@ cosmwasm-std = { version = "1.5" }
 cosmwasm-schema = { version = "1.2" }
 cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
-cw-storage-plus = "~1.1"
+cw-storage-plus = "1.1"
 cw2 = { version = "1.0" }
 cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
   "library",
@@ -86,6 +86,7 @@ anyhow = "1"
 
 # this ensures local compatability when compiling locally
 [patch.crates-io]
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/add-authz-wrapping"}
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
