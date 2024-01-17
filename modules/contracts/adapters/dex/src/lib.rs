@@ -104,4 +104,19 @@ pub mod interface {
             Self(contract)
         }
     }
+
+    impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
+        for DexAdapter<Chain>
+    {
+        type DependenciesConfig = cosmwasm_std::Empty;
+
+        fn dependency_install_configs(
+            _configuration: Self::DependenciesConfig,
+        ) -> Result<
+            Vec<abstract_core::manager::ModuleInstallConfig>,
+            abstract_interface::AbstractInterfaceError,
+        > {
+            Ok(vec![])
+        }
+    }
 }
