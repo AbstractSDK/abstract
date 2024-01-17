@@ -7,7 +7,6 @@ pub mod state;
 pub mod msg {
     pub use abstract_dex_standard::msg::*;
 }
-
 pub use abstract_dex_standard::DEX_ADAPTER_ID;
 
 // Export interface for use in SDK modules
@@ -20,13 +19,15 @@ pub mod host_exchange {
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use crate::{msg::*, DEX_ADAPTER_ID};
+    use crate::{contract::DEX_ADAPTER, msg::*, DEX_ADAPTER_ID};
     use abstract_core::{
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
     };
-    use abstract_interface::AdapterDeployer;
     use abstract_interface::{AbstractAccount, AbstractInterfaceError};
+    use abstract_interface::{AdapterDeployer, RegisteredModule};
+    use abstract_sdk::base::Handler;
+    use abstract_sdk::features::ModuleIdentification;
     use cosmwasm_std::{Decimal, Empty};
     use cw_orch::prelude::*;
     use cw_orch::{build::BuildPostfix, interface};
@@ -83,6 +84,18 @@ pub mod interface {
                 .manager
                 .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
             Ok(())
+        }
+    }
+
+    impl<Chain: CwEnv> RegisteredModule for DexAdapter<Chain> {
+        type InitMsg = <crate::contract::DexAdapter as Handler>::CustomInitMsg;
+
+        fn module_id<'a>() -> &'a str {
+            DEX_ADAPTER.module_id()
+        }
+
+        fn module_version<'a>() -> &'a str {
+            DEX_ADAPTER.version()
         }
     }
 }
