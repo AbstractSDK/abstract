@@ -139,7 +139,7 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
     }
 
     fn update_ans(&self, abstr: &Abstract<Chain>) -> AbstractClientResult<()> {
-        abstr.ans_host.update_dexes(self.dexes, vec![])?;
+        abstr.ans_host.update_dexes(self.dexes.clone(), vec![])?;
         abstr
             .ans_host
             .update_contract_addresses(self.contracts.clone(), vec![])?;
