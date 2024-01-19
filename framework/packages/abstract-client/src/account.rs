@@ -382,7 +382,7 @@ impl<Chain: CwEnv> Account<Chain> {
             )
             .map_err(Into::into)
     }
-    /// Executes a [`CosmosMsg`] on the proxy of the account.
+    /// Executes a [`CosmosMsg`] on the module of the account.
     pub fn execute_on_module<M>(
         &self,
         execute_msg: &M::ExecuteMsg,
