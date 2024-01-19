@@ -26,6 +26,7 @@ use ::{
     },
     abstract_sdk::{
         core::objects::{PoolAddress, UniquePoolId},
+        core::version_control::AccountBase,
         feature_objects::{AnsHost, VersionControlContract},
     },
     cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
@@ -195,14 +196,14 @@ impl DexCommand for Astrovault {
     fn fetch_data(
         &mut self,
         deps: Deps,
-        sender: Addr,
+        target_account: AccountBase,
         _version_control_contract: VersionControlContract,
         ans_host: AnsHost,
         pool_id: UniquePoolId,
     ) -> Result<(), DexError> {
         let pool_metadata = ans_host.query_pool_metadata(&deps.querier, pool_id)?;
         self.pool_type = Some(pool_metadata.pool_type);
-        self.proxy_addr = Some(sender);
+        self.proxy_addr = Some(target_account.proxy);
         Ok(())
     }
 

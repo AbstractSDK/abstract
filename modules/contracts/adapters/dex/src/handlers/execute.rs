@@ -13,6 +13,7 @@ use abstract_dex_standard::DexError;
 
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
+use abstract_sdk::features::AccountIdentification;
 use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
 use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
@@ -69,7 +70,7 @@ pub fn execute_handler(
 fn handle_local_request(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     adapter: DexAdapter,
     action: DexAction,
     exchange: String,
@@ -78,7 +79,7 @@ fn handle_local_request(
     let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
         &adapter,
         deps.as_ref(),
-        info.sender,
+        adapter.account_base(deps.as_ref())?,
         action,
         exchange,
     )?;

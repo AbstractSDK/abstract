@@ -22,8 +22,9 @@ impl Identify for Osmosis {
 use ::{
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::{
-        core::objects::PoolAddress, core::objects::UniquePoolId, feature_objects::AnsHost,
-        features::AbstractRegistryAccess, AbstractSdkError, AccountVerification,
+        core::objects::PoolAddress, core::objects::UniquePoolId,
+        core::version_control::AccountBase, feature_objects::AnsHost,
+        features::AbstractRegistryAccess, AbstractSdkError,
     },
     cosmwasm_std::{
         Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
@@ -58,18 +59,15 @@ impl AbstractRegistryAccess for Osmosis {
 impl DexCommand for Osmosis {
     fn fetch_data(
         &mut self,
-        deps: Deps,
-        sender: cosmwasm_std::Addr,
+        _deps: Deps,
+        target_account: AccountBase,
         version_control_contract: VersionControlContract,
         _ans_host: AnsHost,
         _pool_id: UniquePoolId,
     ) -> Result<(), DexError> {
         self.version_control_contract = Some(version_control_contract);
-        let account_registry = self.account_registry(deps)?;
 
-        let base = account_registry.assert_manager(&sender)?;
-        self.local_proxy_addr = Some(base.proxy);
-
+        self.local_proxy_addr = Some(target_account.proxy);
         Ok(())
     }
 

@@ -2,6 +2,7 @@ use crate::state::SWAP_FEE;
 use abstract_core::objects::AnsEntryConvertor;
 use abstract_core::objects::{DexAssetPairing, PoolReference};
 
+use abstract_core::version_control::AccountBase;
 use abstract_dex_standard::msg::{DexAction, OfferAsset};
 use abstract_dex_standard::DexError;
 use abstract_sdk::core::objects::AnsAsset;
@@ -9,7 +10,7 @@ use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::cw_helpers::Chargeable;
 use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
 use abstract_sdk::Execution;
-use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, StdError};
+use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError};
 
 use cw_asset::Asset;
 
@@ -30,7 +31,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     fn resolve_dex_action(
         &self,
         deps: Deps,
-        sender: Addr,
+        target_account: AccountBase,
         action: DexAction,
         mut exchange: Box<dyn DexCommand>,
     ) -> Result<(Vec<CosmosMsg>, ReplyId), DexError> {
@@ -42,7 +43,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                 (
                     self.resolve_provide_liquidity(
                         deps,
-                        sender,
+                        target_account,
                         assets,
                         exchange.as_mut(),
                         max_spread,
@@ -60,7 +61,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                 (
                     self.resolve_provide_liquidity_symmetric(
                         deps,
-                        sender,
+                        target_account,
                         offer_asset,
                         paired_assets,
                         exchange.as_mut(),
@@ -71,7 +72,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             DexAction::WithdrawLiquidity { lp_token, amount } => (
                 self.resolve_withdraw_liquidity(
                     deps,
-                    sender,
+                    target_account,
                     AnsAsset::new(lp_token, amount),
                     exchange.as_mut(),
                 )?,
@@ -85,7 +86,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             } => (
                 self.resolve_swap(
                     deps,
-                    sender,
+                    target_account,
                     offer_asset,
                     ask_asset,
                     exchange.as_mut(),
@@ -101,7 +102,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     fn resolve_swap(
         &self,
         deps: Deps,
-        sender: Addr,
+        target_account: AccountBase,
         offer_asset: OfferAsset,
         mut ask_asset: AssetEntry,
         exchange: &mut dyn DexCommand,
@@ -130,7 +131,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
 
         exchange.fetch_data(
             deps,
-            sender,
+            target_account,
             self.abstract_registry(deps)?,
             self.ans_host(deps)?,
             unique_id,
@@ -154,7 +155,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     fn resolve_provide_liquidity(
         &self,
         deps: Deps,
-        sender: Addr,
+        target_account: AccountBase,
         offer_assets: Vec<OfferAsset>,
         exchange: &mut dyn DexCommand,
         max_spread: Option<Decimal>,
@@ -178,7 +179,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         )?;
         exchange.fetch_data(
             deps,
-            sender,
+            target_account,
             self.abstract_registry(deps)?,
             self.ans_host(deps)?,
             unique_id,
@@ -189,7 +190,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     fn resolve_provide_liquidity_symmetric(
         &self,
         deps: Deps,
-        sender: Addr,
+        target_account: AccountBase,
         offer_asset: OfferAsset,
         mut paired_assets: Vec<AssetEntry>,
         exchange: &mut dyn DexCommand,
@@ -207,7 +208,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         let offer_asset = ans.query(&offer_asset)?;
         exchange.fetch_data(
             deps,
-            sender,
+            target_account,
             self.abstract_registry(deps)?,
             self.ans_host(deps)?,
             unique_id,
@@ -219,7 +220,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     fn resolve_withdraw_liquidity(
         &self,
         deps: Deps,
-        sender: Addr,
+        target_account: AccountBase,
         lp_token: OfferAsset,
         exchange: &mut dyn DexCommand,
     ) -> Result<Vec<CosmosMsg>, DexError> {
@@ -247,7 +248,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         } = pool_ids.pop().unwrap();
         exchange.fetch_data(
             deps,
-            sender,
+            target_account,
             self.abstract_registry(deps)?,
             self.ans_host(deps)?,
             unique_id,
