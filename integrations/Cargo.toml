@@ -65,7 +65,7 @@ abstract-staking-standard = { version = "0.20.0" }
 
 # TODO: REMOVE As soon as new dex-standard published
 [patch.crates-io]
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/add-authz-wrapping" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "fix/savings-app-fixes" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
