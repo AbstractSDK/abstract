@@ -382,6 +382,31 @@ impl<Chain: CwEnv> Account<Chain> {
             )
             .map_err(Into::into)
     }
+    /// Executes a [`CosmosMsg`] on the proxy of the account.
+    pub fn execute_on_module<M>(
+        &self,
+        execute_msg: M::ExecuteMsg,
+        funds: &[Coin],
+    ) -> AbstractClientResult<<Chain as TxHandler>::Response>
+    where
+        M: ContractInstance<Chain>
+            + ExecutableContract
+            + DependencyCreation
+            + InstallConfig
+            + From<Contract<Chain>>
+            + Clone,
+    {
+        self.abstr_account
+            .manager
+            .execute(
+                &abstract_core::manager::ExecuteMsg::ExecOnModule {
+                    module_id: PROXY.to_owned(),
+                    exec_msg: to_json_binary(&execute_msg).map_err(AbstractInterfaceError::from)?,
+                },
+                Some(funds),
+            )
+            .map_err(Into::into)
+    }
 
     /// Module infos of installed modules on account
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
