@@ -39,6 +39,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 /// A builder for setting up tests for `Abstract` in a [`Mock`] environment.
 pub struct AbstractClientBuilder<Chain: CwEnv> {
     chain: Chain,
+    dexes: Vec<String>,
     contracts: Vec<(UncheckedContractEntry, String)>,
     assets: Vec<(String, AssetInfoUnchecked)>,
     channels: Vec<(UncheckedChannelEntry, String)>,
@@ -49,6 +50,7 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
     pub(crate) fn new(chain: Chain) -> Self {
         Self {
             chain,
+            dexes: vec![],
             contracts: vec![],
             assets: vec![],
             channels: vec![],
@@ -116,6 +118,18 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
         self
     }
 
+    /// Register dex on Abstract Name Service
+    pub fn dex(&mut self, dex: &str) -> &mut Self {
+        self.dexes.push(dex.to_string());
+        self
+    }
+
+    /// Register dexes on Abstract Name Service
+    pub fn dexes(&mut self, dexes: Vec<String>) -> &mut Self {
+        self.dexes = dexes;
+        self
+    }
+
     /// Deploy abstract with current configuration
     pub fn build(&self) -> AbstractClientResult<AbstractClient<Chain>> {
         let abstr = Abstract::deploy_on(self.chain.clone(), self.chain.sender().into_string())?;
@@ -125,6 +139,7 @@ impl<Chain: CwEnv> AbstractClientBuilder<Chain> {
     }
 
     fn update_ans(&self, abstr: &Abstract<Chain>) -> AbstractClientResult<()> {
+        abstr.ans_host.update_dexes(self.dexes.clone(), vec![])?;
         abstr
             .ans_host
             .update_contract_addresses(self.contracts.clone(), vec![])?;
