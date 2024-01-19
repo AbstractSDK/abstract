@@ -28,7 +28,7 @@ impl Identify for Osmosis {
 #[cfg(feature = "full_integration")]
 pub mod fns {
     use abstract_sdk::features::AbstractRegistryAccess;
-    use abstract_sdk::{AbstractSdkError, AccountVerification};
+    use abstract_sdk::AbstractSdkError;
     use abstract_staking_standard::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
         UnbondingResponse,
@@ -41,12 +41,12 @@ pub mod fns {
     use abstract_sdk::core::objects::{
         AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference, PoolType,
     };
+    use abstract_sdk::core::version_control::AccountBase;
+
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
     use abstract_staking_standard::{CwStakingCommand, CwStakingError};
-    use cosmwasm_std::{
-        Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper, StdError, StdResult, Uint128,
-    };
+    use cosmwasm_std::{Coin, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128};
     use cw_asset::AssetInfoBase;
 
     use super::*;
@@ -139,18 +139,14 @@ pub mod fns {
             &mut self,
             deps: cosmwasm_std::Deps,
             _env: Env,
-            info: Option<MessageInfo>,
+            target_account: Option<AccountBase>,
             ans_host: &AnsHost,
             version_control_contract: VersionControlContract,
             staking_assets: Vec<AssetEntry>,
         ) -> Result<(), CwStakingError> {
             self.version_control_contract = Some(version_control_contract);
-            let account_registry = self.account_registry(deps)?;
 
-            let base = info
-                .map(|i| account_registry.assert_manager(&i.sender))
-                .transpose()?;
-            self.local_proxy_addr = base.map(|b| b.proxy);
+            self.local_proxy_addr = target_account.map(|b| b.proxy);
 
             self.tokens =
                 self.query_pool_tokens_via_ans(&deps.querier, ans_host, staking_assets)?;

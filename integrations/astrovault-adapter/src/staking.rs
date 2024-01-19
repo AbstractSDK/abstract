@@ -33,9 +33,10 @@ impl Identify for Astrovault {
 use ::{
     abstract_sdk::{
         core::objects::{AnsAsset, AssetEntry},
+        core::version_control::AccountBase,
         feature_objects::AnsHost,
         features::AbstractRegistryAccess,
-        AccountVerification, Resolve,
+        Resolve,
     },
     abstract_staking_standard::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
@@ -63,16 +64,13 @@ impl CwStakingCommand for Astrovault {
         &mut self,
         deps: Deps,
         _env: Env,
-        info: Option<cosmwasm_std::MessageInfo>,
+        target_account: Option<AccountBase>,
         ans_host: &AnsHost,
         version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
     ) -> Result<(), CwStakingError> {
         self.version_control_contract = Some(version_control_contract);
-        let base = info
-            .map(|i| self.account_registry(deps)?.assert_manager(&i.sender))
-            .transpose()?;
-        self.local_proxy_addr = base.map(|b| b.proxy);
+        self.local_proxy_addr = target_account.map(|b| b.proxy);
         self.tokens = lp_tokens
             .into_iter()
             .map(|entry| {

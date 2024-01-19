@@ -30,6 +30,7 @@ impl Identify for WynDex {
 use {
     abstract_sdk::{
         core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
+        core::version_control::AccountBase,
         feature_objects::{AnsHost, VersionControlContract},
         Resolve,
     },
@@ -60,7 +61,7 @@ impl CwStakingCommand for WynDex {
         &mut self,
         deps: Deps,
         _env: cosmwasm_std::Env,
-        _info: Option<cosmwasm_std::MessageInfo>,
+        _target_account: Option<AccountBase>,
         ans_host: &AnsHost,
         _version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
