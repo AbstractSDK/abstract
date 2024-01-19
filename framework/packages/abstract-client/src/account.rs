@@ -385,7 +385,7 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Executes a [`CosmosMsg`] on the proxy of the account.
     pub fn execute_on_module<M>(
         &self,
-        execute_msg: M::ExecuteMsg,
+        execute_msg: &M::ExecuteMsg,
         funds: &[Coin],
     ) -> AbstractClientResult<<Chain as TxHandler>::Response>
     where
@@ -400,7 +400,7 @@ impl<Chain: CwEnv> Account<Chain> {
             .manager
             .execute(
                 &abstract_core::manager::ExecuteMsg::ExecOnModule {
-                    module_id: PROXY.to_owned(),
+                    module_id: M::module_id().to_string(),
                     exec_msg: to_json_binary(&execute_msg).map_err(AbstractInterfaceError::from)?,
                 },
                 Some(funds),
