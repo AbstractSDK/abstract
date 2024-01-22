@@ -429,9 +429,6 @@ mod tests {
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
 
-    const TEST_ITEM: Item<'_, u8> = Item::new("test_item");
-    const TEST_MAP: Map<'_, String, u8> = Map::new("test_map");
-
     mod account {
         use super::*;
         use abstract_core::version_control::AccountBase;
@@ -467,13 +464,8 @@ mod tests {
             let querier = MockQuerierBuilder::default()
                 .with_smart_handler("contract_address", |msg| {
                     // handle the message
-                    match from_json::<MockModuleQueryMsg>(msg).unwrap() {
-                        // handle the message
-                        MockModuleQueryMsg {} => {
-                            return to_json_binary(&MockModuleQueryResponse {})
-                                .map_err(|e| e.to_string())
-                        }
-                    };
+                    let MockModuleQueryMsg {} = from_json::<MockModuleQueryMsg>(msg).unwrap();
+                    to_json_binary(&MockModuleQueryResponse {}).map_err(|e| e.to_string())
                 })
                 .build();
             // ## ANCHOR_END: smart_query
@@ -485,7 +477,7 @@ mod tests {
                 }))
                 .unwrap()
                 .unwrap();
-            let resp: MockModuleQueryResponse = from_json(&resp_bin).unwrap();
+            let resp: MockModuleQueryResponse = from_json(resp_bin).unwrap();
 
             assert_that!(resp).is_equal_to(MockModuleQueryResponse {})
         }
@@ -511,7 +503,7 @@ mod tests {
                 }))
                 .unwrap()
                 .unwrap();
-            let resp: String = from_json(&resp_bin).unwrap();
+            let resp: String = from_json(resp_bin).unwrap();
 
             assert_that!(resp).is_equal_to("the_value".to_string())
         }

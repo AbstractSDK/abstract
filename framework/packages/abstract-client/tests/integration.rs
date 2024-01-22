@@ -18,13 +18,10 @@ use abstract_core::{
 };
 use abstract_interface::VCQueryFns;
 use abstract_testing::{
-    prelude::{
-        TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_MODULE_ID,
-        TEST_WITH_DEP_NAMESPACE,
-    },
+    prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
     OWNER,
 };
-use cosmwasm_std::{coins, Addr, BankMsg, Coin, Coins, Empty, Uint128};
+use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{
     contract::interface_traits::{CwOrchExecute, CwOrchQuery},

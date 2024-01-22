@@ -89,10 +89,7 @@ mod test {
     use abstract_testing::{
         addresses::TEST_WITH_DEP_MODULE_ID,
         mock_querier,
-        prelude::{
-            TEST_ACCOUNT_ID, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ID, TEST_PROXY,
-            TEST_VERSION_CONTROL,
-        },
+        prelude::{TEST_ACCOUNT_ID, TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY, TEST_VERSION_CONTROL},
     };
     use speculoos::prelude::*;
 
