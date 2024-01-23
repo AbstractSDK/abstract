@@ -32,7 +32,6 @@ impl Identify for Astroport {
 use ::{
     abstract_sdk::{
         core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
-        core::version_control::AccountBase,
         feature_objects::{AnsHost, VersionControlContract},
         Resolve,
     },
@@ -58,7 +57,7 @@ impl CwStakingCommand for Astroport {
         &mut self,
         deps: Deps,
         _env: Env,
-        _target_account: Option<AccountBase>,
+        _sender: Option<Addr>,
         ans_host: &AnsHost,
         _version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,

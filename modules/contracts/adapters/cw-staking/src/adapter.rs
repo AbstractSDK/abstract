@@ -31,7 +31,7 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
         provider.fetch_data(
             deps.as_ref(),
             env,
-            Some(target_account),
+            Some(target_account.proxy),
             &self.ans_host(deps.as_ref())?,
             self.abstract_registry(deps.as_ref())?,
             staking_asset,

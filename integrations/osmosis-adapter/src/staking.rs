@@ -7,7 +7,7 @@ use cosmwasm_std::Addr;
 #[derive(Default)]
 pub struct Osmosis {
     pub version_control_contract: Option<VersionControlContract>,
-    pub local_proxy_addr: Option<Addr>,
+    pub sender: Option<Addr>,
     pub tokens: Vec<OsmosisTokenContext>,
 }
 
@@ -41,7 +41,6 @@ pub mod fns {
     use abstract_sdk::core::objects::{
         AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference, PoolType,
     };
-    use abstract_sdk::core::version_control::AccountBase;
 
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
@@ -139,14 +138,14 @@ pub mod fns {
             &mut self,
             deps: cosmwasm_std::Deps,
             _env: Env,
-            target_account: Option<AccountBase>,
+            sender: Option<Addr>,
             ans_host: &AnsHost,
             version_control_contract: VersionControlContract,
             staking_assets: Vec<AssetEntry>,
         ) -> Result<(), CwStakingError> {
             self.version_control_contract = Some(version_control_contract);
 
-            self.local_proxy_addr = target_account.map(|b| b.proxy);
+            self.sender = sender;
 
             self.tokens =
                 self.query_pool_tokens_via_ans(&deps.querier, ans_host, staking_assets)?;
@@ -172,7 +171,7 @@ pub mod fns {
                 })
                 .collect();
             let lock_tokens_msg = MsgLockTokens {
-                owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+                owner: self.sender.as_ref().unwrap().to_string(),
                 duration: to_osmo_duration(unbonding_period)?,
                 coins: lock_coins,
             };
@@ -191,7 +190,7 @@ pub mod fns {
                 .zip(self.tokens.iter())
                 .map(|(unstake, token)| {
                     MsgBeginUnlocking {
-                        owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+                        owner: self.sender.as_ref().unwrap().to_string(),
                         id: token.pool_id,
                         coins: vec![Coin {
                             denom: token.lp_token.clone(),
@@ -209,7 +208,7 @@ pub mod fns {
         fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
             // Withdraw all
             let msg = MsgBeginUnlockingAll {
-                owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+                owner: self.sender.as_ref().unwrap().to_string(),
             };
             Ok(vec![msg.into()])
         }

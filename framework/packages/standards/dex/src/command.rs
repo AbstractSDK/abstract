@@ -3,10 +3,9 @@ use std::error::Error;
 use crate::error::DexError;
 use abstract_adapter_utils::identity::Identify;
 use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference, UniquePoolId};
-use abstract_core::version_control::AccountBase;
 use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
+use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 pub type Return = Uint128;
@@ -108,7 +107,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
     fn fetch_data(
         &mut self,
         _deps: Deps,
-        _target_account: AccountBase,
+        _sender: Addr,
         _version_control_contract: VersionControlContract,
         _ans_host: AnsHost,
         _pool_id: UniquePoolId,

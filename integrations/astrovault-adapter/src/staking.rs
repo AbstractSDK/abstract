@@ -6,7 +6,7 @@ use cosmwasm_std::Addr;
 
 #[derive(Clone, Debug, Default)]
 pub struct Astrovault {
-    pub local_proxy_addr: Option<Addr>,
+    pub sender: Option<Addr>,
     pub version_control_contract: Option<VersionControlContract>,
     pub tokens: Vec<AstrovaultTokenContext>,
 }
@@ -33,7 +33,6 @@ impl Identify for Astrovault {
 use ::{
     abstract_sdk::{
         core::objects::{AnsAsset, AssetEntry},
-        core::version_control::AccountBase,
         feature_objects::AnsHost,
         features::AbstractRegistryAccess,
         Resolve,
@@ -64,13 +63,13 @@ impl CwStakingCommand for Astrovault {
         &mut self,
         deps: Deps,
         _env: Env,
-        target_account: Option<AccountBase>,
+        sender: Option<Addr>,
         ans_host: &AnsHost,
         version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
     ) -> Result<(), CwStakingError> {
         self.version_control_contract = Some(version_control_contract);
-        self.local_proxy_addr = target_account.map(|b| b.proxy);
+        self.sender = sender;
         self.tokens = lp_tokens
             .into_iter()
             .map(|entry| {
