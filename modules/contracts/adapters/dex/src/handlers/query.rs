@@ -13,7 +13,6 @@ use abstract_dex_standard::msg::{
 };
 use abstract_dex_standard::DexError;
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::AccountVerification;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 
 pub fn query_handler(
