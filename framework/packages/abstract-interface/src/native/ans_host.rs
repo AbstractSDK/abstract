@@ -17,7 +17,7 @@ use std::env;
 pub struct AnsHost<Chain>;
 
 impl<Chain: CwEnv> AnsHost<Chain> {
-    pub fn resolve<R: Resolver<Chain>>(&self, item: &R) -> Result<R::Output, CwOrchError> {
+    pub fn resolve<R: ClientResolve<Chain>>(&self, item: &R) -> Result<R::Output, CwOrchError> {
         item.resolve(self)
     }
 }
@@ -50,7 +50,7 @@ where
     }
 }
 
-pub trait Resolver<Chain: CwEnv> {
+pub trait ClientResolve<Chain: CwEnv> {
     /// Result of resolving an entry.
     type Output;
     /// Resolve an entry into its value.
@@ -59,7 +59,7 @@ pub trait Resolver<Chain: CwEnv> {
 
 // cw-multi-test doesn't support raw queries, so we will have to do smart queries instead
 
-impl<Chain: CwEnv> Resolver<Chain> for AssetEntry {
+impl<Chain: CwEnv> ClientResolve<Chain> for AssetEntry {
     type Output = AssetInfo;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
@@ -70,7 +70,7 @@ impl<Chain: CwEnv> Resolver<Chain> for AssetEntry {
     }
 }
 
-impl<Chain: CwEnv> Resolver<Chain> for LpToken {
+impl<Chain: CwEnv> ClientResolve<Chain> for LpToken {
     type Output = AssetInfo;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
@@ -79,7 +79,7 @@ impl<Chain: CwEnv> Resolver<Chain> for LpToken {
     }
 }
 
-impl<Chain: CwEnv> Resolver<Chain> for ContractEntry {
+impl<Chain: CwEnv> ClientResolve<Chain> for ContractEntry {
     type Output = Addr;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
@@ -90,7 +90,7 @@ impl<Chain: CwEnv> Resolver<Chain> for ContractEntry {
     }
 }
 
-impl<Chain: CwEnv> Resolver<Chain> for ChannelEntry {
+impl<Chain: CwEnv> ClientResolve<Chain> for ChannelEntry {
     type Output = String;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
@@ -101,7 +101,7 @@ impl<Chain: CwEnv> Resolver<Chain> for ChannelEntry {
     }
 }
 
-impl<Chain: CwEnv> Resolver<Chain> for DexAssetPairing {
+impl<Chain: CwEnv> ClientResolve<Chain> for DexAssetPairing {
     type Output = Vec<PoolReference>;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
@@ -124,7 +124,7 @@ impl<Chain: CwEnv> Resolver<Chain> for DexAssetPairing {
     }
 }
 
-impl<Chain: CwEnv> Resolver<Chain> for UniquePoolId {
+impl<Chain: CwEnv> ClientResolve<Chain> for UniquePoolId {
     type Output = PoolMetadata;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
@@ -134,7 +134,7 @@ impl<Chain: CwEnv> Resolver<Chain> for UniquePoolId {
     }
 }
 
-impl<Chain: CwEnv> Resolver<Chain> for AnsAsset {
+impl<Chain: CwEnv> ClientResolve<Chain> for AnsAsset {
     type Output = Asset;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
@@ -142,7 +142,7 @@ impl<Chain: CwEnv> Resolver<Chain> for AnsAsset {
     }
 }
 
-impl<Chain: CwEnv> Resolver<Chain> for AssetInfo {
+impl<Chain: CwEnv> ClientResolve<Chain> for AssetInfo {
     type Output = AssetEntry;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
@@ -151,7 +151,7 @@ impl<Chain: CwEnv> Resolver<Chain> for AssetInfo {
     }
 }
 
-impl<Chain: CwEnv> Resolver<Chain> for Asset {
+impl<Chain: CwEnv> ClientResolve<Chain> for Asset {
     type Output = AnsAsset;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
@@ -162,7 +162,7 @@ impl<Chain: CwEnv> Resolver<Chain> for Asset {
     }
 }
 
-impl<Chain: CwEnv> Resolver<Chain> for PoolMetadata {
+impl<Chain: CwEnv> ClientResolve<Chain> for PoolMetadata {
     type Output = ResolvedPoolMetadata;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
@@ -174,9 +174,9 @@ impl<Chain: CwEnv> Resolver<Chain> for PoolMetadata {
     }
 }
 
-impl<Chain: CwEnv, T> Resolver<Chain> for Vec<T>
+impl<Chain: CwEnv, T> ClientResolve<Chain> for Vec<T>
 where
-    T: Resolver<Chain>,
+    T: ClientResolve<Chain>,
 {
     type Output = Vec<T::Output>;
 

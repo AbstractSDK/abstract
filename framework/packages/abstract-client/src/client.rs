@@ -93,7 +93,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// The Abstract Name Service contract is a database contract that stores all asset-related information.
     /// ```
     /// # use abstract_client::AbstractClientError;
-    /// use abstract_client::{AbstractClient, Resolver};
+    /// use abstract_client::{AbstractClient, ClientResolve};
     /// use cw_asset::AssetInfo;
     /// use abstract_app::objects::AssetEntry;
     /// // For getting version control address

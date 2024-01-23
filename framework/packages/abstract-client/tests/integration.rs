@@ -16,7 +16,7 @@ use abstract_core::{
     },
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
 };
-use abstract_interface::{Resolver, VCQueryFns};
+use abstract_interface::{ClientResolve, VCQueryFns};
 use abstract_testing::{
     prelude::{
         TEST_DEPENDENCY_MODULE_ID, TEST_DEPENDENCY_NAMESPACE, TEST_MODULE_ID, TEST_NAMESPACE,
