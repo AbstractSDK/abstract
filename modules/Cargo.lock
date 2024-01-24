@@ -141,6 +141,7 @@ dependencies = [
 name = "abstract-core"
 version = "0.20.0"
 dependencies = [
+ "abstract-polytone",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-address-like",
@@ -154,7 +155,6 @@ dependencies = [
  "cw-utils 1.0.3",
  "cw2 1.1.2",
  "cw20 1.1.2",
- "polytone",
  "schemars",
  "semver",
  "serde",
@@ -293,6 +293,8 @@ version = "0.20.0"
 dependencies = [
  "abstract-core",
  "abstract-macros",
+ "abstract-polytone",
+ "abstract-polytone-note",
  "abstract-sdk",
  "cosmwasm-std",
  "cw-ownable",
@@ -301,8 +303,6 @@ dependencies = [
  "cw-storage-plus 1.1.0",
  "cw-utils 1.0.3",
  "cw2 1.1.2",
- "polytone",
- "polytone-note",
  "serde",
  "thiserror",
 ]
@@ -339,6 +339,7 @@ dependencies = [
  "abstract-ibc-host",
  "abstract-manager",
  "abstract-module-factory",
+ "abstract-polytone",
  "abstract-proxy",
  "abstract-version-control",
  "cosmwasm-schema",
@@ -349,7 +350,6 @@ dependencies = [
  "cw-storage-plus 1.1.0",
  "cw2 1.1.2",
  "log",
- "polytone",
  "schemars",
  "semver",
  "serde",
@@ -438,6 +438,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "abstract-polytone"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "84407697c903e64db39e5cd7f08eca6ef4da4ba4ba2e4c29ceb3c7eab308675e"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.1.0",
+ "thiserror",
+]
+
+[[package]]
+name = "abstract-polytone-note"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4d720725a6b398b4a654290aa3ed4352edacb095147accd19b632f61a448437"
+dependencies = [
+ "abstract-polytone",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.1.0",
+ "cw-utils 1.0.3",
+ "cw2 1.1.2",
+ "thiserror",
+]
+
+[[package]]
 name = "abstract-proxy"
 version = "0.20.0"
 dependencies = [
@@ -464,6 +491,7 @@ version = "0.20.0"
 dependencies = [
  "abstract-core",
  "abstract-macros",
+ "abstract-polytone",
  "abstract-testing",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -473,7 +501,6 @@ dependencies = [
  "cw-storage-plus 1.1.0",
  "cw2 1.1.2",
  "cw20 1.1.2",
- "polytone",
  "schemars",
  "semver",
  "serde",
@@ -4548,31 +4575,6 @@ name = "platforms"
 version = "3.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14e6ab3f592e6fb464fc9712d8d6e6912de6473954635fd76a589d832cffcbb0"
-
-[[package]]
-name = "polytone"
-version = "1.0.2"
-source = "git+https://github.com/AbstractSDK/polytone?tag=v1.0.2#245d1f12320125cbb590161f7c6b8753ee4f96f0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.1.0",
- "thiserror",
-]
-
-[[package]]
-name = "polytone-note"
-version = "1.0.2"
-source = "git+https://github.com/AbstractSDK/polytone?tag=v1.0.2#245d1f12320125cbb590161f7c6b8753ee4f96f0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.1.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "polytone",
- "thiserror",
-]
 
 [[package]]
 name = "ppv-lite86"

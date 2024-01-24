@@ -116,6 +116,7 @@ dependencies = [
 name = "abstract-core"
 version = "0.20.0"
 dependencies = [
+ "abstract-polytone",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-address-like",
@@ -129,7 +130,6 @@ dependencies = [
  "cw-utils 1.0.3",
  "cw2 1.1.2",
  "cw20 1.1.2",
- "polytone",
  "schemars",
  "semver",
  "serde",
@@ -160,6 +160,18 @@ dependencies = [
  "sha2 0.10.8",
  "sha256",
  "thiserror",
+]
+
+[[package]]
+name = "abstract-cw-orch-polytone"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "03a6cdcd73892d6cb06c133c77ec65ba5e756969ac412e79351d287779895af6"
+dependencies = [
+ "abstract-polytone-note",
+ "abstract-polytone-proxy",
+ "abstract-polytone-voice",
+ "cw-orch",
 ]
 
 [[package]]
@@ -240,6 +252,8 @@ version = "0.20.0"
 dependencies = [
  "abstract-core",
  "abstract-macros",
+ "abstract-polytone",
+ "abstract-polytone-note",
  "abstract-sdk",
  "cosmwasm-std",
  "cw-ownable",
@@ -248,8 +262,6 @@ dependencies = [
  "cw-storage-plus 1.1.0",
  "cw-utils 1.0.3",
  "cw2 1.1.2",
- "polytone",
- "polytone-note",
  "serde",
  "thiserror",
 ]
@@ -309,6 +321,7 @@ dependencies = [
  "abstract-ibc-host",
  "abstract-manager",
  "abstract-module-factory",
+ "abstract-polytone",
  "abstract-proxy",
  "abstract-version-control",
  "cosmwasm-schema",
@@ -319,7 +332,6 @@ dependencies = [
  "cw-storage-plus 1.1.0",
  "cw2 1.1.2",
  "log",
- "polytone",
  "schemars",
  "semver",
  "serde",
@@ -334,8 +346,10 @@ version = "0.20.0"
 dependencies = [
  "abstract-app",
  "abstract-core",
+ "abstract-cw-orch-polytone",
  "abstract-integration-tests",
  "abstract-interface",
+ "abstract-polytone",
  "abstract-scripts",
  "abstract-sdk",
  "abstract-testing",
@@ -351,7 +365,6 @@ dependencies = [
  "cw-controllers",
  "cw-orch-clone-testing",
  "cw-orch-interchain",
- "cw-orch-polytone",
  "cw-orch-proto",
  "cw2 1.2.1",
  "cw20 1.2.1",
@@ -364,7 +377,6 @@ dependencies = [
  "lazy_static",
  "log",
  "osmosis-std 0.16.2",
- "polytone",
  "prost 0.11.9",
  "reqwest",
  "semver",
@@ -448,6 +460,68 @@ dependencies = [
 ]
 
 [[package]]
+name = "abstract-polytone"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "84407697c903e64db39e5cd7f08eca6ef4da4ba4ba2e4c29ceb3c7eab308675e"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.1.0",
+ "thiserror",
+]
+
+[[package]]
+name = "abstract-polytone-note"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4d720725a6b398b4a654290aa3ed4352edacb095147accd19b632f61a448437"
+dependencies = [
+ "abstract-polytone",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-orch",
+ "cw-storage-plus 1.1.0",
+ "cw-utils 1.0.3",
+ "cw2 1.1.2",
+ "thiserror",
+]
+
+[[package]]
+name = "abstract-polytone-proxy"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "274bd9618880487d09f99aadc964dab8061c4fc1ccb8cf4b2319ff80ebe35464"
+dependencies = [
+ "abstract-polytone",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-orch",
+ "cw-storage-plus 1.1.0",
+ "cw-utils 1.0.3",
+ "cw2 1.1.2",
+ "thiserror",
+]
+
+[[package]]
+name = "abstract-polytone-voice"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3654ff0047e767fdec5f9c69be6384214f25f9f76a4deef80d29bf309f56e1a8"
+dependencies = [
+ "abstract-polytone",
+ "abstract-polytone-proxy",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-orch",
+ "cw-storage-plus 1.1.0",
+ "cw-utils 1.0.3",
+ "cw2 1.1.2",
+ "sha2 0.10.8",
+ "thiserror",
+]
+
+[[package]]
 name = "abstract-proxy"
 version = "0.20.0"
 dependencies = [
@@ -473,6 +547,7 @@ name = "abstract-scripts"
 version = "0.20.0"
 dependencies = [
  "abstract-core",
+ "abstract-cw-orch-polytone",
  "abstract-cw-staking",
  "abstract-dex-adapter",
  "abstract-interface",
@@ -485,7 +560,6 @@ dependencies = [
  "cw-asset",
  "cw-controllers",
  "cw-orch-interchain",
- "cw-orch-polytone",
  "cw2 1.2.1",
  "cw20 1.2.1",
  "cw20-base 1.2.1",
@@ -512,6 +586,7 @@ version = "0.20.0"
 dependencies = [
  "abstract-core",
  "abstract-macros",
+ "abstract-polytone",
  "abstract-testing",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -521,7 +596,6 @@ dependencies = [
  "cw-storage-plus 1.1.0",
  "cw2 1.1.2",
  "cw20 1.1.2",
- "polytone",
  "schemars",
  "semver",
  "serde",
@@ -2055,17 +2129,6 @@ dependencies = [
  "cw-orch-core",
  "ibc-chain-registry",
  "serde",
-]
-
-[[package]]
-name = "cw-orch-polytone"
-version = "1.0.2"
-source = "git+https://github.com/AbstractSDK/polytone?tag=v1.0.2#245d1f12320125cbb590161f7c6b8753ee4f96f0"
-dependencies = [
- "cw-orch",
- "polytone-note",
- "polytone-proxy",
- "polytone-voice",
 ]
 
 [[package]]
@@ -4291,64 +4354,6 @@ name = "platforms"
 version = "3.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14e6ab3f592e6fb464fc9712d8d6e6912de6473954635fd76a589d832cffcbb0"
-
-[[package]]
-name = "polytone"
-version = "1.0.2"
-source = "git+https://github.com/AbstractSDK/polytone?tag=v1.0.2#245d1f12320125cbb590161f7c6b8753ee4f96f0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.1.0",
- "thiserror",
-]
-
-[[package]]
-name = "polytone-note"
-version = "1.0.2"
-source = "git+https://github.com/AbstractSDK/polytone?tag=v1.0.2#245d1f12320125cbb590161f7c6b8753ee4f96f0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-orch",
- "cw-storage-plus 1.1.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "polytone",
- "thiserror",
-]
-
-[[package]]
-name = "polytone-proxy"
-version = "1.0.2"
-source = "git+https://github.com/AbstractSDK/polytone?tag=v1.0.2#245d1f12320125cbb590161f7c6b8753ee4f96f0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-orch",
- "cw-storage-plus 1.1.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "polytone",
- "thiserror",
-]
-
-[[package]]
-name = "polytone-voice"
-version = "1.0.2"
-source = "git+https://github.com/AbstractSDK/polytone?tag=v1.0.2#245d1f12320125cbb590161f7c6b8753ee4f96f0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-orch",
- "cw-storage-plus 1.1.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "polytone",
- "polytone-proxy",
- "sha2 0.10.8",
- "thiserror",
-]
 
 [[package]]
 name = "powerfmt"
