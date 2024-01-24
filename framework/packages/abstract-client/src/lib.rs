@@ -22,3 +22,6 @@ pub use publisher::{Publisher, PublisherBuilder};
 // Re-export common used types
 pub use abstract_core::objects::gov_type::GovernanceDetails;
 pub use abstract_core::objects::namespace::Namespace;
+
+// Re-export `ClientResolve` trait
+pub use abstract_interface::ClientResolve;

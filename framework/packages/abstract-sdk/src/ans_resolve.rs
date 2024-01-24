@@ -20,14 +20,7 @@ pub trait Resolve {
 impl Resolve for AssetEntry {
     type Output = AssetInfo;
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output> {
-        ans_host.query_asset(querier, self).map_err(Into::into)
-    }
-}
-
-impl Resolve for &AssetEntry {
-    type Output = AssetInfo;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output> {
-        ans_host.query_asset(querier, self).map_err(Into::into)
+        ans_host.query_asset(querier, self)
     }
 }
 
@@ -37,41 +30,35 @@ impl Resolve for LpToken {
 
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output> {
         let asset_entry = AnsEntryConvertor::new(self.clone()).asset_entry();
-        ans_host
-            .query_asset(querier, &asset_entry)
-            .map_err(Into::into)
+        ans_host.query_asset(querier, &asset_entry)
     }
 }
 
 impl Resolve for ContractEntry {
     type Output = Addr;
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output> {
-        ans_host.query_contract(querier, self).map_err(Into::into)
+        ans_host.query_contract(querier, self)
     }
 }
 
 impl Resolve for ChannelEntry {
     type Output = String;
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output> {
-        ans_host.query_channel(querier, self).map_err(Into::into)
+        ans_host.query_channel(querier, self)
     }
 }
 
 impl Resolve for DexAssetPairing {
     type Output = Vec<PoolReference>;
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output> {
-        ans_host
-            .query_asset_pairing(querier, self)
-            .map_err(Into::into)
+        ans_host.query_asset_pairing(querier, self)
     }
 }
 
 impl Resolve for UniquePoolId {
     type Output = PoolMetadata;
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output> {
-        ans_host
-            .query_pool_metadata(querier, *self)
-            .map_err(Into::into)
+        ans_host.query_pool_metadata(querier, *self)
     }
 }
 
@@ -86,24 +73,11 @@ impl Resolve for AnsAsset {
     }
 }
 
-impl Resolve for &AnsAsset {
-    type Output = Asset;
-
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output> {
-        Ok(Asset::new(
-            ans_host.query_asset(querier, &self.name)?,
-            self.amount,
-        ))
-    }
-}
-
 impl Resolve for AssetInfo {
     type Output = AssetEntry;
 
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output> {
-        ans_host
-            .query_asset_reverse(querier, self)
-            .map_err(Into::into)
+        ans_host.query_asset_reverse(querier, self)
     }
 }
 

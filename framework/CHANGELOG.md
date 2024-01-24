@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Query `top_level_owner` for manager and apps(as base query)
 - Support of `ConcentratedLiquidity` pool type for swaps. Stake/unstake currently not supported
 - Account namespace is unclaimed after `Renounce`
+- Resolve trait for `cw-orch` `AnsHost` interface
 
 ### Changed
 

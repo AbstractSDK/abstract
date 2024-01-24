@@ -16,7 +16,7 @@ use abstract_core::{
     },
     objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
 };
-use abstract_interface::VCQueryFns;
+use abstract_interface::{ClientResolve, VCQueryFns};
 use abstract_testing::{
     prelude::{
         TEST_DEPENDENCY_MODULE_ID, TEST_DEPENDENCY_NAMESPACE, TEST_MODULE_ID, TEST_NAMESPACE,
@@ -25,7 +25,7 @@ use abstract_testing::{
     OWNER,
 };
 use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
-use cw_asset::AssetInfoUnchecked;
+use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::{
     contract::interface_traits::{CwOrchExecute, CwOrchQuery},
     prelude::{CallAs, Mock},
@@ -695,5 +695,24 @@ fn can_execute_on_proxy() -> anyhow::Result<()> {
         amount,
         client.query_balance(&Addr::unchecked(user), denom)?.into()
     );
+    Ok(())
+}
+
+#[test]
+fn resolve_works() -> anyhow::Result<()> {
+    let denom = "test_denom";
+    let entry = "denom";
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)))
+        .asset(entry, cw_asset::AssetInfoBase::Native(denom.to_owned()))
+        .build()?;
+
+    let name_service = client.name_service();
+    let asset_entry = AssetEntry::new(entry);
+    let asset = asset_entry.resolve(name_service)?;
+    assert_eq!(asset, AssetInfo::Native(denom.to_owned()));
+
+    // Or use it on AnsHost object
+    let asset = name_service.resolve(&asset_entry)?;
+    assert_eq!(asset, AssetInfo::Native(denom.to_owned()));
     Ok(())
 }
