@@ -1,6 +1,6 @@
 [package]
 name = "abstract-client"
-version.workspace = true
+version = { workspace = true }
 authors.workspace = true
 edition.workspace = true
 homepage.workspace = true
