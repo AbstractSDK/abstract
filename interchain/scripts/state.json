@@ -138,5 +138,63 @@
                 "abstract:version-control": "kujira1yapmxjmj9fpaqa6vmkq2mlang4jqa8fymzj34erzfkwu90gevl2q66lmnu"
             }
         }
-    }
+    },
+    "neutron": {
+        "neutron-1": {
+          "code_ids": {
+            "abstract:account-factory": 300,
+            "abstract:ans-host": 297,
+            "abstract:manager": 302,
+            "abstract:module-factory": 301,
+            "abstract:proxy": 303,
+            "abstract:version-control": 311
+          },
+          "default": {
+            "abstract:account-factory": "neutron1eyv8s3px2jq7f7v4zp6xk53vhqxw2uzn5v89appnxct5zlp3knxswnjtj7",
+            "abstract:ans-host": "neutron1d4wff76j06x8jwhaedpweqxcw6jw4h2d25lml9ngfmaxrqx0zz9ssuhje6",
+            "abstract:manager": "neutron16epenx4pwykd0pw5wsekea678zjs2473araukt40wd98ea233yaqgdry77",
+            "abstract:module-factory": "neutron1a6n4x8clkrns5ugur09q5lxrcyjf6jt7sfrl6kfdree8ddmc9kus8e05c5",
+            "abstract:proxy": "neutron1gmstk5g6vmwq6qge9lmcgsxpuug4f0lal3xvkpflp9sz84efl95seghdxq",
+            "abstract:version-control": "neutron1wn5v9m6hnctgh5exdrf0y95dlwwk70jc8je06ct94wul8l9melgsqgnges"
+          }
+        }
+      },
+      "archway": {
+        "archway-1": {
+          "code_ids": {
+            "abstract:account-factory": 212,
+            "abstract:ans-host": 210,
+            "abstract:manager": 214,
+            "abstract:module-factory": 213,
+            "abstract:proxy": 215,
+            "abstract:version-control": 211
+          },
+          "default": {
+            "abstract:account-factory": "archway1e9lrhwgxmk2entuw3u3k0zvwtmwtsx54ktre4mg3t3lqdl4y0pdswqqvz8",
+            "abstract:ans-host": "archway140avc9yehaj6s565zpwt536xl0yfh20sztvmpmtcmcpmvs359pnqxmn9va",
+            "abstract:manager": "archway14zx55qx0tcnuhrqjwgpw2t56qsv665u5y5ja56mhu9wun8pwdtasz8car3",
+            "abstract:module-factory": "archway14632c7pe7upll9dggq3ke6fe0u694c3270zr94t5cngq4n4mt5ls6kga22",
+            "abstract:proxy": "archway1fejukx07r34hwnhlau48893e5c6np78trhmlur2dnl5624vmr63s5wzed2",
+            "abstract:version-control": "archway1r0deflaymma4cqj7m0kdrdwv5qmpfklmsc4h7rnsrr0ynsx8jv7qhvkrrl"
+          }
+        },
+        "constantine-3": {
+          "code_ids": {
+            "abstract:account-factory": 1668,
+            "abstract:ans-host": 1666,
+            "abstract:manager": 1670,
+            "abstract:module-factory": 1669,
+            "abstract:proxy": 1671,
+            "abstract:version-control": 1667
+          },
+          "default": {
+            "abstract:account-factory": "archway1j4uk0wywn9xna4kkqd3uyztyr46km8cc2w5lep6dv2ctz9j96zuswew5gg",
+            "abstract:ans-host": "archway1ath2nufvn8898usnl2765kf4q8cyktxw5aampvd64mn3xezwfsqqhhy9dy",
+            "abstract:manager": "archway1hyu76euzn73fjac5e6alajr8xnck2awxfgu2jv0v59pqnlj7a7pshs7sxu",
+            "abstract:module-factory": "archway1zsgvw683jze460awv9h2qpp027xsv68n6ksh40jmzdq2m5s9pf3qpw5kgj",
+            "abstract:proxy": "archway1gjcu6680jq7ek3f0rdtqrxsar556wqhzje8yrvm8wgr63vqszm4sqsplpv",
+            "abstract:version-control": "archway1gxxrh04sz2urcw0wmh5j7p50z47yu4s7yva8wyul32uzd6z2qy3qd66256"
+          }
+        }
+      }
 }
