@@ -1,12 +1,15 @@
-use crate::contract::{EtfApp, EtfResult, DEFAULT_LP_TOKEN_NAME, DEFAULT_LP_TOKEN_SYMBOL};
-use crate::msg::EtfInstantiateMsg;
-use crate::state::{State, FEE, STATE};
 use abstract_core::objects::fee::Fee;
 use cosmwasm_std::{
     to_json_binary, Addr, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg, WasmMsg,
 };
 use cw20::MinterResponse;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
+
+use crate::{
+    contract::{EtfApp, EtfResult, DEFAULT_LP_TOKEN_NAME, DEFAULT_LP_TOKEN_SYMBOL},
+    msg::EtfInstantiateMsg,
+    state::{State, FEE, STATE},
+};
 
 pub const INSTANTIATE_REPLY_ID: u64 = 1u64;
 

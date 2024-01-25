@@ -8,7 +8,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use abstract_interface_integration_tests::{JUNO, STARGAZE};
-
 use anyhow::Result as AnyResult;
 use cosmwasm_std::coin;
 use cw_orch::prelude::{

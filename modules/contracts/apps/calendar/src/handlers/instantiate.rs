@@ -1,11 +1,12 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use crate::contract::{CalendarApp, CalendarAppResult};
-use crate::error::CalendarError;
-use crate::msg::CalendarInstantiateMsg;
-use crate::state::{Config, CONFIG};
-
 use super::execute::resolve_native_ans_denom;
+use crate::{
+    contract::{CalendarApp, CalendarAppResult},
+    error::CalendarError,
+    msg::CalendarInstantiateMsg,
+    state::{Config, CONFIG},
+};
 
 pub fn instantiate_handler(
     deps: DepsMut,

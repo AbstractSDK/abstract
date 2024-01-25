@@ -3,9 +3,7 @@ use cosmwasm_std::Addr;
 mod abstrct {
     use abstract_interface::Abstract;
     use cosmwasm_std::Empty;
-    use cw_orch::deploy::Deploy;
-    use cw_orch::mock::Mock;
-
+    use cw_orch::{deploy::Deploy, mock::Mock};
     use wyndex_bundle::{WynDex, WYNDEX_OWNER};
 
     use super::*;

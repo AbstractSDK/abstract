@@ -10,8 +10,8 @@ use abstract_core::{
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
 use abstract_testing::OWNER;
-
 use common::contracts;
+use cosmwasm_std::{coins, to_json_binary, Addr, BankMsg, Uint128, WasmMsg};
 use croncat_app::{
     contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION},
     error::AppError,
@@ -19,7 +19,6 @@ use croncat_app::{
     state::Config,
     AppExecuteMsgFns, AppQueryMsgFns, Croncat, CRON_CAT_FACTORY,
 };
-
 use croncat_integration_utils::{AGENTS_NAME, MANAGER_NAME, TASKS_NAME};
 use croncat_sdk_agents::msg::InstantiateMsg as AgentsInstantiateMsg;
 use croncat_sdk_factory::msg::{
@@ -34,7 +33,6 @@ use croncat_sdk_tasks::{
     msg::TasksInstantiateMsg,
     types::{Action, TaskRequest, TaskResponse},
 };
-
 use cw20::{Cw20Coin, Cw20CoinVerified, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_asset::{Asset, AssetList, AssetListUnchecked};
 use cw_multi_test::{App, Executor};
@@ -42,7 +40,6 @@ use cw_multi_test::{App, Executor};
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use crate::common::contracts::TasksResponseCaster;
-use cosmwasm_std::{coins, to_json_binary, Addr, BankMsg, Uint128, WasmMsg};
 // consts for testing
 const AGENT: &str = "agent";
 const VERSION: &str = "1.0";

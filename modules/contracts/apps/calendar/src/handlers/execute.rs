@@ -1,5 +1,8 @@
 use abstract_core::objects::AssetEntry;
-use abstract_sdk::features::AbstractResponse;
+use abstract_sdk::{
+    features::{AbstractNameService, AbstractResponse},
+    TransferInterface,
+};
 use chrono::{DateTime, FixedOffset, LocalResult, NaiveTime, TimeZone};
 use cosmwasm_std::{
     BankMsg, Coin, CosmosMsg, Deps, DepsMut, Env, Int64, MessageInfo, StdError, Uint128,
@@ -7,13 +10,12 @@ use cosmwasm_std::{
 use cw_asset::AssetInfoBase;
 use cw_utils::must_pay;
 
-use crate::contract::{CalendarApp, CalendarAppResult};
-
-use crate::error::CalendarError;
-use crate::msg::CalendarExecuteMsg;
-use crate::state::{Meeting, CALENDAR, CONFIG};
-use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::TransferInterface;
+use crate::{
+    contract::{CalendarApp, CalendarAppResult},
+    error::CalendarError,
+    msg::CalendarExecuteMsg,
+    state::{Meeting, CALENDAR, CONFIG},
+};
 
 enum StakeAction {
     Return,

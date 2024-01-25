@@ -6,40 +6,41 @@ mod osmosis_test {
 
     use std::path::PathBuf;
 
-    use abstract_core::adapter;
-    use abstract_core::ans_host::ExecuteMsgFns;
-    use abstract_core::objects::pool_id::PoolAddressBase;
-    use abstract_core::objects::AccountId;
-    use abstract_core::objects::PoolMetadata;
-    use abstract_core::objects::PoolType;
-    use abstract_core::MANAGER;
-    use abstract_cw_staking::contract::CONTRACT_VERSION;
-    use abstract_cw_staking::msg::StakingQueryMsgFns;
-    use abstract_interface::Abstract;
-    use abstract_interface::AbstractAccount;
-    use abstract_interface::AbstractInterfaceError;
-    use abstract_interface::AdapterDeployer;
-    use abstract_interface::DeployStrategy;
-    use abstract_interface::Manager;
-    use abstract_staking_standard::msg::StakingInfo;
-    use abstract_staking_standard::CwStakingError;
-    use cosmwasm_std::coins;
-
-    use abstract_cw_staking::msg::{
-        ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg,
+    use abstract_core::{
+        adapter,
+        ans_host::ExecuteMsgFns,
+        objects::{
+            pool_id::PoolAddressBase, AccountId, AnsAsset, AssetEntry, PoolMetadata, PoolType,
+        },
+        MANAGER,
     };
-
-    use abstract_core::objects::{AnsAsset, AssetEntry};
-    use cw_orch::deploy::Deploy;
-
-    use abstract_staking_standard::msg::StakingInfoResponse;
-    use cosmwasm_std::{coin, Addr, Empty, Uint128};
+    use abstract_cw_staking::{
+        contract::CONTRACT_VERSION,
+        msg::{
+            ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg,
+            StakingQueryMsgFns,
+        },
+    };
+    use abstract_interface::{
+        Abstract, AbstractAccount, AbstractInterfaceError, AdapterDeployer, DeployStrategy, Manager,
+    };
+    use abstract_staking_standard::{
+        msg::{StakingInfo, StakingInfoResponse},
+        CwStakingError,
+    };
+    use cosmwasm_std::{coin, coins, Addr, Empty, Uint128};
     use cw_asset::AssetInfoBase;
-    use cw_orch::interface;
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::lockup::AccountLockedCoinsRequest;
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::lockup::AccountLockedCoinsResponse;
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::Runner;
-    use cw_orch::prelude::*;
+    use cw_orch::{
+        deploy::Deploy,
+        interface,
+        osmosis_test_tube::osmosis_test_tube::{
+            osmosis_std::types::osmosis::lockup::{
+                AccountLockedCoinsRequest, AccountLockedCoinsResponse,
+            },
+            Runner,
+        },
+        prelude::*,
+    };
     use speculoos::prelude::*;
 
     const OSMOSIS: &str = "osmosis";
@@ -50,8 +51,9 @@ mod osmosis_test {
 
     pub const LP: &str = "osmosis/osmo,atom";
 
-    use crate::common::create_default_account;
     use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
+
+    use crate::common::create_default_account;
 
     fn get_pool_token(id: u64) -> String {
         format!("gamm/pool/{}", id)

@@ -1,4 +1,3 @@
-use reqwest::Url;
 use std::{
     fs::{self, File},
     io::BufReader,
@@ -7,7 +6,6 @@ use std::{
 
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
-
 use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 use clap::Parser;
 use cw_orch::{
@@ -17,6 +15,7 @@ use cw_orch::{
         *,
     },
 };
+use reqwest::Url;
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

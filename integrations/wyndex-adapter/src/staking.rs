@@ -1,8 +1,9 @@
-use crate::AVAILABLE_CHAINS;
-pub use crate::WYNDEX;
 use abstract_sdk::core::objects::LpToken;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
+
+use crate::AVAILABLE_CHAINS;
+pub use crate::WYNDEX;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct WynDex {

@@ -1,10 +1,11 @@
+use abstract_app::AppContract;
+use cosmwasm_std::{Empty, Response};
+
 use crate::{
     error::AppError,
     handlers,
     msg::{ChallengeExecuteMsg, ChallengeInstantiateMsg, ChallengeQueryMsg},
 };
-use abstract_app::AppContract;
-use cosmwasm_std::{Empty, Response};
 
 /// The version of your app
 pub const CHALLENGE_APP_VERSION: &str = env!("CARGO_PKG_VERSION");

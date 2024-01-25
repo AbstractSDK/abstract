@@ -1,12 +1,12 @@
-use crate::msg::AppMigrateMsg;
-use crate::{
-    error::AppError,
-    handlers,
-    msg::{AppExecuteMsg, AppInstantiateMsg, AppQueryMsg},
-};
 use abstract_app::AppContract;
 use abstract_core::objects::dependency::StaticDependency;
 use cosmwasm_std::Response;
+
+use crate::{
+    error::AppError,
+    handlers,
+    msg::{AppExecuteMsg, AppInstantiateMsg, AppMigrateMsg, AppQueryMsg},
+};
 
 /// The version of your app
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -1,11 +1,12 @@
-use crate::{msg::SubscriptionInstantiateMsg, SubscriptionError};
 use cosmwasm_std::{ensure, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     contract::{SubscriptionApp, SubscriptionResult},
+    msg::SubscriptionInstantiateMsg,
     state::{
         SubscriptionConfig, SubscriptionState, INCOME_TWA, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
     },
+    SubscriptionError,
 };
 
 pub fn instantiate_handler(

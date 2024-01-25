@@ -1,24 +1,27 @@
 use std::collections::HashSet;
 
-use crate::error::AppError;
-use abstract_app::abstract_core::objects::voting::{
-    ProposalId, ProposalInfo, ProposalOutcome, Vote,
-};
-use abstract_app::abstract_core::objects::AnsAsset;
-use abstract_app::abstract_sdk::features::AbstractResponse;
-use abstract_app::abstract_sdk::{
-    AbstractSdkResult, AccountVerification, Execution, TransferInterface,
+use abstract_app::{
+    abstract_core::objects::{
+        voting::{ProposalId, ProposalInfo, ProposalOutcome, Vote},
+        AnsAsset,
+    },
+    abstract_sdk::{
+        features::AbstractResponse, AbstractSdkResult, AccountVerification, Execution,
+        TransferInterface,
+    },
 };
 use cosmwasm_std::{
     ensure, Addr, Deps, DepsMut, Empty, Env, MessageInfo, Order, Response, StdResult, Uint128,
 };
 
-use crate::contract::{AppResult, ChallengeApp};
-
-use crate::msg::{ChallengeExecuteMsg, ChallengeRequest, Friend};
-use crate::state::{
-    ChallengeEntry, ChallengeEntryUpdate, UpdateFriendsOpKind, CHALLENGES, CHALLENGE_FRIENDS,
-    CHALLENGE_PROPOSALS, MAX_AMOUNT_OF_FRIENDS, NEXT_ID, SIMPLE_VOTING,
+use crate::{
+    contract::{AppResult, ChallengeApp},
+    error::AppError,
+    msg::{ChallengeExecuteMsg, ChallengeRequest, Friend},
+    state::{
+        ChallengeEntry, ChallengeEntryUpdate, UpdateFriendsOpKind, CHALLENGES, CHALLENGE_FRIENDS,
+        CHALLENGE_PROPOSALS, MAX_AMOUNT_OF_FRIENDS, NEXT_ID, SIMPLE_VOTING,
+    },
 };
 
 pub fn execute_handler(

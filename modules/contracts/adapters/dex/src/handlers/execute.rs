@@ -1,21 +1,26 @@
-use crate::handlers::execute::exchange_resolver::is_over_ibc;
-use crate::DEX_ADAPTER_ID;
-
-use crate::contract::{DexAdapter, DexResult};
-use crate::exchanges::exchange_resolver;
-use crate::msg::{DexAction, DexExecuteMsg, DexName};
-use crate::state::SWAP_FEE;
-use abstract_core::ibc::CallbackInfo;
-use abstract_core::objects::account::AccountTrace;
-use abstract_core::objects::chain_name::ChainName;
-use abstract_dex_standard::msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID};
-use abstract_dex_standard::DexError;
-
-use abstract_core::objects::ans_host::AnsHost;
-use abstract_core::objects::{AccountId, AnsAsset};
-use abstract_sdk::{features::AbstractNameService, Execution};
-use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
+use abstract_core::{
+    ibc::CallbackInfo,
+    objects::{
+        account::AccountTrace, ans_host::AnsHost, chain_name::ChainName, AccountId, AnsAsset,
+    },
+};
+use abstract_dex_standard::{
+    msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID},
+    DexError,
+};
+use abstract_sdk::{
+    features::AbstractNameService, AccountVerification, Execution, IbcInterface, Resolve,
+};
 use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
+
+use crate::{
+    contract::{DexAdapter, DexResult},
+    exchanges::exchange_resolver,
+    handlers::execute::exchange_resolver::is_over_ibc,
+    msg::{DexAction, DexExecuteMsg, DexName},
+    state::SWAP_FEE,
+    DEX_ADAPTER_ID,
+};
 
 pub fn execute_handler(
     deps: DepsMut,

@@ -1,9 +1,3 @@
-use crate::{
-    contract::{CroncatApp, CroncatResult},
-    state::{ACTIVE_TASKS, REMOVED_TASK_MANAGER_ADDR, TEMP_TASK_KEY},
-    utils::user_balance_nonempty,
-};
-
 use abstract_sdk::{
     features::{AbstractResponse, AccountIdentification},
     Execution,
@@ -11,6 +5,12 @@ use abstract_sdk::{
 use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Env, Reply};
 use croncat_integration_utils::reply_handler::reply_handle_croncat_task_creation;
 use croncat_sdk_manager::msg::ManagerExecuteMsg;
+
+use crate::{
+    contract::{CroncatApp, CroncatResult},
+    state::{ACTIVE_TASKS, REMOVED_TASK_MANAGER_ADDR, TEMP_TASK_KEY},
+    utils::user_balance_nonempty,
+};
 
 pub fn create_task_reply(deps: DepsMut, _env: Env, app: CroncatApp, reply: Reply) -> CroncatResult {
     let (task, bin) = reply_handle_croncat_task_creation(reply)?;

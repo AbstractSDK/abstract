@@ -1,19 +1,22 @@
 #![warn(missing_docs)]
 //! Message types for the challenge app
+use abstract_app::{
+    abstract_core::objects::{
+        voting::{ProposalId, ProposalInfo, Vote, VoteConfig},
+        AccountId, AssetEntry,
+    },
+    abstract_sdk::{AbstractSdkResult, AccountVerification},
+};
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Addr, Deps, StdResult, Timestamp, Uint64};
+use cw_address_like::AddressLike;
+
 use crate::{
     contract::ChallengeApp,
     state::{
         AdminStrikes, ChallengeEntry, ChallengeEntryUpdate, StrikeStrategy, UpdateFriendsOpKind,
     },
 };
-use abstract_app::abstract_core::objects::{
-    voting::{ProposalId, ProposalInfo, Vote, VoteConfig},
-    AccountId, AssetEntry,
-};
-use abstract_app::abstract_sdk::{AbstractSdkResult, AccountVerification};
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Deps, StdResult, Timestamp, Uint64};
-use cw_address_like::AddressLike;
 
 abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
 

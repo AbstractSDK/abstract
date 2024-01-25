@@ -1,18 +1,17 @@
+use abstract_app::AppContract;
+use abstract_core::objects::dependency::StaticDependency;
+#[cfg(feature = "interface")]
+use abstract_core::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
+use cosmwasm_std::{Empty, Response};
+#[cfg(feature = "interface")]
+use croncat_app::contract::interface::Croncat;
+use croncat_app::contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION};
+
 use crate::{
     error::DCAError,
     handlers,
     msg::{AppInstantiateMsg, DCAExecuteMsg, DCAQueryMsg},
 };
-use abstract_app::AppContract;
-use abstract_core::objects::dependency::StaticDependency;
-use cosmwasm_std::{Empty, Response};
-use croncat_app::contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION};
-
-#[cfg(feature = "interface")]
-use croncat_app::contract::interface::Croncat;
-
-#[cfg(feature = "interface")]
-use abstract_core::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
 
 /// The version of your app
 pub const DCA_APP_VERSION: &str = env!("CARGO_PKG_VERSION");

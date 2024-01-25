@@ -8,13 +8,15 @@ pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
 #[cfg(feature = "interface")]
 pub mod interface {
 
-    use crate::msg::*;
     use abstract_interface::AdapterDeployer;
     use cosmwasm_std::Empty;
-    use cw_orch::environment::CwEnv;
-    use cw_orch::interface;
-    use cw_orch::prelude::ContractWrapper;
-    use cw_orch::prelude::*;
+    use cw_orch::{
+        environment::CwEnv,
+        interface,
+        prelude::{ContractWrapper, *},
+    };
+
+    use crate::msg::*;
 
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct TMintStakingAdapter;

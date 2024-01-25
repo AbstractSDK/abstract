@@ -1,12 +1,13 @@
-use crate::replies::{TASK_CREATE_REPLY_ID, TASK_REMOVE_REPLY_ID};
+use abstract_app::AppContract;
+use cosmwasm_std::{Empty, Response};
+
 use crate::{
     error::AppError,
     handlers,
     msg::{AppExecuteMsg, AppInstantiateMsg, AppQueryMsg},
     replies,
+    replies::{TASK_CREATE_REPLY_ID, TASK_REMOVE_REPLY_ID},
 };
-use abstract_app::AppContract;
-use cosmwasm_std::{Empty, Response};
 
 /// The version of your app
 pub const CRONCAT_MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");

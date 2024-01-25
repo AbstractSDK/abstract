@@ -1,24 +1,30 @@
 use std::collections::HashSet;
 
-use abstract_core::ans_host::AssetPairingMapEntry;
-use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
+use abstract_core::{
+    ans_host::AssetPairingMapEntry,
+    objects::{AnsAsset, AssetEntry, DexName},
+};
 use abstract_dex_adapter::DexInterface;
-use abstract_sdk::core::ans_host::AssetPairingFilter;
-use cosmwasm_std::{Addr, Storage, Uint128};
-
-use abstract_sdk::cw_helpers::{AbstractAttributes, Clearable};
-use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::{AbstractResponse, TransferInterface};
-use cosmwasm_std::{CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response};
+use abstract_sdk::{
+    core::ans_host::AssetPairingFilter,
+    cw_helpers::{AbstractAttributes, Clearable},
+    features::AbstractNameService,
+    AbstractResponse, TransferInterface,
+};
+use cosmwasm_std::{
+    Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Storage, Uint128,
+};
 use cw_asset::{Asset, AssetList};
 
 use crate::contract::{AppResult, PaymentApp};
 
 const MAX_SPREAD_PERCENT: u64 = 20;
 
-use crate::error::AppError;
-use crate::msg::AppExecuteMsg;
-use crate::state::{CONFIG, TIPPERS, TIPPER_COUNT, TIP_COUNT};
+use crate::{
+    error::AppError,
+    msg::AppExecuteMsg,
+    state::{CONFIG, TIPPERS, TIPPER_COUNT, TIP_COUNT},
+};
 
 pub fn execute_handler(
     deps: DepsMut,

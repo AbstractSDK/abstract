@@ -1,33 +1,26 @@
 // #[cfg(test)]
 // mod test_utils;
 
+use abstract_core::objects::{price_source::UncheckedPriceSource, AssetEntry};
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, DeployStrategy, ProxyExecFns,
     ProxyQueryFns,
 };
-
-use abstract_core::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
 use abstract_sdk::core as abstract_core;
-
 use abstract_testing::OWNER;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
 use cw20::msg::Cw20ExecuteMsgFns;
-use cw_orch::prelude::*;
-use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
-
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::{AssetInfo, AssetUnchecked};
-use cw_orch::deploy::Deploy;
-
+use cw_orch::{deploy::Deploy, prelude::*};
+use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use etf_app::{
     contract::interface::Etf,
-    msg::Cw20HookMsg,
-    msg::{EtfExecuteMsgFns, EtfQueryMsgFns},
+    msg::{Cw20HookMsg, EtfExecuteMsgFns, EtfQueryMsgFns},
     ETF_APP_ID,
 };
 use semver::Version;
 use speculoos::prelude::*;
-
 use wyndex_bundle::*;
 
 type AResult = anyhow::Result<()>;

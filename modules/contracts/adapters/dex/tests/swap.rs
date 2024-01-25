@@ -1,22 +1,15 @@
 use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
-
-use abstract_dex_adapter::contract::CONTRACT_VERSION;
-use abstract_dex_adapter::msg::DexInstantiateMsg;
-use abstract_dex_adapter::DEX_ADAPTER_ID;
-use abstract_interface::AdapterDeployer;
-use abstract_interface::DeployStrategy;
+use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+use abstract_interface::{AdapterDeployer, DeployStrategy};
 use cw20::msg::Cw20ExecuteMsgFns;
-
 use cw20_base::msg::QueryMsgFns;
 use cw_orch::deploy::Deploy;
 mod common;
 
 use abstract_dex_adapter::interface::DexAdapter;
-use abstract_interface::Abstract;
-use abstract_interface::AbstractAccount;
+use abstract_interface::{Abstract, AbstractAccount};
 use common::create_default_account;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
-
 use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
