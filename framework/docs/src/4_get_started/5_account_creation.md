@@ -20,4 +20,4 @@ To easily test and publish modules programmatically, we've created the `abstract
 
 We highly recommend you use this package to interact with the Abstract platform. It will make your life a lot easier.
 
-You can read more about the `abstract-client` package [here](TODO: abstract-client url), or proceed with reading as we'll show you some usage of this package in the following sections.
+You can read more about the `abstract-client` package [here](https://crates.io/crates/abstract-client), or proceed with reading as we'll show you some usage of this package in the following sections.

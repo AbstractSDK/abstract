@@ -55,7 +55,7 @@ The main function of the client is to construct `Account`, `Application` and `Pu
 
 ### Creating an `Account`
 
-To create an account you can use the `AbstractClient::account_builder` function. This function will return an [`AccountBuilder`](TODO) that you can configure to build an `Account`. If a claimed namespace is provided to the builder, the builder will return the `Account` that owns that namespace. In the other scenarios the builder will create a new account.
+To create an account you can use the `AbstractClient::account_builder` function. This function will return an [`AccountBuilder`](https://docs.rs/abstract-client/latest/abstract_client/struct.AccountBuilder.html) that you can configure to build an `Account`. If a claimed namespace is provided to the builder, the builder will return the `Account` that owns that namespace. In the other scenarios the builder will create a new account.
 
 > Our examples will use the `Mock` environment for simplicity. However, the same functions can be used for any [`CwEnv`](https://docs.rs/cw-orch/latest/cw_orch/environment/trait.CwEnv.html).
 
@@ -79,7 +79,7 @@ let my_app: Application<Mock, App<Mock>> =
 Ok::<(), abstract_client::AbstractClientError>(())
 ```
 
-See the [`AccountBuilder`](TODO) documentation for more information on how to customize an Account.
+See the [`AccountBuilder`](https://docs.rs/abstract-client/latest/abstract_client/struct.AccountBuilder.html) documentation for more information on how to customize an Account.
 
 ### Creating a `Publisher`
 
@@ -117,4 +117,4 @@ Ok::<(), abstract_client::AbstractClientError>(())
 
 ### Client Test Helpers
 
-Additionally the client supports a set of helper functions you can explore <a href="TODO" target="_blank">here</a>.
+Additionally the client supports a set of helper functions you can explore <a href="https://docs.rs/abstract-client/latest/abstract_client/struct.AbstractClient.html" target="_blank">here</a>.

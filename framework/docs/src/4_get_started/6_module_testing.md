@@ -126,7 +126,7 @@ The `Account` object also has some useful helper methods:
 {{ #include ../../../packages/abstract-client/tests/integration.rs:account_helpers }}
 ```
 
-You can explore more of its functions in [the type's documentation](TODO).
+You can explore more of its functions in [the type's documentation](https://docs.rs/abstract-client/latest/abstract_client/struct.Account.html).
 
 ##### Your App Interface
 
