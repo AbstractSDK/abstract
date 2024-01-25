@@ -3,7 +3,7 @@ use abstract_adapter::mock::{
     MockQueryMsg as BootMockQueryMsg,
 };
 use abstract_app::mock::{
-    interface::MockAppI, mock_app_dependency::interface::MockAppDependencyI, MockExecMsgFns,
+    interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockExecMsgFns,
     MockInitMsg, MockQueryMsgFns, MockQueryResponse,
 };
 use abstract_client::{
@@ -18,10 +18,7 @@ use abstract_core::{
 };
 use abstract_interface::{ClientResolve, VCQueryFns};
 use abstract_testing::{
-    prelude::{
-        TEST_DEPENDENCY_MODULE_ID, TEST_DEPENDENCY_NAMESPACE, TEST_MODULE_ID, TEST_NAMESPACE,
-        TEST_VERSION,
-    },
+    prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
     OWNER,
 };
 use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
@@ -229,18 +226,18 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let publisher: Publisher<Mock> = client
-        .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
 
     let publisher_account = publisher.account();
     let publisher_manager = publisher_account.manager()?;
     let publisher_proxy = publisher_account.proxy()?;
 
-    publisher.publish_app::<MockAppDependencyI<Mock>>()?;
+    publisher.publish_app::<MockAppI<Mock>>()?;
 
     // Install app on sub-account
-    let my_app: Application<Mock, MockAppDependencyI<Mock>> =
-        publisher_account.install_app::<MockAppDependencyI<Mock>>(&MockInitMsg {}, &[])?;
+    let my_app: Application<Mock, MockAppI<Mock>> =
+        publisher_account.install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
 
     my_app.call_as(&publisher_manager).do_something()?;
 
@@ -268,7 +265,7 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
         .publisher_builder(Namespace::new("tester")?)
         .install_on_sub_account(false)
         .build()?;
-    let my_adapter: Application<Mock, MockAppDependencyI<Mock>> =
+    let my_adapter: Application<Mock, MockAppI<Mock>> =
         publisher.account().install_app(&MockInitMsg {}, &[])?;
 
     my_adapter.call_as(&publisher_manager).do_something()?;
@@ -413,19 +410,23 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let app_publisher: Publisher<Mock> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
         .build()?;
 
     let app_dependency_publisher: Publisher<Mock> = client
-        .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
 
-    app_dependency_publisher.publish_app::<MockAppDependencyI<Mock>>()?;
-    app_publisher.publish_app::<MockAppI<Mock>>()?;
+    app_dependency_publisher.publish_app::<MockAppI<Mock>>()?;
+    app_publisher.publish_app::<MockAppWithDepI<Mock>>()?;
 
-    let my_app: Application<Mock, MockAppI<Mock>> = app_publisher
+    let my_app: Application<Mock, MockAppWithDepI<Mock>> = app_publisher
         .account()
-        .install_app_with_dependencies::<MockAppI<Mock>>(&MockInitMsg {}, Empty {}, &[])?;
+        .install_app_with_dependencies::<MockAppWithDepI<Mock>>(
+        &MockInitMsg {},
+        Empty {},
+        &[],
+    )?;
 
     my_app
         .call_as(&app_publisher.account().manager()?)
@@ -436,11 +437,9 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
     assert_eq!(MockQueryResponse {}, something);
 
     let module_infos_response: ModuleInfosResponse = my_app.account().module_infos()?;
-    let module_addresses_response: ModuleAddressesResponse =
-        my_app.account().module_addresses(vec![
-            TEST_MODULE_ID.to_owned(),
-            TEST_DEPENDENCY_MODULE_ID.to_owned(),
-        ])?;
+    let module_addresses_response: ModuleAddressesResponse = my_app
+        .account()
+        .module_addresses(vec![TEST_MODULE_ID.to_owned(), TEST_MODULE_ID.to_owned()])?;
 
     let app_address: Addr = module_addresses_response
         .modules
@@ -453,7 +452,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
     let app_dependency_address: Addr = module_addresses_response
         .modules
         .iter()
-        .find(|(module_id, _)| module_id == TEST_DEPENDENCY_MODULE_ID)
+        .find(|(module_id, _)| module_id == TEST_MODULE_ID)
         .unwrap()
         .clone()
         .1;
@@ -461,9 +460,9 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
     assert!(module_infos_response
         .module_infos
         .contains(&ManagerModuleInfo {
-            id: TEST_DEPENDENCY_MODULE_ID.to_owned(),
+            id: TEST_MODULE_ID.to_owned(),
             version: cw2::ContractVersion {
-                contract: TEST_DEPENDENCY_MODULE_ID.to_owned(),
+                contract: TEST_MODULE_ID.to_owned(),
                 version: TEST_VERSION.to_owned()
             },
             address: app_dependency_address,
@@ -598,8 +597,8 @@ fn can_modify_and_query_balance_on_account() -> anyhow::Result<()> {
     let coin1 = Coin::new(50, "denom1");
     let coin2 = Coin::new(20, "denom2");
     let coin3 = Coin::new(10, "denom3");
-    account.set_balance(vec![coin1.clone(), coin2.clone()])?;
-    account.add_balance(vec![coin3.clone()])?;
+    account.set_balance(&[coin1.clone(), coin2.clone()])?;
+    account.add_balance(&[coin3.clone()])?;
 
     assert_eq!(coin1.amount, account.query_balance("denom1")?);
     assert_eq!(coin2.amount, account.query_balance("denom2")?);
@@ -614,21 +613,21 @@ fn can_get_module_dependency() -> anyhow::Result<()> {
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let app_publisher: Publisher<Mock> = client
-        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
         .build()?;
 
     let app_dependency_publisher: Publisher<Mock> = client
-        .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
 
-    app_dependency_publisher.publish_app::<MockAppDependencyI<Mock>>()?;
-    app_publisher.publish_app::<MockAppI<Mock>>()?;
+    app_dependency_publisher.publish_app::<MockAppI<Mock>>()?;
+    app_publisher.publish_app::<MockAppWithDepI<Mock>>()?;
 
-    let my_app: Application<Mock, MockAppI<Mock>> = app_publisher
+    let my_app: Application<Mock, MockAppWithDepI<Mock>> = app_publisher
         .account()
         .install_app_with_dependencies(&MockInitMsg {}, Empty {}, &[])?;
 
-    let dependency: MockAppDependencyI<Mock> = my_app.module()?;
+    let dependency: MockAppI<Mock> = my_app.module()?;
     dependency.do_something()?;
     Ok(())
 }
@@ -652,22 +651,22 @@ fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
     assert_eq!(vec![coin1, coin2, coin3], client.query_balances(&user)?);
     Ok(())
 }
+
 #[test]
 fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let publisher: Publisher<Mock> = client
-        .publisher_builder(Namespace::new(TEST_DEPENDENCY_NAMESPACE)?)
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
 
-    publisher.publish_app::<MockAppDependencyI<Mock>>()?;
+    publisher.publish_app::<MockAppI<Mock>>()?;
 
-    let my_app: Application<Mock, MockAppDependencyI<Mock>> =
-        publisher
-            .account()
-            .install_app::<MockAppDependencyI<Mock>>(&MockInitMsg {}, &[])?;
+    let my_app: Application<Mock, MockAppI<Mock>> = publisher
+        .account()
+        .install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
 
-    let dependency_res = my_app.module::<MockAppI<Mock>>();
+    let dependency_res = my_app.module::<MockAppWithDepI<Mock>>();
     assert!(dependency_res.is_err());
     Ok(())
 }
@@ -714,5 +713,89 @@ fn resolve_works() -> anyhow::Result<()> {
     // Or use it on AnsHost object
     let asset = name_service.resolve(&asset_entry)?;
     assert_eq!(asset, AssetInfo::Native(denom.to_owned()));
+    Ok(())
+}
+
+#[test]
+fn doc_example_test() -> anyhow::Result<()> {
+    // ## ANCHOR: build_client
+    // Create environment
+    let sender: Addr = Addr::unchecked("sender");
+    let env: Mock = Mock::new(&sender);
+
+    // Build the client
+    let client: AbstractClient<Mock> = AbstractClient::builder(env).build()?;
+    // ## ANCHOR_END: build_client
+
+    // ## ANCHOR: balances
+    let coins = &[Coin::new(50, "eth"), Coin::new(20, "btc")];
+
+    // Set a balance
+    client.set_balance(&sender, coins)?;
+
+    // Add to an address's balance
+    client.add_balance(&sender, &[Coin::new(50, "eth")])?;
+
+    // Query an address's balance
+    let coin1_balance = client.query_balance(&sender, "eth")?;
+
+    assert_eq!(coin1_balance.u128(), 100);
+    // ## ANCHOR_END: balances
+
+    // ## ANCHOR: publisher
+    // Create a publisher
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::from_id(TEST_MODULE_ID)?)
+        .build()?;
+
+    // Publish an app
+    publisher.publish_app::<MockAppI<Mock>>()?;
+    // ## ANCHOR_END: publisher
+
+    // ## ANCHOR: account
+    let account: Account<Mock> = client.account_builder().build()?;
+
+    // ## ANCHOR: app_interface
+    // Install an app
+    let app: Application<Mock, MockAppI<Mock>> =
+        account.install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
+    // ## ANCHOR_END: account
+    // Call a function on the app
+    app.do_something()?;
+
+    // Call as someone else
+    let manager: Addr = account.manager()?;
+    app.call_as(&manager).do_something()?;
+
+    // Query the app
+    let something: MockQueryResponse = app.get_something()?;
+    // ## ANCHOR_END: app_interface
+
+    // ## ANCHOR: account_helpers
+    // Get account info
+    let account_info: AccountInfo = account.info()?;
+    // Get the owner
+    let owner: Addr = account.owner()?;
+    // Add or set balance
+    account.add_balance(&[Coin::new(100, "btc")])?;
+    // ...
+    // ## ANCHOR_END: account_helpers
+
+    assert_eq!(
+        AccountInfo {
+            name: String::from("Default Abstract Account"),
+            chain_id: String::from("cosmos-testnet-14002"),
+            description: None,
+            governance_details: GovernanceDetails::Monarchy {
+                monarch: sender.clone()
+            },
+            link: None,
+        },
+        account_info
+    );
+
+    assert_eq!(owner, sender);
+    assert_eq!(something, MockQueryResponse {});
+
     Ok(())
 }

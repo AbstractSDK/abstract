@@ -2,18 +2,14 @@
 
 [![](https://docs.rs/abstract-sdk/badge.svg)](https://docs.rs/abstract-sdk) [![](https://img.shields.io/crates/v/abstract-sdk)](https://crates.io/crates/abstract-sdk)
 
-Now that you've got your module set up you're ready for our hot sauce. While you can create any regular smart contract
-in a module, it's where our software shines. Instead, we've created an **account abstraction programming toolbox** that
-allows you to easily control an Abstract Account's interactions, as well as **create your own APIs** that can be used by
-other developers to interact with your unique application. Composability galore!
+Now that you've got your module set up you're ready for our hot sauce. While you can create any regular smart contract in a module, using the SDK is where our software shines. In short, we've created an **account abstraction programming toolbox** that allows you to easily control an Abstract Account's interactions, as well as **create your own APIs** that can be used by other developers to interact with your unique application. Composability galore!
 
 ## How it works
 
-The `abstract-sdk` crate is a toolbox for developers to create composable smart contract APIs. It allows you to use
-composed functionality with a few keystrokes through its combination of supertraits and blanket implementations.
-Supertraits are Rust traits that have one or multiple trait bounds while a blanket implementation is a Rust
-implementation that is automatically implemented for every object that meets the trait bounds. The Abstract SDK uses
-both to achieve its modular design.
+The `abstract-sdk` crate is a toolbox for developers to create composable smart contract APIs. It allows you to use composed functionality with a few keystrokes through its combination of supertraits and blanket implementations.
+
+```admonish info
+*Supertraits* are Rust traits that have one or multiple trait bounds while a *blanket implementation* is a Rust implementation that is automatically implemented for every object that meets that trait's trait bounds. The Abstract SDK uses both to achieve its modular design.
 
 For more information about traits, supertraits and blanket implementations, check out the Rust documentation:
 
@@ -21,29 +17,26 @@ For more information about traits, supertraits and blanket implementations, chec
 - <a href="https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters" target="_blank">Supertraits</a>
 - <a href="https://doc.rust-lang.org/book/ch10-02-traits.html#implementing-a-trait-on-a-type" target="_blank">Blanket
   Implementations</a>
+```
 
 ## APIs
 
-Abstract API objects are Rust structs that expose some smart contract functionality. Such an API can only be retrieved
-if a contract (or feature-object) implements the required features/api traits. Access to an API is automatically
-provided if the trait constraints for the API are met by the contract.
+Abstract API objects are Rust structs that expose some smart contract functionality. Such an API can only be retrieved if a contract (or feature-object) implements the required features/api traits. Access to an API is automatically provided if the trait constraints for the API are met by the contract.
 
-Most of the APIs either return a `CosmosMsg` or an `AccountAction`. The `CosmosMsg` is a message that should be added
-as-is to the `Response` to perform some action.
+Most of the APIs either return a `CosmosMsg` or an `AccountAction`.
 
 ### `CosmosMsg` Example
 
-This example sends coins from the local contract (module) to the account that the application is installed on which does
-not require the account itself to execute the action.
+ The `CosmosMsg` is a message that should be added as-is to the `Response` to perform some action.
+
+This example sends coins from the local contract (module) to the account that the application is installed on which does not require the account itself to execute the action.
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/apis/bank.rs:deposit }}
 ```
+[source](https://github.com/AbstractSDK/abstract/blob/main/framework/packages/abstract-sdk/src/apis/bank.rs#L321)
 
-Alternatively `AccountAction` structs can also be returned by an API. An `AccountAction` is supposed to be forwarded to
-the Abstract Account to let the account perform action. `AccountAction`s can be executed with
-the [`Executor`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Executor.html) API. The returned `CosmosMsg`
-should be added to the action's `Response`.
+Alternatively `AccountAction` structs can also be returned by an API. An `AccountAction` is supposed to be forwarded to the Abstract Account to let the account perform the action. `AccountAction`s can be executed with the [`Executor`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Executor.html) API. The returned `CosmosMsg` should be added to the action's `Response`.
 
 ### `AccountAction` Example
 
@@ -52,25 +45,7 @@ This example sends coins from the account to another address which requires the 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/apis/bank.rs:transfer }}
 ```
-
-## Creating your own API
-
-The <a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Bank.html" target="_blank">`Bank`</a> API allows
-developers to transfer assets
-from and to the Account. We now want to use this API to create a `Splitter` API that splits the transfer of some amount
-of funds between a set of receivers.
-
-> The code behind this example is available <a href="https://github.com/AbstractSDK/abstract/blob/main/framework/packages/abstract-sdk/src/apis/splitter.rs" target="_blank">here</a>.
-
-```rust,ignore
-{{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:splitter }}
-```
-
-These APIs can then be used by any contract that implements its required traits, in this case the `TransferInterface`.
-
-```rust,ignore
-{{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:usage }}
-```
+[source](https://github.com/AbstractSDK/abstract/blob/main/framework/packages/abstract-sdk/src/apis/bank.rs#L277)
 
 ## Available API Objects
 
@@ -134,4 +109,20 @@ IDE with auto-completion.
 
 ```rust,ignore
 use abstract_sdk::prelude::*;
+```
+
+## Creating your own API
+
+The <a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Bank.html" target="_blank">`Bank`</a> API allows developers to transfer assets from and to the Account. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
+
+```rust,ignore
+{{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:splitter }}
+```
+
+<a href="https://github.com/AbstractSDK/abstract/blob/main/framework/packages/abstract-sdk/src/apis/splitter.rs" target="_blank">source</a>
+
+These APIs can then be used by any contract that implements its required traits, in this case the `TransferInterface`.
+
+```rust,ignore
+{{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:usage }}
 ```

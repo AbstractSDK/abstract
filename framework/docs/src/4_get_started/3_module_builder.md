@@ -3,21 +3,21 @@
 Abstract provides multiple module bases, as detailed in our section on [modules](../3_framework/6_module_types.md).
 These base implementation provide you with the minimal state and configuration required to start building your modular
 application. After setting up your module base from our template you'll probably want to customize it. Our module
-builder pattern allows you to do just that. It also gives you a great overview on all the entry points to you module,
+builder pattern allows you to do just that. It also gives you a great overview on all the entry points to your module,
 and those that others have built.
 
 ## Overview
 
 The builder pattern employed in building an Abstract module is a slight variation of the actual design pattern. Instead,
 the module builder lets you set custom entry point handlers at compile time, meaning you end up with a `const` value
-that is heavily optimized by the compiler. This ensures that the overhead of using Abstract has a negligible effect on
+that is heavily optimized by the compiler. This ensures that the overhead of using Abstract has little effect on
 both the code's runtime and WASM binary size.
 
 ```admonish info
 The code-snippets in this example can be found in the <a href="https://github.com/AbstractSDK/abstract/blob/main/framework/packages/abstract-app/examples/counter.rs" target="_blank">counter app example</a>.
 ```
 
-In this tutorial we will be working with an [`App` Module](../3_framework/6_module_types.md#apps).
+In this tutorial we will be working on an [`App` module](../3_framework/6_module_types.md#apps).
 
 ### App Type
 
@@ -55,6 +55,8 @@ come back to later. Here's the definition of the `ModuleData` field:
 ```rust,ignore
 {{#include ../../../packages/abstract-core/src/objects/module_version.rs:metadata}}
 ```
+
+All this data is stored on-chain when the App is instantiated.
 
 ### Handlers
 
@@ -97,8 +99,8 @@ reasons we explain in the [adapter section](../3_framework/6_module_types.md#ada
 
 For a full overview of the list of handlers available, please refer to the respective module type documentation:
 
-- <a href="https://docs.rs/abstract-app/0.18.0/abstract_app/state/struct.AppContract.html" target="_blank">App</a>
-- <a href="https://docs.rs/abstract-adapter/0.18.0/abstract_adapter/state/struct.AdapterContract.html" target="_blank">
+- <a href="https://docs.rs/abstract-app/latest/abstract_app/state/struct.AppContract.html" target="_blank">App</a>
+- <a href="https://docs.rs/abstract-adapter/latest/abstract_adapter/state/struct.AdapterContract.html" target="_blank">
   Adapter</a>
 
 Below, we examine each handler in greater detail. The `base` fields and variants mentioned in the messages below are
