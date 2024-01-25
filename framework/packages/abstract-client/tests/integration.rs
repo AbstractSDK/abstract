@@ -697,6 +697,7 @@ fn can_execute_on_proxy() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
 fn resolve_works() -> anyhow::Result<()> {
     let denom = "test_denom";
     let entry = "denom";
