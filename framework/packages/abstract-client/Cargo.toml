@@ -1,6 +1,7 @@
 [package]
 name = "abstract-client"
-version.workspace = true
+version = "0.20.0"
+description = "A client oriented package for the Abstract Framework."
 authors.workspace = true
 edition.workspace = true
 homepage.workspace = true
@@ -8,6 +9,7 @@ documentation.workspace = true
 repository.workspace = true
 license.workspace = true
 keywords.workspace = true
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -16,8 +18,8 @@ default = ["test-utils"]
 test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
 
 [dependencies]
+abstract-interface = "0.20.0"
 cosmwasm-std.workspace = true
-abstract-interface.workspace = true
 abstract-core.workspace = true
 cw-orch.workspace = true
 serde.workspace = true
@@ -29,11 +31,11 @@ cw-ownable.workspace = true
 cw-asset = { workspace = true, optional = true }
 
 # For Cw20 builder
-cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.2", optional = true }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.2", optional = true, features = [
+cw-plus-interface = { package = "abstract-cw-plus-interface", version = "1.2.2", optional = true }
+cw20 = { package = "abstract-cw20", version = "1.2.2", optional = true, features = [
   "interface",
 ] }
-cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.2", optional = true, features = [
+cw20-base = { package = "abstract-cw20-base", version = "1.2.2", optional = true, features = [
   "interface",
 ] }
 

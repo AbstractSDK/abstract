@@ -8,7 +8,6 @@ license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/AbstractSDK/abstract"
 
-
 [lib]
 crate-type = ["cdylib", "rlib"]
 
