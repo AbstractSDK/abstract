@@ -23,5 +23,4 @@ mod error;
 pub use error::AbstractInterfaceError;
 
 pub use crate::deployers::*;
-
 pub use crate::deployment::*;

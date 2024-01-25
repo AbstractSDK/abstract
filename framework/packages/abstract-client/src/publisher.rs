@@ -2,6 +2,7 @@
 //!
 //! [`Publisher`] is an Account with helpers for publishing and maintaining Abstract Applications and Adapters
 
+use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
 use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule};
 use cw_orch::{
@@ -15,7 +16,6 @@ use crate::{
     client::AbstractClientResult,
     Environment,
 };
-use abstract_core::objects::namespace::Namespace;
 
 /// A builder for creating [`Publishers`](Account).
 /// Get the builder from the [`AbstractClient::publisher_builder`](crate::AbstractClient)

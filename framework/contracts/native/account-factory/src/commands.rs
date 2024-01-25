@@ -1,16 +1,9 @@
 use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::module_factory::SimulateInstallModulesResponse;
 use abstract_core::objects::account::{generate_account_salt, AccountTrace};
+use abstract_core::objects::module::assert_module_data_validity;
 use abstract_core::objects::{AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID};
 use abstract_core::AbstractError;
-
-use abstract_core::objects::module::assert_module_data_validity;
-use abstract_sdk::feature_objects::VersionControlContract;
-use cosmwasm_std::{
-    ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, DepsMut, Empty, Env,
-    MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
-};
-
 use abstract_sdk::core::{
     manager::InstantiateMsg as ManagerInstantiateMsg,
     objects::{
@@ -22,6 +15,11 @@ use abstract_sdk::core::{
         AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
     },
     AbstractResult, MANAGER, PROXY,
+};
+use abstract_sdk::feature_objects::VersionControlContract;
+use cosmwasm_std::{
+    ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, DepsMut, Empty, Env,
+    MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
 };
 
 use crate::contract::AccountFactoryResponse;

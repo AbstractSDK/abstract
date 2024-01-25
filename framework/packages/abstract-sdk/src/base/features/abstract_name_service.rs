@@ -1,5 +1,3 @@
-/// ANCHOR: ans
-use crate::{ans_resolve::Resolve, cw_helpers::ApiQuery, AbstractSdkResult};
 use abstract_core::{
     ans_host::{
         AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, QueryMsg,
@@ -11,6 +9,8 @@ use cosmwasm_std::Deps;
 
 use super::ModuleIdentification;
 use crate::apis::{AbstractApi, ApiIdentification};
+/// ANCHOR: ans
+use crate::{ans_resolve::Resolve, cw_helpers::ApiQuery, AbstractSdkResult};
 
 /// Accessor to the Abstract Name Service.
 pub trait AbstractNameService: Sized {

@@ -48,7 +48,6 @@ mod tests {
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, Binary, StdError, StdResult,
     };
-
     use cw_ownable::{cw_ownable_execute, cw_ownable_query, Action, OwnershipError};
     use thiserror::Error;
 

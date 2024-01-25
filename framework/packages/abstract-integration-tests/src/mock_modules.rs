@@ -92,9 +92,10 @@ pub mod adapter_2 {
 
 // app 1 depends on adapter 1 and adapter 2
 pub mod app_1 {
-    use super::*;
     pub use v1::*;
     pub use v2::*;
+
+    use super::*;
     pub const MOCK_APP_ID: &str = "tester:mock-app1";
     pub mod v1 {
         use super::*;
@@ -187,9 +188,8 @@ pub mod gen_mock {
 
 // this standalone have cw2
 pub mod standalone_cw2 {
-    use crate::gen_standalone_mock;
-
     use super::*;
+    use crate::gen_standalone_mock;
     pub const MOCK_STANDALONE_ID: &str = "crate.io:mock-standalone1";
     pub const MOCK_STANDALONE_VERSION: &str = "1.0.0";
 
@@ -203,9 +203,8 @@ pub mod standalone_cw2 {
 
 // this standalone does not have cw2
 pub mod standalone_no_cw2 {
-    use crate::gen_standalone_mock;
-
     use super::*;
+    use crate::gen_standalone_mock;
     pub const MOCK_STANDALONE_ID: &str = "crates.io:mock-standalone2";
     pub const MOCK_STANDALONE_VERSION: &str = "1.0.0";
 

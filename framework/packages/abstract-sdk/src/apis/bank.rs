@@ -1,17 +1,18 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
+use abstract_core::objects::ans_host::AnsHostError;
+use cosmwasm_std::to_json_binary;
+use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
+use cw_asset::Asset;
+use serde::Serialize;
+
 use super::{AbstractApi, ApiIdentification};
 use crate::core::objects::{AnsAsset, AssetEntry};
 use crate::cw_helpers::ApiQuery;
 use crate::features::{AccountIdentification, ModuleIdentification};
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
 use crate::{AbstractSdkError, AccountAction};
-use abstract_core::objects::ans_host::AnsHostError;
-use cosmwasm_std::to_json_binary;
-use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
-use cw_asset::Asset;
-use serde::Serialize;
 
 /// Query and Transfer assets from and to the Abstract Account.
 pub trait TransferInterface:
@@ -260,18 +261,18 @@ impl Transferable for Coin {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::mock_module::*;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
 
+    use super::*;
+    use crate::mock_module::*;
+
     mod transfer_coins {
         use abstract_core::proxy::ExecuteMsg;
 
-        use crate::{Execution, Executor, ExecutorMsg};
-
         use super::*;
+        use crate::{Execution, Executor, ExecutorMsg};
 
         #[test]
         fn transfer_asset_to_sender() {
@@ -365,9 +366,8 @@ mod test {
         use cw20::Cw20ExecuteMsg;
         use cw_asset::AssetError;
 
-        use crate::AbstractSdkError;
-
         use super::*;
+        use crate::AbstractSdkError;
 
         #[test]
         fn send_cw20() {

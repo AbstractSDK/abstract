@@ -65,12 +65,12 @@ mod test {
         use abstract_core::ibc_host::ClientProxyResponse;
         use abstract_core::ibc_host::InstantiateMsg;
         use abstract_core::ibc_host::QueryMsg;
-
-        use crate::contract::{execute, instantiate, query};
         use cosmwasm_std::from_json;
         use cosmwasm_std::testing::mock_dependencies;
         use cosmwasm_std::testing::mock_env;
         use cosmwasm_std::testing::mock_info;
+
+        use crate::contract::{execute, instantiate, query};
         // Instantiate
         let mut deps = mock_dependencies();
         let info = mock_info("admin", &[]);

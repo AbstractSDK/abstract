@@ -1,13 +1,15 @@
+use std::fmt::{self, Display};
+
+use cosmwasm_std::{ensure_eq, to_json_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
+use cw2::ContractVersion;
+use cw_semver::Version;
+use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
+
 use super::{module_reference::ModuleReference, AccountId};
 use crate::objects::fee::FixedFee;
 use crate::objects::module_version::MODULE;
 use crate::objects::namespace::Namespace;
 use crate::{error::AbstractError, AbstractResult};
-use cosmwasm_std::{ensure_eq, to_json_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
-use cw2::ContractVersion;
-use cw_semver::Version;
-use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
-use std::fmt::{self, Display};
 
 /// ID of the module
 pub type ModuleId<'a> = &'a str;
@@ -494,10 +496,11 @@ pub fn generate_module_salt(block_height: u64, account_id: &AccountId) -> Binary
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
     use speculoos::prelude::*;
+
+    use super::*;
 
     mod storage_plus {
         use super::*;
@@ -828,9 +831,8 @@ mod test {
     }
 
     mod module_salt {
-        use crate::objects::{account::AccountTrace, chain_name::ChainName};
-
         use super::*;
+        use crate::objects::{account::AccountTrace, chain_name::ChainName};
 
         #[test]
         fn generate_module_salt_local() {

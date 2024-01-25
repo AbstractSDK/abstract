@@ -1,13 +1,13 @@
-use crate::{commands, error::AccountFactoryError, queries, state::*};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{account_factory::*, ACCOUNT_FACTORY};
+use abstract_sdk::{execute_update_ownership, query_ownership};
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
-
-use abstract_sdk::{execute_update_ownership, query_ownership};
 use semver::Version;
+
+use crate::{commands, error::AccountFactoryError, queries, state::*};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -119,13 +119,14 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResu
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test_common::*;
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::*;
     use cosmwasm_std::Addr;
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
+
+    use super::*;
+    use crate::test_common::*;
 
     type AccountFactoryTestResult = AccountFactoryResult<()>;
 
@@ -152,8 +153,9 @@ mod tests {
     }
 
     mod update_config {
-        use super::*;
         use cosmwasm_std::Addr;
+
+        use super::*;
 
         #[test]
         fn only_owner() -> AccountFactoryTestResult {
@@ -285,8 +287,9 @@ mod tests {
     }
 
     mod update_ownership {
-        use super::*;
         use cw_ownable::Action;
+
+        use super::*;
 
         #[test]
         fn only_owner() -> AccountFactoryTestResult {
@@ -362,9 +365,10 @@ mod tests {
     }
 
     mod migrate {
+        use abstract_core::AbstractError;
+
         use super::*;
         use crate::contract;
-        use abstract_core::AbstractError;
 
         #[test]
         fn disallow_same_version() -> AccountFactoryResult<()> {

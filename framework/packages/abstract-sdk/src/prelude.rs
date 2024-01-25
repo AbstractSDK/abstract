@@ -8,12 +8,10 @@
 //! use abstract_sdk::prelude::*;
 //! ```
 
+pub use crate::ans_resolve::Resolve;
 pub use crate::apis::{
     accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
     verify::*, version_registry::*,
 };
-
 #[cfg(feature = "stargate")]
 pub use crate::apis::{distribution::*, stargate::feegrant::*};
-
-pub use crate::ans_resolve::Resolve;

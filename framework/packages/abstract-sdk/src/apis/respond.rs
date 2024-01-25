@@ -1,6 +1,7 @@
-use crate::features::ModuleIdentification;
 use abstract_macros::with_abstract_event;
 use cosmwasm_std::{Attribute, Response};
+
+use crate::features::ModuleIdentification;
 
 /// Construct a [`Response`] with an abstract-specific event.
 /// The event contains the contract name and the action, and any additional attributes.

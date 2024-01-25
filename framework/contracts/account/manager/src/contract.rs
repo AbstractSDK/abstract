@@ -1,8 +1,3 @@
-use crate::{
-    commands::{self, *},
-    error::ManagerError,
-    queries, versioning,
-};
 use abstract_core::{
     manager::{
         state::{ACCOUNT_MODULES, PENDING_GOVERNANCE},
@@ -27,6 +22,12 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use semver::Version;
+
+use crate::{
+    commands::{self, *},
+    error::ManagerError,
+    queries, versioning,
+};
 
 pub type ManagerResult<R = Response> = Result<R, ManagerError>;
 
@@ -288,17 +289,18 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ManagerResult {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::contract;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
+    use super::*;
+    use crate::contract;
     use crate::test_common::mock_init;
 
     mod migrate {
-        use super::*;
         use abstract_core::AbstractError;
         use cw2::get_contract_version;
+
+        use super::*;
 
         #[test]
         fn disallow_same_version() -> ManagerResult<()> {

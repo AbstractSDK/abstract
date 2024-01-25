@@ -1,10 +1,12 @@
-use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
-use crate::{CwStakingError, Identify};
+use std::error::Error;
+
 use abstract_core::objects::AnsAsset;
 use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper};
-use std::error::Error;
+
+use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
+use crate::{CwStakingError, Identify};
 
 /// Trait that defines the staking commands for providers
 pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {

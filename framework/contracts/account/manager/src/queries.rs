@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use abstract_core::manager::state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS};
 use abstract_core::manager::SubAccountIdsResponse;
 use abstract_core::objects::module::{self, ModuleInfo};
@@ -12,7 +14,6 @@ use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_storage_plus::Bound;
-use std::collections::BTreeMap;
 
 const DEFAULT_LIMIT: u8 = 5;
 const MAX_LIMIT: u8 = 10;

@@ -11,10 +11,11 @@
 //! - uninstall module
 //! - upgrade module
 
-use crate::Abstract;
-use crate::AdapterDeployer;
 use abstract_core::manager::ModuleInstallConfig;
 use abstract_core::ABSTRACT_EVENT_TYPE;
+
+use crate::Abstract;
+use crate::AdapterDeployer;
 
 mod manager;
 mod proxy;
@@ -27,9 +28,8 @@ use cw_orch::prelude::*;
 use serde::Serialize;
 use speculoos::prelude::*;
 
-use crate::{get_account_contracts, VersionControl};
-
 pub use self::{manager::*, proxy::*};
+use crate::{get_account_contracts, VersionControl};
 
 #[derive(Clone)]
 pub struct AbstractAccount<Chain: CwEnv> {

@@ -1,10 +1,10 @@
 //! # Fee helpers
 //! Helper trait that lets you easily charge fees on assets
 
-use crate::core::objects::fee::{Fee, UsageFee};
 use cosmwasm_std::{CosmosMsg, Uint128};
 use cw_asset::Asset;
 
+use crate::core::objects::fee::{Fee, UsageFee};
 use crate::AbstractSdkResult;
 
 /// Indicates that the implementing type can be charged fees.
@@ -37,9 +37,10 @@ impl Chargeable for Asset {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use cosmwasm_std::{testing::MockApi, Addr, Decimal};
     use cw_asset::AssetInfo;
+
+    use super::*;
 
     // test that we can charge fees on assets
 

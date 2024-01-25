@@ -3,9 +3,8 @@ use std::fmt::Display;
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
-use crate::{objects::chain_name::ChainName, AbstractError};
-
 use super::{account_trace::AccountTrace, AccountSequence};
+use crate::{objects::chain_name::ChainName, AbstractError};
 
 /// Unique identifier for an account.
 /// On each chain this is unique.
@@ -172,16 +171,16 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
+
+    use super::*;
 
     mod key {
         use std::str::FromStr;
 
-        use crate::objects::chain_name::ChainName;
-
         use super::*;
+        use crate::objects::chain_name::ChainName;
 
         fn mock_key() -> AccountId {
             AccountId {

@@ -1,8 +1,9 @@
-use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{Storage, Uint64};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::{error::AbstractError, AbstractResult};
 
 #[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct Deposit {
@@ -135,8 +136,9 @@ impl DepositManager {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use cosmwasm_std::testing::MockStorage;
+
+    use super::*;
 
     #[test]
     fn test_user_deposits() {

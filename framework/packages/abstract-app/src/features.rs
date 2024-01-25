@@ -1,10 +1,11 @@
-use crate::{state::ContractError, AppContract};
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps};
+
+use crate::{state::ContractError, AppContract};
 
 // ANCHOR: ans
 impl<
@@ -83,7 +84,6 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use abstract_core::version_control::AccountBase;
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
     use abstract_testing::{
@@ -95,6 +95,7 @@ mod test {
     };
     use speculoos::prelude::*;
 
+    use super::*;
     use crate::mock::*;
 
     #[test]

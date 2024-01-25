@@ -1,6 +1,3 @@
-use crate::error::ProxyError;
-use crate::queries::*;
-use crate::{commands::*, reply};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_core::objects::oracle::Oracle;
 use abstract_core::objects::price_source::UncheckedPriceSource;
@@ -20,6 +17,10 @@ use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, SubMsgResult,
 };
 use semver::Version;
+
+use crate::error::ProxyError;
+use crate::queries::*;
+use crate::{commands::*, reply};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const RESPONSE_REPLY_ID: u64 = 1;
@@ -135,15 +136,17 @@ pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> ProxyResult {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::contract;
-    use crate::test_common::*;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
+    use super::*;
+    use crate::contract;
+    use crate::test_common::*;
+
     mod migrate {
-        use super::*;
         use abstract_core::AbstractError;
+
+        use super::*;
 
         #[test]
         fn disallow_same_version() -> ProxyResult<()> {

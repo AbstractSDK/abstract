@@ -5,9 +5,8 @@ use cw_address_like::AddressLike;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::AbstractError;
-
 use super::account::ACCOUNT_ID;
+use crate::AbstractError;
 
 const MIN_GOV_TYPE_LENGTH: usize = 4;
 const MAX_GOV_TYPE_LENGTH: usize = 64;
@@ -173,9 +172,10 @@ impl<T: AddressLike> ToString for GovernanceDetails<T> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
+
+    use super::*;
 
     #[test]
     fn test_verify() {

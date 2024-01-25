@@ -1,4 +1,3 @@
-use crate::{mock_ans::MockAnsHost, prelude::*, MockQuerierBuilder};
 use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
 use abstract_core::{
     ans_host::state::{ASSET_ADDRESSES, CHANNELS},
@@ -11,6 +10,8 @@ use cosmwasm_std::{testing::MockQuerier, Addr};
 use cw_asset::AssetInfo;
 use cw_ownable::Ownership;
 use cw_storage_plus::Item;
+
+use crate::{mock_ans::MockAnsHost, prelude::*, MockQuerierBuilder};
 
 /// A mock querier setup with the proper responses for proxy/manager/accountId.
 pub fn mocked_account_querier_builder() -> AbstractMockQuerierBuilder {

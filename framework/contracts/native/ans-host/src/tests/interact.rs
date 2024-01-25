@@ -1,12 +1,14 @@
-use crate::contract::execute;
-use crate::error::AnsHostError;
-use crate::tests::instantiate::mock_instantiate;
-use crate::tests::mock_querier::mock_dependencies;
+use std::convert::TryInto;
+
 use abstract_core::ans_host::*;
 use abstract_testing::OWNER;
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cw_asset::AssetInfo;
-use std::convert::TryInto;
+
+use crate::contract::execute;
+use crate::error::AnsHostError;
+use crate::tests::instantiate::mock_instantiate;
+use crate::tests::mock_querier::mock_dependencies;
 
 /**
  * Test disallowed address update

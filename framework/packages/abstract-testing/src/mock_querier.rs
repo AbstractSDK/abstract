@@ -1,4 +1,5 @@
-use crate::prelude::*;
+use std::{collections::HashMap, ops::Deref};
+
 use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
 use abstract_core::{
     manager::state::{ACCOUNT_ID, ACCOUNT_MODULES},
@@ -12,7 +13,8 @@ use cosmwasm_std::{
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map, PrimaryKey};
 use serde::{de::DeserializeOwned, Serialize};
-use std::{collections::HashMap, ops::Deref};
+
+use crate::prelude::*;
 
 type BinaryQueryResult = Result<Binary, String>;
 type ContractAddr = String;
@@ -421,7 +423,6 @@ pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use abstract_core::{
         manager::state::ACCOUNT_MODULES, proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
@@ -429,9 +430,12 @@ mod tests {
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
 
+    use super::*;
+
     mod account {
-        use super::*;
         use abstract_core::version_control::AccountBase;
+
+        use super::*;
 
         #[test]
         fn should_return_account_address() {

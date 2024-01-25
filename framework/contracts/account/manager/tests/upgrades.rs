@@ -14,16 +14,13 @@ use abstract_core::{
     AbstractError,
 };
 use abstract_integration_tests::{create_default_account, AResult};
+use abstract_integration_tests::{mock_modules::*, *};
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
     ManagerExecFns, ManagerQueryFns, VCExecFns,
 };
-
-use abstract_integration_tests::{mock_modules::*, *};
-
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
-
 use cosmwasm_std::{coin, to_json_binary};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;

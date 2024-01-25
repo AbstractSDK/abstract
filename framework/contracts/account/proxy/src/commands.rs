@@ -1,5 +1,3 @@
-use crate::contract::{ProxyResponse, ProxyResult, RESPONSE_REPLY_ID};
-use crate::error::ProxyError;
 use abstract_core::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
 use abstract_sdk::core::{
     ibc_client::ExecuteMsg as IbcClientMsg,
@@ -7,6 +5,9 @@ use abstract_sdk::core::{
     IBC_CLIENT,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg};
+
+use crate::contract::{ProxyResponse, ProxyResult, RESPONSE_REPLY_ID};
+use crate::error::ProxyError;
 
 const LIST_SIZE_LIMIT: usize = 15;
 
@@ -160,6 +161,7 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResul
 
 #[cfg(test)]
 mod test {
+    use abstract_core::proxy::ExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::mock_dependencies;
     use cosmwasm_std::testing::{
@@ -168,13 +170,9 @@ mod test {
     use cosmwasm_std::{Addr, OwnedDeps, Storage};
     use speculoos::prelude::*;
 
-    use crate::test_common::*;
-
-    use abstract_core::proxy::ExecuteMsg;
-
-    use crate::contract::execute;
-
     use super::*;
+    use crate::contract::execute;
+    use crate::test_common::*;
 
     const TEST_MODULE: &str = "module";
 
@@ -276,11 +274,10 @@ mod test {
     type ProxyTestResult = Result<(), ProxyError>;
 
     mod remove_module {
+        use abstract_core::proxy::state::State;
         use cosmwasm_std::testing::mock_dependencies;
         use cosmwasm_std::Addr;
         use cw_controllers::AdminError;
-
-        use abstract_core::proxy::state::State;
 
         use super::*;
 
@@ -341,8 +338,9 @@ mod test {
     }
 
     mod execute_action {
-        use super::*;
         use abstract_core::proxy::state::State;
+
+        use super::*;
 
         #[test]
         fn only_whitelisted_can_execute() {

@@ -1,5 +1,5 @@
-use crate::{DexCommand, DexError};
-use crate::{Fee, FeeOnInput, Return, Spread};
+use std::fmt::Debug;
+
 use abstract_core::objects::PoolAddress;
 use cosmwasm_std::CosmosMsg;
 use cosmwasm_std::Decimal;
@@ -8,7 +8,9 @@ use cw_asset::Asset;
 use cw_asset::AssetInfo;
 use cw_orch::daemon::live_mock::mock_dependencies;
 use cw_orch::daemon::ChainRegistryData as ChainData;
-use std::fmt::Debug;
+
+use crate::{DexCommand, DexError};
+use crate::{Fee, FeeOnInput, Return, Spread};
 
 pub struct DexCommandTester {
     chain: ChainData,

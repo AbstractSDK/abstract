@@ -1,9 +1,8 @@
+use abstract_core::ibc_client::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cw_orch::{
     interface,
     prelude::{artifacts_dir_from_workspace, CwEnv, Uploadable, WasmPath},
 };
-
-use abstract_core::ibc_client::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cw_orch::{
     prelude::ArtifactsDir,
     prelude::{ContractWrapper, Mock, TxHandler},

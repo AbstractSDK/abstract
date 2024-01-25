@@ -18,9 +18,8 @@ use cosmwasm_std::{coin, coins};
 use cosmwasm_std::{Addr, Coin, Empty};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
-use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
-
 use mock_modules::{adapter_1, V1, V2};
+use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 #[test]
 fn installing_one_adapter_should_succeed() -> AResult {
@@ -628,11 +627,11 @@ fn subaccount_adapter_ownership() -> AResult {
 }
 
 mod old_mock {
-    use super::*;
-    use abstract_integration_tests::{create_default_account, mock_modules, AResult};
-
     use abstract_adapter::gen_adapter_old_mock;
+    use abstract_integration_tests::{create_default_account, mock_modules, AResult};
     use mock_modules::adapter_1::MOCK_ADAPTER_ID;
+
+    use super::*;
 
     gen_adapter_old_mock!(OldMockAdapter1V1, MOCK_ADAPTER_ID, "1.0.0", &[]);
 

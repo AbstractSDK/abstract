@@ -1,9 +1,11 @@
-use crate::{constants::CHAIN_DELIMITER, AbstractError, AbstractResult};
+use std::fmt::Display;
+
 use cosmwasm_std::StdResult;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+
+use crate::{constants::CHAIN_DELIMITER, AbstractError, AbstractResult};
 
 /// An unchecked ANS asset entry. This is a string that is formatted as
 /// `src_chain>[intermediate_chain>]asset_name`
@@ -110,9 +112,10 @@ impl KeyDeserialize for &AssetEntry {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use rstest::rstest;
     use speculoos::prelude::*;
+
+    use super::*;
 
     #[test]
     fn test_asset_entry() {

@@ -32,7 +32,6 @@ pub mod voting;
 
 pub use account::{AccountId, ABSTRACT_ACCOUNT_ID};
 pub use ans_asset::AnsAsset;
-
 pub use entry::ans_entry_convertor::AnsEntryConvertor;
 pub use entry::asset_entry::AssetEntry;
 pub use entry::channel_entry::{ChannelEntry, UncheckedChannelEntry};

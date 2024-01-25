@@ -1,8 +1,9 @@
+use std::{array::TryFromSliceError, convert::TryInto, fmt::Display};
+
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{IntKey, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{array::TryFromSliceError, convert::TryInto, fmt::Display};
 
 #[derive(
     Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Copy,
@@ -78,9 +79,10 @@ impl IntKey for UniquePoolId {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
+
+    use super::*;
 
     fn mock_key() -> UniquePoolId {
         UniquePoolId::new(1)

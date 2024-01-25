@@ -1,6 +1,8 @@
 //! Mock module for API and feature testing
 
+use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::dependency::StaticDependency;
+use abstract_core::objects::version_control::VersionControlContract;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{Addr, Deps};
 
@@ -10,8 +12,6 @@ use crate::features::{
     ModuleIdentification,
 };
 use crate::AbstractSdkResult;
-use abstract_core::objects::ans_host::AnsHost;
-use abstract_core::objects::version_control::VersionControlContract;
 
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
 impl AccountIdentification for MockModule {

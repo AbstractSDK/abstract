@@ -1,11 +1,12 @@
-use crate::AbstractResult;
+use std::{convert::TryInto, fmt::Display};
+
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{convert::TryInto, fmt::Display};
 
 use crate::objects::chain_name::ChainName;
+use crate::AbstractResult;
 
 /// Key to get the Address of a connected_chain
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
@@ -115,9 +116,10 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
 mod test {
     use std::str::FromStr;
 
-    use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
+
+    use super::*;
 
     fn mock_key() -> ChannelEntry {
         ChannelEntry {

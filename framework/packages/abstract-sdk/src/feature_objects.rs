@@ -4,14 +4,15 @@
 //! These objects are mostly used internally to easy re-use application code without
 //! requiring the usage of a base contract.
 
+pub use abstract_core::objects::{ans_host::AnsHost, version_control::VersionControlContract};
+use abstract_core::version_control::AccountBase;
+use cosmwasm_std::{Addr, Deps};
+
 use crate::core::PROXY;
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
-pub use abstract_core::objects::{ans_host::AnsHost, version_control::VersionControlContract};
-use abstract_core::version_control::AccountBase;
-use cosmwasm_std::{Addr, Deps};
 
 /// Store a proxy contract address.
 /// Implements [`AccountIdentification`].
@@ -77,14 +78,15 @@ impl crate::features::AbstractNameService for AnsHost {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
+    use super::*;
+
     mod version_control {
-        use super::*;
         use cosmwasm_std::testing::mock_dependencies;
 
+        use super::*;
         use crate::features::AbstractRegistryAccess;
 
         #[test]
@@ -101,8 +103,9 @@ mod tests {
     }
 
     mod proxy {
-        use super::*;
         use cosmwasm_std::testing::mock_dependencies;
+
+        use super::*;
 
         #[test]
         fn test_proxy_address() {
@@ -124,8 +127,9 @@ mod tests {
     }
 
     mod base {
-        use super::*;
         use cosmwasm_std::testing::mock_dependencies;
+
+        use super::*;
 
         fn test_account_base() -> AccountBase {
             AccountBase {

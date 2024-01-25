@@ -1,7 +1,8 @@
-use crate::base::Handler;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use schemars::JsonSchema;
 use serde::Serialize;
+
+use crate::base::Handler;
 
 /// Trait for a contract's Instantiate entry point.
 pub trait InstantiateEndpoint: Handler {

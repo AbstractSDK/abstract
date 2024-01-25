@@ -1,6 +1,8 @@
-use crate::{error::AbstractError, AbstractResult};
-use cosmwasm_std::{Addr, Api, StdError};
 use std::{fmt, str::FromStr};
+
+use cosmwasm_std::{Addr, Api, StdError};
+
+use crate::{error::AbstractError, AbstractResult};
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
@@ -174,9 +176,10 @@ impl fmt::Display for PoolAddress {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use cosmwasm_std::testing::MockApi;
     use speculoos::prelude::*;
+
+    use super::*;
 
     #[test]
     fn test_pool_id_from_str() {

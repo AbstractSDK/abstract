@@ -7,20 +7,20 @@
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the Account.
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Addr;
+
 use crate::{
     manager,
     manager::ModuleInstallConfig,
     objects::{account::AccountId, chain_name::ChainName, AssetEntry},
 };
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
 
 pub mod state {
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
-
     use super::*;
+    use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 
     /// Maps a chain name to the proxy it uses to interact on this local chain
     pub const CHAIN_PROXIES: Map<&ChainName, Addr> = Map::new("ccl");

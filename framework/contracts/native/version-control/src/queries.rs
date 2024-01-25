@@ -1,5 +1,3 @@
-use crate::contract::VCResult;
-use crate::error::VCError;
 use abstract_core::{
     objects::module::ModuleStatus,
     version_control::{
@@ -22,6 +20,9 @@ use abstract_sdk::core::{
 };
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
 use cw_storage_plus::{Bound, Map};
+
+use crate::contract::VCResult;
+use crate::error::VCError;
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
@@ -263,18 +264,16 @@ fn filter_modules_by_namespace(
 #[cfg(test)]
 mod test {
     use abstract_core::objects::account::AccountTrace;
+    use abstract_core::{manager, version_control::*};
     use abstract_testing::prelude::*;
     use abstract_testing::{MockQuerierBuilder, MockQuerierOwnership};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{to_json_binary, Addr, Binary, DepsMut, StdError};
-
-    use abstract_core::{manager, version_control::*};
-
-    use crate::contract;
-    use crate::contract::VCResult;
     use speculoos::prelude::*;
 
     use super::*;
+    use crate::contract;
+    use crate::contract::VCResult;
 
     type VersionControlTestResult = Result<(), VCError>;
 
@@ -382,10 +381,10 @@ mod test {
     }
 
     mod module {
-        use super::*;
         use abstract_core::objects::module::ModuleVersion::Latest;
-
         use cosmwasm_std::from_json;
+
+        use super::*;
 
         fn add_namespace(deps: DepsMut, namespace: &str) {
             let msg = ExecuteMsg::ClaimNamespace {

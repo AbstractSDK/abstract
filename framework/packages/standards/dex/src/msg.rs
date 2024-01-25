@@ -1,14 +1,14 @@
 #![warn(missing_docs)]
 //! # Dex Adapter API
+// re-export response types
+use abstract_core::objects::DexAssetPairing;
 use abstract_core::{
     adapter,
     objects::{AnsAsset, AssetEntry},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Decimal, Uint128};
-// re-export response types
-use abstract_core::objects::DexAssetPairing;
 use cosmwasm_std::CosmosMsg;
+use cosmwasm_std::{Decimal, Uint128};
 
 /// The name of the dex to trade on.
 pub type DexName = String;

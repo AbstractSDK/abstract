@@ -1,14 +1,14 @@
 #![allow(unused)]
+use abstract_core::app as msg;
+use abstract_core::objects::module::ModuleId;
+use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
+use serde::{de::DeserializeOwned, Serialize};
+
 use super::{AbstractApi, ApiIdentification};
 use crate::{
     cw_helpers::ApiQuery, features::ModuleIdentification, AbstractSdkResult, AccountAction,
     ModuleInterface,
 };
-use abstract_core::objects::module::ModuleId;
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
-use serde::{de::DeserializeOwned, Serialize};
-
-use abstract_core::app as msg;
 
 /// Interact with other modules on the Account.
 pub trait AppInterface: ModuleInterface + ModuleIdentification {
@@ -109,12 +109,12 @@ impl<'a, T: AppInterface> Apps<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::mock_module::*;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
 
     pub use super::*;
+    use crate::mock_module::*;
     /// Helper to check that the method is not callable when the module is not a dependency
     fn fail_when_not_dependency_test<T: std::fmt::Debug>(
         modules_fn: impl FnOnce(&MockModule, Deps) -> AbstractSdkResult<T>,
@@ -134,10 +134,9 @@ mod tests {
     }
 
     mod app_request {
+        use super::*;
         use crate::core::app;
         use crate::mock_module::MockModuleExecuteMsg;
-
-        use super::*;
 
         #[test]
         fn should_return_err_if_not_dependency() {
@@ -174,9 +173,8 @@ mod tests {
     }
 
     mod app_configure {
-        use crate::core::app;
-
         use super::*;
+        use crate::core::app;
 
         #[test]
         fn should_return_err_if_not_dependency() {

@@ -2,11 +2,6 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
-use super::{AbstractApi, ApiIdentification};
-use crate::{
-    features::{AccountIdentification, ModuleIdentification},
-    AbstractSdkResult, ModuleInterface,
-};
 use abstract_core::{
     ibc::CallbackInfo,
     ibc_client::ExecuteMsg as IbcClientMsg,
@@ -18,6 +13,12 @@ use abstract_core::{
 };
 use cosmwasm_std::{to_json_binary, wasm_execute, Coin, CosmosMsg, Deps};
 use serde::Serialize;
+
+use super::{AbstractApi, ApiIdentification};
+use crate::{
+    features::{AccountIdentification, ModuleIdentification},
+    AbstractSdkResult, ModuleInterface,
+};
 
 /// Interact with other chains over IBC.
 pub trait IbcInterface: AccountIdentification + ModuleInterface + ModuleIdentification {
@@ -211,11 +212,12 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::mock_module::*;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
+
+    use super::*;
+    use crate::mock_module::*;
     const TEST_HOST_CHAIN: &str = "host_chain";
 
     /// Tests that a host_action can be built with no callback

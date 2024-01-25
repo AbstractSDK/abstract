@@ -1,4 +1,3 @@
-use crate::AbstractAccount;
 pub use abstract_core::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_core::{
     objects::{
@@ -14,6 +13,8 @@ use cosmwasm_std::Addr;
 use cw_orch::contract::Contract;
 use cw_orch::interface;
 use cw_orch::prelude::*;
+
+use crate::AbstractAccount;
 
 type VersionString = String;
 

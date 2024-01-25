@@ -23,7 +23,6 @@ use abstract_interface::ExecuteMsgFns as InterfaceExecuteMsgFns;
 use abstract_testing::OWNER;
 use cosmwasm_std::Event;
 use cw_orch::deploy::Deploy;
-
 use cw_orch::prelude::*;
 use cw_ownable::OwnershipError;
 
@@ -31,8 +30,9 @@ use crate::mock_adapter::MockAdapter;
 use crate::mock_adapter::MOCK_ADAPTER_ID;
 
 mod mock_adapter {
-    use super::*;
     use abstract_adapter::gen_adapter_mock;
+
+    use super::*;
 
     pub const MOCK_ADAPTER_ID: &str = "abstract:mock-adapter";
     gen_adapter_mock!(MockAdapter, MOCK_ADAPTER_ID, "1.0.0", &[]);

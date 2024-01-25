@@ -1,5 +1,6 @@
-use crate::base::Handler;
 use cosmwasm_std::{DepsMut, Env, Reply, Response};
+
+use crate::base::Handler;
 
 /// Trait for a contract's Reply entry point.
 pub trait ReplyEndpoint: Handler {

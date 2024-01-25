@@ -1,9 +1,10 @@
+use std::time::Duration;
+
 use cosmos_sdk_proto::cosmos::{base, feegrant};
 use cosmos_sdk_proto::traits::Name;
 use cosmwasm_std::{Coin, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 
 use super::StargateMessage;
 

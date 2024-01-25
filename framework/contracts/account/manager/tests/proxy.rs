@@ -1,6 +1,4 @@
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
-use abstract_integration_tests::{create_default_account, mock_modules, AResult};
-
 use abstract_core::manager::{InfoResponse, ModuleInstallConfig, ModuleVersionsResponse};
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::gov_type::GovernanceDetails;
@@ -11,6 +9,7 @@ use abstract_core::objects::{AccountId, ABSTRACT_ACCOUNT_ID};
 use abstract_core::version_control::{NamespaceResponse, UpdateModule};
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_integration_tests::*;
+use abstract_integration_tests::{create_default_account, mock_modules, AResult};
 use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_manager::error::ManagerError;

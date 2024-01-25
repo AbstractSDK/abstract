@@ -1,12 +1,3 @@
-use crate::add_mock_adapter_install_fee;
-use crate::create_default_account;
-use crate::init_mock_adapter;
-use crate::install_adapter;
-use crate::install_adapter_with_funds;
-use crate::install_module_version;
-use crate::mock_modules::standalone_cw2;
-use crate::mock_modules::*;
-use crate::AResult;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_app::mock::MockInitMsg;
 use abstract_core::adapter::AdapterBaseMsg;
@@ -38,6 +29,16 @@ use cw_orch::deploy::Deploy;
 use cw_orch::environment::MutCwEnv;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
+
+use crate::add_mock_adapter_install_fee;
+use crate::create_default_account;
+use crate::init_mock_adapter;
+use crate::install_adapter;
+use crate::install_adapter_with_funds;
+use crate::install_module_version;
+use crate::mock_modules::standalone_cw2;
+use crate::mock_modules::*;
+use crate::AResult;
 
 pub mod mock_app {
     use abstract_app::gen_app_mock;

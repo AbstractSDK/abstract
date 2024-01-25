@@ -1,8 +1,4 @@
 use abstract_core::objects::module;
-use serde_cw_value::Value;
-
-use crate::contract::ModuleFactoryResponse;
-use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
 use abstract_sdk::{
     core::{
         module_factory::FactoryModuleInstallConfig,
@@ -17,6 +13,10 @@ use cosmwasm_std::{
     from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
     DepsMut, Env, MessageInfo, StdResult, WasmMsg,
 };
+use serde_cw_value::Value;
+
+use crate::contract::ModuleFactoryResponse;
+use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
 
 /// Function that starts the creation of the Modules
 pub fn execute_create_modules(
@@ -260,15 +260,14 @@ pub fn update_factory_binaries(
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use abstract_core::module_factory::ExecuteMsg;
     use abstract_testing::OWNER;
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use speculoos::prelude::*;
 
+    use super::*;
     use crate::contract::execute;
     use crate::test_common::*;
-    use abstract_core::module_factory::ExecuteMsg;
-
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
 
@@ -337,12 +336,13 @@ mod test {
     }
 
     mod instantiate_contract {
-        use super::*;
         use abstract_core::objects::{module::ModuleVersion, AccountId};
         use cosmwasm_std::{
             coin, testing::mock_info, to_json_binary, Api, CodeInfoResponse, Empty, HexBinary,
             QuerierResult,
         };
+
+        use super::*;
 
         #[test]
         fn should_create_msg_with_instantiate2_msg() -> ModuleFactoryTestResult {
@@ -435,9 +435,10 @@ mod test {
     use cosmwasm_std::to_json_binary;
 
     mod update_factory_binaries {
-        use super::*;
         use abstract_core::{objects::module::ModuleVersion, AbstractError};
         use abstract_testing::map_tester::*;
+
+        use super::*;
 
         fn update_module_msgs_builder(
             to_add: Vec<(ModuleInfo, Binary)>,

@@ -1,4 +1,3 @@
-use crate::{AbstractAccount, Manager, Proxy};
 pub use abstract_core::account_factory::{
     ExecuteMsgFns as AccountFactoryExecFns, QueryMsgFns as AccountFactoryQueryFns,
 };
@@ -10,6 +9,8 @@ use abstract_core::{
 };
 use cosmwasm_std::Addr;
 use cw_orch::{interface, prelude::*};
+
+use crate::{AbstractAccount, Manager, Proxy};
 
 /// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
 #[derive(Default)]

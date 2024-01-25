@@ -1,6 +1,10 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the Account.
 
+use abstract_core::manager::state::ACCOUNT_MODULES;
+use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
+use cw2::{ContractVersion, CONTRACT};
+
 use super::{AbstractApi, ApiIdentification};
 use crate::core::objects::module::ModuleId;
 use crate::features::ModuleIdentification;
@@ -8,9 +12,6 @@ use crate::{
     features::{AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
-use abstract_core::manager::state::ACCOUNT_MODULES;
-use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
-use cw2::{ContractVersion, CONTRACT};
 
 /// Interact with other modules on the Account.
 pub trait ModuleInterface: AccountIdentification + Dependencies + ModuleIdentification {
@@ -119,15 +120,16 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::mock_module::*;
-
     use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
+    use super::*;
+    use crate::mock_module::*;
+
     mod assert_module_dependency {
-        use super::*;
         use cosmwasm_std::testing::*;
+
+        use super::*;
 
         #[test]
         fn should_return_ok_if_dependency() {

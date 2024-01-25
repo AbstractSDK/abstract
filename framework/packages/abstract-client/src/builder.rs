@@ -12,12 +12,11 @@ use abstract_interface::{Abstract, ExecuteMsgFns};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{deploy::Deploy, environment::CwEnv};
 
+use self::cw20_builder::Cw20Builder;
 use crate::{
     client::{AbstractClient, AbstractClientResult},
     Environment,
 };
-
-use self::cw20_builder::Cw20Builder;
 
 impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Abstract client builder
@@ -144,16 +143,14 @@ pub mod cw20_builder {
     //! # CW20 Builder
 
     // Re-exports to limit dependencies for consumer.
+    use cosmwasm_std::Addr;
     pub use cw20::{msg::Cw20ExecuteMsgFns, *};
     pub use cw20_base::msg::{InstantiateMarketingInfo, QueryMsgFns as Cw20QueryMsgFns};
-    pub use cw_plus_interface::cw20_base::Cw20Base;
-
-    use cosmwasm_std::Addr;
-
     use cw_orch::{
         environment::CwEnv,
         prelude::{CwOrchInstantiate, CwOrchUpload},
     };
+    pub use cw_plus_interface::cw20_base::Cw20Base;
     use cw_plus_interface::cw20_base::InstantiateMsg;
 
     use crate::client::AbstractClientResult;

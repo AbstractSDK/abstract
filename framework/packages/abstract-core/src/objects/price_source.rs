@@ -16,11 +16,10 @@ use cw_asset::{Asset, AssetInfo};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::AbstractError, AbstractResult};
-
 use super::{
     ans_host::AnsHost, AnsEntryConvertor, AssetEntry, DexAssetPairing, PoolAddress, PoolReference,
 };
+use crate::{error::AbstractError, AbstractResult};
 
 /// represents the conversion of an asset in terms of the provided asset
 /// Example: provided asset is ETH and the price source for ETH is the pair ETH/USD, the price is 100USD/ETH
@@ -261,12 +260,11 @@ mod tests {
 
     // TODO: abstract_testing has a circular dependency with this package, and so the mockAns host is unable to be used.
     mod check {
-        use crate::{ans_host, objects::ans_host::AnsHostError};
         use cosmwasm_std::testing::mock_dependencies;
 
-        use crate::objects::pool_id::PoolAddressBase;
-
         use super::*;
+        use crate::objects::pool_id::PoolAddressBase;
+        use crate::{ans_host, objects::ans_host::AnsHostError};
 
         #[test]
         fn liquidity_token() -> AbstractResult<()> {

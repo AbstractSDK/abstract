@@ -1,12 +1,13 @@
-use crate::{
-    state::{AppContract, ContractError},
-    AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
-};
 use abstract_core::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
 use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
+
+use crate::{
+    state::{AppContract, ContractError},
+    AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
+};
 
 impl<
         Error: From<cosmwasm_std::StdError>
@@ -117,9 +118,6 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use super::ExecuteMsg as SuperExecuteMsg;
-    use crate::mock::*;
-    use crate::AppError;
     use abstract_core::app::BaseExecuteMsg;
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_testing::prelude::*;
@@ -127,6 +125,10 @@ mod test {
     use cosmwasm_std::{Addr, DepsMut};
     use cw_controllers::AdminError;
     use speculoos::prelude::*;
+
+    use super::ExecuteMsg as SuperExecuteMsg;
+    use crate::mock::*;
+    use crate::AppError;
 
     type AppExecuteMsg = SuperExecuteMsg<MockExecMsg, MockReceiveMsg>;
 

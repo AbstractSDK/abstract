@@ -1,8 +1,7 @@
+use abstract_core::app::{self, AppExecuteMsg, AppQueryMsg};
 use cosmwasm_schema::QueryResponses;
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Serialize};
-
-use abstract_core::app::{self, AppExecuteMsg, AppQueryMsg};
 use {
     crate::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint},
     cosmwasm_schema::{export_schema_with_title, schema_for, write_api},

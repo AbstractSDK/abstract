@@ -1,10 +1,8 @@
 use abstract_core::module_factory::*;
-
-use cw_orch::{environment::TxHandler, interface, prelude::*};
-
 pub use abstract_core::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
 };
+use cw_orch::{environment::TxHandler, interface, prelude::*};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;

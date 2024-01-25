@@ -1,6 +1,3 @@
-use crate::contract::{AnsHostResponse, AnsHostResult};
-use crate::error::AnsHostError;
-use crate::error::AnsHostError::InvalidAssetCount;
 use abstract_core::{
     ans_host::ExecuteMsg,
     ans_host::{state::*, AssetPair},
@@ -15,6 +12,10 @@ use abstract_core::{
 use abstract_sdk::execute_update_ownership;
 use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
+
+use crate::contract::{AnsHostResponse, AnsHostResult};
+use crate::error::AnsHostError;
+use crate::error::AnsHostError::InvalidAssetCount;
 
 const MIN_POOL_ASSETS: usize = 2;
 const MAX_POOL_ASSETS: usize = 5;
@@ -362,18 +363,15 @@ fn validate_pool_assets(
 
 #[cfg(test)]
 mod test {
+    use abstract_testing::map_tester::CwMapTester;
+    use abstract_testing::prelude::*;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{Addr, DepsMut};
-
-    use crate::contract;
-
-    use crate::error::AnsHostError;
-    use abstract_testing::map_tester::CwMapTester;
-
-    use super::*;
-    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
+    use super::*;
+    use crate::contract;
+    use crate::error::AnsHostError;
     use crate::test_common::*;
 
     type AnsHostTestResult = Result<(), AnsHostError>;
@@ -716,11 +714,12 @@ mod test {
     }
 
     mod update_asset_addresses {
-        use super::*;
         use abstract_core::objects::AssetEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
         use cw_asset::{AssetError, AssetInfo, AssetInfoBase};
         use cw_storage_plus::Map;
+
+        use super::*;
 
         fn unchecked_asset_map_entry(
             name: &str,
@@ -912,9 +911,10 @@ mod test {
     }
 
     mod update_channels {
-        use super::*;
         use abstract_core::objects::ChannelEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
+
+        use super::*;
 
         type UncheckedChannelMapEntry = (UncheckedChannelEntry, String);
 
@@ -1090,13 +1090,13 @@ mod test {
     }
 
     mod update_pools {
-        use super::*;
         use abstract_core::ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry};
         use abstract_core::objects::PoolType;
-
         use abstract_core::AbstractResult;
         use cosmwasm_std::{Api, Order};
         use speculoos::assert_that;
+
+        use super::*;
 
         type UncheckedPoolMapEntry = (UncheckedPoolAddress, PoolMetadata);
 

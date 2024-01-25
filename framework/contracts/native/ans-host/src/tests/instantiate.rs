@@ -1,11 +1,12 @@
-use crate::contract::instantiate;
-use crate::tests::common::execute_as;
-use crate::tests::mock_querier::mock_dependencies;
 use abstract_core::ans_host::*;
 use abstract_testing::OWNER;
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut, MessageInfo};
 use speculoos::prelude::*;
+
+use crate::contract::instantiate;
+use crate::tests::common::execute_as;
+use crate::tests::mock_querier::mock_dependencies;
 
 pub(crate) fn instantiate_msg(info: &MessageInfo) -> InstantiateMsg {
     InstantiateMsg {

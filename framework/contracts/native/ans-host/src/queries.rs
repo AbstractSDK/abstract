@@ -301,20 +301,18 @@ mod test {
 
     use abstract_core::ans_host::*;
     use abstract_core::objects::chain_name::ChainName;
+    use abstract_core::objects::pool_id::PoolAddressBase;
     use abstract_core::objects::PoolType;
     use abstract_testing::OWNER;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
     use cosmwasm_std::{from_json, Addr, DepsMut};
-
-    use crate::contract;
-    use crate::contract::{instantiate, AnsHostResult};
-    use crate::error::AnsHostError;
-
-    use abstract_core::objects::pool_id::PoolAddressBase;
     use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use speculoos::prelude::*;
 
     use super::*;
+    use crate::contract;
+    use crate::contract::{instantiate, AnsHostResult};
+    use crate::error::AnsHostError;
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 

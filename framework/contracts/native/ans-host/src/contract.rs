@@ -1,6 +1,3 @@
-use crate::commands::*;
-use crate::error::AnsHostError;
-use crate::queries;
 use abstract_core::{
     ans_host::{
         state::{Config, CONFIG, REGISTERED_DEXES},
@@ -9,12 +6,15 @@ use abstract_core::{
     objects::module_version::assert_contract_upgrade,
     ANS_HOST,
 };
+use abstract_macros::abstract_response;
+use abstract_sdk::query_ownership;
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 use semver::Version;
 
-use abstract_macros::abstract_response;
-use abstract_sdk::query_ownership;
+use crate::commands::*;
+use crate::error::AnsHostError;
+use crate::queries;
 
 #[abstract_response(ANS_HOST)]
 pub struct AnsHostResponse;
@@ -116,16 +116,18 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AnsHostResult {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test_common::*;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
+    use super::*;
+    use crate::test_common::*;
+
     mod migrate {
-        use super::*;
-        use crate::contract;
         use abstract_core::AbstractError;
         use cw2::get_contract_version;
+
+        use super::*;
+        use crate::contract;
 
         #[test]
         fn disallow_same_version() -> AnsHostResult<()> {
