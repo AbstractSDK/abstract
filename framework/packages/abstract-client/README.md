@@ -55,14 +55,14 @@ The main function of the client is to construct `Account`, `Application` and `Pu
 
 ### Creating an `Account`
 
-To create an account you can use the `AbstractClient::account_builder` function. This function will return an [`AccountBuilder`](TODO) that you can configure to build an `Account`. If a claimed namespace is provided to the builder, the builder will return the `Account` that owns that namespace. In the other scenarios the builder will create a new account.
+To create an account you can use the `AbstractClient::account_builder` function. This function will return an [`AccountBuilder`](https://docs.rs/abstract-client/latest/abstract_client/struct.AccountBuilder.html) that you can configure to build an `Account`. If a claimed namespace is provided to the builder, the builder will return the `Account` that owns that namespace. In the other scenarios the builder will create a new account.
 
 > Our examples will use the `Mock` environment for simplicity. However, the same functions can be used for any [`CwEnv`](https://docs.rs/cw-orch/latest/cw_orch/environment/trait.CwEnv.html).
 
 ```rust no_run
 use cw_orch::prelude::*;
 use abstract_client::{AbstractClient, Account, Application};
-use abstract_app::mock::{mock_app_dependency::interface::MockAppDependencyI as App, MockInitMsg as AppInitMsg};
+use abstract_app::mock::{mock_app_dependency::interface::MockAppI as App, MockInitMsg as AppInitMsg};
 
 let chain = Mock::new(&Addr::unchecked("sender"));
 
@@ -79,7 +79,7 @@ let my_app: Application<Mock, App<Mock>> =
 Ok::<(), abstract_client::AbstractClientError>(())
 ```
 
-See the [`AccountBuilder`](TODO) documentation for more information on how to customize an Account.
+See the [`AccountBuilder`](https://docs.rs/abstract-client/latest/abstract_client/struct.AccountBuilder.html) documentation for more information on how to customize an Account.
 
 ### Creating a `Publisher`
 
@@ -94,7 +94,7 @@ After the `App` is published it can be installed on accounts.
 ```rust
 use cw_orch::prelude::*;
 use abstract_client::{AbstractClient, Namespace, Publisher, Application};
-use abstract_app::mock::{mock_app_dependency::interface::MockAppDependencyI, MockInitMsg};
+use abstract_app::mock::{mock_app_dependency::interface::MockAppI, MockInitMsg};
 
 let chain = Mock::new(&Addr::unchecked("sender"));
 
@@ -105,11 +105,11 @@ let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("tester-dependency")?)
         .build()?;
 
-publisher.publish_app::<MockAppDependencyI<_>>()?;
+publisher.publish_app::<MockAppI<_>>()?;
 
 // Install the published app
-let app: Application<Mock, MockAppDependencyI<Mock>> =
-        publisher.account().install_app::<MockAppDependencyI<Mock>>(&MockInitMsg {}, &[])?;
+let app: Application<Mock, MockAppI<Mock>> =
+        publisher.account().install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
 
 
 Ok::<(), abstract_client::AbstractClientError>(())
@@ -117,4 +117,4 @@ Ok::<(), abstract_client::AbstractClientError>(())
 
 ### Client Test Helpers
 
-Additionally the client supports a set of helper functions you can explore <a href="TODO" target="_blank">here</a>.
+Additionally the client supports a set of helper functions you can explore <a href="https://docs.rs/abstract-client/latest/abstract_client/struct.AbstractClient.html" target="_blank">here</a>.

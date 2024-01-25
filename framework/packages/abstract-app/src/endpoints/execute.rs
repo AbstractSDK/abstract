@@ -132,7 +132,7 @@ mod test {
 
     fn execute_as(deps: DepsMut, sender: &str, msg: AppExecuteMsg) -> Result<Response, MockError> {
         let info = mock_info(sender, &[]);
-        MOCK_APP.execute(deps, mock_env(), info, msg)
+        MOCK_APP_WITH_DEP.execute(deps, mock_env(), info, msg)
     }
 
     fn execute_as_manager(deps: DepsMut, msg: AppExecuteMsg) -> Result<Response, MockError> {
@@ -187,7 +187,7 @@ mod test {
                 res
             });
 
-            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+            let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
             assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
             assert_that!(state.version_control.address)
@@ -212,7 +212,7 @@ mod test {
                 res
             });
 
-            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+            let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
             assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
             assert_that!(state.version_control.address)

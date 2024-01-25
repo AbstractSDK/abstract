@@ -20,6 +20,9 @@
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 use abstract_core::{
+    ibc::CallbackInfo,
+    ibc_client,
+    ibc_host::HostAction,
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
@@ -33,7 +36,7 @@ use abstract_core::{
 };
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    InstallConfig, ManagerExecFns, ManagerQueryFns, ProxyExecFns, RegisteredModule, VCQueryFns,
 };
 
 use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
@@ -383,6 +386,39 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
+    /// Executes an ibc action on the proxy of the account
+    pub fn create_ibc_account(
+        &self,
+        host_chain: impl Into<String>,
+        base_asset: Option<AssetEntry>,
+        namespace: Option<String>,
+        install_modules: Vec<ModuleInstallConfig>,
+    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+        self.abstr_account
+            .proxy
+            .ibc_action(vec![ibc_client::ExecuteMsg::Register {
+                host_chain: host_chain.into(),
+                base_asset,
+                namespace,
+                install_modules,
+            }])
+            .map_err(Into::into)
+
+        // self.abstr_account
+        //     .manager
+        //     .execute(
+        //         &abstract_core::manager::ExecuteMsg::ExecOnModule {
+        //             module_id: PROXY.to_owned(),
+        //             exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
+        //                 msgs:
+        //             })
+        //             .map_err(AbstractInterfaceError::from)?,
+        //         },
+        //         None,
+        //     )
+        //     .map_err(Into::into)
+    }
+
     /// Module infos of installed modules on account
     pub fn module_infos(&self) -> AbstractClientResult<ModuleInfosResponse> {
         let mut module_infos: Vec<ManagerModuleInfo> = vec![];
@@ -550,17 +586,17 @@ impl<Chain: CwEnv> Account<Chain> {
 
 impl<Chain: MutCwEnv> Account<Chain> {
     /// Set balance for the Proxy
-    pub fn set_balance(&self, amount: Vec<Coin>) -> AbstractClientResult<()> {
+    pub fn set_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.environment()
-            .set_balance(&self.proxy()?, amount)
+            .set_balance(&self.proxy()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
     }
 
     /// Add balance to the Proxy
-    pub fn add_balance(&self, amount: Vec<Coin>) -> AbstractClientResult<()> {
+    pub fn add_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.environment()
-            .add_balance(&self.proxy()?, amount)
+            .add_balance(&self.proxy()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
     }

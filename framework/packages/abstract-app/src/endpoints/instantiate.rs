@@ -103,7 +103,7 @@ mod test {
             module: MockInitMsg {},
         };
 
-        let res = MOCK_APP
+        let res = MOCK_APP_WITH_DEP
             .instantiate(deps.as_mut(), mock_env(), info, msg)
             .unwrap();
         assert_that!(res.messages).is_empty();
