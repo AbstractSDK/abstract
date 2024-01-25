@@ -138,7 +138,7 @@ mod test {
         proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
-    use abstract_testing::{prelude::*, *};
+    use abstract_testing::prelude::*;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
