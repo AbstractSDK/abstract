@@ -92,7 +92,7 @@ follows:
 - `Template.client.ts`: Client file contains classes for creating client instances to query and interact with a blockchain module. These client instances can be used to retrieve module configurations or to connect a signing client for transaction functionalities.
 - `Template.message-composer.ts`: Aids in crafting messages necessary for interacting with a specific
   blockchain contract, particularly for updating configurations. It contains a class that generates message objects that can be sent to the blockchain for execution.
-- `Template.msg-builder.ts`: Provide static methods on abstract classes to create message objects for querying or executing actions on the blockchain. It essentially facilitates the building of structured messages for blockchain interactions.
+- `Template.msg-builder.ts`: Provides static methods on abstract classes to create message objects for querying or executing actions on the blockchain. It essentially facilitates the building of structured messages for blockchain interactions.
 - `Template.types.ts`: Defines various data structures and types that represent the structure of messages and responses within the blockchain module, aiding in maintaining consistency across different operations in the module.
 
 ## Tools used in the template
