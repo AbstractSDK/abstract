@@ -53,7 +53,7 @@ pub struct GenerateMessagesResponse {
     pub messages: Vec<CosmosMsg>,
 }
 
-/// Response for Usage Fees
+/// Response for Usage Fee
 #[cosmwasm_schema::cw_serde]
 pub struct UsageFeeResponse {
     /// Usage fee
@@ -152,7 +152,7 @@ pub enum DexQueryMsg {
         /// Proxy Addr generate messages for
         proxy_addr: String,
     },
-    /// Fee info for using the dex adapter
+    /// Fee info for using the swap
     #[returns(UsageFeeResponse)]
     UsageFee {},
 }
