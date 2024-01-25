@@ -141,19 +141,12 @@ The `MockAppWithDepI` is a <a href="https://orchestrator.abstract.money/contract
 ## Local Daemon Testing
 
 Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app
-onto the chain. You can do this by running the [test-local]() example, which uses a locally running juno daemon to
+onto the chain. You can do this by running the [test-local](https://github.com/AbstractSDK/app-template/blob/main/examples/test-local.rs) example, which uses a locally running juno daemon to
 deploy to. At this point you can also test your front-end with the contracts.
 
 ```admonish info
 Locally testing your Abstract deployment is difficult if it depends on other protocols, and those protocols don't make use of cw-orchestrator.
 ```
-
-### Testing
-
-You can test the module using the different provided methods.
-
-1. **Integration testing:**
-2. **Local Daemon:**
 
 <!-- 
 **Example**
