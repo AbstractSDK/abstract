@@ -3,8 +3,9 @@ name = "abstract-ibc-host"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
-description = "base ibc-host contract implementation"
-
+description = "Abstract IBC Host Contract"
+repository = "https://github.com/AbstractSDK/abstract"
+readme = "README.md"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
