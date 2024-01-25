@@ -141,3 +141,16 @@ fn swap_raw() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn get_fees() -> anyhow::Result<()> {
+    let (_, _, dex_adapter, _, abstr) = setup_mock()?;
+    let account0_proxy = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
+        .proxy
+        .address()?;
+
+    let fees = dex_adapter.fees()?;
+    assert_eq!(fees.share(), Decimal::percent(1));
+    assert_eq!(fees.recipient(), account0_proxy);
+    Ok(())
+}

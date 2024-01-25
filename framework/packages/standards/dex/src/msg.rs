@@ -2,7 +2,7 @@
 //! # Dex Adapter API
 use abstract_core::{
     adapter,
-    objects::{AnsAsset, AssetEntry},
+    objects::{fee::UsageFee, AnsAsset, AssetEntry},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
@@ -51,6 +51,13 @@ pub struct SimulateSwapResponse {
 pub struct GenerateMessagesResponse {
     /// Messages generated for dex action
     pub messages: Vec<CosmosMsg>,
+}
+
+/// Response for Usage Fees
+#[cosmwasm_schema::cw_serde]
+pub struct UsageFeeResponse {
+    /// Usage fee
+    pub usage_fee: UsageFee,
 }
 
 /// Instantiation message for dex adapter
@@ -145,4 +152,7 @@ pub enum DexQueryMsg {
         /// Proxy Addr generate messages for
         proxy_addr: String,
     },
+    /// Fee info for using the dex adapter
+    #[returns(UsageFeeResponse)]
+    UsageFee {},
 }

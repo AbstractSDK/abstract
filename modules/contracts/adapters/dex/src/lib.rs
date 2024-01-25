@@ -23,7 +23,7 @@ pub mod interface {
     use crate::{msg::*, DEX_ADAPTER_ID};
     use abstract_core::{
         adapter::{self},
-        objects::{AnsAsset, AssetEntry},
+        objects::{fee::UsageFee, AnsAsset, AssetEntry},
     };
     use abstract_interface::AdapterDeployer;
     use abstract_interface::{AbstractAccount, AbstractInterfaceError};
@@ -83,6 +83,13 @@ pub mod interface {
                 .manager
                 .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
             Ok(())
+        }
+
+        /// Get usage fees
+        pub fn fees(&self) -> Result<UsageFee, AbstractInterfaceError> {
+            let fees_response: UsageFeeResponse =
+                self.query(&crate::msg::QueryMsg::Module(DexQueryMsg::UsageFee {}))?;
+            Ok(fees_response.usage_fee)
         }
     }
 }

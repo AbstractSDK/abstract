@@ -10,6 +10,7 @@ use crate::{
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
 use abstract_dex_standard::msg::{
     DexExecuteMsg, DexQueryMsg, GenerateMessagesResponse, OfferAsset, SimulateSwapResponse,
+    UsageFeeResponse,
 };
 use abstract_dex_standard::DexError;
 use abstract_sdk::features::AbstractNameService;
@@ -48,6 +49,10 @@ pub fn query_handler(
                 _ => Err(DexError::InvalidGenerateMessage {}),
             }
         }
+        DexQueryMsg::UsageFee {} => to_json_binary(&UsageFeeResponse {
+            usage_fee: SWAP_FEE.load(deps.storage)?,
+        })
+        .map_err(Into::into),
     }
 }
 
