@@ -71,7 +71,7 @@ initial Abstract Account.
 
 ## Integration Testing
 
-Integration testing your contract with Abstract involves deploying your contract and any of its dependencies to a mock environment where Abstract is deployed. To make this as easy as possible we've created a `abstract-client` package that you can use to deploy Abstract and any of your modules to a mock environment.
+Integration testing your contract with Abstract involves deploying your contract and any of its dependencies to a mock environment where Abstract is deployed. To make this as easy as possible we've created a `abstract-client` package that you can use to deploy Abstract and any of your modules to a mock environment. We will cover this client in the next section.
 
 But first we need to cover some basics.
 
@@ -85,67 +85,13 @@ The `Mock` struct provides a simulation of the CosmWasm environment, enabling te
 `cw-orchestrator` is a CosmWasm scripting tool that we developed to improve the speed at which we can test and deploy our applications. We recommend reading the [cw-orchestrator documentation](../1_products/1_cw_orchestrator.md) if you are not yet familiar with it.
 ```
 
-### Abstract Client
-
-As previously mentioned you can use our `abstract-client` package to interact with a mocked instance of `Abstract`. Let's see how!
-
-#### Example
-
-```rust
-{{ #include ../../../packages/abstract-client/tests/integration.rs:build_client }}
-```
-
-These three lines:
-
-- Created a mock environment to deploy to.
-- Deployed Abstract to that environment and returned a client.
-
-You can then start using the client to do all sorts of things. For example, you can set and query balances easily.
-
-```rust
-{{ #include ../../../packages/abstract-client/tests/integration.rs:balances }}
-```
-
-Then, you can use the client to create a `Publisher` to publish an App to the platform.
-
-```rust
-{{ #include ../../../packages/abstract-client/tests/integration.rs:publisher }}
-```
-
-Now that the App is published anyone can create an `Account` and install it!
-
-```rust
-{{ #include ../../../packages/abstract-client/tests/integration.rs:account }}
-```
-
-Et voila! You've just deployed Abstract and an App to a mock environment. You can now start testing your module.
-
-The `Account` object also has some useful helper methods:
-
-```rust
-{{ #include ../../../packages/abstract-client/tests/integration.rs:account_helpers }}
-```
-
-You can explore more of its functions in [the type's documentation](https://docs.rs/abstract-client/latest/abstract_client/struct.Account.html).
-
-##### Your App Interface
-
-The `Application<_, MockAppWithDepI<_>>` object returned from the `install_app` function is a wrapper around an `Account` that has an App installed on it (in this case `MockAppWithDepI`).
-
-The `MockAppWithDepI` is a <a href="https://orchestrator.abstract.money/contracts/interfaces.html" target="_blank">cw-orchestrator *interface*</a> that exposes the contract's functions as methods. This allows you to easily interact with your module directly or as a different address.
-
-```rust
-{{ #include ../../../packages/abstract-client/tests/integration.rs:app_interface }}
-```
-
 ## Local Daemon Testing
 
-Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app
-onto the chain. You can do this by running the [test-local](https://github.com/AbstractSDK/app-template/blob/main/examples/test-local.rs) example, which uses a locally running juno daemon to
+Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [local_daemon](https://github.com/AbstractSDK/app-template/blob/main/examples/local_daemon.rs) example, which uses a locally running juno daemon to
 deploy to. At this point you can also test your front-end with the contracts.
 
 ```admonish info
-Locally testing your Abstract deployment is difficult if it depends on other protocols, and those protocols don't make use of cw-orchestrator.
+Testing your application on a local daemon is difficult if it depends on other protocols, and those protocols don't make use of cw-orchestrator as there is no easy way to deploy them to the local daemon.
 ```
 
 <!-- 
