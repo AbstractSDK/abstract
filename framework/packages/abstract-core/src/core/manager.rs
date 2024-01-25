@@ -23,8 +23,9 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     pub use crate::objects::account::ACCOUNT_ID;
-    use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
-    use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
+    use crate::objects::{
+        common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, module::ModuleId,
+    };
 
     pub type SuspensionStatus = bool;
 
@@ -101,9 +102,10 @@ use cosmwasm_std::{Addr, Binary};
 use cw2::ContractVersion;
 
 use self::state::AccountInfo;
-use crate::manager::state::SuspensionStatus;
-use crate::objects::AssetEntry;
-use crate::objects::{account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo};
+use crate::{
+    manager::state::SuspensionStatus,
+    objects::{account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo, AssetEntry},
+};
 
 /// Manager Migrate Msg
 #[cosmwasm_schema::cw_serde]

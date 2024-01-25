@@ -129,13 +129,16 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
 #[cfg(test)]
 mod test {
 
-    use abstract_core::objects::account::AccountTrace;
-    use abstract_core::objects::module::ModuleId;
-    use abstract_core::objects::version_control::VersionControlContract;
-    use abstract_core::objects::version_control::VersionControlError;
-    use abstract_core::{proxy::state::ACCOUNT_ID, version_control::state::ACCOUNT_ADDRESSES};
-    use abstract_testing::prelude::*;
-    use abstract_testing::*;
+    use abstract_core::{
+        objects::{
+            account::AccountTrace,
+            module::ModuleId,
+            version_control::{VersionControlContract, VersionControlError},
+        },
+        proxy::state::ACCOUNT_ID,
+        version_control::state::ACCOUNT_ADDRESSES,
+    };
+    use abstract_testing::{prelude::*, *};
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 

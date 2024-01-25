@@ -62,13 +62,11 @@ mod test {
 
     #[test]
     fn test_registered_client() {
-        use abstract_core::ibc_host::ClientProxyResponse;
-        use abstract_core::ibc_host::InstantiateMsg;
-        use abstract_core::ibc_host::QueryMsg;
-        use cosmwasm_std::from_json;
-        use cosmwasm_std::testing::mock_dependencies;
-        use cosmwasm_std::testing::mock_env;
-        use cosmwasm_std::testing::mock_info;
+        use abstract_core::ibc_host::{ClientProxyResponse, InstantiateMsg, QueryMsg};
+        use cosmwasm_std::{
+            from_json,
+            testing::{mock_dependencies, mock_env, mock_info},
+        };
 
         use crate::contract::{execute, instantiate, query};
         // Instantiate

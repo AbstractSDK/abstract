@@ -1,6 +1,5 @@
 use abstract_core::{
-    ans_host::ExecuteMsg,
-    ans_host::{state::*, AssetPair},
+    ans_host::{state::*, AssetPair, ExecuteMsg},
     objects::{
         pool_id::{PoolAddress, UncheckedPoolAddress},
         pool_metadata::PoolMetadata,
@@ -13,9 +12,10 @@ use abstract_sdk::execute_update_ownership;
 use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
 
-use crate::contract::{AnsHostResponse, AnsHostResult};
-use crate::error::AnsHostError;
-use crate::error::AnsHostError::InvalidAssetCount;
+use crate::{
+    contract::{AnsHostResponse, AnsHostResult},
+    error::{AnsHostError, AnsHostError::InvalidAssetCount},
+};
 
 const MIN_POOL_ASSETS: usize = 2;
 const MAX_POOL_ASSETS: usize = 5;
@@ -363,16 +363,15 @@ fn validate_pool_assets(
 
 #[cfg(test)]
 mod test {
-    use abstract_testing::map_tester::CwMapTester;
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{Addr, DepsMut};
+    use abstract_testing::{map_tester::CwMapTester, prelude::*};
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        Addr, DepsMut,
+    };
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::contract;
-    use crate::error::AnsHostError;
-    use crate::test_common::*;
+    use crate::{contract, error::AnsHostError, test_common::*};
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 
@@ -394,8 +393,10 @@ mod test {
     }
 
     mod update_dexes {
-        use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
-        use cosmwasm_std::{Empty, OwnedDeps};
+        use cosmwasm_std::{
+            testing::{MockApi, MockQuerier, MockStorage},
+            Empty, OwnedDeps,
+        };
 
         use super::*;
 
@@ -535,8 +536,7 @@ mod test {
     }
 
     mod update_contract_addresses {
-        use abstract_core::ans_host::ContractMapEntry;
-        use abstract_core::objects::ContractEntry;
+        use abstract_core::{ans_host::ContractMapEntry, objects::ContractEntry};
         use abstract_testing::map_tester::CwMapTesterBuilder;
 
         use super::*;
@@ -1090,9 +1090,11 @@ mod test {
     }
 
     mod update_pools {
-        use abstract_core::ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry};
-        use abstract_core::objects::PoolType;
-        use abstract_core::AbstractResult;
+        use abstract_core::{
+            ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry},
+            objects::PoolType,
+            AbstractResult,
+        };
         use cosmwasm_std::{Api, Order};
         use speculoos::assert_that;
 

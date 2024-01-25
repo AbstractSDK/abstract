@@ -1,11 +1,20 @@
-use abstract_core::objects::oracle::{AccountValue, Oracle};
-use abstract_core::proxy::{
-    AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset, TokenValueResponse,
+use abstract_core::{
+    objects::oracle::{AccountValue, Oracle},
+    proxy::{
+        AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset,
+        TokenValueResponse,
+    },
 };
-use abstract_sdk::core::objects::AssetEntry;
-use abstract_sdk::core::proxy::state::{ANS_HOST, STATE};
-use abstract_sdk::core::proxy::{AssetsInfoResponse, ConfigResponse};
-use abstract_sdk::Resolve;
+use abstract_sdk::{
+    core::{
+        objects::AssetEntry,
+        proxy::{
+            state::{ANS_HOST, STATE},
+            AssetsInfoResponse, ConfigResponse,
+        },
+    },
+    Resolve,
+};
 use cosmwasm_std::{Addr, Deps, Env, StdResult};
 use cw_asset::{Asset, AssetInfo};
 
@@ -103,14 +112,19 @@ pub fn query_holding_amount(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::objects::price_source::{PriceSource, UncheckedPriceSource};
-    use abstract_core::proxy::{
-        AssetConfigResponse, ExecuteMsg, InstantiateMsg, TokenValueResponse,
+    use abstract_core::{
+        objects::price_source::{PriceSource, UncheckedPriceSource},
+        proxy::{AssetConfigResponse, ExecuteMsg, InstantiateMsg, TokenValueResponse},
     };
     use abstract_testing::{prelude::*, MockAnsHost};
-    use cosmwasm_std::testing::{mock_dependencies, MOCK_CONTRACT_ADDR};
-    use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockQuerier, MockStorage};
-    use cosmwasm_std::{coin, Decimal, DepsMut, OwnedDeps};
+    use cosmwasm_std::{
+        coin,
+        testing::{
+            mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
+            MOCK_CONTRACT_ADDR,
+        },
+        Decimal, DepsMut, OwnedDeps,
+    };
 
     use super::*;
     use crate::contract::{execute, instantiate, query};

@@ -15,8 +15,11 @@ use cosmwasm_std::{
 };
 use serde_cw_value::Value;
 
-use crate::contract::ModuleFactoryResponse;
-use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError, state::*};
+use crate::{
+    contract::{ModuleFactoryResponse, ModuleFactoryResult},
+    error::ModuleFactoryError,
+    state::*,
+};
 
 /// Function that starts the creation of the Modules
 pub fn execute_create_modules(
@@ -266,8 +269,7 @@ mod test {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::contract::execute;
-    use crate::test_common::*;
+    use crate::{contract::execute, test_common::*};
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
 

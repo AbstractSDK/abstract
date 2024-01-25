@@ -1,10 +1,12 @@
-use abstract_core::objects::namespace::Namespace;
-use abstract_core::{objects::AccountId, AbstractError};
-use abstract_sdk::{
-    core::objects::module::ModuleInfo, core::objects::validation::ValidationError, AbstractSdkError,
+use abstract_core::{
+    objects::{namespace::Namespace, AccountId},
+    AbstractError,
 };
-use cosmwasm_std::Coin;
-use cosmwasm_std::{Addr, StdError};
+use abstract_sdk::{
+    core::objects::{module::ModuleInfo, validation::ValidationError},
+    AbstractSdkError,
+};
+use cosmwasm_std::{Addr, Coin, StdError};
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]

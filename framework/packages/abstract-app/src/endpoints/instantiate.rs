@@ -82,8 +82,7 @@ mod test {
         addresses::test_account_base,
         prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL},
     };
-    use speculoos::assert_that;
-    use speculoos::prelude::*;
+    use speculoos::{assert_that, prelude::*};
 
     use super::InstantiateMsg as SuperInstantiateMsg;
     use crate::mock::*;

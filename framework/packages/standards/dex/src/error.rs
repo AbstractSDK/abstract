@@ -1,7 +1,8 @@
 use abstract_adapter::AdapterError;
-use abstract_core::objects::ans_host::AnsHostError;
-use abstract_core::objects::DexAssetPairing;
-use abstract_core::AbstractError;
+use abstract_core::{
+    objects::{ans_host::AnsHostError, DexAssetPairing},
+    AbstractError,
+};
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;

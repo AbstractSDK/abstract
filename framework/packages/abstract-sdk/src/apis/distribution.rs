@@ -8,9 +8,7 @@ use cosmos_sdk_proto::{
 };
 use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg};
 
-use crate::features::AccountIdentification;
-use crate::AbstractSdkResult;
-use crate::AccountAction;
+use crate::{features::AccountIdentification, AbstractSdkResult, AccountAction};
 
 /// Interact with the Cosmos SDK Distribution module.
 /// Requires `Stargate` feature.

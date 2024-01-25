@@ -21,8 +21,7 @@ use abstract_sdk::core::{
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
 use cw_storage_plus::{Bound, Map};
 
-use crate::contract::VCResult;
-use crate::error::VCError;
+use crate::{contract::VCResult, error::VCError};
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
@@ -263,17 +262,16 @@ fn filter_modules_by_namespace(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::objects::account::AccountTrace;
-    use abstract_core::{manager, version_control::*};
-    use abstract_testing::prelude::*;
-    use abstract_testing::{MockQuerierBuilder, MockQuerierOwnership};
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{to_json_binary, Addr, Binary, DepsMut, StdError};
+    use abstract_core::{manager, objects::account::AccountTrace, version_control::*};
+    use abstract_testing::{prelude::*, MockQuerierBuilder, MockQuerierOwnership};
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        to_json_binary, Addr, Binary, DepsMut, StdError,
+    };
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::contract;
-    use crate::contract::VCResult;
+    use crate::{contract, contract::VCResult};
 
     type VersionControlTestResult = Result<(), VCError>;
 

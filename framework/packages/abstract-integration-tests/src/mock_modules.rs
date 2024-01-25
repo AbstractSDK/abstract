@@ -1,9 +1,9 @@
-use abstract_adapter::gen_adapter_mock;
-use abstract_adapter::mock::MockInitMsg;
-use abstract_adapter::{mock::MockError as AdapterMockError, AdapterContract};
-use abstract_app::gen_app_mock;
-use abstract_app::mock::MockError as AppMockError;
-use abstract_app::AppContract;
+use abstract_adapter::{
+    gen_adapter_mock,
+    mock::{MockError as AdapterMockError, MockInitMsg},
+    AdapterContract,
+};
+use abstract_app::{gen_app_mock, mock::MockError as AppMockError, AppContract};
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy};
 use cw_orch::prelude::*;
@@ -51,8 +51,7 @@ pub mod adapter_1 {
 
     pub const MOCK_ADAPTER_ID: &str = "tester:mock-adapter1";
 
-    pub use self::v1::*;
-    pub use self::v2::*;
+    pub use self::{v1::*, v2::*};
 
     pub mod v1 {
         use super::*;
@@ -70,9 +69,7 @@ pub mod adapter_2 {
 
     pub const MOCK_ADAPTER_ID: &str = "tester:mock-adapter2";
 
-    pub use self::v0_1_0::*;
-    pub use self::v1::*;
-    pub use self::v2_0_0::*;
+    pub use self::{v0_1_0::*, v1::*, v2_0_0::*};
 
     pub mod v1 {
         use super::*;

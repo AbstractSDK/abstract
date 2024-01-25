@@ -263,8 +263,10 @@ mod tests {
         use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;
-        use crate::objects::pool_id::PoolAddressBase;
-        use crate::{ans_host, objects::ans_host::AnsHostError};
+        use crate::{
+            ans_host,
+            objects::{ans_host::AnsHostError, pool_id::PoolAddressBase},
+        };
 
         #[test]
         fn liquidity_token() -> AbstractResult<()> {

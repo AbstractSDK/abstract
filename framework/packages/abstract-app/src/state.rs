@@ -1,5 +1,7 @@
-use abstract_core::objects::{dependency::StaticDependency, nested_admin::NestedAdmin};
-use abstract_core::AbstractError;
+use abstract_core::{
+    objects::{dependency::StaticDependency, nested_admin::NestedAdmin},
+    AbstractError,
+};
 use abstract_sdk::{
     base::SudoHandlerFn,
     feature_objects::{AnsHost, VersionControlContract},

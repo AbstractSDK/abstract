@@ -6,10 +6,9 @@ use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 
 use super::{AbstractApi, ApiIdentification};
-use crate::core::objects::module::ModuleId;
-use crate::features::ModuleIdentification;
 use crate::{
-    features::{AccountIdentification, Dependencies},
+    core::objects::module::ModuleId,
+    features::{AccountIdentification, Dependencies, ModuleIdentification},
     AbstractSdkResult,
 };
 

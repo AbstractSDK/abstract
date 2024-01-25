@@ -2,10 +2,12 @@
 //! The Accountant object provides function for querying balances and asset values for the Account.
 
 use abstract_core::{
-    objects::oracle::{self, AccountValue},
-    proxy::{AssetsInfoResponse, BaseAssetResponse, TokenValueResponse},
+    objects::{
+        oracle::{self, AccountValue},
+        AssetEntry,
+    },
+    proxy::{AssetsInfoResponse, BaseAssetResponse, QueryMsg, TokenValueResponse},
 };
-use abstract_core::{objects::AssetEntry, proxy::QueryMsg};
 use cosmwasm_std::{Deps, Uint128};
 
 use super::{AbstractApi, ApiIdentification};

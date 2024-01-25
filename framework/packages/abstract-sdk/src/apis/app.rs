@@ -1,6 +1,5 @@
 #![allow(unused)]
-use abstract_core::app as msg;
-use abstract_core::objects::module::ModuleId;
+use abstract_core::{app as msg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -135,8 +134,7 @@ mod tests {
 
     mod app_request {
         use super::*;
-        use crate::core::app;
-        use crate::mock_module::MockModuleExecuteMsg;
+        use crate::{core::app, mock_module::MockModuleExecuteMsg};
 
         #[test]
         fn should_return_err_if_not_dependency() {

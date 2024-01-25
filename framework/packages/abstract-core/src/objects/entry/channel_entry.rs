@@ -5,8 +5,7 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::objects::chain_name::ChainName;
-use crate::AbstractResult;
+use crate::{objects::chain_name::ChainName, AbstractResult};
 
 /// Key to get the Address of a connected_chain
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]

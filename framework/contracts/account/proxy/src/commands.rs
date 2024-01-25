@@ -6,8 +6,10 @@ use abstract_sdk::core::{
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg};
 
-use crate::contract::{ProxyResponse, ProxyResult, RESPONSE_REPLY_ID};
-use crate::error::ProxyError;
+use crate::{
+    contract::{ProxyResponse, ProxyResult, RESPONSE_REPLY_ID},
+    error::ProxyError,
+};
 
 const LIST_SIZE_LIMIT: usize = 15;
 
@@ -163,16 +165,17 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResul
 mod test {
     use abstract_core::proxy::ExecuteMsg;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::mock_dependencies;
-    use cosmwasm_std::testing::{
-        mock_env, mock_info, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
+    use cosmwasm_std::{
+        testing::{
+            mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
+            MOCK_CONTRACT_ADDR,
+        },
+        Addr, OwnedDeps, Storage,
     };
-    use cosmwasm_std::{Addr, OwnedDeps, Storage};
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::contract::execute;
-    use crate::test_common::*;
+    use crate::{contract::execute, test_common::*};
 
     const TEST_MODULE: &str = "module";
 
@@ -188,8 +191,7 @@ mod test {
     }
 
     mod add_module {
-        use cosmwasm_std::testing::mock_dependencies;
-        use cosmwasm_std::Addr;
+        use cosmwasm_std::{testing::mock_dependencies, Addr};
         use cw_controllers::AdminError;
 
         use super::*;
@@ -275,8 +277,7 @@ mod test {
 
     mod remove_module {
         use abstract_core::proxy::state::State;
-        use cosmwasm_std::testing::mock_dependencies;
-        use cosmwasm_std::Addr;
+        use cosmwasm_std::{testing::mock_dependencies, Addr};
         use cw_controllers::AdminError;
 
         use super::*;

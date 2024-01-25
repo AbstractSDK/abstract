@@ -2,17 +2,18 @@
 //! The Bank object handles asset transfers to and from the Account.
 
 use abstract_core::objects::ans_host::AnsHostError;
-use cosmwasm_std::to_json_binary;
-use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
+use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
-use crate::core::objects::{AnsAsset, AssetEntry};
-use crate::cw_helpers::ApiQuery;
-use crate::features::{AccountIdentification, ModuleIdentification};
-use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
-use crate::{AbstractSdkError, AccountAction};
+use crate::{
+    ans_resolve::Resolve,
+    core::objects::{AnsAsset, AssetEntry},
+    cw_helpers::ApiQuery,
+    features::{AbstractNameService, AccountIdentification, ModuleIdentification},
+    AbstractSdkError, AbstractSdkResult, AccountAction,
+};
 
 /// Query and Transfer assets from and to the Abstract Account.
 pub trait TransferInterface:

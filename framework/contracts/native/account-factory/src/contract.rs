@@ -1,7 +1,9 @@
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
-use abstract_sdk::core::{account_factory::*, ACCOUNT_FACTORY};
-use abstract_sdk::{execute_update_ownership, query_ownership};
+use abstract_sdk::{
+    core::{account_factory::*, ACCOUNT_FACTORY},
+    execute_update_ownership, query_ownership,
+};
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
@@ -120,8 +122,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResu
 #[cfg(test)]
 mod tests {
     use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::*;
-    use cosmwasm_std::Addr;
+    use cosmwasm_std::{testing::*, Addr};
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
 

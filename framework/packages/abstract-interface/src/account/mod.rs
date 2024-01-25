@@ -11,11 +11,9 @@
 //! - uninstall module
 //! - upgrade module
 
-use abstract_core::manager::ModuleInstallConfig;
-use abstract_core::ABSTRACT_EVENT_TYPE;
+use abstract_core::{manager::ModuleInstallConfig, ABSTRACT_EVENT_TYPE};
 
-use crate::Abstract;
-use crate::AdapterDeployer;
+use crate::{Abstract, AdapterDeployer};
 
 mod manager;
 mod proxy;

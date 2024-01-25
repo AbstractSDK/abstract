@@ -1,9 +1,8 @@
-use abstract_core::objects::module_version::assert_cw_contract_upgrade;
 use abstract_core::{
     ibc_client::{state::*, *},
     objects::{
         ans_host::AnsHost,
-        module_version::{migrate_module_data, set_module_data},
+        module_version::{assert_cw_contract_upgrade, migrate_module_data, set_module_data},
     },
     IBC_CLIENT,
 };
@@ -12,8 +11,7 @@ use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
-use crate::ibc;
-use crate::{commands, error::IbcClientError, queries};
+use crate::{commands, error::IbcClientError, ibc, queries};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -138,9 +136,10 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::prelude::*;
-    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
-    use abstract_testing::OWNER;
+    use abstract_testing::{
+        prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL, *},
+        OWNER,
+    };
     use cosmwasm_std::{
         from_json,
         testing::{mock_dependencies, mock_env, mock_info},
@@ -469,8 +468,7 @@ mod tests {
         use abstract_testing::prelude::{
             mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
         };
-        use cosmwasm_std::wasm_execute;
-        use cosmwasm_std::Binary;
+        use cosmwasm_std::{wasm_execute, Binary};
         use polytone::callbacks::CallbackRequest;
 
         use super::*;

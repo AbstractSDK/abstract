@@ -6,6 +6,4 @@ mod fees;
 
 pub use cw_clearable::*;
 
-pub use self::cosmwasm_std::*;
-pub use self::cw_storage_plus::*;
-pub use self::fees::*;
+pub use self::{cosmwasm_std::*, cw_storage_plus::*, fees::*};

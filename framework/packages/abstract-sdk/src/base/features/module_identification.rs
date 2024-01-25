@@ -1,5 +1,4 @@
-use crate::base::Handler;
-use crate::core::objects::module::ModuleId;
+use crate::{base::Handler, core::objects::module::ModuleId};
 
 /// Return the identifier for this module.
 pub trait ModuleIdentification: Sized {

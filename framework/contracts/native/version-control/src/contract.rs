@@ -1,21 +1,23 @@
 pub(crate) use abstract_core::objects::namespace::ABSTRACT_NAMESPACE;
-use abstract_core::version_control::Config;
-use abstract_core::{objects::namespace::Namespace, version_control::state::NAMESPACES_INFO};
-use abstract_macros::abstract_response;
-use abstract_sdk::core::{
-    objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
-    version_control::{
-        state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-    },
-    VERSION_CONTROL,
+use abstract_core::{
+    objects::namespace::Namespace,
+    version_control::{state::NAMESPACES_INFO, Config},
 };
-use abstract_sdk::{execute_update_ownership, query_ownership};
+use abstract_macros::abstract_response;
+use abstract_sdk::{
+    core::{
+        objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
+        version_control::{
+            state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+        },
+        VERSION_CONTROL,
+    },
+    execute_update_ownership, query_ownership,
+};
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw_semver::Version;
 
-use crate::commands::*;
-use crate::error::VCError;
-use crate::queries;
+use crate::{commands::*, error::VCError, queries};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -183,8 +185,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::contract;
-    use crate::testing::*;
+    use crate::{contract, testing::*};
 
     mod instantiate {
         use super::*;

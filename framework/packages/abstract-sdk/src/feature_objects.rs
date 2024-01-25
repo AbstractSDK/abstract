@@ -8,8 +8,8 @@ pub use abstract_core::objects::{ans_host::AnsHost, version_control::VersionCont
 use abstract_core::version_control::AccountBase;
 use cosmwasm_std::{Addr, Deps};
 
-use crate::core::PROXY;
 use crate::{
+    core::PROXY,
     features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };

@@ -8,11 +8,12 @@ mod queries;
 mod test_common {
     use abstract_core::ibc_client::InstantiateMsg;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::{mock_env, mock_info};
-    use cosmwasm_std::DepsMut;
+    use cosmwasm_std::{
+        testing::{mock_env, mock_info},
+        DepsMut,
+    };
 
-    use crate::contract;
-    use crate::contract::IbcClientResult;
+    use crate::{contract, contract::IbcClientResult};
 
     pub fn mock_init(deps: DepsMut) -> IbcClientResult {
         let msg = InstantiateMsg {

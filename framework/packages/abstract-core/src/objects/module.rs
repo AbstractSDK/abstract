@@ -6,10 +6,11 @@ use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
 use super::{module_reference::ModuleReference, AccountId};
-use crate::objects::fee::FixedFee;
-use crate::objects::module_version::MODULE;
-use crate::objects::namespace::Namespace;
-use crate::{error::AbstractError, AbstractResult};
+use crate::{
+    error::AbstractError,
+    objects::{fee::FixedFee, module_version::MODULE, namespace::Namespace},
+    AbstractResult,
+};
 
 /// ID of the module
 pub type ModuleId<'a> = &'a str;

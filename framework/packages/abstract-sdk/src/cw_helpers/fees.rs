@@ -4,8 +4,10 @@
 use cosmwasm_std::{CosmosMsg, Uint128};
 use cw_asset::Asset;
 
-use crate::core::objects::fee::{Fee, UsageFee};
-use crate::AbstractSdkResult;
+use crate::{
+    core::objects::fee::{Fee, UsageFee},
+    AbstractSdkResult,
+};
 
 /// Indicates that the implementing type can be charged fees.
 pub trait Chargeable {

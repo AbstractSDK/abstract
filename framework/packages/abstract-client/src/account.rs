@@ -36,8 +36,7 @@ use abstract_interface::{
     InstallConfig, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
 use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
-use cw_orch::prelude::*;
-use cw_orch::{contract::Contract, environment::MutCwEnv};
+use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
     client::AbstractClientResult,

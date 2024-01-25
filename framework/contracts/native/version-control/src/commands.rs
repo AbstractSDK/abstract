@@ -24,8 +24,10 @@ use cosmwasm_std::{
     QuerierWrapper, StdResult, Storage,
 };
 
-use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
-use crate::error::VCError;
+use crate::{
+    contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE},
+    error::VCError,
+};
 
 /// Add new Account to version control contract
 /// Only Factory can add Account
@@ -602,20 +604,22 @@ pub fn validate_account_owner(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::manager::ConfigResponse as ManagerConfigResponse;
-    use abstract_core::manager::QueryMsg as ManagerQueryMsg;
-    use abstract_core::objects::account::AccountTrace;
-    use abstract_core::version_control::*;
-    use abstract_testing::prelude::*;
-    use abstract_testing::MockQuerierOwnership;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{from_json, to_json_binary, Addr, Coin};
+    use abstract_core::{
+        manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
+        objects::account::AccountTrace,
+        version_control::*,
+    };
+    use abstract_testing::{prelude::*, MockQuerierOwnership};
+    use cosmwasm_std::{
+        from_json,
+        testing::{mock_dependencies, mock_env, mock_info},
+        to_json_binary, Addr, Coin,
+    };
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::contract;
-    use crate::testing::*;
+    use crate::{contract, testing::*};
 
     type VersionControlTestResult = Result<(), VCError>;
 
@@ -1338,10 +1342,10 @@ mod test {
     }
 
     mod propose_modules {
-        use abstract_core::objects::fee::FixedFee;
-        use abstract_core::objects::module::Monetization;
-        use abstract_core::objects::module_reference::ModuleReference;
-        use abstract_core::AbstractError;
+        use abstract_core::{
+            objects::{fee::FixedFee, module::Monetization, module_reference::ModuleReference},
+            AbstractError,
+        };
         use cosmwasm_std::coin;
 
         use super::*;

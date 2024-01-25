@@ -121,14 +121,12 @@ mod test {
     use abstract_core::app::BaseExecuteMsg;
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::Response;
-    use cosmwasm_std::{Addr, DepsMut};
+    use cosmwasm_std::{Addr, DepsMut, Response};
     use cw_controllers::AdminError;
     use speculoos::prelude::*;
 
     use super::ExecuteMsg as SuperExecuteMsg;
-    use crate::mock::*;
-    use crate::AppError;
+    use crate::{mock::*, AppError};
 
     type AppExecuteMsg = SuperExecuteMsg<MockExecMsg, MockReceiveMsg>;
 

@@ -1,6 +1,6 @@
-use abstract_core::objects::module_version::assert_contract_upgrade;
-use abstract_core::objects::oracle::Oracle;
-use abstract_core::objects::price_source::UncheckedPriceSource;
+use abstract_core::objects::{
+    module_version::assert_contract_upgrade, oracle::Oracle, price_source::UncheckedPriceSource,
+};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
@@ -18,9 +18,7 @@ use cosmwasm_std::{
 };
 use semver::Version;
 
-use crate::error::ProxyError;
-use crate::queries::*;
-use crate::{commands::*, reply};
+use crate::{commands::*, error::ProxyError, queries::*, reply};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const RESPONSE_REPLY_ID: u64 = 1;
@@ -140,8 +138,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::contract;
-    use crate::test_common::*;
+    use crate::{contract, test_common::*};
 
     mod migrate {
         use abstract_core::AbstractError;

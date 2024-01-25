@@ -124,10 +124,9 @@ mod tests {
 
     use abstract_core::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::Binary;
     use cosmwasm_std::{
         testing::{mock_dependencies, MockQuerier},
-        Empty,
+        Binary, Empty,
     };
     use speculoos::prelude::*;
 

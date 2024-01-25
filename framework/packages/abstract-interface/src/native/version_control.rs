@@ -10,9 +10,7 @@ use abstract_core::{
     VERSION_CONTROL,
 };
 use cosmwasm_std::Addr;
-use cw_orch::contract::Contract;
-use cw_orch::interface;
-use cw_orch::prelude::*;
+use cw_orch::{contract::Contract, interface, prelude::*};
 
 use crate::AbstractAccount;
 

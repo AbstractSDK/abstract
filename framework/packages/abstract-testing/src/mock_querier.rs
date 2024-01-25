@@ -1,14 +1,13 @@
 use std::{collections::HashMap, ops::Deref};
 
-use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
 use abstract_core::{
     manager::state::{ACCOUNT_ID, ACCOUNT_MODULES},
+    objects::common_namespace::OWNERSHIP_STORAGE_KEY,
     version_control::state::ACCOUNT_ADDRESSES,
 };
-use cosmwasm_std::ContractInfoResponse;
 use cosmwasm_std::{
-    from_json, testing::MockQuerier, to_json_binary, Addr, Binary, ContractResult, Empty,
-    QuerierWrapper, SystemResult, WasmQuery,
+    from_json, testing::MockQuerier, to_json_binary, Addr, Binary, ContractInfoResponse,
+    ContractResult, Empty, QuerierWrapper, SystemResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map, PrimaryKey};

@@ -18,8 +18,7 @@ pub use abstract_core;
 pub use abstract_core::objects;
 pub use abstract_sdk;
 pub mod traits {
-    pub use abstract_sdk::features::*;
-    pub use abstract_sdk::prelude::*;
+    pub use abstract_sdk::{features::*, prelude::*};
 }
 
 #[cfg(feature = "interface-macro")]

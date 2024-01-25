@@ -12,9 +12,7 @@ use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult}
 use cw2::set_contract_version;
 use semver::Version;
 
-use crate::commands::*;
-use crate::error::AnsHostError;
-use crate::queries;
+use crate::{commands::*, error::AnsHostError, queries};
 
 #[abstract_response(ANS_HOST)]
 pub struct AnsHostResponse;

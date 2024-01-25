@@ -1,5 +1,7 @@
-use abstract_core::objects::module_version::assert_contract_upgrade;
-use abstract_core::{app::MigrateMsg, objects::module_version::set_module_data};
+use abstract_core::{
+    app::MigrateMsg,
+    objects::module_version::{assert_contract_upgrade, set_module_data},
+};
 use cosmwasm_std::Response;
 use cw2::set_contract_version;
 use schemars::JsonSchema;

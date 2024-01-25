@@ -10,10 +10,9 @@ use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::objects::{
-    pool_id::UncheckedPoolAddress,
-    pool_reference::PoolReference,
-    AssetEntry, ChannelEntry, DexAssetPairing, PoolMetadata, PoolType, UncheckedChannelEntry,
-    UniquePoolId, {ContractEntry, UncheckedContractEntry},
+    pool_id::UncheckedPoolAddress, pool_reference::PoolReference, AssetEntry, ChannelEntry,
+    ContractEntry, DexAssetPairing, PoolMetadata, PoolType, UncheckedChannelEntry,
+    UncheckedContractEntry, UniquePoolId,
 };
 
 pub type AssetPair = (AssetEntry, AssetEntry);
@@ -38,10 +37,12 @@ pub mod state {
     use cw_asset::AssetInfo;
     use cw_storage_plus::{Item, Map};
 
-    use crate::ans_host::{DexAssetPairing, DexName, UniquePoolId};
-    use crate::objects::{
-        pool_metadata::PoolMetadata, pool_reference::PoolReference, AssetEntry, ChannelEntry,
-        ContractEntry,
+    use crate::{
+        ans_host::{DexAssetPairing, DexName, UniquePoolId},
+        objects::{
+            pool_metadata::PoolMetadata, pool_reference::PoolReference, AssetEntry, ChannelEntry,
+            ContractEntry,
+        },
     };
 
     /// Ans host configuration

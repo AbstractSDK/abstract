@@ -1,7 +1,8 @@
-use abstract_core::adapter::AdapterBaseMsg;
-use abstract_core::adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg};
-use abstract_core::manager::state::ACCOUNT_MODULES;
-use abstract_core::objects::nested_admin::query_top_level_owner;
+use abstract_core::{
+    adapter::{AdapterBaseMsg, AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
+    manager::state::ACCOUNT_MODULES,
+    objects::nested_admin::query_top_level_owner,
+};
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
@@ -11,10 +12,9 @@ use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, QuerierWrapper, Respon
 use schemars::JsonSchema;
 use serde::Serialize;
 
-use crate::state::MAXIMUM_AUTHORIZED_ADDRESSES;
 use crate::{
     error::AdapterError,
-    state::{AdapterContract, ContractError},
+    state::{AdapterContract, ContractError, MAXIMUM_AUTHORIZED_ADDRESSES},
     AdapterResult,
 };
 

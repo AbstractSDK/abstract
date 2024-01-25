@@ -1,11 +1,10 @@
 pub use abstract_core::ibc_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cw_orch::{
     interface,
-    prelude::{artifacts_dir_from_workspace, CwEnv, Uploadable, WasmPath},
-};
-use cw_orch::{
-    prelude::ArtifactsDir,
-    prelude::{ContractWrapper, Mock, TxHandler},
+    prelude::{
+        artifacts_dir_from_workspace, ArtifactsDir, ContractWrapper, CwEnv, Mock, TxHandler,
+        Uploadable, WasmPath,
+    },
 };
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

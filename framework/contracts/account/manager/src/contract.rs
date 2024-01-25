@@ -11,8 +11,10 @@ use abstract_sdk::core::{
         state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
-    objects::module_version::assert_contract_upgrade,
-    objects::validation::{validate_description, validate_link, validate_name},
+    objects::{
+        module_version::assert_contract_upgrade,
+        validation::{validate_description, validate_link, validate_name},
+    },
     proxy::state::ACCOUNT_ID,
     MANAGER,
 };
@@ -293,8 +295,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::contract;
-    use crate::test_common::mock_init;
+    use crate::{contract, test_common::mock_init};
 
     mod migrate {
         use abstract_core::AbstractError;

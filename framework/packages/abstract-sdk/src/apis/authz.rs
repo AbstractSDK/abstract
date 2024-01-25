@@ -9,8 +9,7 @@ use super::stargate::authz::{
     AuthZAuthorization, AuthorizationType, GenericAuthorization, Policy, SendAuthorization,
     StakeAuthorization,
 };
-use crate::features::AccountIdentification;
-use crate::AbstractSdkResult;
+use crate::{features::AccountIdentification, AbstractSdkResult};
 
 /// An interface to the CosmosSDK AuthZ module which allows for granting authorizations to perform actions on behalf of one account to other accounts.
 pub trait AuthZInterface: AccountIdentification {

@@ -520,12 +520,8 @@ pub struct AccountValue {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::prelude::*;
-    use abstract_testing::MockAnsHost;
-    use cosmwasm_std::coin;
-    use cosmwasm_std::testing::*;
-    use cosmwasm_std::Addr;
-    use cosmwasm_std::Decimal;
+    use abstract_testing::{prelude::*, MockAnsHost};
+    use cosmwasm_std::{coin, testing::*, Addr, Decimal};
     use speculoos::prelude::*;
 
     use super::*;

@@ -32,9 +32,11 @@ pub mod voting;
 
 pub use account::{AccountId, ABSTRACT_ACCOUNT_ID};
 pub use ans_asset::AnsAsset;
-pub use entry::ans_entry_convertor::AnsEntryConvertor;
-pub use entry::asset_entry::AssetEntry;
-pub use entry::channel_entry::{ChannelEntry, UncheckedChannelEntry};
-pub use entry::contract_entry::{ContractEntry, UncheckedContractEntry};
-pub use entry::dex_asset_pairing::DexAssetPairing;
-pub use entry::lp_token::{DexName, LpToken};
+pub use entry::{
+    ans_entry_convertor::AnsEntryConvertor,
+    asset_entry::AssetEntry,
+    channel_entry::{ChannelEntry, UncheckedChannelEntry},
+    contract_entry::{ContractEntry, UncheckedContractEntry},
+    dex_asset_pairing::DexAssetPairing,
+    lp_token::{DexName, LpToken},
+};

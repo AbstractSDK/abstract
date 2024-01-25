@@ -1,44 +1,36 @@
 use abstract_adapter::mock::MockExecMsg;
 use abstract_app::mock::MockInitMsg;
-use abstract_core::adapter::AdapterBaseMsg;
-use abstract_core::adapter::AdapterRequestMsg;
-use abstract_core::app;
-use abstract_core::manager::ModuleInstallConfig;
-use abstract_core::manager::ModuleVersionsResponse;
-use abstract_core::module_factory::SimulateInstallModulesResponse;
-use abstract_core::objects::account::TEST_ACCOUNT_ID;
-use abstract_core::objects::fee::FixedFee;
-use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::module::ModuleInfo;
-use abstract_core::objects::module::ModuleVersion;
-use abstract_core::objects::module::Monetization;
-use abstract_core::objects::module_reference::ModuleReference;
-use abstract_core::objects::namespace::Namespace;
-use abstract_core::objects::AccountId;
-use abstract_core::version_control::UpdateModule;
-use abstract_core::PROXY;
+use abstract_core::{
+    adapter::{AdapterBaseMsg, AdapterRequestMsg},
+    app,
+    manager::{ModuleInstallConfig, ModuleVersionsResponse},
+    module_factory::SimulateInstallModulesResponse,
+    objects::{
+        account::TEST_ACCOUNT_ID,
+        fee::FixedFee,
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion, Monetization},
+        module_reference::ModuleReference,
+        namespace::Namespace,
+        AccountId,
+    },
+    version_control::UpdateModule,
+    PROXY,
+};
 use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
-use cosmwasm_std::coin;
-use cosmwasm_std::coins;
-use cosmwasm_std::wasm_execute;
-use cosmwasm_std::Uint128;
+use cosmwasm_std::{coin, coins, wasm_execute, Uint128};
 use cw2::ContractVersion;
-use cw_orch::deploy::Deploy;
-use cw_orch::environment::MutCwEnv;
-use cw_orch::prelude::*;
+use cw_orch::{deploy::Deploy, environment::MutCwEnv, prelude::*};
 use speculoos::prelude::*;
 
-use crate::add_mock_adapter_install_fee;
-use crate::create_default_account;
-use crate::init_mock_adapter;
-use crate::install_adapter;
-use crate::install_adapter_with_funds;
-use crate::install_module_version;
-use crate::mock_modules::standalone_cw2;
-use crate::mock_modules::*;
-use crate::AResult;
+use crate::{
+    add_mock_adapter_install_fee, create_default_account, init_mock_adapter, install_adapter,
+    install_adapter_with_funds, install_module_version,
+    mock_modules::{standalone_cw2, *},
+    AResult,
+};
 
 pub mod mock_app {
     use abstract_app::gen_app_mock;

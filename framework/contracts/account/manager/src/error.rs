@@ -1,7 +1,8 @@
-use abstract_core::objects::{validation::ValidationError, version_control::VersionControlError};
-use abstract_core::AbstractError;
-use abstract_sdk::core::objects::module::ModuleInfo;
-use abstract_sdk::AbstractSdkError;
+use abstract_core::{
+    objects::{validation::ValidationError, version_control::VersionControlError},
+    AbstractError,
+};
+use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
 use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;

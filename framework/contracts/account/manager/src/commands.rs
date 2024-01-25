@@ -1,37 +1,45 @@
-use abstract_core::adapter::{
-    AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
-    ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
-};
-use abstract_core::manager::state::{
-    PENDING_GOVERNANCE, REMOVE_ADAPTER_AUTHORIZED_CONTEXT, SUB_ACCOUNTS,
-};
-use abstract_core::manager::{InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction};
-use abstract_core::module_factory::FactoryModuleInstallConfig;
-use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::module::{self, assert_module_data_validity};
-use abstract_core::objects::nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION};
-use abstract_core::objects::version_control::VersionControlContract;
-use abstract_core::objects::{AccountId, AssetEntry};
-use abstract_core::proxy::state::ACCOUNT_ID;
-use abstract_core::version_control::ModuleResponse;
-use abstract_macros::abstract_response;
-use abstract_sdk::core::{
-    manager::state::DEPENDENTS,
-    manager::state::{
-        AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS,
+use abstract_core::{
+    adapter::{
+        AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
+        ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
     },
-    manager::{CallbackMsg, ExecuteMsg},
-    module_factory::ExecuteMsg as ModuleFactoryMsg,
+    manager::{
+        state::{PENDING_GOVERNANCE, REMOVE_ADAPTER_AUTHORIZED_CONTEXT, SUB_ACCOUNTS},
+        InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction,
+    },
+    module_factory::FactoryModuleInstallConfig,
     objects::{
-        dependency::Dependency,
-        module::{Module, ModuleInfo, ModuleVersion},
-        module_reference::ModuleReference,
-        validation::{validate_description, validate_link, validate_name},
+        gov_type::GovernanceDetails,
+        module::{self, assert_module_data_validity},
+        nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION},
+        version_control::VersionControlContract,
+        AccountId, AssetEntry,
     },
-    proxy::ExecuteMsg as ProxyMsg,
-    IBC_CLIENT, MANAGER, PROXY,
+    proxy::state::ACCOUNT_ID,
+    version_control::ModuleResponse,
 };
-use abstract_sdk::cw_helpers::AbstractAttributes;
+use abstract_macros::abstract_response;
+use abstract_sdk::{
+    core::{
+        manager::{
+            state::{
+                AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, DEPENDENTS, INFO,
+                SUSPENSION_STATUS,
+            },
+            CallbackMsg, ExecuteMsg,
+        },
+        module_factory::ExecuteMsg as ModuleFactoryMsg,
+        objects::{
+            dependency::Dependency,
+            module::{Module, ModuleInfo, ModuleVersion},
+            module_reference::ModuleReference,
+            validation::{validate_description, validate_link, validate_name},
+        },
+        proxy::ExecuteMsg as ProxyMsg,
+        IBC_CLIENT, MANAGER, PROXY,
+    },
+    cw_helpers::AbstractAttributes,
+};
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
     Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg,
@@ -42,8 +50,10 @@ use cw_ownable::OwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
 
-use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_version};
-use crate::{validation, versioning};
+use crate::{
+    contract::ManagerResult, error::ManagerError, queries::query_module_version, validation,
+    versioning,
+};
 
 pub const REGISTER_MODULES_DEPENDENCIES: u64 = 1;
 pub const HANDLE_ADAPTER_AUTHORIZED_REMOVE: u64 = 2;
@@ -1167,15 +1177,14 @@ pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> 
 #[cfg(test)]
 mod tests {
     use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::{
-        mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage},
+        Order, OwnedDeps, StdError, Storage,
     };
-    use cosmwasm_std::{Order, OwnedDeps, StdError, Storage};
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::contract;
-    use crate::test_common::mock_init;
+    use crate::{contract, test_common::mock_init};
 
     type ManagerTestResult = Result<(), ManagerError>;
 
@@ -1948,8 +1957,7 @@ mod tests {
     }
 
     mod update_internal_config {
-        use abstract_core::manager::InternalConfigAction::UpdateModuleAddresses;
-        use abstract_core::manager::QueryMsg;
+        use abstract_core::manager::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
 
         use super::*;
 

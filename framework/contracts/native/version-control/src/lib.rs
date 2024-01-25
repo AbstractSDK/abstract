@@ -6,12 +6,9 @@ pub mod queries;
 mod testing {
     use abstract_core::version_control;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::*;
-    use cosmwasm_std::DepsMut;
-    use cosmwasm_std::Response;
+    use cosmwasm_std::{testing::*, DepsMut, Response};
 
-    use crate::contract;
-    use crate::error::VCError;
+    use crate::{contract, error::VCError};
 
     /// Initialize the version_control with admin as creator and factory
     pub fn mock_init(mut deps: DepsMut) -> Result<Response, VCError> {

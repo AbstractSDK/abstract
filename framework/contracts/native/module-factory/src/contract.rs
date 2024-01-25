@@ -142,8 +142,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::contract;
-    use crate::test_common::*;
+    use crate::{contract, test_common::*};
 
     mod migrate {
         use abstract_core::AbstractError;

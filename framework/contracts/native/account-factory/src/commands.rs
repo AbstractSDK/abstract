@@ -1,29 +1,39 @@
-use abstract_core::manager::ModuleInstallConfig;
-use abstract_core::module_factory::SimulateInstallModulesResponse;
-use abstract_core::objects::account::{generate_account_salt, AccountTrace};
-use abstract_core::objects::module::assert_module_data_validity;
-use abstract_core::objects::{AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID};
-use abstract_core::AbstractError;
-use abstract_sdk::core::{
-    manager::InstantiateMsg as ManagerInstantiateMsg,
+use abstract_core::{
+    manager::ModuleInstallConfig,
+    module_factory::SimulateInstallModulesResponse,
     objects::{
-        gov_type::GovernanceDetails, module::Module, module::ModuleInfo,
-        module_reference::ModuleReference,
+        account::{generate_account_salt, AccountTrace},
+        module::assert_module_data_validity,
+        AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
     },
-    proxy::InstantiateMsg as ProxyInstantiateMsg,
-    version_control::{
-        AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
-    },
-    AbstractResult, MANAGER, PROXY,
+    AbstractError,
 };
-use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::{
+    core::{
+        manager::InstantiateMsg as ManagerInstantiateMsg,
+        objects::{
+            gov_type::GovernanceDetails,
+            module::{Module, ModuleInfo},
+            module_reference::ModuleReference,
+        },
+        proxy::InstantiateMsg as ProxyInstantiateMsg,
+        version_control::{
+            AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
+        },
+        AbstractResult, MANAGER, PROXY,
+    },
+    feature_objects::VersionControlContract,
+};
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, DepsMut, Empty, Env,
     MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
 };
 
-use crate::contract::AccountFactoryResponse;
-use crate::{contract::AccountFactoryResult, error::AccountFactoryError, state::*};
+use crate::{
+    contract::{AccountFactoryResponse, AccountFactoryResult},
+    error::AccountFactoryError,
+    state::*,
+};
 
 pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 2u64;
 

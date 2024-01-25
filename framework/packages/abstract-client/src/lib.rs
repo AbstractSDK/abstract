@@ -12,8 +12,7 @@ mod mut_client;
 mod publisher;
 
 // Re-export common used types
-pub use abstract_core::objects::gov_type::GovernanceDetails;
-pub use abstract_core::objects::namespace::Namespace;
+pub use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace};
 // Re-export `ClientResolve` trait
 pub use abstract_interface::ClientResolve;
 pub use account::{Account, AccountBuilder};
