@@ -46,7 +46,6 @@ format_check() {
   else
     printf "Running formatter...\n"
     just cargo-all fmt --all;
-    find . -type f -iname "*.toml" -print0 | xargs -0 taplo format;
     # cargo workspaces exec --no-bail cargo schema >/dev/null;
     sleep 1; # Give git time to find changed files.
     not_staged_files=$(git diff --name-only)
