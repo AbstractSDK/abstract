@@ -73,8 +73,8 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 #[cfg(test)]
 mod test {
 
-    use abstract_app::mock::interface::MockAppI;
-    use abstract_app::mock::mock_app_dependency::interface::MockAppDependencyI;
+    use abstract_app::mock::interface::MockAppWithDepI;
+    use abstract_app::mock::mock_app_dependency::interface::MockAppI;
     use abstract_app::mock::MockInitMsg;
     use abstract_app::mock::MockQueryMsgFns;
     use abstract_app::mock::ReceivedIbcCallbackStatus;
@@ -96,8 +96,8 @@ mod test {
     use abstract_interface::DeployStrategy;
     use abstract_interface::VCExecFns;
     use abstract_interface::{ManagerExecFns, ManagerQueryFns};
-    use abstract_testing::addresses::TEST_DEPENDENCY_MODULE_ID;
-    use abstract_testing::addresses::TEST_DEPENDENCY_NAMESPACE;
+    use abstract_testing::addresses::TEST_MODULE_ID;
+    use abstract_testing::addresses::TEST_NAMESPACE;
     use abstract_testing::prelude::TEST_MODULE_ID;
     use abstract_testing::prelude::TEST_NAMESPACE;
     use abstract_testing::prelude::TEST_VERSION;
@@ -207,13 +207,13 @@ mod test {
         let (origin_account, _remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
 
-        let app = MockAppI::new(
+        let app = MockAppWithDepI::new(
             TEST_MODULE_ID,
             abstr_origin.version_control.get_chain().clone(),
         );
 
-        let app_dep = MockAppDependencyI::new(
-            TEST_DEPENDENCY_MODULE_ID,
+        let app_dep = MockAppI::new(
+            TEST_MODULE_ID,
             abstr_origin.version_control.get_chain().clone(),
         );
 
@@ -245,7 +245,7 @@ mod test {
         )?;
         abstr_origin.version_control.claim_namespace(
             app_deps_account.manager.config()?.account_id,
-            TEST_DEPENDENCY_NAMESPACE.to_owned(),
+            TEST_NAMESPACE.to_owned(),
         )?;
 
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
@@ -290,7 +290,7 @@ mod test {
         Ok(())
     }
 
-    fn assert_callback_status(app: &MockAppI<Mock>, status: bool) -> AnyResult<()> {
+    fn assert_callback_status(app: &MockAppWithDepI<Mock>, status: bool) -> AnyResult<()> {
         let get_received_ibc_callback_status_res: ReceivedIbcCallbackStatus =
             app.get_received_ibc_callback_status()?;
 

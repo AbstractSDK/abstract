@@ -1,17 +1,11 @@
-//! Deploys the module to the Abstract platform by uploading it and registering it on the version control contract.
+//! Publishes the module to the Abstract platform by uploading it and registering it on the app store.
 //!
-//! This should be used for mainnet/testnet deployments in combination with our front-end at https://app.abstract.money
-//!
-//! **Requires you to have an account and namespace registered**
-//!
-//! The mnemonic used to register the module must be the same as the owner of the account that claimed the namespace.
-//!
-//! Read our docs to learn how: https://docs.abstract.money/4_get_started/5_account_creation.html
+//! Info: The mnemonic used to register the module must be the same as the owner of the account that claimed the namespace.
 //!
 //! ## Example
 //!
 //! ```bash
-//! $ just deploy uni-6 osmo-test-5
+//! $ just publish uni-6 osmo-test-5
 //! ```
 use abstract_app::objects::namespace::Namespace;
 use abstract_client::{AbstractClient, Publisher};
@@ -25,7 +19,7 @@ use cw_orch::{
     tokio::runtime::Runtime,
 };
 
-fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
+fn publish(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // run for each requested network
     for network in networks {
         // Setup
@@ -56,7 +50,7 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 #[derive(Parser, Default, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Arguments {
-    /// Network Id to deploy on
+    /// Network Id to publish on
     #[arg(short, long, value_delimiter = ' ', num_args = 1..)]
     network_ids: Vec<String>,
 }
@@ -70,5 +64,5 @@ fn main() {
         .iter()
         .map(|n| parse_network(n).unwrap())
         .collect();
-    deploy(networks).unwrap();
+    publish(networks).unwrap();
 }
