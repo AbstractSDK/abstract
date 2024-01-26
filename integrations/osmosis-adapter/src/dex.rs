@@ -231,6 +231,7 @@ impl DexCommand for Osmosis {
 
         let token_in = Coin::try_from(offer_asset)?.to_string();
 
+        #[allow(deprecated)]
         let swap_exact_amount_in_response = EstimateSwapExactAmountInRequest {
             pool_id: pool_id.to_string().parse::<u64>().unwrap(),
             token_in,
