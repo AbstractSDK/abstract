@@ -208,6 +208,12 @@ pub struct Account<Chain: CwEnv> {
     install_on_sub_account: bool,
 }
 
+impl<Chain: CwEnv> AsRef<AbstractAccount<Chain>> for Account<Chain> {
+    fn as_ref(&self) -> &AbstractAccount<Chain> {
+        &self.abstr_account
+    }
+}
+
 struct ParsedAccountCreationResponse {
     sub_account_id: u32,
     module_address: String,
