@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- DependencyCreation trait moved from abstract-interface to the abstract-client package
+
 ### Removed
 
 ### Fixed
