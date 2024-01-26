@@ -23,6 +23,7 @@ export = []
 interface = [
   "export",
   "dep:abstract-interface",
+  "dep:abstract-client",
   "dep:cw-orch",
   "abstract-app/interface-macro",
 ]
@@ -47,6 +48,7 @@ abstract-core = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 
 abstract-interface = { workspace = true, optional = true }
+abstract-client = { workspace = true, optional = true }
 
 cw-address-like = { workspace = true }
 

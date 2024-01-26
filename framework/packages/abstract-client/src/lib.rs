@@ -17,7 +17,7 @@ pub use builder::AbstractClientBuilder;
 pub use client::AbstractClient;
 pub use error::AbstractClientError;
 pub use infrastructure::Environment;
-pub use publisher::{Publisher, PublisherBuilder};
+pub use publisher::{DependencyCreation, Publisher, PublisherBuilder};
 
 // Re-export common used types
 pub use abstract_core::objects::gov_type::GovernanceDetails;

@@ -39,6 +39,7 @@ export = []
 interface = [
   "export",
   "dep:abstract-interface",
+  "dep:abstract-client",
   "dep:cw-orch",
   "abstract-app/interface-macro",
 ]
@@ -62,6 +63,8 @@ abstract-sdk = { workspace = true }
 
 # Dependencies for interface
 abstract-interface = { workspace = true, optional = true }
+abstract-client = { workspace = true, optional = true }
+
 cw-orch = { workspace = true, optional = true }
 
 # Croncat dependencies

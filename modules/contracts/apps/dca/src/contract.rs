@@ -45,16 +45,14 @@ abstract_app::export_endpoints!(DCA_APP, DCAApp);
 abstract_app::cw_orch_interface!(DCA_APP, DCAApp, DCA);
 
 #[cfg(feature = "interface")]
-impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
-    for crate::DCA<Chain>
-{
+impl<Chain: cw_orch::environment::CwEnv> abstract_client::DependencyCreation for crate::DCA<Chain> {
     type DependenciesConfig = cosmwasm_std::Empty;
 
     fn dependency_install_configs(
         _configuration: Self::DependenciesConfig,
-    ) -> Result<Vec<ModuleInstallConfig>, abstract_interface::AbstractInterfaceError> {
+    ) -> Result<Vec<ModuleInstallConfig>, abstract_client::AbstractClientError> {
         let croncat_dependency_install_configs: Vec<ModuleInstallConfig> =
-            <Croncat<Chain> as abstract_interface::DependencyCreation>::dependency_install_configs(
+            <Croncat<Chain> as abstract_client::DependencyCreation>::dependency_install_configs(
                 cosmwasm_std::Empty {},
             )?;
         let adapter_install_config = ModuleInstallConfig::new(

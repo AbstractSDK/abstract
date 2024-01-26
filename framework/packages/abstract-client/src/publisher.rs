@@ -2,7 +2,10 @@
 //!
 //! [`Publisher`] is an Account with helpers for publishing and maintaining Abstract Applications and Adapters
 
-use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
+use abstract_core::{
+    manager::ModuleInstallConfig,
+    objects::{gov_type::GovernanceDetails, AssetEntry},
+};
 use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule};
 use cw_orch::{
     contract::Contract,
@@ -143,5 +146,19 @@ impl<Chain: CwEnv> Publisher<Chain> {
     /// Abstract Account of the publisher
     pub fn account(&self) -> &Account<Chain> {
         &self.account
+    }
+}
+
+/// Trait to access module dependency information tied directly to the type.
+pub trait DependencyCreation {
+    /// Type that exposes the dependencies's configurations if that's required.
+    type DependenciesConfig;
+
+    /// Function that returns the [`ModuleInstallConfig`] for each dependent module.
+    #[allow(unused_variables)]
+    fn dependency_install_configs(
+        configuration: Self::DependenciesConfig,
+    ) -> Result<Vec<ModuleInstallConfig>, crate::AbstractClientError> {
+        Ok(vec![])
     }
 }

@@ -32,8 +32,8 @@ use abstract_core::{
     PROXY,
 };
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, InstallConfig,
+    ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
 
 use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
@@ -43,7 +43,7 @@ use cw_orch::{contract::Contract, environment::MutCwEnv};
 use crate::{
     client::AbstractClientResult,
     infrastructure::{Environment, Infrastructure},
-    AbstractClientError, Application,
+    AbstractClientError, Application, DependencyCreation,
 };
 
 /// A builder for creating [`Accounts`](Account).

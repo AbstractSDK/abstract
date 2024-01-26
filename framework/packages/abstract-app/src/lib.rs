@@ -32,12 +32,13 @@ pub use abstract_testing;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
+    use abstract_client::DependencyCreation;
     pub use abstract_core::app;
     use abstract_core::{
         manager::ModuleInstallConfig,
         objects::{dependency::StaticDependency, module::ModuleInfo},
     };
-    use abstract_interface::{AppDeployer, DependencyCreation};
+    use abstract_interface::AppDeployer;
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{to_json_binary, Response, StdError};
@@ -191,7 +192,7 @@ pub mod mock {
         type DependenciesConfig = Empty;
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
-        ) -> Result<Vec<ModuleInstallConfig>, abstract_interface::AbstractInterfaceError> {
+        ) -> Result<Vec<ModuleInstallConfig>, abstract_client::AbstractClientError> {
             let install_config = ModuleInstallConfig::new(
                 ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?,
                 Some(to_json_binary(&MockInitMsg {})?),

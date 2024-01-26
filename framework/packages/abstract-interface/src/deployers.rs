@@ -19,20 +19,6 @@ pub trait RegisteredModule {
     fn module_version<'a>() -> &'a str;
 }
 
-/// Trait to access module dependency information tied directly to the type.
-pub trait DependencyCreation {
-    /// Type that exposes the dependencies's configurations if that's required.
-    type DependenciesConfig;
-
-    /// Function that returns the [`ModuleInstallConfig`] for each dependent module.
-    #[allow(unused_variables)]
-    fn dependency_install_configs(
-        configuration: Self::DependenciesConfig,
-    ) -> Result<Vec<ModuleInstallConfig>, crate::AbstractInterfaceError> {
-        Ok(vec![])
-    }
-}
-
 /// Trait to make it easier to construct [`ModuleInfo`] and [`ModuleInstallConfig`] for a
 /// [`RegisteredModule`].
 pub trait InstallConfig: RegisteredModule {

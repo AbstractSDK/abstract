@@ -72,6 +72,9 @@ account-factory = { package = "abstract-account-factory", path = "contracts/nati
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
 version-control = { package = "abstract-version-control", path = "contracts/native/version-control" }
 
+# Abstract-client
+abstract-client = { version = "0.20.0", path = "packages/abstract-client" }
+
 # Ibc
 ibc-client = { package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
 ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }

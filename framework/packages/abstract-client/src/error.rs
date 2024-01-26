@@ -23,6 +23,9 @@ pub enum AbstractClientError {
     #[error("{0}")]
     ValidationError(#[from] ValidationError),
 
+    #[error("{0}")]
+    Std(#[from] cosmwasm_std::StdError),
+
     #[error("Module not installed")]
     ModuleNotInstalled {},
 
