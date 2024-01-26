@@ -1,7 +1,7 @@
 use abstract_core::ibc_client::{ExecuteMsgFns as _, QueryMsgFns};
 use abstract_core::ibc_host::ExecuteMsgFns;
 use abstract_core::objects::chain_name::ChainName;
-use abstract_interface::Abstract;
+use abstract_interface::{Abstract, AccountFactoryExecFns};
 use cw_orch::interchain::InterchainError;
 use cw_orch::prelude::*;
 use cw_orch_polytone::Polytone;
@@ -37,6 +37,13 @@ pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<C
     dest.ibc.host.register_chain_proxy(
         chain1_name.to_string(),
         proxy_address.remote_polytone_proxy.unwrap(),
+    )?;
+
+    dest.account_factory.update_config(
+        None,
+        Some(dest.ibc.host.address()?.to_string()),
+        None,
+        None,
     )?;
 
     Ok(())

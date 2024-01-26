@@ -28,15 +28,20 @@ use abstract_core::{
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        gov_type::GovernanceDetails, namespace::Namespace, nested_admin::MAX_ADMIN_RECURSION,
-        validation::verifiers, AccountId, AssetEntry,
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion},
+        namespace::Namespace,
+        nested_admin::MAX_ADMIN_RECURSION,
+        validation::verifiers,
+        AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
     PROXY,
 };
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, ManagerExecFns, ManagerQueryFns, ProxyExecFns, RegisteredModule, VCQueryFns,
+    InstallConfig, Manager, ManagerExecFns, ManagerQueryFns, ProxyExecFns, RegisteredModule,
+    VCQueryFns,
 };
 
 use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
@@ -46,7 +51,7 @@ use cw_orch::{contract::Contract, environment::MutCwEnv};
 use crate::{
     client::AbstractClientResult,
     infrastructure::{Environment, Infrastructure},
-    AbstractClientError, Application,
+    AbstractClient, AbstractClientError, Application,
 };
 
 /// A builder for creating [`Accounts`](Account).
@@ -330,6 +335,22 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
+    /// Upgrades the account to the new version
+    /// MIgrates manager and proxy modules to their respective new versions
+    pub fn upgrade(&self) -> AbstractClientResult<()> {
+        self.abstr_account.manager.upgrade(vec![
+            (
+                ModuleInfo::from_id("abstract:manager", ModuleVersion::Latest)?,
+                Some(to_json_binary(&abstract_core::manager::MigrateMsg {})?),
+            ),
+            (
+                ModuleInfo::from_id("abstract:proxy", ModuleVersion::Latest)?,
+                Some(to_json_binary(&abstract_core::proxy::MigrateMsg {})?),
+            ),
+        ])?;
+        Ok(())
+    }
+
     /// Returns owner of the account
     pub fn ownership(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
         self.abstr_account.manager.ownership().map_err(Into::into)
@@ -386,6 +407,12 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
+    /// Activates IBC on an account
+    pub fn activate_ibc(&self) -> AbstractClientResult<()> {
+        self.abstr_account.manager.update_settings(Some(true))?;
+
+        Ok(())
+    }
     /// Executes an ibc action on the proxy of the account
     pub fn create_ibc_account(
         &self,
@@ -395,28 +422,23 @@ impl<Chain: CwEnv> Account<Chain> {
         install_modules: Vec<ModuleInstallConfig>,
     ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
         self.abstr_account
-            .proxy
-            .ibc_action(vec![ibc_client::ExecuteMsg::Register {
-                host_chain: host_chain.into(),
-                base_asset,
-                namespace,
-                install_modules,
-            }])
+            .manager
+            .execute(
+                &abstract_core::manager::ExecuteMsg::ExecOnModule {
+                    module_id: PROXY.to_owned(),
+                    exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
+                        msgs: vec![ibc_client::ExecuteMsg::Register {
+                            host_chain: host_chain.into(),
+                            base_asset,
+                            namespace,
+                            install_modules,
+                        }],
+                    })
+                    .map_err(AbstractInterfaceError::from)?,
+                },
+                None,
+            )
             .map_err(Into::into)
-
-        // self.abstr_account
-        //     .manager
-        //     .execute(
-        //         &abstract_core::manager::ExecuteMsg::ExecOnModule {
-        //             module_id: PROXY.to_owned(),
-        //             exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
-        //                 msgs:
-        //             })
-        //             .map_err(AbstractInterfaceError::from)?,
-        //         },
-        //         None,
-        //     )
-        //     .map_err(Into::into)
     }
 
     /// Module infos of installed modules on account

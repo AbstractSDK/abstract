@@ -1,18 +1,14 @@
 use abstract_client::AbstractClient;
-use abstract_core::ibc_host::HostAction;
 use abstract_core::objects::namespace::Namespace;
-use abstract_interface::Abstract;
-use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
+use abstract_interface::IbcClient;
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
 use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
 use cw_orch::daemon::ChainKind;
 use cw_orch::prelude::*;
 use cw_orch::{
     daemon::{ChainInfo, Daemon},
-    deploy::Deploy,
     tokio::runtime::Handle,
 };
-use cw_orch_polytone::Polytone;
 use tokio::runtime::Runtime;
 
 /// <https://github.com/cosmos/chain-registry/blob/master/neutron/chain.json>
@@ -96,9 +92,15 @@ fn connect(
         .fetch_if_namespace_claimed(true)
         .build()?;
 
+    // // We upgrade the local account
+    // account.upgrade()?;
+
+    // // We install the ibc client on the account
+    // account.activate_ibc()?;
+
     let tx_response = account.create_ibc_account(dst_chain.network_info.id, None, None, vec![])?;
 
-    // We make sure the IBC execution is done so that the proxy address is saved inside the Abstract contract
+    // We make sure the IBC execution is done when creating the account
     interchain
         .wait_ibc(&src_chain.chain_id.to_string(), tx_response)
         .unwrap();

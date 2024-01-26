@@ -2,6 +2,7 @@
 
 use abstract_core::{objects::validation::ValidationError, AbstractError};
 use abstract_interface::AbstractInterfaceError;
+use cosmwasm_std::StdError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -10,6 +11,9 @@ use thiserror::Error;
 pub enum AbstractClientError {
     #[error("{0}")]
     Abstract(#[from] AbstractError),
+
+    #[error("{0}")]
+    CosmwasmStd(#[from] StdError),
 
     #[error("{0}")]
     Interface(#[from] AbstractInterfaceError),
