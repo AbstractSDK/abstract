@@ -165,21 +165,16 @@ fn authorized_update_fee() -> anyhow::Result<()> {
     let (_, _, dex_adapter, _, abstr) = setup_mock()?;
     let account0 = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID);
 
-    account0.install_adapter(&dex_adapter, None)?;
     let update_fee_msg =
         abstract_dex_standard::msg::ExecuteMsg::Module(abstract_core::adapter::AdapterRequestMsg {
-            proxy_address: None,
+            proxy_address: Some(account0.proxy.addr_str()?),
             request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
                 swap_fee: Some(Decimal::percent(5)),
                 recipient_account: None,
             },
         });
 
-    account0
-        .manager
-        .execute_on_module(DEX_ADAPTER_ID, update_fee_msg)?;
-
-    // dex_adapter.call_as(&account0.proxy.address()?).execute(&update_fee_msg, None)?;
+    dex_adapter.execute(&update_fee_msg, None)?;
 
     use abstract_dex_adapter::msg::DexQueryMsgFns as _;
 

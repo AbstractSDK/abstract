@@ -54,8 +54,8 @@ pub fn execute_handler(
             // unwrap namespace, since it's unlikely to have unclaimed abstract namespace
             let namespace_info = namespace.unwrap();
             ensure_eq!(
-                namespace_info.account_base.manager,
-                info.sender,
+                namespace_info.account_base,
+                adapter.target_account.clone().unwrap(),
                 DexError::Unauthorized {}
             );
             let mut fee = DEX_FEES.load(deps.storage)?;
