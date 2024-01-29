@@ -9,7 +9,7 @@ use crate::{
 };
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
 use abstract_dex_standard::msg::{
-    DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, OfferAsset,
+    DexExecuteMsg, DexFees, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, OfferAsset,
     SimulateSwapResponse,
 };
 use abstract_dex_standard::DexError;
@@ -49,11 +49,20 @@ pub fn query_handler(
                 _ => Err(DexError::InvalidGenerateMessage {}),
             }
         }
-        DexQueryMsg::Fees {} => to_json_binary(&DexFeesResponse {
-            dex_fees: DEX_FEES.load(deps.storage)?,
-        })
-        .map_err(Into::into),
+        DexQueryMsg::Fees {} => fees(deps),
     }
+}
+
+pub fn fees(deps: Deps) -> DexResult<Binary> {
+    let DexFees {
+        swap_fee,
+        recipient,
+    } = DEX_FEES.load(deps.storage)?;
+    let resp = DexFeesResponse {
+        swap_fee,
+        recipient,
+    };
+    to_json_binary(&resp).map_err(Into::into)
 }
 
 pub fn simulate_swap(

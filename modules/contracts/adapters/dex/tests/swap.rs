@@ -153,7 +153,7 @@ fn get_fees() -> anyhow::Result<()> {
     use abstract_dex_adapter::msg::DexQueryMsgFns as _;
 
     let fees: DexFeesResponse = dex_adapter.fees()?;
-    assert_eq!(fees.dex_fees.swap_fee.share(), Decimal::percent(1));
-    assert_eq!(fees.dex_fees.recipient, account0_proxy);
+    assert_eq!(fees.swap_fee.share(), Decimal::percent(1));
+    assert_eq!(fees.recipient, account0_proxy);
     Ok(())
 }

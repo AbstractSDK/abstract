@@ -60,8 +60,10 @@ pub struct GenerateMessagesResponse {
 /// Response for Dex Fees
 #[cosmwasm_schema::cw_serde]
 pub struct DexFeesResponse {
-    /// Dex fees
-    pub dex_fees: DexFees,
+    /// Fee for using swap action
+    pub swap_fee: Fee,
+    /// Address where all fees will go
+    pub recipient: Addr,
 }
 
 /// Instantiation message for dex adapter
