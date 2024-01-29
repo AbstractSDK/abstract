@@ -41,19 +41,19 @@ thiserror = { version = "1.0.49" }
 schemars = "0.8"
 cw-asset = { version = "3.0" }
 
-abstract-core = { version = "0.19.2" }
-abstract-app = { version = "0.19.2" }
-abstract-sdk = { version = "0.19.2" }
+abstract-core = { version = "0.19.3" }
+abstract-app = { version = "0.19.3" }
+abstract-sdk = { version = "0.19.3" }
 
 # Dependencies for interface
-abstract-interface = { version = "0.19.2", optional = true }
+abstract-interface = { version = "0.19.3", optional = true }
 cw-orch = { version = "0.16.4", optional = true }
 
 [dev-dependencies]
 app = { path = ".", features = ["interface"] }
-abstract-interface = { version = "0.19.2", features = ["daemon"] }
-abstract-testing = { version = "0.19.2" }
-abstract-sdk = { version = "0.19.2", features = ["test-utils"] }
+abstract-interface = { version = "0.19.3", features = ["daemon"] }
+abstract-testing = { version = "0.19.3" }
+abstract-sdk = { version = "0.19.3", features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"
