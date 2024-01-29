@@ -17,8 +17,10 @@
         "abstract:ibc-client": "archway1puz56taxn9hh4yu34c7t0yzfje9rxj45us2quz9mkg7yn34lv38qyvdnwl",
         "abstract:ibc-host": "archway1tnatq4lm9f8hk2439v0qk59tdzpyrurj7drhnq7h8umxf70fkaps3pn5a3",
         "abstract:manager": "archway14zx55qx0tcnuhrqjwgpw2t56qsv665u5y5ja56mhu9wun8pwdtasz8car3",
+        "abstract:manager-local-0": "archway1ajga4qz8w83avevpdmj8seh5m7jtnugecmv50tljs7fjneya3h5qcw9h8s",
         "abstract:module-factory": "archway14632c7pe7upll9dggq3ke6fe0u694c3270zr94t5cngq4n4mt5ls6kga22",
         "abstract:proxy": "archway1fejukx07r34hwnhlau48893e5c6np78trhmlur2dnl5624vmr63s5wzed2",
+        "abstract:proxy-local-0": "archway1g04swm9gltrscstwfy7ffk94tdyadfzvsgcdwtnmn4dmh6x9ff5qshe2xk",
         "abstract:version-control": "archway1r0deflaymma4cqj7m0kdrdwv5qmpfklmsc4h7rnsrr0ynsx8jv7qhvkrrl"
       }
     },
@@ -59,8 +61,10 @@
         "abstract:ibc-client": "juno1ec5lxh2ermwu2x43y9va9ueq4x296kdcjrrxmct3mj5cmz3zxf8qt4s0m8",
         "abstract:ibc-host": "juno1njmvl4c65jv6s07w0f0fd3l0g89cn7eq842q53kszsgnvqz8prpql6n9ra",
         "abstract:manager": "juno1urahd88jqjw3cd2zm3jz5p9v0eucrwvunhwjamtlj8j3rjxzx97qg6s48v",
+        "abstract:manager-local-0": "juno1gu5dqjhvpf5ggtvaxr2hjm83dffaf0f2ceq7m583xprxq02xl8cqvr5hsc",
         "abstract:module-factory": "juno1zaecvv2jawsk5et4jcaykxwrmnf86jm0vn4qrquku2mx0m830lmq628nnf",
         "abstract:proxy": "juno1fgzk4elmyllpdar7jqjp8lxdwhkrrqunurw72hcr3w7n3g3aavcs9ujxcy",
+        "abstract:proxy-local-0": "juno1g4hurw276ryxxhlef2zqacqyfjn9mk9f36s0twl9zunxk2tp42lqz6ed4y",
         "abstract:version-control": "juno1gjll937mljmfcprttxfmvl7st8e50yg75j45qa9hxcxz86mxzn2szvtqf7"
       }
     },
@@ -127,8 +131,10 @@
         "abstract:ibc-client": "neutron1c7pf7qwhz7xwpuslsykl9shx4xw5ptyt28cgl8ketqfykry29g3s4xdteq",
         "abstract:ibc-host": "neutron1l03qh94ztynwxmjwsyjjxyzf3fltfe7yf8r47skfs7hhc6t29u6sx2289e",
         "abstract:manager": "neutron16epenx4pwykd0pw5wsekea678zjs2473araukt40wd98ea233yaqgdry77",
+        "abstract:manager-local-0": "neutron1sklyxgy3gxdhnmhdt0enwn298xy4lewz59lmfr0hagf6vxpzztwsl7dzps",
         "abstract:module-factory": "neutron1a6n4x8clkrns5ugur09q5lxrcyjf6jt7sfrl6kfdree8ddmc9kus8e05c5",
         "abstract:proxy": "neutron1gmstk5g6vmwq6qge9lmcgsxpuug4f0lal3xvkpflp9sz84efl95seghdxq",
+        "abstract:proxy-local-0": "neutron1mcdddjjgluqywju8a5wf9048e7fyxdk5lqk8jwxs88rg2jsx0f8scr8tgw",
         "abstract:version-control": "neutron1wn5v9m6hnctgh5exdrf0y95dlwwk70jc8je06ct94wul8l9melgsqgnges"
       }
     }

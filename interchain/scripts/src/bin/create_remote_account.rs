@@ -1,6 +1,6 @@
 use abstract_client::AbstractClient;
+use abstract_core::objects::chain_name::ChainName;
 use abstract_core::objects::namespace::Namespace;
-use abstract_interface::IbcClient;
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
 use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
 use cw_orch::daemon::ChainKind;
@@ -35,18 +35,23 @@ fn main() -> cw_orch::anyhow::Result<()> {
     ];
     let runtime = Runtime::new()?;
 
-    // for src_chain in &chains {
-    //     for dst_chain in &chains {
-    //         if src_chain.0.chain_id != dst_chain.0.chain_id {
-    //             connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
-    //         }
-    //     }
-    // }
-    let chain0 = &chains[1];
-    let chain1 = &chains[4];
-
-    connect(chain0.clone(), chain1.clone(), runtime.handle())?;
-    // connect(chain1.clone(), chain0.clone(), runtime.handle())?;
+    for src_chain in &chains {
+        for dst_chain in &chains {
+            if src_chain.0.chain_id != JUNO_1.chain_id {
+                if src_chain.0.chain_id != dst_chain.0.chain_id {
+                    if src_chain.0.chain_id != OSMOSIS_1.chain_id {
+                        if !(src_chain.0.chain_id == NEUTRON_1.chain_id
+                            && dst_chain.0.chain_id == JUNO_1.chain_id
+                            || src_chain.0.chain_id == JUNO_1.chain_id
+                                && dst_chain.0.chain_id == NEUTRON_1.chain_id)
+                        {
+                            connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Ok(())
 }
@@ -93,12 +98,17 @@ fn connect(
         .build()?;
 
     // // We upgrade the local account
-    // account.upgrade()?;
+    account.upgrade();
 
     // // We install the ibc client on the account
-    // account.activate_ibc()?;
+    account.activate_ibc();
 
-    let tx_response = account.create_ibc_account(dst_chain.network_info.id, None, None, vec![])?;
+    let tx_response = account.create_ibc_account(
+        ChainName::from_chain_id(dst_chain.chain_id).to_string(),
+        None,
+        None,
+        vec![],
+    )?;
 
     // We make sure the IBC execution is done when creating the account
     interchain

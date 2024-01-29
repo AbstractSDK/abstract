@@ -40,18 +40,10 @@ fn main() -> cw_orch::anyhow::Result<()> {
     ];
     let runtime = Runtime::new()?;
 
-    // for src_chain in &chains {
-    //     for dst_chain in &chains {
-    //         if src_chain.0.chain_id != dst_chain.0.chain_id {
-    //             connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
-    //         }
-    //     }
-    // }
-    let chain0 = &chains[3];
-    let chain1 = &chains[4];
+    let src_chain = &chains[1];
+    let dst_chain = &chains[0];
 
-    connect(chain0.clone(), chain1.clone(), runtime.handle())?;
-    // connect(chain1.clone(), chain0.clone(), runtime.handle())?;
+    connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
 
     Ok(())
 }
