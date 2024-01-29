@@ -54,7 +54,7 @@ pub fn execute_handler(
             // unwrap namespace, since it's unlikely to have unclaimed abstract namespace
             let namespace_info = namespace.unwrap();
             ensure_eq!(
-                namespace_info.account_base.proxy,
+                namespace_info.account_base.manager,
                 info.sender,
                 DexError::Unauthorized {}
             );

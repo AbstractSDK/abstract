@@ -4,6 +4,8 @@ use abstract_dex_adapter::contract::CONTRACT_VERSION;
 use abstract_dex_adapter::msg::DexInstantiateMsg;
 use abstract_dex_adapter::DEX_ADAPTER_ID;
 use abstract_dex_standard::msg::DexFeesResponse;
+use abstract_dex_standard::DexError;
+use abstract_interface::AbstractInterfaceError;
 use abstract_interface::AdapterDeployer;
 use abstract_interface::DeployStrategy;
 use cw20::msg::Cw20ExecuteMsgFns;
@@ -155,5 +157,58 @@ fn get_fees() -> anyhow::Result<()> {
     let fees: DexFeesResponse = dex_adapter.fees()?;
     assert_eq!(fees.swap_fee.share(), Decimal::percent(1));
     assert_eq!(fees.recipient, account0_proxy);
+    Ok(())
+}
+
+#[test]
+fn authorized_update_fee() -> anyhow::Result<()> {
+    let (_, _, dex_adapter, _, abstr) = setup_mock()?;
+    let account0 = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID);
+
+    account0.install_adapter(&dex_adapter, None)?;
+    let update_fee_msg =
+        abstract_dex_standard::msg::ExecuteMsg::Module(abstract_core::adapter::AdapterRequestMsg {
+            proxy_address: None,
+            request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
+                swap_fee: Some(Decimal::percent(5)),
+                recipient_account: None,
+            },
+        });
+
+    account0
+        .manager
+        .execute_on_module(DEX_ADAPTER_ID, update_fee_msg)?;
+
+    // dex_adapter.call_as(&account0.proxy.address()?).execute(&update_fee_msg, None)?;
+
+    use abstract_dex_adapter::msg::DexQueryMsgFns as _;
+
+    let fees: DexFeesResponse = dex_adapter.fees()?;
+    assert_eq!(fees.swap_fee.share(), Decimal::percent(5));
+    Ok(())
+}
+
+#[test]
+fn unauthorized_update_fee() -> anyhow::Result<()> {
+    let (_, _, _, account, _) = setup_mock()?;
+
+    let update_fee_msg =
+        abstract_dex_standard::msg::ExecuteMsg::Module(abstract_core::adapter::AdapterRequestMsg {
+            proxy_address: None,
+            request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
+                swap_fee: Some(Decimal::percent(5)),
+                recipient_account: None,
+            },
+        });
+
+    let err = account
+        .manager
+        .execute_on_module(DEX_ADAPTER_ID, update_fee_msg)
+        .unwrap_err();
+    let AbstractInterfaceError::Orch(orch_error) = err else {
+        panic!("unexpected error type");
+    };
+    let dex_err: DexError = orch_error.downcast().unwrap();
+    assert_eq!(dex_err, DexError::Unauthorized {});
     Ok(())
 }
