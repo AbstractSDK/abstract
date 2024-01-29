@@ -51,8 +51,8 @@ pub fn execute_handler(
                 .query_namespace(Namespace::new(ABSTRACT_NAMESPACE)?)?;
 
             ensure_eq!(
-                namespace_info.account_base.manager,
-                info.sender,
+                namespace_info.account_base,
+                adapter.target_account.clone().unwrap(),
                 DexError::Unauthorized {}
             );
 
