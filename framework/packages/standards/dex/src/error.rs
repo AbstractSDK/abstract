@@ -65,4 +65,7 @@ pub enum DexError {
 
     #[error("Invalid Generate Message")]
     InvalidGenerateMessage,
+
+    #[error("Only proxy contract of abstract namespace can update configuration")]
+    Unauthorized {},
 }

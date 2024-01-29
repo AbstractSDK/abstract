@@ -46,10 +46,18 @@ pub fn execute_handler(
             swap_fee,
             recipient_account: recipient_account_id,
         } => {
-            // only previous OS can change the owner
-            adapter
-                .account_registry(deps.as_ref())?
-                .assert_proxy(&info.sender)?;
+            // Only namespace owner (abstract) can change recipient address
+            let namespace = adapter
+                .module_registry(deps.as_ref())?
+                .query_namespace(Namespace::new(ABSTRACT_NAMESPACE)?)?;
+
+            // unwrap namespace, since it's unlikely to have unclaimed abstract namespace
+            let namespace_info = namespace.unwrap();
+            ensure_eq!(
+                namespace_info.account_base.proxy,
+                info.sender,
+                DexError::Unauthorized {}
+            );
             let mut fee = DEX_FEES.load(deps.storage)?;
 
             // Update swap fee
