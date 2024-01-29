@@ -193,7 +193,7 @@ impl AuthZ {
     ///                 This is equivalent to the granter of the authz grant
     /// * `grantee` -   The address of the grantee.
     /// * `msg` -       Message that you want to send using authz
-    pub fn exec(&self, sender: &Addr, msg: impl Into<CosmosMsg>, grantee: &Addr) -> CosmosMsg {
+    pub fn execute(&self, sender: &Addr, msg: impl Into<CosmosMsg>, grantee: &Addr) -> CosmosMsg {
         let msg = msg.into();
         let (type_url, value) = match msg {
             CosmosMsg::Wasm(wasm_msg) => match wasm_msg {
@@ -426,7 +426,7 @@ impl AuthZ {
             },
             _ => todo!(),
         };
-        self.exec_raw(type_url, value.into(), grantee)
+        self.execute_raw(type_url, value.into(), grantee)
     }
 
     /// Executes a message using authz
@@ -436,7 +436,7 @@ impl AuthZ {
     /// * `msg_type_url` - Type url of the message that has to be sent using authz
     /// * `msg_value` - Proto encoded message value that has to be sent using authz
     /// * `grantee` - The address of the authz grantee. (This is the address that is actually sending the message)
-    pub fn exec_raw(&self, msg_type_url: String, msg_value: Binary, grantee: &Addr) -> CosmosMsg {
+    pub fn execute_raw(&self, msg_type_url: String, msg_value: Binary, grantee: &Addr) -> CosmosMsg {
         let msg = authz::v1beta1::MsgExec {
             grantee: grantee.to_string(),
             msgs: vec![Any {
