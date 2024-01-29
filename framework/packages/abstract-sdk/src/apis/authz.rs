@@ -436,7 +436,12 @@ impl AuthZ {
     /// * `msg_type_url` - Type url of the message that has to be sent using authz
     /// * `msg_value` - Proto encoded message value that has to be sent using authz
     /// * `grantee` - The address of the authz grantee. (This is the address that is actually sending the message)
-    pub fn execute_raw(&self, msg_type_url: String, msg_value: Binary, grantee: &Addr) -> CosmosMsg {
+    pub fn execute_raw(
+        &self,
+        msg_type_url: String,
+        msg_value: Binary,
+        grantee: &Addr,
+    ) -> CosmosMsg {
         let msg = authz::v1beta1::MsgExec {
             grantee: grantee.to_string(),
             msgs: vec![Any {
