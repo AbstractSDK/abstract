@@ -189,11 +189,10 @@ impl AuthZ {
     ///
     /// # Arguments
     ///
-    /// * `sender` -    The sender of the message. This is the account that you want the message to be sent from.
-    ///                 This is equivalent to the granter of the authz grant
     /// * `grantee` -   The address of the grantee.
     /// * `msg` -       Message that you want to send using authz
-    pub fn execute(&self, sender: &Addr, msg: impl Into<CosmosMsg>, grantee: &Addr) -> CosmosMsg {
+    /// When a sender is necessary in the resulting message, the granter is used
+    pub fn execute(&self, grantee: &Addr, msg: impl Into<CosmosMsg>) -> CosmosMsg {
         let msg = msg.into();
         let (type_url, value) = match msg {
             CosmosMsg::Wasm(wasm_msg) => match wasm_msg {
@@ -204,7 +203,7 @@ impl AuthZ {
                 } => (
                     MsgExecuteContract::type_url(),
                     MsgExecuteContract {
-                        sender: sender.to_string(),
+                        sender: self.granter.to_string(),
                         contract: contract_addr,
                         msg: msg.into(),
                         funds: convert_coins(funds),
@@ -220,7 +219,7 @@ impl AuthZ {
                 } => (
                     MsgInstantiateContract::type_url(),
                     MsgInstantiateContract {
-                        sender: sender.to_string(),
+                        sender: self.granter.to_string(),
                         msg: msg.into(),
                         funds: convert_coins(funds),
                         admin: admin.unwrap_or("".to_string()),
@@ -239,7 +238,7 @@ impl AuthZ {
                 } => (
                     "/cosmwasm.wasm.v1.MsgInstantiateContract2".to_string(),
                     MsgInstantiateContract2 {
-                        sender: sender.to_string(),
+                        sender: self.granter.to_string(),
                         msg: msg.into(),
                         funds: convert_coins(funds),
                         admin: admin.unwrap_or("".to_string()),
@@ -257,7 +256,7 @@ impl AuthZ {
                 } => (
                     MsgMigrateContract::type_url(),
                     MsgMigrateContract {
-                        sender: sender.to_string(),
+                        sender: self.granter.to_string(),
                         contract: contract_addr,
                         msg: msg.into(),
                         code_id: new_code_id,
@@ -270,7 +269,7 @@ impl AuthZ {
                 } => (
                     MsgUpdateAdmin::type_url(),
                     MsgUpdateAdmin {
-                        sender: sender.to_string(),
+                        sender: self.granter.to_string(),
                         contract: contract_addr,
                         new_admin: admin,
                     }
@@ -279,7 +278,7 @@ impl AuthZ {
                 WasmMsg::ClearAdmin { contract_addr } => (
                     MsgClearAdmin::type_url(),
                     MsgClearAdmin {
-                        sender: sender.to_string(),
+                        sender: self.granter.to_string(),
                         contract: contract_addr,
                     }
                     .encode_to_vec(),
@@ -291,7 +290,7 @@ impl AuthZ {
                 cosmwasm_std::BankMsg::Send { to_address, amount } => (
                     MsgSend::type_url(),
                     MsgSend {
-                        from_address: sender.to_string(),
+                        from_address: self.granter.to_string(),
                         to_address,
                         amount: convert_coins(amount),
                     }
@@ -310,7 +309,7 @@ impl AuthZ {
                 cosmwasm_std::StakingMsg::Delegate { validator, amount } => (
                     MsgDelegate::type_url(),
                     MsgDelegate {
-                        delegator_address: sender.to_string(),
+                        delegator_address: self.granter.to_string(),
                         validator_address: validator,
                         amount: Some(convert_coin(amount)),
                     }
@@ -319,7 +318,7 @@ impl AuthZ {
                 cosmwasm_std::StakingMsg::Undelegate { validator, amount } => (
                     MsgUndelegate::type_url(),
                     MsgUndelegate {
-                        delegator_address: sender.to_string(),
+                        delegator_address: self.granter.to_string(),
                         validator_address: validator,
                         amount: Some(convert_coin(amount)),
                     }
@@ -332,7 +331,7 @@ impl AuthZ {
                 } => (
                     MsgBeginRedelegate::type_url(),
                     MsgBeginRedelegate {
-                        delegator_address: sender.to_string(),
+                        delegator_address: self.granter.to_string(),
                         amount: Some(convert_coin(amount)),
                         validator_src_address: src_validator.to_string(),
                         validator_dst_address: dst_validator.to_string(),
@@ -345,7 +344,7 @@ impl AuthZ {
                 cosmwasm_std::DistributionMsg::SetWithdrawAddress { address } => (
                     MsgSetWithdrawAddress::type_url(),
                     MsgSetWithdrawAddress {
-                        delegator_address: sender.to_string(),
+                        delegator_address: self.granter.to_string(),
                         withdraw_address: address.to_string(),
                     }
                     .encode_to_vec(),
@@ -353,7 +352,7 @@ impl AuthZ {
                 cosmwasm_std::DistributionMsg::WithdrawDelegatorReward { validator } => (
                     MsgWithdrawDelegatorReward::type_url(),
                     MsgWithdrawDelegatorReward {
-                        delegator_address: sender.to_string(),
+                        delegator_address: self.granter.to_string(),
                         validator_address: validator,
                     }
                     .encode_to_vec(),
@@ -361,7 +360,7 @@ impl AuthZ {
                 cosmwasm_std::DistributionMsg::FundCommunityPool { amount } => (
                     MsgFundCommunityPool::type_url(),
                     MsgFundCommunityPool {
-                        depositor: sender.to_string(),
+                        depositor: self.granter.to_string(),
                         amount: convert_coins(amount),
                     }
                     .encode_to_vec(),
@@ -381,7 +380,7 @@ impl AuthZ {
                             source_port: "transfer".to_string(),
                             source_channel: channel_id,
                             token: Some(convert_coin(amount)),
-                            sender: sender.to_string(),
+                            sender: self.granter.to_string(),
                             receiver: to_address,
                             timeout_height: timeout.block().map(|b| Height{
                                 revision_number: b.revision,
@@ -399,7 +398,7 @@ impl AuthZ {
                     "/cosmos.gov.v1beta1.MsgVote".to_string(),
                     MsgVote {
                         proposal_id,
-                        voter: sender.to_string(),
+                        voter: self.granter.to_string(),
                         option: vote_to_option(vote),
                     }
                     .encode_to_vec(),
@@ -411,7 +410,7 @@ impl AuthZ {
                     "/cosmos.gov.v1beta1.MsgVoteWeighted".to_string(),
                     MsgVoteWeighted {
                         proposal_id,
-                        voter: sender.to_string(),
+                        voter: self.granter.to_string(),
                         options: options
                             .into_iter()
                             .map(|o| WeightedVoteOption {
@@ -425,7 +424,7 @@ impl AuthZ {
             },
             _ => todo!(),
         };
-        self.execute_raw(type_url, value.into(), grantee)
+        self.execute_raw(grantee, type_url, value.into())
     }
 
     /// Executes a message using authz
@@ -437,9 +436,10 @@ impl AuthZ {
     /// * `grantee` - The address of the authz grantee. (This is the address that is actually sending the message)
     pub fn execute_raw(
         &self,
+        grantee: &Addr,
+
         msg_type_url: String,
         msg_value: Binary,
-        grantee: &Addr,
     ) -> CosmosMsg {
         let msg = authz::v1beta1::MsgExec {
             grantee: grantee.to_string(),
