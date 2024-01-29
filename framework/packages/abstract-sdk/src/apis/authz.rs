@@ -392,7 +392,6 @@ impl AuthZ {
                     ),
                     // This is there because there is a priori no port associated with the sender
                     _=> unimplemented!("Abstract doesn't support IBC messages via authz. Abstract handles IBC requests natively")
-                    
                 }
             }
             CosmosMsg::Gov(gov_msg) => match gov_msg {
