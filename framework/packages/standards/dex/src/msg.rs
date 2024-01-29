@@ -6,13 +6,16 @@ use abstract_core::{
         fee::{Fee, UsageFee},
         AnsAsset, AssetEntry,
     },
-    AbstractResult,
+    AbstractError, AbstractResult,
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Decimal, Uint128};
 // re-export response types
 use abstract_core::objects::DexAssetPairing;
 use cosmwasm_std::CosmosMsg;
+
+/// Max fee for the dex adapter actions
+pub const MAX_FEE: Decimal = Decimal::percent(5);
 
 /// The name of the dex to trade on.
 pub type DexName = String;
@@ -167,14 +170,44 @@ pub enum DexQueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct DexFees {
     /// Fee for using swap action
-    pub swap_fee: Fee,
+    swap_fee: Fee,
     /// Address where all fees will go
     pub recipient: Addr,
 }
 
 impl DexFees {
+    /// Create checked DexFees
+    pub fn new(swap_fee_share: Decimal, recipient: Addr) -> AbstractResult<Self> {
+        Self::check_share(swap_fee_share)?;
+        Ok(Self {
+            swap_fee: Fee::new(swap_fee_share)?,
+            recipient,
+        })
+    }
+
+    /// Update swap share
+    pub fn set_swap_share(&mut self, new_swap_share: Decimal) -> AbstractResult<()> {
+        Self::check_share(new_swap_share)?;
+        self.swap_fee = Fee::new(new_swap_share)?;
+        Ok(())
+    }
+
+    /// Get swap share
+    pub fn swap_fee(&self) -> Fee {
+        self.swap_fee
+    }
+
     /// Usage fee for swap
-    pub fn swap_fees(&self) -> AbstractResult<UsageFee> {
+    pub fn swap_usage_fee(&self) -> AbstractResult<UsageFee> {
         UsageFee::new(self.swap_fee.share(), self.recipient.clone())
+    }
+
+    fn check_share(share: Decimal) -> AbstractResult<()> {
+        if share > MAX_FEE {
+            return Err(AbstractError::Fee(format!(
+                "fee share can't be bigger than {MAX_FEE}"
+            )));
+        }
+        Ok(())
     }
 }

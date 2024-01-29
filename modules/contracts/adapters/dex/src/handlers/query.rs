@@ -9,7 +9,7 @@ use crate::{
 };
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
 use abstract_dex_standard::msg::{
-    DexExecuteMsg, DexFees, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, OfferAsset,
+    DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, OfferAsset,
     SimulateSwapResponse,
 };
 use abstract_dex_standard::DexError;
@@ -54,13 +54,10 @@ pub fn query_handler(
 }
 
 pub fn fees(deps: Deps) -> DexResult<Binary> {
-    let DexFees {
-        swap_fee,
-        recipient,
-    } = DEX_FEES.load(deps.storage)?;
+    let dex_fees = DEX_FEES.load(deps.storage)?;
     let resp = DexFeesResponse {
-        swap_fee,
-        recipient,
+        swap_fee: dex_fees.swap_fee(),
+        recipient: dex_fees.recipient,
     };
     to_json_binary(&resp).map_err(Into::into)
 }
@@ -98,7 +95,7 @@ pub fn simulate_swap(
         DexAssetPairing::new(offer_asset.name.clone(), ask_asset.clone(), exchange.name());
 
     // compute adapter fee
-    let adapter_fee = dex_fees.swap_fee.compute(offer_asset.amount);
+    let adapter_fee = dex_fees.swap_fee().compute(offer_asset.amount);
     offer_asset.amount -= adapter_fee;
 
     let (return_amount, spread_amount, commission_amount, fee_on_input) = exchange

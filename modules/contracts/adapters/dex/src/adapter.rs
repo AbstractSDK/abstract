@@ -126,8 +126,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         let mut offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
         // account for fee
         let dex_fees = DEX_FEES.load(deps.storage)?;
-        let fee = dex_fees.swap_fees()?;
-        let fee_msg = offer_asset.charge_usage_fee(fee)?;
+        let usage_fee = dex_fees.swap_usage_fee()?;
+        let fee_msg = offer_asset.charge_usage_fee(usage_fee)?;
 
         exchange.fetch_data(
             deps,

@@ -8,7 +8,6 @@ use crate::state::DEX_FEES;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::chain_name::ChainName;
-use abstract_core::objects::fee::Fee;
 use abstract_core::objects::namespace::{Namespace, ABSTRACT_NAMESPACE};
 use abstract_dex_standard::msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID};
 use abstract_dex_standard::DexError;
@@ -62,7 +61,7 @@ pub fn execute_handler(
 
             // Update swap fee
             if let Some(swap_fee) = swap_fee {
-                fee.swap_fee = Fee::new(swap_fee)?;
+                fee.set_swap_share(swap_fee)?;
             }
 
             // Update recipient account id
