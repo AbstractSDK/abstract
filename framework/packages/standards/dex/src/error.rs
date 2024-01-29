@@ -61,4 +61,7 @@ pub enum DexError {
 
     #[error("Invalid Generate Message")]
     InvalidGenerateMessage,
+
+    #[error("Only manager contract of abstract namespace can update configuration")]
+    Unauthorized {},
 }

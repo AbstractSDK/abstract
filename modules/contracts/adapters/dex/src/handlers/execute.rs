@@ -5,6 +5,7 @@ use crate::exchanges::exchange_resolver;
 use crate::state::SWAP_FEE;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::chain_name::ChainName;
+use abstract_core::objects::namespace::{Namespace, ABSTRACT_NAMESPACE};
 use abstract_dex_standard::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
 use abstract_dex_standard::DexError;
 
@@ -12,8 +13,10 @@ use abstract_core::ibc_client::CallbackInfo;
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
 use abstract_sdk::{features::AbstractNameService, Execution};
-use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
-use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
+use abstract_sdk::{AccountVerification, IbcInterface, ModuleRegistryInterface, Resolve};
+use cosmwasm_std::{
+    ensure_eq, to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+};
 
 const ACTION_RETRIES: u8 = 3;
 
@@ -42,10 +45,17 @@ pub fn execute_handler(
             swap_fee,
             recipient_account: recipient_account_id,
         } => {
-            // only previous OS can change the owner
-            adapter
-                .account_registry(deps.as_ref())
-                .assert_proxy(&info.sender)?;
+            // Only namespace owner (abstract) can change recipient address
+            let namespace_info = adapter
+                .module_registry(deps.as_ref())
+                .query_namespace(Namespace::new(ABSTRACT_NAMESPACE)?)?;
+
+            ensure_eq!(
+                namespace_info.account_base.manager,
+                info.sender,
+                DexError::Unauthorized {}
+            );
+
             if let Some(swap_fee) = swap_fee {
                 let mut fee = SWAP_FEE.load(deps.storage)?;
                 fee.set_share(swap_fee)?;
