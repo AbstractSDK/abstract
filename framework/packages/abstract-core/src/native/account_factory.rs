@@ -113,6 +113,7 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
+    /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
 }

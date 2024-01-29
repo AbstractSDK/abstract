@@ -255,11 +255,13 @@ pub enum QueryMsg {
     /// Returns [`InfoResponse`]
     #[returns(InfoResponse)]
     Info {},
+    /// Returns [`SubAccountIdsResponse`]
     #[returns(SubAccountIdsResponse)]
     SubAccountIds {
         start_after: Option<u32>,
         limit: Option<u8>,
     },
+    /// Returns [`crate::objects::nested_admin::TopLevelOwnerResponse`]
     #[returns(crate::objects::nested_admin::TopLevelOwnerResponse)]
     TopLevelOwner {},
 }
