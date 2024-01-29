@@ -11,7 +11,7 @@ resolver = "2"
 
 # for quicker tests, cargo test --lib
 [features]
-default = []
+default = ["stargate"]
 stargate = ["dep:cosmos-sdk-proto", "dep:prost-types"]
 
 # Expose MockModule for testing with other Adapters
@@ -23,7 +23,9 @@ cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
-cosmos-sdk-proto = { version = "0.20.0", optional = true, default-features = false }
+cosmos-sdk-proto = { version = "0.20.0", optional = true, default-features = false, features = [
+    "cosmwasm",
+] }
 prost-types = { version = "0.12.1", optional = true }
 schemars = { workspace = true }
 serde = { workspace = true }

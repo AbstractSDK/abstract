@@ -1,6 +1,6 @@
 pub mod authz;
 pub mod feegrant;
-
+pub mod gov;
 use cosmos_sdk_proto::{cosmos::base, traits::Message};
 use cosmwasm_std::{Coin, Timestamp};
 use prost_types::Any;
