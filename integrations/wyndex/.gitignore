@@ -18,4 +18,4 @@ target/
 /contracts/**/schema/
 /schema/
 
-Cargo.lock
+# Cargo.lock
