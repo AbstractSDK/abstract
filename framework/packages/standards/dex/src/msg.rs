@@ -2,10 +2,14 @@
 //! # Dex Adapter API
 use abstract_core::{
     adapter,
-    objects::{fee::UsageFee, AnsAsset, AssetEntry},
+    objects::{
+        fee::{Fee, UsageFee},
+        AnsAsset, AssetEntry,
+    },
+    AbstractResult,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Decimal, Uint128};
+use cosmwasm_std::{Addr, Decimal, Uint128};
 // re-export response types
 use abstract_core::objects::DexAssetPairing;
 use cosmwasm_std::CosmosMsg;
@@ -53,11 +57,11 @@ pub struct GenerateMessagesResponse {
     pub messages: Vec<CosmosMsg>,
 }
 
-/// Response for Usage Fee
+/// Response for Dex Fees
 #[cosmwasm_schema::cw_serde]
-pub struct UsageFeeResponse {
-    /// Usage fee
-    pub usage_fee: UsageFee,
+pub struct DexFeesResponse {
+    /// Dex fees
+    pub dex_fees: DexFees,
 }
 
 /// Instantiation message for dex adapter
@@ -152,7 +156,23 @@ pub enum DexQueryMsg {
         /// Proxy Addr generate messages for
         proxy_addr: String,
     },
-    /// Fee info for using the swap
-    #[returns(UsageFeeResponse)]
-    UsageFee {},
+    /// Fee info for using the different dex actions
+    #[returns(DexFeesResponse)]
+    Fees {},
+}
+
+/// Fees for using the dex adapter
+#[cosmwasm_schema::cw_serde]
+pub struct DexFees {
+    /// Fee for using swap action
+    pub swap_fee: Fee,
+    /// Address where all fees will go
+    pub recipient: Addr,
+}
+
+impl DexFees {
+    /// Usage fee for swap
+    pub fn swap_usage_fees(&self) -> AbstractResult<UsageFee> {
+        UsageFee::new(self.swap_fee.share(), self.recipient.clone())
+    }
 }

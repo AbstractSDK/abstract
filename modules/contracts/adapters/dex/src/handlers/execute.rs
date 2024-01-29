@@ -4,18 +4,22 @@ use crate::DEX_ADAPTER_ID;
 use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
 use crate::msg::{DexAction, DexExecuteMsg, DexName};
-use crate::state::SWAP_FEE;
+use crate::state::DEX_FEES;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::chain_name::ChainName;
+use abstract_core::objects::fee::Fee;
+use abstract_core::objects::namespace::{Namespace, ABSTRACT_NAMESPACE};
 use abstract_dex_standard::msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID};
 use abstract_dex_standard::DexError;
 
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
 use abstract_sdk::{features::AbstractNameService, Execution};
-use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
-use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
+use abstract_sdk::{AccountVerification, IbcInterface, ModuleRegistryInterface, Resolve};
+use cosmwasm_std::{
+    ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -46,20 +50,22 @@ pub fn execute_handler(
             adapter
                 .account_registry(deps.as_ref())?
                 .assert_proxy(&info.sender)?;
+            let mut fee = DEX_FEES.load(deps.storage)?;
+
+            // Update swap fee
             if let Some(swap_fee) = swap_fee {
-                let mut fee = SWAP_FEE.load(deps.storage)?;
-                fee.set_share(swap_fee)?;
-                SWAP_FEE.save(deps.storage, &fee)?;
+                fee.swap_fee = Fee::new(swap_fee)?;
             }
 
+            // Update recipient account id
             if let Some(account_id) = recipient_account_id {
-                let mut fee = SWAP_FEE.load(deps.storage)?;
                 let recipient = adapter
                     .account_registry(deps.as_ref())?
                     .proxy_address(&AccountId::new(account_id, AccountTrace::Local)?)?;
-                fee.set_recipient(deps.api, recipient)?;
-                SWAP_FEE.save(deps.storage, &fee)?;
+                fee.recipient = recipient;
             }
+
+            DEX_FEES.save(deps.storage, &fee)?;
             Ok(Response::default())
         }
     }

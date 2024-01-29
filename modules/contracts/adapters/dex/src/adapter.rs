@@ -1,4 +1,4 @@
-use crate::state::SWAP_FEE;
+use crate::state::DEX_FEES;
 use abstract_core::objects::AnsEntryConvertor;
 use abstract_core::objects::{DexAssetPairing, PoolReference};
 
@@ -125,7 +125,8 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         } = exchange.pool_reference(deps, ans.host(), (offer_asset.clone(), ask_asset))?;
         let mut offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
         // account for fee
-        let fee = SWAP_FEE.load(deps.storage)?;
+        let dex_fees = DEX_FEES.load(deps.storage)?;
+        let fee = dex_fees.swap_usage_fees()?;
         let fee_msg = offer_asset.charge_usage_fee(fee)?;
 
         exchange.fetch_data(

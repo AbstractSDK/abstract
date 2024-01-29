@@ -2,15 +2,15 @@ use crate::handlers::query::exchange_resolver::is_over_ibc;
 
 use crate::exchanges::exchange_resolver::resolve_exchange;
 
-use crate::state::SWAP_FEE;
+use crate::state::DEX_FEES;
 use crate::{
     contract::{DexAdapter, DexResult},
     exchanges::exchange_resolver,
 };
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
 use abstract_dex_standard::msg::{
-    DexExecuteMsg, DexQueryMsg, GenerateMessagesResponse, OfferAsset, SimulateSwapResponse,
-    UsageFeeResponse,
+    DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, OfferAsset,
+    SimulateSwapResponse,
 };
 use abstract_dex_standard::DexError;
 use abstract_sdk::features::AbstractNameService;
@@ -49,8 +49,8 @@ pub fn query_handler(
                 _ => Err(DexError::InvalidGenerateMessage {}),
             }
         }
-        DexQueryMsg::UsageFee {} => to_json_binary(&UsageFeeResponse {
-            usage_fee: SWAP_FEE.load(deps.storage)?,
+        DexQueryMsg::Fees {} => to_json_binary(&DexFeesResponse {
+            dex_fees: DEX_FEES.load(deps.storage)?,
         })
         .map_err(Into::into),
     }
@@ -66,7 +66,7 @@ pub fn simulate_swap(
 ) -> DexResult<Binary> {
     let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
     let ans = adapter.name_service(deps);
-    let fee = SWAP_FEE.load(deps.storage)?;
+    let dex_fees = DEX_FEES.load(deps.storage)?;
 
     // format input
     offer_asset.name.format();
@@ -89,7 +89,7 @@ pub fn simulate_swap(
         DexAssetPairing::new(offer_asset.name.clone(), ask_asset.clone(), exchange.name());
 
     // compute adapter fee
-    let adapter_fee = fee.compute(offer_asset.amount);
+    let adapter_fee = dex_fees.swap_fee.compute(offer_asset.amount);
     offer_asset.amount -= adapter_fee;
 
     let (return_amount, spread_amount, commission_amount, fee_on_input) = exchange
