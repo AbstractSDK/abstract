@@ -37,16 +37,16 @@ fn main() -> cw_orch::anyhow::Result<()> {
 
     for src_chain in &chains {
         for dst_chain in &chains {
-            if src_chain.0.chain_id != JUNO_1.chain_id {
-                if src_chain.0.chain_id != dst_chain.0.chain_id {
-                    if src_chain.0.chain_id != OSMOSIS_1.chain_id {
-                        if !(src_chain.0.chain_id == NEUTRON_1.chain_id
-                            && dst_chain.0.chain_id == JUNO_1.chain_id
-                            || src_chain.0.chain_id == JUNO_1.chain_id
-                                && dst_chain.0.chain_id == NEUTRON_1.chain_id)
-                        {
-                            connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
-                        }
+            if src_chain.0.chain_id != dst_chain.0.chain_id {
+                // Osmosis doesn't allow sending packets nowadays :/
+                if src_chain.0.chain_id != OSMOSIS_1.chain_id {
+                    // Neutron and Juno don't have an IBC-polytone connection :/
+                    if !(src_chain.0.chain_id == NEUTRON_1.chain_id
+                        && dst_chain.0.chain_id == JUNO_1.chain_id
+                        || src_chain.0.chain_id == JUNO_1.chain_id
+                            && dst_chain.0.chain_id == NEUTRON_1.chain_id)
+                    {
+                        connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
                     }
                 }
             }
