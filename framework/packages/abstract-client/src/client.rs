@@ -122,7 +122,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(|e| AbstractClientError::CwOrch(e.into()))
     }
 
-    /// Publisher builder for creating new [`Publisher`] Abstract Account
+    /// Publisher builder for creating new [`crate::Publisher`] Abstract Account
     /// To publish any modules your account requires to have claimed a namespace.
     pub fn publisher_builder(&self, namespace: Namespace) -> PublisherBuilder<Chain> {
         PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)

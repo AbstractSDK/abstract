@@ -52,7 +52,7 @@ const MAX_LENGTH: usize = 64;
 
 /// Validate attributes of a [`ModuleInfo`].
 /// We use the same conventions as Rust package names.
-/// See https://github.com/rust-lang/api-guidelines/discussions/29
+/// See <https://github.com/rust-lang/api-guidelines/discussions/29>
 pub fn validate_name(name: &str) -> AbstractResult<()> {
     if name.is_empty() {
         return Err(AbstractError::FormattingError {
