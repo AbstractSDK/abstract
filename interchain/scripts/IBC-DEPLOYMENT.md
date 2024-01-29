@@ -19,13 +19,12 @@
 | From\To  | Osmosis | Archway | Terra | Juno | Neutron |
 |----------|---------|---------|-------|------|---------|
 | Osmosis  |   ❌    |   ❌*   |  ❌*  |  ❌* |   ❌*   |
-| Archway  |   ✅*   |   ❌    |  ✅   |  ✅  |   ✅**  |
-| Terra    |   ✅    |   ✅*   |  ❌   |  ✅* |   ✅    |
-| Juno     |   ✅    |   ✅    |  ✅   |  ❌  |   ❌*   |
-| Neutron  |   ✅*   |   ✅*   |  ✅   |  ❌* |   ❌    |
+| Archway  |   ✅    |   ❌    |  ⭐️   |  ⭐️  |   ✅    |
+| Terra    |   ⭐️    |   ✅    |  ❌   |  ✅  |   ⭐️    |
+| Juno     |   ⭐️    |   ⭐️    |  ⭐️   |  ❌  |   ❌*   |
+| Neutron  |   ✅    |   ✅    |  ⭐️   |  ❌* |   ❌    |
 
 ❌: - No reason to deploy
 ❌*:  No active connection
-✅:  remote account successfully created
-✅*: Needed manual relaying
-✅**: Needed manual relaying maybe because of too high gas
+⭐️: Remote account successfully created. No self-relaying was needed
+✅: Remote account successfully created. Needed manual relaying
