@@ -174,7 +174,7 @@ pub struct DexFees {
 
 impl DexFees {
     /// Usage fee for swap
-    pub fn swap_usage_fees(&self) -> AbstractResult<UsageFee> {
+    pub fn swap_fees(&self) -> AbstractResult<UsageFee> {
         UsageFee::new(self.swap_fee.share(), self.recipient.clone())
     }
 }
