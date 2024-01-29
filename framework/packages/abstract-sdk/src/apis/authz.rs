@@ -11,10 +11,13 @@ use cosmos_sdk_proto::{
         },
         gov::v1beta1::{MsgVote, MsgVoteWeighted, WeightedVoteOption},
         staking::v1beta1::{MsgBeginRedelegate, MsgDelegate, MsgUndelegate},
-    }, cosmwasm::wasm::v1::{
+    },
+    cosmwasm::wasm::v1::{
         MsgClearAdmin, MsgExecuteContract, MsgInstantiateContract, MsgInstantiateContract2,
         MsgMigrateContract, MsgUpdateAdmin,
-    }, ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height}, traits::{Message, Name}
+    },
+    ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height},
+    traits::{Message, Name},
 };
 use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp, WasmMsg};
 use prost_types::Any;
@@ -391,7 +394,6 @@ impl AuthZ {
                     _=> unimplemented!("Abstract doesn't support IBC messages via authz. Abstract handles IBC requests natively")
                     
                 }
-                
             }
             CosmosMsg::Gov(gov_msg) => match gov_msg {
                 cosmwasm_std::GovMsg::Vote { proposal_id, vote } => (
