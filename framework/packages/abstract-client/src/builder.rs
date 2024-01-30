@@ -36,7 +36,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 }
 
-/// A builder for setting up tests for `Abstract` in a [`cw_orch::prelude::Mock`] environment.
+/// A builder for setting up tests for `Abstract` in an environment where Abstract isn't deployed yet.
+/// Example: [`Mock`](cw_orch::prelude::Mock) or a local [`Daemon`](cw_orch::prelude::Daemon).
 pub struct AbstractClientBuilder<Chain: CwEnv> {
     chain: Chain,
     contracts: Vec<(UncheckedContractEntry, String)>,
@@ -158,7 +159,7 @@ pub mod cw20_builder {
 
     use crate::client::AbstractClientResult;
 
-    /// A builder for creating and deploying `Cw20` contract in a [`cw_orch::prelude::Mock`] environment.
+    /// A builder for creating and deploying `Cw20` contract in a [`CwEnv`](cw_orch::prelude::CwEnv) environment.
     pub struct Cw20Builder<Chain: CwEnv> {
         chain: Chain,
         name: String,
