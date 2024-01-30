@@ -128,6 +128,7 @@ pub enum DexAction {
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 pub enum DexQueryMsg {
     /// Simulate a swap between two assets
+    /// Returns [`SimulateSwapResponse`]
     #[returns(SimulateSwapResponse)]
     SimulateSwap {
         /// The asset to offer
@@ -138,6 +139,7 @@ pub enum DexQueryMsg {
         dex: Option<DexName>,
     },
     /// Endpoint can be used by front-end to easily interact with contracts.
+    /// Returns [`GenerateMessagesResponse`]
     #[returns(GenerateMessagesResponse)]
     GenerateMessages {
         /// Execute message to generate messages for

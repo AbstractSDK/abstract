@@ -116,9 +116,11 @@ pub enum DCAExecuteMsg {
 #[derive(QueryResponses)]
 pub enum DCAQueryMsg {
     /// Get config of the DCA app
+    /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
     /// Get DCA Entry
+    /// Returns [`DCAResponse`]
     #[returns(DCAResponse)]
     DCA {
         /// Id of the DCA

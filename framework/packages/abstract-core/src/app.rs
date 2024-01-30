@@ -82,12 +82,15 @@ pub enum BaseQueryMsg {
     #[returns(AppConfigResponse)]
     BaseConfig {},
     /// Returns the admin.
+    /// Returns [`AdminResponse`]
     #[returns(AdminResponse)]
     BaseAdmin {},
     /// Returns module data
+    /// Returns [`ModuleDataResponse`]
     #[returns(ModuleDataResponse)]
     ModuleData {},
     /// Returns top level owner
+    /// Returns [`TopLevelOwnerResponse`]
     #[returns(TopLevelOwnerResponse)]
     TopLevelOwner {},
 }
