@@ -3,6 +3,9 @@ use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
 use abstract_dex_adapter::contract::CONTRACT_VERSION;
 use abstract_dex_adapter::msg::DexInstantiateMsg;
 use abstract_dex_adapter::DEX_ADAPTER_ID;
+use abstract_dex_standard::msg::DexFeesResponse;
+use abstract_dex_standard::DexError;
+use abstract_interface::AbstractInterfaceError;
 use abstract_interface::AdapterDeployer;
 use abstract_interface::DeployStrategy;
 use cw20::msg::Cw20ExecuteMsgFns;
@@ -139,5 +142,68 @@ fn swap_raw() -> anyhow::Result<()> {
     let os0_raw_balance = wyndex.raw_token.balance(account0_proxy.to_string())?;
     assert_that!(os0_raw_balance.balance.u128()).is_equal_to(1);
 
+    Ok(())
+}
+
+#[test]
+fn get_fees() -> anyhow::Result<()> {
+    let (_, _, dex_adapter, _, abstr) = setup_mock()?;
+    let account0_proxy = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
+        .proxy
+        .address()?;
+
+    use abstract_dex_adapter::msg::DexQueryMsgFns as _;
+
+    let fees: DexFeesResponse = dex_adapter.fees()?;
+    assert_eq!(fees.swap_fee.share(), Decimal::percent(1));
+    assert_eq!(fees.recipient, account0_proxy);
+    Ok(())
+}
+
+#[test]
+fn authorized_update_fee() -> anyhow::Result<()> {
+    let (_, _, dex_adapter, _, abstr) = setup_mock()?;
+    let account0 = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID);
+
+    let update_fee_msg =
+        abstract_dex_standard::msg::ExecuteMsg::Module(abstract_core::adapter::AdapterRequestMsg {
+            proxy_address: Some(account0.proxy.addr_str()?),
+            request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
+                swap_fee: Some(Decimal::percent(5)),
+                recipient_account: None,
+            },
+        });
+
+    dex_adapter.execute(&update_fee_msg, None)?;
+
+    use abstract_dex_adapter::msg::DexQueryMsgFns as _;
+
+    let fees: DexFeesResponse = dex_adapter.fees()?;
+    assert_eq!(fees.swap_fee.share(), Decimal::percent(5));
+    Ok(())
+}
+
+#[test]
+fn unauthorized_update_fee() -> anyhow::Result<()> {
+    let (_, _, _, account, _) = setup_mock()?;
+
+    let update_fee_msg =
+        abstract_dex_standard::msg::ExecuteMsg::Module(abstract_core::adapter::AdapterRequestMsg {
+            proxy_address: None,
+            request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
+                swap_fee: Some(Decimal::percent(5)),
+                recipient_account: None,
+            },
+        });
+
+    let err = account
+        .manager
+        .execute_on_module(DEX_ADAPTER_ID, update_fee_msg)
+        .unwrap_err();
+    let AbstractInterfaceError::Orch(orch_error) = err else {
+        panic!("unexpected error type");
+    };
+    let dex_err: DexError = orch_error.downcast().unwrap();
+    assert_eq!(dex_err, DexError::Unauthorized {});
     Ok(())
 }

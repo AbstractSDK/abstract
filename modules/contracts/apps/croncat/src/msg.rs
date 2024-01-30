@@ -61,9 +61,11 @@ pub enum AppExecuteMsg {
 #[derive(QueryResponses)]
 pub enum AppQueryMsg {
     /// Get config
+    /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
     /// Get active tasks
+    /// Returns [`ActiveTasksResponse`]
     #[returns(ActiveTasksResponse)]
     ActiveTasks {
         /// The addr and task tag to start listing after.
@@ -75,6 +77,7 @@ pub enum AppQueryMsg {
         checked: Option<bool>,
     },
     /// Get active tasks by creator
+    /// Returns [`ActiveTasksByCreatorResponse`]
     #[returns(ActiveTasksByCreatorResponse)]
     ActiveTasksByCreator {
         /// The addr of creator of tasks
@@ -88,6 +91,7 @@ pub enum AppQueryMsg {
         checked: Option<bool>,
     },
     /// Get task info
+    /// Returns [`croncat_sdk_tasks::types::TaskResponse`]
     #[returns(croncat_sdk_tasks::types::TaskResponse)]
     TaskInfo {
         /// The addr of creator of tasks
@@ -96,6 +100,7 @@ pub enum AppQueryMsg {
         task_tag: String,
     },
     /// Get task balance
+    /// Returns [`croncat_sdk_manager::types::TaskBalanceResponse`]
     #[returns(croncat_sdk_manager::types::TaskBalanceResponse)]
     TaskBalance {
         /// The addr of creator of tasks
@@ -105,6 +110,7 @@ pub enum AppQueryMsg {
     },
     /// Get croncat manager address of task
     /// Used to verify sender
+    /// Returns [`Addr`]
     #[returns(Addr)]
     ManagerAddr {
         /// The addr of creator of tasks

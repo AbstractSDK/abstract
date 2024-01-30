@@ -98,8 +98,6 @@ mod test {
     use abstract_interface::{ManagerExecFns, ManagerQueryFns};
     use abstract_testing::addresses::TEST_MODULE_ID;
     use abstract_testing::addresses::TEST_NAMESPACE;
-    use abstract_testing::prelude::TEST_MODULE_ID;
-    use abstract_testing::prelude::TEST_NAMESPACE;
     use abstract_testing::prelude::TEST_VERSION;
     use cosmwasm_std::Uint128;
     use cosmwasm_std::{to_json_binary, wasm_execute};

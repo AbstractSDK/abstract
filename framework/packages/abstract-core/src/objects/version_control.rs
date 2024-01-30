@@ -51,7 +51,8 @@ pub enum VersionControlError {
 pub type VersionControlResult<T> = Result<T, VersionControlError>;
 
 /// Store the Version Control contract.
-/// Implements [`AbstractRegistryAccess`]
+#[allow(rustdoc::broken_intra_doc_links)]
+/// Implements [`AbstractRegistryAccess`] (defined in abstract-sdk)
 #[cosmwasm_schema::cw_serde]
 pub struct VersionControlContract {
     /// Address of the version control contract
