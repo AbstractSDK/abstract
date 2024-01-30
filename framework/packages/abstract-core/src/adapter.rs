@@ -132,6 +132,7 @@ pub enum BaseQueryMsg {
     #[returns(AuthorizedAddressesResponse)]
     AuthorizedAddresses { proxy_address: String },
     /// Returns module data
+    /// Returns [`ModuleDataResponse`].
     #[returns(ModuleDataResponse)]
     ModuleData {},
 }

@@ -105,9 +105,11 @@ pub enum CalendarExecuteMsg {
 #[derive(QueryResponses)]
 pub enum CalendarQueryMsg {
     /// Returns the config.
+    /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
     /// Returns the meetings for a given day.
+    /// Returns [`MeetingsResponse`]
     #[returns(MeetingsResponse)]
     Meetings { day_datetime: Int64 },
 }

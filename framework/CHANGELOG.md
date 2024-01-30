@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
-
+  
 ### Changed
+
+- Updated UsageFee api to use `Address`, instead of `Api` + unchecked address
 
 ### Removed
 

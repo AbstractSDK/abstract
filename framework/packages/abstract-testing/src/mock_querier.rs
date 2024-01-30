@@ -119,7 +119,7 @@ impl MockQuerierBuilder {
     /// use abstract_testing::MockQuerierBuilder;
     /// use cosmwasm_std::testing::MockQuerier;
     /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
-    /// # // ANCHOR: smart_query
+    ///
     /// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
     ///    // handle the message
     ///     let res = match from_json::<MockModuleQueryMsg>(msg).unwrap() {
@@ -128,7 +128,7 @@ impl MockQuerierBuilder {
     ///                         return to_json_binary(&MockModuleQueryResponse {}).map_err(|e| e.to_string())
     ///    };
     /// }).build();
-    /// # // ANCHOR_END: smart_query
+    ///
     /// ```
     pub fn with_smart_handler<SH: 'static>(mut self, contract: &str, handler: SH) -> Self
     where
@@ -142,12 +142,13 @@ impl MockQuerierBuilder {
     /// Add a raw query contract handler to the mock querier. The handler will be called when the
     /// contract address is queried with the given message.
     /// Usage:
+    ///
     /// ```rust
     /// use cosmwasm_std::{from_json, to_json_binary};
     /// use abstract_testing::MockQuerierBuilder;
     /// use cosmwasm_std::testing::MockQuerier;
     /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
-    /// # // ANCHOR: raw_query
+    ///
     /// let querier = MockQuerierBuilder::default().with_raw_handler("contract1", |key: &str| {
     ///     // Example: Let's say, in the raw storage, the key "the key" maps to the value "the value"
     ///     match key {
@@ -155,7 +156,6 @@ impl MockQuerierBuilder {
     ///         _ => to_json_binary("").map_err(|e| e.to_string())
     ///     }
     /// }).build();
-    /// # // ANCHOR_END: raw_query
     /// ```
     pub fn with_raw_handler<RH: 'static>(mut self, contract: &str, handler: RH) -> Self
     where
@@ -450,6 +450,62 @@ mod tests {
             };
 
             assert_that!(actual).is_ok().is_some().is_equal_to(expected)
+        }
+    }
+
+    mod queries {
+        use super::*;
+        use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
+        use cosmwasm_std::{from_json, QueryRequest};
+
+        #[test]
+        fn smart_query() {
+            // ## ANCHOR: smart_query
+            let querier = MockQuerierBuilder::default()
+                .with_smart_handler("contract_address", |msg| {
+                    // handle the message
+                    let MockModuleQueryMsg {} = from_json::<MockModuleQueryMsg>(msg).unwrap();
+                    to_json_binary(&MockModuleQueryResponse {}).map_err(|e| e.to_string())
+                })
+                .build();
+            // ## ANCHOR_END: smart_query
+
+            let resp_bin = querier
+                .handle_query(&QueryRequest::Wasm(WasmQuery::Smart {
+                    contract_addr: "contract_address".to_string(),
+                    msg: to_json_binary(&MockModuleQueryMsg {}).unwrap(),
+                }))
+                .unwrap()
+                .unwrap();
+            let resp: MockModuleQueryResponse = from_json(resp_bin).unwrap();
+
+            assert_that!(resp).is_equal_to(MockModuleQueryResponse {})
+        }
+
+        #[test]
+        fn raw_query() {
+            // ## ANCHOR: raw_query
+            let querier = MockQuerierBuilder::default()
+                .with_raw_handler("contract_address", |key: &str| {
+                    // Example: Let's say, in the raw storage, the key "the_key" maps to the value "the_value"
+                    match key {
+                        "the_key" => to_json_binary("the_value").map_err(|e| e.to_string()),
+                        _ => to_json_binary("").map_err(|e| e.to_string()),
+                    }
+                })
+                .build();
+            // ## ANCHOR_END: raw_query
+
+            let resp_bin = querier
+                .handle_query(&QueryRequest::Wasm(WasmQuery::Raw {
+                    contract_addr: "contract_address".to_string(),
+                    key: Binary::from("the_key".joined_key()),
+                }))
+                .unwrap()
+                .unwrap();
+            let resp: String = from_json(resp_bin).unwrap();
+
+            assert_that!(resp).is_equal_to("the_value".to_string())
         }
     }
 

@@ -140,7 +140,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Sets the metadata configuration for a module. Only callable by namespace admin Using Version::Latest in the [`module`] variable sets the default metadata for the module",
+        "description": "Sets the metadata configuration for a module. Only callable by namespace admin",
         "type": "object",
         "required": [
           "update_module_configuration"

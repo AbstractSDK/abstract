@@ -1025,6 +1025,7 @@
     "description": "Query Host message",
     "oneOf": [
       {
+        "description": "Queries the ownership of the ibc client contract Returns [`cw_ownable::Ownership<Addr>`]",
         "type": "object",
         "required": [
           "ownership"
@@ -1052,7 +1053,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Returns [`ClientProxiesResponse`]. Lists all the polytone proxy contracts and their respective client chain registered with the host.",
+        "description": "Lists all the polytone proxy contracts and their respective client chain registered with the host. Returns [`ClientProxiesResponse`].",
         "type": "object",
         "required": [
           "client_proxies"
@@ -1082,7 +1083,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Returns [`ClientProxyResponse`]. Returns the polytone proxy contract address for a specific client chain.",
+        "description": "Returns the polytone proxy contract address for a specific client chain. Returns [`ClientProxyResponse`].",
         "type": "object",
         "required": [
           "client_proxy"

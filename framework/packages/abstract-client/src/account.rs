@@ -208,6 +208,12 @@ pub struct Account<Chain: CwEnv> {
     install_on_sub_account: bool,
 }
 
+impl<Chain: CwEnv> AsRef<AbstractAccount<Chain>> for Account<Chain> {
+    fn as_ref(&self) -> &AbstractAccount<Chain> {
+        &self.abstr_account
+    }
+}
+
 struct ParsedAccountCreationResponse {
     sub_account_id: u32,
     module_address: String,
@@ -550,17 +556,17 @@ impl<Chain: CwEnv> Account<Chain> {
 
 impl<Chain: MutCwEnv> Account<Chain> {
     /// Set balance for the Proxy
-    pub fn set_balance(&self, amount: Vec<Coin>) -> AbstractClientResult<()> {
+    pub fn set_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.environment()
-            .set_balance(&self.proxy()?, amount)
+            .set_balance(&self.proxy()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
     }
 
     /// Add balance to the Proxy
-    pub fn add_balance(&self, amount: Vec<Coin>) -> AbstractClientResult<()> {
+    pub fn add_balance(&self, amount: &[Coin]) -> AbstractClientResult<()> {
         self.environment()
-            .add_balance(&self.proxy()?, amount)
+            .add_balance(&self.proxy()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
     }

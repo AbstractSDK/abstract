@@ -12,7 +12,7 @@
 //!
 //! ```
 //! # use abstract_client::AbstractClientError;
-//! use abstract_app::mock::interface::MockAppI;
+//! use abstract_app::mock::interface::MockAppWithDepI;
 //! use cw_orch::prelude::*;
 //! use abstract_client::{AbstractClient, Publisher, Namespace};
 //!
@@ -24,7 +24,7 @@
 //!     .publisher_builder(namespace)
 //!     .build()?;
 //!
-//! publisher.publish_app::<MockAppI<Mock>>()?;
+//! publisher.publish_app::<MockAppWithDepI<Mock>>()?;
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
@@ -122,7 +122,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(|e| AbstractClientError::CwOrch(e.into()))
     }
 
-    /// Publisher builder for creating new [`Publisher`] Abstract Account
+    /// Publisher builder for creating new [`Publisher`](crate::Publisher) Abstract Account
     /// To publish any modules your account requires to have claimed a namespace.
     pub fn publisher_builder(&self, namespace: Namespace) -> PublisherBuilder<Chain> {
         PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)
