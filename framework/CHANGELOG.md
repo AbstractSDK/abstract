@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
   
+- Added a `.execute` method on the AuthZ API to execute `CosmosMsg` types on behalf of a granter.
+
 ### Changed
 
 - Updated UsageFee api to use `Address`, instead of `Api` + unchecked address
