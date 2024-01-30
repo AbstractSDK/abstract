@@ -96,6 +96,7 @@ pub mod state {
 
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
+use crate::objects::nested_admin::TopLevelOwnerResponse;
 use crate::objects::AssetEntry;
 use crate::objects::{account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo};
 use cosmwasm_schema::QueryResponses;
@@ -261,8 +262,8 @@ pub enum QueryMsg {
         start_after: Option<u32>,
         limit: Option<u8>,
     },
-    /// Returns [`crate::objects::nested_admin::TopLevelOwnerResponse`]
-    #[returns(crate::objects::nested_admin::TopLevelOwnerResponse)]
+    /// Returns [`TopLevelOwnerResponse`]
+    #[returns(TopLevelOwnerResponse)]
     TopLevelOwner {},
 }
 
