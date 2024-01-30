@@ -61,7 +61,7 @@ pub fn execute_handler(
 
             // Update swap fee
             if let Some(swap_fee) = swap_fee {
-                fee.set_swap_share(swap_fee)?;
+                fee.set_swap_fee_share(swap_fee)?;
             }
 
             // Update recipient account id

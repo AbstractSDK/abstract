@@ -178,7 +178,7 @@ pub struct DexFees {
 impl DexFees {
     /// Create checked DexFees
     pub fn new(swap_fee_share: Decimal, recipient: Addr) -> AbstractResult<Self> {
-        Self::check_share(swap_fee_share)?;
+        Self::check_fee_share(swap_fee_share)?;
         Ok(Self {
             swap_fee: Fee::new(swap_fee_share)?,
             recipient,
@@ -186,13 +186,13 @@ impl DexFees {
     }
 
     /// Update swap share
-    pub fn set_swap_share(&mut self, new_swap_share: Decimal) -> AbstractResult<()> {
-        Self::check_share(new_swap_share)?;
-        self.swap_fee = Fee::new(new_swap_share)?;
+    pub fn set_swap_fee_share(&mut self, new_swap_fee_share: Decimal) -> AbstractResult<()> {
+        Self::check_fee_share(new_swap_fee_share)?;
+        self.swap_fee = Fee::new(new_swap_fee_share)?;
         Ok(())
     }
 
-    /// Get swap share
+    /// Get swap fee
     pub fn swap_fee(&self) -> Fee {
         self.swap_fee
     }
@@ -202,8 +202,8 @@ impl DexFees {
         UsageFee::new(self.swap_fee.share(), self.recipient.clone())
     }
 
-    fn check_share(share: Decimal) -> AbstractResult<()> {
-        if share > MAX_FEE {
+    fn check_fee_share(fee: Decimal) -> AbstractResult<()> {
+        if fee > MAX_FEE {
             return Err(AbstractError::Fee(format!(
                 "fee share can't be bigger than {MAX_FEE}"
             )));
