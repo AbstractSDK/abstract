@@ -136,6 +136,7 @@
     "title": "QueryMsg",
     "oneOf": [
       {
+        "description": "Returns [`ConfigResponse`]",
         "type": "object",
         "required": [
           "config"
@@ -149,6 +150,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Returns [`TipperResponse`]",
         "type": "object",
         "required": [
           "tipper"
@@ -196,6 +198,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Returns [`TipCountResponse`]",
         "type": "object",
         "required": [
           "tip_count"
@@ -209,6 +212,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Returns [`TippersCountResponse`]",
         "type": "object",
         "required": [
           "list_tippers_count"
