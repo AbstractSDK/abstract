@@ -71,7 +71,6 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 
 #[cfg(test)]
 mod test {
-
     use abstract_app::mock::{
         interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockInitMsg,
         MockQueryMsgFns, ReceivedIbcCallbackStatus,
@@ -97,12 +96,7 @@ mod test {
         ManagerQueryFns, VCExecFns,
     };
     use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
-    use abstract_testing::{
-        addresses::{
-            TEST_DEPENDENCY_MODULE_ID, TEST_DEPENDENCY_NAMESPACE, TEST_MODULE_ID, TEST_NAMESPACE,
-        },
-        prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION},
-    };
+    use abstract_testing::prelude::*;
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary, wasm_execute, Addr, Uint128};
     use cw_orch::{mock::cw_multi_test::AppResponse, prelude::ContractInstance};
@@ -196,7 +190,7 @@ mod test {
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
 
         let app = MockAppWithDepI::new(
-            TEST_MODULE_ID,
+            TEST_WITH_DEP_MODULE_ID,
             abstr_origin.version_control.get_chain().clone(),
         );
 
@@ -229,7 +223,7 @@ mod test {
 
         abstr_origin.version_control.claim_namespace(
             app_account.manager.config()?.account_id,
-            TEST_NAMESPACE.to_owned(),
+            TEST_WITH_DEP_NAMESPACE.to_owned(),
         )?;
         abstr_origin.version_control.claim_namespace(
             app_deps_account.manager.config()?.account_id,
@@ -243,7 +237,7 @@ mod test {
         origin_account.install_app(&app, &MockInitMsg {}, None)?;
         let res: ModuleAddressesResponse = origin_account
             .manager
-            .module_addresses(vec![TEST_MODULE_ID.to_owned()])?;
+            .module_addresses(vec![TEST_WITH_DEP_MODULE_ID.to_owned()])?;
 
         assert_eq!(1, res.modules.len());
 
