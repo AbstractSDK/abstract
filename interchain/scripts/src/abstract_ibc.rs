@@ -2,9 +2,11 @@ use abstract_core::ibc_client::{ExecuteMsgFns as _, QueryMsgFns};
 use abstract_core::ibc_host::ExecuteMsgFns;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_interface::{Abstract, AccountFactoryExecFns};
+use cw_orch::daemon::{ChainInfo, ChainRegistryData};
 use cw_orch::interchain::InterchainError;
 use cw_orch::prelude::*;
 use cw_orch_polytone::Polytone;
+use tokio::runtime::Handle;
 
 /// This is only used for testing and shouldn't be used in production
 pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
@@ -47,4 +49,31 @@ pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<C
     )?;
 
     Ok(())
+}
+
+pub fn get_polytone_deployment_id(src_chain: &ChainInfo, dst_chain: &ChainInfo) -> String {
+    format!("{}-->{}", src_chain.chain_id, dst_chain.chain_id)
+}
+pub fn has_polytone_connection(
+    src_chain: ChainInfo,
+    dst_chain: ChainInfo,
+    rt: &Handle,
+) -> anyhow::Result<bool> {
+    // We just need to verify if the polytone deployment crate has the contracts in it
+    let deployment_id = get_polytone_deployment_id(&src_chain, &dst_chain);
+    let src_daemon = Daemon::builder()
+        .handle(rt)
+        .chain(src_chain)
+        .deployment_id(deployment_id.clone())
+        .build()?;
+    let dst_daemon = Daemon::builder()
+        .handle(rt)
+        .chain(dst_chain)
+        .deployment_id(deployment_id)
+        .build()?;
+
+    let src_polytone = Polytone::load_from(src_daemon)?;
+    let dst_polytone = Polytone::load_from(dst_daemon)?;
+
+    Ok(src_polytone.note.address().is_ok() && dst_polytone.voice.address().is_ok())
 }

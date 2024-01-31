@@ -1,6 +1,7 @@
 use abstract_client::AbstractClient;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_core::objects::namespace::Namespace;
+use abstract_scripts::abstract_ibc::has_polytone_connection;
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
 use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
 use cw_orch::daemon::ChainKind;
@@ -37,18 +38,13 @@ fn main() -> cw_orch::anyhow::Result<()> {
 
     for src_chain in &chains {
         for dst_chain in &chains {
-            if src_chain.0.chain_id != dst_chain.0.chain_id {
-                // Osmosis doesn't allow sending packets nowadays :/
-                if src_chain.0.chain_id != OSMOSIS_1.chain_id {
-                    // Neutron and Juno don't have an IBC-polytone connection :/
-                    if !(src_chain.0.chain_id == NEUTRON_1.chain_id
-                        && dst_chain.0.chain_id == JUNO_1.chain_id
-                        || src_chain.0.chain_id == JUNO_1.chain_id
-                            && dst_chain.0.chain_id == NEUTRON_1.chain_id)
-                    {
-                        connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
-                    }
-                }
+            if has_polytone_connection(src_chain.0, dst_chain.0, runtime.handle())? {
+                // connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
+            } else {
+                println!(
+                    "Not Ok for {}:{}",
+                    src_chain.0.chain_id, dst_chain.0.chain_id
+                );
             }
         }
     }
@@ -71,10 +67,6 @@ fn get_daemon(
         builder.deployment_id(deployment_id);
     }
     Ok(builder.build()?)
-}
-
-pub fn get_deployment_id(src_chain: &ChainInfo, dst_chain: &ChainInfo) -> String {
-    format!("{}-->{}", src_chain.chain_id, dst_chain.chain_id)
 }
 
 fn connect(
