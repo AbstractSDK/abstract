@@ -2,7 +2,7 @@
 
 //! # Subscription Add-On
 //!
-//! `abstract_core::subscription` provides OS owners with a tool to easily create smart-contract subscriptions for their products.
+//! `abstract_core::subscription` provides Account owners with a tool to easily create smart-contract subscriptions for their products.
 //!
 //! ## Description
 //! The subscription contract has three main uses.
@@ -16,17 +16,6 @@
 //! Because blockchains don't have a notion of monthly settlement we settled on a per-month payment schema.
 //! We use a [`TimeWeightedAverage`](crate::objects::time_weighted_average::TimeWeightedAverage) of the ongoing income to to determine a per-second income.
 //! We average the income over a monthly basis.
-//!
-//! ## Emissions
-//! Protocol emissions are an important part of creating a tight community of users and contributors around your product. The emissions feature of this
-//! module allows you to easily configure emission parameters based on your needs.
-//! These emission parameters are set when creating the module and are described on the [`EmissionType`] struct.
-//!
-//! ## Contributions
-//! The contribution feature of this contract can be used to provide direct incentives for users to join in building out your product.
-//! Each contributor is registered with his own [`Compensation`] parameters.
-//! * The total income of the system is shared between the DAO and the contributors. See [`ContributionConfig`].
-//! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
 use abstract_sdk::cw_helpers::Clearable;
 use cosmwasm_schema::QueryResponses;
