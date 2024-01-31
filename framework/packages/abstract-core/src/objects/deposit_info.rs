@@ -1,7 +1,8 @@
-use crate::{error::AbstractError, AbstractResult};
 use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::{error::AbstractError, AbstractResult};
 
 /// Helper for handling deposit assets.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]

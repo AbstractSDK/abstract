@@ -1,5 +1,6 @@
-use crate::base::Handler;
 use cosmwasm_std::{Binary, Deps, Env};
+
+use crate::base::Handler;
 
 /// Trait for a contract's Query entry point.
 pub trait QueryEndpoint: Handler {

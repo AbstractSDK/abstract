@@ -181,12 +181,12 @@ pub fn maybe_add_new_deps(
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use speculoos::prelude::*;
+    use std::collections::HashSet;
 
     use cosmwasm_std::testing::mock_dependencies;
+    use speculoos::prelude::*;
 
-    use std::collections::HashSet;
+    use super::*;
 
     mod set_as_dependent {
         use super::*;

@@ -28,13 +28,10 @@
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
-use abstract_core::objects::namespace::Namespace;
-use abstract_core::objects::AccountId;
-use abstract_interface::{Abstract, AnsHost, VersionControl};
-use abstract_interface::{AbstractAccount, ManagerQueryFns};
+use abstract_core::objects::{namespace::Namespace, AccountId};
+use abstract_interface::{Abstract, AbstractAccount, AnsHost, ManagerQueryFns, VersionControl};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
-use cw_orch::state::StateInterface;
-use cw_orch::{deploy::Deploy, prelude::CwEnv};
+use cw_orch::{deploy::Deploy, prelude::CwEnv, state::StateInterface};
 
 use crate::{
     account::{Account, AccountBuilder},

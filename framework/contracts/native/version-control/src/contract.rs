@@ -1,24 +1,23 @@
+pub(crate) use abstract_core::objects::namespace::ABSTRACT_NAMESPACE;
+use abstract_core::{
+    objects::namespace::Namespace,
+    version_control::{state::NAMESPACES_INFO, Config},
+};
+use abstract_macros::abstract_response;
+use abstract_sdk::{
+    core::{
+        objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
+        version_control::{
+            state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+        },
+        VERSION_CONTROL,
+    },
+    execute_update_ownership, query_ownership,
+};
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
-
 use cw_semver::Version;
 
-use abstract_core::version_control::Config;
-use abstract_core::{objects::namespace::Namespace, version_control::state::NAMESPACES_INFO};
-use abstract_macros::abstract_response;
-use abstract_sdk::core::{
-    objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
-    version_control::{
-        state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-    },
-    VERSION_CONTROL,
-};
-use abstract_sdk::{execute_update_ownership, query_ownership};
-
-use crate::commands::*;
-use crate::error::VCError;
-use crate::queries;
-
-pub(crate) use abstract_core::objects::namespace::ABSTRACT_NAMESPACE;
+use crate::{commands::*, error::VCError, queries};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -181,12 +180,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::contract;
-    use crate::testing::*;
     use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
+
+    use super::*;
+    use crate::{contract, testing::*};
 
     mod instantiate {
         use super::*;
@@ -207,8 +206,9 @@ mod tests {
     }
 
     mod migrate {
-        use super::*;
         use abstract_core::AbstractError;
+
+        use super::*;
 
         #[test]
         fn disallow_same_version() -> VCResult<()> {

@@ -33,6 +33,7 @@ use super::stargate::{
     convert_coin, convert_coins,
     gov::vote_to_option,
 };
+use crate::{features::AccountIdentification, AbstractSdkResult};
 
 /// An interface to the CosmosSDK AuthZ module which allows for granting authorizations to perform actions on behalf of one account to other accounts.
 pub trait AuthZInterface: AccountIdentification {
@@ -461,11 +462,11 @@ impl AuthZ {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::{apis::stargate::convert_stamp, mock_module::*};
-
     use cosmwasm_std::testing::mock_dependencies;
     use prost_types::Any;
+
+    use super::*;
+    use crate::{apis::stargate::convert_stamp, mock_module::*};
 
     #[test]
     fn generic_authorization() {

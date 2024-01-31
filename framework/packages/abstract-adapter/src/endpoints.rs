@@ -70,7 +70,6 @@ macro_rules! export_endpoints {
 
 #[cfg(test)]
 mod test {
-    use crate::mock::*;
     use abstract_core::adapter::{self, AdapterRequestMsg};
     use abstract_sdk::base::{
         ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint, ReplyEndpoint, SudoEndpoint,
@@ -81,6 +80,8 @@ mod test {
         SubMsgResult,
     };
     use speculoos::prelude::*;
+
+    use crate::mock::*;
 
     #[test]
     fn exports_endpoints() {

@@ -1,7 +1,3 @@
-use crate::{
-    state::{AppContract, ContractError},
-    Handler, QueryEndpoint,
-};
 use abstract_core::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
     objects::{
@@ -11,6 +7,11 @@ use abstract_core::{
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
+
+use crate::{
+    state::{AppContract, ContractError},
+    Handler, QueryEndpoint,
+};
 
 impl<
         Error: ContractError,
@@ -107,11 +108,12 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use super::QueryMsg as SuperQueryMsg;
-    use crate::mock::*;
     use abstract_sdk::base::QueryEndpoint;
     use cosmwasm_std::{Binary, Deps};
     use speculoos::prelude::*;
+
+    use super::QueryMsg as SuperQueryMsg;
+    use crate::mock::*;
 
     type AppQueryMsg = SuperQueryMsg<MockQueryMsg>;
 
@@ -120,9 +122,10 @@ mod test {
     }
 
     mod app_query {
-        use super::*;
         use abstract_sdk::AbstractSdkError;
         use cosmwasm_std::{to_json_binary, Env};
+
+        use super::*;
 
         #[test]
         fn without_handler() {
@@ -166,11 +169,12 @@ mod test {
     }
 
     mod base_query {
-        use super::*;
         use abstract_core::app::{AppConfigResponse, BaseQueryMsg};
         use abstract_testing::prelude::*;
         use cosmwasm_std::{from_json, Addr};
         use cw_controllers::AdminResponse;
+
+        use super::*;
 
         #[test]
         fn config() -> AppTestResult {

@@ -6,12 +6,14 @@ pub mod reply;
 
 #[cfg(test)]
 mod test_common {
-    use crate::contract;
-    use abstract_core::objects::account::TEST_ACCOUNT_ID;
-    use abstract_core::proxy::InstantiateMsg;
+    use abstract_core::{objects::account::TEST_ACCOUNT_ID, proxy::InstantiateMsg};
     use abstract_testing::prelude::*;
-    use cosmwasm_std::testing::{mock_env, mock_info, MOCK_CONTRACT_ADDR};
-    use cosmwasm_std::DepsMut;
+    use cosmwasm_std::{
+        testing::{mock_env, mock_info, MOCK_CONTRACT_ADDR},
+        DepsMut,
+    };
+
+    use crate::contract;
 
     pub fn mock_init(deps: DepsMut) {
         let info = mock_info(TEST_MANAGER, &[]);

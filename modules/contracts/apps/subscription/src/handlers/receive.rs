@@ -1,10 +1,10 @@
-use crate::handlers::execute;
 use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo};
 
 use crate::{
     contract::{SubscriptionApp, SubscriptionResult},
+    handlers::execute,
     msg::DepositHookMsg,
 };
 

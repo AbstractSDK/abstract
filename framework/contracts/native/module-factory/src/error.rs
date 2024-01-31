@@ -2,7 +2,6 @@ use abstract_core::{objects::version_control::VersionControlError, AbstractError
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_asset::AssetError;
-
 use cw_ownable::OwnershipError;
 use thiserror::Error;
 

@@ -1,3 +1,5 @@
+use std::env;
+
 pub use abstract_core::ans_host::ExecuteMsgFns;
 use abstract_core::{
     ans_host::*,
@@ -8,10 +10,8 @@ use abstract_core::{
     ANS_HOST,
 };
 use cosmwasm_std::Addr;
-
 use cw_asset::{Asset, AssetInfo};
 use cw_orch::{interface, prelude::*};
-use std::env;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;

@@ -1,12 +1,12 @@
+use std::fmt::Display;
+
 use cosmwasm_std::StdResult;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
-
-use crate::{AbstractError, AbstractResult};
 
 use super::module::validate_name;
+use crate::{AbstractError, AbstractResult};
 
 pub const ABSTRACT_NAMESPACE: &str = "abstract";
 
@@ -116,8 +116,9 @@ impl KeyDeserialize for Namespace {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use speculoos::prelude::*;
+
+    use super::*;
 
     #[test]
     fn test_namespace() {

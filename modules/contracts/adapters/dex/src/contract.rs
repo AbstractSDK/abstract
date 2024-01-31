@@ -1,10 +1,11 @@
-use crate::handlers;
-use crate::DEX_ADAPTER_ID;
-
 use abstract_adapter::{export_endpoints, AdapterContract};
-use abstract_dex_standard::msg::{DexExecuteMsg, DexInstantiateMsg, DexQueryMsg};
-use abstract_dex_standard::DexError;
+use abstract_dex_standard::{
+    msg::{DexExecuteMsg, DexInstantiateMsg, DexQueryMsg},
+    DexError,
+};
 use cosmwasm_std::Response;
+
+use crate::{handlers, DEX_ADAPTER_ID};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

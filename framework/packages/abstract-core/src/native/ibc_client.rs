@@ -1,16 +1,19 @@
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Addr, Coin, Empty, QueryRequest};
+use polytone::callbacks::CallbackMessage;
+
+use self::state::IbcInfrastructure;
 use crate::{
     ibc::CallbackInfo,
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
     objects::{account::AccountId, chain_name::ChainName, AssetEntry},
 };
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Empty, QueryRequest};
-use polytone::callbacks::CallbackMessage;
-
-use self::state::IbcInfrastructure;
 
 pub mod state {
+
+    use cosmwasm_std::Addr;
+    use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
         account::{AccountSequence, AccountTrace},
@@ -18,8 +21,6 @@ pub mod state {
         chain_name::ChainName,
         version_control::VersionControlContract,
     };
-    use cosmwasm_std::Addr;
-    use cw_storage_plus::{Item, Map};
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
@@ -238,10 +239,11 @@ pub struct RemoteProxyResponse {
 
 #[cfg(test)]
 mod tests {
-    use crate::ibc::IbcResponseMsg;
     use cosmwasm_std::{to_json_binary, CosmosMsg, Empty};
     use polytone::callbacks::Callback;
     use speculoos::prelude::*;
+
+    use crate::ibc::IbcResponseMsg;
 
     // ... (other test functions)
 

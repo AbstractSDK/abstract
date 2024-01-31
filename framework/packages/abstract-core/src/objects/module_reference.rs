@@ -1,5 +1,6 @@
-use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{Addr, Deps};
+
+use crate::{error::AbstractError, AbstractResult};
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
@@ -91,9 +92,10 @@ impl ModuleReference {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
+
+    use super::*;
 
     #[test]
     fn core() {

@@ -1,14 +1,8 @@
-use crate::state::MAXIMUM_AUTHORIZED_ADDRESSES;
-use crate::{
-    error::AdapterError,
-    state::{AdapterContract, ContractError},
-    AdapterResult,
+use abstract_core::{
+    adapter::{AdapterBaseMsg, AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
+    manager::state::ACCOUNT_MODULES,
+    objects::nested_admin::query_top_level_owner,
 };
-use abstract_core::adapter::AdapterBaseMsg;
-use abstract_core::adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg};
-use abstract_core::manager::state::ACCOUNT_MODULES;
-use abstract_core::objects::nested_admin::query_top_level_owner;
-
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
@@ -17,6 +11,12 @@ use abstract_sdk::{
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, QuerierWrapper, Response, StdResult};
 use schemars::JsonSchema;
 use serde::Serialize;
+
+use crate::{
+    error::AdapterError,
+    state::{AdapterContract, ContractError, MAXIMUM_AUTHORIZED_ADDRESSES},
+    AdapterResult,
+};
 
 impl<
         Error: ContractError,
@@ -242,19 +242,18 @@ fn get_addr_from_module_id_or_addr(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use abstract_core::adapter;
-
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, Storage,
     };
+    use speculoos::prelude::*;
 
+    use super::*;
     use crate::mock::{
         mock_init, AdapterMockResult, MockError, MockExecMsg, MockReceiveMsg, MOCK_ADAPTER,
     };
-    use speculoos::prelude::*;
 
     fn execute_as(
         deps: DepsMut,
@@ -273,9 +272,8 @@ mod tests {
     }
 
     mod update_authorized_addresses {
-        use crate::mock::TEST_AUTHORIZED_ADDRESS;
-
         use super::*;
+        use crate::mock::TEST_AUTHORIZED_ADDRESS;
 
         fn load_test_proxy_authorized_addresses(storage: &dyn Storage) -> Vec<Addr> {
             MOCK_ADAPTER
@@ -447,11 +445,10 @@ mod tests {
     }
 
     mod execute_app {
-        use super::*;
-
-        use crate::mock::{MOCK_ADAPTER, TEST_AUTHORIZED_ADDRESS};
-
         use abstract_core::objects::{account::AccountTrace, AccountId};
+
+        use super::*;
+        use crate::mock::{MOCK_ADAPTER, TEST_AUTHORIZED_ADDRESS};
 
         /// This sets up the test with the following:
         /// TEST_PROXY has a single authorized address, test_authorized_address
