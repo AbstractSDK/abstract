@@ -1,28 +1,21 @@
 mod common;
 
-use abstract_core::objects::module_version::ModuleDataResponse;
-use abstract_cw_staking::contract::CONTRACT_VERSION;
-use abstract_cw_staking::interface::CwStakingAdapter;
-use abstract_cw_staking::msg::StakingQueryMsgFns;
-use abstract_interface::Abstract;
-use abstract_interface::AbstractAccount;
-use abstract_interface::AdapterDeployer;
-use abstract_interface::DeployStrategy;
-use abstract_staking_standard::msg::StakingInfo;
-use cw20::msg::Cw20ExecuteMsgFns;
-use cw20_base::msg::QueryMsgFns;
-
-use abstract_core::objects::{AnsAsset, AssetEntry};
-use cw_orch::deploy::Deploy;
-
-use abstract_core::adapter::BaseQueryMsgFns;
-
+use abstract_core::{
+    adapter::BaseQueryMsgFns,
+    objects::{module_version::ModuleDataResponse, AnsAsset, AssetEntry},
+};
+use abstract_cw_staking::{
+    contract::CONTRACT_VERSION, interface::CwStakingAdapter, msg::StakingQueryMsgFns,
+};
+use abstract_interface::{Abstract, AbstractAccount, AdapterDeployer, DeployStrategy};
 use abstract_staking_standard::msg::{
-    Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
+    Claim, RewardTokensResponse, StakingInfo, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{coin, Addr, Empty, Uint128};
+use cw20::msg::Cw20ExecuteMsgFns;
+use cw20_base::msg::QueryMsgFns;
 use cw_asset::AssetInfoBase;
-use cw_orch::prelude::*;
+use cw_orch::{deploy::Deploy, prelude::*};
 use speculoos::*;
 use wyndex_bundle::{EUR_USD_LP, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER, WYND_TOKEN};
 

@@ -7,26 +7,24 @@ pub mod msgs;
 pub mod schema;
 pub mod state;
 pub(crate) use abstract_sdk::base::*;
+pub use error::AppError;
 
 pub use crate::state::AppContract;
-pub use error::AppError;
 pub type AppResult<C = cosmwasm_std::Empty> = Result<cosmwasm_std::Response<C>, AppError>;
 
 // Useful re-exports
 pub use abstract_core;
-pub use abstract_sdk;
 // re-export objects specifically
 pub use abstract_core::objects;
+pub use abstract_sdk;
 pub mod traits {
-    pub use abstract_sdk::features::*;
-    pub use abstract_sdk::prelude::*;
+    pub use abstract_sdk::{features::*, prelude::*};
 }
 
 #[cfg(feature = "interface-macro")]
 mod interface;
 #[cfg(feature = "interface-macro")]
 pub use abstract_interface;
-
 #[cfg(feature = "test-utils")]
 pub use abstract_testing;
 
@@ -89,7 +87,6 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockSudoMsg;
 
-    use crate::{AppContract, AppError};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::{
         addresses::{test_account_base, TEST_ANS_HOST, TEST_VERSION_CONTROL},
@@ -101,6 +98,7 @@ pub mod mock {
     use thiserror::Error;
 
     use self::interface::MockAppWithDepI;
+    use crate::{AppContract, AppError};
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {

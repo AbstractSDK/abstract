@@ -2,15 +2,13 @@
 //! Interacts with the distribution module of cosmos
 //!
 
-use crate::features::AccountIdentification;
 use cosmos_sdk_proto::{
     cosmos::{base, distribution},
     traits::Message,
 };
 use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg};
 
-use crate::AbstractSdkResult;
-use crate::AccountAction;
+use crate::{features::AccountIdentification, AbstractSdkResult, AccountAction};
 
 /// Interact with the Cosmos SDK Distribution module.
 /// Requires `Stargate` feature.
@@ -139,9 +137,10 @@ impl Distribution {
 
 #[cfg(test)]
 mod test {
+    use speculoos::prelude::*;
+
     use super::*;
     use crate::mock_module::*;
-    use speculoos::prelude::*;
 
     mod set_withdraw_address {
         use super::*;
@@ -197,8 +196,9 @@ mod test {
     }
 
     mod fund_community_pool {
-        use super::*;
         use cosmwasm_std::coins;
+
+        use super::*;
 
         #[test]
         fn fund_community_pool() {

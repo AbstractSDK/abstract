@@ -14,12 +14,11 @@ use abstract_testing::OWNER;
 
 pub const WEEK_IN_SECONDS: u64 = 7 * 24 * 60 * 60;
 
+use cosmwasm_std::{coins, Addr, Decimal, StdError, Uint128, Uint64};
 use cw20_builder::{Cw20Base, Cw20Coin, Cw20ExecuteMsgFns, Cw20QueryMsgFns};
 use cw_asset::{AssetInfo, AssetInfoBase, AssetInfoUnchecked};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
-
-use cosmwasm_std::{coins, Addr, Decimal, StdError, Uint128, Uint64};
 
 // consts for testing
 const DENOM: &str = "abstr";

@@ -50,3 +50,6 @@ copy-schema:
   #!/usr/bin/env bash
   set -e
   cp -r schema/. ../schemas/abstract
+
+nightly-fmt:
+  just cargo-all +nightly fmt

@@ -1,7 +1,8 @@
-use crate::constants::{ASSET_DELIMITER, TYPE_DELIMITER};
-use crate::objects::{AssetEntry, DexAssetPairing, LpToken, PoolMetadata};
-
-use crate::AbstractResult;
+use crate::{
+    constants::{ASSET_DELIMITER, TYPE_DELIMITER},
+    objects::{AssetEntry, DexAssetPairing, LpToken, PoolMetadata},
+    AbstractResult,
+};
 
 /// A helper struct for Abstract Name Service entry conversions.
 pub struct AnsEntryConvertor<T> {

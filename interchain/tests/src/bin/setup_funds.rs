@@ -10,7 +10,6 @@ use abstract_interface_integration_tests::{
     interchain_accounts::{create_test_remote_account, set_env},
     JUNO, STARGAZE,
 };
-
 use anyhow::Result as AnyResult;
 use cosmwasm_std::coins;
 use cw_orch::{

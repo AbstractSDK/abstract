@@ -1,11 +1,14 @@
-use crate::error::EtfError;
-use crate::handlers;
-use crate::handlers::instantiate::INSTANTIATE_REPLY_ID;
-use crate::msg::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg};
-use crate::ETF_APP_ID;
 use abstract_app::AppContract;
 use cosmwasm_std::{Empty, Response};
 use cw20::Cw20ReceiveMsg;
+
+use crate::{
+    error::EtfError,
+    handlers,
+    handlers::instantiate::INSTANTIATE_REPLY_ID,
+    msg::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg},
+    ETF_APP_ID,
+};
 
 pub(crate) const DEFAULT_LP_TOKEN_NAME: &str = "ETF LP token";
 pub(crate) const DEFAULT_LP_TOKEN_SYMBOL: &str = "etfLP";

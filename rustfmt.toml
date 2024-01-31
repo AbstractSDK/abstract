@@ -2,6 +2,9 @@
 newline_style = "Unix"
 hard_tabs = false
 tab_spaces = 4
+reorder_imports = true
+reorder_modules = true
 
+# These are nightly
 # group_imports = "StdExternalCrate"
 # imports_granularity = "Crate"

@@ -1,7 +1,8 @@
-use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{DepsMut, Order, StdError, StdResult, Storage};
 use cw_storage_plus::{Bound, Item, Map, Path};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
+use crate::{error::AbstractError, AbstractResult};
 
 const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 30;
@@ -261,10 +262,10 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use cosmwasm_std::testing::{mock_dependencies, MockStorage};
     use serde::{Deserialize, Serialize};
 
-    use cosmwasm_std::testing::{mock_dependencies, MockStorage};
+    use super::*;
 
     #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
     struct Data {

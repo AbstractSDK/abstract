@@ -1,7 +1,10 @@
-use crate::contract::{CalendarApp, CalendarAppResult};
-use crate::msg::CalendarMigrateMsg;
 use abstract_sdk::AbstractResponse;
 use cosmwasm_std::{DepsMut, Env};
+
+use crate::{
+    contract::{CalendarApp, CalendarAppResult},
+    msg::CalendarMigrateMsg,
+};
 
 /// Handle the app migrate msg
 /// The top-level Abstract app does version checking and dispatches to this handler

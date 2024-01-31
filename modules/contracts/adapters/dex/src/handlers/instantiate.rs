@@ -1,10 +1,12 @@
-use crate::contract::{DexAdapter, DexResult};
-use crate::state::DEX_FEES;
-use abstract_core::objects::account::AccountTrace;
-use abstract_core::objects::AccountId;
+use abstract_core::objects::{account::AccountTrace, AccountId};
 use abstract_dex_standard::msg::{DexFees, DexInstantiateMsg};
 use abstract_sdk::AccountVerification;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+
+use crate::{
+    contract::{DexAdapter, DexResult},
+    state::DEX_FEES,
+};
 
 pub fn instantiate_handler(
     deps: DepsMut,

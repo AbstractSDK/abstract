@@ -299,22 +299,25 @@ fn load_pool_metadata_entry(
 mod test {
     use std::str::FromStr;
 
-    use abstract_core::ans_host::*;
-    use abstract_core::objects::chain_name::ChainName;
-    use abstract_core::objects::PoolType;
+    use abstract_core::{
+        ans_host::*,
+        objects::{chain_name::ChainName, pool_id::PoolAddressBase, PoolType},
+    };
     use abstract_testing::OWNER;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
-    use cosmwasm_std::{from_json, Addr, DepsMut};
-
-    use crate::contract;
-    use crate::contract::{instantiate, AnsHostResult};
-    use crate::error::AnsHostError;
-
-    use abstract_core::objects::pool_id::PoolAddressBase;
+    use cosmwasm_std::{
+        from_json,
+        testing::{mock_dependencies, mock_env, mock_info, MockApi},
+        Addr, DepsMut,
+    };
     use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use speculoos::prelude::*;
 
     use super::*;
+    use crate::{
+        contract,
+        contract::{instantiate, AnsHostResult},
+        error::AnsHostError,
+    };
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 

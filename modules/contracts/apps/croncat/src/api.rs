@@ -1,17 +1,18 @@
 use abstract_core::objects::module::ModuleId;
 use abstract_sdk::{
     features::{AccountIdentification, Dependencies, ModuleIdentification},
-    AbstractSdkResult,
+    AbstractSdkResult, AppInterface, ModuleInterface,
 };
-use abstract_sdk::{AppInterface, ModuleInterface};
 use cosmwasm_std::{Addr, CosmosMsg, Deps};
 use croncat_integration_utils::CronCatTaskRequest;
 use croncat_sdk_manager::types::TaskBalanceResponse;
 use croncat_sdk_tasks::types::TaskResponse;
 use cw_asset::AssetListUnchecked;
 
-use crate::contract::CRONCAT_ID;
-use crate::msg::{AppExecuteMsg, AppQueryMsg};
+use crate::{
+    contract::CRONCAT_ID,
+    msg::{AppExecuteMsg, AppQueryMsg},
+};
 
 // Entry for the cron_cat factory address, stored in the ANS
 pub const CRON_CAT_FACTORY: &str = "croncat:factory";
@@ -181,15 +182,15 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::msg::ExecuteMsg;
     use abstract_sdk::mock_module::MockModule;
     use abstract_testing::prelude::TEST_MODULE_ID;
-    use cosmwasm_std::testing::mock_dependencies;
-    use cosmwasm_std::{coins, wasm_execute, BankMsg};
+    use cosmwasm_std::{coins, testing::mock_dependencies, wasm_execute, BankMsg};
     use croncat_integration_utils::*;
     use cw_asset::AssetList;
     use speculoos::prelude::*;
+
+    use super::*;
+    use crate::msg::ExecuteMsg;
 
     const TEST_TASK_HASH: &str = "juno:564d9acab76c256659634415d14625812103bc8e87308c5c3c290045e17";
     #[test]

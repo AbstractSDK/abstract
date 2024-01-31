@@ -1,5 +1,6 @@
-use crate::{state::ContractError, AdapterContract};
 use abstract_sdk::base::IbcCallbackEndpoint;
+
+use crate::{state::ContractError, AdapterContract};
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     IbcCallbackEndpoint

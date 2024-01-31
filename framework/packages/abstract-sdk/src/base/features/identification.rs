@@ -1,4 +1,3 @@
-use crate::core::objects::AccountId;
 use abstract_core::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
     version_control::AccountBase,
@@ -6,6 +5,7 @@ use abstract_core::{
 use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
 
+use crate::core::objects::AccountId;
 // see core::proxy::state::ADMIN
 use crate::{AbstractSdkError, AbstractSdkResult};
 
@@ -40,9 +40,10 @@ pub trait AccountIdentification: Sized {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use abstract_testing::prelude::*;
     use speculoos::prelude::*;
+
+    use super::*;
 
     struct MockBinding;
 
@@ -53,8 +54,9 @@ mod test {
     }
 
     mod account {
-        use super::*;
         use cosmwasm_std::testing::mock_dependencies;
+
+        use super::*;
 
         #[test]
         fn test_proxy_address() {

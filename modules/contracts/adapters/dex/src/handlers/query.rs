@@ -1,20 +1,20 @@
-use crate::handlers::query::exchange_resolver::is_over_ibc;
-
-use crate::exchanges::exchange_resolver::resolve_exchange;
-
-use crate::state::DEX_FEES;
-use crate::{
-    contract::{DexAdapter, DexResult},
-    exchanges::exchange_resolver,
-};
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
-use abstract_dex_standard::msg::{
-    DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, OfferAsset,
-    SimulateSwapResponse,
+use abstract_dex_standard::{
+    msg::{
+        DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, OfferAsset,
+        SimulateSwapResponse,
+    },
+    DexError,
 };
-use abstract_dex_standard::DexError;
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
+
+use crate::{
+    contract::{DexAdapter, DexResult},
+    exchanges::{exchange_resolver, exchange_resolver::resolve_exchange},
+    handlers::query::exchange_resolver::is_over_ibc,
+    state::DEX_FEES,
+};
 
 pub fn query_handler(
     deps: Deps,

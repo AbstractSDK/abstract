@@ -1,8 +1,6 @@
 use abstract_testing::OWNER;
-use payment_app::contract::APP_ID;
-use payment_app::PaymentAppInterface;
-
 use cw_orch::prelude::*;
+use payment_app::{contract::APP_ID, PaymentAppInterface};
 
 #[test]
 fn successful_wasm() {

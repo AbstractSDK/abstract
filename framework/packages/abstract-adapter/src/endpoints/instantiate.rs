@@ -1,4 +1,3 @@
-use crate::state::{AdapterContract, ApiState, ContractError};
 use abstract_core::{adapter::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
@@ -8,6 +7,8 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::Serialize;
+
+use crate::state::{AdapterContract, ApiState, ContractError};
 
 impl<
         Error: ContractError,
@@ -63,6 +64,7 @@ mod tests {
         base::InstantiateEndpoint,
         feature_objects::{AnsHost, VersionControlContract},
     };
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, StdError,
@@ -74,7 +76,6 @@ mod tests {
         mock::{AdapterMockResult, MockInitMsg, MOCK_ADAPTER, MOCK_DEP, TEST_METADATA},
         state::ApiState,
     };
-    use abstract_testing::prelude::*;
 
     #[test]
     fn successful() -> AdapterMockResult {

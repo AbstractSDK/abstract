@@ -1,6 +1,6 @@
-use crate::AVAILABLE_CHAINS;
-use crate::WYNDEX;
 use abstract_dex_standard::Identify;
+
+use crate::{AVAILABLE_CHAINS, WYNDEX};
 // Source https://github.com/cosmorama/wynddex/tree/v1.0.0
 #[derive(Default)]
 pub struct WynDex {}

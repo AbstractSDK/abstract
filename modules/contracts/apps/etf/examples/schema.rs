@@ -1,8 +1,7 @@
+use std::{env::current_dir, fs::create_dir_all};
+
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-use etf_app::contract::EtfApp;
-use etf_app::msg::StateResponse;
-use std::env::current_dir;
-use std::fs::create_dir_all;
+use etf_app::{contract::EtfApp, msg::StateResponse};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

@@ -12,9 +12,7 @@ use abstract_core::{
     MANAGER, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Binary, Empty};
-use cw_orch::environment::TxHandler;
-use cw_orch::interface;
-use cw_orch::prelude::*;
+use cw_orch::{environment::TxHandler, interface, prelude::*};
 use serde::Serialize;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

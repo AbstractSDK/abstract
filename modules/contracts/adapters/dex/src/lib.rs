@@ -20,16 +20,15 @@ pub mod host_exchange {
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use crate::{msg::*, DEX_ADAPTER_ID};
     use abstract_core::{
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
     };
-    use abstract_interface::AdapterDeployer;
-    use abstract_interface::{AbstractAccount, AbstractInterfaceError};
+    use abstract_interface::{AbstractAccount, AbstractInterfaceError, AdapterDeployer};
     use cosmwasm_std::{Decimal, Empty};
-    use cw_orch::prelude::*;
-    use cw_orch::{build::BuildPostfix, interface};
+    use cw_orch::{build::BuildPostfix, interface, prelude::*};
+
+    use crate::{msg::*, DEX_ADAPTER_ID};
 
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct DexAdapter<Chain>;

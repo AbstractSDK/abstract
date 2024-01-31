@@ -5,15 +5,15 @@
 //! ## Description
 //! Contract and asset addresses are stored on the ans_host contract and are retrievable trough smart or raw queries.
 
-use crate::objects::{
-    pool_id::UncheckedPoolAddress,
-    pool_reference::PoolReference,
-    AssetEntry, ChannelEntry, DexAssetPairing, PoolMetadata, PoolType, UncheckedChannelEntry,
-    UniquePoolId, {ContractEntry, UncheckedContractEntry},
-};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
+
+use crate::objects::{
+    pool_id::UncheckedPoolAddress, pool_reference::PoolReference, AssetEntry, ChannelEntry,
+    ContractEntry, DexAssetPairing, PoolMetadata, PoolType, UncheckedChannelEntry,
+    UncheckedContractEntry, UniquePoolId,
+};
 
 pub type AssetPair = (AssetEntry, AssetEntry);
 type DexName = String;
@@ -33,14 +33,16 @@ pub type PoolMetadataMapEntry = (UniquePoolId, PoolMetadata);
 
 /// AnsHost state details
 pub mod state {
-    use crate::ans_host::{DexAssetPairing, DexName, UniquePoolId};
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{
-        pool_metadata::PoolMetadata, pool_reference::PoolReference, AssetEntry, ChannelEntry,
-        ContractEntry,
+    use crate::{
+        ans_host::{DexAssetPairing, DexName, UniquePoolId},
+        objects::{
+            pool_metadata::PoolMetadata, pool_reference::PoolReference, AssetEntry, ChannelEntry,
+            ContractEntry,
+        },
     };
 
     /// Ans host configuration

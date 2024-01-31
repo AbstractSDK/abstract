@@ -1,10 +1,15 @@
-use crate::handlers;
-use crate::msg::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
-use crate::msg::{SubscriptionInstantiateMsg, SubscriptionMigrateMsg};
-use crate::SubscriptionError;
 use abstract_app::AppContract;
 use cosmwasm_std::Response;
 use cw20::Cw20ReceiveMsg;
+
+use crate::{
+    handlers,
+    msg::{
+        SubscriptionExecuteMsg, SubscriptionInstantiateMsg, SubscriptionMigrateMsg,
+        SubscriptionQueryMsg,
+    },
+    SubscriptionError,
+};
 
 pub type SubscriptionResult<T = Response> = Result<T, SubscriptionError>;
 
@@ -50,6 +55,7 @@ mod tests {
         to_json_binary, Addr, CosmosMsg, Decimal, SubMsg, WasmMsg,
     };
 
+    use super::*;
     use crate::{
         msg::{HookReceiverExecuteMsg, UnsubscribedHookMsg},
         state::{
@@ -57,8 +63,6 @@ mod tests {
             SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
         },
     };
-
-    use super::*;
 
     #[test]
     fn unsubscribe_no_hook_msg() {

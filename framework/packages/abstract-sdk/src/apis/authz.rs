@@ -5,13 +5,11 @@
 use cosmos_sdk_proto::{cosmos::authz, traits::Message};
 use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
 
-use crate::features::AccountIdentification;
-use crate::AbstractSdkResult;
-
 use super::stargate::authz::{
     AuthZAuthorization, AuthorizationType, GenericAuthorization, Policy, SendAuthorization,
     StakeAuthorization,
 };
+use crate::{features::AccountIdentification, AbstractSdkResult};
 
 /// An interface to the CosmosSDK AuthZ module which allows for granting authorizations to perform actions on behalf of one account to other accounts.
 pub trait AuthZInterface: AccountIdentification {
@@ -167,11 +165,11 @@ impl AuthZ {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::{apis::stargate::convert_stamp, mock_module::*};
-
     use cosmwasm_std::testing::mock_dependencies;
     use prost_types::Any;
+
+    use super::*;
+    use crate::{apis::stargate::convert_stamp, mock_module::*};
 
     #[test]
     fn generic_authorization() {

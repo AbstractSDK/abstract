@@ -1,7 +1,10 @@
-use crate::contract::{CalendarApp, CalendarAppResult};
-use crate::msg::{CalendarQueryMsg, ConfigResponse, MeetingsResponse};
-use crate::state::{CALENDAR, CONFIG};
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, Int64, StdResult};
+
+use crate::{
+    contract::{CalendarApp, CalendarAppResult},
+    msg::{CalendarQueryMsg, ConfigResponse, MeetingsResponse},
+    state::{CALENDAR, CONFIG},
+};
 
 pub fn query_handler(
     deps: Deps,

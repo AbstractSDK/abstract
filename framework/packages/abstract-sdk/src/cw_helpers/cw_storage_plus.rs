@@ -24,12 +24,13 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, MockApi, MockQuerier, MockStorage},
         OwnedDeps,
     };
     use speculoos::prelude::*;
+
+    use super::*;
 
     const TEST_MAP: Map<String, String> = Map::new("test_map");
 

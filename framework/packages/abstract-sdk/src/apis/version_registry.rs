@@ -1,9 +1,3 @@
-use super::{AbstractApi, ApiIdentification};
-use crate::{
-    cw_helpers::ApiQuery,
-    features::{AbstractRegistryAccess, ModuleIdentification},
-    AbstractSdkResult,
-};
 use abstract_core::{
     objects::{
         module::{Module, ModuleInfo},
@@ -15,6 +9,13 @@ use abstract_core::{
     version_control::{ModuleConfiguration, ModuleResponse, NamespaceResponse, NamespacesResponse},
 };
 use cosmwasm_std::Deps;
+
+use super::{AbstractApi, ApiIdentification};
+use crate::{
+    cw_helpers::ApiQuery,
+    features::{AbstractRegistryAccess, ModuleIdentification},
+    AbstractSdkResult,
+};
 
 /// Access the Abstract Version Control and access module information.
 pub trait ModuleRegistryInterface: AbstractRegistryAccess + ModuleIdentification {

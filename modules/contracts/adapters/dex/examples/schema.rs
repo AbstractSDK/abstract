@@ -1,8 +1,7 @@
-use abstract_dex_adapter::contract::DexAdapter;
-use abstract_dex_adapter::msg::SimulateSwapResponse;
+use std::{env::current_dir, fs::create_dir_all};
+
+use abstract_dex_adapter::{contract::DexAdapter, msg::SimulateSwapResponse};
 use cosmwasm_schema::{export_schema_with_title, remove_schemas, schema_for};
-use std::env::current_dir;
-use std::fs::create_dir_all;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

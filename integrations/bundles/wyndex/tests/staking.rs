@@ -1,11 +1,12 @@
 use cosmwasm_std::{coin, from_json, Addr, Decimal, Uint128};
-
 use wyndex::{
     asset::{AssetInfo, AssetInfoExt},
     factory::PartialStakeConfig,
 };
-use wyndex_stake::msg::{QueryMsg as StakeQueryMsg, ReceiveDelegationMsg, StakedResponse};
-use wyndex_stake::state::Config as WyndexStakeConfig;
+use wyndex_stake::{
+    msg::{QueryMsg as StakeQueryMsg, ReceiveDelegationMsg, StakedResponse},
+    state::Config as WyndexStakeConfig,
+};
 
 mod staking {
     use cw_orch::mock::Mock;

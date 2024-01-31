@@ -1,8 +1,8 @@
-use crate::ASTROPORT;
-use crate::AVAILABLE_CHAINS;
 use abstract_sdk::core::objects::LpToken;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
+
+use crate::{ASTROPORT, AVAILABLE_CHAINS};
 
 #[derive(Clone, Default, Debug)]
 pub struct Astroport {

@@ -1,6 +1,7 @@
-use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{Addr, Coin, CosmosMsg, Decimal, MessageInfo, Uint128};
 use cw_asset::Asset;
+
+use crate::{error::AbstractError, AbstractResult};
 
 /// A wrapper around Fee to help handle fee logic.
 /// Use this with `Chargeable` trait in the SDK to charge fees on asset structs.
