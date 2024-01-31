@@ -96,9 +96,7 @@ mod test {
     use abstract_interface::DeployStrategy;
     use abstract_interface::VCExecFns;
     use abstract_interface::{ManagerExecFns, ManagerQueryFns};
-    use abstract_testing::addresses::TEST_MODULE_ID;
-    use abstract_testing::addresses::TEST_NAMESPACE;
-    use abstract_testing::prelude::TEST_VERSION;
+    use abstract_testing::prelude::*;
     use cosmwasm_std::Uint128;
     use cosmwasm_std::{to_json_binary, wasm_execute};
 
@@ -206,7 +204,7 @@ mod test {
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
 
         let app = MockAppWithDepI::new(
-            TEST_MODULE_ID,
+            TEST_WITH_DEP_MODULE_ID,
             abstr_origin.version_control.get_chain().clone(),
         );
 
@@ -239,7 +237,7 @@ mod test {
 
         abstr_origin.version_control.claim_namespace(
             app_account.manager.config()?.account_id,
-            TEST_NAMESPACE.to_owned(),
+            TEST_WITH_DEP_NAMESPACE.to_owned(),
         )?;
         abstr_origin.version_control.claim_namespace(
             app_deps_account.manager.config()?.account_id,
@@ -253,7 +251,7 @@ mod test {
         origin_account.install_app(&app, &MockInitMsg {}, None)?;
         let res: ModuleAddressesResponse = origin_account
             .manager
-            .module_addresses(vec![TEST_MODULE_ID.to_owned()])?;
+            .module_addresses(vec![TEST_WITH_DEP_MODULE_ID.to_owned()])?;
 
         assert_eq!(1, res.modules.len());
 
