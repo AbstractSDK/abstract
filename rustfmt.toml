@@ -6,5 +6,5 @@ reorder_imports = true
 reorder_modules = true
 
 # These are nightly
-group_imports = "StdExternalCrate"
-imports_granularity = "Crate"
+# group_imports = "StdExternalCrate"
+# imports_granularity = "Crate"

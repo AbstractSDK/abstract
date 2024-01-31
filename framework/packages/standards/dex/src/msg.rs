@@ -2,12 +2,11 @@
 //! # Dex Adapter API
 // re-export response types
 // re-export response types
-use abstract_core::objects::DexAssetPairing;
 use abstract_core::{
     adapter,
     objects::{
         fee::{Fee, UsageFee},
-        AnsAsset, AssetEntry,
+        AnsAsset, AssetEntry, DexAssetPairing,
     },
     AbstractError, AbstractResult,
 };

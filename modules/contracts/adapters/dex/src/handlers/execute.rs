@@ -25,7 +25,7 @@ use crate::{
     exchanges::exchange_resolver,
     handlers::execute::exchange_resolver::is_over_ibc,
     msg::{DexAction, DexExecuteMsg, DexName},
-    state::{DEX_FEES, SWAP_FEE},
+    state::DEX_FEES,
     DEX_ADAPTER_ID,
 };
 

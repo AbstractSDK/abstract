@@ -5,7 +5,7 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     contract::{DexAdapter, DexResult},
-    state::{DEX_FEES, SWAP_FEE},
+    state::DEX_FEES,
 };
 
 pub fn instantiate_handler(

@@ -1,7 +1,7 @@
 use abstract_core::objects::{AnsEntryConvertor, DexAssetPairing, PoolReference};
 use abstract_dex_standard::{
     msg::{DexAction, OfferAsset},
-    DexError,
+    DexCommand, DexError,
 };
 use abstract_sdk::{
     core::objects::{AnsAsset, AssetEntry},
@@ -12,7 +12,7 @@ use abstract_sdk::{
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, StdError};
 use cw_asset::Asset;
 
-use crate::state::{DEX_FEES, SWAP_FEE};
+use crate::state::DEX_FEES;
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
 pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;
