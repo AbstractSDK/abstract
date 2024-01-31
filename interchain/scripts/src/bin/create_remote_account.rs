@@ -38,7 +38,8 @@ fn main() -> cw_orch::anyhow::Result<()> {
 
     for src_chain in &chains {
         for dst_chain in &chains {
-            if has_polytone_connection(&src_chain.0, &dst_chain.0, runtime.handle())? {
+            if has_polytone_connection(src_chain.0.clone(), dst_chain.0.clone(), runtime.handle())?
+            {
                 // connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
             } else {
                 println!(

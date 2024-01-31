@@ -1,4 +1,4 @@
-use abstract_core::ibc_client::{ExecuteMsgFns as _, QueryMsgFns};
+use abstract_core::ibc_client::{ExecuteMsgFns as _, QueryMsgFns as _};
 use abstract_core::ibc_host::ExecuteMsgFns;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_interface::{Abstract, AccountFactoryExecFns};
@@ -6,6 +6,7 @@ use cw_orch::daemon::{ChainInfo, ChainRegistryData};
 use cw_orch::interchain::InterchainError;
 use cw_orch::prelude::*;
 use cw_orch_polytone::Polytone;
+use polytone_note::msg::QueryMsgFns as _;
 use tokio::runtime::Handle;
 
 /// This is only used for testing and shouldn't be used in production
@@ -73,7 +74,10 @@ pub fn has_polytone_connection(
         .build()?;
 
     let src_polytone = Polytone::load_from(src_daemon)?;
-    let dst_polytone = Polytone::load_from(dst_daemon)?;
 
-    Ok(src_polytone.note.address().is_ok() && dst_polytone.voice.address().is_ok())
+    if let Ok(Some(_)) = src_polytone.note.active_channel() {
+        Ok(true)
+    } else {
+        Ok(false)
+    }
 }
