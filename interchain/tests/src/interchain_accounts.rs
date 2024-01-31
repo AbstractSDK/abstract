@@ -96,12 +96,7 @@ mod test {
         ManagerQueryFns, VCExecFns,
     };
     use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
-    use abstract_testing::{
-        addresses::{
-            TEST_DEPENDENCY_MODULE_ID, TEST_DEPENDENCY_NAMESPACE, TEST_MODULE_ID, TEST_NAMESPACE,
-        },
-        prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION},
-    };
+    use abstract_testing::prelude::*;
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary, wasm_execute, Addr, Uint128};
     use cw_orch::{mock::cw_multi_test::AppResponse, prelude::ContractInstance};
