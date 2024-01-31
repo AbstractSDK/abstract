@@ -22,9 +22,6 @@ use cosmos_sdk_proto::{
 use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp, WasmMsg};
 use prost_types::Any;
 
-use crate::features::AccountIdentification;
-use crate::AbstractSdkResult;
-
 use super::stargate::{
     authz::{
         AuthZAuthorization, AuthorizationType, GenericAuthorization, Policy, SendAuthorization,
@@ -33,8 +30,8 @@ use super::stargate::{
     convert_coin, convert_coins,
     gov::vote_to_option,
 };
-use crate::{features::AccountIdentification, AbstractSdkResult};
 
+use crate::{features::AccountIdentification, AbstractSdkResult};
 /// An interface to the CosmosSDK AuthZ module which allows for granting authorizations to perform actions on behalf of one account to other accounts.
 pub trait AuthZInterface: AccountIdentification {
     /// API for accessing the Cosmos SDK AuthZ module.
