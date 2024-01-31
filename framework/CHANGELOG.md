@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
+  
+### Changed
+
+- Updated UsageFee api to use `Address`, instead of `Api` + unchecked address
+
+### Removed
+
+### Fixed
+
+## [0.20.0] - 2024-01-24
+
+### Added
 
 - `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
 - `Astrovault` integrated into dex and cw-staking adapters

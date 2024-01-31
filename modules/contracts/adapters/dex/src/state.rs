@@ -1,4 +1,4 @@
-use abstract_core::objects::fee::UsageFee;
+use abstract_dex_standard::msg::DexFees;
 use cw_storage_plus::Item;
 
-pub const SWAP_FEE: Item<UsageFee> = Item::new("swap_fee");
+pub const DEX_FEES: Item<DexFees> = Item::new("dex_fees");

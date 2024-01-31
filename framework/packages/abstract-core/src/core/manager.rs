@@ -97,6 +97,11 @@ pub mod state {
     pub const REMOVE_ADAPTER_AUTHORIZED_CONTEXT: Item<u64> = Item::new("rm_a_auth");
 }
 
+use self::state::AccountInfo;
+use crate::manager::state::SuspensionStatus;
+use crate::objects::nested_admin::TopLevelOwnerResponse;
+use crate::objects::AssetEntry;
+use crate::objects::{account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 use cw2::ContractVersion;
@@ -260,12 +265,14 @@ pub enum QueryMsg {
     /// Returns [`InfoResponse`]
     #[returns(InfoResponse)]
     Info {},
+    /// Returns [`SubAccountIdsResponse`]
     #[returns(SubAccountIdsResponse)]
     SubAccountIds {
         start_after: Option<u32>,
         limit: Option<u8>,
     },
-    #[returns(crate::objects::nested_admin::TopLevelOwnerResponse)]
+    /// Returns [`TopLevelOwnerResponse`]
+    #[returns(TopLevelOwnerResponse)]
     TopLevelOwner {},
 }
 

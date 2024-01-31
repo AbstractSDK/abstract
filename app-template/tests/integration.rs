@@ -33,6 +33,8 @@ fn setup(
     // Build a Publisher Account
     let publisher = client.publisher_builder(namespace).build()?;
 
+    publisher.publish_app::<AppInterface<_>>()?;
+
     let app = publisher
         .account()
         .install_app::<AppInterface<_>>(&AppInstantiateMsg { count }, &[])?;
@@ -65,7 +67,7 @@ fn successful_reset() -> anyhow::Result<()> {
 
     app.reset(42)?;
     let count: CountResponse = app.count()?;
-    assert_eq!(count.count, 6);
+    assert_eq!(count.count, 42);
     Ok(())
 }
 

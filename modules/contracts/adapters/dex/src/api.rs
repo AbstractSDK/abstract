@@ -133,6 +133,30 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         })?;
         Ok(response)
     }
+
+    /// Generate the raw messages that are need to run a swap
+    pub fn generate_swap_messages(
+        &self,
+        offer_asset: OfferAsset,
+        ask_asset: AssetEntry,
+        max_spread: Option<Decimal>,
+        belief_price: Option<Decimal>,
+        sender_receiver: impl Into<String>,
+    ) -> AbstractSdkResult<SimulateSwapResponse> {
+        let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
+            message: DexExecuteMsg::Action {
+                dex: self.dex_name(),
+                action: DexAction::Swap {
+                    offer_asset,
+                    ask_asset,
+                    max_spread,
+                    belief_price,
+                },
+            },
+            proxy_addr: sender_receiver.into(),
+        })?;
+        Ok(response)
+    }
 }
 
 #[cfg(test)]

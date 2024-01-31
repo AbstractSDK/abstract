@@ -1,4 +1,5 @@
-use cosmwasm_std::{Addr, Api, Coin, CosmosMsg, Decimal, MessageInfo, Uint128};
+use crate::{error::AbstractError, AbstractResult};
+use cosmwasm_std::{Addr, Coin, CosmosMsg, Decimal, MessageInfo, Uint128};
 use cw_asset::Asset;
 
 use crate::{error::AbstractError, AbstractResult};
@@ -12,40 +13,36 @@ pub struct UsageFee {
 }
 
 impl UsageFee {
-    pub fn new(
-        api: &dyn Api,
-        share: Decimal,
-        recipient: impl Into<String>,
-    ) -> AbstractResult<Self> {
-        let recipient = api.addr_validate(&recipient.into())?;
+    pub fn new(share: Decimal, recipient: Addr) -> AbstractResult<Self> {
         let fee = Fee::new(share)?;
-        Ok(UsageFee { fee, recipient })
+        Ok(Self { fee, recipient })
     }
+
     pub fn set_share(&mut self, share: Decimal) -> AbstractResult<()> {
         self.fee = Fee::new(share)?;
         Ok(())
     }
+
     pub fn share(&self) -> Decimal {
         self.fee.share()
     }
+
     pub fn compute(&self, amount: Uint128) -> Uint128 {
         amount * self.share()
     }
+
     pub fn recipient(&self) -> Addr {
         self.recipient.clone()
     }
-    pub fn set_recipient(
-        &mut self,
-        api: &dyn Api,
-        recipient: impl Into<String>,
-    ) -> AbstractResult<()> {
-        self.recipient = api.addr_validate(&recipient.into())?;
-        Ok(())
+
+    pub fn set_recipient(&mut self, recipient: Addr) {
+        self.recipient = recipient;
     }
 }
 
 /// A wrapper around Decimal to help handle fractional fees.
 #[cosmwasm_schema::cw_serde]
+#[derive(Copy)]
 pub struct Fee {
     /// fraction of asset to take as fee.
     share: Decimal,
@@ -60,6 +57,7 @@ impl Fee {
         }
         Ok(Fee { share })
     }
+
     pub fn compute(&self, amount: Uint128) -> Uint128 {
         amount * self.share
     }
@@ -67,6 +65,7 @@ impl Fee {
     pub fn msg(&self, asset: Asset, recipient: Addr) -> AbstractResult<CosmosMsg> {
         asset.transfer_msg(recipient).map_err(Into::into)
     }
+
     pub fn share(&self) -> Decimal {
         self.share
     }
@@ -195,17 +194,13 @@ mod tests {
         }
     }
     mod transfer_fee {
-        use cosmwasm_std::{
-            coin, coins,
-            testing::{mock_info, MockApi},
-        };
+        use cosmwasm_std::{coin, coins, testing::mock_info};
 
         use super::*;
 
         #[test]
         fn test_transfer_fee_new() {
-            let api = MockApi::default();
-            let fee = UsageFee::new(&api, Decimal::percent(20u64), "recipient").unwrap();
+            let fee = UsageFee::new(Decimal::percent(20u64), Addr::unchecked("recipient")).unwrap();
             let deposit = Uint128::from(1000000u64);
             let deposit_fee = fee.compute(deposit);
             assert_eq!(deposit_fee, Uint128::from(200000u64));
@@ -213,16 +208,18 @@ mod tests {
 
         #[test]
         fn test_transfer_fee_share() {
-            let api = MockApi::default();
             let expected_percent = 20u64;
-            let fee = UsageFee::new(&api, Decimal::percent(expected_percent), "recipient").unwrap();
+            let fee = UsageFee::new(
+                Decimal::percent(expected_percent),
+                Addr::unchecked("recipient"),
+            )
+            .unwrap();
             assert_eq!(fee.share(), Decimal::percent(expected_percent));
         }
 
         #[test]
         fn test_transfer_fee_msg() {
-            let api = MockApi::default();
-            let fee = UsageFee::new(&api, Decimal::percent(20u64), "recipient").unwrap();
+            let fee = UsageFee::new(Decimal::percent(20u64), Addr::unchecked("recipient")).unwrap();
             let asset = Asset::native("uusd", Uint128::from(1000000u64));
 
             let recipient = Addr::unchecked("recipient");
@@ -232,32 +229,30 @@ mod tests {
 
         #[test]
         fn test_transfer_fee_new_gte_100() {
-            let api = MockApi::default();
-            let fee = UsageFee::new(&api, Decimal::percent(100u64), "recipient");
+            let fee = UsageFee::new(Decimal::percent(100u64), Addr::unchecked("recipient"));
             assert!(fee.is_err());
-            let fee = UsageFee::new(&api, Decimal::percent(101u64), "recipient");
+            let fee = UsageFee::new(Decimal::percent(101u64), Addr::unchecked("recipient"));
             assert!(fee.is_err());
         }
 
         #[test]
         fn test_transfer_fee_set_recipient() {
-            let api = MockApi::default();
-            let mut fee = UsageFee::new(&api, Decimal::percent(20u64), "recipient").unwrap();
-            let new_recipient = "new_recipient";
-            fee.set_recipient(&api, new_recipient).unwrap();
+            let mut fee =
+                UsageFee::new(Decimal::percent(20u64), Addr::unchecked("recipient")).unwrap();
+            let new_recipient = Addr::unchecked("new_recipient");
+            fee.set_recipient(new_recipient.clone());
             assert_eq!(fee.recipient(), Addr::unchecked(new_recipient));
         }
         #[test]
         fn test_transfer_fee_set_share() {
-            let api = MockApi::default();
-            let mut fee = UsageFee::new(&api, Decimal::percent(20u64), "recipient").unwrap();
+            let mut fee =
+                UsageFee::new(Decimal::percent(20u64), Addr::unchecked("recipient")).unwrap();
             let new_share = Decimal::percent(10u64);
             fee.set_share(new_share).unwrap();
             assert_eq!(fee.share(), new_share);
         }
         #[test]
         fn test_loose_fee_validation() {
-            let _api = MockApi::default();
             let fee = FixedFee::new(&coin(45, "ujunox"));
             let mut info = mock_info("anyone", &coins(47, "ujunox"));
             fee.charge(&mut info).unwrap();

@@ -27,7 +27,6 @@ impl AssetEntry {
 
     /// Retrieve the source chain of the asset
     /// Example: osmosis>juno>crab returns osmosis
-    /// Returns string to remain consistent with [`Self::asset_name`]
     pub fn src_chain(&self) -> AbstractResult<String> {
         let mut split = self.0.splitn(2, CHAIN_DELIMITER);
 

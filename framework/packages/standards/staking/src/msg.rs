@@ -72,6 +72,7 @@ pub enum StakingAction {
 /// Query messages for the staking adapter
 pub enum StakingQueryMsg {
     /// Get the staking info for a given provider
+    /// Returns [`StakingInfoResponse`]
     #[returns(StakingInfoResponse)]
     Info {
         /// Name of the provider
@@ -80,6 +81,7 @@ pub enum StakingQueryMsg {
         staking_tokens: Vec<AssetEntry>,
     },
     /// Get the staked amount for a given provider, staking token, staker address and unbonding period
+    /// Returns [`StakeResponse`]
     #[returns(StakeResponse)]
     Staked {
         /// Name of the provider
@@ -92,6 +94,7 @@ pub enum StakingQueryMsg {
         unbonding_period: Option<Duration>,
     },
     /// Get the unbonding entries for a given provider, staking token and staker address
+    /// Returns [`UnbondingResponse`]
     #[returns(UnbondingResponse)]
     Unbonding {
         /// Name of the provider
@@ -102,6 +105,7 @@ pub enum StakingQueryMsg {
         staker_address: String,
     },
     /// Get the reward tokens for a given provider and staking token
+    /// Returns [`RewardTokensResponse`]
     #[returns(RewardTokensResponse)]
     RewardTokens {
         /// Name of the provider

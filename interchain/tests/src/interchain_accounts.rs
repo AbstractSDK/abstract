@@ -72,10 +72,50 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 #[cfg(test)]
 mod test {
 
-    use abstract_app::mock::{
-        interface::MockAppI, mock_app_dependency::interface::MockAppDependencyI, MockInitMsg,
-        MockQueryMsgFns, ReceivedIbcCallbackStatus,
-    };
+    use abstract_app::mock::interface::MockAppWithDepI;
+    use abstract_app::mock::mock_app_dependency::interface::MockAppI;
+    use abstract_app::mock::MockInitMsg;
+    use abstract_app::mock::MockQueryMsgFns;
+    use abstract_app::mock::ReceivedIbcCallbackStatus;
+    use abstract_core::ibc::CallbackInfo;
+    use abstract_core::ibc_client::AccountResponse;
+    use abstract_core::ibc_host::ExecuteMsg as HostExecuteMsg;
+    use abstract_core::ibc_host::ExecuteMsgFns;
+    use abstract_core::ibc_host::{HelperAction, HostAction, InternalAction};
+    use abstract_core::manager::state::AccountInfo;
+    use abstract_core::manager::{InfoResponse, ModuleAddressesResponse};
+
+    use abstract_core::objects::gov_type::GovernanceDetails;
+    use abstract_core::ICS20;
+
+    use abstract_core::{manager::ConfigResponse, PROXY};
+    use abstract_interface::AbstractAccount;
+    use abstract_interface::AccountFactoryExecFns;
+    use abstract_interface::AppDeployer;
+    use abstract_interface::DeployStrategy;
+    use abstract_interface::VCExecFns;
+    use abstract_interface::{ManagerExecFns, ManagerQueryFns};
+    use abstract_testing::addresses::TEST_MODULE_ID;
+    use abstract_testing::addresses::TEST_NAMESPACE;
+    use abstract_testing::prelude::TEST_VERSION;
+    use cosmwasm_std::Uint128;
+    use cosmwasm_std::{to_json_binary, wasm_execute};
+
+    use anyhow::Result as AnyResult;
+    use cw_orch::mock::cw_multi_test::AppResponse;
+    use ibc_relayer_types::core::ics24_host::identifier::PortId;
+
+    use super::*;
+    use crate::interchain_accounts::create_test_remote_account;
+    use crate::setup::ibc_abstract_setup;
+
+    use crate::setup::mock_test::logger_test_init;
+    use crate::JUNO;
+    use crate::OSMOSIS;
+    use crate::STARGAZE;
+
+    use abstract_core::ans_host::ExecuteMsgFns as AnsExecuteMsgFns;
+    use abstract_core::objects::UncheckedChannelEntry;
     use abstract_core::{
         ans_host::ExecuteMsgFns as AnsExecuteMsgFns,
         ibc::CallbackInfo,
@@ -193,13 +233,13 @@ mod test {
         let (origin_account, _remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
 
-        let app = MockAppI::new(
+        let app = MockAppWithDepI::new(
             TEST_MODULE_ID,
             abstr_origin.version_control.get_chain().clone(),
         );
 
-        let app_dep = MockAppDependencyI::new(
-            TEST_DEPENDENCY_MODULE_ID,
+        let app_dep = MockAppI::new(
+            TEST_MODULE_ID,
             abstr_origin.version_control.get_chain().clone(),
         );
 
@@ -231,7 +271,7 @@ mod test {
         )?;
         abstr_origin.version_control.claim_namespace(
             app_deps_account.manager.config()?.account_id,
-            TEST_DEPENDENCY_NAMESPACE.to_owned(),
+            TEST_NAMESPACE.to_owned(),
         )?;
 
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
@@ -276,7 +316,7 @@ mod test {
         Ok(())
     }
 
-    fn assert_callback_status(app: &MockAppI<Mock>, status: bool) -> AnyResult<()> {
+    fn assert_callback_status(app: &MockAppWithDepI<Mock>, status: bool) -> AnyResult<()> {
         let get_received_ibc_callback_status_res: ReceivedIbcCallbackStatus =
             app.get_received_ibc_callback_status()?;
 

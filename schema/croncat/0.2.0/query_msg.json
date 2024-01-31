@@ -34,7 +34,7 @@
       "description": "Croncat Query Messages",
       "oneOf": [
         {
-          "description": "Get config",
+          "description": "Get config Returns [`ConfigResponse`]",
           "type": "object",
           "required": [
             "config"
@@ -48,7 +48,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get active tasks",
+          "description": "Get active tasks Returns [`ActiveTasksResponse`]",
           "type": "object",
           "required": [
             "active_tasks"
@@ -97,7 +97,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get active tasks by creator",
+          "description": "Get active tasks by creator Returns [`ActiveTasksByCreatorResponse`]",
           "type": "object",
           "required": [
             "active_tasks_by_creator"
@@ -143,7 +143,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get task info",
+          "description": "Get task info Returns [`croncat_sdk_tasks::types::TaskResponse`]",
           "type": "object",
           "required": [
             "task_info"
@@ -171,7 +171,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get task balance",
+          "description": "Get task balance Returns [`croncat_sdk_manager::types::TaskBalanceResponse`]",
           "type": "object",
           "required": [
             "task_balance"
@@ -199,7 +199,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get croncat manager address of task Used to verify sender",
+          "description": "Get croncat manager address of task Used to verify sender Returns [`Addr`]",
           "type": "object",
           "required": [
             "manager_addr"
@@ -245,7 +245,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns the admin.",
+          "description": "Returns the admin. Returns [`AdminResponse`]",
           "type": "object",
           "required": [
             "base_admin"
@@ -259,7 +259,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns module data",
+          "description": "Returns module data Returns [`ModuleDataResponse`]",
           "type": "object",
           "required": [
             "module_data"
@@ -273,7 +273,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns top level owner",
+          "description": "Returns top level owner Returns [`TopLevelOwnerResponse`]",
           "type": "object",
           "required": [
             "top_level_owner"

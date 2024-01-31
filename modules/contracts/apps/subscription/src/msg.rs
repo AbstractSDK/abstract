@@ -105,21 +105,26 @@ pub enum SubscriptionExecuteMsg {
 #[derive(QueryResponses)]
 pub enum SubscriptionQueryMsg {
     /// Get state of subscriptions and contributors
+    /// Returns [`StateResponse`]
     #[returns(StateResponse)]
     State {},
     /// Get config of subscriptions and contributors
+    /// Returns [`SubscriptionConfig`]
     #[returns(SubscriptionConfig)]
     Config {},
     /// Get minimum of one month's worth to (re)-subscribe.
+    /// Returns [`SubscriptionFeeResponse`]
     #[returns(SubscriptionFeeResponse)]
     Fee {},
     /// Get state of the subscriber
+    /// Returns [`SubscriberResponse`]
     #[returns(SubscriberResponse)]
     Subscriber {
         /// Address of subscriber  
         addr: String,
     },
     /// Get list of subscribers
+    /// Returns [`SubscribersResponse`]
     #[returns(SubscribersResponse)]
     Subscribers {
         /// Start after subscriber address

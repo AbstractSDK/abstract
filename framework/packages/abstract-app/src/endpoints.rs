@@ -113,7 +113,7 @@ mod test {
 
     #[test]
     fn exports_endpoints() {
-        export_endpoints!(MOCK_APP, MockAppContract);
+        export_endpoints!(MOCK_APP_WITH_DEP, MockAppContract);
 
         let mut deps = mock_dependencies();
 
@@ -132,8 +132,12 @@ mod test {
             mock_info(OWNER, &[]),
             init_msg.clone(),
         );
-        let expected_init =
-            MOCK_APP.instantiate(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), init_msg);
+        let expected_init = MOCK_APP_WITH_DEP.instantiate(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(OWNER, &[]),
+            init_msg,
+        );
         assert_that!(actual_init).is_equal_to(expected_init);
 
         // exec
@@ -145,13 +149,13 @@ mod test {
             exec_msg.clone(),
         );
         let expected_exec =
-            MOCK_APP.execute(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), exec_msg);
+            MOCK_APP_WITH_DEP.execute(deps.as_mut(), mock_env(), mock_info(OWNER, &[]), exec_msg);
         assert_that!(actual_exec).is_equal_to(expected_exec);
 
         // query
         let query_msg = app::QueryMsg::Module(MockQueryMsg::GetSomething {});
         let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
-        let expected_query = MOCK_APP.query(deps.as_ref(), mock_env(), query_msg);
+        let expected_query = MOCK_APP_WITH_DEP.query(deps.as_ref(), mock_env(), query_msg);
         assert_that!(actual_query).is_equal_to(expected_query);
 
         // migrate
@@ -160,13 +164,13 @@ mod test {
             module: MockMigrateMsg,
         };
         let actual_migrate = migrate(deps.as_mut(), mock_env(), migrate_msg.clone());
-        let expected_migrate = MOCK_APP.migrate(deps.as_mut(), mock_env(), migrate_msg);
+        let expected_migrate = MOCK_APP_WITH_DEP.migrate(deps.as_mut(), mock_env(), migrate_msg);
         assert_that!(actual_migrate).is_equal_to(expected_migrate);
 
         // sudo
         let sudo_msg = MockSudoMsg {};
         let actual_sudo = sudo(deps.as_mut(), mock_env(), sudo_msg.clone());
-        let expected_sudo = MOCK_APP.sudo(deps.as_mut(), mock_env(), sudo_msg);
+        let expected_sudo = MOCK_APP_WITH_DEP.sudo(deps.as_mut(), mock_env(), sudo_msg);
         assert_that!(actual_sudo).is_equal_to(expected_sudo);
 
         // reply
@@ -175,7 +179,7 @@ mod test {
             result: SubMsgResult::Err("test".into()),
         };
         let actual_reply = reply(deps.as_mut(), mock_env(), reply_msg.clone());
-        let expected_reply = MOCK_APP.reply(deps.as_mut(), mock_env(), reply_msg);
+        let expected_reply = MOCK_APP_WITH_DEP.reply(deps.as_mut(), mock_env(), reply_msg);
         assert_that!(actual_reply).is_equal_to(expected_reply);
     }
 }

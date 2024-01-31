@@ -114,7 +114,6 @@ pub enum ExecuteMsg {
     ProposeModules { modules: Vec<ModuleMapEntry> },
     /// Sets the metadata configuration for a module.
     /// Only callable by namespace admin
-    /// Using Version::Latest in the [`module`] variable sets the default metadata for the module
     UpdateModuleConfiguration {
         module_name: String,
         namespace: Namespace,

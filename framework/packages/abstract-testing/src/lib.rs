@@ -27,8 +27,8 @@ pub mod addresses {
     pub const TEST_MODULE_FACTORY: &str = "module_factory_address";
     pub const TEST_MODULE_ADDRESS: &str = "test_module_address";
     pub const TEST_MODULE_ID: &str = "tester:test-module-id";
-    pub const TEST_DEPENDENCY_MODULE_ID: &str = "tester-dependency:test-dependent-module-id";
-    pub const TEST_DEPENDENCY_NAMESPACE: &str = "tester-dependency";
+    pub const TEST_WITH_DEP_MODULE_ID: &str = "tester-dependency:test-depending-module-id";
+    pub const TEST_WITH_DEP_NAMESPACE: &str = "tester-dependency";
     pub const TEST_MODULE_NAME: &str = "test-module-id";
     pub const TEST_NAMESPACE: &str = "tester";
 

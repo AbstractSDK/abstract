@@ -39,7 +39,8 @@ impl Chargeable for Asset {
 
 #[cfg(test)]
 mod tests {
-    use cosmwasm_std::{testing::MockApi, Addr, Decimal};
+    use super::*;
+    use cosmwasm_std::{Addr, Decimal};
     use cw_asset::AssetInfo;
 
     use super::*;
@@ -60,12 +61,7 @@ mod tests {
     fn test_charge_transfer_fee() {
         let info = AssetInfo::native("uusd");
         let mut asset: Asset = Asset::new(info.clone(), 1000u128);
-        let fee = UsageFee::new(
-            &MockApi::default(),
-            Decimal::percent(10),
-            Addr::unchecked("recipient"),
-        )
-        .unwrap();
+        let fee = UsageFee::new(Decimal::percent(10), Addr::unchecked("recipient")).unwrap();
         let msg = asset.charge_usage_fee(fee).unwrap();
         assert_eq!(asset.amount.u128(), 900);
         assert_eq!(
@@ -78,12 +74,7 @@ mod tests {
         );
 
         // test zero fee
-        let fee = UsageFee::new(
-            &MockApi::default(),
-            Decimal::zero(),
-            Addr::unchecked("recipient"),
-        )
-        .unwrap();
+        let fee = UsageFee::new(Decimal::zero(), Addr::unchecked("recipient")).unwrap();
 
         let msg = asset.charge_usage_fee(fee).unwrap();
         assert_eq!(asset.amount.u128(), 900);
