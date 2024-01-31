@@ -1,9 +1,9 @@
-use abstract_adapter::gen_adapter_mock;
-use abstract_adapter::mock::MockInitMsg;
-use abstract_adapter::{mock::MockError as AdapterMockError, AdapterContract};
-use abstract_app::gen_app_mock;
-use abstract_app::mock::MockError as AppMockError;
-use abstract_app::AppContract;
+use abstract_adapter::{
+    gen_adapter_mock,
+    mock::{MockError as AdapterMockError, MockInitMsg},
+    AdapterContract,
+};
+use abstract_app::{gen_app_mock, mock::MockError as AppMockError, AppContract};
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy};
 use cw_orch::prelude::*;
@@ -51,8 +51,7 @@ pub mod adapter_1 {
 
     pub const MOCK_ADAPTER_ID: &str = "tester:mock-adapter1";
 
-    pub use self::v1::*;
-    pub use self::v2::*;
+    pub use self::{v1::*, v2::*};
 
     pub mod v1 {
         use super::*;
@@ -70,9 +69,7 @@ pub mod adapter_2 {
 
     pub const MOCK_ADAPTER_ID: &str = "tester:mock-adapter2";
 
-    pub use self::v0_1_0::*;
-    pub use self::v1::*;
-    pub use self::v2_0_0::*;
+    pub use self::{v0_1_0::*, v1::*, v2_0_0::*};
 
     pub mod v1 {
         use super::*;
@@ -92,9 +89,10 @@ pub mod adapter_2 {
 
 // app 1 depends on adapter 1 and adapter 2
 pub mod app_1 {
-    use super::*;
     pub use v1::*;
     pub use v2::*;
+
+    use super::*;
     pub const MOCK_APP_ID: &str = "tester:mock-app1";
     pub mod v1 {
         use super::*;
@@ -187,9 +185,8 @@ pub mod gen_mock {
 
 // this standalone have cw2
 pub mod standalone_cw2 {
-    use crate::gen_standalone_mock;
-
     use super::*;
+    use crate::gen_standalone_mock;
     pub const MOCK_STANDALONE_ID: &str = "crate.io:mock-standalone1";
     pub const MOCK_STANDALONE_VERSION: &str = "1.0.0";
 
@@ -203,9 +200,8 @@ pub mod standalone_cw2 {
 
 // this standalone does not have cw2
 pub mod standalone_no_cw2 {
-    use crate::gen_standalone_mock;
-
     use super::*;
+    use crate::gen_standalone_mock;
     pub const MOCK_STANDALONE_ID: &str = "crates.io:mock-standalone2";
     pub const MOCK_STANDALONE_VERSION: &str = "1.0.0";
 

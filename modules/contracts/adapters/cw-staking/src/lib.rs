@@ -20,17 +20,18 @@ pub use abstract_staking_standard::error;
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg};
-    use crate::CW_STAKING_ADAPTER_ID;
-    use abstract_core::adapter;
-    use abstract_core::objects::{AnsAsset, AssetEntry};
-    use abstract_interface::AdapterDeployer;
-    use abstract_interface::{AbstractAccount, AbstractInterfaceError};
+    use abstract_core::{
+        adapter,
+        objects::{AnsAsset, AssetEntry},
+    };
+    use abstract_interface::{AbstractAccount, AbstractInterfaceError, AdapterDeployer};
     use cosmwasm_std::{Addr, Empty};
-    use cw_orch::build::BuildPostfix;
-    use cw_orch::contract::Contract;
-    use cw_orch::interface;
-    use cw_orch::prelude::*;
+    use cw_orch::{build::BuildPostfix, contract::Contract, interface, prelude::*};
+
+    use crate::{
+        msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg},
+        CW_STAKING_ADAPTER_ID,
+    };
 
     /// Contract wrapper for interacting with BOOT
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]

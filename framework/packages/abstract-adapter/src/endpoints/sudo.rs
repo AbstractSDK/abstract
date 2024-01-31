@@ -10,9 +10,10 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
 #[cfg(test)]
 mod tests {
-    use crate::mock::{sudo, AdapterMockResult};
     use cosmwasm_std::testing::{mock_dependencies, mock_env};
     use speculoos::prelude::*;
+
+    use crate::mock::{sudo, AdapterMockResult};
 
     #[test]
     fn endpoint() -> AdapterMockResult {

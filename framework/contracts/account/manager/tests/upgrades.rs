@@ -13,21 +13,16 @@ use abstract_core::{
     version_control::UpdateModule,
     AbstractError,
 };
-use abstract_integration_tests::{create_default_account, AResult};
+use abstract_integration_tests::{create_default_account, mock_modules::*, AResult, *};
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
     ManagerExecFns, ManagerQueryFns, VCExecFns,
 };
-
-use abstract_integration_tests::{mock_modules::*, *};
-
 use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
-
 use cosmwasm_std::{coin, to_json_binary};
 use cw2::ContractVersion;
-use cw_orch::deploy::Deploy;
-use cw_orch::prelude::*;
+use cw_orch::{deploy::Deploy, prelude::*};
 use speculoos::prelude::*;
 
 #[test]

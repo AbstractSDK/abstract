@@ -1,6 +1,5 @@
 use abstract_interface::*;
-use abstract_subscription::contract::interface::SubscriptionInterface;
-use abstract_subscription::contract::SUBSCRIPTION_ID;
+use abstract_subscription::contract::{interface::SubscriptionInterface, SUBSCRIPTION_ID};
 use clap::Parser;
 use cw_orch::{
     anyhow,

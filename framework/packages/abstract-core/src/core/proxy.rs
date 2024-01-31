@@ -10,6 +10,10 @@
 //! [price sources](crate::objects::price_source) are what allow the proxy contract to provide value queries for its assets. It needs to be configured using the [`ExecuteMsg::UpdateAssets`] endpoint.
 //! After configuring the price sources [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{CosmosMsg, Empty, Uint128};
+use cw_asset::{Asset, AssetInfo};
+
 #[allow(unused_imports)]
 use crate::{
     ibc_client::ExecuteMsg as IbcClientMsg,
@@ -20,17 +24,13 @@ use crate::{
         AssetEntry,
     },
 };
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{CosmosMsg, Empty, Uint128};
-use cw_asset::{Asset, AssetInfo};
 
 pub mod state {
-    pub use crate::objects::account::ACCOUNT_ID;
-    use cw_controllers::Admin;
-
     use cosmwasm_std::Addr;
+    use cw_controllers::Admin;
     use cw_storage_plus::Item;
 
+    pub use crate::objects::account::ACCOUNT_ID;
     use crate::objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE};
     #[cosmwasm_schema::cw_serde]
     pub struct State {

@@ -2,16 +2,20 @@
 //! This module provides functionality to interact with the feegrant module of Cosmos.
 //! It allows for granting fee expenditure rights to other accounts.
 
-use crate::apis::stargate::feegrant::{AllowedMsgAllowance, BasicAllowance, PeriodicAllowance};
-use crate::features::AccountIdentification;
-use crate::AbstractSdkResult;
-
-use cosmos_sdk_proto::traits::Name;
-use cosmos_sdk_proto::{cosmos::feegrant, traits::Message};
-use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
 use std::time::Duration;
 
+use cosmos_sdk_proto::{
+    cosmos::feegrant,
+    traits::{Message, Name},
+};
+use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
+
 use super::stargate::feegrant::{BasicOrPeriodicAllowance, MsgAllowance};
+use crate::{
+    apis::stargate::feegrant::{AllowedMsgAllowance, BasicAllowance, PeriodicAllowance},
+    features::AccountIdentification,
+    AbstractSdkResult,
+};
 
 /// An interface to the CosmosSDK FeeGrant module which allows for granting fee expenditure rights.
 pub trait GrantInterface: AccountIdentification {
@@ -167,12 +171,10 @@ impl FeeGranter {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::apis::stargate::StargateMessage;
-    use crate::mock_module::*;
+    use cosmwasm_std::{coins, testing::mock_dependencies};
 
-    use cosmwasm_std::coins;
-    use cosmwasm_std::testing::mock_dependencies;
+    use super::*;
+    use crate::{apis::stargate::StargateMessage, mock_module::*};
 
     fn grant_allowance_msg(
         granter: Addr,

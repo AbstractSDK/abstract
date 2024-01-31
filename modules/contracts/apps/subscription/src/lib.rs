@@ -8,12 +8,14 @@ pub use error::SubscriptionError;
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use crate::msg::*;
+    use std::str::FromStr;
+
     use abstract_interface::AppDeployer;
     use cosmwasm_std::Decimal;
     use cw_asset::AssetInfoUnchecked;
     use cw_orch::{interface, prelude::*};
-    use std::str::FromStr;
+
+    use crate::msg::*;
 
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, SubscriptionMigrateMsg)]
     pub struct Subscription;

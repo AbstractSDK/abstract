@@ -1,18 +1,17 @@
 #![warn(missing_docs)]
 //! # Dex Adapter API
+// re-export response types
+// re-export response types
 use abstract_core::{
     adapter,
     objects::{
         fee::{Fee, UsageFee},
-        AnsAsset, AssetEntry,
+        AnsAsset, AssetEntry, DexAssetPairing,
     },
     AbstractError, AbstractResult,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Decimal, Uint128};
-// re-export response types
-use abstract_core::objects::DexAssetPairing;
-use cosmwasm_std::CosmosMsg;
+use cosmwasm_std::{Addr, CosmosMsg, Decimal, Uint128};
 
 /// Max fee for the dex adapter actions
 pub const MAX_FEE: Decimal = Decimal::percent(5);

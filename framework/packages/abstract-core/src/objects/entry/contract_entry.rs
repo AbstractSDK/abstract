@@ -1,13 +1,15 @@
-use crate::constants::ATTRIBUTE_DELIMITER;
-use cosmwasm_std::{StdError, StdResult};
-use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 use std::{
     convert::{TryFrom, TryInto},
     fmt::Display,
     str::FromStr,
 };
+
+use cosmwasm_std::{StdError, StdResult};
+use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+use crate::constants::ATTRIBUTE_DELIMITER;
 
 /// Key to get the Address of a contract
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
@@ -139,9 +141,10 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
+
+    use super::*;
 
     mod key {
         use super::*;

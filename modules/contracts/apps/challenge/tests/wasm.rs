@@ -1,7 +1,5 @@
 use abstract_app::abstract_testing::OWNER;
-use challenge_app::contract::CHALLENGE_APP_ID;
-use challenge_app::Challenge;
-
+use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
 use cw_orch::prelude::*;
 
 #[test]

@@ -1,20 +1,24 @@
 #![allow(clippy::too_many_arguments)]
 
 use abstract_core::objects::{AssetEntry, DexName};
-use abstract_dex_adapter::msg::OfferAsset;
-use abstract_sdk::features::{AbstractNameService, AbstractResponse};
+use abstract_dex_adapter::{api::DexInterface, msg::OfferAsset};
+use abstract_sdk::{
+    features::{AbstractNameService, AbstractResponse},
+    AbstractSdkResult,
+};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Uint128};
+use croncat_app::{
+    croncat_integration_utils::{CronCatAction, CronCatTaskRequest},
+    CronCat, CronCatInterface,
+};
 use cw_asset::{Asset, AssetInfoBase, AssetList};
 
-use crate::contract::{AppResult, DCAApp};
-
-use crate::error::DCAError;
-use crate::msg::{DCAExecuteMsg, ExecuteMsg, Frequency};
-use crate::state::{Config, DCAEntry, DCAId, CONFIG, DCA_LIST, NEXT_ID};
-use abstract_dex_adapter::api::DexInterface;
-use abstract_sdk::AbstractSdkResult;
-use croncat_app::croncat_integration_utils::{CronCatAction, CronCatTaskRequest};
-use croncat_app::{CronCat, CronCatInterface};
+use crate::{
+    contract::{AppResult, DCAApp},
+    error::DCAError,
+    msg::{DCAExecuteMsg, ExecuteMsg, Frequency},
+    state::{Config, DCAEntry, DCAId, CONFIG, DCA_LIST, NEXT_ID},
+};
 
 /// Helper to for task creation message
 fn create_convert_task_internal(

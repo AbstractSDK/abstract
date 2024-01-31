@@ -1,5 +1,7 @@
 use abstract_client::{AbstractClient, Application, Publisher};
 use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
+// Use prelude to get all the necessary imports
+use abstract_testing::prelude::*;
 use calendar_app::{
     error::CalendarError,
     msg::{CalendarExecuteMsg, CalendarInstantiateMsg, ConfigResponse, Time},
@@ -7,12 +9,9 @@ use calendar_app::{
     *,
 };
 use chrono::{DateTime, Days, FixedOffset, NaiveDateTime, NaiveTime, TimeZone, Timelike};
-use cw_asset::AssetInfoUnchecked;
-// Use prelude to get all the necessary imports
-use abstract_testing::prelude::*;
-use cw_orch::{anyhow, prelude::*};
-
 use cosmwasm_std::{coins, Addr, BlockInfo, Uint128};
+use cw_asset::AssetInfoUnchecked;
+use cw_orch::{anyhow, prelude::*};
 
 // consts for testing
 const DENOM: &str = "juno>stake";

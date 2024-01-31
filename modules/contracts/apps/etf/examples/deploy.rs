@@ -1,14 +1,10 @@
-use abstract_interface::AppDeployer;
-use abstract_interface::DeployStrategy;
-use cw_orch::daemon::ChainInfo;
-use cw_orch::daemon::DaemonBuilder;
-
-use cw_orch::daemon::networks::parse_network;
-use cw_orch::tokio::runtime::Runtime;
-
+use abstract_interface::{AppDeployer, DeployStrategy};
 use clap::Parser;
-use etf_app::contract::interface::Etf;
-use etf_app::ETF_APP_ID;
+use cw_orch::{
+    daemon::{networks::parse_network, ChainInfo, DaemonBuilder},
+    tokio::runtime::Runtime,
+};
+use etf_app::{contract::interface::Etf, ETF_APP_ID};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

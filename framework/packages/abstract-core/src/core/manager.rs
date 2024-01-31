@@ -15,14 +15,17 @@
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::manager` as module.
 pub mod state {
-    pub use crate::objects::account::ACCOUNT_ID;
-    use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
-    use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
+    use std::collections::HashSet;
+
     use cosmwasm_std::{Addr, Deps};
     use cw_address_like::AddressLike;
     use cw_ownable::Ownership;
     use cw_storage_plus::{Item, Map};
-    use std::collections::HashSet;
+
+    pub use crate::objects::account::ACCOUNT_ID;
+    use crate::objects::{
+        common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, module::ModuleId,
+    };
 
     pub type SuspensionStatus = bool;
 
@@ -94,14 +97,18 @@ pub mod state {
     pub const REMOVE_ADAPTER_AUTHORIZED_CONTEXT: Item<u64> = Item::new("rm_a_auth");
 }
 
-use self::state::AccountInfo;
-use crate::manager::state::SuspensionStatus;
-use crate::objects::nested_admin::TopLevelOwnerResponse;
-use crate::objects::AssetEntry;
-use crate::objects::{account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 use cw2::ContractVersion;
+
+use self::state::AccountInfo;
+use crate::{
+    manager::state::SuspensionStatus,
+    objects::{
+        account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo,
+        nested_admin::TopLevelOwnerResponse, AssetEntry,
+    },
+};
 
 /// Manager Migrate Msg
 #[cosmwasm_schema::cw_serde]

@@ -1,11 +1,10 @@
+use abstract_app::abstract_interface::{AppDeployer, DeployStrategy};
+use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
 use cw_orch::{
     anyhow,
     prelude::{networks::parse_network, DaemonBuilder},
     tokio::runtime::Runtime,
 };
-
-use abstract_app::abstract_interface::{AppDeployer, DeployStrategy};
-use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

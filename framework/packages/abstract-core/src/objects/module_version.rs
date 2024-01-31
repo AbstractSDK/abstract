@@ -20,8 +20,6 @@ For more information on this specification, please check out the
 [README](https://github.com/CosmWasm/cw-plus/blob/main/packages/cw2/README.md).
  */
 
-use super::dependency::{Dependency, DependencyResponse, StaticDependency};
-use crate::AbstractError;
 use cosmwasm_std::{
     ensure, ensure_eq, Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Storage, WasmQuery,
 };
@@ -29,6 +27,9 @@ use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
 use semver::Version;
 use serde::{Deserialize, Serialize};
+
+use super::dependency::{Dependency, DependencyResponse, StaticDependency};
+use crate::AbstractError;
 
 // ANCHOR: metadata
 pub const MODULE: Item<ModuleData> = Item::new("module_data");
@@ -198,8 +199,9 @@ pub fn query_module_data<Q: Querier, T: Into<String>>(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use cosmwasm_std::testing::MockStorage;
+
+    use super::*;
 
     #[test]
     fn set_works() {

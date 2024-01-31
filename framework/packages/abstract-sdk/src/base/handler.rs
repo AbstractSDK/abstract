@@ -1,3 +1,7 @@
+use abstract_core::objects::dependency::StaticDependency;
+use cosmwasm_std::Storage;
+use cw2::ContractVersion;
+
 use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
@@ -9,9 +13,6 @@ use crate::{
     },
     AbstractSdkError, AbstractSdkResult,
 };
-use abstract_core::objects::dependency::StaticDependency;
-use cosmwasm_std::Storage;
-use cw2::ContractVersion;
 
 /// Accessor trait for an object that wraps an [`AbstractContract`].
 pub trait Handler

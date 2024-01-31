@@ -10,13 +10,14 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
 #[cfg(test)]
 mod tests {
-    use crate::mock::{reply, AdapterMockResult};
     use abstract_sdk::AbstractSdkError;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env},
         Reply, SubMsgResponse,
     };
     use speculoos::prelude::*;
+
+    use crate::mock::{reply, AdapterMockResult};
 
     #[test]
     fn endpoint() -> AdapterMockResult {

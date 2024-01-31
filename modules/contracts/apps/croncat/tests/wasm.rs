@@ -1,7 +1,5 @@
 use abstract_testing::OWNER;
-use croncat_app::contract::CRONCAT_ID;
-use croncat_app::Croncat;
-
+use croncat_app::{contract::CRONCAT_ID, Croncat};
 use cw_orch::prelude::*;
 
 #[test]

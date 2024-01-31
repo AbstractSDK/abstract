@@ -1,5 +1,4 @@
 pub use abstract_core::app;
-
 pub use cosmwasm_std::testing::*;
 use cosmwasm_std::{Response, StdError};
 
@@ -28,9 +27,7 @@ pub struct CounterSudoMsg;
 abstract_app::app_msg_types!(CounterApp, CounterExecMsg, CounterQueryMsg);
 
 use abstract_app::{AppContract, AppError};
-
 use abstract_sdk::AbstractSdkError;
-
 use cw_controllers::AdminError;
 use thiserror::Error;
 

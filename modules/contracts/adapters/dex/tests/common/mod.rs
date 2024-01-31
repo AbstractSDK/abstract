@@ -1,8 +1,6 @@
 pub const ROOT_USER: &str = "root_user";
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_interface::AbstractAccount;
-use abstract_interface::AccountFactory;
-
+use abstract_interface::{AbstractAccount, AccountFactory};
 use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 pub fn create_default_account<Chain: CwEnv>(

@@ -1,7 +1,7 @@
-use crate::state::*;
-
 use abstract_sdk::core::account_factory::*;
 use cosmwasm_std::{Deps, StdResult};
+
+use crate::state::*;
 
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let state: Config = CONFIG.load(deps.storage)?;

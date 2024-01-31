@@ -1,6 +1,6 @@
-use abstract_adapter_utils::identity::decompose_platform_name;
-use abstract_adapter_utils::identity::is_available_on;
-use abstract_adapter_utils::identity::is_current_chain;
+use abstract_adapter_utils::identity::{
+    decompose_platform_name, is_available_on, is_current_chain,
+};
 use abstract_dex_standard::{DexCommand, DexError, Identify};
 use cosmwasm_std::Env;
 

@@ -1,10 +1,13 @@
-use crate::contract::{AppResult, DCAApp};
-use crate::msg::{ConfigResponse, DCAQueryMsg, DCAResponse};
-use crate::state::{DCAId, CONFIG, DCA_LIST};
 use abstract_core::objects::DexAssetPairing;
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use cw_asset::AssetInfo;
+
+use crate::{
+    contract::{AppResult, DCAApp},
+    msg::{ConfigResponse, DCAQueryMsg, DCAResponse},
+    state::{DCAId, CONFIG, DCA_LIST},
+};
 
 pub fn query_handler(deps: Deps, _env: Env, app: &DCAApp, msg: DCAQueryMsg) -> AppResult<Binary> {
     match msg {

@@ -221,15 +221,16 @@ impl Display for AccountTrace {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
-    use cw_storage_plus::Map;
     use std::str::FromStr;
 
-    mod format {
-        use crate::objects::chain_name::MAX_CHAIN_NAME_LENGTH;
+    use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
+    use cw_storage_plus::Map;
 
+    use super::*;
+
+    mod format {
         use super::*;
+        use crate::objects::chain_name::MAX_CHAIN_NAME_LENGTH;
 
         #[test]
         fn local_works() {

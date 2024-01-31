@@ -1,5 +1,6 @@
-use crate::{base::Handler, AbstractSdkError};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+
+use crate::{base::Handler, AbstractSdkError};
 
 /// Trait for a contract's Receive ExecuteMsg variant.
 pub trait ReceiveEndpoint: Handler {

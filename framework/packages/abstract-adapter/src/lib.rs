@@ -6,8 +6,9 @@ use cosmwasm_std::{Empty, Response};
 pub type AdapterResult<C = Empty> = Result<Response<C>, AdapterError>;
 // Default to Empty
 
-pub use crate::state::AdapterContract;
 pub use error::AdapterError;
+
+pub use crate::state::AdapterContract;
 
 pub mod endpoints;
 pub mod error;
@@ -21,11 +22,11 @@ pub mod state;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
-    use crate::{AdapterContract, AdapterError};
     use abstract_core::{
         adapter::{self, *},
         objects::dependency::StaticDependency,
     };
+    use abstract_interface::{AdapterDeployer, RegisteredModule};
     use abstract_sdk::{
         base::InstantiateEndpoint, features::ModuleIdentification, AbstractSdkError,
     };
@@ -37,7 +38,7 @@ pub mod mock {
     use cw_orch::{contract::Contract, prelude::*};
     use thiserror::Error;
 
-    use abstract_interface::{AdapterDeployer, RegisteredModule};
+    use crate::{AdapterContract, AdapterError};
 
     crate::adapter_msg_types!(MockAdapterContract, MockExecMsg, MockQueryMsg);
 

@@ -1,10 +1,11 @@
-use crate::{state::ContractError, AdapterContract};
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps, StdError};
+
+use crate::{state::ContractError, AdapterContract};
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     AbstractNameService
@@ -71,12 +72,11 @@ mod tests {
     };
     use speculoos::prelude::*;
 
+    use super::*;
     use crate::mock::{
         mock_init, mock_init_custom, MockAdapterContract, MockError, MockExecMsg, MOCK_ADAPTER,
         TEST_METADATA,
     };
-
-    use super::*;
 
     pub fn feature_exec_fn(
         deps: DepsMut,

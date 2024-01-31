@@ -5,8 +5,7 @@ mod ibc;
 #[cfg(feature = "daemon")]
 mod migrate;
 
-pub use crate::account::*;
-pub use crate::ibc::*;
+pub use crate::{account::*, ibc::*};
 
 mod native;
 
@@ -22,6 +21,4 @@ mod error;
 
 pub use error::AbstractInterfaceError;
 
-pub use crate::deployers::*;
-
-pub use crate::deployment::*;
+pub use crate::{deployers::*, deployment::*};

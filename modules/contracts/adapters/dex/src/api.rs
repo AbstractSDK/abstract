@@ -1,6 +1,5 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use crate::DEX_ADAPTER_ID;
 use abstract_core::objects::{module::ModuleId, AssetEntry};
 use abstract_dex_standard::msg::{
     DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
@@ -11,6 +10,8 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use serde::de::DeserializeOwned;
+
+use crate::DEX_ADAPTER_ID;
 
 // API for Abstract SDK users
 /// Interact with the dex adapter in your module.
@@ -160,13 +161,13 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::msg::ExecuteMsg;
     use abstract_core::adapter::AdapterRequestMsg;
     use abstract_sdk::mock_module::MockModule;
-    use cosmwasm_std::testing::mock_dependencies;
-    use cosmwasm_std::wasm_execute;
+    use cosmwasm_std::{testing::mock_dependencies, wasm_execute};
     use speculoos::prelude::*;
+
+    use super::*;
+    use crate::msg::ExecuteMsg;
 
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
         AdapterRequestMsg {

@@ -6,12 +6,14 @@
 //!
 //!
 
-use crate::AbstractResult;
+use std::ops::Mul;
+
 use cosmwasm_std::{Addr, Decimal, Env, QuerierWrapper, Storage, Timestamp, Uint128};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::ops::Mul;
+
+use crate::AbstractResult;
 
 pub const DEFAULT_PRECISION: u8 = 6;
 

@@ -2,18 +2,12 @@
 //!
 //! [`Application`] represents a module installed on a (sub-)account
 
-use std::ops::Deref;
-use std::ops::DerefMut;
+use std::ops::{Deref, DerefMut};
 
-use abstract_interface::ManagerQueryFns;
-use abstract_interface::RegisteredModule;
-use cw_orch::contract::Contract;
-use cw_orch::prelude::*;
+use abstract_interface::{ManagerQueryFns, RegisteredModule};
+use cw_orch::{contract::Contract, prelude::*};
 
-use crate::account::Account;
-use crate::client::AbstractClientResult;
-use crate::AbstractClientError;
-use crate::Environment;
+use crate::{account::Account, client::AbstractClientResult, AbstractClientError, Environment};
 
 /// An application represents a module installed on a (sub)-[`Account`].
 ///

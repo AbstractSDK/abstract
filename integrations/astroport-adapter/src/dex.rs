@@ -1,6 +1,6 @@
-use crate::ASTROPORT;
-use crate::AVAILABLE_CHAINS;
 use abstract_dex_standard::Identify;
+
+use crate::{ASTROPORT, AVAILABLE_CHAINS};
 // Source https://github.com/astroport-fi/astroport-core
 #[derive(Default)]
 pub struct Astroport {}
@@ -296,27 +296,20 @@ fn cw_asset_to_astroport(asset: &Asset) -> Result<astroport::asset::Asset, DexEr
 
 #[cfg(test)]
 mod tests {
-    use abstract_dex_standard::tests::expect_eq;
-    use cosmwasm_schema::serde::Deserialize;
-    use cosmwasm_std::to_json_binary;
-    use cosmwasm_std::Coin;
+    use std::{assert_eq, str::FromStr};
 
-    use cosmwasm_std::coin;
-    use cosmwasm_std::from_json;
-    use cosmwasm_std::CosmosMsg;
-    use cosmwasm_std::WasmMsg;
-    use cw20::Cw20ExecuteMsg;
-
-    use super::Astroport;
-    use abstract_dex_standard::tests::DexCommandTester;
+    use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
     use abstract_sdk::core::objects::PoolAddress;
-    use cosmwasm_std::coins;
-    use cosmwasm_std::Decimal;
-    use cosmwasm_std::{wasm_execute, Addr};
+    use cosmwasm_schema::serde::Deserialize;
+    use cosmwasm_std::{
+        coin, coins, from_json, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal,
+        WasmMsg,
+    };
+    use cw20::Cw20ExecuteMsg;
     use cw_asset::{Asset, AssetInfo};
     use cw_orch::daemon::networks::PHOENIX_1;
-    use std::assert_eq;
-    use std::str::FromStr;
+
+    use super::Astroport;
 
     fn create_setup() -> DexCommandTester {
         DexCommandTester::new(PHOENIX_1.into(), Astroport {})

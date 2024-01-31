@@ -2,11 +2,8 @@ use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
 use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_interface::{Abstract, AdapterDeployer, AppDeployer, DeployStrategy};
 use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
-use cosmwasm_std::Decimal;
-use dca_app::{contract::DCA_APP_ID, DCA};
-use etf_app::{contract::interface::Etf, ETF_APP_ID};
-
 use clap::Parser;
+use cosmwasm_std::Decimal;
 use cw_orch::{
     deploy::Deploy,
     prelude::{
@@ -14,6 +11,8 @@ use cw_orch::{
         *,
     },
 };
+use dca_app::{contract::DCA_APP_ID, DCA};
+use etf_app::{contract::interface::Etf, ETF_APP_ID};
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
