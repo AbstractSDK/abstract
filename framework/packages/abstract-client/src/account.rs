@@ -340,11 +340,11 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn upgrade(&self) -> AbstractClientResult<()> {
         self.abstr_account.manager.upgrade(vec![
             (
-                ModuleInfo::from_id("abstract:manager", ModuleVersion::Latest)?,
+                ModuleInfo::from_id(abstract_core::registry::MANAGER, ModuleVersion::Latest)?,
                 Some(to_json_binary(&abstract_core::manager::MigrateMsg {})?),
             ),
             (
-                ModuleInfo::from_id("abstract:proxy", ModuleVersion::Latest)?,
+                ModuleInfo::from_id(abstract_core::registry::PROXY, ModuleVersion::Latest)?,
                 Some(to_json_binary(&abstract_core::proxy::MigrateMsg {})?),
             ),
         ])?;
