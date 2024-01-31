@@ -1,13 +1,7 @@
 use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
-
-use abstract_dex_adapter::contract::CONTRACT_VERSION;
-use abstract_dex_adapter::msg::DexInstantiateMsg;
-use abstract_dex_adapter::DEX_ADAPTER_ID;
-use abstract_dex_standard::msg::DexFeesResponse;
-use abstract_dex_standard::DexError;
-use abstract_interface::AbstractInterfaceError;
-use abstract_interface::AdapterDeployer;
-use abstract_interface::DeployStrategy;
+use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+use abstract_dex_standard::{msg::DexFeesResponse, DexError};
+use abstract_interface::{AbstractInterfaceError, AdapterDeployer, DeployStrategy};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_orch::deploy::Deploy;

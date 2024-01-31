@@ -1,12 +1,3 @@
-use crate::handlers::query::exchange_resolver::is_over_ibc;
-
-use crate::exchanges::exchange_resolver::resolve_exchange;
-
-use crate::state::DEX_FEES;
-use crate::{
-    contract::{DexAdapter, DexResult},
-    exchanges::exchange_resolver,
-};
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
 use abstract_dex_standard::msg::{
     DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, OfferAsset,
@@ -19,7 +10,7 @@ use crate::{
     contract::{DexAdapter, DexResult},
     exchanges::{exchange_resolver, exchange_resolver::resolve_exchange},
     handlers::query::exchange_resolver::is_over_ibc,
-    state::SWAP_FEE,
+    state::{DEX_FEES, SWAP_FEE},
 };
 
 pub fn query_handler(

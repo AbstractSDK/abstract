@@ -1,21 +1,21 @@
-use crate::handlers::execute::exchange_resolver::is_over_ibc;
-use crate::DEX_ADAPTER_ID;
-
-use crate::contract::{DexAdapter, DexResult};
-use crate::exchanges::exchange_resolver;
-use crate::msg::{DexAction, DexExecuteMsg, DexName};
-use crate::state::DEX_FEES;
-use abstract_core::ibc::CallbackInfo;
-use abstract_core::objects::account::AccountTrace;
-use abstract_core::objects::chain_name::ChainName;
-use abstract_core::objects::namespace::{Namespace, ABSTRACT_NAMESPACE};
-use abstract_dex_standard::msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID};
-use abstract_dex_standard::DexError;
-
-use abstract_core::objects::ans_host::AnsHost;
-use abstract_core::objects::{AccountId, AnsAsset};
-use abstract_sdk::{features::AbstractNameService, Execution};
-use abstract_sdk::{AccountVerification, IbcInterface, ModuleRegistryInterface, Resolve};
+use abstract_core::{
+    ibc::CallbackInfo,
+    objects::{
+        account::AccountTrace,
+        ans_host::AnsHost,
+        chain_name::ChainName,
+        namespace::{Namespace, ABSTRACT_NAMESPACE},
+        AccountId, AnsAsset,
+    },
+};
+use abstract_dex_standard::{
+    msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID},
+    DexError,
+};
+use abstract_sdk::{
+    features::AbstractNameService, AccountVerification, Execution, IbcInterface,
+    ModuleRegistryInterface, Resolve,
+};
 use cosmwasm_std::{
     ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
 };
@@ -25,7 +25,7 @@ use crate::{
     exchanges::exchange_resolver,
     handlers::execute::exchange_resolver::is_over_ibc,
     msg::{DexAction, DexExecuteMsg, DexName},
-    state::SWAP_FEE,
+    state::{DEX_FEES, SWAP_FEE},
     DEX_ADAPTER_ID,
 };
 

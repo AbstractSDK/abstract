@@ -39,7 +39,6 @@ impl Chargeable for Asset {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use cosmwasm_std::{Addr, Decimal};
     use cw_asset::AssetInfo;
 

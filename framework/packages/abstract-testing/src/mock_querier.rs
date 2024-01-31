@@ -457,9 +457,10 @@ mod tests {
     }
 
     mod queries {
-        use super::*;
         use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
         use cosmwasm_std::{from_json, QueryRequest};
+
+        use super::*;
 
         #[test]
         fn smart_query() {

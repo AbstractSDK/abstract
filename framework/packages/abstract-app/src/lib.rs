@@ -98,6 +98,7 @@ pub mod mock {
     use thiserror::Error;
 
     use self::interface::MockAppWithDepI;
+    use crate::{AppContract, AppError};
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {

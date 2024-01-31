@@ -97,11 +97,6 @@ pub mod state {
     pub const REMOVE_ADAPTER_AUTHORIZED_CONTEXT: Item<u64> = Item::new("rm_a_auth");
 }
 
-use self::state::AccountInfo;
-use crate::manager::state::SuspensionStatus;
-use crate::objects::nested_admin::TopLevelOwnerResponse;
-use crate::objects::AssetEntry;
-use crate::objects::{account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 use cw2::ContractVersion;
@@ -109,7 +104,10 @@ use cw2::ContractVersion;
 use self::state::AccountInfo;
 use crate::{
     manager::state::SuspensionStatus,
-    objects::{account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo, AssetEntry},
+    objects::{
+        account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo,
+        nested_admin::TopLevelOwnerResponse, AssetEntry,
+    },
 };
 
 /// Manager Migrate Msg
