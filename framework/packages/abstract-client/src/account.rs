@@ -20,9 +20,7 @@
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 use abstract_core::{
-    ibc::CallbackInfo,
     ibc_client,
-    ibc_host::HostAction,
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
@@ -40,8 +38,7 @@ use abstract_core::{
 };
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, Manager, ManagerExecFns, ManagerQueryFns, ProxyExecFns, RegisteredModule,
-    VCQueryFns,
+    InstallConfig, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
 
 use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
@@ -51,7 +48,7 @@ use cw_orch::{contract::Contract, environment::MutCwEnv};
 use crate::{
     client::AbstractClientResult,
     infrastructure::{Environment, Infrastructure},
-    AbstractClient, AbstractClientError, Application,
+    AbstractClientError, Application,
 };
 
 /// A builder for creating [`Accounts`](Account).

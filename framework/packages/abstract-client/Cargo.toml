@@ -38,8 +38,6 @@ cw20 = { package = "abstract-cw20", version = "1.2.2", optional = true, features
 cw20-base = { package = "abstract-cw20-base", version = "1.2.2", optional = true, features = [
   "interface",
 ] }
-abstract-manager = { version = "0.20.0", path = "../../contracts/account/manager" }
-abstract-proxy = { version = "0.20.0", path = "../../contracts/account/proxy" }
 
 [dev-dependencies]
 abstract-testing.workspace = true
