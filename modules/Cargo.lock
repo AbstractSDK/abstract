@@ -463,7 +463,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-dex-adapter"
-version = "0.20.0"
+version = "0.20.1"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",

@@ -8,11 +8,13 @@ use crate::state::SWAP_FEE;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::chain_name::ChainName;
+use abstract_core::objects::namespace::ABSTRACT_NAMESPACE;
 use abstract_dex_standard::msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID};
 use abstract_dex_standard::DexError;
 
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
+use abstract_sdk::features::AbstractRegistryAccess;
 use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
 use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
@@ -42,10 +44,18 @@ pub fn execute_handler(
             swap_fee,
             recipient_account: recipient_account_id,
         } => {
-            // only previous OS can change the owner
-            adapter
+            // only owner of Abstract namespace can update the fee
+            let caller_account_id = adapter
                 .account_registry(deps.as_ref())?
-                .assert_proxy(&info.sender)?;
+                .account_id(&info.sender)?;
+            let resp = adapter
+                .abstract_registry(deps.as_ref())?
+                .query_namespace(ABSTRACT_NAMESPACE.try_into()?, &deps.querier)
+                .unwrap();
+            if resp.unwrap().account_id != caller_account_id {
+                return Err(DexError::Std(StdError::generic_err("unauthorized")).into());
+            }
+
             if let Some(swap_fee) = swap_fee {
                 let mut fee = SWAP_FEE.load(deps.storage)?;
                 fee.set_share(swap_fee)?;

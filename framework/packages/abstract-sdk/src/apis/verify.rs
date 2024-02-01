@@ -111,6 +111,7 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     }
 
     /// Get AccountId for given manager or proxy address.
+    /// **Do NOT use externally**. This function does not check if the account is actually in the version control.
     pub fn account_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<AccountId> {
         self.vc
             .account_id(maybe_core_contract_addr, &self.deps.querier)
