@@ -1,7 +1,7 @@
 use abstract_client::AbstractClient;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_core::objects::namespace::Namespace;
-use abstract_scripts::abstract_ibc::has_polytone_connection;
+use abstract_scripts::abstract_ibc::{has_polytone_connection, verify_abstract_connection};
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
 use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
 use cw_orch::daemon::ChainKind;
@@ -40,6 +40,11 @@ fn main() -> cw_orch::anyhow::Result<()> {
         for dst_chain in &chains {
             if has_polytone_connection(src_chain.0.clone(), dst_chain.0.clone(), runtime.handle())?
             {
+                verify_abstract_connection(
+                    src_chain.0.clone(),
+                    dst_chain.0.clone(),
+                    runtime.handle(),
+                )?;
                 // connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
             } else {
                 println!(
@@ -90,11 +95,11 @@ fn connect(
         .fetch_if_namespace_claimed(true)
         .build()?;
 
-    // // We upgrade the local account
-    account.upgrade();
+    // We upgrade the local account. If it fails, it's ok (for instance if we're already updated)
+    let _ = account.upgrade();
 
-    // // We install the ibc client on the account
-    account.activate_ibc();
+    // We install the ibc client on the account. If it fails, it's ok (for instance if we're already updated)
+    let _ = account.activate_ibc();
 
     let tx_response = account.create_ibc_account(
         ChainName::from_chain_id(dst_chain.chain_id).to_string(),
