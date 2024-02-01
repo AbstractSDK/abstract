@@ -1,13 +1,14 @@
 //! # AnsHost Entry
 //! An entry (value) in the ans_host key-value store.
 
+use abstract_core::objects::{ans_host::AnsHostResult, AnsEntryConvertor};
+use cosmwasm_std::{Addr, QuerierWrapper};
+use cw_asset::{Asset, AssetInfo};
+
 use crate::core::objects::{
     ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
 };
-use abstract_core::objects::{ans_host::AnsHostResult, AnsEntryConvertor};
-use cosmwasm_std::{Addr, QuerierWrapper};
-use cw_asset::{Asset, AssetInfo};
 
 /// Resolve an [`AbstractNameService`](crate::features::AbstractNameService) entry into its value.
 pub trait Resolve {
@@ -119,19 +120,17 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use cosmwasm_std::Binary;
+    use std::fmt::Debug;
 
     use abstract_core::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, MockQuerier},
-        Empty,
+        Binary, Empty,
     };
-
     use speculoos::prelude::*;
 
-    use std::fmt::Debug;
+    use super::*;
 
     fn assert_not_found<T: Debug>(res: AnsHostResult<T>) {
         assert_that!(res)
@@ -283,7 +282,6 @@ mod tests {
 
     mod pool_metadata {
         use super::*;
-
         use crate::core::objects::PoolType;
 
         #[test]
@@ -339,9 +337,10 @@ mod tests {
     }
 
     mod pools {
+        use abstract_core::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
+
         use super::*;
         use crate::core::objects::{PoolAddress, PoolType};
-        use abstract_core::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
 
         #[test]
         fn exists() {
@@ -461,11 +460,12 @@ mod tests {
     }
 
     mod channel_entry {
+        use std::str::FromStr;
+
         use abstract_core::objects::chain_name::ChainName;
 
         use super::*;
         use crate::core::ans_host::state::CHANNELS;
-        use std::str::FromStr;
 
         #[test]
         fn exists() {

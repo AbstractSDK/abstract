@@ -1,8 +1,6 @@
 use abstract_testing::OWNER;
-use dca_app::contract::DCA_APP_ID;
-use dca_app::DCA;
-
 use cw_orch::prelude::*;
+use dca_app::{contract::DCA_APP_ID, DCA};
 
 #[test]
 fn successful_wasm() {

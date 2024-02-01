@@ -40,10 +40,8 @@ use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
     InstallConfig, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
-
 use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
-use cw_orch::prelude::*;
-use cw_orch::{contract::Contract, environment::MutCwEnv};
+use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
     client::AbstractClientResult,
@@ -211,6 +209,12 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
     install_on_sub_account: bool,
+}
+
+impl<Chain: CwEnv> AsRef<AbstractAccount<Chain>> for Account<Chain> {
+    fn as_ref(&self) -> &AbstractAccount<Chain> {
+        &self.abstr_account
+    }
 }
 
 struct ParsedAccountCreationResponse {

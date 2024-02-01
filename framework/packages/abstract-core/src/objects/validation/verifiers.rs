@@ -1,5 +1,6 @@
-use super::ValidationError;
 use core::result::Result::{Err, Ok};
+
+use super::ValidationError;
 
 pub(crate) const MIN_DESC_LENGTH: usize = 1;
 pub(crate) const MAX_DESC_LENGTH: usize = 1024;
@@ -64,9 +65,10 @@ pub fn validate_description(maybe_description: Option<&str>) -> Result<(), Valid
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::rstest;
     use speculoos::prelude::*;
+
+    use super::*;
 
     mod link {
         use super::*;

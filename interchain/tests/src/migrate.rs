@@ -2,8 +2,10 @@
 //! Otherwise you will have too many requests
 
 use abstract_app::mock::MockInitMsg;
-use abstract_core::objects::{gov_type::GovernanceDetails, module::ModuleInfo};
-use abstract_core::{ABSTRACT_EVENT_TYPE, MANAGER, PROXY};
+use abstract_core::{
+    objects::{gov_type::GovernanceDetails, module::ModuleInfo},
+    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
+};
 use abstract_integration_tests::manager::mock_app::{MockApp, APP_VERSION};
 use abstract_interface::{
     Abstract, AbstractAccount, AppDeployer, DeployStrategy, ManagerExecFns, VCExecFns,
@@ -11,8 +13,7 @@ use abstract_interface::{
 use abstract_testing::prelude::*;
 use anyhow::Ok;
 use cosmwasm_std::{to_json_binary, Addr};
-use cw_orch::daemon::networks::JUNO_1;
-use cw_orch::prelude::*;
+use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
 
 // owner of the abstract infra
@@ -186,8 +187,6 @@ fn old_account_functions() -> anyhow::Result<()> {
 }
 
 mod manager {
-    use super::*;
-
     use abstract_integration_tests::manager::{
         account_install_app, account_move_ownership_to_sub_account,
         create_account_with_installed_module_monetization_and_init_funds,
@@ -195,6 +194,8 @@ mod manager {
         installing_one_adapter_with_fee_should_succeed, uninstall_modules,
         update_adapter_with_authorized_addrs, with_response_data,
     };
+
+    use super::*;
 
     #[test]
     fn install_app_after_migrate() -> anyhow::Result<()> {
@@ -260,8 +261,9 @@ mod manager {
 }
 
 mod account_factory {
-    use super::*;
     use abstract_integration_tests::account_factory::create_one_account_with_namespace_fee;
+
+    use super::*;
 
     #[test]
     fn create_one_account_with_namespace_fee_after_migrate() -> anyhow::Result<()> {

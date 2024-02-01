@@ -1,6 +1,7 @@
-use crate::{base::Handler, AbstractSdkError, ModuleInterface};
 use abstract_core::{ibc::IbcResponseMsg, IBC_CLIENT};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+
+use crate::{base::Handler, AbstractSdkError, ModuleInterface};
 
 /// Trait for a contract's IBC callback ExecuteMsg variant.
 pub trait IbcCallbackEndpoint: Handler + ModuleInterface {

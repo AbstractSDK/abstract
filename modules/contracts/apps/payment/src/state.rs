@@ -1,9 +1,6 @@
 use abstract_core::objects::{AssetEntry, DexName};
-use cosmwasm_std::Addr;
-use cosmwasm_std::Uint128;
-use cw_storage_plus::Item;
-use cw_storage_plus::SnapshotMap;
-use cw_storage_plus::Strategy;
+use cosmwasm_std::{Addr, Uint128};
+use cw_storage_plus::{Item, SnapshotMap, Strategy};
 
 pub const CONFIG: Item<Config> = Item::new("cfg");
 // The sender address is used here for querying by tipper

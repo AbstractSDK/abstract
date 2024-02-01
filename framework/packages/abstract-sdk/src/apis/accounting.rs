@@ -1,18 +1,20 @@
 //! # Accountant
 //! The Accountant object provides function for querying balances and asset values for the Account.
 
+use abstract_core::{
+    objects::{
+        oracle::{self, AccountValue},
+        AssetEntry,
+    },
+    proxy::{AssetsInfoResponse, BaseAssetResponse, QueryMsg, TokenValueResponse},
+};
+use cosmwasm_std::{Deps, Uint128};
+
 use super::{AbstractApi, ApiIdentification};
 use crate::{
     cw_helpers::ApiQuery,
     features::{AbstractNameService, AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
-};
-use abstract_core::{objects::AssetEntry, proxy::QueryMsg};
-use cosmwasm_std::{Deps, Uint128};
-
-use abstract_core::{
-    objects::oracle::{self, AccountValue},
-    proxy::{AssetsInfoResponse, BaseAssetResponse, TokenValueResponse},
 };
 
 /// Retrieve asset-registration information from the Account.

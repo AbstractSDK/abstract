@@ -1,12 +1,13 @@
 #![allow(dead_code)]
 
+use abstract_core::{adapter::AdapterRequestMsg, objects::module::ModuleId};
+use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
+use serde::{de::DeserializeOwned, Serialize};
+
 use super::{AbstractApi, ApiIdentification};
 use crate::{
     cw_helpers::ApiQuery, features::ModuleIdentification, AbstractSdkResult, ModuleInterface,
 };
-use abstract_core::{adapter::AdapterRequestMsg, objects::module::ModuleId};
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
-use serde::{de::DeserializeOwned, Serialize};
 
 /// Interact with other modules on the Account.
 pub trait AdapterInterface: ModuleInterface + ModuleIdentification {
@@ -100,12 +101,12 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
 #[cfg(test)]
 mod tests {
 
-    use crate::mock_module::*;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::{assert_that, result::ResultAssertions};
 
     use super::*;
+    use crate::mock_module::*;
 
     pub fn fail_when_not_dependency_test<T: std::fmt::Debug>(
         modules_fn: impl FnOnce(&MockModule, Deps) -> AbstractSdkResult<T>,

@@ -1,10 +1,11 @@
+use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
+use abstract_staking_standard::{msg::StakingQueryMsg, CwStakingError};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
+
 use crate::{
     contract::{CwStakingAdapter, StakingResult},
     resolver::{self, is_over_ibc},
 };
-use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
-use abstract_staking_standard::{msg::StakingQueryMsg, CwStakingError};
-use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 /// Handle queries related to staking
 pub fn query_handler(
     deps: Deps,

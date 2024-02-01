@@ -1,13 +1,14 @@
-use crate::{
-    manager::{self, state::AccountInfo},
-    objects::gov_type::GovernanceDetails,
-};
 use cosmwasm_std::{
     attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, QuerierWrapper, Response, StdError,
     StdResult,
 };
 use cw_controllers::{Admin, AdminError, AdminResponse};
 use schemars::JsonSchema;
+
+use crate::{
+    manager::{self, state::AccountInfo},
+    objects::gov_type::GovernanceDetails,
+};
 
 /// Max manager admin recursion
 pub const MAX_ADMIN_RECURSION: usize = 2;

@@ -1,6 +1,7 @@
-use super::verifiers::DANGEROUS_CHARS;
 use cosmwasm_std::StdError;
 use thiserror::Error;
+
+use super::verifiers::DANGEROUS_CHARS;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum ValidationError {

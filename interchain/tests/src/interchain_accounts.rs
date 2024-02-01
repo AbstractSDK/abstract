@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use abstract_core::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
-
 use abstract_interface::{
     Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns,
 };
@@ -72,62 +71,45 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 
 #[cfg(test)]
 mod test {
-
-    use abstract_app::mock::interface::MockAppWithDepI;
-    use abstract_app::mock::mock_app_dependency::interface::MockAppI;
-    use abstract_app::mock::MockInitMsg;
-    use abstract_app::mock::MockQueryMsgFns;
-    use abstract_app::mock::ReceivedIbcCallbackStatus;
-    use abstract_core::ibc::CallbackInfo;
-    use abstract_core::ibc_client::AccountResponse;
-    use abstract_core::ibc_host::ExecuteMsg as HostExecuteMsg;
-    use abstract_core::ibc_host::ExecuteMsgFns;
-    use abstract_core::ibc_host::{HelperAction, HostAction, InternalAction};
-    use abstract_core::manager::state::AccountInfo;
-    use abstract_core::manager::{InfoResponse, ModuleAddressesResponse};
-
-    use abstract_core::objects::gov_type::GovernanceDetails;
-    use abstract_core::ICS20;
-
-    use abstract_core::{manager::ConfigResponse, PROXY};
-    use abstract_interface::AbstractAccount;
-    use abstract_interface::AccountFactoryExecFns;
-    use abstract_interface::AppDeployer;
-    use abstract_interface::DeployStrategy;
-    use abstract_interface::VCExecFns;
-    use abstract_interface::{ManagerExecFns, ManagerQueryFns};
-    use abstract_testing::addresses::TEST_MODULE_ID;
-    use abstract_testing::addresses::TEST_NAMESPACE;
-    use abstract_testing::prelude::TEST_MODULE_ID;
-    use abstract_testing::prelude::TEST_NAMESPACE;
-    use abstract_testing::prelude::TEST_VERSION;
-    use cosmwasm_std::Uint128;
-    use cosmwasm_std::{to_json_binary, wasm_execute};
-
-    use anyhow::Result as AnyResult;
-    use cw_orch::mock::cw_multi_test::AppResponse;
-    use ibc_relayer_types::core::ics24_host::identifier::PortId;
-
-    use super::*;
-    use crate::interchain_accounts::create_test_remote_account;
-    use crate::setup::ibc_abstract_setup;
-
-    use crate::setup::mock_test::logger_test_init;
-    use crate::JUNO;
-    use crate::OSMOSIS;
-    use crate::STARGAZE;
-
-    use abstract_core::ans_host::ExecuteMsgFns as AnsExecuteMsgFns;
-    use abstract_core::objects::UncheckedChannelEntry;
+    use abstract_app::mock::{
+        interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockInitMsg,
+        MockQueryMsgFns, ReceivedIbcCallbackStatus,
+    };
     use abstract_core::{
-        manager::ExecuteMsg as ManagerExecuteMsg,
-        objects::{chain_name::ChainName, AccountId},
+        ans_host::ExecuteMsgFns as AnsExecuteMsgFns,
+        ibc::CallbackInfo,
+        ibc_client::AccountResponse,
+        ibc_host::{
+            ExecuteMsg as HostExecuteMsg, ExecuteMsgFns, HelperAction, HostAction, InternalAction,
+        },
+        manager::{
+            state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg, InfoResponse,
+            ModuleAddressesResponse,
+        },
+        objects::{
+            chain_name::ChainName, gov_type::GovernanceDetails, AccountId, UncheckedChannelEntry,
+        },
+        ICS20, PROXY,
+    };
+    use abstract_interface::{
+        AbstractAccount, AccountFactoryExecFns, AppDeployer, DeployStrategy, ManagerExecFns,
+        ManagerQueryFns, VCExecFns,
     };
     use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
-    use cosmwasm_std::{coins, Addr};
-    use cw_orch::prelude::ContractInstance;
+    use abstract_testing::prelude::*;
+    use anyhow::Result as AnyResult;
+    use cosmwasm_std::{coins, to_json_binary, wasm_execute, Addr, Uint128};
+    use cw_orch::{mock::cw_multi_test::AppResponse, prelude::ContractInstance};
     use cw_orch_polytone::Polytone;
+    use ibc_relayer_types::core::ics24_host::identifier::PortId;
     use polytone::handshake::POLYTONE_VERSION;
+
+    use super::*;
+    use crate::{
+        interchain_accounts::create_test_remote_account,
+        setup::{ibc_abstract_setup, mock_test::logger_test_init},
+        JUNO, OSMOSIS, STARGAZE,
+    };
 
     #[test]
     fn ibc_account_action() -> AnyResult<()> {
@@ -208,7 +190,7 @@ mod test {
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
 
         let app = MockAppWithDepI::new(
-            TEST_MODULE_ID,
+            TEST_WITH_DEP_MODULE_ID,
             abstr_origin.version_control.get_chain().clone(),
         );
 
@@ -241,7 +223,7 @@ mod test {
 
         abstr_origin.version_control.claim_namespace(
             app_account.manager.config()?.account_id,
-            TEST_NAMESPACE.to_owned(),
+            TEST_WITH_DEP_NAMESPACE.to_owned(),
         )?;
         abstr_origin.version_control.claim_namespace(
             app_deps_account.manager.config()?.account_id,
@@ -255,7 +237,7 @@ mod test {
         origin_account.install_app(&app, &MockInitMsg {}, None)?;
         let res: ModuleAddressesResponse = origin_account
             .manager
-            .module_addresses(vec![TEST_MODULE_ID.to_owned()])?;
+            .module_addresses(vec![TEST_WITH_DEP_MODULE_ID.to_owned()])?;
 
         assert_eq!(1, res.modules.len());
 

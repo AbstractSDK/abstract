@@ -125,7 +125,7 @@ The available base contracts are:
 | [Adapter](https://crates.io/crates/abstract-adapter)       | ❌          | ✅           |
 
 Each base supports a set of endpoints that can accept custom handlers. These handlers can be added to the base using a static builder pattern.
-All the available endpoints are discussed [here](crate::base::endpoints).
+All the available endpoints are discussed [here](crate::base).
 
 ## Usage
 

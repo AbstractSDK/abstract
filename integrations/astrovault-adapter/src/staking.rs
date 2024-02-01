@@ -1,8 +1,8 @@
-use crate::ASTROVAULT;
-use crate::AVAILABLE_CHAINS;
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
+
+use crate::{ASTROVAULT, AVAILABLE_CHAINS};
 
 #[derive(Clone, Debug, Default)]
 pub struct Astrovault {

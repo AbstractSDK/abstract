@@ -1,4 +1,3 @@
-use crate::contract::{HostResponse, HostResult, CONTRACT_VERSION};
 use abstract_core::{
     ibc_host::state::{Config, CONFIG},
     IBC_HOST,
@@ -9,6 +8,8 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 use cw2::set_contract_version;
+
+use crate::contract::{HostResponse, HostResult, CONTRACT_VERSION};
 
 pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: InstantiateMsg) -> HostResult {
     let ans_host = AnsHost {

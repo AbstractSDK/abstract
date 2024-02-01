@@ -1,4 +1,5 @@
-use crate::AdapterError;
+use std::fmt::Debug;
+
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{
     base::{
@@ -14,7 +15,8 @@ use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
+
+use crate::AdapterError;
 
 pub const AUTHORIZED_ADDRESSES_NAMESPACE: &str = "authorized_addresses";
 pub const MAXIMUM_AUTHORIZED_ADDRESSES: u32 = 15;

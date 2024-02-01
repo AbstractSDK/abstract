@@ -1,17 +1,17 @@
 use cosmwasm_std::Empty;
-use cw_orch::{
-    contract::Contract,
-    interface,
-    prelude::{artifacts_dir_from_workspace, CwEnv, Uploadable, WasmPath},
-};
 
 use abstract_core::{
     ibc_client::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     IBC_CLIENT,
 };
+
 use cw_orch::{
-    prelude::ArtifactsDir,
-    prelude::{ContractWrapper, Mock, TxHandler},
+    contract::Contract,
+    interface,
+    prelude::{
+        artifacts_dir_from_workspace, ArtifactsDir, ContractWrapper, CwEnv, Mock, TxHandler,
+        Uploadable, WasmPath,
+    },
 };
 
 use crate::RegisteredModule;

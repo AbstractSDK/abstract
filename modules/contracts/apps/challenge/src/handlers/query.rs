@@ -1,9 +1,3 @@
-use crate::contract::{AppResult, ChallengeApp};
-use crate::msg::{
-    ChallengeEntryResponse, ChallengeQueryMsg, ChallengeResponse, ChallengesResponse,
-    FriendsResponse, ProposalsResponse, VoteResponse, VotesResponse,
-};
-use crate::state::{CHALLENGES, CHALLENGE_FRIENDS, CHALLENGE_PROPOSALS, SIMPLE_VOTING};
 use abstract_app::abstract_core::objects::voting::{
     ProposalId, ProposalInfo, VoteResult, DEFAULT_LIMIT,
 };
@@ -11,6 +5,14 @@ use cosmwasm_std::{to_json_binary, Binary, BlockInfo, Deps, Env, Order, StdResul
 use cw_storage_plus::Bound;
 
 use super::execute::last_proposal;
+use crate::{
+    contract::{AppResult, ChallengeApp},
+    msg::{
+        ChallengeEntryResponse, ChallengeQueryMsg, ChallengeResponse, ChallengesResponse,
+        FriendsResponse, ProposalsResponse, VoteResponse, VotesResponse,
+    },
+    state::{CHALLENGES, CHALLENGE_FRIENDS, CHALLENGE_PROPOSALS, SIMPLE_VOTING},
+};
 
 pub fn query_handler(
     deps: Deps,

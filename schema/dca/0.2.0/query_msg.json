@@ -47,7 +47,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns the admin.",
+          "description": "Returns the admin. Returns [`AdminResponse`]",
           "type": "object",
           "required": [
             "base_admin"
@@ -61,7 +61,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns module data",
+          "description": "Returns module data Returns [`ModuleDataResponse`]",
           "type": "object",
           "required": [
             "module_data"
@@ -75,7 +75,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns top level owner",
+          "description": "Returns top level owner Returns [`TopLevelOwnerResponse`]",
           "type": "object",
           "required": [
             "top_level_owner"
@@ -99,7 +99,7 @@
       "description": "DCA query messages",
       "oneOf": [
         {
-          "description": "Get config of the DCA app",
+          "description": "Get config of the DCA app Returns [`ConfigResponse`]",
           "type": "object",
           "required": [
             "config"
@@ -113,7 +113,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get DCA Entry",
+          "description": "Get DCA Entry Returns [`DCAResponse`]",
           "type": "object",
           "required": [
             "d_c_a"

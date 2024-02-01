@@ -75,8 +75,9 @@ impl From<Dependency> for DependencyResponse {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use speculoos::prelude::*;
+
+    use super::*;
 
     #[test]
     fn test_static_constructor() {

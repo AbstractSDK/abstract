@@ -1089,6 +1089,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Returns [`SubAccountIdsResponse`]",
         "type": "object",
         "required": [
           "sub_account_ids"
@@ -1120,6 +1121,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Returns [`TopLevelOwnerResponse`]",
         "type": "object",
         "required": [
           "top_level_owner"

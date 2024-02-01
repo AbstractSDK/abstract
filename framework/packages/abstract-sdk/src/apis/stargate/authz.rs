@@ -72,8 +72,7 @@ pub enum Policy {
 
 impl From<Policy> for staking::v1beta1::stake_authorization::Policy {
     fn from(value: Policy) -> Self {
-        use staking::v1beta1::stake_authorization::Policy as StPolicy;
-        use staking::v1beta1::stake_authorization::Validators;
+        use staking::v1beta1::stake_authorization::{Policy as StPolicy, Validators};
         match value {
             Policy::AllowList(allow_list) => StPolicy::AllowList(Validators {
                 address: allow_list.into_iter().map(Addr::into_string).collect(),

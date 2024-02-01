@@ -1,10 +1,10 @@
-use super::handler::Handler;
-use crate::core::objects::dependency::StaticDependency;
-use crate::{AbstractSdkError, AbstractSdkResult};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 use polytone::callbacks::Callback;
+
+use super::handler::Handler;
+use crate::{core::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};
 
 pub type ModuleId = &'static str;
 /// Version of the contract in str format.
@@ -224,10 +224,10 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::*;
-
     use cosmwasm_std::Empty;
     use speculoos::assert_that;
+
+    use super::*;
 
     #[cosmwasm_schema::cw_serde]
     struct MockInitMsg;

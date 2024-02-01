@@ -28,13 +28,10 @@
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
-use abstract_core::objects::namespace::Namespace;
-use abstract_core::objects::AccountId;
-use abstract_interface::{Abstract, AnsHost, VersionControl};
-use abstract_interface::{AbstractAccount, ManagerQueryFns};
+use abstract_core::objects::{namespace::Namespace, AccountId};
+use abstract_interface::{Abstract, AbstractAccount, AnsHost, ManagerQueryFns, VersionControl};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
-use cw_orch::state::StateInterface;
-use cw_orch::{deploy::Deploy, prelude::CwEnv};
+use cw_orch::{deploy::Deploy, prelude::CwEnv, state::StateInterface};
 
 use crate::{
     account::{Account, AccountBuilder},
@@ -122,7 +119,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(|e| AbstractClientError::CwOrch(e.into()))
     }
 
-    /// Publisher builder for creating new [`Publisher`] Abstract Account
+    /// Publisher builder for creating new [`Publisher`](crate::Publisher) Abstract Account
     /// To publish any modules your account requires to have claimed a namespace.
     pub fn publisher_builder(&self, namespace: Namespace) -> PublisherBuilder<Chain> {
         PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)

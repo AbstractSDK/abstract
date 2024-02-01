@@ -1,7 +1,8 @@
+use std::str::FromStr;
+
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Env, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
-use std::str::FromStr;
 
 use crate::{AbstractError, AbstractResult};
 
@@ -130,9 +131,10 @@ impl KeyDeserialize for &ChainName {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use cosmwasm_std::testing::mock_env;
     use speculoos::prelude::*;
+
+    use super::*;
 
     #[test]
     fn test_namespace() {

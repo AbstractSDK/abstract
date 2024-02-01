@@ -1,23 +1,31 @@
-use abstract_sdk::features::{AbstractNameService, AbstractResponse, AccountIdentification};
-use abstract_sdk::{prelude::*, AccountAction};
+use abstract_sdk::{
+    features::{AbstractNameService, AbstractResponse, AccountIdentification},
+    prelude::*,
+    AccountAction,
+};
 use cosmwasm_std::{
     to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, ReplyOn,
 };
-use croncat_integration_utils::task_creation::{get_croncat_contract, get_latest_croncat_contract};
-use croncat_integration_utils::{MANAGER_NAME, TASKS_NAME};
+use croncat_integration_utils::{
+    task_creation::{get_croncat_contract, get_latest_croncat_contract},
+    MANAGER_NAME, TASKS_NAME,
+};
 use croncat_sdk_manager::msg::ManagerExecuteMsg;
-use croncat_sdk_tasks::msg::{TasksExecuteMsg, TasksQueryMsg};
-use croncat_sdk_tasks::types::{TaskRequest, TaskResponse};
+use croncat_sdk_tasks::{
+    msg::{TasksExecuteMsg, TasksQueryMsg},
+    types::{TaskRequest, TaskResponse},
+};
 use cw20::Cw20ExecuteMsg;
 use cw_asset::AssetListUnchecked;
 
-use crate::contract::{CroncatApp, CroncatResult};
-use crate::error::AppError;
-use crate::utils::{assert_module_installed, factory_addr, sort_funds, user_balance_nonempty};
-
-use crate::msg::AppExecuteMsg;
-use crate::replies::{TASK_CREATE_REPLY_ID, TASK_REMOVE_REPLY_ID};
-use crate::state::{Config, ACTIVE_TASKS, CONFIG, REMOVED_TASK_MANAGER_ADDR, TEMP_TASK_KEY};
+use crate::{
+    contract::{CroncatApp, CroncatResult},
+    error::AppError,
+    msg::AppExecuteMsg,
+    replies::{TASK_CREATE_REPLY_ID, TASK_REMOVE_REPLY_ID},
+    state::{Config, ACTIVE_TASKS, CONFIG, REMOVED_TASK_MANAGER_ADDR, TEMP_TASK_KEY},
+    utils::{assert_module_installed, factory_addr, sort_funds, user_balance_nonempty},
+};
 
 pub fn execute_handler(
     deps: DepsMut,

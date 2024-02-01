@@ -1,9 +1,7 @@
 use abstract_interface::Abstract;
 use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
 use anyhow::Result as AnyResult;
-
-use cw_orch::deploy::Deploy;
-use cw_orch::prelude::*;
+use cw_orch::{deploy::Deploy, prelude::*};
 use cw_orch_polytone::Polytone;
 use polytone::handshake::POLYTONE_VERSION;
 
@@ -45,9 +43,8 @@ pub mod mock_test {
     };
     use cosmwasm_std::Addr;
 
-    use crate::{JUNO, STARGAZE};
-
     use super::*;
+    use crate::{JUNO, STARGAZE};
 
     /// This allows env_logger to start properly for tests
     /// The logs will be printed only if the test fails !

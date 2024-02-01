@@ -19,19 +19,18 @@ mod error;
 pub mod feature_objects;
 pub mod prelude;
 
-pub use error::{AbstractSdkError, EndpointError};
-
-pub use crate::apis::{
-    accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
-    verify::*, version_registry::*,
-};
-
-pub use crate::features::AbstractNameServiceClient;
-
 pub use account_action::AccountAction;
+pub use error::{AbstractSdkError, EndpointError};
 
 #[cfg(feature = "stargate")]
 pub use crate::apis::{authz::*, distribution::*, feegrant::*};
+pub use crate::{
+    apis::{
+        accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
+        verify::*, version_registry::*,
+    },
+    features::AbstractNameServiceClient,
+};
 
 pub mod features {
     //! # Feature traits

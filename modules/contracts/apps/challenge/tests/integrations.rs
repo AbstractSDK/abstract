@@ -1,12 +1,13 @@
-use crate::msg::QueryMsg;
-use abstract_app::abstract_core::objects::{
-    gov_type::GovernanceDetails,
-    module::{ModuleInfo, ModuleVersion},
-    voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
-    AssetEntry,
+use abstract_app::{
+    abstract_core::objects::{
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion},
+        voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
+        AssetEntry,
+    },
+    abstract_interface::{Abstract, AbstractAccount, AppDeployer, *},
+    abstract_testing::OWNER,
 };
-use abstract_app::abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
-use abstract_app::abstract_testing::OWNER;
 use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     error::AppError,
@@ -22,6 +23,8 @@ use cosmwasm_std::{coin, Uint128, Uint64};
 use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 use lazy_static::lazy_static;
+
+use crate::msg::QueryMsg;
 
 const DENOM: &str = "TOKEN";
 const FIRST_CHALLENGE_ID: u64 = 1;

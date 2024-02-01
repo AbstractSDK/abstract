@@ -1,27 +1,26 @@
 mod common;
 
-use abstract_core::ans_host::ExecuteMsgFns;
-use abstract_core::objects::account::AccountTrace;
-use abstract_core::objects::namespace::Namespace;
-use abstract_core::objects::AccountId;
-use abstract_core::objects::AssetEntry;
-use abstract_core::proxy::BaseAssetResponse;
-use abstract_core::version_control::NamespaceInfo;
-use abstract_core::version_control::NamespaceResponse;
 use abstract_core::{
-    account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
+    account_factory,
+    ans_host::ExecuteMsgFns,
+    objects::{
+        account::AccountTrace, gov_type::GovernanceDetails, namespace::Namespace, AccountId,
+        AssetEntry,
+    },
+    proxy::BaseAssetResponse,
+    version_control::{AccountBase, NamespaceInfo, NamespaceResponse},
     ABSTRACT_EVENT_TYPE,
 };
 use abstract_interface::{
     AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
 };
-
 use abstract_testing::prelude::*;
 use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoBase};
-use cw_orch::deploy::Deploy;
-use cw_orch::prelude::Mock;
-use cw_orch::prelude::*;
+use cw_orch::{
+    deploy::Deploy,
+    prelude::{Mock, *},
+};
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>

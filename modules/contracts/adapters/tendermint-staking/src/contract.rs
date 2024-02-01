@@ -1,9 +1,13 @@
-use crate::msg::{TendermintStakingExecuteMsg, TendermintStakingQueryMsg};
-use crate::staking::*;
-use crate::{error::TendermintStakeError, TENDERMINT_STAKING};
 use abstract_adapter::AdapterContract;
 use abstract_sdk::Execution;
 use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response};
+
+use crate::{
+    error::TendermintStakeError,
+    msg::{TendermintStakingExecuteMsg, TendermintStakingQueryMsg},
+    staking::*,
+    TENDERMINT_STAKING,
+};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type TendermintStakeAdapter = AdapterContract<

@@ -1,16 +1,17 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
+use abstract_core::{
+    objects::{version_control::VersionControlContract, AccountId},
+    version_control::AccountBase,
+};
+use cosmwasm_std::{Addr, Deps};
+
 use super::{AbstractApi, ApiIdentification};
 use crate::{
     cw_helpers::ApiQuery,
     features::{AbstractRegistryAccess, ModuleIdentification},
     AbstractSdkResult,
 };
-use abstract_core::{
-    objects::{version_control::VersionControlContract, AccountId},
-    version_control::AccountBase,
-};
-use cosmwasm_std::{Addr, Deps};
 
 /// Verify if an addresses is associated with an Abstract Account.
 pub trait AccountVerification: AbstractRegistryAccess + ModuleIdentification {
@@ -128,18 +129,21 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
 #[cfg(test)]
 mod test {
 
+    use abstract_core::{
+        objects::{
+            account::AccountTrace,
+            module::ModuleId,
+            version_control::{VersionControlContract, VersionControlError},
+        },
+        proxy::state::ACCOUNT_ID,
+        version_control::state::ACCOUNT_ADDRESSES,
+    };
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::testing::*;
+    use speculoos::prelude::*;
+
     use super::*;
     use crate::AbstractSdkError;
-    use abstract_core::objects::account::AccountTrace;
-    use abstract_core::objects::module::ModuleId;
-    use abstract_core::objects::version_control::VersionControlContract;
-    use abstract_core::objects::version_control::VersionControlError;
-    use abstract_core::{proxy::state::ACCOUNT_ID, version_control::state::ACCOUNT_ADDRESSES};
-    use abstract_testing::*;
-    use cosmwasm_std::testing::*;
-
-    use abstract_testing::prelude::*;
-    use speculoos::prelude::*;
 
     struct MockBinding;
 

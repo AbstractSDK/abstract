@@ -1,7 +1,5 @@
 use abstract_testing::OWNER;
-use calendar_app::contract::APP_ID;
-use calendar_app::CalendarAppInterface;
-
+use calendar_app::{contract::APP_ID, CalendarAppInterface};
 use cw_orch::prelude::*;
 
 #[test]

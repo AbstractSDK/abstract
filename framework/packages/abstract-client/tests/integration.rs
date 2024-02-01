@@ -799,3 +799,17 @@ fn doc_example_test() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
+    let sender: Addr = Addr::unchecked("sender");
+    let env: Mock = Mock::new(&sender);
+
+    // Build the client
+    let client: AbstractClient<Mock> = AbstractClient::builder(env).build()?;
+
+    let account = client.account_builder().build()?;
+    let abstract_account: &abstract_interface::AbstractAccount<Mock> = account.as_ref();
+    assert_eq!(abstract_account.id()?, AccountId::local(1));
+    Ok(())
+}

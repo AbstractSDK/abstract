@@ -21,12 +21,11 @@ pub struct Config {
 pub mod state {
     use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
 
+    use super::{AccountBase, Config, ModuleConfiguration, ModuleDefaultConfiguration};
     use crate::objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
         namespace::Namespace,
     };
-
-    use super::{AccountBase, Config, ModuleConfiguration, ModuleDefaultConfiguration};
 
     pub const CONFIG: Item<Config> = Item::new("cfg");
 
@@ -69,18 +68,17 @@ pub mod state {
         );
 }
 
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Addr, Coin, Storage};
+use cw_clearable::Clearable;
+
+use self::state::{MODULE_CONFIG, MODULE_DEFAULT_CONFIG};
 use crate::objects::{
     account::AccountId,
     module::{Module, ModuleInfo, ModuleMetadata, ModuleStatus, Monetization},
     module_reference::ModuleReference,
     namespace::Namespace,
 };
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Storage};
-
-use cw_clearable::Clearable;
-
-use self::state::{MODULE_CONFIG, MODULE_DEFAULT_CONFIG};
 
 /// Contains the minimal Abstract Account contract addresses.
 #[cosmwasm_schema::cw_serde]
@@ -116,7 +114,6 @@ pub enum ExecuteMsg {
     ProposeModules { modules: Vec<ModuleMapEntry> },
     /// Sets the metadata configuration for a module.
     /// Only callable by namespace admin
-    /// Using Version::Latest in the [`module`] variable sets the default metadata for the module
     UpdateModuleConfiguration {
         module_name: String,
         namespace: Namespace,

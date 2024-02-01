@@ -1,19 +1,18 @@
-use crate::state::SWAP_FEE;
-use abstract_core::objects::AnsEntryConvertor;
-use abstract_core::objects::{DexAssetPairing, PoolReference};
-
-use abstract_dex_standard::msg::{DexAction, OfferAsset};
-use abstract_dex_standard::DexError;
-use abstract_sdk::core::objects::AnsAsset;
-use abstract_sdk::core::objects::AssetEntry;
-use abstract_sdk::cw_helpers::Chargeable;
-use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
-use abstract_sdk::Execution;
+use abstract_core::objects::{AnsEntryConvertor, DexAssetPairing, PoolReference};
+use abstract_dex_standard::{
+    msg::{DexAction, OfferAsset},
+    DexCommand, DexError,
+};
+use abstract_sdk::{
+    core::objects::{AnsAsset, AssetEntry},
+    cw_helpers::Chargeable,
+    features::{AbstractNameService, AbstractRegistryAccess},
+    Execution,
+};
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, StdError};
-
 use cw_asset::Asset;
 
-use abstract_dex_standard::DexCommand;
+use crate::state::DEX_FEES;
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
 pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;
@@ -125,8 +124,9 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         } = exchange.pool_reference(deps, ans.host(), (offer_asset.clone(), ask_asset))?;
         let mut offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
         // account for fee
-        let fee = SWAP_FEE.load(deps.storage)?;
-        let fee_msg = offer_asset.charge_usage_fee(fee)?;
+        let dex_fees = DEX_FEES.load(deps.storage)?;
+        let usage_fee = dex_fees.swap_usage_fee()?;
+        let fee_msg = offer_asset.charge_usage_fee(usage_fee)?;
 
         exchange.fetch_data(
             deps,

@@ -12,12 +12,11 @@ use abstract_interface::{Abstract, ExecuteMsgFns};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{deploy::Deploy, environment::CwEnv};
 
+use self::cw20_builder::Cw20Builder;
 use crate::{
     client::{AbstractClient, AbstractClientResult},
     Environment,
 };
-
-use self::cw20_builder::Cw20Builder;
 
 impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Abstract client builder
@@ -36,7 +35,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 }
 
-/// A builder for setting up tests for `Abstract` in a [`Mock`] environment.
+/// A builder for setting up tests for `Abstract` in an environment where Abstract isn't deployed yet.
+/// Example: [`Mock`](cw_orch::prelude::Mock) or a local [`Daemon`](cw_orch::prelude::Daemon).
 pub struct AbstractClientBuilder<Chain: CwEnv> {
     chain: Chain,
     contracts: Vec<(UncheckedContractEntry, String)>,
@@ -144,21 +144,19 @@ pub mod cw20_builder {
     //! # CW20 Builder
 
     // Re-exports to limit dependencies for consumer.
+    use cosmwasm_std::Addr;
     pub use cw20::{msg::Cw20ExecuteMsgFns, *};
     pub use cw20_base::msg::{InstantiateMarketingInfo, QueryMsgFns as Cw20QueryMsgFns};
-    pub use cw_plus_interface::cw20_base::Cw20Base;
-
-    use cosmwasm_std::Addr;
-
     use cw_orch::{
         environment::CwEnv,
         prelude::{CwOrchInstantiate, CwOrchUpload},
     };
+    pub use cw_plus_interface::cw20_base::Cw20Base;
     use cw_plus_interface::cw20_base::InstantiateMsg;
 
     use crate::client::AbstractClientResult;
 
-    /// A builder for creating and deploying `Cw20` contract in a [`Mock`] environment.
+    /// A builder for creating and deploying `Cw20` contract in a [`CwEnv`](cw_orch::prelude::CwEnv) environment.
     pub struct Cw20Builder<Chain: CwEnv> {
         chain: Chain,
         name: String,

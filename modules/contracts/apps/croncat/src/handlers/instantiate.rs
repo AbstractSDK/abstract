@@ -1,11 +1,12 @@
-use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::AbstractSdkError;
+use abstract_sdk::{features::AbstractNameService, AbstractSdkError};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use crate::contract::{CroncatApp, CroncatResult};
-use crate::msg::AppInstantiateMsg;
-use crate::state::{Config, CONFIG};
-use crate::utils;
+use crate::{
+    contract::{CroncatApp, CroncatResult},
+    msg::AppInstantiateMsg,
+    state::{Config, CONFIG},
+    utils,
+};
 
 pub fn instantiate_handler(
     deps: DepsMut,

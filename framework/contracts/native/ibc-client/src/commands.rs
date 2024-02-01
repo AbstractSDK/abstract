@@ -1,9 +1,5 @@
 use std::str::FromStr;
 
-use crate::{
-    contract::{IbcClientResponse, IbcClientResult},
-    error::IbcClientError,
-};
 use abstract_core::{
     ibc::CallbackInfo,
     ibc_client::{
@@ -30,6 +26,11 @@ use cosmwasm_std::{
     QueryRequest, Storage,
 };
 use polytone::callbacks::CallbackRequest;
+
+use crate::{
+    contract::{IbcClientResponse, IbcClientResult},
+    error::IbcClientError,
+};
 
 /// Packet lifetime in seconds
 pub const PACKET_LIFETIME: u64 = 60 * 60;

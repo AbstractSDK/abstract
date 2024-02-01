@@ -7,6 +7,10 @@
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the Account.
 //! The adapter structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Addr, Empty};
+use serde::Serialize;
+
 use crate::{
     base::{
         ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
@@ -14,9 +18,6 @@ use crate::{
     },
     objects::module_version::ModuleDataResponse,
 };
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Empty};
-use serde::Serialize;
 
 pub type ExecuteMsg<Request = Empty, ReceiveMsg = Empty> =
     MiddlewareExecMsg<BaseExecuteMsg, AdapterRequestMsg<Request>, ReceiveMsg>;
@@ -132,6 +133,7 @@ pub enum BaseQueryMsg {
     #[returns(AuthorizedAddressesResponse)]
     AuthorizedAddresses { proxy_address: String },
     /// Returns module data
+    /// Returns [`ModuleDataResponse`].
     #[returns(ModuleDataResponse)]
     ModuleData {},
 }

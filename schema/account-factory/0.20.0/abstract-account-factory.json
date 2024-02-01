@@ -521,6 +521,7 @@
     "description": "Account Factory query messages",
     "oneOf": [
       {
+        "description": "Returns [`ConfigResponse`]",
         "type": "object",
         "required": [
           "config"

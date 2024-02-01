@@ -1,10 +1,9 @@
 #![allow(unused)]
-use super::{AbstractApi, ApiIdentification};
-use crate::features::ModuleIdentification;
-use crate::AccountAction;
-use crate::{AbstractSdkResult, TransferInterface};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
+
+use super::{AbstractApi, ApiIdentification};
+use crate::{features::ModuleIdentification, AbstractSdkResult, AccountAction, TransferInterface};
 // ANCHOR: splitter
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds

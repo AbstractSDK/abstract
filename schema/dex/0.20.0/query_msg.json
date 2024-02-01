@@ -89,7 +89,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns module data",
+          "description": "Returns module data Returns [`ModuleDataResponse`].",
           "type": "object",
           "required": [
             "module_data"
@@ -356,7 +356,7 @@
       "description": "Query messages for the dex adapter",
       "oneOf": [
         {
-          "description": "Simulate a swap between two assets",
+          "description": "Simulate a swap between two assets Returns [`SimulateSwapResponse`]",
           "type": "object",
           "required": [
             "simulate_swap"
@@ -399,7 +399,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Endpoint can be used by front-end to easily interact with contracts.",
+          "description": "Endpoint can be used by front-end to easily interact with contracts. Returns [`GenerateMessagesResponse`]",
           "type": "object",
           "required": [
             "generate_messages"
@@ -425,6 +425,20 @@
                   "type": "string"
                 }
               },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Fee info for using the different dex actions",
+          "type": "object",
+          "required": [
+            "fees"
+          ],
+          "properties": {
+            "fees": {
+              "type": "object",
               "additionalProperties": false
             }
           },
