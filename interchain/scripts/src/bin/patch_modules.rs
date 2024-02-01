@@ -35,7 +35,6 @@ fn full_deploy() -> anyhow::Result<()> {
 
         network = OSMOSIS_1;
 
-
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
             .chain(network.clone())
