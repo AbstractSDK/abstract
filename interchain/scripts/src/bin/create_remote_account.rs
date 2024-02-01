@@ -1,7 +1,9 @@
 use abstract_client::AbstractClient;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_core::objects::namespace::Namespace;
-use abstract_scripts::abstract_ibc::{has_polytone_connection, verify_abstract_connection};
+use abstract_scripts::abstract_ibc::{
+    has_abstract_ibc, has_polytone_connection, verify_abstract_ibc,
+};
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
 use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
 use cw_orch::daemon::ChainKind;
@@ -27,8 +29,12 @@ pub const NEUTRON_1: ChainInfo = ChainInfo {
 fn main() -> cw_orch::anyhow::Result<()> {
     dotenv::dotenv()?;
     env_logger::init();
+    let mut juno_1 = JUNO_1;
+    let binding = [juno_1.grpc_urls[1]];
+    juno_1.grpc_urls = &binding;
+
     let chains = vec![
-        (JUNO_1, None),
+        (juno_1, None),
         (PHOENIX_1, None),
         (ARCHWAY_1, None),
         (NEUTRON_1, None),
@@ -38,17 +44,25 @@ fn main() -> cw_orch::anyhow::Result<()> {
 
     for src_chain in &chains {
         for dst_chain in &chains {
-            if has_polytone_connection(src_chain.0.clone(), dst_chain.0.clone(), runtime.handle())?
-            {
-                verify_abstract_connection(
-                    src_chain.0.clone(),
-                    dst_chain.0.clone(),
-                    runtime.handle(),
-                )?;
-                // connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
+            if has_polytone_connection(src_chain.0.clone(), dst_chain.0.clone(), runtime.handle()) {
+                if has_abstract_ibc(src_chain.0.clone(), dst_chain.0.clone(), runtime.handle()) {
+                    // connect(src_chain.clone(), dst_chain.clone(), runtime.handle())?;
+                } else {
+                    println!(
+                        "Abstract Not Ok for {}:{}:{}",
+                        src_chain.0.chain_id,
+                        dst_chain.0.chain_id,
+                        verify_abstract_ibc(
+                            src_chain.0.clone(),
+                            dst_chain.0.clone(),
+                            runtime.handle()
+                        )
+                        .unwrap_err()
+                    );
+                }
             } else {
                 println!(
-                    "Not Ok for {}:{}",
+                    "Polytone Not Ok for {}:{}",
                     src_chain.0.chain_id, dst_chain.0.chain_id
                 );
             }

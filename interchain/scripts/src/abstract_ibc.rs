@@ -2,6 +2,7 @@ use abstract_core::ibc_client::{ExecuteMsgFns as _, QueryMsgFns as _};
 use abstract_core::ibc_host::{ExecuteMsgFns, QueryMsgFns};
 use abstract_core::objects::chain_name::ChainName;
 use abstract_interface::{Abstract, AccountFactoryExecFns};
+use anyhow::anyhow;
 use cw_orch::daemon::ChainInfo;
 use cw_orch::interchain::InterchainError;
 use cw_orch::prelude::*;
@@ -55,11 +56,11 @@ pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<C
 pub fn get_polytone_deployment_id(src_chain: &ChainInfo, dst_chain: &ChainInfo) -> String {
     format!("{}-->{}", src_chain.chain_id, dst_chain.chain_id)
 }
-pub fn has_polytone_connection(
+pub fn verify_polytone_connection(
     src_chain: ChainInfo,
     dst_chain: ChainInfo,
     rt: &Handle,
-) -> anyhow::Result<bool> {
+) -> anyhow::Result<()> {
     // We just need to verify if the polytone deployment crate has the contracts in it
     let deployment_id = get_polytone_deployment_id(&src_chain, &dst_chain);
     let src_daemon = Daemon::builder()
@@ -70,14 +71,14 @@ pub fn has_polytone_connection(
 
     let src_polytone = Polytone::load_from(src_daemon)?;
 
-    if let Ok(Some(_)) = src_polytone.note.active_channel() {
-        Ok(true)
-    } else {
-        Ok(false)
-    }
+    src_polytone.note.active_channel()?.ok_or(anyhow!(
+        "No channel found on polytone source between the chains",
+    ))?;
+
+    Ok(())
 }
 
-pub fn verify_abstract_connection(
+pub fn verify_abstract_ibc(
     src_chain: ChainInfo,
     dst_chain: ChainInfo,
     rt: &Handle,
@@ -110,7 +111,7 @@ pub fn verify_abstract_connection(
         anyhow::bail!("Wrong host address on the src chain")
     }
 
-    let proxy = src_abstract
+    let proxy = dst_abstract
         .ibc
         .host
         .client_proxy(ChainName::from_chain_id(src_chain.chain_id).into_string())?;
@@ -120,4 +121,12 @@ pub fn verify_abstract_connection(
     }
 
     Ok(())
+}
+
+pub fn has_abstract_ibc(src_chain: ChainInfo, dst_chain: ChainInfo, rt: &Handle) -> bool {
+    verify_abstract_ibc(src_chain, dst_chain, rt).is_ok()
+}
+
+pub fn has_polytone_connection(src_chain: ChainInfo, dst_chain: ChainInfo, rt: &Handle) -> bool {
+    verify_polytone_connection(src_chain, dst_chain, rt).is_ok()
 }
