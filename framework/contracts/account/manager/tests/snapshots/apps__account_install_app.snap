@@ -57,7 +57,7 @@ expression: all_storage
   - - "\u0000\u0007modulesabstract:proxy"
     - "\"ØJ\\\\Ì1¬´B´ÛWn\\\"\\u001B\\u0012`±¿9½\\u0005\\u0002Íºñù¬\""
   - - "\u0000\u0007modulestester:app"
-    - "\"Ó\\\\÷2¨}ëc½Î rBq¸âZ\\u0016\\u001CKó¹²­gj`\\nL\""
+    - "\"\\u0018­<×º\\u0002ûy^L[>&\\tiÅ]<#86ô\\u0000ÔÓ|4\\u001C\""
   - - "\u0000{12}is_suspended"
     - "false"
   - - "\u0000{4}info"
@@ -71,7 +71,7 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:manager\",\"version\":\"0.20.0\"}"
   - - icontext
-    - "[[{\"info\":{\"namespace\":\"tester\",\"name\":\"app\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"app\":9}},\"Ó\\\\÷2¨}ëc½Î rBq¸âZ\\u0016\\u001CKó¹²­gj`\\nL\"]]"
+    - "[[{\"info\":{\"namespace\":\"tester\",\"name\":\"app\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"app\":9}},\"\\u0018­<×º\\u0002ûy^L[>&\\tiÅ]<#86ô\\u0000ÔÓ|4\\u001C\"]]"
   - - ownership
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:module-factory":
@@ -94,7 +94,7 @@ expression: all_storage
     - "{\"contract\":\"abstract:proxy\",\"version\":\"0.20.0\"}"
 "abstract:proxy-local-1":
   - - "\u0000{5}state"
-    - "{\"modules\":[\"úÃº\\u000F¡f9Ê\\u000E/´K}\\u001D)¨\\u00167ÐvNÚ¡ëã}|d\",\"Ó\\\\÷2¨}ëc½Î rBq¸âZ\\u0016\\u001CKó¹²­gj`\\nL\"]}"
+    - "{\"modules\":[\"úÃº\\u000F¡f9Ê\\u000E/´K}\\u001D)¨\\u00167ÐvNÚ¡ëã}|d\",\"\\u0018­<×º\\u0002ûy^L[>&\\tiÅ]<#86ô\\u0000ÔÓ|4\\u001C\"]}"
   - - "\u0000{6}ans_host"
     - "{\"address\":\"contract0\"}"
   - - acc_id

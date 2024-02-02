@@ -261,7 +261,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
     )?;
 
     contract.deploy(CRONCAT_MODULE_VERSION.parse()?, DeployStrategy::Try)?;
-    account.install_app(&contract, &AppInstantiateMsg {}, None)?;
+    account.install_app(&contract, &AppInstantiateMsg {}, None, None)?;
 
     let manager_addr = account.manager.address()?;
     contract.set_sender(&manager_addr);

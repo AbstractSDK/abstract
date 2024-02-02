@@ -88,7 +88,7 @@ fn account_app_ownership() -> AResult {
 
     let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    account.install_app(&app, &MockInitMsg {}, None)?;
+    account.install_app(&app, &MockInitMsg {}, None, None)?;
 
     let admin_res: AdminResponse =
         app.query(&mock::QueryMsg::Base(app::BaseQueryMsg::BaseAdmin {}))?;
@@ -138,6 +138,7 @@ fn subaccount_app_ownership() -> AResult {
             Some(to_json_binary(&MockInitMsg {}).unwrap()),
         )],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,

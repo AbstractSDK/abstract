@@ -127,6 +127,8 @@ pub struct InstantiateMsg {
     pub link: Option<String>,
     // Optionally modules can be provided. They will be installed after account registration.
     pub install_modules: Vec<ModuleInstallConfig>,
+    /// Optionally salt can be provided. Salt will be used for generating instantiate2 address of installed modules
+    pub module_salt: Option<Binary>,
 }
 
 /// Callback message to set the dependencies after module upgrades.
@@ -189,6 +191,8 @@ pub enum ExecuteMsg {
     InstallModules {
         // Module information and Instantiate message to instantiate the contract
         modules: Vec<ModuleInstallConfig>,
+        // Module salt, that will be used for generating instantiate2 addresses
+        module_salt: Option<Binary>,
     },
     /// Uninstall a module given its ID.
     UninstallModule { module_id: String },
@@ -212,6 +216,8 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
         // Provide list of module to install after sub-account creation
         install_modules: Vec<ModuleInstallConfig>,
+        // Module salt, that will be used for generating instantiate2 addresses
+        module_salt: Option<Binary>,
     },
     /// Update info
     UpdateInfo {

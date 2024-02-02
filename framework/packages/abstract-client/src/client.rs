@@ -201,10 +201,10 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
             if let Some((last_account_id, _)) = last_account {
                 if account_id.seq() > last_account_id {
-                    last_account = Some((account_id.seq(), Account::new(account, true)));
+                    last_account = Some((account_id.seq(), Account::new(account, true, None)));
                 }
             } else {
-                last_account = Some((account_id.seq(), Account::new(account, true)));
+                last_account = Some((account_id.seq(), Account::new(account, true, None)));
             }
         }
         Ok(last_account.map(|(_, account)| account))

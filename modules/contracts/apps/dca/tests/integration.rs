@@ -344,10 +344,15 @@ fn setup() -> anyhow::Result<(
                 monarch: OWNER.to_string(),
             })?;
     // Install DEX
-    account.install_adapter(&dex_adapter, None)?;
+    account.install_adapter(&dex_adapter, None, None)?;
 
     // Install croncat
-    account.install_app(&cron_cat_app, &croncat_app::msg::AppInstantiateMsg {}, None)?;
+    account.install_app(
+        &cron_cat_app,
+        &croncat_app::msg::AppInstantiateMsg {},
+        None,
+        None,
+    )?;
     let manager_addr = account.manager.address()?;
     cron_cat_app.set_sender(&manager_addr);
 
@@ -361,6 +366,7 @@ fn setup() -> anyhow::Result<(
             refill_threshold: Uint128::new(1_000_000),
             max_spread: Decimal::percent(30),
         },
+        None,
         None,
     )?;
 

@@ -7,7 +7,7 @@ use abstract_core::{
     objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId, AssetEntry},
     ABSTRACT_EVENT_TYPE,
 };
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Binary};
 use cw_orch::{interface, prelude::*};
 
 use crate::{AbstractAccount, Manager, Proxy};
@@ -21,6 +21,7 @@ pub struct AccountDetails {
     pub namespace: Option<String>,
     pub base_asset: Option<AssetEntry>,
     pub install_modules: Vec<ModuleInstallConfig>,
+    pub module_salt: Option<Binary>,
 }
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -62,6 +63,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             namespace,
             base_asset,
             install_modules,
+            module_salt,
         } = account_details;
 
         let result = self.execute(
@@ -74,6 +76,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 namespace,
                 base_asset,
                 install_modules,
+                module_salt,
             },
             funds,
         )?;

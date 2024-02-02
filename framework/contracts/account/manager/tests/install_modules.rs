@@ -38,6 +38,7 @@ fn cannot_reinstall_module() -> AResult {
                 ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
                 None,
             )],
+            module_salt: None,
         },
         None,
     )?;
@@ -49,6 +50,7 @@ fn cannot_reinstall_module() -> AResult {
                     ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
                     None,
                 )],
+                module_salt: None,
             },
             None,
         )
@@ -82,6 +84,7 @@ fn adds_module_to_account_modules() -> AResult {
                 ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
                 None,
             )],
+            module_salt: None,
         },
         None,
     )?;

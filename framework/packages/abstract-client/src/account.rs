@@ -35,7 +35,7 @@ use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
     InstallConfig, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
-use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, Binary, CosmosMsg, Empty, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
@@ -75,6 +75,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     // TODO: How to handle install_modules?
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
+    module_salt: Option<Binary>,
 }
 
 impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
@@ -89,6 +90,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             ownership: None,
             fetch_if_namespace_claimed: true,
             install_on_sub_account: true,
+            module_salt: None,
         }
     }
 
@@ -145,6 +147,14 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
+    /// Add module salt for installed modules, including manager and proxy
+    /// Note: it has limit of 32 bytes
+    /// Use [`crate::generate_module_salt`] to predict salt
+    pub fn module_salt(&mut self, module_salt: Binary) -> &mut Self {
+        self.module_salt = Some(module_salt);
+        self
+    }
+
     /// Builds the [`Account`].
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
         if self.fetch_if_namespace_claimed {
@@ -155,6 +165,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                         self.abstr,
                         namespace.clone(),
                         self.install_on_sub_account,
+                        self.module_salt.clone(),
                     )?;
 
                 // Only return if the account can be retrieved without errors.
@@ -188,11 +199,16 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 namespace: self.namespace.as_ref().map(ToString::to_string),
                 base_asset: self.base_asset.clone(),
                 install_modules: vec![],
+                module_salt: self.module_salt.clone(),
             },
             ownership,
             Some(&[]),
         )?;
-        Ok(Account::new(abstract_account, self.install_on_sub_account))
+        Ok(Account::new(
+            abstract_account,
+            self.install_on_sub_account,
+            self.module_salt.clone(),
+        ))
     }
 }
 
@@ -204,6 +220,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
     install_on_sub_account: bool,
+    module_salt: Option<Binary>,
 }
 
 impl<Chain: CwEnv> AsRef<AbstractAccount<Chain>> for Account<Chain> {
@@ -221,10 +238,12 @@ impl<Chain: CwEnv> Account<Chain> {
     pub(crate) fn new(
         abstract_account: AbstractAccount<Chain>,
         install_on_sub_account: bool,
+        module_salt: Option<Binary>,
     ) -> Self {
         Self {
             abstr_account: abstract_account,
             install_on_sub_account,
+            module_salt,
         }
     }
 
@@ -232,6 +251,7 @@ impl<Chain: CwEnv> Account<Chain> {
         abstr: &Abstract<Chain>,
         namespace: Namespace,
         install_on_sub_account: bool,
+        module_salt: Option<Binary>,
     ) -> AbstractClientResult<Option<Self>> {
         let namespace_response: NamespaceResponse = abstr.version_control.namespace(namespace)?;
 
@@ -241,7 +261,11 @@ impl<Chain: CwEnv> Account<Chain> {
 
         let abstract_account: AbstractAccount<Chain> = AbstractAccount::new(abstr, info.account_id);
 
-        Ok(Some(Self::new(abstract_account, install_on_sub_account)))
+        Ok(Some(Self::new(
+            abstract_account,
+            install_on_sub_account,
+            module_salt,
+        )))
     }
 
     /// Get the [`AccountId`] of the Account
@@ -285,8 +309,8 @@ impl<Chain: CwEnv> Account<Chain> {
         let modules = vec![M::install_config(configuration)?];
 
         match self.install_on_sub_account {
-            true => self.install_module_sub_internal(modules, funds),
-            false => self.install_module_current_internal(modules, funds),
+            true => self.install_module_sub_internal(modules, self.module_salt.clone(), funds),
+            false => self.install_module_current_internal(modules, self.module_salt.clone(), funds),
         }
     }
 
@@ -300,8 +324,8 @@ impl<Chain: CwEnv> Account<Chain> {
         let modules = vec![M::install_config(&Empty {})?];
 
         match self.install_on_sub_account {
-            true => self.install_module_sub_internal(modules, funds),
-            false => self.install_module_current_internal(modules, funds),
+            true => self.install_module_sub_internal(modules, self.module_salt.clone(), funds),
+            false => self.install_module_current_internal(modules, self.module_salt.clone(), funds),
         }
     }
 
@@ -326,8 +350,14 @@ impl<Chain: CwEnv> Account<Chain> {
         install_configs.push(M::install_config(module_configuration)?);
 
         match self.install_on_sub_account {
-            true => self.install_module_sub_internal(install_configs, funds),
-            false => self.install_module_current_internal(install_configs, funds),
+            true => {
+                self.install_module_sub_internal(install_configs, self.module_salt.clone(), funds)
+            }
+            false => self.install_module_current_internal(
+                install_configs,
+                self.module_salt.clone(),
+                funds,
+            ),
         }
     }
 
@@ -433,12 +463,14 @@ impl<Chain: CwEnv> Account<Chain> {
     >(
         &self,
         modules: Vec<ModuleInstallConfig>,
+        module_salt: Option<Binary>,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
-        let install_module_response = self
-            .abstr_account
-            .manager
-            .install_modules(modules, Some(funds))?;
+        let install_module_response = self.abstr_account.manager.install_modules(
+            modules,
+            module_salt.clone(),
+            Some(funds),
+        )?;
 
         let module_addr = Self::parse_modules_installing_response(install_module_response);
         let contract = Contract::new(M::module_id().to_owned(), self.environment())
@@ -447,7 +479,11 @@ impl<Chain: CwEnv> Account<Chain> {
         let adapter: M = contract.into();
 
         Application::new(
-            Account::new(self.abstr_account.clone(), self.install_on_sub_account),
+            Account::new(
+                self.abstr_account.clone(),
+                self.install_on_sub_account,
+                module_salt,
+            ),
             adapter,
         )
     }
@@ -458,6 +494,7 @@ impl<Chain: CwEnv> Account<Chain> {
     >(
         &self,
         modules: Vec<ModuleInstallConfig>,
+        module_salt: Option<Binary>,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
         // Create sub account.
@@ -467,6 +504,7 @@ impl<Chain: CwEnv> Account<Chain> {
             None,
             None,
             None,
+            module_salt.clone(),
             None,
             funds,
         )?;
@@ -486,7 +524,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
         let app: M = contract.into();
 
-        Application::new(Account::new(sub_account, false), app)
+        Application::new(Account::new(sub_account, false, module_salt), app)
     }
 
     fn parse_account_creation_response(

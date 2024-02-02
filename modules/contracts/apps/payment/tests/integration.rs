@@ -65,7 +65,7 @@ fn setup(mock: Mock, desired_asset: Option<AssetEntry>) -> anyhow::Result<Paymen
     app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;
 
     // install exchange module as it's a dependency
-    account.install_adapter(&dex_adapter, None)?;
+    account.install_adapter(&dex_adapter, None, None)?;
 
     let wyndex = WynDex::store_on(mock)?;
 
@@ -76,6 +76,7 @@ fn setup(mock: Mock, desired_asset: Option<AssetEntry>) -> anyhow::Result<Paymen
             denom_asset: "Dollah".to_owned(),
             exchanges: vec![wyndex_bundle::WYNDEX.to_owned()],
         },
+        None,
         None,
     )?;
 

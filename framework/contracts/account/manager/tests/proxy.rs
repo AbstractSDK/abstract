@@ -156,7 +156,7 @@ fn install_standalone_modules() -> AResult {
         ModuleReference::Standalone(standalone1_id),
     )])?;
 
-    account.install_module("abstract:standalone1", Some(&MockInitMsg {}), None)?;
+    account.install_module("abstract:standalone1", Some(&MockInitMsg {}), None, None)?;
 
     // install second standalone
     deployment.version_control.propose_modules(vec![(
@@ -168,7 +168,7 @@ fn install_standalone_modules() -> AResult {
         ModuleReference::Standalone(standalone2_id),
     )])?;
 
-    account.install_module("abstract:standalone2", Some(&MockInitMsg {}), None)?;
+    account.install_module("abstract:standalone2", Some(&MockInitMsg {}), None, None)?;
     take_storage_snapshot!(chain, "proxy_install_standalone_modules");
     Ok(())
 }
@@ -198,7 +198,7 @@ fn install_standalone_versions_not_met() -> AResult {
     )])?;
 
     let err = account
-        .install_module("abstract:standalone1", Some(&MockInitMsg {}), None)
+        .install_module("abstract:standalone1", Some(&MockInitMsg {}), None, None)
         .unwrap_err();
 
     if let AbstractInterfaceError::Orch(err) = err {
@@ -297,6 +297,7 @@ fn install_multiple_modules() -> AResult {
                     Some(to_json_binary(&MockInitMsg {}).unwrap()),
                 ),
             ],
+            None,
             Some(&[coin(86, "token1"), coin(500, "token2")]),
         )
         .unwrap_err();
@@ -372,6 +373,7 @@ fn renounce_cleans_namespace() -> AResult {
             namespace: Some("bar".to_owned()),
             base_asset: None,
             install_modules: vec![],
+            module_salt: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),

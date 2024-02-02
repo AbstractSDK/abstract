@@ -234,7 +234,7 @@ mod osmosis_test {
             .unwrap();
 
         // install exchange on AbstractAccount
-        os.install_adapter(&staking, None)?;
+        os.install_adapter(&staking, None, None)?;
 
         tube.bank_send(
             os.proxy.addr_str()?,

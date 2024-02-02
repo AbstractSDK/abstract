@@ -216,7 +216,7 @@ fn setup_mock() -> anyhow::Result<(
     let account = create_default_account(&deployment.account_factory)?;
 
     // install DEX_ADAPTER_ID on OS
-    account.install_adapter(&dex_adapter, None)?;
+    account.install_adapter(&dex_adapter, None, None)?;
 
     Ok((chain, dex_adapter, account, deployment, pool_id))
 }

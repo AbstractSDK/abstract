@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Updated UsageFee api to use `Address`, instead of `Api` + unchecked address
+- User now have control over modules instantiate2 address salt
 
 ### Removed
 

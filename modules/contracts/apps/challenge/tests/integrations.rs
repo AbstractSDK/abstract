@@ -116,6 +116,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
         namespace: None,
         base_asset: None,
         install_modules: vec![],
+        module_salt: None,
     };
 
     let account = abstr_deployment.account_factory.create_new_account(
@@ -134,6 +135,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
                 veto_duration_seconds: None,
             },
         },
+        None,
         None,
     )?;
 

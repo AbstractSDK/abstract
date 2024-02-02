@@ -56,10 +56,10 @@ pub fn receive_register(
             link,
             // provide the origin chain id
             account_id: Some(account_id.clone()),
-
             base_asset,
             install_modules,
             namespace,
+            module_salt: None,
         },
         vec![],
     )?;

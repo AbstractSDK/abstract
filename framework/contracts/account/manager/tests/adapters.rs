@@ -128,6 +128,7 @@ fn install_non_existent_version_should_fail() -> AResult {
         ModuleVersion::Version("1.2.3".to_string()),
         Some(&Empty {}),
         None,
+        None,
     );
 
     // testtodo: check error
@@ -363,6 +364,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
         ModuleVersion::Version(expected_version),
         Some(&MockInitMsg {}),
         None,
+        None,
     )?;
 
     let modules = account.expect_modules(vec![v1_adapter_addr.to_string()])?;
@@ -386,7 +388,7 @@ fn account_install_adapter() -> AResult {
 
     let adapter = BootMockAdapter1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
-    let adapter_addr = account.install_adapter(&adapter, None)?;
+    let adapter_addr = account.install_adapter(&adapter, None, None)?;
     let module_addr = account
         .manager
         .module_info(adapter_1::MOCK_ADAPTER_ID)?
@@ -410,7 +412,7 @@ fn account_adapter_ownership() -> AResult {
 
     let adapter = BootMockAdapter1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
-    account.install_adapter(&adapter, None)?;
+    account.install_adapter(&adapter, None, None)?;
 
     let proxy_addr = account.proxy.address()?;
 
@@ -524,6 +526,7 @@ fn subaccount_adapter_ownership() -> AResult {
             None,
         )],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,
@@ -653,7 +656,7 @@ mod old_mock {
         let old = OldMockAdapter1V1::new_test(chain.clone());
         old.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
 
-        account.install_adapter(&old, None)?;
+        account.install_adapter(&old, None, None)?;
 
         let new = BootMockAdapter1V2::new_test(chain.clone());
         new.deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;

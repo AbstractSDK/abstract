@@ -70,6 +70,7 @@ pub fn execute(
             namespace,
             base_asset,
             install_modules,
+            module_salt,
         } => commands::execute_create_account(
             deps,
             env,
@@ -82,6 +83,7 @@ pub fn execute(
             base_asset,
             install_modules,
             account_id,
+            module_salt,
         ),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(AccountFactoryResponse, deps, env, info, action)

@@ -79,6 +79,9 @@ pub enum AbstractError {
         from: Version,
         to: Version,
     },
+
+    #[error("Salt must be between 0 and 32 bytes")]
+    InvalidSaltLength {},
 }
 
 impl From<SemverError> for AbstractError {

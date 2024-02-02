@@ -52,7 +52,7 @@ pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
 
     let app = MockApp::new_test(chain.clone());
     MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    let app_addr = account.install_app(&app, &MockInitMsg {}, None)?;
+    let app_addr = account.install_app(&app, &MockInitMsg {}, None, None)?;
     let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
     assert_that!(app_addr).is_equal_to(module_addr);
     Ok(())
@@ -72,6 +72,7 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
             namespace: Some(String::from(TEST_NAMESPACE)),
             base_asset: None,
             install_modules: vec![],
+            module_salt: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -104,6 +105,7 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
         String::from("sub_account"),
         None,
         Some(String::from("account_description")),
+        None,
         None,
         None,
         &[],
@@ -163,6 +165,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
             namespace: Some(String::from(TEST_NAMESPACE)),
             base_asset: None,
             install_modules: vec![],
+            module_salt: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -273,6 +276,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
                         Some(to_json_binary(&MockInitMsg {})?),
                     ),
                 ],
+                module_salt: None,
             },
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
@@ -480,6 +484,7 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,

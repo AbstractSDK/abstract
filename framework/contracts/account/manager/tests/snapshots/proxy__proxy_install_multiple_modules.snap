@@ -40,9 +40,9 @@ expression: all_storage
   - - "\u0000\u0007modulesabstract:proxy"
     - "\"v\\u0005 W$ÛÒyø<\\\\wÃ\\u0001\\u001Bµg)[3>)¼â\\u001A\\u0002&·ù\\\"m\""
   - - "\u0000\u0007modulesabstract:standalone1"
-    - "\"ôlÝ 9ç5ÌëHÂñÙpWj\\u0015}¶yÍåfØ¸;í\""
+    - "\"é]ÓÍX$K\\u0003)Æ¿Ýá\\u001AÍ\\u000E*³öÙ>Z¥óÄ¥l;\""
   - - "\u0000\u0007modulesabstract:standalone2"
-    - "\"\u007fæCÊ¼ï\\b{* \\u0002pÿðÓFÎâÆèN5ùfÁâ¬\\\\\\u0013¦\""
+    - "\"gÒÚìÅ«é\\\"7ûÖÄ½}IÝ\\u001DÐùU»r)Tp\\u001C¦ªÞ\""
   - - "\u0000{12}is_suspended"
     - "false"
   - - "\u0000{4}info"
@@ -56,7 +56,7 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:manager\",\"version\":\"0.20.0\"}"
   - - icontext
-    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":9}},\"ôlÝ 9ç5ÌëHÂñÙpWj\\u0015}¶yÍåfØ¸;í\"],[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":10}},\"\u007fæCÊ¼ï\\b{* \\u0002pÿðÓFÎâÆèN5ùfÁâ¬\\\\\\u0013¦\"]]"
+    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":9}},\"é]ÓÍX$K\\u0003)Æ¿Ýá\\u001AÍ\\u000E*³öÙ>Z¥óÄ¥l;\"],[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":10}},\"gÒÚìÅ«é\\\"7ûÖÄ½}IÝ\\u001DÐùU»r)Tp\\u001C¦ªÞ\"]]"
   - - ownership
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:module-factory":
@@ -68,7 +68,7 @@ expression: all_storage
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:proxy-local-0":
   - - "\u0000{5}state"
-    - "{\"modules\":[\"D?Ê\\u0014¬å[#^,¡4\\r\\u000E\\r¡éÓ¯:5Z\\u000EÑüF%¾á\\b\",\"ôlÝ 9ç5ÌëHÂñÙpWj\\u0015}¶yÍåfØ¸;í\",\"\u007fæCÊ¼ï\\b{* \\u0002pÿðÓFÎâÆèN5ùfÁâ¬\\\\\\u0013¦\"]}"
+    - "{\"modules\":[\"D?Ê\\u0014¬å[#^,¡4\\r\\u000E\\r¡éÓ¯:5Z\\u000EÑüF%¾á\\b\",\"é]ÓÍX$K\\u0003)Æ¿Ýá\\u001AÍ\\u000E*³öÙ>Z¥óÄ¥l;\",\"gÒÚìÅ«é\\\"7ûÖÄ½}IÝ\\u001DÐùU»r)Tp\\u001C¦ªÞ\"]}"
   - - "\u0000{6}ans_host"
     - "{\"address\":\"contract0\"}"
   - - acc_id

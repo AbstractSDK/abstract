@@ -52,6 +52,6 @@ fn main() -> anyhow::Result<()> {
     app.deploy(version, DeployStrategy::Try)?;
 
     // Install app
-    account.install_app(&app, &AppInstantiateMsg {}, None)?;
+    account.install_app(&app, &AppInstantiateMsg {}, None, None)?;
     Ok(())
 }

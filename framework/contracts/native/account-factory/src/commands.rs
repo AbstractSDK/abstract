@@ -2,8 +2,8 @@ use abstract_core::{
     manager::ModuleInstallConfig,
     module_factory::SimulateInstallModulesResponse,
     objects::{
-        account::{generate_account_salt, AccountTrace},
-        module::assert_module_data_validity,
+        account::AccountTrace,
+        module::{self, assert_module_data_validity},
         AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
     },
     AbstractError,
@@ -25,8 +25,8 @@ use abstract_sdk::{
     feature_objects::VersionControlContract,
 };
 use cosmwasm_std::{
-    ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, DepsMut, Empty, Env,
-    MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
+    ensure_eq, instantiate2_address, to_json_binary, Addr, Binary, Coins, CosmosMsg, DepsMut,
+    Empty, Env, MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
 };
 
 use crate::{
@@ -51,6 +51,7 @@ pub fn execute_create_account(
     base_asset: Option<AssetEntry>,
     install_modules: Vec<ModuleInstallConfig>,
     account_id: Option<AccountId>,
+    module_salt: Option<Binary>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
     let abstract_registry = VersionControlContract::new(config.version_control_contract.clone());
@@ -124,7 +125,7 @@ pub fn execute_create_account(
         })?;
     }
 
-    let salt = generate_account_salt(&account_id);
+    let salt = module::generate_module_salt(module_salt.clone(), &account_id)?;
 
     // Get code_ids
     let (proxy_code_id, manager_code_id) = if let (
@@ -235,6 +236,7 @@ pub fn execute_create_account(
                 description,
                 link,
                 install_modules,
+                module_salt,
             })?,
             salt,
         },

@@ -47,7 +47,7 @@ fn setup_mock() -> anyhow::Result<(
     // mint to proxy
     chain.set_balance(&account.proxy.address()?, vec![coin(10_000, EUR)])?;
     // install exchange on OS
-    account.install_adapter(&dex_adapter, None)?;
+    account.install_adapter(&dex_adapter, None, None)?;
 
     Ok((chain, wyndex, dex_adapter, account, deployment))
 }

@@ -75,6 +75,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
             token_symbol: Some("TETF".into()),
         },
         None,
+        None,
     )?;
 
     // set the etf token address

@@ -52,7 +52,7 @@ fn setup_mock() -> anyhow::Result<(
         .transfer(1000u128.into(), proxy_addr.to_string())?;
 
     // install exchange on AbstractAccount
-    os.install_adapter(&staking, None)?;
+    os.install_adapter(&staking, None, None)?;
 
     Ok((chain, wyndex, staking, os))
 }

@@ -477,18 +477,24 @@ impl Default for Monetization {
 pub type ModuleMetadata = String;
 
 /// Generate salt helper
-pub fn generate_module_salt(block_height: u64, account_id: &AccountId) -> Binary {
-    let mut salt = [0; 40];
-    // 0..32 bytes for account_id
+/// It uses up to 32 bytes of user defined salt
+/// alongside with 32 bytes of hashed account_id
+pub fn generate_module_salt(
+    user_salt: Option<Binary>,
+    account_id: &AccountId,
+) -> AbstractResult<Binary> {
+    let mut module_salt = user_salt.unwrap_or_default();
+
+    // Up to 32 bytes for user salt
+    if module_salt.0.len() > 32 {
+        return Err(AbstractError::InvalidSaltLength {});
+    }
+
+    // 32 bytes for account_id
     let account_id = sha256::digest(account_id.to_string());
-    let accound_id_bytes: &mut [u8] = &mut salt[0..32];
-    accound_id_bytes.copy_from_slice(&account_id.as_bytes()[0..32]);
+    module_salt.0.extend(&account_id.as_bytes()[0..32]);
 
-    // 0..8 bytes for block height
-    let block_height_bytes = &mut salt[32..40];
-    block_height_bytes.copy_from_slice(&block_height.to_be_bytes());
-
-    Binary::from(salt)
+    Ok(module_salt)
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -837,7 +843,9 @@ mod test {
 
         #[test]
         fn generate_module_salt_local() {
-            let salt = generate_module_salt(123, &AccountId::local(5));
+            let salt =
+                generate_module_salt(Some(to_json_binary(&123).unwrap()), &AccountId::local(5))
+                    .unwrap();
             assert!(!salt.is_empty());
             assert!(salt.len() <= 64);
         }
@@ -845,7 +853,7 @@ mod test {
         #[test]
         fn generate_module_salt_trace() {
             let salt = generate_module_salt(
-                123,
+                Some(to_json_binary(&123).unwrap()),
                 &AccountId::new(
                     5,
                     AccountTrace::Remote(vec![
@@ -858,7 +866,8 @@ mod test {
                     ]),
                 )
                 .unwrap(),
-            );
+            )
+            .unwrap();
             assert!(!salt.is_empty());
             assert!(salt.len() <= 64);
         }

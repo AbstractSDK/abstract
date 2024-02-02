@@ -44,7 +44,7 @@ pub mod state {
 }
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Binary};
 
 use crate::{
     manager::ModuleInstallConfig,
@@ -104,6 +104,8 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
         // Provide list of module to install after account creation
         install_modules: Vec<ModuleInstallConfig>,
+        // Provide module salt, that will be added to instantiate2 salt of installed modules
+        module_salt: Option<Binary>,
     },
 }
 

@@ -37,6 +37,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
+        None,
         Some(namespace_to_claim.to_string()),
         // Account creation fee not covered
         &[],
@@ -54,6 +55,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
             name: String::from("first_account"),
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
+            module_salt: None,
             namespace: Some(namespace_to_claim.to_string()),
             base_asset: None,
             install_modules: vec![],

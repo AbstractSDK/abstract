@@ -88,6 +88,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                     ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
                     None,
                 )],
+                module_salt: None,
             },
             vec![],
         )?
@@ -129,6 +130,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                         module,
                         Some(to_json_binary(&init_msg)?),
                     )],
+                    module_salt: None,
                 },
             },
             None,
@@ -146,6 +148,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             HostAction::Dispatch {
                 manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(module, None)],
+                    module_salt: None,
                 },
             },
             None,

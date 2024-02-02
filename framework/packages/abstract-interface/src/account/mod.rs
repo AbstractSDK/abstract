@@ -21,7 +21,7 @@ mod proxy;
 use std::collections::HashSet;
 
 use abstract_core::{manager::ManagerModuleInfo, objects::AccountId};
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Binary};
 use cw_orch::prelude::*;
 use serde::Serialize;
 use speculoos::prelude::*;
@@ -62,18 +62,21 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
         init_msg: Option<&TInitMsg>,
+        module_salt: Option<Binary>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        self.manager.install_module(module_id, init_msg, funds)
+        self.manager
+            .install_module(module_id, init_msg, module_salt, funds)
     }
 
     pub fn install_modules(
         &self,
         modules: Vec<ModuleInstallConfig>,
+        module_salt: Option<Binary>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.manager
-            .install_modules(modules, funds)
+            .install_modules(modules, module_salt, funds)
             .map_err(Into::into)
     }
 
@@ -153,9 +156,10 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn install_adapter<CustomInitMsg: Serialize, T: AdapterDeployer<Chain, CustomInitMsg>>(
         &self,
         adapter: &T,
+        module_salt: Option<Binary>,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
-        self.install_module_parse_addr::<Empty, _>(adapter, None, funds)
+        self.install_module_parse_addr::<Empty, _>(adapter, None, module_salt, funds)
     }
 
     /// Installs an app from an app object
@@ -163,19 +167,21 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         app: &T,
         custom_init_msg: &CustomInitMsg,
+        module_salt: Option<Binary>,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         // retrieve the deployment
-        self.install_module_parse_addr(app, Some(&custom_init_msg), funds)
+        self.install_module_parse_addr(app, Some(&custom_init_msg), module_salt, funds)
     }
 
     fn install_module_parse_addr<InitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
         module: &T,
         init_msg: Option<&InitMsg>,
+        module_salt: Option<Binary>,
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
-        let resp = self.install_module(&module.id(), init_msg, funds)?;
+        let resp = self.install_module(&module.id(), init_msg, module_salt, funds)?;
         let module_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_modules")?;
         let module_address = Addr::unchecked(module_address);
 

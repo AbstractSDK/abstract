@@ -101,8 +101,8 @@ pub fn update_module_addresses(
 pub fn install_modules(
     mut deps: DepsMut,
     msg_info: MessageInfo,
-    env: Env,
     modules: Vec<ModuleInstallConfig>,
+    module_salt: Option<Binary>,
 ) -> ManagerResult {
     // only owner can call this method
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
@@ -111,11 +111,11 @@ pub fn install_modules(
 
     let (register_on_proxy, install_msg, install_attribute) = install_modules_internal(
         deps.branch(),
-        env.block.height,
         modules,
         config.module_factory_address,
         config.version_control_address,
         msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
+        module_salt,
     )?;
     let response = ManagerResponse::new("install_modules", std::iter::once(install_attribute))
         .add_message(register_on_proxy)
@@ -128,16 +128,16 @@ pub fn install_modules(
 /// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
 pub(crate) fn install_modules_internal(
     mut deps: DepsMut,
-    block_height: u64,
     modules: Vec<ModuleInstallConfig>,
     module_factory_address: Addr,
     version_control_address: Addr,
     funds: Vec<Coin>,
+    module_salt: Option<Binary>,
 ) -> ManagerResult<(CosmosMsg, SubMsg, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let salt: Binary = module::generate_module_salt(block_height, &account_id);
+    let salt: Binary = module::generate_module_salt(module_salt, &account_id)?;
     let version_control = VersionControlContract::new(version_control_address);
 
     let canonical_module_factory = deps
@@ -273,6 +273,7 @@ pub fn create_sub_account(
     base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
+    module_salt: Option<Binary>,
 ) -> ManagerResult {
     // only owner can create a subaccount
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
@@ -290,6 +291,7 @@ pub fn create_sub_account(
         namespace,
         install_modules,
         account_id: None,
+        module_salt,
     };
 
     let account_factory_addr = query_module(
@@ -1472,6 +1474,7 @@ mod tests {
                     ModuleInfo::from_id_latest("test:module")?,
                     None,
                 )],
+                module_salt: None,
             };
 
             let res = execute_as(deps.as_mut(), "not_owner", msg);

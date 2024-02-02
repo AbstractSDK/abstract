@@ -64,6 +64,7 @@ fn create_one_account() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
+        None,
         &[],
     )?;
 
@@ -120,6 +121,7 @@ fn create_two_account_s() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
+        None,
         &[],
     )?;
     // second account
@@ -133,6 +135,7 @@ fn create_two_account_s() -> AResult {
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
+        None,
         None,
         &[],
     )?;
@@ -200,6 +203,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
+        None,
         &[],
     )?;
 
@@ -253,6 +257,7 @@ fn sender_is_not_admin_external() -> AResult {
         Some(String::from("account_description")),
         Some(String::from("http://account_link_of_at_least_11_char")),
         None,
+        None,
         &[],
     )?;
 
@@ -292,6 +297,7 @@ fn create_one_account_with_base_asset() -> AResult {
             namespace: None,
             base_asset: Some(AssetEntry::new(asset_name)),
             install_modules: vec![],
+            module_salt: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -329,6 +335,7 @@ fn create_one_account_with_namespace() -> AResult {
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
+        None,
         Some(namespace_to_claim.to_string()),
         &[],
     )?;

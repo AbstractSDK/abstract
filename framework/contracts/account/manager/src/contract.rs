@@ -109,11 +109,11 @@ pub fn instantiate(
         // Install modules
         let (add_to_proxy, install_msg, install_attribute) = install_modules_internal(
             deps.branch(),
-            env.block.height,
             msg.install_modules,
             config.module_factory_address,
             config.version_control_address,
             info.funds,
+            msg.module_salt,
         )?;
         response = response
             .add_message(add_to_proxy)
@@ -153,8 +153,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     update_internal_config(deps, info, config)
                 }
                 ExecuteMsg::ProposeOwner { owner } => propose_owner(deps, env, info, owner),
-
-                ExecuteMsg::InstallModules { modules } => install_modules(deps, info, env, modules),
+                ExecuteMsg::InstallModules {
+                    modules,
+                    module_salt,
+                } => install_modules(deps, info, modules, module_salt),
                 ExecuteMsg::UninstallModule { module_id } => {
                     uninstall_module(deps, info, module_id)
                 }
@@ -169,6 +171,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     base_asset,
                     namespace,
                     install_modules,
+                    module_salt,
                 } => create_sub_account(
                     deps,
                     info,
@@ -179,6 +182,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     base_asset,
                     namespace,
                     install_modules,
+                    module_salt,
                 ),
                 ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {
