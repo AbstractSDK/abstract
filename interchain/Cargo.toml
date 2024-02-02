@@ -51,9 +51,9 @@ semver = "1.0"
 cw-semver = { version = "1.0" }
 tokio = { version = "1.33.0", features = ["full"] }
 
-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.2" }
-polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.2" }
-polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.2" }
+polytone = { package = "abstract-polytone", version = "1.0.2" }
+polytone-note = { package = "abstract-polytone-note", version = "1.0.2" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "1.0.2" }
 
 # TODO; Set tag!
 cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.2" }

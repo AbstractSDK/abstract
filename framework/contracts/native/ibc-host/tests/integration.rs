@@ -1,38 +1,30 @@
 use abstract_adapter::mock::MockInitMsg;
-use abstract_core::ibc_host::ClientProxyResponse;
-use abstract_core::ibc_host::ConfigResponse;
-use abstract_core::ibc_host::ExecuteMsgFns;
-use abstract_core::ibc_host::HostAction;
-use abstract_core::ibc_host::InternalAction;
-use abstract_core::ibc_host::QueryMsgFns;
-use abstract_core::manager::ModuleInstallConfig;
-use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::module::ModuleInfo;
-use abstract_core::objects::AccountId;
-use abstract_core::objects::AssetEntry;
-use abstract_core::objects::UncheckedChannelEntry;
-use abstract_core::ACCOUNT_FACTORY;
-use abstract_core::ICS20;
-use abstract_core::MANAGER;
-use abstract_core::PROXY;
+use abstract_core::{
+    ibc_host::{
+        ClientProxyResponse, ConfigResponse, ExecuteMsgFns, HostAction, InternalAction, QueryMsgFns,
+    },
+    manager::ModuleInstallConfig,
+    objects::{
+        gov_type::GovernanceDetails, module::ModuleInfo, AccountId, AssetEntry,
+        UncheckedChannelEntry,
+    },
+    ACCOUNT_FACTORY, ICS20, MANAGER, PROXY,
+};
 use abstract_ibc_host::HostError;
-use abstract_interface::Abstract;
-use abstract_interface::AdapterDeployer;
-use abstract_interface::DeployStrategy;
-use abstract_interface::ExecuteMsgFns as InterfaceExecuteMsgFns;
+use abstract_interface::{
+    Abstract, AdapterDeployer, DeployStrategy, ExecuteMsgFns as InterfaceExecuteMsgFns,
+};
 use abstract_testing::OWNER;
 use cosmwasm_std::Event;
-use cw_orch::deploy::Deploy;
-
 use cw_orch::prelude::*;
 use cw_ownable::OwnershipError;
 
-use crate::mock_adapter::MockAdapter;
-use crate::mock_adapter::MOCK_ADAPTER_ID;
+use crate::mock_adapter::{MockAdapter, MOCK_ADAPTER_ID};
 
 mod mock_adapter {
-    use super::*;
     use abstract_adapter::gen_adapter_mock;
+
+    use super::*;
 
     pub const MOCK_ADAPTER_ID: &str = "abstract:mock-adapter";
     gen_adapter_mock!(MockAdapter, MOCK_ADAPTER_ID, "1.0.0", &[]);

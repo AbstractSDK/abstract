@@ -1,11 +1,12 @@
+use std::fmt::Display;
+
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
 use crate::{
     constants::{ASSET_DELIMITER, TYPE_DELIMITER},
     objects::AssetEntry,
 };
-
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use std::fmt::Display;
 
 pub type DexName = String;
 
@@ -50,8 +51,9 @@ impl Display for LpToken {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use speculoos::prelude::*;
+
+    use super::*;
 
     mod implementation {
         use super::*;
@@ -81,9 +83,8 @@ mod test {
     }
 
     mod from_asset_entry {
-        use crate::objects::AnsEntryConvertor;
-
         use super::*;
+        use crate::objects::AnsEntryConvertor;
 
         #[test]
         fn test_from_asset_entry() {
@@ -110,9 +111,8 @@ mod test {
     }
 
     mod into_asset_entry {
-        use crate::objects::AnsEntryConvertor;
-
         use super::*;
+        use crate::objects::AnsEntryConvertor;
 
         #[test]
         fn into_asset_entry_works() {

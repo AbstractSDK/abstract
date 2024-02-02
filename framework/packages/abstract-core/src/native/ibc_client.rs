@@ -1,16 +1,19 @@
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Addr, Coin, Empty, QueryRequest};
+use polytone::callbacks::CallbackMessage;
+
+use self::state::IbcInfrastructure;
 use crate::{
     ibc::CallbackInfo,
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
     objects::{account::AccountId, chain_name::ChainName, AssetEntry},
 };
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Empty, QueryRequest};
-use polytone::callbacks::CallbackMessage;
-
-use self::state::IbcInfrastructure;
 
 pub mod state {
+
+    use cosmwasm_std::Addr;
+    use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
         account::{AccountSequence, AccountTrace},
@@ -18,8 +21,6 @@ pub mod state {
         chain_name::ChainName,
         version_control::VersionControlContract,
     };
-    use cosmwasm_std::Addr;
-    use cw_storage_plus::{Item, Map};
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
@@ -140,18 +141,23 @@ pub enum IbcClientCallback {
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
+    /// Queries the ownership of the ibc client contract
+    /// Returns [`cw_ownable::Ownership<Addr>`]
     #[returns(cw_ownable::Ownership<Addr> )]
     Ownership {},
 
-    // Returns config
-    #[returns(HostResponse)]
+    /// Returns config
+    /// Returns [`ConfigResponse`]
+    #[returns(ConfigResponse)]
     Config {},
 
-    // Returns config
+    /// Returns the host information associated with a specific chain-name (e.g. osmosis, juno)
+    /// Returns [`HostResponse`]
     #[returns(HostResponse)]
     Host { chain_name: String },
 
     // Shows all open channels (incl. remote info)
+    /// Returns [`ListAccountsResponse`]
     #[returns(ListAccountsResponse)]
     ListAccounts {
         start: Option<(AccountId, String)>,
@@ -159,24 +165,29 @@ pub enum QueryMsg {
     },
 
     // Get channel info for one chain
+    /// Returns [`AccountResponse`]
     #[returns(AccountResponse)]
     Account {
         chain: String,
         account_id: AccountId,
     },
     // get the hosts
+    /// Returns [`ListRemoteHostsResponse`]
     #[returns(ListRemoteHostsResponse)]
     ListRemoteHosts {},
 
     // get the IBC execution proxies
+    /// Returns [`ListRemoteProxiesResponse`]
     #[returns(ListRemoteProxiesResponse)]
     ListRemoteProxies {},
 
     // get the IBC execution proxies based on the account id passed
+    /// Returns [`ListRemoteProxiesResponse`]
     #[returns(ListRemoteProxiesResponse)]
     ListRemoteProxiesByAccountId { account_id: AccountId },
 
     // get the IBC counterparts connected to this abstract client
+    /// Returns [`ListIbcInfrastructureResponse`]
     #[returns(ListIbcInfrastructureResponse)]
     ListIbcInfrastructures {},
 }
@@ -228,10 +239,11 @@ pub struct RemoteProxyResponse {
 
 #[cfg(test)]
 mod tests {
-    use crate::ibc::IbcResponseMsg;
     use cosmwasm_std::{to_json_binary, CosmosMsg, Empty};
     use polytone::callbacks::Callback;
     use speculoos::prelude::*;
+
+    use crate::ibc::IbcResponseMsg;
 
     // ... (other test functions)
 

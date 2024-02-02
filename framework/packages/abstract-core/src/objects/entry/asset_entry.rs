@@ -1,9 +1,11 @@
-use crate::{constants::CHAIN_DELIMITER, AbstractError, AbstractResult};
+use std::fmt::Display;
+
 use cosmwasm_std::StdResult;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+
+use crate::{constants::CHAIN_DELIMITER, AbstractError, AbstractResult};
 
 /// An unchecked ANS asset entry. This is a string that is formatted as
 /// `src_chain>[intermediate_chain>]asset_name`
@@ -25,7 +27,6 @@ impl AssetEntry {
 
     /// Retrieve the source chain of the asset
     /// Example: osmosis>juno>crab returns osmosis
-    /// Returns string to remain consistent with [`Self::asset_name`]
     pub fn src_chain(&self) -> AbstractResult<String> {
         let mut split = self.0.splitn(2, CHAIN_DELIMITER);
 
@@ -110,9 +111,10 @@ impl KeyDeserialize for &AssetEntry {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use rstest::rstest;
     use speculoos::prelude::*;
+
+    use super::*;
 
     #[test]
     fn test_asset_entry() {

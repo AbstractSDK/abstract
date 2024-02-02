@@ -1,9 +1,10 @@
-use abstract_core::ibc_client::{ExecuteMsgFns as _, QueryMsgFns};
-use abstract_core::ibc_host::ExecuteMsgFns;
-use abstract_core::objects::chain_name::ChainName;
+use abstract_core::{
+    ibc_client::{ExecuteMsgFns as _, QueryMsgFns},
+    ibc_host::ExecuteMsgFns,
+    objects::chain_name::ChainName,
+};
 use abstract_interface::Abstract;
-use cw_orch::interchain::InterchainError;
-use cw_orch::prelude::*;
+use cw_orch::{interchain::InterchainError, prelude::*};
 use cw_orch_polytone::Polytone;
 
 /// This is only used for testing and shouldn't be used in production

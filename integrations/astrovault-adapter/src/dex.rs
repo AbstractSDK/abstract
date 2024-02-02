@@ -1,8 +1,8 @@
-use crate::ASTROVAULT;
-use crate::AVAILABLE_CHAINS;
 use abstract_dex_standard::Identify;
 use abstract_sdk::core::objects::PoolType;
 use cosmwasm_std::Addr;
+
+use crate::{ASTROVAULT, AVAILABLE_CHAINS};
 
 #[derive(Default)]
 pub struct Astrovault {
@@ -690,29 +690,20 @@ fn cw_asset_info_to_astrovault(
 
 #[cfg(test)]
 mod tests {
-    use abstract_dex_standard::tests::expect_eq;
-    use abstract_sdk::core::objects::PoolType;
+    use std::{assert_eq, str::FromStr};
+
+    use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
+    use abstract_sdk::core::objects::{PoolAddress, PoolType};
     use cosmwasm_schema::serde::Deserialize;
-    use cosmwasm_std::to_json_binary;
-    use cosmwasm_std::Coin;
-    use cosmwasm_std::Uint128;
-
-    use cosmwasm_std::coin;
-    use cosmwasm_std::from_json;
-    use cosmwasm_std::CosmosMsg;
-    use cosmwasm_std::WasmMsg;
+    use cosmwasm_std::{
+        coin, coins, from_json, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal,
+        Uint128, WasmMsg,
+    };
     use cw20::Cw20ExecuteMsg;
-
-    use super::Astrovault;
-    use abstract_dex_standard::tests::DexCommandTester;
-    use abstract_sdk::core::objects::PoolAddress;
-    use cosmwasm_std::coins;
-    use cosmwasm_std::Decimal;
-    use cosmwasm_std::{wasm_execute, Addr};
     use cw_asset::{Asset, AssetInfo};
     use cw_orch::daemon::networks::ARCHWAY_1;
-    use std::assert_eq;
-    use std::str::FromStr;
+
+    use super::Astrovault;
 
     fn create_setup(pool_type: PoolType) -> DexCommandTester {
         DexCommandTester::new(

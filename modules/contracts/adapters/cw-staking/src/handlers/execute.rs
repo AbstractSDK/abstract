@@ -1,7 +1,3 @@
-use crate::adapter::CwStakingAdapter;
-use crate::contract::{CwStakingAdapter as CwStakingContract, StakingResult};
-use crate::resolver::{self, is_over_ibc};
-use crate::CW_STAKING_ADAPTER_ID;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_sdk::feature_objects::AnsHost;
@@ -11,6 +7,13 @@ use abstract_staking_standard::msg::{
     ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
 };
 use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo};
+
+use crate::{
+    adapter::CwStakingAdapter,
+    contract::{CwStakingAdapter as CwStakingContract, StakingResult},
+    resolver::{self, is_over_ibc},
+    CW_STAKING_ADAPTER_ID,
+};
 
 /// Execute staking operation locally or over IBC
 pub fn execute_handler(

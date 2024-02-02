@@ -1,19 +1,25 @@
-use crate::contract::{EtfApp, EtfResult};
-use crate::error::EtfError;
-use crate::msg::EtfExecuteMsg;
-use crate::state::{State, FEE, STATE};
 use abstract_app::state::AppState;
 use abstract_sdk::{
-    core::objects::deposit_info::DepositInfo, core::objects::fee::Fee,
-    core::proxy::AssetsInfoResponse, features::AbstractResponse, *,
+    core::{
+        objects::{deposit_info::DepositInfo, fee::Fee},
+        proxy::AssetsInfoResponse,
+    },
+    features::AbstractResponse,
+    *,
 };
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Uint128,
-    WasmMsg,
+    to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo,
+    QuerierWrapper, StdResult, Uint128, WasmMsg,
 };
-use cosmwasm_std::{QuerierWrapper, StdResult};
 use cw20::{Cw20ExecuteMsg, Cw20QueryMsg, TokenInfoResponse};
 use cw_asset::{Asset, AssetInfo};
+
+use crate::{
+    contract::{EtfApp, EtfResult},
+    error::EtfError,
+    msg::EtfExecuteMsg,
+    state::{State, FEE, STATE},
+};
 
 pub fn execute_handler(
     deps: DepsMut,

@@ -1,11 +1,11 @@
-use crate::msg::CalendarMigrateMsg;
+use abstract_app::AppContract;
+use cosmwasm_std::Response;
+
 use crate::{
     error::CalendarError,
     handlers,
-    msg::{CalendarExecuteMsg, CalendarInstantiateMsg, CalendarQueryMsg},
+    msg::{CalendarExecuteMsg, CalendarInstantiateMsg, CalendarMigrateMsg, CalendarQueryMsg},
 };
-use abstract_app::AppContract;
-use cosmwasm_std::Response;
 
 /// The version of your app
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -1,9 +1,9 @@
-use abstract_core::module_factory::FactoryModuleInstallConfig;
-use abstract_core::{module_factory, objects::module::ModuleInfo};
+use abstract_core::{
+    module_factory, module_factory::FactoryModuleInstallConfig, objects::module::ModuleInfo,
+};
 use abstract_interface::*;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{Addr, Binary};
-use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 

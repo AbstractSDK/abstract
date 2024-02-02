@@ -1,12 +1,13 @@
-use crate::{
-    state::{AppContract, ContractError},
-    AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
-};
 use abstract_core::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
 use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
+
+use crate::{
+    state::{AppContract, ContractError},
+    AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
+};
 
 impl<
         Error: From<cosmwasm_std::StdError>
@@ -117,22 +118,21 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use super::ExecuteMsg as SuperExecuteMsg;
-    use crate::mock::*;
-    use crate::AppError;
     use abstract_core::app::BaseExecuteMsg;
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::Response;
-    use cosmwasm_std::{Addr, DepsMut};
+    use cosmwasm_std::{Addr, DepsMut, Response};
     use cw_controllers::AdminError;
     use speculoos::prelude::*;
+
+    use super::ExecuteMsg as SuperExecuteMsg;
+    use crate::{mock::*, AppError};
 
     type AppExecuteMsg = SuperExecuteMsg<MockExecMsg, MockReceiveMsg>;
 
     fn execute_as(deps: DepsMut, sender: &str, msg: AppExecuteMsg) -> Result<Response, MockError> {
         let info = mock_info(sender, &[]);
-        MOCK_APP.execute(deps, mock_env(), info, msg)
+        MOCK_APP_WITH_DEP.execute(deps, mock_env(), info, msg)
     }
 
     fn execute_as_manager(deps: DepsMut, msg: AppExecuteMsg) -> Result<Response, MockError> {
@@ -187,7 +187,7 @@ mod test {
                 res
             });
 
-            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+            let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
             assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
             assert_that!(state.version_control.address)
@@ -212,7 +212,7 @@ mod test {
                 res
             });
 
-            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+            let state = MOCK_APP_WITH_DEP.base_state.load(deps.as_ref().storage)?;
 
             assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
             assert_that!(state.version_control.address)

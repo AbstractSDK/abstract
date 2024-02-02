@@ -1,9 +1,7 @@
-use crate::{
-    AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
+use abstract_core::{
+    objects::{dependency::StaticDependency, nested_admin::NestedAdmin},
+    AbstractError,
 };
-use abstract_core::objects::{dependency::StaticDependency, nested_admin::NestedAdmin};
-use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,
     feature_objects::{AnsHost, VersionControlContract},
@@ -14,6 +12,11 @@ use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::{
+    AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
+};
 
 pub trait ContractError:
     From<cosmwasm_std::StdError>

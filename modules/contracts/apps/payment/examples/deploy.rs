@@ -1,10 +1,9 @@
+use abstract_interface::{AppDeployer, DeployStrategy};
 use cw_orch::{
     anyhow,
     prelude::{networks::parse_network, DaemonBuilder},
     tokio::runtime::Runtime,
 };
-
-use abstract_interface::{AppDeployer, DeployStrategy};
 use payment_app::{contract::APP_ID, PaymentAppInterface};
 use semver::Version;
 

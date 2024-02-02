@@ -1,18 +1,18 @@
 use std::collections::HashMap;
 
-use crate::contract::{CroncatApp, CroncatResult};
-use crate::msg::{ActiveTasksByCreatorResponse, ActiveTasksResponse, AppQueryMsg, ConfigResponse};
-use crate::state::{ACTIVE_TASKS, CONFIG};
-use crate::utils::factory_addr;
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, QuerierWrapper, StdResult};
-use croncat_integration_utils::task_creation::get_croncat_contract;
-use croncat_integration_utils::{MANAGER_NAME, TASKS_NAME};
-use croncat_sdk_manager::msg::ManagerQueryMsg;
-use croncat_sdk_manager::types::TaskBalanceResponse;
-use croncat_sdk_tasks::msg::TasksQueryMsg;
-use croncat_sdk_tasks::types::TaskResponse;
+use croncat_integration_utils::{task_creation::get_croncat_contract, MANAGER_NAME, TASKS_NAME};
+use croncat_sdk_manager::{msg::ManagerQueryMsg, types::TaskBalanceResponse};
+use croncat_sdk_tasks::{msg::TasksQueryMsg, types::TaskResponse};
 use cw_storage_plus::Bound;
+
+use crate::{
+    contract::{CroncatApp, CroncatResult},
+    msg::{ActiveTasksByCreatorResponse, ActiveTasksResponse, AppQueryMsg, ConfigResponse},
+    state::{ACTIVE_TASKS, CONFIG},
+    utils::factory_addr,
+};
 
 pub const DEFAULT_LIMIT: u32 = 50;
 

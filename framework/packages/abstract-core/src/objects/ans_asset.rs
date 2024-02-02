@@ -1,8 +1,10 @@
-use super::AssetEntry;
+use std::fmt;
+
 use cosmwasm_std::Uint128;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::fmt;
+
+use super::AssetEntry;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct AnsAsset {
@@ -27,8 +29,9 @@ impl fmt::Display for AnsAsset {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use speculoos::prelude::*;
+
+    use super::*;
 
     #[test]
     fn test_new() {

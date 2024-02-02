@@ -130,6 +130,6 @@ publish-schemas namespace name version: schema
 run-script script +CHAINS:
   cargo run --example {{script}} -- --network-ids {{CHAINS}}
 
-deploy +CHAINS:
-  just run-script deploy {{CHAINS}}
+publish +CHAINS:
+  just run-script publish {{CHAINS}}
   

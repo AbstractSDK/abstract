@@ -16,8 +16,7 @@ use calendar_app::{
 use cosmwasm_std::Uint128;
 use cw_orch::{
     anyhow,
-    deploy::Deploy,
-    prelude::{networks::LOCAL_JUNO, Daemon, TxHandler},
+    prelude::{networks::LOCAL_JUNO, *},
     tokio::runtime::Runtime,
 };
 use semver::Version;

@@ -12,7 +12,7 @@
 //!
 //! ```
 //! # use abstract_client::AbstractClientError;
-//! use abstract_app::mock::interface::MockAppI;
+//! use abstract_app::mock::interface::MockAppWithDepI;
 //! use cw_orch::prelude::*;
 //! use abstract_client::{AbstractClient, Publisher, Namespace};
 //!
@@ -24,17 +24,14 @@
 //!     .publisher_builder(namespace)
 //!     .build()?;
 //!
-//! publisher.publish_app::<MockAppI<Mock>>()?;
+//! publisher.publish_app::<MockAppWithDepI<Mock>>()?;
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
-use abstract_core::objects::namespace::Namespace;
-use abstract_core::objects::AccountId;
-use abstract_interface::{Abstract, VersionControl};
-use abstract_interface::{AbstractAccount, ManagerQueryFns};
+use abstract_core::objects::{namespace::Namespace, AccountId};
+use abstract_interface::{Abstract, AbstractAccount, AnsHost, ManagerQueryFns, VersionControl};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
-use cw_orch::state::StateInterface;
-use cw_orch::{deploy::Deploy, prelude::CwEnv};
+use cw_orch::prelude::*;
 
 use crate::{
     account::{Account, AccountBuilder},
@@ -88,6 +85,33 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         &self.abstr.version_control
     }
 
+    /// Abstract Name Service contract API
+    ///
+    /// The Abstract Name Service contract is a database contract that stores all asset-related information.
+    /// ```
+    /// # use abstract_client::AbstractClientError;
+    /// use abstract_client::{AbstractClient, ClientResolve};
+    /// use cw_asset::AssetInfo;
+    /// use abstract_app::objects::AssetEntry;
+    /// // For getting version control address
+    /// use cw_orch::prelude::*;
+    ///
+    /// let denom = "test_denom";
+    /// let entry = "denom";
+    /// # let client = AbstractClient::builder(Mock::new(&Addr::unchecked("sender")))
+    /// #     .asset(entry, cw_asset::AssetInfoBase::Native(denom.to_owned()))
+    /// #     .build()?;
+    ///
+    /// let name_service = client.name_service();
+    /// let asset_entry = AssetEntry::new(entry);
+    /// let asset = asset_entry.resolve(name_service)?;
+    /// assert_eq!(asset, AssetInfo::Native(denom.to_owned()));
+    /// # Ok::<(), AbstractClientError>(())
+    /// ```
+    pub fn name_service(&self) -> &AnsHost<Chain> {
+        &self.abstr.ans_host
+    }
+
     /// Return current block info see [`BlockInfo`].
     pub fn block_info(&self) -> AbstractClientResult<BlockInfo> {
         self.environment()
@@ -95,7 +119,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(|e| AbstractClientError::CwOrch(e.into()))
     }
 
-    /// Publisher builder for creating new [`Publisher`] Abstract Account
+    /// Publisher builder for creating new [`Publisher`](crate::Publisher) Abstract Account
     /// To publish any modules your account requires to have claimed a namespace.
     pub fn publisher_builder(&self, namespace: Namespace) -> PublisherBuilder<Chain> {
         PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)
@@ -119,6 +143,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ) -> AbstractClientResult<Uint128> {
         let coins = self
             .environment()
+            .bank_querier()
             .balance(address, Some(denom.into()))
             .map_err(Into::into)?;
         // There will always be a single element in this case.
@@ -128,6 +153,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Retrieve balances of all denoms for provided address
     pub fn query_balances(&self, address: &Addr) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
+            .bank_querier()
             .balance(address, None)
             .map_err(Into::into)
             .map_err(Into::into)

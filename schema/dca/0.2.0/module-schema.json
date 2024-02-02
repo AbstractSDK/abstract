@@ -374,7 +374,7 @@
     "description": "DCA query messages",
     "oneOf": [
       {
-        "description": "Get config of the DCA app",
+        "description": "Get config of the DCA app Returns [`ConfigResponse`]",
         "type": "object",
         "required": [
           "config"
@@ -388,7 +388,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get DCA Entry",
+        "description": "Get DCA Entry Returns [`DCAResponse`]",
         "type": "object",
         "required": [
           "d_c_a"

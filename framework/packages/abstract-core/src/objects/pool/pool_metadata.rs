@@ -1,12 +1,14 @@
-use crate::{
-    constants::{ASSET_DELIMITER, ATTRIBUTE_DELIMITER, TYPE_DELIMITER},
-    objects::{pool_type::PoolType, AssetEntry},
-};
+use std::{fmt, str::FromStr};
+
 use cosmwasm_std::StdError;
 use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{fmt, str::FromStr};
+
+use crate::{
+    constants::{ASSET_DELIMITER, ATTRIBUTE_DELIMITER, TYPE_DELIMITER},
+    objects::{pool_type::PoolType, AssetEntry},
+};
 
 type DexName = String;
 
@@ -115,8 +117,9 @@ impl fmt::Display for PoolMetadata {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use speculoos::prelude::*;
+
+    use super::*;
 
     mod implementation {
         use super::*;

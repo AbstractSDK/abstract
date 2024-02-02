@@ -1,19 +1,22 @@
 #![warn(missing_docs)]
 //! Message types for the challenge app
+use abstract_app::{
+    abstract_core::objects::{
+        voting::{ProposalId, ProposalInfo, Vote, VoteConfig},
+        AccountId, AssetEntry,
+    },
+    abstract_sdk::{AbstractSdkResult, AccountVerification},
+};
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Addr, Deps, StdResult, Timestamp, Uint64};
+use cw_address_like::AddressLike;
+
 use crate::{
     contract::ChallengeApp,
     state::{
         AdminStrikes, ChallengeEntry, ChallengeEntryUpdate, StrikeStrategy, UpdateFriendsOpKind,
     },
 };
-use abstract_app::abstract_core::objects::{
-    voting::{ProposalId, ProposalInfo, Vote, VoteConfig},
-    AccountId, AssetEntry,
-};
-use abstract_app::abstract_sdk::{AbstractSdkResult, AccountVerification};
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Deps, StdResult, Timestamp, Uint64};
-use cw_address_like::AddressLike;
 
 abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
 
@@ -86,12 +89,14 @@ pub enum ChallengeExecuteMsg {
 #[derive(QueryResponses)]
 pub enum ChallengeQueryMsg {
     /// Get challenge info, will return null if there was no challenge by Id
+    /// Returns [`ChallengeResponse`]
     #[returns(ChallengeResponse)]
     Challenge {
         /// Id of requested challenge
         challenge_id: u64,
     },
     /// Get list of challenges
+    /// Returns [`ChallengesResponse`]
     #[returns(ChallengesResponse)]
     Challenges {
         /// start after challenge Id
@@ -100,12 +105,14 @@ pub enum ChallengeQueryMsg {
         limit: Option<u64>,
     },
     /// List of friends by Id
+    /// Returns [`FriendsResponse`]
     #[returns(FriendsResponse)]
     Friends {
         /// Id of requested challenge
         challenge_id: u64,
     },
     /// Get vote of friend
+    /// Returns [`VoteResponse`]
     #[returns(VoteResponse)]
     Vote {
         /// Addr of the friend
@@ -117,6 +124,7 @@ pub enum ChallengeQueryMsg {
         proposal_id: Option<u64>,
     },
     /// Get votes of challenge
+    /// Returns [`VotesResponse`]
     #[returns(VotesResponse)]
     Votes {
         /// Id of requested challenge
@@ -130,6 +138,7 @@ pub enum ChallengeQueryMsg {
         limit: Option<u64>,
     },
     /// Get results of previous votes for this challenge
+    /// Returns [`ProposalsResponse`]
     #[returns(ProposalsResponse)]
     Proposals {
         /// Challenge Id for previous votes

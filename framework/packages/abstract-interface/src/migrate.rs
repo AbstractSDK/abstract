@@ -1,6 +1,7 @@
-use crate::Abstract;
 use abstract_core::{account_factory, ans_host, module_factory, version_control};
 use cw_orch::prelude::*;
+
+use crate::Abstract;
 
 impl<T: CwEnv> Abstract<T> {
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.

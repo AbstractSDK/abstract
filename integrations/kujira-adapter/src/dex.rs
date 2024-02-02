@@ -1,6 +1,6 @@
-use crate::AVAILABLE_CHAINS;
-use crate::KUJIRA;
 use abstract_dex_standard::Identify;
+
+use crate::{AVAILABLE_CHAINS, KUJIRA};
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -323,29 +323,19 @@ pub fn decimal2decimal256(dec_value: Decimal) -> StdResult<Decimal256> {
 
 #[cfg(test)]
 mod tests {
-    use abstract_dex_standard::tests::expect_eq;
-    use cosmwasm_schema::serde::Deserialize;
-    use cosmwasm_std::Coin;
-    use cosmwasm_std::Decimal256;
+    use std::{assert_eq, str::FromStr};
 
-    use cosmwasm_std::coin;
-    use cosmwasm_std::from_json;
-    use cosmwasm_std::CosmosMsg;
-    use cosmwasm_std::WasmMsg;
-    use kujira::bow;
-    use kujira::fin;
-
-    use super::decimal2decimal256;
-    use super::Kujira;
-    use abstract_dex_standard::tests::DexCommandTester;
+    use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
     use abstract_sdk::core::objects::PoolAddress;
-    use cosmwasm_std::coins;
-    use cosmwasm_std::Decimal;
-    use cosmwasm_std::{wasm_execute, Addr};
+    use cosmwasm_schema::serde::Deserialize;
+    use cosmwasm_std::{
+        coin, coins, from_json, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, WasmMsg,
+    };
     use cw_asset::{Asset, AssetInfo};
     use cw_orch::daemon::networks::HARPOON_4;
-    use std::assert_eq;
-    use std::str::FromStr;
+    use kujira::{bow, fin};
+
+    use super::{decimal2decimal256, Kujira};
 
     fn create_setup() -> DexCommandTester {
         DexCommandTester::new(HARPOON_4.into(), Kujira {})

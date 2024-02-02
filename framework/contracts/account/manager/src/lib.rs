@@ -7,13 +7,14 @@ mod versioning;
 
 #[cfg(test)]
 mod test_common {
-    use crate::contract::ManagerResult;
     use abstract_core::{
         manager,
         objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId},
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, DepsMut};
+
+    use crate::contract::ManagerResult;
 
     /// Initialize the manager with the test owner as the owner
     pub(crate) fn mock_init(mut deps: DepsMut) -> ManagerResult {

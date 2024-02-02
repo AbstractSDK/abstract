@@ -1,4 +1,3 @@
-use crate::{commands, error::ModuleFactoryError, state::*};
 use abstract_core::objects::{
     module::{ModuleInfo, Monetization},
     module_version::assert_contract_upgrade,
@@ -13,6 +12,8 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use semver::Version;
+
+use crate::{commands, error::ModuleFactoryError, state::*};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -137,16 +138,17 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ModuleFactoryResul
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::contract;
-    use crate::test_common::*;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
+    use super::*;
+    use crate::{contract, test_common::*};
+
     mod migrate {
-        use super::*;
         use abstract_core::AbstractError;
         use cw2::get_contract_version;
+
+        use super::*;
 
         #[test]
         fn disallow_same_version() -> ModuleFactoryResult<()> {

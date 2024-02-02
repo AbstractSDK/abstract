@@ -1,8 +1,8 @@
-use crate::AVAILABLE_CHAINS;
-use crate::OSMOSIS;
 use abstract_sdk::core::objects::version_control::VersionControlContract;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
+
+use crate::{AVAILABLE_CHAINS, OSMOSIS};
 
 #[derive(Default)]
 pub struct Osmosis {
@@ -27,35 +27,38 @@ impl Identify for Osmosis {
 
 #[cfg(feature = "full_integration")]
 pub mod fns {
-    use abstract_sdk::features::AbstractRegistryAccess;
-    use abstract_sdk::AbstractSdkError;
-    use abstract_staking_standard::msg::{
-        Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
-        UnbondingResponse,
-    };
-    use cw_utils::Expiration;
-    use osmosis_std::types::osmosis::lockup::{LockupQuerier, MsgBeginUnlockingAll};
     use std::str::FromStr;
 
-    use abstract_sdk::core::objects::ans_host::AnsHost;
-    use abstract_sdk::core::objects::{
-        AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference, PoolType,
+    use abstract_sdk::{
+        core::objects::{
+            ans_host::AnsHost, AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference, PoolType,
+        },
+        features::AbstractRegistryAccess,
+        AbstractSdkError,
     };
 
-    use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
-
-    use abstract_staking_standard::{CwStakingCommand, CwStakingError};
-    use cosmwasm_std::{Coin, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128};
-    use cw_asset::AssetInfoBase;
-
-    use super::*;
+    use abstract_staking_standard::{
+        msg::{
+            Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
+            UnbondingResponse,
+        },
+        CwStakingCommand, CwStakingError,
+    };
     // const FORTEEN_DAYS: i64 = 60 * 60 * 24 * 14;
     use cosmwasm_std::Env;
+    use cosmwasm_std::{Coin, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128};
+    use cw_asset::AssetInfoBase;
+    use cw_utils::Expiration;
     use osmosis_std::{
         shim::Duration,
-        types::osmosis::gamm::v1beta1::Pool,
-        types::{osmosis::lockup::MsgBeginUnlocking, osmosis::lockup::MsgLockTokens},
+        types::osmosis::{
+            gamm::v1beta1::Pool,
+            lockup::{LockupQuerier, MsgBeginUnlocking, MsgBeginUnlockingAll, MsgLockTokens},
+            poolmanager::v1beta1::PoolmanagerQuerier,
+        },
     };
+
+    use super::*;
 
     fn to_osmo_duration(dur: Option<cw_utils::Duration>) -> Result<Option<Duration>, StdError> {
         if let Some(dur) = dur {

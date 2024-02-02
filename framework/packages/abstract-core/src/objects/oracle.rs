@@ -5,13 +5,12 @@ use cosmwasm_std::{Addr, Deps, DepsMut, Order, StdError, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
 use cw_storage_plus::{Bound, Map};
 
-use crate::AbstractResult;
-
 use super::{
     ans_host::AnsHost,
     price_source::{AssetConversion, PriceSource, UncheckedPriceSource},
     AssetEntry,
 };
+use crate::AbstractResult;
 
 pub type Complexity = u8;
 
@@ -521,19 +520,12 @@ pub struct AccountValue {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::prelude::*;
-    use abstract_testing::MockAnsHost;
-    use cosmwasm_std::coin;
-    use cosmwasm_std::testing::*;
-    use cosmwasm_std::Addr;
-
-    use cosmwasm_std::Decimal;
-
+    use abstract_testing::{prelude::*, MockAnsHost};
+    use cosmwasm_std::{coin, testing::*, Addr, Decimal};
     use speculoos::prelude::*;
 
-    use crate::objects::DexAssetPairing;
-
     use super::*;
+    use crate::objects::DexAssetPairing;
     type AResult = anyhow::Result<()>;
 
     pub fn get_ans() -> AnsHost {

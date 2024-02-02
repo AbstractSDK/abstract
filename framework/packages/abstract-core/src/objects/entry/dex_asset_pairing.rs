@@ -1,12 +1,14 @@
-use crate::{
-    constants::{ASSET_DELIMITER, TYPE_DELIMITER},
-    objects::AssetEntry,
-};
+use std::{convert::TryInto, fmt::Display};
+
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{convert::TryInto, fmt::Display};
+
+use crate::{
+    constants::{ASSET_DELIMITER, TYPE_DELIMITER},
+    objects::AssetEntry,
+};
 
 type DexName = String;
 
@@ -102,10 +104,11 @@ impl KeyDeserialize for &DexAssetPairing {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::objects::{AnsEntryConvertor, LpToken, PoolReference, UniquePoolId};
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
+
+    use super::*;
+    use crate::objects::{AnsEntryConvertor, LpToken, PoolReference, UniquePoolId};
 
     fn mock_key() -> DexAssetPairing {
         DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap")

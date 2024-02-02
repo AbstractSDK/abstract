@@ -44,8 +44,10 @@ pub enum AppExecuteMsg {
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
 pub enum AppQueryMsg {
+    /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
+    /// Returns [`TipperResponse`]
     #[returns(TipperResponse)]
     Tipper {
         address: String,
@@ -53,8 +55,10 @@ pub enum AppQueryMsg {
         limit: Option<u32>,
         at_height: Option<u64>,
     },
+    /// Returns [`TipCountResponse`]
     #[returns(TipCountResponse)]
     TipCount {},
+    /// Returns [`TippersCountResponse`]
     #[returns(TippersCountResponse)]
     ListTippersCount {
         start_after: Option<String>,

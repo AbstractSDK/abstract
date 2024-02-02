@@ -1,12 +1,13 @@
-use crate::msg::QueryMsg;
-use abstract_app::abstract_core::objects::{
-    gov_type::GovernanceDetails,
-    module::{ModuleInfo, ModuleVersion},
-    voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
-    AssetEntry,
+use abstract_app::{
+    abstract_core::objects::{
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion},
+        voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
+        AssetEntry,
+    },
+    abstract_interface::{Abstract, AbstractAccount, AppDeployer, *},
+    abstract_testing::OWNER,
 };
-use abstract_app::abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
-use abstract_app::abstract_testing::OWNER;
 use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     error::AppError,
@@ -20,8 +21,10 @@ use challenge_app::{
 };
 use cosmwasm_std::{coin, Uint128, Uint64};
 use cw_asset::AssetInfo;
-use cw_orch::{anyhow, deploy::Deploy, prelude::*};
+use cw_orch::{anyhow, prelude::*};
 use lazy_static::lazy_static;
+
+use crate::msg::QueryMsg;
 
 const DENOM: &str = "TOKEN";
 const FIRST_CHALLENGE_ID: u64 = 1;
@@ -136,7 +139,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
 
     challenge_app.set_sender(&account.manager.address()?);
     mock.set_balance(
-        &account.proxy.address()?,
+        account.proxy.address()?,
         vec![coin(50_000_000, DENOM), coin(10_000, "eur")],
     )?;
 
@@ -479,7 +482,7 @@ fn test_not_charge_penalty_for_voting_false() -> anyhow::Result<()> {
         )]
     );
 
-    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let balance = mock.query_balance(account.proxy.address()?, DENOM)?;
     // if no one voted true, no penalty should be charged, so balance will be 50_000_000
     assert_eq!(balance, Uint128::new(INITIAL_BALANCE));
     Ok(())
@@ -515,7 +518,7 @@ fn test_charge_penalty_for_voting_true() -> anyhow::Result<()> {
     ];
     run_challenge_vote_sequence(&mock, &apps, votes)?;
 
-    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let balance = mock.query_balance(account.proxy.address()?, DENOM)?;
     // Initial balance - strike
     assert_eq!(balance, Uint128::new(INITIAL_BALANCE - 30_000_000));
     Ok(())
@@ -605,7 +608,7 @@ fn test_vetoed() -> anyhow::Result<()> {
     assert_eq!(status, ProposalStatus::Finished(ProposalOutcome::Vetoed));
 
     // balance unchanged
-    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let balance = mock.query_balance(account.proxy.address()?, DENOM)?;
     assert_eq!(balance, Uint128::new(INITIAL_BALANCE));
     Ok(())
 }
@@ -664,7 +667,7 @@ fn test_veto_expired() -> anyhow::Result<()> {
     );
 
     // balance updated
-    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let balance = mock.query_balance(account.proxy.address()?, DENOM)?;
     assert_eq!(balance, Uint128::new(INITIAL_BALANCE - 30_000_000));
     Ok(())
 }

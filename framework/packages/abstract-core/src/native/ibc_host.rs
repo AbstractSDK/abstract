@@ -7,20 +7,20 @@
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the Account.
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Addr;
+
 use crate::{
     manager,
     manager::ModuleInstallConfig,
     objects::{account::AccountId, chain_name::ChainName, AssetEntry},
 };
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
 
 pub mod state {
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
-
     use super::*;
+    use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 
     /// Maps a chain name to the proxy it uses to interact on this local chain
     pub const CHAIN_PROXIES: Map<&ChainName, Addr> = Map::new("ccl");
@@ -134,20 +134,22 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
+    /// Queries the ownership of the ibc client contract
+    /// Returns [`cw_ownable::Ownership<Addr>`]
     #[returns(cw_ownable::Ownership<Addr> )]
     Ownership {},
     /// Returns [`ConfigResponse`].
     #[returns(ConfigResponse)]
     Config {},
-    /// Returns [`ClientProxiesResponse`].
     /// Lists all the polytone proxy contracts and their respective client chain registered with the host.
+    /// Returns [`ClientProxiesResponse`].
     #[returns(ClientProxiesResponse)]
     ClientProxies {
         start_after: Option<String>,
         limit: Option<u32>,
     },
-    /// Returns [`ClientProxyResponse`].
     /// Returns the polytone proxy contract address for a specific client chain.
+    /// Returns [`ClientProxyResponse`].
     #[returns(ClientProxyResponse)]
     ClientProxy { chain: String },
 }

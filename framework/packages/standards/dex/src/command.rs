@@ -1,12 +1,15 @@
 use std::error::Error;
 
-use crate::error::DexError;
 use abstract_adapter_utils::identity::Identify;
 use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference, UniquePoolId};
-use abstract_sdk::core::objects::AssetEntry;
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::{
+    core::objects::AssetEntry,
+    feature_objects::{AnsHost, VersionControlContract},
+};
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
+
+use crate::error::DexError;
 
 pub type Return = Uint128;
 pub type Spread = Uint128;

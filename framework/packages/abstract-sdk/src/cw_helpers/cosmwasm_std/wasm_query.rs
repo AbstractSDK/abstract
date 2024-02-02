@@ -49,9 +49,10 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use cosmwasm_std::Empty;
     use cw_storage_plus::Path;
+
+    use super::*;
 
     #[test]
     fn test_wasm_raw_query() {

@@ -29,7 +29,7 @@ pub mod state {
         pub ibc_host: Option<Addr>,
     }
 
-    /// Account Factory context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
+    /// Account Factory context for post-[`crate::manager`] [`crate::proxy`] creation
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
         pub account_base: AccountBase,
@@ -113,6 +113,7 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
+    /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
 }

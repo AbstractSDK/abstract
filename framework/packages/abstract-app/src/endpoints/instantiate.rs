@@ -1,7 +1,3 @@
-use crate::{
-    state::{AppContract, AppState, ContractError},
-    Handler, InstantiateEndpoint,
-};
 use abstract_core::{
     app::{BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
@@ -11,6 +7,11 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Serialize};
+
+use crate::{
+    state::{AppContract, AppState, ContractError},
+    Handler, InstantiateEndpoint,
+};
 
 impl<
         Error: ContractError,
@@ -75,17 +76,16 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use super::InstantiateMsg as SuperInstantiateMsg;
-    use crate::mock::*;
     use abstract_core::app::BaseInstantiateMsg;
     use abstract_sdk::base::InstantiateEndpoint;
-    use speculoos::prelude::*;
-
     use abstract_testing::{
         addresses::test_account_base,
         prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL},
     };
-    use speculoos::assert_that;
+    use speculoos::{assert_that, prelude::*};
+
+    use super::InstantiateMsg as SuperInstantiateMsg;
+    use crate::mock::*;
 
     #[test]
     fn test_instantiate() {
@@ -103,7 +103,7 @@ mod test {
             module: MockInitMsg {},
         };
 
-        let res = MOCK_APP
+        let res = MOCK_APP_WITH_DEP
             .instantiate(deps.as_mut(), mock_env(), info, msg)
             .unwrap();
         assert_that!(res.messages).is_empty();

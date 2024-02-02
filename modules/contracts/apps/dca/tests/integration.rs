@@ -1,36 +1,31 @@
 mod common;
 use std::cell::RefMut;
 
-use abstract_client::AbstractClient;
-use abstract_client::Account;
-use abstract_core::objects::ans_host::AnsHostError;
-use abstract_core::objects::DexAssetPairing;
-use abstract_core::objects::{
-    dependency::DependencyResponse, module_version::ModuleDataResponse, AccountId, AssetEntry,
-    PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
+use abstract_client::{AbstractClient, Account};
+use abstract_core::{
+    app::BaseQueryMsgFns,
+    objects::{
+        ans_host::AnsHostError, dependency::DependencyResponse, gov_type::GovernanceDetails,
+        module_version::ModuleDataResponse, AccountId, AssetEntry, DexAssetPairing, PoolAddress,
+        PoolReference, UncheckedContractEntry, UniquePoolId,
+    },
+    AbstractError,
 };
-use abstract_core::AbstractError;
-use abstract_core::{app::BaseQueryMsgFns, objects::gov_type::GovernanceDetails};
-use abstract_dex_adapter::interface::DexAdapter;
-use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
-use abstract_dex_adapter::DEX_ADAPTER_ID;
+use abstract_dex_adapter::{
+    interface::DexAdapter,
+    msg::{DexInstantiateMsg, OfferAsset},
+    DEX_ADAPTER_ID,
+};
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use abstract_sdk::AbstractSdkError;
 use abstract_testing::OWNER;
-use dca_app::msg::{DCAResponse, Frequency};
-use dca_app::state::{DCAEntry, DCAId};
-use dca_app::{
-    contract::{DCA_APP_ID, DCA_APP_VERSION},
-    msg::{AppInstantiateMsg, ConfigResponse},
-    *,
-};
-
 use common::contracts;
-
-use croncat_app::contract::CRONCAT_MODULE_VERSION;
-use croncat_app::{contract::CRONCAT_ID, AppQueryMsgFns, Croncat, CRON_CAT_FACTORY};
-
-use croncat_app::croncat_integration_utils::{AGENTS_NAME, MANAGER_NAME, TASKS_NAME};
+use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, StdError, Uint128};
+use croncat_app::{
+    contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION},
+    croncat_integration_utils::{AGENTS_NAME, MANAGER_NAME, TASKS_NAME},
+    AppQueryMsgFns, Croncat, CRON_CAT_FACTORY,
+};
 use croncat_sdk_agents::msg::InstantiateMsg as AgentsInstantiateMsg;
 use croncat_sdk_factory::msg::{
     ContractMetadataResponse, FactoryInstantiateMsg, FactoryQueryMsg, ModuleInstantiateInfo,
@@ -38,15 +33,17 @@ use croncat_sdk_factory::msg::{
 };
 use croncat_sdk_manager::msg::ManagerInstantiateMsg;
 use croncat_sdk_tasks::msg::TasksInstantiateMsg;
-
 use cw20::Cw20Coin;
-
 use cw_asset::AssetInfo;
 use cw_orch::mock::cw_multi_test::{App, Executor};
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, deploy::Deploy, prelude::*};
-
-use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, StdError, Uint128};
+use cw_orch::{anyhow, prelude::*};
+use dca_app::{
+    contract::{DCA_APP_ID, DCA_APP_VERSION},
+    msg::{AppInstantiateMsg, ConfigResponse, DCAResponse, Frequency},
+    state::{DCAEntry, DCAId},
+    *,
+};
 use wyndex_bundle::{WynDex, EUR, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN};
 
 #[allow(unused)]

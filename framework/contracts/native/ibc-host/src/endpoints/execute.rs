@@ -1,9 +1,5 @@
 use std::str::FromStr;
 
-use crate::{
-    contract::{HostResponse, HostResult},
-    HostError,
-};
 use abstract_core::{
     ibc_host::state::{CHAIN_PROXIES, CONFIG, REVERSE_CHAIN_PROXIES},
     objects::chain_name::ChainName,
@@ -12,6 +8,10 @@ use abstract_sdk::{core::ibc_host::ExecuteMsg, feature_objects::VersionControlCo
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
 use super::packet::handle_host_action;
+use crate::{
+    contract::{HostResponse, HostResult},
+    HostError,
+};
 
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> HostResult {
     match msg {

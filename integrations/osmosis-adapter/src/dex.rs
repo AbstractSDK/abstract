@@ -1,7 +1,8 @@
-use crate::{AVAILABLE_CHAINS, OSMOSIS};
 use abstract_dex_standard::Identify;
 use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::Addr;
+
+use crate::{AVAILABLE_CHAINS, OSMOSIS};
 
 #[derive(Default)]
 pub struct Osmosis {

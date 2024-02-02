@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
+  
+- Added a `.execute` method on the AuthZ API to execute `CosmosMsg` types on behalf of a granter.
+
+### Changed
+
+- Updated UsageFee api to use `Address`, instead of `Api` + unchecked address
+
+### Removed
+
+### Fixed
+
+## [0.20.0] - 2024-01-24
+
+### Added
 
 - `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
 - `Astrovault` integrated into dex and cw-staking adapters
@@ -19,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Query `top_level_owner` for manager and apps(as base query)
 - Support of `ConcentratedLiquidity` pool type for swaps. Stake/unstake currently not supported
 - Account namespace is unclaimed after `Renounce`
+- Resolve trait for `cw-orch` `AnsHost` interface
 
 ### Changed
 

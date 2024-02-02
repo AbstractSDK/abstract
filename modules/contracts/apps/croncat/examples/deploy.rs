@@ -1,15 +1,13 @@
 use abstract_core::objects::gov_type::GovernanceDetails;
-use cw_orch::{
-    anyhow,
-    deploy::Deploy,
-    prelude::{networks::parse_network, DaemonBuilder, TxHandler},
-    tokio::runtime::Runtime,
-};
-
 use abstract_interface::*;
 use croncat_app::{
     contract::{interface::Croncat, CRONCAT_ID},
     msg::AppInstantiateMsg,
+};
+use cw_orch::{
+    anyhow,
+    prelude::{networks::parse_network, *},
+    tokio::runtime::Runtime,
 };
 use dotenv::dotenv;
 use semver::Version;

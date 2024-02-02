@@ -2,36 +2,27 @@
 
 use std::format;
 
-use abstract_core::adapter;
-use abstract_core::ans_host::ExecuteMsgFns;
-use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::pool_id::PoolAddressBase;
-use abstract_core::objects::AnsAsset;
-use abstract_core::objects::AssetEntry;
-use abstract_core::objects::PoolMetadata;
-use abstract_dex_adapter::contract::CONTRACT_VERSION;
-use abstract_dex_adapter::msg::DexInstantiateMsg;
-use abstract_dex_adapter::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use abstract_dex_adapter::DEX_ADAPTER_ID;
-use abstract_dex_standard::msg::DexAction;
-use abstract_dex_standard::msg::DexExecuteMsg;
-use abstract_interface::Abstract;
-use abstract_interface::AbstractAccount;
-use abstract_interface::AbstractInterfaceError;
-use abstract_interface::AccountFactory;
-use abstract_interface::AdapterDeployer;
-use abstract_interface::DeployStrategy;
+use abstract_core::{
+    adapter,
+    ans_host::ExecuteMsgFns,
+    objects::{
+        gov_type::GovernanceDetails, pool_id::PoolAddressBase, AnsAsset, AssetEntry, PoolMetadata,
+    },
+};
+use abstract_dex_adapter::{
+    contract::CONTRACT_VERSION,
+    msg::{DexInstantiateMsg, ExecuteMsg, InstantiateMsg, QueryMsg},
+    DEX_ADAPTER_ID,
+};
+use abstract_dex_standard::msg::{DexAction, DexExecuteMsg};
+use abstract_interface::{
+    Abstract, AbstractAccount, AbstractInterfaceError, AccountFactory, AdapterDeployer,
+    DeployStrategy,
+};
 use abstract_osmosis_adapter::OSMOSIS;
-use cosmwasm_std::coin;
-use cosmwasm_std::Decimal;
-use cosmwasm_std::Uint128;
-use cw_orch::deploy::Deploy;
-use cw_orch::{interface, prelude::*};
-
 use anyhow::Result as AnyResult;
-
-use cosmwasm_std::coins;
-use cw_orch::osmosis_test_tube::OsmosisTestTube;
+use cosmwasm_std::{coin, coins, Decimal, Uint128};
+use cw_orch::{interface, osmosis_test_tube::OsmosisTestTube, prelude::*};
 
 pub fn create_default_account<Chain: CwEnv>(
     factory: &AccountFactory<Chain>,

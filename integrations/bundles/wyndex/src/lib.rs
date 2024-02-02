@@ -1,27 +1,25 @@
 use cw20::msg::Cw20ExecuteMsgFns;
 pub mod suite;
 
-use abstract_interface::AbstractInterfaceError;
-use cw_orch::deploy::Deploy;
 use std::fmt::Debug;
 
-use self::suite::{Suite, SuiteBuilder};
 use abstract_core::{
     ans_host::ExecuteMsgFns,
     objects::{
         pool_id::PoolAddressBase, AssetEntry, LpToken, PoolMetadata, UncheckedContractEntry,
     },
 };
-use abstract_interface::Abstract;
+use abstract_interface::{Abstract, AbstractInterfaceError};
 use cosmwasm_std::{coin, Addr, Decimal, Empty, Uint128};
 use cw20::Cw20Coin;
 use cw_orch::prelude::*;
+use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use wyndex::{
     asset::{AssetInfo, AssetInfoExt},
     factory::{DefaultStakeConfig, PartialStakeConfig},
 };
 
-use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
+use self::suite::{Suite, SuiteBuilder};
 
 pub const STAKING: &str = "wyndex:staking";
 pub const FACTORY: &str = "wyndex:factory";

@@ -7,11 +7,6 @@ use abstract_core::{
     },
     version_control::{ModuleDefaultConfiguration, UpdateModule},
 };
-use cosmwasm_std::{
-    ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
-    QuerierWrapper, StdResult, Storage,
-};
-
 use abstract_sdk::{
     core::{
         objects::{
@@ -24,9 +19,15 @@ use abstract_sdk::{
     },
     cw_helpers::Clearable,
 };
+use cosmwasm_std::{
+    ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
+    QuerierWrapper, StdResult, Storage,
+};
 
-use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
-use crate::error::VCError;
+use crate::{
+    contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE},
+    error::VCError,
+};
 
 /// Add new Account to version control contract
 /// Only Factory can add Account
@@ -603,22 +604,22 @@ pub fn validate_account_owner(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::objects::account::AccountTrace;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{from_json, to_json_binary, Addr, Coin};
+    use abstract_core::{
+        manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
+        objects::account::AccountTrace,
+        version_control::*,
+    };
+    use abstract_testing::{prelude::*, MockQuerierOwnership};
+    use cosmwasm_std::{
+        from_json,
+        testing::{mock_dependencies, mock_env, mock_info},
+        to_json_binary, Addr, Coin,
+    };
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
 
-    use abstract_core::manager::ConfigResponse as ManagerConfigResponse;
-    use abstract_core::version_control::*;
-    use abstract_testing::prelude::*;
-    use abstract_testing::MockQuerierOwnership;
-
-    use crate::contract;
-
     use super::*;
-    use crate::testing::*;
-    use abstract_core::manager::QueryMsg as ManagerQueryMsg;
+    use crate::{contract, testing::*};
 
     type VersionControlTestResult = Result<(), VCError>;
 
@@ -835,11 +836,11 @@ mod test {
     }
 
     mod claim_namespace {
-        use super::*;
         use abstract_core::{objects, AbstractError};
         use cosmwasm_std::{coins, BankMsg, CosmosMsg, SubMsg};
-
         use objects::ABSTRACT_ACCOUNT_ID;
+
+        use super::*;
 
         #[test]
         fn claim_namespaces_by_owner() -> VersionControlTestResult {
@@ -1130,8 +1131,9 @@ mod test {
     }
 
     mod update_namespace_fee {
-        use super::*;
         use cosmwasm_std::Uint128;
+
+        use super::*;
 
         #[test]
         fn only_admin() -> VersionControlTestResult {
@@ -1187,9 +1189,8 @@ mod test {
     }
 
     mod remove_namespaces {
-        use cosmwasm_std::attr;
-
         use abstract_core::objects::module_reference::ModuleReference;
+        use cosmwasm_std::attr;
 
         use super::*;
 
@@ -1341,14 +1342,13 @@ mod test {
     }
 
     mod propose_modules {
-        use super::*;
-
-        use abstract_core::objects::fee::FixedFee;
-        use abstract_core::objects::module::Monetization;
-        use abstract_core::objects::module_reference::ModuleReference;
-        use abstract_core::AbstractError;
+        use abstract_core::{
+            objects::{fee::FixedFee, module::Monetization, module_reference::ModuleReference},
+            AbstractError,
+        };
         use cosmwasm_std::coin;
 
+        use super::*;
         use crate::contract::query;
 
         fn test_module() -> ModuleInfo {

@@ -6,11 +6,12 @@
 //! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  
 pub mod state {
 
-    use crate::objects::module::ModuleInfo;
     use cosmwasm_std::{Addr, Binary};
     use cw_storage_plus::{Item, Map};
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
+
+    use crate::objects::module::ModuleInfo;
 
     #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
     pub struct Config {
@@ -22,9 +23,10 @@ pub mod state {
     pub const MODULE_INIT_BINARIES: Map<&ModuleInfo, Binary> = Map::new("module_init_binaries");
 }
 
-use crate::objects::module::ModuleInfo;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, Coin};
+
+use crate::objects::module::ModuleInfo;
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {

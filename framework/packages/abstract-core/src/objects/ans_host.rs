@@ -1,3 +1,7 @@
+use cosmwasm_std::{Addr, QuerierWrapper};
+use cw_asset::AssetInfo;
+use thiserror::Error;
+
 use super::{AssetEntry, ChannelEntry, ContractEntry};
 use crate::{
     ans_host::{
@@ -9,9 +13,6 @@ use crate::{
     },
     objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId},
 };
-use cosmwasm_std::{Addr, QuerierWrapper};
-use cw_asset::AssetInfo;
-use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AnsHostError {

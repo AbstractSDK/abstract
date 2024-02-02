@@ -1,7 +1,8 @@
-use super::super::Handler;
 use cosmwasm_std::{DepsMut, Env, Response};
 use schemars::JsonSchema;
 use serde::Serialize;
+
+use super::super::Handler;
 
 /// Trait for a contract's Migrate entry point.
 pub trait MigrateEndpoint: Handler {

@@ -38,7 +38,7 @@ fi
 BASE_PACKAGES="abstract-macros"
 UTILS_PACKAGES="abstract-core abstract-testing abstract-sdk"
 CORE_CONTRACTS="manager proxy"
-NATIVE_CONTRACTS="ans-host account-factory module-factory version-control"
+NATIVE_CONTRACTS="ans-host account-factory module-factory version-control ibc-host ibc-client"
 
  for pack in $BASE_PACKAGES; do
    (
@@ -76,7 +76,7 @@ echo "All the contracts are published!"
 
 # Now all the packages and standards
 
-PACKAGES="abstract-interface abstract-adapter abstract-app abstract-ibc-host"
+PACKAGES="abstract-interface abstract-adapter abstract-app abstract-client"
 STANDARDS="utils staking dex"
 
 for pack in $PACKAGES; do

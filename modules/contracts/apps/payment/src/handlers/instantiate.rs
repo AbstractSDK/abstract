@@ -1,10 +1,12 @@
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use crate::contract::{AppResult, PaymentApp};
-use crate::error::AppError;
-use crate::msg::AppInstantiateMsg;
-use crate::state::{Config, CONFIG, TIP_COUNT};
+use crate::{
+    contract::{AppResult, PaymentApp},
+    error::AppError,
+    msg::AppInstantiateMsg,
+    state::{Config, CONFIG, TIP_COUNT},
+};
 
 pub fn instantiate_handler(
     deps: DepsMut,
@@ -17,7 +19,7 @@ pub fn instantiate_handler(
 
     if let Some(asset) = &msg.desired_asset {
         name_service
-            .query(&asset)
+            .query(asset)
             .map_err(|_| AppError::DesiredAssetDoesNotExist {})?;
     }
     let ans_dexes = name_service.registered_dexes()?;

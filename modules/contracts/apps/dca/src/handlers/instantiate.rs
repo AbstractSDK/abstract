@@ -2,10 +2,12 @@ use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw_asset::AssetInfoBase;
 
-use crate::contract::{AppResult, DCAApp};
-use crate::error::DCAError;
-use crate::msg::AppInstantiateMsg;
-use crate::state::{Config, CONFIG, NEXT_ID};
+use crate::{
+    contract::{AppResult, DCAApp},
+    error::DCAError,
+    msg::AppInstantiateMsg,
+    state::{Config, CONFIG, NEXT_ID},
+};
 
 pub fn instantiate_handler(
     deps: DepsMut,

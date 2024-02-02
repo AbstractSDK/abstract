@@ -27,8 +27,8 @@ pub mod addresses {
     pub const TEST_MODULE_FACTORY: &str = "module_factory_address";
     pub const TEST_MODULE_ADDRESS: &str = "test_module_address";
     pub const TEST_MODULE_ID: &str = "tester:test-module-id";
-    pub const TEST_DEPENDENCY_MODULE_ID: &str = "tester-dependency:test-dependent-module-id";
-    pub const TEST_DEPENDENCY_NAMESPACE: &str = "tester-dependency";
+    pub const TEST_WITH_DEP_MODULE_ID: &str = "tester-dependency:test-depending-module-id";
+    pub const TEST_WITH_DEP_NAMESPACE: &str = "tester-dependency";
     pub const TEST_MODULE_NAME: &str = "test-module-id";
     pub const TEST_NAMESPACE: &str = "tester";
 
@@ -59,20 +59,16 @@ pub mod addresses {
 }
 
 pub mod prelude {
-    use super::*;
-
-    pub use super::OWNER;
+    pub use abstract_core::objects::account::TEST_ACCOUNT_ID;
     pub use abstract_mock_querier::{mocked_account_querier_builder, AbstractMockQuerierBuilder};
     pub use addresses::*;
-    pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
-
-    pub use super::MockAnsHost;
-    pub use super::MockDeps;
-    pub use abstract_core::objects::account::TEST_ACCOUNT_ID;
-
     pub use cosmwasm_std::{
         from_json,
         testing::{MockApi as CwMockApi, MockQuerier, MockStorage},
         to_json_binary,
     };
+    pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
+
+    use super::*;
+    pub use super::{MockAnsHost, MockDeps, OWNER};
 }

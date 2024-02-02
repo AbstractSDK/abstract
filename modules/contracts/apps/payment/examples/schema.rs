@@ -1,7 +1,7 @@
+use std::{env::current_dir, fs::create_dir_all};
+
 use cosmwasm_schema::remove_schemas;
 use payment_app::contract::PaymentApp;
-use std::env::current_dir;
-use std::fs::create_dir_all;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

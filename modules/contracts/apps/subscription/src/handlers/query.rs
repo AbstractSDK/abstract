@@ -1,4 +1,3 @@
-use crate::{msg::SubscribersResponse, state::INCOME_TWA};
 use abstract_core::objects::voting::DEFAULT_LIMIT;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult, Uint128};
 use cw_asset::Asset;
@@ -6,8 +5,13 @@ use cw_storage_plus::Bound;
 
 use crate::{
     contract::{SubscriptionApp, SubscriptionResult},
-    msg::{StateResponse, SubscriberResponse, SubscriptionFeeResponse, SubscriptionQueryMsg},
-    state::{EXPIRED_SUBSCRIBERS, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE},
+    msg::{
+        StateResponse, SubscriberResponse, SubscribersResponse, SubscriptionFeeResponse,
+        SubscriptionQueryMsg,
+    },
+    state::{
+        EXPIRED_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
+    },
 };
 
 pub fn query_handler(

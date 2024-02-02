@@ -1,15 +1,12 @@
 use abstract_core::version_control::AccountBase;
-use abstract_staking_standard::msg::StakingAction;
-use abstract_staking_standard::CwStakingError;
-use cosmwasm_std::{DepsMut, Env, SubMsg};
-
-use abstract_staking_standard::CwStakingCommand;
 
 use abstract_sdk::{
     core::objects::AssetEntry,
     features::{AbstractNameService, AbstractRegistryAccess},
     Execution,
 };
+use abstract_staking_standard::{msg::StakingAction, CwStakingCommand, CwStakingError};
+use cosmwasm_std::{DepsMut, Env, SubMsg};
 
 impl<T> CwStakingAdapter for T where T: AbstractNameService + AbstractRegistryAccess + Execution {}
 

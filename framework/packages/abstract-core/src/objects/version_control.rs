@@ -1,18 +1,17 @@
 use cosmwasm_std::{Addr, QuerierWrapper};
 use thiserror::Error;
 
-use crate::version_control::{
-    state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, STANDALONE_INFOS},
-    AccountBase, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
-    NamespacesResponse, QueryMsg,
-};
-
 use super::{
     account::ACCOUNT_ID,
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,
     namespace::Namespace,
     AccountId,
+};
+use crate::version_control::{
+    state::{ACCOUNT_ADDRESSES, CONFIG, REGISTERED_MODULES, STANDALONE_INFOS},
+    AccountBase, ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse,
+    NamespacesResponse, QueryMsg,
 };
 
 #[derive(Error, Debug, PartialEq)]
@@ -51,7 +50,8 @@ pub enum VersionControlError {
 pub type VersionControlResult<T> = Result<T, VersionControlError>;
 
 /// Store the Version Control contract.
-/// Implements [`AbstractRegistryAccess`]
+#[allow(rustdoc::broken_intra_doc_links)]
+/// Implements [`AbstractRegistryAccess`] (defined in abstract-sdk)
 #[cosmwasm_schema::cw_serde]
 pub struct VersionControlContract {
     /// Address of the version control contract
