@@ -113,7 +113,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 
     /// Get the underlying [`Abstract`] infrastructure interface.
-    /// 
+    ///
     /// The returned object is a low-level interface to the Abstract deployment and contains all the contract interfaces that are used by the Abstract client.
     /// You can use this to do more advanced operations that are not directly supported by the Abstract client.
     pub fn abstract_interface(&self) -> &Abstract<Chain> {
