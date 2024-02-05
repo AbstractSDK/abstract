@@ -1,6 +1,6 @@
 use abstract_core::objects::module::ModuleInfo;
 use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
-use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg};
 use abstract_interface::*;
 use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
 use clap::Parser;
@@ -27,33 +27,29 @@ fn full_deploy() -> anyhow::Result<()> {
         .collect();
 
     for mut network in networks {
-        if network.chain_id == "uni-6" {
+        if network.chain_id == "uni-6" || network.chain_id == "osmosis-1"{
             continue;
         } else if network.chain_id == "neutron-1" {
             network.gas_price = 0.075;
         }
-
-        network = OSMOSIS_1;
 
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
             .chain(network.clone())
             .build()?;
 
-        DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).deploy(
-            abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
-            DexInstantiateMsg {
-                recipient_account: 0,
-                swap_fee: Decimal::permille(3),
-            },
+        let abstr = Abstract::load_from(chain.clone())?;
+
+        CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone()).deploy(
+            abstract_cw_staking::contract::CONTRACT_VERSION.parse()?,
+            Empty {  },
             DeployStrategy::Try,
         )?;
 
-        let abstr = Abstract::load_from(chain.clone())?;
         // yank 0.20
         abstr
             .version_control
-            .yank_module(ModuleInfo::from_id(DEX_ADAPTER_ID, "0.20.0".into())?);
+            .yank_module(ModuleInfo::from_id(CW_STAKING_ADAPTER_ID, "0.20.0".into())?);
         // approve 0.20.1
         abstr.version_control.approve_any_abstract_modules()?;
     }
