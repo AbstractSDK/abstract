@@ -397,9 +397,6 @@ impl<Chain: CwEnv> Account<Chain> {
     where
         M: ContractInstance<Chain>
             + ExecutableContract
-            + DependencyCreation
-            + InstallConfig
-            + From<Contract<Chain>>
             + Clone,
     {
         self.abstr_account
