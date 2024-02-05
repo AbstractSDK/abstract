@@ -1058,9 +1058,9 @@ checksum = "7f30e7476521f6f8af1a1c4c0b8cc94f0bee37d91763d0ca2665f299b6cd8aec"
 
 [[package]]
 name = "bytecheck"
-version = "0.6.11"
+version = "0.6.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b6372023ac861f6e6dc89c8344a8f398fb42aaba2b5dbc649ca0c0e9dbcb627"
+checksum = "23cdc57ce23ac53c931e88a43d06d070a6fd142f2617be5855eb75efc9beb1c2"
 dependencies = [
  "bytecheck_derive",
  "ptr_meta",
@@ -1069,9 +1069,9 @@ dependencies = [
 
 [[package]]
 name = "bytecheck_derive"
-version = "0.6.11"
+version = "0.6.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7ec4c6f261935ad534c0c22dbef2201b45918860eb1c574b972bd213a76af61"
+checksum = "3db406d29fbcd95542e92559bed4d8ad92636d1ca8b3b72ede10b4bcc010e659"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1902,7 +1902,7 @@ dependencies = [
  "cosmrs 0.15.0",
  "cosmwasm-std",
  "cw-orch-contract-derive",
- "cw-orch-core 0.19.2",
+ "cw-orch-core 0.19.2 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2)",
  "cw-orch-daemon 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2)",
  "cw-orch-fns-derive",
  "cw-orch-mock",
@@ -1946,9 +1946,9 @@ dependencies = [
 
 [[package]]
 name = "cw-orch-core"
-version = "0.19.1"
+version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "855087353f8f8cf7ee416793489ea3a82f23f8b86ee8302239d3e41b4436a695"
+checksum = "fea71129589c04f1193531a110424d644e70c985cbf3180e5620ffa2eb1f5951"
 dependencies = [
  "abstract-cw-multi-test",
  "anyhow",
@@ -1993,7 +1993,7 @@ dependencies = [
  "chrono",
  "cosmrs 0.15.0",
  "cosmwasm-std",
- "cw-orch-core 0.19.1",
+ "cw-orch-core 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cw-orch-networks 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cw-orch-traits 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "dirs",
@@ -2034,7 +2034,7 @@ dependencies = [
  "chrono",
  "cosmrs 0.15.0",
  "cosmwasm-std",
- "cw-orch-core 0.19.2",
+ "cw-orch-core 0.19.2 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2)",
  "cw-orch-networks 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2)",
  "cw-orch-traits 0.19.0 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2)",
  "dirs",
@@ -2162,7 +2162,7 @@ source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2#c58f
 dependencies = [
  "abstract-cw-multi-test",
  "cosmwasm-std",
- "cw-orch-core 0.19.2",
+ "cw-orch-core 0.19.2 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2)",
  "cw-utils 1.0.3",
  "serde",
  "sha256",
@@ -2174,7 +2174,7 @@ version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a08ab813c374ef74560c661c1c444c3ea0425d14938671fa1c529d6efa348b7"
 dependencies = [
- "cw-orch-core 0.19.1",
+ "cw-orch-core 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "ibc-chain-registry",
  "serde",
 ]
@@ -2184,7 +2184,7 @@ name = "cw-orch-networks"
 version = "0.19.0"
 source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2#c58f191f09334acf6cb01f3cf738ea7f55f29954"
 dependencies = [
- "cw-orch-core 0.19.2",
+ "cw-orch-core 0.19.2 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2)",
  "ibc-chain-registry",
  "serde",
 ]
@@ -2229,7 +2229,7 @@ version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f786295d8d9754466f8bdb94a67d6c9c647937450bcb4bb12403174800ae1ae7"
 dependencies = [
- "cw-orch-core 0.19.1",
+ "cw-orch-core 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "prost 0.11.9",
  "prost-types 0.11.9",
 ]
@@ -2239,7 +2239,7 @@ name = "cw-orch-traits"
 version = "0.19.0"
 source = "git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2#c58f191f09334acf6cb01f3cf738ea7f55f29954"
 dependencies = [
- "cw-orch-core 0.19.2",
+ "cw-orch-core 0.19.2 (git+https://github.com/AbstractSDK/cw-orchestrator?branch=v0.19.2)",
  "prost 0.11.9",
  "prost-types 0.11.9",
 ]
@@ -3127,9 +3127,9 @@ dependencies = [
 
 [[package]]
 name = "fiat-crypto"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27573eac26f4dd11e2b1916c3fe1baa56407c83c71a773a8ba17ec0bca03b6b7"
+checksum = "1676f435fc1dadde4d03e43f5d62b259e1ce5f40bd4ffb21db2b42ebe59c1382"
 
 [[package]]
 name = "fixed-hash"
@@ -3601,9 +3601,9 @@ dependencies = [
 
 [[package]]
 name = "iana-time-zone"
-version = "0.1.59"
+version = "0.1.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6a67363e2aa4443928ce15e57ebae94fd8949958fd1223c4cfc0cd473ad7539"
+checksum = "e7ffbb5a1b541ea2561f8c41c087286cc091e21e556a4f09a8f6cbf17b69b141"
 dependencies = [
  "android_system_properties",
  "core-foundation-sys",
@@ -4003,9 +4003,9 @@ checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "miniz_oxide"
-version = "0.7.1"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7810e0be55b428ada41041c41f32c9f1a42817901b4ccf45fa3d4b6561e74c7"
+checksum = "9d811f3e15f28568be3407c8e7fdb6514c1cda3cb30683f15b6a1a1dc4ea14a7"
 dependencies = [
  "adler",
 ]
@@ -4724,9 +4724,9 @@ dependencies = [
 
 [[package]]
 name = "rend"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2571463863a6bd50c32f94402933f03457a3fbaf697a707c5be741e459f08fd"
+checksum = "71fe3824f5629716b1589be05dacd749f6aa084c87e00e016714a8cdfccc997c"
 dependencies = [
  "bytecheck",
 ]
@@ -4826,9 +4826,9 @@ dependencies = [
 
 [[package]]
 name = "rkyv"
-version = "0.7.43"
+version = "0.7.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "527a97cdfef66f65998b5f3b637c26f5a5ec09cc52a3f9932313ac645f4190f5"
+checksum = "5cba464629b3394fc4dbc6f940ff8f5b4ff5c7aef40f29166fd4ad12acbc99c0"
 dependencies = [
  "bitvec",
  "bytecheck",
@@ -4845,9 +4845,9 @@ dependencies = [
 
 [[package]]
 name = "rkyv_derive"
-version = "0.7.43"
+version = "0.7.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5c462a1328c8e67e4d6dbad1eb0355dd43e8ab432c6e227a43657f16ade5033"
+checksum = "a7dddfff8de25e6f62b9d64e6e432bf1c6736c57d20323e15ee10435fbda7c65"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5822,9 +5822,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.32"
+version = "0.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe80ced77cbfb4cb91a94bf72b378b4b6791a0d9b7f09d0be747d1bdff4e68bd"
+checksum = "c8248b6521bb14bc45b4067159b9b6ad792e2d6d754d6c41fb50e29fefe38749"
 dependencies = [
  "deranged",
  "num-conv",
@@ -6105,9 +6105,9 @@ dependencies = [
 
 [[package]]
 name = "treediff"
-version = "4.0.2"
+version = "4.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52984d277bdf2a751072b5df30ec0377febdb02f7696d64c2d7d54630bac4303"
+checksum = "4d127780145176e2b5d16611cc25a900150e86e9fd79d3bde6ff3a37359c9cb5"
 dependencies = [
  "rustc-serialize",
 ]
