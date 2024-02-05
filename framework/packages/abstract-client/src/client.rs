@@ -112,6 +112,14 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         &self.abstr.ans_host
     }
 
+    /// Get the underlying [`Abstract`] infrastructure interface.
+    /// 
+    /// The returned object is a low-level interface to the Abstract deployment and contains all the contract interfaces that are used by the Abstract client.
+    /// You can use this to do more advanced operations that are not directly supported by the Abstract client.
+    pub fn abstract_interface(&self) -> &Abstract<Chain> {
+        &self.abstr
+    }
+
     /// Return current block info see [`BlockInfo`].
     pub fn block_info(&self) -> AbstractClientResult<BlockInfo> {
         self.environment()

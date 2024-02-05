@@ -11,6 +11,9 @@ use crate::{
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 
+/// A wrapper struct around all the Abstract contracts.
+/// 
+/// Can be used to deploy and retrieve the Abstract contracts to/from any environment.
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
     pub version_control: VersionControl<Chain>,
