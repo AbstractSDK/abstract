@@ -5,11 +5,12 @@ use abstract_core::{
         ans_host::AnsHost,
         chain_name::ChainName,
         namespace::{Namespace, ABSTRACT_NAMESPACE},
-        AccountId, AnsAsset,
+        pool_id::UncheckedPoolAddress,
+        AccountId,
     },
 };
 use abstract_dex_standard::{
-    msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID},
+    msg::{ExecuteMsg, OfferAsset, IBC_DEX_PROVIDER_ID},
     DexError,
 };
 use abstract_sdk::{
@@ -39,15 +40,16 @@ pub fn execute_handler(
     match msg {
         DexExecuteMsg::Action {
             dex: dex_name,
+            pool,
             action,
         } => {
             let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
             // if exchange is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
-                handle_ibc_request(&deps, info, &adapter, local_dex_name, &action)
+                handle_ibc_request(&deps, info, &adapter, local_dex_name, pool, &action)
             } else {
                 // the action can be executed on the local chain
-                handle_local_request(deps, env, info, adapter, action, local_dex_name)
+                handle_local_request(deps, env, info, adapter, local_dex_name, pool, action)
             }
         }
         DexExecuteMsg::UpdateFee {
@@ -93,8 +95,9 @@ fn handle_local_request(
     _env: Env,
     info: MessageInfo,
     adapter: DexAdapter,
-    action: DexAction,
     exchange: String,
+    pool: Option<UncheckedPoolAddress>,
+    action: DexAction,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
     let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
@@ -103,6 +106,7 @@ fn handle_local_request(
         info.sender,
         action,
         exchange,
+        pool.map(|p| p.check(deps.api)).transpose()?,
     )?;
     let proxy_msg = adapter
         .executor(deps.as_ref())
@@ -117,6 +121,7 @@ fn handle_ibc_request(
     info: MessageInfo,
     adapter: &DexAdapter,
     dex_name: DexName,
+    pool: Option<UncheckedPoolAddress>,
     action: &DexAction,
 ) -> DexResult {
     let host_chain = ChainName::from_string(dex_name.clone())?; // TODO, this is faulty
@@ -135,6 +140,7 @@ fn handle_ibc_request(
                 &DexExecuteMsg::Action {
                     dex: dex_name.clone(),
                     action: action.clone(),
+                    pool: pool.clone(),
                 }
                 .into(),
             )?,
@@ -151,6 +157,7 @@ fn handle_ibc_request(
             msg: Some(to_json_binary(&DexExecuteMsg::Action {
                 dex: dex_name.clone(),
                 action: action.clone(),
+                pool,
             })?),
             receiver: info.sender.into_string(),
         })
@@ -167,11 +174,12 @@ pub(crate) fn resolve_assets_to_transfer(
     ans_host: &AnsHost,
 ) -> DexResult<Vec<Coin>> {
     // resolve asset to native asset
-    let offer_to_coin = |offer: &AnsAsset| {
-        offer
+    let offer_to_coin = |offer: &OfferAsset| match offer {
+        OfferAsset::Ans(ans) => ans
             .resolve(&deps.querier, ans_host)?
             .try_into()
-            .map_err(DexError::from)
+            .map_err(DexError::from),
+        OfferAsset::Raw(asset) => asset.try_into().map_err(DexError::from),
     };
 
     match dex_action {
@@ -182,10 +190,7 @@ pub(crate) fn resolve_assets_to_transfer(
         DexAction::ProvideLiquiditySymmetric { .. } => Err(DexError::Std(StdError::generic_err(
             "Cross-chain symmetric provide liquidity not supported.",
         ))),
-        DexAction::WithdrawLiquidity { lp_token, amount } => Ok(vec![offer_to_coin(&AnsAsset {
-            name: lp_token.to_owned(),
-            amount: amount.to_owned(),
-        })?]),
+        DexAction::WithdrawLiquidity { lp_token } => Ok(vec![offer_to_coin(lp_token)?]),
         DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
     }
     .map_err(Into::into)
