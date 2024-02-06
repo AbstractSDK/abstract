@@ -802,7 +802,7 @@ fn doc_example_test() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
-    let sender: Addr = Addr::unchecked("sender");
+    let sender: Addr = Addr::unchecked(OWNER);
     let env: Mock = Mock::new(&sender);
 
     // Build the client
@@ -811,5 +811,23 @@ fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
     let account = client.account_builder().build()?;
     let abstract_account: &abstract_interface::AbstractAccount<Mock> = account.as_ref();
     assert_eq!(abstract_account.id()?, AccountId::local(1));
+    Ok(())
+}
+
+#[test]
+fn can_customize_sub_account() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    let account = client.account_builder().build()?;
+    let sub_account = client
+        .account_builder()
+        .name("foo-bar")
+        .ownership(GovernanceDetails::SubAccount {
+            manager: account.manager()?.to_string(),
+            proxy: account.proxy()?.to_string(),
+        })
+        .build()?;
+    
+    let info = sub_account.info()?;
+    assert_eq!(info.name, "foo-bar");
     Ok(())
 }
