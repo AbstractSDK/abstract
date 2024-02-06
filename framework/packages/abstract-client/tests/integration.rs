@@ -15,6 +15,7 @@ use abstract_client::{
     AbstractClient, Account, AccountSource, Application, Publisher,
 };
 use abstract_core::{
+    ans_host::QueryMsgFns,
     manager::{
         state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     },
@@ -861,6 +862,22 @@ fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
                 .collect(),
             metadata: Some(TEST_METADATA.to_owned())
         }
+    );
+    Ok(())
+}
+
+#[test]
+fn can_register_dex_with_client() -> anyhow::Result<()> {
+    let dexes = vec!["foo".to_owned(), "bar".to_owned()];
+
+    let client: AbstractClient<Mock> = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)))
+        .dexes(dexes.clone())
+        .build()?;
+
+    let dexes_response = client.name_service().registered_dexes()?;
+    assert_eq!(
+        dexes_response,
+        abstract_core::ans_host::RegisteredDexesResponse { dexes }
     );
     Ok(())
 }
