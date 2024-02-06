@@ -818,7 +818,7 @@ fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
 #[test]
 fn can_register_dex_with_client() -> anyhow::Result<()> {
     let dexes = vec!["foo".to_owned(), "bar".to_owned()];
-    
+
     let client: AbstractClient<Mock> = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)))
         .dexes(dexes.clone())
         .build()?;
