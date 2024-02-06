@@ -1,4 +1,4 @@
-use abstract_core::objects::{AnsEntryConvertor, PoolAddress, PoolReference};
+use abstract_core::objects::{AnsEntryConvertor, PoolAddress};
 use abstract_dex_standard::{
     msg::{AskAsset, DexAction, OfferAsset},
     DexCommand, DexError,
@@ -101,23 +101,19 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         deps: Deps,
         sender: Addr,
         offer_asset: OfferAsset,
-        mut ask_asset: AskAsset,
+        ask_asset: AskAsset,
         pool: Option<PoolAddress>,
         exchange: &mut dyn DexCommand,
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let ans = self.name_service(deps);
         // We resolve the offer asset if needed
-        let offer_cw_asset = self._get_offer_asset(deps, &offer_asset)?;
+        let mut offer_cw_asset = self._get_offer_asset(deps, &offer_asset)?;
         let ask_cw_asset = self._get_ask_asset(deps, &ask_asset)?;
         // We resolve the ask asset if needed
 
         // If the pool is not specified, we query for it
-        let PoolReference {
-            unique_id,
-            pool_address,
-        } = self._get_pool(deps, exchange, pool, &offer_asset.info(), &ask_asset)?;
+        let pool_address = self._get_pool(deps, exchange, pool, &offer_asset.info(), &ask_asset)?;
 
         // account for fee
         let dex_fees = DEX_FEES.load(deps.storage)?;
@@ -129,7 +125,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             sender,
             self.abstract_registry(deps)?,
             self.ans_host(deps)?,
-            unique_id,
         )?;
         let mut swap_msgs = exchange.swap(
             deps,
@@ -156,30 +151,25 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         exchange: &mut dyn DexCommand,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let ans = self.name_service(deps);
-
         let assets = offer_assets
             .iter()
             .map(|offer| self._get_offer_asset(deps, offer))
             .collect::<Result<Vec<_>, _>>()?;
 
-        let mut pair_assets = offer_assets
+        let pair_assets = offer_assets
             .into_iter()
             .map(|a| a.info())
             .take(2)
             .collect::<Vec<_>>();
 
-        let PoolReference {
-            unique_id,
-            pool_address,
-        } = self._get_pool(deps, exchange, pool, &pair_assets[0], &pair_assets[1])?;
+        let pool_address =
+            self._get_pool(deps, exchange, pool, &pair_assets[0], &pair_assets[1])?;
 
         exchange.fetch_data(
             deps,
             sender,
             self.abstract_registry(deps)?,
             self.ans_host(deps)?,
-            unique_id,
         )?;
         exchange.provide_liquidity(deps, pool_address, assets, max_spread)
     }
@@ -193,17 +183,12 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         mut paired_assets: Vec<AskAsset>,
         exchange: &mut dyn DexCommand,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let ans = self.name_service(deps);
-
         let paired_asset_infos = paired_assets
             .iter()
             .map(|ask| self._get_ask_asset(deps, ask))
             .collect::<Result<Vec<_>, _>>()?;
 
-        let PoolReference {
-            pool_address,
-            unique_id,
-        } = self._get_pool(
+        let pool_address = self._get_pool(
             deps,
             exchange,
             pool,
@@ -217,7 +202,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             sender,
             self.abstract_registry(deps)?,
             self.ans_host(deps)?,
-            unique_id,
         )?;
         exchange.provide_liquidity_symmetric(deps, pool_address, offer_asset, paired_asset_infos)
     }
@@ -235,10 +219,7 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
 
         let lp_asset = self._get_offer_asset(deps, &lp_token)?;
 
-        let PoolReference {
-            unique_id,
-            pool_address,
-        } = match lp_token.info() {
+        let pool_address = match lp_token.info() {
             AskAsset::Ans(ans_asset) => {
                 let pairing = AnsEntryConvertor::new(AnsEntryConvertor::new(ans_asset).lp_token()?)
                     .dex_asset_pairing()?;
@@ -252,17 +233,11 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                     .into());
                 }
 
-                pool_ids.pop().unwrap()
+                pool_ids.pop().unwrap().pool_address
             }
-            AskAsset::Raw(raw) => {
+            AskAsset::Raw(_raw) => {
                 // If a raw asset is provided, you also need to provide the pool Address with it
-
-                let pool_address = pool.ok_or(DexError::PoolAddressEmpty)?;
-
-                PoolReference {
-                    unique_id: todo!(),
-                    pool_address,
-                }
+                pool.ok_or(DexError::PoolAddressEmpty)?
             }
         };
 
@@ -271,7 +246,6 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
             sender,
             self.abstract_registry(deps)?,
             self.ans_host(deps)?,
-            unique_id,
         )?;
         exchange.withdraw_liquidity(deps, pool_address, lp_asset)
     }
@@ -285,23 +259,23 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                 let AnsAsset {
                     name: mut offer_asset,
                     amount: offer_amount,
-                } = ans_asset;
+                } = ans_asset.clone();
                 offer_asset.format();
 
                 let offer_asset_info: cw_asset::AssetInfoBase<Addr> = ans.query(&offer_asset)?;
 
-                Asset::new(offer_asset_info, offer_amount.clone())
+                Asset::new(offer_asset_info, offer_amount)
             }
         })
     }
     fn _get_ask_asset(&self, deps: Deps, ask_asset: &AskAsset) -> Result<AssetInfo, DexError> {
         let ans = self.name_service(deps);
 
-        Ok(match ask_asset {
-            AskAsset::Raw(ask_asset) => ask_asset.clone(),
-            AskAsset::Ans(ans_asset) => {
+        Ok(match ask_asset.clone() {
+            AskAsset::Raw(ask_asset) => ask_asset,
+            AskAsset::Ans(mut ans_asset) => {
                 ans_asset.format();
-                ans.query(ans_asset)?
+                ans.query(&ans_asset)?
             }
         })
     }
@@ -313,14 +287,11 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
         pool: Option<PoolAddress>,
         asset1: &AskAsset,
         asset2: &AskAsset,
-    ) -> Result<PoolReference, DexError> {
+    ) -> Result<PoolAddress, DexError> {
         let ans = self.name_service(deps);
 
         Ok(match pool {
-            Some(pool_address) => PoolReference {
-                unique_id: todo!(),
-                pool_address,
-            },
+            Some(pool_address) => pool_address,
             None => {
                 let ans_asset_1 = match asset1 {
                     AskAsset::Raw(raw_asset) => ans.query(raw_asset)?,
@@ -331,7 +302,9 @@ pub trait DexAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
                     AskAsset::Ans(ans_asset) => ans_asset.clone(),
                 };
 
-                exchange.pool_reference(deps, ans.host(), (ans_asset_1, ans_asset_2))?
+                exchange
+                    .pool_reference(deps, ans.host(), (ans_asset_1, ans_asset_2))?
+                    .pool_address
             }
         })
     }

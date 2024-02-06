@@ -71,11 +71,12 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
             request: DexExecuteMsg::Action {
                 dex,
                 action: DexAction::Swap {
-                    offer_asset: AnsAsset::new(asset, offer_asset.1),
-                    ask_asset,
+                    offer_asset: AnsAsset::new(asset, offer_asset.1).into(),
+                    ask_asset: ask_asset.into(),
                     max_spread: Some(Decimal::percent(30)),
                     belief_price: None,
                 },
+                pool: None,
             },
         });
         account
@@ -100,11 +101,12 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
                 dex,
                 action: DexAction::ProvideLiquidity {
                     assets: vec![
-                        AnsAsset::new(asset_entry1, asset1.1),
-                        AnsAsset::new(asset_entry2, asset2.1),
+                        AnsAsset::new(asset_entry1, asset1.1).into(),
+                        AnsAsset::new(asset_entry2, asset2.1).into(),
                     ],
                     max_spread: Some(Decimal::percent(30)),
                 },
+                pool: None,
             },
         });
         account
@@ -121,16 +123,14 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
         dex: String,
         account: &AbstractAccount<Chain>,
     ) -> Result<(), AbstractInterfaceError> {
-        let lp_token = AssetEntry::new(lp_token);
+        let lp_token = AnsAsset::new(lp_token, amount.into()).into();
 
         let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
             proxy_address: None,
             request: DexExecuteMsg::Action {
                 dex,
-                action: DexAction::WithdrawLiquidity {
-                    lp_token,
-                    amount: amount.into(),
-                },
+                action: DexAction::WithdrawLiquidity { lp_token },
+                pool: None,
             },
         });
         account

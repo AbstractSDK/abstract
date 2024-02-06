@@ -198,9 +198,8 @@ impl DexCommand for Astrovault {
         sender: Addr,
         _version_control_contract: VersionControlContract,
         ans_host: AnsHost,
-        pool_id: UniquePoolId,
     ) -> Result<(), DexError> {
-        let pool_metadata = ans_host.query_pool_metadata(&deps.querier, pool_id)?;
+        let pool_metadata = ans_host.query_pool_metadata(&deps.querier, todo!())?;
         self.pool_type = Some(pool_metadata.pool_type);
         self.proxy_addr = Some(sender);
         Ok(())

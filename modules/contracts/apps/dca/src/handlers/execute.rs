@@ -1,7 +1,7 @@
 #![allow(clippy::too_many_arguments)]
 
-use abstract_core::objects::{AssetEntry, DexName};
-use abstract_dex_adapter::{api::DexInterface, msg::OfferAsset};
+use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
+use abstract_dex_adapter::api::DexInterface;
 use abstract_sdk::{
     features::{AbstractNameService, AbstractResponse},
     AbstractSdkResult,
@@ -157,7 +157,7 @@ fn create_dca(
     env: Env,
     info: MessageInfo,
     app: DCAApp,
-    source_asset: OfferAsset,
+    source_asset: AnsAsset,
     target_asset: AssetEntry,
     frequency: Frequency,
     dex_name: DexName,
@@ -169,7 +169,7 @@ fn create_dca(
 
     // Simulate swap first
     app.dex(deps.as_ref(), dex_name.clone())
-        .simulate_swap(source_asset.clone(), target_asset.clone())?;
+        .simulate_swap(source_asset.clone().into(), target_asset.clone().into())?;
 
     // Generate DCA ID
     let dca_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id.next_id()))?;
@@ -198,7 +198,7 @@ fn update_dca(
     info: MessageInfo,
     app: DCAApp,
     dca_id: DCAId,
-    new_source_asset: Option<OfferAsset>,
+    new_source_asset: Option<AnsAsset>,
     new_target_asset: Option<AssetEntry>,
     new_frequency: Option<Frequency>,
     new_dex: Option<DexName>,
@@ -217,8 +217,10 @@ fn update_dca(
     };
 
     // Simulate swap for a new dca
-    app.dex(deps.as_ref(), new_dca.dex.clone())
-        .simulate_swap(new_dca.source_asset.clone(), new_dca.target_asset.clone())?;
+    app.dex(deps.as_ref(), new_dca.dex.clone()).simulate_swap(
+        new_dca.source_asset.clone().into(),
+        new_dca.target_asset.clone().into(),
+    )?;
 
     DCA_LIST.save(deps.storage, dca_id, &new_dca)?;
 
@@ -283,8 +285,8 @@ fn convert(deps: DepsMut, env: Env, info: MessageInfo, app: DCAApp, dca_id: DCAI
     // TODO: remove dca on failed swap?
     // Or `stop_on_fail` should be enough
     messages.push(app.dex(deps.as_ref(), dca.dex).swap(
-        dca.source_asset,
-        dca.target_asset,
+        dca.source_asset.into(),
+        dca.target_asset.into(),
         Some(config.max_spread),
         None,
     )?);

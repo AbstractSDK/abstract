@@ -3,8 +3,7 @@
 //!
 //! `abstract::cw-staking`
 
-use abstract_core::objects::{AssetEntry, DexName, PoolReference};
-use abstract_dex_adapter::msg::OfferAsset;
+use abstract_core::objects::{AnsAsset, AssetEntry, DexName, PoolReference};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
 use croncat_app::croncat_integration_utils::CronCatInterval;
@@ -75,7 +74,7 @@ pub enum DCAExecuteMsg {
     /// Used to create a new DCA
     CreateDCA {
         /// The name of the asset to be used for purchasing
-        source_asset: OfferAsset,
+        source_asset: AnsAsset,
         /// The name of the asset to be purchased
         target_asset: AssetEntry,
         /// The frequency of purchase
@@ -88,7 +87,7 @@ pub enum DCAExecuteMsg {
         /// Unique identifier for the DCA
         dca_id: DCAId,
         /// Optional new name of the asset to be used for purchasing
-        new_source_asset: Option<OfferAsset>,
+        new_source_asset: Option<AnsAsset>,
         /// Optional new name of the asset to be purchased
         new_target_asset: Option<AssetEntry>,
         /// Optional new frequency of purchase

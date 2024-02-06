@@ -6,8 +6,8 @@ use abstract_core::{
     adapter,
     objects::{
         fee::{Fee, UsageFee},
-        pool_id::{PoolAddressBase, UncheckedPoolAddress},
-        AnsAsset, AssetEntry, DexAssetPairing,
+        pool_id::UncheckedPoolAddress,
+        AnsAsset, AssetEntry,
     },
     AbstractError, AbstractResult,
 };
@@ -39,10 +39,10 @@ pub enum AskAsset {
 
 impl OfferAsset {
     /// Returns the information about the asset, leaving out the amount
-    pub fn info(self) -> AskAsset {
+    pub fn info(&self) -> AskAsset {
         match self {
-            OfferAsset::Raw(raw) => AskAsset::Raw(raw.info),
-            OfferAsset::Ans(ans) => AskAsset::Ans(ans.name),
+            OfferAsset::Raw(raw) => AskAsset::Raw(raw.info.clone()),
+            OfferAsset::Ans(ans) => AskAsset::Ans(ans.name.clone()),
         }
     }
     /// create an offer Asset from an Ask Asset

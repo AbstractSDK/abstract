@@ -6,14 +6,14 @@ use abstract_core::{
     app::BaseQueryMsgFns,
     objects::{
         ans_host::AnsHostError, dependency::DependencyResponse, gov_type::GovernanceDetails,
-        module_version::ModuleDataResponse, AccountId, AssetEntry, DexAssetPairing, PoolAddress,
-        PoolReference, UncheckedContractEntry, UniquePoolId,
+        module_version::ModuleDataResponse, AccountId, AnsAsset, AssetEntry, DexAssetPairing,
+        PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
     },
     AbstractError,
 };
 use abstract_dex_adapter::{
     interface::DexAdapter,
-    msg::{DexInstantiateMsg, OfferAsset},
+    msg::{AskAsset, DexInstantiateMsg, OfferAsset},
     DEX_ADAPTER_ID,
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
@@ -501,14 +501,14 @@ fn create_dca_convert() -> anyhow::Result<()> {
     apps.dca_app.create_dca(
         WYNDEX_WITHOUT_CHAIN.to_owned(),
         Frequency::EveryNBlocks(1),
-        OfferAsset::new(EUR, 100_u128),
+        AnsAsset::new(EUR, 100_u128),
         USD.into(),
     )?;
     apps.dca_app.create_dca(
         WYNDEX_WITHOUT_CHAIN.to_owned(),
         // HAPPY NEW YEAR :D
         Frequency::Cron("0 0 0 1 1 * *".to_owned()),
-        OfferAsset::new(EUR, 250_u128),
+        AnsAsset::new(EUR, 250_u128),
         USD.into(),
     )?;
 
@@ -518,7 +518,7 @@ fn create_dca_convert() -> anyhow::Result<()> {
         dca,
         DCAResponse {
             dca: Some(DCAEntry {
-                source_asset: OfferAsset::new(EUR, 100_u128),
+                source_asset: AnsAsset::new(EUR, 100_u128),
                 target_asset: USD.into(),
                 frequency: Frequency::EveryNBlocks(1),
                 dex: WYNDEX_WITHOUT_CHAIN.to_owned()
@@ -536,7 +536,7 @@ fn create_dca_convert() -> anyhow::Result<()> {
         dca,
         DCAResponse {
             dca: Some(DCAEntry {
-                source_asset: OfferAsset::new(EUR, 250_u128),
+                source_asset: AnsAsset::new(EUR, 250_u128),
                 target_asset: USD.into(),
                 frequency: Frequency::Cron("0 0 0 1 1 * *".to_owned()),
                 dex: WYNDEX_WITHOUT_CHAIN.to_owned()
@@ -576,7 +576,7 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
     let err = apps.dca_app.create_dca(
         "not_wyndex".to_owned(),
         Frequency::EveryNBlocks(1),
-        OfferAsset::new(EUR, 100_u128),
+        AnsAsset::new(EUR, 100_u128),
         USD.into(),
     );
     assert_querrier_err_eq(
@@ -588,15 +588,15 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
     let err = apps.dca_app.create_dca(
         WYNDEX_WITHOUT_CHAIN.to_owned(),
         Frequency::EveryNBlocks(1),
-        OfferAsset::new(USD, 100_u128),
+        AnsAsset::new(USD, 100_u128),
         USD.into(),
     );
     assert_querrier_err_eq(
         err.unwrap_err(),
         StdError::generic_err(format!(
             "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
-            offer_asset = OfferAsset::new(USD, 100_u128),
-            target_asset = AssetEntry::new(USD),
+            offer_asset = OfferAsset::from(AnsAsset::new(USD, 100_u128)),
+            target_asset = AskAsset::from(AssetEntry::new(USD)),
             e = AbstractError::from(AnsHostError::DexPairingNotFound {
                 pairing: DexAssetPairing::new(
                     AssetEntry::new(USD),
@@ -612,7 +612,7 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
     let err = apps.dca_app.create_dca(
         WYNDEX_WITHOUT_CHAIN.to_owned(),
         Frequency::Cron("bad cron".to_owned()),
-        OfferAsset::new(USD, 100_u128),
+        AnsAsset::new(USD, 100_u128),
         EUR.into(),
     );
     assert_eq!(err.unwrap_err().root().to_string(), "Invalid interval");
@@ -620,7 +620,7 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
     apps.dca_app.create_dca(
         WYNDEX_WITHOUT_CHAIN.to_owned(),
         Frequency::EveryNBlocks(1),
-        OfferAsset::new(EUR, 100_u128),
+        AnsAsset::new(EUR, 100_u128),
         USD.into(),
     )?;
 
@@ -641,7 +641,7 @@ fn update_dca() -> anyhow::Result<()> {
     apps.dca_app.create_dca(
         WYNDEX_WITHOUT_CHAIN.to_owned(),
         Frequency::EveryNBlocks(1),
-        OfferAsset::new(EUR, 150_u128),
+        AnsAsset::new(EUR, 150_u128),
         USD.into(),
     )?;
 
@@ -656,7 +656,7 @@ fn update_dca() -> anyhow::Result<()> {
         DCAId(1),
         Some(WYNDEX_WITHOUT_CHAIN.into()),
         Some(Frequency::Cron("0 30 * * * *".to_string())),
-        Some(OfferAsset::new(USD, 200_u128)),
+        Some(AnsAsset::new(USD, 200_u128)),
         Some(EUR.into()),
     )?;
 
@@ -665,7 +665,7 @@ fn update_dca() -> anyhow::Result<()> {
         dca,
         DCAResponse {
             dca: Some(DCAEntry {
-                source_asset: OfferAsset::new(USD, 200_u128),
+                source_asset: AnsAsset::new(USD, 200_u128),
                 target_asset: EUR.into(),
                 frequency: Frequency::Cron("0 30 * * * *".to_string()),
                 dex: WYNDEX_WITHOUT_CHAIN.to_owned()
@@ -691,7 +691,7 @@ fn update_dca() -> anyhow::Result<()> {
         DCAId(1),
         None,
         None,
-        Some(OfferAsset::new(USD, 250_u128)),
+        Some(AnsAsset::new(USD, 250_u128)),
         None,
     )?;
 
@@ -700,7 +700,7 @@ fn update_dca() -> anyhow::Result<()> {
         dca,
         DCAResponse {
             dca: Some(DCAEntry {
-                source_asset: OfferAsset::new(USD, 250_u128),
+                source_asset: AnsAsset::new(USD, 250_u128),
                 target_asset: AssetEntry::new(EUR),
                 frequency: Frequency::Cron("0 30 * * * *".to_string()),
                 dex: WYNDEX_WITHOUT_CHAIN.to_owned()
@@ -732,7 +732,7 @@ fn update_dca_negative() -> anyhow::Result<()> {
     apps.dca_app.create_dca(
         WYNDEX_WITHOUT_CHAIN.to_owned(),
         Frequency::EveryNBlocks(1),
-        OfferAsset::new(EUR, 150_u128),
+        AnsAsset::new(EUR, 150_u128),
         USD.into(),
     )?;
 
@@ -750,7 +750,7 @@ fn update_dca_negative() -> anyhow::Result<()> {
         DCAId(1),
         None,
         None,
-        Some(OfferAsset::new(USD, 200_u128)),
+        Some(AnsAsset::new(USD, 200_u128)),
         Some(USD.into()),
     );
 
@@ -758,8 +758,8 @@ fn update_dca_negative() -> anyhow::Result<()> {
         err.unwrap_err(),
         StdError::generic_err(format!(
             "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
-            offer_asset = OfferAsset::new(USD, 200_u128),
-            target_asset = AssetEntry::new(USD),
+            offer_asset = OfferAsset::from(AnsAsset::new(USD, 200_u128)),
+            target_asset = AskAsset::from(AssetEntry::new(USD)),
             e = AbstractError::from(AnsHostError::DexPairingNotFound {
                 pairing: DexAssetPairing::new(
                     AssetEntry::new(USD),
@@ -792,7 +792,7 @@ fn cancel_dca() -> anyhow::Result<()> {
     apps.dca_app.create_dca(
         WYNDEX_WITHOUT_CHAIN.to_owned(),
         Frequency::EveryNBlocks(1),
-        OfferAsset::new(EUR, 100_u128),
+        AnsAsset::new(EUR, 100_u128),
         USD.into(),
     )?;
 

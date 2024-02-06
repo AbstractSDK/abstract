@@ -1,4 +1,4 @@
-use abstract_core::objects::{pool_id::UncheckedPoolAddress, PoolReference};
+use abstract_core::objects::pool_id::UncheckedPoolAddress;
 use abstract_dex_standard::{
     msg::{
         AskAsset, DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse,
@@ -6,7 +6,6 @@ use abstract_dex_standard::{
     },
     DexError,
 };
-use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 
 use crate::{
@@ -83,21 +82,20 @@ pub fn simulate_swap(
     adapter: &DexAdapter,
     dex: String,
     pool: Option<UncheckedPoolAddress>,
-    mut offer_asset: OfferAsset,
-    mut ask_asset: AskAsset,
+    offer_asset: OfferAsset,
+    ask_asset: AskAsset,
 ) -> DexResult<Binary> {
     let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
-    let ans = adapter.name_service(deps);
 
     let mut cw_offer_asset = adapter._get_offer_asset(deps, &offer_asset)?;
     let cw_ask_asset = adapter._get_ask_asset(deps, &ask_asset)?;
 
-    let PoolReference { pool_address, .. } = adapter
+    let pool_address = adapter
         ._get_pool(
             deps,
             exchange.as_ref(),
             pool.map(|p| p.check(deps.api)).transpose()?,
-            &offer_asset.info(),
+            &offer_asset.clone().info(),
             &ask_asset,
         )
         .map_err(|e| {

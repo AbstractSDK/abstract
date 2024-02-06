@@ -1,14 +1,14 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use abstract_core::objects::{module::ModuleId, AssetEntry};
+use abstract_core::objects::{module::ModuleId, PoolAddress};
 use abstract_dex_standard::msg::{
-    DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
+    AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
 };
 use abstract_sdk::{
     features::{AccountIdentification, Dependencies, ModuleIdentification},
     AbstractSdkResult, AdapterInterface,
 };
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
+use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps};
 use serde::de::DeserializeOwned;
 
 use crate::DEX_ADAPTER_ID;
@@ -23,6 +23,7 @@ pub trait DexInterface: AccountIdentification + Dependencies + ModuleIdentificat
             deps,
             name,
             module_id: DEX_ADAPTER_ID,
+            pool: None,
         }
     }
 }
@@ -34,6 +35,7 @@ pub struct Dex<'a, T: DexInterface> {
     base: &'a T,
     name: DexName,
     module_id: ModuleId<'a>,
+    pool: Option<PoolAddress>,
     deps: Deps<'a>,
 }
 
@@ -41,6 +43,24 @@ impl<'a, T: DexInterface> Dex<'a, T> {
     /// Set the module id for the DEX
     pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
         Self { module_id, ..self }
+    }
+
+    /// Set the pool address
+    /// Allows to bypass ANS resolution
+    pub fn with_pool_address(self, pool_address: Addr) -> Self {
+        Self {
+            pool: Some(PoolAddress::Contract(pool_address)),
+            ..self
+        }
+    }
+
+    /// Set the pool id
+    /// Allows to bypass ANS resolution
+    pub fn with_pool_id(self, pool_id: u64) -> Self {
+        Self {
+            pool: Some(PoolAddress::Id(pool_id)),
+            ..self
+        }
     }
 
     /// returns DEX name
@@ -62,6 +82,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
             DexExecuteMsg::Action {
                 dex: self.dex_name(),
                 action,
+                pool: self.pool.clone().map(|p| p.into()),
             },
         )
     }
@@ -70,7 +91,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
     pub fn swap(
         &self,
         offer_asset: OfferAsset,
-        ask_asset: AssetEntry,
+        ask_asset: AskAsset,
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -95,7 +116,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
     pub fn provide_liquidity_symmetric(
         &self,
         offer_asset: OfferAsset,
-        paired_assets: Vec<AssetEntry>,
+        paired_assets: Vec<AskAsset>,
     ) -> AbstractSdkResult<CosmosMsg> {
         self.request(DexAction::ProvideLiquiditySymmetric {
             offer_asset,
@@ -104,12 +125,8 @@ impl<'a, T: DexInterface> Dex<'a, T> {
     }
 
     /// Withdraw liquidity from the DEX
-    pub fn withdraw_liquidity(
-        &self,
-        lp_token: AssetEntry,
-        amount: Uint128,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::WithdrawLiquidity { lp_token, amount })
+    pub fn withdraw_liquidity(&self, lp_token: OfferAsset) -> AbstractSdkResult<CosmosMsg> {
+        self.request(DexAction::WithdrawLiquidity { lp_token })
     }
 }
 
@@ -124,12 +141,13 @@ impl<'a, T: DexInterface> Dex<'a, T> {
     pub fn simulate_swap(
         &self,
         offer_asset: OfferAsset,
-        ask_asset: AssetEntry,
+        ask_asset: AskAsset,
     ) -> AbstractSdkResult<SimulateSwapResponse> {
         let response: SimulateSwapResponse = self.query(DexQueryMsg::SimulateSwap {
             dex: Some(self.dex_name()),
             offer_asset,
             ask_asset,
+            pool: self.pool.clone().map(|p| p.into()),
         })?;
         Ok(response)
     }
@@ -138,7 +156,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
     pub fn generate_swap_messages(
         &self,
         offer_asset: OfferAsset,
-        ask_asset: AssetEntry,
+        ask_asset: AskAsset,
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
         sender_receiver: impl Into<String>,
@@ -152,6 +170,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
                     max_spread,
                     belief_price,
                 },
+                pool: self.pool.clone().map(|p| p.into()),
             },
             proxy_addr: sender_receiver.into(),
         })?;
@@ -161,7 +180,10 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 
 #[cfg(test)]
 mod test {
-    use abstract_core::adapter::AdapterRequestMsg;
+    use abstract_core::{
+        adapter::AdapterRequestMsg,
+        objects::{AnsAsset, AssetEntry},
+    };
     use abstract_sdk::mock_module::MockModule;
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};
     use speculoos::prelude::*;
@@ -187,7 +209,7 @@ mod test {
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let dex_name = "junoswap".to_string();
-        let offer_asset = OfferAsset::new("juno", 1000u128);
+        let offer_asset = AnsAsset::new("juno", 1000u128);
         let ask_asset = AssetEntry::new("uusd");
         let max_spread = Some(Decimal::percent(1));
         let belief_price = Some(Decimal::percent(2));
@@ -195,14 +217,20 @@ mod test {
         let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
             action: DexAction::Swap {
-                offer_asset: offer_asset.clone(),
-                ask_asset: ask_asset.clone(),
+                offer_asset: offer_asset.clone().into(),
+                ask_asset: ask_asset.clone().into(),
                 max_spread,
                 belief_price,
             },
+            pool: None,
         });
 
-        let actual = dex.swap(offer_asset, ask_asset, max_spread, belief_price);
+        let actual = dex.swap(
+            offer_asset.into(),
+            ask_asset.into(),
+            max_spread,
+            belief_price,
+        );
 
         assert_that!(actual).is_ok();
 
@@ -231,7 +259,7 @@ mod test {
             .dex(deps.as_ref(), dex_name.clone())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-        let assets = vec![OfferAsset::new("taco", 1000u128)];
+        let assets = vec![AnsAsset::new("taco", 1000u128).into()];
         let max_spread = Some(Decimal::percent(1));
 
         let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
@@ -240,6 +268,7 @@ mod test {
                 assets: assets.clone(),
                 max_spread,
             },
+            pool: None,
         });
 
         let actual = dex.provide_liquidity(assets, max_spread);
@@ -271,19 +300,20 @@ mod test {
             .dex(deps.as_ref(), dex_name.clone())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-        let offer = OfferAsset::new("taco", 1000u128);
-        let paired = vec![AssetEntry::new("bell")];
+        let offer = AnsAsset::new("taco", 1000u128);
+        let paired = vec![AssetEntry::new("bell").into()];
         let _max_spread = Some(Decimal::percent(1));
 
         let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
             action: DexAction::ProvideLiquiditySymmetric {
-                offer_asset: offer.clone(),
+                offer_asset: offer.clone().into(),
                 paired_assets: paired.clone(),
             },
+            pool: None,
         });
 
-        let actual = dex.provide_liquidity_symmetric(offer, paired);
+        let actual = dex.provide_liquidity_symmetric(offer.into(), paired);
 
         assert_that!(actual).is_ok();
 
@@ -312,18 +342,17 @@ mod test {
             .dex(deps.as_ref(), dex_name.clone())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-        let lp_token = AssetEntry::new("taco");
-        let withdraw_amount: Uint128 = 1000u128.into();
+        let lp_token = AnsAsset::new("taco", 1000u128);
 
         let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
             action: DexAction::WithdrawLiquidity {
-                lp_token: lp_token.clone(),
-                amount: withdraw_amount,
+                lp_token: lp_token.clone().into(),
             },
+            pool: None,
         });
 
-        let actual = dex.withdraw_liquidity(lp_token, withdraw_amount);
+        let actual = dex.withdraw_liquidity(lp_token.into());
 
         assert_that!(actual).is_ok();
 
