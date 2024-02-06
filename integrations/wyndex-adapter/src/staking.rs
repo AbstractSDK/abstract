@@ -61,7 +61,7 @@ impl CwStakingCommand for WynDex {
         &mut self,
         deps: Deps,
         _env: cosmwasm_std::Env,
-        _info: Option<cosmwasm_std::MessageInfo>,
+        _sender: Option<Addr>,
         ans_host: &AnsHost,
         _version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,

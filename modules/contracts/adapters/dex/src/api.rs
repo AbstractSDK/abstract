@@ -115,7 +115,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 
 impl<'a, T: DexInterface> Dex<'a, T> {
     /// Do a query in the DEX
-    fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
+    pub fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
         let adapters = self.base.adapters(self.deps);
         adapters.query(DEX_ADAPTER_ID, query_msg)
     }
@@ -153,7 +153,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
                     belief_price,
                 },
             },
-            proxy_addr: sender_receiver.into(),
+            sender: sender_receiver.into(),
         })?;
         Ok(response)
     }

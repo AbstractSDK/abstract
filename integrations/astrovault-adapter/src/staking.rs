@@ -6,7 +6,7 @@ use crate::{ASTROVAULT, AVAILABLE_CHAINS};
 
 #[derive(Clone, Debug, Default)]
 pub struct Astrovault {
-    pub local_proxy_addr: Option<Addr>,
+    pub sender: Option<Addr>,
     pub version_control_contract: Option<VersionControlContract>,
     pub tokens: Vec<AstrovaultTokenContext>,
 }
@@ -35,7 +35,7 @@ use ::{
         core::objects::{AnsAsset, AssetEntry},
         feature_objects::AnsHost,
         features::AbstractRegistryAccess,
-        AccountVerification, Resolve,
+        Resolve,
     },
     abstract_staking_standard::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
@@ -63,16 +63,13 @@ impl CwStakingCommand for Astrovault {
         &mut self,
         deps: Deps,
         _env: Env,
-        info: Option<cosmwasm_std::MessageInfo>,
+        sender: Option<Addr>,
         ans_host: &AnsHost,
         version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
     ) -> Result<(), CwStakingError> {
         self.version_control_contract = Some(version_control_contract);
-        let base = info
-            .map(|i| self.account_registry(deps)?.assert_manager(&i.sender))
-            .transpose()?;
-        self.local_proxy_addr = base.map(|b| b.proxy);
+        self.sender = sender;
         self.tokens = lp_tokens
             .into_iter()
             .map(|entry| {

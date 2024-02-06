@@ -159,8 +159,8 @@ pub enum DexQueryMsg {
     GenerateMessages {
         /// Execute message to generate messages for
         message: DexExecuteMsg,
-        /// Proxy Addr generate messages for
-        proxy_addr: String,
+        /// Sender Addr generate messages for
+        sender: String,
     },
     /// Fee info for using the different dex actions
     #[returns(DexFeesResponse)]

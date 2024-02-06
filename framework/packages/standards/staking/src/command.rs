@@ -41,7 +41,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         &mut self,
         deps: Deps,
         env: Env,
-        info: Option<cosmwasm_std::MessageInfo>,
+        sender: Option<Addr>,
         ans_host: &AnsHost,
         version_control_contract: VersionControlContract,
         staking_assets: Vec<AssetEntry>,
