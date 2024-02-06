@@ -282,6 +282,10 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
         sub_account_details
     );
 
+    let sub_accounts = publisher.account().sub_accounts()?;
+    assert_eq!(sub_accounts.len(), 1);
+    assert_eq!(sub_accounts[0].id()?, my_app.account().id()?);
+
     // Install app on current account
     let publisher = client
         .publisher_builder(Namespace::new("tester")?)
