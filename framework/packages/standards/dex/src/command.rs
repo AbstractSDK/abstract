@@ -110,7 +110,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
     fn fetch_data(
         &mut self,
         _deps: Deps,
-        _sender: Addr,
+        _addr_as_sender: Addr,
         _version_control_contract: VersionControlContract,
         _ans_host: AnsHost,
         _pool_id: UniquePoolId,

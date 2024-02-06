@@ -195,14 +195,14 @@ impl DexCommand for Astrovault {
     fn fetch_data(
         &mut self,
         deps: Deps,
-        sender: Addr,
+        addr_as_sender: Addr,
         _version_control_contract: VersionControlContract,
         ans_host: AnsHost,
         pool_id: UniquePoolId,
     ) -> Result<(), DexError> {
         let pool_metadata = ans_host.query_pool_metadata(&deps.querier, pool_id)?;
         self.pool_type = Some(pool_metadata.pool_type);
-        self.addr_as_sender = Some(sender);
+        self.addr_as_sender = Some(addr_as_sender);
         Ok(())
     }
 
