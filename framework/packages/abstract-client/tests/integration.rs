@@ -1,21 +1,28 @@
 use abstract_adapter::mock::{
     BootMockAdapter, MockExecMsg as BootMockExecMsg, MockInitMsg as BootMockInitMsg,
-    MockQueryMsg as BootMockQueryMsg,
+    MockQueryMsg as BootMockQueryMsg, TEST_METADATA,
 };
-use abstract_app::mock::{
-    interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockExecMsgFns,
-    MockInitMsg, MockQueryMsgFns, MockQueryResponse,
+use abstract_app::{
+    abstract_sdk::base::Handler,
+    mock::{
+        interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockExecMsgFns,
+        MockInitMsg, MockQueryMsgFns, MockQueryResponse,
+    },
+    traits::ModuleIdentification,
 };
 use abstract_client::{
     builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
-    AbstractClient, Account, Application, Publisher,
+    AbstractClient, Account, AccountSource, Application, Publisher,
 };
 use abstract_core::{
     ans_host::QueryMsgFns,
     manager::{
         state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     },
-    objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
+    objects::{
+        dependency::Dependency, gov_type::GovernanceDetails, module_version::ModuleDataResponse,
+        namespace::Namespace, AccountId, AssetEntry,
+    },
 };
 use abstract_interface::{ClientResolve, VCQueryFns};
 use abstract_testing::{
@@ -25,7 +32,7 @@ use abstract_testing::{
 use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::{
-    contract::interface_traits::{CwOrchExecute, CwOrchQuery},
+    contract::interface_traits::{ContractInstance, CwOrchExecute, CwOrchQuery},
     prelude::{CallAs, Mock},
 };
 use cw_ownable::Ownership;
@@ -122,13 +129,28 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
         .namespace(namespace.clone())
         .build()?;
 
-    let account_from_namespace: Account<Mock> = client
-        .account_builder()
-        .fetch_if_namespace_claimed(true)
-        .namespace(namespace)
-        .build()?;
+    // From namespace directly
+    let account_from_namespace: Account<Mock> = client.account_from(namespace)?;
 
     assert_eq!(account.info()?, account_from_namespace.info()?);
+    Ok(())
+}
+
+#[test]
+fn err_fetching_unclaimed_namespace() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+
+    let namespace = Namespace::new("namespace")?;
+
+    let account_from_namespace_no_claim_res: Result<
+        Account<Mock>,
+        abstract_client::AbstractClientError,
+    > = client.account_from(namespace);
+
+    assert!(matches!(
+        account_from_namespace_no_claim_res.unwrap_err(),
+        abstract_client::AbstractClientError::NamespaceNotClaimed { .. }
+    ));
 
     Ok(())
 }
@@ -362,44 +384,37 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 }
 
 #[test]
-fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Result<()> {
+fn can_fetch_account_from_id() -> anyhow::Result<()> {
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let namespace = Namespace::new("namespace")?;
+    let account1 = client.account_builder().build()?;
 
-    // First call succeeds.
-    client
-        .account_builder()
-        .namespace(namespace.clone())
-        .build()?;
+    let account2 = client.account_from(account1.id()?)?;
 
-    // Second call fails
-    let result = client
-        .account_builder()
-        .fetch_if_namespace_claimed(false)
-        .namespace(namespace)
-        .build();
-    assert!(result.is_err());
+    assert_eq!(account1.info()?, account2.info()?);
 
     Ok(())
 }
 
 #[test]
-fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<()> {
+fn can_fetch_account_from_app() -> anyhow::Result<()> {
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let namespace = Namespace::new("namespace")?;
+    let app_publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    app_publisher.publish_app::<MockAppI<Mock>>()?;
 
     let account1 = client
         .account_builder()
-        .namespace(namespace.clone())
+        // Install apps in this account
+        .install_on_sub_account(false)
         .build()?;
 
-    let account2 = client
-        .account_builder()
-        .namespace(namespace)
-        .fetch_if_namespace_claimed(true)
-        .build()?;
+    let app = account1.install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
+
+    let account2 = client.account_from(AccountSource::App(app.address()?))?;
 
     assert_eq!(account1.info()?, account2.info()?);
 
@@ -812,6 +827,38 @@ fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
     let account = client.account_builder().build()?;
     let abstract_account: &abstract_interface::AbstractAccount<Mock> = account.as_ref();
     assert_eq!(abstract_account.id()?, AccountId::local(1));
+    Ok(())
+}
+
+#[test]
+fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
+    let client: AbstractClient<Mock> =
+        AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    let publisher = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    let adapter =
+        publisher.publish_adapter::<BootMockInitMsg, BootMockAdapter<Mock>>(BootMockInitMsg {})?;
+    let module_data: ModuleDataResponse =
+        adapter.query(&abstract_core::adapter::QueryMsg::Base(
+            abstract_core::adapter::BaseQueryMsg::ModuleData {},
+        ))?;
+
+    assert_eq!(
+        module_data,
+        ModuleDataResponse {
+            module_id: abstract_adapter::mock::MOCK_ADAPTER.module_id().to_owned(),
+            version: abstract_adapter::mock::MOCK_ADAPTER.version().to_owned(),
+            dependencies: abstract_adapter::mock::MOCK_ADAPTER
+                .dependencies()
+                .iter()
+                .map(Dependency::from)
+                .map(Into::into)
+                .collect(),
+            metadata: Some(TEST_METADATA.to_owned())
+        }
+    );
     Ok(())
 }
 

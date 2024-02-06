@@ -500,6 +500,10 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
 
         // If called by top-level owner, update the sender to let cw-ownable think it was called by the owning-account's proxy.
         let top_level_owner = query_top_level_owner(&deps.querier, manager.clone())?;
+
+        // This line is **VERY** important
+        // It ensures that only the top-level owner of the proposed owner account can claim the ownership over this account.
+        // This makes it impossible for others to assign their own accounts to be owned by other users' accounts. (if using is binary)
         if top_level_owner == *sender {
             *sender = proxy.clone();
         }
