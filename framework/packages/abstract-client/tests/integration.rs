@@ -1,10 +1,14 @@
 use abstract_adapter::mock::{
     BootMockAdapter, MockExecMsg as BootMockExecMsg, MockInitMsg as BootMockInitMsg,
-    MockQueryMsg as BootMockQueryMsg,
+    MockQueryMsg as BootMockQueryMsg, TEST_METADATA,
 };
-use abstract_app::mock::{
-    interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockExecMsgFns,
-    MockInitMsg, MockQueryMsgFns, MockQueryResponse,
+use abstract_app::{
+    abstract_sdk::base::Handler,
+    mock::{
+        interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockExecMsgFns,
+        MockInitMsg, MockQueryMsgFns, MockQueryResponse,
+    },
+    traits::ModuleIdentification,
 };
 use abstract_client::{
     builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
@@ -14,7 +18,10 @@ use abstract_core::{
     manager::{
         state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     },
-    objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
+    objects::{
+        dependency::Dependency, gov_type::GovernanceDetails, module_version::ModuleDataResponse,
+        namespace::Namespace, AccountId, AssetEntry,
+    },
 };
 use abstract_interface::{ClientResolve, VCQueryFns};
 use abstract_testing::{
@@ -819,5 +826,37 @@ fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
     let account = client.account_builder().build()?;
     let abstract_account: &abstract_interface::AbstractAccount<Mock> = account.as_ref();
     assert_eq!(abstract_account.id()?, AccountId::local(1));
+    Ok(())
+}
+
+#[test]
+fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
+    let client: AbstractClient<Mock> =
+        AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    let publisher = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    let adapter =
+        publisher.publish_adapter::<BootMockInitMsg, BootMockAdapter<Mock>>(BootMockInitMsg {})?;
+    let module_data: ModuleDataResponse =
+        adapter.query(&abstract_core::adapter::QueryMsg::Base(
+            abstract_core::adapter::BaseQueryMsg::ModuleData {},
+        ))?;
+
+    assert_eq!(
+        module_data,
+        ModuleDataResponse {
+            module_id: abstract_adapter::mock::MOCK_ADAPTER.module_id().to_owned(),
+            version: abstract_adapter::mock::MOCK_ADAPTER.version().to_owned(),
+            dependencies: abstract_adapter::mock::MOCK_ADAPTER
+                .dependencies()
+                .iter()
+                .map(Dependency::from)
+                .map(Into::into)
+                .collect(),
+            metadata: Some(TEST_METADATA.to_owned())
+        }
+    );
     Ok(())
 }

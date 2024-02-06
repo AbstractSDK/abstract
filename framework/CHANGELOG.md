@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
   
 - Added a `.execute` method on the AuthZ API to execute `CosmosMsg` types on behalf of a granter.
+- Publish adapter method of Abstract Client Publisher now returns Adapter object
 - Added a `.account_from` method on the `AbstractClient` for retrieving `Account`s.
 
 ### Changed
