@@ -11,6 +11,7 @@ use abstract_client::{
     AbstractClient, Account, Application, Publisher,
 };
 use abstract_core::{
+    ans_host::QueryMsgFns,
     manager::{
         state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     },
@@ -811,5 +812,21 @@ fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
     let account = client.account_builder().build()?;
     let abstract_account: &abstract_interface::AbstractAccount<Mock> = account.as_ref();
     assert_eq!(abstract_account.id()?, AccountId::local(1));
+    Ok(())
+}
+
+#[test]
+fn can_register_dex_with_client() -> anyhow::Result<()> {
+    let dexes = vec!["foo".to_owned(), "bar".to_owned()];
+    
+    let client: AbstractClient<Mock> = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)))
+        .dexes(dexes.clone())
+        .build()?;
+
+    let dexes_response = client.name_service().registered_dexes()?;
+    assert_eq!(
+        dexes_response,
+        abstract_core::ans_host::RegisteredDexesResponse { dexes }
+    );
     Ok(())
 }
