@@ -48,7 +48,7 @@ impl CwStakingCommand for Kujira {
         &mut self,
         deps: Deps,
         _env: Env,
-        _sender: Option<Addr>,
+        _addr_as_sender: Option<Addr>,
         ans_host: &AnsHost,
         _version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,

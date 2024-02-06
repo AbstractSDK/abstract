@@ -141,7 +141,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         ask_asset: AssetEntry,
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
-        sender_receiver: impl Into<String>,
+        addr_as_sender: impl Into<String>,
     ) -> AbstractSdkResult<SimulateSwapResponse> {
         let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
             message: DexExecuteMsg::Action {
@@ -153,7 +153,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
                     belief_price,
                 },
             },
-            sender: sender_receiver.into(),
+            addr_as_sender: addr_as_sender.into(),
         })?;
         Ok(response)
     }

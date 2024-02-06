@@ -160,7 +160,7 @@ pub enum DexQueryMsg {
         /// Execute message to generate messages for
         message: DexExecuteMsg,
         /// Sender Addr generate messages for
-        sender: String,
+        addr_as_sender: String,
     },
     /// Fee info for using the different dex actions
     #[returns(DexFeesResponse)]

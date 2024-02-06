@@ -7,7 +7,7 @@ use crate::{ASTROVAULT, AVAILABLE_CHAINS};
 #[derive(Default)]
 pub struct Astrovault {
     pub pool_type: Option<PoolType>,
-    pub sender: Option<Addr>,
+    pub addr_as_sender: Option<Addr>,
 }
 
 impl Identify for Astrovault {
@@ -202,7 +202,7 @@ impl DexCommand for Astrovault {
     ) -> Result<(), DexError> {
         let pool_metadata = ans_host.query_pool_metadata(&deps.querier, pool_id)?;
         self.pool_type = Some(pool_metadata.pool_type);
-        self.sender = Some(sender);
+        self.addr_as_sender = Some(sender);
         Ok(())
     }
 
@@ -493,7 +493,7 @@ impl DexCommand for Astrovault {
                 ),
             )?,
             PoolType::Stable => {
-                let address = self.sender.clone().unwrap().into_string();
+                let address = self.addr_as_sender.clone().unwrap().into_string();
                 let lp_addr = match &lp_token.info {
                     AssetInfoBase::Cw20(lp_addr) => lp_addr,
                     _ => unreachable!(),
@@ -710,7 +710,7 @@ mod tests {
             ARCHWAY_1.into(),
             Astrovault {
                 pool_type: Some(pool_type),
-                sender: Some(Addr::unchecked(
+                addr_as_sender: Some(Addr::unchecked(
                     "archway1u76c96fgq9st8wme0f88w8hh57y78juy5cfm49",
                 )),
             },

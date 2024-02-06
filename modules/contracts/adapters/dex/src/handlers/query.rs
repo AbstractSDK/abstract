@@ -28,7 +28,10 @@ pub fn query_handler(
             ask_asset,
             dex,
         } => simulate_swap(deps, env, adapter, offer_asset, ask_asset, dex.unwrap()),
-        DexQueryMsg::GenerateMessages { message, sender } => {
+        DexQueryMsg::GenerateMessages {
+            message,
+            addr_as_sender,
+        } => {
             match message {
                 DexExecuteMsg::Action { dex, action } => {
                     let (local_dex_name, is_over_ibc) = is_over_ibc(env, &dex)?;
@@ -37,9 +40,13 @@ pub fn query_handler(
                         return Err(DexError::IbcMsgQuery);
                     }
                     let exchange = exchange_resolver::resolve_exchange(&local_dex_name)?;
-                    let sender = deps.api.addr_validate(&sender)?;
+                    let addr_as_sender = deps.api.addr_validate(&addr_as_sender)?;
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
-                        adapter, deps, sender, action, exchange,
+                        adapter,
+                        deps,
+                        addr_as_sender,
+                        action,
+                        exchange,
                     )?;
                     to_json_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }

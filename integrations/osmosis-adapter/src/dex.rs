@@ -7,7 +7,7 @@ use crate::{AVAILABLE_CHAINS, OSMOSIS};
 #[derive(Default)]
 pub struct Osmosis {
     pub version_control_contract: Option<VersionControlContract>,
-    pub sender: Option<Addr>,
+    pub addr_as_sender: Option<Addr>,
 }
 
 impl Identify for Osmosis {
@@ -60,14 +60,14 @@ impl DexCommand for Osmosis {
     fn fetch_data(
         &mut self,
         _deps: Deps,
-        sender: Addr,
+        addr_as_sender: Addr,
         version_control_contract: VersionControlContract,
         _ans_host: AnsHost,
         _pool_id: UniquePoolId,
     ) -> Result<(), DexError> {
         self.version_control_contract = Some(version_control_contract);
 
-        self.sender = Some(sender);
+        self.addr_as_sender = Some(addr_as_sender);
         Ok(())
     }
 
@@ -96,7 +96,11 @@ impl DexCommand for Osmosis {
         let token_in = Coin::try_from(offer_asset)?;
 
         let swap_msg: CosmosMsg = MsgSwapExactAmountIn {
-            sender: self.sender.as_ref().expect("no local proxy").to_string(),
+            sender: self
+                .addr_as_sender
+                .as_ref()
+                .expect("no local proxy")
+                .to_string(),
             routes,
             token_in: Some(token_in.into()),
             token_out_min_amount: Uint128::one().to_string(),
@@ -175,7 +179,7 @@ impl DexCommand for Osmosis {
             compute_osmo_share_out_amount(&pool_assets, &deposits, total_share)?.to_string();
 
         let osmo_msg: CosmosMsg = MsgJoinPool {
-            sender: self.sender.as_ref().unwrap().to_string(),
+            sender: self.addr_as_sender.as_ref().unwrap().to_string(),
             pool_id,
             share_out_amount,
             token_in_maxs,
@@ -203,7 +207,7 @@ impl DexCommand for Osmosis {
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         let pool_id = pool_id.expect_id()?;
         let osmo_msg: CosmosMsg = MsgExitPool {
-            sender: self.sender.as_ref().unwrap().to_string(),
+            sender: self.addr_as_sender.as_ref().unwrap().to_string(),
             pool_id,
             share_in_amount: lp_token.amount.to_string(),
             token_out_mins: vec![], // This is fine! see: https://github.com/osmosis-labs/osmosis/blob/c51a248d67cd58e47587d6a955c3d765734eddd7/x/gamm/keeper/pool_service.go#L372

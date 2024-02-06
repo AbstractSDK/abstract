@@ -7,7 +7,7 @@ use crate::{AVAILABLE_CHAINS, OSMOSIS};
 #[derive(Default)]
 pub struct Osmosis {
     pub version_control_contract: Option<VersionControlContract>,
-    pub sender: Option<Addr>,
+    pub addr_as_sender: Option<Addr>,
     pub tokens: Vec<OsmosisTokenContext>,
 }
 
@@ -141,14 +141,14 @@ pub mod fns {
             &mut self,
             deps: cosmwasm_std::Deps,
             _env: Env,
-            sender: Option<Addr>,
+            addr_as_sender: Option<Addr>,
             ans_host: &AnsHost,
             version_control_contract: VersionControlContract,
             staking_assets: Vec<AssetEntry>,
         ) -> Result<(), CwStakingError> {
             self.version_control_contract = Some(version_control_contract);
 
-            self.sender = sender;
+            self.addr_as_sender = addr_as_sender;
 
             self.tokens =
                 self.query_pool_tokens_via_ans(&deps.querier, ans_host, staking_assets)?;
@@ -174,7 +174,7 @@ pub mod fns {
                 })
                 .collect();
             let lock_tokens_msg = MsgLockTokens {
-                owner: self.sender.as_ref().unwrap().to_string(),
+                owner: self.addr_as_sender.as_ref().unwrap().to_string(),
                 duration: to_osmo_duration(unbonding_period)?,
                 coins: lock_coins,
             };
@@ -193,7 +193,7 @@ pub mod fns {
                 .zip(self.tokens.iter())
                 .map(|(unstake, token)| {
                     MsgBeginUnlocking {
-                        owner: self.sender.as_ref().unwrap().to_string(),
+                        owner: self.addr_as_sender.as_ref().unwrap().to_string(),
                         id: token.pool_id,
                         coins: vec![Coin {
                             denom: token.lp_token.clone(),
@@ -211,7 +211,7 @@ pub mod fns {
         fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
             // Withdraw all
             let msg = MsgBeginUnlockingAll {
-                owner: self.sender.as_ref().unwrap().to_string(),
+                owner: self.addr_as_sender.as_ref().unwrap().to_string(),
             };
             Ok(vec![msg.into()])
         }

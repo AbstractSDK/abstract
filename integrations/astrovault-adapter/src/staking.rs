@@ -6,7 +6,7 @@ use crate::{ASTROVAULT, AVAILABLE_CHAINS};
 
 #[derive(Clone, Debug, Default)]
 pub struct Astrovault {
-    pub sender: Option<Addr>,
+    pub addr_as_sender: Option<Addr>,
     pub version_control_contract: Option<VersionControlContract>,
     pub tokens: Vec<AstrovaultTokenContext>,
 }
@@ -63,13 +63,13 @@ impl CwStakingCommand for Astrovault {
         &mut self,
         deps: Deps,
         _env: Env,
-        sender: Option<Addr>,
+        addr_as_sender: Option<Addr>,
         ans_host: &AnsHost,
         version_control_contract: VersionControlContract,
         lp_tokens: Vec<AssetEntry>,
     ) -> Result<(), CwStakingError> {
         self.version_control_contract = Some(version_control_contract);
-        self.sender = sender;
+        self.addr_as_sender = addr_as_sender;
         self.tokens = lp_tokens
             .into_iter()
             .map(|entry| {
