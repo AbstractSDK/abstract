@@ -821,10 +821,7 @@ fn can_customize_sub_account() -> anyhow::Result<()> {
     let sub_account = client
         .account_builder()
         .name("foo-bar")
-        .ownership(GovernanceDetails::SubAccount {
-            manager: account.manager()?.to_string(),
-            proxy: account.proxy()?.to_string(),
-        })
+        .sub_account(&account)?
         .build()?;
 
     let info = sub_account.info()?;

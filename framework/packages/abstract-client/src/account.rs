@@ -138,6 +138,18 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
+    /// Create sub-account instead
+    pub fn sub_account(
+        &mut self,
+        owner_account: &Account<Chain>,
+    ) -> AbstractClientResult<&mut Self> {
+        self.ownership(GovernanceDetails::SubAccount {
+            manager: owner_account.manager()?.to_string(),
+            proxy: owner_account.proxy()?.to_string(),
+        });
+        Ok(self)
+    }
+
     /// Governance of the account.
     /// Defaults to the [`GovernanceDetails::Monarchy`] variant, owned by the sender
     pub fn ownership(&mut self, ownership: GovernanceDetails<String>) -> &mut Self {
