@@ -417,6 +417,32 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
+    /// Get Sub Accounts of this account
+    pub fn sub_accounts(&self) -> AbstractClientResult<Vec<Account<Chain>>> {
+        let mut sub_accounts = vec![];
+        let mut start_after = None;
+        let abstr_deployment = Abstract::load_from(self.environment())?;
+        loop {
+            let sub_account_ids = self
+                .abstr_account
+                .manager
+                .sub_account_ids(None, start_after)?
+                .sub_accounts;
+            start_after = sub_account_ids.last().cloned();
+
+            if sub_account_ids.is_empty() {
+                break;
+            }
+            sub_accounts.extend(sub_account_ids.into_iter().map(|id| {
+                Account::new(
+                    AbstractAccount::new(&abstr_deployment, AccountId::local(id)),
+                    false,
+                )
+            }));
+        }
+        Ok(sub_accounts)
+    }
+
     /// Address of the proxy
     pub fn proxy(&self) -> AbstractClientResult<Addr> {
         self.abstr_account.proxy.address().map_err(Into::into)
