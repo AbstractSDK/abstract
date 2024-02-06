@@ -12,7 +12,7 @@
 //!
 //! ```
 //! # use abstract_client::AbstractClientError;
-//! use abstract_app::mock::interface::MockAppWithDepI;
+//! use abstract_app::mock::mock_app_dependency::interface::MockAppI;
 //! use cw_orch::prelude::*;
 //! use abstract_client::{AbstractClient, Publisher, Namespace};
 //!
@@ -24,7 +24,7 @@
 //!     .publisher_builder(namespace)
 //!     .build()?;
 //!
-//! publisher.publish_app::<MockAppWithDepI<Mock>>()?;
+//! publisher.publish_app::<MockAppI<Mock>>()?;
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
