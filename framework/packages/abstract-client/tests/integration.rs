@@ -8,7 +8,7 @@ use abstract_app::mock::{
 };
 use abstract_client::{
     builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
-    AbstractClient, Account, Application, Publisher,
+    AbstractClient, AbstractClientError, Account, Application, Publisher,
 };
 use abstract_core::{
     manager::{
@@ -821,11 +821,38 @@ fn can_customize_sub_account() -> anyhow::Result<()> {
     let sub_account = client
         .account_builder()
         .name("foo-bar")
-        .sub_account(&account)?
+        .sub_account(&account)
         .build()?;
 
     let info = sub_account.info()?;
     assert_eq!(info.name, "foo-bar");
     // TODO: add check that account is aware about sub-account, ABS-308
+    Ok(())
+}
+
+#[test]
+fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    let account = client.account_builder().build()?;
+    let result = client
+        .account_builder()
+        .name("foo-bar")
+        .ownership(GovernanceDetails::SubAccount {
+            manager: account.manager()?.into_string(),
+            proxy: account.proxy()?.into_string(),
+        })
+        .build();
+
+    // No debug on `Account<Chain>`
+    let Err(AbstractClientError::Interface(abstract_interface::AbstractInterfaceError::Orch(err))) =
+        result
+    else {
+        panic!("Expected cw-orch error")
+    };
+    let err: account_factory::error::AccountFactoryError = err.downcast().unwrap();
+    assert_eq!(
+        err,
+        account_factory::error::AccountFactoryError::SenderNotManager {}
+    );
     Ok(())
 }

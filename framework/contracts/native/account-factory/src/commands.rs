@@ -56,6 +56,13 @@ pub fn execute_create_account(
     let abstract_registry = VersionControlContract::new(config.version_control_contract.clone());
 
     let governance = governance.verify(deps.as_ref(), config.version_control_contract.clone())?;
+    if let GovernanceDetails::SubAccount { manager, .. } = &governance {
+        ensure_eq!(
+            info.sender,
+            manager,
+            AccountFactoryError::SenderNotManager {}
+        )
+    }
     // If an account_id is provided, assert the caller is the ibc host and return the account_id.
     // Else get the next account id and set the origin to local.
     let account_id = if let Some(account_id) = account_id {
