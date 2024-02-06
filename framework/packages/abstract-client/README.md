@@ -102,7 +102,7 @@ let chain = Mock::new(&Addr::unchecked("sender"));
 let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 
 // Build a Publisher
-let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("tester-dependency")?)
+let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("tester")?)
         .build()?;
 
 publisher.publish_app::<MockAppI<_>>()?;
@@ -111,6 +111,35 @@ publisher.publish_app::<MockAppI<_>>()?;
 let app: Application<Mock, MockAppI<Mock>> =
         publisher.account().install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
 
+
+Ok::<(), abstract_client::AbstractClientError>(())
+```
+
+### Fetching an `Account`
+
+If you've previously created an `Account` and wish to retrieve it, you can use the `AbstractClient::account_from` function. This function accepts three different types of input:
+
+- `Namespace` - If the namespace is claimed, the function will return the `Account` that owns the namespace.
+- `AccountId` - If this `AccountId` exists, the function will return the `Account` with that `AccountId`.
+- App `Addr` - If there's an `App` installed on the account you can provide its `Addr` to retrieve the `Account` that it is installed on.
+
+```rust
+use cw_orch::prelude::*;
+use abstract_client::{AbstractClient, Namespace, Account};
+use abstract_app::mock::{mock_app_dependency::interface::MockAppI, MockInitMsg};
+
+let chain = Mock::new(&Addr::unchecked("sender"));
+
+// Construct the client
+let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
+
+let namespace = Namespace::new("some-namespace")?;
+
+// Build a new account.
+let account: Account<Mock> = client.account_builder().namespace(namespace.clone()).build()?;
+
+// Fetch the account
+let fetched_account: Account<Mock> = client.account_from(namespace)?;
 
 Ok::<(), abstract_client::AbstractClientError>(())
 ```

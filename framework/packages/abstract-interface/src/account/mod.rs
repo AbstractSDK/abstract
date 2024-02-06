@@ -13,7 +13,7 @@
 
 use abstract_core::{manager::ModuleInstallConfig, ABSTRACT_EVENT_TYPE};
 
-use crate::{Abstract, AdapterDeployer};
+use crate::{Abstract, AbstractInterfaceError, AdapterDeployer};
 
 mod manager;
 mod proxy;
@@ -190,14 +190,10 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     {
         self.manager.register_remote_account(host_chain)
     }
-}
 
-use crate::AbstractInterfaceError;
-impl<T: CwEnv> AbstractAccount<T> {
-    /// Upload and register the account core contracts in the version control if they need to be updated
     pub fn upload_and_register_if_needed(
         &self,
-        version_control: &VersionControl<T>,
+        version_control: &VersionControl<Chain>,
     ) -> Result<bool, AbstractInterfaceError> {
         let mut modules_to_register = Vec::with_capacity(2);
 
@@ -223,5 +219,22 @@ impl<T: CwEnv> AbstractAccount<T> {
         };
 
         Ok(migrated)
+    }
+}
+
+impl<Chain: CwEnv> std::fmt::Display for AbstractAccount<Chain> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Account manager: {:?} ({:?}) proxy: {:?} ({:?})",
+            self.manager.id(),
+            self.manager
+                .addr_str()
+                .or_else(|_| Result::<_, CwOrchError>::Ok(String::from("unknown"))),
+            self.proxy.id(),
+            self.proxy
+                .addr_str()
+                .or_else(|_| Result::<_, CwOrchError>::Ok(String::from("unknown"))),
+        )
     }
 }
