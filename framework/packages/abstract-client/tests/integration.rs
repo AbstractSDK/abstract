@@ -826,8 +826,9 @@ fn can_customize_sub_account() -> anyhow::Result<()> {
             proxy: account.proxy()?.to_string(),
         })
         .build()?;
-    
+
     let info = sub_account.info()?;
     assert_eq!(info.name, "foo-bar");
+    // TODO: add check that account is aware about sub-account, ABS-308
     Ok(())
 }
