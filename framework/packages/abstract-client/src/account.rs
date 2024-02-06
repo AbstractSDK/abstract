@@ -19,6 +19,8 @@
 //! assert_eq!(alice_account.owner()?, client.sender());
 //! # Ok::<(), AbstractClientError>(())
 //! ```
+use std::fmt::{Debug, Display};
+
 use abstract_core::{
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
@@ -151,7 +153,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             // Check if namespace already claimed
             if let Some(ref namespace) = self.namespace {
                 let account_from_namespace_result: Option<Account<Chain>> =
-                    Account::from_namespace(
+                    Account::maybe_from_namespace(
                         self.abstr,
                         namespace.clone(),
                         self.install_on_sub_account,
@@ -228,7 +230,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    pub(crate) fn from_namespace(
+    pub(crate) fn maybe_from_namespace(
         abstr: &Abstract<Chain>,
         namespace: Namespace,
         install_on_sub_account: bool,
@@ -593,5 +595,17 @@ impl<Chain: MutCwEnv> Account<Chain> {
             .add_balance(&self.proxy()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
+    }
+}
+
+impl<Chain: CwEnv> Display for Account<Chain> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.abstr_account)
+    }
+}
+
+impl<Chain: CwEnv> Debug for Account<Chain> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.abstr_account)
     }
 }

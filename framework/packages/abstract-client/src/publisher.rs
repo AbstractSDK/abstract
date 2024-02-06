@@ -131,12 +131,11 @@ impl<Chain: CwEnv> Publisher<Chain> {
     >(
         &self,
         init_msg: CustomInitMsg,
-    ) -> AbstractClientResult<()> {
+    ) -> AbstractClientResult<M> {
         let contract = Contract::new(M::module_id().to_owned(), self.account.environment());
         let adapter: M = contract.into();
-        adapter
-            .deploy(M::module_version().parse()?, init_msg, DeployStrategy::Try)
-            .map_err(Into::into)
+        adapter.deploy(M::module_version().parse()?, init_msg, DeployStrategy::Try)?;
+        Ok(adapter)
     }
 
     /// Abstract Account of the publisher
