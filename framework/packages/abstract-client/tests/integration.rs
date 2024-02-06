@@ -851,7 +851,7 @@ fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
             version: abstract_adapter::mock::MOCK_ADAPTER.version().to_owned(),
             dependencies: abstract_adapter::mock::MOCK_ADAPTER
                 .dependencies()
-                .into_iter()
+                .iter()
                 .map(Dependency::from)
                 .map(Into::into)
                 .collect(),
