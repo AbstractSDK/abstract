@@ -8,7 +8,7 @@ use abstract_app::mock::{
 };
 use abstract_client::{
     builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
-    AbstractClient, Account, Application, Publisher,
+    AbstractClient, Account, AccountSource, Application, Publisher,
 };
 use abstract_core::{
     manager::{
@@ -406,7 +406,7 @@ fn can_fetch_account_from_app() -> anyhow::Result<()> {
 
     let app = account1.install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
 
-    let account2 = client.account_from(app.address()?)?;
+    let account2 = client.account_from(AccountSource::App(app.address()?))?;
 
     assert_eq!(account1.info()?, account2.info()?);
 

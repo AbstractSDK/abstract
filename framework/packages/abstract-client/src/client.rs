@@ -163,17 +163,17 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
                 // Only return if the account can be retrieved without errors.
                 if let Some(account_from_namespace) = account_from_namespace_result {
-                    return Ok(account_from_namespace);
+                    Ok(account_from_namespace)
                 } else {
-                    return Err(AbstractClientError::NamespaceNotClaimed {
+                    Err(AbstractClientError::NamespaceNotClaimed {
                         namespace: namespace.to_string(),
-                    });
+                    })
                 }
             }
             AccountSource::AccountId(account_id) => {
                 let abstract_account: AbstractAccount<Chain> =
                     AbstractAccount::new(&self.abstr, account_id.clone());
-                return Ok(Account::new(abstract_account, true));
+                Ok(Account::new(abstract_account, true))
             }
             AccountSource::App(app) => {
                 // Query app for manager address and get AccountId from it.
@@ -195,7 +195,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
                 // This function verifies the account-id is valid and returns an error if not.
                 let abstract_account: AbstractAccount<Chain> =
                     AbstractAccount::new(&self.abstr, manager_config.account_id);
-                return Ok(Account::new(abstract_account, true));
+                Ok(Account::new(abstract_account, true))
             }
         }
     }

@@ -22,9 +22,3 @@ impl From<AccountId> for AccountSource {
         AccountSource::AccountId(account_id)
     }
 }
-
-impl From<Addr> for AccountSource {
-    fn from(addr: Addr) -> Self {
-        AccountSource::App(addr)
-    }
-}
