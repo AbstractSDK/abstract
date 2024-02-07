@@ -16,6 +16,8 @@ use serde::de::DeserializeOwned;
 
 use crate::DEX_ADAPTER_ID;
 
+use self::{ans::AnsDex, raw::Dex};
+
 // API for Abstract SDK users
 /// Interact with the dex adapter in your module.
 pub trait DexInterface: AccountIdentification + Dependencies + ModuleIdentification {
@@ -41,296 +43,306 @@ pub trait DexInterface: AccountIdentification + Dependencies + ModuleIdentificat
 
 impl<T: AccountIdentification + Dependencies + ModuleIdentification> DexInterface for T {}
 
-#[derive(Clone)]
-pub struct Dex<'a, T: DexInterface> {
-    base: &'a T,
-    name: DexName,
-    module_id: ModuleId<'a>,
-    deps: Deps<'a>,
-}
+pub mod raw {
+    use super::*;
 
-#[derive(Clone)]
-pub struct AnsDex<'a, T: DexInterface> {
-    base: &'a T,
-    name: DexName,
-    module_id: ModuleId<'a>,
-    deps: Deps<'a>,
-}
-
-impl<'a, T: DexInterface> Dex<'a, T> {
-    /// Set the module id for the DEX
-    pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
-        Self { module_id, ..self }
+    #[derive(Clone)]
+    pub struct Dex<'a, T: DexInterface> {
+        pub(crate) base: &'a T,
+        pub(crate) name: DexName,
+        pub(crate) module_id: ModuleId<'a>,
+        pub(crate) deps: Deps<'a>,
     }
 
-    /// Use Raw addresses, ids and denoms for dex-related operations
-    pub fn ans(self) -> AnsDex<'a, T> {
-        AnsDex {
-            base: self.base,
-            name: self.name,
-            module_id: self.module_id,
-            deps: self.deps,
+    impl<'a, T: DexInterface> Dex<'a, T> {
+        /// Set the module id for the DEX
+        pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
+            Self { module_id, ..self }
         }
-    }
 
-    /// returns DEX name
-    fn dex_name(&self) -> DexName {
-        self.name.clone()
-    }
+        /// Use Raw addresses, ids and denoms for dex-related operations
+        pub fn ans(self) -> AnsDex<'a, T> {
+            AnsDex {
+                base: self.base,
+                name: self.name,
+                module_id: self.module_id,
+                deps: self.deps,
+            }
+        }
 
-    /// returns the DEX module id
-    fn dex_module_id(&self) -> ModuleId {
-        self.module_id
-    }
+        /// returns DEX name
+        fn dex_name(&self) -> DexName {
+            self.name.clone()
+        }
 
-    /// Executes a [DexRawAction] in th DEX
-    fn request(&self, action: DexRawAction) -> AbstractSdkResult<CosmosMsg> {
-        let adapters = self.base.adapters(self.deps);
+        /// returns the DEX module id
+        fn dex_module_id(&self) -> ModuleId {
+            self.module_id
+        }
 
-        adapters.request(
-            self.dex_module_id(),
-            DexExecuteMsg::RawAction {
-                dex: self.dex_name(),
-                action,
-            },
-        )
-    }
+        /// Executes a [DexRawAction] in th DEX
+        fn request(&self, action: DexRawAction) -> AbstractSdkResult<CosmosMsg> {
+            let adapters = self.base.adapters(self.deps);
 
-    /// Swap assets without ANS
-    pub fn swap(
-        &self,
-        offer_asset: Asset,
-        ask_asset: AssetInfo,
-        max_spread: Option<Decimal>,
-        belief_price: Option<Decimal>,
-        pool: PoolAddress,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexRawAction::Swap {
-            offer_asset: offer_asset.into(),
-            ask_asset: ask_asset.into(),
-            belief_price,
-            max_spread,
-            pool: pool.into(),
-        })
-    }
+            adapters.request(
+                self.dex_module_id(),
+                DexExecuteMsg::RawAction {
+                    dex: self.dex_name(),
+                    action,
+                },
+            )
+        }
 
-    /// Provide liquidity in the DEX
-    pub fn provide_liquidity(
-        &self,
-        assets: Vec<Asset>,
-        max_spread: Option<Decimal>,
-        pool: PoolAddress,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexRawAction::ProvideLiquidity {
-            assets: assets.into_iter().map(Into::into).collect(),
-            pool: pool.into(),
-            max_spread,
-        })
-    }
-
-    /// Provide symmetric liquidity in the DEX
-    pub fn provide_liquidity_symmetric(
-        &self,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
-        pool: PoolAddress,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexRawAction::ProvideLiquiditySymmetric {
-            offer_asset: offer_asset.into(),
-            paired_assets: paired_assets.into_iter().map(Into::into).collect(),
-            pool: pool.into(),
-        })
-    }
-
-    /// Withdraw liquidity from the DEX
-    pub fn withdraw_liquidity(
-        &self,
-        lp_token: Asset,
-        pool: PoolAddress,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexRawAction::WithdrawLiquidity {
-            lp_token: lp_token.into(),
-            pool: pool.into(),
-        })
-    }
-}
-
-impl<'a, T: DexInterface> Dex<'a, T> {
-    /// Do a query in the DEX
-    fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
-        let adapters = self.base.adapters(self.deps);
-        adapters.query(DEX_ADAPTER_ID, query_msg)
-    }
-
-    /// simulate DEx swap without relying on ANS
-    pub fn simulate_swap(
-        &self,
-        offer_asset: Asset,
-        ask_asset: AssetInfo,
-        pool: PoolAddress,
-    ) -> AbstractSdkResult<SimulateSwapResponse<AssetInfoBase<String>>> {
-        let response: SimulateSwapResponse<AssetInfoBase<String>> =
-            self.query(DexQueryMsg::SimulateSwapRaw {
+        /// Swap assets without ANS
+        pub fn swap(
+            &self,
+            offer_asset: Asset,
+            ask_asset: AssetInfo,
+            max_spread: Option<Decimal>,
+            belief_price: Option<Decimal>,
+            pool: PoolAddress,
+        ) -> AbstractSdkResult<CosmosMsg> {
+            self.request(DexRawAction::Swap {
                 offer_asset: offer_asset.into(),
                 ask_asset: ask_asset.into(),
+                belief_price,
+                max_spread,
                 pool: pool.into(),
-                dex: self.dex_name(),
-            })?;
-        Ok(response)
-    }
+            })
+        }
 
-    /// Generate the raw messages that are need to run a swap
-    pub fn generate_swap_messages(
-        &self,
-        offer_asset: Asset,
-        ask_asset: AssetInfo,
-        pool: PoolAddress,
-        max_spread: Option<Decimal>,
-        belief_price: Option<Decimal>,
-        sender_receiver: impl Into<String>,
-    ) -> AbstractSdkResult<SimulateSwapResponse> {
-        let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
-            message: DexExecuteMsg::RawAction {
-                dex: self.dex_name(),
-                action: DexRawAction::Swap {
-                    offer_asset: offer_asset.into(),
-                    ask_asset: ask_asset.into(),
-                    max_spread,
-                    belief_price,
-                    pool: pool.into(),
-                },
-            },
-            proxy_addr: sender_receiver.into(),
-        })?;
-        Ok(response)
-    }
-}
+        /// Provide liquidity in the DEX
+        pub fn provide_liquidity(
+            &self,
+            assets: Vec<Asset>,
+            max_spread: Option<Decimal>,
+            pool: PoolAddress,
+        ) -> AbstractSdkResult<CosmosMsg> {
+            self.request(DexRawAction::ProvideLiquidity {
+                assets: assets.into_iter().map(Into::into).collect(),
+                pool: pool.into(),
+                max_spread,
+            })
+        }
 
-impl<'a, T: DexInterface> AnsDex<'a, T> {
-    /// Set the module id for the DEX
-    pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
-        Self { module_id, ..self }
-    }
+        /// Provide symmetric liquidity in the DEX
+        pub fn provide_liquidity_symmetric(
+            &self,
+            offer_asset: Asset,
+            paired_assets: Vec<AssetInfo>,
+            pool: PoolAddress,
+        ) -> AbstractSdkResult<CosmosMsg> {
+            self.request(DexRawAction::ProvideLiquiditySymmetric {
+                offer_asset: offer_asset.into(),
+                paired_assets: paired_assets.into_iter().map(Into::into).collect(),
+                pool: pool.into(),
+            })
+        }
 
-    /// Use Raw addresses, ids and denoms for dex-related operations
-    pub fn raw(self) -> Dex<'a, T> {
-        Dex {
-            base: self.base,
-            name: self.name,
-            module_id: self.module_id,
-            deps: self.deps,
+        /// Withdraw liquidity from the DEX
+        pub fn withdraw_liquidity(
+            &self,
+            lp_token: Asset,
+            pool: PoolAddress,
+        ) -> AbstractSdkResult<CosmosMsg> {
+            self.request(DexRawAction::WithdrawLiquidity {
+                lp_token: lp_token.into(),
+                pool: pool.into(),
+            })
         }
     }
 
-    /// returns DEX name
-    fn dex_name(&self) -> DexName {
-        self.name.clone()
-    }
+    impl<'a, T: DexInterface> Dex<'a, T> {
+        /// Do a query in the DEX
+        fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
+            let adapters = self.base.adapters(self.deps);
+            adapters.query(DEX_ADAPTER_ID, query_msg)
+        }
 
-    /// returns the DEX module id
-    fn dex_module_id(&self) -> ModuleId {
-        self.module_id
-    }
+        /// simulate DEx swap without relying on ANS
+        pub fn simulate_swap(
+            &self,
+            offer_asset: Asset,
+            ask_asset: AssetInfo,
+            pool: PoolAddress,
+        ) -> AbstractSdkResult<SimulateSwapResponse<AssetInfoBase<String>>> {
+            let response: SimulateSwapResponse<AssetInfoBase<String>> =
+                self.query(DexQueryMsg::SimulateSwapRaw {
+                    offer_asset: offer_asset.into(),
+                    ask_asset: ask_asset.into(),
+                    pool: pool.into(),
+                    dex: self.dex_name(),
+                })?;
+            Ok(response)
+        }
 
-    /// Executes a [DexAction] in th DEX
-    fn request(&self, action: DexAnsAction) -> AbstractSdkResult<CosmosMsg> {
-        let adapters = self.base.adapters(self.deps);
-
-        adapters.request(
-            self.dex_module_id(),
-            DexExecuteMsg::AnsAction {
-                dex: self.dex_name(),
-                action,
-            },
-        )
-    }
-
-    /// Swap assets in the DEX
-    pub fn swap(
-        &self,
-        offer_asset: AnsAsset,
-        ask_asset: AssetEntry,
-        max_spread: Option<Decimal>,
-        belief_price: Option<Decimal>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAnsAction::Swap {
-            offer_asset,
-            ask_asset,
-            belief_price,
-            max_spread,
-        })
-    }
-
-    /// Provide liquidity in the DEX
-    pub fn provide_liquidity(
-        &self,
-        assets: Vec<AnsAsset>,
-        max_spread: Option<Decimal>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAnsAction::ProvideLiquidity { assets, max_spread })
-    }
-
-    /// Provide symmetrict liquidity in the DEX
-    pub fn provide_liquidity_symmetric(
-        &self,
-        offer_asset: AnsAsset,
-        paired_assets: Vec<AssetEntry>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAnsAction::ProvideLiquiditySymmetric {
-            offer_asset,
-            paired_assets,
-        })
-    }
-
-    /// Withdraw liquidity from the DEX
-    pub fn withdraw_liquidity(&self, lp_token: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAnsAction::WithdrawLiquidity { lp_token })
+        /// Generate the raw messages that are need to run a swap
+        pub fn generate_swap_messages(
+            &self,
+            offer_asset: Asset,
+            ask_asset: AssetInfo,
+            pool: PoolAddress,
+            max_spread: Option<Decimal>,
+            belief_price: Option<Decimal>,
+            sender_receiver: impl Into<String>,
+        ) -> AbstractSdkResult<SimulateSwapResponse> {
+            let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
+                message: DexExecuteMsg::RawAction {
+                    dex: self.dex_name(),
+                    action: DexRawAction::Swap {
+                        offer_asset: offer_asset.into(),
+                        ask_asset: ask_asset.into(),
+                        max_spread,
+                        belief_price,
+                        pool: pool.into(),
+                    },
+                },
+                proxy_addr: sender_receiver.into(),
+            })?;
+            Ok(response)
+        }
     }
 }
 
-impl<'a, T: DexInterface> AnsDex<'a, T> {
-    /// Do a query in the DEX
-    fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
-        let adapters = self.base.adapters(self.deps);
-        adapters.query(DEX_ADAPTER_ID, query_msg)
+pub mod ans {
+    use self::raw::Dex;
+
+    use super::*;
+
+    #[derive(Clone)]
+    pub struct AnsDex<'a, T: DexInterface> {
+        pub(crate) base: &'a T,
+        pub(crate) name: DexName,
+        pub(crate) module_id: ModuleId<'a>,
+        pub(crate) deps: Deps<'a>,
     }
 
-    /// simulate DEx swap
-    pub fn simulate_swap(
-        &self,
-        offer_asset: AnsAsset,
-        ask_asset: AssetEntry,
-    ) -> AbstractSdkResult<SimulateSwapResponse> {
-        let response: SimulateSwapResponse = self.query(DexQueryMsg::SimulateSwap {
-            dex: self.dex_name(),
-            offer_asset,
-            ask_asset,
-        })?;
-        Ok(response)
-    }
+    impl<'a, T: DexInterface> AnsDex<'a, T> {
+        /// Set the module id for the DEX
+        pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
+            Self { module_id, ..self }
+        }
 
-    /// Generate the raw messages that are need to run a swap
-    pub fn generate_swap_messages(
-        &self,
-        offer_asset: AnsAsset,
-        ask_asset: AssetEntry,
-        max_spread: Option<Decimal>,
-        belief_price: Option<Decimal>,
-        sender_receiver: impl Into<String>,
-    ) -> AbstractSdkResult<SimulateSwapResponse> {
-        let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
-            message: DexExecuteMsg::AnsAction {
-                dex: self.dex_name(),
-                action: DexAnsAction::Swap {
-                    offer_asset,
-                    ask_asset,
-                    max_spread,
-                    belief_price,
+        /// Use Raw addresses, ids and denoms for dex-related operations
+        pub fn raw(self) -> Dex<'a, T> {
+            Dex {
+                base: self.base,
+                name: self.name,
+                module_id: self.module_id,
+                deps: self.deps,
+            }
+        }
+
+        /// returns DEX name
+        fn dex_name(&self) -> DexName {
+            self.name.clone()
+        }
+
+        /// returns the DEX module id
+        fn dex_module_id(&self) -> ModuleId {
+            self.module_id
+        }
+
+        /// Executes a [DexAction] in th DEX
+        fn request(&self, action: DexAnsAction) -> AbstractSdkResult<CosmosMsg> {
+            let adapters = self.base.adapters(self.deps);
+
+            adapters.request(
+                self.dex_module_id(),
+                DexExecuteMsg::AnsAction {
+                    dex: self.dex_name(),
+                    action,
                 },
-            },
-            proxy_addr: sender_receiver.into(),
-        })?;
-        Ok(response)
+            )
+        }
+
+        /// Swap assets in the DEX
+        pub fn swap(
+            &self,
+            offer_asset: AnsAsset,
+            ask_asset: AssetEntry,
+            max_spread: Option<Decimal>,
+            belief_price: Option<Decimal>,
+        ) -> AbstractSdkResult<CosmosMsg> {
+            self.request(DexAnsAction::Swap {
+                offer_asset,
+                ask_asset,
+                belief_price,
+                max_spread,
+            })
+        }
+
+        /// Provide liquidity in the DEX
+        pub fn provide_liquidity(
+            &self,
+            assets: Vec<AnsAsset>,
+            max_spread: Option<Decimal>,
+        ) -> AbstractSdkResult<CosmosMsg> {
+            self.request(DexAnsAction::ProvideLiquidity { assets, max_spread })
+        }
+
+        /// Provide symmetrict liquidity in the DEX
+        pub fn provide_liquidity_symmetric(
+            &self,
+            offer_asset: AnsAsset,
+            paired_assets: Vec<AssetEntry>,
+        ) -> AbstractSdkResult<CosmosMsg> {
+            self.request(DexAnsAction::ProvideLiquiditySymmetric {
+                offer_asset,
+                paired_assets,
+            })
+        }
+
+        /// Withdraw liquidity from the DEX
+        pub fn withdraw_liquidity(&self, lp_token: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
+            self.request(DexAnsAction::WithdrawLiquidity { lp_token })
+        }
+    }
+
+    impl<'a, T: DexInterface> AnsDex<'a, T> {
+        /// Do a query in the DEX
+        fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
+            let adapters = self.base.adapters(self.deps);
+            adapters.query(DEX_ADAPTER_ID, query_msg)
+        }
+
+        /// simulate DEx swap
+        pub fn simulate_swap(
+            &self,
+            offer_asset: AnsAsset,
+            ask_asset: AssetEntry,
+        ) -> AbstractSdkResult<SimulateSwapResponse> {
+            let response: SimulateSwapResponse = self.query(DexQueryMsg::SimulateSwap {
+                dex: self.dex_name(),
+                offer_asset,
+                ask_asset,
+            })?;
+            Ok(response)
+        }
+
+        /// Generate the raw messages that are need to run a swap
+        pub fn generate_swap_messages(
+            &self,
+            offer_asset: AnsAsset,
+            ask_asset: AssetEntry,
+            max_spread: Option<Decimal>,
+            belief_price: Option<Decimal>,
+            sender_receiver: impl Into<String>,
+        ) -> AbstractSdkResult<SimulateSwapResponse> {
+            let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
+                message: DexExecuteMsg::AnsAction {
+                    dex: self.dex_name(),
+                    action: DexAnsAction::Swap {
+                        offer_asset,
+                        ask_asset,
+                        max_spread,
+                        belief_price,
+                    },
+                },
+                proxy_addr: sender_receiver.into(),
+            })?;
+            Ok(response)
+        }
     }
 }
 
