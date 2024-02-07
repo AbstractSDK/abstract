@@ -244,7 +244,6 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         Ok(AbstractAccount { manager, proxy })
     }
-}
 
     pub fn upload_and_register_if_needed(
         &self,

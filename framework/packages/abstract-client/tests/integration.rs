@@ -894,7 +894,11 @@ fn can_customize_sub_account() -> anyhow::Result<()> {
 
     let info = sub_account.info()?;
     assert_eq!(info.name, "foo-bar");
-    // TODO: add check that account is aware about sub-account, ABS-308
+
+    // Account aware of sub account
+    let sub_accounts = account.sub_accounts()?;
+    assert_eq!(sub_accounts.len(), 1);
+    assert_eq!(sub_accounts[0].id()?, sub_account.id()?);
     Ok(())
 }
 
