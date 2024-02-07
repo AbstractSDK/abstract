@@ -51,4 +51,7 @@ pub enum AccountFactoryError {
 
     #[error("Sender {0} is not the IBC host {1}")]
     SenderNotIbcHost(String, String),
+
+    #[error("The caller ({caller}) is not the owner account's manager ({manager}). Only manager can create sub-accounts for its account.", )]
+    SubAccountCreatorNotManager { caller: String, manager: String },
 }

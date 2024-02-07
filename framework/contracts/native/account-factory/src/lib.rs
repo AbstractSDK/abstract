@@ -1,6 +1,6 @@
 mod commands;
 pub mod contract;
-mod error;
+pub mod error;
 pub(crate) mod queries;
 mod response;
 

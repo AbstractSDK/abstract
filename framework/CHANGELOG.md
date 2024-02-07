@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `.sub_accounts` method on `Account` for getting Abstract Client Sub Accounts
 - Publish adapter method of Abstract Client Publisher now returns Adapter object
 - Added a `.account_from` method on the `AbstractClient` for retrieving `Account`s.
+- Creating Sub Account from `AbstractClient` Account builder.
 
 ### Changed
 
@@ -22,6 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 
 ### Fixed
+
+- Creating sub-account from account factory is restricted. Use Create Sub Account method of the manager instead
 
 ## [0.20.0] - 2024-01-24
 
