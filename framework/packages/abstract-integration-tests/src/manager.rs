@@ -281,8 +281,10 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
             Some(&[coin(18, coin1), coin(20, coin2)]),
         )
         .unwrap();
-    let balances = chain.bank_querier()
-.balance(account.proxy.address()?, None).unwrap();
+    let balances = chain
+        .bank_querier()
+        .balance(account.proxy.address()?, None)
+        .unwrap();
     assert_eq!(balances, vec![coin(1, coin1), coin(5, coin2)]);
     Ok(())
 }
@@ -311,7 +313,7 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
 
     let test_addr_balance = chain
         .bank_querier()
-.balance(Addr::unchecked(&adapter1), Some("TEST".to_owned()))
+        .balance(Addr::unchecked(&adapter1), Some("TEST".to_owned()))
         .unwrap();
     assert_eq!(test_addr_balance[0].amount, Uint128::new(123456));
 

@@ -17,10 +17,7 @@ use abstract_interface::{
 use abstract_testing::prelude::*;
 use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoBase};
-use cw_orch::{
-    
-    prelude::{Mock, *},
-};
+use cw_orch::prelude::{Mock, *};
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>

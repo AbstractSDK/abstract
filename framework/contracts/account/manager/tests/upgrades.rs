@@ -22,7 +22,7 @@ use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, to_json_binary};
 use cw2::ContractVersion;
-use cw_orch::{ prelude::*};
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 #[test]

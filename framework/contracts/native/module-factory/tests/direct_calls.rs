@@ -4,7 +4,7 @@ use abstract_core::{
 use abstract_interface::*;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{Addr, Binary};
-use cw_orch::{ prelude::*};
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>

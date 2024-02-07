@@ -31,9 +31,7 @@
 use abstract_core::objects::{namespace::Namespace, AccountId};
 use abstract_interface::{Abstract, AbstractAccount, AnsHost, ManagerQueryFns, VersionControl};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Empty, Uint128};
-use cw_orch::{
-    prelude::*,
-};
+use cw_orch::prelude::*;
 
 use crate::{
     account::{Account, AccountBuilder},
@@ -217,7 +215,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Retrieve balances of all denoms for provided address
     pub fn query_balances(&self, address: &Addr) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
-        .bank_querier()
+            .bank_querier()
             .balance(address, None)
             .map_err(Into::into)
             .map_err(Into::into)

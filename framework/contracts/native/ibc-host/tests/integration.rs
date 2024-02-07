@@ -16,7 +16,7 @@ use abstract_interface::{
 };
 use abstract_testing::OWNER;
 use cosmwasm_std::Event;
-use cw_orch::{ prelude::*};
+use cw_orch::prelude::*;
 use cw_ownable::OwnershipError;
 
 use crate::mock_adapter::{MockAdapter, MOCK_ADAPTER_ID};

@@ -280,8 +280,7 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Query account balances of all denoms
     pub fn query_balances(&self) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
-        .bank_querier()
-
+            .bank_querier()
             .balance(self.proxy()?, None)
             .map_err(Into::into)
             .map_err(Into::into)

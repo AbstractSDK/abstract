@@ -12,7 +12,7 @@ use abstract_interface::*;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, to_json_binary, Addr, Coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
-use cw_orch::{ prelude::*};
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 const APP_ID: &str = "tester:app";

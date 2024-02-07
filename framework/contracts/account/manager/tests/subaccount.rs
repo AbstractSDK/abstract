@@ -8,7 +8,7 @@ use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_testing::OWNER;
 use cosmwasm_std::{to_json_binary, wasm_execute, Addr};
-use cw_orch::{prelude::*};
+use cw_orch::prelude::*;
 
 #[test]
 fn creating_on_subaccount_should_succeed() -> AResult {

@@ -3,9 +3,7 @@ use abstract_core::{
     objects::module::{ModuleInfo, ModuleVersion},
 };
 use cosmwasm_std::to_json_binary;
-use cw_orch::{
-    prelude::{CwOrchError::StdErr, *},
-};
+use cw_orch::prelude::{CwOrchError::StdErr, *};
 use semver::Version;
 use serde::Serialize;
 

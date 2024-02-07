@@ -17,7 +17,7 @@ use abstract_interface::*;
 use abstract_manager::{contract::CONTRACT_VERSION, error::ManagerError};
 use abstract_testing::{prelude::*, OWNER};
 use cosmwasm_std::{coin, to_json_binary, Addr, Coin, CosmosMsg};
-use cw_orch::{ prelude::*};
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 #[test]
