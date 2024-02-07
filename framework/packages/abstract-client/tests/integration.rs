@@ -12,7 +12,7 @@ use abstract_app::{
 };
 use abstract_client::{
     builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
-    AbstractClient, Account, AccountSource, Application, Publisher,
+    AbstractClient, AbstractClientError, Account, AccountSource, Application, Publisher,
 };
 use abstract_core::{
     ans_host::QueryMsgFns,
@@ -827,7 +827,7 @@ fn doc_example_test() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
-    let sender: Addr = Addr::unchecked("sender");
+    let sender: Addr = Addr::unchecked(OWNER);
     let env: Mock = Mock::new(&sender);
 
     // Build the client
@@ -883,6 +883,56 @@ fn can_register_dex_with_client() -> anyhow::Result<()> {
     assert_eq!(
         dexes_response,
         abstract_core::ans_host::RegisteredDexesResponse { dexes }
+    );
+    Ok(())
+}
+
+#[test]
+fn can_customize_sub_account() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    let account = client.account_builder().build()?;
+    let sub_account = client
+        .account_builder()
+        .name("foo-bar")
+        .sub_account(&account)
+        .build()?;
+
+    let info = sub_account.info()?;
+    assert_eq!(info.name, "foo-bar");
+
+    // Account aware of sub account
+    let sub_accounts = account.sub_accounts()?;
+    assert_eq!(sub_accounts.len(), 1);
+    assert_eq!(sub_accounts[0].id()?, sub_account.id()?);
+    Ok(())
+}
+
+#[test]
+fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    let account = client.account_builder().build()?;
+    let result = client
+        .account_builder()
+        .name("foo-bar")
+        .ownership(GovernanceDetails::SubAccount {
+            manager: account.manager()?.into_string(),
+            proxy: account.proxy()?.into_string(),
+        })
+        .build();
+
+    // No debug on `Account<Chain>`
+    let Err(AbstractClientError::Interface(abstract_interface::AbstractInterfaceError::Orch(err))) =
+        result
+    else {
+        panic!("Expected cw-orch error")
+    };
+    let err: account_factory::error::AccountFactoryError = err.downcast().unwrap();
+    assert_eq!(
+        err,
+        account_factory::error::AccountFactoryError::SubAccountCreatorNotManager {
+            caller: client.sender().into_string(),
+            manager: account.manager()?.into_string()
+        }
     );
     Ok(())
 }

@@ -74,6 +74,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
     ownership: Option<GovernanceDetails<String>>,
+    owner_account: Option<&'a Account<Chain>>,
     install_modules: Vec<ModuleInstallConfig>,
     funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
@@ -96,6 +97,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: None,
             base_asset: None,
             ownership: None,
+            owner_account: None,
             install_modules: vec![],
             funds: AccountCreationFunds::Coins(cosmwasm_std::Coins::default()),
             fetch_if_namespace_claimed: true,
@@ -146,6 +148,12 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     /// Defaults to `true`
     pub fn install_on_sub_account(&mut self, value: bool) -> &mut Self {
         self.install_on_sub_account = value;
+        self
+    }
+
+    /// Create sub-account instead
+    pub fn sub_account(&mut self, owner_account: &'a Account<Chain>) -> &mut Self {
+        self.owner_account = Some(owner_account);
         self
     }
 
@@ -236,18 +244,23 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         verifiers::validate_description(self.description.as_deref())?;
         verifiers::validate_link(self.link.as_deref())?;
 
-        let abstract_account = self.abstr.account_factory.create_new_account(
-            AccountDetails {
-                name,
-                description: self.description.clone(),
-                link: self.link.clone(),
-                namespace: self.namespace.as_ref().map(ToString::to_string),
-                base_asset: self.base_asset.clone(),
-                install_modules: self.install_modules.clone(),
-            },
-            ownership,
-            Some(&[]),
-        )?;
+        let account_details = AccountDetails {
+            name,
+            description: self.description.clone(),
+            link: self.link.clone(),
+            namespace: self.namespace.as_ref().map(ToString::to_string),
+            base_asset: self.base_asset.clone(),
+            install_modules: self.install_modules.clone(),
+        };
+        let abstract_account = if let Some(owner_account) = self.owner_account {
+            owner_account
+                .abstr_account
+                .create_sub_account(account_details, Some(&[]))?
+        } else {
+            self.abstr
+                .account_factory
+                .create_new_account(account_details, ownership, Some(&[]))?
+        };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
     }
 }
