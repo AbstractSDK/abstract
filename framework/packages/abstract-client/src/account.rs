@@ -74,9 +74,16 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
     ownership: Option<GovernanceDetails<String>>,
-    // TODO: How to handle install_modules?
+    install_modules: Vec<ModuleInstallConfig>,
+    funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
+}
+
+/// How to
+enum AccountCreationFunds {
+    Auto(Box<dyn Fn(&[Coin]) -> bool>),
+    Coins(cosmwasm_std::Coins),
 }
 
 impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
@@ -89,6 +96,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: None,
             base_asset: None,
             ownership: None,
+            install_modules: vec![],
+            funds: AccountCreationFunds::Coins(cosmwasm_std::Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: true,
         }
@@ -147,6 +156,51 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
+    /// Install an adapter on current account.
+    pub fn install_adapter<M: InstallConfig<InitMsg = Empty>>(
+        &mut self,
+    ) -> AbstractClientResult<&mut Self> {
+        self.install_modules.push(M::install_config(&Empty {})?);
+        Ok(self)
+    }
+
+    /// Install an application on current account.
+    pub fn install_app<M: InstallConfig<InitMsg = Empty>>(
+        &mut self,
+        configuration: &M::InitMsg,
+    ) -> AbstractClientResult<&mut Self> {
+        self.install_modules.push(M::install_config(configuration)?);
+        Ok(self)
+    }
+
+    /// Enable auto fund mode and add a check
+    pub fn auto_fund_assert<F: Fn(&[Coin]) -> bool + 'static>(&mut self, f: F) -> &mut Self {
+        self.funds = AccountCreationFunds::Auto(Box::new(f));
+        self
+    }
+
+    /// Enable auto fund mode
+    pub fn auto_fund(&mut self) -> &mut Self {
+        self.funds = AccountCreationFunds::Auto(Box::new(|_| true));
+        self
+    }
+
+    /// Add funds to the account creation
+    /// Can't be used in pair with auto fund mode
+    pub fn funds(&mut self, funds: &[Coin]) -> AbstractClientResult<&mut Self> {
+        let coins = match &mut self.funds {
+            AccountCreationFunds::Auto(_) => return Err(AbstractClientError::FundsWithAutoFund {}),
+            AccountCreationFunds::Coins(coins) => coins,
+        };
+
+        for coin in funds {
+            coins
+                .add(coin.clone())
+                .map_err(AbstractInterfaceError::from)?;
+        }
+        Ok(self)
+    }
+
     /// Builds the [`Account`].
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
         if self.fetch_if_namespace_claimed {
@@ -189,7 +243,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 link: self.link.clone(),
                 namespace: self.namespace.as_ref().map(ToString::to_string),
                 base_asset: self.base_asset.clone(),
-                install_modules: vec![],
+                install_modules: self.install_modules.clone(),
             },
             ownership,
             Some(&[]),
@@ -278,7 +332,6 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Install an application on the account.
-    /// This creates a new sub-account and installs the application on it.
     pub fn install_app<M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
@@ -292,7 +345,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    /// Install an application on current account.
+    /// Install an adapter on current account.
     pub fn install_adapter<
         M: ContractInstance<Chain> + InstallConfig<InitMsg = Empty> + From<Contract<Chain>>,
     >(

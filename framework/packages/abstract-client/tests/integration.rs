@@ -24,7 +24,7 @@ use abstract_core::{
         namespace::Namespace, AccountId, AssetEntry,
     },
 };
-use abstract_interface::{ClientResolve, VCQueryFns};
+use abstract_interface::{ClientResolve, RegisteredModule, VCQueryFns};
 use abstract_testing::{
     prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
     OWNER,
@@ -884,5 +884,40 @@ fn can_register_dex_with_client() -> anyhow::Result<()> {
         dexes_response,
         abstract_core::ans_host::RegisteredDexesResponse { dexes }
     );
+    Ok(())
+}
+
+#[test]
+fn install_application_on_account_builder() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    let adapter: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+
+    let account = client
+        .account_builder()
+        .install_adapter::<BootMockAdapter<Mock>>()?
+        .build()?;
+    let modules = account.module_infos()?.module_infos;
+    let adapter_info = modules
+        .into_iter()
+        .find(|module| module.id == BootMockAdapter::<Mock>::module_id())
+        .expect("Adapter not found");
+
+    assert_eq!(
+        adapter_info,
+        ManagerModuleInfo {
+            id: BootMockAdapter::<Mock>::module_id().to_owned(),
+            version: cw2::ContractVersion {
+                contract: BootMockAdapter::<Mock>::module_id().to_owned(),
+                version: BootMockAdapter::<Mock>::module_version().to_owned()
+            },
+            address: adapter.address()?,
+        }
+    );
+
     Ok(())
 }

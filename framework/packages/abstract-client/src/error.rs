@@ -31,4 +31,7 @@ pub enum AbstractClientError {
 
     #[error("Can't retrieve Account for unclaimed namespace \"{namespace}\".")]
     NamespaceNotClaimed { namespace: String },
+
+    #[error("Can't add funds in auto-fund mode")]
+    FundsWithAutoFund {},
 }
