@@ -217,6 +217,15 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             funds,
         )?;
 
+        Self::from_tx_response(self.manager.get_chain(), result)
+    }
+
+    // Parse account from events
+    // It's restricted to parse 1 account at a time
+    pub(crate) fn from_tx_response(
+        chain: &Chain,
+        result: <Chain as TxHandler>::Response,
+    ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
         // Parse data from events
         let acc_seq = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_sequence")?;
         let trace = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "trace")?;
@@ -225,8 +234,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             abstract_core::objects::account::AccountTrace::try_from((*trace).as_str())?,
         )?;
         // construct manager and proxy ids
-        let manager = Manager::new_from_id(&id, self.manager.get_chain().clone());
-        let proxy = Proxy::new_from_id(&id, self.manager.get_chain().clone());
+        let manager = Manager::new_from_id(&id, chain.clone());
+        let proxy = Proxy::new_from_id(&id, chain.clone());
 
         // set addresses
         let manager_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
