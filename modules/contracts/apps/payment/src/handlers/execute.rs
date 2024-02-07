@@ -110,10 +110,10 @@ pub fn tip(
             .into_iter()
             .find(|(pair, refs)| !refs.is_empty() && exchange_strs.contains(&pair.dex()))
         {
-            let dex = app.dex(deps.as_ref(), pair.dex().to_owned());
+            let dex = app.dex(deps.as_ref(), pair.dex().to_owned()).ans();
             let trigger_swap_msg = dex.swap(
-                pay_asset.clone().into(),
-                desired_asset.clone().into(),
+                pay_asset.clone(),
+                desired_asset.clone(),
                 Some(Decimal::percent(MAX_SPREAD_PERCENT)),
                 None,
             )?;
@@ -121,7 +121,7 @@ pub fn tip(
             attrs.push(("swap", format!("{} for {}", pay_asset.name, desired_asset)));
 
             desired_asset_amount += dex
-                .simulate_swap(pay_asset.clone().into(), desired_asset.clone().into())?
+                .simulate_swap(pay_asset.clone(), desired_asset.clone())?
                 .return_amount;
         } else {
             // If swap not found just accept payment

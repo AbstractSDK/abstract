@@ -169,7 +169,8 @@ fn create_dca(
 
     // Simulate swap first
     app.dex(deps.as_ref(), dex_name.clone())
-        .simulate_swap(source_asset.clone().into(), target_asset.clone().into())?;
+        .ans()
+        .simulate_swap(source_asset.clone(), target_asset.clone())?;
 
     // Generate DCA ID
     let dca_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id.next_id()))?;
@@ -217,10 +218,9 @@ fn update_dca(
     };
 
     // Simulate swap for a new dca
-    app.dex(deps.as_ref(), new_dca.dex.clone()).simulate_swap(
-        new_dca.source_asset.clone().into(),
-        new_dca.target_asset.clone().into(),
-    )?;
+    app.dex(deps.as_ref(), new_dca.dex.clone())
+        .ans()
+        .simulate_swap(new_dca.source_asset.clone(), new_dca.target_asset.clone())?;
 
     DCA_LIST.save(deps.storage, dca_id, &new_dca)?;
 
@@ -284,9 +284,9 @@ fn convert(deps: DepsMut, env: Env, info: MessageInfo, app: DCAApp, dca_id: DCAI
 
     // TODO: remove dca on failed swap?
     // Or `stop_on_fail` should be enough
-    messages.push(app.dex(deps.as_ref(), dca.dex).swap(
-        dca.source_asset.into(),
-        dca.target_asset.into(),
+    messages.push(app.dex(deps.as_ref(), dca.dex).ans().swap(
+        dca.source_asset,
+        dca.target_asset,
         Some(config.max_spread),
         None,
     )?);
