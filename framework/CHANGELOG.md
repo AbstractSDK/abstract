@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Publish adapter method of Abstract Client Publisher now returns Adapter object
 - Added a `.account_from` method on the `AbstractClient` for retrieving `Account`s.
 - Creating Sub Account from `AbstractClient` Account builder.
+- Installing apps and adapters for `AbstractClient` Account builder
+- Attaching funds to account creation on `AbstractClient` Account builder
 
 ### Changed
 
