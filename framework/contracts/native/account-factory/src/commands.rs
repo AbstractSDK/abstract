@@ -62,7 +62,10 @@ pub fn execute_create_account(
         ensure_eq!(
             info.sender,
             manager,
-            AccountFactoryError::SenderNotManager {}
+            AccountFactoryError::SubAccountCreatorNotManager {
+                caller: info.sender.into(),
+                manager: manager.into()
+            }
         )
     }
     // If an account_id is provided, assert the caller is the ibc host and return the account_id.
