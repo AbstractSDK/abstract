@@ -44,16 +44,34 @@ pub fn execute_handler(
             dex: dex_name,
             action,
         } => {
+            let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
             // We resolve the Action to a RawAction to get the actual addresses, ids and denoms
-            let whole_dex_action = WholeDexAction(dex_name.clone(), action);
+            let whole_dex_action = WholeDexAction(local_dex_name.clone(), action);
             let ans = adapter.name_service(deps.as_ref());
             let raw_action = ans.query(&whole_dex_action)?;
-            handle_raw_action(deps, info, env, adapter, &dex_name, raw_action)
+
+            // if exchange is on an app-chain, execute the action on the app-chain
+            if is_over_ibc {
+                handle_ibc_request(&deps, info, &adapter, local_dex_name, &raw_action)
+            } else {
+                // the action can be executed on the local chain
+                handle_local_request(deps, env, info, &adapter, local_dex_name, raw_action)
+            }
         }
         DexExecuteMsg::RawAction {
             dex: dex_name,
             action,
-        } => handle_raw_action(deps, info, env, adapter, &dex_name, action),
+        } => {
+            let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
+
+            // if exchange is on an app-chain, execute the action on the app-chain
+            if is_over_ibc {
+                handle_ibc_request(&deps, info, &adapter, local_dex_name, &action)
+            } else {
+                // the action can be executed on the local chain
+                handle_local_request(deps, env, info, &adapter, local_dex_name, action)
+            }
+        }
         DexExecuteMsg::UpdateFee {
             swap_fee,
             recipient_account: recipient_account_id,
@@ -88,24 +106,6 @@ pub fn execute_handler(
             DEX_FEES.save(deps.storage, &fee)?;
             Ok(Response::default())
         }
-    }
-}
-
-fn handle_raw_action(
-    deps: DepsMut,
-    info: MessageInfo,
-    env: Env,
-    adapter: DexAdapter,
-    dex_name: &str,
-    action: DexRawAction,
-) -> DexResult {
-    let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), dex_name)?;
-    // if exchange is on an app-chain, execute the action on the app-chain
-    if is_over_ibc {
-        handle_ibc_request(&deps, info, &adapter, local_dex_name, &action)
-    } else {
-        // the action can be executed on the local chain
-        handle_local_request(deps, env, info, &adapter, local_dex_name, action)
     }
 }
 

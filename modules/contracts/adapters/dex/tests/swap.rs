@@ -1,9 +1,9 @@
-use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
+use abstract_core::{ans_host::QueryMsgFns as _, objects::ABSTRACT_ACCOUNT_ID};
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_dex_standard::{msg::DexFeesResponse, DexError};
 use abstract_interface::{AbstractInterfaceError, AdapterDeployer, DeployStrategy};
-use cw20::msg::Cw20ExecuteMsgFns;
-use cw20_base::msg::QueryMsgFns;
+use cw20::msg::Cw20ExecuteMsgFns as _;
+use cw20_base::msg::QueryMsgFns as _;
 use cw_orch::deploy::Deploy;
 mod common;
 
@@ -56,6 +56,9 @@ fn setup_mock() -> anyhow::Result<(
 fn swap_native() -> anyhow::Result<()> {
     let (chain, _, dex_adapter, os, abstr) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
+
+    let pools = abstr.ans_host.pool_list(None, None, None)?;
+    println!("{:?}", pools);
 
     // swap 100 EUR to USD
     dex_adapter.swap((EUR, 100), USD, WYNDEX.into(), &os)?;
