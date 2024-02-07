@@ -1,9 +1,8 @@
-use abstract_core::{ibc::CallbackInfo, objects::chain_name::ChainName};
-use abstract_sdk::{
-    feature_objects::AnsHost,
-    features::{AbstractNameService, AbstractResponse},
-    IbcInterface, Resolve,
-};
+use abstract_core::ibc::CallbackInfo;
+use abstract_core::objects::chain_name::ChainName;
+use abstract_sdk::feature_objects::AnsHost;
+use abstract_sdk::features::{AbstractNameService, AbstractResponse, AccountIdentification};
+use abstract_sdk::{IbcInterface, Resolve};
 use abstract_staking_standard::msg::{
     ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
 };
@@ -42,15 +41,22 @@ pub fn execute_handler(
 fn handle_local_request(
     deps: DepsMut,
     env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     adapter: CwStakingContract,
     action: StakingAction,
     provider_name: String,
 ) -> StakingResult {
     let provider = resolver::resolve_local_provider(&provider_name)?;
+    let target_account = adapter.account_base(deps.as_ref())?;
     Ok(adapter
         .custom_response("handle_local_request", vec![("provider", provider_name)])
-        .add_submessage(adapter.resolve_staking_action(deps, env, info, action, provider)?))
+        .add_submessage(adapter.resolve_staking_action(
+            deps,
+            env,
+            target_account,
+            action,
+            provider,
+        )?))
 }
 
 /// Handle a request that needs to be executed on a remote chain

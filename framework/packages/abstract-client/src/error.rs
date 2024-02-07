@@ -28,4 +28,7 @@ pub enum AbstractClientError {
 
     #[error("Account is Renounced and does not have an owner.")]
     RenouncedAccount {},
+
+    #[error("Can't retrieve Account for unclaimed namespace \"{namespace}\".")]
+    NamespaceNotClaimed { namespace: String },
 }

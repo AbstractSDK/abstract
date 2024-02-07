@@ -19,6 +19,8 @@
 //! assert_eq!(alice_account.owner()?, client.sender());
 //! # Ok::<(), AbstractClientError>(())
 //! ```
+use std::fmt::{Debug, Display};
+
 use abstract_core::{
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
@@ -159,7 +161,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             // Check if namespace already claimed
             if let Some(ref namespace) = self.namespace {
                 let account_from_namespace_result: Option<Account<Chain>> =
-                    Account::from_namespace(
+                    Account::maybe_from_namespace(
                         self.abstr,
                         namespace.clone(),
                         self.install_on_sub_account,
@@ -241,7 +243,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    pub(crate) fn from_namespace(
+    pub(crate) fn maybe_from_namespace(
         abstr: &Abstract<Chain>,
         namespace: Namespace,
         install_on_sub_account: bool,
@@ -430,6 +432,32 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
+    /// Get Sub Accounts of this account
+    pub fn sub_accounts(&self) -> AbstractClientResult<Vec<Account<Chain>>> {
+        let mut sub_accounts = vec![];
+        let mut start_after = None;
+        let abstr_deployment = Abstract::load_from(self.environment())?;
+        loop {
+            let sub_account_ids = self
+                .abstr_account
+                .manager
+                .sub_account_ids(None, start_after)?
+                .sub_accounts;
+            start_after = sub_account_ids.last().cloned();
+
+            if sub_account_ids.is_empty() {
+                break;
+            }
+            sub_accounts.extend(sub_account_ids.into_iter().map(|id| {
+                Account::new(
+                    AbstractAccount::new(&abstr_deployment, AccountId::local(id)),
+                    false,
+                )
+            }));
+        }
+        Ok(sub_accounts)
+    }
+
     /// Address of the proxy
     pub fn proxy(&self) -> AbstractClientResult<Addr> {
         self.abstr_account.proxy.address().map_err(Into::into)
@@ -580,5 +608,17 @@ impl<Chain: MutCwEnv> Account<Chain> {
             .add_balance(&self.proxy()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
+    }
+}
+
+impl<Chain: CwEnv> Display for Account<Chain> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.abstr_account)
+    }
+}
+
+impl<Chain: CwEnv> Debug for Account<Chain> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.abstr_account)
     }
 }

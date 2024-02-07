@@ -12,7 +12,7 @@ use abstract_core::{
 use abstract_interface::{Abstract, AbstractInterfaceError};
 use cosmwasm_std::{coin, Addr, Decimal, Empty, Uint128};
 use cw20::Cw20Coin;
-use cw_orch::{deploy::Deploy, prelude::*};
+use cw_orch::prelude::*;
 use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use wyndex::{
     asset::{AssetInfo, AssetInfoExt},
