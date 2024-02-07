@@ -61,6 +61,16 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         Self { module_id, ..self }
     }
 
+    /// Use Raw addresses, ids and denoms for dex-related operations
+    pub fn ans(self) -> AnsDex<'a, T> {
+        AnsDex {
+            base: self.base,
+            name: self.name,
+            module_id: self.module_id,
+            deps: self.deps,
+        }
+    }
+
     /// returns DEX name
     fn dex_name(&self) -> DexName {
         self.name.clone()
