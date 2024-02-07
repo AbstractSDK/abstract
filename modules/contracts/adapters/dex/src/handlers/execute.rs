@@ -10,7 +10,7 @@ use abstract_core::{
 };
 use abstract_dex_standard::{
     msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID},
-    DexError,
+    DexError, DEX_ADAPTER_ID,
 };
 use abstract_sdk::{
     features::AbstractNameService, AccountVerification, Execution, IbcInterface,
@@ -20,14 +20,14 @@ use cosmwasm_std::{
     ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
 };
 
+use crate::exchanges::exchange_resolver::{self, is_over_ibc};
+use crate::msg::{DexAction, DexExecuteMsg, DexName};
 use crate::{
     contract::{DexAdapter, DexResult},
-    exchanges::exchange_resolver,
-    handlers::execute::exchange_resolver::is_over_ibc,
-    msg::{DexAction, DexExecuteMsg, DexName},
     state::DEX_FEES,
-    DEX_ADAPTER_ID,
 };
+
+use abstract_sdk::features::AccountIdentification;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -91,16 +91,17 @@ pub fn execute_handler(
 fn handle_local_request(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     adapter: DexAdapter,
     action: DexAction,
     exchange: String,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
+    let target_account = adapter.account_base(deps.as_ref())?;
     let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
         &adapter,
         deps.as_ref(),
-        info.sender,
+        target_account.proxy,
         action,
         exchange,
     )?;

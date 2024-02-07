@@ -1,10 +1,12 @@
+use abstract_core::version_control::AccountBase;
+
 use abstract_sdk::{
     core::objects::AssetEntry,
     features::{AbstractNameService, AbstractRegistryAccess},
     Execution,
 };
 use abstract_staking_standard::{msg::StakingAction, CwStakingCommand, CwStakingError};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, SubMsg};
+use cosmwasm_std::{DepsMut, Env, SubMsg};
 
 impl<T> CwStakingAdapter for T where T: AbstractNameService + AbstractRegistryAccess + Execution {}
 
@@ -17,7 +19,7 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
         &self,
         deps: DepsMut,
         env: Env,
-        info: MessageInfo,
+        target_account: AccountBase,
         action: StakingAction,
         mut provider: Box<dyn CwStakingCommand>,
     ) -> Result<SubMsg, CwStakingError> {
@@ -26,7 +28,7 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
         provider.fetch_data(
             deps.as_ref(),
             env,
-            Some(info),
+            Some(target_account.proxy),
             &self.ans_host(deps.as_ref())?,
             self.abstract_registry(deps.as_ref())?,
             staking_asset,
