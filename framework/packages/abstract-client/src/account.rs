@@ -269,6 +269,7 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn query_balance(&self, denom: impl Into<String>) -> AbstractClientResult<Uint128> {
         let coins = self
             .environment()
+            .bank_querier()
             .balance(self.proxy()?, Some(denom.into()))
             .map_err(Into::into)?;
 
@@ -279,6 +280,8 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Query account balances of all denoms
     pub fn query_balances(&self) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
+        .bank_querier()
+
             .balance(self.proxy()?, None)
             .map_err(Into::into)
             .map_err(Into::into)

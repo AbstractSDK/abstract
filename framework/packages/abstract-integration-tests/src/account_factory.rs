@@ -6,7 +6,7 @@ use abstract_interface::{Abstract, AccountDetails, AccountFactoryExecFns, VCExec
 use abstract_sdk::cw_helpers::Clearable;
 use cosmwasm_std::coin;
 use cw_orch::{
-    contract::interface_traits::ContractInstance, deploy::Deploy, environment::MutCwEnv,
+    environment::MutCwEnv, prelude::*
 };
 
 use crate::AResult;

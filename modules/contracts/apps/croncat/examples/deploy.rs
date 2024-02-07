@@ -6,7 +6,7 @@ use croncat_app::{
 };
 use cw_orch::{
     anyhow,
-    deploy::Deploy,
+    
     prelude::{networks::parse_network, DaemonBuilder, TxHandler},
     tokio::runtime::Runtime,
 };

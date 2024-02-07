@@ -21,7 +21,7 @@ use abstract_integration_tests::{
 use abstract_interface::*;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins, Addr, Coin, Empty};
-use cw_orch::{deploy::Deploy, prelude::*};
+use cw_orch::{ prelude::*};
 use mock_modules::{adapter_1, V1, V2};
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 

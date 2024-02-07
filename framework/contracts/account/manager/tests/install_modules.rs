@@ -11,8 +11,8 @@ use abstract_manager::error::ManagerError;
 use abstract_testing::{prelude::TEST_NAMESPACE, OWNER};
 use cosmwasm_std::Addr;
 use cw_orch::{
-    deploy::Deploy,
-    prelude::{CwOrchExecute, CwOrchQuery, Mock},
+    
+    prelude::*,
     take_storage_snapshot,
 };
 use mock_modules::{adapter_1, deploy_modules, V1};

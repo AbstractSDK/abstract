@@ -5,7 +5,7 @@ use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
 use clap::Parser;
 use cosmwasm_std::Decimal;
 use cw_orch::{
-    deploy::Deploy,
+    
     prelude::{
         networks::{parse_network, ChainInfo},
         *,

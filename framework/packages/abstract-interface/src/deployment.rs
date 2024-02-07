@@ -4,7 +4,7 @@ use abstract_core::{
     account_factory::ExecuteMsgFns as _, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
-use cw_orch::{deploy::Deploy, prelude::*};
+use cw_orch::{prelude::*};
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,

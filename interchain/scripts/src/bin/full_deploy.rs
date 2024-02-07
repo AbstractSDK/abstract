@@ -9,7 +9,7 @@ use abstract_interface::Abstract;
 use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 use clap::Parser;
 use cw_orch::{
-    deploy::Deploy,
+    
     prelude::{
         networks::{parse_network, ChainInfo},
         *,

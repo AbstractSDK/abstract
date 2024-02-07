@@ -21,7 +21,7 @@ use challenge_app::{
 };
 use cosmwasm_std::{coin, Uint128, Uint64};
 use cw_asset::AssetInfo;
-use cw_orch::{anyhow, deploy::Deploy, prelude::*};
+use cw_orch::{anyhow,  prelude::*};
 use lazy_static::lazy_static;
 
 use crate::msg::QueryMsg;

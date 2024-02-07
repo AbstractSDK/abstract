@@ -12,7 +12,7 @@ use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, Uint128};
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
 use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, deploy::Deploy, prelude::*};
+use cw_orch::{anyhow,  prelude::*};
 use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},

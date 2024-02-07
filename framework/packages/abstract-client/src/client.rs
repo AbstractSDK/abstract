@@ -32,8 +32,7 @@ use abstract_core::objects::{namespace::Namespace, AccountId};
 use abstract_interface::{Abstract, AbstractAccount, AnsHost, ManagerQueryFns, VersionControl};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Empty, Uint128};
 use cw_orch::{
-    contract::interface_traits::ContractInstance, deploy::Deploy, prelude::CwEnv,
-    state::StateInterface,
+    prelude::*,
 };
 
 use crate::{
@@ -208,6 +207,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ) -> AbstractClientResult<Uint128> {
         let coins = self
             .environment()
+            .bank_querier()
             .balance(address, Some(denom.into()))
             .map_err(Into::into)?;
         // There will always be a single element in this case.
@@ -217,6 +217,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Retrieve balances of all denoms for provided address
     pub fn query_balances(&self, address: &Addr) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
+        .bank_querier()
             .balance(address, None)
             .map_err(Into::into)
             .map_err(Into::into)

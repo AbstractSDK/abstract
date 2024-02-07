@@ -13,7 +13,7 @@ use abstract_interface_integration_tests::{
 use anyhow::Result as AnyResult;
 use cosmwasm_std::coins;
 use cw_orch::{
-    deploy::Deploy,
+    
     prelude::{queriers::Bank, *},
 };
 use cw_orch_proto::tokenfactory::{create_denom, create_transfer_channel, get_denom, mint};

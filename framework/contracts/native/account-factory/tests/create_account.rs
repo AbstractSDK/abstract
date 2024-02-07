@@ -18,7 +18,7 @@ use abstract_testing::prelude::*;
 use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_orch::{
-    deploy::Deploy,
+    
     prelude::{Mock, *},
 };
 use speculoos::prelude::*;

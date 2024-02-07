@@ -12,7 +12,7 @@ use cosmwasm_std::{coin, Addr, Decimal, Empty};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::{AssetInfo, AssetUnchecked};
-use cw_orch::{deploy::Deploy, prelude::*};
+use cw_orch::{ prelude::*};
 use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use etf_app::{
     contract::interface::Etf,

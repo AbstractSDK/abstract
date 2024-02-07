@@ -1,7 +1,7 @@
 use abstract_interface::Abstract;
 use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
 use anyhow::Result as AnyResult;
-use cw_orch::{deploy::Deploy, prelude::*};
+use cw_orch::{ prelude::*};
 use cw_orch_polytone::Polytone;
 use polytone::handshake::POLYTONE_VERSION;
 
