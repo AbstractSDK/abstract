@@ -24,6 +24,7 @@ pub mod interface {
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
     };
+    use abstract_dex_standard::ans_action::DexAction;
     use abstract_interface::{AbstractAccount, AbstractInterfaceError, AdapterDeployer};
     use cosmwasm_std::{Decimal, Empty};
     use cw_orch::{build::BuildPostfix, interface, prelude::*};

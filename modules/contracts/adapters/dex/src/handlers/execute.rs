@@ -9,7 +9,9 @@ use abstract_core::{
     },
 };
 use abstract_dex_standard::{
-    msg::{DexRawAction, ExecuteMsg, WholeDexAction, IBC_DEX_PROVIDER_ID},
+    ans_action::WholeDexAction,
+    msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID},
+    raw_action::DexRawAction,
     DexError,
 };
 use abstract_sdk::{

@@ -1,8 +1,8 @@
 use abstract_core::objects::{AssetEntry, DexAssetPairing, PoolAddress};
 use abstract_dex_standard::{
+    ans_action::{pool_address, WholeDexAction},
     msg::{
-        pool_address, DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse,
-        SimulateSwapResponse, WholeDexAction,
+        DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, SimulateSwapResponse,
     },
     DexError,
 };

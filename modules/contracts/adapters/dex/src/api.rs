@@ -1,8 +1,10 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
 use abstract_core::objects::{module::ModuleId, AnsAsset, AssetEntry, PoolAddress};
-use abstract_dex_standard::msg::{
-    DexAction, DexExecuteMsg, DexName, DexQueryMsg, DexRawAction, SimulateSwapResponse,
+use abstract_dex_standard::{
+    ans_action::DexAction,
+    msg::{DexExecuteMsg, DexName, DexQueryMsg, SimulateSwapResponse},
+    raw_action::DexRawAction,
 };
 use abstract_sdk::{
     features::{AccountIdentification, Dependencies, ModuleIdentification},

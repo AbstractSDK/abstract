@@ -14,7 +14,8 @@ use abstract_dex_adapter::{
     msg::{DexInstantiateMsg, ExecuteMsg, InstantiateMsg, QueryMsg},
     DEX_ADAPTER_ID,
 };
-use abstract_dex_standard::msg::{DexAction, DexExecuteMsg};
+use abstract_dex_standard::ans_action::DexAction;
+use abstract_dex_standard::msg::DexExecuteMsg;
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountFactory, AdapterDeployer,
     DeployStrategy,
@@ -76,7 +77,6 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
                     max_spread: Some(Decimal::percent(30)),
                     belief_price: None,
                 },
-                pool: None,
             },
         });
         account
@@ -106,7 +106,6 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
                     ],
                     max_spread: Some(Decimal::percent(30)),
                 },
-                pool: None,
             },
         });
         account
@@ -130,7 +129,6 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
             request: DexExecuteMsg::Action {
                 dex,
                 action: DexAction::WithdrawLiquidity { lp_token },
-                pool: None,
             },
         });
         account
