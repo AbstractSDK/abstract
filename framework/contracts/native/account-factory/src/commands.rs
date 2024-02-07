@@ -56,6 +56,8 @@ pub fn execute_create_account(
     let abstract_registry = VersionControlContract::new(config.version_control_contract.clone());
 
     let governance = governance.verify(deps.as_ref(), config.version_control_contract.clone())?;
+    // Check if the caller is the manager the proposed owner account when creating a sub-account.
+    // This prevents other users from creating sub-accounts for accounts they don't own.
     if let GovernanceDetails::SubAccount { manager, .. } = &governance {
         ensure_eq!(
             info.sender,
