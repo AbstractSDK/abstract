@@ -40,7 +40,7 @@ pub fn execute_handler(
     msg: DexExecuteMsg,
 ) -> DexResult {
     match msg {
-        DexExecuteMsg::Action {
+        DexExecuteMsg::AnsAction {
             dex: dex_name,
             action,
         } => {

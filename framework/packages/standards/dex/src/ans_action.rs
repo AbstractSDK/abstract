@@ -13,7 +13,7 @@ use crate::{msg::DexName, raw_action::DexRawAction};
 
 /// Possible actions to perform on the DEX
 #[cosmwasm_schema::cw_serde]
-pub enum DexAction {
+pub enum DexAnsAction {
     /// Provide arbitrary liquidity
     ProvideLiquidity {
         // support complex pool types
@@ -49,7 +49,7 @@ pub enum DexAction {
     },
 }
 /// Structure created to be able to resolve an action using ANS
-pub struct WholeDexAction(pub DexName, pub DexAction);
+pub struct WholeDexAction(pub DexName, pub DexAnsAction);
 
 /// Returns the first pool address to be able to swap given assets on the given dex
 pub fn pool_address(
@@ -77,7 +77,7 @@ impl Resolve for WholeDexAction {
         ans_host: &abstract_sdk::feature_objects::AnsHost,
     ) -> abstract_core::objects::ans_host::AnsHostResult<Self::Output> {
         match self.1.clone() {
-            DexAction::ProvideLiquidity { assets, max_spread } => {
+            DexAnsAction::ProvideLiquidity { assets, max_spread } => {
                 let mut asset_names = assets
                     .iter()
                     .cloned()
@@ -98,7 +98,7 @@ impl Resolve for WholeDexAction {
                     max_spread,
                 })
             }
-            DexAction::ProvideLiquiditySymmetric {
+            DexAnsAction::ProvideLiquiditySymmetric {
                 offer_asset,
                 mut paired_assets,
             } => {
@@ -116,7 +116,7 @@ impl Resolve for WholeDexAction {
                     paired_assets: paired_asset_infos.into_iter().map(Into::into).collect(),
                 })
             }
-            DexAction::WithdrawLiquidity { lp_token } => {
+            DexAnsAction::WithdrawLiquidity { lp_token } => {
                 let lp_asset = lp_token.resolve(querier, ans_host)?;
 
                 let lp_pairing: DexAssetPairing = AnsEntryConvertor::new(
@@ -140,7 +140,7 @@ impl Resolve for WholeDexAction {
                     lp_token: lp_asset.into(),
                 })
             }
-            DexAction::Swap {
+            DexAnsAction::Swap {
                 offer_asset,
                 mut ask_asset,
                 max_spread,

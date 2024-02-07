@@ -45,7 +45,7 @@ pub fn query_handler(
             mut message,
             proxy_addr,
         } => {
-            if let DexExecuteMsg::Action { dex, action } = message {
+            if let DexExecuteMsg::AnsAction { dex, action } = message {
                 let ans = adapter.name_service(deps);
                 let whole_dex_action = WholeDexAction(dex.clone(), action);
                 message = DexExecuteMsg::RawAction {

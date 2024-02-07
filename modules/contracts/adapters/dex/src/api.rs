@@ -2,7 +2,7 @@
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
 use abstract_core::objects::{module::ModuleId, AnsAsset, AssetEntry, PoolAddress};
 use abstract_dex_standard::{
-    ans_action::DexAction,
+    ans_action::DexAnsAction,
     msg::{DexExecuteMsg, DexName, DexQueryMsg, SimulateSwapResponse},
     raw_action::DexRawAction,
 };
@@ -233,12 +233,12 @@ impl<'a, T: DexInterface> AnsDex<'a, T> {
     }
 
     /// Executes a [DexAction] in th DEX
-    fn request(&self, action: DexAction) -> AbstractSdkResult<CosmosMsg> {
+    fn request(&self, action: DexAnsAction) -> AbstractSdkResult<CosmosMsg> {
         let adapters = self.base.adapters(self.deps);
 
         adapters.request(
             self.dex_module_id(),
-            DexExecuteMsg::Action {
+            DexExecuteMsg::AnsAction {
                 dex: self.dex_name(),
                 action,
             },
@@ -253,7 +253,7 @@ impl<'a, T: DexInterface> AnsDex<'a, T> {
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
     ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::Swap {
+        self.request(DexAnsAction::Swap {
             offer_asset,
             ask_asset,
             belief_price,
@@ -267,7 +267,7 @@ impl<'a, T: DexInterface> AnsDex<'a, T> {
         assets: Vec<AnsAsset>,
         max_spread: Option<Decimal>,
     ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::ProvideLiquidity { assets, max_spread })
+        self.request(DexAnsAction::ProvideLiquidity { assets, max_spread })
     }
 
     /// Provide symmetrict liquidity in the DEX
@@ -276,7 +276,7 @@ impl<'a, T: DexInterface> AnsDex<'a, T> {
         offer_asset: AnsAsset,
         paired_assets: Vec<AssetEntry>,
     ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::ProvideLiquiditySymmetric {
+        self.request(DexAnsAction::ProvideLiquiditySymmetric {
             offer_asset,
             paired_assets,
         })
@@ -284,7 +284,7 @@ impl<'a, T: DexInterface> AnsDex<'a, T> {
 
     /// Withdraw liquidity from the DEX
     pub fn withdraw_liquidity(&self, lp_token: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::WithdrawLiquidity { lp_token })
+        self.request(DexAnsAction::WithdrawLiquidity { lp_token })
     }
 }
 
@@ -319,9 +319,9 @@ impl<'a, T: DexInterface> AnsDex<'a, T> {
         sender_receiver: impl Into<String>,
     ) -> AbstractSdkResult<SimulateSwapResponse> {
         let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
-            message: DexExecuteMsg::Action {
+            message: DexExecuteMsg::AnsAction {
                 dex: self.dex_name(),
-                action: DexAction::Swap {
+                action: DexAnsAction::Swap {
                     offer_asset,
                     ask_asset,
                     max_spread,
@@ -370,9 +370,9 @@ mod test {
         let max_spread = Some(Decimal::percent(1));
         let belief_price = Some(Decimal::percent(2));
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::AnsAction {
             dex: dex_name,
-            action: DexAction::Swap {
+            action: DexAnsAction::Swap {
                 offer_asset: offer_asset.clone(),
                 ask_asset: ask_asset.clone(),
                 max_spread,
@@ -412,9 +412,9 @@ mod test {
         let assets = vec![AnsAsset::new("taco", 1000u128)];
         let max_spread = Some(Decimal::percent(1));
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::AnsAction {
             dex: dex_name,
-            action: DexAction::ProvideLiquidity {
+            action: DexAnsAction::ProvideLiquidity {
                 assets: assets.clone(),
                 max_spread,
             },
@@ -453,9 +453,9 @@ mod test {
         let paired = vec![AssetEntry::new("bell")];
         let _max_spread = Some(Decimal::percent(1));
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::AnsAction {
             dex: dex_name,
-            action: DexAction::ProvideLiquiditySymmetric {
+            action: DexAnsAction::ProvideLiquiditySymmetric {
                 offer_asset: offer.clone(),
                 paired_assets: paired.clone(),
             },
@@ -492,9 +492,9 @@ mod test {
 
         let lp_token = AnsAsset::new("taco", 1000u128);
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::AnsAction {
             dex: dex_name,
-            action: DexAction::WithdrawLiquidity {
+            action: DexAnsAction::WithdrawLiquidity {
                 lp_token: lp_token.clone(),
             },
         });

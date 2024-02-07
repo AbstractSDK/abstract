@@ -14,7 +14,7 @@ use abstract_dex_adapter::{
     msg::{DexInstantiateMsg, ExecuteMsg, InstantiateMsg, QueryMsg},
     DEX_ADAPTER_ID,
 };
-use abstract_dex_standard::ans_action::DexAction;
+use abstract_dex_standard::ans_action::DexAnsAction;
 use abstract_dex_standard::msg::DexExecuteMsg;
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountFactory, AdapterDeployer,
@@ -69,9 +69,9 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
 
         let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
             proxy_address: None,
-            request: DexExecuteMsg::Action {
+            request: DexExecuteMsg::AnsAction {
                 dex,
-                action: DexAction::Swap {
+                action: DexAnsAction::Swap {
                     offer_asset: AnsAsset::new(asset, offer_asset.1).into(),
                     ask_asset: ask_asset.into(),
                     max_spread: Some(Decimal::percent(30)),
@@ -97,9 +97,9 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
 
         let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
             proxy_address: None,
-            request: DexExecuteMsg::Action {
+            request: DexExecuteMsg::AnsAction {
                 dex,
-                action: DexAction::ProvideLiquidity {
+                action: DexAnsAction::ProvideLiquidity {
                     assets: vec![
                         AnsAsset::new(asset_entry1, asset1.1).into(),
                         AnsAsset::new(asset_entry2, asset2.1).into(),
@@ -126,9 +126,9 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
 
         let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
             proxy_address: None,
-            request: DexExecuteMsg::Action {
+            request: DexExecuteMsg::AnsAction {
                 dex,
-                action: DexAction::WithdrawLiquidity { lp_token },
+                action: DexAnsAction::WithdrawLiquidity { lp_token },
             },
         });
         account

@@ -24,7 +24,7 @@ pub mod interface {
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
     };
-    use abstract_dex_standard::ans_action::DexAction;
+    use abstract_dex_standard::ans_action::DexAnsAction;
     use abstract_interface::{AbstractAccount, AbstractInterfaceError, AdapterDeployer};
     use cosmwasm_std::{Decimal, Empty};
     use cw_orch::{build::BuildPostfix, interface, prelude::*};
@@ -69,9 +69,9 @@ pub mod interface {
 
             let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
-                request: DexExecuteMsg::Action {
+                request: DexExecuteMsg::AnsAction {
                     dex,
-                    action: DexAction::Swap {
+                    action: DexAnsAction::Swap {
                         offer_asset: AnsAsset::new(asset, offer_asset.1),
                         ask_asset,
                         max_spread: Some(Decimal::percent(30)),
