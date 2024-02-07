@@ -268,6 +268,11 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     assert_eq!(MockQueryResponse {}, something);
 
+    // Can get installed application of the account
+    let my_app: Application<Mock, MockAppI<Mock>> = my_app.account().application()?;
+    let something = my_app.get_something()?;
+    assert_eq!(MockQueryResponse {}, something);
+
     let sub_account_details = my_app.account().info()?;
     assert_eq!(
         AccountInfo {

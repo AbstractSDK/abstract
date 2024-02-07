@@ -455,10 +455,19 @@ impl<Chain: CwEnv> Account<Chain> {
         self.abstr_account.manager.address().map_err(Into::into)
     }
 
+    /// Installed application on account
+    /// This won't be able to retrieve sub-account installed applications
+    pub fn application<M: RegisteredModule + From<Contract<Chain>>>(
+        &self,
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let module = self.module()?;
+        let account = self.clone();
+
+        Application::new(account, module)
+    }
+
     /// Install module on current account
-    fn install_module_current_internal<
-        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>,
-    >(
+    fn install_module_current_internal<M: RegisteredModule + From<Contract<Chain>>>(
         &self,
         modules: Vec<ModuleInstallConfig>,
         funds: &[Coin],
@@ -481,9 +490,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Installs module on sub account
-    fn install_module_sub_internal<
-        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>,
-    >(
+    fn install_module_sub_internal<M: RegisteredModule + From<Contract<Chain>>>(
         &self,
         modules: Vec<ModuleInstallConfig>,
         funds: &[Coin],
@@ -577,6 +584,22 @@ impl<Chain: CwEnv> Account<Chain> {
 
         // We install only one module
         Addr::unchecked(module_address)
+    }
+
+    pub(crate) fn module<T: RegisteredModule + From<Contract<Chain>>>(
+        &self,
+    ) -> AbstractClientResult<T> {
+        let module_id = T::module_id();
+        let maybe_module_addr = self.module_addresses(vec![module_id.to_string()])?.modules;
+
+        if !maybe_module_addr.is_empty() {
+            let contract = Contract::new(module_id.to_owned(), self.environment())
+                .with_address(Some(&maybe_module_addr[0].1));
+            let module: T = contract.into();
+            Ok(module)
+        } else {
+            Err(AbstractClientError::ModuleNotInstalled {})
+        }
     }
 }
 
