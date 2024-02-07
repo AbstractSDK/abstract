@@ -4,7 +4,6 @@ use crate::{
         ans_host::{AnsHostError, AnsHostResult},
         AssetEntry, DexAssetPairing, LpToken, PoolMetadata,
     },
-    AbstractResult,
 };
 
 /// A helper struct for Abstract Name Service entry conversions.

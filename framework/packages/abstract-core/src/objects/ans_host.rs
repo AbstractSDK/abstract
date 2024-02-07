@@ -12,7 +12,6 @@ use crate::{
         RegisteredDexesResponse,
     },
     objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId},
-    AbstractError,
 };
 
 #[derive(Error, Debug, PartialEq)]

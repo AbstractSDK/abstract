@@ -17,9 +17,18 @@ use crate::DEX_ADAPTER_ID;
 // API for Abstract SDK users
 /// Interact with the dex adapter in your module.
 pub trait DexInterface: AccountIdentification + Dependencies + ModuleIdentification {
-    /// Construct a new dex interface
+    /// Construct a new dex interface.
     fn dex<'a>(&'a self, deps: Deps<'a>, name: DexName) -> Dex<Self> {
         Dex {
+            base: self,
+            deps,
+            name,
+            module_id: DEX_ADAPTER_ID,
+        }
+    }
+    /// Construct a new dex interface with ANS support.
+    fn ans_dex<'a>(&'a self, deps: Deps<'a>, name: DexName) -> AnsDex<Self> {
+        AnsDex {
             base: self,
             deps,
             name,
@@ -50,16 +59,6 @@ impl<'a, T: DexInterface> Dex<'a, T> {
     /// Set the module id for the DEX
     pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
         Self { module_id, ..self }
-    }
-
-    /// Use Abstract ANS for dex-related operations
-    pub fn ans(self) -> AnsDex<'a, T> {
-        AnsDex {
-            base: self.base,
-            name: self.name,
-            module_id: self.module_id,
-            deps: self.deps,
-        }
     }
 
     /// returns DEX name
@@ -117,7 +116,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         })
     }
 
-    /// Provide symmetrict liquidity in the DEX
+    /// Provide symmetric liquidity in the DEX
     pub fn provide_liquidity_symmetric(
         &self,
         offer_asset: Asset,
@@ -350,8 +349,7 @@ mod test {
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex = stub
-            .dex(deps.as_ref(), "junoswap".into())
-            .ans()
+            .ans_dex(deps.as_ref(), "junoswap".into())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let dex_name = "junoswap".to_string();
@@ -396,8 +394,7 @@ mod test {
         let dex_name = "junoswap".to_string();
 
         let dex = stub
-            .dex(deps.as_ref(), dex_name.clone())
-            .ans()
+            .ans_dex(deps.as_ref(), dex_name.clone())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let assets = vec![AnsAsset::new("taco", 1000u128)];
@@ -437,8 +434,7 @@ mod test {
         let dex_name = "junoswap".to_string();
 
         let dex = stub
-            .dex(deps.as_ref(), dex_name.clone())
-            .ans()
+            .ans_dex(deps.as_ref(), dex_name.clone())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let offer = AnsAsset::new("taco", 1000u128);
@@ -479,8 +475,7 @@ mod test {
         let dex_name = "junoswap".to_string();
 
         let dex = stub
-            .dex(deps.as_ref(), dex_name.clone())
-            .ans()
+            .ans_dex(deps.as_ref(), dex_name.clone())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let lp_token = AnsAsset::new("taco", 1000u128);

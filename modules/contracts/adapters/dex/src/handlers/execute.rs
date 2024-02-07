@@ -184,7 +184,7 @@ fn handle_ibc_request(
 pub(crate) fn resolve_assets_to_transfer(
     deps: Deps,
     dex_action: &DexRawAction,
-    ans_host: &AnsHost,
+    _ans_host: &AnsHost,
 ) -> DexResult<Vec<Coin>> {
     // resolve asset to native asset
     let offer_to_coin = |offer: &AssetBase<String>| {
