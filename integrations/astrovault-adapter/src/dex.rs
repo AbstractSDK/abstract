@@ -4,7 +4,7 @@ use cosmwasm_std::Addr;
 
 #[derive(Default)]
 pub struct Astrovault {
-    pub proxy_addr: Option<Addr>,
+    pub addr_as_sender: Option<Addr>,
 }
 
 impl Identify for Astrovault {
@@ -246,11 +246,11 @@ impl DexCommand for Astrovault {
     fn fetch_data(
         &mut self,
         _deps: Deps,
-        sender: Addr,
+        addr_as_sender: Addr,
         _version_control_contract: VersionControlContract,
         _ans_host: AnsHost,
     ) -> Result<(), DexError> {
-        self.proxy_addr = Some(sender);
+        self.addr_as_sender = Some(addr_as_sender);
         Ok(())
     }
 
@@ -541,7 +541,7 @@ impl DexCommand for Astrovault {
                 ),
             )?,
             PoolType::Stable => {
-                let address = self.proxy_addr.clone().unwrap().into_string();
+                let address = self.addr_as_sender.clone().unwrap().into_string();
                 let lp_addr = match &lp_token.info {
                     AssetInfoBase::Cw20(lp_addr) => lp_addr,
                     _ => unreachable!(),
@@ -757,7 +757,7 @@ mod tests {
         DexCommandTester::new(
             ARCHWAY_1.into(),
             Astrovault {
-                proxy_addr: Some(Addr::unchecked(
+                addr_as_sender: Some(Addr::unchecked(
                     "archway1u76c96fgq9st8wme0f88w8hh57y78juy5cfm49",
                 )),
             },

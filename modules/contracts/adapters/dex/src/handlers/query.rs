@@ -43,7 +43,7 @@ pub fn query_handler(
         }
         DexQueryMsg::GenerateMessages {
             mut message,
-            proxy_addr,
+            addr_as_sender,
         } => {
             if let DexExecuteMsg::AnsAction { dex, action } = message {
                 let ans = adapter.name_service(deps);
@@ -61,9 +61,13 @@ pub fn query_handler(
                         return Err(DexError::IbcMsgQuery);
                     }
                     let exchange = exchange_resolver::resolve_exchange(&local_dex_name)?;
-                    let sender = deps.api.addr_validate(&proxy_addr)?;
+                    let addr_as_sender = deps.api.addr_validate(&addr_as_sender)?;
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
-                        adapter, deps, sender, action, exchange,
+                        adapter,
+                        deps,
+                        addr_as_sender,
+                        action,
+                        exchange,
                     )?;
                     to_json_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }

@@ -5,9 +5,12 @@ use anyhow::Result as AnyResult;
 use cosmwasm_schema::serde::Serialize;
 use cosmwasm_std::{coin, to_json_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
-use cw_controllers::{Claim, ClaimsResponse};
-use cw_multi_test::{App, AppResponse, BankSudo, ContractWrapper, Executor, SudoMsg};
 use cw_orch::prelude::*;
+
+use cw_controllers::{Claim, ClaimsResponse};
+use cw_orch::mock::cw_multi_test::{
+    App, AppResponse, BankSudo, ContractWrapper, Executor, SudoMsg,
+};
 use wyndex::{
     asset::{Asset, AssetInfo, AssetInfoValidated},
     factory::{

@@ -19,6 +19,8 @@
 //! assert_eq!(alice_account.owner()?, client.sender());
 //! # Ok::<(), AbstractClientError>(())
 //! ```
+use std::fmt::{Debug, Display};
+
 use abstract_core::{
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
@@ -72,6 +74,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
     ownership: Option<GovernanceDetails<String>>,
+    owner_account: Option<&'a Account<Chain>>,
     // TODO: How to handle install_modules?
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
@@ -87,6 +90,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: None,
             base_asset: None,
             ownership: None,
+            owner_account: None,
             fetch_if_namespace_claimed: true,
             install_on_sub_account: true,
         }
@@ -138,6 +142,12 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
+    /// Create sub-account instead
+    pub fn sub_account(&mut self, owner_account: &'a Account<Chain>) -> &mut Self {
+        self.owner_account = Some(owner_account);
+        self
+    }
+
     /// Governance of the account.
     /// Defaults to the [`GovernanceDetails::Monarchy`] variant, owned by the sender
     pub fn ownership(&mut self, ownership: GovernanceDetails<String>) -> &mut Self {
@@ -151,7 +161,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             // Check if namespace already claimed
             if let Some(ref namespace) = self.namespace {
                 let account_from_namespace_result: Option<Account<Chain>> =
-                    Account::from_namespace(
+                    Account::maybe_from_namespace(
                         self.abstr,
                         namespace.clone(),
                         self.install_on_sub_account,
@@ -180,18 +190,23 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         verifiers::validate_description(self.description.as_deref())?;
         verifiers::validate_link(self.link.as_deref())?;
 
-        let abstract_account = self.abstr.account_factory.create_new_account(
-            AccountDetails {
-                name,
-                description: self.description.clone(),
-                link: self.link.clone(),
-                namespace: self.namespace.as_ref().map(ToString::to_string),
-                base_asset: self.base_asset.clone(),
-                install_modules: vec![],
-            },
-            ownership,
-            Some(&[]),
-        )?;
+        let account_details = AccountDetails {
+            name,
+            description: self.description.clone(),
+            link: self.link.clone(),
+            namespace: self.namespace.as_ref().map(ToString::to_string),
+            base_asset: self.base_asset.clone(),
+            install_modules: vec![],
+        };
+        let abstract_account = if let Some(owner_account) = self.owner_account {
+            owner_account
+                .abstr_account
+                .create_sub_account(account_details, Some(&[]))?
+        } else {
+            self.abstr
+                .account_factory
+                .create_new_account(account_details, ownership, Some(&[]))?
+        };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
     }
 }
@@ -228,7 +243,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    pub(crate) fn from_namespace(
+    pub(crate) fn maybe_from_namespace(
         abstr: &Abstract<Chain>,
         namespace: Namespace,
         install_on_sub_account: bool,
@@ -417,6 +432,32 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
+    /// Get Sub Accounts of this account
+    pub fn sub_accounts(&self) -> AbstractClientResult<Vec<Account<Chain>>> {
+        let mut sub_accounts = vec![];
+        let mut start_after = None;
+        let abstr_deployment = Abstract::load_from(self.environment())?;
+        loop {
+            let sub_account_ids = self
+                .abstr_account
+                .manager
+                .sub_account_ids(None, start_after)?
+                .sub_accounts;
+            start_after = sub_account_ids.last().cloned();
+
+            if sub_account_ids.is_empty() {
+                break;
+            }
+            sub_accounts.extend(sub_account_ids.into_iter().map(|id| {
+                Account::new(
+                    AbstractAccount::new(&abstr_deployment, AccountId::local(id)),
+                    false,
+                )
+            }));
+        }
+        Ok(sub_accounts)
+    }
+
     /// Address of the proxy
     pub fn proxy(&self) -> AbstractClientResult<Addr> {
         self.abstr_account.proxy.address().map_err(Into::into)
@@ -567,5 +608,17 @@ impl<Chain: MutCwEnv> Account<Chain> {
             .add_balance(&self.proxy()?, amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
+    }
+}
+
+impl<Chain: CwEnv> Display for Account<Chain> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.abstr_account)
+    }
+}
+
+impl<Chain: CwEnv> Debug for Account<Chain> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.abstr_account)
     }
 }

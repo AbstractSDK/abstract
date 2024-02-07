@@ -184,7 +184,7 @@ pub mod raw {
             pool: PoolAddress,
             max_spread: Option<Decimal>,
             belief_price: Option<Decimal>,
-            sender_receiver: impl Into<String>,
+            addr_as_sender: impl Into<String>,
         ) -> AbstractSdkResult<SimulateSwapResponse> {
             let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
                 message: DexExecuteMsg::RawAction {
@@ -197,7 +197,7 @@ pub mod raw {
                         pool: pool.into(),
                     },
                 },
-                proxy_addr: sender_receiver.into(),
+                addr_as_sender: addr_as_sender.into(),
             })?;
             Ok(response)
         }
@@ -327,7 +327,7 @@ pub mod ans {
             ask_asset: AssetEntry,
             max_spread: Option<Decimal>,
             belief_price: Option<Decimal>,
-            sender_receiver: impl Into<String>,
+            addr_as_sender: impl Into<String>,
         ) -> AbstractSdkResult<SimulateSwapResponse> {
             let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
                 message: DexExecuteMsg::AnsAction {
@@ -339,7 +339,7 @@ pub mod ans {
                         belief_price,
                     },
                 },
-                proxy_addr: sender_receiver.into(),
+                addr_as_sender: addr_as_sender.into(),
             })?;
             Ok(response)
         }

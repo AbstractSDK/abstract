@@ -12,7 +12,7 @@ use abstract_dex_standard::{
     ans_action::WholeDexAction,
     msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID},
     raw_action::DexRawAction,
-    DexError,
+    DexError, DEX_ADAPTER_ID,
 };
 use abstract_sdk::{
     features::AbstractNameService, AccountVerification, Execution, IbcInterface,
@@ -29,8 +29,9 @@ use crate::{
     handlers::execute::exchange_resolver::is_over_ibc,
     msg::{DexExecuteMsg, DexName},
     state::DEX_FEES,
-    DEX_ADAPTER_ID,
 };
+
+use abstract_sdk::features::AccountIdentification;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -113,16 +114,17 @@ pub fn execute_handler(
 fn handle_local_request(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     adapter: &DexAdapter,
     exchange: String,
     action: DexRawAction,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
+    let target_account = adapter.account_base(deps.as_ref())?;
     let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
         adapter,
         deps.as_ref(),
-        info.sender,
+        target_account.proxy,
         action,
         exchange,
     )?;

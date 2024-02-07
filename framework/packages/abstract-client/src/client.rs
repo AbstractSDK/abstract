@@ -12,7 +12,7 @@
 //!
 //! ```
 //! # use abstract_client::AbstractClientError;
-//! use abstract_app::mock::interface::MockAppWithDepI;
+//! use abstract_app::mock::mock_app_dependency::interface::MockAppI;
 //! use cw_orch::prelude::*;
 //! use abstract_client::{AbstractClient, Publisher, Namespace};
 //!
@@ -24,17 +24,21 @@
 //!     .publisher_builder(namespace)
 //!     .build()?;
 //!
-//! publisher.publish_app::<MockAppWithDepI<Mock>>()?;
+//! publisher.publish_app::<MockAppI<Mock>>()?;
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
 use abstract_core::objects::{namespace::Namespace, AccountId};
 use abstract_interface::{Abstract, AbstractAccount, AnsHost, ManagerQueryFns, VersionControl};
-use cosmwasm_std::{Addr, BlockInfo, Coin, Uint128};
-use cw_orch::{deploy::Deploy, prelude::CwEnv, state::StateInterface};
+use cosmwasm_std::{Addr, BlockInfo, Coin, Empty, Uint128};
+use cw_orch::{
+    contract::interface_traits::ContractInstance, deploy::Deploy, prelude::CwEnv,
+    state::StateInterface,
+};
 
 use crate::{
     account::{Account, AccountBuilder},
+    source::AccountSource,
     AbstractClientError, Environment, PublisherBuilder,
 };
 
@@ -125,7 +129,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         PublisherBuilder::new(AccountBuilder::new(&self.abstr), namespace)
     }
 
-    /// Publisher builder for creating a new Abstract [`Account`].
+    /// Builder for creating a new Abstract [`Account`].
     pub fn account_builder(&self) -> AccountBuilder<Chain> {
         AccountBuilder::new(&self.abstr)
     }
@@ -133,6 +137,67 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Address of the sender
     pub fn sender(&self) -> Addr {
         self.environment().sender()
+    }
+
+    /// Fetch an [`Account`] from a given source.
+    ///
+    /// This method is used to retrieve an account from a given source. It will **not** create a new account if the source is invalid.
+    ///
+    /// Sources that can be used are:
+    /// - [`Namespace`]: Will retrieve the account from the namespace if it is already claimed.
+    /// - [`AccountId`]: Will retrieve the account from the account id.
+    /// - App [`Addr`]: Will retrieve the account from an app that is installed on it.
+    pub fn account_from<T: Into<AccountSource>>(
+        &self,
+        source: T,
+    ) -> AbstractClientResult<Account<Chain>> {
+        let source = source.into();
+        let chain = self.abstr.version_control.get_chain();
+
+        match source {
+            AccountSource::Namespace(namespace) => {
+                // if namespace, check if we need to claim or not.
+                // Check if namespace already claimed
+                let account_from_namespace_result: Option<Account<Chain>> =
+                    Account::maybe_from_namespace(&self.abstr, namespace.clone(), true)?;
+
+                // Only return if the account can be retrieved without errors.
+                if let Some(account_from_namespace) = account_from_namespace_result {
+                    Ok(account_from_namespace)
+                } else {
+                    Err(AbstractClientError::NamespaceNotClaimed {
+                        namespace: namespace.to_string(),
+                    })
+                }
+            }
+            AccountSource::AccountId(account_id) => {
+                let abstract_account: AbstractAccount<Chain> =
+                    AbstractAccount::new(&self.abstr, account_id.clone());
+                Ok(Account::new(abstract_account, true))
+            }
+            AccountSource::App(app) => {
+                // Query app for manager address and get AccountId from it.
+                let app_config: abstract_core::app::AppConfigResponse = chain
+                    .query(
+                        &abstract_core::app::QueryMsg::<Empty>::Base(
+                            abstract_core::app::BaseQueryMsg::BaseConfig {},
+                        ),
+                        &app,
+                    )
+                    .map_err(Into::into)?;
+
+                let manager_config: abstract_core::manager::ConfigResponse = chain
+                    .query(
+                        &abstract_core::manager::QueryMsg::Config {},
+                        &app_config.manager_address,
+                    )
+                    .map_err(Into::into)?;
+                // This function verifies the account-id is valid and returns an error if not.
+                let abstract_account: AbstractAccount<Chain> =
+                    AbstractAccount::new(&self.abstr, manager_config.account_id);
+                Ok(Account::new(abstract_account, true))
+            }
+        }
     }
 
     /// Retrieve denom balance for provided address

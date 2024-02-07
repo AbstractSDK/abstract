@@ -10,6 +10,7 @@ pub(crate) mod infrastructure;
 #[cfg(feature = "test-utils")]
 mod mut_client;
 mod publisher;
+pub(crate) mod source;
 
 // Re-export common used types
 pub use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace};
@@ -22,3 +23,4 @@ pub use client::AbstractClient;
 pub use error::AbstractClientError;
 pub use infrastructure::Environment;
 pub use publisher::{Publisher, PublisherBuilder};
+pub use source::AccountSource;
