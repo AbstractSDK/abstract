@@ -1,12 +1,9 @@
-use abstract_dex_standard::Identify;
-use abstract_sdk::core::objects::PoolType;
-use cosmwasm_std::Addr;
-
 use crate::{ASTROVAULT, AVAILABLE_CHAINS};
+use abstract_dex_standard::Identify;
+use cosmwasm_std::Addr;
 
 #[derive(Default)]
 pub struct Astrovault {
-    pub pool_type: Option<PoolType>,
     pub proxy_addr: Option<Addr>,
 }
 
@@ -18,21 +15,75 @@ impl Identify for Astrovault {
         AVAILABLE_CHAINS.contains(&chain_name)
     }
 }
-
+#[cfg(feature = "full_integration")]
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_dex_standard::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
     abstract_sdk::{
-        core::objects::PoolAddress,
+        core::objects::{PoolAddress, PoolType},
         feature_objects::{AnsHost, VersionControlContract},
     },
-    cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
+    cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, StdError, Uint128},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
 };
 
+pub const STANDARD_POOL_FACTORY: &str =
+    "archway1cq6tgc32az7zpq5w7t2d89taekkn9q95g2g79ka6j46ednw7xkkq7n55a2";
+pub const STABLE_POOL_FACTORY: &str =
+    "archway19yzx44k7w7gsjjhumkd4sh9r0z6lscq583hgpu9s4yyl00z9lahq0ptra0";
+pub const RATIO_POOL_FACTORY: &str =
+    "archway1zlc00gjw4ecan3tkk5g0lfd78gyfldh4hvkv2g8z5qnwlkz9vqmsdfvs7q";
+
+#[cfg(feature = "full_integration")]
+impl Astrovault {
+    fn fetch_pool_type(&self, deps: Deps, pool: &Addr) -> Result<PoolType, DexError> {
+        // The pool type can be queried via identification of the factory contract associated with the pool
+        // We try the 3 different queries for one to match and get the factory address
+
+        let standard_config: Result<astrovault::standard_pool::query_msg::ConfigResponse, _> =
+            deps.querier.query_wasm_smart(
+                pool,
+                &astrovault::standard_pool::query_msg::QueryMsg::Config {},
+            );
+
+        if let Ok(config) = standard_config {
+            if config.factory.eq(STANDARD_POOL_FACTORY) {
+                return Ok(PoolType::ConstantProduct);
+            }
+        }
+
+        let stable_config: Result<astrovault::stable_pool::query_msg::ConfigResponse, _> =
+            deps.querier.query_wasm_smart(
+                pool,
+                &astrovault::stable_pool::query_msg::QueryMsg::Config {},
+            );
+
+        if let Ok(config) = stable_config {
+            if config.factory.eq(STABLE_POOL_FACTORY) {
+                return Ok(PoolType::Stable);
+            }
+        }
+
+        let ratio_config: Result<astrovault::ratio_pool::query_msg::ConfigResponse, _> =
+            deps.querier.query_wasm_smart(
+                pool,
+                &astrovault::ratio_pool::query_msg::QueryMsg::Config {},
+            );
+
+        if let Ok(config) = ratio_config {
+            if config.factory.eq(RATIO_POOL_FACTORY) {
+                return Ok(PoolType::Weighted);
+            }
+        }
+
+        Err(DexError::Std(StdError::generic_err(
+            "Couldn't query the astrovault pool type",
+        )))
+    }
+}
 #[cfg(feature = "full_integration")]
 /// This structure describes a CW20 hook message.
 #[cosmwasm_schema::cw_serde]
@@ -194,14 +245,11 @@ fn cw20_swap(
 impl DexCommand for Astrovault {
     fn fetch_data(
         &mut self,
-        deps: Deps,
+        _deps: Deps,
         sender: Addr,
         _version_control_contract: VersionControlContract,
-        ans_host: AnsHost,
+        _ans_host: AnsHost,
     ) -> Result<(), DexError> {
-        // We need to find a way to get the pool type without relying on ans here
-        let pool_metadata = ans_host.query_pool_metadata(&deps.querier, todo!())?;
-        self.pool_type = Some(pool_metadata.pool_type);
         self.proxy_addr = Some(sender);
         Ok(())
     }
@@ -217,7 +265,7 @@ impl DexCommand for Astrovault {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
 
-        let pool_type = self.pool_type.unwrap();
+        let pool_type = self.fetch_pool_type(deps, &pair_address)?;
         let swap_msg: Vec<CosmosMsg> = match &offer_asset.info {
             AssetInfo::Native(_) => native_swap(
                 deps,
@@ -312,7 +360,7 @@ impl DexCommand for Astrovault {
         msgs.extend(cw_approve_msgs(&offer_assets, &pair_address)?);
         let coins = coins_in_assets(&offer_assets);
         // execute msg
-        let liquidity_msg = match self.pool_type.unwrap() {
+        let liquidity_msg = match self.fetch_pool_type(deps, &pair_address)? {
             PoolType::ConstantProduct => wasm_execute(
                 pair_address,
                 &astrovault::standard_pool::handle_msg::ExecuteMsg::ProvideLiquidity {
@@ -374,7 +422,7 @@ impl DexCommand for Astrovault {
             return Err(DexError::TooManyAssets(1));
         }
         // Get pair info
-        let pair_assets = match self.pool_type.unwrap() {
+        let pair_assets = match self.fetch_pool_type(deps, &pair_address)? {
             PoolType::ConstantProduct => {
                 let pool_response: astrovault::standard_pool::query_msg::PoolResponse =
                     deps.querier.query_wasm_smart(
@@ -436,7 +484,7 @@ impl DexCommand for Astrovault {
             .map(cw_asset_to_astrovault)
             .collect::<Result<Vec<_>, _>>()?;
 
-        let liquidity_msg = match self.pool_type.unwrap() {
+        let liquidity_msg = match self.fetch_pool_type(deps, &pair_address)? {
             PoolType::ConstantProduct => wasm_execute(
                 pair_address,
                 &astrovault::standard_pool::handle_msg::ExecuteMsg::ProvideLiquidity {
@@ -486,7 +534,7 @@ impl DexCommand for Astrovault {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
 
-        let hook_msg = match self.pool_type.unwrap() {
+        let hook_msg = match self.fetch_pool_type(deps, &pair_address)? {
             PoolType::ConstantProduct => to_json_binary(
                 &astrovault::standard_pool::handle_msg::Cw20HookMsg::WithdrawLiquidity(
                     astrovault::standard_pool::handle_msg::WithdrawLiquidityInputs { to: None },
@@ -540,7 +588,7 @@ impl DexCommand for Astrovault {
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
         let pair_address = pool_id.expect_contract()?;
         // Do simulation
-        match self.pool_type.unwrap() {
+        match self.fetch_pool_type(deps, &pair_address)? {
             PoolType::ConstantProduct => {
                 let astrovault::standard_pool::query_msg::SimulationResponse {
                     return_amount,
@@ -709,7 +757,6 @@ mod tests {
         DexCommandTester::new(
             ARCHWAY_1.into(),
             Astrovault {
-                pool_type: Some(pool_type),
                 proxy_addr: Some(Addr::unchecked(
                     "archway1u76c96fgq9st8wme0f88w8hh57y78juy5cfm49",
                 )),
