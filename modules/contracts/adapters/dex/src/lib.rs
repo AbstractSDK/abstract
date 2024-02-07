@@ -24,6 +24,7 @@ pub mod interface {
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
     };
+    use abstract_dex_standard::ans_action::DexAnsAction;
     use abstract_interface::{AbstractAccount, AbstractInterfaceError};
     use abstract_interface::{AdapterDeployer, RegisteredModule};
     use abstract_sdk::base::Handler;
