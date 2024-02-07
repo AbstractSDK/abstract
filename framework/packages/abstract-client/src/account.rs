@@ -35,9 +35,9 @@ use abstract_core::{
 };
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
-use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Empty, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
@@ -81,10 +81,10 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     install_on_sub_account: bool,
 }
 
-/// How to
+/// Creation funds
 enum AccountCreationFunds {
     Auto(Box<dyn Fn(&[Coin]) -> bool>),
-    Coins(cosmwasm_std::Coins),
+    Coins(Coins),
 }
 
 impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
@@ -99,7 +99,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             ownership: None,
             owner_account: None,
             install_modules: vec![],
-            funds: AccountCreationFunds::Coins(cosmwasm_std::Coins::default()),
+            funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: true,
         }
@@ -244,22 +244,57 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         verifiers::validate_description(self.description.as_deref())?;
         verifiers::validate_link(self.link.as_deref())?;
 
+        let install_modules = self.install_modules.clone();
+        let funds = match &self.funds {
+            AccountCreationFunds::Auto(auto_funds_assert) => {
+                let modules = install_modules.iter().map(|m| m.module.clone()).collect();
+                // Simulate module install to find out required funds
+                let simulate_response = self
+                    .abstr
+                    .module_factory
+                    .simulate_install_modules(modules)?;
+
+                let mut funds = Coins::try_from(simulate_response.total_required_funds).unwrap();
+
+                // Add namespace fee if any
+                if self.namespace.is_some() {
+                    let vc_config = self.abstr.version_control.config()?;
+
+                    if let Some(namespace_fee) = vc_config.namespace_registration_fee {
+                        funds
+                            .add(namespace_fee)
+                            .map_err(AbstractInterfaceError::from)?;
+                    }
+                };
+
+                let funds = funds.into_vec();
+                // Use auto funds assert function for validation
+                if !auto_funds_assert(&funds) {
+                    return Err(AbstractClientError::AutoFundsAssertFailed(funds));
+                }
+                funds
+            }
+            AccountCreationFunds::Coins(coins) => coins.to_vec(),
+        };
+
         let account_details = AccountDetails {
             name,
             description: self.description.clone(),
             link: self.link.clone(),
             namespace: self.namespace.as_ref().map(ToString::to_string),
             base_asset: self.base_asset.clone(),
-            install_modules: self.install_modules.clone(),
+            install_modules,
         };
         let abstract_account = if let Some(owner_account) = self.owner_account {
             owner_account
                 .abstr_account
-                .create_sub_account(account_details, Some(&[]))?
+                .create_sub_account(account_details, Some(&funds))?
         } else {
-            self.abstr
-                .account_factory
-                .create_new_account(account_details, ownership, Some(&[]))?
+            self.abstr.account_factory.create_new_account(
+                account_details,
+                ownership,
+                Some(&funds),
+            )?
         };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
     }

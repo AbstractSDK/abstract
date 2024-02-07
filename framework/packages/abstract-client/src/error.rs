@@ -34,4 +34,7 @@ pub enum AbstractClientError {
 
     #[error("Can't add funds in auto-fund mode")]
     FundsWithAutoFund {},
+
+    #[error("Account creation canceled by auto_fund assertion function, required funds: {0:?}")]
+    AutoFundsAssertFailed(Vec<cosmwasm_std::Coin>),
 }

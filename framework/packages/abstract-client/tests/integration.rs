@@ -12,7 +12,8 @@ use abstract_app::{
 };
 use abstract_client::{
     builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
-    AbstractClient, AbstractClientError, Account, AccountSource, Application, Publisher,
+    AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
+    Publisher,
 };
 use abstract_core::{
     ans_host::QueryMsgFns,
@@ -20,12 +21,13 @@ use abstract_core::{
         state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     },
     objects::{
-        dependency::Dependency, gov_type::GovernanceDetails, module_version::ModuleDataResponse,
-        namespace::Namespace, AccountId, AssetEntry,
+        dependency::Dependency, fee::FixedFee, gov_type::GovernanceDetails,
+        module_version::ModuleDataResponse, namespace::Namespace, AccountId, AssetEntry,
     },
 };
-use abstract_interface::{ClientResolve, RegisteredModule, VCQueryFns};
+use abstract_interface::{ClientResolve, RegisteredModule, VCExecFns, VCQueryFns};
 use abstract_testing::{
+    addresses::{TEST_MODULE_NAME, TTOKEN},
     prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
     OWNER,
 };
@@ -969,5 +971,55 @@ fn install_application_on_account_builder() -> anyhow::Result<()> {
         }
     );
 
+    Ok(())
+}
+
+#[test]
+fn auto_funds_work() -> anyhow::Result<()> {
+    // Give enough tokens for the owner
+    let owner = Addr::unchecked(OWNER);
+    let chain = Mock::new(&owner);
+    chain.set_balance(&owner, coins(50, TTOKEN))?;
+
+    let client = AbstractClient::builder(chain).build()?;
+
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+    let _: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+
+    client.version_control().update_module_configuration(
+        TEST_MODULE_NAME.to_owned(),
+        Namespace::new(TEST_NAMESPACE)?,
+        abstract_core::version_control::UpdateModule::Versioned {
+            version: BootMockAdapter::<Mock>::module_version().to_owned(),
+            metadata: None,
+            monetization: Some(abstract_core::objects::module::Monetization::InstallFee(
+                FixedFee::new(&Coin {
+                    denom: TTOKEN.to_owned(),
+                    amount: Uint128::new(50),
+                }),
+            )),
+            instantiation_funds: None,
+        },
+    )?;
+    let mut account_builder = client.account_builder();
+
+    // User can guard his funds
+    account_builder
+        .name("bob")
+        .install_adapter::<BootMockAdapter<Mock>>()?
+        .auto_fund_assert(|c| c[0].amount < Uint128::new(50));
+    let e = account_builder.build().unwrap_err();
+    assert!(matches!(e, AbstractClientError::AutoFundsAssertFailed(_)));
+
+    // Or can enable auto_fund and create account if have enough funds
+    let account = account_builder.auto_fund().build()?;
+    let info = account.info()?;
+    assert_eq!(info.name, "bob");
+
+    // funds used
+    let balance = client.environment().query_balance(&owner, TTOKEN)?;
+    assert!(balance.is_zero());
     Ok(())
 }
