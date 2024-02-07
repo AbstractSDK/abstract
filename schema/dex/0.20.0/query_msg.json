@@ -408,10 +408,14 @@
             "generate_messages": {
               "type": "object",
               "required": [
-                "message",
-                "proxy_addr"
+                "addr_as_sender",
+                "message"
               ],
               "properties": {
+                "addr_as_sender": {
+                  "description": "Sender Addr generate messages for",
+                  "type": "string"
+                },
                 "message": {
                   "description": "Execute message to generate messages for",
                   "allOf": [
@@ -419,10 +423,6 @@
                       "$ref": "#/definitions/DexExecuteMsg"
                     }
                   ]
-                },
-                "proxy_addr": {
-                  "description": "Proxy Addr generate messages for",
-                  "type": "string"
                 }
               },
               "additionalProperties": false
