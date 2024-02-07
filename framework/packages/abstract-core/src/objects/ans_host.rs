@@ -12,6 +12,7 @@ use crate::{
         RegisteredDexesResponse,
     },
     objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId},
+    AbstractError,
 };
 
 #[derive(Error, Debug, PartialEq)]
@@ -51,6 +52,13 @@ pub enum AnsHostError {
     // pool metadata not found
     #[error("Pool metadata for pool {pool} not found in ans_host {ans_host}.")]
     PoolMetadataNotFound { pool: UniquePoolId, ans_host: Addr },
+
+    #[error("Object {object} should be formatted {expected} but is {actual}")]
+    FormattingError {
+        object: String,
+        expected: String,
+        actual: String,
+    },
 }
 
 pub type AnsHostResult<T> = Result<T, AnsHostError>;

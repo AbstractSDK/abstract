@@ -5,84 +5,23 @@
 use abstract_core::{
     adapter,
     objects::{
+        ans_host::AnsHostError,
         fee::{Fee, UsageFee},
         pool_id::UncheckedPoolAddress,
-        AnsAsset, AssetEntry,
+        AnsAsset, AnsEntryConvertor, AssetEntry, DexAssetPairing, PoolAddress, PoolReference,
     },
     AbstractError, AbstractResult,
 };
-use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, CosmosMsg, Decimal, Uint128};
-use cw_asset::{Asset, AssetInfo};
+use abstract_sdk::{feature_objects::AnsHost, Resolve};
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Addr, CosmosMsg, Decimal, StdError, Uint128};
+use cw_asset::{Asset, AssetBase, AssetInfoBase};
 
 /// Max fee for the dex adapter actions
 pub const MAX_FEE: Decimal = Decimal::percent(5);
 
 /// The name of the dex to trade on.
 pub type DexName = String;
-/// Name of the asset you want to offer
-#[cw_serde]
-pub enum OfferAsset {
-    /// The asset is described by a contract address or a denom
-    Raw(Asset),
-    /// The asset is described by an entry in the ANS
-    Ans(AnsAsset),
-}
-/// Name of the asset you want to receive
-#[cw_serde]
-pub enum AskAsset {
-    /// The asset is described by a contract address or a denom
-    Raw(AssetInfo),
-    /// The asset is described by an entry in the ANS
-    Ans(AssetEntry),
-}
-
-impl OfferAsset {
-    /// Returns the information about the asset, leaving out the amount
-    pub fn info(&self) -> AskAsset {
-        match self {
-            OfferAsset::Raw(raw) => AskAsset::Raw(raw.info.clone()),
-            OfferAsset::Ans(ans) => AskAsset::Ans(ans.name.clone()),
-        }
-    }
-    /// create an offer Asset from an Ask Asset
-    pub fn from_asset(asset: AskAsset, amount: Uint128) -> Self {
-        match asset {
-            AskAsset::Raw(raw) => OfferAsset::Raw(cw_asset::AssetBase { info: raw, amount }),
-            AskAsset::Ans(ans) => OfferAsset::Ans(AnsAsset::new(ans, amount)),
-        }
-    }
-    /// Return the associated amount
-    pub fn amount(&self) -> Uint128 {
-        match self {
-            OfferAsset::Raw(raw) => raw.amount,
-            OfferAsset::Ans(ans) => ans.amount,
-        }
-    }
-}
-impl From<Asset> for OfferAsset {
-    fn from(value: Asset) -> Self {
-        Self::Raw(value)
-    }
-}
-
-impl From<AnsAsset> for OfferAsset {
-    fn from(value: AnsAsset) -> Self {
-        Self::Ans(value)
-    }
-}
-
-impl From<AssetInfo> for AskAsset {
-    fn from(value: AssetInfo) -> Self {
-        Self::Raw(value)
-    }
-}
-
-impl From<AssetEntry> for AskAsset {
-    fn from(value: AssetEntry) -> Self {
-        Self::Ans(value)
-    }
-}
 
 /// The callback id for interacting with a dex over ibc
 pub const IBC_DEX_PROVIDER_ID: &str = "IBC_DEX_ACTION";
@@ -99,16 +38,16 @@ impl adapter::AdapterQueryMsg for DexQueryMsg {}
 
 /// Response for simulating a swap.
 #[cosmwasm_schema::cw_serde]
-pub struct SimulateSwapResponse {
+pub struct SimulateSwapResponse<A = AssetEntry> {
     /// The pool on which the swap was simulated
-    pub pool: (AskAsset, AskAsset, DexName),
+    pub pool: DexAssetPairing<A>,
     /// Amount you would receive when performing the swap.
     pub return_amount: Uint128,
     /// Spread in ask_asset for this swap
     pub spread_amount: Uint128,
     // LP/protocol fees could be withheld from either input or output so commission asset must be included.
     /// Commission charged for the swap
-    pub commission: OfferAsset,
+    pub commission: (A, Uint128),
     /// Adapter fee charged for the swap (paid in offer asset)
     pub usage_fee: Uint128,
 }
@@ -152,11 +91,15 @@ pub enum DexExecuteMsg {
     Action {
         /// The name of the dex to interact with
         dex: DexName,
-        /// The identifies of a pool to force interactions with
-        /// This will only be used in case assets are specified using cw_asset objects
-        pool: Option<UncheckedPoolAddress>,
         /// The action to perform
         action: DexAction,
+    },
+    /// Action to perform on the DEX
+    RawAction {
+        /// The name of the dex to interact with
+        dex: DexName,
+        /// The action to perform
+        action: DexRawAction,
     },
 }
 
@@ -167,35 +110,209 @@ pub enum DexAction {
     ProvideLiquidity {
         // support complex pool types
         /// Assets to add
-        assets: Vec<OfferAsset>,
+        assets: Vec<AnsAsset>,
         /// Max spread to accept, is a percentage represented as a decimal.
         max_spread: Option<Decimal>,
     },
     /// Provide liquidity equally between assets to a pool
     ProvideLiquiditySymmetric {
         /// The asset to offer
-        offer_asset: OfferAsset,
+        offer_asset: AnsAsset,
         // support complex pool types
         /// Assets that are paired with the offered asset
         /// Should exclude the offer asset
-        paired_assets: Vec<AskAsset>,
+        paired_assets: Vec<AssetEntry>,
     },
     /// Withdraw liquidity from a pool
     WithdrawLiquidity {
         /// The asset LP token that is provided.
-        lp_token: OfferAsset,
+        lp_token: AnsAsset,
     },
     /// Standard swap between one asset to another
     Swap {
         /// The asset to offer
-        offer_asset: OfferAsset,
+        offer_asset: AnsAsset,
         /// The asset to receive
-        ask_asset: AskAsset,
+        ask_asset: AssetEntry,
         /// The percentage of spread compared to pre-swap price or belief price (if provided)
         max_spread: Option<Decimal>,
         /// The belief price when submitting the transaction.
         belief_price: Option<Decimal>,
     },
+}
+
+/// Possible raw actions to perform on the DEX
+#[cosmwasm_schema::cw_serde]
+pub enum DexRawAction {
+    /// Provide arbitrary liquidity
+    ProvideLiquidity {
+        /// Pool to provide liquidity to
+        pool: UncheckedPoolAddress,
+        // support complex pool types
+        /// Assets to add
+        assets: Vec<AssetBase<String>>,
+        /// Max spread to accept, is a percentage represented as a decimal.
+        max_spread: Option<Decimal>,
+    },
+    /// Provide liquidity equally between assets to a pool
+    ProvideLiquiditySymmetric {
+        /// Pool to provide liquidity to
+        pool: UncheckedPoolAddress,
+        /// The asset to offer
+        offer_asset: AssetBase<String>,
+        // support complex pool types
+        /// Assets that are paired with the offered asset
+        /// Should exclude the offer asset
+        paired_assets: Vec<AssetInfoBase<String>>,
+    },
+    /// Withdraw liquidity from a pool
+    WithdrawLiquidity {
+        /// Pool to withdraw liquidity from
+        pool: UncheckedPoolAddress,
+        /// The asset LP token that is provided.
+        lp_token: AssetBase<String>,
+    },
+    /// Standard swap between one asset to another
+    Swap {
+        /// Pool used to swap
+        pool: UncheckedPoolAddress,
+        /// The asset to offer
+        offer_asset: AssetBase<String>,
+        /// The asset to receive
+        ask_asset: AssetInfoBase<String>,
+        /// The percentage of spread compared to pre-swap price or belief price (if provided)
+        max_spread: Option<Decimal>,
+        /// The belief price when submitting the transaction.
+        belief_price: Option<Decimal>,
+    },
+}
+
+/// Structure created to be able to resolve an action using ANS
+pub struct WholeDexAction(pub DexName, pub DexAction);
+
+/// Returns the first pool address to be able to swap given assets on the given dex
+pub fn pool_address(
+    dex: DexName,
+    assets: (AssetEntry, AssetEntry),
+    querier: &cosmwasm_std::QuerierWrapper,
+    ans_host: &AnsHost,
+) -> abstract_core::objects::ans_host::AnsHostResult<PoolAddress> {
+    let dex_pair = DexAssetPairing::new(assets.0, assets.1, &dex);
+    let mut pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
+    // Currently takes the first pool found, but should be changed to take the best pool
+    let found: PoolReference = pool_ref.pop().ok_or(AnsHostError::DexPairingNotFound {
+        pairing: dex_pair,
+        ans_host: ans_host.address.clone(),
+    })?;
+    Ok(found.pool_address)
+}
+
+impl Resolve for WholeDexAction {
+    type Output = DexRawAction;
+
+    fn resolve(
+        &self,
+        querier: &cosmwasm_std::QuerierWrapper,
+        ans_host: &abstract_sdk::feature_objects::AnsHost,
+    ) -> abstract_core::objects::ans_host::AnsHostResult<Self::Output> {
+        match self.1.clone() {
+            DexAction::ProvideLiquidity { assets, max_spread } => {
+                let mut asset_names = assets
+                    .iter()
+                    .cloned()
+                    .map(|a| a.name)
+                    .take(2)
+                    .collect::<Vec<_>>();
+                let assets = assets.resolve(querier, ans_host)?;
+
+                let pool_address = pool_address(
+                    self.0.clone(),
+                    (asset_names.swap_remove(0), asset_names.swap_remove(0)),
+                    querier,
+                    ans_host,
+                )?;
+                Ok(DexRawAction::ProvideLiquidity {
+                    pool: pool_address.into(),
+                    assets: assets.into_iter().map(Into::into).collect(),
+                    max_spread,
+                })
+            }
+            DexAction::ProvideLiquiditySymmetric {
+                offer_asset,
+                mut paired_assets,
+            } => {
+                let paired_asset_infos = paired_assets.resolve(querier, ans_host)?;
+                let pool_address = pool_address(
+                    self.0.clone(),
+                    (paired_assets.swap_remove(0), offer_asset.name.clone()),
+                    querier,
+                    ans_host,
+                )?;
+                let offer_asset = offer_asset.resolve(querier, ans_host)?;
+                Ok(DexRawAction::ProvideLiquiditySymmetric {
+                    pool: pool_address.into(),
+                    offer_asset: offer_asset.into(),
+                    paired_assets: paired_asset_infos.into_iter().map(Into::into).collect(),
+                })
+            }
+            DexAction::WithdrawLiquidity { lp_token } => {
+                let lp_asset = lp_token.resolve(querier, ans_host)?;
+
+                let lp_pairing: DexAssetPairing = AnsEntryConvertor::new(
+                    AnsEntryConvertor::new(lp_token.name.clone()).lp_token()?,
+                )
+                .dex_asset_pairing()?;
+
+                let mut pool_ids = lp_pairing.resolve(querier, ans_host)?;
+                // TODO: when resolving if there are more than one, get the metadata and choose the one matching the assets
+                if pool_ids.len() != 1 {
+                    return Err(StdError::generic_err(format!(
+                        "There are {} pairings for the given LP token",
+                        pool_ids.len()
+                    ))
+                    .into());
+                }
+
+                let pool_address = pool_ids.pop().unwrap().pool_address;
+                Ok(DexRawAction::WithdrawLiquidity {
+                    pool: pool_address.into(),
+                    lp_token: lp_asset.into(),
+                })
+            }
+            DexAction::Swap {
+                offer_asset,
+                mut ask_asset,
+                max_spread,
+                belief_price,
+            } => {
+                let AnsAsset {
+                    name: mut offer_asset,
+                    amount: offer_amount,
+                } = offer_asset.clone();
+                offer_asset.format();
+                ask_asset.format();
+
+                let offer_asset_info = offer_asset.resolve(querier, ans_host)?;
+                let ask_asset_info = ask_asset.resolve(querier, ans_host)?;
+
+                let pool_address = pool_address(
+                    self.0.clone(),
+                    (offer_asset.clone(), ask_asset.clone()),
+                    querier,
+                    ans_host,
+                )?;
+                let offer_asset = Asset::new(offer_asset_info, offer_amount);
+
+                Ok(DexRawAction::Swap {
+                    pool: pool_address.into(),
+                    offer_asset: offer_asset.into(),
+                    ask_asset: ask_asset_info.into(),
+                    max_spread,
+                    belief_price,
+                })
+            }
+        }
+    }
 }
 
 /// Query messages for the dex adapter
@@ -209,14 +326,24 @@ pub enum DexQueryMsg {
     #[returns(SimulateSwapResponse)]
     SimulateSwap {
         /// The asset to offer
-        offer_asset: OfferAsset,
+        offer_asset: AnsAsset,
         /// The asset to receive
-        ask_asset: AskAsset,
-        /// Identifies of the pool to simulate the swap on.
-        /// This will only be used in case assets are specified using cw_asset objects
-        pool: Option<UncheckedPoolAddress>,
+        ask_asset: AssetEntry,
         /// Name of the dex to simulate the swap on
-        dex: Option<DexName>,
+        dex: DexName,
+    },
+    /// Simulate a swap between two assets
+    /// Returns [`SimulateSwapResponse`]
+    #[returns(SimulateSwapResponse<AssetInfoBase<String>>)]
+    SimulateSwapRaw {
+        /// The asset to offer
+        offer_asset: AssetBase<String>,
+        /// The asset to receive
+        ask_asset: AssetInfoBase<String>,
+        /// Identifies of the pool to simulate the swap on.
+        pool: UncheckedPoolAddress,
+        /// Name of the dex to simulate the swap on
+        dex: DexName,
     },
     /// Endpoint can be used by front-end to easily interact with contracts.
     /// Returns [`GenerateMessagesResponse`]

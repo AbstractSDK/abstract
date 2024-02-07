@@ -71,12 +71,11 @@ pub mod interface {
                 request: DexExecuteMsg::Action {
                     dex,
                     action: DexAction::Swap {
-                        offer_asset: AnsAsset::new(asset, offer_asset.1).into(),
-                        ask_asset: ask_asset.into(),
+                        offer_asset: AnsAsset::new(asset, offer_asset.1),
+                        ask_asset,
                         max_spread: Some(Decimal::percent(30)),
                         belief_price: None,
                     },
-                    pool: None,
                 },
             });
             account

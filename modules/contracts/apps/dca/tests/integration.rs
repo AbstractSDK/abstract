@@ -11,11 +11,7 @@ use abstract_core::{
     },
     AbstractError,
 };
-use abstract_dex_adapter::{
-    interface::DexAdapter,
-    msg::{AskAsset, DexInstantiateMsg, OfferAsset},
-    DEX_ADAPTER_ID,
-};
+use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use abstract_sdk::AbstractSdkError;
 use abstract_testing::OWNER;
@@ -595,8 +591,8 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
         err.unwrap_err(),
         StdError::generic_err(format!(
             "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
-            offer_asset = OfferAsset::from(AnsAsset::new(USD, 100_u128)),
-            target_asset = AskAsset::from(AssetEntry::new(USD)),
+            offer_asset = AnsAsset::new(USD, 100_u128),
+            target_asset = AssetEntry::new(USD),
             e = AbstractError::from(AnsHostError::DexPairingNotFound {
                 pairing: DexAssetPairing::new(
                     AssetEntry::new(USD),
@@ -758,8 +754,8 @@ fn update_dca_negative() -> anyhow::Result<()> {
         err.unwrap_err(),
         StdError::generic_err(format!(
             "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
-            offer_asset = OfferAsset::from(AnsAsset::new(USD, 200_u128)),
-            target_asset = AskAsset::from(AssetEntry::new(USD)),
+            offer_asset = AnsAsset::new(USD, 200_u128),
+            target_asset = AssetEntry::new(USD),
             e = AbstractError::from(AnsHostError::DexPairingNotFound {
                 pairing: DexAssetPairing::new(
                     AssetEntry::new(USD),

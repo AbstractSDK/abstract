@@ -1214,7 +1214,8 @@ mod test {
 
             assert_that(&actual_pools?).is_equal_to(&expected_pools);
 
-            let _pairing = DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap");
+            let _pairing =
+                DexAssetPairing::<AssetEntry>::new("juno".into(), "osmo".into(), "junoswap");
 
             let (unchecked_pool_id, _) = new_entry;
 
@@ -1270,7 +1271,8 @@ mod test {
 
             assert_that(&actual_pools?).is_equal_to(&expected_pools);
 
-            let _pairing = DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap");
+            let _pairing =
+                DexAssetPairing::<AssetEntry>::new("juno".into(), "osmo".into(), "junoswap");
 
             let (unchecked_pool_id, _) = new_entry;
 

@@ -25,7 +25,7 @@ use ::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
     abstract_sdk::{
-        core::objects::{PoolAddress, UniquePoolId},
+        core::objects::PoolAddress,
         feature_objects::{AnsHost, VersionControlContract},
     },
     cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
@@ -199,6 +199,7 @@ impl DexCommand for Astrovault {
         _version_control_contract: VersionControlContract,
         ans_host: AnsHost,
     ) -> Result<(), DexError> {
+        // We need to find a way to get the pool type without relying on ans here
         let pool_metadata = ans_host.query_pool_metadata(&deps.querier, todo!())?;
         self.pool_type = Some(pool_metadata.pool_type);
         self.proxy_addr = Some(sender);

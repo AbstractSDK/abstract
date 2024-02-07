@@ -1,6 +1,9 @@
 use crate::{
     constants::{ASSET_DELIMITER, TYPE_DELIMITER},
-    objects::{AssetEntry, DexAssetPairing, LpToken, PoolMetadata},
+    objects::{
+        ans_host::{AnsHostError, AnsHostResult},
+        AssetEntry, DexAssetPairing, LpToken, PoolMetadata,
+    },
     AbstractResult,
 };
 
@@ -21,7 +24,7 @@ impl AnsEntryConvertor<LpToken> {
         AssetEntry::from(self.entry.to_string())
     }
 
-    pub fn dex_asset_pairing(self) -> AbstractResult<DexAssetPairing> {
+    pub fn dex_asset_pairing(self) -> AnsHostResult<DexAssetPairing> {
         let mut assets = self.entry.assets;
         // assets should already be sorted, but just in case
         assets.sort();
@@ -50,7 +53,7 @@ impl AnsEntryConvertor<PoolMetadata> {
 
 impl AnsEntryConvertor<AssetEntry> {
     /// Try from an asset entry that should be formatted as "dex_name/asset1,asset2"
-    pub fn lp_token(self) -> AbstractResult<LpToken> {
+    pub fn lp_token(self) -> AnsHostResult<LpToken> {
         let segments = self
             .entry
             .as_str()
@@ -58,7 +61,7 @@ impl AnsEntryConvertor<AssetEntry> {
             .collect::<Vec<_>>();
 
         if segments.len() != 2 {
-            return Err(crate::AbstractError::FormattingError {
+            return Err(AnsHostError::FormattingError {
                 object: "lp token".to_string(),
                 expected: "type/asset1,asset2".to_string(),
                 actual: self.entry.to_string(),
@@ -78,7 +81,7 @@ impl AnsEntryConvertor<AssetEntry> {
         assets.sort_unstable();
 
         if assets.len() < 2 {
-            return Err(crate::AbstractError::FormattingError {
+            return Err(AnsHostError::FormattingError {
                 object: "lp token".into(),
                 expected: "at least 2 assets in LP token".into(),
                 actual: self.entry.to_string(),
