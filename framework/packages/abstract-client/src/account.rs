@@ -83,6 +83,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
 
 /// Creation funds
 enum AccountCreationFunds {
+    #[allow(clippy::type_complexity)]
     Auto(Box<dyn Fn(&[Coin]) -> bool>),
     Coins(Coins),
 }
