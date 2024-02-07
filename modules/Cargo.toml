@@ -55,7 +55,6 @@ abstract-sdk = { version = "0.20.0" }
 abstract-testing = { version = "0.20.0" }
 abstract-core = { version = "0.20.0" }
 abstract-macros = { version = "0.20.0" }
-abstract-ica = { version = "0.20.0" }
 abstract-client = { version = "0.20.0" }
 
 abstract-adapter-utils = { version = "0.20.0" }
