@@ -174,7 +174,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Install an application on current account.
-    pub fn install_app<M: InstallConfig<InitMsg = Empty>>(
+    pub fn install_app<M: InstallConfig>(
         &mut self,
         configuration: &M::InitMsg,
     ) -> AbstractClientResult<&mut Self> {
