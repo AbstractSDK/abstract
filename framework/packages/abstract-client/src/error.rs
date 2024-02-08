@@ -32,9 +32,9 @@ pub enum AbstractClientError {
     #[error("Can't retrieve Account for unclaimed namespace \"{namespace}\".")]
     NamespaceNotClaimed { namespace: String },
 
-    #[error("Can't add funds in auto-fund mode")]
+    #[error("Can't add custom funds when using auto_fund.")]
     FundsWithAutoFund {},
 
-    #[error("Account creation canceled by auto_fund assertion function, required funds: {0:?}")]
+    #[error("Account creation auto_fund assertion failed with required funds: {0:?}")]
     AutoFundsAssertFailed(Vec<cosmwasm_std::Coin>),
 }

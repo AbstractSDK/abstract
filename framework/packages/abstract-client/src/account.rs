@@ -182,13 +182,16 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         Ok(self)
     }
 
-    /// Enable auto fund mode and add a check
+    /// Enables automatically paying for module instantiations and namespace registration.
+    /// The provided function will be called with the required funds. If the function returns `false`,
+    /// the account creation will fail.
     pub fn auto_fund_assert<F: Fn(&[Coin]) -> bool + 'static>(&mut self, f: F) -> &mut Self {
         self.funds = AccountCreationFunds::Auto(Box::new(f));
         self
     }
 
-    /// Enable auto fund mode
+    /// Enables automatically paying for module instantiations and namespace registration.
+    /// Use `auto_fund_assert` to add limits to the auto fund mode.
     pub fn auto_fund(&mut self) -> &mut Self {
         self.funds = AccountCreationFunds::Auto(Box::new(|_| true));
         self
@@ -381,6 +384,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Install an application on the account.
+    /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account. (default)
     pub fn install_app<M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
@@ -557,8 +561,8 @@ impl<Chain: CwEnv> Account<Chain> {
         self.abstr_account.manager.address().map_err(Into::into)
     }
 
-    /// Installed application on account
-    /// This won't be able to retrieve sub-account installed applications
+    /// Retrieve installed application on account
+    /// This can't retrieve sub-account installed applications.
     pub fn application<M: RegisteredModule + From<Contract<Chain>>>(
         &self,
     ) -> AbstractClientResult<Application<Chain, M>> {
