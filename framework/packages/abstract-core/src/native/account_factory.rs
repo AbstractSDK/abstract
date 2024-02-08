@@ -98,7 +98,8 @@ pub enum ExecuteMsg {
         description: Option<String>,
         // Account link
         link: Option<String>,
-        /// Account id on the remote chain. Will create a new id (by incrementing), if not specified
+        /// - In case of local: expected local Account Id, will error if does not match to the generated, useful for instantiate2 address prediction
+        /// - In case of remote: Account id on the remote chain. Will create a new id (by incrementing), if not specified
         account_id: Option<AccountId>,
         // optionally specify a namespace for the account
         namespace: Option<String>,

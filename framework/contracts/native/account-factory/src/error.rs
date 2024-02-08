@@ -1,4 +1,7 @@
-use abstract_core::{objects::version_control::VersionControlError, AbstractError};
+use abstract_core::{
+    objects::{version_control::VersionControlError, AccountId},
+    AbstractError,
+};
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_asset::AssetError;
@@ -54,4 +57,10 @@ pub enum AccountFactoryError {
 
     #[error("The caller ({caller}) is not the owner account's manager ({manager}). Only manager can create sub-accounts for its account.", )]
     SubAccountCreatorNotManager { caller: String, manager: String },
+
+    #[error("Predicted local account id doesn't match, predicted: {predicted}, actual: {actual}")]
+    AccountIdPredictionFailed {
+        predicted: AccountId,
+        actual: AccountId,
+    },
 }

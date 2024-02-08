@@ -234,8 +234,7 @@ fn find_nounce(
     deps: Deps,
 ) -> Result<u8, ManagerError> {
     let mut nounce = 0;
-    let mut addresses_free = false;
-    while !addresses_free {
+    loop {
         let salt: Binary = module::generate_module_salt(account_id, nounce);
         let addresses = app_checksums
             .values()
@@ -246,9 +245,14 @@ fn find_nounce(
                 Ok(module_address)
             })
             .collect::<ManagerResult<Vec<Addr>>>()?;
-        addresses_free = addresses
+        let addresses_free = addresses
             .iter()
             .all(|addr| deps.querier.query_wasm_contract_info(addr).is_err());
+        
+        // If all addresses free to use - return current nounce
+        if addresses_free {
+            break;
+        }
         nounce += 1;
     }
     Ok(nounce)
