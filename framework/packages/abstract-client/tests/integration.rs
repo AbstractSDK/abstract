@@ -940,13 +940,14 @@ fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
 }
 
 #[test]
-fn install_application_on_account_builder() -> anyhow::Result<()> {
+fn install_adapter_on_account_builder() -> anyhow::Result<()> {
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
     let publisher: Publisher<Mock> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
 
+    // Publish adapter
     let adapter: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
 
     let account = client
@@ -955,12 +956,12 @@ fn install_application_on_account_builder() -> anyhow::Result<()> {
         .build()?;
     let modules = account.module_infos()?.module_infos;
     let adapter_info = modules
-        .into_iter()
+        .iter()
         .find(|module| module.id == BootMockAdapter::<Mock>::module_id())
         .expect("Adapter not found");
 
     assert_eq!(
-        adapter_info,
+        *adapter_info,
         ManagerModuleInfo {
             id: BootMockAdapter::<Mock>::module_id().to_owned(),
             version: cw2::ContractVersion {
@@ -971,6 +972,47 @@ fn install_application_on_account_builder() -> anyhow::Result<()> {
         }
     );
 
+    Ok(())
+}
+
+#[test]
+fn install_application_on_account_builder() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    // Publish app
+    publisher.publish_app::<MockAppI<Mock>>()?;
+
+    let account = client
+        .account_builder()
+        .install_app::<MockAppI<Mock>>(&MockInitMsg {})?
+        .build()?;
+
+    let my_app = account.application::<MockAppI<_>>()?;
+
+    let something = my_app.get_something()?;
+    assert_eq!(MockQueryResponse {}, something);
+
+    let modules = account.module_infos()?.module_infos;
+    let app_info = modules
+        .iter()
+        .find(|module| module.id == MockAppI::<Mock>::module_id())
+        .expect("Application not found");
+
+    assert_eq!(
+        *app_info,
+        ManagerModuleInfo {
+            id: MockAppI::<Mock>::module_id().to_owned(),
+            version: cw2::ContractVersion {
+                contract: MockAppI::<Mock>::module_id().to_owned(),
+                version: MockAppI::<Mock>::module_version().to_owned()
+            },
+            address: my_app.address()?,
+        }
+    );
     Ok(())
 }
 
