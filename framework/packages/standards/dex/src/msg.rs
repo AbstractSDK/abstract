@@ -1,7 +1,6 @@
 #![warn(missing_docs)]
 //! # Dex Adapter API
 // re-export response types
-// re-export response types
 use abstract_core::{
     adapter,
     objects::{
