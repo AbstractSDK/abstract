@@ -336,17 +336,24 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    /// Upgrades the account to the new version
-    /// MIgrates manager and proxy modules to their respective new versions
-    pub fn upgrade(&self) -> AbstractClientResult<()> {
+    /// Upgrades the account to the latest version
+    ///
+    /// Migrates manager and proxy contracts to their respective new versions.
+    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<()> {
         self.abstr_account.manager.upgrade(vec![
             (
-                ModuleInfo::from_id(abstract_core::registry::MANAGER, ModuleVersion::Latest)?,
-                Some(to_json_binary(&abstract_core::manager::MigrateMsg {})?),
+                ModuleInfo::from_id(abstract_core::registry::MANAGER, version.clone())?,
+                Some(
+                    to_json_binary(&abstract_core::manager::MigrateMsg {})
+                        .map_err(Into::<CwOrchError>::into)?,
+                ),
             ),
             (
-                ModuleInfo::from_id(abstract_core::registry::PROXY, ModuleVersion::Latest)?,
-                Some(to_json_binary(&abstract_core::proxy::MigrateMsg {})?),
+                ModuleInfo::from_id(abstract_core::registry::PROXY, version)?,
+                Some(
+                    to_json_binary(&abstract_core::proxy::MigrateMsg {})
+                        .map_err(Into::<CwOrchError>::into)?,
+                ),
             ),
         ])?;
         Ok(())
@@ -408,12 +415,13 @@ impl<Chain: CwEnv> Account<Chain> {
             .map_err(Into::into)
     }
 
-    /// Activates IBC on an account
-    pub fn activate_ibc(&self) -> AbstractClientResult<()> {
-        self.abstr_account.manager.update_settings(Some(true))?;
+    /// Set IBC status on an Account.
+    pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<()> {
+        self.abstr_account.manager.update_settings(Some(enabled))?;
 
         Ok(())
     }
+
     /// Executes an ibc action on the proxy of the account
     pub fn create_ibc_account(
         &self,
