@@ -20,6 +20,7 @@ cw-orch-clone-testing = { workspace = true }
 cw-orch-polytone = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
 
+abstract-cw-orch-polytone = "1.0.2"
 abstract-interface = { workspace = true, features = ["daemon"] }
 tokio = { workspace = true }
 log = "0.4.14"

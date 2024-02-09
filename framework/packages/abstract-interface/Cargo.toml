@@ -42,9 +42,3 @@ manager = { package = "abstract-manager", path = "../../contracts/account/manage
 
 [build-dependencies]
 serde_json = "1.0.79"
-
-[dev-dependencies]
-abstract-cw-orch-polytone = "1.0.2"
-dotenv = "0.15.0"
-env_logger = "0.11.0"
-abstract-interface = { features = ["daemon"], path = "." }
