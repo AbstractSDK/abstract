@@ -7,7 +7,7 @@ use crate::{AVAILABLE_CHAINS, OSMOSIS};
 #[derive(Default)]
 pub struct Osmosis {
     pub version_control_contract: Option<VersionControlContract>,
-    pub local_proxy_addr: Option<Addr>,
+    pub addr_as_sender: Option<Addr>,
     pub tokens: Vec<OsmosisTokenContext>,
 }
 
@@ -34,8 +34,9 @@ pub mod fns {
             ans_host::AnsHost, AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference, PoolType,
         },
         features::AbstractRegistryAccess,
-        AbstractSdkError, AccountVerification,
+        AbstractSdkError,
     };
+
     use abstract_staking_standard::{
         msg::{
             Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
@@ -45,9 +46,7 @@ pub mod fns {
     };
     // const FORTEEN_DAYS: i64 = 60 * 60 * 24 * 14;
     use cosmwasm_std::Env;
-    use cosmwasm_std::{
-        Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper, StdError, StdResult, Uint128,
-    };
+    use cosmwasm_std::{Coin, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128};
     use cw_asset::AssetInfoBase;
     use cw_utils::Expiration;
     use osmosis_std::{
@@ -142,18 +141,14 @@ pub mod fns {
             &mut self,
             deps: cosmwasm_std::Deps,
             _env: Env,
-            info: Option<MessageInfo>,
+            addr_as_sender: Option<Addr>,
             ans_host: &AnsHost,
             version_control_contract: VersionControlContract,
             staking_assets: Vec<AssetEntry>,
         ) -> Result<(), CwStakingError> {
             self.version_control_contract = Some(version_control_contract);
-            let account_registry = self.account_registry(deps)?;
 
-            let base = info
-                .map(|i| account_registry.assert_manager(&i.sender))
-                .transpose()?;
-            self.local_proxy_addr = base.map(|b| b.proxy);
+            self.addr_as_sender = addr_as_sender;
 
             self.tokens =
                 self.query_pool_tokens_via_ans(&deps.querier, ans_host, staking_assets)?;
@@ -179,7 +174,7 @@ pub mod fns {
                 })
                 .collect();
             let lock_tokens_msg = MsgLockTokens {
-                owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+                owner: self.addr_as_sender.as_ref().unwrap().to_string(),
                 duration: to_osmo_duration(unbonding_period)?,
                 coins: lock_coins,
             };
@@ -198,7 +193,7 @@ pub mod fns {
                 .zip(self.tokens.iter())
                 .map(|(unstake, token)| {
                     MsgBeginUnlocking {
-                        owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+                        owner: self.addr_as_sender.as_ref().unwrap().to_string(),
                         id: token.pool_id,
                         coins: vec![Coin {
                             denom: token.lp_token.clone(),
@@ -216,7 +211,7 @@ pub mod fns {
         fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
             // Withdraw all
             let msg = MsgBeginUnlockingAll {
-                owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+                owner: self.addr_as_sender.as_ref().unwrap().to_string(),
             };
             Ok(vec![msg.into()])
         }

@@ -57,7 +57,7 @@ builds = [
   { name = "juno", features = [
     "wynd",
   ] },
-  { name = "terra", features = [
+  { name = "terra2", features = [
     "astroport",
   ] },
   { name = "neutron", features = [

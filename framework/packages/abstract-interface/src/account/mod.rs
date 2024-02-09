@@ -13,7 +13,7 @@
 
 use abstract_core::{manager::ModuleInstallConfig, ABSTRACT_EVENT_TYPE};
 
-use crate::{Abstract, AdapterDeployer};
+use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
 mod manager;
 mod proxy;
@@ -190,14 +190,64 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     {
         self.manager.register_remote_account(host_chain)
     }
-}
+    pub fn create_sub_account(
+        &self,
+        account_details: AccountDetails,
+        funds: Option<&[Coin]>,
+    ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
+        let AccountDetails {
+            name,
+            description,
+            link,
+            namespace,
+            base_asset,
+            install_modules,
+        } = account_details;
 
-use crate::AbstractInterfaceError;
-impl<T: CwEnv> AbstractAccount<T> {
-    /// Upload and register the account core contracts in the version control if they need to be updated
+        let result = self.manager.execute(
+            &abstract_core::manager::ExecuteMsg::CreateSubAccount {
+                name,
+                description,
+                link,
+                base_asset,
+                namespace,
+                install_modules,
+            },
+            funds,
+        )?;
+
+        Self::from_tx_response(self.manager.get_chain(), result)
+    }
+
+    // Parse account from events
+    // It's restricted to parse 1 account at a time
+    pub(crate) fn from_tx_response(
+        chain: &Chain,
+        result: <Chain as TxHandler>::Response,
+    ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
+        // Parse data from events
+        let acc_seq = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "account_sequence")?;
+        let trace = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "trace")?;
+        let id = AccountId::new(
+            acc_seq.parse().unwrap(),
+            abstract_core::objects::account::AccountTrace::try_from((*trace).as_str())?,
+        )?;
+        // construct manager and proxy ids
+        let manager = Manager::new_from_id(&id, chain.clone());
+        let proxy = Proxy::new_from_id(&id, chain.clone());
+
+        // set addresses
+        let manager_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
+        manager.set_address(&Addr::unchecked(manager_address));
+        let proxy_address = result.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
+        proxy.set_address(&Addr::unchecked(proxy_address));
+
+        Ok(AbstractAccount { manager, proxy })
+    }
+
     pub fn upload_and_register_if_needed(
         &self,
-        version_control: &VersionControl<T>,
+        version_control: &VersionControl<Chain>,
     ) -> Result<bool, AbstractInterfaceError> {
         let mut modules_to_register = Vec::with_capacity(2);
 
@@ -223,5 +273,22 @@ impl<T: CwEnv> AbstractAccount<T> {
         };
 
         Ok(migrated)
+    }
+}
+
+impl<Chain: CwEnv> std::fmt::Display for AbstractAccount<Chain> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Account manager: {:?} ({:?}) proxy: {:?} ({:?})",
+            self.manager.id(),
+            self.manager
+                .addr_str()
+                .or_else(|_| Result::<_, CwOrchError>::Ok(String::from("unknown"))),
+            self.proxy.id(),
+            self.proxy
+                .addr_str()
+                .or_else(|_| Result::<_, CwOrchError>::Ok(String::from("unknown"))),
+        )
     }
 }

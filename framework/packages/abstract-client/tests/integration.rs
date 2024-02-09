@@ -1,30 +1,40 @@
 use abstract_adapter::mock::{
     BootMockAdapter, MockExecMsg as BootMockExecMsg, MockInitMsg as BootMockInitMsg,
-    MockQueryMsg as BootMockQueryMsg,
+    MockQueryMsg as BootMockQueryMsg, TEST_METADATA,
 };
-use abstract_app::mock::{
-    interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockExecMsgFns,
-    MockInitMsg, MockQueryMsgFns, MockQueryResponse,
+use abstract_app::{
+    abstract_sdk::base::Handler,
+    mock::{
+        interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockExecMsgFns,
+        MockInitMsg, MockQueryMsgFns, MockQueryResponse,
+    },
+    traits::ModuleIdentification,
 };
 use abstract_client::{
     builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
-    AbstractClient, Account, Application, Publisher,
+    AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
+    Publisher,
 };
 use abstract_core::{
+    ans_host::QueryMsgFns,
     manager::{
         state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     },
-    objects::{gov_type::GovernanceDetails, namespace::Namespace, AccountId, AssetEntry},
+    objects::{
+        dependency::Dependency, fee::FixedFee, gov_type::GovernanceDetails,
+        module_version::ModuleDataResponse, namespace::Namespace, AccountId, AssetEntry,
+    },
 };
-use abstract_interface::{ClientResolve, VCQueryFns};
+use abstract_interface::{ClientResolve, RegisteredModule, VCExecFns, VCQueryFns};
 use abstract_testing::{
+    addresses::{TEST_MODULE_NAME, TTOKEN},
     prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
     OWNER,
 };
 use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::{
-    contract::interface_traits::{CwOrchExecute, CwOrchQuery},
+    contract::interface_traits::{ContractInstance, CwOrchExecute, CwOrchQuery},
     prelude::{CallAs, Mock},
 };
 use cw_ownable::Ownership;
@@ -121,13 +131,28 @@ fn can_get_account_from_namespace() -> anyhow::Result<()> {
         .namespace(namespace.clone())
         .build()?;
 
-    let account_from_namespace: Account<Mock> = client
-        .account_builder()
-        .fetch_if_namespace_claimed(true)
-        .namespace(namespace)
-        .build()?;
+    // From namespace directly
+    let account_from_namespace: Account<Mock> = client.account_from(namespace)?;
 
     assert_eq!(account.info()?, account_from_namespace.info()?);
+    Ok(())
+}
+
+#[test]
+fn err_fetching_unclaimed_namespace() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+
+    let namespace = Namespace::new("namespace")?;
+
+    let account_from_namespace_no_claim_res: Result<
+        Account<Mock>,
+        abstract_client::AbstractClientError,
+    > = client.account_from(namespace);
+
+    assert!(matches!(
+        account_from_namespace_no_claim_res.unwrap_err(),
+        abstract_client::AbstractClientError::NamespaceNotClaimed { .. }
+    ));
 
     Ok(())
 }
@@ -245,6 +270,11 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     assert_eq!(MockQueryResponse {}, something);
 
+    // Can get installed application of the account
+    let my_app: Application<Mock, MockAppI<Mock>> = my_app.account().application()?;
+    let something = my_app.get_something()?;
+    assert_eq!(MockQueryResponse {}, something);
+
     let sub_account_details = my_app.account().info()?;
     assert_eq!(
         AccountInfo {
@@ -259,6 +289,10 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
         },
         sub_account_details
     );
+
+    let sub_accounts = publisher.account().sub_accounts()?;
+    assert_eq!(sub_accounts.len(), 1);
+    assert_eq!(sub_accounts[0].id()?, my_app.account().id()?);
 
     // Install app on current account
     let publisher = client
@@ -361,44 +395,37 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 }
 
 #[test]
-fn cannot_create_same_account_twice_when_fetch_flag_is_disabled() -> anyhow::Result<()> {
+fn can_fetch_account_from_id() -> anyhow::Result<()> {
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let namespace = Namespace::new("namespace")?;
+    let account1 = client.account_builder().build()?;
 
-    // First call succeeds.
-    client
-        .account_builder()
-        .namespace(namespace.clone())
-        .build()?;
+    let account2 = client.account_from(account1.id()?)?;
 
-    // Second call fails
-    let result = client
-        .account_builder()
-        .fetch_if_namespace_claimed(false)
-        .namespace(namespace)
-        .build();
-    assert!(result.is_err());
+    assert_eq!(account1.info()?, account2.info()?);
 
     Ok(())
 }
 
 #[test]
-fn can_create_same_account_twice_when_fetch_flag_is_enabled() -> anyhow::Result<()> {
+fn can_fetch_account_from_app() -> anyhow::Result<()> {
     let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
 
-    let namespace = Namespace::new("namespace")?;
+    let app_publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    app_publisher.publish_app::<MockAppI<Mock>>()?;
 
     let account1 = client
         .account_builder()
-        .namespace(namespace.clone())
+        // Install apps in this account
+        .install_on_sub_account(false)
         .build()?;
 
-    let account2 = client
-        .account_builder()
-        .namespace(namespace)
-        .fetch_if_namespace_claimed(true)
-        .build()?;
+    let app = account1.install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
+
+    let account2 = client.account_from(AccountSource::App(app.address()?))?;
 
     assert_eq!(account1.info()?, account2.info()?);
 
@@ -802,7 +829,7 @@ fn doc_example_test() -> anyhow::Result<()> {
 
 #[test]
 fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
-    let sender: Addr = Addr::unchecked("sender");
+    let sender: Addr = Addr::unchecked(OWNER);
     let env: Mock = Mock::new(&sender);
 
     // Build the client
@@ -811,5 +838,230 @@ fn can_get_abstract_account_from_client_account() -> anyhow::Result<()> {
     let account = client.account_builder().build()?;
     let abstract_account: &abstract_interface::AbstractAccount<Mock> = account.as_ref();
     assert_eq!(abstract_account.id()?, AccountId::local(1));
+    Ok(())
+}
+
+#[test]
+fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
+    let client: AbstractClient<Mock> =
+        AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    let publisher = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    let adapter =
+        publisher.publish_adapter::<BootMockInitMsg, BootMockAdapter<Mock>>(BootMockInitMsg {})?;
+    let module_data: ModuleDataResponse =
+        adapter.query(&abstract_core::adapter::QueryMsg::Base(
+            abstract_core::adapter::BaseQueryMsg::ModuleData {},
+        ))?;
+
+    assert_eq!(
+        module_data,
+        ModuleDataResponse {
+            module_id: abstract_adapter::mock::MOCK_ADAPTER.module_id().to_owned(),
+            version: abstract_adapter::mock::MOCK_ADAPTER.version().to_owned(),
+            dependencies: abstract_adapter::mock::MOCK_ADAPTER
+                .dependencies()
+                .iter()
+                .map(Dependency::from)
+                .map(Into::into)
+                .collect(),
+            metadata: Some(TEST_METADATA.to_owned())
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn can_register_dex_with_client() -> anyhow::Result<()> {
+    let dexes = vec!["foo".to_owned(), "bar".to_owned()];
+
+    let client: AbstractClient<Mock> = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)))
+        .dexes(dexes.clone())
+        .build()?;
+
+    let dexes_response = client.name_service().registered_dexes()?;
+    assert_eq!(
+        dexes_response,
+        abstract_core::ans_host::RegisteredDexesResponse { dexes }
+    );
+    Ok(())
+}
+
+#[test]
+fn can_customize_sub_account() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    let account = client.account_builder().build()?;
+    let sub_account = client
+        .account_builder()
+        .name("foo-bar")
+        .sub_account(&account)
+        .build()?;
+
+    let info = sub_account.info()?;
+    assert_eq!(info.name, "foo-bar");
+
+    // Account aware of sub account
+    let sub_accounts = account.sub_accounts()?;
+    assert_eq!(sub_accounts.len(), 1);
+    assert_eq!(sub_accounts[0].id()?, sub_account.id()?);
+    Ok(())
+}
+
+#[test]
+fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    let account = client.account_builder().build()?;
+    let result = client
+        .account_builder()
+        .name("foo-bar")
+        .ownership(GovernanceDetails::SubAccount {
+            manager: account.manager()?.into_string(),
+            proxy: account.proxy()?.into_string(),
+        })
+        .build();
+
+    // No debug on `Account<Chain>`
+    let Err(AbstractClientError::Interface(abstract_interface::AbstractInterfaceError::Orch(err))) =
+        result
+    else {
+        panic!("Expected cw-orch error")
+    };
+    let err: account_factory::error::AccountFactoryError = err.downcast().unwrap();
+    assert_eq!(
+        err,
+        account_factory::error::AccountFactoryError::SubAccountCreatorNotManager {
+            caller: client.sender().into_string(),
+            manager: account.manager()?.into_string()
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn install_adapter_on_account_builder() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    // Publish adapter
+    let adapter: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+
+    let account = client
+        .account_builder()
+        .install_adapter::<BootMockAdapter<Mock>>()?
+        .build()?;
+    let modules = account.module_infos()?.module_infos;
+    let adapter_info = modules
+        .iter()
+        .find(|module| module.id == BootMockAdapter::<Mock>::module_id())
+        .expect("Adapter not found");
+
+    assert_eq!(
+        *adapter_info,
+        ManagerModuleInfo {
+            id: BootMockAdapter::<Mock>::module_id().to_owned(),
+            version: cw2::ContractVersion {
+                contract: BootMockAdapter::<Mock>::module_id().to_owned(),
+                version: BootMockAdapter::<Mock>::module_version().to_owned()
+            },
+            address: adapter.address()?,
+        }
+    );
+
+    Ok(())
+}
+
+#[test]
+fn install_application_on_account_builder() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    // Publish app
+    publisher.publish_app::<MockAppI<Mock>>()?;
+
+    let account = client
+        .account_builder()
+        .install_app::<MockAppI<Mock>>(&MockInitMsg {})?
+        .build()?;
+
+    let my_app = account.application::<MockAppI<_>>()?;
+
+    let something = my_app.get_something()?;
+    assert_eq!(MockQueryResponse {}, something);
+
+    let modules = account.module_infos()?.module_infos;
+    let app_info = modules
+        .iter()
+        .find(|module| module.id == MockAppI::<Mock>::module_id())
+        .expect("Application not found");
+
+    assert_eq!(
+        *app_info,
+        ManagerModuleInfo {
+            id: MockAppI::<Mock>::module_id().to_owned(),
+            version: cw2::ContractVersion {
+                contract: MockAppI::<Mock>::module_id().to_owned(),
+                version: MockAppI::<Mock>::module_version().to_owned()
+            },
+            address: my_app.address()?,
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn auto_funds_work() -> anyhow::Result<()> {
+    // Give enough tokens for the owner
+    let owner = Addr::unchecked(OWNER);
+    let chain = Mock::new(&owner);
+    chain.set_balance(&owner, coins(50, TTOKEN))?;
+
+    let client = AbstractClient::builder(chain).build()?;
+
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+    let _: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+
+    client.version_control().update_module_configuration(
+        TEST_MODULE_NAME.to_owned(),
+        Namespace::new(TEST_NAMESPACE)?,
+        abstract_core::version_control::UpdateModule::Versioned {
+            version: BootMockAdapter::<Mock>::module_version().to_owned(),
+            metadata: None,
+            monetization: Some(abstract_core::objects::module::Monetization::InstallFee(
+                FixedFee::new(&Coin {
+                    denom: TTOKEN.to_owned(),
+                    amount: Uint128::new(50),
+                }),
+            )),
+            instantiation_funds: None,
+        },
+    )?;
+    let mut account_builder = client.account_builder();
+
+    // User can guard his funds
+    account_builder
+        .name("bob")
+        .install_adapter::<BootMockAdapter<Mock>>()?
+        .auto_fund_assert(|c| c[0].amount < Uint128::new(50));
+    let e = account_builder.build().unwrap_err();
+    assert!(matches!(e, AbstractClientError::AutoFundsAssertFailed(_)));
+
+    // Or can enable auto_fund and create account if have enough funds
+    let account = account_builder.auto_fund().build()?;
+    let info = account.info()?;
+    assert_eq!(info.name, "bob");
+
+    // funds used
+    let balance = client.environment().query_balance(&owner, TTOKEN)?;
+    assert!(balance.is_zero());
     Ok(())
 }
