@@ -111,6 +111,7 @@ mod test {
     use abstract_sdk::base::QueryEndpoint;
     use cosmwasm_std::{Binary, Deps};
     use speculoos::prelude::*;
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 
     use super::QueryMsg as SuperQueryMsg;
     use crate::mock::*;
