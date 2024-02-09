@@ -77,7 +77,7 @@ pub fn execute_create_account(
             ensure_eq!(
                 generated_account_id,
                 account_id,
-                AccountFactoryError::AccountIdPredictionFailed {
+                AccountFactoryError::ExpectedAccountIdFailed {
                     predicted: account_id,
                     actual: generated_account_id
                 }

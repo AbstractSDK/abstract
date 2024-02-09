@@ -58,8 +58,8 @@ pub enum AccountFactoryError {
     #[error("The caller ({caller}) is not the owner account's manager ({manager}). Only manager can create sub-accounts for its account.", )]
     SubAccountCreatorNotManager { caller: String, manager: String },
 
-    #[error("Predicted local account id doesn't match, predicted: {predicted}, actual: {actual}")]
-    AccountIdPredictionFailed {
+    #[error("Expected local account id doesn't match, expected: {predicted}, actual: {actual}". Try again.)]
+    ExpectedAccountIdFailed {
         predicted: AccountId,
         actual: AccountId,
     },
