@@ -161,15 +161,15 @@ pub(crate) fn install_modules_internal(
             _ => None,
         })
         .collect::<StdResult<HashMap<u64, HexBinary>>>()?;
-    // find salt nounce
-    let nounce = find_nounce(
+    // find salt nonce
+    let nonce = find_nonce(
         &account_id,
         &app_checksums,
         &canonical_module_factory,
         deps.as_ref(),
     )?;
 
-    let salt: Binary = module::generate_module_salt(&account_id, nounce);
+    let salt: Binary = module::generate_module_salt(&account_id, nonce);
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
         // Check if module is already enabled.
         if ACCOUNT_MODULES
@@ -227,15 +227,15 @@ pub(crate) fn install_modules_internal(
     ))
 }
 
-fn find_nounce(
+fn find_nonce(
     account_id: &AccountId,
     app_checksums: &HashMap<u64, HexBinary>,
     canonical_module_factory: &cosmwasm_std::CanonicalAddr,
     deps: Deps,
 ) -> Result<u8, ManagerError> {
-    let mut nounce = 0;
+    let mut nonce = 0;
     loop {
-        let salt: Binary = module::generate_module_salt(account_id, nounce);
+        let salt: Binary = module::generate_module_salt(account_id, nonce);
         let addresses = app_checksums
             .values()
             .map(|checksum| {
@@ -249,13 +249,13 @@ fn find_nounce(
             .iter()
             .all(|addr| deps.querier.query_wasm_contract_info(addr).is_err());
         
-        // If all addresses free to use - return current nounce
+        // If all addresses free to use - return current nonce
         if addresses_free {
             break;
         }
-        nounce += 1;
+        nonce += 1;
     }
-    Ok(nounce)
+    Ok(nonce)
 }
 
 /// Adds the modules dependencies
