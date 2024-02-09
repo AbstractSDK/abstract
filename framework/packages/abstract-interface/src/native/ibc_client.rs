@@ -39,7 +39,7 @@ impl<Chain: CwEnv> Uploadable for IbcClient<Chain> {
 }
 
 impl<Chain: CwEnv> RegisteredModule for IbcClient<Chain> {
-    type InitMsg = Empty;
+    type InitMsg = InstantiateMsg;
 
     fn module_id<'a>() -> &'a str {
         IBC_CLIENT

@@ -1,5 +1,7 @@
+#![allow(unused_imports)]
 use abstract_client::AbstractClient;
 use abstract_core::objects::chain_name::ChainName;
+use abstract_core::objects::module::ModuleVersion;
 use abstract_core::objects::namespace::Namespace;
 use abstract_scripts::abstract_ibc::{
     has_abstract_ibc, has_polytone_connection, verify_abstract_ibc,
@@ -72,6 +74,7 @@ fn main() -> cw_orch::anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 fn get_daemon(
     chain: ChainInfo,
     handle: &Handle,
@@ -89,6 +92,7 @@ fn get_daemon(
     Ok(builder.build()?)
 }
 
+#[allow(dead_code)]
 fn connect(
     (src_chain, src_mnemonic): (ChainInfo, Option<String>),
     (dst_chain, dst_mnemonic): (ChainInfo, Option<String>),
@@ -110,10 +114,10 @@ fn connect(
         .build()?;
 
     // We upgrade the local account. If it fails, it's ok (for instance if we're already updated)
-    let _ = account.upgrade();
+    let _ = account.upgrade(ModuleVersion::Latest);
 
     // We install the ibc client on the account. If it fails, it's ok (for instance if we're already updated)
-    let _ = account.activate_ibc();
+    let _ = account.set_ibc_status(true);
 
     let tx_response = account.create_ibc_account(
         ChainName::from_chain_id(dst_chain.chain_id).to_string(),
