@@ -163,3 +163,25 @@ fn subaccount_app_ownership() -> AResult {
     )?;
     Ok(())
 }
+
+#[test]
+fn can_reinstall_app_after_uninstall() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = create_default_account(&deployment.account_factory)?;
+
+    deployment
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
+
+    let app = MockApp::new_test(chain.clone());
+    app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
+    let app_addr1 = account.install_app(&app, &MockInitMsg {}, None)?;
+
+    // Reinstall
+    account.manager.uninstall_module(APP_ID.to_owned())?;
+    let app_addr2 = account.install_app(&app, &MockInitMsg {}, None)?;
+    assert_ne!(app_addr1, app_addr2);
+    Ok(())
+}
