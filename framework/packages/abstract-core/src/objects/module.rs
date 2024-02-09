@@ -476,9 +476,13 @@ impl Default for Monetization {
 /// Module Metadata String
 pub type ModuleMetadata = String;
 
+pub const SALT_POSTFIX: &[u8] = b"abstract";
 /// Generate salt helper
 pub fn generate_instantiate_salt(account_id: &AccountId) -> Binary {
-    let hash = <sha2::Sha256 as sha2::Digest>::digest(account_id.to_string());
+    let account_id_hash = <sha2::Sha256 as sha2::Digest>::digest(account_id.to_string());
+    let mut hash = account_id_hash.to_vec();
+    hash.extend(SALT_POSTFIX);
+    // hash.reverse();
     Binary(hash.to_vec())
 }
 
