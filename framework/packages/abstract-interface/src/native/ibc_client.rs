@@ -1,5 +1,3 @@
-use cosmwasm_std::Empty;
-
 use abstract_core::{
     ibc_client::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     IBC_CLIENT,
