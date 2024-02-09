@@ -482,7 +482,6 @@ pub fn generate_instantiate_salt(account_id: &AccountId) -> Binary {
     let account_id_hash = <sha2::Sha256 as sha2::Digest>::digest(account_id.to_string());
     let mut hash = account_id_hash.to_vec();
     hash.extend(SALT_POSTFIX);
-    // hash.reverse();
     Binary(hash.to_vec())
 }
 
