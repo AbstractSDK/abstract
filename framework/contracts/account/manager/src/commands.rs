@@ -10,8 +10,9 @@ use abstract_core::{
     module_factory::FactoryModuleInstallConfig,
     objects::{
         gov_type::GovernanceDetails,
-        module::{self, assert_module_data_validity},
+        module::assert_module_data_validity,
         nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION},
+        salt::generate_instantiate_salt,
         version_control::VersionControlContract,
         AccountId, AssetEntry,
     },
@@ -147,7 +148,7 @@ pub(crate) fn install_modules_internal(
     let mut install_context = Vec::with_capacity(modules.len());
     let mut to_add = Vec::with_capacity(modules.len());
 
-    let salt: Binary = module::generate_instantiate_salt(&account_id);
+    let salt: Binary = generate_instantiate_salt(&account_id);
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
         // Check if module is already enabled.
         if ACCOUNT_MODULES
