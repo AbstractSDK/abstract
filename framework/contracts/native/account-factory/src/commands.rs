@@ -2,8 +2,8 @@ use abstract_core::{
     manager::ModuleInstallConfig,
     module_factory::SimulateInstallModulesResponse,
     objects::{
-        account::{generate_account_salt, AccountTrace},
-        module::assert_module_data_validity,
+        account::AccountTrace,
+        module::{self, assert_module_data_validity},
         AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
     },
     AbstractError,
@@ -138,7 +138,7 @@ pub fn execute_create_account(
         })?;
     }
 
-    let salt = generate_account_salt(&account_id);
+    let salt = module::generate_instantiate_salt(&account_id);
 
     // Get code_ids
     let (proxy_code_id, manager_code_id) = if let (

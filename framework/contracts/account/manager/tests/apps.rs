@@ -9,6 +9,7 @@ use abstract_core::{
 };
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
+use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, to_json_binary, Addr, Coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
@@ -165,7 +166,7 @@ fn subaccount_app_ownership() -> AResult {
 }
 
 #[test]
-fn can_reinstall_app_after_uninstall() -> AResult {
+fn cant_reinstall_app_after_uninstall() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
@@ -177,11 +178,15 @@ fn can_reinstall_app_after_uninstall() -> AResult {
 
     let app = MockApp::new_test(chain.clone());
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    let app_addr1 = account.install_app(&app, &MockInitMsg {}, None)?;
+    account.install_app(&app, &MockInitMsg {}, None)?;
 
     // Reinstall
     account.manager.uninstall_module(APP_ID.to_owned())?;
-    let app_addr2 = account.install_app(&app, &MockInitMsg {}, None)?;
-    assert_ne!(app_addr1, app_addr2);
+    let Err(AbstractInterfaceError::Orch(err)) = account.install_app(&app, &MockInitMsg {}, None)
+    else {
+        panic!("Expected error");
+    };
+    let manager_err: ManagerError = err.downcast().unwrap();
+    assert_eq!(manager_err, ManagerError::AppReinstall {});
     Ok(())
 }

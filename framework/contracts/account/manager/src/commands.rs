@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use abstract_core::{
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
@@ -44,8 +42,8 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
-    Deps, DepsMut, Empty, Env, HexBinary, MessageInfo, Response, StdError, StdResult, Storage,
-    SubMsg, SubMsgResult, WasmMsg,
+    Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg,
+    SubMsgResult, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_ownable::OwnershipError;
@@ -149,27 +147,7 @@ pub(crate) fn install_modules_internal(
     let mut install_context = Vec::with_capacity(modules.len());
     let mut to_add = Vec::with_capacity(modules.len());
 
-    // Store app checksums to avoid re-querying
-    let app_checksums = modules
-        .iter()
-        .filter_map(|module| match module.module.reference {
-            ModuleReference::App(code_id) => Some(
-                deps.querier
-                    .query_wasm_code_info(code_id)
-                    .map(|info| (code_id, info.checksum)),
-            ),
-            _ => None,
-        })
-        .collect::<StdResult<HashMap<u64, HexBinary>>>()?;
-    // find salt nonce
-    let nonce = find_nonce(
-        &account_id,
-        &app_checksums,
-        &canonical_module_factory,
-        deps.as_ref(),
-    )?;
-
-    let salt: Binary = module::generate_module_salt(&account_id, nonce);
+    let salt: Binary = module::generate_instantiate_salt(&account_id);
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
         // Check if module is already enabled.
         if ACCOUNT_MODULES
@@ -187,10 +165,19 @@ pub(crate) fn install_modules_internal(
                 None
             }
             ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
-                let checksum = app_checksums.get(code_id).unwrap();
-                let module_address =
-                    cosmwasm_std::instantiate2_address(checksum, &canonical_module_factory, &salt)?;
+                let checksum = deps.querier.query_wasm_code_info(*code_id)?.checksum;
+                let module_address = cosmwasm_std::instantiate2_address(
+                    &checksum,
+                    &canonical_module_factory,
+                    &salt,
+                )?;
                 let module_address = deps.api.addr_humanize(&module_address)?;
+                ensure!(
+                    deps.querier
+                        .query_wasm_contract_info(module_address.to_string())
+                        .is_err(),
+                    ManagerError::AppReinstall {}
+                );
                 to_add.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), Some(module_address)));
 
@@ -225,37 +212,6 @@ pub(crate) fn install_modules_internal(
         SubMsg::reply_on_success(msg, REGISTER_MODULES_DEPENDENCIES),
         Attribute::new("installed_modules", format!("{installed_modules:?}")),
     ))
-}
-
-fn find_nonce(
-    account_id: &AccountId,
-    app_checksums: &HashMap<u64, HexBinary>,
-    canonical_module_factory: &cosmwasm_std::CanonicalAddr,
-    deps: Deps,
-) -> Result<u8, ManagerError> {
-    let mut nonce = 0;
-    loop {
-        let salt: Binary = module::generate_module_salt(account_id, nonce);
-        let addresses = app_checksums
-            .values()
-            .map(|checksum| {
-                let module_address =
-                    cosmwasm_std::instantiate2_address(checksum, canonical_module_factory, &salt)?;
-                let module_address = deps.api.addr_humanize(&module_address)?;
-                Ok(module_address)
-            })
-            .collect::<ManagerResult<Vec<Addr>>>()?;
-        let addresses_free = addresses
-            .iter()
-            .all(|addr| deps.querier.query_wasm_contract_info(addr).is_err());
-        
-        // If all addresses free to use - return current nonce
-        if addresses_free {
-            break;
-        }
-        nonce += 1;
-    }
-    Ok(nonce)
 }
 
 /// Adds the modules dependencies
