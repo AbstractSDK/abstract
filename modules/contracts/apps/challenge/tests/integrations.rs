@@ -79,15 +79,19 @@ lazy_static! {
 
 #[allow(unused)]
 struct DeployedApps {
-    challenge_app: Challenge<Mock>,
+    challenge_app: Challenge<MockBech32>,
 }
 
 #[allow(clippy::type_complexity)]
-fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, DeployedApps)> {
-    // Create a sender
-    let sender = Addr::unchecked(OWNER);
+fn setup() -> anyhow::Result<(
+    MockBech32,
+    AbstractAccount<MockBech32>,
+    Abstract<MockBech32>,
+    DeployedApps,
+)> {
     // Create the mock
-    let mock = Mock::new(&sender);
+    let mock = MockBech32::new("mock");
+    let sender = mock.sender();
     mock.set_balance(&sender, vec![coin(INITIAL_BALANCE, DENOM)])?;
 
     let mut challenge_app = Challenge::new(CHALLENGE_APP_ID, mock.clone());

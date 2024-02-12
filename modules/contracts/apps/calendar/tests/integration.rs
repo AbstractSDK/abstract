@@ -21,7 +21,7 @@ const INITIAL_BALANCE: u128 = 10_000;
 fn request_meeting_with_start_time(
     day_datetime: DateTime<FixedOffset>,
     start_time: Time,
-    app: CalendarAppInterface<Mock>,
+    app: CalendarAppInterface<MockBech32>,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
@@ -38,7 +38,7 @@ fn request_meeting_with_start_time(
 fn request_meeting_with_end_time(
     day_datetime: DateTime<FixedOffset>,
     end_time: Time,
-    app: CalendarAppInterface<Mock>,
+    app: CalendarAppInterface<MockBech32>,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
@@ -56,7 +56,7 @@ fn request_meeting(
     day_datetime: DateTime<FixedOffset>,
     start_time: Time,
     end_time: Time,
-    app: CalendarAppInterface<Mock>,
+    app: CalendarAppInterface<MockBech32>,
     funds: Coin,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     let meeting_start_datetime: NaiveDateTime = day_datetime
@@ -83,11 +83,11 @@ fn setup_with_time(
     start_time: Time,
     end_time: Time,
 ) -> anyhow::Result<(
-    Application<Mock, CalendarAppInterface<Mock>>,
-    AbstractClient<Mock>,
+    Application<MockBech32, CalendarAppInterface<MockBech32>>,
+    AbstractClient<MockBech32>,
 )> {
-    let client: AbstractClient<Mock> =
-        AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)).to_owned())
+    let client: AbstractClient<MockBech32> =
+        AbstractClient::builder(MockBech32::new("mock").to_owned())
             .asset(DENOM, AssetInfoUnchecked::native(DENOM))
             .build()?;
 
@@ -98,25 +98,26 @@ fn setup_with_time(
     ])?;
 
     // Create account to install app onto as well as claim namespace.
-    let publisher: Publisher<Mock> = client
+    let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new("abstract")?)
         .ownership(GovernanceDetails::Monarchy {
             monarch: OWNER.to_owned(),
         })
         .build()?;
 
-    publisher.publish_app::<CalendarAppInterface<Mock>>()?;
+    publisher.publish_app::<CalendarAppInterface<MockBech32>>()?;
 
-    let app: Application<Mock, CalendarAppInterface<Mock>> = publisher.account().install_app(
-        &CalendarInstantiateMsg {
-            price_per_minute: Uint128::from(1u128),
-            denom: AssetEntry::from(DENOM),
-            utc_offset: 0,
-            start_time,
-            end_time,
-        },
-        &[],
-    )?;
+    let app: Application<MockBech32, CalendarAppInterface<MockBech32>> =
+        publisher.account().install_app(
+            &CalendarInstantiateMsg {
+                price_per_minute: Uint128::from(1u128),
+                denom: AssetEntry::from(DENOM),
+                utc_offset: 0,
+                start_time,
+                end_time,
+            },
+            &[],
+        )?;
 
     Ok((app, client))
 }
@@ -124,8 +125,8 @@ fn setup_with_time(
 /// Set up the test environment with the contract installed
 #[allow(clippy::type_complexity)]
 fn setup() -> anyhow::Result<(
-    Application<Mock, CalendarAppInterface<Mock>>,
-    AbstractClient<Mock>,
+    Application<MockBech32, CalendarAppInterface<MockBech32>>,
+    AbstractClient<MockBech32>,
 )> {
     setup_with_time(
         Time { hour: 9, minute: 0 },

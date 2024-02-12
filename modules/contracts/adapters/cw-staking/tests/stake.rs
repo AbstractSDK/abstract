@@ -25,13 +25,13 @@ use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
 use common::create_default_account;
 
 fn setup_mock() -> anyhow::Result<(
-    Mock,
+    MockBech32,
     wyndex_bundle::WynDex,
-    CwStakingAdapter<Mock>,
-    AbstractAccount<Mock>,
+    CwStakingAdapter<MockBech32>,
+    AbstractAccount<MockBech32>,
 )> {
-    let sender = Addr::unchecked(common::ROOT_USER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
 
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let wyndex = wyndex_bundle::WynDex::store_on(chain.clone())?;

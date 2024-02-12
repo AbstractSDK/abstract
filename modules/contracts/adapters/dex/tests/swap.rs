@@ -19,14 +19,14 @@ const WYNDEX: &str = "cosmos-testnet>wyndex";
 
 #[allow(clippy::type_complexity)]
 fn setup_mock() -> anyhow::Result<(
-    Mock,
+    MockBech32,
     wyndex_bundle::WynDex,
-    DexAdapter<Mock>,
-    AbstractAccount<Mock>,
-    Abstract<Mock>,
+    DexAdapter<MockBech32>,
+    AbstractAccount<MockBech32>,
+    Abstract<MockBech32>,
 )> {
-    let sender = Addr::unchecked(common::ROOT_USER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
