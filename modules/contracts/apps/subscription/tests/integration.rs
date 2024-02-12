@@ -10,7 +10,6 @@ use abstract_subscription::{
     state::{EmissionType, Subscriber, SubscriptionConfig},
     SubscriptionError,
 };
-use abstract_testing::OWNER;
 
 pub const WEEK_IN_SECONDS: u64 = 7 * 24 * 60 * 60;
 
@@ -26,20 +25,21 @@ const DENOM: &str = "abstr";
 const INCOME_AVERAGING_PERIOD: Uint64 = Uint64::new(259200);
 
 struct NativeSubscription {
-    client: AbstractClient<Mock>,
-    subscription_app: Application<Mock, SubscriptionInterface<Mock>>,
+    mock: MockBech32,
+    client: AbstractClient<MockBech32>,
+    subscription_app: Application<MockBech32, SubscriptionInterface<MockBech32>>,
     payment_asset: AssetInfo,
-    emission_cw20: Cw20Base<Mock>,
+    emission_cw20: Cw20Base<MockBech32>,
 }
 
 #[allow(dead_code)]
 struct Cw20Subscription {
-    client: AbstractClient<Mock>,
-    subscription_app: Application<Mock, SubscriptionInterface<Mock>>,
+    client: AbstractClient<MockBech32>,
+    subscription_app: Application<MockBech32, SubscriptionInterface<MockBech32>>,
     payment_asset: AssetInfo,
 }
 
-fn deploy_emission(client: &AbstractClient<Mock>) -> anyhow::Result<Cw20Base<Mock>> {
+fn deploy_emission(client: &AbstractClient<MockBech32>) -> anyhow::Result<Cw20Base<MockBech32>> {
     let sender = client.sender();
     Ok(client
         .cw20_builder("test", "test", 6)
@@ -53,25 +53,26 @@ fn deploy_emission(client: &AbstractClient<Mock>) -> anyhow::Result<Cw20Base<Moc
 
 /// Set up the test environment with the contract installed
 fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
-    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain.clone()).build()?;
 
     // Deploy factory_token
     let cw20 = client
         .cw20_builder("test", "test", 6)
         .initial_balance(Cw20Coin {
-            address: OWNER.to_owned(),
+            address: chain.sender().to_string(),
             amount: Uint128::new(1_000_000),
         })
-        .admin(OWNER.to_owned())
+        .admin(chain.sender())
         .instantiate_with_id("abstract:cw20")?;
 
-    let publisher: Publisher<Mock> = client
+    let publisher: Publisher<_> = client
         .publisher_builder(Namespace::new("abstract")?)
         .build()?;
-    publisher.publish_app::<SubscriptionInterface<Mock>>()?;
+    publisher.publish_app::<SubscriptionInterface<_>>()?;
 
     let cw20_addr = cw20.address()?;
-    let subscription_app: Application<Mock, SubscriptionInterface<Mock>> =
+    let subscription_app: Application<_, SubscriptionInterface<_>> =
         publisher.account().install_app(
             &SubscriptionInstantiateMsg {
                 payment_asset: AssetInfoUnchecked::cw20(cw20_addr.clone()),
@@ -92,17 +93,22 @@ fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
 }
 
 /// Set up the test environment with the contract installed
-fn setup_native(balances: Vec<(&Addr, &[Coin])>) -> anyhow::Result<NativeSubscription> {
-    let client = AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER))).build()?;
-    client.set_balances(balances)?;
-    let publisher: Publisher<Mock> = client
+fn setup_native(balances: Vec<(&str, &[Coin])>) -> anyhow::Result<NativeSubscription> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain.clone()).build()?;
+    client.set_balances(
+        balances
+            .into_iter()
+            .map(|(a, b)| (chain.create_account(a), b)),
+    )?;
+    let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new("abstract")?)
         .build()?;
-    publisher.publish_app::<SubscriptionInterface<Mock>>()?;
+    publisher.publish_app::<SubscriptionInterface<_>>()?;
 
     let emissions = deploy_emission(&client)?;
 
-    let subscription_app: Application<Mock, SubscriptionInterface<Mock>> =
+    let subscription_app: Application<_, SubscriptionInterface<_>> =
         publisher.account().install_app(
             &SubscriptionInstantiateMsg {
                 payment_asset: AssetInfoUnchecked::native(DENOM),
@@ -124,6 +130,7 @@ fn setup_native(balances: Vec<(&Addr, &[Coin])>) -> anyhow::Result<NativeSubscri
     )?;
 
     Ok(NativeSubscription {
+        mock: chain,
         client,
         subscription_app,
         payment_asset: AssetInfo::native(DENOM),
@@ -139,6 +146,7 @@ fn successful_install() -> anyhow::Result<()> {
         subscription_app,
         payment_asset,
         emission_cw20,
+        mock: _,
     } = setup_native(vec![])?;
 
     let addr = emission_cw20.address()?;
@@ -177,13 +185,14 @@ fn successful_install() -> anyhow::Result<()> {
 
 #[test]
 fn subscribe() -> anyhow::Result<()> {
-    let subscriber1 = Addr::unchecked("subscriber1");
-    let subscriber2 = Addr::unchecked("subscriber2");
-    let subscriber3 = Addr::unchecked("subscriber3");
-    let subscriber4 = Addr::unchecked("subscriber4");
+    let subscriber1 = "subscriber1";
+    let subscriber2 = "subscriber2";
+    let subscriber3 = "subscriber3";
+    let subscriber4 = "subscriber4";
 
     let sub_amount = coins(500, DENOM);
     let NativeSubscription {
+        mock,
         client,
         subscription_app,
         payment_asset: _,
@@ -199,10 +208,10 @@ fn subscribe() -> anyhow::Result<()> {
 
     // 2 people subscribe
     subscription_app
-        .call_as(&subscriber1)
+        .call_as(&mock.create_account(subscriber1))
         .pay(None, &sub_amount)?;
     subscription_app
-        .call_as(&subscriber2)
+        .call_as(&mock.create_account(subscriber2))
         .pay(None, &sub_amount)?;
     let twa = query_twa(&client.environment(), subscription_addr.clone());
     // No income yet
@@ -213,7 +222,7 @@ fn subscribe() -> anyhow::Result<()> {
 
     // Third user subscribes
     subscription_app
-        .call_as(&subscriber3)
+        .call_as(&mock.create_account(subscriber3))
         .pay(None, &sub_amount)?;
     // refresh twa
     subscription_app.refresh_twa()?;
@@ -240,7 +249,7 @@ fn subscribe() -> anyhow::Result<()> {
 
     // Fourth user subscribes
     subscription_app
-        .call_as(&subscriber4)
+        .call_as(&mock.create_account(subscriber4))
         .pay(None, &sub_amount)?;
     // two subscribers were subbed for two periods
     let first_two_subs =
@@ -258,18 +267,21 @@ fn subscribe() -> anyhow::Result<()> {
 
 #[test]
 fn claim_emissions_week_shared() -> anyhow::Result<()> {
-    let subscriber1 = Addr::unchecked("subscriber1");
-    let subscriber2 = Addr::unchecked("subscriber2");
+    let subscriber1 = "subscriber1";
+    let subscriber2 = "subscriber2";
     let sub_amount = coins(500, DENOM);
     let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
         emission_cw20,
+        mock,
     } = setup_native(vec![
         (&subscriber1, &sub_amount),
         (&subscriber2, &sub_amount),
     ])?;
+    let subscriber1 = mock.create_account(subscriber1);
+    let subscriber2 = mock.create_account(subscriber2);
 
     // 2 users subscribe
     subscription_app
@@ -319,14 +331,16 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
 
 #[test]
 fn claim_emissions_none() -> anyhow::Result<()> {
-    let subscriber1 = Addr::unchecked("subscriber1");
+    let subscriber1 = "subscriber1";
     let sub_amount = coins(500, DENOM);
     let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
         emission_cw20: _,
+        mock,
     } = setup_native(vec![(&subscriber1, &sub_amount)])?;
+    let subscriber1 = mock.create_account(subscriber1);
 
     subscription_app
         .call_as(&subscription_app.account().manager()?)
@@ -349,8 +363,8 @@ fn claim_emissions_none() -> anyhow::Result<()> {
 
 #[test]
 fn claim_emissions_week_per_user() -> anyhow::Result<()> {
-    let subscriber1 = Addr::unchecked("subscriber1");
-    let subscriber2 = Addr::unchecked("subscriber2");
+    let subscriber1 = "subscriber1";
+    let subscriber2 = "subscriber2";
     let sub_amount = coins(500, DENOM);
 
     let NativeSubscription {
@@ -358,10 +372,13 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
         subscription_app,
         payment_asset: _,
         emission_cw20,
+        mock,
     } = setup_native(vec![
         (&subscriber1, &sub_amount),
         (&subscriber2, &sub_amount),
     ])?;
+    let subscriber1 = mock.create_account(subscriber1);
+    let subscriber2 = mock.create_account(subscriber2);
 
     subscription_app
         .call_as(&subscription_app.account().manager()?)
@@ -427,7 +444,7 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
 
 #[test]
 fn claim_emissions_errors() -> anyhow::Result<()> {
-    let subscriber1 = Addr::unchecked("subscriber1");
+    let subscriber1 = "subscriber1";
 
     let sub_amount = coins(500, DENOM);
     let NativeSubscription {
@@ -435,7 +452,9 @@ fn claim_emissions_errors() -> anyhow::Result<()> {
         subscription_app,
         payment_asset: _,
         emission_cw20: _,
+        mock,
     } = setup_native(vec![(&subscriber1, &sub_amount)])?;
+    let subscriber1 = mock.create_account(subscriber1);
 
     // no subs
 
@@ -468,8 +487,8 @@ fn claim_emissions_errors() -> anyhow::Result<()> {
 
 #[test]
 fn unsubscribe() -> anyhow::Result<()> {
-    let subscriber1 = Addr::unchecked("subscriber1");
-    let subscriber2 = Addr::unchecked("subscriber2");
+    let subscriber1 = "subscriber1";
+    let subscriber2 = "subscriber2";
 
     // For 4 weeks with few hours
     let sub_amount = coins(90, DENOM);
@@ -479,7 +498,10 @@ fn unsubscribe() -> anyhow::Result<()> {
         subscription_app,
         payment_asset: _,
         emission_cw20,
+        mock,
     } = setup_native(vec![(&subscriber1, &sub_amount)])?;
+    let subscriber1 = mock.create_account(subscriber1);
+    let subscriber2 = mock.create_account(subscriber2);
 
     subscription_app
         .call_as(&subscriber1)
@@ -534,17 +556,20 @@ fn unsubscribe() -> anyhow::Result<()> {
 
 #[test]
 fn unsubscribe_part_of_list() -> anyhow::Result<()> {
-    let subscriber1 = Addr::unchecked("subscriber1");
-    let subscriber2 = Addr::unchecked("subscriber2");
+    let subscriber1 = "subscriber1";
+    let subscriber2 = "subscriber2";
     let NativeSubscription {
         client,
         subscription_app,
         payment_asset: _,
         emission_cw20: _,
+        mock,
     } = setup_native(vec![
         (&subscriber1, coins(2200, DENOM).as_slice()),
         (&subscriber2, coins(220, DENOM).as_slice()),
     ])?;
+    let subscriber1 = mock.create_account(subscriber1);
+    let subscriber2 = mock.create_account(subscriber2);
 
     subscription_app
         .call_as(&subscriber1)
@@ -578,7 +603,7 @@ fn unsubscribe_part_of_list() -> anyhow::Result<()> {
 }
 
 // Helper to raw_query twa
-fn query_twa(chain: &Mock, subscription_addr: Addr) -> TimeWeightedAverageData {
+fn query_twa(chain: &MockBech32, subscription_addr: Addr) -> TimeWeightedAverageData {
     let app = chain.app.borrow();
     let querier = app.wrap();
     abstract_subscription::state::INCOME_TWA

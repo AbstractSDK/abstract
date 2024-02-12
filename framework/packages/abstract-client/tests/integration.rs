@@ -729,10 +729,7 @@ fn can_execute_on_proxy() -> anyhow::Result<()> {
         &coins(amount, denom),
     )?;
 
-    assert_eq!(
-        amount,
-        client.query_balance(&Addr::unchecked(user), denom)?.into()
-    );
+    assert_eq!(amount, client.query_balance(&user, denom)?.into());
     Ok(())
 }
 

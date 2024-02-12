@@ -10,7 +10,7 @@ mod common;
 use abstract_dex_adapter::interface::DexAdapter;
 use abstract_interface::{Abstract, AbstractAccount};
 use common::create_default_account;
-use cosmwasm_std::{coin, Addr, Decimal, Empty};
+use cosmwasm_std::{coin, Decimal, Empty};
 use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
@@ -110,7 +110,7 @@ fn swap_raw() -> anyhow::Result<()> {
     let proxy_addr = os.proxy.address()?;
 
     // transfer raw
-    let owner = Addr::unchecked(WYNDEX_OWNER);
+    let owner = chain.create_account(WYNDEX_OWNER);
     wyndex
         .raw_token
         .call_as(&owner)

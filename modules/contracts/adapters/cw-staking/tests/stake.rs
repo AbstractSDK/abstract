@@ -11,7 +11,7 @@ use abstract_interface::{Abstract, AbstractAccount, AdapterDeployer, DeployStrat
 use abstract_staking_standard::msg::{
     Claim, RewardTokensResponse, StakingInfo, StakingInfoResponse, UnbondingResponse,
 };
-use cosmwasm_std::{coin, Addr, Empty, Uint128};
+use cosmwasm_std::{coin, Empty, Uint128};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::AssetInfoBase;
@@ -48,7 +48,7 @@ fn setup_mock() -> anyhow::Result<(
     // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
     wyndex
         .eur_usd_lp
-        .call_as(&Addr::unchecked(WYNDEX_OWNER))
+        .call_as(&chain.create_account(WYNDEX_OWNER))
         .transfer(1000u128.into(), proxy_addr.to_string())?;
 
     // install exchange on AbstractAccount
@@ -243,7 +243,11 @@ fn claim_rewards() -> anyhow::Result<()> {
     chain.set_balance(&wyndex.eur_usd_staking, vec![coin(10_000, WYND_TOKEN)])?;
     wyndex
         .suite
-        .distribute_funds(wyndex.eur_usd_staking, WYNDEX_OWNER, &[])
+        .distribute_funds(
+            wyndex.eur_usd_staking,
+            &chain.create_account(WYNDEX_OWNER),
+            &[],
+        )
         .unwrap();
 
     // now claim rewards
