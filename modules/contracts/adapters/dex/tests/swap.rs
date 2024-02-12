@@ -4,7 +4,7 @@ use abstract_dex_standard::{msg::DexFeesResponse, DexError};
 use abstract_interface::{AbstractInterfaceError, AdapterDeployer, DeployStrategy};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
-use cw_orch::Deploy;
+use cw_orch::prelude::Deploy;
 mod common;
 
 use abstract_dex_adapter::interface::DexAdapter;

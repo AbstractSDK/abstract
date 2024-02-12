@@ -35,7 +35,7 @@ use croncat_sdk_manager::msg::ManagerInstantiateMsg;
 use croncat_sdk_tasks::msg::TasksInstantiateMsg;
 use cw20::Cw20Coin;
 use cw_asset::AssetInfo;
-use cw_multi_test::{App, Executor};
+use cw_orch::mock::cw_multi_test::{App, Executor};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
 use dca_app::{

@@ -15,15 +15,15 @@ use abstract_core::{
 use abstract_integration_tests::{create_default_account, mock_modules, AResult, *};
 use abstract_interface::*;
 use abstract_manager::{contract::CONTRACT_VERSION, error::ManagerError};
-use abstract_testing::{prelude::*, OWNER};
-use cosmwasm_std::{coin, to_json_binary, Addr, Coin, CosmosMsg};
+use abstract_testing::prelude::*;
+use cosmwasm_std::{coin, to_json_binary, Coin, CosmosMsg};
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 #[test]
 fn instantiate() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
@@ -53,8 +53,8 @@ fn instantiate() -> AResult {
 
 #[test]
 fn exec_through_manager() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
@@ -94,8 +94,8 @@ fn exec_through_manager() -> AResult {
 
 #[test]
 fn default_without_response_data() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
@@ -116,8 +116,8 @@ fn default_without_response_data() -> AResult {
 
 #[test]
 fn with_response_data() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::with_response_data(chain.clone())?;
     take_storage_snapshot!(chain, "proxy_with_response_data");
@@ -127,8 +127,8 @@ fn with_response_data() -> AResult {
 
 #[test]
 fn install_standalone_modules() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AbstractAccount::new(&deployment, AccountId::local(0));
 
@@ -175,8 +175,8 @@ fn install_standalone_modules() -> AResult {
 
 #[test]
 fn install_standalone_versions_not_met() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AbstractAccount::new(&deployment, AccountId::local(0));
 
@@ -219,8 +219,8 @@ fn install_standalone_versions_not_met() -> AResult {
 
 #[test]
 fn install_multiple_modules() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AbstractAccount::new(&deployment, ABSTRACT_ACCOUNT_ID);
@@ -360,8 +360,8 @@ fn install_multiple_modules() -> AResult {
 
 #[test]
 fn renounce_cleans_namespace() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let account = deployment.account_factory.create_new_account(

@@ -8,10 +8,10 @@
 //! use abstract_client::{AbstractClient, Account};
 //! use cw_orch::prelude::*;
 //!
-//! # let chain = Mock::new(&Addr::unchecked("sender"));
-//! # let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
+//! # let chain = MockBech32::new("mock");
+//! # let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
 //!
-//! let alice_account: Account<Mock> = client
+//! let alice_account: Account<MockBech32> = client
 //!     .account_builder()
 //!     .name("Alice")
 //!     .build()?;
@@ -53,13 +53,13 @@ use crate::{
 /// ```
 /// # use cw_orch::prelude::*;
 /// # use abstract_client::{AbstractClientError, Environment};
-/// # let chain = Mock::new(&Addr::unchecked("sender"));
+/// # let chain = MockBech32::new("mock");
 /// # let abstr_client = abstract_client::AbstractClient::builder(chain).build().unwrap();
 /// # let chain = abstr_client.environment();
 /// use abstract_client::{AbstractClient, Account};
 ///
 /// let client = AbstractClient::new(chain)?;
-/// let account: Account<Mock> = client.account_builder()
+/// let account: Account<MockBech32> = client.account_builder()
 ///     .name("alice")
 ///     // other account configuration
 ///     .build()?;
