@@ -28,6 +28,7 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
         &origin_polytone.note,
         &remote_polytone.voice,
         POLYTONE_VERSION,
+        None, // Unordered channel
     )?;
 
     // Create the connection between client and host
