@@ -35,9 +35,9 @@ use abstract_core::{
 };
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
-use cosmwasm_std::{to_json_binary, Attribute, CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Empty, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
@@ -75,9 +75,17 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     // TODO: Decide if we want to abstract this as well.
     ownership: Option<GovernanceDetails<String>>,
     owner_account: Option<&'a Account<Chain>>,
-    // TODO: How to handle install_modules?
+    install_modules: Vec<ModuleInstallConfig>,
+    funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
+}
+
+/// Creation funds
+enum AccountCreationFunds {
+    #[allow(clippy::type_complexity)]
+    Auto(Box<dyn Fn(&[Coin]) -> bool>),
+    Coins(Coins),
 }
 
 impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
@@ -91,6 +99,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             base_asset: None,
             ownership: None,
             owner_account: None,
+            install_modules: vec![],
+            funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: true,
         }
@@ -155,6 +165,54 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         self
     }
 
+    /// Install an adapter on current account.
+    pub fn install_adapter<M: InstallConfig<InitMsg = Empty>>(
+        &mut self,
+    ) -> AbstractClientResult<&mut Self> {
+        self.install_modules.push(M::install_config(&Empty {})?);
+        Ok(self)
+    }
+
+    /// Install an application on current account.
+    pub fn install_app<M: InstallConfig>(
+        &mut self,
+        configuration: &M::InitMsg,
+    ) -> AbstractClientResult<&mut Self> {
+        self.install_modules.push(M::install_config(configuration)?);
+        Ok(self)
+    }
+
+    /// Enables automatically paying for module instantiations and namespace registration.
+    /// The provided function will be called with the required funds. If the function returns `false`,
+    /// the account creation will fail.
+    pub fn auto_fund_assert<F: Fn(&[Coin]) -> bool + 'static>(&mut self, f: F) -> &mut Self {
+        self.funds = AccountCreationFunds::Auto(Box::new(f));
+        self
+    }
+
+    /// Enables automatically paying for module instantiations and namespace registration.
+    /// Use `auto_fund_assert` to add limits to the auto fund mode.
+    pub fn auto_fund(&mut self) -> &mut Self {
+        self.funds = AccountCreationFunds::Auto(Box::new(|_| true));
+        self
+    }
+
+    /// Add funds to the account creation
+    /// Can't be used in pair with auto fund mode
+    pub fn funds(&mut self, funds: &[Coin]) -> AbstractClientResult<&mut Self> {
+        let coins = match &mut self.funds {
+            AccountCreationFunds::Auto(_) => return Err(AbstractClientError::FundsWithAutoFund {}),
+            AccountCreationFunds::Coins(coins) => coins,
+        };
+
+        for coin in funds {
+            coins
+                .add(coin.clone())
+                .map_err(AbstractInterfaceError::from)?;
+        }
+        Ok(self)
+    }
+
     /// Builds the [`Account`].
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
         if self.fetch_if_namespace_claimed {
@@ -190,22 +248,57 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         verifiers::validate_description(self.description.as_deref())?;
         verifiers::validate_link(self.link.as_deref())?;
 
+        let install_modules = self.install_modules.clone();
+        let funds = match &self.funds {
+            AccountCreationFunds::Auto(auto_funds_assert) => {
+                let modules = install_modules.iter().map(|m| m.module.clone()).collect();
+                // Simulate module install to find out required funds
+                let simulate_response = self
+                    .abstr
+                    .module_factory
+                    .simulate_install_modules(modules)?;
+
+                let mut funds = Coins::try_from(simulate_response.total_required_funds).unwrap();
+
+                // Add namespace fee if any
+                if self.namespace.is_some() {
+                    let vc_config = self.abstr.version_control.config()?;
+
+                    if let Some(namespace_fee) = vc_config.namespace_registration_fee {
+                        funds
+                            .add(namespace_fee)
+                            .map_err(AbstractInterfaceError::from)?;
+                    }
+                };
+
+                let funds = funds.into_vec();
+                // Use auto funds assert function for validation
+                if !auto_funds_assert(&funds) {
+                    return Err(AbstractClientError::AutoFundsAssertFailed(funds));
+                }
+                funds
+            }
+            AccountCreationFunds::Coins(coins) => coins.to_vec(),
+        };
+
         let account_details = AccountDetails {
             name,
             description: self.description.clone(),
             link: self.link.clone(),
             namespace: self.namespace.as_ref().map(ToString::to_string),
             base_asset: self.base_asset.clone(),
-            install_modules: vec![],
+            install_modules,
         };
         let abstract_account = if let Some(owner_account) = self.owner_account {
             owner_account
                 .abstr_account
-                .create_sub_account(account_details, Some(&[]))?
+                .create_sub_account(account_details, Some(&funds))?
         } else {
-            self.abstr
-                .account_factory
-                .create_new_account(account_details, ownership, Some(&[]))?
+            self.abstr.account_factory.create_new_account(
+                account_details,
+                ownership,
+                Some(&funds),
+            )?
         };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
     }
@@ -293,7 +386,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Install an application on the account.
-    /// This creates a new sub-account and installs the application on it.
+    /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account. (default)
     pub fn install_app<M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
@@ -307,7 +400,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    /// Install an application on current account.
+    /// Install an adapter on current account.
     pub fn install_adapter<
         M: ContractInstance<Chain> + InstallConfig<InitMsg = Empty> + From<Contract<Chain>>,
     >(
@@ -470,10 +563,19 @@ impl<Chain: CwEnv> Account<Chain> {
         self.abstr_account.manager.address().map_err(Into::into)
     }
 
+    /// Retrieve installed application on account
+    /// This can't retrieve sub-account installed applications.
+    pub fn application<M: RegisteredModule + From<Contract<Chain>>>(
+        &self,
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let module = self.module()?;
+        let account = self.clone();
+
+        Application::new(account, module)
+    }
+
     /// Install module on current account
-    fn install_module_current_internal<
-        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>,
-    >(
+    fn install_module_current_internal<M: RegisteredModule + From<Contract<Chain>>>(
         &self,
         modules: Vec<ModuleInstallConfig>,
         funds: &[Coin],
@@ -496,9 +598,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Installs module on sub account
-    fn install_module_sub_internal<
-        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>,
-    >(
+    fn install_module_sub_internal<M: RegisteredModule + From<Contract<Chain>>>(
         &self,
         modules: Vec<ModuleInstallConfig>,
         funds: &[Coin],
@@ -592,6 +692,22 @@ impl<Chain: CwEnv> Account<Chain> {
 
         // We install only one module
         Addr::unchecked(module_address)
+    }
+
+    pub(crate) fn module<T: RegisteredModule + From<Contract<Chain>>>(
+        &self,
+    ) -> AbstractClientResult<T> {
+        let module_id = T::module_id();
+        let maybe_module_addr = self.module_addresses(vec![module_id.to_string()])?.modules;
+
+        if !maybe_module_addr.is_empty() {
+            let contract = Contract::new(module_id.to_owned(), self.environment())
+                .with_address(Some(&maybe_module_addr[0].1));
+            let module: T = contract.into();
+            Ok(module)
+        } else {
+            Err(AbstractClientError::ModuleNotInstalled {})
+        }
     }
 }
 

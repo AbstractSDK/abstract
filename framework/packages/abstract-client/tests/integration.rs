@@ -12,7 +12,8 @@ use abstract_app::{
 };
 use abstract_client::{
     builder::cw20_builder::{self, Cw20ExecuteMsgFns, Cw20QueryMsgFns},
-    AbstractClient, AbstractClientError, Account, AccountSource, Application, Publisher,
+    AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
+    Publisher,
 };
 use abstract_core::{
     ans_host::QueryMsgFns,
@@ -20,13 +21,14 @@ use abstract_core::{
         state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     },
     objects::{
-        dependency::Dependency, gov_type::GovernanceDetails, module_version::ModuleDataResponse,
-        namespace::Namespace, AccountId, AssetEntry,
+        dependency::Dependency, fee::FixedFee, gov_type::GovernanceDetails,
+        module_version::ModuleDataResponse, namespace::Namespace, AccountId, AssetEntry,
     },
 };
-use abstract_interface::{ClientResolve, VCQueryFns};
-use abstract_testing::prelude::{
-    TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE,
+use abstract_interface::{ClientResolve, RegisteredModule, VCExecFns, VCQueryFns};
+use abstract_testing::{
+    addresses::{TEST_MODULE_NAME, TTOKEN},
+    prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
 };
 use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
@@ -274,6 +276,11 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
 
     let something = my_app.get_something()?;
 
+    assert_eq!(MockQueryResponse {}, something);
+
+    // Can get installed application of the account
+    let my_app: Application<_, MockAppI<_>> = my_app.account().application()?;
+    let something = my_app.get_something()?;
     assert_eq!(MockQueryResponse {}, something);
 
     let sub_account_details = my_app.account().info()?;
@@ -948,5 +955,132 @@ fn cant_create_sub_accounts_for_another_user() -> anyhow::Result<()> {
             manager: account.manager()?.into_string()
         }
     );
+    Ok(())
+}
+
+#[test]
+fn install_adapter_on_account_builder() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(MockBech32::new("mock")).build()?;
+
+    let publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    // Publish adapter
+    let adapter: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+
+    let account = client
+        .account_builder()
+        .install_adapter::<BootMockAdapter<MockBech32>>()?
+        .build()?;
+    let modules = account.module_infos()?.module_infos;
+    let adapter_info = modules
+        .iter()
+        .find(|module| module.id == BootMockAdapter::<MockBech32>::module_id())
+        .expect("Adapter not found");
+
+    assert_eq!(
+        *adapter_info,
+        ManagerModuleInfo {
+            id: BootMockAdapter::<MockBech32>::module_id().to_owned(),
+            version: cw2::ContractVersion {
+                contract: BootMockAdapter::<MockBech32>::module_id().to_owned(),
+                version: BootMockAdapter::<MockBech32>::module_version().to_owned()
+            },
+            address: adapter.address()?,
+        }
+    );
+
+    Ok(())
+}
+
+#[test]
+fn install_application_on_account_builder() -> anyhow::Result<()> {
+    let client = AbstractClient::builder(MockBech32::new("mock")).build()?;
+
+    let publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    // Publish app
+    publisher.publish_app::<MockAppI<MockBech32>>()?;
+
+    let account = client
+        .account_builder()
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .build()?;
+
+    let my_app = account.application::<MockAppI<_>>()?;
+
+    let something = my_app.get_something()?;
+    assert_eq!(MockQueryResponse {}, something);
+
+    let modules = account.module_infos()?.module_infos;
+    let app_info = modules
+        .iter()
+        .find(|module| module.id == MockAppI::<MockBech32>::module_id())
+        .expect("Application not found");
+
+    assert_eq!(
+        *app_info,
+        ManagerModuleInfo {
+            id: MockAppI::<MockBech32>::module_id().to_owned(),
+            version: cw2::ContractVersion {
+                contract: MockAppI::<MockBech32>::module_id().to_owned(),
+                version: MockAppI::<MockBech32>::module_version().to_owned()
+            },
+            address: my_app.address()?,
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn auto_funds_work() -> anyhow::Result<()> {
+    // Give enough tokens for the owner
+    let chain = MockBech32::new("mock");
+    let owner = chain.sender();
+    chain.set_balance(&owner, coins(50, TTOKEN))?;
+
+    let client = AbstractClient::builder(chain).build()?;
+
+    let publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+    let _: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+
+    client.version_control().update_module_configuration(
+        TEST_MODULE_NAME.to_owned(),
+        Namespace::new(TEST_NAMESPACE)?,
+        abstract_core::version_control::UpdateModule::Versioned {
+            version: BootMockAdapter::<Mock>::module_version().to_owned(),
+            metadata: None,
+            monetization: Some(abstract_core::objects::module::Monetization::InstallFee(
+                FixedFee::new(&Coin {
+                    denom: TTOKEN.to_owned(),
+                    amount: Uint128::new(50),
+                }),
+            )),
+            instantiation_funds: None,
+        },
+    )?;
+    let mut account_builder = client.account_builder();
+
+    // User can guard his funds
+    account_builder
+        .name("bob")
+        .install_adapter::<BootMockAdapter<Mock>>()?
+        .auto_fund_assert(|c| c[0].amount < Uint128::new(50));
+    let e = account_builder.build().unwrap_err();
+    assert!(matches!(e, AbstractClientError::AutoFundsAssertFailed(_)));
+
+    // Or can enable auto_fund and create account if have enough funds
+    let account = account_builder.auto_fund().build()?;
+    let info = account.info()?;
+    assert_eq!(info.name, "bob");
+
+    // funds used
+    let balance = client.environment().query_balance(&owner, TTOKEN)?;
+    assert!(balance.is_zero());
     Ok(())
 }

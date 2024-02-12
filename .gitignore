@@ -40,3 +40,5 @@ framework/contracts/**/schema
 
 # New snapshots
 **/snapshots/*.snap.new
+
+**/artifacts
