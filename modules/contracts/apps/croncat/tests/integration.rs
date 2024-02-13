@@ -70,8 +70,6 @@ fn setup_croncat_contracts(mock: MockBech32, proxy_addr: String) -> anyhow::Resu
         None,
     )?;
 
-    println!("{:?}", cw20_addr);
-
     let factory_code_id = app.store_code(contracts::croncat_factory_contract());
     let factory_addr = app.instantiate_contract(
         factory_code_id,
