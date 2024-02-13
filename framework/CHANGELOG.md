@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Creating Sub Account from `AbstractClient` Account builder.
 - Installing apps and adapters for `AbstractClient` Account builder
 - Attaching funds to account creation on `AbstractClient` Account builder
+- Ability to provide expected local AccountId
+- Reinstallation of the same version of an app is now restricted
 
 ### Changed
 
