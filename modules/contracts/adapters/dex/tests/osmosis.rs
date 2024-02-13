@@ -73,7 +73,7 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
                 dex,
                 action: DexAnsAction::Swap {
                     offer_asset: AnsAsset::new(asset, offer_asset.1),
-                    ask_asset: ask_asset,
+                    ask_asset,
                     max_spread: Some(Decimal::percent(30)),
                     belief_price: None,
                 },
