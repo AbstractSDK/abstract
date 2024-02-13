@@ -2,9 +2,8 @@ use abstract_core::{
     manager::ModuleInstallConfig,
     module_factory::SimulateInstallModulesResponse,
     objects::{
-        account::{generate_account_salt, AccountTrace},
-        module::assert_module_data_validity,
-        AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
+        account::AccountTrace, module::assert_module_data_validity,
+        salt::generate_instantiate_salt, AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
     },
     AbstractError,
 };
@@ -25,8 +24,8 @@ use abstract_sdk::{
     feature_objects::VersionControlContract,
 };
 use cosmwasm_std::{
-    ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, DepsMut, Empty, Env,
-    MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
+    ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
+    Env, MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
 };
 
 use crate::{
@@ -70,33 +69,35 @@ pub fn execute_create_account(
     }
     // If an account_id is provided, assert the caller is the ibc host and return the account_id.
     // Else get the next account id and set the origin to local.
-    let account_id = if let Some(account_id) = account_id {
-        // if the account_id is provided, assert that the caller is the ibc host
-        let ibc_host = config
-            .ibc_host
-            .ok_or(AccountFactoryError::IbcHostNotSet {})?;
-        ensure_eq!(
-            info.sender,
-            ibc_host,
-            AccountFactoryError::SenderNotIbcHost(info.sender.into(), ibc_host.into())
-        );
-        // then assert that the account trace is remote and properly formatted
-        account_id.trace().verify_remote()?;
-        account_id
-    } else {
-        // else the call is local so we need to look up the account sequence
-        // and set the origin to local
-        let origin = AccountTrace::Local;
-
-        // load the next account id
-        // if it doesn't exist then it's the first account so set it to 0.
-        let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0);
-
-        // Check if the caller is the owner when instantiating the abstract account
-        if next_sequence == ABSTRACT_ACCOUNT_ID.seq() {
-            cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    let account_id = match account_id {
+        Some(account_id) if account_id.is_local() => {
+            // if the local account_id is provided, assert that the next account_id matches to predicted
+            let generated_account_id = generate_new_local_account_id(deps.as_ref(), &info)?;
+            ensure_eq!(
+                generated_account_id,
+                account_id,
+                AccountFactoryError::ExpectedAccountIdFailed {
+                    predicted: account_id,
+                    actual: generated_account_id
+                }
+            );
+            generated_account_id
         }
-        AccountId::new(next_sequence, origin)?
+        Some(account_id) => {
+            // if the non-local account_id is provided, assert that the caller is the ibc host
+            let ibc_host = config
+                .ibc_host
+                .ok_or(AccountFactoryError::IbcHostNotSet {})?;
+            ensure_eq!(
+                info.sender,
+                ibc_host,
+                AccountFactoryError::SenderNotIbcHost(info.sender.into(), ibc_host.into())
+            );
+            // then assert that the account trace is remote and properly formatted
+            account_id.trace().verify_remote()?;
+            account_id
+        }
+        None => generate_new_local_account_id(deps.as_ref(), &info)?,
     };
 
     // Query version_control for code_id of Proxy and Module contract
@@ -136,7 +137,7 @@ pub fn execute_create_account(
         })?;
     }
 
-    let salt = generate_account_salt(&account_id);
+    let salt = generate_instantiate_salt(&account_id);
 
     // Get code_ids
     let (proxy_code_id, manager_code_id) = if let (
@@ -252,6 +253,19 @@ pub fn execute_create_account(
         },
         CREATE_ACCOUNT_MANAGER_MSG_ID,
     )))
+}
+
+// Generate new local account id
+fn generate_new_local_account_id(
+    deps: Deps,
+    info: &MessageInfo,
+) -> Result<AccountId, AccountFactoryError> {
+    let origin = AccountTrace::Local;
+    let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0);
+    if next_sequence == ABSTRACT_ACCOUNT_ID.seq() {
+        cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    }
+    Ok(AccountId::new(next_sequence, origin)?)
 }
 
 fn query_module(
