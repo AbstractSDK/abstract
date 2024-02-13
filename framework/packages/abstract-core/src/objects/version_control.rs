@@ -153,8 +153,9 @@ impl VersionControlContract {
 
     // AccountRegistry
 
-    /// Get AccountId for given manager or proxy address.
-    pub fn account_id(
+    /// Get self reported Account id, for checked use
+    /// [`VersionControlContract::account_id`]
+    pub fn unchecked_account_id(
         &self,
         maybe_core_contract_addr: &Addr,
         querier: &QuerierWrapper,
@@ -164,6 +165,28 @@ impl VersionControlContract {
             .map_err(|_| VersionControlError::FailedToQueryAccountId {
                 contract_addr: maybe_core_contract_addr.clone(),
             })
+    }
+
+    /// Get AccountId for given manager or proxy address.
+    /// Also verifies that that address is indeed a manager or proxy.
+    pub fn account_id(
+        &self,
+        maybe_core_contract_addr: &Addr,
+        querier: &QuerierWrapper,
+    ) -> VersionControlResult<AccountId> {
+        let self_reported_account_id =
+            self.unchecked_account_id(maybe_core_contract_addr, querier)?;
+        // now we need to verify that the account id is indeed correct
+        let account_base = self.account_base(&self_reported_account_id, querier)?;
+        if account_base.manager.ne(maybe_core_contract_addr)
+            && account_base.proxy.ne(maybe_core_contract_addr)
+        {
+            Err(VersionControlError::FailedToQueryAccountId {
+                contract_addr: maybe_core_contract_addr.clone(),
+            })
+        } else {
+            Ok(self_reported_account_id)
+        }
     }
 
     /// Get the account base for a given account id.
@@ -194,7 +217,7 @@ impl VersionControlContract {
         maybe_manager: &Addr,
         querier: &QuerierWrapper,
     ) -> VersionControlResult<AccountBase> {
-        let account_id = self.account_id(maybe_manager, querier)?;
+        let account_id = self.unchecked_account_id(maybe_manager, querier)?;
         let account_base = self.account_base(&account_id, querier)?;
         if account_base.manager.ne(maybe_manager) {
             Err(VersionControlError::NotManager(
@@ -212,7 +235,7 @@ impl VersionControlContract {
         maybe_proxy: &Addr,
         querier: &QuerierWrapper,
     ) -> VersionControlResult<AccountBase> {
-        let account_id = self.account_id(maybe_proxy, querier)?;
+        let account_id = self.unchecked_account_id(maybe_proxy, querier)?;
         let account_base = self.account_base(&account_id, querier)?;
         if account_base.proxy.ne(maybe_proxy) {
             Err(VersionControlError::NotProxy(

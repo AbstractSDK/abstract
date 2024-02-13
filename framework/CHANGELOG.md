@@ -17,8 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Creating Sub Account from `AbstractClient` Account builder.
 - Installing apps and adapters for `AbstractClient` Account builder
 - Attaching funds to account creation on `AbstractClient` Account builder
+- Added `unchecked_account_id` method on version control.
 - Ability to provide expected local AccountId
-- Reinstallation of the same version of an app is now restricted
+- Reinstallation of the same version of an app is now disabled
 
 ### Changed
 
@@ -28,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Added a validation on `account_id` method on version control.
 - Creating sub-account from account factory is restricted. Use Create Sub Account method of the manager instead
 
 ## [0.20.0] - 2024-01-24
