@@ -315,12 +315,14 @@ mod test {
             &polytone_1.note,
             &polytone_2.voice,
             POLYTONE_VERSION,
+            None,
         )?;
 
         mock_interchain.create_contract_channel(
             &polytone_2.note,
             &polytone_3.voice,
             POLYTONE_VERSION,
+            None,
         )?;
 
         // Create the connection between client and host
@@ -769,6 +771,7 @@ mod test {
             &PortId::transfer(),
             &PortId::transfer(),
             "ics20-1",
+            None, // Unordered channel
         )?;
 
         abstr_origin.ans_host.update_channels(

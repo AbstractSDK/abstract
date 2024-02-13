@@ -9,7 +9,7 @@ use calendar_app::{
     *,
 };
 use chrono::{DateTime, Days, FixedOffset, NaiveDateTime, NaiveTime, TimeZone, Timelike};
-use cosmwasm_std::{coins, Addr, BlockInfo, Uint128};
+use cosmwasm_std::{coins, BlockInfo, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{anyhow, prelude::*};
 
@@ -21,7 +21,7 @@ const INITIAL_BALANCE: u128 = 10_000;
 fn request_meeting_with_start_time(
     day_datetime: DateTime<FixedOffset>,
     start_time: Time,
-    app: CalendarAppInterface<Mock>,
+    app: CalendarAppInterface<MockBech32>,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
@@ -38,7 +38,7 @@ fn request_meeting_with_start_time(
 fn request_meeting_with_end_time(
     day_datetime: DateTime<FixedOffset>,
     end_time: Time,
-    app: CalendarAppInterface<Mock>,
+    app: CalendarAppInterface<MockBech32>,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
@@ -56,7 +56,7 @@ fn request_meeting(
     day_datetime: DateTime<FixedOffset>,
     start_time: Time,
     end_time: Time,
-    app: CalendarAppInterface<Mock>,
+    app: CalendarAppInterface<MockBech32>,
     funds: Coin,
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     let meeting_start_datetime: NaiveDateTime = day_datetime
@@ -83,49 +83,61 @@ fn setup_with_time(
     start_time: Time,
     end_time: Time,
 ) -> anyhow::Result<(
-    Application<Mock, CalendarAppInterface<Mock>>,
-    AbstractClient<Mock>,
+    Application<MockBech32, CalendarAppInterface<MockBech32>>,
+    AbstractClient<MockBech32>,
+    MockBech32,
 )> {
-    let client: AbstractClient<Mock> =
-        AbstractClient::builder(Mock::new(&Addr::unchecked(OWNER)).to_owned())
-            .asset(DENOM, AssetInfoUnchecked::native(DENOM))
-            .build()?;
+    let chain = MockBech32::new("mock");
+    let client: AbstractClient<MockBech32> = AbstractClient::builder(chain.clone())
+        .asset(DENOM, AssetInfoUnchecked::native(DENOM))
+        .build()?;
 
     client.set_balances(vec![
-        ("sender1", coins(INITIAL_BALANCE, DENOM).as_slice()),
-        ("sender2", coins(INITIAL_BALANCE, DENOM).as_slice()),
-        ("sender", coins(INITIAL_BALANCE, DENOM).as_slice()),
+        (
+            chain.create_account("sender1"),
+            coins(INITIAL_BALANCE, DENOM).as_slice(),
+        ),
+        (
+            chain.create_account("sender2"),
+            coins(INITIAL_BALANCE, DENOM).as_slice(),
+        ),
+        (
+            chain.create_account("sender"),
+            coins(INITIAL_BALANCE, DENOM).as_slice(),
+        ),
     ])?;
 
     // Create account to install app onto as well as claim namespace.
-    let publisher: Publisher<Mock> = client
+    let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new("abstract")?)
         .ownership(GovernanceDetails::Monarchy {
             monarch: OWNER.to_owned(),
         })
         .build()?;
 
-    publisher.publish_app::<CalendarAppInterface<Mock>>()?;
+    publisher.publish_app::<CalendarAppInterface<MockBech32>>()?;
 
-    let app: Application<Mock, CalendarAppInterface<Mock>> = publisher.account().install_app(
-        &CalendarInstantiateMsg {
-            price_per_minute: Uint128::from(1u128),
-            denom: AssetEntry::from(DENOM),
-            utc_offset: 0,
-            start_time,
-            end_time,
-        },
-        &[],
-    )?;
+    let app: Application<MockBech32, CalendarAppInterface<MockBech32>> =
+        publisher.account().install_app(
+            &CalendarInstantiateMsg {
+                price_per_minute: Uint128::from(1u128),
+                denom: AssetEntry::from(DENOM),
+                utc_offset: 0,
+                start_time,
+                end_time,
+            },
+            &[],
+        )?;
 
-    Ok((app, client))
+    Ok((app, client, chain))
 }
 
 /// Set up the test environment with the contract installed
 #[allow(clippy::type_complexity)]
 fn setup() -> anyhow::Result<(
-    Application<Mock, CalendarAppInterface<Mock>>,
-    AbstractClient<Mock>,
+    Application<MockBech32, CalendarAppInterface<MockBech32>>,
+    AbstractClient<MockBech32>,
+    MockBech32,
 )> {
     setup_with_time(
         Time { hour: 9, minute: 0 },
@@ -254,7 +266,7 @@ fn start_time_after_end_time() -> anyhow::Result<()> {
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (app, _client) = setup()?;
+    let (app, _client, _chain) = setup()?;
 
     let config = app.config()?;
     assert_eq!(
@@ -275,7 +287,7 @@ fn successful_install() -> anyhow::Result<()> {
 #[test]
 fn request_meeting_at_start_of_day() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -285,7 +297,7 @@ fn request_meeting_at_start_of_day() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let (meeting_start_datetime, meeting_end_datetime) = request_meeting_with_start_time(
@@ -318,7 +330,7 @@ fn request_meeting_at_start_of_day() -> anyhow::Result<()> {
 #[test]
 fn request_meeting_at_end_of_day() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -328,7 +340,7 @@ fn request_meeting_at_end_of_day() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let (meeting_start_datetime, meeting_end_datetime) = request_meeting_with_end_time(
@@ -361,7 +373,7 @@ fn request_meeting_at_end_of_day() -> anyhow::Result<()> {
 #[test]
 fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -373,7 +385,7 @@ fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = Addr::unchecked("sender1");
+    let sender1 = chain.create_account("sender1");
     app.set_sender(&sender1);
 
     let (meeting_start_datetime1, meeting_end_datetime1) = request_meeting_with_start_time(
@@ -385,7 +397,7 @@ fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
         app.clone(),
     )?;
 
-    let sender2 = Addr::unchecked("sender2");
+    let sender2 = chain.create_account("sender2");
     app.set_sender(&sender2);
 
     let (meeting_start_datetime2, meeting_end_datetime2) = request_meeting_with_start_time(
@@ -428,7 +440,7 @@ fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
 #[test]
 fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -440,7 +452,7 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = Addr::unchecked("sender1");
+    let sender1 = chain.create_account("sender1");
     app.set_sender(&sender1);
 
     let (meeting_start_datetime1, meeting_end_datetime1) = request_meeting(
@@ -457,7 +469,7 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
         Coin::new(60, DENOM),
     )?;
 
-    let sender2 = Addr::unchecked("sender2");
+    let sender2 = chain.create_account("sender2");
     app.set_sender(&sender2);
 
     let (meeting_start_datetime2, meeting_end_datetime2) = request_meeting(
@@ -505,7 +517,7 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
 #[test]
 fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -517,7 +529,7 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = Addr::unchecked("sender1");
+    let sender1 = chain.create_account("sender1");
     app.set_sender(&sender1);
 
     let (meeting_start_datetime1, meeting_end_datetime1) = request_meeting(
@@ -534,7 +546,7 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
         Coin::new(60, DENOM),
     )?;
 
-    let sender2 = Addr::unchecked("sender2");
+    let sender2 = chain.create_account("sender2");
     app.set_sender(&sender2);
 
     let (meeting_start_datetime2, meeting_end_datetime2) = request_meeting(
@@ -582,7 +594,7 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
 #[test]
 fn request_meetings_on_different_days() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -592,7 +604,7 @@ fn request_meetings_on_different_days() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender1 = Addr::unchecked("sender1");
+    let sender1 = chain.create_account("sender1");
     app.set_sender(&sender1);
 
     let (meeting_start_datetime1, meeting_end_datetime1) = request_meeting_with_start_time(
@@ -604,7 +616,7 @@ fn request_meetings_on_different_days() -> anyhow::Result<()> {
         app.clone(),
     )?;
 
-    let sender2 = Addr::unchecked("sender2");
+    let sender2 = chain.create_account("sender2");
     app.set_sender(&sender2);
 
     let (meeting_start_datetime2, meeting_end_datetime2) = request_meeting_with_start_time(
@@ -657,7 +669,7 @@ fn request_meetings_on_different_days() -> anyhow::Result<()> {
 #[test]
 fn cannot_request_multiple_meetings_with_same_start_time() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -669,7 +681,7 @@ fn cannot_request_multiple_meetings_with_same_start_time() -> anyhow::Result<()>
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = Addr::unchecked("sender1");
+    let sender1 = chain.create_account("sender1");
     app.set_sender(&sender1);
 
     request_meeting_with_start_time(
@@ -681,7 +693,7 @@ fn cannot_request_multiple_meetings_with_same_start_time() -> anyhow::Result<()>
         app.clone(),
     )?;
 
-    let sender2 = Addr::unchecked("sender2");
+    let sender2 = chain.create_account("sender2");
     app.set_sender(&sender2);
 
     let error = request_meeting_with_start_time(
@@ -705,7 +717,7 @@ fn cannot_request_multiple_meetings_with_same_start_time() -> anyhow::Result<()>
 #[test]
 fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -717,7 +729,7 @@ fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = Addr::unchecked("sender1");
+    let sender1 = chain.create_account("sender1");
     app.set_sender(&sender1);
 
     request_meeting(
@@ -734,7 +746,7 @@ fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
         Coin::new(120, DENOM),
     )?;
 
-    let sender2 = Addr::unchecked("sender2");
+    let sender2 = chain.create_account("sender2");
     app.set_sender(&sender2);
 
     let error = request_meeting(
@@ -763,7 +775,7 @@ fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
 #[test]
 fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -775,7 +787,7 @@ fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = Addr::unchecked("sender1");
+    let sender1 = chain.create_account("sender1");
     app.set_sender(&sender1);
 
     request_meeting(
@@ -792,7 +804,7 @@ fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
         Coin::new(120, DENOM),
     )?;
 
-    let sender2 = Addr::unchecked("sender2");
+    let sender2 = chain.create_account("sender2");
     app.set_sender(&sender2);
 
     let error = request_meeting(
@@ -821,7 +833,7 @@ fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
 #[test]
 fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -833,7 +845,7 @@ fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = Addr::unchecked("sender1");
+    let sender1 = chain.create_account("sender1");
     app.set_sender(&sender1);
 
     request_meeting(
@@ -850,7 +862,7 @@ fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
         Coin::new(120, DENOM),
     )?;
 
-    let sender2 = Addr::unchecked("sender2");
+    let sender2 = chain.create_account("sender2");
     app.set_sender(&sender2);
 
     let error = request_meeting(
@@ -879,7 +891,7 @@ fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
 #[test]
 fn cannot_request_meeting_in_past() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -891,7 +903,7 @@ fn cannot_request_meeting_in_past() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_sub_days(Days::new(1)).unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let error = request_meeting(
@@ -920,7 +932,7 @@ fn cannot_request_meeting_in_past() -> anyhow::Result<()> {
 #[test]
 fn cannot_request_meeting_with_end_time_before_start_time() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -932,7 +944,7 @@ fn cannot_request_meeting_with_end_time_before_start_time() -> anyhow::Result<()
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let error = request_meeting(
@@ -961,7 +973,7 @@ fn cannot_request_meeting_with_end_time_before_start_time() -> anyhow::Result<()
 #[test]
 fn cannot_request_meeting_with_start_time_out_of_calendar_bounds() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -973,7 +985,7 @@ fn cannot_request_meeting_with_start_time_out_of_calendar_bounds() -> anyhow::Re
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let error = request_meeting(
@@ -1002,7 +1014,7 @@ fn cannot_request_meeting_with_start_time_out_of_calendar_bounds() -> anyhow::Re
 #[test]
 fn cannot_request_meeting_with_end_time_out_of_calendar_bounds() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -1014,7 +1026,7 @@ fn cannot_request_meeting_with_end_time_out_of_calendar_bounds() -> anyhow::Resu
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let error = request_meeting(
@@ -1043,7 +1055,7 @@ fn cannot_request_meeting_with_end_time_out_of_calendar_bounds() -> anyhow::Resu
 #[test]
 fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -1053,7 +1065,7 @@ fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let meeting_start_datetime: NaiveDateTime = current_datetime
@@ -1090,7 +1102,7 @@ fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow
 #[test]
 fn cannot_request_meeting_with_insufficient_funds() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
 
     let config: ConfigResponse = app.config()?;
@@ -1100,7 +1112,7 @@ fn cannot_request_meeting_with_insufficient_funds() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let error: anyhow::Error = request_meeting(
@@ -1132,7 +1144,7 @@ fn cannot_request_meeting_with_insufficient_funds() -> anyhow::Result<()> {
 #[test]
 fn slash_full_stake() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
     let admin = app.account().owner()?;
 
@@ -1143,7 +1155,7 @@ fn slash_full_stake() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let (meeting_start_datetime, meeting_end_datetime) = request_meeting_with_start_time(
@@ -1182,7 +1194,7 @@ fn slash_full_stake() -> anyhow::Result<()> {
 #[test]
 fn return_stake() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
     let admin = app.account().owner()?;
 
@@ -1193,7 +1205,7 @@ fn return_stake() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let (meeting_start_datetime, meeting_end_datetime) = request_meeting_with_start_time(
@@ -1240,7 +1252,7 @@ fn return_stake() -> anyhow::Result<()> {
 #[test]
 fn slash_partial_stake() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (mut app, client) = setup()?;
+    let (mut app, client, chain) = setup()?;
     let block_info: BlockInfo = client.block_info()?;
     let admin = app.account().owner()?;
 
@@ -1251,7 +1263,7 @@ fn slash_partial_stake() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = Addr::unchecked("sender");
+    let sender = chain.create_account("sender");
     app.set_sender(&sender);
 
     let (meeting_start_datetime, meeting_end_datetime) = request_meeting_with_start_time(

@@ -22,11 +22,12 @@ fn setup(
     count: i32,
 ) -> anyhow::Result<(AbstractClient<Mock>, Application<Mock, AppInterface<Mock>>)> {
     // Create a sender
-    let sender = Addr::unchecked(OWNER);
+    let mock = Mock::new("mock");
+    let sender = mock.create_account("sender");
     let namespace = Namespace::from_id(APP_ID)?;
 
     // You can set up Abstract with a builder.
-    let client = AbstractClient::builder(Mock::new(&sender)).build()?;
+    let client = AbstractClient::builder(mock).build()?;
     // The client supports setting balances for addresses and configuring ANS.
     client.set_balance(&sender, &coins(123, "ucosm"))?;
 

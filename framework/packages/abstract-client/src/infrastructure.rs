@@ -8,7 +8,7 @@
 //! You also sometimes need to provide the environment as a parameter to some methods, e.g. when you want to deploy a contract.
 
 use abstract_interface::{Abstract, AbstractInterfaceError};
-use cw_orch::{deploy::Deploy, prelude::*};
+use cw_orch::prelude::*;
 
 use crate::{account::Account, AbstractClient};
 

@@ -6,7 +6,6 @@ use abstract_app::{
         AssetEntry,
     },
     abstract_interface::{Abstract, AbstractAccount, AppDeployer, *},
-    abstract_testing::OWNER,
 };
 use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
@@ -21,7 +20,7 @@ use challenge_app::{
 };
 use cosmwasm_std::{coin, Uint128, Uint64};
 use cw_asset::AssetInfo;
-use cw_orch::{anyhow, deploy::Deploy, prelude::*};
+use cw_orch::{anyhow, prelude::*};
 use lazy_static::lazy_static;
 
 use crate::msg::QueryMsg;
@@ -31,8 +30,61 @@ const FIRST_CHALLENGE_ID: u64 = 1;
 
 const INITIAL_BALANCE: u128 = 50_000_000;
 
-lazy_static! {
-    static ref CHALLENGE_REQ: ChallengeRequest = ChallengeRequest {
+lazy_static! {}
+
+fn alice_address(mock: &MockBech32) -> Addr {
+    mock.create_account("alice")
+}
+
+fn bob_address(mock: &MockBech32) -> Addr {
+    mock.create_account("bob")
+}
+
+fn charlie_address(mock: &MockBech32) -> Addr {
+    mock.create_account("charlie")
+}
+
+fn alice_friend(mock: &MockBech32) -> Friend<String> {
+    Friend::Addr(FriendByAddr {
+        address: alice_address(mock).to_string(),
+        name: "alice_name".to_string(),
+    })
+}
+
+fn bob_friend(mock: &MockBech32) -> Friend<String> {
+    Friend::Addr(FriendByAddr {
+        address: bob_address(mock).to_string(),
+        name: "bob_name".to_string(),
+    })
+}
+
+fn charlie_friend(mock: &MockBech32) -> Friend<String> {
+    Friend::Addr(FriendByAddr {
+        address: charlie_address(mock).to_string(),
+        name: "charlie_name".to_string(),
+    })
+}
+
+fn friends(mock: &MockBech32) -> Vec<Friend<String>> {
+    vec![alice_friend(mock), bob_friend(mock), charlie_friend(mock)]
+}
+
+fn unchecked_friends(mock: &MockBech32) -> Vec<Friend<Addr>> {
+    friends(mock)
+        .clone()
+        .into_iter()
+        .map(|f| match f {
+            Friend::Addr(FriendByAddr { address, name }) => Friend::Addr(FriendByAddr {
+                address: Addr::unchecked(address),
+                name,
+            }),
+            Friend::AbstractAccount(account_id) => Friend::AbstractAccount(account_id),
+        })
+        .collect()
+}
+
+fn challenge_req_func(mock: &MockBech32) -> ChallengeRequest {
+    ChallengeRequest {
         name: "test".to_string(),
         strike_asset: AssetEntry::new("denom"),
         strike_strategy: StrikeStrategy::Split(Uint128::new(30_000_000)),
@@ -40,54 +92,25 @@ lazy_static! {
         challenge_duration_seconds: Uint64::new(10_000),
         proposal_duration_seconds: Uint64::new(1_000),
         strikes_limit: None,
-        init_friends: FRIENDS.clone()
-    };
-    static ref ALICE_ADDRESS: String = "alice".to_string();
-    static ref BOB_ADDRESS: String = "bob".to_string();
-    static ref CHARLIE_ADDRESS: String = "charlie".to_string();
-    static ref ALICE_FRIEND: Friend<String> = Friend::Addr(FriendByAddr {
-        address: "alice".to_string(),
-        name: "alice_name".to_string()
-    });
-    static ref BOB_FRIEND: Friend<String> = Friend::Addr(FriendByAddr {
-        address: "bob".to_string(),
-        name: "bob_name".to_string()
-    });
-    static ref CHARLIE_FRIEND: Friend<String> = Friend::Addr(FriendByAddr {
-        address: "charlie".to_string(),
-        name: "charlie_name".to_string()
-    });
-    static ref FRIENDS: Vec<Friend<String>> = vec![
-        ALICE_FRIEND.clone(),
-        BOB_FRIEND.clone(),
-        CHARLIE_FRIEND.clone()
-    ];
-    static ref UNCHECKED_FRIENDS: Vec<Friend<Addr>> = {
-        FRIENDS
-            .clone()
-            .into_iter()
-            .map(|f| match f {
-                Friend::Addr(FriendByAddr { address, name }) => Friend::Addr(FriendByAddr {
-                    address: Addr::unchecked(address),
-                    name,
-                }),
-                Friend::AbstractAccount(account_id) => Friend::AbstractAccount(account_id),
-            })
-            .collect()
-    };
+        init_friends: friends(mock).clone(),
+    }
 }
 
 #[allow(unused)]
 struct DeployedApps {
-    challenge_app: Challenge<Mock>,
+    challenge_app: Challenge<MockBech32>,
 }
 
 #[allow(clippy::type_complexity)]
-fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, DeployedApps)> {
-    // Create a sender
-    let sender = Addr::unchecked(OWNER);
+fn setup() -> anyhow::Result<(
+    MockBech32,
+    AbstractAccount<MockBech32>,
+    Abstract<MockBech32>,
+    DeployedApps,
+)> {
     // Create the mock
-    let mock = Mock::new(&sender);
+    let mock = MockBech32::new("mock");
+    let sender = mock.sender();
     mock.set_balance(&sender, vec![coin(INITIAL_BALANCE, DENOM)])?;
 
     let mut challenge_app = Challenge::new(CHALLENGE_APP_ID, mock.clone());
@@ -121,7 +144,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
     let account = abstr_deployment.account_factory.create_new_account(
         account_details,
         GovernanceDetails::Monarchy {
-            monarch: OWNER.to_string(),
+            monarch: sender.to_string(),
         },
         None,
     )?;
@@ -166,8 +189,9 @@ fn test_should_successful_install() -> anyhow::Result<()> {
 #[test]
 fn test_should_create_challenge() -> anyhow::Result<()> {
     let (mock, _account, _abstr, apps) = setup()?;
-    let challenge_req = CHALLENGE_REQ.clone();
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    let challenge_req = challenge_req_func(&mock).clone();
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
 
     let challenge_query = QueryMsg::from(ChallengeQueryMsg::Challenge {
         challenge_id: FIRST_CHALLENGE_ID,
@@ -199,8 +223,9 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
 
 #[test]
 fn test_update_challenge() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    let (mock, _account, _abstr, apps) = setup()?;
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
 
     let new_name = "update-test".to_string();
     let new_description = "Updated Test Challenge".to_string();
@@ -229,7 +254,8 @@ fn test_cancel_challenge() -> anyhow::Result<()> {
     let (mock, _account, _abstr, apps) = setup()?;
 
     // Challenge without active proposals
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
     apps.challenge_app.cancel_challenge(FIRST_CHALLENGE_ID)?;
 
     let res: ChallengeResponse =
@@ -242,9 +268,10 @@ fn test_cancel_challenge() -> anyhow::Result<()> {
     assert_eq!(challenge.end_timestamp, mock.block_info()?.time);
 
     // Challenge with active proposal
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
     apps.challenge_app
-        .call_as(&Addr::unchecked(ALICE_ADDRESS.as_str()))
+        .create_challenge(challenge_req_func(&mock).clone())?;
+    apps.challenge_app
+        .call_as(&alice_address(&mock))
         .cast_vote(
             FIRST_CHALLENGE_ID + 1,
             Vote {
@@ -276,14 +303,15 @@ fn test_cancel_challenge() -> anyhow::Result<()> {
 
 #[test]
 fn test_add_single_friend_for_challenge() -> anyhow::Result<()> {
-    let (_mock, _account, abstr, apps) = setup()?;
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    let (mock, _account, abstr, apps) = setup()?;
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
 
     let new_account =
         abstr
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: OWNER.to_string(),
+                monarch: mock.sender().to_string(),
             })?;
     let new_friend: Friend<String> = Friend::AbstractAccount(new_account.id()?);
 
@@ -300,7 +328,7 @@ fn test_add_single_friend_for_challenge() -> anyhow::Result<()> {
             }))?;
     let friends = response.friends;
 
-    let mut expected_friends: Vec<Friend<Addr>> = UNCHECKED_FRIENDS.clone();
+    let mut expected_friends: Vec<Friend<Addr>> = unchecked_friends(&mock).clone();
     expected_friends.push(Friend::AbstractAccount(new_account.id()?));
 
     assert_eq!(friends, expected_friends);
@@ -310,10 +338,10 @@ fn test_add_single_friend_for_challenge() -> anyhow::Result<()> {
 
 #[test]
 fn test_add_friends_for_challenge() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
+    let (mock, _account, _abstr, apps) = setup()?;
     let challenge_req_without_friends = ChallengeRequest {
         init_friends: vec![],
-        ..CHALLENGE_REQ.clone()
+        ..challenge_req_func(&mock).clone()
     };
 
     apps.challenge_app
@@ -321,7 +349,7 @@ fn test_add_friends_for_challenge() -> anyhow::Result<()> {
 
     apps.challenge_app.update_friends_for_challenge(
         FIRST_CHALLENGE_ID,
-        FRIENDS.clone(),
+        friends(&mock).clone(),
         UpdateFriendsOpKind::Add {},
     )?;
 
@@ -332,7 +360,7 @@ fn test_add_friends_for_challenge() -> anyhow::Result<()> {
             }))?;
     let friends = response.friends;
 
-    let expected_friends: Vec<Friend<Addr>> = UNCHECKED_FRIENDS.clone();
+    let expected_friends: Vec<Friend<Addr>> = unchecked_friends(&mock).clone();
 
     assert_eq!(friends, expected_friends);
 
@@ -341,13 +369,14 @@ fn test_add_friends_for_challenge() -> anyhow::Result<()> {
 
 #[test]
 fn test_remove_friend_from_challenge() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    let (mock, _account, _abstr, apps) = setup()?;
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
 
     // remove friend
     apps.challenge_app.update_friends_for_challenge(
         FIRST_CHALLENGE_ID,
-        vec![ALICE_FRIEND.clone()],
+        vec![alice_friend(&mock).clone()],
         UpdateFriendsOpKind::Remove {},
     )?;
 
@@ -358,9 +387,9 @@ fn test_remove_friend_from_challenge() -> anyhow::Result<()> {
     let response: FriendsResponse = apps.challenge_app.query(&friends_query)?;
     let friends = response.friends;
 
-    let mut expected_friends = UNCHECKED_FRIENDS.clone();
+    let mut expected_friends = unchecked_friends(&mock).clone();
     expected_friends.retain(|s| match s {
-        Friend::Addr(addr) => addr.address != ALICE_ADDRESS.clone(),
+        Friend::Addr(addr) => addr.address != alice_address(&mock).clone(),
         Friend::AbstractAccount(_) => todo!(),
     });
 
@@ -371,21 +400,22 @@ fn test_remove_friend_from_challenge() -> anyhow::Result<()> {
 
 #[test]
 fn test_cast_vote() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
+    let (mock, _account, _abstr, apps) = setup()?;
 
     let vote = Vote {
         vote: true,
         memo: Some("some memo".to_owned()),
     };
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
     apps.challenge_app
-        .call_as(&Addr::unchecked(ALICE_ADDRESS.clone()))
+        .create_challenge(challenge_req_func(&mock).clone())?;
+    apps.challenge_app
+        .call_as(&alice_address(&mock))
         .cast_vote(FIRST_CHALLENGE_ID, vote.clone())?;
 
     let response: VoteResponse =
         apps.challenge_app
             .query(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                voter_addr: ALICE_ADDRESS.clone(),
+                voter_addr: alice_address(&mock).to_string(),
                 challenge_id: FIRST_CHALLENGE_ID,
                 proposal_id: None,
             }))?;
@@ -397,11 +427,12 @@ fn test_cast_vote() -> anyhow::Result<()> {
 #[test]
 fn test_update_friends_during_proposal() -> anyhow::Result<()> {
     let (mock, _account, _abstr, apps) = setup()?;
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
 
     // start proposal
     apps.challenge_app
-        .call_as(&Addr::unchecked(ALICE_ADDRESS.clone()))
+        .call_as(&alice_address(&mock).clone())
         .cast_vote(
             FIRST_CHALLENGE_ID,
             Vote {
@@ -414,7 +445,7 @@ fn test_update_friends_during_proposal() -> anyhow::Result<()> {
         .challenge_app
         .update_friends_for_challenge(
             FIRST_CHALLENGE_ID,
-            vec![ALICE_FRIEND.clone()],
+            vec![alice_friend(&mock).clone()],
             UpdateFriendsOpKind::Remove {},
         )
         .unwrap_err()
@@ -431,26 +462,27 @@ fn test_update_friends_during_proposal() -> anyhow::Result<()> {
 #[test]
 fn test_not_charge_penalty_for_voting_false() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
 
     // cast votes
     let votes = vec![
         (
-            Addr::unchecked(ALICE_ADDRESS.clone()),
+            alice_address(&mock).clone(),
             Vote {
                 vote: false,
                 memo: None,
             },
         ),
         (
-            Addr::unchecked(BOB_ADDRESS.clone()),
+            bob_address(&mock).clone(),
             Vote {
                 vote: false,
                 memo: None,
             },
         ),
         (
-            Addr::unchecked(CHARLIE_ADDRESS.clone()),
+            charlie_address(&mock).clone(),
             Vote {
                 vote: false,
                 memo: None,
@@ -491,25 +523,26 @@ fn test_not_charge_penalty_for_voting_false() -> anyhow::Result<()> {
 #[test]
 fn test_charge_penalty_for_voting_true() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
 
     let votes = vec![
         (
-            Addr::unchecked(ALICE_ADDRESS.clone()),
+            alice_address(&mock).clone(),
             Vote {
                 vote: true,
                 memo: None,
             },
         ),
         (
-            Addr::unchecked(BOB_ADDRESS.clone()),
+            bob_address(&mock).clone(),
             Vote {
                 vote: true,
                 memo: None,
             },
         ),
         (
-            Addr::unchecked(CHARLIE_ADDRESS.clone()),
+            charlie_address(&mock).clone(),
             Vote {
                 vote: true,
                 memo: None,
@@ -526,9 +559,10 @@ fn test_charge_penalty_for_voting_true() -> anyhow::Result<()> {
 
 #[test]
 fn test_query_challenges_within_range() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
+    let (mock, _account, _abstr, apps) = setup()?;
     for _ in 0..10 {
-        apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+        apps.challenge_app
+            .create_challenge(challenge_req_func(&mock).clone())?;
     }
 
     let response: ChallengesResponse =
@@ -544,9 +578,10 @@ fn test_query_challenges_within_range() -> anyhow::Result<()> {
 
 #[test]
 fn test_query_challenges_within_different_range() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
+    let (mock, _account, _abstr, apps) = setup()?;
     for _ in 0..10 {
-        apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+        apps.challenge_app
+            .create_challenge(challenge_req_func(&mock).clone())?;
     }
 
     let response: ChallengesResponse =
@@ -569,25 +604,26 @@ fn test_vetoed() -> anyhow::Result<()> {
         threshold: Threshold::Majority {},
         veto_duration_seconds: Some(Uint64::new(1_000)),
     })?;
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
 
     let votes = vec![
         (
-            Addr::unchecked(ALICE_ADDRESS.clone()),
+            alice_address(&mock).clone(),
             Vote {
                 vote: true,
                 memo: None,
             },
         ),
         (
-            Addr::unchecked(BOB_ADDRESS.clone()),
+            bob_address(&mock).clone(),
             Vote {
                 vote: true,
                 memo: None,
             },
         ),
         (
-            Addr::unchecked(CHARLIE_ADDRESS.clone()),
+            charlie_address(&mock).clone(),
             Vote {
                 vote: true,
                 memo: None,
@@ -620,25 +656,26 @@ fn test_veto_expired() -> anyhow::Result<()> {
         threshold: Threshold::Majority {},
         veto_duration_seconds: Some(Uint64::new(1_000)),
     })?;
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
 
     let votes = vec![
         (
-            Addr::unchecked(ALICE_ADDRESS.clone()),
+            alice_address(&mock).clone(),
             Vote {
                 vote: true,
                 memo: None,
             },
         ),
         (
-            Addr::unchecked(BOB_ADDRESS.clone()),
+            bob_address(&mock).clone(),
             Vote {
                 vote: true,
                 memo: None,
             },
         ),
         (
-            Addr::unchecked(CHARLIE_ADDRESS.clone()),
+            charlie_address(&mock).clone(),
             Vote {
                 vote: true,
                 memo: None,
@@ -654,7 +691,7 @@ fn test_veto_expired() -> anyhow::Result<()> {
     // wait time to expire veto
     mock.wait_seconds(2_000)?;
     apps.challenge_app
-        .call_as(&Addr::unchecked(ALICE_ADDRESS.clone()))
+        .call_as(&alice_address(&mock).clone())
         .count_votes(FIRST_CHALLENGE_ID)?;
 
     let proposals: ProposalsResponse =
@@ -674,13 +711,13 @@ fn test_veto_expired() -> anyhow::Result<()> {
 
 #[test]
 fn test_duplicate_friends() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
+    let (mock, _account, _abstr, apps) = setup()?;
     // Duplicate initial friends
     let err: error::AppError = apps
         .challenge_app
         .create_challenge(ChallengeRequest {
-            init_friends: vec![ALICE_FRIEND.clone(), ALICE_FRIEND.clone()],
-            ..CHALLENGE_REQ.clone()
+            init_friends: vec![alice_friend(&mock).clone(), alice_friend(&mock).clone()],
+            ..challenge_req_func(&mock).clone()
         })
         .unwrap_err()
         .downcast()
@@ -688,12 +725,13 @@ fn test_duplicate_friends() -> anyhow::Result<()> {
     assert_eq!(err, error::AppError::DuplicateFriends {});
 
     // Add duplicate (Alice already exists)
-    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    apps.challenge_app
+        .create_challenge(challenge_req_func(&mock).clone())?;
     let err: error::AppError = apps
         .challenge_app
         .update_friends_for_challenge(
             FIRST_CHALLENGE_ID,
-            vec![ALICE_FRIEND.clone()],
+            vec![alice_friend(&mock).clone()],
             UpdateFriendsOpKind::Add {},
         )
         .unwrap_err()
@@ -704,7 +742,7 @@ fn test_duplicate_friends() -> anyhow::Result<()> {
 }
 
 fn run_challenge_vote_sequence(
-    mock: &Mock,
+    mock: &MockBech32,
     apps: &DeployedApps,
     votes: Vec<(Addr, Vote)>,
 ) -> anyhow::Result<()> {

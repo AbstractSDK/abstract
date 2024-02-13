@@ -31,7 +31,6 @@ mod osmosis_test {
     use cosmwasm_std::{coin, coins, Addr, Empty, Uint128};
     use cw_asset::AssetInfoBase;
     use cw_orch::{
-        deploy::Deploy,
         interface,
         osmosis_test_tube::osmosis_test_tube::{
             osmosis_std::types::osmosis::lockup::{
