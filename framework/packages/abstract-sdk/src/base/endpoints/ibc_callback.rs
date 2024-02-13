@@ -25,7 +25,10 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface + AbstractRegistryAcces
                 err.into()
             })?;
 
-        let ibc_client = match vc_query_result.reference.unwrap_native();
+        let ibc_client = vc_query_result
+            .reference
+            .unwrap_native()
+            .map_err(Into::into)?;
 
         if info.sender.ne(&ibc_client) {
             return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
