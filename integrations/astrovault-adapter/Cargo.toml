@@ -1,6 +1,6 @@
 [package]
 name = "abstract-astrovault-adapter"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Abstract Money <contact@abstract.money>"]
 edition = "2021"
 description = "Abstract DexCommand implementation for Astrovault"
