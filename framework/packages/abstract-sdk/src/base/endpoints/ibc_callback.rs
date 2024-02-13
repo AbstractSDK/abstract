@@ -1,11 +1,10 @@
-use crate::core::AbstractError;
-use crate::{base::Handler, features::AbstractRegistryAccess, AbstractSdkError, ModuleInterface};
-use abstract_core::objects::module_reference::ModuleReference;
-use abstract_core::{ibc::IbcResponseMsg, objects::module::ModuleInfo, IBC_CLIENT};
+use abstract_core::{ibc::IbcResponseMsg, IBC_CLIENT};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
+use crate::{base::Handler, AbstractSdkError, ModuleInterface};
+
 /// Trait for a contract's IBC callback ExecuteMsg variant.
-pub trait IbcCallbackEndpoint: Handler + ModuleInterface + AbstractRegistryAccess {
+pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
     /// Handler for the `ExecuteMsg::IbcCallback()` variant.
     fn ibc_callback(
         self,
@@ -15,22 +14,7 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface + AbstractRegistryAcces
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::Error> {
         // Todo: Change to use version control instead?
-        let ibc_client = match self
-            .abstract_registry(deps.as_ref())?
-            .query_module(
-                ModuleInfo::from_id_latest(IBC_CLIENT).map_err(Into::into)?,
-                &deps.querier,
-            )
-            .map_err(|e| {
-                let err: AbstractError = e.into();
-                err.into()
-            })?
-            .reference
-        {
-            ModuleReference::Native(ibc_client) => ibc_client,
-            _ => unreachable!(),
-        };
-
+        let ibc_client = self.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
         if info.sender.ne(&ibc_client) {
             return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
                 caller: info.sender,
