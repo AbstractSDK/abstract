@@ -59,7 +59,7 @@ pub fn test_send_funds() -> AnyResult<()> {
                 protocol: ICS20.to_string(),
             },
             interchain_channel
-                .get_chain(&STARGAZE.to_string())?
+                .get_chain(STARGAZE)?
                 .channel
                 .unwrap()
                 .to_string(),
@@ -94,7 +94,7 @@ pub fn test_send_funds() -> AnyResult<()> {
         },
     )?;
 
-    interchain.wait_ibc(&STARGAZE.to_string(), send_funds_tx)?;
+    interchain.wait_ibc(STARGAZE, send_funds_tx)?;
 
     // Verify the funds have been received
     let remote_account_config = abstr_juno

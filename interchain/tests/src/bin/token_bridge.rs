@@ -63,7 +63,7 @@ pub fn token_bridge() -> AnyResult<()> {
         "{}/{}/{}",
         PortId::transfer(),
         interchain_channel
-            .get_chain(&STARGAZE.to_string())
+            .get_chain(STARGAZE)
             .unwrap()
             .channel
             .unwrap(),
