@@ -36,12 +36,12 @@ pub fn deploy_modules<T: CwEnv>(chain: &T) {
         .unwrap();
 
     // and now for app 1
-    app_1::BootMockApp1V1::new_test(chain.clone())
+    app_1::MockAppI1V1::new_test(chain.clone())
         .deploy(V1.parse().unwrap(), DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
-    app_1::BootMockApp1V2::new_test(chain.clone())
+    app_1::MockAppI1V2::new_test(chain.clone())
         .deploy(V2.parse().unwrap(), DeployStrategy::Error)
         .unwrap();
 }
@@ -97,7 +97,7 @@ pub mod app_1 {
     pub mod v1 {
         use super::*;
         gen_app_mock!(
-            BootMockApp1V1,
+            MockAppI1V1,
             MOCK_APP_ID,
             "1.0.0",
             &[
@@ -110,7 +110,7 @@ pub mod app_1 {
     pub mod v2 {
         use super::*;
         gen_app_mock!(
-            BootMockApp1V2,
+            MockAppI1V2,
             MOCK_APP_ID,
             "2.0.0",
             &[

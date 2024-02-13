@@ -74,6 +74,9 @@ pub mod mock {
     pub enum MockQueryMsg {
         #[returns(ReceivedIbcCallbackStatus)]
         GetReceivedIbcCallbackStatus {},
+
+        #[returns(String)]
+        GetSomething {},
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -110,17 +113,14 @@ pub mod mock {
                 Ok(Response::new().set_data("mock_init".as_bytes()))
             })
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|deps, _, _, msg| {
-                match msg {
-                    MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
-                        to_json_binary(&ReceivedIbcCallbackStatus {
-                            received: IBC_CALLBACK_RECEIVED.load(deps.storage)?,
-                        })
-                        .map_err(Into::into)
-                    }
+            .with_query(|deps, _, _, msg| match msg {
+                MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
+                    to_json_binary(&ReceivedIbcCallbackStatus {
+                        received: IBC_CALLBACK_RECEIVED.load(deps.storage)?,
+                    })
+                    .map_err(Into::into)
                 }
-
-                // to_json_binary("mock_query").map_err(Into::into)
+                MockQueryMsg::GetSomething {} => to_json_binary("mock_query").map_err(Into::into),
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))

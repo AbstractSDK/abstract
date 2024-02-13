@@ -1,6 +1,6 @@
 use abstract_adapter::mock::{
-    MockAdapterI, MockExecMsg as BootMockExecMsg, MockInitMsg as BootMockInitMsg,
-    MockQueryMsg as BootMockQueryMsg, TEST_METADATA,
+    MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
+    MockQueryMsg as AdapterMockQueryMsg, TEST_METADATA,
 };
 use abstract_app::{
     abstract_sdk::base::Handler,
@@ -344,15 +344,15 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let publisher_manager = publisher.account().manager()?;
     let publisher_proxy = publisher.account().proxy()?;
 
-    publisher.publish_adapter::<BootMockInitMsg, MockAdapterI<_>>(BootMockInitMsg {})?;
+    publisher.publish_adapter::<AdapterMockInitMsg, MockAdapterI<_>>(AdapterMockInitMsg {})?;
 
     // Install adapter on sub-account
     let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
 
     my_adapter
         .call_as(&publisher_manager)
-        .execute(&BootMockExecMsg {}.into(), None)?;
-    let mock_query: String = my_adapter.query(&BootMockQueryMsg {}.into())?;
+        .execute(&AdapterMockExecMsg {}.into(), None)?;
+    let mock_query: String = my_adapter.query(&AdapterMockQueryMsg::GetSomething {}.into())?;
 
     assert_eq!(String::from("mock_query"), mock_query);
 
@@ -380,8 +380,8 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
 
     my_adapter
         .call_as(&publisher_manager)
-        .execute(&BootMockExecMsg {}.into(), None)?;
-    let mock_query: String = my_adapter.query(&BootMockQueryMsg {}.into())?;
+        .execute(&AdapterMockExecMsg {}.into(), None)?;
+    let mock_query: String = my_adapter.query(&AdapterMockQueryMsg::GetSomething {}.into())?;
 
     assert_eq!(String::from("mock_query"), mock_query);
 
@@ -866,7 +866,7 @@ fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
         .build()?;
 
     let adapter = publisher
-        .publish_adapter::<BootMockInitMsg, MockAdapterI<MockBech32>>(BootMockInitMsg {})?;
+        .publish_adapter::<AdapterMockInitMsg, MockAdapterI<MockBech32>>(AdapterMockInitMsg {})?;
     let module_data: ModuleDataResponse =
         adapter.query(&abstract_core::adapter::QueryMsg::Base(
             abstract_core::adapter::BaseQueryMsg::ModuleData {},
@@ -967,7 +967,7 @@ fn install_adapter_on_account_builder() -> anyhow::Result<()> {
         .build()?;
 
     // Publish adapter
-    let adapter: MockAdapterI<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+    let adapter: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
     let account = client
         .account_builder()
@@ -1047,7 +1047,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
-    let _: MockAdapterI<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+    let _: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
     client.version_control().update_module_configuration(
         TEST_MODULE_NAME.to_owned(),
