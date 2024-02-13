@@ -14,7 +14,7 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface + AbstractRegistryAcces
         info: MessageInfo,
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::Error> {
-        let ibc_client = match self
+        let vc_query_result = self
             .abstract_registry(deps.as_ref())?
             .query_module(
                 ModuleInfo::from_id_latest(IBC_CLIENT).map_err(Into::into)?,
@@ -23,9 +23,9 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface + AbstractRegistryAcces
             .map_err(|e| {
                 let err: AbstractError = e.into();
                 err.into()
-            })?
-            .reference
-        {
+            })?;
+
+        let ibc_client = match vc_query_result.reference {
             ModuleReference::Native(ibc_client) => ibc_client,
             _ => unreachable!(),
         };
