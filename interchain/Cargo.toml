@@ -59,9 +59,9 @@ cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "1.0.5" }
 # cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.0" }
 # cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.0" }
 # cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.0" }
-cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "main" }
-cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "main" }
-cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "main" }
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "fix/mock-bech32" }
+cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "fix/mock-bech32" }
+cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "fix/mock-bech32" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
