@@ -4,10 +4,10 @@
 
 use std::ops::{Deref, DerefMut};
 
-use abstract_interface::{ManagerQueryFns, RegisteredModule};
+use abstract_interface::RegisteredModule;
 use cw_orch::{contract::Contract, prelude::*};
 
-use crate::{account::Account, client::AbstractClientResult, AbstractClientError, Environment};
+use crate::{account::Account, client::AbstractClientResult};
 
 /// An application represents a module installed on a (sub)-[`Account`].
 ///
@@ -34,7 +34,7 @@ impl<Chain: CwEnv, M> DerefMut for Application<Chain, M> {
 
 impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
     /// Get module interface installed on provided account
-    pub fn new(account: Account<Chain>, module: M) -> AbstractClientResult<Self> {
+    pub(crate) fn new(account: Account<Chain>, module: M) -> AbstractClientResult<Self> {
         // Sanity check: the module must be installed on the account
         account.module_addresses(vec![M::module_id().to_string()])?;
         Ok(Self { account, module })
@@ -48,20 +48,6 @@ impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
     /// Attempts to get a module on the application. This would typically be a dependency of the
     /// module of type `M`.
     pub fn module<T: RegisteredModule + From<Contract<Chain>>>(&self) -> AbstractClientResult<T> {
-        let module_id = T::module_id();
-        let maybe_module_addr = self
-            .account
-            .abstr_account
-            .manager
-            .module_addresses(vec![module_id.to_string()])?
-            .modules;
-        if !maybe_module_addr.is_empty() {
-            let contract = Contract::new(module_id.to_owned(), self.account.environment())
-                .with_address(Some(&maybe_module_addr[0].1));
-            let module: T = contract.into();
-            Ok(module)
-        } else {
-            Err(AbstractClientError::ModuleNotInstalled {})
-        }
+        self.account.module()
     }
 }
