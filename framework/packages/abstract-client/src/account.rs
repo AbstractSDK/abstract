@@ -182,6 +182,19 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         Ok(self)
     }
 
+    /// Install an application with dependencies on current account.
+    pub fn install_app_with_dependencies<M: DependencyCreation + InstallConfig>(
+        &mut self,
+        module_configuration: &M::InitMsg,
+        dependencies_config: M::DependenciesConfig,
+    ) -> AbstractClientResult<&mut Self> {
+        let deps_install_config = M::dependency_install_configs(dependencies_config)?;
+        self.install_modules.extend(deps_install_config);
+        self.install_modules
+            .push(M::install_config(module_configuration)?);
+        Ok(self)
+    }
+
     /// Enables automatically paying for module instantiations and namespace registration.
     /// The provided function will be called with the required funds. If the function returns `false`,
     /// the account creation will fail.
@@ -385,7 +398,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Install an application on the account.
     /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account. (default)
-    pub fn install_app<M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>>>(
+    pub fn install_app<M: InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
         funds: &[Coin],
@@ -399,9 +412,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Install an adapter on current account.
-    pub fn install_adapter<
-        M: ContractInstance<Chain> + InstallConfig<InitMsg = Empty> + From<Contract<Chain>>,
-    >(
+    pub fn install_adapter<M: InstallConfig<InitMsg = Empty> + From<Contract<Chain>>>(
         &self,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
@@ -418,11 +429,7 @@ impl<Chain: CwEnv> Account<Chain> {
     ///
     /// The returned [`Application`] is a wrapper around the sub-account and simplifies interaction with the App module.
     pub fn install_app_with_dependencies<
-        M: ContractInstance<Chain>
-            + DependencyCreation
-            + InstallConfig
-            + From<Contract<Chain>>
-            + Clone,
+        M: DependencyCreation + InstallConfig + From<Contract<Chain>>,
     >(
         &self,
         module_configuration: &M::InitMsg,
