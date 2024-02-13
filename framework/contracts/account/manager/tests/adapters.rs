@@ -15,7 +15,7 @@ use abstract_core::{
 use abstract_integration_tests::{
     add_mock_adapter_install_fee, create_default_account, init_mock_adapter, install_adapter,
     install_adapter_with_funds, mock_modules,
-    mock_modules::adapter_1::{BootMockAdapter1V1, BootMockAdapter1V2},
+    mock_modules::adapter_1::{MockAdapterI1V1, MockAdapterI1V2},
     AResult,
 };
 use abstract_interface::*;
@@ -220,7 +220,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
-    let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
+    let adapter1 = MockAdapterI1V1::new_test(chain.clone());
     adapter1
         .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)
         .unwrap();
@@ -246,7 +246,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     let old_adapter_addr = adapter1.address()?;
 
-    let adapter2 = BootMockAdapter1V2::new_test(chain.clone());
+    let adapter2 = MockAdapterI1V2::new_test(chain.clone());
 
     adapter2
         .deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)
@@ -264,7 +264,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let modules = account.expect_modules(vec![adapter2.address()?.to_string()])?;
 
     assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
-        // the address stored for BootMockAdapter was updated when we instantiated the new version, so this is the new address
+        // the address stored for MockAdapterI was updated when we instantiated the new version, so this is the new address
         address: adapter2.address()?,
         id: adapter2.id(),
         version: cw2::ContractVersion {
@@ -344,14 +344,14 @@ fn installing_specific_version_should_install_expected() -> AResult {
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
-    let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
+    let adapter1 = MockAdapterI1V1::new_test(chain.clone());
     adapter1
         .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)
         .unwrap();
 
     let v1_adapter_addr = adapter1.address()?;
 
-    let adapter2 = BootMockAdapter1V2::new_test(chain.clone());
+    let adapter2 = MockAdapterI1V2::new_test(chain.clone());
 
     adapter2
         .deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)
@@ -386,7 +386,7 @@ fn account_install_adapter() -> AResult {
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
-    let adapter = BootMockAdapter1V1::new_test(chain.clone());
+    let adapter = MockAdapterI1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
     let adapter_addr = account.install_adapter(&adapter, None)?;
     let module_addr = account
@@ -410,7 +410,7 @@ fn account_adapter_ownership() -> AResult {
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
-    let adapter = BootMockAdapter1V1::new_test(chain.clone());
+    let adapter = MockAdapterI1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
     account.install_adapter(&adapter, None)?;
 
@@ -518,7 +518,7 @@ fn subaccount_adapter_ownership() -> AResult {
         .version_control
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
-    let adapter = BootMockAdapter1V1::new_test(chain.clone());
+    let adapter = MockAdapterI1V1::new_test(chain.clone());
     adapter.deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
 
     account.manager.create_sub_account(
@@ -659,7 +659,7 @@ mod old_mock {
 
         account.install_adapter(&old, None)?;
 
-        let new = BootMockAdapter1V2::new_test(chain.clone());
+        let new = MockAdapterI1V2::new_test(chain.clone());
         new.deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Try)?;
 
         account.manager.upgrade_module(MOCK_ADAPTER_ID, &Empty {})?;

@@ -69,6 +69,7 @@ abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.20.0", path = "../framework/packages/abstract-sdk" }
 abstract-core = { version = "0.20.0", path = "../framework/packages/abstract-core" }
 abstract-app = { version = "0.20.0", path = "../framework/packages/abstract-app" }
+abstract-adapter = { version = "0.20.0", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.20.0", path = "../framework/packages/abstract-testing" }
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat", features = [

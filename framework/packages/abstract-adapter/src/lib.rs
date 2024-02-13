@@ -36,6 +36,7 @@ pub mod mock {
         to_json_binary, DepsMut, Empty, Response, StdError,
     };
     use cw_orch::{contract::Contract, prelude::*};
+    use cw_storage_plus::Item;
     use thiserror::Error;
 
     use crate::{AdapterContract, AdapterError};
@@ -67,7 +68,18 @@ pub mod mock {
     pub struct MockExecMsg {}
 
     #[cosmwasm_schema::cw_serde]
-    pub struct MockQueryMsg {}
+    #[derive(cw_orch::QueryFns)]
+    #[impl_into(QueryMsg)]
+    #[derive(cosmwasm_schema::QueryResponses)]
+    pub enum MockQueryMsg {
+        #[returns(ReceivedIbcCallbackStatus)]
+        GetReceivedIbcCallbackStatus {},
+    }
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct ReceivedIbcCallbackStatus {
+        pub received: bool,
+    }
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockReceiveMsg {}
@@ -87,15 +99,33 @@ pub mod mock {
 
     pub const MOCK_DEP: StaticDependency = StaticDependency::new("module_id", &[">0.0.0"]);
 
+    // Easy way to see if an ibc-callback was actually received.
+    pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
     /// use for testing
     pub const MOCK_ADAPTER: MockAdapterContract =
         MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
+            .with_instantiate(|deps, _, _, _, _| {
+                IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
+
+                Ok(Response::new().set_data("mock_init".as_bytes()))
+            })
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
-            .with_query(|_, _, _, _| to_json_binary("mock_query").map_err(Into::into))
+            .with_query(|deps, _, _, msg| {
+                match msg {
+                    MockQueryMsg::GetReceivedIbcCallbackStatus {} => {
+                        to_json_binary(&ReceivedIbcCallbackStatus {
+                            received: IBC_CALLBACK_RECEIVED.load(deps.storage)?,
+                        })
+                        .map_err(Into::into)
+                    }
+                }
+
+                // to_json_binary("mock_query").map_err(Into::into)
+            })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
+            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _, _, _| {
+                IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })])
             .with_replies(&[(1u64, |_, _, _, msg| {
@@ -134,7 +164,7 @@ pub mod mock {
         adapter.instantiate(deps, mock_env(), info, init_msg)
     }
 
-    impl<T: CwEnv> Uploadable for BootMockAdapter<T> {
+    impl<T: CwEnv> Uploadable for MockAdapterI<T> {
         fn wrapper(&self) -> <Mock as cw_orch::environment::TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 self::execute,
@@ -149,9 +179,9 @@ pub mod mock {
     type Init = adapter::InstantiateMsg<MockInitMsg>;
 
     #[cw_orch::interface(Init, Exec, Query, Empty)]
-    pub struct BootMockAdapter<Chain>;
+    pub struct MockAdapterI<Chain>;
 
-    impl<Chain: CwEnv> RegisteredModule for BootMockAdapter<Chain> {
+    impl<Chain: CwEnv> RegisteredModule for MockAdapterI<Chain> {
         type InitMsg = Empty;
 
         fn module_id<'a>() -> &'a str {
@@ -162,13 +192,13 @@ pub mod mock {
         }
     }
 
-    impl<Chain: CwEnv> From<Contract<Chain>> for BootMockAdapter<Chain> {
+    impl<Chain: CwEnv> From<Contract<Chain>> for MockAdapterI<Chain> {
         fn from(value: Contract<Chain>) -> Self {
-            BootMockAdapter(value)
+            MockAdapterI(value)
         }
     }
 
-    impl<T: CwEnv> AdapterDeployer<T, MockInitMsg> for BootMockAdapter<T> {}
+    impl<T: CwEnv> AdapterDeployer<T, MockInitMsg> for MockAdapterI<T> {}
 
     /// Generate a BOOT instance for a mock adapter
     /// - $name: name of the contract (&str)

@@ -16,22 +16,22 @@ pub const V2: &str = "2.0.0";
 
 /// deploys different version adapters and app for migration testing
 pub fn deploy_modules<T: CwEnv>(chain: &T) {
-    adapter_1::BootMockAdapter1V1::new_test(chain.clone())
+    adapter_1::MockAdapterI1V1::new_test(chain.clone())
         .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
-    adapter_1::BootMockAdapter1V2::new_test(chain.clone())
+    adapter_1::MockAdapterI1V2::new_test(chain.clone())
         .deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // and now for adapter 2
-    adapter_2::BootMockAdapter2V1::new_test(chain.clone())
+    adapter_2::MockAdapterI2V1::new_test(chain.clone())
         .deploy(V1.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
-    adapter_2::BootMockAdapter2V2::new_test(chain.clone())
+    adapter_2::MockAdapterI2V2::new_test(chain.clone())
         .deploy(V2.parse().unwrap(), MockInitMsg {}, DeployStrategy::Error)
         .unwrap();
 
@@ -55,12 +55,12 @@ pub mod adapter_1 {
 
     pub mod v1 {
         use super::*;
-        gen_adapter_mock!(BootMockAdapter1V1, MOCK_ADAPTER_ID, "1.0.0", &[]);
+        gen_adapter_mock!(MockAdapterI1V1, MOCK_ADAPTER_ID, "1.0.0", &[]);
     }
 
     pub mod v2 {
         use super::*;
-        gen_adapter_mock!(BootMockAdapter1V2, MOCK_ADAPTER_ID, "2.0.0", &[]);
+        gen_adapter_mock!(MockAdapterI1V2, MOCK_ADAPTER_ID, "2.0.0", &[]);
     }
 }
 
@@ -73,17 +73,17 @@ pub mod adapter_2 {
 
     pub mod v1 {
         use super::*;
-        gen_adapter_mock!(BootMockAdapter2V1, MOCK_ADAPTER_ID, "1.0.0", &[]);
+        gen_adapter_mock!(MockAdapterI2V1, MOCK_ADAPTER_ID, "1.0.0", &[]);
     }
 
     pub mod v2_0_0 {
         use super::*;
-        gen_adapter_mock!(BootMockAdapter2V2, MOCK_ADAPTER_ID, "2.0.0", &[]);
+        gen_adapter_mock!(MockAdapterI2V2, MOCK_ADAPTER_ID, "2.0.0", &[]);
     }
 
     pub mod v0_1_0 {
         use super::*;
-        gen_adapter_mock!(BootMockAdapter2V0_1_0, MOCK_ADAPTER_ID, "0.1.0", &[]);
+        gen_adapter_mock!(MockAdapterI2V0_1_0, MOCK_ADAPTER_ID, "0.1.0", &[]);
     }
 }
 

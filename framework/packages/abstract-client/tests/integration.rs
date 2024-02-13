@@ -1,5 +1,5 @@
 use abstract_adapter::mock::{
-    BootMockAdapter, MockExecMsg as BootMockExecMsg, MockInitMsg as BootMockInitMsg,
+    MockAdapterI, MockExecMsg as BootMockExecMsg, MockInitMsg as BootMockInitMsg,
     MockQueryMsg as BootMockQueryMsg, TEST_METADATA,
 };
 use abstract_app::{
@@ -344,10 +344,10 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let publisher_manager = publisher.account().manager()?;
     let publisher_proxy = publisher.account().proxy()?;
 
-    publisher.publish_adapter::<BootMockInitMsg, BootMockAdapter<_>>(BootMockInitMsg {})?;
+    publisher.publish_adapter::<BootMockInitMsg, MockAdapterI<_>>(BootMockInitMsg {})?;
 
     // Install adapter on sub-account
-    let my_adapter: Application<_, BootMockAdapter<_>> = publisher.account().install_adapter(&[])?;
+    let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
 
     my_adapter
         .call_as(&publisher_manager)
@@ -376,7 +376,7 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
         .publisher_builder(Namespace::new("tester")?)
         .install_on_sub_account(false)
         .build()?;
-    let my_adapter: Application<_, BootMockAdapter<_>> = publisher.account().install_adapter(&[])?;
+    let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
 
     my_adapter
         .call_as(&publisher_manager)
@@ -866,7 +866,7 @@ fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
         .build()?;
 
     let adapter = publisher
-        .publish_adapter::<BootMockInitMsg, BootMockAdapter<MockBech32>>(BootMockInitMsg {})?;
+        .publish_adapter::<BootMockInitMsg, MockAdapterI<MockBech32>>(BootMockInitMsg {})?;
     let module_data: ModuleDataResponse =
         adapter.query(&abstract_core::adapter::QueryMsg::Base(
             abstract_core::adapter::BaseQueryMsg::ModuleData {},
@@ -967,25 +967,25 @@ fn install_adapter_on_account_builder() -> anyhow::Result<()> {
         .build()?;
 
     // Publish adapter
-    let adapter: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+    let adapter: MockAdapterI<_> = publisher.publish_adapter(BootMockInitMsg {})?;
 
     let account = client
         .account_builder()
-        .install_adapter::<BootMockAdapter<MockBech32>>()?
+        .install_adapter::<MockAdapterI<MockBech32>>()?
         .build()?;
     let modules = account.module_infos()?.module_infos;
     let adapter_info = modules
         .iter()
-        .find(|module| module.id == BootMockAdapter::<MockBech32>::module_id())
+        .find(|module| module.id == MockAdapterI::<MockBech32>::module_id())
         .expect("Adapter not found");
 
     assert_eq!(
         *adapter_info,
         ManagerModuleInfo {
-            id: BootMockAdapter::<MockBech32>::module_id().to_owned(),
+            id: MockAdapterI::<MockBech32>::module_id().to_owned(),
             version: cw2::ContractVersion {
-                contract: BootMockAdapter::<MockBech32>::module_id().to_owned(),
-                version: BootMockAdapter::<MockBech32>::module_version().to_owned()
+                contract: MockAdapterI::<MockBech32>::module_id().to_owned(),
+                version: MockAdapterI::<MockBech32>::module_version().to_owned()
             },
             address: adapter.address()?,
         }
@@ -1047,13 +1047,13 @@ fn auto_funds_work() -> anyhow::Result<()> {
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
-    let _: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+    let _: MockAdapterI<_> = publisher.publish_adapter(BootMockInitMsg {})?;
 
     client.version_control().update_module_configuration(
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
         abstract_core::version_control::UpdateModule::Versioned {
-            version: BootMockAdapter::<Mock>::module_version().to_owned(),
+            version: MockAdapterI::<Mock>::module_version().to_owned(),
             metadata: None,
             monetization: Some(abstract_core::objects::module::Monetization::InstallFee(
                 FixedFee::new(&Coin {
@@ -1069,7 +1069,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     // User can guard his funds
     account_builder
         .name("bob")
-        .install_adapter::<BootMockAdapter<Mock>>()?
+        .install_adapter::<MockAdapterI<Mock>>()?
         .auto_fund_assert(|c| c[0].amount < Uint128::new(50));
     let e = account_builder.build().unwrap_err();
     assert!(matches!(e, AbstractClientError::AutoFundsAssertFailed(_)));

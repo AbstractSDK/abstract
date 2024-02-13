@@ -1,5 +1,4 @@
 pub mod abstract_ibc;
-mod app_ibc;
 
 use cw_orch::{
     daemon::ChainInfo,
