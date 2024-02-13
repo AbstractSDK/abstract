@@ -98,7 +98,12 @@ pub enum ExecuteMsg {
         description: Option<String>,
         // Account link
         link: Option<String>,
-        /// Account id on the remote chain. Will create a new id (by incrementing), if not specified
+        /// Indicates the AccountId for the new account.
+        ///
+        /// If `None`, will create a new local account without asserting account-id.
+        ///
+        /// When [`AccountTrace::Local`]: Signals the expected Account Id. The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction. \
+        /// When [`AccountTrace::Remote`]: Account id on the remote chain.
         account_id: Option<AccountId>,
         // optionally specify a namespace for the account
         namespace: Option<String>,

@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Installing apps and adapters for `AbstractClient` Account builder
 - Attaching funds to account creation on `AbstractClient` Account builder
 - Added `unchecked_account_id` method on version control.
+- Ability to provide expected local AccountId
+- Reinstallation of the same version of an app is now disabled
 
 ### Changed
 
