@@ -167,8 +167,8 @@ fn subaccount_app_ownership() -> AResult {
 
 #[test]
 fn cant_reinstall_app_after_uninstall() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
