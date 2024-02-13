@@ -9,6 +9,7 @@ use abstract_core::{
 };
 use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
+use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, to_json_binary, Addr, Coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
@@ -161,5 +162,31 @@ fn subaccount_app_ownership() -> AResult {
         &mock::ExecuteMsg::Module(MockExecMsg::DoSomethingAdmin {}),
         None,
     )?;
+    Ok(())
+}
+
+#[test]
+fn cant_reinstall_app_after_uninstall() -> AResult {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = create_default_account(&deployment.account_factory)?;
+
+    deployment
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
+
+    let app = MockApp::new_test(chain.clone());
+    app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
+    account.install_app(&app, &MockInitMsg {}, None)?;
+
+    // Reinstall
+    account.manager.uninstall_module(APP_ID.to_owned())?;
+    let Err(AbstractInterfaceError::Orch(err)) = account.install_app(&app, &MockInitMsg {}, None)
+    else {
+        panic!("Expected error");
+    };
+    let manager_err: ManagerError = err.downcast().unwrap();
+    assert_eq!(manager_err, ManagerError::AppReinstall {});
     Ok(())
 }

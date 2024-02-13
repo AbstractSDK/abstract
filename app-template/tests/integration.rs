@@ -21,9 +21,9 @@ use cosmwasm_std::{coins, Addr};
 fn setup(
     count: i32,
 ) -> anyhow::Result<(AbstractClient<Mock>, Application<Mock, AppInterface<Mock>>)> {
-    // Create a sender
-    let mock = Mock::new("mock");
-    let sender = mock.create_account("sender");
+    // Create a sender and mock env
+    let mock = Mock::new("sender");
+    let sender = mock.sender();
     let namespace = Namespace::from_id(APP_ID)?;
 
     // You can set up Abstract with a builder.
