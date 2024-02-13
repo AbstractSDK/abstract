@@ -42,10 +42,10 @@ pub mod mock_test {
     use abstract_core::{
         ibc_client::QueryMsgFns, ibc_host::QueryMsgFns as _, objects::chain_name::ChainName,
     };
-    use cosmwasm_std::Addr;
 
     use super::*;
     use crate::{JUNO, STARGAZE};
+    use cw_orch::interchain::MockBech32InterchainEnv;
 
     /// This allows env_logger to start properly for tests
     /// The logs will be printed only if the test fails !
@@ -56,8 +56,8 @@ pub mod mock_test {
     #[test]
     fn ibc_setup() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stars")]);
 
         // We just verified all steps pass
         let (origin_abstr, remote_abstr) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
