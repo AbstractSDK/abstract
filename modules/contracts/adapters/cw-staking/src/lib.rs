@@ -24,15 +24,11 @@ pub mod interface {
         adapter,
         objects::{AnsAsset, AssetEntry},
     };
-    use abstract_interface::{
-        AbstractAccount, AbstractInterfaceError, AdapterDeployer, RegisteredModule,
-    };
-    use abstract_sdk::{base::Handler, features::ModuleIdentification as _};
+    use abstract_interface::{AbstractAccount, AbstractInterfaceError, AdapterDeployer};
     use cosmwasm_std::{Addr, Empty};
     use cw_orch::{build::BuildPostfix, contract::Contract, interface, prelude::*};
 
     use crate::{
-        contract::CW_STAKING_ADAPTER,
         msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg},
         CW_STAKING_ADAPTER_ID,
     };
@@ -58,24 +54,6 @@ pub mod interface {
                     BuildPostfix::<Chain>::ChainName(self.get_chain()),
                 )
                 .unwrap()
-        }
-    }
-
-    impl<Chain: CwEnv> RegisteredModule for CwStakingAdapter<Chain> {
-        type InitMsg = <crate::contract::CwStakingAdapter as Handler>::CustomInitMsg;
-
-        fn module_id<'a>() -> &'a str {
-            CW_STAKING_ADAPTER.module_id()
-        }
-
-        fn module_version<'a>() -> &'a str {
-            CW_STAKING_ADAPTER.version()
-        }
-    }
-
-    impl<Chain: CwEnv> From<Contract<Chain>> for CwStakingAdapter<Chain> {
-        fn from(contract: Contract<Chain>) -> Self {
-            Self(contract)
         }
     }
 
