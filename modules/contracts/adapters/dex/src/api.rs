@@ -528,4 +528,182 @@ mod test {
 
         assert_that!(actual).is_equal_to(expected);
     }
+
+    mod raw {
+        use abstract_core::objects::pool_id::PoolAddressBase;
+
+        use super::*;
+
+        pub const POOL: u64 = 1278734;
+
+        #[test]
+        fn swap_msg() {
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_testing::mock_querier();
+            let stub = MockModule::new();
+            let dex = stub
+                .dex(deps.as_ref(), "junoswap".into())
+                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+
+            let dex_name = "junoswap".to_string();
+            let offer_asset = Asset::native("ujuno", 100_000u128);
+            let ask_asset = AssetInfo::native("uusd");
+            let max_spread = Some(Decimal::percent(1));
+            let belief_price = Some(Decimal::percent(2));
+            let pool = PoolAddressBase::Id(POOL);
+
+            let expected = expected_request_with_test_proxy(DexExecuteMsg::RawAction {
+                dex: dex_name,
+                action: DexRawAction::Swap {
+                    offer_asset: offer_asset.clone().into(),
+                    ask_asset: ask_asset.clone().into(),
+                    max_spread,
+                    belief_price,
+                    pool: pool.clone().into(),
+                },
+            });
+
+            let actual = dex.swap(offer_asset, ask_asset, max_spread, belief_price, pool);
+
+            assert_that!(actual).is_ok();
+
+            let actual = match actual.unwrap() {
+                CosmosMsg::Wasm(msg) => msg,
+                _ => panic!("expected wasm msg"),
+            };
+            let expected = wasm_execute(
+                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                &expected,
+                vec![],
+            )
+            .unwrap();
+
+            assert_that!(actual).is_equal_to(expected);
+        }
+
+        #[test]
+        fn provide_liquidity_msg() {
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_testing::mock_querier();
+            let stub = MockModule::new();
+            let dex_name = "junoswap".to_string();
+
+            let dex = stub
+                .dex(deps.as_ref(), dex_name.clone())
+                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+
+            let assets = vec![Asset::native("taco", 1000u128)];
+            let max_spread = Some(Decimal::percent(1));
+            let pool = PoolAddressBase::Id(POOL);
+
+            let expected = expected_request_with_test_proxy(DexExecuteMsg::RawAction {
+                dex: dex_name,
+                action: DexRawAction::ProvideLiquidity {
+                    assets: assets.clone().into_iter().map(Into::into).collect(),
+                    max_spread,
+                    pool: pool.clone().into(),
+                },
+            });
+
+            let actual = dex.provide_liquidity(assets, max_spread, pool);
+
+            assert_that!(actual).is_ok();
+
+            let actual = match actual.unwrap() {
+                CosmosMsg::Wasm(msg) => msg,
+                _ => panic!("expected wasm msg"),
+            };
+            let expected = wasm_execute(
+                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                &expected,
+                vec![],
+            )
+            .unwrap();
+
+            assert_that!(actual).is_equal_to(expected);
+        }
+
+        #[test]
+        fn provide_liquidity_symmetric_msg() {
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_testing::mock_querier();
+            let stub = MockModule::new();
+            let dex_name = "junoswap".to_string();
+
+            let dex = stub
+                .dex(deps.as_ref(), dex_name.clone())
+                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+
+            let offer = Asset::native("taco", 1000u128);
+            let paired = vec![AssetInfo::native("bell")];
+            let _max_spread = Some(Decimal::percent(1));
+            let pool = PoolAddressBase::Id(POOL);
+
+            let expected = expected_request_with_test_proxy(DexExecuteMsg::RawAction {
+                dex: dex_name,
+                action: DexRawAction::ProvideLiquiditySymmetric {
+                    offer_asset: offer.clone().into(),
+                    paired_assets: paired.clone().into_iter().map(Into::into).collect(),
+                    pool: pool.clone().into(),
+                },
+            });
+
+            let actual = dex.provide_liquidity_symmetric(offer, paired, pool);
+
+            assert_that!(actual).is_ok();
+
+            let actual = match actual.unwrap() {
+                CosmosMsg::Wasm(msg) => msg,
+                _ => panic!("expected wasm msg"),
+            };
+            let expected = wasm_execute(
+                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                &expected,
+                vec![],
+            )
+            .unwrap();
+
+            assert_that!(actual).is_equal_to(expected);
+        }
+
+        #[test]
+        fn withdraw_liquidity_msg() {
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_testing::mock_querier();
+            let stub = MockModule::new();
+            let dex_name = "junoswap".to_string();
+
+            let dex = stub
+                .dex(deps.as_ref(), dex_name.clone())
+                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+
+            let lp_token = Asset::native("taco", 1000u128);
+            let pool = PoolAddressBase::Id(POOL);
+
+            let expected = expected_request_with_test_proxy(DexExecuteMsg::RawAction {
+                dex: dex_name,
+                action: DexRawAction::WithdrawLiquidity {
+                    lp_token: lp_token.clone().into(),
+                    pool: pool.clone().into(),
+                },
+            });
+
+            let actual = dex.withdraw_liquidity(lp_token, pool);
+
+            assert_that!(actual).is_ok();
+
+            let actual = match actual.unwrap() {
+                CosmosMsg::Wasm(msg) => msg,
+                _ => panic!("expected wasm msg"),
+            };
+            let expected = wasm_execute(
+                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                &expected,
+                vec![],
+            )
+            .unwrap();
+
+            assert_that!(actual).is_equal_to(expected);
+        }
+    }
 }
