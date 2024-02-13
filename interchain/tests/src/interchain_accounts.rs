@@ -71,6 +71,8 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 
 #[cfg(test)]
 mod test {
+    use cw_orch::interchain::MockBech32InterchainEnv;
+
     use abstract_app::mock::{
         interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockInitMsg,
         MockQueryMsgFns, ReceivedIbcCallbackStatus,
@@ -114,8 +116,8 @@ mod test {
     #[test]
     fn ibc_account_action() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
         // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -178,8 +180,8 @@ mod test {
     #[test]
     fn ibc_callback() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
         // We just verified all steps pass
         let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -272,7 +274,7 @@ mod test {
         Ok(())
     }
 
-    fn assert_callback_status(app: &MockAppWithDepI<Mock>, status: bool) -> AnyResult<()> {
+    fn assert_callback_status(app: &MockAppWithDepI<MockBech32>, status: bool) -> AnyResult<()> {
         let get_received_ibc_callback_status_res: ReceivedIbcCallbackStatus =
             app.get_received_ibc_callback_status()?;
 
@@ -286,11 +288,10 @@ mod test {
     #[test]
     fn test_multi_hop_account_creation() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![
-            (JUNO, &sender),
-            (STARGAZE, &sender),
-            (OSMOSIS, &sender),
+        let mock_interchain = MockBech32InterchainEnv::new(vec![
+            (JUNO, "juno"),
+            (STARGAZE, "stargaze"),
+            (OSMOSIS, "osmosis"),
         ]);
 
         // SETUP
@@ -345,7 +346,7 @@ mod test {
         let account_name = TEST_ACCOUNT_NAME.to_string();
         let description = Some(TEST_ACCOUNT_DESCRIPTION.to_string());
         let link = Some(TEST_ACCOUNT_LINK.to_string());
-        let origin_account: AbstractAccount<Mock> =
+        let origin_account: AbstractAccount<MockBech32> =
             abstr_origin.account_factory.create_new_account(
                 AccountDetails {
                     name: account_name.clone(),
@@ -434,8 +435,8 @@ mod test {
     fn test_create_ibc_account() -> AnyResult<()> {
         logger_test_init();
 
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
         // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -469,7 +470,7 @@ mod test {
                     name: account_name,
                     governance_details:
                         abstract_core::objects::gov_type::GovernanceDetails::External {
-                            governance_address: abstr_origin.ibc.host.address()?,
+                            governance_address: abstr_remote.ibc.host.address()?,
                             governance_type: "abstract-ibc".to_string()
                         },
                     chain_id: STARGAZE.to_string(),
@@ -536,24 +537,30 @@ mod test {
 
     #[test]
     fn test_cannot_create_remote_account_when_caller_is_not_host() -> AnyResult<()> {
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+        let stargaze = mock_interchain.chain(STARGAZE)?;
 
         let (_abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        let res = try_create_remote_account(&abstr_remote, &Addr::unchecked("user"));
-        assert!(res.is_err());
+        try_create_remote_account(&abstr_remote, &stargaze.create_account("user")).unwrap_err();
 
-        let res = try_create_remote_account(&abstr_remote, &abstr_remote.ibc.host.address()?);
-        assert!(res.is_ok());
+        try_create_remote_account(&abstr_remote, &abstr_remote.ibc.host.address()?)?;
 
         Ok(())
     }
 
-    fn try_create_remote_account(abstr: &Abstract<Mock>, sender: &Addr) -> AnyResult<AppResponse> {
+    fn try_create_remote_account(
+        abstr: &Abstract<MockBech32>,
+        sender: &Addr,
+    ) -> AnyResult<AppResponse> {
         Ok(abstr.account_factory.call_as(sender).create_account(
             GovernanceDetails::Monarchy {
-                monarch: String::from("user"),
+                monarch: abstr
+                    .account_factory
+                    .get_chain()
+                    .create_account("user")
+                    .to_string(),
             },
             vec![],
             String::from("name"),
@@ -572,8 +579,8 @@ mod test {
     #[test]
     fn test_cannot_call_remote_manager_from_non_host_account() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
         // We just verified all steps pass
         let (abstr_juno, abstr_stargaze) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -588,11 +595,14 @@ mod test {
         let new_link = String::from("https://abstract.money");
 
         // Cannot call with sender that is not host.
-        let result = remote_account.manager.call_as(&sender).update_info(
-            Some(new_description.clone()),
-            Some(new_link.clone()),
-            Some(new_name.clone()),
-        );
+        let result = remote_account
+            .manager
+            .call_as(&mock_interchain.chain(STARGAZE)?.sender())
+            .update_info(
+                Some(new_description.clone()),
+                Some(new_link.clone()),
+                Some(new_name.clone()),
+            );
 
         assert!(result.is_err());
 
@@ -610,8 +620,8 @@ mod test {
     #[test]
     fn test_cannot_call_ibc_host_directly_with_remove_chain_proxy() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
         // We just verified all steps pass
         let (_abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -630,8 +640,8 @@ mod test {
     #[test]
     fn test_cannot_call_ibc_host_directly_with_register_chain_proxy() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
         // We just verified all steps pass
         let (_abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -652,8 +662,8 @@ mod test {
     #[test]
     fn test_cannot_call_ibc_host_directly_with_dispatch_action() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
         // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -684,8 +694,8 @@ mod test {
     #[test]
     fn test_cannot_call_ibc_host_directly_with_internal_action() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
         // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -717,8 +727,8 @@ mod test {
     #[test]
     fn test_cannot_call_ibc_host_directly_with_helper_action() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
         // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
@@ -743,8 +753,8 @@ mod test {
     #[test]
     fn test_send_all_back() -> AnyResult<()> {
         logger_test_init();
-        let sender = Addr::unchecked("sender");
-        let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
         let origin_denom = "ujuno";
         let remote_denom: &str = &format!("ibc/channel-0/{}", origin_denom);
 
