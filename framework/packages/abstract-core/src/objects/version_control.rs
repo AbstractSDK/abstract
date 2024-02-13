@@ -16,9 +16,6 @@ use crate::version_control::{
 
 #[derive(Error, Debug, PartialEq)]
 pub enum VersionControlError {
-    #[error(transparent)]
-    StdError(#[from] cosmwasm_std::StdError),
-
     // module not found in version registry
     #[error("Module {module} not found in version registry {registry_addr}.")]
     ModuleNotFound { module: String, registry_addr: Addr },
@@ -45,6 +42,13 @@ pub enum VersionControlError {
     // caller not Proxy error
     #[error("Address {0} is not the Proxy of Account {1}.")]
     NotProxy(Addr, AccountId),
+
+    // Query method failed
+    #[error("Query during '{method_name}' failed: {error}")]
+    QueryFailed {
+        method_name: String,
+        error: cosmwasm_std::StdError,
+    },
 }
 
 pub type VersionControlResult<T> = Result<T, VersionControlError>;
@@ -67,13 +71,19 @@ impl VersionControlContract {
     // Module registry
 
     /// Raw query for a module reference
+    #[::function_name::named]
     pub fn query_module_reference_raw(
         &self,
         module_info: &ModuleInfo,
         querier: &QuerierWrapper,
     ) -> VersionControlResult<ModuleReference> {
-        let module_reference =
-            REGISTERED_MODULES.query(querier, self.address.clone(), module_info)?;
+        let module_reference = REGISTERED_MODULES
+            .query(querier, self.address.clone(), module_info)
+            .map_err(|error| VersionControlError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?;
+
         module_reference.ok_or_else(|| VersionControlError::ModuleNotFound {
             module: module_info.to_string(),
             registry_addr: self.address.clone(),
@@ -105,46 +115,67 @@ impl VersionControlContract {
     }
 
     /// Smart query for a modules and its configurations
+    #[::function_name::named]
     pub fn query_modules_configs(
         &self,
         infos: Vec<ModuleInfo>,
         querier: &QuerierWrapper,
     ) -> VersionControlResult<Vec<ModuleResponse>> {
-        let ModulesResponse { modules } =
-            querier.query_wasm_smart(self.address.to_string(), &QueryMsg::Modules { infos })?;
+        let ModulesResponse { modules } = querier
+            .query_wasm_smart(self.address.to_string(), &QueryMsg::Modules { infos })
+            .map_err(|error| VersionControlError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?;
         Ok(modules)
     }
 
     /// Queries the account that owns the namespace
     /// Is also returns the base modules of that account (AccountBase)
+    #[::function_name::named]
     pub fn query_namespace(
         &self,
         namespace: Namespace,
         querier: &QuerierWrapper,
     ) -> VersionControlResult<NamespaceResponse> {
         let namespace_response: NamespaceResponse = querier
-            .query_wasm_smart(self.address.to_string(), &QueryMsg::Namespace { namespace })?;
+            .query_wasm_smart(self.address.to_string(), &QueryMsg::Namespace { namespace })
+            .map_err(|error| VersionControlError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?;
         Ok(namespace_response)
     }
 
     /// Queries the namespaces owned by accounts
+    #[::function_name::named]
     pub fn query_namespaces(
         &self,
         accounts: Vec<AccountId>,
         querier: &QuerierWrapper,
     ) -> VersionControlResult<NamespacesResponse> {
         let namespaces_response: NamespacesResponse = querier
-            .query_wasm_smart(self.address.to_string(), &QueryMsg::Namespaces { accounts })?;
+            .query_wasm_smart(self.address.to_string(), &QueryMsg::Namespaces { accounts })
+            .map_err(|error| VersionControlError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?;
         Ok(namespaces_response)
     }
 
     /// Queries the module info of the standalone code id
+    #[::function_name::named]
     pub fn query_standalone_info_raw(
         &self,
         code_id: u64,
         querier: &QuerierWrapper,
     ) -> VersionControlResult<ModuleInfo> {
-        let module_info = STANDALONE_INFOS.query(querier, self.address.clone(), code_id)?;
+        let module_info = STANDALONE_INFOS
+            .query(querier, self.address.clone(), code_id)
+            .map_err(|error| VersionControlError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?;
         module_info.ok_or_else(|| VersionControlError::StandaloneNotFound {
             code_id,
             registry_addr: self.address.clone(),
@@ -167,12 +198,18 @@ impl VersionControlContract {
     }
 
     /// Get the account base for a given account id.
+    #[::function_name::named]
     pub fn account_base(
         &self,
         account_id: &AccountId,
         querier: &QuerierWrapper,
     ) -> VersionControlResult<AccountBase> {
-        let maybe_account = ACCOUNT_ADDRESSES.query(querier, self.address.clone(), account_id)?;
+        let maybe_account = ACCOUNT_ADDRESSES
+            .query(querier, self.address.clone(), account_id)
+            .map_err(|error| VersionControlError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?;
         maybe_account.ok_or_else(|| VersionControlError::UnknownAccountId {
             account_id: account_id.clone(),
             registry_addr: self.address.clone(),
@@ -180,11 +217,17 @@ impl VersionControlContract {
     }
 
     /// Get namespace registration fee
+    #[::function_name::named]
     pub fn namespace_registration_fee(
         &self,
         querier: &QuerierWrapper,
     ) -> VersionControlResult<Option<cosmwasm_std::Coin>> {
-        let config = CONFIG.query(querier, self.address.clone())?;
+        let config = CONFIG
+            .query(querier, self.address.clone())
+            .map_err(|error| VersionControlError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?;
         Ok(config.namespace_registration_fee)
     }
 

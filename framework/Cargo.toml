@@ -93,6 +93,10 @@ abstract-staking-standard = { path = "packages/standards/staking" }
 
 abstract-integration-tests = { path = "packages/abstract-integration-tests" }
 
+## Stringify function names
+function_name = { version = "0.3.0" }
+
+
 ## Testing
 rstest = "0.17.0"
 speculoos = "0.11.0"

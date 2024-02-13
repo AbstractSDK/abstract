@@ -33,6 +33,7 @@ cw-ownable = { workspace = true }
 polytone = { workspace = true }
 sha256 = { version = "1", default-features = false }
 cw-clearable = { workspace = true }
+function_name = { workspace = true }
 
 [dev-dependencies]
 speculoos = { workspace = true }

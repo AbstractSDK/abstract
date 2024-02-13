@@ -146,7 +146,9 @@ pub(crate) fn install_modules_internal(
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
-    let modules = version_control.query_modules_configs(infos, &deps.querier)?;
+    let modules = version_control
+        .query_modules_configs(infos, &deps.querier)
+        .map_err(|error| ManagerError::QueryModulesFailed { error })?;
 
     let mut install_context = Vec::with_capacity(modules.len());
     let mut to_add = Vec::with_capacity(modules.len());
