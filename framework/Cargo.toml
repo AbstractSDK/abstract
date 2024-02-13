@@ -112,4 +112,4 @@ incremental = false
 
 
 [patch.crates-io]
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "fix/mock-bech32" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "main" }
