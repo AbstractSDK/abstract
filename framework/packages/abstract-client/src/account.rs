@@ -22,13 +22,18 @@
 use std::fmt::{Debug, Display};
 
 use abstract_core::{
+    ibc_client,
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        gov_type::GovernanceDetails, namespace::Namespace, nested_admin::MAX_ADMIN_RECURSION,
-        validation::verifiers, AccountId, AssetEntry,
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion},
+        namespace::Namespace,
+        nested_admin::MAX_ADMIN_RECURSION,
+        validation::verifiers,
+        AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
     PROXY,
@@ -446,6 +451,29 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
+    /// Upgrades the account to the latest version
+    ///
+    /// Migrates manager and proxy contracts to their respective new versions.
+    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<()> {
+        self.abstr_account.manager.upgrade(vec![
+            (
+                ModuleInfo::from_id(abstract_core::registry::MANAGER, version.clone())?,
+                Some(
+                    to_json_binary(&abstract_core::manager::MigrateMsg {})
+                        .map_err(Into::<CwOrchError>::into)?,
+                ),
+            ),
+            (
+                ModuleInfo::from_id(abstract_core::registry::PROXY, version)?,
+                Some(
+                    to_json_binary(&abstract_core::proxy::MigrateMsg {})
+                        .map_err(Into::<CwOrchError>::into)?,
+                ),
+            ),
+        ])?;
+        Ok(())
+    }
+
     /// Returns owner of the account
     pub fn ownership(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
         self.abstr_account.manager.ownership().map_err(Into::into)
@@ -498,6 +526,41 @@ impl<Chain: CwEnv> Account<Chain> {
                     .map_err(AbstractInterfaceError::from)?,
                 },
                 Some(funds),
+            )
+            .map_err(Into::into)
+    }
+
+    /// Set IBC status on an Account.
+    pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<()> {
+        self.abstr_account.manager.update_settings(Some(enabled))?;
+
+        Ok(())
+    }
+
+    /// Executes an ibc action on the proxy of the account
+    pub fn create_ibc_account(
+        &self,
+        host_chain: impl Into<String>,
+        base_asset: Option<AssetEntry>,
+        namespace: Option<String>,
+        install_modules: Vec<ModuleInstallConfig>,
+    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+        self.abstr_account
+            .manager
+            .execute(
+                &abstract_core::manager::ExecuteMsg::ExecOnModule {
+                    module_id: PROXY.to_owned(),
+                    exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
+                        msgs: vec![ibc_client::ExecuteMsg::Register {
+                            host_chain: host_chain.into(),
+                            base_asset,
+                            namespace,
+                            install_modules,
+                        }],
+                    })
+                    .map_err(AbstractInterfaceError::from)?,
+                },
+                None,
             )
             .map_err(Into::into)
     }
