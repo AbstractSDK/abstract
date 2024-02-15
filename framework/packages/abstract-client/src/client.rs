@@ -29,7 +29,9 @@
 //! ```
 
 use abstract_core::objects::{namespace::Namespace, AccountId};
-use abstract_interface::{Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, VersionControl};
+use abstract_interface::{
+    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, VersionControl,
+};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Empty, Uint128};
 use cw_orch::{
     contract::interface_traits::ContractInstance, deploy::Deploy, prelude::CwEnv,
