@@ -167,6 +167,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     base_asset,
                     namespace,
                     install_modules,
+                    account_id,
                 } => create_sub_account(
                     deps,
                     info,
@@ -177,6 +178,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     base_asset,
                     namespace,
                     install_modules,
+                    account_id,
                 ),
                 ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {

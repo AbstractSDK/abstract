@@ -84,6 +84,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
+    expected_local_account_id: Option<u32>,
 }
 
 /// Creation funds
@@ -108,6 +109,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: true,
+            expected_local_account_id: None,
         }
     }
 
@@ -231,6 +233,13 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         Ok(self)
     }
 
+    /// Assign expected local account_id on creation.
+    /// The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
+    pub fn account_id(&mut self, local_account_id: u32) -> &mut Self {
+        self.expected_local_account_id = Some(local_account_id);
+        self
+    }
+
     /// Builds the [`Account`].
     pub fn build(&self) -> AbstractClientResult<Account<Chain>> {
         if self.fetch_if_namespace_claimed {
@@ -306,6 +315,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: self.namespace.as_ref().map(ToString::to_string),
             base_asset: self.base_asset.clone(),
             install_modules,
+            account_id: self.expected_local_account_id,
         };
         let abstract_account = if let Some(owner_account) = self.owner_account {
             owner_account
@@ -677,6 +687,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let sub_account_response = self.abstr_account.manager.create_sub_account(
             modules,
             "Sub Account".to_owned(),
+            None,
             None,
             None,
             None,
