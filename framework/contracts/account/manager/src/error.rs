@@ -116,7 +116,7 @@ pub enum ManagerError {
     #[error("Can't create account with Renounced governance")]
     InitRenounced {},
 
-    #[error("Reinstalls of app are not allowed")]
+    #[error("Reinstalls of same version of app are not allowed")]
     AppReinstall {},
 
     #[error("Failed to query modules to install: {error}")]
