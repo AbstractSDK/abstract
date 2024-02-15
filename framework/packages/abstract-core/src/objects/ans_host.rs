@@ -16,9 +16,6 @@ use crate::{
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AnsHostError {
-    #[error(transparent)]
-    StdError(#[from] cosmwasm_std::StdError),
-
     // contract not found
     #[error("Contract {contract} not found in ans_host {ans_host}.")]
     ContractNotFound {
@@ -51,6 +48,13 @@ pub enum AnsHostError {
     // pool metadata not found
     #[error("Pool metadata for pool {pool} not found in ans_host {ans_host}.")]
     PoolMetadataNotFound { pool: UniquePoolId, ans_host: Addr },
+
+    // Query method failed
+    #[error("Query during '{method_name}' failed: {error}")]
+    QueryFailed {
+        method_name: String,
+        error: cosmwasm_std::StdError,
+    },
 }
 
 pub type AnsHostResult<T> = Result<T, AnsHostError>;
@@ -84,13 +88,18 @@ impl AnsHost {
     }
 
     /// Raw query of a single contract Addr
+    #[function_name::named]
     pub fn query_contract(
         &self,
         querier: &QuerierWrapper,
         contract: &ContractEntry,
     ) -> AnsHostResult<Addr> {
         let result: Addr = CONTRACT_ADDRESSES
-            .query(querier, self.address.clone(), contract)?
+            .query(querier, self.address.clone(), contract)
+            .map_err(|error| AnsHostError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?
             .ok_or_else(|| AnsHostError::ContractNotFound {
                 contract: contract.clone(),
                 ans_host: self.address.clone(),
@@ -114,13 +123,18 @@ impl AnsHost {
     }
 
     /// Raw query of a single AssetInfo
+    #[function_name::named]
     pub fn query_asset(
         &self,
         querier: &QuerierWrapper,
         asset: &AssetEntry,
     ) -> AnsHostResult<AssetInfo> {
         let result = ASSET_ADDRESSES
-            .query(querier, self.address.clone(), asset)?
+            .query(querier, self.address.clone(), asset)
+            .map_err(|error| AnsHostError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?
             .ok_or_else(|| AnsHostError::AssetNotFound {
                 asset: asset.clone(),
                 ans_host: self.address.clone(),
@@ -145,13 +159,18 @@ impl AnsHost {
     }
 
     /// Raw query of a single AssetEntry
+    #[function_name::named]
     pub fn query_asset_reverse(
         &self,
         querier: &QuerierWrapper,
         asset: &AssetInfo,
     ) -> AnsHostResult<AssetEntry> {
         let result = REV_ASSET_ADDRESSES
-            .query(querier, self.address.clone(), asset)?
+            .query(querier, self.address.clone(), asset)
+            .map_err(|error| AnsHostError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?
             .ok_or_else(|| AnsHostError::CwAssetNotFound {
                 asset: asset.clone(),
                 ans_host: self.address.clone(),
@@ -160,13 +179,18 @@ impl AnsHost {
     }
 
     /// Raw query of a single channel Addr
+    #[function_name::named]
     pub fn query_channel(
         &self,
         querier: &QuerierWrapper,
         channel: &ChannelEntry,
     ) -> AnsHostResult<String> {
         let result: String = CHANNELS
-            .query(querier, self.address.clone(), channel)?
+            .query(querier, self.address.clone(), channel)
+            .map_err(|error| AnsHostError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?
             .ok_or_else(|| AnsHostError::ChannelNotFound {
                 channel: channel.clone(),
                 ans_host: self.address.clone(),
@@ -176,13 +200,18 @@ impl AnsHost {
     }
 
     /// Raw query of a single asset pairing
+    #[function_name::named]
     pub fn query_asset_pairing(
         &self,
         querier: &QuerierWrapper,
         dex_asset_pairing: &DexAssetPairing,
     ) -> AnsHostResult<Vec<PoolReference>> {
         let result: Vec<PoolReference> = ASSET_PAIRINGS
-            .query(querier, self.address.clone(), dex_asset_pairing)?
+            .query(querier, self.address.clone(), dex_asset_pairing)
+            .map_err(|error| AnsHostError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?
             .ok_or_else(|| AnsHostError::DexPairingNotFound {
                 pairing: dex_asset_pairing.clone(),
                 ans_host: self.address.clone(),
@@ -190,13 +219,18 @@ impl AnsHost {
         Ok(result)
     }
 
+    #[function_name::named]
     pub fn query_pool_metadata(
         &self,
         querier: &QuerierWrapper,
         pool_id: UniquePoolId,
     ) -> AnsHostResult<PoolMetadata> {
         let result: PoolMetadata = POOL_METADATA
-            .query(querier, self.address.clone(), pool_id)?
+            .query(querier, self.address.clone(), pool_id)
+            .map_err(|error| AnsHostError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?
             .ok_or_else(|| AnsHostError::PoolMetadataNotFound {
                 pool: pool_id,
                 ans_host: self.address.clone(),
@@ -204,11 +238,17 @@ impl AnsHost {
         Ok(result)
     }
 
+    #[function_name::named]
     pub fn query_registered_dexes(
         &self,
         querier: &QuerierWrapper,
     ) -> AnsHostResult<RegisteredDexesResponse> {
-        let dexes = REGISTERED_DEXES.query(querier, self.address.clone())?;
+        let dexes = REGISTERED_DEXES
+            .query(querier, self.address.clone())
+            .map_err(|error| AnsHostError::QueryFailed {
+                method_name: function_name!().to_owned(),
+                error,
+            })?;
         Ok(RegisteredDexesResponse { dexes })
     }
 }
