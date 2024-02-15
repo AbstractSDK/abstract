@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
   
 - Added a `.execute` method on the AuthZ API to execute `CosmosMsg` types on behalf of a granter.
+- Add IBC helpers to account client.
 - Abstract Client builder: register dexes on ANS
 - `.sub_accounts` method on `Account` for getting Abstract Client Sub Accounts
 - Publish adapter method of Abstract Client Publisher now returns Adapter object
@@ -17,6 +18,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Creating Sub Account from `AbstractClient` Account builder.
 - Installing apps and adapters for `AbstractClient` Account builder
 - Attaching funds to account creation on `AbstractClient` Account builder
+- Added `unchecked_account_id` method on version control.
+- Ability to provide expected local AccountId
+- Reinstallation of the same version of an app is now disabled
 
 ### Changed
 
@@ -26,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Added a validation on `account_id` method on version control.
 - Creating sub-account from account factory is restricted. Use Create Sub Account method of the manager instead
 
 ## [0.20.0] - 2024-01-24

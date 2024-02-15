@@ -38,11 +38,11 @@ expression: all_storage
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:manager-local-0":
   - - "\u0000\u0007modulesabstract:proxy"
-    - "\"v\\u0005 W$ÛÒyø<\\\\wÃ\\u0001\\u001Bµg)[3>)¼â\\u001A\\u0002&·ù\\\"m\""
+    - "\"¡lVë\\n»RiÂà×ÄN¾XÎMÂ\\u0004\\u0018Þng\\u000Bóq\\u001E<¤ª\""
   - - "\u0000\u0007modulesabstract:standalone1"
-    - "\"ôlÝ 9ç5ÌëHÂñÙpWj\\u0015}¶yÍåfØ¸;í\""
+    - "\"\\u0011]Qq)~~­\\u0005\\u000F\\u0001R:ñ\\u0016feRé2A¨¹â\\u0006\\rÉ\""
   - - "\u0000\u0007modulesabstract:standalone2"
-    - "\"\u007fæCÊ¼ï\\b{* \\u0002pÿðÓFÎâÆèN5ùfÁâ¬\\\\\\u0013¦\""
+    - "\"t(\\u0010dècÔY;ÿe5¾\\tµÓS7?x\\u0010Ë|3´5àr\""
   - - "\u0000{12}is_suspended"
     - "false"
   - - "\u0000{4}info"
@@ -56,7 +56,7 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:manager\",\"version\":\"0.20.0\"}"
   - - icontext
-    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":10}},\"\u007fæCÊ¼ï\\b{* \\u0002pÿðÓFÎâÆèN5ùfÁâ¬\\\\\\u0013¦\"]]"
+    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":10}},\"t(\\u0010dècÔY;ÿe5¾\\tµÓS7?x\\u0010Ë|3´5àr\"]]"
   - - ownership
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:module-factory":
@@ -68,13 +68,13 @@ expression: all_storage
     - "{\"owner\":\"owner\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:proxy-local-0":
   - - "\u0000{5}state"
-    - "{\"modules\":[\"D?Ê\\u0014¬å[#^,¡4\\r\\u000E\\r¡éÓ¯:5Z\\u000EÑüF%¾á\\b\",\"ôlÝ 9ç5ÌëHÂñÙpWj\\u0015}¶yÍåfØ¸;í\",\"\u007fæCÊ¼ï\\b{* \\u0002pÿðÓFÎâÆèN5ùfÁâ¬\\\\\\u0013¦\"]}"
+    - "{\"modules\":[\"âÝ,s?&>Y\\\\\\u0014·þ 44\\u0001\\u0014Dú~;t©Þ¾1FÛ\\u0002öü\",\"\\u0011]Qq)~~­\\u0005\\u000F\\u0001R:ñ\\u0016feRé2A¨¹â\\u0006\\rÉ\",\"t(\\u0010dècÔY;ÿe5¾\\tµÓS7?x\\u0010Ë|3´5àr\"]}"
   - - "\u0000{6}ans_host"
     - "{\"address\":\"contract0\"}"
   - - acc_id
     - "{\"trace\":\"local\",\"seq\":0}"
   - - admin
-    - "\"D?Ê\\u0014¬å[#^,¡4\\r\\u000E\\r¡éÓ¯:5Z\\u000EÑüF%¾á\\b\""
+    - "\"âÝ,s?&>Y\\\\\\u0014·þ 44\\u0001\\u0014Dú~;t©Þ¾1FÛ\\u0002öü\""
   - - contract_info
     - "{\"contract\":\"abstract:proxy\",\"version\":\"0.20.0\"}"
 "abstract:version-control":
@@ -97,7 +97,7 @@ expression: all_storage
   - - "\u0000\u0003lib\u0000\babstract\u0000\u000fversion-control0.20.0"
     - "{\"native\":\"contract1\"}"
   - - "\u0000\u0004accs\u0000\u0005local\u0000\u0000\u0000\u0000"
-    - "{\"manager\":\"D?Ê\\u0014¬å[#^,¡4\\r\\u000E\\r¡éÓ¯:5Z\\u000EÑüF%¾á\\b\",\"proxy\":\"v\\u0005 W$ÛÒyø<\\\\wÃ\\u0001\\u001Bµg)[3>)¼â\\u001A\\u0002&·ù\\\"m\"}"
+    - "{\"manager\":\"âÝ,s?&>Y\\\\\\u0014·þ 44\\u0001\\u0014Dú~;t©Þ¾1FÛ\\u0002öü\",\"proxy\":\"¡lVë\\n»RiÂà×ÄN¾XÎMÂ\\u0004\\u0018Þng\\u000Bóq\\u001E<¤ª\"}"
   - - "\u0000\u0004stli\u0000\u0000\u0000\u0000\u0000\u0000\u0000\t"
     - "{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}}"
   - - "\u0000\u0004stli\u0000\u0000\u0000\u0000\u0000\u0000\u0000\n"
