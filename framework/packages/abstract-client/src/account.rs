@@ -403,7 +403,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Install an application on the account.
     /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account. (default)
-    pub fn install_app<M: InstallConfig + From<Contract<Chain>>>(
+    pub fn install_app<M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
         funds: &[Coin],
@@ -417,7 +417,9 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Install an adapter on current account.
-    pub fn install_adapter<M: InstallConfig<InitMsg = Empty> + From<Contract<Chain>>>(
+    pub fn install_adapter<
+        M: ContractInstance<Chain> + InstallConfig<InitMsg = Empty> + From<Contract<Chain>>,
+    >(
         &self,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
@@ -434,7 +436,7 @@ impl<Chain: CwEnv> Account<Chain> {
     ///
     /// The returned [`Application`] is a wrapper around the sub-account and simplifies interaction with the App module.
     pub fn install_app_with_dependencies<
-        M: DependencyCreation + InstallConfig + From<Contract<Chain>>,
+        M: ContractInstance<Chain> + DependencyCreation + InstallConfig + From<Contract<Chain>>,
     >(
         &self,
         module_configuration: &M::InitMsg,
@@ -633,7 +635,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Retrieve installed application on account
     /// This can't retrieve sub-account installed applications.
-    pub fn application<M: RegisteredModule + From<Contract<Chain>>>(
+    pub fn application<M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>>(
         &self,
     ) -> AbstractClientResult<Application<Chain, M>> {
         let module = self.module()?;
@@ -643,7 +645,9 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Install module on current account
-    fn install_module_current_internal<M: RegisteredModule + From<Contract<Chain>>>(
+    fn install_module_current_internal<
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>,
+    >(
         &self,
         modules: Vec<ModuleInstallConfig>,
         funds: &[Coin],
@@ -666,7 +670,9 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Installs module on sub account
-    fn install_module_sub_internal<M: RegisteredModule + From<Contract<Chain>>>(
+    fn install_module_sub_internal<
+        M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>>,
+    >(
         &self,
         modules: Vec<ModuleInstallConfig>,
         funds: &[Coin],

@@ -32,7 +32,7 @@ impl<Chain: CwEnv, M> DerefMut for Application<Chain, M> {
     }
 }
 
-impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
+impl<Chain: CwEnv, M: RegisteredModule + ContractInstance<Chain>> Application<Chain, M> {
     /// Get module interface installed on provided account
     pub(crate) fn new(account: Account<Chain>, module: M) -> AbstractClientResult<Self> {
         // Sanity check: the module must be installed on the account
@@ -49,5 +49,16 @@ impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
     /// module of type `M`.
     pub fn module<T: RegisteredModule + From<Contract<Chain>>>(&self) -> AbstractClientResult<T> {
         self.account.module()
+    }
+
+    /// Authorize this application on installed adapters. Accepts Module Id's of adapters
+    pub fn authorize_on_adapters(&self, adapter_ids: &[&str]) -> AbstractClientResult<()> {
+        for module_id in adapter_ids {
+            self.account
+                .abstr_account
+                .manager
+                .update_adapter_authorized_addresses(module_id, vec![self.addr_str()?], vec![])?;
+        }
+        Ok(())
     }
 }
