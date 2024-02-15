@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Ability to provide expected local AccountId
 - Reinstallation of the same version of an app is now disabled
 - `.authorize_on_adapters` method on `Application` for authorizing application on adapters
+- Added method to assign expected `.account_id` for Abstract Client Account builder
+- `.next_local_account_id` for `AbstractClient` to query next local account sequence
 
 ### Changed
 
