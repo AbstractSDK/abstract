@@ -71,7 +71,7 @@ impl VersionControlContract {
     // Module registry
 
     /// Raw query for a module reference
-    #[::function_name::named]
+    #[function_name::named]
     pub fn query_module_reference_raw(
         &self,
         module_info: &ModuleInfo,
@@ -115,7 +115,7 @@ impl VersionControlContract {
     }
 
     /// Smart query for a modules and its configurations
-    #[::function_name::named]
+    #[function_name::named]
     pub fn query_modules_configs(
         &self,
         infos: Vec<ModuleInfo>,
@@ -132,7 +132,7 @@ impl VersionControlContract {
 
     /// Queries the account that owns the namespace
     /// Is also returns the base modules of that account (AccountBase)
-    #[::function_name::named]
+    #[function_name::named]
     pub fn query_namespace(
         &self,
         namespace: Namespace,
@@ -148,7 +148,7 @@ impl VersionControlContract {
     }
 
     /// Queries the namespaces owned by accounts
-    #[::function_name::named]
+    #[function_name::named]
     pub fn query_namespaces(
         &self,
         accounts: Vec<AccountId>,
@@ -164,7 +164,7 @@ impl VersionControlContract {
     }
 
     /// Queries the module info of the standalone code id
-    #[::function_name::named]
+    #[function_name::named]
     pub fn query_standalone_info_raw(
         &self,
         code_id: u64,
@@ -221,7 +221,7 @@ impl VersionControlContract {
     }
 
     /// Get the account base for a given account id.
-    #[::function_name::named]
+    #[function_name::named]
     pub fn account_base(
         &self,
         account_id: &AccountId,
@@ -240,7 +240,7 @@ impl VersionControlContract {
     }
 
     /// Get namespace registration fee
-    #[::function_name::named]
+    #[function_name::named]
     pub fn namespace_registration_fee(
         &self,
         querier: &QuerierWrapper,
