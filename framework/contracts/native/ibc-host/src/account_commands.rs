@@ -2,7 +2,7 @@ use abstract_core::{
     account_factory,
     ibc_host::state::CONFIG,
     manager::{self, ModuleInstallConfig},
-    objects::{chain_name::ChainName, version_control::VersionControlError, AccountId, AssetEntry},
+    objects::{chain_name::ChainName, AccountId, AssetEntry},
     proxy,
     version_control::AccountBase,
     PROXY,
@@ -156,7 +156,8 @@ pub fn send_all_back(
 }
 
 /// get the account base from the version control contract
-pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<AccountBase, VersionControlError> {
+pub fn get_account(deps: Deps, account_id: &AccountId) -> Result<AccountBase, HostError> {
     let version_control = CONFIG.load(deps.storage)?.version_control;
-    version_control.account_base(account_id, &deps.querier)
+    let account_base = version_control.account_base(account_id, &deps.querier)?;
+    Ok(account_base)
 }
