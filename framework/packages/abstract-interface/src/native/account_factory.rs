@@ -4,7 +4,7 @@ pub use abstract_core::account_factory::{
 use abstract_core::{
     account_factory::*,
     manager::ModuleInstallConfig,
-    objects::{gov_type::GovernanceDetails, AssetEntry},
+    objects::{gov_type::GovernanceDetails, AccountId, AssetEntry},
 };
 use cw_orch::{interface, prelude::*};
 
@@ -19,6 +19,7 @@ pub struct AccountDetails {
     pub namespace: Option<String>,
     pub base_asset: Option<AssetEntry>,
     pub install_modules: Vec<ModuleInstallConfig>,
+    pub account_id: Option<u32>,
 }
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -60,6 +61,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             namespace,
             base_asset,
             install_modules,
+            account_id,
         } = account_details;
 
         let result = self.execute(
@@ -68,7 +70,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 name,
                 link,
                 description,
-                account_id: None,
+                account_id: account_id.map(AccountId::local),
                 namespace,
                 base_asset,
                 install_modules,
