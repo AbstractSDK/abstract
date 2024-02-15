@@ -21,7 +21,6 @@ use challenge_app::{
 use cosmwasm_std::{coin, Uint128, Uint64};
 use cw_asset::AssetInfo;
 use cw_orch::{anyhow, prelude::*};
-use lazy_static::lazy_static;
 
 use crate::msg::QueryMsg;
 
@@ -29,8 +28,6 @@ const DENOM: &str = "TOKEN";
 const FIRST_CHALLENGE_ID: u64 = 1;
 
 const INITIAL_BALANCE: u128 = 50_000_000;
-
-lazy_static! {}
 
 fn alice_address(mock: &MockBech32) -> Addr {
     mock.create_account("alice")
