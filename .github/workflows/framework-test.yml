@@ -44,36 +44,23 @@ jobs:
       - name: cargo test --locked
         working-directory: ./framework
         run: cargo test --locked --all-features --all-targets
+
   coverage:
     runs-on: ubuntu-latest
-    name: ubuntu / stable / coverage
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
-            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
-        with:
-          version: "v0.4.2"
-      - name: Install stable
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: llvm-tools-preview
-      - name: cargo install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-      - name: cargo generate-lockfile
-        if: hashFiles('Cargo.lock') == ''
-        working-directory: ./framework
-        run: cargo generate-lockfile
-      - name: cargo llvm-cov
-        working-directory: ./framework
-        run: cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v3
-        with:
-          fail_ci_if_error: true
+      - name: tickle coverage
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+          CIRCLE_BRANCH: ${{ github.head_ref }}
+        run: |
+          echo $CIRCLE_BRANCH;
+          curl -X POST \
+          -H "Circle-Token: ${CCI_TOKEN}" \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d "{
+            \"branch\": \"${CIRCLE_BRANCH}\",
+            \"parameters\": {
+              \"GHA_Meta\": \"framework_coverage\"
+            }
+          }" https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
