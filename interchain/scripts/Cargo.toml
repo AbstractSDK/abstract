@@ -16,9 +16,9 @@ cw2 = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch-clone-testing = { workspace = true }
 cw-orch-polytone = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
-
 abstract-interface = { workspace = true, features = ["daemon"] }
 tokio = { workspace = true }
 log = "0.4.14"
@@ -44,3 +44,5 @@ etf-app = { workspace = true, features = ["interface"] }
 dca-app = { workspace = true, features = ["interface"] }
 abstract-dex-adapter = { workspace = true, features = ["interface"] }
 abstract-cw-staking = { workspace = true, features = ["interface"] }
+abstract-client = { version = "0.20.0", path = "../../framework/packages/abstract-client" }
+polytone-note = { workspace = true }

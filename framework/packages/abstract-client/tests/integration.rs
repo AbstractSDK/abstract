@@ -1084,3 +1084,79 @@ fn auto_funds_work() -> anyhow::Result<()> {
     assert!(balance.is_zero());
     Ok(())
 }
+
+#[test]
+fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let app_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?;
+
+    let app_dependency_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    // Publish apps
+    app_dependency_publisher.publish_app::<MockAppI<MockBech32>>()?;
+    app_publisher.publish_app::<MockAppWithDepI<MockBech32>>()?;
+
+    let account = client
+        .account_builder()
+        .install_app_with_dependencies::<MockAppWithDepI<MockBech32>>(&MockInitMsg {}, Empty {})?
+        .build()?;
+
+    let modules = account.module_infos()?.module_infos;
+
+    // Check dependency
+    let dep_app = account.application::<MockAppI<_>>()?;
+    let something = dep_app.get_something()?;
+    assert_eq!(MockQueryResponse {}, something);
+
+    let app_info = modules
+        .iter()
+        .find(|module| module.id == MockAppI::<MockBech32>::module_id())
+        .expect("Dependency of an application not found");
+
+    assert_eq!(
+        *app_info,
+        ManagerModuleInfo {
+            id: MockAppI::<MockBech32>::module_id().to_owned(),
+            version: cw2::ContractVersion {
+                contract: MockAppI::<MockBech32>::module_id().to_owned(),
+                version: MockAppI::<MockBech32>::module_version().to_owned()
+            },
+            address: dep_app.address()?,
+        }
+    );
+
+    // Check app itself
+    let my_app = account.application::<MockAppWithDepI<_>>()?;
+
+    my_app
+        .call_as(&app_publisher.account().manager()?)
+        .do_something()?;
+
+    let something = my_app.get_something()?;
+
+    assert_eq!(MockQueryResponse {}, something);
+
+    let app_info = modules
+        .iter()
+        .find(|module| module.id == MockAppWithDepI::<MockBech32>::module_id())
+        .expect("Application not found");
+
+    assert_eq!(
+        *app_info,
+        ManagerModuleInfo {
+            id: MockAppWithDepI::<MockBech32>::module_id().to_owned(),
+            version: cw2::ContractVersion {
+                contract: MockAppWithDepI::<MockBech32>::module_id().to_owned(),
+                version: MockAppWithDepI::<MockBech32>::module_version().to_owned()
+            },
+            address: my_app.address()?,
+        }
+    );
+    Ok(())
+}
