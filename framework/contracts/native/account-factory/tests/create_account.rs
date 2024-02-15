@@ -289,6 +289,7 @@ fn create_one_account_with_base_asset() -> AResult {
             namespace: None,
             base_asset: Some(AssetEntry::new(asset_name)),
             install_modules: vec![],
+            account_id: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
