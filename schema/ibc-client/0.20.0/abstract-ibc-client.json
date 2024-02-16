@@ -746,6 +746,15 @@
                   "name"
                 ],
                 "properties": {
+                  "account_id": {
+                    "description": "If `None`, will create a new local account without asserting account-id.\n\nWhen provided: Signals the expected local Account Id. The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "uint32",
+                    "minimum": 0.0
+                  },
                   "base_asset": {
                     "anyOf": [
                       {
