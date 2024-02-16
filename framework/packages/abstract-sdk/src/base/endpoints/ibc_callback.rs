@@ -1,11 +1,12 @@
-use crate::core::AbstractError;
-use crate::{base::Handler, features::AbstractRegistryAccess, AbstractSdkError, ModuleInterface};
-use abstract_core::objects::module_reference::ModuleReference;
-use abstract_core::{ibc::IbcResponseMsg, objects::module::ModuleInfo, IBC_CLIENT};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use crate::{base::Handler, AbstractSdkError};
+use abstract_core::ibc::IbcResponseMsg;
+use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
 
 /// Trait for a contract's IBC callback ExecuteMsg variant.
-pub trait IbcCallbackEndpoint: Handler + ModuleInterface + AbstractRegistryAccess {
+pub trait IbcCallbackEndpoint: Handler {
+    /// Queries the IBC Client address.
+    fn ibc_client(&self, deps: Deps) -> Result<Addr, Self::Error>;
+
     /// Handler for the `ExecuteMsg::IbcCallback()` variant.
     fn ibc_callback(
         self,
@@ -14,21 +15,7 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface + AbstractRegistryAcces
         info: MessageInfo,
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::Error> {
-        let vc_query_result = self
-            .abstract_registry(deps.as_ref())?
-            .query_module(
-                ModuleInfo::from_id_latest(IBC_CLIENT).map_err(Into::into)?,
-                &deps.querier,
-            )
-            .map_err(|e| {
-                let err: AbstractError = e.into();
-                err.into()
-            })?;
-
-        let ibc_client = vc_query_result
-            .reference
-            .unwrap_native()
-            .map_err(Into::into)?;
+        let ibc_client = self.ibc_client(deps.as_ref())?;
 
         if info.sender.ne(&ibc_client) {
             return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
