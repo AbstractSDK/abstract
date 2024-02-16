@@ -36,6 +36,8 @@ fn setup() -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let _ = env_logger::builder().is_test(true).try_init();
     let sender = Addr::unchecked(SENDER);
     // Run migration tests against Juno mainnet
+    // We set the state file to be able to clone test
+    std::env::set_var("STATE_FILE", "../scripts/state.json");
     let mut app = CloneTesting::new(rt(), JUNO_1)?;
     app.set_sender(sender.clone());
 
@@ -46,7 +48,7 @@ fn setup() -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
 fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let (deployment, chain) = setup()?;
-    deployment.migrate_if_needed()?;
+    deployment.migrate_if_version_changed()?;
     deployment
         .version_control
         .update_config(None, Some(true), None)?;
@@ -58,7 +60,7 @@ fn migrate_infra_success() -> anyhow::Result<()> {
     let (abstr_deployment, _) = setup()?;
 
     let pre_code_id = abstr_deployment.version_control.code_id()?;
-    let migrated = abstr_deployment.migrate_if_needed()?;
+    let migrated = abstr_deployment.migrate_if_version_changed()?;
     if migrated {
         assert_ne!(abstr_deployment.version_control.code_id()?, pre_code_id);
     } else {
@@ -103,7 +105,7 @@ fn old_account_migrate() -> anyhow::Result<()> {
         &manager_address,
     )?;
 
-    let migrated = abstr_deployment.migrate_if_needed()?;
+    let migrated = abstr_deployment.migrate_if_version_changed()?;
 
     if migrated {
         let old_account = AbstractAccount::new(&abstr_deployment, res.account_id);
@@ -161,7 +163,7 @@ fn old_account_functions() -> anyhow::Result<()> {
         &manager_address,
     )?;
 
-    let migrated = abstr_deployment.migrate_if_needed()?;
+    let migrated = abstr_deployment.migrate_if_version_changed()?;
 
     if migrated {
         let old_account = AbstractAccount::new(&abstr_deployment, res.account_id);
@@ -178,8 +180,8 @@ fn old_account_functions() -> anyhow::Result<()> {
         let app = MockApp::new_test(chain.clone());
         MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
         let res = old_account.install_app(&app, &MockInitMsg {}, None);
-        // Should error because old account didn't provide salt to install app
-        assert!(res.is_err());
+        // An old account should be able to install new apps
+        assert!(res.is_ok());
     } else {
         println!("Nothing to migrate")
     }
