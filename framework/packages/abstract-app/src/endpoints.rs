@@ -2,6 +2,7 @@ mod execute;
 mod ibc_callback;
 pub mod instantiate;
 mod migrate;
+mod module_ibc;
 mod query;
 mod receive;
 mod reply;

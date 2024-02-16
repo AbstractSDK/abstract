@@ -100,5 +100,20 @@ pub fn receive_action_callback(
                 .add_attribute("chain", host_chain.to_string())
                 .add_attribute("callback_id", callback_info.id))
         }
+        // TODO, find a better structure (should we separate module and user callbacks ?)
+        IbcClientCallback::ModuleRemoteAction {
+            callback_info,
+            target_module,
+        } => {
+            let callback = IbcResponseMsg {
+                id: callback_info.id.clone(),
+                msg: callback_info.msg,
+                result: callback.result,
+            };
+            Ok(IbcClientResponse::action("module_specific_callback")
+                .add_message(callback.into_cosmos_msg(callback_info.receiver)?)
+                .add_attribute("chain", host_chain.to_string())
+                .add_attribute("callback_id", callback_info.id))
+        }
     }
 }

@@ -54,6 +54,14 @@ pub enum AbstractSdkError {
         module: String,
     },
 
+    // callback not called by IBC host
+    #[error("Module {module} Ibc Endpoint called by {caller} instead of IBC host {host_addr}.")]
+    ModuleIbcNotCalledByHost {
+        caller: Addr,
+        host_addr: Addr,
+        module: String,
+    },
+
     // admin of proxy is not set
     #[error("Admin of proxy {proxy_addr} is not set.")]
     AdminNotSet { proxy_addr: Addr },

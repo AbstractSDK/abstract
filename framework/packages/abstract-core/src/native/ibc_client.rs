@@ -7,7 +7,7 @@ use crate::{
     ibc::CallbackInfo,
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
-    objects::{account::AccountId, chain_name::ChainName, AssetEntry},
+    objects::{account::AccountId, chain_name::ChainName, module::ModuleInfo, AssetEntry},
 };
 
 pub mod state {
@@ -133,7 +133,13 @@ pub enum ExecuteMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
     UserRemoteAction(CallbackInfo),
-    CreateAccount { account_id: AccountId },
+    ModuleRemoteAction {
+        callback_info: CallbackInfo,
+        target_module: ModuleInfo,
+    },
+    CreateAccount {
+        account_id: AccountId,
+    },
     WhoAmI {},
 }
 

@@ -1,17 +1,20 @@
 use abstract_core::{
+    ibc::ModuleIbcMsg,
     ibc_host::{
-        state::{ActionAfterCreationCache, TEMP_ACTION_AFTER_CREATION},
+        state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
         HelperAction,
     },
-    objects::{chain_name::ChainName, AccountId},
+    objects::{chain_name::ChainName, module::ModuleInfo, AccountId},
 };
 use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
-use cosmwasm_std::{DepsMut, Env};
+use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
 
 use crate::{
     account_commands::{self, receive_dispatch, receive_register, receive_send_all_back},
     contract::HostResult,
 };
+
+use abstract_core::base::ExecuteMsg as MiddlewareExecMsg;
 
 /// Handle actions that are passed to the IBC host contract
 /// This function is not permissioned and access control needs to be handled outside of it
@@ -104,4 +107,33 @@ pub fn handle_host_action(
         }
     }
     .map_err(Into::into)
+}
+
+/// Handle actions that are passed to the IBC host contract and originate from a registered module
+pub fn handle_host_module_action(
+    deps: DepsMut,
+    env: Env,
+    client_chain: ChainName,
+    source_module: ModuleInfo,
+    target_module: ModuleInfo,
+    msg: Binary,
+) -> HostResult {
+    // We resolve the target module
+    let vc = CONFIG.load(deps.storage)?.version_control;
+    let target_module_resolved = vc.query_module(target_module, &deps.querier)?;
+
+    // We pass the message on to the module
+    let msg = wasm_execute(
+        target_module_resolved.reference.unwrap_addr()?,
+        &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
+            client_chain,
+            source_module,
+            msg,
+        }),
+        vec![],
+    )?;
+
+    Ok(Response::new()
+        .add_attribute("action", "module-ibc-call")
+        .add_message(msg))
 }

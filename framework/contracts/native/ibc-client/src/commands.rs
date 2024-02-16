@@ -6,9 +6,9 @@ use abstract_core::{
         state::{IbcInfrastructure, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
-    ibc_host, manager,
-    manager::ModuleInstallConfig,
-    objects::{chain_name::ChainName, AccountId, AssetEntry},
+    ibc_host,
+    manager::{self, ModuleInstallConfig},
+    objects::{chain_name::ChainName, module::ModuleInfo, AccountId, AssetEntry},
     version_control::AccountBase,
 };
 use abstract_sdk::{
@@ -22,8 +22,8 @@ use abstract_sdk::{
     Resolve,
 };
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo,
-    QueryRequest, Storage,
+    to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg,
+    MessageInfo, QueryRequest, Storage,
 };
 use polytone::callbacks::CallbackRequest;
 
@@ -169,6 +169,44 @@ fn send_remote_host_action(
     Ok(note_message.into())
 }
 
+/// Send a message to a remote abstract-ibc-host. This message will be proxied through polytone.
+fn send_remote_host_module_action(
+    deps: Deps,
+    host_chain: ChainName,
+    source_module: ModuleInfo,
+    target_module: ModuleInfo,
+    msg: Binary,
+    callback_request: Option<CallbackRequest>,
+) -> IbcClientResult<CosmosMsg<Empty>> {
+    // Send this message via the Polytone implementation
+    let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
+    let note_contract = ibc_infra.polytone_note;
+    let remote_ibc_host = ibc_infra.remote_abstract_host;
+
+    // message that will be called on the local note contract
+    let note_message = wasm_execute(
+        note_contract.to_string(),
+        &polytone_note::msg::ExecuteMsg::Execute {
+            msgs: vec![wasm_execute(
+                // The note's remote proxy will call the ibc host
+                remote_ibc_host,
+                &ibc_host::ExecuteMsg::ModuleExecute {
+                    msg,
+                    source_module,
+                    target_module,
+                },
+                vec![],
+            )?
+            .into()],
+            callback: callback_request,
+            timeout_seconds: PACKET_LIFETIME.into(),
+        },
+        vec![],
+    )?;
+
+    Ok(note_message.into())
+}
+
 /// Perform a ICQ on a remote chain
 fn send_remote_host_query(
     deps: Deps,
@@ -206,32 +244,67 @@ pub fn execute_send_packet(
 
     let cfg = CONFIG.load(deps.storage)?;
 
-    // Verify that the sender is a proxy contract
-    let account_base = cfg
-        .version_control
-        .assert_proxy(&info.sender, &deps.querier)?;
+    // The packet we need to send depends on the action we want to execute
 
-    // get account_id
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let note_message = match &action {
+        HostAction::Dispatch { .. } | HostAction::Helpers(_) => {
+            // Verify that the sender is a proxy contract
+            let account_base = cfg
+                .version_control
+                .assert_proxy(&info.sender, &deps.querier)?;
 
-    // Can only call non-internal actions
-    if let HostAction::Internal(_) = action {
-        return Err(IbcClientError::ForbiddenInternalCall {});
-    }
+            // get account_id
+            let account_id = account_base.account_id(deps.as_ref())?;
 
-    let callback_request = callback_info.map(|c| CallbackRequest {
-        receiver: env.contract.address.to_string(),
-        msg: to_json_binary(&IbcClientCallback::UserRemoteAction(c)).unwrap(),
-    });
+            let callback_request = callback_info.map(|c| CallbackRequest {
+                receiver: env.contract.address.to_string(),
+                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(c)).unwrap(),
+            });
 
-    let note_message = send_remote_host_action(
-        deps.as_ref(),
-        account_id,
-        account_base,
-        host_chain,
-        action,
-        callback_request,
-    )?;
+            send_remote_host_action(
+                deps.as_ref(),
+                account_id,
+                account_base,
+                host_chain,
+                action,
+                callback_request,
+            )?
+        }
+        HostAction::Module {
+            msg,
+            source_module,
+            target_module,
+        } => {
+            // We make sure the source_module is indeed who they say they are
+            let registry = CONFIG
+                .load(deps.storage)?
+                .version_control
+                .query_module(source_module.clone(), &deps.querier)?;
+
+            if registry.reference.unwrap_addr()? != info.sender {
+                return Err(IbcClientError::ForbiddenModuleCall {});
+            }
+
+            let callback_request = callback_info.map(|c| CallbackRequest {
+                receiver: env.contract.address.to_string(),
+                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(c)).unwrap(),
+            });
+            send_remote_host_module_action(
+                deps.as_ref(),
+                host_chain,
+                source_module.clone(),
+                target_module.clone(),
+                msg.clone(),
+                callback_request,
+            )?
+
+            // If they are, we send a message to the module on the remote chain
+        }
+        HostAction::Internal(_) => {
+            // Can only call non-internal actions
+            return Err(IbcClientError::ForbiddenInternalCall {});
+        }
+    };
 
     Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
 }

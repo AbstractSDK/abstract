@@ -36,6 +36,9 @@ pub enum IbcClientError {
     #[error("packages that contain internal calls are not allowed")]
     ForbiddenInternalCall {},
 
+    #[error("A non-module package can execute an ibc module call")]
+    ForbiddenModuleCall {},
+
     #[error("The host you are trying to connect is already connected")]
     HostAlreadyExists {},
 

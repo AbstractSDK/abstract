@@ -32,13 +32,16 @@ pub use abstract_testing;
 pub mod mock {
     pub use abstract_core::app;
     use abstract_core::{
+        ibc::ModuleIbcMsg,
+        ibc_client,
         manager::ModuleInstallConfig,
         objects::{dependency::StaticDependency, module::ModuleInfo},
+        IBC_CLIENT,
     };
     use abstract_interface::{AppDeployer, DependencyCreation};
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::*;
-    use cosmwasm_std::{to_json_binary, Response, StdError};
+    use cosmwasm_std::{to_json_binary, wasm_execute, Response, StdError};
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;
     use cw_storage_plus::Item;
@@ -56,6 +59,7 @@ pub mod mock {
     pub enum MockExecMsg {
         DoSomething {},
         DoSomethingAdmin {},
+        DoSomethingIbc {},
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -87,7 +91,7 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockSudoMsg;
 
-    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
+    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError, ModuleInterface};
     use abstract_testing::{
         addresses::{test_account_base, TEST_ANS_HOST, TEST_VERSION_CONTROL},
         prelude::{
@@ -134,6 +138,8 @@ pub mod mock {
 
     // Easy way to see if an ibc-callback was actually received.
     pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
+    // Easy way to see if an module ibc called was actually received.
+    pub const MODULE_IBC_RECEIVED: Item<ModuleInfo> = Item::new("module_ibc_received");
 
     pub const MOCK_APP_WITH_DEP: MockAppContract =
         MockAppContract::new(TEST_WITH_DEP_MODULE_ID, TEST_VERSION, None)
@@ -141,7 +147,24 @@ pub mod mock {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
                 Ok(Response::new().set_data("mock_init".as_bytes()))
             })
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+            .with_execute(|deps, _, _, app, msg| match msg {
+                MockExecMsg::DoSomethingIbc {} => {
+                    let ibc_client_addr = app.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
+                    // We send an IBC Client module message
+                    let msg = wasm_execute(
+                        ibc_client_addr,
+                        &ibc_client::ExecuteMsg::RemoteAction {
+                            host_chain: (),
+                            action: (),
+                            callback_info: (),
+                        },
+                        vec![],
+                    )?;
+
+                    Ok(Response::new().add_message(msg))
+                }
+                _ => Ok(Response::new().set_data("mock_exec".as_bytes())),
+            })
             .with_query(|deps, _, _, msg| match msg {
                 MockQueryMsg::GetSomething {} => {
                     to_json_binary(&MockQueryResponse {}).map_err(Into::into)
@@ -163,7 +186,13 @@ pub mod mock {
             .with_replies(&[(1u64, |_, _, _, msg| {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })])
-            .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
+            .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())))
+            .with_module_ibc(|deps, _, _, msg| {
+                let ModuleIbcMsg { source_module, .. } = msg;
+                // We save the module info status
+                MODULE_IBC_RECEIVED.save(deps.storage, &source_module)?;
+                Ok(Response::new())
+            });
 
     crate::cw_orch_interface!(MOCK_APP_WITH_DEP, MockAppContract, MockAppWithDepI);
 

@@ -1,6 +1,12 @@
-use cosmwasm_std::{to_json_binary, wasm_execute, Binary, CosmosMsg, StdResult};
+use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{to_json_binary, wasm_execute, Binary, CosmosMsg, Empty, StdResult};
 use polytone::callbacks::Callback;
 use schemars::JsonSchema;
+
+use crate::{
+    base::ExecuteMsg,
+    objects::{chain_name::ChainName, module::ModuleInfo},
+};
 
 // CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client
 #[cosmwasm_schema::cw_serde]
@@ -39,7 +45,7 @@ impl IbcResponseMsg {
     {
         Ok(wasm_execute(
             contract_addr.into(),
-            &IbcCallbackMsg::IbcCallback(self),
+            &ExecuteMsg::IbcCallback::<Empty, Empty>(self),
             vec![],
         )?
         .into())
@@ -51,4 +57,11 @@ impl IbcResponseMsg {
 #[cosmwasm_schema::cw_serde]
 enum IbcCallbackMsg {
     IbcCallback(IbcResponseMsg),
+}
+
+#[cw_serde]
+pub struct ModuleIbcMsg {
+    pub client_chain: ChainName,
+    pub source_module: ModuleInfo,
+    pub msg: Binary,
 }

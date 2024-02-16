@@ -3,7 +3,7 @@ use abstract_core::{
     AbstractError,
 };
 use abstract_sdk::{
-    base::SudoHandlerFn,
+    base::{ModuleIbcHandlerFn, SudoHandlerFn},
     feature_objects::{AnsHost, VersionControlContract},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
@@ -174,6 +174,15 @@ impl<
         callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
     ) -> Self {
         self.contract = self.contract.with_ibc_callbacks(callbacks);
+        self
+    }
+
+    /// add Module IBC to contract
+    pub const fn with_module_ibc(
+        mut self,
+        module_handler: ModuleIbcHandlerFn<Self, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_module_ibc(module_handler);
         self
     }
 }
