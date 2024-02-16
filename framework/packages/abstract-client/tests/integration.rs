@@ -1054,7 +1054,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
         abstract_core::version_control::UpdateModule::Versioned {
-            version: MockAdapterI::<Mock>::module_version().to_owned(),
+            version: MockAdapterI::<MockBech32>::module_version().to_owned(),
             metadata: None,
             monetization: Some(abstract_core::objects::module::Monetization::InstallFee(
                 FixedFee::new(&Coin {
@@ -1070,7 +1070,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     // User can guard his funds
     account_builder
         .name("bob")
-        .install_adapter::<MockAdapterI<Mock>>()?
+        .install_adapter::<MockAdapterI<MockBech32>>()?
         .auto_fund_assert(|c| c[0].amount < Uint128::new(50));
     let e = account_builder.build().unwrap_err();
     assert!(matches!(e, AbstractClientError::AutoFundsAssertFailed(_)));
@@ -1164,28 +1164,28 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
 
 #[test]
 fn authorize_app_on_adapters() -> anyhow::Result<()> {
-    let chain = Mock::new(&Addr::unchecked(OWNER));
+    let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain).build()?;
 
-    let publisher: Publisher<Mock> = client
+    let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
-    let app_publisher: Publisher<Mock> = client
+    let app_publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
         .build()?;
 
     // Publish adapter and app
     let adapter =
-        publisher.publish_adapter::<BootMockInitMsg, BootMockAdapter<Mock>>(BootMockInitMsg {})?;
-    app_publisher.publish_app::<MockAppWithDepI<Mock>>()?;
+        publisher.publish_adapter::<_, MockAdapterI<MockBech32>>(AdapterMockInitMsg {})?;
+    app_publisher.publish_app::<MockAppWithDepI<MockBech32>>()?;
 
     let account = client
         .account_builder()
-        .install_app_with_dependencies::<MockAppWithDepI<Mock>>(&MockInitMsg {}, Empty {})?
+        .install_app_with_dependencies::<MockAppWithDepI<MockBech32>>(&MockInitMsg {}, Empty {})?
         .build()?;
 
     // Authorize app on adapter
-    let app: Application<Mock, MockAppWithDepI<Mock>> = account.application()?;
+    let app: Application<MockBech32, MockAppWithDepI<MockBech32>> = account.application()?;
     app.authorize_on_adapters(&[abstract_adapter::mock::MOCK_ADAPTER.module_id()])?;
 
     // Check it authorized
