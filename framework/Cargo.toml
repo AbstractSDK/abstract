@@ -98,10 +98,6 @@ rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
-
-[patch."https://github.com/AbstractSDK/cw-multi-test"]
-cw-multi-test = { path = "../../cw-multi-test" }
-
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
