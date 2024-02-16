@@ -36,6 +36,8 @@ fn setup() -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let _ = env_logger::builder().is_test(true).try_init();
     let sender = Addr::unchecked(SENDER);
     // Run migration tests against Juno mainnet
+    // We set the state file to be able to clone test
+    std::env::set_var("STATE_FILE", "../scripts/state.json");
     let mut app = CloneTesting::new(rt(), JUNO_1)?;
     app.set_sender(sender.clone());
 
