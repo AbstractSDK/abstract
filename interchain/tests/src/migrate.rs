@@ -46,7 +46,7 @@ fn setup() -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
 fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let (deployment, chain) = setup()?;
-    deployment.migrate_if_needed()?;
+    deployment.migrate_if_version_changed()?;
     deployment
         .version_control
         .update_config(None, Some(true), None)?;
@@ -58,7 +58,7 @@ fn migrate_infra_success() -> anyhow::Result<()> {
     let (abstr_deployment, _) = setup()?;
 
     let pre_code_id = abstr_deployment.version_control.code_id()?;
-    let migrated = abstr_deployment.migrate_if_needed()?;
+    let migrated = abstr_deployment.migrate_if_version_changed()?;
     if migrated {
         assert_ne!(abstr_deployment.version_control.code_id()?, pre_code_id);
     } else {
@@ -103,7 +103,7 @@ fn old_account_migrate() -> anyhow::Result<()> {
         &manager_address,
     )?;
 
-    let migrated = abstr_deployment.migrate_if_needed()?;
+    let migrated = abstr_deployment.migrate_if_version_changed()?;
 
     if migrated {
         let old_account = AbstractAccount::new(&abstr_deployment, res.account_id);
@@ -161,7 +161,7 @@ fn old_account_functions() -> anyhow::Result<()> {
         &manager_address,
     )?;
 
-    let migrated = abstr_deployment.migrate_if_needed()?;
+    let migrated = abstr_deployment.migrate_if_version_changed()?;
 
     if migrated {
         let old_account = AbstractAccount::new(&abstr_deployment, res.account_id);
