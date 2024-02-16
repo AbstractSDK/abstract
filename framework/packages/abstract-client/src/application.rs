@@ -51,3 +51,16 @@ impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
         self.account.module()
     }
 }
+
+impl<Chain: CwEnv, M: ContractInstance<Chain>> Application<Chain, M> {
+    /// Authorize this application on installed adapters. Accepts Module Id's of adapters
+    pub fn authorize_on_adapters(&self, adapter_ids: &[&str]) -> AbstractClientResult<()> {
+        for module_id in adapter_ids {
+            self.account
+                .abstr_account
+                .manager
+                .update_adapter_authorized_addresses(module_id, vec![self.addr_str()?], vec![])?;
+        }
+        Ok(())
+    }
+}

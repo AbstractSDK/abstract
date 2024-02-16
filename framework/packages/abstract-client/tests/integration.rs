@@ -16,6 +16,7 @@ use abstract_client::{
     Publisher,
 };
 use abstract_core::{
+    adapter::AuthorizedAddressesResponse,
     ans_host::QueryMsgFns,
     manager::{
         state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
@@ -1138,6 +1139,43 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
             address: my_app.address()?,
         }
     );
+    Ok(())
+}
+
+#[test]
+fn authorize_app_on_adapters() -> anyhow::Result<()> {
+    let chain = Mock::new(&Addr::unchecked(OWNER));
+    let client = AbstractClient::builder(chain).build()?;
+
+    let publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+    let app_publisher: Publisher<Mock> = client
+        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?;
+
+    // Publish adapter and app
+    let adapter =
+        publisher.publish_adapter::<BootMockInitMsg, BootMockAdapter<Mock>>(BootMockInitMsg {})?;
+    app_publisher.publish_app::<MockAppWithDepI<Mock>>()?;
+
+    let account = client
+        .account_builder()
+        .install_app_with_dependencies::<MockAppWithDepI<Mock>>(&MockInitMsg {}, Empty {})?
+        .build()?;
+
+    // Authorize app on adapter
+    let app: Application<Mock, MockAppWithDepI<Mock>> = account.application()?;
+    app.authorize_on_adapters(&[abstract_adapter::mock::MOCK_ADAPTER.module_id()])?;
+
+    // Check it authorized
+    let authorized_addrs_resp: AuthorizedAddressesResponse = adapter.query(
+        &abstract_core::adapter::BaseQueryMsg::AuthorizedAddresses {
+            proxy_address: app.account().proxy()?.to_string(),
+        }
+        .into(),
+    )?;
+    assert_eq!(authorized_addrs_resp.addresses, vec![app.address()?]);
     Ok(())
 }
 
