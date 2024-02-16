@@ -9,21 +9,20 @@ use wyndex_stake::{
 };
 
 mod staking {
-    use cw_orch::mock::Mock;
+    use super::*;
+    use cw_orch::mock::MockBech32;
+    use cw_orch::prelude::TxHandler;
     use wyndex::factory::{DefaultStakeConfig, DistributionFlow};
     use wyndex_bundle::{suite::SuiteBuilder, WYNDEX_OWNER};
-
-    use super::*;
 
     #[test]
     fn basic() {
         let ujuno = "ujuno";
         let uluna = "uluna";
 
-        let liquidity_provider = Addr::unchecked("liquidity_provider");
-        let owner = Addr::unchecked(WYNDEX_OWNER);
-
-        let mock = Mock::new(&liquidity_provider);
+        let mock = MockBech32::new("mock");
+        let liquidity_provider = mock.sender();
+        let owner = mock.addr_make(WYNDEX_OWNER);
 
         mock.set_balance(
             &liquidity_provider,
@@ -47,7 +46,7 @@ mod staking {
         // create pair
         let pair = suite
             .create_pair(
-                owner.as_str(),
+                &owner,
                 wyndex::factory::PairType::Xyk {},
                 [ujuno_info.clone(), uluna_info.clone()],
                 Some(PartialStakeConfig {
@@ -62,7 +61,7 @@ mod staking {
         // provide liquidity
         suite
             .provide_liquidity(
-                liquidity_provider.as_str(),
+                &liquidity_provider,
                 &pair,
                 [
                     ujuno_info.with_balance(10_000u128),
@@ -79,7 +78,7 @@ mod staking {
         // create rewards distribution
         suite
             .create_distribution_flow(
-                owner.as_str(),
+                &owner,
                 vec![ujuno_info.clone(), uluna_info],
                 ujuno_info,
                 vec![(1, Decimal::percent(50)), (2, Decimal::one())],
@@ -89,10 +88,10 @@ mod staking {
         // stake
         suite
             .send_cw20(
-                liquidity_provider.as_str(),
+                &liquidity_provider,
                 &pair_info.liquidity_token,
                 1000,
-                pair_info.staking_addr.as_str(),
+                &pair_info.staking_addr,
                 ReceiveDelegationMsg::Delegate {
                     unbonding_period: 1,
                     delegate_as: None,
@@ -123,8 +122,7 @@ mod staking {
         let ujuno_info = AssetInfo::Native(ujuno.to_string());
         let uluna_info = AssetInfo::Native(uluna.to_string());
 
-        let liquidity_provider = Addr::unchecked("liquidity_provider");
-        let mock = Mock::new(&liquidity_provider);
+        let mock = MockBech32::new("mock");
 
         let mut suite = SuiteBuilder::new().build(&mock);
 
@@ -171,10 +169,9 @@ mod staking {
         let uluna_info = AssetInfo::Native(uluna.to_string());
         let test_info = AssetInfo::Native(test.to_string());
 
-        let owner = Addr::unchecked(WYNDEX_OWNER);
-        let user = Addr::unchecked("user");
-
-        let mock = Mock::new(&owner);
+        let mock = MockBech32::new("mock");
+        let owner = mock.addr_make(WYNDEX_OWNER);
+        let user = mock.addr_make("user");
         mock.set_balance(
             &user,
             vec![
@@ -199,7 +196,7 @@ mod staking {
         // create pair
         suite
             .create_pair_and_distributions(
-                owner.as_str(),
+                &owner,
                 wyndex::factory::PairType::Xyk {},
                 vec![ujuno_info.clone(), uluna_info.clone()],
                 None,
@@ -227,28 +224,16 @@ mod staking {
 
         // should be able to distribute those assets now
         suite
-            .distribute_funds(
-                pair_info.staking_addr.clone(),
-                user.as_str(),
-                &[coin(100, ujuno)],
-            )
+            .distribute_funds(pair_info.staking_addr.clone(), &user, &[coin(100, ujuno)])
             .unwrap();
         suite
-            .distribute_funds(
-                pair_info.staking_addr.clone(),
-                user.as_str(),
-                &[coin(100, uluna)],
-            )
+            .distribute_funds(pair_info.staking_addr.clone(), &user, &[coin(100, uluna)])
             .unwrap();
         suite
-            .distribute_funds(
-                pair_info.staking_addr.clone(),
-                user.as_str(),
-                &[coin(100, test)],
-            )
+            .distribute_funds(pair_info.staking_addr.clone(), &user, &[coin(100, test)])
             .unwrap();
         suite
-            .distribute_funds(pair_info.staking_addr, user.as_str(), &[coin(100, no_dist)])
+            .distribute_funds(pair_info.staking_addr, &user, &[coin(100, no_dist)])
             .unwrap_err();
     }
 }

@@ -109,6 +109,7 @@ impl<
 #[cfg(test)]
 mod test {
     use abstract_sdk::base::QueryEndpoint;
+    use cosmwasm_std::testing::mock_env;
     use cosmwasm_std::{Binary, Deps};
     use speculoos::prelude::*;
 
