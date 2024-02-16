@@ -1053,7 +1053,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
         abstract_core::version_control::UpdateModule::Versioned {
-            version: BootMockAdapter::<Mock>::module_version().to_owned(),
+            version: BootMockAdapter::<MockBech32>::module_version().to_owned(),
             metadata: None,
             monetization: Some(abstract_core::objects::module::Monetization::InstallFee(
                 FixedFee::new(&Coin {
@@ -1069,7 +1069,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     // User can guard his funds
     account_builder
         .name("bob")
-        .install_adapter::<BootMockAdapter<Mock>>()?
+        .install_adapter::<BootMockAdapter<MockBech32>>()?
         .auto_fund_assert(|c| c[0].amount < Uint128::new(50));
     let e = account_builder.build().unwrap_err();
     assert!(matches!(e, AbstractClientError::AutoFundsAssertFailed(_)));
@@ -1163,7 +1163,7 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
 
 #[test]
 fn create_account_with_expected_account_id() -> anyhow::Result<()> {
-    let chain = Mock::new(&Addr::unchecked(OWNER));
+    let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain).build()?;
 
     // Check it fails on wrong account_id
