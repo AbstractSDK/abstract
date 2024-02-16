@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added method to assign expected `.account_id` for Abstract Client Account builder
 - `.next_local_account_id` for `AbstractClient` to query next local account sequence
 - `.module_instantiate2_address` for `AbstractClient` to get predicted address
+
 ### Changed
 
 - Updated UsageFee api to use `Address`, instead of `Api` + unchecked address
