@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use abstract_core::objects::AnsAsset;
 use abstract_sdk::{
     core::objects::{AssetEntry, ContractEntry},
@@ -13,7 +11,7 @@ use crate::{
 };
 
 /// Trait that defines the staking commands for providers
-pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
+pub trait CwStakingCommand: Identify {
     /// Construct a staking contract entry from the staking token and the provider
     fn staking_entry(&self, staking_token: &AssetEntry) -> ContractEntry {
         ContractEntry {
@@ -53,7 +51,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         deps: Deps,
         stake_request: Vec<AnsAsset>,
         unbonding_period: Option<cw_utils::Duration>,
-    ) -> Result<Vec<CosmosMsg>, E>;
+    ) -> Result<Vec<CosmosMsg>, CwStakingError>;
 
     /// Unstake the provided asset from the staking contract
     fn unstake(
@@ -61,16 +59,16 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         deps: Deps,
         unstake_request: Vec<AnsAsset>,
         unbonding_period: Option<cw_utils::Duration>,
-    ) -> Result<Vec<CosmosMsg>, E>;
+    ) -> Result<Vec<CosmosMsg>, CwStakingError>;
 
     /// Claim rewards on the staking contract
-    fn claim_rewards(&self, deps: Deps) -> Result<Vec<CosmosMsg>, E>;
+    fn claim_rewards(&self, deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError>;
 
     /// Claim matured unbonding claims on the staking contract
-    fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, E>;
+    fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError>;
 
     /// Query information of the given for the given staking provider see [StakingInfoResponse]
-    fn query_info(&self, querier: &QuerierWrapper) -> Result<StakingInfoResponse, E>;
+    fn query_info(&self, querier: &QuerierWrapper) -> Result<StakingInfoResponse, CwStakingError>;
 
     /// Query the staked token balance of a given staker
     /// This will not return  the amount of tokens that are currently unbonding.
@@ -81,15 +79,18 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         staker: Addr,
         stakes: Vec<AssetEntry>,
         unbonding_period: Option<cw_utils::Duration>,
-    ) -> Result<StakeResponse, E>;
+    ) -> Result<StakeResponse, CwStakingError>;
 
     /// Query information on unbonding positions for a given staker.
     fn query_unbonding(
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-    ) -> Result<UnbondingResponse, E>;
+    ) -> Result<UnbondingResponse, CwStakingError>;
 
     /// Query the information of the reward tokens
-    fn query_rewards(&self, querier: &QuerierWrapper) -> Result<RewardTokensResponse, E>;
+    fn query_rewards(
+        &self,
+        querier: &QuerierWrapper,
+    ) -> Result<RewardTokensResponse, CwStakingError>;
 }
