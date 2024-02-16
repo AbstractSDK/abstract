@@ -1,4 +1,5 @@
 mod common;
+use std::cell::RefMut;
 
 use abstract_client::{AbstractClient, Account};
 use abstract_core::{
@@ -17,6 +18,7 @@ use abstract_dex_adapter::{
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use abstract_sdk::AbstractSdkError;
+use abstract_testing::OWNER;
 use common::contracts;
 use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, StdError, Uint128};
 use croncat_app::{
@@ -33,9 +35,9 @@ use croncat_sdk_manager::msg::ManagerInstantiateMsg;
 use croncat_sdk_tasks::msg::TasksInstantiateMsg;
 use cw20::Cw20Coin;
 use cw_asset::AssetInfo;
+use cw_multi_test::{App, Executor};
 // Use prelude to get all the necessary imports
-use cw_orch::mock::cw_multi_test::Executor;
-use cw_orch::{anyhow, prelude::*};
+use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 use dca_app::{
     contract::{DCA_APP_ID, DCA_APP_VERSION},
     msg::{AppInstantiateMsg, ConfigResponse, DCAResponse, Frequency},
@@ -54,9 +56,9 @@ struct CronCatAddrs {
 
 #[allow(unused)]
 struct DeployedApps {
-    dca_app: DCA<MockBech32>,
-    dex_adapter: DexAdapter<MockBech32>,
-    cron_cat_app: Croncat<MockBech32>,
+    dca_app: DCA<Mock>,
+    dex_adapter: DexAdapter<Mock>,
+    cron_cat_app: Croncat<Mock>,
     wyndex: WynDex,
 }
 // consts for testing
@@ -66,14 +68,12 @@ const DENOM: &str = "abstr";
 const PAUSE_ADMIN: &str = "cosmos338dwgj5wm2tuahvfjdldz5s8hmt7l5aznw8jz9s2mmgj5c52jqgfq000";
 
 fn setup_croncat_contracts(
-    mock: MockBech32,
+    mut app: RefMut<App>,
     proxy_addr: String,
 ) -> anyhow::Result<(CronCatAddrs, Addr)> {
-    let sender = mock.sender();
-    let pause_admin = mock.addr_make(PAUSE_ADMIN);
-    let agent_addr = mock.addr_make(AGENT);
+    let sender = Addr::unchecked(OWNER);
+    let pause_admin = Addr::unchecked(PAUSE_ADMIN);
 
-    let mut app = mock.app.borrow_mut();
     // Instantiate cw20
     let cw20_code_id = app.store_code(contracts::cw20_contract());
     let cw20_addr = app.instantiate_contract(
@@ -154,7 +154,7 @@ fn setup_croncat_contracts(
         min_coins_for_agent_registration: None,
         agents_eject_threshold: None,
         min_active_agent_count: None,
-        allowed_agents: Some(vec![agent_addr.to_string()]),
+        allowed_agents: Some(vec![AGENT.to_owned()]),
         public_registration: true,
     };
     let module_instantiate_info = ModuleInstantiateInfo {
@@ -244,7 +244,7 @@ fn setup_croncat_contracts(
     )?;
     let agents_addr = response.metadata.unwrap().contract_addr;
     app.execute_contract(
-        agent_addr,
+        Addr::unchecked(AGENT),
         agents_addr.clone(),
         &croncat_sdk_agents::msg::ExecuteMsg::RegisterAgent {
             payable_account_id: None,
@@ -266,21 +266,24 @@ fn setup_croncat_contracts(
 /// Set up the test environment with the contract installed
 #[allow(clippy::type_complexity)]
 fn setup() -> anyhow::Result<(
-    MockBech32,
-    AbstractAccount<MockBech32>,
-    Abstract<MockBech32>,
+    Mock,
+    AbstractAccount<Mock>,
+    Abstract<Mock>,
     DeployedApps,
     CronCatAddrs,
 )> {
+    // Create a sender
+    let sender = Addr::unchecked(OWNER);
+
     // Create the mock
-    let mock = MockBech32::new("mock");
-    let sender = mock.sender();
+    let mock = Mock::new(&sender);
 
     // With funds
     mock.add_balance(&sender, coins(6_000_000_000, DENOM))?;
-    mock.add_balance(&mock.addr_make(AGENT), coins(6_000_000_000, DENOM))?;
+    mock.add_balance(&Addr::unchecked(AGENT), coins(6_000_000_000, DENOM))?;
 
-    let (cron_cat_addrs, _proxy) = setup_croncat_contracts(mock.clone(), sender.to_string())?;
+    let (cron_cat_addrs, _proxy) =
+        setup_croncat_contracts(mock.app.as_ref().borrow_mut(), sender.to_string())?;
 
     // Construct the DCA interface
     let mut dca_app = DCA::new(DCA_APP_ID, mock.clone());
@@ -314,7 +317,7 @@ fn setup() -> anyhow::Result<(
     abstr_deployment
         .account_factory
         .create_default_account(GovernanceDetails::Monarchy {
-            monarch: mock.sender().to_string(),
+            monarch: OWNER.to_string(),
         })?;
     abstr_deployment
         .version_control
@@ -338,7 +341,7 @@ fn setup() -> anyhow::Result<(
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: mock.sender().to_string(),
+                monarch: OWNER.to_string(),
             })?;
     // Install DEX
     account.install_adapter(&dex_adapter, None)?;
@@ -402,8 +405,8 @@ fn can_install_using_abstract_client() -> anyhow::Result<()> {
     // TODO: re-write this set-up code also using abstract-client.
     let (mock, _account, _abstr, _apps, _manager_addr) = setup()?;
     let client = AbstractClient::new(mock)?;
-    let account: Account<MockBech32> = client.account_builder().build()?;
-    let dca_app = account.install_app_with_dependencies::<DCA<MockBech32>>(
+    let account: Account<Mock> = client.account_builder().build()?;
+    let dca_app = account.install_app_with_dependencies::<DCA<Mock>>(
         &AppInstantiateMsg {
             native_asset: AssetEntry::new("denom"),
             dca_creation_amount: Uint128::new(5_000_000),

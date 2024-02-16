@@ -31,9 +31,12 @@ pub const NEUTRON_1: ChainInfo = ChainInfo {
 fn main() -> cw_orch::anyhow::Result<()> {
     dotenv::dotenv()?;
     env_logger::init();
+    let mut juno_1 = JUNO_1;
+    let binding = [juno_1.grpc_urls[1]];
+    juno_1.grpc_urls = &binding;
 
     let chains = vec![
-        (JUNO_1, None),
+        (juno_1, None),
         (PHOENIX_1, None),
         (ARCHWAY_1, None),
         (NEUTRON_1, None),
@@ -125,7 +128,7 @@ fn connect(
 
     // We make sure the IBC execution is done when creating the account
     interchain
-        .wait_ibc(src_chain.chain_id, tx_response)
+        .wait_ibc(&src_chain.chain_id.to_string(), tx_response)
         .unwrap();
 
     Ok(())

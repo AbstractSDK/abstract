@@ -11,11 +11,11 @@ use abstract_interface::{Abstract, AbstractAccount, AdapterDeployer, DeployStrat
 use abstract_staking_standard::msg::{
     Claim, RewardTokensResponse, StakingInfo, StakingInfoResponse, UnbondingResponse,
 };
-use cosmwasm_std::{coin, Empty, Uint128};
+use cosmwasm_std::{coin, Addr, Empty, Uint128};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::AssetInfoBase;
-use cw_orch::prelude::*;
+use cw_orch::{deploy::Deploy, prelude::*};
 use speculoos::*;
 use wyndex_bundle::{EUR_USD_LP, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER, WYND_TOKEN};
 
@@ -25,13 +25,13 @@ use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
 use common::create_default_account;
 
 fn setup_mock() -> anyhow::Result<(
-    MockBech32,
+    Mock,
     wyndex_bundle::WynDex,
-    CwStakingAdapter<MockBech32>,
-    AbstractAccount<MockBech32>,
+    CwStakingAdapter<Mock>,
+    AbstractAccount<Mock>,
 )> {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(common::ROOT_USER);
+    let chain = Mock::new(&sender);
 
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let wyndex = wyndex_bundle::WynDex::store_on(chain.clone())?;
@@ -48,7 +48,7 @@ fn setup_mock() -> anyhow::Result<(
     // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
     wyndex
         .eur_usd_lp
-        .call_as(&chain.addr_make(WYNDEX_OWNER))
+        .call_as(&Addr::unchecked(WYNDEX_OWNER))
         .transfer(1000u128.into(), proxy_addr.to_string())?;
 
     // install exchange on AbstractAccount
@@ -243,7 +243,7 @@ fn claim_rewards() -> anyhow::Result<()> {
     chain.set_balance(&wyndex.eur_usd_staking, vec![coin(10_000, WYND_TOKEN)])?;
     wyndex
         .suite
-        .distribute_funds(wyndex.eur_usd_staking, &chain.addr_make(WYNDEX_OWNER), &[])
+        .distribute_funds(wyndex.eur_usd_staking, WYNDEX_OWNER, &[])
         .unwrap();
 
     // now claim rewards

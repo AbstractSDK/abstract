@@ -7,8 +7,7 @@
 //! `cargo run --example test-local`
 
 use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
-use abstract_interface::VCExecFns;
-use abstract_interface::{Abstract, AppDeployer, DeployStrategy};
+use abstract_interface::{Abstract, AppDeployer, DeployStrategy, VCExecFns};
 use calendar_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{CalendarInstantiateMsg, Time},
@@ -17,7 +16,8 @@ use calendar_app::{
 use cosmwasm_std::Uint128;
 use cw_orch::{
     anyhow,
-    prelude::{networks::LOCAL_JUNO, Daemon, Deploy, TxHandler},
+    deploy::Deploy,
+    prelude::{networks::LOCAL_JUNO, Daemon, TxHandler},
     tokio::runtime::Runtime,
 };
 use semver::Version;

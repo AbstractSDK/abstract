@@ -12,7 +12,10 @@ use abstract_interface_integration_tests::{
 };
 use anyhow::Result as AnyResult;
 use cosmwasm_std::coins;
-use cw_orch::prelude::*;
+use cw_orch::{
+    deploy::Deploy,
+    prelude::{queriers::Bank, *},
+};
 use cw_orch_proto::tokenfactory::{create_denom, create_transfer_channel, get_denom, mint};
 
 pub fn test_send_funds() -> AnyResult<()> {
@@ -22,7 +25,7 @@ pub fn test_send_funds() -> AnyResult<()> {
 
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let starship = Starship::new(rt.handle(), None).unwrap();
+    let starship = Starship::new(rt.handle().to_owned(), None).unwrap();
     let interchain = starship.interchain_env();
 
     let juno = interchain.chain(JUNO).unwrap();
@@ -59,7 +62,7 @@ pub fn test_send_funds() -> AnyResult<()> {
                 protocol: ICS20.to_string(),
             },
             interchain_channel
-                .get_chain(STARGAZE)?
+                .get_chain(&STARGAZE.to_string())?
                 .channel
                 .unwrap()
                 .to_string(),
@@ -94,16 +97,17 @@ pub fn test_send_funds() -> AnyResult<()> {
         },
     )?;
 
-    interchain.wait_ibc(STARGAZE, send_funds_tx)?;
+    interchain.wait_ibc(&STARGAZE.to_string(), send_funds_tx)?;
 
     // Verify the funds have been received
     let remote_account_config = abstr_juno
         .version_control
         .get_account(remote_account_id.clone())?;
 
-    let balance = juno
-        .bank_querier()
-        .balance(remote_account_config.proxy, None)?;
+    let balance = rt.block_on(
+        juno.query_client::<Bank>()
+            .balance(remote_account_config.proxy, None),
+    )?;
 
     log::info!("juno balance, {:?}", balance);
 

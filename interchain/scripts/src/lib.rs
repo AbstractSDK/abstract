@@ -44,9 +44,9 @@ pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [
             .unwrap();
         let fee_token = chain.state.as_ref().chain_data.fees.fee_tokens[0].clone();
         let fee = (GAS_TO_DEPLOY as f64 * fee_token.fixed_min_gas_price) as u128;
-        let bank = queriers::Bank::new_async(chain.channel());
+        let bank = chain.query_client::<queriers::Bank>();
         let balance = bank
-            ._balance(chain.sender(), Some(fee_token.denom.clone()))
+            .balance(chain.sender(), Some(fee_token.denom.clone()))
             .await
             .unwrap()
             .clone()[0]

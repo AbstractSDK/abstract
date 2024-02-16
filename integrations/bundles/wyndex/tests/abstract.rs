@@ -1,13 +1,13 @@
 mod abstrct {
     use abstract_interface::Abstract;
-    use cosmwasm_std::Empty;
+    use cosmwasm_std::{Addr, Empty};
     use cw_orch::prelude::*;
-    use wyndex_bundle::WynDex;
+    use wyndex_bundle::{WynDex, WYNDEX_OWNER};
 
     #[test]
     fn deploy() {
-        let mock = MockBech32::new("mock");
-        let owner = mock.sender();
+        let owner = Addr::unchecked(WYNDEX_OWNER);
+        let mock = Mock::new(&owner);
 
         Abstract::deploy_on(mock.clone(), owner.to_string()).unwrap();
 

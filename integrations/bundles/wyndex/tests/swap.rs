@@ -1,6 +1,5 @@
-use cosmwasm_std::{coin, testing::mock_env};
-use cw_orch::mock::MockBech32;
-use cw_orch::prelude::TxHandler;
+use cosmwasm_std::{coin, testing::mock_env, Addr};
+use cw_orch::mock::Mock;
 use wyndex::asset::{AssetInfo, AssetInfoExt};
 use wyndex_bundle::suite::SuiteBuilder;
 use wyndex_multi_hop::msg::SwapOperation;
@@ -14,8 +13,9 @@ fn trading_frozen() {
     let ujuno_info = AssetInfo::Native(ujuno.to_string());
     let uluna_info = AssetInfo::Native(uluna.to_string());
 
-    let mock = MockBech32::new("mock");
-    let user = mock.sender();
+    let user = Addr::unchecked("user");
+
+    let mock = Mock::new(&user);
     mock.set_balance(&user, vec![coin(100_000, ujuno)]).unwrap();
 
     let mut suite = SuiteBuilder::new()
@@ -33,7 +33,7 @@ fn trading_frozen() {
 
     let err = suite
         .swap_operations(
-            &user,
+            user.as_str(),
             coin(1000, ujuno),
             vec![SwapOperation::WyndexSwap {
                 ask_asset_info: uluna_info.clone(),
@@ -49,7 +49,7 @@ fn trading_frozen() {
 
     suite
         .swap_operations(
-            &user,
+            user.as_str(),
             coin(1000, ujuno),
             vec![SwapOperation::WyndexSwap {
                 ask_asset_info: uluna_info,
@@ -68,8 +68,9 @@ fn custom_fee_works() {
     let ujuno_info = AssetInfo::Native(ujuno.to_string());
     let uluna_info = AssetInfo::Native(uluna.to_string());
 
-    let mock = MockBech32::new("mock");
-    let user = mock.sender();
+    let user = Addr::unchecked("user");
+
+    let mock = Mock::new(&user);
     mock.set_balance(&user, vec![coin(1_001_000, ujuno), coin(1_000_000, uluna)])
         .unwrap();
 
@@ -87,7 +88,7 @@ fn custom_fee_works() {
 
     suite
         .provide_liquidity(
-            &user,
+            user.as_str(),
             &pair,
             [
                 ujuno_info.with_balance(1_000_000u128),
@@ -99,7 +100,7 @@ fn custom_fee_works() {
 
     suite
         .swap_operations(
-            &user,
+            user.as_str(),
             coin(1000, ujuno),
             vec![SwapOperation::WyndexSwap {
                 ask_asset_info: uluna_info,
@@ -108,10 +109,10 @@ fn custom_fee_works() {
         )
         .unwrap();
 
-    assert_eq!(0, suite.query_balance(&user, ujuno).unwrap());
+    assert_eq!(0, suite.query_balance(user.as_str(), ujuno).unwrap());
     assert_eq!(
         500,
-        suite.query_balance(&user, uluna).unwrap(),
+        suite.query_balance(user.as_str(), uluna).unwrap(),
         "should only receive 50% due to fee"
     );
 }

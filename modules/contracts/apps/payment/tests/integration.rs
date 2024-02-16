@@ -7,11 +7,12 @@ use abstract_interface::{
     Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, VCExecFns,
 };
 use abstract_sdk::cw_helpers::Clearable;
-use cosmwasm_std::{coin, coins, to_json_binary, Decimal, Uint128};
+use abstract_testing::OWNER;
+use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, Uint128};
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
 use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, prelude::*};
+use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use payment_app::{
     contract::{APP_ID, APP_VERSION},
@@ -24,13 +25,13 @@ use payment_app::{
 use wyndex_bundle::WynDex;
 
 type PaymentTestSetup = (
-    AbstractAccount<MockBech32>,
-    Abstract<MockBech32>,
-    PaymentAppInterface<MockBech32>,
+    AbstractAccount<Mock>,
+    Abstract<Mock>,
+    PaymentAppInterface<Mock>,
     WynDex,
 );
 /// Set up the test environment with the contract installed
-fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<PaymentTestSetup> {
+fn setup(mock: Mock, desired_asset: Option<AssetEntry>) -> anyhow::Result<PaymentTestSetup> {
     let app = PaymentAppInterface::new(APP_ID, mock.clone());
 
     let abstr_deployment = Abstract::deploy_on(mock.clone(), mock.sender().to_string())?;
@@ -53,7 +54,7 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: mock.sender().to_string(),
+                monarch: OWNER.to_string(),
             })?;
 
     // claim the namespace so app can be deployed
@@ -89,8 +90,10 @@ fn setup(mock: MockBech32, desired_asset: Option<AssetEntry>) -> anyhow::Result<
 
 #[test]
 fn successful_install() -> anyhow::Result<()> {
+    // Create a sender
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
-    let mock = MockBech32::new("sender");
+    let mock = Mock::new(&sender);
 
     // Set up the environment and contract
     let (_account, _abstr, app, _wyndex) = setup(mock, None)?;
@@ -109,8 +112,10 @@ fn successful_install() -> anyhow::Result<()> {
 
 #[test]
 fn test_update_config() -> anyhow::Result<()> {
+    // Create a sender
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
-    let mock = MockBech32::new("sender");
+    let mock = Mock::new(&sender);
 
     // Set up the environment and contract
     let (account, abstr, app, wyndex) =
@@ -144,17 +149,20 @@ fn test_update_config() -> anyhow::Result<()> {
 
 #[test]
 fn test_simple_tip() -> anyhow::Result<()> {
-    let mock = MockBech32::new("sender");
+    // Create a sender
+    let sender = Addr::unchecked(OWNER);
+    // Create the mock
+    let mock = Mock::new(&sender);
 
     let (account, abstr_deployment, app, wyndex) = setup(mock.clone(), None)?;
-    let mock: MockBech32 = abstr_deployment.ans_host.get_chain().clone();
+    let mock: Mock = abstr_deployment.ans_host.get_chain().clone();
     let WynDex {
         eur_token,
         usd_token: _,
         eur_usd_lp: _,
         ..
     } = wyndex;
-    let tipper = mock.addr_make("tipper");
+    let tipper = Addr::unchecked("tipper");
     let tip_amount = 100;
     let tip_currency = eur_token.to_string();
     let tip_coins = coins(tip_amount, tip_currency.clone());
@@ -222,7 +230,10 @@ fn test_simple_tip() -> anyhow::Result<()> {
 
 #[test]
 fn test_tip_swap() -> anyhow::Result<()> {
-    let mock = MockBech32::new("sender");
+    // Create a sender
+    let sender = Addr::unchecked(OWNER);
+    // Create the mock
+    let mock = Mock::new(&sender);
 
     let (account, _abstr_deployment, app, wyndex) =
         setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
@@ -234,7 +245,7 @@ fn test_tip_swap() -> anyhow::Result<()> {
         ..
     } = wyndex;
 
-    let tipper = mock.addr_make("tipper");
+    let tipper = Addr::unchecked("tipper");
     let tip_amount = 100;
     let tip_currency = eur_token.to_string();
     let target_currency = usd_token.to_string();
@@ -273,7 +284,10 @@ fn test_tip_swap() -> anyhow::Result<()> {
 
 #[test]
 fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
-    let mock = MockBech32::new("sender");
+    // Create a sender
+    let sender = Addr::unchecked(OWNER);
+    // Create the mock
+    let mock = Mock::new(&sender);
 
     let (account, abstr_deployment, app, wyndex) =
         setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
@@ -285,7 +299,7 @@ fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
         ..
     } = wyndex;
 
-    let tipper = mock.addr_make("tipper");
+    let tipper = Addr::unchecked("tipper");
     let tip_amount = 100;
     let tip_amount1 = 100;
     let tip_currency = eur_token.to_string();
@@ -326,13 +340,15 @@ fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
 
 #[test]
 fn test_cw20_tip() -> anyhow::Result<()> {
+    // Create a sender
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
-    let mock = MockBech32::new("sender");
+    let mock = Mock::new(&sender);
 
     let (account, abstr_deployment, app, _wyndex) =
         setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
 
-    let tipper = mock.addr_make("tipper");
+    let tipper = Addr::unchecked("tipper");
     let tip_amount = 100u128;
     let starting_balance = 1000u128;
 
@@ -400,11 +416,13 @@ fn test_cw20_tip() -> anyhow::Result<()> {
 
 #[test]
 fn test_multiple_tippers() -> anyhow::Result<()> {
+    // Create a sender
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
-    let mock = MockBech32::new("sender");
+    let mock = Mock::new(&sender);
 
     let (account, abstr_deployment, app, wyndex) = setup(mock, None)?;
-    let mock: MockBech32 = abstr_deployment.ans_host.get_chain().clone();
+    let mock: Mock = abstr_deployment.ans_host.get_chain().clone();
     let WynDex {
         eur_token,
         usd_token: _,
@@ -413,7 +431,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
     } = wyndex;
 
     // First tipper
-    let tipper1 = mock.addr_make("tipper1");
+    let tipper1 = Addr::unchecked("tipper1");
     let tip_amount1 = 100;
     let tip_currency = eur_token.to_string();
     let tip_coins = coins(tip_amount1, tip_currency.clone());
@@ -422,7 +440,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
     app.call_as(&tipper1).tip(&tip_coins)?;
 
     // Second tipper
-    let tipper2 = mock.addr_make("tipper2");
+    let tipper2 = Addr::unchecked("tipper2");
     let tip_amount2 = 200;
     let tip_currency = eur_token.to_string();
     let tip_coins = coins(tip_amount2, tip_currency.clone());
@@ -477,15 +495,17 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
 
 #[test]
 fn test_sent_desired_asset() -> anyhow::Result<()> {
+    // Create a sender
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
-    let mock = MockBech32::new("sender");
+    let mock = Mock::new(&sender);
 
     let (_, abstr_deployment, app, wyndex) =
         setup(mock, Some(AssetEntry::new(wyndex_bundle::USD)))?;
-    let mock: MockBech32 = abstr_deployment.ans_host.get_chain().clone();
+    let mock: Mock = abstr_deployment.ans_host.get_chain().clone();
     let WynDex { usd_token, .. } = wyndex;
 
-    let tipper = mock.addr_make("tipper1");
+    let tipper = Addr::unchecked("tipper1");
     let tip_amount = 100;
     let tip_currency = usd_token.to_string();
     let tip_coins = coins(tip_amount, tip_currency.clone());

@@ -9,8 +9,11 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use abstract_interface_integration_tests::{JUNO, STARGAZE};
 use anyhow::Result as AnyResult;
-use cosmwasm_std::{coin, Uint128};
-use cw_orch::prelude::{queriers::Ibc, *};
+use cosmwasm_std::coin;
+use cw_orch::prelude::{
+    queriers::{Bank, Ibc},
+    *,
+};
 use cw_orch_proto::tokenfactory::{
     create_denom, create_transfer_channel, get_denom, mint, transfer_tokens,
 };
@@ -20,7 +23,7 @@ pub fn token_bridge() -> AnyResult<()> {
     env_logger::init();
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let interchain = Starship::new(rt.handle(), None)?.interchain_env();
+    let interchain = Starship::new(rt.handle().to_owned(), None)?.interchain_env();
 
     let juno = interchain.chain(JUNO).unwrap();
     let stargaze = interchain.chain(STARGAZE).unwrap();
@@ -63,23 +66,27 @@ pub fn token_bridge() -> AnyResult<()> {
         "{}/{}/{}",
         PortId::transfer(),
         interchain_channel
-            .get_chain(STARGAZE)
+            .get_chain(&STARGAZE.to_string())
             .unwrap()
             .channel
             .unwrap(),
         get_denom(&juno, token_subdenom.as_str())
     );
-    let ibc: Ibc = stargaze.querier();
-    let hash = rt.block_on(ibc._denom_hash(trace)).unwrap();
+    let hash = rt
+        .block_on(stargaze.query_client::<Ibc>().denom_hash(trace))
+        .unwrap();
     let denom = format!("ibc/{}", hash);
 
     // Get balance on the remote chain
-    let balance = stargaze
-        .bank_querier()
-        .balance(stargaze.sender().to_string(), Some(denom.clone()))
+    let balance = rt
+        .block_on(
+            stargaze
+                .query_client::<Bank>()
+                .balance(stargaze.sender().to_string(), Some(denom.clone())),
+        )
         .unwrap();
 
-    assert_eq!(balance[0].amount, Uint128::from(test_amount));
+    assert_eq!(balance[0].amount, test_amount.to_string());
 
     // Send all back
     transfer_tokens(
@@ -93,12 +100,15 @@ pub fn token_bridge() -> AnyResult<()> {
     )
     .unwrap();
 
-    let balance = stargaze
-        .bank_querier()
-        .balance(stargaze.sender().to_string(), Some(denom.clone()))
+    let balance = rt
+        .block_on(
+            stargaze
+                .query_client::<Bank>()
+                .balance(stargaze.sender().to_string(), Some(denom.clone())),
+        )
         .unwrap();
 
-    assert_eq!(balance[0].amount, Uint128::zero());
+    assert_eq!(balance[0].amount, "0");
 
     Ok(())
 }

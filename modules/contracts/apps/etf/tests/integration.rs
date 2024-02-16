@@ -7,11 +7,12 @@ use abstract_interface::{
     ProxyQueryFns,
 };
 use abstract_sdk::core as abstract_core;
+use abstract_testing::OWNER;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::{AssetInfo, AssetUnchecked};
-use cw_orch::prelude::*;
+use cw_orch::{deploy::Deploy, prelude::*};
 use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use etf_app::{
     contract::interface::Etf,
@@ -35,7 +36,7 @@ pub struct EtfEnv<Chain: CwEnv> {
     pub abstract_core: Abstract<Chain>,
 }
 
-fn create_etf(mock: MockBech32) -> Result<EtfEnv<MockBech32>, AbstractInterfaceError> {
+fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     let version: Version = env!("CARGO_PKG_VERSION").parse().unwrap();
     // Deploy abstract
     let abstract_ = Abstract::deploy_on(mock.clone(), mock.sender.to_string())?;
@@ -68,7 +69,7 @@ fn create_etf(mock: MockBech32) -> Result<EtfEnv<MockBech32>, AbstractInterfaceE
         &etf,
         &etf_app::msg::EtfInstantiateMsg {
             fee: Decimal::percent(5),
-            manager_addr: mock.addr_make(ETF_MANAGER).into(),
+            manager_addr: ETF_MANAGER.into(),
             token_code_id: etf_token_code_id,
             token_name: Some("Test ETF Shares".into()),
             token_symbol: Some("TETF".into()),
@@ -91,9 +92,10 @@ fn create_etf(mock: MockBech32) -> Result<EtfEnv<MockBech32>, AbstractInterfaceE
 
 #[test]
 fn proper_initialization() -> AResult {
+    let owner = Addr::unchecked(OWNER);
+
     // create testing environment
-    let mock = MockBech32::new("mock");
-    let owner = mock.sender();
+    let mock = Mock::new(&owner);
 
     // create a etf
     let etf_env = crate::create_etf(mock.clone())?;

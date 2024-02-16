@@ -82,7 +82,6 @@ mod test {
         addresses::test_account_base,
         prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL},
     };
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use speculoos::{assert_that, prelude::*};
 
     use super::InstantiateMsg as SuperInstantiateMsg;

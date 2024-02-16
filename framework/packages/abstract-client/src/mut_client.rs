@@ -3,7 +3,7 @@
 //! This module implements methods that are applied for test environments.
 //! For more details see [`MutCwEnv`]
 
-use cosmwasm_std::Coin;
+use cosmwasm_std::{Addr, Coin};
 use cw_orch::environment::MutCwEnv;
 
 use crate::{
@@ -20,7 +20,7 @@ impl<Chain: MutCwEnv> AbstractClient<Chain> {
     ) -> AbstractClientResult<()> {
         self.environment()
             // Does some cloning but exposes easier to use API
-            .set_balance(address, amount.to_vec())
+            .set_balance(&Addr::unchecked(address), amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
     }
@@ -43,7 +43,7 @@ impl<Chain: MutCwEnv> AbstractClient<Chain> {
         amount: &[Coin],
     ) -> AbstractClientResult<()> {
         self.environment()
-            .add_balance(address, amount.to_vec())
+            .add_balance(&Addr::unchecked(address), amount.to_vec())
             .map_err(Into::into)
             .map_err(Into::into)
     }

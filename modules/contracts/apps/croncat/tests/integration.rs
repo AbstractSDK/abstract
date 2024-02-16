@@ -1,5 +1,7 @@
 mod common;
 
+use std::cell::RefMut;
+
 use abstract_core::{
     ans_host::ContractsResponse,
     objects::{
@@ -7,6 +9,7 @@ use abstract_core::{
     },
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_testing::OWNER;
 use common::contracts;
 use cosmwasm_std::{coins, to_json_binary, Addr, BankMsg, Uint128, WasmMsg};
 use croncat_app::{
@@ -32,9 +35,9 @@ use croncat_sdk_tasks::{
 };
 use cw20::{Cw20Coin, Cw20CoinVerified, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_asset::{Asset, AssetList, AssetListUnchecked};
-use cw_orch::mock::cw_multi_test::Executor;
+use cw_multi_test::{App, Executor};
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, prelude::*};
+use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use crate::common::contracts::TasksResponseCaster;
 // consts for testing
@@ -43,13 +46,14 @@ const VERSION: &str = "1.0";
 const DENOM: &str = "abstr";
 const PAUSE_ADMIN: &str = "cosmos338dwgj5wm2tuahvfjdldz5s8hmt7l5aznw8jz9s2mmgj5c52jqgfq000";
 
-fn setup_croncat_contracts(mock: MockBech32, proxy_addr: String) -> anyhow::Result<(Addr, Addr)> {
-    let sender = mock.sender();
+fn setup_croncat_contracts(
+    mut app: RefMut<App>,
+    proxy_addr: String,
+) -> anyhow::Result<(Addr, Addr)> {
+    let sender = Addr::unchecked(OWNER);
     let pause_admin = Addr::unchecked(PAUSE_ADMIN);
-    let agent_addr = mock.addr_make(AGENT);
 
     // Instantiate cw20
-    let mut app = mock.app.borrow_mut();
     let cw20_code_id = app.store_code(contracts::cw20_contract());
     let cw20_addr = app.instantiate_contract(
         cw20_code_id,
@@ -130,7 +134,7 @@ fn setup_croncat_contracts(mock: MockBech32, proxy_addr: String) -> anyhow::Resu
         min_coins_for_agent_registration: None,
         agents_eject_threshold: None,
         min_active_agent_count: None,
-        allowed_agents: Some(vec![agent_addr.to_string()]),
+        allowed_agents: Some(vec![AGENT.to_owned()]),
         public_registration: true,
     };
     let module_instantiate_info = ModuleInstantiateInfo {
@@ -197,7 +201,7 @@ fn setup_croncat_contracts(mock: MockBech32, proxy_addr: String) -> anyhow::Resu
     )?;
     let agents_addr = response.metadata.unwrap().contract_addr;
     app.execute_contract(
-        agent_addr,
+        Addr::unchecked(AGENT),
         agents_addr,
         &croncat_sdk_agents::msg::ExecuteMsg::RegisterAgent {
             payable_account_id: None,
@@ -209,21 +213,22 @@ fn setup_croncat_contracts(mock: MockBech32, proxy_addr: String) -> anyhow::Resu
 }
 
 struct TestingSetup {
-    account: AbstractAccount<MockBech32>,
+    account: AbstractAccount<Mock>,
     #[allow(unused)]
-    abstr_deployment: Abstract<MockBech32>,
-    module_contract: Croncat<MockBech32>,
+    abstr_deployment: Abstract<Mock>,
+    module_contract: Croncat<Mock>,
     cw20_addr: Addr,
-    mock: MockBech32,
+    mock: Mock,
 }
 
 /// Set up the test environment with the contract installed
 fn setup() -> anyhow::Result<TestingSetup> {
+    // Create a sender
+    let sender = Addr::unchecked(OWNER);
     // Create the mock
-    let mock = MockBech32::new("mock");
-    let sender = mock.sender();
+    let mock = Mock::new(&sender);
 
-    mock.set_balance(&mock.addr_make(AGENT), coins(500_000, DENOM))?;
+    mock.set_balance(&Addr::unchecked(AGENT), coins(500_000, DENOM))?;
     // Construct the counter interface
     let mut contract = Croncat::new(CRONCAT_ID, mock.clone());
     // Deploy Abstract to the mock
@@ -233,7 +238,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: mock.sender().to_string(),
+                monarch: OWNER.to_string(),
             })?;
     // claim the namespace so app can be deployed
     abstr_deployment.version_control.claim_namespace(
@@ -244,7 +249,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
     // Instantiating croncat contracts
     mock.set_balance(&sender, coins(100, DENOM))?;
     let (factory_addr, cw20_addr) =
-        setup_croncat_contracts(mock.clone(), account.proxy.addr_str()?)?;
+        setup_croncat_contracts(mock.app.as_ref().borrow_mut(), account.proxy.addr_str()?)?;
 
     let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?;
     abstr_deployment.ans_host.execute(
@@ -293,7 +298,7 @@ fn all_in_one() -> anyhow::Result<()> {
         actions: vec![
             Action {
                 msg: BankMsg::Send {
-                    to_address: mock.addr_make("receiver").to_string(),
+                    to_address: "receiver".to_owned(),
                     amount: coins(1, DENOM),
                 }
                 .into(),
@@ -303,7 +308,7 @@ fn all_in_one() -> anyhow::Result<()> {
                 msg: WasmMsg::Execute {
                     contract_addr: cw20_addr.to_string(),
                     msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                        recipient: mock.addr_make("bob").to_string(),
+                        recipient: "bob".to_owned(),
                         amount: Uint128::new(100),
                     })?,
                     funds: vec![],
@@ -320,11 +325,16 @@ fn all_in_one() -> anyhow::Result<()> {
     // Task creation
     let assets = {
         let mut assets = AssetList::from(coins(45_000, DENOM));
-        assets.add(&Asset::cw20(cw20_addr.clone(), cw20_amount.amount))?;
+        assets.add(&Asset::cw20(
+            Addr::unchecked(cw20_addr.clone()),
+            cw20_amount.amount,
+        ))?;
         AssetListUnchecked::from(assets)
     };
     let task_tag = "test_sends".to_owned();
-    module_contract.create_task(assets, Box::new(task), task_tag)?;
+    module_contract
+        .create_task(assets, Box::new(task), task_tag)
+        .unwrap();
 
     let active_tasks_response: ActiveTasksResponse =
         module_contract.active_tasks(None, None, None)?;
@@ -343,10 +353,15 @@ fn all_in_one() -> anyhow::Result<()> {
         .unwrap();
     let assets = {
         let mut assets = AssetList::from(coins(100, DENOM));
-        assets.add(&Asset::cw20(cw20_addr.clone(), Uint128::new(5)))?;
+        assets.add(&Asset::cw20(
+            Addr::unchecked(cw20_addr.clone()),
+            Uint128::new(5),
+        ))?;
         AssetListUnchecked::from(assets)
     };
-    module_contract.refill_task(assets, active_tasks[0].1.clone())?;
+    module_contract
+        .refill_task(assets, active_tasks[0].1.clone())
+        .unwrap();
     let task_balance2: TaskBalance = module_contract
         .task_balance(active_tasks[0].0.to_string(), active_tasks[0].1.clone())?
         .balance
@@ -435,7 +450,7 @@ fn admin() -> anyhow::Result<()> {
     // Set up the environment and contract
     let TestingSetup {
         mut module_contract,
-        mock,
+        mock: _,
         cw20_addr,
         ..
     } = setup()?;
@@ -446,7 +461,7 @@ fn admin() -> anyhow::Result<()> {
         stop_on_fail: false,
         actions: vec![Action {
             msg: BankMsg::Send {
-                to_address: mock.addr_make("receiver").to_string(),
+                to_address: "receiver".to_owned(),
                 amount: coins(1, DENOM),
             }
             .into(),
@@ -507,7 +522,7 @@ fn create_task() -> anyhow::Result<()> {
     // Set up the environment and contract
     let TestingSetup {
         module_contract,
-        mock,
+        mock: _,
         account,
         cw20_addr,
         ..
@@ -520,7 +535,7 @@ fn create_task() -> anyhow::Result<()> {
         stop_on_fail: false,
         actions: vec![Action {
             msg: BankMsg::Send {
-                to_address: mock.addr_make("receiver").to_string(),
+                to_address: "receiver".to_owned(),
                 amount: coins(1, DENOM),
             }
             .into(),
@@ -559,7 +574,7 @@ fn create_task() -> anyhow::Result<()> {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
                 msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: mock.addr_make("bob").to_string(),
+                    recipient: "bob".to_owned(),
                     amount: Uint128::new(20),
                 })?,
                 funds: vec![],
@@ -575,7 +590,10 @@ fn create_task() -> anyhow::Result<()> {
     // Let's attach now 2x of the cw20s and create two tasks LOL
     let assets = {
         let mut assets = AssetList::from(coins(40_000, DENOM));
-        assets.add(&Asset::cw20(cw20_addr.clone(), Uint128::new(40)))?;
+        assets.add(&Asset::cw20(
+            Addr::unchecked(cw20_addr.clone()),
+            Uint128::new(40),
+        ))?;
         AssetListUnchecked::from(assets)
     };
     let err = module_contract.create_task(assets.clone(), Box::new(task.clone()), task_tag.clone());
@@ -600,7 +618,7 @@ fn create_task() -> anyhow::Result<()> {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
                 msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: mock.addr_make("alice").to_string(),
+                    recipient: "alice".to_owned(),
                     amount: Uint128::new(20),
                 })?,
                 funds: vec![],
@@ -629,7 +647,7 @@ fn refill_task() -> anyhow::Result<()> {
     // Set up the environment and contract
     let TestingSetup {
         module_contract,
-        mock,
+        mock: _,
         account: _,
         cw20_addr,
         ..
@@ -647,7 +665,7 @@ fn refill_task() -> anyhow::Result<()> {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
                 msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: mock.addr_make("bob").to_string(),
+                    recipient: "bob".to_owned(),
                     amount: Uint128::new(20),
                 })?,
                 funds: vec![],
@@ -662,7 +680,10 @@ fn refill_task() -> anyhow::Result<()> {
     let task_tag = "test_tag".to_owned();
     let assets = {
         let mut assets = AssetList::from(coins(40_000, DENOM));
-        assets.add(&Asset::cw20(cw20_addr.clone(), Uint128::new(20)))?;
+        assets.add(&Asset::cw20(
+            Addr::unchecked(cw20_addr.clone()),
+            Uint128::new(20),
+        ))?;
         AssetListUnchecked::from(assets)
     };
     module_contract.create_task(assets, Box::new(task), task_tag)?;
@@ -679,7 +700,7 @@ fn refill_task() -> anyhow::Result<()> {
         TaskBalance {
             native_balance: Uint128::new(40_000),
             cw20_balance: Some(Cw20CoinVerified {
-                address: cw20_addr.clone(),
+                address: Addr::unchecked(cw20_addr.clone()),
                 amount: Uint128::new(20)
             }),
             ibc_balance: None
@@ -696,7 +717,7 @@ fn refill_task() -> anyhow::Result<()> {
         TaskBalance {
             native_balance: Uint128::new(40_123),
             cw20_balance: Some(Cw20CoinVerified {
-                address: cw20_addr.clone(),
+                address: Addr::unchecked(cw20_addr.clone()),
                 amount: Uint128::new(20)
             }),
             ibc_balance: None
@@ -706,7 +727,10 @@ fn refill_task() -> anyhow::Result<()> {
     // Refill only with cw20 coins
     let assets = {
         let mut assets = AssetList::new();
-        assets.add(&Asset::cw20(cw20_addr.clone(), Uint128::new(25)))?;
+        assets.add(&Asset::cw20(
+            Addr::unchecked(cw20_addr.clone()),
+            Uint128::new(25),
+        ))?;
         AssetListUnchecked::from(assets)
     };
     module_contract.refill_task(assets, task_tag.clone())?;
@@ -717,7 +741,7 @@ fn refill_task() -> anyhow::Result<()> {
         TaskBalance {
             native_balance: Uint128::new(40_123),
             cw20_balance: Some(Cw20CoinVerified {
-                address: cw20_addr.clone(),
+                address: Addr::unchecked(cw20_addr.clone()),
                 amount: Uint128::new(45)
             }),
             ibc_balance: None
@@ -727,7 +751,10 @@ fn refill_task() -> anyhow::Result<()> {
     // Refill with both
     let assets = {
         let mut assets = AssetList::from(coins(1_000, DENOM));
-        assets.add(&Asset::cw20(cw20_addr.clone(), Uint128::new(55)))?;
+        assets.add(&Asset::cw20(
+            Addr::unchecked(cw20_addr.clone()),
+            Uint128::new(55),
+        ))?;
         AssetListUnchecked::from(assets)
     };
     module_contract.refill_task(assets, task_tag.clone())?;
@@ -738,7 +765,7 @@ fn refill_task() -> anyhow::Result<()> {
         TaskBalance {
             native_balance: Uint128::new(41_123),
             cw20_balance: Some(Cw20CoinVerified {
-                address: cw20_addr,
+                address: Addr::unchecked(cw20_addr),
                 amount: Uint128::new(100)
             }),
             ibc_balance: None
@@ -773,7 +800,7 @@ fn remove_task() -> anyhow::Result<()> {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
                 msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: mock.addr_make("bob").to_string(),
+                    recipient: "bob".to_owned(),
                     amount: Uint128::new(20),
                 })?,
                 funds: vec![],
@@ -788,7 +815,10 @@ fn remove_task() -> anyhow::Result<()> {
     let task_tag1 = "test_tag1".to_owned();
     let assets = {
         let mut assets = AssetList::from(coins(40_000, DENOM));
-        assets.add(&Asset::cw20(cw20_addr.clone(), Uint128::new(30)))?;
+        assets.add(&Asset::cw20(
+            Addr::unchecked(cw20_addr.clone()),
+            Uint128::new(30),
+        ))?;
         AssetListUnchecked::from(assets)
     };
     module_contract.create_task(assets, Box::new(task), task_tag1)?;
@@ -805,7 +835,7 @@ fn remove_task() -> anyhow::Result<()> {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
                 msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: mock.addr_make("alice").to_string(),
+                    recipient: "alice".to_owned(),
                     amount: Uint128::new(30),
                 })?,
                 funds: vec![],
@@ -820,7 +850,10 @@ fn remove_task() -> anyhow::Result<()> {
     let task_tag2 = "test_tag2".to_owned();
     let assets = {
         let mut assets = AssetList::from(coins(40_000, DENOM));
-        assets.add(&Asset::cw20(cw20_addr.clone(), Uint128::new(40)))?;
+        assets.add(&Asset::cw20(
+            Addr::unchecked(cw20_addr.clone()),
+            Uint128::new(40),
+        ))?;
         AssetListUnchecked::from(assets)
     };
     module_contract.create_task(assets, Box::new(task), task_tag2)?;
@@ -842,9 +875,8 @@ fn remove_task() -> anyhow::Result<()> {
             &factory_addr,
         )?;
         let manager_addr: Addr = response.metadata.unwrap().contract_addr;
-        let agent = mock.addr_make(AGENT);
         mock.app.borrow_mut().execute_contract(
-            agent,
+            Addr::unchecked(AGENT),
             manager_addr,
             &ManagerExecuteMsg::ProxyCall { task_hash: None },
             &[],
@@ -907,7 +939,6 @@ fn purge() -> anyhow::Result<()> {
     let TestingSetup {
         module_contract,
         account,
-        mock,
         ..
     } = setup()?;
 
@@ -918,7 +949,7 @@ fn purge() -> anyhow::Result<()> {
         stop_on_fail: false,
         actions: vec![Action {
             msg: BankMsg::Send {
-                to_address: mock.addr_make("alice").to_string(),
+                to_address: "alice".to_owned(),
                 amount: coins(420, DENOM),
             }
             .into(),

@@ -306,10 +306,10 @@ pub mod mock {
         #[cw_orch::interface(Init, Exec, Query, Empty)]
         pub struct $name ;
 
-        impl ::abstract_interface::AdapterDeployer<::cw_orch::prelude::MockBech32, MockInitMsg> for $name <::cw_orch::prelude::MockBech32> {}
+        impl ::abstract_interface::AdapterDeployer<::cw_orch::prelude::Mock, MockInitMsg> for $name <::cw_orch::prelude::Mock> {}
 
-        impl Uploadable for $name<::cw_orch::prelude::MockBech32> {
-            fn wrapper(&self) -> <MockBech32 as ::cw_orch::environment::TxHandler>::ContractSource {
+        impl Uploadable for $name<::cw_orch::prelude::Mock> {
+            fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
                     Exec,
                     _,

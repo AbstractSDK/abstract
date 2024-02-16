@@ -17,15 +17,18 @@ use abstract_interface::{
 use abstract_testing::prelude::*;
 use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoBase};
-use cw_orch::prelude::{MockBech32, *};
+use cw_orch::{
+    deploy::Deploy,
+    prelude::{Mock, *},
+};
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 #[test]
 fn instantiate() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = deployment.account_factory;
@@ -44,8 +47,8 @@ fn instantiate() -> AResult {
 
 #[test]
 fn create_one_account() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = &deployment.account_factory;
@@ -99,8 +102,8 @@ fn create_one_account() -> AResult {
 
 #[test]
 fn create_two_account_s() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = &deployment.account_factory;
@@ -180,15 +183,15 @@ fn create_two_account_s() -> AResult {
 
 #[test]
 fn sender_is_not_admin_monarchy() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
     let account_creation = factory.create_account(
         GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
+            monarch: OWNER.to_string(),
         },
         vec![],
         String::from("first_os"),
@@ -232,15 +235,15 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
 #[test]
 fn sender_is_not_admin_external() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
     factory.create_account(
         GovernanceDetails::External {
-            governance_address: sender.to_string(),
+            governance_address: OWNER.to_string(),
             governance_type: "some-gov-type".to_string(),
         },
         vec![],
@@ -268,8 +271,8 @@ fn sender_is_not_admin_external() -> AResult {
 
 #[test]
 fn create_one_account_with_base_asset() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let factory = &deployment.account_factory;
@@ -308,8 +311,8 @@ fn create_one_account_with_base_asset() -> AResult {
 
 #[test]
 fn create_one_account_with_namespace() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let factory = &deployment.account_factory;
@@ -350,8 +353,8 @@ fn create_one_account_with_namespace() -> AResult {
 
 #[test]
 fn create_one_account_with_namespace_fee() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::account_factory::create_one_account_with_namespace_fee(chain)
 }

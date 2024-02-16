@@ -1,6 +1,6 @@
 #![allow(unused)]
 mod common;
-
+// Keep this until https://github.com/osmosis-labs/test-tube/issues/28 is fixed!
 #[cfg(feature = "osmosis-test")]
 mod osmosis_test {
 
@@ -31,6 +31,7 @@ mod osmosis_test {
     use cosmwasm_std::{coin, coins, Addr, Empty, Uint128};
     use cw_asset::AssetInfoBase;
     use cw_orch::{
+        deploy::Deploy,
         interface,
         osmosis_test_tube::osmosis_test_tube::{
             osmosis_std::types::osmosis::lockup::{

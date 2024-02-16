@@ -38,10 +38,10 @@ When working with a local deployment (mock, or local daemon), you will need to d
 use cw_orch::prelude::*;
 use abstract_client::AbstractClient;
 
-let chain = MockBech32::new("mock");
+let chain = Mock::new(&Addr::unchecked("sender"));
 
 // Build the client, which will deploy the infrastructure
-let client: AbstractClient<MockBech32> = 
+let client: AbstractClient<Mock> = 
             AbstractClient::builder(chain)
             // ... Configure builder 
             .build()?;
@@ -57,24 +57,24 @@ The main function of the client is to construct `Account`, `Application` and `Pu
 
 To create an account you can use the `AbstractClient::account_builder` function. This function will return an [`AccountBuilder`](https://docs.rs/abstract-client/latest/abstract_client/struct.AccountBuilder.html) that you can configure to build an `Account`. If a claimed namespace is provided to the builder, the builder will return the `Account` that owns that namespace. In the other scenarios the builder will create a new account.
 
-> Our examples will use the `MockBech32` environment for simplicity. However, the same functions can be used for any [`CwEnv`](https://docs.rs/cw-orch/latest/cw_orch/environment/trait.CwEnv.html).
+> Our examples will use the `Mock` environment for simplicity. However, the same functions can be used for any [`CwEnv`](https://docs.rs/cw-orch/latest/cw_orch/environment/trait.CwEnv.html).
 
 ```rust no_run
 use cw_orch::prelude::*;
 use abstract_client::{AbstractClient, Account, Application};
 use abstract_app::mock::{mock_app_dependency::interface::MockAppI as App, MockInitMsg as AppInitMsg};
 
-let chain = MockBech32::new("mock");
+let chain = Mock::new(&Addr::unchecked("sender"));
 
 // Construct the client
-let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
+let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 
 // Build a new account.
-let account: Account<MockBech32> = client.account_builder().build()?;
+let account: Account<Mock> = client.account_builder().build()?;
 
 // Install an application.
-let my_app: Application<MockBech32, App<MockBech32>> =
-        account.install_app::<App<MockBech32>>(&AppInitMsg {}, &[])?;
+let my_app: Application<Mock, App<Mock>> =
+        account.install_app::<App<Mock>>(&AppInitMsg {}, &[])?;
 
 Ok::<(), abstract_client::AbstractClientError>(())
 ```
@@ -96,20 +96,20 @@ use cw_orch::prelude::*;
 use abstract_client::{AbstractClient, Namespace, Publisher, Application};
 use abstract_app::mock::{mock_app_dependency::interface::MockAppI, MockInitMsg};
 
-let chain = MockBech32::new("mock");
+let chain = Mock::new(&Addr::unchecked("sender"));
 
 // Construct the client
-let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
+let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 
 // Build a Publisher
-let publisher: Publisher<MockBech32> = client.publisher_builder(Namespace::new("tester")?)
+let publisher: Publisher<Mock> = client.publisher_builder(Namespace::new("tester")?)
         .build()?;
 
 publisher.publish_app::<MockAppI<_>>()?;
 
 // Install the published app
-let app: Application<MockBech32, MockAppI<MockBech32>> =
-        publisher.account().install_app::<MockAppI<MockBech32>>(&MockInitMsg {}, &[])?;
+let app: Application<Mock, MockAppI<Mock>> =
+        publisher.account().install_app::<MockAppI<Mock>>(&MockInitMsg {}, &[])?;
 
 
 Ok::<(), abstract_client::AbstractClientError>(())
@@ -128,18 +128,18 @@ use cw_orch::prelude::*;
 use abstract_client::{AbstractClient, Namespace, Account};
 use abstract_app::mock::{mock_app_dependency::interface::MockAppI, MockInitMsg};
 
-let chain = MockBech32::new("mock");
+let chain = Mock::new(&Addr::unchecked("sender"));
 
 // Construct the client
-let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
+let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
 
 let namespace = Namespace::new("some-namespace")?;
 
 // Build a new account.
-let account: Account<MockBech32> = client.account_builder().namespace(namespace.clone()).build()?;
+let account: Account<Mock> = client.account_builder().namespace(namespace.clone()).build()?;
 
 // Fetch the account
-let fetched_account: Account<MockBech32> = client.account_from(namespace)?;
+let fetched_account: Account<Mock> = client.account_from(namespace)?;
 
 Ok::<(), abstract_client::AbstractClientError>(())
 ```

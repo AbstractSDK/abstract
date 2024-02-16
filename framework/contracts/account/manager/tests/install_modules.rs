@@ -8,14 +8,19 @@ use abstract_core::{
 use abstract_integration_tests::{create_default_account, mock_modules, AResult};
 use abstract_interface::{Abstract, AbstractAccount, VCExecFns};
 use abstract_manager::error::ManagerError;
-use abstract_testing::prelude::TEST_NAMESPACE;
-use cw_orch::{prelude::*, take_storage_snapshot};
+use abstract_testing::{prelude::TEST_NAMESPACE, OWNER};
+use cosmwasm_std::Addr;
+use cw_orch::{
+    deploy::Deploy,
+    prelude::{CwOrchExecute, CwOrchQuery, Mock},
+    take_storage_snapshot,
+};
 use mock_modules::{adapter_1, deploy_modules, V1};
 
 #[test]
 fn cannot_reinstall_module() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
@@ -58,8 +63,8 @@ fn cannot_reinstall_module() -> AResult {
 
 #[test]
 fn adds_module_to_account_modules() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 
@@ -91,8 +96,8 @@ fn adds_module_to_account_modules() -> AResult {
 
 #[test]
 fn useful_error_module_not_found() -> AResult {
-    let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 

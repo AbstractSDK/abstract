@@ -5,10 +5,12 @@ use anyhow::Result as AnyResult;
 use cosmwasm_schema::serde::Serialize;
 use cosmwasm_std::{coin, to_json_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
-use cw_orch::{mock::MockAppBech32, prelude::*};
+use cw_orch::prelude::*;
 
 use cw_controllers::{Claim, ClaimsResponse};
-use cw_orch::mock::cw_multi_test::{AppResponse, BankSudo, ContractWrapper, Executor, SudoMsg};
+use cw_orch::mock::cw_multi_test::{
+    App, AppResponse, BankSudo, ContractWrapper, Executor, SudoMsg,
+};
 use wyndex::{
     asset::{Asset, AssetInfo, AssetInfoValidated},
     factory::{
@@ -32,7 +34,7 @@ use wyndex_stake::msg::{
 use crate::{MULTI_HOP, POOL_FACTORY, WYNDEX_OWNER};
 pub const SEVEN_DAYS: u64 = 604800;
 
-fn store_multi_hop(app: &mut MockAppBech32) -> u64 {
+fn store_multi_hop(app: &mut App) -> u64 {
     let contract = Box::new(ContractWrapper::new_with_empty(
         wyndex_multi_hop::contract::execute,
         wyndex_multi_hop::contract::instantiate,
@@ -42,7 +44,7 @@ fn store_multi_hop(app: &mut MockAppBech32) -> u64 {
     app.store_code(contract)
 }
 
-fn store_factory(app: &mut MockAppBech32) -> u64 {
+fn store_factory(app: &mut App) -> u64 {
     let contract = Box::new(
         ContractWrapper::new_with_empty(
             wyndex_factory::contract::execute,
@@ -55,7 +57,7 @@ fn store_factory(app: &mut MockAppBech32) -> u64 {
     app.store_code(contract)
 }
 
-fn store_pair(app: &mut MockAppBech32) -> u64 {
+fn store_pair(app: &mut App) -> u64 {
     let contract = Box::new(
         ContractWrapper::new_with_empty(
             wyndex_pair::contract::execute,
@@ -68,7 +70,7 @@ fn store_pair(app: &mut MockAppBech32) -> u64 {
     app.store_code(contract)
 }
 
-fn store_staking(app: &mut MockAppBech32) -> u64 {
+fn store_staking(app: &mut App) -> u64 {
     let contract = Box::new(ContractWrapper::new(
         wyndex_stake::contract::execute,
         wyndex_stake::contract::instantiate,
@@ -78,7 +80,7 @@ fn store_staking(app: &mut MockAppBech32) -> u64 {
     app.store_code(contract)
 }
 
-fn store_cw20(app: &mut MockAppBech32) -> u64 {
+fn store_cw20(app: &mut App) -> u64 {
     let contract = Box::new(ContractWrapper::new(
         cw20_base::contract::execute,
         cw20_base::contract::instantiate,
@@ -132,9 +134,9 @@ impl SuiteBuilder {
     }
 
     #[track_caller]
-    pub fn build(self, mock_chain: &MockBech32) -> Suite {
-        let owner = mock_chain.addr_make(WYNDEX_OWNER);
+    pub fn build(self, mock_chain: &Mock) -> Suite {
         let mut app = mock_chain.app.borrow_mut();
+        let owner = Addr::unchecked(WYNDEX_OWNER);
 
         let cw20_code_id = store_cw20(&mut app);
         let pair_code_id = store_pair(&mut app);
@@ -198,7 +200,7 @@ impl SuiteBuilder {
         drop(app);
         Suite {
             mock: mock_chain.clone(),
-            owner,
+            owner: owner.to_string(),
             factory,
             multi_hop,
         }
@@ -206,9 +208,9 @@ impl SuiteBuilder {
 }
 
 pub struct Suite {
-    pub owner: Addr,
+    pub owner: String,
     pub factory: Addr,
-    mock: MockBech32,
+    mock: Mock,
     pub multi_hop: Addr,
 }
 
@@ -221,20 +223,20 @@ impl PartialEq for Suite {
 }
 
 impl Suite {
-    pub fn load_from(mock: &MockBech32) -> Self {
-        let owner = mock.addr_make(WYNDEX_OWNER);
+    pub fn load_from(mock: &Mock) -> Self {
+        let owner = Addr::unchecked(WYNDEX_OWNER);
         let factory = mock.state.get_address(POOL_FACTORY).unwrap();
         let multi_hop = mock.state.get_address(MULTI_HOP).unwrap();
 
         Self {
             mock: mock.clone(),
-            owner,
+            owner: owner.to_string(),
             factory,
             multi_hop,
         }
     }
 
-    pub fn app(&self) -> RefMut<MockAppBech32> {
+    pub fn app(&self) -> RefMut<App> {
         self.mock.app.borrow_mut()
     }
     pub fn advance_time(&mut self, seconds: u64) {
@@ -253,7 +255,7 @@ impl Suite {
 
     pub fn create_pair(
         &mut self,
-        sender: &Addr,
+        sender: &str,
         pair_type: PairType,
         tokens: [AssetInfo; 2],
         staking_config: Option<PartialStakeConfig>,
@@ -284,7 +286,7 @@ impl Suite {
 
     pub fn create_pair_and_distributions(
         &mut self,
-        sender: &Addr,
+        sender: &str,
         pair_type: PairType,
         asset_infos: Vec<AssetInfo>,
         staking_config: Option<PartialStakeConfig>,
@@ -307,13 +309,13 @@ impl Suite {
 
     pub fn provide_liquidity(
         &mut self,
-        owner: &Addr,
+        owner: &str,
         pair: &Addr,
         assets: [Asset; 2],
         send_funds: &[Coin],
     ) -> AnyResult<AppResponse> {
         self.app().execute_contract(
-            owner.clone(),
+            Addr::unchecked(owner),
             pair.clone(),
             &PairExecuteMsg::ProvideLiquidity {
                 assets: assets.to_vec(),
@@ -326,16 +328,16 @@ impl Suite {
 
     fn increase_allowance(
         &mut self,
-        owner: &Addr,
+        owner: &str,
         contract: &Addr,
-        spender: &Addr,
+        spender: &str,
         amount: u128,
     ) -> AnyResult<AppResponse> {
         self.app().execute_contract(
-            owner.clone(),
+            Addr::unchecked(owner),
             contract.clone(),
             &Cw20ExecuteMsg::IncreaseAllowance {
-                spender: spender.to_string(),
+                spender: spender.to_owned(),
                 amount: amount.into(),
                 expires: None,
             },
@@ -353,7 +355,7 @@ impl Suite {
         native_tokens: Vec<Coin>,
     ) -> AnyResult<Addr> {
         let owner = self.owner.clone();
-        let whale = self.app().api().addr_make("whale");
+        let whale = "whale";
 
         let pair = self.create_pair(
             &owner,
@@ -366,16 +368,21 @@ impl Suite {
         match first_asset.0.clone() {
             AssetInfo::Token(addr) => {
                 // Mint some initial balances for whale user
-                self.mint_cw20(&owner, &Addr::unchecked(&addr), first_asset.1, &whale)
+                self.mint_cw20(&owner, &Addr::unchecked(&addr), first_asset.1, whale)
                     .unwrap();
                 // Increases allowances for given LP contracts in order to provide liquidity to pool
-                self.increase_allowance(&whale, &Addr::unchecked(addr), &pair, first_asset.1)
-                    .unwrap();
+                self.increase_allowance(
+                    whale,
+                    &Addr::unchecked(addr),
+                    pair.as_str(),
+                    first_asset.1,
+                )
+                .unwrap();
             }
             AssetInfo::Native(denom) => {
                 self.app()
                     .sudo(SudoMsg::Bank(BankSudo::Mint {
-                        to_address: whale.to_string(),
+                        to_address: whale.to_owned(),
                         amount: vec![coin(first_asset.1, denom)],
                     }))
                     .unwrap();
@@ -384,16 +391,21 @@ impl Suite {
         match second_asset.0.clone() {
             AssetInfo::Token(addr) => {
                 // Mint some initial balances for whale user
-                self.mint_cw20(&owner, &Addr::unchecked(&addr), second_asset.1, &whale)
+                self.mint_cw20(&owner, &Addr::unchecked(&addr), second_asset.1, whale)
                     .unwrap();
                 // Increases allowances for given LP contracts in order to provide liquidity to pool
-                self.increase_allowance(&whale, &Addr::unchecked(addr), &pair, second_asset.1)
-                    .unwrap();
+                self.increase_allowance(
+                    whale,
+                    &Addr::unchecked(addr),
+                    pair.as_str(),
+                    second_asset.1,
+                )
+                .unwrap();
             }
             AssetInfo::Native(denom) => {
                 self.app()
                     .sudo(SudoMsg::Bank(BankSudo::Mint {
-                        to_address: whale.to_string(),
+                        to_address: whale.to_owned(),
                         amount: vec![coin(second_asset.1, denom)],
                     }))
                     .unwrap();
@@ -401,7 +413,7 @@ impl Suite {
         };
 
         self.provide_liquidity(
-            &whale,
+            whale,
             &pair,
             [
                 Asset {
@@ -423,7 +435,7 @@ impl Suite {
     /// Create a distribution flow through the factory contract
     pub fn create_distribution_flow(
         &mut self,
-        sender: &Addr,
+        sender: &str,
         asset_infos: Vec<AssetInfo>,
         asset: AssetInfo,
         rewards: Vec<(UnbondingPeriod, Decimal)>,
@@ -443,7 +455,7 @@ impl Suite {
     pub fn distribute_funds(
         &mut self,
         staking_contract: Addr,
-        sender: &Addr,
+        sender: &str,
         funds: &[Coin],
     ) -> AnyResult<AppResponse> {
         self.app().execute_contract(
@@ -456,16 +468,16 @@ impl Suite {
 
     pub fn mint_cw20(
         &mut self,
-        owner: &Addr,
+        owner: &str,
         token: &Addr,
         amount: u128,
-        recipient: &Addr,
+        recipient: &str,
     ) -> AnyResult<AppResponse> {
         self.app().execute_contract(
-            owner.clone(),
+            Addr::unchecked(owner),
             token.clone(),
             &Cw20ExecuteMsg::Mint {
-                recipient: recipient.to_string(),
+                recipient: recipient.to_owned(),
                 amount: amount.into(),
             },
             &[],
@@ -474,17 +486,17 @@ impl Suite {
 
     pub fn send_cw20(
         &mut self,
-        owner: &Addr,
+        owner: &str,
         token: &Addr,
         amount: u128,
-        contract: &Addr,
+        contract: &str,
         msg: impl Serialize,
     ) -> AnyResult<AppResponse> {
         self.app().execute_contract(
-            owner.clone(),
+            Addr::unchecked(owner),
             token.clone(),
             &Cw20ExecuteMsg::Send {
-                contract: contract.to_string(),
+                contract: contract.to_owned(),
                 amount: amount.into(),
                 msg: to_json_binary(&msg)?,
             },
@@ -494,7 +506,7 @@ impl Suite {
 
     pub fn swap_operations(
         &mut self,
-        sender: &Addr,
+        sender: &str,
         amount: Coin,
         operations: Vec<SwapOperation>,
     ) -> AnyResult<AppResponse> {
@@ -503,7 +515,7 @@ impl Suite {
 
     pub fn swap_operations_ref(
         &mut self,
-        sender: &Addr,
+        sender: &str,
         amount: Coin,
         operations: Vec<SwapOperation>,
         referral_address: impl Into<Option<String>>,
@@ -526,7 +538,7 @@ impl Suite {
 
     pub fn swap_operations_cw20(
         &mut self,
-        sender: &Addr,
+        sender: &str,
         token_in: &Addr,
         amount: u128,
         operations: Vec<SwapOperation>,
@@ -536,7 +548,7 @@ impl Suite {
 
     pub fn swap_operations_cw20_ref(
         &mut self,
-        sender: &Addr,
+        sender: &str,
         token_in: &Addr,
         amount: u128,
         operations: Vec<SwapOperation>,
@@ -565,7 +577,7 @@ impl Suite {
 
     pub fn assert_minimum_receive(
         &mut self,
-        receiver: &Addr,
+        receiver: &str,
         asset_info: AssetInfo,
         minimum_receive: impl Into<Uint128>,
     ) -> AnyResult<AppResponse> {
@@ -582,7 +594,7 @@ impl Suite {
         )
     }
 
-    pub fn query_balance(&self, sender: &Addr, denom: &str) -> AnyResult<u128> {
+    pub fn query_balance(&self, sender: &str, denom: &str) -> AnyResult<u128> {
         let amount = self
             .app()
             .wrap()
@@ -591,11 +603,11 @@ impl Suite {
         Ok(amount.into())
     }
 
-    pub fn query_cw20_balance(&self, sender: &Addr, address: &Addr) -> AnyResult<u128> {
+    pub fn query_cw20_balance(&self, sender: &str, address: &Addr) -> AnyResult<u128> {
         let balance: BalanceResponse = self.app().wrap().query_wasm_smart(
             address,
             &Cw20QueryMsg::Balance {
-                address: sender.to_string(),
+                address: sender.to_owned(),
             },
         )?;
         Ok(balance.balance.into())
@@ -659,13 +671,13 @@ impl Suite {
     pub fn query_all_staked(
         &self,
         asset_infos: Vec<AssetInfo>,
-        address: &Addr,
+        address: &str,
     ) -> AnyResult<AllStakedResponse> {
         let pair_info = self.query_pair(asset_infos)?;
         let staked: AllStakedResponse = self.app().wrap().query_wasm_smart(
             pair_info.staking_addr,
             &StakeQueryMsg::AllStaked {
-                address: address.to_string(),
+                address: address.to_owned(),
             },
         )?;
         Ok(staked)
@@ -674,14 +686,14 @@ impl Suite {
     pub fn query_staked(
         &self,
         asset_infos: Vec<AssetInfo>,
-        address: &Addr,
+        address: &str,
         unbonding_period: impl Into<Option<u64>>,
     ) -> AnyResult<u128> {
         let pair_info = self.query_pair(asset_infos)?;
         let staked: StakedResponse = self.app().wrap().query_wasm_smart(
             pair_info.staking_addr,
             &StakeQueryMsg::Staked {
-                address: address.to_string(),
+                address: address.to_owned(),
                 unbonding_period: self.unbonding_period_or_default(unbonding_period),
             },
         )?;
@@ -712,13 +724,13 @@ impl Suite {
     pub fn query_claims(
         &self,
         asset_infos: Vec<AssetInfo>,
-        address: &Addr,
+        address: &str,
     ) -> AnyResult<Vec<Claim>> {
         let pair_info = self.query_pair(asset_infos)?;
         let claims: ClaimsResponse = self.app().wrap().query_wasm_smart(
             pair_info.staking_addr,
             &StakeQueryMsg::Claims {
-                address: address.to_string(),
+                address: address.to_owned(),
             },
         )?;
         Ok(claims.claims)
@@ -740,13 +752,13 @@ impl Suite {
     pub fn query_rewards_power(
         &self,
         asset_infos: Vec<AssetInfo>,
-        address: &Addr,
+        address: &str,
     ) -> AnyResult<Vec<(AssetInfoValidated, u128)>> {
         let pair_info = self.query_pair(asset_infos)?;
         let rewards: RewardsPowerResponse = self.app().wrap().query_wasm_smart(
             pair_info.staking_addr,
             &StakeQueryMsg::RewardsPower {
-                address: address.to_string(),
+                address: address.to_owned(),
             },
         )?;
 

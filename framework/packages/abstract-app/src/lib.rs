@@ -37,7 +37,7 @@ pub mod mock {
     };
     use abstract_interface::{AppDeployer, DependencyCreation};
     use cosmwasm_schema::QueryResponses;
-    pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{to_json_binary, Response, StdError};
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;

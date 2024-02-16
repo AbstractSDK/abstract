@@ -8,9 +8,12 @@ use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 use clap::Parser;
-use cw_orch::prelude::{
-    networks::{parse_network, ChainInfo},
-    *,
+use cw_orch::{
+    deploy::Deploy,
+    prelude::{
+        networks::{parse_network, ChainInfo},
+        *,
+    },
 };
 use reqwest::Url;
 use tokio::runtime::Runtime;

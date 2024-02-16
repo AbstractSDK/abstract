@@ -6,7 +6,8 @@ use croncat_app::{
 };
 use cw_orch::{
     anyhow,
-    prelude::{networks::parse_network, DaemonBuilder, Deploy, TxHandler},
+    deploy::Deploy,
+    prelude::{networks::parse_network, DaemonBuilder, TxHandler},
     tokio::runtime::Runtime,
 };
 use dotenv::dotenv;
