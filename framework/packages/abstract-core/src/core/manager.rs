@@ -212,6 +212,10 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
         // Provide list of module to install after sub-account creation
         install_modules: Vec<ModuleInstallConfig>,
+        /// If `None`, will create a new local account without asserting account-id.
+        ///
+        /// When provided: Signals the expected local Account Id. The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
+        account_id: Option<u32>,
     },
     /// Update info
     UpdateInfo {

@@ -29,7 +29,9 @@
 //! ```
 
 use abstract_core::objects::{namespace::Namespace, AccountId};
-use abstract_interface::{Abstract, AbstractAccount, AnsHost, ManagerQueryFns, VersionControl};
+use abstract_interface::{
+    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, VersionControl,
+};
 use cosmwasm_std::{Addr, BlockInfo, Coin, Empty, Uint128};
 use cw_orch::{
     contract::interface_traits::ContractInstance, deploy::Deploy, prelude::CwEnv,
@@ -273,6 +275,12 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             }
         }
         Ok(last_account.map(|(_, account)| account))
+    }
+
+    /// Get next local account id sequence
+    pub fn next_local_account_id(&self) -> AbstractClientResult<u32> {
+        let sequence = self.abstr.account_factory.config()?.local_account_sequence;
+        Ok(sequence)
     }
 }
 

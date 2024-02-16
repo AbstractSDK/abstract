@@ -401,6 +401,7 @@ fn create_account_with_installed_module() -> AResult {
             namespace: Some(String::from(TEST_NAMESPACE)),
             base_asset: None,
             install_modules: vec![],
+            account_id: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -440,6 +441,7 @@ fn create_account_with_installed_module() -> AResult {
                         Some(to_json_binary(&MockInitMsg {})?),
                     ),
                 ],
+                account_id: None,
             },
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
@@ -502,6 +504,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
             namespace: Some(String::from(TEST_NAMESPACE)),
             base_asset: None,
             install_modules: vec![],
+            account_id: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -590,6 +593,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
                         Some(to_json_binary(&MockInitMsg {})?),
                     ),
                 ],
+                account_id: None,
             },
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
@@ -646,6 +650,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
             namespace: Some(String::from(TEST_NAMESPACE)),
             base_asset: None,
             install_modules: vec![],
+            account_id: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -723,6 +728,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
                     Some(to_json_binary(&MockInitMsg {})?),
                 ),
             ],
+            account_id: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -761,6 +767,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
             namespace: Some(String::from(TEST_NAMESPACE)),
             base_asset: None,
             install_modules: vec![],
+            account_id: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -872,6 +879,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                         Some(to_json_binary(&MockInitMsg {})?),
                     ),
                 ],
+                account_id: None,
             },
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),

@@ -57,6 +57,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
             namespace: Some(namespace_to_claim.to_string()),
             base_asset: None,
             install_modules: vec![],
+            account_id: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),

@@ -5,7 +5,7 @@ use cw2::ContractVersion;
 use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
-use super::{module_reference::ModuleReference, AccountId};
+use super::module_reference::ModuleReference;
 use crate::{
     error::AbstractError,
     objects::{fee::FixedFee, module_version::MODULE, namespace::Namespace},
@@ -476,21 +476,6 @@ impl Default for Monetization {
 /// Module Metadata String
 pub type ModuleMetadata = String;
 
-/// Generate salt helper
-pub fn generate_module_salt(block_height: u64, account_id: &AccountId) -> Binary {
-    let mut salt = [0; 40];
-    // 0..32 bytes for account_id
-    let account_id = sha256::digest(account_id.to_string());
-    let accound_id_bytes: &mut [u8] = &mut salt[0..32];
-    accound_id_bytes.copy_from_slice(&account_id.as_bytes()[0..32]);
-
-    // 0..8 bytes for block height
-    let block_height_bytes = &mut salt[32..40];
-    block_height_bytes.copy_from_slice(&block_height.to_be_bytes());
-
-    Binary::from(salt)
-}
-
 //--------------------------------------------------------------------------------------------------
 // Tests
 //--------------------------------------------------------------------------------------------------
@@ -828,39 +813,6 @@ mod test {
                 Some(Addr::unchecked(MOCK_CONTRACT_ADDR)),
             );
             assert!(res.is_ok());
-        }
-    }
-
-    mod module_salt {
-        use super::*;
-        use crate::objects::{account::AccountTrace, chain_name::ChainName};
-
-        #[test]
-        fn generate_module_salt_local() {
-            let salt = generate_module_salt(123, &AccountId::local(5));
-            assert!(!salt.is_empty());
-            assert!(salt.len() <= 64);
-        }
-
-        #[test]
-        fn generate_module_salt_trace() {
-            let salt = generate_module_salt(
-                123,
-                &AccountId::new(
-                    5,
-                    AccountTrace::Remote(vec![
-                        ChainName::from_chain_id("foo-1"),
-                        ChainName::from_chain_id("bar-42"),
-                        ChainName::from_chain_id("baz-4"),
-                        ChainName::from_chain_id("qux-24"),
-                        ChainName::from_chain_id("quux-99"),
-                        ChainName::from_chain_id("corge-5"),
-                    ]),
-                )
-                .unwrap(),
-            );
-            assert!(!salt.is_empty());
-            assert!(salt.len() <= 64);
         }
     }
 }

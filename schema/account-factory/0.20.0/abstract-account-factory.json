@@ -94,7 +94,7 @@
             ],
             "properties": {
               "account_id": {
-                "description": "Account id on the remote chain. Will create a new id (by incrementing), if not specified",
+                "description": "Indicates the AccountId for the new account.\n\nIf `None`, will create a new local account without asserting account-id.\n\nWhen [`AccountTrace::Local`]: Signals the expected Account Id. The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction. \\ When [`AccountTrace::Remote`]: Account id on the remote chain.",
                 "anyOf": [
                   {
                     "$ref": "#/definitions/AccountId"
