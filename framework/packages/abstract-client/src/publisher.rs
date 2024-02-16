@@ -23,7 +23,7 @@ use crate::{
 /// ```
 /// # use abstract_client::{AbstractClientError, Environment};
 /// # use cw_orch::prelude::*;
-/// # let chain = Mock::new(&Addr::unchecked("sender"));
+/// # let chain = MockBech32::new("mock");
 /// # let abstr_client = abstract_client::AbstractClient::builder(chain).build().unwrap();
 /// # let chain = abstr_client.environment();
 /// use abstract_client::{AbstractClient, Publisher, Namespace};
@@ -31,7 +31,7 @@ use crate::{
 /// let client = AbstractClient::new(chain)?;
 ///
 /// let namespace = Namespace::new("alice-namespace")?;
-/// let publisher: Publisher<Mock> = client.publisher_builder(namespace)
+/// let publisher: Publisher<MockBech32> = client.publisher_builder(namespace)
 ///     .name("alice")
 ///     // other configurations
 ///     .build()?;

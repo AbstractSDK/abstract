@@ -10,7 +10,7 @@ use abstract_core::{
 };
 use abstract_interface::{Abstract, ExecuteMsgFns};
 use cw_asset::AssetInfoUnchecked;
-use cw_orch::{deploy::Deploy, environment::CwEnv};
+use cw_orch::prelude::*;
 
 use self::cw20_builder::Cw20Builder;
 use crate::{

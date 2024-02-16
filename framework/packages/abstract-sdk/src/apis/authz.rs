@@ -6,9 +6,7 @@ use cosmos_sdk_proto::{
     cosmos::{
         authz,
         bank::v1beta1::MsgSend,
-        distribution::v1beta1::{
-            MsgFundCommunityPool, MsgSetWithdrawAddress, MsgWithdrawDelegatorReward,
-        },
+        distribution::v1beta1::{MsgSetWithdrawAddress, MsgWithdrawDelegatorReward},
         gov::v1beta1::{MsgVote, MsgVoteWeighted, WeightedVoteOption},
         staking::v1beta1::{MsgBeginRedelegate, MsgDelegate, MsgUndelegate},
     },
@@ -355,14 +353,14 @@ impl AuthZ {
                     }
                     .encode_to_vec(),
                 ),
-                cosmwasm_std::DistributionMsg::FundCommunityPool { amount } => (
-                    MsgFundCommunityPool::type_url(),
-                    MsgFundCommunityPool {
-                        depositor: self.granter.to_string(),
-                        amount: convert_coins(amount),
-                    }
-                    .encode_to_vec(),
-                ),
+                // cosmwasm_std::DistributionMsg::FundCommunityPool { amount } => (
+                //     MsgFundCommunityPool::type_url(),
+                //     MsgFundCommunityPool {
+                //         depositor: self.granter.to_string(),
+                //         amount: convert_coins(amount),
+                //     }
+                //     .encode_to_vec(),
+                // ),
                 _ => todo!(),
             },
             CosmosMsg::Ibc(ibc_msg) => {

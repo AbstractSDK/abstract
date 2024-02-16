@@ -54,7 +54,8 @@ pub enum AnsHostError {
         object: String,
         expected: String,
         actual: String,
-        
+    },
+
     // Query method failed
     #[error("Query during '{method_name}' failed: {error}")]
     QueryFailed {

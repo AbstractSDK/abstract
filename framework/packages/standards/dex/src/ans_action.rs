@@ -127,11 +127,13 @@ impl Resolve for WholeDexAction {
                 let mut pool_ids = lp_pairing.resolve(querier, ans_host)?;
                 // TODO: when resolving if there are more than one, get the metadata and choose the one matching the assets
                 if pool_ids.len() != 1 {
-                    return Err(StdError::generic_err(format!(
-                        "There are {} pairings for the given LP token",
-                        pool_ids.len()
-                    ))
-                    .into());
+                    return Err(AnsHostError::QueryFailed {
+                        method_name: "lp_pairing.resolve".to_string(),
+                        error: StdError::generic_err(format!(
+                            "There are {} pairings for the given LP token",
+                            pool_ids.len()
+                        )),
+                    });
                 }
 
                 let pool_address = pool_ids.pop().unwrap().pool_address;
