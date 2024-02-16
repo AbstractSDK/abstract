@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Updated UsageFee api to use `Address`, instead of `Api` + unchecked address
+- Tests now use `MockBech32` due to use of instantiate2.
 
 ### Removed
 
