@@ -22,7 +22,7 @@ mod staking {
 
         let mock = MockBech32::new("mock");
         let liquidity_provider = mock.sender();
-        let owner = mock.create_account(WYNDEX_OWNER);
+        let owner = mock.addr_make(WYNDEX_OWNER);
 
         mock.set_balance(
             &liquidity_provider,
@@ -170,8 +170,8 @@ mod staking {
         let test_info = AssetInfo::Native(test.to_string());
 
         let mock = MockBech32::new("mock");
-        let owner = mock.create_account(WYNDEX_OWNER);
-        let user = mock.create_account("user");
+        let owner = mock.addr_make(WYNDEX_OWNER);
+        let user = mock.addr_make("user");
         mock.set_balance(
             &user,
             vec![

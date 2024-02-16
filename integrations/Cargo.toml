@@ -38,7 +38,7 @@ cw-ownable = { version = "0.5" }
 cw-address-like = { version = "1.0" }
 cw-asset = { version = "3.0" }
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.20.0" }
+cw-orch = { version = "0.20.1" }
 
 anyhow = "1.0"
 
@@ -73,8 +73,6 @@ abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
-
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "main" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

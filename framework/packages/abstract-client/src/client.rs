@@ -331,7 +331,7 @@ mod tests {
         let _acc = client.account_builder().build().unwrap();
         let acc_2 = client.account_builder().build().unwrap();
 
-        let other_owner = chain.create_account("other_owner");
+        let other_owner = chain.addr_make("other_owner");
         // create account with sender as sender but other owner
         client
             .account_builder()
