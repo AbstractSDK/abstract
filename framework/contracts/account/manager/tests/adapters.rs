@@ -289,7 +289,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 fn unauthorized_exec() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
-    let unauthorized = chain.create_account("unauthorized");
+    let unauthorized = chain.addr_make("unauthorized");
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
@@ -435,7 +435,7 @@ fn account_adapter_ownership() -> AResult {
     )?;
 
     // Not admin or manager
-    let who = chain.create_account("who");
+    let who = chain.addr_make("who");
     let err: MockError = adapter
         .call_as(&who)
         .execute(
@@ -463,7 +463,7 @@ fn account_adapter_ownership() -> AResult {
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
             proxy_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                to_add: vec![chain.create_account("123").to_string()],
+                to_add: vec![chain.addr_make("123").to_string()],
                 to_remove: vec![],
             },
         }),
@@ -473,7 +473,7 @@ fn account_adapter_ownership() -> AResult {
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
             proxy_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                to_add: vec![chain.create_account("234").to_string()],
+                to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
             },
         }),
@@ -487,7 +487,7 @@ fn account_adapter_ownership() -> AResult {
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
                 proxy_address: Some(proxy_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![chain.create_account("345").to_string()],
+                    to_add: vec![chain.addr_make("345").to_string()],
                     to_remove: vec![],
                 },
             }),
@@ -564,7 +564,7 @@ fn subaccount_adapter_ownership() -> AResult {
     )?;
 
     // Not admin or manager
-    let who = chain.create_account("who");
+    let who = chain.addr_make("who");
     let err: MockError = adapter
         .call_as(&who)
         .execute(
@@ -592,7 +592,7 @@ fn subaccount_adapter_ownership() -> AResult {
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
             proxy_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                to_add: vec![chain.create_account("123").to_string()],
+                to_add: vec![chain.addr_make("123").to_string()],
                 to_remove: vec![],
             },
         }),
@@ -602,7 +602,7 @@ fn subaccount_adapter_ownership() -> AResult {
         &mock::ExecuteMsg::Base(BaseExecuteMsg {
             proxy_address: Some(proxy_addr.to_string()),
             msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                to_add: vec![chain.create_account("234").to_string()],
+                to_add: vec![chain.addr_make("234").to_string()],
                 to_remove: vec![],
             },
         }),
@@ -616,7 +616,7 @@ fn subaccount_adapter_ownership() -> AResult {
             &mock::ExecuteMsg::Base(BaseExecuteMsg {
                 proxy_address: Some(proxy_addr.to_string()),
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
-                    to_add: vec![chain.create_account("345").to_string()],
+                    to_add: vec![chain.addr_make("345").to_string()],
                     to_remove: vec![],
                 },
             }),

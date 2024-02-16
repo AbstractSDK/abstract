@@ -91,8 +91,8 @@ fn adds_module_to_account_modules() -> AResult {
 
 #[test]
 fn useful_error_module_not_found() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
 

@@ -86,7 +86,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let description = "description";
     let link = "https://abstract.money";
     let governance_details = GovernanceDetails::Monarchy {
-        monarch: chain.create_account("monarch").to_string(),
+        monarch: chain.addr_make("monarch").to_string(),
     };
     let namespace = Namespace::new("test-namespace")?;
     let base_asset = AssetEntry::new(asset);
@@ -198,7 +198,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let description = "description";
     let link = "https://abstract.money";
     let governance_details = GovernanceDetails::Monarchy {
-        monarch: chain.create_account("monarch").to_string(),
+        monarch: chain.addr_make("monarch").to_string(),
     };
     let namespace = Namespace::new("test-namespace")?;
     let base_asset = AssetEntry::new(asset);
@@ -531,7 +531,7 @@ fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
     let description = "A test cw20 token";
     let logo = "link-to-logo";
     let project = "project";
-    let marketing = chain.create_account("marketing");
+    let marketing = chain.addr_make("marketing");
     let cap = Uint128::from(100u128);
     let starting_balance = Uint128::from(100u128);
     let minter_response = cw20_builder::MinterResponse {
@@ -577,7 +577,7 @@ fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
         owner_balance
     );
     let transfer_amount = Uint128::from(50u128);
-    let recipient = chain.create_account("user");
+    let recipient = chain.addr_make("user");
     cw20.transfer(transfer_amount, recipient.to_string())?;
 
     let recipient_balance = cw20.balance(recipient.to_string())?;
@@ -680,7 +680,7 @@ fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone()).build()?;
 
-    let user = chain.create_account("user");
+    let user = chain.addr_make("user");
     let coin1 = Coin::new(50, "denom1");
     let coin2 = Coin::new(20, "denom2");
     let coin3 = Coin::new(10, "denom3");
@@ -723,7 +723,7 @@ fn can_execute_on_proxy() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build()?;
     client.set_balances([(client.sender(), coins(100, denom).as_slice())])?;
 
-    let user = chain.create_account("user");
+    let user = chain.addr_make("user");
 
     let account: Account<MockBech32> = client.account_builder().build()?;
 
@@ -1053,7 +1053,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
         abstract_core::version_control::UpdateModule::Versioned {
-            version: BootMockAdapter::<Mock>::module_version().to_owned(),
+            version: BootMockAdapter::<MockBech32>::module_version().to_owned(),
             metadata: None,
             monetization: Some(abstract_core::objects::module::Monetization::InstallFee(
                 FixedFee::new(&Coin {
@@ -1069,7 +1069,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     // User can guard his funds
     account_builder
         .name("bob")
-        .install_adapter::<BootMockAdapter<Mock>>()?
+        .install_adapter::<BootMockAdapter<MockBech32>>()?
         .auto_fund_assert(|c| c[0].amount < Uint128::new(50));
     let e = account_builder.build().unwrap_err();
     assert!(matches!(e, AbstractClientError::AutoFundsAssertFailed(_)));
@@ -1163,7 +1163,7 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
 
 #[test]
 fn create_account_with_expected_account_id() -> anyhow::Result<()> {
-    let chain = Mock::new(&Addr::unchecked(OWNER));
+    let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain).build()?;
 
     // Check it fails on wrong account_id

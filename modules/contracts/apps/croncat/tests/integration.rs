@@ -46,7 +46,7 @@ const PAUSE_ADMIN: &str = "cosmos338dwgj5wm2tuahvfjdldz5s8hmt7l5aznw8jz9s2mmgj5c
 fn setup_croncat_contracts(mock: MockBech32, proxy_addr: String) -> anyhow::Result<(Addr, Addr)> {
     let sender = mock.sender();
     let pause_admin = Addr::unchecked(PAUSE_ADMIN);
-    let agent_addr = mock.create_account(AGENT);
+    let agent_addr = mock.addr_make(AGENT);
 
     // Instantiate cw20
     let mut app = mock.app.borrow_mut();
@@ -223,7 +223,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
     let mock = MockBech32::new("mock");
     let sender = mock.sender();
 
-    mock.set_balance(&mock.create_account(AGENT), coins(500_000, DENOM))?;
+    mock.set_balance(&mock.addr_make(AGENT), coins(500_000, DENOM))?;
     // Construct the counter interface
     let mut contract = Croncat::new(CRONCAT_ID, mock.clone());
     // Deploy Abstract to the mock
@@ -293,7 +293,7 @@ fn all_in_one() -> anyhow::Result<()> {
         actions: vec![
             Action {
                 msg: BankMsg::Send {
-                    to_address: mock.create_account("receiver").to_string(),
+                    to_address: mock.addr_make("receiver").to_string(),
                     amount: coins(1, DENOM),
                 }
                 .into(),
@@ -303,7 +303,7 @@ fn all_in_one() -> anyhow::Result<()> {
                 msg: WasmMsg::Execute {
                     contract_addr: cw20_addr.to_string(),
                     msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                        recipient: mock.create_account("bob").to_string(),
+                        recipient: mock.addr_make("bob").to_string(),
                         amount: Uint128::new(100),
                     })?,
                     funds: vec![],
@@ -446,7 +446,7 @@ fn admin() -> anyhow::Result<()> {
         stop_on_fail: false,
         actions: vec![Action {
             msg: BankMsg::Send {
-                to_address: mock.create_account("receiver").to_string(),
+                to_address: mock.addr_make("receiver").to_string(),
                 amount: coins(1, DENOM),
             }
             .into(),
@@ -520,7 +520,7 @@ fn create_task() -> anyhow::Result<()> {
         stop_on_fail: false,
         actions: vec![Action {
             msg: BankMsg::Send {
-                to_address: mock.create_account("receiver").to_string(),
+                to_address: mock.addr_make("receiver").to_string(),
                 amount: coins(1, DENOM),
             }
             .into(),
@@ -559,7 +559,7 @@ fn create_task() -> anyhow::Result<()> {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
                 msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: mock.create_account("bob").to_string(),
+                    recipient: mock.addr_make("bob").to_string(),
                     amount: Uint128::new(20),
                 })?,
                 funds: vec![],
@@ -600,7 +600,7 @@ fn create_task() -> anyhow::Result<()> {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
                 msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: mock.create_account("alice").to_string(),
+                    recipient: mock.addr_make("alice").to_string(),
                     amount: Uint128::new(20),
                 })?,
                 funds: vec![],
@@ -647,7 +647,7 @@ fn refill_task() -> anyhow::Result<()> {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
                 msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: mock.create_account("bob").to_string(),
+                    recipient: mock.addr_make("bob").to_string(),
                     amount: Uint128::new(20),
                 })?,
                 funds: vec![],
@@ -773,7 +773,7 @@ fn remove_task() -> anyhow::Result<()> {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
                 msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: mock.create_account("bob").to_string(),
+                    recipient: mock.addr_make("bob").to_string(),
                     amount: Uint128::new(20),
                 })?,
                 funds: vec![],
@@ -805,7 +805,7 @@ fn remove_task() -> anyhow::Result<()> {
             msg: WasmMsg::Execute {
                 contract_addr: cw20_addr.to_string(),
                 msg: to_json_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: mock.create_account("alice").to_string(),
+                    recipient: mock.addr_make("alice").to_string(),
                     amount: Uint128::new(30),
                 })?,
                 funds: vec![],
@@ -842,7 +842,7 @@ fn remove_task() -> anyhow::Result<()> {
             &factory_addr,
         )?;
         let manager_addr: Addr = response.metadata.unwrap().contract_addr;
-        let agent = mock.create_account(AGENT);
+        let agent = mock.addr_make(AGENT);
         mock.app.borrow_mut().execute_contract(
             agent,
             manager_addr,
@@ -918,7 +918,7 @@ fn purge() -> anyhow::Result<()> {
         stop_on_fail: false,
         actions: vec![Action {
             msg: BankMsg::Send {
-                to_address: mock.create_account("alice").to_string(),
+                to_address: mock.addr_make("alice").to_string(),
                 amount: coins(420, DENOM),
             }
             .into(),

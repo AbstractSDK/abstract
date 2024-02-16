@@ -30,15 +30,15 @@ const FIRST_CHALLENGE_ID: u64 = 1;
 const INITIAL_BALANCE: u128 = 50_000_000;
 
 fn alice_address(mock: &MockBech32) -> Addr {
-    mock.create_account("alice")
+    mock.addr_make("alice")
 }
 
 fn bob_address(mock: &MockBech32) -> Addr {
-    mock.create_account("bob")
+    mock.addr_make("bob")
 }
 
 fn charlie_address(mock: &MockBech32) -> Addr {
-    mock.create_account("charlie")
+    mock.addr_make("charlie")
 }
 
 fn alice_friend(mock: &MockBech32) -> Friend<String> {
@@ -136,6 +136,7 @@ fn setup() -> anyhow::Result<(
         namespace: None,
         base_asset: None,
         install_modules: vec![],
+        account_id: None,
     };
 
     let account = abstr_deployment.account_factory.create_new_account(

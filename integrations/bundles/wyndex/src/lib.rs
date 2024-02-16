@@ -132,7 +132,7 @@ impl Deploy<MockBech32> for WynDex {
         let raw_raw_2_lp: AbstractCw20Base<MockBech32> =
             AbstractCw20Base::new(RAW_RAW_2_LP, chain.clone());
 
-        let owner = chain.create_account(WYNDEX_OWNER);
+        let owner = chain.addr_make(WYNDEX_OWNER);
 
         let eur_info = AssetInfo::Native(EUR.to_string());
         let usd_info = AssetInfo::Native(USD.to_string());

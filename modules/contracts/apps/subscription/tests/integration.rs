@@ -96,11 +96,7 @@ fn setup_cw20() -> anyhow::Result<Cw20Subscription> {
 fn setup_native(balances: Vec<(&str, &[Coin])>) -> anyhow::Result<NativeSubscription> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone()).build()?;
-    client.set_balances(
-        balances
-            .into_iter()
-            .map(|(a, b)| (chain.create_account(a), b)),
-    )?;
+    client.set_balances(balances.into_iter().map(|(a, b)| (chain.addr_make(a), b)))?;
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new("abstract")?)
         .build()?;
@@ -208,10 +204,10 @@ fn subscribe() -> anyhow::Result<()> {
 
     // 2 people subscribe
     subscription_app
-        .call_as(&mock.create_account(subscriber1))
+        .call_as(&mock.addr_make(subscriber1))
         .pay(None, &sub_amount)?;
     subscription_app
-        .call_as(&mock.create_account(subscriber2))
+        .call_as(&mock.addr_make(subscriber2))
         .pay(None, &sub_amount)?;
     let twa = query_twa(&client.environment(), subscription_addr.clone());
     // No income yet
@@ -222,7 +218,7 @@ fn subscribe() -> anyhow::Result<()> {
 
     // Third user subscribes
     subscription_app
-        .call_as(&mock.create_account(subscriber3))
+        .call_as(&mock.addr_make(subscriber3))
         .pay(None, &sub_amount)?;
     // refresh twa
     subscription_app.refresh_twa()?;
@@ -249,7 +245,7 @@ fn subscribe() -> anyhow::Result<()> {
 
     // Fourth user subscribes
     subscription_app
-        .call_as(&mock.create_account(subscriber4))
+        .call_as(&mock.addr_make(subscriber4))
         .pay(None, &sub_amount)?;
     // two subscribers were subbed for two periods
     let first_two_subs =
@@ -280,8 +276,8 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
         (&subscriber1, &sub_amount),
         (&subscriber2, &sub_amount),
     ])?;
-    let subscriber1 = mock.create_account(subscriber1);
-    let subscriber2 = mock.create_account(subscriber2);
+    let subscriber1 = mock.addr_make(subscriber1);
+    let subscriber2 = mock.addr_make(subscriber2);
 
     // 2 users subscribe
     subscription_app
@@ -340,7 +336,7 @@ fn claim_emissions_none() -> anyhow::Result<()> {
         emission_cw20: _,
         mock,
     } = setup_native(vec![(&subscriber1, &sub_amount)])?;
-    let subscriber1 = mock.create_account(subscriber1);
+    let subscriber1 = mock.addr_make(subscriber1);
 
     subscription_app
         .call_as(&subscription_app.account().manager()?)
@@ -377,8 +373,8 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
         (&subscriber1, &sub_amount),
         (&subscriber2, &sub_amount),
     ])?;
-    let subscriber1 = mock.create_account(subscriber1);
-    let subscriber2 = mock.create_account(subscriber2);
+    let subscriber1 = mock.addr_make(subscriber1);
+    let subscriber2 = mock.addr_make(subscriber2);
 
     subscription_app
         .call_as(&subscription_app.account().manager()?)
@@ -454,7 +450,7 @@ fn claim_emissions_errors() -> anyhow::Result<()> {
         emission_cw20: _,
         mock,
     } = setup_native(vec![(&subscriber1, &sub_amount)])?;
-    let subscriber1 = mock.create_account(subscriber1);
+    let subscriber1 = mock.addr_make(subscriber1);
 
     // no subs
 
@@ -500,8 +496,8 @@ fn unsubscribe() -> anyhow::Result<()> {
         emission_cw20,
         mock,
     } = setup_native(vec![(&subscriber1, &sub_amount)])?;
-    let subscriber1 = mock.create_account(subscriber1);
-    let subscriber2 = mock.create_account(subscriber2);
+    let subscriber1 = mock.addr_make(subscriber1);
+    let subscriber2 = mock.addr_make(subscriber2);
 
     subscription_app
         .call_as(&subscriber1)
@@ -568,8 +564,8 @@ fn unsubscribe_part_of_list() -> anyhow::Result<()> {
         (&subscriber1, coins(2200, DENOM).as_slice()),
         (&subscriber2, coins(220, DENOM).as_slice()),
     ])?;
-    let subscriber1 = mock.create_account(subscriber1);
-    let subscriber2 = mock.create_account(subscriber2);
+    let subscriber1 = mock.addr_make(subscriber1);
+    let subscriber2 = mock.addr_make(subscriber2);
 
     subscription_app
         .call_as(&subscriber1)
