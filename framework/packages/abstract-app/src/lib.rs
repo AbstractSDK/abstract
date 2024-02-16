@@ -235,11 +235,11 @@ pub mod mock {
     type Migrate = app::MigrateMsg<MockMigrateMsg>;
 
     #[cw_orch::interface(Init, Exec, Query, Migrate)]
-    pub struct BootMockApp<Chain>;
+    pub struct MockAppI<Chain>;
 
-    impl<T: cw_orch::prelude::CwEnv> AppDeployer<T> for BootMockApp<T> {}
+    impl<T: cw_orch::prelude::CwEnv> AppDeployer<T> for MockAppI<T> {}
 
-    impl<T: cw_orch::prelude::CwEnv> Uploadable for BootMockApp<T> {
+    impl<T: cw_orch::prelude::CwEnv> Uploadable for MockAppI<T> {
         fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
             Box::new(
                 ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)

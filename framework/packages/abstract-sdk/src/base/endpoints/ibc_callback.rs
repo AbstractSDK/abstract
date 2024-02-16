@@ -1,10 +1,12 @@
-use abstract_core::{ibc::IbcResponseMsg, IBC_CLIENT};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-
-use crate::{base::Handler, AbstractSdkError, ModuleInterface};
+use crate::{base::Handler, AbstractSdkError};
+use abstract_core::ibc::IbcResponseMsg;
+use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
 
 /// Trait for a contract's IBC callback ExecuteMsg variant.
-pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
+pub trait IbcCallbackEndpoint: Handler {
+    /// Queries the IBC Client address.
+    fn ibc_client(&self, deps: Deps) -> Result<Addr, Self::Error>;
+
     /// Handler for the `ExecuteMsg::IbcCallback()` variant.
     fn ibc_callback(
         self,
@@ -13,8 +15,8 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
         info: MessageInfo,
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::Error> {
-        // Todo: Change to use version control instead?
-        let ibc_client = self.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
+        let ibc_client = self.ibc_client(deps.as_ref())?;
+
         if info.sender.ne(&ibc_client) {
             return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
                 caller: info.sender,
