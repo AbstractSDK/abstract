@@ -6,6 +6,8 @@
 **/.vscode
 **/.idea
 
+**/Cargo.lock
+
 **/.env
 !**/.env.example
 
