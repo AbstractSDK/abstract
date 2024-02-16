@@ -15,7 +15,7 @@ fi
 sudo apt-get update && sudo apt-get install libclang-dev -y
 
 # Set Go version
-GO_VERSION="1.18"
+GO_VERSION="1.20"
 
 # Download Go
 wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz -O /tmp/go${GO_VERSION}.linux-amd64.tar.gz
