@@ -16,27 +16,25 @@
 //! use cw_orch::prelude::*;
 //! use abstract_client::{AbstractClient, Publisher, Namespace};
 //!
-//! let chain = Mock::new(&Addr::unchecked("sender"));
+//! let chain = MockBech32::new("mock");
 //! let client = AbstractClient::builder(chain).build()?;
 //!
 //! let namespace = Namespace::new("tester")?;
-//! let publisher: Publisher<Mock> = client
+//! let publisher: Publisher<MockBech32> = client
 //!     .publisher_builder(namespace)
 //!     .build()?;
 //!
-//! publisher.publish_app::<MockAppI<Mock>>()?;
+//! publisher.publish_app::<MockAppI<MockBech32>>()?;
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
-use abstract_core::objects::{namespace::Namespace, AccountId};
+use abstract_core::objects::{namespace::Namespace, salt::generate_instantiate_salt, AccountId};
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, VersionControl,
+    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, RegisteredModule,
+    VersionControl,
 };
 use cosmwasm_std::{Addr, BlockInfo, Coin, Empty, Uint128};
-use cw_orch::{
-    contract::interface_traits::ContractInstance, deploy::Deploy, prelude::CwEnv,
-    state::StateInterface,
-};
+use cw_orch::prelude::*;
 
 use crate::{
     account::{Account, AccountBuilder},
@@ -60,7 +58,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// use abstract_client::AbstractClient;
     /// # use abstract_client::{Environment, AbstractClientError};
     /// # use cw_orch::prelude::*;
-    /// # let chain = Mock::new(&Addr::unchecked("sender"));
+    /// # let chain = MockBech32::new("mock");
     /// # let client = AbstractClient::builder(chain.clone()).build().unwrap(); // Deploy mock abstract
     ///
     /// let client = AbstractClient::new(chain)?;
@@ -76,7 +74,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// The Version Control contract is a database contract that stores all module-related information.
     /// ```
     /// # use abstract_client::AbstractClientError;
-    /// # let chain = cw_orch::prelude::Mock::new(&Addr::unchecked("sender"));
+    /// # let chain = cw_orch::prelude::MockBech32::new("mock");
     /// # let client = abstract_client::AbstractClient::builder(chain).build().unwrap();
     /// use abstract_core::objects::{module_reference::ModuleReference, module::ModuleInfo};
     /// // For getting version control address
@@ -104,7 +102,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ///
     /// let denom = "test_denom";
     /// let entry = "denom";
-    /// # let client = AbstractClient::builder(Mock::new(&Addr::unchecked("sender")))
+    /// # let client = AbstractClient::builder(MockBech32::new("mock"))
     /// #     .asset(entry, cw_asset::AssetInfoBase::Native(denom.to_owned()))
     /// #     .build()?;
     ///
@@ -210,6 +208,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     ) -> AbstractClientResult<Uint128> {
         let coins = self
             .environment()
+            .bank_querier()
             .balance(address, Some(denom.into()))
             .map_err(Into::into)?;
         // There will always be a single element in this case.
@@ -219,6 +218,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Retrieve balances of all denoms for provided address
     pub fn query_balances(&self, address: &Addr) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
+            .bank_querier()
             .balance(address, None)
             .map_err(Into::into)
             .map_err(Into::into)
@@ -282,6 +282,26 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         let sequence = self.abstr.account_factory.config()?.local_account_sequence;
         Ok(sequence)
     }
+
+    /// Get address of instantiate2 module
+    /// If used for upcoming account this supposed to be used in pair with [`AbstractClient::next_local_account_id`]
+    pub fn module_instantiate2_address<M: RegisteredModule>(
+        &self,
+        account_id: &AccountId,
+    ) -> AbstractClientResult<Addr> {
+        let salt = generate_instantiate_salt(account_id);
+        let wasm_querier = self.environment().wasm_querier();
+        let creator = self.abstr.module_factory.addr_str()?;
+        let code_id = self.version_control().get_module_code_id(
+            M::module_id(),
+            abstract_core::objects::module::ModuleVersion::Version(M::module_version().to_owned()),
+        )?;
+
+        let addr = wasm_querier
+            .instantiate2_addr(code_id, creator, salt)
+            .map_err(Into::into)?;
+        Ok(Addr::unchecked(addr))
+    }
 }
 
 pub(crate) fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountId>> {
@@ -302,8 +322,6 @@ pub(crate) fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountI
 
 #[cfg(test)]
 mod tests {
-    use cw_orch::mock::Mock;
-
     use super::*;
 
     #[test]
@@ -326,15 +344,15 @@ mod tests {
 
     #[test]
     fn last_owned_abstract_account() {
-        let sender = Addr::unchecked("sender");
-        let chain = Mock::new(&sender);
+        let chain = MockBech32::new("mock");
+        let sender = chain.sender();
         Abstract::deploy_on(chain.clone(), sender.to_string()).unwrap();
 
-        let client = AbstractClient::new(chain).unwrap();
+        let client = AbstractClient::new(chain.clone()).unwrap();
         let _acc = client.account_builder().build().unwrap();
         let acc_2 = client.account_builder().build().unwrap();
 
-        let other_owner = Addr::unchecked("other_owner");
+        let other_owner = chain.addr_make("other_owner");
         // create account with sender as sender but other owner
         client
             .account_builder()

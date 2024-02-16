@@ -22,7 +22,7 @@ use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins, wasm_execute, Uint128};
 use cw2::ContractVersion;
-use cw_orch::{deploy::Deploy, environment::MutCwEnv, prelude::*};
+use cw_orch::{environment::MutCwEnv, prelude::*};
 use speculoos::prelude::*;
 
 use crate::{
@@ -285,7 +285,10 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
             Some(&[coin(18, coin1), coin(20, coin2)]),
         )
         .unwrap();
-    let balances = chain.balance(account.proxy.address()?, None).unwrap();
+    let balances = chain
+        .bank_querier()
+        .balance(account.proxy.address()?, None)
+        .unwrap();
     assert_eq!(balances, vec![coin(1, coin1), coin(5, coin2)]);
     Ok(())
 }
@@ -313,6 +316,7 @@ pub fn install_app_with_proxy_action<T: MutCwEnv>(mut chain: T) -> AResult {
     let app1 = install_module_version(manager, app_1::MOCK_APP_ID, V1)?;
 
     let test_addr_balance = chain
+        .bank_querier()
         .balance(Addr::unchecked(&adapter1), Some("TEST".to_owned()))
         .unwrap();
     assert_eq!(test_addr_balance[0].amount, Uint128::new(123456));
@@ -355,7 +359,7 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
     // assert that the address actually changed
     assert_that!(adapter_v2.modules[0].1).is_not_equal_to(Addr::unchecked(adapter1.clone()));
 
-    let adapter = adapter_1::BootMockAdapter1V2::new_test(chain);
+    let adapter = adapter_1::MockAdapterI1V2::new_test(chain);
     use abstract_core::adapter::BaseQueryMsgFns as _;
     let authorized = adapter.authorized_addresses(proxy.addr_str()?)?;
     assert_that!(authorized.addresses).contains(authorizee);

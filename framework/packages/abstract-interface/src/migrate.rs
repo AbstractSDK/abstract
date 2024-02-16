@@ -1,7 +1,13 @@
-use abstract_core::{account_factory, ans_host, module_factory, version_control};
-use cw_orch::prelude::*;
-
 use crate::Abstract;
+use abstract_core::version_control::QueryMsgFns;
+use abstract_core::PROXY;
+use abstract_core::{
+    account_factory, ans_host, module_factory, objects::module::ModuleInfo, version_control,
+    MANAGER,
+};
+use cosmwasm_std::from_json;
+use cw2::{ContractVersion, CONTRACT};
+use cw_orch::prelude::*;
 
 impl<T: CwEnv> Abstract<T> {
     /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
@@ -37,4 +43,105 @@ impl<T: CwEnv> Abstract<T> {
             || ans_host.is_some()
             || account)
     }
+
+    /// Migrate the deployment based on version changes. If the registered contracts have the right version, we don't migrate them
+    pub fn migrate_if_version_changed(&self) -> Result<bool, crate::AbstractInterfaceError> {
+        let mut has_migrated = false;
+
+        if ::account_factory::contract::CONTRACT_VERSION
+            != contract_version(&self.account_factory)?.version
+        {
+            let migration_result = self
+                .account_factory
+                .upload_and_migrate_if_needed(&account_factory::MigrateMsg {})?;
+            if migration_result.is_some() {
+                has_migrated = true;
+            }
+        }
+        if ::module_factory::contract::CONTRACT_VERSION
+            != contract_version(&self.module_factory)?.version
+        {
+            let migration_result = self
+                .module_factory
+                .upload_and_migrate_if_needed(&module_factory::MigrateMsg {})?;
+            if migration_result.is_some() {
+                has_migrated = true;
+            }
+        }
+
+        if ::version_control::contract::CONTRACT_VERSION
+            != contract_version(&self.version_control)?.version
+        {
+            let migration_result = self
+                .version_control
+                .upload_and_migrate_if_needed(&version_control::MigrateMsg {})?;
+            if migration_result.is_some() {
+                has_migrated = true;
+            }
+        }
+
+        if ::ans_host::contract::CONTRACT_VERSION != contract_version(&self.ans_host)?.version {
+            let migration_result = self
+                .ans_host
+                .upload_and_migrate_if_needed(&ans_host::MigrateMsg {})?;
+            if migration_result.is_some() {
+                has_migrated = true;
+            }
+        }
+
+        let mut modules_to_register = Vec::with_capacity(2);
+
+        // We need to check the version in version control for the account contracts
+        let versions = self
+            .version_control
+            .modules(vec![
+                ModuleInfo::from_id_latest(MANAGER)?,
+                ModuleInfo::from_id_latest(PROXY)?,
+            ])?
+            .modules;
+
+        if ::manager::contract::CONTRACT_VERSION != versions[0].module.info.version.to_string()
+            && self.account.manager.upload_if_needed()?.is_some()
+        {
+            modules_to_register.push((
+                self.account.manager.as_instance(),
+                ::manager::contract::CONTRACT_VERSION.to_string(),
+            ));
+        }
+
+        if ::proxy::contract::CONTRACT_VERSION != versions[1].module.info.version.to_string()
+            && self.account.proxy.upload_if_needed()?.is_some()
+        {
+            modules_to_register.push((
+                self.account.proxy.as_instance(),
+                ::proxy::contract::CONTRACT_VERSION.to_string(),
+            ));
+        }
+
+        if !modules_to_register.is_empty() {
+            self.version_control
+                .register_account_mods(modules_to_register)?;
+            has_migrated = true
+        }
+
+        // TODO ibc client
+
+        self.version_control.approve_any_abstract_modules()?;
+
+        Ok(has_migrated)
+    }
+}
+
+fn contract_version<Chain: CwEnv, A: ContractInstance<Chain>>(
+    contract: &A,
+) -> Result<ContractVersion, crate::AbstractInterfaceError> {
+    let wasm_querier = contract.get_chain().wasm_querier();
+    Ok(from_json(
+        wasm_querier
+            .raw_query(
+                contract.address()?.to_string(),
+                CONTRACT.as_slice().to_vec(),
+            )
+            .unwrap(),
+    )?)
 }

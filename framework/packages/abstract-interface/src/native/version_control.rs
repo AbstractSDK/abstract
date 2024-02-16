@@ -215,6 +215,17 @@ impl<Chain: CwEnv> VersionControl<Chain> {
 
         Ok(module.reference.unwrap_app()?)
     }
+
+    /// Retrieves an APP or STANDALONE code id from version control given the module **id** and **version**.
+    pub fn get_module_code_id(
+        &self,
+        id: &str,
+        version: ModuleVersion,
+    ) -> Result<u64, crate::AbstractInterfaceError> {
+        let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
+
+        Ok(module.reference.unwrap_code_id()?)
+    }
 }
 
 impl VersionControl<Mock> {

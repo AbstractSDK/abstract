@@ -55,16 +55,16 @@ pub struct WynDex {
     // incentivized pair
     // rewarded in wynd
     pub eur_usd_pair: Addr,
-    pub eur_usd_lp: AbstractCw20Base<Mock>,
+    pub eur_usd_lp: AbstractCw20Base<MockBech32>,
     pub wynd_token: AssetInfo,
     pub wynd_eur_pair: Addr,
-    pub wynd_eur_lp: AbstractCw20Base<Mock>,
-    pub raw_token: AbstractCw20Base<Mock>,
-    pub raw_2_token: AbstractCw20Base<Mock>,
+    pub wynd_eur_lp: AbstractCw20Base<MockBech32>,
+    pub raw_token: AbstractCw20Base<MockBech32>,
+    pub raw_2_token: AbstractCw20Base<MockBech32>,
     pub raw_eur_pair: Addr,
-    pub raw_eur_lp: AbstractCw20Base<Mock>,
+    pub raw_eur_lp: AbstractCw20Base<MockBech32>,
     pub raw_raw_2_pair: Addr,
-    pub raw_raw_2_lp: AbstractCw20Base<Mock>,
+    pub raw_raw_2_lp: AbstractCw20Base<MockBech32>,
 }
 
 // Shitty implementation until https://github.com/AbstractSDK/cw-orchestrator/issues/60 is done
@@ -118,18 +118,21 @@ pub fn create_new_cw20<Chain: CwEnv, T: Into<Uint128>>(
 // Two step deploy process for WyndDex
 // First create Suite with SuiteBuilder, this uploads contracts and instantiates factory
 // Then create first pair and stake config and return WyndDex object
-impl Deploy<Mock> for WynDex {
+impl Deploy<MockBech32> for WynDex {
     type Error = AbstractInterfaceError;
     type DeployData = Empty;
 
-    fn store_on(chain: Mock) -> Result<Self, Self::Error> {
-        let eur_usd_lp: AbstractCw20Base<Mock> = AbstractCw20Base::new(EUR_USD_LP, chain.clone());
-        let wynd_eur_lp: AbstractCw20Base<Mock> = AbstractCw20Base::new(WYND_EUR_LP, chain.clone());
-        let raw_eur_lp: AbstractCw20Base<Mock> = AbstractCw20Base::new(RAW_EUR_LP, chain.clone());
-        let raw_raw_2_lp: AbstractCw20Base<Mock> =
+    fn store_on(chain: MockBech32) -> Result<Self, Self::Error> {
+        let eur_usd_lp: AbstractCw20Base<MockBech32> =
+            AbstractCw20Base::new(EUR_USD_LP, chain.clone());
+        let wynd_eur_lp: AbstractCw20Base<MockBech32> =
+            AbstractCw20Base::new(WYND_EUR_LP, chain.clone());
+        let raw_eur_lp: AbstractCw20Base<MockBech32> =
+            AbstractCw20Base::new(RAW_EUR_LP, chain.clone());
+        let raw_raw_2_lp: AbstractCw20Base<MockBech32> =
             AbstractCw20Base::new(RAW_RAW_2_LP, chain.clone());
 
-        let owner = Addr::unchecked(WYNDEX_OWNER);
+        let owner = chain.addr_make(WYNDEX_OWNER);
 
         let eur_info = AssetInfo::Native(EUR.to_string());
         let usd_info = AssetInfo::Native(USD.to_string());
@@ -173,7 +176,7 @@ impl Deploy<Mock> for WynDex {
         // create euro_usd pair
         let eur_usd_pair = suite
             .create_pair(
-                owner.as_str(),
+                &owner,
                 wyndex::factory::PairType::Xyk {},
                 [eur_info.clone(), usd_info.clone()],
                 Some(PartialStakeConfig {
@@ -198,7 +201,7 @@ impl Deploy<Mock> for WynDex {
         // owner provides some initial liquidity
         suite
             .provide_liquidity(
-                owner.as_str(),
+                &owner,
                 &eur_usd_pair,
                 [
                     eur_info.with_balance(10_000u128),
@@ -211,7 +214,7 @@ impl Deploy<Mock> for WynDex {
         // create wynd_eur pair
         let wynd_eur_pair = suite
             .create_pair(
-                owner.as_str(),
+                &owner,
                 wyndex::factory::PairType::Xyk {},
                 [eur_info.clone(), wynd_info.clone()],
                 Some(PartialStakeConfig {
@@ -234,7 +237,7 @@ impl Deploy<Mock> for WynDex {
         // owner provides some initial liquidity
         suite
             .provide_liquidity(
-                owner.as_str(),
+                &owner,
                 &wynd_eur_pair,
                 [
                     eur_info.with_balance(10_000u128),
@@ -248,7 +251,7 @@ impl Deploy<Mock> for WynDex {
         // wynd tokens are distributed to the pool's stakers.
         suite
             .create_distribution_flow(
-                owner.as_str(),
+                &owner,
                 vec![eur_info.clone(), usd_info.clone()],
                 wynd_info.clone(),
                 vec![(1, Decimal::percent(50)), (2, Decimal::one())],
@@ -260,7 +263,7 @@ impl Deploy<Mock> for WynDex {
         // create raw_eur pair
         let raw_eur_pair = suite
             .create_pair(
-                owner.as_str(),
+                &owner,
                 wyndex::factory::PairType::Xyk {},
                 [eur_info.clone(), raw_info.clone()],
                 Some(PartialStakeConfig {
@@ -291,7 +294,7 @@ impl Deploy<Mock> for WynDex {
         // owner provides some initial liquidity
         suite
             .provide_liquidity(
-                owner.as_str(),
+                &owner,
                 &raw_eur_pair,
                 [
                     eur_info.with_balance(10_000u128),
@@ -305,7 +308,7 @@ impl Deploy<Mock> for WynDex {
         // wynd tokens are distributed to the pool's stakers.
         suite
             .create_distribution_flow(
-                owner.as_str(),
+                &owner,
                 vec![raw_info.clone(), eur_info.clone()],
                 wynd_info.clone(),
                 vec![(1, Decimal::percent(50)), (2, Decimal::one())],
@@ -315,7 +318,7 @@ impl Deploy<Mock> for WynDex {
         // create raw_raw_2 pair
         let raw_raw_2_pair = suite
             .create_pair(
-                owner.as_str(),
+                &owner,
                 wyndex::factory::PairType::Xyk {},
                 [raw_2_info.clone(), raw_info.clone()],
                 Some(PartialStakeConfig {
@@ -351,7 +354,7 @@ impl Deploy<Mock> for WynDex {
         // owner provides some initial liquidity
         suite
             .provide_liquidity(
-                owner.as_str(),
+                &owner,
                 &raw_raw_2_pair,
                 [
                     raw_2_info.with_balance(10_000u128),
@@ -365,7 +368,7 @@ impl Deploy<Mock> for WynDex {
         // wynd tokens are distributed to the pool's stakers.
         suite
             .create_distribution_flow(
-                owner.as_str(),
+                &owner,
                 vec![raw_info, raw_2_info.clone()],
                 wynd_info.clone(),
                 vec![(1, Decimal::percent(50)), (2, Decimal::one())],
@@ -400,13 +403,15 @@ impl Deploy<Mock> for WynDex {
     }
 
     // Loads WynDex addresses from state
-    fn load_from(chain: Mock) -> Result<Self, Self::Error> {
+    fn load_from(chain: MockBech32) -> Result<Self, Self::Error> {
         let state = chain.state.borrow();
         // load all addresses for Self from state
         let eur_usd_pair = state.get_address(EUR_USD_PAIR)?;
-        let eur_usd_lp: AbstractCw20Base<Mock> = AbstractCw20Base::new(EUR_USD_LP, chain.clone());
+        let eur_usd_lp: AbstractCw20Base<MockBech32> =
+            AbstractCw20Base::new(EUR_USD_LP, chain.clone());
         let wynd_eur_pair = state.get_address(WYND_EUR_PAIR)?;
-        let wynd_eur_lp: AbstractCw20Base<Mock> = AbstractCw20Base::new(WYND_EUR_LP, chain.clone());
+        let wynd_eur_lp: AbstractCw20Base<MockBech32> =
+            AbstractCw20Base::new(WYND_EUR_LP, chain.clone());
         let raw_eur_pair = state.get_address(RAW_EUR_PAIR)?;
         let raw_eur_lp = AbstractCw20Base::new(RAW_EUR_LP, chain.clone());
         let raw_raw_2_pair = state.get_address(RAW_RAW_2_PAIR)?;
@@ -438,7 +443,7 @@ impl Deploy<Mock> for WynDex {
             raw_raw_2_staking: state.get_address(RAW_RAW_2_STAKE)?,
         })
     }
-    fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<Mock>>> {
+    fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<MockBech32>>> {
         vec![
             Box::new(&mut self.eur_usd_lp),
             Box::new(&mut self.wynd_eur_lp),
@@ -474,7 +479,7 @@ impl WynDex {
     ///   - wyndex/eur,wynd
     pub(crate) fn register_info_on_abstract(
         &self,
-        abstrct: &Abstract<Mock>,
+        abstrct: &Abstract<MockBech32>,
     ) -> Result<(), CwOrchError> {
         let eur_asset = AssetEntry::new(EUR);
         let usd_asset = AssetEntry::new(USD);
