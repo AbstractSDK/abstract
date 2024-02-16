@@ -385,6 +385,11 @@ impl<Chain: CwEnv> Account<Chain> {
         self.abstr_account.id().map_err(Into::into)
     }
 
+    /// Wether this account installs his applications on a sub account
+    pub fn install_on_sub_account(&self) -> bool {
+        self.install_on_sub_account
+    }
+
     /// Query account balance of a given denom
     // TODO: Asset balance?
     pub fn query_balance(&self, denom: impl Into<String>) -> AbstractClientResult<Uint128> {

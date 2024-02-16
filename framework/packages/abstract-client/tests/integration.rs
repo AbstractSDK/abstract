@@ -1216,3 +1216,24 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     assert_eq!(sub_accounts[0].id()?, sub_account.id()?);
     Ok(())
 }
+
+#[test]
+fn instantiate2_addr() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    publisher.publish_app::<MockAppI<MockBech32>>()?;
+
+    let account_id = AccountId::local(client.next_local_account_id()?);
+    let expected_addr = client.module_instantiate2_address::<MockAppI<MockBech32>>(&account_id)?;
+
+    let application: Application<MockBech32, MockAppI<MockBech32>> =
+        publisher.account().install_app(&MockInitMsg {}, &[])?;
+
+    assert_eq!(application.address()?, expected_addr);
+    Ok(())
+}
