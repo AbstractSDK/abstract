@@ -178,8 +178,8 @@ fn old_account_functions() -> anyhow::Result<()> {
         let app = MockApp::new_test(chain.clone());
         MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
         let res = old_account.install_app(&app, &MockInitMsg {}, None);
-        // Should error because old account didn't provide salt to install app
-        assert!(res.is_err());
+        // An old account should be able to install new apps
+        assert!(res.is_ok());
     } else {
         println!("Nothing to migrate")
     }
