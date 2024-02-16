@@ -38,11 +38,11 @@ expression: all_storage
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:manager-local-0":
   - - "\u0000\u0007modulesabstract:proxy"
-    - "\"mock18dmqux7kjektxhjxlrdxnt6nrvffa3w82l8h0zns9smffvwy47lq0mtca5\""
+    - "\"mock1xsemjm2xzx8nfaj50rt2dn04g24yarrr3mf6uwhqtc4ampff9nsqrc867x\""
   - - "\u0000\u0007modulesabstract:standalone1"
-    - "\"mock1wr6ur9hmnqgpdh5pc9zd0ad8nxfnm52w5kwdm20k4lnxm3264eusxqqhws\""
+    - "\"mock140yszardgjx5keqq59krnuwt2h7sxzpwdzevm0v904gws2rp562sejmztn\""
   - - "\u0000\u0007modulesabstract:standalone2"
-    - "\"mock1v7pmxpk57j5h3sva2dzvepuvg95nzezjcvndwdj5k46ssxwhr24s0l26xn\""
+    - "\"mock169wfeuug4rpczvhzkayh53apewph6n5fkuf5j597n9a43krex9sq8mkset\""
   - - "\u0000{12}is_suspended"
     - "false"
   - - "\u0000{4}info"
@@ -56,7 +56,7 @@ expression: all_storage
   - - contract_info
     - "{\"contract\":\"abstract:manager\",\"version\":\"0.20.0\"}"
   - - icontext
-    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":10}},\"mock1v7pmxpk57j5h3sva2dzvepuvg95nzezjcvndwdj5k46ssxwhr24s0l26xn\"]]"
+    - "[[{\"info\":{\"namespace\":\"abstract\",\"name\":\"standalone2\",\"version\":{\"version\":\"1.0.0\"}},\"reference\":{\"standalone\":10}},\"mock169wfeuug4rpczvhzkayh53apewph6n5fkuf5j597n9a43krex9sq8mkset\"]]"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:module-factory":
@@ -68,13 +68,13 @@ expression: all_storage
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:proxy-local-0":
   - - "\u0000{5}state"
-    - "{\"modules\":[\"mock1nvqtjjxkdpqtd74zwggnw4nk263uhszps68l8q4g9nz7emttkc3q5lp2w4\",\"mock1wr6ur9hmnqgpdh5pc9zd0ad8nxfnm52w5kwdm20k4lnxm3264eusxqqhws\",\"mock1v7pmxpk57j5h3sva2dzvepuvg95nzezjcvndwdj5k46ssxwhr24s0l26xn\"]}"
+    - "{\"modules\":[\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\",\"mock140yszardgjx5keqq59krnuwt2h7sxzpwdzevm0v904gws2rp562sejmztn\",\"mock169wfeuug4rpczvhzkayh53apewph6n5fkuf5j597n9a43krex9sq8mkset\"]}"
   - - "\u0000{6}ans_host"
     - "{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - acc_id
     - "{\"trace\":\"local\",\"seq\":0}"
   - - admin
-    - "\"mock1nvqtjjxkdpqtd74zwggnw4nk263uhszps68l8q4g9nz7emttkc3q5lp2w4\""
+    - "\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\""
   - - contract_info
     - "{\"contract\":\"abstract:proxy\",\"version\":\"0.20.0\"}"
 "abstract:version-control":
@@ -97,7 +97,7 @@ expression: all_storage
   - - "\u0000\u0003lib\u0000\babstract\u0000\u000fversion-control0.20.0"
     - "{\"native\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\"}"
   - - "\u0000\u0004accs\u0000\u0005local\u0000\u0000\u0000\u0000"
-    - "{\"manager\":\"mock1nvqtjjxkdpqtd74zwggnw4nk263uhszps68l8q4g9nz7emttkc3q5lp2w4\",\"proxy\":\"mock18dmqux7kjektxhjxlrdxnt6nrvffa3w82l8h0zns9smffvwy47lq0mtca5\"}"
+    - "{\"manager\":\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\",\"proxy\":\"mock1xsemjm2xzx8nfaj50rt2dn04g24yarrr3mf6uwhqtc4ampff9nsqrc867x\"}"
   - - "\u0000\u0004stli\u0000\u0000\u0000\u0000\u0000\u0000\u0000\t"
     - "{\"namespace\":\"abstract\",\"name\":\"standalone1\",\"version\":{\"version\":\"1.0.0\"}}"
   - - "\u0000\u0004stli\u0000\u0000\u0000\u0000\u0000\u0000\u0000\n"

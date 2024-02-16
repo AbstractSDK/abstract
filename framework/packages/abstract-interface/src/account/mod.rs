@@ -202,6 +202,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             namespace,
             base_asset,
             install_modules,
+            account_id,
         } = account_details;
 
         let result = self.manager.execute(
@@ -212,6 +213,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
                 base_asset,
                 namespace,
                 install_modules,
+                account_id,
             },
             funds,
         )?;

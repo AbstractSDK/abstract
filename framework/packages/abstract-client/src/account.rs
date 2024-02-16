@@ -22,13 +22,18 @@
 use std::fmt::{Debug, Display};
 
 use abstract_core::{
+    ibc_client,
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        gov_type::GovernanceDetails, namespace::Namespace, nested_admin::MAX_ADMIN_RECURSION,
-        validation::verifiers, AccountId, AssetEntry,
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion},
+        namespace::Namespace,
+        nested_admin::MAX_ADMIN_RECURSION,
+        validation::verifiers,
+        AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
     PROXY,
@@ -79,6 +84,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
+    expected_local_account_id: Option<u32>,
 }
 
 /// Creation funds
@@ -103,6 +109,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             funds: AccountCreationFunds::Coins(Coins::default()),
             fetch_if_namespace_claimed: true,
             install_on_sub_account: true,
+            expected_local_account_id: None,
         }
     }
 
@@ -182,6 +189,19 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         Ok(self)
     }
 
+    /// Install an application with dependencies on current account.
+    pub fn install_app_with_dependencies<M: DependencyCreation + InstallConfig>(
+        &mut self,
+        module_configuration: &M::InitMsg,
+        dependencies_config: M::DependenciesConfig,
+    ) -> AbstractClientResult<&mut Self> {
+        let deps_install_config = M::dependency_install_configs(dependencies_config)?;
+        self.install_modules.extend(deps_install_config);
+        self.install_modules
+            .push(M::install_config(module_configuration)?);
+        Ok(self)
+    }
+
     /// Enables automatically paying for module instantiations and namespace registration.
     /// The provided function will be called with the required funds. If the function returns `false`,
     /// the account creation will fail.
@@ -211,6 +231,13 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                 .map_err(AbstractInterfaceError::from)?;
         }
         Ok(self)
+    }
+
+    /// Assign expected local account_id on creation.
+    /// The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
+    pub fn account_id(&mut self, local_account_id: u32) -> &mut Self {
+        self.expected_local_account_id = Some(local_account_id);
+        self
     }
 
     /// Builds the [`Account`].
@@ -288,6 +315,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             namespace: self.namespace.as_ref().map(ToString::to_string),
             base_asset: self.base_asset.clone(),
             install_modules,
+            account_id: self.expected_local_account_id,
         };
         let abstract_account = if let Some(owner_account) = self.owner_account {
             owner_account
@@ -387,7 +415,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Install an application on the account.
     /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account. (default)
-    pub fn install_app<M: ContractInstance<Chain> + InstallConfig + From<Contract<Chain>>>(
+    pub fn install_app<M: InstallConfig + From<Contract<Chain>>>(
         &self,
         configuration: &M::InitMsg,
         funds: &[Coin],
@@ -401,9 +429,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Install an adapter on current account.
-    pub fn install_adapter<
-        M: ContractInstance<Chain> + InstallConfig<InitMsg = Empty> + From<Contract<Chain>>,
-    >(
+    pub fn install_adapter<M: InstallConfig<InitMsg = Empty> + From<Contract<Chain>>>(
         &self,
         funds: &[Coin],
     ) -> AbstractClientResult<Application<Chain, M>> {
@@ -420,11 +446,7 @@ impl<Chain: CwEnv> Account<Chain> {
     ///
     /// The returned [`Application`] is a wrapper around the sub-account and simplifies interaction with the App module.
     pub fn install_app_with_dependencies<
-        M: ContractInstance<Chain>
-            + DependencyCreation
-            + InstallConfig
-            + From<Contract<Chain>>
-            + Clone,
+        M: DependencyCreation + InstallConfig + From<Contract<Chain>>,
     >(
         &self,
         module_configuration: &M::InitMsg,
@@ -439,6 +461,29 @@ impl<Chain: CwEnv> Account<Chain> {
             true => self.install_module_sub_internal(install_configs, funds),
             false => self.install_module_current_internal(install_configs, funds),
         }
+    }
+
+    /// Upgrades the account to the latest version
+    ///
+    /// Migrates manager and proxy contracts to their respective new versions.
+    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<()> {
+        self.abstr_account.manager.upgrade(vec![
+            (
+                ModuleInfo::from_id(abstract_core::registry::MANAGER, version.clone())?,
+                Some(
+                    to_json_binary(&abstract_core::manager::MigrateMsg {})
+                        .map_err(Into::<CwOrchError>::into)?,
+                ),
+            ),
+            (
+                ModuleInfo::from_id(abstract_core::registry::PROXY, version)?,
+                Some(
+                    to_json_binary(&abstract_core::proxy::MigrateMsg {})
+                        .map_err(Into::<CwOrchError>::into)?,
+                ),
+            ),
+        ])?;
+        Ok(())
     }
 
     /// Returns owner of the account
@@ -493,6 +538,41 @@ impl<Chain: CwEnv> Account<Chain> {
                     .map_err(AbstractInterfaceError::from)?,
                 },
                 Some(funds),
+            )
+            .map_err(Into::into)
+    }
+
+    /// Set IBC status on an Account.
+    pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<()> {
+        self.abstr_account.manager.update_settings(Some(enabled))?;
+
+        Ok(())
+    }
+
+    /// Executes an ibc action on the proxy of the account
+    pub fn create_ibc_account(
+        &self,
+        host_chain: impl Into<String>,
+        base_asset: Option<AssetEntry>,
+        namespace: Option<String>,
+        install_modules: Vec<ModuleInstallConfig>,
+    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+        self.abstr_account
+            .manager
+            .execute(
+                &abstract_core::manager::ExecuteMsg::ExecOnModule {
+                    module_id: PROXY.to_owned(),
+                    exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
+                        msgs: vec![ibc_client::ExecuteMsg::Register {
+                            host_chain: host_chain.into(),
+                            base_asset,
+                            namespace,
+                            install_modules,
+                        }],
+                    })
+                    .map_err(AbstractInterfaceError::from)?,
+                },
+                None,
             )
             .map_err(Into::into)
     }
@@ -607,6 +687,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let sub_account_response = self.abstr_account.manager.create_sub_account(
             modules,
             "Sub Account".to_owned(),
+            None,
             None,
             None,
             None,

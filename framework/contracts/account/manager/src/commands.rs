@@ -10,8 +10,9 @@ use abstract_core::{
     module_factory::FactoryModuleInstallConfig,
     objects::{
         gov_type::GovernanceDetails,
-        module::{self, assert_module_data_validity},
+        module::assert_module_data_validity,
         nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION},
+        salt::generate_instantiate_salt,
         version_control::VersionControlContract,
         AccountId, AssetEntry,
     },
@@ -101,7 +102,6 @@ pub fn update_module_addresses(
 pub fn install_modules(
     mut deps: DepsMut,
     msg_info: MessageInfo,
-    env: Env,
     modules: Vec<ModuleInstallConfig>,
 ) -> ManagerResult {
     // only owner can call this method
@@ -111,7 +111,6 @@ pub fn install_modules(
 
     let (register_on_proxy, install_msg, install_attribute) = install_modules_internal(
         deps.branch(),
-        env.block.height,
         modules,
         config.module_factory_address,
         config.version_control_address,
@@ -128,7 +127,6 @@ pub fn install_modules(
 /// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
 pub(crate) fn install_modules_internal(
     mut deps: DepsMut,
-    block_height: u64,
     modules: Vec<ModuleInstallConfig>,
     module_factory_address: Addr,
     version_control_address: Addr,
@@ -137,7 +135,6 @@ pub(crate) fn install_modules_internal(
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
-    let salt: Binary = module::generate_module_salt(block_height, &account_id);
     let version_control = VersionControlContract::new(version_control_address);
 
     let canonical_module_factory = deps
@@ -146,10 +143,14 @@ pub(crate) fn install_modules_internal(
 
     let (infos, init_msgs): (Vec<_>, Vec<_>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
-    let modules = version_control.query_modules_configs(infos, &deps.querier)?;
+    let modules = version_control
+        .query_modules_configs(infos, &deps.querier)
+        .map_err(|error| ManagerError::QueryModulesFailed { error })?;
 
     let mut install_context = Vec::with_capacity(modules.len());
     let mut to_add = Vec::with_capacity(modules.len());
+
+    let salt: Binary = generate_instantiate_salt(&account_id);
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
         // Check if module is already enabled.
         if ACCOUNT_MODULES
@@ -174,6 +175,12 @@ pub(crate) fn install_modules_internal(
                     &salt,
                 )?;
                 let module_address = deps.api.addr_humanize(&module_address)?;
+                ensure!(
+                    deps.querier
+                        .query_wasm_contract_info(module_address.to_string())
+                        .is_err(),
+                    ManagerError::AppReinstall {}
+                );
                 to_add.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), Some(module_address)));
 
@@ -273,6 +280,7 @@ pub fn create_sub_account(
     base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
+    account_id: Option<u32>,
 ) -> ManagerResult {
     // only owner can create a subaccount
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
@@ -289,7 +297,7 @@ pub fn create_sub_account(
         base_asset,
         namespace,
         install_modules,
-        account_id: None,
+        account_id: account_id.map(AccountId::local),
     };
 
     let account_factory_addr = query_module(

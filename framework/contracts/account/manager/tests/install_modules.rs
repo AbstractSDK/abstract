@@ -88,3 +88,32 @@ fn adds_module_to_account_modules() -> AResult {
     take_storage_snapshot!(chain, "adds_module_to_account_modules");
     Ok(())
 }
+
+#[test]
+fn useful_error_module_not_found() -> AResult {
+    let sender = Addr::unchecked(OWNER);
+    let chain = Mock::new(&sender);
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = create_default_account(&abstr.account_factory)?;
+
+    let AbstractAccount { manager, proxy: _ } = &account;
+
+    let err = manager
+        .execute(
+            &ManagerMsg::InstallModules {
+                modules: vec![ModuleInstallConfig::new(
+                    ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+                    None,
+                )],
+            },
+            None,
+        )
+        .unwrap_err();
+
+    let manager_error: ManagerError = err.downcast().unwrap();
+    assert!(matches!(
+        manager_error,
+        ManagerError::QueryModulesFailed { .. }
+    ));
+    Ok(())
+}
