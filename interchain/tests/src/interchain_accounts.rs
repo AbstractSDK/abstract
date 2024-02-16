@@ -39,6 +39,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
             base_asset: None,
             install_modules: vec![],
             namespace: None,
+            account_id: None,
         },
         abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: abstr_origin
@@ -450,6 +451,7 @@ mod test {
                     base_asset: None,
                     install_modules: vec![],
                     namespace: None,
+                    account_id: None,
                 },
                 abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
                     monarch: abstr_origin
@@ -638,7 +640,7 @@ mod test {
 
         let (_abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        try_create_remote_account(&abstr_remote, &stargaze.create_account("user")).unwrap_err();
+        try_create_remote_account(&abstr_remote, &stargaze.addr_make("user")).unwrap_err();
 
         try_create_remote_account(&abstr_remote, &abstr_remote.ibc.host.address()?)?;
 
@@ -654,7 +656,7 @@ mod test {
                 monarch: abstr
                     .account_factory
                     .get_chain()
-                    .create_account("user")
+                    .addr_make("user")
                     .to_string(),
             },
             vec![],

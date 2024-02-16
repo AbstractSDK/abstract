@@ -68,7 +68,7 @@ fn create_etf(mock: MockBech32) -> Result<EtfEnv<MockBech32>, AbstractInterfaceE
         &etf,
         &etf_app::msg::EtfInstantiateMsg {
             fee: Decimal::percent(5),
-            manager_addr: mock.create_account(ETF_MANAGER).into(),
+            manager_addr: mock.addr_make(ETF_MANAGER).into(),
             token_code_id: etf_token_code_id,
             token_name: Some("Test ETF Shares".into()),
             token_symbol: Some("TETF".into()),

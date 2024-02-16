@@ -55,14 +55,10 @@ polytone = { package = "abstract-polytone", version = "1.0.5" }
 polytone-note = { package = "abstract-polytone-note", version = "1.0.5" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "1.0.5" }
 
-# # TODO; Set tag!
-# cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.0" }
-# cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.0" }
-# cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.0" }
-cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "fix/mock-bech32" }
-cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "fix/mock-bech32" }
-cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "fix/mock-bech32" }
-
+# TODO; Set tag!
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.1" }
+cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.1" }
+cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.1" }
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { path = "../framework/packages/abstract-interface" }
@@ -104,9 +100,6 @@ abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
-
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "main" }
-
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

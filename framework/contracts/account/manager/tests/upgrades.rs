@@ -277,7 +277,7 @@ fn update_adapter_with_authorized_addrs() -> AResult {
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::update_adapter_with_authorized_addrs(
         chain.clone(),
-        chain.create_account("authorizee"),
+        chain.addr_make("authorizee"),
     )
 }
 

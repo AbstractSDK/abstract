@@ -154,7 +154,7 @@ fn test_simple_tip() -> anyhow::Result<()> {
         eur_usd_lp: _,
         ..
     } = wyndex;
-    let tipper = mock.create_account("tipper");
+    let tipper = mock.addr_make("tipper");
     let tip_amount = 100;
     let tip_currency = eur_token.to_string();
     let tip_coins = coins(tip_amount, tip_currency.clone());
@@ -234,7 +234,7 @@ fn test_tip_swap() -> anyhow::Result<()> {
         ..
     } = wyndex;
 
-    let tipper = mock.create_account("tipper");
+    let tipper = mock.addr_make("tipper");
     let tip_amount = 100;
     let tip_currency = eur_token.to_string();
     let target_currency = usd_token.to_string();
@@ -285,7 +285,7 @@ fn test_tip_swap_and_not_swap() -> anyhow::Result<()> {
         ..
     } = wyndex;
 
-    let tipper = mock.create_account("tipper");
+    let tipper = mock.addr_make("tipper");
     let tip_amount = 100;
     let tip_amount1 = 100;
     let tip_currency = eur_token.to_string();
@@ -332,7 +332,7 @@ fn test_cw20_tip() -> anyhow::Result<()> {
     let (account, abstr_deployment, app, _wyndex) =
         setup(mock.clone(), Some(AssetEntry::new(wyndex_bundle::USD)))?;
 
-    let tipper = mock.create_account("tipper");
+    let tipper = mock.addr_make("tipper");
     let tip_amount = 100u128;
     let starting_balance = 1000u128;
 
@@ -413,7 +413,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
     } = wyndex;
 
     // First tipper
-    let tipper1 = mock.create_account("tipper1");
+    let tipper1 = mock.addr_make("tipper1");
     let tip_amount1 = 100;
     let tip_currency = eur_token.to_string();
     let tip_coins = coins(tip_amount1, tip_currency.clone());
@@ -422,7 +422,7 @@ fn test_multiple_tippers() -> anyhow::Result<()> {
     app.call_as(&tipper1).tip(&tip_coins)?;
 
     // Second tipper
-    let tipper2 = mock.create_account("tipper2");
+    let tipper2 = mock.addr_make("tipper2");
     let tip_amount2 = 200;
     let tip_currency = eur_token.to_string();
     let tip_coins = coins(tip_amount2, tip_currency.clone());
@@ -485,7 +485,7 @@ fn test_sent_desired_asset() -> anyhow::Result<()> {
     let mock: MockBech32 = abstr_deployment.ans_host.get_chain().clone();
     let WynDex { usd_token, .. } = wyndex;
 
-    let tipper = mock.create_account("tipper1");
+    let tipper = mock.addr_make("tipper1");
     let tip_amount = 100;
     let tip_currency = usd_token.to_string();
     let tip_coins = coins(tip_amount, tip_currency.clone());

@@ -133,7 +133,7 @@ impl SuiteBuilder {
 
     #[track_caller]
     pub fn build(self, mock_chain: &MockBech32) -> Suite {
-        let owner = mock_chain.create_account(WYNDEX_OWNER);
+        let owner = mock_chain.addr_make(WYNDEX_OWNER);
         let mut app = mock_chain.app.borrow_mut();
 
         let cw20_code_id = store_cw20(&mut app);
@@ -222,7 +222,7 @@ impl PartialEq for Suite {
 
 impl Suite {
     pub fn load_from(mock: &MockBech32) -> Self {
-        let owner = mock.create_account(WYNDEX_OWNER);
+        let owner = mock.addr_make(WYNDEX_OWNER);
         let factory = mock.state.get_address(POOL_FACTORY).unwrap();
         let multi_hop = mock.state.get_address(MULTI_HOP).unwrap();
 

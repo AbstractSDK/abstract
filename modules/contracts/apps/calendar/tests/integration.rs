@@ -94,15 +94,15 @@ fn setup_with_time(
 
     client.set_balances(vec![
         (
-            chain.create_account("sender1"),
+            chain.addr_make("sender1"),
             coins(INITIAL_BALANCE, DENOM).as_slice(),
         ),
         (
-            chain.create_account("sender2"),
+            chain.addr_make("sender2"),
             coins(INITIAL_BALANCE, DENOM).as_slice(),
         ),
         (
-            chain.create_account("sender"),
+            chain.addr_make("sender"),
             coins(INITIAL_BALANCE, DENOM).as_slice(),
         ),
     ])?;
@@ -297,7 +297,7 @@ fn request_meeting_at_start_of_day() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let (meeting_start_datetime, meeting_end_datetime) = request_meeting_with_start_time(
@@ -340,7 +340,7 @@ fn request_meeting_at_end_of_day() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let (meeting_start_datetime, meeting_end_datetime) = request_meeting_with_end_time(
@@ -385,7 +385,7 @@ fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = chain.create_account("sender1");
+    let sender1 = chain.addr_make("sender1");
     app.set_sender(&sender1);
 
     let (meeting_start_datetime1, meeting_end_datetime1) = request_meeting_with_start_time(
@@ -397,7 +397,7 @@ fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
         app.clone(),
     )?;
 
-    let sender2 = chain.create_account("sender2");
+    let sender2 = chain.addr_make("sender2");
     app.set_sender(&sender2);
 
     let (meeting_start_datetime2, meeting_end_datetime2) = request_meeting_with_start_time(
@@ -452,7 +452,7 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = chain.create_account("sender1");
+    let sender1 = chain.addr_make("sender1");
     app.set_sender(&sender1);
 
     let (meeting_start_datetime1, meeting_end_datetime1) = request_meeting(
@@ -469,7 +469,7 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
         Coin::new(60, DENOM),
     )?;
 
-    let sender2 = chain.create_account("sender2");
+    let sender2 = chain.addr_make("sender2");
     app.set_sender(&sender2);
 
     let (meeting_start_datetime2, meeting_end_datetime2) = request_meeting(
@@ -529,7 +529,7 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = chain.create_account("sender1");
+    let sender1 = chain.addr_make("sender1");
     app.set_sender(&sender1);
 
     let (meeting_start_datetime1, meeting_end_datetime1) = request_meeting(
@@ -546,7 +546,7 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
         Coin::new(60, DENOM),
     )?;
 
-    let sender2 = chain.create_account("sender2");
+    let sender2 = chain.addr_make("sender2");
     app.set_sender(&sender2);
 
     let (meeting_start_datetime2, meeting_end_datetime2) = request_meeting(
@@ -604,7 +604,7 @@ fn request_meetings_on_different_days() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender1 = chain.create_account("sender1");
+    let sender1 = chain.addr_make("sender1");
     app.set_sender(&sender1);
 
     let (meeting_start_datetime1, meeting_end_datetime1) = request_meeting_with_start_time(
@@ -616,7 +616,7 @@ fn request_meetings_on_different_days() -> anyhow::Result<()> {
         app.clone(),
     )?;
 
-    let sender2 = chain.create_account("sender2");
+    let sender2 = chain.addr_make("sender2");
     app.set_sender(&sender2);
 
     let (meeting_start_datetime2, meeting_end_datetime2) = request_meeting_with_start_time(
@@ -681,7 +681,7 @@ fn cannot_request_multiple_meetings_with_same_start_time() -> anyhow::Result<()>
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = chain.create_account("sender1");
+    let sender1 = chain.addr_make("sender1");
     app.set_sender(&sender1);
 
     request_meeting_with_start_time(
@@ -693,7 +693,7 @@ fn cannot_request_multiple_meetings_with_same_start_time() -> anyhow::Result<()>
         app.clone(),
     )?;
 
-    let sender2 = chain.create_account("sender2");
+    let sender2 = chain.addr_make("sender2");
     app.set_sender(&sender2);
 
     let error = request_meeting_with_start_time(
@@ -729,7 +729,7 @@ fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = chain.create_account("sender1");
+    let sender1 = chain.addr_make("sender1");
     app.set_sender(&sender1);
 
     request_meeting(
@@ -746,7 +746,7 @@ fn cannot_request_meeting_contained_in_another() -> anyhow::Result<()> {
         Coin::new(120, DENOM),
     )?;
 
-    let sender2 = chain.create_account("sender2");
+    let sender2 = chain.addr_make("sender2");
     app.set_sender(&sender2);
 
     let error = request_meeting(
@@ -787,7 +787,7 @@ fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = chain.create_account("sender1");
+    let sender1 = chain.addr_make("sender1");
     app.set_sender(&sender1);
 
     request_meeting(
@@ -804,7 +804,7 @@ fn cannot_request_meeting_with_left_intersection() -> anyhow::Result<()> {
         Coin::new(120, DENOM),
     )?;
 
-    let sender2 = chain.create_account("sender2");
+    let sender2 = chain.addr_make("sender2");
     app.set_sender(&sender2);
 
     let error = request_meeting(
@@ -845,7 +845,7 @@ fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender1 = chain.create_account("sender1");
+    let sender1 = chain.addr_make("sender1");
     app.set_sender(&sender1);
 
     request_meeting(
@@ -862,7 +862,7 @@ fn cannot_request_meeting_with_right_intersection() -> anyhow::Result<()> {
         Coin::new(120, DENOM),
     )?;
 
-    let sender2 = chain.create_account("sender2");
+    let sender2 = chain.addr_make("sender2");
     app.set_sender(&sender2);
 
     let error = request_meeting(
@@ -903,7 +903,7 @@ fn cannot_request_meeting_in_past() -> anyhow::Result<()> {
 
     let day_datetime = current_datetime.checked_sub_days(Days::new(1)).unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let error = request_meeting(
@@ -944,7 +944,7 @@ fn cannot_request_meeting_with_end_time_before_start_time() -> anyhow::Result<()
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let error = request_meeting(
@@ -985,7 +985,7 @@ fn cannot_request_meeting_with_start_time_out_of_calendar_bounds() -> anyhow::Re
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let error = request_meeting(
@@ -1026,7 +1026,7 @@ fn cannot_request_meeting_with_end_time_out_of_calendar_bounds() -> anyhow::Resu
 
     let day_datetime = current_datetime.checked_add_days(Days::new(1)).unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let error = request_meeting(
@@ -1065,7 +1065,7 @@ fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let meeting_start_datetime: NaiveDateTime = current_datetime
@@ -1112,7 +1112,7 @@ fn cannot_request_meeting_with_insufficient_funds() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let error: anyhow::Error = request_meeting(
@@ -1155,7 +1155,7 @@ fn slash_full_stake() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let (meeting_start_datetime, meeting_end_datetime) = request_meeting_with_start_time(
@@ -1205,7 +1205,7 @@ fn return_stake() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let (meeting_start_datetime, meeting_end_datetime) = request_meeting_with_start_time(
@@ -1263,7 +1263,7 @@ fn slash_partial_stake() -> anyhow::Result<()> {
         .timestamp_opt(block_info.time.seconds() as i64, 0)
         .unwrap();
 
-    let sender = chain.create_account("sender");
+    let sender = chain.addr_make("sender");
     app.set_sender(&sender);
 
     let (meeting_start_datetime, meeting_end_datetime) = request_meeting_with_start_time(
