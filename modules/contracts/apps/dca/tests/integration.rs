@@ -70,8 +70,8 @@ fn setup_croncat_contracts(
     proxy_addr: String,
 ) -> anyhow::Result<(CronCatAddrs, Addr)> {
     let sender = mock.sender();
-    let pause_admin = mock.create_account(PAUSE_ADMIN);
-    let agent_addr = mock.create_account(AGENT);
+    let pause_admin = mock.addr_make(PAUSE_ADMIN);
+    let agent_addr = mock.addr_make(AGENT);
 
     let mut app = mock.app.borrow_mut();
     // Instantiate cw20
@@ -278,7 +278,7 @@ fn setup() -> anyhow::Result<(
 
     // With funds
     mock.add_balance(&sender, coins(6_000_000_000, DENOM))?;
-    mock.add_balance(&mock.create_account(AGENT), coins(6_000_000_000, DENOM))?;
+    mock.add_balance(&mock.addr_make(AGENT), coins(6_000_000_000, DENOM))?;
 
     let (cron_cat_addrs, _proxy) = setup_croncat_contracts(mock.clone(), sender.to_string())?;
 

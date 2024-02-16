@@ -1,6 +1,6 @@
 use abstract_adapter::mock::{
-    BootMockAdapter, MockExecMsg as BootMockExecMsg, MockInitMsg as BootMockInitMsg,
-    MockQueryMsg as BootMockQueryMsg, TEST_METADATA,
+    MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
+    MockQueryMsg as AdapterMockQueryMsg, TEST_METADATA,
 };
 use abstract_app::{
     abstract_sdk::base::Handler,
@@ -86,7 +86,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
     let description = "description";
     let link = "https://abstract.money";
     let governance_details = GovernanceDetails::Monarchy {
-        monarch: chain.create_account("monarch").to_string(),
+        monarch: chain.addr_make("monarch").to_string(),
     };
     let namespace = Namespace::new("test-namespace")?;
     let base_asset = AssetEntry::new(asset);
@@ -198,7 +198,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
     let description = "description";
     let link = "https://abstract.money";
     let governance_details = GovernanceDetails::Monarchy {
-        monarch: chain.create_account("monarch").to_string(),
+        monarch: chain.addr_make("monarch").to_string(),
     };
     let namespace = Namespace::new("test-namespace")?;
     let base_asset = AssetEntry::new(asset);
@@ -344,15 +344,15 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let publisher_manager = publisher.account().manager()?;
     let publisher_proxy = publisher.account().proxy()?;
 
-    publisher.publish_adapter::<BootMockInitMsg, BootMockAdapter<_>>(BootMockInitMsg {})?;
+    publisher.publish_adapter::<AdapterMockInitMsg, MockAdapterI<_>>(AdapterMockInitMsg {})?;
 
     // Install adapter on sub-account
-    let my_adapter: Application<_, BootMockAdapter<_>> = publisher.account().install_adapter(&[])?;
+    let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
 
     my_adapter
         .call_as(&publisher_manager)
-        .execute(&BootMockExecMsg {}.into(), None)?;
-    let mock_query: String = my_adapter.query(&BootMockQueryMsg {}.into())?;
+        .execute(&AdapterMockExecMsg {}.into(), None)?;
+    let mock_query: String = my_adapter.query(&AdapterMockQueryMsg::GetSomething {}.into())?;
 
     assert_eq!(String::from("mock_query"), mock_query);
 
@@ -376,12 +376,12 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
         .publisher_builder(Namespace::new("tester")?)
         .install_on_sub_account(false)
         .build()?;
-    let my_adapter: Application<_, BootMockAdapter<_>> = publisher.account().install_adapter(&[])?;
+    let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
 
     my_adapter
         .call_as(&publisher_manager)
-        .execute(&BootMockExecMsg {}.into(), None)?;
-    let mock_query: String = my_adapter.query(&BootMockQueryMsg {}.into())?;
+        .execute(&AdapterMockExecMsg {}.into(), None)?;
+    let mock_query: String = my_adapter.query(&AdapterMockQueryMsg::GetSomething {}.into())?;
 
     assert_eq!(String::from("mock_query"), mock_query);
 
@@ -531,7 +531,7 @@ fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
     let description = "A test cw20 token";
     let logo = "link-to-logo";
     let project = "project";
-    let marketing = chain.create_account("marketing");
+    let marketing = chain.addr_make("marketing");
     let cap = Uint128::from(100u128);
     let starting_balance = Uint128::from(100u128);
     let minter_response = cw20_builder::MinterResponse {
@@ -577,7 +577,7 @@ fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
         owner_balance
     );
     let transfer_amount = Uint128::from(50u128);
-    let recipient = chain.create_account("user");
+    let recipient = chain.addr_make("user");
     cw20.transfer(transfer_amount, recipient.to_string())?;
 
     let recipient_balance = cw20.balance(recipient.to_string())?;
@@ -680,7 +680,7 @@ fn can_set_and_query_balance_with_client() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain.clone()).build()?;
 
-    let user = chain.create_account("user");
+    let user = chain.addr_make("user");
     let coin1 = Coin::new(50, "denom1");
     let coin2 = Coin::new(20, "denom2");
     let coin3 = Coin::new(10, "denom3");
@@ -723,7 +723,7 @@ fn can_execute_on_proxy() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain.clone()).build()?;
     client.set_balances([(client.sender(), coins(100, denom).as_slice())])?;
 
-    let user = chain.create_account("user");
+    let user = chain.addr_make("user");
 
     let account: Account<MockBech32> = client.account_builder().build()?;
 
@@ -866,7 +866,7 @@ fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
         .build()?;
 
     let adapter = publisher
-        .publish_adapter::<BootMockInitMsg, BootMockAdapter<MockBech32>>(BootMockInitMsg {})?;
+        .publish_adapter::<AdapterMockInitMsg, MockAdapterI<MockBech32>>(AdapterMockInitMsg {})?;
     let module_data: ModuleDataResponse =
         adapter.query(&abstract_core::adapter::QueryMsg::Base(
             abstract_core::adapter::BaseQueryMsg::ModuleData {},
@@ -967,25 +967,25 @@ fn install_adapter_on_account_builder() -> anyhow::Result<()> {
         .build()?;
 
     // Publish adapter
-    let adapter: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+    let adapter: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
     let account = client
         .account_builder()
-        .install_adapter::<BootMockAdapter<MockBech32>>()?
+        .install_adapter::<MockAdapterI<MockBech32>>()?
         .build()?;
     let modules = account.module_infos()?.module_infos;
     let adapter_info = modules
         .iter()
-        .find(|module| module.id == BootMockAdapter::<MockBech32>::module_id())
+        .find(|module| module.id == MockAdapterI::<MockBech32>::module_id())
         .expect("Adapter not found");
 
     assert_eq!(
         *adapter_info,
         ManagerModuleInfo {
-            id: BootMockAdapter::<MockBech32>::module_id().to_owned(),
+            id: MockAdapterI::<MockBech32>::module_id().to_owned(),
             version: cw2::ContractVersion {
-                contract: BootMockAdapter::<MockBech32>::module_id().to_owned(),
-                version: BootMockAdapter::<MockBech32>::module_version().to_owned()
+                contract: MockAdapterI::<MockBech32>::module_id().to_owned(),
+                version: MockAdapterI::<MockBech32>::module_version().to_owned()
             },
             address: adapter.address()?,
         }
@@ -1047,13 +1047,13 @@ fn auto_funds_work() -> anyhow::Result<()> {
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
-    let _: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+    let _: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
     client.version_control().update_module_configuration(
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
         abstract_core::version_control::UpdateModule::Versioned {
-            version: BootMockAdapter::<MockBech32>::module_version().to_owned(),
+            version: MockAdapterI::<Mock>::module_version().to_owned(),
             metadata: None,
             monetization: Some(abstract_core::objects::module::Monetization::InstallFee(
                 FixedFee::new(&Coin {
@@ -1069,7 +1069,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     // User can guard his funds
     account_builder
         .name("bob")
-        .install_adapter::<BootMockAdapter<MockBech32>>()?
+        .install_adapter::<MockAdapterI<Mock>>()?
         .auto_fund_assert(|c| c[0].amount < Uint128::new(50));
     let e = account_builder.build().unwrap_err();
     assert!(matches!(e, AbstractClientError::AutoFundsAssertFailed(_)));

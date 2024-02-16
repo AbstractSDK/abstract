@@ -29,7 +29,7 @@ fn instantiate() -> AResult {
 fn caller_must_be_manager() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
-    let _not_owner = chain.create_account("not_owner");
+    let _not_owner = chain.addr_make("not_owner");
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = &deployment.module_factory;

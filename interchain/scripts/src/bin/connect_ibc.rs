@@ -6,7 +6,6 @@ use cw_orch::daemon::ChainKind;
 use cw_orch::prelude::*;
 use cw_orch::{
     daemon::{ChainInfo, Daemon},
-    deploy::Deploy,
     tokio::runtime::Handle,
 };
 use cw_orch_polytone::Polytone;

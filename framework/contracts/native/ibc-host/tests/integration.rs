@@ -34,7 +34,7 @@ fn account_creation() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
 
-    let admin = chain.create_account("admin");
+    let admin = chain.addr_make("admin");
     let mut origin_chain = chain.clone();
     origin_chain.set_sender(admin.clone());
 
@@ -103,7 +103,7 @@ fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
 
-    let admin = chain.create_account("admin");
+    let admin = chain.addr_make("admin");
     let mut origin_chain = chain.clone();
     origin_chain.set_sender(admin.clone());
 
@@ -114,7 +114,7 @@ fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
     let err: CwOrchError = abstr_origin
         .ibc
         .host
-        .call_as(&chain.create_account("user"))
+        .call_as(&chain.addr_make("user"))
         .register_chain_proxy(chain_name.into(), sender.to_string())
         .unwrap_err();
 
@@ -130,7 +130,7 @@ fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
 fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
 
-    let admin = chain.create_account("admin");
+    let admin = chain.addr_make("admin");
     let mut origin_chain = chain.clone();
     origin_chain.set_sender(admin.clone());
 
@@ -141,7 +141,7 @@ fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
     let err: CwOrchError = abstr_origin
         .ibc
         .host
-        .call_as(&chain.create_account("user"))
+        .call_as(&chain.addr_make("user"))
         .remove_chain_proxy(chain_name.into())
         .unwrap_err();
 
@@ -158,7 +158,7 @@ fn account_creation_full() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
 
-    let admin = chain.create_account("admin");
+    let admin = chain.addr_make("admin");
     let mut origin_chain = chain.clone();
     origin_chain.set_sender(admin.clone());
 
@@ -242,7 +242,7 @@ fn account_action() -> anyhow::Result<()> {
     let mock = MockBech32::new("mock");
     let sender = mock.sender();
 
-    let admin = mock.create_account("admin");
+    let admin = mock.addr_make("admin");
     let mut origin_chain = mock.clone();
     origin_chain.set_sender(admin.clone());
 
@@ -259,7 +259,7 @@ fn account_action() -> anyhow::Result<()> {
         .register_chain_proxy(chain.into(), sender.to_string())?;
 
     // We create the account
-    let proxy_addr = mock.create_account("proxy_address");
+    let proxy_addr = mock.addr_make("proxy_address");
     abstr_remote
         .ibc
         .host
@@ -286,7 +286,7 @@ fn account_action() -> anyhow::Result<()> {
             HostAction::Dispatch {
                 manager_msg: abstract_core::manager::ExecuteMsg::ProposeOwner {
                     owner: GovernanceDetails::Monarchy {
-                        monarch: mock.create_account("new_owner").to_string(),
+                        monarch: mock.addr_make("new_owner").to_string(),
                     },
                 },
             },
@@ -338,11 +338,11 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
             HostAction::Dispatch {
                 manager_msg: abstract_core::manager::ExecuteMsg::ProposeOwner {
                     owner: GovernanceDetails::Monarchy {
-                        monarch: mock.create_account("new_owner").to_string(),
+                        monarch: mock.addr_make("new_owner").to_string(),
                     },
                 },
             },
-            mock.create_account("proxy_address").to_string(),
+            mock.addr_make("proxy_address").to_string(),
         )
         .unwrap();
 
@@ -375,7 +375,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     let account_sequence = 1;
     let chain = "juno";
 
-    let polytone_proxy = mock.create_account("polytone_proxy");
+    let polytone_proxy = mock.addr_make("polytone_proxy");
 
     // We need to set the sender as the proxy for juno chain
     abstr
@@ -395,7 +395,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
         vec![],
     )?;
 
-    let proxy_addr = mock.create_account("proxy_address");
+    let proxy_addr = mock.addr_make("proxy_address");
     // We create the account
     abstr.ibc.host.call_as(&polytone_proxy).ibc_execute(
         AccountId::local(account_sequence),

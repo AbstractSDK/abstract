@@ -171,7 +171,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
     )?;
     let first_proxy_addr = account.proxy.address()?;
 
-    let mock_app = chain.create_account("mock_app");
+    let mock_app = chain.addr_make("mock_app");
     account
         .proxy
         .call_as(&account.manager.address()?)
@@ -213,7 +213,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
 fn sub_account_move_ownership() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
-    let new_owner = chain.create_account("new_owner");
+    let new_owner = chain.addr_make("new_owner");
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     // Store manager address, it will be used for querying
@@ -337,7 +337,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     let new_account_sub_account_manager = new_account_sub_account.manager.address()?;
 
     let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
-    let mock_module = chain.create_account("mock_module");
+    let mock_module = chain.addr_make("mock_module");
     sub_account
         .proxy
         .call_as(&sub_manager_addr)

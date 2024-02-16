@@ -110,7 +110,7 @@ fn swap_raw() -> anyhow::Result<()> {
     let proxy_addr = os.proxy.address()?;
 
     // transfer raw
-    let owner = chain.create_account(WYNDEX_OWNER);
+    let owner = chain.addr_make(WYNDEX_OWNER);
     wyndex
         .raw_token
         .call_as(&owner)
