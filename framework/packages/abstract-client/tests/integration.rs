@@ -1163,7 +1163,7 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
 
 #[test]
 fn create_account_with_expected_account_id() -> anyhow::Result<()> {
-    let chain = Mock::new(&Addr::unchecked(OWNER));
+    let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain).build()?;
 
     // Check it fails on wrong account_id

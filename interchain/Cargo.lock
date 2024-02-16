@@ -2153,7 +2153,7 @@ dependencies = [
 [[package]]
 name = "cw-multi-test"
 version = "0.19.4"
-source = "git+https://github.com/AbstractSDK/cw-multi-test?tag=localv0.19.5#3af877dfcbc2ed89770a5fe20a85613c3b27b1a8"
+source = "git+https://github.com/AbstractSDK/cw-multi-test?tag=localv0.19.6#4af56c5e4451190e91022388374e9bb0db0b8e36"
 dependencies = [
  "anyhow",
  "bech32",
@@ -2235,7 +2235,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-clone-testing"
 version = "0.19.1"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.1#695e8dfe0a60bdedeeb7a8f3c22129b2fa635361"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.2#5f4512878f938f39dfd4e093f6af669538e9de11"
 dependencies = [
  "cosmwasm-std",
  "cw-multi-test",
@@ -2404,7 +2404,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-interchain"
 version = "0.19.1"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.1#695e8dfe0a60bdedeeb7a8f3c22129b2fa635361"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.2#5f4512878f938f39dfd4e093f6af669538e9de11"
 dependencies = [
  "cosmwasm-std",
  "cw-orch 0.20.1",
@@ -2422,7 +2422,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-interchain-core"
 version = "0.19.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.1#695e8dfe0a60bdedeeb7a8f3c22129b2fa635361"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.2#5f4512878f938f39dfd4e093f6af669538e9de11"
 dependencies = [
  "anyhow",
  "base64 0.21.5",
@@ -2440,7 +2440,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-interchain-daemon"
 version = "0.19.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.1#695e8dfe0a60bdedeeb7a8f3c22129b2fa635361"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.2#5f4512878f938f39dfd4e093f6af669538e9de11"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2468,7 +2468,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-interchain-mock"
 version = "0.19.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.1#695e8dfe0a60bdedeeb7a8f3c22129b2fa635361"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.2#5f4512878f938f39dfd4e093f6af669538e9de11"
 dependencies = [
  "anyhow",
  "cosmrs 0.15.0",
@@ -2536,7 +2536,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-proto"
 version = "0.19.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.1#695e8dfe0a60bdedeeb7a8f3c22129b2fa635361"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.2#5f4512878f938f39dfd4e093f6af669538e9de11"
 dependencies = [
  "anyhow",
  "cosmrs 0.15.0",
@@ -2554,7 +2554,7 @@ dependencies = [
 [[package]]
 name = "cw-orch-starship"
 version = "0.19.0"
-source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.1#695e8dfe0a60bdedeeb7a8f3c22129b2fa635361"
+source = "git+ssh://git@github.com/AbstractSDK/cw-orch-interchain.git?tag=v0.20.2#5f4512878f938f39dfd4e093f6af669538e9de11"
 dependencies = [
  "cosmwasm-std",
  "cw-orch 0.20.1",
