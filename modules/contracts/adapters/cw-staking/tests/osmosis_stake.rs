@@ -1,6 +1,6 @@
 #![allow(unused)]
 mod common;
-// Keep this until https://github.com/osmosis-labs/test-tube/issues/28 is fixed!
+
 #[cfg(feature = "osmosis-test")]
 mod osmosis_test {
 

@@ -39,9 +39,6 @@ interface = [
 schema = ["abstract-adapter/schema"]
 testing = ["abstract-wyndex-adapter/local"]
 cw-orch = ["dep:cw-orch"]
-# Remove after optimizer toolchain bumps to 1.71.0
-# Keep this until https://github.com/osmosis-labs/test-tube/issues/28 is fixed! 
-# TODO: Remove
 osmosis-test = ["cw-orch/osmosis-test-tube"]
 
 # Supported Dexes
