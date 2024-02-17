@@ -68,8 +68,7 @@ jobs:
       - image: cimg/rust:1.75.0
     resource_class: xlarge
     steps:
-      - setup_remote_docker:
-          version: 20.10.14
+      - setup_remote_docker
       - checkout
       - run:
           name: "Check for newer workflow"
@@ -219,8 +218,7 @@ jobs:
       - image: cimg/rust:1.75.0
     resource_class: xlarge
     steps:
-      - setup_remote_docker:
-          version: 20.10.14
+      - setup_remote_docker
       - checkout
       - run:
           name: Generate lockfile
@@ -251,8 +249,7 @@ jobs:
       - image: cimg/rust:1.75.0
     resource_class: xlarge
     steps:
-      - setup_remote_docker:
-          version: 20.10.14
+      - setup_remote_docker
       - checkout
       - run:
           name: Generate lockfile
