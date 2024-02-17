@@ -1,18 +1,23 @@
-use abstract_core::{ans_host::QueryMsgFns as _, objects::ABSTRACT_ACCOUNT_ID};
+use abstract_core::{
+    adapter::AdapterRequestMsg,
+    ans_host::QueryMsgFns as _,
+    objects::{PoolAddress, ABSTRACT_ACCOUNT_ID},
+};
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-use abstract_dex_standard::{msg::DexFeesResponse, DexError};
-use abstract_interface::{AbstractInterfaceError, AdapterDeployer, DeployStrategy};
+use abstract_dex_standard::msg::DexExecuteMsg;
+use abstract_interface::{AdapterDeployer, DeployStrategy};
 use cw20::msg::Cw20ExecuteMsgFns as _;
 use cw20_base::msg::QueryMsgFns as _;
+use cw_asset::{AssetBase, AssetInfoBase};
 mod common;
-
 use abstract_dex_adapter::interface::DexAdapter;
+use abstract_dex_standard::raw_action::DexRawAction;
 use abstract_interface::{Abstract, AbstractAccount};
 use common::create_default_account;
-use cosmwasm_std::{coin, Decimal, Empty};
+use cosmwasm_std::{coin, Addr, Decimal, Empty};
 use cw_orch::prelude::*;
 use speculoos::*;
-use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
+use wyndex_bundle::{EUR, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
 
 const WYNDEX: &str = "cosmos-testnet>wyndex";
 
@@ -52,15 +57,21 @@ fn setup_mock() -> anyhow::Result<(
 }
 
 #[test]
-fn swap_native() -> anyhow::Result<()> {
-    let (chain, _, dex_adapter, os, abstr) = setup_mock()?;
+fn raw_swap_native() -> anyhow::Result<()> {
+    let (chain, wyndex, dex_adapter, os, abstr) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
 
     let pools = abstr.ans_host.pool_list(None, None, None)?;
     println!("{:?}", pools);
 
     // swap 100 EUR to USD
-    dex_adapter.ans_swap((EUR, 100), USD, WYNDEX.into(), &os)?;
+    dex_adapter.raw_swap_native(
+        (EUR, 100),
+        USD,
+        WYNDEX.into(),
+        &os,
+        PoolAddress::contract(wyndex.eur_usd_pair).into(),
+    )?;
 
     // check balances
     let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
@@ -82,44 +93,65 @@ fn swap_native() -> anyhow::Result<()> {
 }
 
 #[test]
-fn swap_native_without_chain() -> anyhow::Result<()> {
-    let (chain, _, dex_adapter, os, abstr) = setup_mock()?;
-    let proxy_addr = os.proxy.address()?;
-
-    // swap 100 EUR to USD
-    dex_adapter.ans_swap((EUR, 100), USD, WYNDEX_WITHOUT_CHAIN.into(), &os)?;
-
-    // check balances
-    let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
-    assert_that!(eur_balance.u128()).is_equal_to(9_900);
-
-    let usd_balance = chain.query_balance(&proxy_addr, USD)?;
-    assert_that!(usd_balance.u128()).is_equal_to(98);
-
-    // assert that OS 0 received the swap fee
-    let os0_proxy = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
-        .proxy
-        .address()?;
-    let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
-    assert_that!(os0_eur_balance.u128()).is_equal_to(1);
-
-    Ok(())
-}
-
-#[test]
-fn swap_raw() -> anyhow::Result<()> {
+fn raw_swap_native_without_chain() -> anyhow::Result<()> {
     let (chain, wyndex, dex_adapter, os, abstr) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
 
+    // swap 100 EUR to USD
+    dex_adapter.raw_swap_native(
+        (EUR, 100),
+        USD,
+        WYNDEX_WITHOUT_CHAIN.into(),
+        &os,
+        PoolAddress::contract(wyndex.eur_usd_pair).into(),
+    )?;
+
+    // check balances
+    let balances = chain.query_all_balances(&proxy_addr)?;
+    println!("{:?}", balances);
+    let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
+    assert_that!(eur_balance.u128()).is_equal_to(9_900);
+
+    let usd_balance = chain.query_balance(&proxy_addr, USD)?;
+    assert_that!(usd_balance.u128()).is_equal_to(98);
+
+    // assert that OS 0 received the swap fee
+    let os0_proxy = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
+        .proxy
+        .address()?;
+    let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
+    assert_that!(os0_eur_balance.u128()).is_equal_to(1);
+
+    Ok(())
+}
+
+#[test]
+fn raw_swap_raw() -> anyhow::Result<()> {
+    let (chain, wyndex, _, os, abstr) = setup_mock()?;
+    let proxy_addr = os.proxy.address()?;
+
     // transfer raw
-    let owner = chain.addr_make(WYNDEX_OWNER);
+    let owner = Addr::unchecked(WYNDEX_OWNER);
     wyndex
         .raw_token
         .call_as(&owner)
         .transfer(10_000u128.into(), proxy_addr.to_string())?;
 
     // swap 100 RAW to EUR
-    dex_adapter.ans_swap((RAW_TOKEN, 100), EUR, WYNDEX.into(), &os)?;
+    let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(AdapterRequestMsg {
+        proxy_address: None,
+        request: DexExecuteMsg::RawAction {
+            dex: WYNDEX.to_owned(),
+            action: DexRawAction::Swap {
+                offer_asset: AssetBase::cw20(wyndex.raw_token.address()?.to_string(), 100u128),
+                ask_asset: AssetInfoBase::native(EUR),
+                pool: PoolAddress::contract(wyndex.raw_eur_pair).into(),
+                max_spread: Some(Decimal::percent(30)),
+                belief_price: None,
+            },
+        },
+    });
+    os.manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
 
     // check balances
     let raw_balance = wyndex.raw_token.balance(proxy_addr.to_string())?;
@@ -135,68 +167,5 @@ fn swap_raw() -> anyhow::Result<()> {
     let os0_raw_balance = wyndex.raw_token.balance(account0_proxy.to_string())?;
     assert_that!(os0_raw_balance.balance.u128()).is_equal_to(1);
 
-    Ok(())
-}
-
-#[test]
-fn get_fees() -> anyhow::Result<()> {
-    let (_, _, dex_adapter, _, abstr) = setup_mock()?;
-    let account0_proxy = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID)
-        .proxy
-        .address()?;
-
-    use abstract_dex_adapter::msg::DexQueryMsgFns as _;
-
-    let fees: DexFeesResponse = dex_adapter.fees()?;
-    assert_eq!(fees.swap_fee.share(), Decimal::percent(1));
-    assert_eq!(fees.recipient, account0_proxy);
-    Ok(())
-}
-
-#[test]
-fn authorized_update_fee() -> anyhow::Result<()> {
-    let (_, _, dex_adapter, _, abstr) = setup_mock()?;
-    let account0 = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID);
-
-    let update_fee_msg =
-        abstract_dex_standard::msg::ExecuteMsg::Module(abstract_core::adapter::AdapterRequestMsg {
-            proxy_address: Some(account0.proxy.addr_str()?),
-            request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
-                swap_fee: Some(Decimal::percent(5)),
-                recipient_account: None,
-            },
-        });
-
-    dex_adapter.execute(&update_fee_msg, None)?;
-
-    use abstract_dex_adapter::msg::DexQueryMsgFns as _;
-
-    let fees: DexFeesResponse = dex_adapter.fees()?;
-    assert_eq!(fees.swap_fee.share(), Decimal::percent(5));
-    Ok(())
-}
-
-#[test]
-fn unauthorized_update_fee() -> anyhow::Result<()> {
-    let (_, _, _, account, _) = setup_mock()?;
-
-    let update_fee_msg =
-        abstract_dex_standard::msg::ExecuteMsg::Module(abstract_core::adapter::AdapterRequestMsg {
-            proxy_address: None,
-            request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
-                swap_fee: Some(Decimal::percent(5)),
-                recipient_account: None,
-            },
-        });
-
-    let err = account
-        .manager
-        .execute_on_module(DEX_ADAPTER_ID, update_fee_msg)
-        .unwrap_err();
-    let AbstractInterfaceError::Orch(orch_error) = err else {
-        panic!("unexpected error type");
-    };
-    let dex_err: DexError = orch_error.downcast().unwrap();
-    assert_eq!(dex_err, DexError::Unauthorized {});
     Ok(())
 }

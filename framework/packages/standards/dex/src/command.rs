@@ -1,5 +1,5 @@
 use abstract_adapter_utils::identity::Identify;
-use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference, UniquePoolId};
+use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference};
 use abstract_sdk::{
     core::objects::AssetEntry,
     feature_objects::{AnsHost, VersionControlContract},
@@ -111,7 +111,6 @@ pub trait DexCommand: Identify {
         _addr_as_sender: Addr,
         _version_control_contract: VersionControlContract,
         _ans_host: AnsHost,
-        _pool_id: UniquePoolId,
     ) -> Result<(), DexError> {
         // Dummy implementation, since most of dexes does not require this method
         Ok(())

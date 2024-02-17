@@ -14,7 +14,8 @@ use abstract_dex_adapter::{
     msg::{DexInstantiateMsg, ExecuteMsg, InstantiateMsg, QueryMsg},
     DEX_ADAPTER_ID,
 };
-use abstract_dex_standard::msg::{DexAction, DexExecuteMsg};
+use abstract_dex_standard::ans_action::DexAnsAction;
+use abstract_dex_standard::msg::DexExecuteMsg;
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountFactory, AdapterDeployer,
     DeployStrategy,
@@ -68,9 +69,9 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
 
         let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
             proxy_address: None,
-            request: DexExecuteMsg::Action {
+            request: DexExecuteMsg::AnsAction {
                 dex,
-                action: DexAction::Swap {
+                action: DexAnsAction::Swap {
                     offer_asset: AnsAsset::new(asset, offer_asset.1),
                     ask_asset,
                     max_spread: Some(Decimal::percent(30)),
@@ -96,9 +97,9 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
 
         let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
             proxy_address: None,
-            request: DexExecuteMsg::Action {
+            request: DexExecuteMsg::AnsAction {
                 dex,
-                action: DexAction::ProvideLiquidity {
+                action: DexAnsAction::ProvideLiquidity {
                     assets: vec![
                         AnsAsset::new(asset_entry1, asset1.1),
                         AnsAsset::new(asset_entry2, asset2.1),
@@ -121,16 +122,13 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
         dex: String,
         account: &AbstractAccount<Chain>,
     ) -> Result<(), AbstractInterfaceError> {
-        let lp_token = AssetEntry::new(lp_token);
+        let lp_token = AnsAsset::new(lp_token, amount.into());
 
         let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
             proxy_address: None,
-            request: DexExecuteMsg::Action {
+            request: DexExecuteMsg::AnsAction {
                 dex,
-                action: DexAction::WithdrawLiquidity {
-                    lp_token,
-                    amount: amount.into(),
-                },
+                action: DexAnsAction::WithdrawLiquidity { lp_token },
             },
         });
         account

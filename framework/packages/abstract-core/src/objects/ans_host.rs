@@ -49,6 +49,13 @@ pub enum AnsHostError {
     #[error("Pool metadata for pool {pool} not found in ans_host {ans_host}.")]
     PoolMetadataNotFound { pool: UniquePoolId, ans_host: Addr },
 
+    #[error("Object {object} should be formatted {expected} but is {actual}")]
+    FormattingError {
+        object: String,
+        expected: String,
+        actual: String,
+    },
+
     // Query method failed
     #[error("Query during '{method_name}' failed: {error}")]
     QueryFailed {

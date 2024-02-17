@@ -48,6 +48,7 @@ impl DexCommand for Kujira {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let fin_pair_address: Addr = match pool_id {
             PoolAddress::SeparateAddresses { swap, liquidity: _ } => swap,
+            PoolAddress::Contract(swap) => swap,
             _ => panic!("invalid address"),
         };
 
@@ -84,16 +85,11 @@ impl DexCommand for Kujira {
         mut offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let fin_pair_address: Addr;
-        let bow_pair_address: Addr;
-
-        match pool_id {
-            PoolAddress::SeparateAddresses { swap, liquidity } => {
-                fin_pair_address = swap;
-                bow_pair_address = liquidity;
-            }
+        let bow_pair_address = match &pool_id {
+            PoolAddress::SeparateAddresses { swap: _, liquidity } => liquidity,
+            PoolAddress::Contract(liquidity) => liquidity,
             _ => panic!("invalid address"),
-        }
+        };
         let mut msgs = vec![];
 
         // We know that (+)two assets were provided because it's a requirement to resolve the pool
@@ -120,25 +116,18 @@ impl DexCommand for Kujira {
                     .unwrap(),
             );
 
-            // creating pool_id clones to avoid borrowing a partially moved value - didn't use .clone() on pool_id since
-            // SeparateAddresses contains Addr values which doesn't have a Copy trait
-            let pool_id_clone = PoolAddress::SeparateAddresses {
-                swap: deps.api.addr_validate(fin_pair_address.as_ref())?,
-                liquidity: deps.api.addr_validate(bow_pair_address.as_ref())?,
-            };
-
-            let pool_id_clone_2 = PoolAddress::SeparateAddresses {
-                swap: deps.api.addr_validate(fin_pair_address.as_ref())?,
-                liquidity: deps.api.addr_validate(bow_pair_address.as_ref())?,
-            };
-
             // simulate swap to get the amount of ask asset we can provide after swapping
             let simulated_received = self
-                .simulate_swap(deps, pool_id_clone, offer_asset.clone(), ask_asset.clone())?
+                .simulate_swap(
+                    deps,
+                    pool_id.clone(),
+                    offer_asset.clone(),
+                    ask_asset.clone(),
+                )?
                 .0;
             let swap_msg = self.swap(
                 deps,
-                pool_id_clone_2,
+                pool_id.clone(),
                 offer_asset.clone(),
                 ask_asset.clone(),
                 None,
@@ -175,6 +164,7 @@ impl DexCommand for Kujira {
         // unimplemented!();
         let bow_pair_address: Addr = match pool_id {
             PoolAddress::SeparateAddresses { swap: _, liquidity } => liquidity,
+            PoolAddress::Contract(liquidity) => liquidity,
             _ => panic!("invalid address"),
         };
         let mut msgs = vec![];
@@ -255,6 +245,7 @@ impl DexCommand for Kujira {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let bow_pair_address: Addr = match pool_id {
             PoolAddress::SeparateAddresses { swap: _, liquidity } => liquidity,
+            PoolAddress::Contract(liquidity) => liquidity,
             _ => panic!("invalid address"),
         };
 
@@ -274,6 +265,7 @@ impl DexCommand for Kujira {
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
         let fin_pair_address: Addr = match pool_id {
             PoolAddress::SeparateAddresses { swap, liquidity: _ } => swap,
+            PoolAddress::Contract(swap) => swap,
             _ => panic!("invalid address"),
         };
         // Do simulation
