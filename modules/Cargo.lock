@@ -105,7 +105,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-astrovault-adapter"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "abstract-cw20",
  "abstract-dex-standard",
@@ -210,7 +210,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-cw-staking"
-version = "0.20.0"
+version = "0.21.0"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -465,7 +465,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-dex-adapter"
-version = "0.20.0"
+version = "0.21.0"
 dependencies = [
  "abstract-adapter",
  "abstract-adapter-utils",
@@ -597,7 +597,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-kujira-adapter"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "abstract-cw20",
  "abstract-dex-standard",
@@ -662,7 +662,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-osmosis-adapter"
-version = "0.15.2"
+version = "0.16.2"
 dependencies = [
  "abstract-cw20",
  "abstract-dex-standard",
@@ -767,7 +767,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-subscription"
-version = "0.20.0"
+version = "0.21.0"
 dependencies = [
  "abstract-app",
  "abstract-client",
@@ -796,7 +796,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-tendermint-staking-adapter"
-version = "0.20.0"
+version = "0.21.0"
 dependencies = [
  "abstract-adapter",
  "abstract-core",
@@ -2676,7 +2676,7 @@ dependencies = [
 
 [[package]]
 name = "dca-app"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "abstract-app",
  "abstract-client",
@@ -3013,7 +3013,7 @@ dependencies = [
 
 [[package]]
 name = "etf-app"
-version = "0.20.0"
+version = "0.21.0"
 dependencies = [
  "abstract-app",
  "abstract-core",
@@ -4316,7 +4316,7 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 
 [[package]]
 name = "payment-app"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "abstract-app",
  "abstract-core",

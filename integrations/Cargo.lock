@@ -85,7 +85,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-astrovault-adapter"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "abstract-cw20",
  "abstract-dex-standard",
@@ -480,7 +480,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-kujira-adapter"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "abstract-cw20",
  "abstract-dex-standard",
@@ -547,7 +547,7 @@ dependencies = [
 
 [[package]]
 name = "abstract-osmosis-adapter"
-version = "0.15.2"
+version = "0.16.2"
 dependencies = [
  "abstract-cw20",
  "abstract-dex-standard",
