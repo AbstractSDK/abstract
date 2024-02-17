@@ -736,7 +736,7 @@
         "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
         "type": "string"
       },
-      "DexAssetPairing": {
+      "DexAssetPairing_for_AssetEntry": {
         "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
         "type": "array",
         "items": [
@@ -2483,7 +2483,7 @@
             ],
             "properties": {
               "Pair": {
-                "$ref": "#/definitions/DexAssetPairing"
+                "$ref": "#/definitions/DexAssetPairing_for_AssetEntry"
               }
             },
             "additionalProperties": false
@@ -3193,7 +3193,7 @@
           "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
           "type": "string"
         },
-        "DexAssetPairing": {
+        "DexAssetPairing_for_AssetEntry": {
           "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
           "type": "array",
           "items": [
@@ -3227,7 +3227,7 @@
               ],
               "properties": {
                 "Pair": {
-                  "$ref": "#/definitions/DexAssetPairing"
+                  "$ref": "#/definitions/DexAssetPairing_for_AssetEntry"
                 }
               },
               "additionalProperties": false
@@ -3308,7 +3308,7 @@
           "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
           "type": "string"
         },
-        "DexAssetPairing": {
+        "DexAssetPairing_for_AssetEntry": {
           "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
           "type": "array",
           "items": [
@@ -3342,7 +3342,7 @@
               ],
               "properties": {
                 "Pair": {
-                  "$ref": "#/definitions/DexAssetPairing"
+                  "$ref": "#/definitions/DexAssetPairing_for_AssetEntry"
                 }
               },
               "additionalProperties": false
