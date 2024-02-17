@@ -12,7 +12,7 @@ members = ["scripts", "tests"]
 resolver = "2"
 
 [workspace.package]
-version = "0.20.0"
+version = "0.21.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -61,11 +61,11 @@ cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interc
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { path = "../framework/packages/abstract-interface" }
-abstract-sdk = { version = "0.20.0", path = "../framework/packages/abstract-sdk" }
-abstract-core = { version = "0.20.0", path = "../framework/packages/abstract-core" }
-abstract-app = { version = "0.20.0", path = "../framework/packages/abstract-app" }
-abstract-adapter = { version = "0.20.0", path = "../framework/packages/abstract-adapter" }
-abstract-testing = { version = "0.20.0", path = "../framework/packages/abstract-testing" }
+abstract-sdk = { version = "0.21.0", path = "../framework/packages/abstract-sdk" }
+abstract-core = { version = "0.21.0", path = "../framework/packages/abstract-core" }
+abstract-app = { version = "0.21.0", path = "../framework/packages/abstract-app" }
+abstract-adapter = { version = "0.21.0", path = "../framework/packages/abstract-adapter" }
+abstract-testing = { version = "0.21.0", path = "../framework/packages/abstract-testing" }
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat", features = [
   "interface",
