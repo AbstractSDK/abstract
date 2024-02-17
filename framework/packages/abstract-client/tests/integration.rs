@@ -1,6 +1,6 @@
 use abstract_adapter::mock::{
-    BootMockAdapter, MockExecMsg as BootMockExecMsg, MockInitMsg as BootMockInitMsg,
-    MockQueryMsg as BootMockQueryMsg, TEST_METADATA,
+    MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
+    MockQueryMsg as AdapterMockQueryMsg, TEST_METADATA,
 };
 use abstract_app::{
     abstract_sdk::base::Handler,
@@ -16,6 +16,7 @@ use abstract_client::{
     Publisher,
 };
 use abstract_core::{
+    adapter::AuthorizedAddressesResponse,
     ans_host::QueryMsgFns,
     manager::{
         state::AccountInfo, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
@@ -344,15 +345,15 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
     let publisher_manager = publisher.account().manager()?;
     let publisher_proxy = publisher.account().proxy()?;
 
-    publisher.publish_adapter::<BootMockInitMsg, BootMockAdapter<_>>(BootMockInitMsg {})?;
+    publisher.publish_adapter::<AdapterMockInitMsg, MockAdapterI<_>>(AdapterMockInitMsg {})?;
 
     // Install adapter on sub-account
-    let my_adapter: Application<_, BootMockAdapter<_>> = publisher.account().install_adapter(&[])?;
+    let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
 
     my_adapter
         .call_as(&publisher_manager)
-        .execute(&BootMockExecMsg {}.into(), None)?;
-    let mock_query: String = my_adapter.query(&BootMockQueryMsg {}.into())?;
+        .execute(&AdapterMockExecMsg {}.into(), None)?;
+    let mock_query: String = my_adapter.query(&AdapterMockQueryMsg::GetSomething {}.into())?;
 
     assert_eq!(String::from("mock_query"), mock_query);
 
@@ -376,12 +377,12 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
         .publisher_builder(Namespace::new("tester")?)
         .install_on_sub_account(false)
         .build()?;
-    let my_adapter: Application<_, BootMockAdapter<_>> = publisher.account().install_adapter(&[])?;
+    let my_adapter: Application<_, MockAdapterI<_>> = publisher.account().install_adapter(&[])?;
 
     my_adapter
         .call_as(&publisher_manager)
-        .execute(&BootMockExecMsg {}.into(), None)?;
-    let mock_query: String = my_adapter.query(&BootMockQueryMsg {}.into())?;
+        .execute(&AdapterMockExecMsg {}.into(), None)?;
+    let mock_query: String = my_adapter.query(&AdapterMockQueryMsg::GetSomething {}.into())?;
 
     assert_eq!(String::from("mock_query"), mock_query);
 
@@ -866,7 +867,7 @@ fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
         .build()?;
 
     let adapter = publisher
-        .publish_adapter::<BootMockInitMsg, BootMockAdapter<MockBech32>>(BootMockInitMsg {})?;
+        .publish_adapter::<AdapterMockInitMsg, MockAdapterI<MockBech32>>(AdapterMockInitMsg {})?;
     let module_data: ModuleDataResponse =
         adapter.query(&abstract_core::adapter::QueryMsg::Base(
             abstract_core::adapter::BaseQueryMsg::ModuleData {},
@@ -967,25 +968,25 @@ fn install_adapter_on_account_builder() -> anyhow::Result<()> {
         .build()?;
 
     // Publish adapter
-    let adapter: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+    let adapter: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
     let account = client
         .account_builder()
-        .install_adapter::<BootMockAdapter<MockBech32>>()?
+        .install_adapter::<MockAdapterI<MockBech32>>()?
         .build()?;
     let modules = account.module_infos()?.module_infos;
     let adapter_info = modules
         .iter()
-        .find(|module| module.id == BootMockAdapter::<MockBech32>::module_id())
+        .find(|module| module.id == MockAdapterI::<MockBech32>::module_id())
         .expect("Adapter not found");
 
     assert_eq!(
         *adapter_info,
         ManagerModuleInfo {
-            id: BootMockAdapter::<MockBech32>::module_id().to_owned(),
+            id: MockAdapterI::<MockBech32>::module_id().to_owned(),
             version: cw2::ContractVersion {
-                contract: BootMockAdapter::<MockBech32>::module_id().to_owned(),
-                version: BootMockAdapter::<MockBech32>::module_version().to_owned()
+                contract: MockAdapterI::<MockBech32>::module_id().to_owned(),
+                version: MockAdapterI::<MockBech32>::module_version().to_owned()
             },
             address: adapter.address()?,
         }
@@ -1047,13 +1048,13 @@ fn auto_funds_work() -> anyhow::Result<()> {
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
         .build()?;
-    let _: BootMockAdapter<_> = publisher.publish_adapter(BootMockInitMsg {})?;
+    let _: MockAdapterI<_> = publisher.publish_adapter(AdapterMockInitMsg {})?;
 
     client.version_control().update_module_configuration(
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
         abstract_core::version_control::UpdateModule::Versioned {
-            version: BootMockAdapter::<MockBech32>::module_version().to_owned(),
+            version: MockAdapterI::<MockBech32>::module_version().to_owned(),
             metadata: None,
             monetization: Some(abstract_core::objects::module::Monetization::InstallFee(
                 FixedFee::new(&Coin {
@@ -1069,7 +1070,7 @@ fn auto_funds_work() -> anyhow::Result<()> {
     // User can guard his funds
     account_builder
         .name("bob")
-        .install_adapter::<BootMockAdapter<MockBech32>>()?
+        .install_adapter::<MockAdapterI<MockBech32>>()?
         .auto_fund_assert(|c| c[0].amount < Uint128::new(50));
     let e = account_builder.build().unwrap_err();
     assert!(matches!(e, AbstractClientError::AutoFundsAssertFailed(_)));
@@ -1162,6 +1163,43 @@ fn install_application_with_deps_on_account_builder() -> anyhow::Result<()> {
 }
 
 #[test]
+fn authorize_app_on_adapters() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+    let app_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_WITH_DEP_NAMESPACE)?)
+        .build()?;
+
+    // Publish adapter and app
+    let adapter =
+        publisher.publish_adapter::<_, MockAdapterI<MockBech32>>(AdapterMockInitMsg {})?;
+    app_publisher.publish_app::<MockAppWithDepI<MockBech32>>()?;
+
+    let account = client
+        .account_builder()
+        .install_app_with_dependencies::<MockAppWithDepI<MockBech32>>(&MockInitMsg {}, Empty {})?
+        .build()?;
+
+    // Authorize app on adapter
+    let app: Application<MockBech32, MockAppWithDepI<MockBech32>> = account.application()?;
+    app.authorize_on_adapters(&[abstract_adapter::mock::MOCK_ADAPTER.module_id()])?;
+
+    // Check it authorized
+    let authorized_addrs_resp: AuthorizedAddressesResponse = adapter.query(
+        &abstract_core::adapter::BaseQueryMsg::AuthorizedAddresses {
+            proxy_address: app.account().proxy()?.to_string(),
+        }
+        .into(),
+    )?;
+    assert_eq!(authorized_addrs_resp.addresses, vec![app.address()?]);
+    Ok(())
+}
+
+#[test]
 fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain).build()?;
@@ -1214,5 +1252,26 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
         .build()?;
     let sub_accounts = account.sub_accounts()?;
     assert_eq!(sub_accounts[0].id()?, sub_account.id()?);
+    Ok(())
+}
+
+#[test]
+fn instantiate2_addr() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    publisher.publish_app::<MockAppI<MockBech32>>()?;
+
+    let account_id = AccountId::local(client.next_local_account_id()?);
+    let expected_addr = client.module_instantiate2_address::<MockAppI<MockBech32>>(&account_id)?;
+
+    let application: Application<MockBech32, MockAppI<MockBech32>> =
+        publisher.account().install_app(&MockInitMsg {}, &[])?;
+
+    assert_eq!(application.address()?, expected_addr);
     Ok(())
 }

@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use abstract_adapter_utils::identity::Identify;
 use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference};
 use abstract_sdk::{
@@ -20,7 +18,7 @@ pub type FeeOnInput = bool;
 /// ensures DEX adapters support the expected functionality.
 ///
 /// Implements the usual DEX operations.
-pub trait DexCommand<E: Error = DexError>: Identify {
+pub trait DexCommand: Identify {
     /// Return pool information for given assets pair
     fn pool_reference(
         &self,
@@ -57,7 +55,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
         ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
-    ) -> Result<Vec<CosmosMsg>, E>;
+    ) -> Result<Vec<CosmosMsg>, DexError>;
 
     /// Implement your custom swap the DEX
     fn custom_swap(
@@ -78,7 +76,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
         pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
-    ) -> Result<Vec<CosmosMsg>, E>;
+    ) -> Result<Vec<CosmosMsg>, DexError>;
 
     /// Provide symmetric liquidity where available depending on the DEX
     fn provide_liquidity_symmetric(
@@ -87,7 +85,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
         pool_id: PoolAddress,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
-    ) -> Result<Vec<CosmosMsg>, E>;
+    ) -> Result<Vec<CosmosMsg>, DexError>;
 
     /// Withdraw liquidity from DEX
     fn withdraw_liquidity(
@@ -95,7 +93,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
         deps: Deps,
         pool_id: PoolAddress,
         lp_token: Asset,
-    ) -> Result<Vec<CosmosMsg>, E>;
+    ) -> Result<Vec<CosmosMsg>, DexError>;
 
     /// Simulate a swap in the DEX
     fn simulate_swap(
@@ -104,7 +102,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
         pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
-    ) -> Result<(Return, Spread, Fee, FeeOnInput), E>;
+    ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError>;
 
     /// Fetch data for execute methods
     fn fetch_data(

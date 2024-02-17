@@ -359,7 +359,7 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
     // assert that the address actually changed
     assert_that!(adapter_v2.modules[0].1).is_not_equal_to(Addr::unchecked(adapter1.clone()));
 
-    let adapter = adapter_1::BootMockAdapter1V2::new_test(chain);
+    let adapter = adapter_1::MockAdapterI1V2::new_test(chain);
     use abstract_core::adapter::BaseQueryMsgFns as _;
     let authorized = adapter.authorized_addresses(proxy.addr_str()?)?;
     assert_that!(authorized.addresses).contains(authorizee);

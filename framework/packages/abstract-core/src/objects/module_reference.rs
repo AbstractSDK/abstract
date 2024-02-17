@@ -88,6 +88,19 @@ impl ModuleReference {
             )),
         }
     }
+
+    // Unwraps the module reference and returns code id of the module
+    // Throws an error if the module reference is not an code id
+    pub fn unwrap_code_id(&self) -> AbstractResult<u64> {
+        match self {
+            ModuleReference::AccountBase(code_id)
+            | ModuleReference::App(code_id)
+            | ModuleReference::Standalone(code_id) => Ok(*code_id),
+            _ => Err(AbstractError::Assert(
+                "module reference not account base, app or standalone".to_owned(),
+            )),
+        }
+    }
 }
 
 #[cfg(test)]

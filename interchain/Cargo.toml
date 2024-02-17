@@ -55,16 +55,16 @@ polytone = { package = "abstract-polytone", version = "1.0.5" }
 polytone-note = { package = "abstract-polytone-note", version = "1.0.5" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "1.0.5" }
 
-# TODO; Set tag!
-cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.1" }
-cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.1" }
-cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.1" }
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
+cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
+cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.20.0", path = "../framework/packages/abstract-sdk" }
 abstract-core = { version = "0.20.0", path = "../framework/packages/abstract-core" }
 abstract-app = { version = "0.20.0", path = "../framework/packages/abstract-app" }
+abstract-adapter = { version = "0.20.0", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.20.0", path = "../framework/packages/abstract-testing" }
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat", features = [

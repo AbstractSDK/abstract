@@ -24,6 +24,7 @@ cw-orch-clone-testing = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
 abstract-sdk = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 
 abstract-interface = { workspace = true }
@@ -57,3 +58,4 @@ polytone = { workspace = true }
 abstract-scripts = { path = "../scripts" }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
 lazy_static = "1.4.0"
+abstract-client = { version = "0.20.0", path = "../../framework/packages/abstract-client" }
