@@ -65,10 +65,8 @@ abstract-staking-standard = { version = "0.20.0" }
 [patch.crates-io]
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
-abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
-abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
