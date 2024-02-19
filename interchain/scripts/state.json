@@ -54,19 +54,16 @@
   "juno": {
     "juno-1": {
       "code_ids": {
-        "abstract:account-factory": 4161,
-        "abstract:ans-host": 4164,
-        "abstract:challenge": 4171,
-        "abstract:cw-staking": 4167,
-        "abstract:dca": 4170,
-        "abstract:dex": 4168,
-        "abstract:etf": 4169,
-        "abstract:ibc-client": 4177,
-        "abstract:ibc-host": 4178,
-        "abstract:manager": 4165,
-        "abstract:module-factory": 4162,
-        "abstract:proxy": 4166,
-        "abstract:version-control": 4163
+        "abstract:account-factory": 4211,
+        "abstract:ans-host": 4214,
+        "abstract:cw-staking": 4217,
+        "abstract:dca": 4220,
+        "abstract:dex": 4218,
+        "abstract:etf": 4219,
+        "abstract:manager": 4215,
+        "abstract:module-factory": 4212,
+        "abstract:proxy": 4216,
+        "abstract:version-control": 4213
       },
       "default": {
         "abstract:account-factory": "juno1qtl43hzk7xd9xly9wc4qxnmtjmj0hdtymsnldsl736yh7vnfm3ys7t4a4y",
@@ -81,17 +78,17 @@
     },
     "uni-6": {
       "code_ids": {
-        "abstract:account-factory": 4032,
-        "abstract:ans-host": 4035,
-        "abstract:cw-staking": 4038,
-        "abstract:dex": 4039,
-        "abstract:etf": 4040,
-        "abstract:ibc-client": 4041,
-        "abstract:ibc-host": 4042,
-        "abstract:manager": 4036,
-        "abstract:module-factory": 4033,
-        "abstract:proxy": 4037,
-        "abstract:version-control": 4034
+        "abstract:account-factory": 4183,
+        "abstract:ans-host": 4186,
+        "abstract:challenge": 4193,
+        "abstract:cw-staking": 4189,
+        "abstract:dca": 4192,
+        "abstract:dex": 4190,
+        "abstract:etf": 4191,
+        "abstract:manager": 4187,
+        "abstract:module-factory": 4184,
+        "abstract:proxy": 4188,
+        "abstract:version-control": 4185
       },
       "default": {
         "abstract:account-factory": "juno1czkm9gq96zwwncxusgzruvpuex4wjf4ak7lms6q698938k529q3shmfl90",
