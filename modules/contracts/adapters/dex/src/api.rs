@@ -1,6 +1,6 @@
-// TODO: this should be moved to the public dex package
-// It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
+use crate::DEX_ADAPTER_ID;
 use abstract_core::objects::{module::ModuleId, AnsAsset, AssetEntry, PoolAddress};
+use abstract_dex_standard::msg::GenerateMessagesResponse;
 use abstract_dex_standard::{
     ans_action::DexAnsAction,
     msg::{DexExecuteMsg, DexName, DexQueryMsg, SimulateSwapResponse},
@@ -13,8 +13,6 @@ use abstract_sdk::{
 use cosmwasm_std::{CosmosMsg, Decimal, Deps};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use serde::de::DeserializeOwned;
-
-use crate::DEX_ADAPTER_ID;
 
 use self::{ans::AnsDex, raw::Dex};
 
@@ -185,8 +183,8 @@ pub mod raw {
             max_spread: Option<Decimal>,
             belief_price: Option<Decimal>,
             addr_as_sender: impl Into<String>,
-        ) -> AbstractSdkResult<SimulateSwapResponse> {
-            let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
+        ) -> AbstractSdkResult<GenerateMessagesResponse> {
+            let response: GenerateMessagesResponse = self.query(DexQueryMsg::GenerateMessages {
                 message: DexExecuteMsg::RawAction {
                     dex: self.dex_name(),
                     action: DexRawAction::Swap {
@@ -328,8 +326,8 @@ pub mod ans {
             max_spread: Option<Decimal>,
             belief_price: Option<Decimal>,
             addr_as_sender: impl Into<String>,
-        ) -> AbstractSdkResult<SimulateSwapResponse> {
-            let response: SimulateSwapResponse = self.query(DexQueryMsg::GenerateMessages {
+        ) -> AbstractSdkResult<GenerateMessagesResponse> {
+            let response: GenerateMessagesResponse = self.query(DexQueryMsg::GenerateMessages {
                 message: DexExecuteMsg::AnsAction {
                     dex: self.dex_name(),
                     action: DexAnsAction::Swap {
