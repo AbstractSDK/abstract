@@ -81,7 +81,6 @@ builds = [
 [dependencies]
 cosmwasm-std = { workspace = true }
 schemars = { workspace = true }
-serde = { workspace = true }
 cw20 = { workspace = true, optional = true }
 thiserror = { workspace = true }
 cw-asset = { workspace = true }
