@@ -1,9 +1,9 @@
-use crate::Abstract;
+use crate::{Abstract, AbstractIbc};
 use abstract_core::version_control::QueryMsgFns;
 use abstract_core::PROXY;
 use abstract_core::{
-    account_factory, ans_host, module_factory, objects::module::ModuleInfo, version_control,
-    MANAGER,
+    account_factory, ans_host, ibc_client, ibc_host, module_factory, objects::module::ModuleInfo,
+    version_control, MANAGER,
 };
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
@@ -20,8 +20,6 @@ impl<T: CwEnv> Abstract<T> {
             .module_factory
             .upload_and_migrate_if_needed(&module_factory::MigrateMsg {})?;
 
-        // TODO: Add ibc client here
-
         // then VC and ANS
         let version_control = self
             .version_control
@@ -35,13 +33,17 @@ impl<T: CwEnv> Abstract<T> {
             .account
             .upload_and_register_if_needed(&self.version_control)?;
 
+        // Then ibc
+        let ibc = self.ibc.migrate_if_needed()?;
+
         self.version_control.approve_any_abstract_modules()?;
 
         Ok(account_factory.is_some()
             || module_factory.is_some()
             || version_control.is_some()
             || ans_host.is_some()
-            || account)
+            || account
+            || ibc)
     }
 
     /// Migrate the deployment based on version changes. If the registered contracts have the right version, we don't migrate them
@@ -124,7 +126,9 @@ impl<T: CwEnv> Abstract<T> {
             has_migrated = true
         }
 
-        // TODO ibc client
+        if self.ibc.migrate_if_version_changed()? {
+            has_migrated = true
+        }
 
         self.version_control.approve_any_abstract_modules()?;
 
@@ -144,4 +148,42 @@ fn contract_version<Chain: CwEnv, A: ContractInstance<Chain>>(
             )
             .unwrap(),
     )?)
+}
+
+impl<Chain: CwEnv> AbstractIbc<Chain> {
+    /// Migrate the deployment based on the uploaded and local wasm files. If the remote wasm file is older, upload the contract and migrate to the new version.
+    pub fn migrate_if_needed(&self) -> Result<bool, crate::AbstractInterfaceError> {
+        let client = self
+            .client
+            .upload_and_migrate_if_needed(&ibc_client::MigrateMsg {})?;
+        let host = self
+            .host
+            .upload_and_migrate_if_needed(&ibc_host::MigrateMsg {})?;
+        Ok(client.is_some() || host.is_some())
+    }
+
+    /// Migrate the ibc based on version changes. If the registered contracts have the right version, we don't migrate them
+    pub fn migrate_if_version_changed(&self) -> Result<bool, crate::AbstractInterfaceError> {
+        let mut has_migrated = false;
+
+        if ::ibc_client::contract::CONTRACT_VERSION != contract_version(&self.client)?.version {
+            let migration_result = self
+                .client
+                .upload_and_migrate_if_needed(&ibc_client::MigrateMsg {})?;
+            if migration_result.is_some() {
+                has_migrated = true;
+            }
+        }
+
+        if ::ibc_host::contract::CONTRACT_VERSION != contract_version(&self.host)?.version {
+            let migration_result = self
+                .host
+                .upload_and_migrate_if_needed(&ibc_host::MigrateMsg {})?;
+            if migration_result.is_some() {
+                has_migrated = true;
+            }
+        }
+
+        Ok(has_migrated)
+    }
 }
