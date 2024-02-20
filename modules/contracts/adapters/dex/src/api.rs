@@ -1,4 +1,6 @@
+use crate::DEX_ADAPTER_ID;
 use abstract_core::objects::{module::ModuleId, AnsAsset, AssetEntry, PoolAddress};
+use abstract_dex_standard::msg::GenerateMessagesResponse;
 use abstract_dex_standard::{
     ans_action::DexAnsAction,
     msg::{DexExecuteMsg, DexName, DexQueryMsg, SimulateSwapResponse},
@@ -11,10 +13,6 @@ use abstract_sdk::{
 use cosmwasm_schema::serde::de::DeserializeOwned;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
-
-use crate::msg::GenerateMessagesResponse;
-
-use crate::DEX_ADAPTER_ID;
 
 use self::{ans::AnsDex, raw::Dex};
 

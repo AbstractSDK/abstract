@@ -29,7 +29,7 @@
       "description": "The pool on which the swap was simulated",
       "allOf": [
         {
-          "$ref": "#/definitions/DexAssetPairing"
+          "$ref": "#/definitions/DexAssetPairing_for_AssetEntry"
         }
       ]
     },
@@ -64,7 +64,7 @@
       "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
       "type": "string"
     },
-    "DexAssetPairing": {
+    "DexAssetPairing_for_AssetEntry": {
       "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
       "type": "array",
       "items": [
