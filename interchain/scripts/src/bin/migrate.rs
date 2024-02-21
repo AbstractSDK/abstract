@@ -56,10 +56,6 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             DeployStrategy::Try,
         )?;
 
-        // deployment.ibc.upload()?;
-        // deployment.ibc.instantiate(&deployment, &chain.sender())?;
-        // deployment.ibc.register(&deployment.version_control)?;
-
         deployment.version_control.approve_any_abstract_modules()?;
     }
 

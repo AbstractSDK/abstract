@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
+
+### Changed
+
+### Removed
+
+### Fixed
+
+## [0.20.0] - 2024-02-20
+
+### Added
   
 - Added a `.execute` method on the AuthZ API to execute `CosmosMsg` types on behalf of a granter.
 - Add IBC helpers to account client.

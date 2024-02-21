@@ -1,9 +1,14 @@
-use abstract_core::{ibc_host::ExecuteMsg, IBC_HOST};
+use abstract_core::{
+    ibc_host::{ExecuteMsg, MigrateMsg},
+    objects::module_version::{assert_cw_contract_upgrade, migrate_module_data},
+    IBC_HOST,
+};
 use abstract_macros::abstract_response;
 use abstract_sdk::core::ibc_host::{InstantiateMsg, QueryMsg};
 use cosmwasm_std::{
     Binary, Deps, DepsMut, Env, IbcReceiveResponse, MessageInfo, Reply, Response, StdError,
 };
+use cw_semver::Version;
 
 use crate::{
     endpoints::{
@@ -50,4 +55,14 @@ pub fn reply(deps: DepsMut, env: Env, reply_msg: Reply) -> HostResult {
     } else {
         Err(HostError::Std(StdError::generic_err("Not implemented")))
     }
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> HostResult {
+    let to_version: Version = CONTRACT_VERSION.parse().unwrap();
+
+    assert_cw_contract_upgrade(deps.storage, IBC_HOST, to_version)?;
+    cw2::set_contract_version(deps.storage, IBC_HOST, CONTRACT_VERSION)?;
+    migrate_module_data(deps.storage, IBC_HOST, CONTRACT_VERSION, None::<String>)?;
+    Ok(HostResponse::action("migrate"))
 }

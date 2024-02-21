@@ -16,7 +16,6 @@ impl Identify for Astrovault {
     }
 }
 #[cfg(feature = "full_integration")]
-#[cfg(feature = "full_integration")]
 use ::{
     abstract_dex_standard::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
@@ -753,7 +752,7 @@ mod tests {
 
     use super::Astrovault;
 
-    fn create_setup(pool_type: PoolType) -> DexCommandTester {
+    fn create_setup() -> DexCommandTester {
         DexCommandTester::new(
             ARCHWAY_1.into(),
             Astrovault {
@@ -801,7 +800,7 @@ mod tests {
     #[test]
     fn swap() {
         let amount = 100_000u128;
-        let msgs = create_setup(PoolType::ConstantProduct)
+        let msgs = create_setup()
             .test_swap(
                 PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 Asset::new(AssetInfo::native(USDC), amount),
@@ -835,7 +834,7 @@ mod tests {
         .unwrap();
 
         // Stable
-        let msgs = create_setup(PoolType::Stable)
+        let msgs = create_setup()
             .test_swap(
                 PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
                 Asset::new(AssetInfo::native(USDC), amount),
@@ -866,7 +865,7 @@ mod tests {
     fn provide_liquidity() {
         let amount_usdc = 100_000u128;
         let amount_aarch = 50_000u128;
-        let msgs = create_setup(PoolType::ConstantProduct)
+        let msgs = create_setup()
             .test_provide_liquidity(
                 PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 vec![
@@ -908,7 +907,7 @@ mod tests {
         .unwrap();
 
         // Stable
-        let msgs = create_setup(PoolType::Stable)
+        let msgs = create_setup()
             .test_provide_liquidity(
                 PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
                 vec![
@@ -940,7 +939,7 @@ mod tests {
     fn provide_liquidity_one_side() {
         let amount_usdc = 100_000u128;
         let amount_aarch = 0u128;
-        let msgs = create_setup(PoolType::ConstantProduct)
+        let msgs = create_setup()
             .test_provide_liquidity(
                 PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 vec![
@@ -977,7 +976,7 @@ mod tests {
         .unwrap();
 
         // stables
-        let msgs = create_setup(PoolType::Stable)
+        let msgs = create_setup()
             .test_provide_liquidity(
                 PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
                 vec![
@@ -1015,7 +1014,7 @@ mod tests {
     #[test]
     fn provide_liquidity_symmetric() {
         let amount_usdc = 100_000u128;
-        let msgs = create_setup(PoolType::ConstantProduct)
+        let msgs = create_setup()
             .test_provide_liquidity_symmetric(
                 PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 Asset::new(AssetInfo::native(USDC), amount_usdc),
@@ -1058,7 +1057,7 @@ mod tests {
 
         // Stable
 
-        let msgs = create_setup(PoolType::Stable)
+        let msgs = create_setup()
             .test_provide_liquidity_symmetric(
                 PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
                 Asset::new(AssetInfo::Cw20(Addr::unchecked(CW20_ARCH)), amount_usdc),
@@ -1094,7 +1093,7 @@ mod tests {
     #[test]
     fn withdraw_liquidity() {
         let amount_lp = 100_000u128;
-        let msgs = create_setup(PoolType::ConstantProduct)
+        let msgs = create_setup()
             .test_withdraw_liquidity(
                 PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 Asset::new(AssetInfo::cw20(Addr::unchecked(LP_TOKEN)), amount_lp),
@@ -1125,7 +1124,7 @@ mod tests {
 
         // Stable
 
-        let msgs = create_setup(PoolType::Stable)
+        let msgs = create_setup()
             .test_withdraw_liquidity(
                 PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
                 Asset::new(AssetInfo::cw20(Addr::unchecked(LP_TOKEN)), amount_lp),
@@ -1165,7 +1164,7 @@ mod tests {
     fn simulate_swap() {
         let amount = 100_000u128;
         // We simply verify it's executed, no check on what is returned
-        create_setup(PoolType::ConstantProduct)
+        create_setup()
             .test_simulate_swap(
                 PoolAddress::contract(Addr::unchecked(STANDARD_POOL_CONTRACT)),
                 Asset::new(AssetInfo::native(USDC), amount),

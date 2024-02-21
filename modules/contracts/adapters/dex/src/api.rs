@@ -10,9 +10,9 @@ use abstract_sdk::{
     features::{AccountIdentification, Dependencies, ModuleIdentification},
     AbstractSdkResult, AdapterInterface,
 };
+use cosmwasm_schema::serde::de::DeserializeOwned;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
-use serde::de::DeserializeOwned;
 
 use self::{ans::AnsDex, raw::Dex};
 
@@ -203,6 +203,8 @@ pub mod raw {
 }
 
 pub mod ans {
+    use cosmwasm_schema::serde::de::DeserializeOwned;
+
     use self::raw::Dex;
 
     use super::*;
