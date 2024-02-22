@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- Renamed `account_id` to `expected_account_id` for `abstract_client::AccountBuilder` for clarity
+
 ### Removed
 
 ### Fixed

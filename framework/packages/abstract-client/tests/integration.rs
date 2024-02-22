@@ -1206,7 +1206,11 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
 
     // Check it fails on wrong account_id
     let next_id = client.next_local_account_id()?;
-    let err = client.account_builder().account_id(10).build().unwrap_err();
+    let err = client
+        .account_builder()
+        .expected_account_id(10)
+        .build()
+        .unwrap_err();
     let AbstractClientError::Interface(abstract_interface::AbstractInterfaceError::Orch(err)) = err
     else {
         panic!("Expected cw-orch error")
@@ -1221,14 +1225,17 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     );
 
     // Can create if right id
-    let account = client.account_builder().account_id(next_id).build()?;
+    let account = client
+        .account_builder()
+        .expected_account_id(next_id)
+        .build()?;
 
     // Check it fails on wrong account_id for sub-accounts
     let next_id = client.next_local_account_id()?;
     let err = client
         .account_builder()
         .sub_account(&account)
-        .account_id(0)
+        .expected_account_id(0)
         .build()
         .unwrap_err();
     let AbstractClientError::Interface(abstract_interface::AbstractInterfaceError::Orch(err)) = err
@@ -1248,7 +1255,7 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     let sub_account = client
         .account_builder()
         .sub_account(&account)
-        .account_id(next_id)
+        .expected_account_id(next_id)
         .build()?;
     let sub_accounts = account.sub_accounts()?;
     assert_eq!(sub_accounts[0].id()?, sub_account.id()?);
