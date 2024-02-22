@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- `state.json` now included in binary in release mode, allowing using binaries on a different environment than it's been built.
+
 ### Changed
 
 ### Removed
