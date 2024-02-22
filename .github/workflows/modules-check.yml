@@ -7,7 +7,7 @@ on:
     paths:
       - "modules/**"
   pull_request:
-    paths: 
+    paths:
       - "modules/**"
 
 jobs:
@@ -94,7 +94,10 @@ jobs:
         uses: taiki-e/install-action@cargo-hack
       - name: cargo hack
         working-directory: ./modules
-        run: cargo hack check --feature-powerset --mutually-exclusive-features wynd,osmosis,astroport,bow,terraswap,astrovault --lib --tests
+        run: cargo hack check --feature-powerset \
+          --mutually-exclusive-features osmosis-test,interface,cw-orch \
+          --group-features wynd,osmosis,astroport,bow,terraswap,astrovault \
+          --lib --tests
   msrv:
     runs-on: ubuntu-latest
     # we use a matrix here just because env can't be used in job names
