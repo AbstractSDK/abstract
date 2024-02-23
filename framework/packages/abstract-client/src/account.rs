@@ -235,7 +235,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
     /// Assign expected local account_id on creation.
     /// The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
-    pub fn account_id(&mut self, local_account_id: u32) -> &mut Self {
+    pub fn expected_account_id(&mut self, local_account_id: u32) -> &mut Self {
         self.expected_local_account_id = Some(local_account_id);
         self
     }
