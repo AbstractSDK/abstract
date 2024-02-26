@@ -228,7 +228,7 @@ jobs:
             git push origin "$CIRCLE_BRANCH-build" || true
       - discord/status:
           fail_only: true
-          failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
+          failure_message: "**${CIRCLE_USERNAME}**'s modules WASM build failed. Please check why! 😭"
           webhook: "${DISCORD_STATUS_WEBHOOK}"
 
   merge-build-branch:
