@@ -84,7 +84,7 @@ workflows:
 jobs:
   build-branch:
     docker:
-      - image: cimg/base
+      - image: cimg/base:2024.01
     resource_class: small
     steps:
       - setup_remote_docker
@@ -229,7 +229,7 @@ jobs:
 
   merge-build-branch:
     docker:
-      - image: cimg/base
+      - image: cimg/base:2024.01
     resource_class: small
     steps:
       - setup_remote_docker
@@ -387,7 +387,7 @@ jobs:
   pass:
     docker:
       # Primary container image where all steps run
-      - image: cimg/base:2022.05
+      - image: cimg/base:2024.01
     steps:
       - run:
           name: Pass
