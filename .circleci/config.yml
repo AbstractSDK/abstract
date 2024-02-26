@@ -96,8 +96,8 @@ jobs:
             git config --global user.email 'circleci@example.com'
             # Pull latest changes
             git pull origin $CIRCLE_BRANCH
-            git checkout -b "{$CIRCLE_BRANCH}-build"
-            git push origin "{$CIRCLE_BRANCH}-build"
+            git checkout -b "$CIRCLE_BRANCH-build"
+            git push origin "$CIRCLE_BRANCH-build"
 
   build-framework:
     docker:
@@ -112,9 +112,11 @@ jobs:
           command: |
             while true; do
               sleep 5
-              LATEST_COMMIT=$(git ls-remote $CIRCLE_REPOSITORY_URL | grep $CIRCLE_BRANCH | cut -f 1)
+              LATEST_COMMIT=$(git ls-remote $CIRCLE_REPOSITORY_URL | grep "$CIRCLE_BRANCH$" | cut -f 1)
               if [ "$LATEST_COMMIT" != "$CIRCLE_SHA1" ]; then
                 echo "more recent commit to branch, exiting"
+                # Remove temporary branch
+                git push origin --delete "$CIRCLE_BRANCH-build" || true
                 curl -X POST "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN"
               fi
             done
@@ -155,14 +157,14 @@ jobs:
             git config --global user.name 'CircleCI'
             git config --global user.email 'circleci@example.com'
             # Pull latest changes
-            git pull origin "{$CIRCLE_BRANCH}-build"
-            git checkout "{$CIRCLE_BRANCH}-build"
+            git pull origin "$CIRCLE_BRANCH-build"
+            git checkout "$CIRCLE_BRANCH-build"
             # Check for wasm changes
             git add framework/artifacts --force
             # Check for schema changes
             git add schema --force
             git commit -m 'Update framework WASM & Schemas [skip ci]' || true
-            git push origin "{$CIRCLE_BRANCH}-build" || true
+            git push origin "$CIRCLE_BRANCH-build" || true
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s framework WASM build failed. Please check why! 😭"
@@ -181,9 +183,11 @@ jobs:
           command: |
             while true; do
               sleep 5
-              LATEST_COMMIT=$(git ls-remote $CIRCLE_REPOSITORY_URL | grep $CIRCLE_BRANCH | cut -f 1)
+              LATEST_COMMIT=$(git ls-remote $CIRCLE_REPOSITORY_URL | grep "$CIRCLE_BRANCH$" | cut -f 1)
               if [ "$LATEST_COMMIT" != "$CIRCLE_SHA1" ]; then
                 echo "more recent commit to branch, exiting"
+                # Remove temporary branch
+                git push origin --delete "$CIRCLE_BRANCH-build" || true
                 curl -X POST "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN"
               fi
             done
@@ -216,12 +220,12 @@ jobs:
             git config --global user.name 'CircleCI'
             git config --global user.email 'circleci@example.com'
             # Pull latest changes
-            git pull origin "{$CIRCLE_BRANCH}-build"
+            git pull origin "$CIRCLE_BRANCH-build"
             # Check for wasm changes
             git add modules/artifacts --force
             # Check for schema changes
             git commit -m 'Update modules WASM [skip ci]' || true
-            git push origin "{$CIRCLE_BRANCH}-build"" || true
+            git push origin "$CIRCLE_BRANCH-build"" || true
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
@@ -241,12 +245,12 @@ jobs:
             git config --global user.email 'circleci@example.com'
             # Pull latest changes
             git pull origin $CIRCLE_BRANCH
-            git pull origin "{$CIRCLE_BRANCH}-build"
+            git pull origin "$CIRCLE_BRANCH-build"
             # Merge artifacts to a branch
-            git merge "{$CIRCLE_BRANCH}-build" --squash
+            git merge "$CIRCLE_BRANCH-build" --squash
+            git push origin "$CIRCLE_BRANCH-build"
             # Delete branch
-            git push origin "{$CIRCLE_BRANCH}-build"
-            git branch -D "{$CIRCLE_BRANCH}-build"
+            git push origin --delete "$CIRCLE_BRANCH-build"
 
   tests:
     docker:
