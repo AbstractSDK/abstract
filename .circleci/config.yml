@@ -165,6 +165,10 @@ jobs:
             git add schema --force
             git commit -m 'Update framework WASM & Schemas [skip ci]' || true
             git push origin "$CIRCLE_BRANCH-build" || true
+      - run:
+          name: Remove temporary branch if it failed during build framework
+          when: on_fail
+          command: git push origin --delete "$CIRCLE_BRANCH-build" || true
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s framework WASM build failed. Please check why! 😭"
@@ -226,6 +230,10 @@ jobs:
             # Check for schema changes
             git commit -m 'Update modules WASM [skip ci]' || true
             git push origin "$CIRCLE_BRANCH-build" || true
+      - run:
+          name: Remove temporary branch if it failed during building modules
+          when: on_fail
+          command: git push origin --delete "$CIRCLE_BRANCH-build" || true
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s modules WASM build failed. Please check why! 😭"
@@ -245,10 +253,10 @@ jobs:
             git config --global user.email 'circleci@example.com'
             # Pull latest changes
             git pull origin $CIRCLE_BRANCH
-            git pull origin "$CIRCLE_BRANCH-build"
+            git fetch origin "$CIRCLE_BRANCH-build"
             # Merge artifacts to a branch
-            git merge "$CIRCLE_BRANCH-build" --squash
-            git push origin "$CIRCLE_BRANCH-build"
+            git merge "$CIRCLE_BRANCH-build" --squash -m "Update WASM & Schemas [skip ci]"
+            git push origin $CIRCLE_BRANCH
             # Delete branch
             git push origin --delete "$CIRCLE_BRANCH-build"
 
