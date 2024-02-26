@@ -225,7 +225,7 @@ jobs:
             git add modules/artifacts --force
             # Check for schema changes
             git commit -m 'Update modules WASM [skip ci]' || true
-            git push origin "$CIRCLE_BRANCH-build"" || true
+            git push origin "$CIRCLE_BRANCH-build" || true
       - discord/status:
           fail_only: true
           failure_message: "**${CIRCLE_USERNAME}**'s WASM build failed. Please check why! 😭"
