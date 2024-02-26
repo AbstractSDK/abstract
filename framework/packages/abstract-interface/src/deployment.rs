@@ -16,7 +16,7 @@ use rust_embed::RustEmbed;
 #[derive(RustEmbed)]
 // Can't use symlinks in debug mode
 // https://github.com/pyrossh/rust-embed/pull/234
-#[folder = "../../../interchain/"]
+#[folder = "./"]
 #[include = "state.json"]
 struct State;
 

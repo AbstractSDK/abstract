@@ -31,7 +31,10 @@ speculoos = { workspace = true }
 polytone = { workspace = true }
 
 # Embed state.json in binary in release mode
-rust-embed = { version = "8.2.0", features = ["include-exclude"] }
+rust-embed = { version = "8.2.0", features = [
+    "include-exclude",
+    # TODO: remove git-dep fixed symlinks, should be availible in next version
+], git = "https://github.com/pyrossh/rust-embed.git", rev = "02469a4d006304cd22614be39b7d51576cba1366" }
 
 # Keep these here
 module-factory = { package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false, version = "0.21.0" }
