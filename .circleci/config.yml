@@ -255,9 +255,10 @@ jobs:
             git pull origin $CIRCLE_BRANCH
             git fetch origin "$CIRCLE_BRANCH-build"
             # Merge artifacts to a branch
-            git merge "origin/$CIRCLE_BRANCH-build" --squash -m "Update WASM & Schemas [skip ci]"
+            git merge "origin/$CIRCLE_BRANCH-build" --squash
+            git commit -m "Update WASM & Schemas [skip ci]"
             git push origin $CIRCLE_BRANCH
-            # Delete branch
+            # Delete temporary branch
             git push origin --delete "$CIRCLE_BRANCH-build"
 
   tests:
