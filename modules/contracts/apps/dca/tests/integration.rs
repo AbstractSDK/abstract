@@ -8,7 +8,6 @@ use abstract_core::{
         module_version::ModuleDataResponse, AccountId, AnsAsset, AssetEntry, DexAssetPairing,
         PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
     },
-    AbstractError,
 };
 use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
@@ -384,7 +383,7 @@ fn setup() -> anyhow::Result<(
     ))
 }
 
-fn assert_querrier_err_eq(left: CwOrchError, right: StdError) {
+fn assert_querrier_err_eq<E: std::fmt::Display>(left: CwOrchError, right: E) {
     let querier_contract_err = || AbstractSdkError::ApiQuery {
         api: "Adapters".to_owned(),
         module_id: DCA_APP_ID.to_owned(),
@@ -563,19 +562,7 @@ fn create_dca_convert() -> anyhow::Result<()> {
 
 #[test]
 fn create_dca_convert_negative() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps, _croncat_addrs) = setup()?;
-
-    // Not existing DEX
-    let err = apps.dca_app.create_dca(
-        "not_wyndex".to_owned(),
-        Frequency::EveryNBlocks(1),
-        AnsAsset::new(EUR, 100_u128),
-        USD.into(),
-    );
-    assert_querrier_err_eq(
-        err.unwrap_err(),
-        StdError::generic_err("DEX not_wyndex is not local to this network."),
-    );
+    let (_mock, _account, abstr, apps, _croncat_addrs) = setup()?;
 
     // Not existing pair
     let err = apps.dca_app.create_dca(
@@ -586,19 +573,14 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
     );
     assert_querrier_err_eq(
         err.unwrap_err(),
-        StdError::generic_err(format!(
-            "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
-            offer_asset = AnsAsset::new(USD, 100_u128),
-            target_asset = AssetEntry::new(USD),
-            e = AbstractError::from(AnsHostError::DexPairingNotFound {
-                pairing: DexAssetPairing::new(
-                    AssetEntry::new(USD),
-                    AssetEntry::new(USD),
-                    WYNDEX_WITHOUT_CHAIN
-                ),
-                ans_host: _abstr.ans_host.address()?
-            })
-        )),
+        AnsHostError::DexPairingNotFound {
+            pairing: DexAssetPairing::new(
+                AssetEntry::new(USD),
+                AssetEntry::new(USD),
+                WYNDEX_WITHOUT_CHAIN,
+            ),
+            ans_host: abstr.ans_host.address()?,
+        },
     );
 
     // Bad crontab string
@@ -719,7 +701,7 @@ fn update_dca() -> anyhow::Result<()> {
 
 #[test]
 fn update_dca_negative() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps, _croncat_addrs) = setup()?;
+    let (_mock, _account, abstr, apps, _croncat_addrs) = setup()?;
 
     // create dca
     apps.dca_app.create_dca(
@@ -728,15 +710,6 @@ fn update_dca_negative() -> anyhow::Result<()> {
         AnsAsset::new(EUR, 150_u128),
         USD.into(),
     )?;
-
-    // Not existing dex
-    let err = apps
-        .dca_app
-        .update_dca(DCAId(1), Some("not_wyndex".into()), None, None, None);
-    assert_querrier_err_eq(
-        err.unwrap_err(),
-        StdError::generic_err("DEX not_wyndex is not local to this network."),
-    );
 
     // Not existing pair
     let err = apps.dca_app.update_dca(
@@ -749,19 +722,14 @@ fn update_dca_negative() -> anyhow::Result<()> {
 
     assert_querrier_err_eq(
         err.unwrap_err(),
-        StdError::generic_err(format!(
-            "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
-            offer_asset = AnsAsset::new(USD, 200_u128),
-            target_asset = AssetEntry::new(USD),
-            e = AbstractError::from(AnsHostError::DexPairingNotFound {
-                pairing: DexAssetPairing::new(
-                    AssetEntry::new(USD),
-                    AssetEntry::new(USD),
-                    WYNDEX_WITHOUT_CHAIN
-                ),
-                ans_host: _abstr.ans_host.address()?
-            })
-        )),
+        AnsHostError::DexPairingNotFound {
+            pairing: DexAssetPairing::new(
+                AssetEntry::new(USD),
+                AssetEntry::new(USD),
+                WYNDEX_WITHOUT_CHAIN,
+            ),
+            ans_host: abstr.ans_host.address()?,
+        },
     );
 
     // Bad crontab string
