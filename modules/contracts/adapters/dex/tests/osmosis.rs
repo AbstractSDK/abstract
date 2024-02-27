@@ -325,6 +325,51 @@ fn provide_liquidity_two_sided() -> AnyResult<()> {
 }
 
 #[test]
+fn provide_liquidity_one_sided() -> AnyResult<()> {
+    // We need to deploy a Testube pool
+    let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
+
+    let proxy_addr = os.proxy.address()?;
+
+    let provide_value = 1_000_000_000u128;
+
+    // Before providing, we need to have no assets in the proxy
+    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    assert!(balances.is_empty());
+    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uatom"))?;
+    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uosmo"))?;
+
+    // provide to the pool
+    provide(
+        &dex_adapter,
+        ("atom", provide_value),
+        ("osmo", 0),
+        OSMOSIS.into(),
+        &os,
+    )?;
+
+    // provide to the pool reversed
+    provide(
+        &dex_adapter,
+        // reversed denoms
+        ("osmo", provide_value),
+        ("atom", 0),
+        OSMOSIS.into(),
+        &os,
+    )?;
+
+    // After providing, we need to get the liquidity token
+    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    let lp_balance = balances
+        .iter()
+        .find(|c| c.denom == get_pool_token(pool_id))
+        .unwrap();
+    assert!(lp_balance.amount.u128() > 9_000_000_000_000_000_000);
+
+    Ok(())
+}
+
+#[test]
 fn provide_liquidity_symmetric() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
