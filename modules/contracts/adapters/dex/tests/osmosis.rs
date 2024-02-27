@@ -10,9 +10,7 @@ use abstract_core::{
     },
 };
 use abstract_dex_adapter::{
-    contract::CONTRACT_VERSION,
-    msg::{DexInstantiateMsg, ExecuteMsg, InstantiateMsg, QueryMsg},
-    DEX_ADAPTER_ID,
+    contract::CONTRACT_VERSION, interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID,
 };
 use abstract_dex_standard::ans_action::DexAnsAction;
 use abstract_dex_standard::msg::DexExecuteMsg;
@@ -23,7 +21,7 @@ use abstract_interface::{
 use abstract_osmosis_adapter::OSMOSIS;
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins, Decimal, Uint128};
-use cw_orch::{interface, osmosis_test_tube::OsmosisTestTube, prelude::*};
+use cw_orch::{osmosis_test_tube::OsmosisTestTube, prelude::*};
 
 pub fn create_default_account<Chain: CwEnv>(
     factory: &AccountFactory<Chain>,
@@ -34,108 +32,79 @@ pub fn create_default_account<Chain: CwEnv>(
     Ok(os)
 }
 
-#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
-pub struct OsmosisDexAdapter<Chain>;
+/// Provide liquidity using Abstract's OS (registered in daemon_state).
+pub fn provide<Chain: CwEnv>(
+    dex_adapter: &DexAdapter<Chain>,
+    asset1: (&str, u128),
+    asset2: (&str, u128),
+    dex: String,
+    os: &AbstractAccount<Chain>,
+) -> Result<(), AbstractInterfaceError> {
+    let asset_entry1 = AssetEntry::new(asset1.0);
+    let asset_entry2 = AssetEntry::new(asset2.0);
 
-// Implement deployer trait
-impl<Chain: CwEnv> AdapterDeployer<Chain, DexInstantiateMsg> for OsmosisDexAdapter<Chain> {}
-
-impl<Chain: CwEnv> Uploadable for OsmosisDexAdapter<Chain> {
-    fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
-        Box::new(ContractWrapper::new_with_empty(
-            abstract_dex_adapter::contract::execute,
-            abstract_dex_adapter::contract::instantiate,
-            abstract_dex_adapter::contract::query,
-        ))
-    }
-    fn wasm(&self) -> WasmPath {
-        artifacts_dir_from_workspace!()
-            .find_wasm_path("abstract_dex_adapter-osmosis")
-            .unwrap()
-    }
+    let provide_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+        proxy_address: Some(os.proxy.addr_str()?),
+        request: DexExecuteMsg::AnsAction {
+            dex,
+            action: DexAnsAction::ProvideLiquidity {
+                assets: vec![
+                    AnsAsset::new(asset_entry1, asset1.1),
+                    AnsAsset::new(asset_entry2, asset2.1),
+                ],
+                max_spread: Some(Decimal::percent(30)),
+            },
+        },
+    });
+    dex_adapter.execute(&provide_msg, None)?;
+    Ok(())
 }
 
-impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
-    /// Swap using Abstract's OS (registered in daemon_state).
-    pub fn swap(
-        &self,
-        offer_asset: (&str, u128),
-        ask_asset: &str,
-        dex: String,
-        account: &AbstractAccount<Chain>,
-    ) -> Result<(), AbstractInterfaceError> {
-        let asset = AssetEntry::new(offer_asset.0);
-        let ask_asset = AssetEntry::new(ask_asset);
+/// Provide symmetric liquidity using Abstract's OS (registered in daemon_state).
+pub fn provide_symmetric<Chain: CwEnv>(
+    dex_adapter: &DexAdapter<Chain>,
+    asset: (&str, u128),
+    paired_assets: &[&str],
+    dex: String,
+    os: &AbstractAccount<Chain>,
+) -> Result<(), AbstractInterfaceError> {
+    let asset_entry = AssetEntry::new(asset.0);
+    let paired_assets = paired_assets.iter().map(|&a| AssetEntry::new(a)).collect();
 
-        let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-            proxy_address: None,
-            request: DexExecuteMsg::AnsAction {
-                dex,
-                action: DexAnsAction::Swap {
-                    offer_asset: AnsAsset::new(asset, offer_asset.1),
-                    ask_asset,
-                    max_spread: Some(Decimal::percent(30)),
-                    belief_price: None,
-                },
+    let provide_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+        proxy_address: Some(os.proxy.addr_str()?),
+        request: DexExecuteMsg::AnsAction {
+            dex,
+            action: DexAnsAction::ProvideLiquiditySymmetric {
+                offer_asset: AnsAsset::new(asset_entry, asset.1),
+                paired_assets,
             },
-        });
-        account
-            .manager
-            .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
-        Ok(())
-    }
-    /// Provide liquidity using Abstract's OS (registered in daemon_state).
-    pub fn provide(
-        &self,
-        asset1: (&str, u128),
-        asset2: (&str, u128),
-        dex: String,
-        account: &AbstractAccount<Chain>,
-    ) -> Result<(), AbstractInterfaceError> {
-        let asset_entry1 = AssetEntry::new(asset1.0);
-        let asset_entry2 = AssetEntry::new(asset2.0);
+        },
+    });
+    dex_adapter.execute(&provide_msg, None)?;
+    Ok(())
+}
 
-        let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-            proxy_address: None,
-            request: DexExecuteMsg::AnsAction {
-                dex,
-                action: DexAnsAction::ProvideLiquidity {
-                    assets: vec![
-                        AnsAsset::new(asset_entry1, asset1.1),
-                        AnsAsset::new(asset_entry2, asset2.1),
-                    ],
-                    max_spread: Some(Decimal::percent(30)),
-                },
-            },
-        });
-        account
-            .manager
-            .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
-        Ok(())
-    }
+/// Withdraw liquidity using Abstract's OS (registered in daemon_state).
+pub fn withdraw<Chain: CwEnv>(
+    dex_adapter: &DexAdapter<Chain>,
+    lp_token: &str,
+    amount: impl Into<Uint128>,
+    dex: String,
+    os: &AbstractAccount<Chain>,
+) -> Result<(), AbstractInterfaceError> {
+    let lp_token = AnsAsset::new(lp_token, amount.into());
 
-    /// Withdraw liquidity using Abstract's OS (registered in daemon_state).
-    pub fn withdraw(
-        &self,
-        lp_token: &str,
-        amount: impl Into<Uint128>,
-        dex: String,
-        account: &AbstractAccount<Chain>,
-    ) -> Result<(), AbstractInterfaceError> {
-        let lp_token = AnsAsset::new(lp_token, amount.into());
+    let withdraw_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+        proxy_address: Some(os.proxy.addr_str()?),
+        request: DexExecuteMsg::AnsAction {
+            dex,
+            action: DexAnsAction::WithdrawLiquidity { lp_token },
+        },
+    });
 
-        let swap_msg = abstract_dex_adapter::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-            proxy_address: None,
-            request: DexExecuteMsg::AnsAction {
-                dex,
-                action: DexAnsAction::WithdrawLiquidity { lp_token },
-            },
-        });
-        account
-            .manager
-            .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
-        Ok(())
-    }
+    dex_adapter.execute(&withdraw_msg, None)?;
+    Ok(())
 }
 
 fn get_pool_token(id: u64) -> String {
@@ -145,7 +114,7 @@ fn get_pool_token(id: u64) -> String {
 #[allow(clippy::type_complexity)]
 fn setup_mock() -> anyhow::Result<(
     OsmosisTestTube,
-    OsmosisDexAdapter<OsmosisTestTube>,
+    DexAdapter<OsmosisTestTube>,
     AbstractAccount<OsmosisTestTube>,
     Abstract<OsmosisTestTube>,
     u64,
@@ -161,7 +130,7 @@ fn setup_mock() -> anyhow::Result<(
     let deployment = Abstract::deploy_on(chain.clone(), chain.sender().to_string())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
-    let dex_adapter = OsmosisDexAdapter::new(DEX_ADAPTER_ID, chain.clone());
+    let dex_adapter = DexAdapter::new(DEX_ADAPTER_ID, chain.clone());
 
     dex_adapter.deploy(
         CONTRACT_VERSION.parse()?,
@@ -234,7 +203,7 @@ fn swap() -> AnyResult<()> {
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert_eq!(balances, coins(swap_value, "uatom"));
     // swap 100_000 uatom to uosmo
-    dex_adapter.swap(("atom", swap_value), "osmo", OSMOSIS.into(), &os)?;
+    dex_adapter.ans_swap(("atom", swap_value), "osmo", OSMOSIS.into(), &os)?;
 
     // Assert balances
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
@@ -297,7 +266,7 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert_eq!(balances, coins(swap_value, "uatom"));
     // swap 100_000 uatom to uosmo
-    dex_adapter.swap(("atom2", swap_value), "osmo2", OSMOSIS.into(), &os)?;
+    dex_adapter.ans_swap(("atom2", swap_value), "osmo2", OSMOSIS.into(), &os)?;
 
     // Assert balances
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
@@ -309,7 +278,7 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
 }
 
 #[test]
-fn provide() -> AnyResult<()> {
+fn provide_liquidity_two_sided() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
 
@@ -320,30 +289,83 @@ fn provide() -> AnyResult<()> {
     // Before providing, we need to have no assets in the proxy
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert!(balances.is_empty());
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uatom"))?;
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uosmo"))?;
+    chain.bank_send(proxy_addr.to_string(), coins(provide_value * 2, "uatom"))?;
+    chain.bank_send(proxy_addr.to_string(), coins(provide_value * 2, "uosmo"))?;
 
     // provide to the pool
-    dex_adapter.provide(
+    provide(
+        &dex_adapter,
         ("atom", provide_value),
         ("osmo", provide_value),
         OSMOSIS.into(),
         &os,
     )?;
 
+    // provide to the pool reversed
+    provide(
+        &dex_adapter,
+        // reversed denoms
+        ("osmo", provide_value),
+        ("atom", provide_value),
+        OSMOSIS.into(),
+        &os,
+    )?;
+
     // After providing, we need to get the liquidity token
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    println!("{:?}", balances);
     assert_eq!(
         balances,
-        coins(10_000_000_000_000_000_000, get_pool_token(pool_id))
+        coins(10_000_000_000_000_000_000 * 2, get_pool_token(pool_id))
     );
 
     Ok(())
 }
 
 #[test]
-fn withdraw() -> AnyResult<()> {
+fn provide_liquidity_symmetric() -> AnyResult<()> {
+    // We need to deploy a Testube pool
+    let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
+
+    let proxy_addr = os.proxy.address()?;
+
+    let provide_value = 1_000_000_000u128;
+
+    // Before providing, we need to have no assets in the proxy
+    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    assert!(balances.is_empty());
+    chain.bank_send(proxy_addr.to_string(), coins(provide_value * 2, "uatom"))?;
+    chain.bank_send(proxy_addr.to_string(), coins(provide_value * 2, "uosmo"))?;
+
+    // provide to the pool
+    provide_symmetric(
+        &dex_adapter,
+        ("atom", provide_value),
+        &["osmo"],
+        OSMOSIS.into(),
+        &os,
+    )?;
+
+    // provide to the pool reversed
+    provide_symmetric(
+        &dex_adapter,
+        ("osmo", provide_value),
+        &["atom"],
+        OSMOSIS.into(),
+        &os,
+    )?;
+
+    // After providing, we need to get the liquidity token
+    let balances = chain.query_all_balances(proxy_addr.as_ref())?;
+    assert_eq!(
+        balances,
+        coins(10_000_000_000_000_000_000 * 2, get_pool_token(pool_id))
+    );
+
+    Ok(())
+}
+
+#[test]
+fn withdraw_liquidity() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
 
@@ -358,7 +380,8 @@ fn withdraw() -> AnyResult<()> {
     chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uosmo"))?;
 
     // provide to the pool
-    dex_adapter.provide(
+    provide(
+        &dex_adapter,
         ("atom", provide_value),
         ("osmo", provide_value),
         OSMOSIS.into(),
@@ -369,7 +392,8 @@ fn withdraw() -> AnyResult<()> {
     let balance = chain.query_balance(proxy_addr.as_ref(), &get_pool_token(pool_id))?;
 
     // withdraw from the pool
-    dex_adapter.withdraw(
+    withdraw(
+        &dex_adapter,
         "osmosis/atom,osmo",
         balance / Uint128::from(2u128),
         OSMOSIS.into(),
@@ -378,7 +402,6 @@ fn withdraw() -> AnyResult<()> {
 
     // After withdrawing, we should get some tokens in return and have some lp token left
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    println!("{:?}", balances);
     assert_eq!(balances.len(), 3);
 
     Ok(())
