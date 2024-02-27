@@ -134,7 +134,7 @@ impl DexCommand for Osmosis {
             return Err(DexError::TooManyAssets(2));
         }
 
-        let token_in_maxs: Vec<OsmoCoin> = offer_assets
+        let mut token_in_maxs: Vec<OsmoCoin> = offer_assets
             .iter()
             .map(|asset| Coin::try_from(asset).unwrap().into())
             .collect();
@@ -176,6 +176,8 @@ impl DexCommand for Osmosis {
 
         let share_out_amount =
             compute_osmo_share_out_amount(&pool_assets, &deposits, total_share)?.to_string();
+
+        token_in_maxs.retain(|coin| coin.amount != "0");
 
         let osmo_msg: CosmosMsg = MsgJoinPool {
             sender: self.addr_as_sender.as_ref().unwrap().to_string(),
