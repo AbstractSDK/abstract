@@ -315,7 +315,10 @@ fn provide_liquidity_two_sided() -> AnyResult<()> {
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert_eq!(
         balances,
-        coins(10_000_000_000_000_000_000 * 2, get_pool_token(pool_id))
+        coins(
+            10_000_000_000_000_000_000 + 9_999_999_999_999_999_990,
+            get_pool_token(pool_id)
+        )
     );
 
     Ok(())
@@ -358,7 +361,10 @@ fn provide_liquidity_symmetric() -> AnyResult<()> {
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert_eq!(
         balances,
-        coins(10_000_000_000_000_000_000 * 2, get_pool_token(pool_id))
+        coins(
+            10_000_000_000_000_000_000 + 9_999_999_999_999_999_990,
+            get_pool_token(pool_id)
+        )
     );
 
     Ok(())
