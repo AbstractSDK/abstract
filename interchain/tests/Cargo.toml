@@ -50,6 +50,8 @@ futures = "0.3.28"
 ibc-chain-registry = "0.25"
 ibc-relayer-types = "0.25"
 
+abstract-client = { version = "0.21.0" }
+
 cosmrs = "0.14.0"
 prost = "0.11.9"
 cw-orch-polytone = { workspace = true }
@@ -57,7 +59,5 @@ polytone = { workspace = true }
 abstract-scripts = { path = "../scripts" }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
 lazy_static = "1.4.0"
-abstract-client = { version = "0.21.0", path = "../../framework/packages/abstract-client" }
-
-abstract-dex-adapter = { workspace = true, features = ["interface", "astroport"] }
+abstract-dex-adapter = { workspace = true, features = ["testing", "astroport"] }
 astroport = { version = "3.6.1" }

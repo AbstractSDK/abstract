@@ -1,30 +1,18 @@
 //! Currently you can run only 1 test at a time: `cargo mt`
 //! Otherwise you will have too many requests
 
-use abstract_app::{
-    mock::MockInitMsg,
-    objects::{
-        pool_id::PoolAddressBase, AssetEntry, PoolMetadata, PoolType, UncheckedContractEntry,
-    },
+use abstract_app::objects::{
+    pool_id::PoolAddressBase, AssetEntry, PoolMetadata, PoolType, UncheckedContractEntry,
 };
-use abstract_client::{AbstractClient, Environment};
-use abstract_core::{
-    objects::{gov_type::GovernanceDetails, module::ModuleInfo},
-    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
-};
-use abstract_integration_tests::manager::mock_app::{MockApp, APP_VERSION};
-use abstract_interface::{
-    Abstract, AbstractAccount, AnsHost, AppDeployer, DeployStrategy, ExecuteMsgFns, ManagerExecFns,
-    VCExecFns,
-};
-use abstract_testing::prelude::*;
+use abstract_client::Environment;
+use abstract_interface::{Abstract, ExecuteMsgFns};
 use anyhow::Ok;
-use cosmwasm_std::{coin, to_json_binary, Addr};
+use cosmwasm_std::{coin, Addr};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{daemon::networks::NEUTRON_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
 
-use super::{DexTester, MockDex};
+use abstract_dex_adapter::dex_tester::{DexTester, MockDex};
 
 // testnet addr of abstract
 const SENDER: &str = "neutron1kjzpqv393k4g064xh04j4hwy5d0s03wf7dnt4x";
