@@ -10,7 +10,7 @@ use abstract_core::{
     ANS_HOST,
 };
 use cosmwasm_std::Addr;
-use cw_asset::{Asset, AssetInfo};
+use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked, AssetUnchecked};
 use cw_orch::{interface, prelude::*};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -142,16 +142,18 @@ impl<Chain: CwEnv> ClientResolve<Chain> for AnsAsset {
     }
 }
 
-impl<Chain: CwEnv> ClientResolve<Chain> for AssetInfo {
+impl<Chain: CwEnv> ClientResolve<Chain> for AssetInfoUnchecked {
     type Output = AssetEntry;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
-        let mut assets: AssetsResponse = ans_host.query(&QueryMsg::AssetInfos { infos: vec![] })?;
-        Ok(assets.assets.pop().unwrap().0)
+        let mut assets: AssetInfosResponse = ans_host.query(&QueryMsg::AssetInfos {
+            infos: vec![self.to_owned()],
+        })?;
+        Ok(assets.infos.pop().unwrap().1)
     }
 }
 
-impl<Chain: CwEnv> ClientResolve<Chain> for Asset {
+impl<Chain: CwEnv> ClientResolve<Chain> for AssetUnchecked {
     type Output = AnsAsset;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {

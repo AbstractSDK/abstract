@@ -1,5 +1,5 @@
 use crate::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-use abstract_client::{AbstractClient, Environment};
+use abstract_client::{AbstractClient, ClientResolve, Environment};
 use abstract_core::{
     adapter,
     objects::{
@@ -315,6 +315,82 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
 
         let lp_balance_second = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
         assert!(lp_balance_second > lp_balance_first);
+
+        Ok(())
+    }
+
+    pub fn withdraw_liquidity(&self) -> anyhow::Result<()> {
+        let (ans_asset_a, asset_info_a) = self.dex.asset_a();
+        let (ans_asset_b, asset_info_b) = self.dex.asset_b();
+
+        let new_account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<DexAdapter<Chain>>()?
+            .build()?;
+        let proxy_addr = new_account.proxy()?;
+
+        let provide_value = 1_000_000_000u128;
+
+        self.add_proxy_balance(&proxy_addr, &asset_info_a, provide_value)?;
+        self.add_proxy_balance(&proxy_addr, &asset_info_b, provide_value)?;
+
+        let asset_entry_a = AssetEntry::new(&ans_asset_a);
+        let asset_entry_b = AssetEntry::new(&ans_asset_b);
+
+        // provide to the pool
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::ProvideLiquidity {
+                        assets: vec![
+                            AnsAsset::new(asset_entry_a.clone(), provide_value),
+                            AnsAsset::new(asset_entry_b.clone(), provide_value),
+                        ],
+                        max_spread: Some(Decimal::percent(30)),
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        // Check everything sent and we have some lp
+        let asset_a_balance = self.query_proxy_balance(&proxy_addr, &asset_info_a)?;
+        assert!(asset_a_balance.is_zero());
+
+        let asset_b_balance = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
+        assert!(asset_b_balance.is_zero());
+
+        let lp_balance = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        assert!(!lp_balance.is_zero());
+
+        let ans_host = Abstract::load_from(self.abstr_deployment.environment())?.ans_host;
+        let lp_asset_entry = self.lp_asset.resolve(&ans_host).unwrap();
+        // withdraw_liquidity
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::WithdrawLiquidity {
+                        lp_token: AnsAsset::new(lp_asset_entry, lp_balance / Uint128::new(2)),
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        // After withdrawing, we should get some tokens in return and some lp token left
+        let lp_balance = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        assert!(!lp_balance.is_zero());
+
+        let asset_a_balance = self.query_proxy_balance(&proxy_addr, &asset_info_a)?;
+        assert!(!asset_a_balance.is_zero());
+
+        let asset_b_balance = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
+        assert!(!asset_b_balance.is_zero());
 
         Ok(())
     }
