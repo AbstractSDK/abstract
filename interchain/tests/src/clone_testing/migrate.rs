@@ -1,4 +1,4 @@
-//! Currently you can run only 1 test at a time: `cargo mt`
+//! Currently you can run only 1 test at a time: `cargo ct`
 //! Otherwise you will have too many requests
 
 use abstract_app::mock::MockInitMsg;
