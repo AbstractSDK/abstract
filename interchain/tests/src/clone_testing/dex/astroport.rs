@@ -43,7 +43,7 @@ impl MockDex for AstroportDex {
         self.asset_b.clone()
     }
 
-    fn create_pool(&self) -> anyhow::Result<(PoolAddressBase<String>, PoolMetadata)> {
+    fn create_pool(&self) -> anyhow::Result<(PoolAddressBase<String>, PoolMetadata, AssetInfoUnchecked)> {
         let asset_1_astroport = cw_asset_info_to_astroport(&self.asset_a.1);
         let asset_2_astroport = cw_asset_info_to_astroport(&self.asset_b.1);
 
@@ -59,7 +59,8 @@ impl MockDex for AstroportDex {
             &Addr::unchecked(FACTORY_ADDR),
         )?;
         let pair_contract_addr = resp.event_attr_value("wasm", "pair_contract_addr")?;
-        let _liquidity_token_addr = resp.event_attr_value("wasm", "liquidity_token_addr")?;
+        let liquidity_token_addr = resp.event_attr_value("wasm", "liquidity_token_addr")?;
+
         let abstr_deployment = Abstract::load_from(self.chain.clone())?;
         // Register pair contract address and liquidity token address
         abstr_deployment.ans_host.update_contract_addresses(
@@ -103,7 +104,8 @@ impl MockDex for AstroportDex {
                 AssetEntry::new(&self.asset_b.0),
             ],
         };
-        Ok((pool, pool_metadata))
+        let lp_asset = AssetInfoUnchecked::Cw20(liquidity_token_addr);
+        Ok((pool, pool_metadata, lp_asset))
     }
 }
 
@@ -119,23 +121,23 @@ fn cw_asset_info_to_astroport(asset: &cw_asset::AssetInfoUnchecked) -> astroport
     }
 }
 
-fn cw_asset_to_astroport(asset: &cw_asset::Asset) -> astroport::asset::Asset {
-    match &asset.info {
-        cw_asset::AssetInfoBase::Native(denom) => astroport::asset::Asset {
-            amount: asset.amount,
-            info: astroport::asset::AssetInfo::NativeToken {
-                denom: denom.clone(),
-            },
-        },
-        cw_asset::AssetInfoBase::Cw20(contract_addr) => astroport::asset::Asset {
-            amount: asset.amount,
-            info: astroport::asset::AssetInfo::Token {
-                contract_addr: contract_addr.clone(),
-            },
-        },
-        _ => unreachable!(),
-    }
-}
+// fn cw_asset_to_astroport(asset: &cw_asset::Asset) -> astroport::asset::Asset {
+//     match &asset.info {
+//         cw_asset::AssetInfoBase::Native(denom) => astroport::asset::Asset {
+//             amount: asset.amount,
+//             info: astroport::asset::AssetInfo::NativeToken {
+//                 denom: denom.clone(),
+//             },
+//         },
+//         cw_asset::AssetInfoBase::Cw20(contract_addr) => astroport::asset::Asset {
+//             amount: asset.amount,
+//             info: astroport::asset::AssetInfo::Token {
+//                 contract_addr: contract_addr.clone(),
+//             },
+//         },
+//         _ => unreachable!(),
+//     }
+// }
 
 fn setup_native() -> anyhow::Result<DexTester<CloneTesting, AstroportDex>> {
     let chain_info = NEUTRON_1;
@@ -164,5 +166,20 @@ fn setup_native() -> anyhow::Result<DexTester<CloneTesting, AstroportDex>> {
 fn test_native_swap() -> anyhow::Result<()> {
     let dex_tester = setup_native()?;
     dex_tester.test_swap()?;
+    Ok(())
+}
+
+#[test]
+fn test_native_provide_liquidity() -> anyhow::Result<()> {
+    let dex_tester = setup_native()?;
+    dex_tester.test_provide_liquidity_two_sided()?;
+    dex_tester.test_provide_liquidity_one_sided()?;
+    Ok(())
+}
+
+#[test]
+fn test_native_provide_liquidity_symmetric() -> anyhow::Result<()> {
+    let dex_tester = setup_native()?;
+    dex_tester.test_provide_liquidity_symmetric()?;
     Ok(())
 }

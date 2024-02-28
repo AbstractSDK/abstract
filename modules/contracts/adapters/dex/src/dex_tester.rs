@@ -1,10 +1,14 @@
 use crate::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_client::{AbstractClient, Environment};
-use abstract_core::objects::{
-    module::{ModuleInfo, ModuleVersion},
-    pool_id::PoolAddressBase,
-    PoolMetadata,
+use abstract_core::{
+    adapter,
+    objects::{
+        module::{ModuleInfo, ModuleVersion},
+        pool_id::PoolAddressBase,
+        AnsAsset, AssetEntry, LpToken, PoolMetadata,
+    },
 };
+use abstract_dex_standard::{ans_action::DexAnsAction, msg::DexExecuteMsg};
 use abstract_interface::{Abstract, AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
 use cosmwasm_std::{coins, Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
@@ -14,6 +18,7 @@ pub struct DexTester<Chain: MutCwEnv, Dex: MockDex> {
     pub abstr_deployment: AbstractClient<Chain>,
     pub dex_adapter: DexAdapter<Chain>,
     pub dex: Dex,
+    pub lp_asset: AssetInfoUnchecked,
 }
 
 impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
@@ -35,8 +40,8 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
             DeployStrategy::Force,
         )?;
 
-        {
-            let pool = dex.create_pool()?;
+        let lp_asset = {
+            let (pool, pool_metadata, lp_asset) = dex.create_pool()?;
             let abstr = Abstract::load_from(abstr_deployment.environment())?;
             // Add assets
             abstr
@@ -45,13 +50,22 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
             // Add dex
             abstr.ans_host.update_dexes(vec![dex.name()], vec![])?;
             // Add pool
-            abstr.ans_host.update_pools(vec![pool], vec![])?;
-        }
+            abstr
+                .ans_host
+                .update_pools(vec![(pool, pool_metadata)], vec![])?;
+            // Add lp asset
+            let lp_token = LpToken::new(dex.name(), vec![dex.asset_a().0, dex.asset_b().0]);
+            abstr
+                .ans_host
+                .update_asset_addresses(vec![(lp_token.to_string(), lp_asset.clone())], vec![])?;
+            lp_asset
+        };
 
         Ok(Self {
             abstr_deployment,
             dex_adapter,
             dex,
+            lp_asset,
         })
     }
 
@@ -66,16 +80,25 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
             .build()?;
         let proxy_addr = new_account.proxy()?;
 
-        // swap 1_000_000_000 asset_a to asset_b
         let swap_value = 1_000_000_000u128;
 
         self.add_proxy_balance(&proxy_addr, &asset_info_a, swap_value)?;
 
-        self.dex_adapter.ans_swap(
-            (&ans_asset_a, swap_value),
-            &ans_asset_b,
-            self.dex.name(),
-            new_account.as_ref(),
+        // swap 1_000_000_000 asset_a to asset_b
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::Swap {
+                        offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_a), swap_value),
+                        ask_asset: AssetEntry::new(&ans_asset_b),
+                        max_spread: Some(Decimal::percent(30)),
+                        belief_price: None,
+                    },
+                },
+            }),
+            None,
         )?;
 
         // Assert balances
@@ -85,11 +108,20 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         assert!(!balance_b.is_zero());
 
         // swap balance_b asset_b to asset_a
-        self.dex_adapter.ans_swap(
-            (&ans_asset_b, balance_b.u128()),
-            &ans_asset_a,
-            self.dex.name(),
-            new_account.as_ref(),
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::Swap {
+                        offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_b), balance_b),
+                        ask_asset: AssetEntry::new(&ans_asset_a),
+                        max_spread: Some(Decimal::percent(30)),
+                        belief_price: None,
+                    },
+                },
+            }),
+            None,
         )?;
 
         // Assert balances
@@ -97,6 +129,192 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         assert!(!balance_a.is_zero());
         let balance_b = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
         assert!(balance_b.is_zero());
+
+        Ok(())
+    }
+
+    pub fn test_provide_liquidity_two_sided(&self) -> anyhow::Result<()> {
+        let (ans_asset_a, asset_info_a) = self.dex.asset_a();
+        let (ans_asset_b, asset_info_b) = self.dex.asset_b();
+
+        let new_account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<DexAdapter<Chain>>()?
+            .build()?;
+        let proxy_addr = new_account.proxy()?;
+
+        let provide_value = 1_000_000_000u128;
+
+        self.add_proxy_balance(&proxy_addr, &asset_info_a, provide_value * 2)?;
+        self.add_proxy_balance(&proxy_addr, &asset_info_b, provide_value * 2)?;
+
+        let asset_entry_a = AssetEntry::new(&ans_asset_a);
+        let asset_entry_b = AssetEntry::new(&ans_asset_b);
+
+        // provide to the pool
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::ProvideLiquidity {
+                        assets: vec![
+                            AnsAsset::new(asset_entry_a.clone(), provide_value),
+                            AnsAsset::new(asset_entry_b.clone(), provide_value),
+                        ],
+                        max_spread: Some(Decimal::percent(30)),
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        let lp_balance_first = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        assert!(!lp_balance_first.is_zero());
+
+        // provide to the pool reversed
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::ProvideLiquidity {
+                        assets: vec![
+                            AnsAsset::new(asset_entry_b, provide_value),
+                            AnsAsset::new(asset_entry_a, provide_value),
+                        ],
+                        max_spread: Some(Decimal::percent(30)),
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        let lp_balance_second = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        assert!(lp_balance_second > lp_balance_first);
+
+        Ok(())
+    }
+
+    pub fn test_provide_liquidity_one_sided(&self) -> anyhow::Result<()> {
+        let (ans_asset_a, asset_info_a) = self.dex.asset_a();
+        let (ans_asset_b, asset_info_b) = self.dex.asset_b();
+
+        let new_account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<DexAdapter<Chain>>()?
+            .build()?;
+        let proxy_addr = new_account.proxy()?;
+
+        let provide_value = 1_000_000_000u128;
+
+        self.add_proxy_balance(&proxy_addr, &asset_info_a, provide_value)?;
+        self.add_proxy_balance(&proxy_addr, &asset_info_b, provide_value)?;
+
+        let asset_entry_a = AssetEntry::new(&ans_asset_a);
+        let asset_entry_b = AssetEntry::new(&ans_asset_b);
+
+        // provide to the pool
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::ProvideLiquidity {
+                        assets: vec![
+                            AnsAsset::new(asset_entry_a.clone(), provide_value),
+                            AnsAsset::new(asset_entry_b.clone(), Uint128::zero()),
+                        ],
+                        max_spread: Some(Decimal::percent(30)),
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        let lp_balance_first = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        assert!(!lp_balance_first.is_zero());
+
+        // provide to the pool reversed
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::ProvideLiquidity {
+                        assets: vec![
+                            AnsAsset::new(asset_entry_b, provide_value),
+                            AnsAsset::new(asset_entry_a, Uint128::zero()),
+                        ],
+                        max_spread: Some(Decimal::percent(30)),
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        let lp_balance_second = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        assert!(lp_balance_second > lp_balance_first);
+
+        Ok(())
+    }
+
+    pub fn test_provide_liquidity_symmetric(&self) -> anyhow::Result<()> {
+        let (ans_asset_a, asset_info_a) = self.dex.asset_a();
+        let (ans_asset_b, asset_info_b) = self.dex.asset_b();
+
+        let new_account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<DexAdapter<Chain>>()?
+            .build()?;
+        let proxy_addr = new_account.proxy()?;
+
+        let provide_value = 1_000_000_000u128;
+
+        self.add_proxy_balance(&proxy_addr, &asset_info_a, provide_value * 2)?;
+        self.add_proxy_balance(&proxy_addr, &asset_info_b, provide_value * 2)?;
+
+        let asset_entry_a = AssetEntry::new(&ans_asset_a);
+        let asset_entry_b = AssetEntry::new(&ans_asset_b);
+
+        // provide to the pool
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::ProvideLiquiditySymmetric {
+                        offer_asset: AnsAsset::new(asset_entry_a.clone(), provide_value),
+                        paired_assets: vec![asset_entry_b.clone()],
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        let lp_balance_first = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        assert!(!lp_balance_first.is_zero());
+
+        // provide to the pool reversed
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::ProvideLiquiditySymmetric {
+                        offer_asset: AnsAsset::new(asset_entry_b.clone(), provide_value),
+                        paired_assets: vec![asset_entry_a.clone()],
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        let lp_balance_second = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        assert!(lp_balance_second > lp_balance_first);
 
         Ok(())
     }
@@ -174,5 +392,7 @@ pub trait MockDex {
     fn asset_b(&self) -> (String, cw_asset::AssetInfoUnchecked);
 
     /// Create pool with asset_a and asset_b
-    fn create_pool(&self) -> anyhow::Result<(PoolAddressBase<String>, PoolMetadata)>;
+    fn create_pool(
+        &self,
+    ) -> anyhow::Result<(PoolAddressBase<String>, PoolMetadata, AssetInfoUnchecked)>;
 }
