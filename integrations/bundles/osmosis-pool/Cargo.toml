@@ -1,0 +1,22 @@
+[package]
+name = "osmosis-pool"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+abstract-core.workspace = true
+abstract-cw-plus-interface = "1.3.0"
+abstract-interface.workspace = true
+cosmwasm-std = "1.5.3"
+cw-asset.workspace = true
+cw-orch = { workspace = true, features = ["osmosis-test-tube"] }
+osmosis-test-tube = "21.0.0"
+thiserror.workspace = true
