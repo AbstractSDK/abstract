@@ -162,7 +162,7 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
                     return Ok(());
                 }
             }
-            _ => {}
+            DeployStrategy::Force => {}
         }
 
         if self.upload_if_needed()?.is_some() {

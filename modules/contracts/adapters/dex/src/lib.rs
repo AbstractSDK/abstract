@@ -118,7 +118,7 @@ pub mod interface {
     }
 
     impl<Chain: CwEnv> RegisteredModule for DexAdapter<Chain> {
-        type InitMsg = <crate::contract::DexAdapter as Handler>::CustomInitMsg;
+        type InitMsg = Empty;
 
         fn module_id<'a>() -> &'a str {
             DEX_ADAPTER.module_id()

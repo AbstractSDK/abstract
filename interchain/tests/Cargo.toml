@@ -58,3 +58,6 @@ abstract-scripts = { path = "../scripts" }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
 lazy_static = "1.4.0"
 abstract-client = { version = "0.21.0", path = "../../framework/packages/abstract-client" }
+
+abstract-dex-adapter = { workspace = true, features = ["interface", "astroport"] }
+astroport = { version = "3.6.1" }
