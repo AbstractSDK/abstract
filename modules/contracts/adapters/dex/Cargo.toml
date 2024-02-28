@@ -143,3 +143,4 @@ abstract-wyndex-adapter = { workspace = true, features = ["local"] }
 cw20 = { workspace = true, features = ["interface"] }
 cw20-base = { workspace = true, features = ["interface"] }
 cw-utils = { workspace = true }
+osmosis-pool = { path = "../../../../integrations/bundles/osmosis-pool" }

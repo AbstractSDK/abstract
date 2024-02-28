@@ -97,6 +97,9 @@ abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
 
+# Only for development
+# osmosis-test-tube = { path = "../../test-tube/packages/osmosis-test-tube" }
+
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

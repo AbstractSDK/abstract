@@ -4,14 +4,13 @@ pub mod incentives;
 
 use std::rc::Rc;
 
-use crate::helpers::osmosis_pool;
+use crate::helpers::osmosis_pool_token;
 use abstract_core::objects::pool_id::PoolAddressBase;
+use abstract_core::objects::LpToken;
 use abstract_core::objects::PoolMetadata;
-use abstract_core::objects::{AssetEntry, LpToken};
 use abstract_interface::Abstract;
 use abstract_interface::ExecuteMsgFns;
 use cosmwasm_std::{coin, coins};
-use cw_asset::AssetInfo;
 use cw_orch::{
     osmosis_test_tube::osmosis_test_tube::{
         osmosis_std::{
@@ -29,6 +28,7 @@ use cw_orch::{
 use error::OsmosisPoolError;
 use incentives::Incentives;
 use osmosis_test_tube::osmosis_std::shim::Duration;
+use osmosis_test_tube::osmosis_std::types::osmosis::poolincentives::v1beta1::QueryLockableDurationsRequest;
 
 pub const EUR_TOKEN: &str = "eur";
 pub const EUR_TOKEN_FAST: &str = "eur_fast";
@@ -36,8 +36,8 @@ pub const EUR_TOKEN_SLOW: &str = "eur_slow";
 pub const USD_TOKEN: &str = "usd";
 pub const AXL_USD_TOKEN: &str = "axl_usd";
 pub const NUM_EPOCHS_POOL: u64 = 100;
-pub const POOL_LOCK_FAST: i64 = 3600; // Lock duration is fast
-pub const POOL_LOCK_SLOW: i64 = 24 * 3600; // Lock duration is long
+pub const POOL_LOCK_FAST: i64 = 60; // Lock duration is fast
+pub const POOL_LOCK_SLOW: i64 = 3600; // Lock duration is long
 
 pub const INCENTIVES_AMOUNT: u128 = 100_000_000_000_000;
 pub const INCENTIVES_DENOM: &str = "gauge_incentives";
@@ -45,31 +45,19 @@ pub const INCENTIVES_DENOM: &str = "gauge_incentives";
 pub const OSMOSIS: &str = "osmosis";
 
 pub struct OsmosisPools {
+    pub chain: OsmosisTestTube,
     pub owner: Rc<SigningAccount>,
-    pub eur_token: AssetInfo,
-    pub eur_token_fast: AssetInfo,
-    pub eur_token_slow: AssetInfo,
-    pub usd_token: AssetInfo,
-    pub axl_usd_token: AssetInfo,
+    // those are all token denoms
+    pub eur_token: String,
+    pub eur_token_fast: String,
+    pub eur_token_slow: String,
+    pub usd_token: String,
+    pub axl_usd_token: String,
+    // Those are pool ids
     pub eur_usd_pool: u64,
     pub fast_incentivized_eur_usd_pool: u64,
     pub slow_incentivized_eur_usd_pool: u64,
-    pub usd_axl_usd_pool: u64, // pub eur_usd_staking: Addr,
-                               // pub raw_eur_staking: Addr,
-                               // pub raw_raw_2_staking: Addr,
-                               // // incentivized pair
-                               // // rewarded in wynd
-                               // pub eur_usd_pair: Addr,
-                               // pub eur_usd_lp: AbstractCw20Base<MockBech32>,
-                               // pub wynd_token: AssetInfo,
-                               // pub wynd_eur_pair: Addr,
-                               // pub wynd_eur_lp: AbstractCw20Base<MockBech32>,
-                               // pub raw_token: AbstractCw20Base<MockBech32>,
-                               // pub raw_2_token: AbstractCw20Base<MockBech32>,
-                               // pub raw_eur_pair: Addr,
-                               // pub raw_eur_lp: AbstractCw20Base<MockBech32>,
-                               // pub raw_raw_2_pair: Addr,
-                               // pub raw_raw_2_lp: AbstractCw20Base<MockBech32>,
+    pub usd_axl_usd_pool: u64,
 }
 
 impl PartialEq for OsmosisPools {
@@ -107,133 +95,83 @@ impl std::fmt::Debug for OsmosisPools {
 }
 
 impl OsmosisPools {
-    pub fn create_pool(
-        chain: OsmosisTestTube,
-        liquidity: &[Coin],
-        sender: &SigningAccount,
-    ) -> Result<u64, OsmosisPoolError> {
-        let pool_id = Gamm::new(&*chain.app.borrow())
-            .create_basic_pool(liquidity, sender)?
+    pub fn create_pool(&mut self, asset1: Coin, asset2: Coin) -> Result<u64, OsmosisPoolError> {
+        self.chain.add_balance(
+            self.owner.address(),
+            [asset1.clone(), asset2.clone()].to_vec(),
+        )?;
+        let pool_id = Gamm::new(&*self.chain.app.borrow())
+            .create_basic_pool(&[asset1.clone(), asset2.clone()], &self.owner)?
             .data
             .pool_id;
-        Ok(pool_id)
-    }
-    /// registers the WynDex contracts and assets on Abstract
-    /// this includes:
-    /// - registering the assets on ANS
-    ///   - EUR
-    ///   - USD
-    ///   - WYND
-    ///   - RAW
-    ///   - RAW_2
-    ///   - EUR/USD LP
-    ///   - EUR/WYND LP
-    ///   - EUR/RAW LP
-    ///   - RAW/RAW_2 LP
-    /// - Register the staking contract
-    ///   - wyndex:staking/wyndex/eur,usd (native)
-    ///   - wyndex:staking/wyndex/eur,raw (native-cw20)
-    ///   - wyndex:staking/wyndex/raw,raw_2 (cw20-cw20)
-    /// - Register the pair contracts
-    ///   - wyndex/eur,usd
-    ///   - wyndex/eur,wynd
-    pub(crate) fn register_info_on_abstract(
-        &self,
-        abstrct: &Abstract<OsmosisTestTube>,
-    ) -> Result<(), CwOrchError> {
-        let eur_asset = AssetEntry::new(EUR_TOKEN);
-        let eur_fast_asset = AssetEntry::new(EUR_TOKEN_FAST);
-        let eur_slow_asset = AssetEntry::new(EUR_TOKEN_SLOW);
-        let usd_asset = AssetEntry::new(USD_TOKEN);
-        let axl_usd_asset = AssetEntry::new(AXL_USD_TOKEN);
 
-        let eur_usd_lp_asset = LpToken::new(OSMOSIS, vec![EUR_TOKEN, USD_TOKEN]);
-        let fast_incentivized_eur_usd_lp_asset =
-            LpToken::new(OSMOSIS, vec![EUR_TOKEN_FAST, USD_TOKEN]);
-        let slow_incentivized_eur_usd_lp_asset =
-            LpToken::new(OSMOSIS, vec![EUR_TOKEN_SLOW, USD_TOKEN]);
-        let usd_axl_usd_lp_asset = LpToken::new(OSMOSIS, vec![USD_TOKEN, AXL_USD_TOKEN]);
-
-        // Register addresses on ANS
-        abstrct.ans_host.update_asset_addresses(
+        // We register assets and the pool inside ANS
+        let abstr = Abstract::load_from(self.chain.clone())?;
+        abstr.ans_host.update_asset_addresses(
             vec![
                 (
-                    eur_asset.to_string(),
-                    cw_asset::AssetInfoBase::native(self.eur_token.to_string()),
+                    asset1.denom.clone(),
+                    cw_asset::AssetInfoBase::native(asset1.denom.clone()),
                 ),
                 (
-                    eur_fast_asset.to_string(),
-                    cw_asset::AssetInfoBase::native(self.eur_token_fast.to_string()),
+                    asset2.denom.clone(),
+                    cw_asset::AssetInfoBase::native(asset2.denom.clone()),
                 ),
                 (
-                    eur_slow_asset.to_string(),
-                    cw_asset::AssetInfoBase::native(self.eur_token_slow.to_string()),
-                ),
-                (
-                    usd_asset.to_string(),
-                    cw_asset::AssetInfoBase::native(self.usd_token.to_string()),
-                ),
-                (
-                    axl_usd_asset.to_string(),
-                    cw_asset::AssetInfoBase::native(self.axl_usd_token.to_string()),
-                ),
-                (
-                    eur_usd_lp_asset.to_string(),
-                    cw_asset::AssetInfoBase::native(osmosis_pool(self.eur_usd_pool)),
-                ),
-                (
-                    fast_incentivized_eur_usd_lp_asset.to_string(),
-                    cw_asset::AssetInfoBase::native(osmosis_pool(
-                        self.fast_incentivized_eur_usd_pool,
-                    )),
-                ),
-                (
-                    slow_incentivized_eur_usd_lp_asset.to_string(),
-                    cw_asset::AssetInfoBase::native(osmosis_pool(
-                        self.slow_incentivized_eur_usd_pool,
-                    )),
-                ),
-                (
-                    usd_axl_usd_lp_asset.to_string(),
-                    cw_asset::AssetInfoBase::native(osmosis_pool(self.usd_axl_usd_pool)),
+                    LpToken::new(OSMOSIS, vec![asset1.denom.clone(), asset2.denom.clone()])
+                        .to_string(),
+                    cw_asset::AssetInfoBase::native(osmosis_pool_token(pool_id)),
                 ),
             ],
             vec![],
         )?;
-
-        abstrct
-            .ans_host
-            .update_dexes(vec![OSMOSIS.into()], vec![])?;
-
-        abstrct.ans_host.update_pools(
-            vec![
-                (
-                    PoolAddressBase::id(self.eur_usd_pool),
-                    PoolMetadata::constant_product(
-                        OSMOSIS,
-                        vec![eur_asset.clone(), usd_asset.clone()],
-                    ),
+        abstr.ans_host.update_pools(
+            vec![(
+                PoolAddressBase::id(pool_id),
+                PoolMetadata::constant_product(
+                    OSMOSIS,
+                    vec![asset1.denom.clone(), asset2.denom.clone()],
                 ),
-                (
-                    PoolAddressBase::id(self.fast_incentivized_eur_usd_pool),
-                    PoolMetadata::constant_product(
-                        OSMOSIS,
-                        vec![eur_fast_asset.clone(), usd_asset.clone()],
-                    ),
-                ),
-                (
-                    PoolAddressBase::id(self.slow_incentivized_eur_usd_pool),
-                    PoolMetadata::constant_product(
-                        OSMOSIS,
-                        vec![eur_slow_asset.clone(), usd_asset.clone()],
-                    ),
-                ),
-                (
-                    PoolAddressBase::id(self.usd_axl_usd_pool),
-                    PoolMetadata::constant_product(OSMOSIS, vec![axl_usd_asset.clone(), usd_asset]),
-                ),
-            ],
+            )],
             vec![],
+        )?;
+
+        Ok(pool_id)
+    }
+    pub fn incentivize_pool(
+        &mut self,
+        pool_id: u64,
+        lock_seconds: i64,
+        incentives: Vec<Coin>,
+        num_epochs: u64,
+    ) -> Result<(), OsmosisPoolError> {
+        let current_block = self.chain.block_info()?;
+
+        self.chain
+            .add_balance(self.owner.address(), incentives.clone())?;
+
+        Incentives::new(&*self.chain.app.borrow()).create_gauge(
+            MsgCreateGauge {
+                is_perpetual: false,
+                owner: self.owner.address(),
+                distribute_to: Some(QueryCondition {
+                    lock_query_type: LockQueryType::ByDuration as i32,
+                    duration: Some(Duration {
+                        seconds: lock_seconds,
+                        nanos: 0,
+                    }),
+                    denom: osmosis_pool_token(pool_id),
+                    timestamp: None,
+                }),
+                coins: cosmwasm_to_proto_coins(incentives),
+                start_time: Some(Timestamp {
+                    seconds: current_block.time.seconds() as i64,
+                    nanos: current_block.time.subsec_nanos() as i32,
+                }),
+                num_epochs_paid_over: num_epochs,
+                pool_id: 0,
+            },
+            &self.owner,
         )?;
 
         Ok(())
@@ -258,81 +196,71 @@ impl Deploy<OsmosisTestTube> for OsmosisPools {
             coin(100_000_000_000_000, INCENTIVES_DENOM),
         ])?;
 
-        // We create a pool
-        let eur_usd_pool = OsmosisPools::create_pool(
-            chain.clone(),
-            &[
-                Coin::new(1_000_000, EUR_TOKEN),
-                Coin::new(1_100_000, USD_TOKEN),
-            ],
-            &owner,
-        )?;
-        let usd_axl_usd_pool = OsmosisPools::create_pool(
-            chain.clone(),
-            &[
-                Coin::new(1_000_000, AXL_USD_TOKEN),
-                Coin::new(1_000_000, USD_TOKEN),
-            ],
-            &owner,
-        )?;
-        let fast_incentivized_eur_usd_pool = OsmosisPools::create_pool(
-            chain.clone(),
-            &[
-                Coin::new(1_000_000, EUR_TOKEN_FAST),
-                Coin::new(1_100_000, USD_TOKEN),
-            ],
-            &owner,
-        )?;
-        let slow_incentivized_eur_usd_pool = OsmosisPools::create_pool(
-            chain.clone(),
-            &[
-                Coin::new(1_000_000, EUR_TOKEN_SLOW),
-                Coin::new(1_100_000, USD_TOKEN),
-            ],
-            &owner,
-        )?;
-
-        // We create incentives for the pool
-        let current_block = chain.block_info()?;
-        Incentives::new(&*chain.app.borrow()).create_gauge(
-            MsgCreateGauge {
-                is_perpetual: false,
-                owner: owner.address(),
-                distribute_to: Some(QueryCondition {
-                    lock_query_type: LockQueryType::ByDuration as i32,
-                    duration: Some(Duration {
-                        seconds: POOL_LOCK_FAST,
-                        nanos: 0,
-                    }),
-                    denom: format!("gamm/pool/{}", fast_incentivized_eur_usd_pool),
-                    timestamp: None,
-                }),
-                coins: cosmwasm_to_proto_coins(coins(INCENTIVES_AMOUNT, INCENTIVES_DENOM)),
-                start_time: Some(Timestamp {
-                    seconds: current_block.time.seconds() as i64,
-                    nanos: current_block.time.subsec_nanos() as i32,
-                }),
-                num_epochs_paid_over: NUM_EPOCHS_POOL,
-                pool_id: 0,
-            },
-            &owner,
-        )?;
-
-        let osmosis = Self {
+        let mut osmosis = Self {
+            chain: chain.clone(),
             owner,
-            eur_token: AssetInfo::native(EUR_TOKEN),
-            eur_token_fast: AssetInfo::native(EUR_TOKEN_FAST),
-            eur_token_slow: AssetInfo::native(EUR_TOKEN_SLOW),
-            usd_token: AssetInfo::native(USD_TOKEN),
-            eur_usd_pool,
-            fast_incentivized_eur_usd_pool,
-            slow_incentivized_eur_usd_pool,
-            axl_usd_token: AssetInfo::native(AXL_USD_TOKEN),
-            usd_axl_usd_pool,
+            eur_token: EUR_TOKEN.to_string(),
+            eur_token_fast: EUR_TOKEN_FAST.to_string(),
+            eur_token_slow: EUR_TOKEN_SLOW.to_string(),
+            usd_token: USD_TOKEN.to_string(),
+            axl_usd_token: AXL_USD_TOKEN.to_string(),
+            eur_usd_pool: 0,
+            fast_incentivized_eur_usd_pool: 0,
+            slow_incentivized_eur_usd_pool: 0,
+            usd_axl_usd_pool: 0,
         };
-        // register contracts in abstract host
-        let abstract_ = Abstract::load_from(chain)?;
-        osmosis.register_info_on_abstract(&abstract_)?;
+
+        let abstr = Abstract::load_from(chain.clone())?;
+
+        abstr.ans_host.update_dexes(vec![OSMOSIS.into()], vec![])?;
+
+        // We create a pool
+        let eur_usd_pool = osmosis.create_pool(
+            Coin::new(1_000_000, EUR_TOKEN),
+            Coin::new(1_100_000, USD_TOKEN),
+        )?;
+        let usd_axl_usd_pool = osmosis.create_pool(
+            Coin::new(1_000_000, AXL_USD_TOKEN),
+            Coin::new(1_000_000, USD_TOKEN),
+        )?;
+        let fast_incentivized_eur_usd_pool = osmosis.create_pool(
+            Coin::new(1_000_000, EUR_TOKEN_FAST),
+            Coin::new(1_100_000, USD_TOKEN),
+        )?;
+        let slow_incentivized_eur_usd_pool = osmosis.create_pool(
+            Coin::new(1_000_000, EUR_TOKEN_SLOW),
+            Coin::new(1_100_000, USD_TOKEN),
+        )?;
+        osmosis.eur_usd_pool = eur_usd_pool;
+        osmosis.usd_axl_usd_pool = usd_axl_usd_pool;
+        osmosis.fast_incentivized_eur_usd_pool = fast_incentivized_eur_usd_pool;
+        osmosis.slow_incentivized_eur_usd_pool = slow_incentivized_eur_usd_pool;
+
+        // We create incentives for the pools
+
+        let possible_durations = Incentives::new(&*chain.app.borrow())
+            .query_lockable_durations(&QueryLockableDurationsRequest {})?;
+
+        osmosis.incentivize_pool(
+            fast_incentivized_eur_usd_pool,
+            possible_durations
+                .lockable_durations
+                .first()
+                .unwrap()
+                .seconds,
+            coins(INCENTIVES_AMOUNT, INCENTIVES_DENOM),
+            NUM_EPOCHS_POOL,
+        )?;
+        osmosis.incentivize_pool(
+            slow_incentivized_eur_usd_pool,
+            possible_durations
+                .lockable_durations
+                .last()
+                .unwrap()
+                .seconds,
+            coins(INCENTIVES_AMOUNT, INCENTIVES_DENOM),
+            NUM_EPOCHS_POOL,
+        )?;
 
         Ok(osmosis)
     }

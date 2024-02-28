@@ -1,7 +1,5 @@
 #![cfg(feature = "osmosis-test")]
 
-use std::format;
-
 use abstract_core::{
     adapter,
     ans_host::ExecuteMsgFns,
@@ -24,6 +22,9 @@ use abstract_osmosis_adapter::OSMOSIS;
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins, Decimal, Uint128};
 use cw_orch::{interface, osmosis_test_tube::OsmosisTestTube, prelude::*};
+use osmosis_pool::helpers::osmosis_pool_token;
+use osmosis_pool::OsmosisPools;
+use std::format;
 
 pub fn create_default_account<Chain: CwEnv>(
     factory: &AccountFactory<Chain>,
@@ -138,29 +139,19 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
     }
 }
 
-fn get_pool_token(id: u64) -> String {
-    format!("gamm/pool/{}", id)
-}
-
 #[allow(clippy::type_complexity)]
 fn setup_mock() -> anyhow::Result<(
     OsmosisTestTube,
     OsmosisDexAdapter<OsmosisTestTube>,
     AbstractAccount<OsmosisTestTube>,
     Abstract<OsmosisTestTube>,
-    u64,
+    OsmosisPools,
 )> {
-    let atom = "uatom";
-    let osmo = "uosmo";
-
-    let chain = OsmosisTestTube::new(vec![
-        coin(1_000_000_000_000, osmo),
-        coin(1_000_000_000_000, atom),
-    ]);
+    let chain = OsmosisTestTube::new(vec![coin(1_000_000_000_000, "uosmo")]);
 
     let deployment = Abstract::deploy_on(chain.clone(), chain.sender().to_string())?;
+    let osmosis_pools = OsmosisPools::deploy_on(chain.clone(), Empty {})?;
 
-    let _root_os = create_default_account(&deployment.account_factory)?;
     let dex_adapter = OsmosisDexAdapter::new(DEX_ADAPTER_ID, chain.clone());
 
     dex_adapter.deploy(
@@ -174,72 +165,49 @@ fn setup_mock() -> anyhow::Result<(
 
     // We need to register some pairs and assets on the ans host contract
 
-    let pool_id =
-        chain.create_pool(vec![coin(10_000_000_000, osmo), coin(10_000_000_000, atom)])?;
-
-    deployment
-        .ans_host
-        .update_asset_addresses(
-            vec![
-                ("atom".to_string(), cw_asset::AssetInfoBase::native(atom)),
-                ("osmo".to_string(), cw_asset::AssetInfoBase::native(osmo)),
-                (
-                    "osmosis/atom,osmo".to_string(),
-                    cw_asset::AssetInfoBase::native(get_pool_token(pool_id)),
-                ),
-            ],
-            vec![],
-        )
-        .unwrap();
-
-    deployment
-        .ans_host
-        .update_dexes(vec![OSMOSIS.into()], vec![])
-        .unwrap();
-
-    deployment
-        .ans_host
-        .update_pools(
-            vec![(
-                PoolAddressBase::id(pool_id),
-                PoolMetadata::constant_product(
-                    OSMOSIS,
-                    vec!["osmo".to_string(), "atom".to_string()],
-                ),
-            )],
-            vec![],
-        )
-        .unwrap();
-
     let account = create_default_account(&deployment.account_factory)?;
 
     // install DEX_ADAPTER_ID on OS
     account.install_adapter(&dex_adapter, None)?;
 
-    Ok((chain, dex_adapter, account, deployment, pool_id))
+    Ok((
+        chain.call_as(&osmosis_pools.owner),
+        dex_adapter,
+        account,
+        deployment,
+        osmosis_pools,
+    ))
 }
 
 #[test]
 fn swap() -> AnyResult<()> {
     // We need to deploy a Testube pool
-    let (chain, dex_adapter, os, _abstr, _pool_id) = setup_mock()?;
+    let (chain, dex_adapter, os, _abstr, osmosis) = setup_mock()?;
 
     let proxy_addr = os.proxy.address()?;
 
     let swap_value = 1_000_000_000u128;
 
-    chain.bank_send(proxy_addr.to_string(), coins(swap_value, "uatom"))?;
+    chain.bank_send(
+        proxy_addr.to_string(),
+        coins(swap_value, osmosis.eur_token.clone()),
+    )?;
 
     // Before swap, we need to have 0 uosmo and swap_value uatom
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    assert_eq!(balances, coins(swap_value, "uatom"));
+    assert_eq!(balances, coins(swap_value, osmosis.eur_token.clone()));
     // swap 100_000 uatom to uosmo
-    dex_adapter.swap(("atom", swap_value), "osmo", OSMOSIS.into(), &os)?;
+    dex_adapter.swap(
+        (&osmosis.eur_token, swap_value),
+        &osmosis.usd_token,
+        OSMOSIS.into(),
+        &os,
+    )?;
 
     // Assert balances
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert_eq!(balances.len(), 1);
-    let balance = chain.query_balance(proxy_addr.as_ref(), "uosmo")?;
+    let balance = chain.query_balance(proxy_addr.as_ref(), &osmosis.usd_token)?;
     assert!(balance > Uint128::zero());
 
     Ok(())
@@ -248,16 +216,22 @@ fn swap() -> AnyResult<()> {
 #[test]
 fn swap_concentrated_liquidity() -> AnyResult<()> {
     // We need to deploy a Testube pool
-    let (chain, dex_adapter, os, deployment, _pool_id) = setup_mock()?;
+    let (chain, dex_adapter, os, deployment, osmosis) = setup_mock()?;
 
     let proxy_addr = os.proxy.address()?;
 
     let swap_value = 1_000_000_000u128;
 
-    chain.bank_send(proxy_addr.to_string(), coins(swap_value, "uatom"))?;
+    chain.bank_send(
+        proxy_addr.to_string(),
+        coins(swap_value, osmosis.eur_token.clone()),
+    )?;
 
     let lp = "osmosis/osmo2,atom2";
-    let pool_id = chain.create_pool(vec![coin(1_000, "uosmo"), coin(1_000, "uatom")])?;
+    let pool_id = chain.create_pool(vec![
+        coin(1_000, &osmosis.eur_token),
+        coin(1_000, &osmosis.usd_token),
+    ])?;
 
     deployment
         .ans_host
@@ -265,15 +239,15 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
             vec![
                 (
                     "osmo2".to_string(),
-                    cw_asset::AssetInfoBase::native("uosmo"),
+                    cw_asset::AssetInfoBase::native(osmosis.usd_token.clone()),
                 ),
                 (
                     "atom2".to_string(),
-                    cw_asset::AssetInfoBase::native("uatom"),
+                    cw_asset::AssetInfoBase::native(osmosis.eur_token.clone()),
                 ),
                 (
                     lp.to_string(),
-                    cw_asset::AssetInfoBase::native(get_pool_token(pool_id)),
+                    cw_asset::AssetInfoBase::native(osmosis_pool_token(pool_id)),
                 ),
             ],
             vec![],
@@ -295,14 +269,14 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
 
     // Before swap, we need to have 0 uosmo and swap_value uatom
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    assert_eq!(balances, coins(swap_value, "uatom"));
+    assert_eq!(balances, coins(swap_value, &osmosis.eur_token));
     // swap 100_000 uatom to uosmo
     dex_adapter.swap(("atom2", swap_value), "osmo2", OSMOSIS.into(), &os)?;
 
     // Assert balances
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert_eq!(balances.len(), 1);
-    let balance = chain.query_balance(proxy_addr.as_ref(), "uosmo")?;
+    let balance = chain.query_balance(proxy_addr.as_ref(), &osmosis.usd_token)?;
     assert!(balance > Uint128::zero());
 
     Ok(())
@@ -311,7 +285,7 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
 #[test]
 fn provide() -> AnyResult<()> {
     // We need to deploy a Testube pool
-    let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
+    let (chain, dex_adapter, os, _abstr, osmosis) = setup_mock()?;
 
     let proxy_addr = os.proxy.address()?;
 
@@ -320,23 +294,31 @@ fn provide() -> AnyResult<()> {
     // Before providing, we need to have no assets in the proxy
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert!(balances.is_empty());
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uatom"))?;
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uosmo"))?;
+    chain.bank_send(
+        proxy_addr.to_string(),
+        coins(provide_value, osmosis.axl_usd_token.clone()),
+    )?;
+    chain.bank_send(
+        proxy_addr.to_string(),
+        coins(provide_value, osmosis.usd_token.clone()),
+    )?;
 
     // provide to the pool
     dex_adapter.provide(
-        ("atom", provide_value),
-        ("osmo", provide_value),
+        (&osmosis.axl_usd_token, provide_value),
+        (&osmosis.usd_token, provide_value),
         OSMOSIS.into(),
         &os,
     )?;
 
     // After providing, we need to get the liquidity token
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    println!("{:?}", balances);
     assert_eq!(
         balances,
-        coins(10_000_000_000_000_000_000, get_pool_token(pool_id))
+        coins(
+            100_000_000_000_000_000_000_000,
+            osmosis_pool_token(osmosis.usd_axl_usd_pool)
+        )
     );
 
     Ok(())
@@ -345,7 +327,7 @@ fn provide() -> AnyResult<()> {
 #[test]
 fn withdraw() -> AnyResult<()> {
     // We need to deploy a Testube pool
-    let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
+    let (chain, dex_adapter, os, _abstr, osmosis) = setup_mock()?;
 
     let proxy_addr = os.proxy.address()?;
 
@@ -354,23 +336,32 @@ fn withdraw() -> AnyResult<()> {
     // Before providing, we need to have no assets in the proxy
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert!(balances.is_empty());
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uatom"))?;
-    chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uosmo"))?;
+    chain.bank_send(
+        proxy_addr.to_string(),
+        coins(provide_value, osmosis.eur_token.clone()),
+    )?;
+    chain.bank_send(
+        proxy_addr.to_string(),
+        coins(provide_value, osmosis.usd_token.clone()),
+    )?;
 
     // provide to the pool
     dex_adapter.provide(
-        ("atom", provide_value),
-        ("osmo", provide_value),
+        (&osmosis.eur_token, provide_value),
+        (&osmosis.usd_token, provide_value),
         OSMOSIS.into(),
         &os,
     )?;
 
     // After providing, we need to get the liquidity token
-    let balance = chain.query_balance(proxy_addr.as_ref(), &get_pool_token(pool_id))?;
+    let balance = chain.query_balance(
+        proxy_addr.as_ref(),
+        &osmosis_pool_token(osmosis.eur_usd_pool),
+    )?;
 
     // withdraw from the pool
     dex_adapter.withdraw(
-        "osmosis/atom,osmo",
+        &format!("osmosis/{},{}", osmosis.eur_token, osmosis.usd_token),
         balance / Uint128::from(2u128),
         OSMOSIS.into(),
         &os,
@@ -378,7 +369,6 @@ fn withdraw() -> AnyResult<()> {
 
     // After withdrawing, we should get some tokens in return and have some lp token left
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    println!("{:?}", balances);
     assert_eq!(balances.len(), 3);
 
     Ok(())

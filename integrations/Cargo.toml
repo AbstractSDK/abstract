@@ -73,7 +73,7 @@ abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 
 # Only for development
-osmosis-test-tube = { path = "../../test-tube/packages/osmosis-test-tube" }
+# osmosis-test-tube = { path = "../../test-tube/packages/osmosis-test-tube" }
 
 
 # Backup release profile, will result in warnings during optimization
