@@ -388,6 +388,31 @@ mod osmosis_test {
         Ok(())
     }
 
+    #[test]
+    fn claim_rewards_fails() -> anyhow::Result<()> {
+        let (_tube, osmosis, staking, os) = setup_osmosis()?;
+
+        let dur = Some(cw_utils::Duration::Time(2));
+
+        // stake 100 EUR
+        let lp = LpToken::new(OSMOSIS, vec![osmosis.eur_token_fast, osmosis.usd_token]).to_string();
+        staking.stake(vec![AnsAsset::new(&lp, 100u128)], OSMOSIS.into(), dur, &os)?;
+
+        // now claim rewards and fail
+        let err = staking
+            .claim_rewards(vec![AssetEntry::new(&lp)], OSMOSIS.into(), &os)
+            .unwrap_err();
+        if let AbstractInterfaceError::Orch(CwOrchError::StdErr(e)) = err {
+            let expected_err = CwStakingError::NotImplemented(
+                "osmosis does not support claiming rewards".to_owned(),
+            );
+            assert!(e.contains(&expected_err.to_string()));
+        } else {
+            panic!("Expected stderror");
+        };
+        Ok(())
+    }
+
     // Currently not supported for provide/withdraw and not for stake either
     #[test]
     fn concentrated_liquidity() -> anyhow::Result<()> {
