@@ -5,8 +5,8 @@ use crate::clone_testing::dex::load_abstr;
 use abstract_app::objects::{
     pool_id::PoolAddressBase, AssetEntry, PoolMetadata, PoolType, UncheckedContractEntry,
 };
-use abstract_client::Environment;
-use abstract_interface::{Abstract, ExecuteMsgFns};
+use abstract_client::{AbstractClient, Environment};
+use abstract_interface::ExecuteMsgFns;
 use anyhow::Ok;
 use cosmwasm_std::{coins, Addr};
 use cw_asset::AssetInfoUnchecked;
@@ -113,9 +113,9 @@ impl MockDex for AstroportDex {
         let pair_contract_addr = resp.event_attr_value("wasm", "pair_contract_addr")?;
         let liquidity_token_addr = resp.event_attr_value("wasm", "liquidity_token_addr")?;
 
-        let abstr_deployment = Abstract::load_from(self.chain.clone())?;
+        let abstr_deployment = AbstractClient::new(self.chain.clone())?;
         // Register pair contract address and liquidity token address
-        abstr_deployment.ans_host.update_contract_addresses(
+        abstr_deployment.name_service().update_contract_addresses(
             vec![(
                 UncheckedContractEntry {
                     protocol: self.name(),

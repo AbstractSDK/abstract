@@ -9,10 +9,27 @@ use abstract_core::{
     },
 };
 use abstract_dex_standard::{ans_action::DexAnsAction, msg::DexExecuteMsg};
-use abstract_interface::{Abstract, AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
+use abstract_interface::{AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
 use cosmwasm_std::{coins, Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{anyhow, environment::MutCwEnv, prelude::*};
+
+pub trait MockDex {
+    /// Name of the dex
+    fn name(&self) -> String;
+
+    /// First asset
+    fn asset_a(&self) -> (String, cw_asset::AssetInfoUnchecked);
+
+    /// Second asset
+    fn asset_b(&self) -> (String, cw_asset::AssetInfoUnchecked);
+
+    /// Create pool with asset_a and asset_b
+    /// Returns Pool Entry for ANS and LP asset
+    fn create_pool(
+        &self,
+    ) -> anyhow::Result<(PoolAddressBase<String>, PoolMetadata, AssetInfoUnchecked)>;
+}
 
 pub struct DexTester<Chain: MutCwEnv, Dex: MockDex> {
     pub abstr_deployment: AbstractClient<Chain>,
@@ -42,21 +59,22 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
 
         let lp_asset = {
             let (pool, pool_metadata, lp_asset) = dex.create_pool()?;
-            let abstr = Abstract::load_from(abstr_deployment.environment())?;
             // Add assets
-            abstr
-                .ans_host
+            abstr_deployment
+                .name_service()
                 .update_asset_addresses(vec![dex.asset_a(), dex.asset_b()], vec![])?;
             // Add dex
-            abstr.ans_host.update_dexes(vec![dex.name()], vec![])?;
+            abstr_deployment
+                .name_service()
+                .update_dexes(vec![dex.name()], vec![])?;
             // Add pool
-            abstr
-                .ans_host
+            abstr_deployment
+                .name_service()
                 .update_pools(vec![(pool, pool_metadata)], vec![])?;
             // Add lp asset
             let lp_token = LpToken::new(dex.name(), vec![dex.asset_a().0, dex.asset_b().0]);
-            abstr
-                .ans_host
+            abstr_deployment
+                .name_service()
                 .update_asset_addresses(vec![(lp_token.to_string(), lp_asset.clone())], vec![])?;
             lp_asset
         };
@@ -366,8 +384,10 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         let lp_balance = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
         assert!(!lp_balance.is_zero());
 
-        let ans_host = Abstract::load_from(self.abstr_deployment.environment())?.ans_host;
-        let lp_asset_entry = self.lp_asset.resolve(&ans_host).unwrap();
+        let lp_asset_entry = self
+            .lp_asset
+            .resolve(self.abstr_deployment.name_service())
+            .unwrap();
         // withdraw_liquidity
         self.dex_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
@@ -455,20 +475,4 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
 
         Ok(balance)
     }
-}
-
-pub trait MockDex {
-    /// Name of the dex
-    fn name(&self) -> String;
-
-    /// First asset
-    fn asset_a(&self) -> (String, cw_asset::AssetInfoUnchecked);
-
-    /// Second asset
-    fn asset_b(&self) -> (String, cw_asset::AssetInfoUnchecked);
-
-    /// Create pool with asset_a and asset_b
-    fn create_pool(
-        &self,
-    ) -> anyhow::Result<(PoolAddressBase<String>, PoolMetadata, AssetInfoUnchecked)>;
 }
