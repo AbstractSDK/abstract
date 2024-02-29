@@ -111,7 +111,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
                     action: DexAnsAction::Swap {
                         offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_a), swap_value),
                         ask_asset: AssetEntry::new(&ans_asset_b),
-                        max_spread: Some(Decimal::percent(30)),
+                        max_spread: None,
                         belief_price: None,
                     },
                 },
@@ -134,7 +134,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
                     action: DexAnsAction::Swap {
                         offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_b), balance_b),
                         ask_asset: AssetEntry::new(&ans_asset_a),
-                        max_spread: Some(Decimal::percent(30)),
+                        max_spread: None,
                         belief_price: None,
                     },
                 },

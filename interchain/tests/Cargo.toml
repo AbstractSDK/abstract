@@ -59,5 +59,12 @@ polytone = { workspace = true }
 abstract-scripts = { path = "../scripts" }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
 lazy_static = "1.4.0"
-abstract-dex-adapter = { workspace = true, features = ["testing", "astroport"] }
-astroport = { version = "3.6.1" }
+
+# Clone testing
+abstract-dex-adapter = { workspace = true, features = [
+  "testing",
+  "astroport",
+  "bow",
+] }
+astroport = { version = "3.6" }
+kujira = { version = "0.8" }
