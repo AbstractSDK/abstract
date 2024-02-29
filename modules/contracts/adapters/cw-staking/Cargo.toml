@@ -131,5 +131,7 @@ cw-staking = { path = ".", features = [
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 wyndex-bundle = { workspace = true }
+osmosis-pool = { version = "0.21.0", path = "../../../../integrations/bundles/osmosis-pool" }
+
 cw20 = { workspace = true, features = ["interface"] }
 cw20-base = { workspace = true, features = ["interface"] }

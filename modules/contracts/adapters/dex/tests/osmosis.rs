@@ -2,10 +2,7 @@
 
 use abstract_core::{
     adapter,
-    ans_host::ExecuteMsgFns,
-    objects::{
-        gov_type::GovernanceDetails, pool_id::PoolAddressBase, AnsAsset, AssetEntry, PoolMetadata,
-    },
+    objects::{gov_type::GovernanceDetails, AnsAsset, AssetEntry, LpToken},
 };
 use abstract_dex_adapter::{
     contract::CONTRACT_VERSION,
@@ -139,6 +136,9 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
     }
 }
 
+pub const SWAP_VALUE: u128 = 1_000_000_000u128;
+pub const PROVIDE_VALUE: u128 = SWAP_VALUE;
+
 #[allow(clippy::type_complexity)]
 fn setup_mock() -> anyhow::Result<(
     OsmosisTestTube,
@@ -170,38 +170,29 @@ fn setup_mock() -> anyhow::Result<(
     // install DEX_ADAPTER_ID on OS
     account.install_adapter(&dex_adapter, None)?;
 
-    Ok((
-        chain.call_as(&osmosis_pools.owner),
-        dex_adapter,
-        account,
-        deployment,
-        osmosis_pools,
-    ))
+    Ok((chain, dex_adapter, account, deployment, osmosis_pools))
 }
 
 #[test]
 fn swap() -> AnyResult<()> {
     // We need to deploy a Testube pool
-    let (chain, dex_adapter, os, _abstr, osmosis) = setup_mock()?;
+    let (mut chain, dex_adapter, account, _abstr, osmosis) = setup_mock()?;
 
-    let proxy_addr = os.proxy.address()?;
+    let proxy_addr = account.proxy.address()?;
 
-    let swap_value = 1_000_000_000u128;
-
-    chain.bank_send(
-        proxy_addr.to_string(),
-        coins(swap_value, osmosis.eur_token.clone()),
+    // Before swap, we need to have swap_value eur_token and no other token
+    chain.add_balance(
+        account.proxy.address()?.to_string(),
+        coins(SWAP_VALUE, osmosis.eur_token.clone()),
     )?;
-
-    // Before swap, we need to have 0 uosmo and swap_value uatom
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    assert_eq!(balances, coins(swap_value, osmosis.eur_token.clone()));
+    assert_eq!(balances, coins(SWAP_VALUE, osmosis.eur_token.clone()));
     // swap 100_000 uatom to uosmo
     dex_adapter.swap(
-        (&osmosis.eur_token, swap_value),
+        (&osmosis.eur_token, SWAP_VALUE),
         &osmosis.usd_token,
         OSMOSIS.into(),
-        &os,
+        &account,
     )?;
 
     // Assert balances
@@ -216,62 +207,26 @@ fn swap() -> AnyResult<()> {
 #[test]
 fn swap_concentrated_liquidity() -> AnyResult<()> {
     // We need to deploy a Testube pool
-    let (chain, dex_adapter, os, deployment, osmosis) = setup_mock()?;
+    let (mut chain, dex_adapter, account, _, mut osmosis) = setup_mock()?;
 
-    let proxy_addr = os.proxy.address()?;
+    let proxy_addr = account.proxy.address()?;
 
-    let swap_value = 1_000_000_000u128;
-
-    chain.bank_send(
-        proxy_addr.to_string(),
-        coins(swap_value, osmosis.eur_token.clone()),
+    osmosis.suite.create_concentrated_liquidity_pool(
+        coin(7 * SWAP_VALUE, &osmosis.eur_token),
+        coin(7 * SWAP_VALUE, &osmosis.usd_token),
+        Some("eur2"),
+        Some("usd2"),
     )?;
 
-    let lp = "osmosis/osmo2,atom2";
-    let pool_id = chain.create_pool(vec![
-        coin(1_000, &osmosis.eur_token),
-        coin(1_000, &osmosis.usd_token),
-    ])?;
-
-    deployment
-        .ans_host
-        .update_asset_addresses(
-            vec![
-                (
-                    "osmo2".to_string(),
-                    cw_asset::AssetInfoBase::native(osmosis.usd_token.clone()),
-                ),
-                (
-                    "atom2".to_string(),
-                    cw_asset::AssetInfoBase::native(osmosis.eur_token.clone()),
-                ),
-                (
-                    lp.to_string(),
-                    cw_asset::AssetInfoBase::native(osmosis_pool_token(pool_id)),
-                ),
-            ],
-            vec![],
-        )
-        .unwrap();
-    deployment
-        .ans_host
-        .update_pools(
-            vec![(
-                PoolAddressBase::id(pool_id),
-                PoolMetadata::concentrated_liquidity(
-                    OSMOSIS,
-                    vec!["osmo2".to_string(), "atom2".to_string()],
-                ),
-            )],
-            vec![],
-        )
-        .unwrap();
-
-    // Before swap, we need to have 0 uosmo and swap_value uatom
+    // Before swap, we need to have 0 usd token and swap_value eur token
+    chain.add_balance(
+        account.proxy.address()?.to_string(),
+        coins(SWAP_VALUE, osmosis.eur_token.clone()),
+    )?;
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    assert_eq!(balances, coins(swap_value, &osmosis.eur_token));
+    assert_eq!(balances, coins(SWAP_VALUE, &osmosis.eur_token));
     // swap 100_000 uatom to uosmo
-    dex_adapter.swap(("atom2", swap_value), "osmo2", OSMOSIS.into(), &os)?;
+    dex_adapter.swap(("eur2", SWAP_VALUE), "usd2", OSMOSIS.into(), &account)?;
 
     // Assert balances
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
@@ -285,30 +240,28 @@ fn swap_concentrated_liquidity() -> AnyResult<()> {
 #[test]
 fn provide() -> AnyResult<()> {
     // We need to deploy a Testube pool
-    let (chain, dex_adapter, os, _abstr, osmosis) = setup_mock()?;
+    let (mut chain, dex_adapter, account, _abstr, osmosis) = setup_mock()?;
 
-    let proxy_addr = os.proxy.address()?;
+    let proxy_addr = account.proxy.address()?;
 
-    let provide_value = 1_000_000_000u128;
-
-    // Before providing, we need to have no assets in the proxy
+    // The account must start with 0 balance
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert!(balances.is_empty());
-    chain.bank_send(
+    chain.add_balance(
         proxy_addr.to_string(),
-        coins(provide_value, osmosis.axl_usd_token.clone()),
+        coins(PROVIDE_VALUE, osmosis.axl_usd_token.clone()),
     )?;
-    chain.bank_send(
+    chain.add_balance(
         proxy_addr.to_string(),
-        coins(provide_value, osmosis.usd_token.clone()),
+        coins(PROVIDE_VALUE, osmosis.usd_token.clone()),
     )?;
 
     // provide to the pool
     dex_adapter.provide(
-        (&osmosis.axl_usd_token, provide_value),
-        (&osmosis.usd_token, provide_value),
+        (&osmosis.axl_usd_token, PROVIDE_VALUE),
+        (&osmosis.usd_token, PROVIDE_VALUE),
         OSMOSIS.into(),
-        &os,
+        &account,
     )?;
 
     // After providing, we need to get the liquidity token
@@ -327,30 +280,28 @@ fn provide() -> AnyResult<()> {
 #[test]
 fn withdraw() -> AnyResult<()> {
     // We need to deploy a Testube pool
-    let (chain, dex_adapter, os, _abstr, osmosis) = setup_mock()?;
+    let (mut chain, dex_adapter, account, _abstr, osmosis) = setup_mock()?;
 
-    let proxy_addr = os.proxy.address()?;
-
-    let provide_value = 1_000_000_000u128;
+    let proxy_addr = account.proxy.address()?;
 
     // Before providing, we need to have no assets in the proxy
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     assert!(balances.is_empty());
-    chain.bank_send(
+    chain.add_balance(
         proxy_addr.to_string(),
-        coins(provide_value, osmosis.eur_token.clone()),
+        coins(PROVIDE_VALUE, osmosis.eur_token.clone()),
     )?;
-    chain.bank_send(
+    chain.add_balance(
         proxy_addr.to_string(),
-        coins(provide_value, osmosis.usd_token.clone()),
+        coins(PROVIDE_VALUE, osmosis.usd_token.clone()),
     )?;
 
     // provide to the pool
     dex_adapter.provide(
-        (&osmosis.eur_token, provide_value),
-        (&osmosis.usd_token, provide_value),
+        (&osmosis.eur_token, PROVIDE_VALUE),
+        (&osmosis.usd_token, PROVIDE_VALUE),
         OSMOSIS.into(),
-        &os,
+        &account,
     )?;
 
     // After providing, we need to get the liquidity token
@@ -361,10 +312,14 @@ fn withdraw() -> AnyResult<()> {
 
     // withdraw from the pool
     dex_adapter.withdraw(
-        &format!("osmosis/{},{}", osmosis.eur_token, osmosis.usd_token),
+        &LpToken::new(
+            OSMOSIS,
+            vec![osmosis.eur_token.clone(), osmosis.usd_token.clone()],
+        )
+        .to_string(),
         balance / Uint128::from(2u128),
         OSMOSIS.into(),
-        &os,
+        &account,
     )?;
 
     // After withdrawing, we should get some tokens in return and have some lp token left
