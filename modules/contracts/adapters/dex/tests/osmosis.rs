@@ -21,7 +21,6 @@ use cosmwasm_std::{coin, coins, Decimal, Uint128};
 use cw_orch::{interface, osmosis_test_tube::OsmosisTestTube, prelude::*};
 use osmosis_pool::helpers::osmosis_pool_token;
 use osmosis_pool::OsmosisPools;
-use std::format;
 
 pub fn create_default_account<Chain: CwEnv>(
     factory: &AccountFactory<Chain>,

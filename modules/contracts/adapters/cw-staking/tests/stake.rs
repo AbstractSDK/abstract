@@ -1,3 +1,5 @@
+#![cfg(all(feature = "wynd", feature = "testing"))]
+
 mod common;
 
 use abstract_core::{

@@ -1,3 +1,5 @@
+#![cfg(all(feature = "wynd", feature = "testing"))]
+
 use abstract_core::{
     adapter::AdapterRequestMsg,
     ans_host::QueryMsgFns as _,
