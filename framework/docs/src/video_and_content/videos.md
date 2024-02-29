@@ -18,13 +18,13 @@ Explore the transformative potential of abstraction, focusing on account and cha
 
 *Adair*
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/dqh-wu5cdeg?si=nivd0o4wtli4cvzh" title="youtube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/dqh-wu5cdeg?si=nivd0o4wtli4cvzh&amp;start=2" title="youtube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ### Cw-Orchestrator - The Best Developer Tooling in Cosmos
 
 *Kayanski*
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/-2jjtugd-ns?si=t4kgbzypxzlzgj5k" title="youtube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/-2jjtugd-ns?si=t4kgbzypxzlzgj5k&amp;start=2" title="youtube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 
 ### Why and How to Build on Abstract
