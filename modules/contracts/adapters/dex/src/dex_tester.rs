@@ -279,6 +279,72 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         Ok(())
     }
 
+    pub fn test_provide_liquidity_spread(&self) -> anyhow::Result<()> {
+        let (ans_asset_a, asset_info_a) = self.dex.asset_a();
+        let (ans_asset_b, asset_info_b) = self.dex.asset_b();
+
+        let new_account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<DexAdapter<Chain>>()?
+            .build()?;
+        let proxy_addr = new_account.proxy()?;
+
+        let provide_value = 1_000_000_000u128;
+
+        self.add_proxy_balance(&proxy_addr, &asset_info_a, provide_value)?;
+        self.add_proxy_balance(&proxy_addr, &asset_info_b, provide_value)?;
+
+        let asset_entry_a = AssetEntry::new(&ans_asset_a);
+        let asset_entry_b = AssetEntry::new(&ans_asset_b);
+
+        // Exceed slippage tolerance
+        let exceed_slippage_result = self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::ProvideLiquidity {
+                        assets: vec![
+                            AnsAsset::new(asset_entry_a.clone(), provide_value),
+                            AnsAsset::new(
+                                asset_entry_b.clone(),
+                                Uint128::new(provide_value).mul_floor(Decimal::percent(69)),
+                            ),
+                        ],
+                        max_spread: Some(Decimal::percent(30)),
+                    },
+                },
+            }),
+            None,
+        );
+        assert!(exceed_slippage_result.is_err());
+
+        // Exceed slippage tolerance reverse
+        let exceed_slippage_result = self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::ProvideLiquidity {
+                        assets: vec![
+                            AnsAsset::new(
+                                asset_entry_b,
+                                Uint128::new(provide_value).mul_floor(Decimal::percent(69)),
+                            ),
+                            AnsAsset::new(asset_entry_a, provide_value),
+                        ],
+                        max_spread: Some(Decimal::percent(30)),
+                    },
+                },
+            }),
+            None,
+        );
+        assert!(exceed_slippage_result.is_err());
+
+        Ok(())
+    }
+
     pub fn test_provide_liquidity_symmetric(&self) -> anyhow::Result<()> {
         let (ans_asset_a, asset_info_a) = self.dex.asset_a();
         let (ans_asset_b, asset_info_b) = self.dex.asset_b();
@@ -337,7 +403,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         Ok(())
     }
 
-    pub fn withdraw_liquidity(&self) -> anyhow::Result<()> {
+    pub fn test_withdraw_liquidity(&self) -> anyhow::Result<()> {
         let (ans_asset_a, asset_info_a) = self.dex.asset_a();
         let (ans_asset_b, asset_info_b) = self.dex.asset_b();
 

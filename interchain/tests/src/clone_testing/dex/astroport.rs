@@ -15,9 +15,10 @@ use cw_orch_clone_testing::CloneTesting;
 
 use abstract_dex_adapter::dex_tester::{DexTester, MockDex};
 
-// testnet addr of abstract
+// mainnet addr of abstract
 const SENDER: &str = "neutron1kjzpqv393k4g064xh04j4hwy5d0s03wf7dnt4x";
 
+// https://docs.astroport.fi/docs/develop/smart-contracts/contract-addresses#neutron
 const GENERATOR_ADDR: &str = "neutron1jz58yjay8uq8zkfw95ngyv3m2wfs2zjef9vdz75d9pa46fdtxc5sxtafny";
 const FACTORY_ADDR: &str = "neutron1hptk0k5kng7hjy35vmh009qd5m6l33609nypgf2yc6nqnewduqasxplt4e";
 
@@ -240,9 +241,16 @@ mod native_tests {
     }
 
     #[test]
+    fn test_provide_liquidity_spread() -> anyhow::Result<()> {
+        let dex_tester = setup_native()?;
+        dex_tester.test_provide_liquidity_spread()?;
+        Ok(())
+    }
+
+    #[test]
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_native()?;
-        dex_tester.withdraw_liquidity()?;
+        dex_tester.test_withdraw_liquidity()?;
         Ok(())
     }
 }
@@ -311,9 +319,16 @@ mod cw20_tests {
     }
 
     #[test]
+    fn test_provide_liquidity_spread() -> anyhow::Result<()> {
+        let dex_tester = setup_cw20()?;
+        dex_tester.test_provide_liquidity_spread()?;
+        Ok(())
+    }
+
+    #[test]
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_cw20()?;
-        dex_tester.withdraw_liquidity()?;
+        dex_tester.test_withdraw_liquidity()?;
         Ok(())
     }
 }

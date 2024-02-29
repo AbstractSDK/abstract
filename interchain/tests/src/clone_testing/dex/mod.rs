@@ -1,4 +1,5 @@
 mod astroport;
+mod kujira;
 
 use abstract_client::{AbstractClient, Environment};
 use abstract_interface::{Abstract, VCExecFns};
