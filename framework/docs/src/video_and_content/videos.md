@@ -14,6 +14,19 @@ Explore the transformative potential of abstraction, focusing on account and cha
 <iframe width="560" height="315" src="https://www.youtube.com/embed/8hxx7LN5H2g?si=9BxzI-rDeGTCK-f3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 
+### Abstract SDK - Quadratic Funding Demo
+
+*Adair*
+
+<iframe width="560" height="315" src="https://youtu.be/dqh-wu5cdeg?si=e32mqrzvjuos4clb&amp;start=2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+### Cw-Orchestrator - The Best Developer Tooling in Cosmos
+
+*Kayanski*
+
+<iframe width="560" height="315" src="https://www.youtube.com/watch?v=-2jjtugd-Ns&amp;start=2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+
 ### Why and How to Build on Abstract
 
 *Howard*
