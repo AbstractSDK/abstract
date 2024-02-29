@@ -19,7 +19,7 @@ use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR_USD_LP, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER, WYND_TOKEN};
 
-const WYNDEX: &str = "juno>wyndex";
+const WYNDEX: &str = "cosmos-testnet>wyndex";
 
 use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
 use common::create_default_account;
@@ -30,7 +30,7 @@ fn setup_mock() -> anyhow::Result<(
     CwStakingAdapter<MockBech32>,
     AbstractAccount<MockBech32>,
 )> {
-    let chain = MockBech32::new_with_chain_id("mock", "juno-1");
+    let chain = MockBech32::new("mock");
     let sender = chain.sender();
 
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
