@@ -28,7 +28,13 @@
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
-use abstract_core::objects::{namespace::Namespace, salt::generate_instantiate_salt, AccountId};
+use abstract_core::objects::{
+    module::{ModuleInfo, ModuleVersion},
+    module_reference::ModuleReference,
+    namespace::Namespace,
+    salt::generate_instantiate_salt,
+    AccountId,
+};
 use abstract_interface::{
     Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, RegisteredModule,
     VersionControl,
@@ -289,13 +295,41 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         &self,
         account_id: &AccountId,
     ) -> AbstractClientResult<Addr> {
+        self.module_instantiate2_address_raw(
+            account_id,
+            ModuleInfo::from_id(
+                M::module_id(),
+                ModuleVersion::Version(M::module_version().to_owned()),
+            )?,
+        )
+    }
+
+    /// Get address of instantiate2 module
+    /// Raw version of [`AbstractClient::module_instantiate2_address`]
+    /// If used for upcoming account this supposed to be used in pair with [`AbstractClient::next_local_account_id`]
+    pub fn module_instantiate2_address_raw(
+        &self,
+        account_id: &AccountId,
+        module_info: ModuleInfo,
+    ) -> AbstractClientResult<Addr> {
         let salt = generate_instantiate_salt(account_id);
         let wasm_querier = self.environment().wasm_querier();
-        let creator = self.abstr.module_factory.addr_str()?;
-        let code_id = self.version_control().get_module_code_id(
-            M::module_id(),
-            abstract_core::objects::module::ModuleVersion::Version(M::module_version().to_owned()),
-        )?;
+        let module = self.version_control().module(module_info)?;
+        let (code_id, creator) = match module.reference {
+            // If AccountBase - account factory is creator
+            ModuleReference::AccountBase(id) => (id, self.abstr.account_factory.addr_str()?),
+            // Else module factory is creator
+            ModuleReference::App(id) | ModuleReference::Standalone(id) => {
+                (id, self.abstr.module_factory.addr_str()?)
+            }
+            _ => {
+                return Err(AbstractClientError::Abstract(
+                    abstract_core::AbstractError::Assert(
+                        "module reference not account base, app or standalone".to_owned(),
+                    ),
+                ))
+            }
+        };
 
         let addr = wasm_querier
             .instantiate2_addr(code_id, creator, salt)

@@ -8,6 +8,7 @@ use abstract_app::{
         interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockExecMsgFns,
         MockInitMsg, MockQueryMsgFns, MockQueryResponse,
     },
+    objects::module::ModuleInfo,
     traits::ModuleIdentification,
 };
 use abstract_client::{
@@ -1280,5 +1281,26 @@ fn instantiate2_addr() -> anyhow::Result<()> {
         publisher.account().install_app(&MockInitMsg {}, &[])?;
 
     assert_eq!(application.address()?, expected_addr);
+    Ok(())
+}
+
+#[test]
+fn instantiate2_raw_addr() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let next_seq = client.next_local_account_id()?;
+    let account_id = AccountId::local(next_seq);
+
+    let proxy_addr = client.module_instantiate2_address_raw(
+        &account_id,
+        ModuleInfo::from_id_latest(abstract_core::PROXY)?,
+    )?;
+    let account = client
+        .account_builder()
+        .expected_account_id(next_seq)
+        .build()?;
+
+    assert_eq!(account.proxy()?, proxy_addr);
     Ok(())
 }
