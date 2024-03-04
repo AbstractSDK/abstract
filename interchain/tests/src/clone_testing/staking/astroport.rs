@@ -10,9 +10,7 @@ use cw_orch::daemon::networks::NEUTRON_1;
 use cw_orch::prelude::*;
 use cw_orch_clone_testing::CloneTesting;
 
-use crate::clone_testing::dex::astroport::{
-    FACTORY_ADDR, GENERATOR_ADDR,
-};
+use crate::clone_testing::dex::astroport::{FACTORY_ADDR, GENERATOR_ADDR};
 
 use super::load_abstr;
 
