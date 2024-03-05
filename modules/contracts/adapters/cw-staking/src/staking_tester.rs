@@ -1,18 +1,17 @@
-use crate::{interface::CwStakingAdapter, msg::InstantiateMsg, CW_STAKING_ADAPTER_ID};
-use abstract_client::{AbstractClient, ClientResolve, Environment};
+use crate::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
+use abstract_client::{AbstractClient, Environment};
 use abstract_core::{
     adapter,
     objects::{
         module::{ModuleInfo, ModuleVersion},
-        pool_id::PoolAddressBase,
-        AnsAsset, AssetEntry, LpToken, PoolMetadata,
+        AnsAsset, AssetEntry,
     },
 };
-use abstract_interface::{AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
+use abstract_interface::{AdapterDeployer, DeployStrategy, VCExecFns};
 use abstract_staking_standard::msg::{
     StakeResponse, StakingAction, StakingExecuteMsg, StakingQueryMsg,
 };
-use cosmwasm_std::{coins, Decimal, Uint128};
+use cosmwasm_std::Uint128;
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{anyhow, environment::MutCwEnv, prelude::*};
 
@@ -25,6 +24,12 @@ pub trait MockStaking {
 
     /// Mint lp
     fn mint_lp(&self, addr: &Addr, amount: u128) -> anyhow::Result<()>;
+
+    /// Generate rewards
+    fn generate_rewards(&self, addr: &Addr, amount: u128) -> anyhow::Result<()>;
+
+    /// Reward asset
+    fn reward_asset(&self) -> AssetInfoUnchecked;
 }
 
 pub struct StakingTester<Chain: MutCwEnv, StakingProvider: MockStaking> {
@@ -90,8 +95,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
             }),
             None,
         )?;
-
-        // Assert staked
+        // Ensure staked
         let stake_response: StakeResponse =
             self.staking_adapter
                 .query(&crate::msg::QueryMsg::Module(StakingQueryMsg::Staked {
@@ -105,30 +109,140 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         Ok(())
     }
 
-    fn add_proxy_balance(
-        &self,
-        proxy_addr: &Addr,
-        asset: &AssetInfoUnchecked,
-        amount: u128,
-    ) -> anyhow::Result<()> {
-        let mut chain = self.abstr_deployment.environment();
+    pub fn test_unstake(&self) -> anyhow::Result<()> {
+        let (ans_stake_token, lp_asset) = self.provider.stake_token();
 
-        match asset {
-            cw_asset::AssetInfoBase::Native(denom) => {
-                chain.add_balance(proxy_addr, coins(amount, denom))?;
-            }
-            cw_asset::AssetInfoBase::Cw20(addr) => {
-                chain.execute(
-                    &cw20::Cw20ExecuteMsg::Mint {
-                        recipient: proxy_addr.to_string(),
-                        amount: amount.into(),
+        let new_account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<CwStakingAdapter<Chain>>()?
+            .build()?;
+        let proxy_addr = new_account.proxy()?;
+
+        let stake_value = 1_000_000_000u128;
+
+        self.provider.mint_lp(&proxy_addr, stake_value * 2)?;
+
+        // TODO: unbonding period
+
+        // stake 1_000_000_000 * 2
+        self.staking_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: StakingExecuteMsg {
+                    provider: self.provider.name(),
+                    action: StakingAction::Stake {
+                        assets: vec![AnsAsset::new(ans_stake_token.clone(), stake_value * 2)],
+                        unbonding_period: None,
                     },
-                    &[],
-                    &Addr::unchecked(addr),
-                )?;
-            }
-            _ => unreachable!(),
-        }
+                },
+            }),
+            None,
+        )?;
+
+        // Unstake half
+        self.staking_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: StakingExecuteMsg {
+                    provider: self.provider.name(),
+                    action: StakingAction::Unstake {
+                        assets: vec![AnsAsset::new(ans_stake_token.clone(), stake_value)],
+                        unbonding_period: None,
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        // Ensure user got his lp back
+        let lp_balance = self.query_proxy_balance(&proxy_addr, &lp_asset)?.u128();
+        assert_eq!(lp_balance, stake_value);
+
+        // Unstake rest
+        self.staking_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: StakingExecuteMsg {
+                    provider: self.provider.name(),
+                    action: StakingAction::Unstake {
+                        assets: vec![AnsAsset::new(ans_stake_token.clone(), stake_value)],
+                        unbonding_period: None,
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        // Ensure unstaked
+        let stake_response: StakeResponse =
+            self.staking_adapter
+                .query(&crate::msg::QueryMsg::Module(StakingQueryMsg::Staked {
+                    provider: self.provider.name(),
+                    stakes: vec![ans_stake_token.into()],
+                    staker_address: proxy_addr.to_string(),
+                    unbonding_period: None,
+                }))?;
+
+        assert_eq!(stake_response.amounts, vec![Uint128::zero()]);
+
+        // Ensure user got all of his lp back
+        let lp_balance = self.query_proxy_balance(&proxy_addr, &lp_asset)?.u128();
+        assert_eq!(lp_balance, stake_value * 2);
+
+        Ok(())
+    }
+
+    pub fn test_claim(&self) -> anyhow::Result<()> {
+        let (ans_stake_token, _) = self.provider.stake_token();
+
+        let new_account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<CwStakingAdapter<Chain>>()?
+            .build()?;
+        let proxy_addr = new_account.proxy()?;
+
+        let stake_value = 1_000_000_000u128;
+        let reward_value = 1_000_000u128;
+        self.provider.mint_lp(&proxy_addr, stake_value)?;
+
+        // TODO: unbonding period
+
+        // stake 1_000_000_000
+        self.staking_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: StakingExecuteMsg {
+                    provider: self.provider.name(),
+                    action: StakingAction::Stake {
+                        assets: vec![AnsAsset::new(ans_stake_token.clone(), stake_value)],
+                        unbonding_period: None,
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        self.provider.generate_rewards(&proxy_addr, reward_value)?;
+
+        self.staking_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: StakingExecuteMsg {
+                    provider: self.provider.name(),
+                    action: StakingAction::ClaimRewards {
+                        assets: vec![AssetEntry::new(&ans_stake_token)],
+                    },
+                },
+            }),
+            None,
+        )?;
+        let reward = self
+            .query_proxy_balance(&proxy_addr, &self.provider.reward_asset())?
+            .u128();
+        assert!(reward >= reward_value);
+
         Ok(())
     }
 

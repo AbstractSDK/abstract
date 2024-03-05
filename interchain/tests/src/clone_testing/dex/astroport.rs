@@ -19,8 +19,8 @@ use abstract_dex_adapter::dex_tester::{DexTester, MockDex};
 const SENDER: &str = "neutron1kjzpqv393k4g064xh04j4hwy5d0s03wf7dnt4x";
 
 // https://docs.astroport.fi/docs/develop/smart-contracts/contract-addresses#neutron
-pub const GENERATOR_ADDR: &str =
-    "neutron1jz58yjay8uq8zkfw95ngyv3m2wfs2zjef9vdz75d9pa46fdtxc5sxtafny";
+pub const INCENTIVES_ADDR: &str =
+    "neutron173fd8wpfzyqnfnpwq2zhtgdstujrjz2wkprkjfr6gqg4gknctjyq6m3tch";
 pub const FACTORY_ADDR: &str = "neutron1hptk0k5kng7hjy35vmh009qd5m6l33609nypgf2yc6nqnewduqasxplt4e";
 
 const ASSET_A: &str = "test-asset-one";
@@ -128,7 +128,7 @@ impl MockDex for AstroportDex {
                         asset_b = &self.asset_b.0
                     ),
                 },
-                GENERATOR_ADDR.to_owned(),
+                INCENTIVES_ADDR.to_owned(),
             )],
             vec![],
         )?;
