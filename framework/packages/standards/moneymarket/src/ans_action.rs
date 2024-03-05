@@ -102,24 +102,28 @@ impl Resolve for WholeMoneyMarketAction {
 
         Ok(MoneyMarketRawAction {
             request: match &self.1 {
-                MoneyMarketAnsAction::Deposit { .. } => {
-                    MoneyMarketRawRequest::Deposit { asset: raw_asset.into() }
-                }
-                MoneyMarketAnsAction::Withdraw { .. } => {
-                    MoneyMarketRawRequest::Withdraw { asset: raw_asset.into() }
-                }
+                MoneyMarketAnsAction::Deposit { .. } => MoneyMarketRawRequest::Deposit {
+                    asset: raw_asset.into(),
+                },
+                MoneyMarketAnsAction::Withdraw { .. } => MoneyMarketRawRequest::Withdraw {
+                    asset: raw_asset.into(),
+                },
                 MoneyMarketAnsAction::ProvideCollateral { .. } => {
-                    MoneyMarketRawRequest::ProvideCollateral { asset: raw_asset.into() }
+                    MoneyMarketRawRequest::ProvideCollateral {
+                        asset: raw_asset.into(),
+                    }
                 }
                 MoneyMarketAnsAction::WithdrawCollateral { .. } => {
-                    MoneyMarketRawRequest::WithdrawCollateral { asset: raw_asset.into() }
+                    MoneyMarketRawRequest::WithdrawCollateral {
+                        asset: raw_asset.into(),
+                    }
                 }
-                MoneyMarketAnsAction::Borrow { .. } => {
-                    MoneyMarketRawRequest::Borrow { asset: raw_asset.into() }
-                }
-                MoneyMarketAnsAction::Repay { .. } => {
-                    MoneyMarketRawRequest::Repay { asset: raw_asset.into() }
-                }
+                MoneyMarketAnsAction::Borrow { .. } => MoneyMarketRawRequest::Borrow {
+                    asset: raw_asset.into(),
+                },
+                MoneyMarketAnsAction::Repay { .. } => MoneyMarketRawRequest::Repay {
+                    asset: raw_asset.into(),
+                },
             },
             contract_addr: contract_addr.to_string(),
         })

@@ -1,9 +1,9 @@
 use abstract_adapter_utils::identity::Identify;
 
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Uint128};
-use cw_asset::{Asset};
+use cw_asset::Asset;
 
-use crate::{error::MoneyMarketError};
+use crate::error::MoneyMarketError;
 
 pub type Return = Uint128;
 pub type Spread = Uint128;
