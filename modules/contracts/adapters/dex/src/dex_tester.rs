@@ -151,6 +151,111 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         Ok(())
     }
 
+    pub fn test_swap_slippage(
+        &self,
+        belief_price_a_to_b: Decimal,
+        belief_price_b_to_a: Decimal,
+    ) -> anyhow::Result<()> {
+        let (ans_asset_a, asset_info_a) = self.dex.asset_a();
+        let (ans_asset_b, asset_info_b) = self.dex.asset_b();
+
+        let new_account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<DexAdapter<Chain>>()?
+            .build()?;
+        let proxy_addr = new_account.proxy()?;
+
+        let swap_value = 1_000_000_000u128;
+
+        self.add_proxy_balance(&proxy_addr, &asset_info_a, swap_value)?;
+
+        // swap 1_000_000_000 asset_a to asset_b
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::Swap {
+                        offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_a), swap_value),
+                        ask_asset: AssetEntry::new(&ans_asset_b),
+                        max_spread: Some(Decimal::percent(10)),
+                        belief_price: Some(belief_price_a_to_b),
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        // Assert balances
+        let balance_a = self.query_proxy_balance(&proxy_addr, &asset_info_a)?;
+        assert!(balance_a.is_zero());
+        let balance_b = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
+        assert!(!balance_b.is_zero());
+
+        // swap balance_b asset_b to asset_a
+        self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::Swap {
+                        offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_b), balance_b),
+                        ask_asset: AssetEntry::new(&ans_asset_a),
+                        max_spread: Some(Decimal::percent(10)),
+                        belief_price: Some(belief_price_b_to_a),
+                    },
+                },
+            }),
+            None,
+        )?;
+
+        // Assert balances
+        let balance_a = self.query_proxy_balance(&proxy_addr, &asset_info_a)?;
+        assert!(!balance_a.is_zero());
+        let balance_b = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
+        assert!(balance_b.is_zero());
+
+        // And invalid slippages
+        // Add proxy balance, to make sure it's not the case of a failure
+        self.add_proxy_balance(&proxy_addr, &asset_info_a, swap_value)?;
+        let res = self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::Swap {
+                        offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_a), swap_value),
+                        ask_asset: AssetEntry::new(&ans_asset_b),
+                        max_spread: Some(Decimal::percent(10)),
+                        belief_price: Some(Decimal::from_ratio(42u128, 1u128)),
+                    },
+                },
+            }),
+            None,
+        );
+        assert!(res.is_err());
+
+        // swap balance_b asset_b to asset_a
+        let res = self.dex_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::Swap {
+                        offer_asset: AnsAsset::new(AssetEntry::new(&ans_asset_b), balance_b),
+                        ask_asset: AssetEntry::new(&ans_asset_a),
+                        max_spread: Some(Decimal::percent(10)),
+                        belief_price: Some(Decimal::from_ratio(42u128, 1u128)),
+                    },
+                },
+            }),
+            None,
+        );
+        assert!(res.is_err());
+        Ok(())
+    }
+
     pub fn test_provide_liquidity_two_sided(&self) -> anyhow::Result<()> {
         let (ans_asset_a, asset_info_a) = self.dex.asset_a();
         let (ans_asset_b, asset_info_b) = self.dex.asset_b();

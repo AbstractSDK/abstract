@@ -25,7 +25,7 @@ pub const FACTORY_ADDR: &str = "neutron1hptk0k5kng7hjy35vmh009qd5m6l33609nypgf2y
 
 const ASSET_A: &str = "test-asset-one";
 const ASSET_B: &str = "test-asset-two";
-const ASSET_AMOUNT: u128 = 1_000_000_000_000;
+const ASSET_AMOUNT: u128 = 1_000_000_000_000_000_000;
 
 pub struct AstroportDex {
     chain: CloneTesting,
@@ -138,7 +138,7 @@ impl MockDex for AstroportDex {
         // Add some liquidity
         let assets = vec![
             astroport::asset::Asset::new(asset_1_astroport, ASSET_AMOUNT),
-            astroport::asset::Asset::new(asset_2_astroport, ASSET_AMOUNT),
+            astroport::asset::Asset::new(asset_2_astroport, ASSET_AMOUNT / 2),
         ];
         let amount = coins_in_astroport_assets(&assets);
         self.add_sender_balance()?;
@@ -196,6 +196,8 @@ fn coins_in_astroport_assets(assets: &[astroport::asset::Asset]) -> Vec<Coin> {
 
 mod native_tests {
 
+    use cosmwasm_std::Decimal;
+
     use super::*;
 
     fn setup_native() -> anyhow::Result<DexTester<CloneTesting, AstroportDex>> {
@@ -225,6 +227,16 @@ mod native_tests {
     fn test_swap() -> anyhow::Result<()> {
         let dex_tester = setup_native()?;
         dex_tester.test_swap()?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_swap_slippage() -> anyhow::Result<()> {
+        let dex_tester = setup_native()?;
+        dex_tester.test_swap_slippage(
+            Decimal::from_ratio(2u128, 1u128),
+            Decimal::from_ratio(1u128, 2u128),
+        )?;
         Ok(())
     }
 

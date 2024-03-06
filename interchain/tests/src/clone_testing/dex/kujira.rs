@@ -8,7 +8,7 @@ use abstract_app::objects::{
 use abstract_client::{AbstractClient, Environment};
 use abstract_interface::ExecuteMsgFns;
 use anyhow::Ok;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Decimal};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::daemon::networks::HARPOON_4;
 use cw_orch_clone_testing::CloneTesting;
@@ -117,6 +117,14 @@ fn setup() -> anyhow::Result<DexTester<CloneTesting, KujiraDex>> {
 fn test_swap() -> anyhow::Result<()> {
     let dex_tester = setup()?;
     dex_tester.test_swap()?;
+    Ok(())
+}
+
+#[test]
+fn test_swap_slippage() -> anyhow::Result<()> {
+    let dex_tester = setup()?;
+    // This demo pool is 1:1
+    dex_tester.test_swap_slippage(Decimal::one(), Decimal::one())?;
     Ok(())
 }
 
