@@ -91,16 +91,18 @@ pub enum HostAction {
     Dispatch {
         manager_msg: manager::ExecuteMsg,
     },
-    /// Executes an action on the module with the corresponding module id on another chain
-    Module {
-        source_module: ModuleInfo,
-        target_module: ModuleInfo,
-        msg: Binary,
-    },
     /// Can't be called by an account directly. These are permissioned messages that only the IBC Client is allowed to call by itself.
     Internal(InternalAction),
     /// Some helpers that allow calling dispatch messages faster (for actions that are called regularly)
     Helpers(HelperAction),
+}
+
+/// Executes an action on the module with the corresponding module id on another chain
+#[cosmwasm_schema::cw_serde]
+pub struct HostModuleAction {
+    source_module: ModuleInfo,
+    target_module: ModuleInfo,
+    msg: Binary,
 }
 
 /// Interface to the Host.

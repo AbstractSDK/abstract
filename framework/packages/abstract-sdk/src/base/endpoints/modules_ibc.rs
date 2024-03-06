@@ -27,10 +27,6 @@ pub trait ModuleIbcEndpoint: Handler {
             .into());
         };
 
-        // Only a whitelisted chain can call this endpoint
-        /// TODO
-        ///
-        ///
         let maybe_handler = self.maybe_module_ibc_handler();
         maybe_handler.map_or_else(
             || Ok(Response::new()),

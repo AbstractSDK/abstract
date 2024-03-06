@@ -59,7 +59,7 @@ pub mod mock {
     pub enum MockExecMsg {
         DoSomething {},
         DoSomethingAdmin {},
-        DoSomethingIbc {},
+        DoSomethingIbc { remote_chain: ChainName },
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -148,13 +148,13 @@ pub mod mock {
                 Ok(Response::new().set_data("mock_init".as_bytes()))
             })
             .with_execute(|deps, _, _, app, msg| match msg {
-                MockExecMsg::DoSomethingIbc {} => {
+                MockExecMsg::DoSomethingIbc { remote_chain } => {
                     let ibc_client_addr = app.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
                     // We send an IBC Client module message
                     let msg = wasm_execute(
                         ibc_client_addr,
                         &ibc_client::ExecuteMsg::RemoteAction {
-                            host_chain: (),
+                            host_chain: remote_chain,
                             action: (),
                             callback_info: (),
                         },

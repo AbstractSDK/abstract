@@ -5,7 +5,7 @@ use polytone::callbacks::CallbackMessage;
 use self::state::IbcInfrastructure;
 use crate::{
     ibc::CallbackInfo,
-    ibc_host::HostAction,
+    ibc_host::{HostAction, HostModuleAction},
     manager::ModuleInstallConfig,
     objects::{account::AccountId, chain_name::ChainName, module::ModuleInfo, AssetEntry},
 };
@@ -99,6 +99,11 @@ pub enum ExecuteMsg {
         base_asset: Option<AssetEntry>,
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
+    },
+    ModuleIbcAction {
+        host_chain: String,
+        action: HostModuleAction,
+        callback_info: Option<CallbackInfo>,
     },
     RemoteAction {
         // host chain to be executed on
