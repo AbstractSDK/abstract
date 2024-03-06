@@ -1,7 +1,7 @@
 use abstract_adapter_utils::identity::Identify;
 
-use cosmwasm_std::{Addr, CosmosMsg, Deps, Uint128};
-use cw_asset::Asset;
+use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, Uint128};
+use cw_asset::{Asset, AssetInfo};
 
 use crate::error::MoneyMarketError;
 
@@ -62,4 +62,50 @@ pub trait MoneyMarketCommand: Identify {
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneyMarketError>;
+
+    //*****************   Queries   ****************/
+    fn price(
+        &self,
+        deps: Deps,
+        base: AssetInfo,
+        quote: AssetInfo,
+    ) -> Result<Decimal, MoneyMarketError>;
+
+    fn user_deposit(
+        &self,
+        deps: Deps,
+        contract_addr: Addr,
+        user: String,
+        asset: AssetInfo,
+    ) -> Result<Decimal, MoneyMarketError>;
+
+    fn user_collateral(
+        &self,
+        deps: Deps,
+        contract_addr: Addr,
+        user: String,
+        asset: AssetInfo,
+    ) -> Result<Decimal, MoneyMarketError>;
+
+    fn user_borrow(
+        &self,
+        deps: Deps,
+        contract_addr: Addr,
+        user: String,
+        asset: AssetInfo,
+    ) -> Result<Decimal, MoneyMarketError>;
+
+    fn current_ltv(
+        &self,
+        deps: Deps,
+        contract_addr: Addr,
+        user: String,
+    ) -> Result<Decimal, MoneyMarketError>;
+
+    fn max_ltv(
+        &self,
+        deps: Deps,
+        contract_addr: Addr,
+        user: String,
+    ) -> Result<Decimal, MoneyMarketError>;
 }

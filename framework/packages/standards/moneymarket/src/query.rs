@@ -1,3 +1,4 @@
+use cw_asset::AssetInfoBase;
 
 /// Possible raw queries to run on the Money Market
 #[cosmwasm_schema::cw_serde]
@@ -15,13 +16,6 @@ pub enum MoneyMarketRawQuery {
         user: String,
         /// Collateral asset to query
         asset: AssetInfoBase<String>,
-    },
-    /// Price of an asset compared to another asset
-    /// The returned decimal corresponds to
-    /// How much quote assets can be bought with 1 base asset
-    Price {
-        quote: AssetInfoBase<String>,
-        base: AssetInfoBase<String>,
     },
     /// Borrowed funds
     UserBorrow {
@@ -43,4 +37,13 @@ pub enum MoneyMarketRawQuery {
         /// User that has borrowed some funds
         user: String,
     },
+    /// Price of an asset compared to another asset
+    /// The returned decimal corresponds to
+    /// How much quote assets can be bought with 1 base asset
+    Price {
+        quote: AssetInfoBase<String>,
+        base: AssetInfoBase<String>,
+    },
 }
+
+pub struct UserMoneyMarketPosition {}

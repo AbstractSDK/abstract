@@ -3,6 +3,7 @@ mod error;
 
 pub mod ans_action;
 pub mod msg;
+pub mod query;
 pub mod raw_action;
 #[cfg(feature = "testing")]
 pub mod tests;
