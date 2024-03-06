@@ -2,6 +2,8 @@ use cosmwasm_std::{to_json_binary, wasm_execute, Binary, CosmosMsg, StdResult};
 use polytone::callbacks::Callback;
 use schemars::JsonSchema;
 
+use crate::objects::AccountId;
+
 // CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client
 #[cosmwasm_schema::cw_serde]
 pub struct CallbackInfo {
@@ -22,6 +24,9 @@ pub struct IbcResponseMsg {
     /// The msg sent with the callback request.
     /// This is usually used to provide information to the ibc callback function for context
     pub msg: Option<Binary>,
+    /// The account id of the sender of the original IBC message
+    /// This is verified by the ibc-client and can be trusted inside applications
+    pub sender: AccountId,
     pub result: Callback,
 }
 
@@ -49,6 +54,6 @@ impl IbcResponseMsg {
 /// This is just a helper to properly serialize the above message.
 /// The actual receiver should include this variant in the larger ExecuteMsg enum
 #[cosmwasm_schema::cw_serde]
-enum IbcCallbackMsg {
+pub(crate) enum IbcCallbackMsg {
     IbcCallback(IbcResponseMsg),
 }

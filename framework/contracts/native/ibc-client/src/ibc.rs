@@ -88,12 +88,16 @@ pub fn receive_action_callback(
                     .add_attribute("chain", host_chain.to_string()),
             )
         }
-        IbcClientCallback::UserRemoteAction(callback_info) => {
+        IbcClientCallback::UserRemoteAction {
+            sender,
+            callback_info,
+        } => {
             // Here we transfer the callback back to the module that requested it
             let callback = IbcResponseMsg {
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
                 result: callback.result,
+                sender,
             };
             Ok(IbcClientResponse::action("user_specific_callback")
                 .add_message(callback.into_cosmos_msg(callback_info.receiver)?)

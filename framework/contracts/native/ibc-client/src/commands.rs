@@ -6,8 +6,8 @@ use abstract_core::{
         state::{IbcInfrastructure, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
-    ibc_host, manager,
-    manager::ModuleInstallConfig,
+    ibc_host,
+    manager::{self, ModuleInstallConfig},
     objects::{chain_name::ChainName, AccountId, AssetEntry},
     version_control::AccountBase,
 };
@@ -221,7 +221,11 @@ pub fn execute_send_packet(
 
     let callback_request = callback_info.map(|c| CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_json_binary(&IbcClientCallback::UserRemoteAction(c)).unwrap(),
+        msg: to_json_binary(&IbcClientCallback::UserRemoteAction {
+            sender: account_id.clone(),
+            callback_info: c,
+        })
+        .unwrap(),
     });
 
     let note_message = send_remote_host_action(
@@ -240,15 +244,28 @@ pub fn execute_send_packet(
 pub fn execute_send_query(
     deps: DepsMut,
     env: Env,
+    info: MessageInfo,
     host_chain: String,
     queries: Vec<QueryRequest<Empty>>,
     callback_info: CallbackInfo,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
+    let cfg = CONFIG.load(deps.storage)?;
+
+    // Verify that the sender is a proxy contract
+    let account_base = cfg
+        .version_control
+        .assert_proxy(&info.sender, &deps.querier)?;
+    // get account_id
+    let account_id = account_base.account_id(deps.as_ref())?;
 
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info)).unwrap(),
+        msg: to_json_binary(&IbcClientCallback::UserRemoteAction {
+            sender: account_id,
+            callback_info,
+        })
+        .unwrap(),
     };
 
     let note_message =

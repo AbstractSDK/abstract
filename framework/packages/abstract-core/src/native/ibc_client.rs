@@ -132,8 +132,13 @@ pub enum ExecuteMsg {
 /// This enum is used for sending callbacks to the note contract of the IBC client
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
-    UserRemoteAction(CallbackInfo),
-    CreateAccount { account_id: AccountId },
+    UserRemoteAction {
+        sender: AccountId,
+        callback_info: CallbackInfo,
+    },
+    CreateAccount {
+        account_id: AccountId,
+    },
     WhoAmI {},
 }
 
@@ -243,8 +248,9 @@ mod tests {
     use polytone::callbacks::Callback;
     use speculoos::prelude::*;
 
+    use crate::ibc::IbcCallbackMsg;
     use crate::ibc::IbcResponseMsg;
-
+    use crate::objects::AccountId;
     // ... (other test functions)
 
     #[test]
@@ -259,20 +265,19 @@ mod tests {
             id: callback_id,
             msg: Some(callback_msg),
             result,
+            sender: AccountId::local(1),
         };
 
-        let actual: CosmosMsg<Empty> = response_msg.into_cosmos_msg(receiver.clone()).unwrap();
+        let actual: CosmosMsg<Empty> = response_msg
+            .clone()
+            .into_cosmos_msg(receiver.clone())
+            .unwrap();
 
-        assert_that!(actual).matches(|e| {
-            matches!(
-                e,
-                CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
-                    contract_addr: _receiver,
-                    // we can't test the message because the fields in it are private
-                    msg: _,
-                    funds: _
-                })
-            )
-        });
+        assert_that!(actual).is_equal_to(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
+            contract_addr: receiver,
+            // we can't test the message because the fields in it are private
+            msg: to_json_binary(&IbcCallbackMsg::IbcCallback(response_msg)).unwrap(),
+            funds: vec![],
+        }))
     }
 }

@@ -70,7 +70,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             host_chain,
             queries,
             callback_info,
-        } => commands::execute_send_query(deps, env, host_chain, queries, callback_info),
+        } => commands::execute_send_query(deps, env, info, host_chain, queries, callback_info),
         ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
             commands::execute_register_infrastructure(deps, env, info, chain, host, note)
         }
@@ -462,7 +462,7 @@ mod tests {
             manager,
             objects::{
                 account::TEST_ACCOUNT_ID, chain_name::ChainName,
-                version_control::VersionControlError,
+                version_control::VersionControlError, AccountId,
             },
         };
         use abstract_testing::prelude::{
@@ -632,7 +632,10 @@ mod tests {
             };
 
             let callback_request = CallbackRequest {
-                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info.clone()))?,
+                msg: to_json_binary(&IbcClientCallback::UserRemoteAction {
+                    callback_info: callback_info.clone(),
+                    sender: AccountId::local(1),
+                })?,
                 receiver: mock_env().contract.address.to_string(),
             };
 
@@ -675,7 +678,10 @@ mod tests {
     mod remote_query {
         use std::str::FromStr;
 
-        use abstract_core::{ibc::CallbackInfo, objects::chain_name::ChainName};
+        use abstract_core::{
+            ibc::CallbackInfo,
+            objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
+        };
         use cosmwasm_std::{wasm_execute, BankQuery, Binary, QueryRequest};
         use polytone::callbacks::CallbackRequest;
 
@@ -709,7 +715,10 @@ mod tests {
             };
 
             let callback_request = CallbackRequest {
-                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info.clone()))?,
+                msg: to_json_binary(&IbcClientCallback::UserRemoteAction {
+                    sender: TEST_ACCOUNT_ID,
+                    callback_info: callback_info.clone(),
+                })?,
                 receiver: mock_env().contract.address.to_string(),
             };
 
@@ -723,7 +732,7 @@ mod tests {
                 callback_info,
             };
 
-            let res = execute_as(deps.as_mut(), "sender", msg)?;
+            let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
 
             let note_message = wasm_execute(
                 note_contract.to_string(),
@@ -1132,7 +1141,7 @@ mod tests {
 
         use abstract_core::{
             ibc::{CallbackInfo, IbcResponseMsg},
-            objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
+            objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName, AccountId},
         };
         use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
         use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
@@ -1525,13 +1534,14 @@ mod tests {
             let receiver = String::from("receiver");
             let callback_msg = CallbackMessage {
                 initiator: env.contract.address,
-                initiator_msg: to_json_binary(&IbcClientCallback::UserRemoteAction(
-                    CallbackInfo {
+                initiator_msg: to_json_binary(&IbcClientCallback::UserRemoteAction {
+                    callback_info: CallbackInfo {
                         id: id.clone(),
                         msg: Some(callback_info_msg.clone()),
                         receiver: receiver.clone(),
                     },
-                ))?,
+                    sender: AccountId::local(1),
+                })?,
                 result: Callback::Execute(Ok(ExecutionResponse {
                     executed_by: remote_proxy.clone(),
                     result: vec![],
@@ -1548,6 +1558,7 @@ mod tests {
                             id: id.clone(),
                             msg: Some(callback_info_msg),
                             result: callback_msg.result,
+                            sender: AccountId::local(1)
                         }
                         .into_cosmos_msg(receiver)?
                     )

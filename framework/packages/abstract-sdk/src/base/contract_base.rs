@@ -1,3 +1,4 @@
+use abstract_core::objects::AccountId;
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
@@ -29,7 +30,6 @@ pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
     fn(Deps, Env, &Module, CustomQueryMsg) -> Result<Binary, Error>;
 // ANCHOR_END: query
 
-type CallbackId = String;
 type CallbackMessage = Option<Binary>;
 // ANCHOR: ibc
 /// Function signature for an IBC callback handler.
@@ -38,7 +38,7 @@ pub type IbcCallbackHandlerFn<Module, Error> = fn(
     Env,
     MessageInfo,
     Module,
-    CallbackId,
+    AccountId,
     CallbackMessage,
     Callback,
 ) -> Result<Response, Error>;
