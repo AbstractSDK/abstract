@@ -1,10 +1,14 @@
 use abstract_core::{
     ibc::ModuleIbcMsg,
+    ibc_client::InstalledModuleIdentification,
     ibc_host::{
         state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
         HelperAction,
     },
-    objects::{chain_name::ChainName, module::ModuleInfo, AccountId},
+    manager,
+    objects::{
+        chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
+    },
 };
 use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
 use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
@@ -12,6 +16,7 @@ use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
 use crate::{
     account_commands::{self, receive_dispatch, receive_register, receive_send_all_back},
     contract::HostResult,
+    HostError,
 };
 
 use abstract_core::base::ExecuteMsg as MiddlewareExecMsg;
@@ -114,17 +119,48 @@ pub fn handle_host_module_action(
     deps: DepsMut,
     env: Env,
     client_chain: ChainName,
-    source_module: ModuleInfo,
-    target_module: ModuleInfo,
+    source_module: InstalledModuleIdentification,
+    target_module: InstalledModuleIdentification,
     msg: Binary,
 ) -> HostResult {
     // We resolve the target module
     let vc = CONFIG.load(deps.storage)?.version_control;
-    let target_module_resolved = vc.query_module(target_module, &deps.querier)?;
+    let target_module_resolved =
+        vc.query_module(target_module.module_info.clone(), &deps.querier)?;
+
+    let target_addr = match target_module_resolved.reference {
+        ModuleReference::AccountBase(_) => {
+            return Err(HostError::WrongModuleAction(target_module.module_info.id()))
+        }
+        ModuleReference::Native(_) => {
+            return Err(HostError::WrongModuleAction(target_module.module_info.id()))
+        }
+        ModuleReference::Adapter(addr) => addr,
+        ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
+            let account_base = vc.account_base(
+                &source_module
+                    .account_id
+                    .clone()
+                    .ok_or(HostError::AccountIdNotSpecified {})?,
+                &deps.querier,
+            )?;
+
+            let module_info: manager::ModuleAddressesResponse = deps.querier.query_wasm_smart(
+                account_base.manager,
+                &manager::QueryMsg::ModuleAddresses {
+                    ids: vec![source_module.module_info.id()],
+                },
+            )?;
+            module_info.modules[0].1.clone()
+        }
+        _ => unimplemented!(
+            "This module type didn't exist when implementing module-to-module interactions"
+        ),
+    };
 
     // We pass the message on to the module
     let msg = wasm_execute(
-        target_module_resolved.reference.unwrap_addr()?,
+        target_addr,
         &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
             client_chain,
             source_module,

@@ -1,11 +1,11 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Empty, QueryRequest};
+use cosmwasm_std::{Addr, Binary, Coin, Empty, QueryRequest};
 use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
 use crate::{
     ibc::CallbackInfo,
-    ibc_host::{HostAction, HostModuleAction},
+    ibc_host::HostAction,
     manager::ModuleInstallConfig,
     objects::{account::AccountId, chain_name::ChainName, module::ModuleInfo, AssetEntry},
 };
@@ -102,7 +102,9 @@ pub enum ExecuteMsg {
     },
     ModuleIbcAction {
         host_chain: String,
-        action: HostModuleAction,
+        source_module: InstalledModuleIdentification,
+        target_module: InstalledModuleIdentification,
+        msg: Binary,
         callback_info: Option<CallbackInfo>,
     },
     RemoteAction {
@@ -139,13 +141,22 @@ pub enum ExecuteMsg {
 pub enum IbcClientCallback {
     UserRemoteAction(CallbackInfo),
     ModuleRemoteAction {
+        sender_module: InstalledModuleIdentification,
         callback_info: CallbackInfo,
-        target_module: ModuleInfo,
     },
     CreateAccount {
         account_id: AccountId,
     },
     WhoAmI {},
+}
+
+/// This is used for identifying calling modules
+/// For adapters, we don't need the account id because it's independent of an account
+/// For apps and standalone, the account id is used to identify the calling module
+#[cosmwasm_schema::cw_serde]
+pub struct InstalledModuleIdentification {
+    pub module_info: ModuleInfo,
+    pub account_id: Option<AccountId>,
 }
 
 #[cosmwasm_schema::cw_serde]

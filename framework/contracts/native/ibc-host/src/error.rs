@@ -42,6 +42,14 @@ pub enum HostError {
 
     #[error("Chain or proxy address already registered.")]
     ProxyAddressExists {},
+
+    #[error("Can't send a module-to-module packet to {0}")]
+    WrongModuleAction(String),
+
+    #[error(
+        "You need to specify an account id for an account-specific module (apps and standalone)"
+    )]
+    AccountIdNotSpecified {},
 }
 
 impl From<semver::Error> for HostError {

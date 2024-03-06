@@ -97,6 +97,22 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::Callback(c) => {
             ibc::receive_action_callback(deps, env, info, c).map_err(Into::into)
         }
+        ExecuteMsg::ModuleIbcAction {
+            host_chain,
+            source_module,
+            target_module,
+            msg,
+            callback_info,
+        } => commands::execute_send_module_to_module_packet(
+            deps,
+            env,
+            info,
+            host_chain,
+            source_module,
+            target_module,
+            msg,
+            callback_info,
+        ),
     }
 }
 

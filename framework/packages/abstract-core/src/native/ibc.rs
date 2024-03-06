@@ -5,6 +5,7 @@ use schemars::JsonSchema;
 
 use crate::{
     base::ExecuteMsg,
+    ibc_client::InstalledModuleIdentification,
     objects::{chain_name::ChainName, module::ModuleInfo},
 };
 
@@ -62,6 +63,6 @@ enum IbcCallbackMsg {
 #[cw_serde]
 pub struct ModuleIbcMsg {
     pub client_chain: ChainName,
-    pub source_module: ModuleInfo,
+    pub source_module: InstalledModuleIdentification,
     pub msg: Binary,
 }

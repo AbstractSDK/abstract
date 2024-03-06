@@ -11,6 +11,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 
 use crate::{
+    ibc_client::InstalledModuleIdentification,
     manager::{self, ModuleInstallConfig},
     objects::{account::AccountId, chain_name::ChainName, module::ModuleInfo, AssetEntry},
 };
@@ -97,14 +98,6 @@ pub enum HostAction {
     Helpers(HelperAction),
 }
 
-/// Executes an action on the module with the corresponding module id on another chain
-#[cosmwasm_schema::cw_serde]
-pub struct HostModuleAction {
-    source_module: ModuleInfo,
-    target_module: ModuleInfo,
-    msg: Binary,
-}
-
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
@@ -136,8 +129,8 @@ pub enum ExecuteMsg {
     },
     /// Allows for remote execution from the Polytone implementation on a local module
     ModuleExecute {
-        source_module: ModuleInfo,
-        target_module: ModuleInfo,
+        source_module: InstalledModuleIdentification,
+        target_module: InstalledModuleIdentification,
         msg: Binary,
     },
 }

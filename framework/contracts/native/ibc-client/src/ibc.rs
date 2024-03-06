@@ -100,10 +100,10 @@ pub fn receive_action_callback(
                 .add_attribute("chain", host_chain.to_string())
                 .add_attribute("callback_id", callback_info.id))
         }
-        // TODO, find a better structure (should we separate module and user callbacks ?)
         IbcClientCallback::ModuleRemoteAction {
             callback_info,
-            target_module,
+            // TODO This will be used when the sender is part of the callback msg (https://github.com/AbstractSDK/abstract/pull/277)
+            sender_module,
         } => {
             let callback = IbcResponseMsg {
                 id: callback_info.id.clone(),
