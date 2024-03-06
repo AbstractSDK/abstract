@@ -43,13 +43,12 @@ pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClie
     let gas_denom = chain.gas_denom;
     let mut app = CloneTesting::new(rt(), chain)?;
     // Make sure sender have enough gas
-    app.add_balance(&sender, coins(1_000_000_000_000, gas_denom))?;
+    app.add_balance(&sender, coins(1_000_000_000_000_000, gas_denom))?;
     app.set_sender(sender);
 
     let abstr_deployment = AbstractClient::new(app)?;
 
     // Migrate if needed
-    // TODO: can we expose it somehow for client?
     {
         let deployment = Abstract::load_from(abstr_deployment.environment())?;
         deployment.migrate_if_version_changed()?;
