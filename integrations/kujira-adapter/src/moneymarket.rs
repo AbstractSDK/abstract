@@ -1,5 +1,8 @@
 use abstract_moneymarket_standard::Identify;
-use kujira::ghost::{basic_vault, market};
+use kujira::ghost::{
+    basic_vault,
+    market::{self, PositionResponse},
+};
 
 use crate::{AVAILABLE_CHAINS, KUJIRA};
 
@@ -16,6 +19,7 @@ impl Identify for Kujira {
     }
 }
 
+use kujira::KujiraQuerier;
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_moneymarket_standard::{
@@ -135,16 +139,30 @@ impl MoneyMarketCommand for Kujira {
         base: AssetInfo,
         quote: AssetInfo,
     ) -> Result<Decimal, MoneyMarketError> {
-        todo!()
+        let base_denom = base.to_string();
+        let quote_denom = quote.to_string();
+
+        let raw_base_price = KujiraQuerier::new(&deps.querier).query_exchange_rate(base_denom)?;
+        // This is how much 1 unit of base is in terms of $
+        let base_price = raw_base_price.normalize(6);
+
+        let raw_quote_price = KujiraQuerier::new(&deps.querier).query_exchange_rate(base_denom)?;
+        // This is how much 1 unit of quote is in terms of $
+        let quote_price = raw_quote_price.normalize(6);
+
+        // This is how much 1 unit of base is in terms of quote
+        Ok((base_price / quote_price).inner())
     }
 
     fn user_deposit(
         &self,
         deps: Deps,
         contract_addr: Addr,
-        user: String,
+        user: Addr,
         asset: AssetInfo,
-    ) -> Result<Decimal, MoneyMarketError> {
+    ) -> Result<Uint128, MoneyMarketError> {
+        // We query the xToken balance
+
         todo!()
     }
 
@@ -152,38 +170,65 @@ impl MoneyMarketCommand for Kujira {
         &self,
         deps: Deps,
         contract_addr: Addr,
-        user: String,
+        user: Addr,
         asset: AssetInfo,
-    ) -> Result<Decimal, MoneyMarketError> {
-        todo!()
+    ) -> Result<Uint128, MoneyMarketError> {
+        let market_msg = market::QueryMsg::Position { holder: user };
+
+        let query_response: market::PositionResponse =
+            deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
+
+        Ok(query_response.collateral_amount)
     }
 
     fn user_borrow(
         &self,
         deps: Deps,
         contract_addr: Addr,
-        user: String,
+        user: Addr,
         asset: AssetInfo,
-    ) -> Result<Decimal, MoneyMarketError> {
-        todo!()
+    ) -> Result<Uint128, MoneyMarketError> {
+        let market_msg = market::QueryMsg::Position { holder: user };
+
+        let query_response: market::PositionResponse =
+            deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
+
+        Ok(query_response.debt_shares)
     }
 
     fn current_ltv(
         &self,
         deps: Deps,
         contract_addr: Addr,
-        user: String,
+        user: Addr,
+        collateral_asset: AssetInfo,
+        borrowed_asset: AssetInfo,
     ) -> Result<Decimal, MoneyMarketError> {
-        todo!()
+        // We get the borrowed_value / collateral value
+        let collateral = self.user_collateral(deps, contract_addr, user, collateral_asset)?;
+        let borrow = self.user_borrow(deps, contract_addr, user, borrowed_asset)?;
+
+        // This represents how much 1 unit of the collateral_asset is worth in terms of the borrowed_asset
+        let collateral_price = self.price(deps, collateral_asset, borrowed_asset)?;
+
+        let collateral_value = Decimal::from_ratio(collateral, 1u128) * collateral_price;
+
+        Ok(Decimal::from_ratio(borrow, 1u128) / collateral_value)
     }
 
     fn max_ltv(
         &self,
         deps: Deps,
         contract_addr: Addr,
-        user: String,
+        user: Addr,
+        collateral_asset: AssetInfo,
     ) -> Result<Decimal, MoneyMarketError> {
-        todo!()
+        let market_msg = market::QueryMsg::Config {};
+
+        let query_response: market::ConfigResponse =
+            deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
+
+        Ok(query_response.max_ltv)
     }
 }
 

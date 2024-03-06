@@ -64,6 +64,7 @@ pub trait MoneyMarketCommand: Identify {
     ) -> Result<Vec<CosmosMsg>, MoneyMarketError>;
 
     //*****************   Queries   ****************/
+    // This represents how much 1 unit of the base is worth in terms of the quote
     fn price(
         &self,
         deps: Deps,
@@ -75,37 +76,40 @@ pub trait MoneyMarketCommand: Identify {
         &self,
         deps: Deps,
         contract_addr: Addr,
-        user: String,
+        user: Addr,
         asset: AssetInfo,
-    ) -> Result<Decimal, MoneyMarketError>;
+    ) -> Result<Uint128, MoneyMarketError>;
 
     fn user_collateral(
         &self,
         deps: Deps,
         contract_addr: Addr,
-        user: String,
+        user: Addr,
         asset: AssetInfo,
-    ) -> Result<Decimal, MoneyMarketError>;
+    ) -> Result<Uint128, MoneyMarketError>;
 
     fn user_borrow(
         &self,
         deps: Deps,
         contract_addr: Addr,
-        user: String,
+        user: Addr,
         asset: AssetInfo,
-    ) -> Result<Decimal, MoneyMarketError>;
+    ) -> Result<Uint128, MoneyMarketError>;
 
     fn current_ltv(
         &self,
         deps: Deps,
         contract_addr: Addr,
-        user: String,
+        user: Addr,
+        collateral_asset: AssetInfo,
+        borrowed_asset: AssetInfo,
     ) -> Result<Decimal, MoneyMarketError>;
 
     fn max_ltv(
         &self,
         deps: Deps,
         contract_addr: Addr,
-        user: String,
+        user: Addr,
+        collateral_asset: AssetInfo,
     ) -> Result<Decimal, MoneyMarketError>;
 }
