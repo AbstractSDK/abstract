@@ -70,8 +70,8 @@ fn request_meeting(
         .unwrap();
 
     app.request_meeting(
-        meeting_end_datetime.timestamp().into(),
-        meeting_start_datetime.timestamp().into(),
+        meeting_end_datetime.and_utc().timestamp().into(),
+        meeting_start_datetime.and_utc().timestamp().into(),
         &[funds],
     )?;
 
@@ -310,14 +310,15 @@ fn request_meeting_at_start_of_day() -> anyhow::Result<()> {
         meeting_start_datetime
             .date()
             .and_time(NaiveTime::default())
+            .and_utc()
             .timestamp()
             .into(),
     )?;
 
     assert_eq!(
         vec![Meeting {
-            start_time: meeting_start_datetime.timestamp(),
-            end_time: meeting_end_datetime.timestamp(),
+            start_time: meeting_start_datetime.and_utc().timestamp(),
+            end_time: meeting_end_datetime.and_utc().timestamp(),
             requester: sender,
             amount_staked: Uint128::from(60u128),
         }],
@@ -353,14 +354,15 @@ fn request_meeting_at_end_of_day() -> anyhow::Result<()> {
         meeting_start_datetime
             .date()
             .and_time(NaiveTime::default())
+            .and_utc()
             .timestamp()
             .into(),
     )?;
 
     assert_eq!(
         vec![Meeting {
-            start_time: meeting_start_datetime.timestamp(),
-            end_time: meeting_end_datetime.timestamp(),
+            start_time: meeting_start_datetime.and_utc().timestamp(),
+            end_time: meeting_end_datetime.and_utc().timestamp(),
             requester: sender,
             amount_staked: Uint128::from(60u128),
         }],
@@ -412,6 +414,7 @@ fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
         meeting_start_datetime1
             .date()
             .and_time(NaiveTime::default())
+            .and_utc()
             .timestamp()
             .into(),
     )?;
@@ -419,14 +422,14 @@ fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
     assert_eq!(
         vec![
             Meeting {
-                start_time: meeting_start_datetime1.timestamp(),
-                end_time: meeting_end_datetime1.timestamp(),
+                start_time: meeting_start_datetime1.and_utc().timestamp(),
+                end_time: meeting_end_datetime1.and_utc().timestamp(),
                 requester: sender1,
                 amount_staked: Uint128::from(60u128),
             },
             Meeting {
-                start_time: meeting_start_datetime2.timestamp(),
-                end_time: meeting_end_datetime2.timestamp(),
+                start_time: meeting_start_datetime2.and_utc().timestamp(),
+                end_time: meeting_end_datetime2.and_utc().timestamp(),
                 requester: sender2,
                 amount_staked: Uint128::from(60u128),
             }
@@ -489,6 +492,7 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
         meeting_start_datetime1
             .date()
             .and_time(NaiveTime::default())
+            .and_utc()
             .timestamp()
             .into(),
     )?;
@@ -496,14 +500,14 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
     assert_eq!(
         vec![
             Meeting {
-                start_time: meeting_start_datetime1.timestamp(),
-                end_time: meeting_end_datetime1.timestamp(),
+                start_time: meeting_start_datetime1.and_utc().timestamp(),
+                end_time: meeting_end_datetime1.and_utc().timestamp(),
                 requester: sender1,
                 amount_staked: Uint128::from(60u128),
             },
             Meeting {
-                start_time: meeting_start_datetime2.timestamp(),
-                end_time: meeting_end_datetime2.timestamp(),
+                start_time: meeting_start_datetime2.and_utc().timestamp(),
+                end_time: meeting_end_datetime2.and_utc().timestamp(),
                 requester: sender2,
                 amount_staked: Uint128::from(60u128),
             }
@@ -566,6 +570,7 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
         meeting_start_datetime1
             .date()
             .and_time(NaiveTime::default())
+            .and_utc()
             .timestamp()
             .into(),
     )?;
@@ -573,14 +578,14 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
     assert_eq!(
         vec![
             Meeting {
-                start_time: meeting_start_datetime1.timestamp(),
-                end_time: meeting_end_datetime1.timestamp(),
+                start_time: meeting_start_datetime1.and_utc().timestamp(),
+                end_time: meeting_end_datetime1.and_utc().timestamp(),
                 requester: sender1,
                 amount_staked: Uint128::from(60u128),
             },
             Meeting {
-                start_time: meeting_start_datetime2.timestamp(),
-                end_time: meeting_end_datetime2.timestamp(),
+                start_time: meeting_start_datetime2.and_utc().timestamp(),
+                end_time: meeting_end_datetime2.and_utc().timestamp(),
                 requester: sender2,
                 amount_staked: Uint128::from(60u128),
             }
@@ -631,14 +636,15 @@ fn request_meetings_on_different_days() -> anyhow::Result<()> {
         meeting_start_datetime1
             .date()
             .and_time(NaiveTime::default())
+            .and_utc()
             .timestamp()
             .into(),
     )?;
 
     assert_eq!(
         vec![Meeting {
-            start_time: meeting_start_datetime1.timestamp(),
-            end_time: meeting_end_datetime1.timestamp(),
+            start_time: meeting_start_datetime1.and_utc().timestamp(),
+            end_time: meeting_end_datetime1.and_utc().timestamp(),
             requester: sender1,
             amount_staked: Uint128::from(60u128),
         }],
@@ -649,14 +655,15 @@ fn request_meetings_on_different_days() -> anyhow::Result<()> {
         meeting_start_datetime2
             .date()
             .and_time(NaiveTime::default())
+            .and_utc()
             .timestamp()
             .into(),
     )?;
 
     assert_eq!(
         vec![Meeting {
-            start_time: meeting_start_datetime2.timestamp(),
-            end_time: meeting_end_datetime2.timestamp(),
+            start_time: meeting_start_datetime2.and_utc().timestamp(),
+            end_time: meeting_end_datetime2.and_utc().timestamp(),
             requester: sender2,
             amount_staked: Uint128::from(60u128),
         }],
@@ -1083,8 +1090,8 @@ fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow
     let error: anyhow::Error = app
         .execute(
             &abstract_core::base::ExecuteMsg::Module(CalendarExecuteMsg::RequestMeeting {
-                start_time: meeting_start_datetime.timestamp().into(),
-                end_time: meeting_end_datetime.timestamp().into(),
+                start_time: meeting_start_datetime.and_utc().timestamp().into(),
+                end_time: meeting_end_datetime.and_utc().timestamp().into(),
             }),
             Some(&[Coin::new(60, DENOM)]),
         )
@@ -1169,6 +1176,7 @@ fn slash_full_stake() -> anyhow::Result<()> {
     let day_datetime = meeting_start_datetime
         .date()
         .and_time(NaiveTime::default())
+        .and_utc()
         .timestamp();
 
     app.set_sender(&admin);
@@ -1178,8 +1186,8 @@ fn slash_full_stake() -> anyhow::Result<()> {
 
     assert_eq!(
         vec![Meeting {
-            start_time: meeting_start_datetime.timestamp(),
-            end_time: meeting_end_datetime.timestamp(),
+            start_time: meeting_start_datetime.and_utc().timestamp(),
+            end_time: meeting_end_datetime.and_utc().timestamp(),
             requester: sender,
             amount_staked: Uint128::zero(),
         }],
@@ -1224,6 +1232,7 @@ fn return_stake() -> anyhow::Result<()> {
     let day_datetime = meeting_start_datetime
         .date()
         .and_time(NaiveTime::default())
+        .and_utc()
         .timestamp();
 
     app.set_sender(&admin);
@@ -1233,8 +1242,8 @@ fn return_stake() -> anyhow::Result<()> {
 
     assert_eq!(
         vec![Meeting {
-            start_time: meeting_start_datetime.timestamp(),
-            end_time: meeting_end_datetime.timestamp(),
+            start_time: meeting_start_datetime.and_utc().timestamp(),
+            end_time: meeting_end_datetime.and_utc().timestamp(),
             requester: sender.clone(),
             amount_staked: Uint128::zero(),
         }],
@@ -1282,6 +1291,7 @@ fn slash_partial_stake() -> anyhow::Result<()> {
     let day_datetime = meeting_start_datetime
         .date()
         .and_time(NaiveTime::default())
+        .and_utc()
         .timestamp();
 
     app.set_sender(&admin);
@@ -1292,8 +1302,8 @@ fn slash_partial_stake() -> anyhow::Result<()> {
 
     assert_eq!(
         vec![Meeting {
-            start_time: meeting_start_datetime.timestamp(),
-            end_time: meeting_end_datetime.timestamp(),
+            start_time: meeting_start_datetime.and_utc().timestamp(),
+            end_time: meeting_end_datetime.and_utc().timestamp(),
             requester: sender.clone(),
             amount_staked: Uint128::zero(),
         }],
