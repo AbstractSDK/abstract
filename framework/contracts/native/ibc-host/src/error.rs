@@ -43,7 +43,7 @@ pub enum HostError {
     #[error("Chain or proxy address already registered.")]
     ProxyAddressExists {},
 
-    #[error("Can't send a module-to-module packet to {0}")]
+    #[error("Can't send a module-to-module packet to {0}, wrong module type")]
     WrongModuleAction(String),
 
     #[error("Missing module {module_info} on account {account_id}")]

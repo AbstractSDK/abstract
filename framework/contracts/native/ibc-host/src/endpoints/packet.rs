@@ -5,7 +5,6 @@ use abstract_core::{
         state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
         HelperAction,
     },
-    manager,
     objects::{chain_name::ChainName, module_reference::ModuleReference, AccountId},
 };
 use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
@@ -115,7 +114,6 @@ pub fn handle_host_action(
 /// Handle actions that are passed to the IBC host contract and originate from a registered module
 pub fn handle_host_module_action(
     deps: DepsMut,
-    env: Env,
     client_chain: ChainName,
     source_module: InstalledModuleIdentification,
     target_module: InstalledModuleIdentification,
@@ -126,41 +124,17 @@ pub fn handle_host_module_action(
     let target_module_resolved =
         vc.query_module(target_module.module_info.clone(), &deps.querier)?;
 
-    let target_addr = match target_module_resolved.reference {
-        ModuleReference::AccountBase(_) => {
-            return Err(HostError::WrongModuleAction(target_module.module_info.id()))
+    // We can't send module actions to accounts base and native apps
+    match target_module_resolved.reference {
+        ModuleReference::AccountBase(_) | ModuleReference::Native(_) => {
+            return Err(HostError::WrongModuleAction(
+                target_module.module_info.to_string(),
+            ))
         }
-        ModuleReference::Native(_) => {
-            return Err(HostError::WrongModuleAction(target_module.module_info.id()))
-        }
-        ModuleReference::Adapter(addr) => addr,
-        ModuleReference::App(_) | ModuleReference::Standalone(_) => {
-            let target_account_id = target_module
-                .account_id
-                .clone()
-                .ok_or(HostError::AccountIdNotSpecified {})?;
-            let account_base = vc.account_base(&target_account_id, &deps.querier)?;
+        _ => (),
+    }
 
-            let module_info: manager::ModuleAddressesResponse = deps.querier.query_wasm_smart(
-                account_base.manager,
-                &manager::QueryMsg::ModuleAddresses {
-                    ids: vec![target_module.module_info.id()],
-                },
-            )?;
-            module_info
-                .modules
-                .first()
-                .ok_or(HostError::MissingModule {
-                    module_info: target_module.module_info.to_string(),
-                    account_id: target_account_id,
-                })?
-                .1
-                .clone()
-        }
-        _ => unimplemented!(
-            "This module type didn't exist when implementing module-to-module interactions"
-        ),
-    };
+    let target_addr = target_module.addr(deps.as_ref(), vc)?;
 
     // We pass the message on to the module
     let msg = wasm_execute(

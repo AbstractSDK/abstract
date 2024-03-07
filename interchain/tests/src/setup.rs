@@ -20,8 +20,8 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
         Abstract::deploy_on(remote_chain.clone(), remote_chain.sender().to_string())?;
 
     // Deploying polytone on both chains
-    let origin_polytone = Polytone::deploy_on(origin_chain.clone(), None)?;
-    let remote_polytone = Polytone::deploy_on(remote_chain.clone(), None)?;
+    Polytone::deploy_on(origin_chain.clone(), None)?;
+    Polytone::deploy_on(remote_chain.clone(), None)?;
 
     ibc_connect_polytone_and_abstract(interchain, origin_chain_id, remote_chain_id)?;
 

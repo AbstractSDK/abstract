@@ -1,13 +1,17 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Coin, Empty, QueryRequest};
+use cosmwasm_std::{Addr, Binary, Coin, Deps, Empty, QueryRequest, StdError};
 use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
 use crate::{
     ibc::CallbackInfo,
     ibc_host::HostAction,
-    manager::ModuleInstallConfig,
-    objects::{account::AccountId, chain_name::ChainName, module::ModuleInfo, AssetEntry},
+    manager::{self, ModuleInstallConfig},
+    objects::{
+        account::AccountId, chain_name::ChainName, module::ModuleInfo,
+        module_reference::ModuleReference, version_control::VersionControlContract, AssetEntry,
+    },
+    AbstractError,
 };
 
 pub mod state {
@@ -157,6 +161,60 @@ pub enum IbcClientCallback {
 pub struct InstalledModuleIdentification {
     pub module_info: ModuleInfo,
     pub account_id: Option<AccountId>,
+}
+
+impl InstalledModuleIdentification {
+    pub fn addr(&self, deps: Deps, vc: VersionControlContract) -> Result<Addr, AbstractError> {
+        let target_module_resolved = vc.query_module(self.module_info.clone(), &deps.querier)?;
+
+        let no_account_id_error =
+            StdError::generic_err("Account id not specified in installed module definition");
+
+        let target_addr = match target_module_resolved.reference {
+            ModuleReference::AccountBase(code_id) => {
+                let target_account_id = self
+                    .account_id
+                    .clone()
+                    .ok_or(no_account_id_error)?;
+                let account_base = vc.account_base(&target_account_id, &deps.querier)?;
+
+                if deps.querier.query_wasm_contract_info(&account_base.proxy)?.code_id == code_id{
+                    account_base.proxy
+                }else if deps.querier.query_wasm_contract_info(&account_base.manager)?.code_id == code_id{
+                    account_base.manager
+                }else{
+                    Err(StdError::generic_err("Account base contract doesn't correspond to any of the proxy or manager"))?
+                }
+            }
+            ModuleReference::Native(addr) => addr,
+            ModuleReference::Adapter(addr) => addr,
+            ModuleReference::App(_) | ModuleReference::Standalone(_) => {
+                let target_account_id = self
+                    .account_id
+                    .clone()
+                    .ok_or(no_account_id_error)?;
+                let account_base = vc.account_base(&target_account_id, &deps.querier)?;
+
+                let module_info: manager::ModuleAddressesResponse = deps.querier.query_wasm_smart(
+                    account_base.manager,
+                    &manager::QueryMsg::ModuleAddresses {
+                        ids: vec![self.module_info.id()],
+                    },
+                )?;
+                module_info
+                    .modules
+                    .first()
+                    .ok_or(AbstractError::AppNotInstalled(
+                        self.module_info.to_string()))?
+                    .1
+                    .clone()
+            }
+            _ => unimplemented!(
+                "This module type didn't exist when implementing installed module address resolution"
+            ),
+        };
+        Ok(target_addr)
+    }
 }
 
 #[cosmwasm_schema::cw_serde]

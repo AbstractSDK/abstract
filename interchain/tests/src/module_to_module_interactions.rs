@@ -2,16 +2,13 @@ pub use abstract_core::app;
 use abstract_core::{
     ibc::{CallbackInfo, ModuleIbcMsg},
     ibc_client::{self, InstalledModuleIdentification},
-    manager::ModuleInstallConfig,
-    objects::{dependency::StaticDependency, module::ModuleInfo},
+    objects::module::ModuleInfo,
     IBC_CLIENT,
 };
-use abstract_interface::{AppDeployer, DependencyCreation};
 use cosmwasm_schema::{cw_serde, QueryResponses};
 pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{to_json_binary, wasm_execute, Response, StdError};
 use cw_controllers::AdminError;
-use cw_orch::prelude::*;
 use cw_storage_plus::Item;
 
 pub type AppTestResult = Result<(), MockError>;
@@ -64,16 +61,7 @@ pub struct MockReceiveMsg;
 #[cosmwasm_schema::cw_serde]
 pub struct MockSudoMsg;
 
-use abstract_sdk::{
-    base::InstantiateEndpoint, features::AccountIdentification, AbstractSdkError, ModuleInterface,
-};
-use abstract_testing::{
-    addresses::{test_account_base, TEST_ANS_HOST, TEST_VERSION_CONTROL},
-    prelude::{
-        MockDeps, MockQuerierBuilder, TEST_MODULE_FACTORY, TEST_MODULE_ID, TEST_VERSION,
-        TEST_WITH_DEP_MODULE_ID,
-    },
-};
+use abstract_sdk::{features::AccountIdentification, AbstractSdkError, ModuleInterface};
 use thiserror::Error;
 
 use abstract_app::{AppContract, AppError};
@@ -247,9 +235,7 @@ pub mod test {
         JUNO, STARGAZE,
     };
     use abstract_app::objects::{chain_name::ChainName, module::ModuleInfo, AccountId};
-    use abstract_core::{
-        ibc_client::InstalledModuleIdentification, manager::ModuleAddressesResponse,
-    };
+    use abstract_core::ibc_client::InstalledModuleIdentification;
     use abstract_interface::{AppDeployer, DeployStrategy, ManagerQueryFns, VCExecFns};
     use abstract_testing::addresses::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION};
     use anyhow::Result as AnyResult;
@@ -288,11 +274,6 @@ pub mod test {
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
         origin_account.install_app(&app, &MockInitMsg {}, None)?;
-        let res: ModuleAddressesResponse = origin_account
-            .manager
-            .module_addresses(vec![TEST_MODULE_ID.to_owned()])?;
-
-        assert_eq!(1, res.modules.len());
 
         // The user on origin chain wants to change the account description
         let target_module_info =
@@ -365,11 +346,6 @@ pub mod test {
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
         origin_account.install_app(&app, &MockInitMsg {}, None)?;
-        let res: ModuleAddressesResponse = origin_account
-            .manager
-            .module_addresses(vec![TEST_MODULE_ID.to_owned()])?;
-
-        assert_eq!(1, res.modules.len());
 
         // Install remote app
         let app_remote = MockAppRemoteI::new(
@@ -454,13 +430,6 @@ pub mod test {
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
         origin_account.install_app(&app, &MockInitMsg {}, None)?;
-        let res: ModuleAddressesResponse = origin_account
-            .manager
-            .module_addresses(vec![TEST_MODULE_ID.to_owned()])?;
-
-        assert_eq!(1, res.modules.len());
-
-        let local_module_address = res.modules[0].1.to_string();
 
         // Install remote app
         let app_remote = MockAppRemoteI::new(
@@ -494,14 +463,10 @@ pub mod test {
             remote_account.id()?
         );
         match &ibc_result.packets[0].outcome {
-            cw_orch::interchain::types::IbcPacketOutcome::Timeout { timeout_tx } => {
+            cw_orch::interchain::types::IbcPacketOutcome::Timeout { .. } => {
                 panic!("Expected a failed ack not a timeout !")
             }
-            cw_orch::interchain::types::IbcPacketOutcome::Success {
-                receive_tx,
-                ack_tx,
-                ack,
-            } => match ack {
+            cw_orch::interchain::types::IbcPacketOutcome::Success { ack, .. } => match ack {
                 cw_orch::interchain::types::IbcPacketAckDecode::Error(e) => {
                     assert!(e.contains(&expected_error_outcome));
                 }
@@ -550,11 +515,6 @@ pub mod test {
         app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
 
         origin_account.install_app(&app, &MockInitMsg {}, None)?;
-        let res: ModuleAddressesResponse = origin_account
-            .manager
-            .module_addresses(vec![TEST_MODULE_ID.to_owned()])?;
-
-        assert_eq!(1, res.modules.len());
 
         // Install remote app
         let app_remote = MockAppRemoteI::new(

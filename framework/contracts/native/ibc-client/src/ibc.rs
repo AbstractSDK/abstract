@@ -1,7 +1,7 @@
 use abstract_core::{
     ibc::IbcResponseMsg,
     ibc_client::{
-        state::{IBC_INFRA, REVERSE_POLYTONE_NOTE},
+        state::{CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
     objects::chain_name::ChainName,
@@ -102,9 +102,14 @@ pub fn receive_action_callback(
         }
         IbcClientCallback::ModuleRemoteAction {
             callback_info,
-            // TODO This will be used when the sender is part of the callback msg (https://github.com/AbstractSDK/abstract/pull/277)
             sender_module,
         } => {
+            // resolve the address for that sender module
+            let vc = CONFIG.load(deps.storage)?.version_control;
+
+            // TODO This will be used when the sender is part of the callback msg (https://github.com/AbstractSDK/abstract/pull/277)
+            let addr = sender_module.addr(deps.as_ref(), vc)?;
+
             let callback = IbcResponseMsg {
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
