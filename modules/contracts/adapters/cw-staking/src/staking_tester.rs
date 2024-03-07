@@ -204,7 +204,7 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         let proxy_addr = new_account.proxy()?;
 
         let stake_value = 1_000_000_000u128;
-        let reward_value = 1_000_000u128;
+        let reward_value = 10_000_000u128;
         self.provider.mint_lp(&proxy_addr, stake_value)?;
 
         // TODO: unbonding period

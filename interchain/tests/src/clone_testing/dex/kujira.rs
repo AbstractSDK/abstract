@@ -98,7 +98,6 @@ impl MockDex for KujiraDex {
 fn setup() -> anyhow::Result<DexTester<CloneTesting, KujiraDex>> {
     let chain_info = HARPOON_4;
     let sender = Addr::unchecked(SENDER);
-    std::env::set_var("RUST_LOG", "debug");
     let abstr_deployment = load_abstr(chain_info, sender)?;
     let chain = abstr_deployment.environment();
     let asset_a = ("tao".to_owned(), ASSET_A.to_owned());
