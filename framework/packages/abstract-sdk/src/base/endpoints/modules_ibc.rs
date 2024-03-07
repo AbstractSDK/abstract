@@ -6,7 +6,7 @@ use crate::{base::Handler, AbstractSdkError};
 /// Trait for a contract to call itself on an IBC counterpart.
 pub trait ModuleIbcEndpoint: Handler {
     /// Get the address of the ibc host associated with this module
-    fn ibc_host(&self, deps: Deps) -> Result<Addr, Self::Error>;
+    fn ibc_host(&self, deps: Deps) -> Result<Addr, AbstractSdkError>;
 
     /// Handler for the `ExecuteMsg::IbcCallback()` variant.
     fn module_ibc(

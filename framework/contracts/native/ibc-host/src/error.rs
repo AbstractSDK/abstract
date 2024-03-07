@@ -1,5 +1,5 @@
 use abstract_core::{
-    objects::{ans_host::AnsHostError, version_control::VersionControlError},
+    objects::{ans_host::AnsHostError, version_control::VersionControlError, AccountId},
     AbstractError,
 };
 use abstract_sdk::AbstractSdkError;
@@ -45,6 +45,12 @@ pub enum HostError {
 
     #[error("Can't send a module-to-module packet to {0}")]
     WrongModuleAction(String),
+
+    #[error("Missing module {module_info} on account {account_id}")]
+    MissingModule {
+        module_info: String,
+        account_id: AccountId,
+    },
 
     #[error(
         "You need to specify an account id for an account-specific module (apps and standalone)"

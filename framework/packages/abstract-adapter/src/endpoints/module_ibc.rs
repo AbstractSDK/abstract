@@ -9,25 +9,15 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     ModuleIbcEndpoint
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
-    fn ibc_host(&self, deps: cosmwasm_std::Deps) -> Result<Addr, Self::Error> {
+    fn ibc_host(&self, deps: cosmwasm_std::Deps) -> Result<Addr, AbstractSdkError> {
         let vc_query_result = self
             .abstract_registry(deps)?
-            .query_module(
-                ModuleInfo::from_id_latest(IBC_HOST).map_err(|err| {
-                    let err: AbstractSdkError = err.into();
-                    err
-                })?,
-                &deps.querier,
-            )
+            .query_module(ModuleInfo::from_id_latest(IBC_HOST)?, &deps.querier)
             .map_err(|err| {
                 let err: AbstractError = err.into();
-                let err: AbstractSdkError = err.into();
                 err
             })?;
 
-        Ok(vc_query_result.reference.unwrap_native().map_err(|err| {
-            let err: AbstractSdkError = err.into();
-            err
-        })?)
+        Ok(vc_query_result.reference.unwrap_native()?)
     }
 }

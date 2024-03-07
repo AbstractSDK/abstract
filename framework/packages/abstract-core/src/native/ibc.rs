@@ -4,9 +4,7 @@ use polytone::callbacks::Callback;
 use schemars::JsonSchema;
 
 use crate::{
-    base::ExecuteMsg,
-    ibc_client::InstalledModuleIdentification,
-    objects::{chain_name::ChainName, module::ModuleInfo},
+    base::ExecuteMsg, ibc_client::InstalledModuleIdentification, objects::chain_name::ChainName,
 };
 
 // CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client

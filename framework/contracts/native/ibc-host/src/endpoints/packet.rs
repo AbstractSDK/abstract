@@ -6,9 +6,7 @@ use abstract_core::{
         HelperAction,
     },
     manager,
-    objects::{
-        chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
-    },
+    objects::{chain_name::ChainName, module_reference::ModuleReference, AccountId},
 };
 use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
 use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
@@ -136,22 +134,28 @@ pub fn handle_host_module_action(
             return Err(HostError::WrongModuleAction(target_module.module_info.id()))
         }
         ModuleReference::Adapter(addr) => addr,
-        ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
-            let account_base = vc.account_base(
-                &source_module
-                    .account_id
-                    .clone()
-                    .ok_or(HostError::AccountIdNotSpecified {})?,
-                &deps.querier,
-            )?;
+        ModuleReference::App(_) | ModuleReference::Standalone(_) => {
+            let target_account_id = target_module
+                .account_id
+                .clone()
+                .ok_or(HostError::AccountIdNotSpecified {})?;
+            let account_base = vc.account_base(&target_account_id, &deps.querier)?;
 
             let module_info: manager::ModuleAddressesResponse = deps.querier.query_wasm_smart(
                 account_base.manager,
                 &manager::QueryMsg::ModuleAddresses {
-                    ids: vec![source_module.module_info.id()],
+                    ids: vec![target_module.module_info.id()],
                 },
             )?;
-            module_info.modules[0].1.clone()
+            module_info
+                .modules
+                .first()
+                .ok_or(HostError::MissingModule {
+                    module_info: target_module.module_info.to_string(),
+                    account_id: target_account_id,
+                })?
+                .1
+                .clone()
         }
         _ => unimplemented!(
             "This module type didn't exist when implementing module-to-module interactions"
