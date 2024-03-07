@@ -457,11 +457,8 @@ pub mod test {
 
         let ibc_result = mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
 
-        let expected_error_outcome = format!(
-            "Missing module {} on account {}",
-            target_module_info,
-            remote_account.id()?
-        );
+        let expected_error_outcome =
+            format!("App {} not installed on Account", target_module_info,);
         match &ibc_result.packets[0].outcome {
             cw_orch::interchain::types::IbcPacketOutcome::Timeout { .. } => {
                 panic!("Expected a failed ack not a timeout !")
