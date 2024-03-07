@@ -172,27 +172,33 @@ impl InstalledModuleIdentification {
 
         let target_addr = match target_module_resolved.reference {
             ModuleReference::AccountBase(code_id) => {
-                let target_account_id = self
-                    .account_id
-                    .clone()
-                    .ok_or(no_account_id_error)?;
+                let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
                 let account_base = vc.account_base(&target_account_id, &deps.querier)?;
 
-                if deps.querier.query_wasm_contract_info(&account_base.proxy)?.code_id == code_id{
+                if deps
+                    .querier
+                    .query_wasm_contract_info(&account_base.proxy)?
+                    .code_id
+                    == code_id
+                {
                     account_base.proxy
-                }else if deps.querier.query_wasm_contract_info(&account_base.manager)?.code_id == code_id{
+                } else if deps
+                    .querier
+                    .query_wasm_contract_info(&account_base.manager)?
+                    .code_id
+                    == code_id
+                {
                     account_base.manager
-                }else{
-                    Err(StdError::generic_err("Account base contract doesn't correspond to any of the proxy or manager"))?
+                } else {
+                    Err(StdError::generic_err(
+                        "Account base contract doesn't correspond to any of the proxy or manager",
+                    ))?
                 }
             }
             ModuleReference::Native(addr) => addr,
             ModuleReference::Adapter(addr) => addr,
             ModuleReference::App(_) | ModuleReference::Standalone(_) => {
-                let target_account_id = self
-                    .account_id
-                    .clone()
-                    .ok_or(no_account_id_error)?;
+                let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
                 let account_base = vc.account_base(&target_account_id, &deps.querier)?;
 
                 let module_info: manager::ModuleAddressesResponse = deps.querier.query_wasm_smart(
@@ -204,14 +210,10 @@ impl InstalledModuleIdentification {
                 module_info
                     .modules
                     .first()
-                    .ok_or(AbstractError::AppNotInstalled(
-                        self.module_info.to_string()))?
+                    .ok_or(AbstractError::AppNotInstalled(self.module_info.to_string()))?
                     .1
                     .clone()
             }
-            _ => unimplemented!(
-                "This module type didn't exist when implementing installed module address resolution"
-            ),
         };
         Ok(target_addr)
     }
