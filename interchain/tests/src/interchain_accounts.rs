@@ -279,6 +279,129 @@ mod test {
     }
 
     #[test]
+    fn anyone_can_call_account_ibc_app_callback() -> AnyResult<()> {
+        logger_test_init();
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+
+        // We just verified all steps pass
+        let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
+
+        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+
+        let (origin_account, _remote_account_id) =
+            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+
+        let app = MockAppWithDepI::new(
+            TEST_WITH_DEP_MODULE_ID,
+            abstr_origin.version_control.get_chain().clone(),
+        );
+
+        let app_dep = MockAppI::new(
+            TEST_MODULE_ID,
+            abstr_origin.version_control.get_chain().clone(),
+        );
+
+        let app_account =
+            abstr_origin
+                .account_factory
+                .create_default_account(GovernanceDetails::Monarchy {
+                    monarch: abstr_origin
+                        .version_control
+                        .get_chain()
+                        .sender()
+                        .into_string(),
+                })?;
+
+        let app_deps_account =
+            abstr_origin
+                .account_factory
+                .create_default_account(GovernanceDetails::Monarchy {
+                    monarch: abstr_origin
+                        .version_control
+                        .get_chain()
+                        .sender()
+                        .into_string(),
+                })?;
+
+        abstr_origin.version_control.claim_namespace(
+            app_account.manager.config()?.account_id,
+            TEST_WITH_DEP_NAMESPACE.to_owned(),
+        )?;
+        abstr_origin.version_control.claim_namespace(
+            app_deps_account.manager.config()?.account_id,
+            TEST_NAMESPACE.to_owned(),
+        )?;
+
+        app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
+        app_dep.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
+
+        origin_account.install_app(&app_dep, &MockInitMsg {}, None)?;
+        origin_account.install_app(&app, &MockInitMsg {}, None)?;
+        let res: ModuleAddressesResponse = origin_account
+            .manager
+            .module_addresses(vec![TEST_WITH_DEP_MODULE_ID.to_owned()])?;
+
+        assert_eq!(1, res.modules.len());
+
+        let module_address = res.modules[0].1.to_string();
+
+        let new_name = "Funky Crazy Name";
+        let new_description = "Funky new account with wonderful capabilities";
+        let new_link = "https://abstract.money";
+
+        // The user on origin chain wants to change the account description
+        let ibc_action_result = origin_account.manager.execute_on_remote(
+            &remote_name,
+            ManagerExecuteMsg::UpdateInfo {
+                name: Some(new_name.to_string()),
+                description: Some(new_description.to_string()),
+                link: Some(new_link.to_string()),
+            },
+            Some(CallbackInfo {
+                id: String::from("c_id"),
+                msg: None,
+                receiver: module_address.clone(),
+            }),
+        )?;
+
+        assert_callback_status(&app, false)?;
+        assert_callback_sender(&app, origin_account.id()?, false)?;
+
+        mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
+
+        // Switched to true by the callback.
+        assert_callback_status(&app, true)?;
+        assert_callback_sender(&app, origin_account.id()?, true)?;
+
+        // A new account sends an action with a callback on another account user on origin chain wants to change the account description
+        let (new_account, _) =
+            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+        let ibc_action_result = new_account.manager.execute_on_remote(
+            &remote_name,
+            ManagerExecuteMsg::UpdateInfo {
+                name: Some(new_name.to_string()),
+                description: Some(new_description.to_string()),
+                link: Some(new_link.to_string()),
+            },
+            Some(CallbackInfo {
+                id: String::from("c_id"),
+                msg: None,
+                receiver: module_address,
+            }),
+        )?;
+
+        assert_callback_sender(&app, new_account.id()?, false)?;
+
+        mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
+
+        // Switched to true by the callback.
+        assert_callback_sender(&app, new_account.id()?, true)?;
+
+        Ok(())
+    }
+
+    #[test]
     fn ibc_adapter_callback() -> AnyResult<()> {
         logger_test_init();
         let mock_interchain =
@@ -365,6 +488,20 @@ mod test {
             ReceivedIbcCallbackStatus { received: status },
             get_received_ibc_callback_status_res
         );
+        Ok(())
+    }
+
+    fn assert_callback_sender(
+        app: &MockAppWithDepI<MockBech32>,
+        account_id: AccountId,
+        status: bool,
+    ) -> AnyResult<()> {
+        let get_received_ibc_callback_status_res = app
+            .get_received_ibc_callback_sender_status(account_id)
+            .map(|r| r.received)
+            .unwrap_or(false);
+
+        assert_eq!(status, get_received_ibc_callback_status_res);
         Ok(())
     }
 
