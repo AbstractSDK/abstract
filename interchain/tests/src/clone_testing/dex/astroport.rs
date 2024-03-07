@@ -138,7 +138,7 @@ impl MockDex for AstroportDex {
         // Add some liquidity
         let assets = vec![
             astroport::asset::Asset::new(asset_1_astroport, ASSET_AMOUNT),
-            astroport::asset::Asset::new(asset_2_astroport, ASSET_AMOUNT / 2),
+            astroport::asset::Asset::new(asset_2_astroport, ASSET_AMOUNT),
         ];
         let amount = coins_in_astroport_assets(&assets);
         self.add_sender_balance()?;
@@ -233,10 +233,7 @@ mod native_tests {
     #[test]
     fn test_swap_slippage() -> anyhow::Result<()> {
         let dex_tester = setup_native()?;
-        dex_tester.test_swap_slippage(
-            Decimal::from_ratio(2u128, 1u128),
-            Decimal::from_ratio(1u128, 2u128),
-        )?;
+        dex_tester.test_swap_slippage(Decimal::one(), Decimal::one())?;
         Ok(())
     }
 
@@ -271,6 +268,8 @@ mod native_tests {
 }
 
 mod cw20_tests {
+    use cosmwasm_std::Decimal;
+
     use super::*;
 
     fn setup_cw20() -> anyhow::Result<DexTester<CloneTesting, AstroportDex>> {
@@ -315,6 +314,13 @@ mod cw20_tests {
     fn test_swap() -> anyhow::Result<()> {
         let dex_tester = setup_cw20()?;
         dex_tester.test_swap()?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_swap_slippage() -> anyhow::Result<()> {
+        let dex_tester = setup_cw20()?;
+        dex_tester.test_swap_slippage(Decimal::one(), Decimal::one())?;
         Ok(())
     }
 
