@@ -4,12 +4,29 @@ use abstract_core::{
     account_factory::ExecuteMsgFns as _, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
-use cw_orch::{deploy::Deploy, prelude::*};
+use cw_orch::prelude::*;
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
+
+use rust_embed::RustEmbed;
+
+#[derive(RustEmbed)]
+// Can't use symlinks in debug mode
+// https://github.com/pyrossh/rust-embed/pull/234
+#[folder = "./"]
+#[include = "state.json"]
+struct State;
+
+impl State {
+    pub fn load_state() -> serde_json::Value {
+        let state_file =
+            State::get("state.json").expect("Unable to read abstract-interface state.json");
+        serde_json::from_slice(&state_file.data).unwrap()
+    }
+}
 
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
@@ -135,7 +152,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     fn load_from(chain: Chain) -> Result<Self, Self::Error> {
         let mut abstr = Self::new(chain);
         // We register all the contracts default state
-        abstr.set_contracts_state(None);
+        let state = State::load_state();
+        abstr.set_contracts_state(Some(state));
 
         // Check if abstract deployed, for successful load
         if let Err(CwOrchError::AddrNotInStore(_)) = abstr.version_control.address() {
@@ -239,5 +257,26 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 ibc_client::contract::CONTRACT_VERSION.to_string(),
             ),
         ]
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::borrow::Cow;
+
+    use super::*;
+
+    #[test]
+    fn only_state_json_included() {
+        let files = State::iter().collect::<Vec<_>>();
+        assert_eq!(files, vec![Cow::Borrowed("state.json")])
+    }
+
+    #[test]
+    fn have_some_state() {
+        State::get("state.json").unwrap();
+        let state = State::load_state();
+        let vc_juno = &state["juno"]["juno-1"]["code_ids"].get(VERSION_CONTROL);
+        assert!(vc_juno.is_some());
     }
 }

@@ -23,8 +23,8 @@ impl Identify for Osmosis {
 use ::{
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::{
-        core::objects::PoolAddress, core::objects::UniquePoolId, feature_objects::AnsHost,
-        features::AbstractRegistryAccess, AbstractSdkError,
+        core::objects::PoolAddress, feature_objects::AnsHost, features::AbstractRegistryAccess,
+        AbstractSdkError,
     },
     cosmwasm_std::{
         Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
@@ -63,7 +63,6 @@ impl DexCommand for Osmosis {
         addr_as_sender: Addr,
         version_control_contract: VersionControlContract,
         _ans_host: AnsHost,
-        _pool_id: UniquePoolId,
     ) -> Result<(), DexError> {
         self.version_control_contract = Some(version_control_contract);
 
@@ -127,18 +126,68 @@ impl DexCommand for Osmosis {
         &self,
         deps: Deps,
         pool_id: PoolAddress,
-        offer_assets: Vec<Asset>,
+        mut offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
-        let pool_id = pool_id.expect_id()?;
+        let mut msgs = vec![];
+
         if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
         }
 
-        let token_in_maxs: Vec<OsmoCoin> = offer_assets
-            .iter()
-            .map(|asset| Coin::try_from(asset).unwrap().into())
-            .collect();
+        if offer_assets.iter().any(|a| a.amount.is_zero()) {
+            // find 0 asset
+            let (index, non_zero_offer_asset) = offer_assets
+                .iter()
+                .enumerate()
+                .find(|(_, a)| !a.amount.is_zero())
+                .ok_or(DexError::TooFewAssets {})?;
+
+            // the other asset in offer_assets is the one with amount zero
+            let ask_asset = offer_assets.get((index + 1) % 2).unwrap().info.clone();
+
+            // we want to offer half of the non-zero asset to swap into the ask asset
+            let offer_asset = Asset::new(
+                non_zero_offer_asset.info.clone(),
+                non_zero_offer_asset
+                    .amount
+                    .checked_div(Uint128::from(2u128))
+                    .unwrap(),
+            );
+
+            // simulate swap to get the amount of ask asset we can provide after swapping
+            let simulated_received = self
+                .simulate_swap(
+                    deps,
+                    pool_id.clone(),
+                    offer_asset.clone(),
+                    ask_asset.clone(),
+                )?
+                .0;
+            let swap_msg = self.swap(
+                deps,
+                pool_id.clone(),
+                offer_asset.clone(),
+                ask_asset.clone(),
+                None,
+                max_spread,
+            )?;
+            // add swap msg
+            msgs.extend(swap_msg);
+            // update the offer assets for providing liquidity
+            offer_assets = vec![offer_asset, Asset::new(ask_asset, simulated_received)];
+        }
+        let pool_id = pool_id.expect_id()?;
+
+        let token_in_maxs: Vec<OsmoCoin> = {
+            let mut tokens: Vec<OsmoCoin> = offer_assets
+                .iter()
+                .map(|asset| Coin::try_from(asset).unwrap().into())
+                .collect();
+            // Make sure they are sorted
+            tokens.sort_by(|a, b| a.denom.cmp(&b.denom));
+            tokens
+        };
 
         let pool = query_pool_data(deps, pool_id)?;
 
@@ -161,7 +210,7 @@ impl DexCommand for Osmosis {
                 .expect("wrong asset provided"),
             token_in_maxs
                 .iter()
-                .find(|coin| coin.denom == pool_assets[0].denom)
+                .find(|coin| coin.denom == pool_assets[1].denom)
                 .map(|coin| coin.amount.parse::<Uint128>().unwrap())
                 .expect("wrong asset provided"),
         ];
@@ -185,18 +234,90 @@ impl DexCommand for Osmosis {
             token_in_maxs,
         }
         .into();
+        msgs.push(osmo_msg);
 
-        Ok(vec![osmo_msg])
+        Ok(msgs)
     }
 
     fn provide_liquidity_symmetric(
         &self,
-        _deps: Deps,
-        _pool_id: PoolAddress,
-        _offer_asset: Asset,
-        _paired_assets: Vec<AssetInfo>,
+        deps: Deps,
+        pool_id: PoolAddress,
+        offer_asset: Asset,
+        paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
-        Err(DexError::NotImplemented(self.name().to_string()))
+        let pool_id = pool_id.expect_id()?;
+
+        if paired_assets.len() > 1 {
+            return Err(DexError::TooManyAssets(1));
+        }
+
+        // Get pair info
+        let pool = query_pool_data(deps, pool_id)?;
+        // check for symmetric pools
+        if pool.pool_assets[0].weight != pool.pool_assets[1].weight {
+            return Err(DexError::BalancerNotSupported(OSMOSIS.to_string()));
+        }
+
+        let pool_assets: Vec<OsmoCoin> = pool
+            .pool_assets
+            .into_iter()
+            .map(|asset| asset.token.unwrap())
+            .collect();
+        let pool_cw_assets: Vec<Coin> = pool_assets
+            .iter()
+            .map(|asset| Coin {
+                denom: asset.denom.clone(),
+                amount: asset.amount.parse().unwrap(),
+            })
+            .collect();
+        let offer_asset: Coin = Coin::try_from(offer_asset).unwrap();
+
+        let other_asset = if pool_assets[0].denom == offer_asset.denom {
+            let price = Decimal::from_ratio(pool_cw_assets[0].amount, pool_cw_assets[1].amount);
+            let other_token_amount = price * offer_asset.amount;
+            Coin {
+                amount: other_token_amount,
+                denom: pool_assets[1].denom.clone(),
+            }
+        } else if pool_assets[1].denom == offer_asset.denom {
+            let price = Decimal::from_ratio(pool_cw_assets[1].amount, pool_cw_assets[0].amount);
+            let other_token_amount = price * offer_asset.amount;
+            Coin {
+                amount: other_token_amount,
+                denom: pool_assets[0].denom.clone(),
+            }
+        } else {
+            return Err(DexError::ArgumentMismatch(
+                offer_asset.to_string(),
+                pool_assets.iter().map(|e| e.denom.clone()).collect(),
+            ));
+        };
+
+        let mut offer_assets = [offer_asset, other_asset];
+        offer_assets.sort_by(|a, b| a.denom.cmp(&b.denom));
+
+        let deposits = [offer_assets[0].amount, offer_assets[1].amount];
+        let token_in_maxs = offer_assets.into_iter().map(Into::into).collect();
+
+        let total_share = pool
+            .total_shares
+            .unwrap()
+            .amount
+            .parse::<Uint128>()
+            .unwrap();
+
+        let share_out_amount =
+            compute_osmo_share_out_amount(&pool_assets, &deposits, total_share)?.to_string();
+
+        let osmo_msg: CosmosMsg = MsgJoinPool {
+            sender: self.addr_as_sender.as_ref().unwrap().to_string(),
+            pool_id,
+            share_out_amount,
+            token_in_maxs,
+        }
+        .into();
+        Ok(vec![osmo_msg])
     }
 
     fn withdraw_liquidity(

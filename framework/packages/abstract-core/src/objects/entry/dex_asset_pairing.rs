@@ -16,18 +16,18 @@ type DexName = String;
 /// Consists of the two assets and the dex name
 /// TODO: what if we made keys equal based on the two assets either way?
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
-pub struct DexAssetPairing((AssetEntry, AssetEntry, DexName));
+pub struct DexAssetPairing<Asset = AssetEntry>((Asset, Asset, DexName));
 
-impl DexAssetPairing {
-    pub fn new(asset_x: AssetEntry, asset_y: AssetEntry, dex_name: &str) -> Self {
+impl<Asset> DexAssetPairing<Asset> {
+    pub fn new(asset_x: Asset, asset_y: Asset, dex_name: &str) -> Self {
         Self((asset_x, asset_y, str::to_ascii_lowercase(dex_name)))
     }
 
-    pub fn asset_x(&self) -> &AssetEntry {
+    pub fn asset_x(&self) -> &Asset {
         &self.0 .0
     }
 
-    pub fn asset_y(&self) -> &AssetEntry {
+    pub fn asset_y(&self) -> &Asset {
         &self.0 .1
     }
 

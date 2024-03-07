@@ -8,10 +8,10 @@
 //! use abstract_client::{AbstractClient, Account};
 //! use cw_orch::prelude::*;
 //!
-//! # let chain = Mock::new(&Addr::unchecked("sender"));
-//! # let client: AbstractClient<Mock> = AbstractClient::builder(chain).build()?;
+//! # let chain = MockBech32::new("mock");
+//! # let client: AbstractClient<MockBech32> = AbstractClient::builder(chain).build()?;
 //!
-//! let alice_account: Account<Mock> = client
+//! let alice_account: Account<MockBech32> = client
 //!     .account_builder()
 //!     .name("Alice")
 //!     .build()?;
@@ -58,13 +58,13 @@ use crate::{
 /// ```
 /// # use cw_orch::prelude::*;
 /// # use abstract_client::{AbstractClientError, Environment};
-/// # let chain = Mock::new(&Addr::unchecked("sender"));
+/// # let chain = MockBech32::new("mock");
 /// # let abstr_client = abstract_client::AbstractClient::builder(chain).build().unwrap();
 /// # let chain = abstr_client.environment();
 /// use abstract_client::{AbstractClient, Account};
 ///
 /// let client = AbstractClient::new(chain)?;
-/// let account: Account<Mock> = client.account_builder()
+/// let account: Account<MockBech32> = client.account_builder()
 ///     .name("alice")
 ///     // other account configuration
 ///     .build()?;
@@ -235,7 +235,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
     /// Assign expected local account_id on creation.
     /// The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
-    pub fn account_id(&mut self, local_account_id: u32) -> &mut Self {
+    pub fn expected_account_id(&mut self, local_account_id: u32) -> &mut Self {
         self.expected_local_account_id = Some(local_account_id);
         self
     }
@@ -385,11 +385,17 @@ impl<Chain: CwEnv> Account<Chain> {
         self.abstr_account.id().map_err(Into::into)
     }
 
+    /// Wether this account installs his applications on a sub account
+    pub fn install_on_sub_account(&self) -> bool {
+        self.install_on_sub_account
+    }
+
     /// Query account balance of a given denom
     // TODO: Asset balance?
     pub fn query_balance(&self, denom: impl Into<String>) -> AbstractClientResult<Uint128> {
         let coins = self
             .environment()
+            .bank_querier()
             .balance(self.proxy()?, Some(denom.into()))
             .map_err(Into::into)?;
 
@@ -400,6 +406,7 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Query account balances of all denoms
     pub fn query_balances(&self) -> AbstractClientResult<Vec<Coin>> {
         self.environment()
+            .bank_querier()
             .balance(self.proxy()?, None)
             .map_err(Into::into)
             .map_err(Into::into)

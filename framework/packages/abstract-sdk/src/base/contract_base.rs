@@ -12,14 +12,6 @@ pub type ModuleId = &'static str;
 pub type VersionString = &'static str;
 pub type ModuleMetadata = Option<&'static str>;
 
-pub trait MessageTypes {
-    type CustomInitMsg;
-    type CustomExecMsg;
-    type CustomQueryMsg;
-    type CustomMigrateMsg;
-    type ReceiveMsg;
-    type SudoMsg;
-}
 // ANCHOR: init
 /// Function signature for an instantiate handler.
 pub type InstantiateHandlerFn<Module, CustomInitMsg, Error> =

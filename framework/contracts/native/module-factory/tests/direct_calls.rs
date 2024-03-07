@@ -2,17 +2,16 @@ use abstract_core::{
     module_factory, module_factory::FactoryModuleInstallConfig, objects::module::ModuleInfo,
 };
 use abstract_interface::*;
-use abstract_testing::prelude::*;
-use cosmwasm_std::{Addr, Binary};
-use cw_orch::{deploy::Deploy, prelude::*};
+use cosmwasm_std::Binary;
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 #[test]
 fn instantiate() -> AResult {
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = deployment.module_factory;
@@ -28,9 +27,9 @@ fn instantiate() -> AResult {
 
 #[test]
 fn caller_must_be_manager() -> AResult {
-    let _not_owner = Addr::unchecked("not_owner");
-    let sender = Addr::unchecked(OWNER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let _not_owner = chain.addr_make("not_owner");
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = &deployment.module_factory;

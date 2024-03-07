@@ -110,7 +110,7 @@ pub fn tip(
             .into_iter()
             .find(|(pair, refs)| !refs.is_empty() && exchange_strs.contains(&pair.dex()))
         {
-            let dex = app.dex(deps.as_ref(), pair.dex().to_owned());
+            let dex = app.ans_dex(deps.as_ref(), pair.dex().to_owned());
             let trigger_swap_msg = dex.swap(
                 pay_asset.clone(),
                 desired_asset.clone(),

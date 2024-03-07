@@ -12,7 +12,7 @@ members = ["scripts", "tests"]
 resolver = "2"
 
 [workspace.package]
-version = "0.20.0"
+version = "0.21.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -30,7 +30,7 @@ cosmwasm-std = { version = "1.2" }
 cosmwasm-schema = { version = "1.2" }
 cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
-cw-storage-plus = "~1.1"
+cw-storage-plus = "1.2.0"
 cw2 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
 cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1" }
 cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", tag = "v1.2.1", features = [
@@ -51,22 +51,21 @@ semver = "1.0"
 cw-semver = { version = "1.0" }
 tokio = { version = "1.33.0", features = ["full"] }
 
-polytone = { package = "abstract-polytone", version = "1.0.2" }
-polytone-note = { package = "abstract-polytone-note", version = "1.0.2" }
-cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "1.0.2" }
+polytone = { package = "abstract-polytone", version = "1.0.5" }
+polytone-note = { package = "abstract-polytone-note", version = "1.0.5" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "1.0.5" }
 
-# TODO; Set tag!
-cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.2" }
-cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.2" }
-cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.19.2" }
-
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
+cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
+cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { path = "../framework/packages/abstract-interface" }
-abstract-sdk = { version = "0.20.0", path = "../framework/packages/abstract-sdk" }
-abstract-core = { version = "0.20.0", path = "../framework/packages/abstract-core" }
-abstract-app = { version = "0.20.0", path = "../framework/packages/abstract-app" }
-abstract-testing = { version = "0.20.0", path = "../framework/packages/abstract-testing" }
+abstract-sdk = { version = "0.21.0", path = "../framework/packages/abstract-sdk" }
+abstract-core = { version = "0.21.0", path = "../framework/packages/abstract-core" }
+abstract-app = { version = "0.21.0", path = "../framework/packages/abstract-app" }
+abstract-adapter = { version = "0.21.0", path = "../framework/packages/abstract-adapter" }
+abstract-testing = { version = "0.21.0", path = "../framework/packages/abstract-testing" }
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat", features = [
   "interface",
@@ -84,11 +83,11 @@ abstract-dex-adapter = { path = "../modules/contracts/adapters/dex", features = 
 ] }
 
 ## Testing
-cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
+# Do not remove, none of interchain packages are deployed
 [patch.crates-io]
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
@@ -100,7 +99,6 @@ abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
-
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

@@ -67,6 +67,9 @@ pub enum DexError {
     #[error("Invalid Generate Message")]
     InvalidGenerateMessage,
 
+    #[error("Pool address not specified. You need to specify it when using raw asset addresses or denom")]
+    PoolAddressEmpty,
+
     #[error("Only account of abstract namespace can update configuration")]
     Unauthorized {},
 }

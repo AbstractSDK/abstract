@@ -7,7 +7,7 @@ pub mod manager;
 pub mod mock_modules;
 // pub mod proxy;
 
-use abstract_adapter::mock::{BootMockAdapter, MockInitMsg};
+use abstract_adapter::mock::{MockAdapterI, MockInitMsg};
 use abstract_core::objects::{
     module::{ModuleVersion, Monetization},
     namespace::Namespace,
@@ -50,15 +50,15 @@ pub fn init_mock_adapter<T: CwEnv>(
     deployment: &Abstract<T>,
     version: Option<String>,
     account_id: AccountId,
-) -> anyhow::Result<BootMockAdapter<T>> {
+) -> anyhow::Result<MockAdapterI<T>> {
     deployment
         .version_control
         .claim_namespace(account_id, "tester".to_string())?;
-    let mock_adapter = BootMockAdapter::new(TEST_MODULE_ID, chain);
+    let mock_adapter = MockAdapterI::new(TEST_MODULE_ID, chain);
     let version: semver::Version = version
         .unwrap_or_else(|| TEST_VERSION.to_string())
         .parse()?;
-    BootMockAdapter::deploy(&mock_adapter, version, MockInitMsg {}, DeployStrategy::Try)?;
+    MockAdapterI::deploy(&mock_adapter, version, MockInitMsg {}, DeployStrategy::Try)?;
     Ok(mock_adapter)
 }
 

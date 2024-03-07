@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
+
+- `state.json` now included in binary in release mode, allowing using binaries on a different environment than it's been built.
+- `module_instantiate2_address_raw` for `AbstractClient`, allowing to install a different version than the dependency version.
+
+### Changed
+
+- Renamed `account_id` to `expected_account_id` for `abstract_client::AccountBuilder` for clarity
+
+### Removed
+
+### Fixed
+
+## [0.20.0] - 2024-02-20
+
+### Added
   
 - Added a `.execute` method on the AuthZ API to execute `CosmosMsg` types on behalf of a granter.
 - Add IBC helpers to account client.
@@ -21,12 +36,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added `unchecked_account_id` method on version control.
 - Ability to provide expected local AccountId
 - Reinstallation of the same version of an app is now disabled
+- `.authorize_on_adapters` method on `Application` for authorizing application on adapters
 - Added method to assign expected `.account_id` for Abstract Client Account builder
 - `.next_local_account_id` for `AbstractClient` to query next local account sequence
+- `.module_instantiate2_address` for `AbstractClient` to get predicted address
 
 ### Changed
 
 - Updated UsageFee api to use `Address`, instead of `Api` + unchecked address
+- Tests now use `MockBech32` due to use of instantiate2.
 
 ### Removed
 

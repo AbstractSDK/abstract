@@ -1,6 +1,6 @@
 [package]
 name = "abstract-osmosis-adapter"
-version = "0.15.2"
+version = "0.16.2"
 authors = ["Abstract Money <contact@abstract.money>"]
 edition = "2021"
 description = "Abstract DexCommand implementation for Osmosis"

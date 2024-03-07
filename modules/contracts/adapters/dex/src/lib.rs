@@ -21,14 +21,17 @@ pub mod host_exchange {
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*, DEX_ADAPTER_ID};
     use abstract_core::{
-        adapter::{self},
-        objects::{AnsAsset, AssetEntry},
+        adapter,
+        objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
     };
+    use abstract_dex_standard::ans_action::DexAnsAction;
+    use abstract_dex_standard::raw_action::DexRawAction;
     use abstract_interface::{AbstractAccount, AbstractInterfaceError};
     use abstract_interface::{AdapterDeployer, RegisteredModule};
     use abstract_sdk::base::Handler;
     use abstract_sdk::features::ModuleIdentification;
     use cosmwasm_std::{Decimal, Empty};
+    use cw_asset::{AssetBase, AssetInfoBase};
     use cw_orch::{build::BuildPostfix, interface};
     use cw_orch::{contract::Contract, prelude::*};
 
@@ -57,8 +60,8 @@ pub mod interface {
     }
 
     impl<Chain: CwEnv> DexAdapter<Chain> {
-        /// Swap using Abstract's OS (registered in daemon_state).
-        pub fn swap(
+        /// Swap using ans resolved assets
+        pub fn ans_swap(
             &self,
             offer_asset: (&str, u128),
             ask_asset: &str,
@@ -70,11 +73,38 @@ pub mod interface {
 
             let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
-                request: DexExecuteMsg::Action {
+                request: DexExecuteMsg::AnsAction {
                     dex,
-                    action: DexAction::Swap {
+                    action: DexAnsAction::Swap {
                         offer_asset: AnsAsset::new(asset, offer_asset.1),
                         ask_asset,
+                        max_spread: Some(Decimal::percent(30)),
+                        belief_price: None,
+                    },
+                },
+            });
+            account
+                .manager
+                .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
+            Ok(())
+        }
+        /// Swap using raw asset addresses
+        pub fn raw_swap_native(
+            &self,
+            offer_asset: (&str, u128),
+            ask_asset: &str,
+            dex: String,
+            account: &AbstractAccount<Chain>,
+            pool: PoolAddressBase<String>,
+        ) -> Result<(), AbstractInterfaceError> {
+            let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: None,
+                request: DexExecuteMsg::RawAction {
+                    dex,
+                    action: DexRawAction::Swap {
+                        offer_asset: AssetBase::native(offer_asset.0, offer_asset.1),
+                        ask_asset: AssetInfoBase::native(ask_asset),
+                        pool,
                         max_spread: Some(Decimal::percent(30)),
                         belief_price: None,
                     },

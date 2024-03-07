@@ -1,27 +1,26 @@
 #![warn(missing_docs)]
 //! # Dex Adapter API
 // re-export response types
-// re-export response types
 use abstract_core::{
     adapter,
     objects::{
         fee::{Fee, UsageFee},
+        pool_id::UncheckedPoolAddress,
         AnsAsset, AssetEntry, DexAssetPairing,
     },
     AbstractError, AbstractResult,
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Uint128};
+use cw_asset::{AssetBase, AssetInfoBase};
+
+use crate::{ans_action::DexAnsAction, raw_action::DexRawAction};
 
 /// Max fee for the dex adapter actions
 pub const MAX_FEE: Decimal = Decimal::percent(5);
 
 /// The name of the dex to trade on.
 pub type DexName = String;
-/// Name of the asset you want to offer
-pub type OfferAsset = AnsAsset;
-/// Name of the asset you want to receive
-pub type AskAsset = AnsAsset;
 
 /// The callback id for interacting with a dex over ibc
 pub const IBC_DEX_PROVIDER_ID: &str = "IBC_DEX_ACTION";
@@ -38,16 +37,16 @@ impl adapter::AdapterQueryMsg for DexQueryMsg {}
 
 /// Response for simulating a swap.
 #[cosmwasm_schema::cw_serde]
-pub struct SimulateSwapResponse {
+pub struct SimulateSwapResponse<A = AssetEntry> {
     /// The pool on which the swap was simulated
-    pub pool: DexAssetPairing,
+    pub pool: DexAssetPairing<A>,
     /// Amount you would receive when performing the swap.
     pub return_amount: Uint128,
     /// Spread in ask_asset for this swap
     pub spread_amount: Uint128,
     // LP/protocol fees could be withheld from either input or output so commission asset must be included.
     /// Commission charged for the swap
-    pub commission: (AssetEntry, Uint128),
+    pub commission: (A, Uint128),
     /// Adapter fee charged for the swap (paid in offer asset)
     pub usage_fee: Uint128,
 }
@@ -87,52 +86,19 @@ pub enum DexExecuteMsg {
         /// New recipient account for fees
         recipient_account: Option<u32>,
     },
-    /// Action to perform on the DEX
-    Action {
+    /// Action to perform on the DEX with ans asset denomination
+    AnsAction {
         /// The name of the dex to interact with
         dex: DexName,
         /// The action to perform
-        action: DexAction,
+        action: DexAnsAction,
     },
-}
-
-/// Possible actions to perform on the DEX
-#[cosmwasm_schema::cw_serde]
-pub enum DexAction {
-    /// Provide arbitrary liquidity
-    ProvideLiquidity {
-        // support complex pool types
-        /// Assets to add
-        assets: Vec<OfferAsset>,
-        /// Max spread to accept, is a percentage represented as a decimal.
-        max_spread: Option<Decimal>,
-    },
-    /// Provide liquidity equally between assets to a pool
-    ProvideLiquiditySymmetric {
-        /// The asset to offer
-        offer_asset: OfferAsset,
-        // support complex pool types
-        /// Assets that are paired with the offered asset
-        /// Should exclude the offer asset
-        paired_assets: Vec<AssetEntry>,
-    },
-    /// Withdraw liquidity from a pool
-    WithdrawLiquidity {
-        /// The asset LP token name that is provided.
-        lp_token: AssetEntry,
-        /// The amount of LP tokens to redeem.
-        amount: Uint128,
-    },
-    /// Standard swap between one asset to another
-    Swap {
-        /// The asset to offer
-        offer_asset: OfferAsset,
-        /// The asset to receive
-        ask_asset: AssetEntry,
-        /// The percentage of spread compared to pre-swap price or belief price (if provided)
-        max_spread: Option<Decimal>,
-        /// The belief price when submitting the transaction.
-        belief_price: Option<Decimal>,
+    /// Action to perform on the DEX with raw asset denominations
+    RawAction {
+        /// The name of the dex to interact with
+        dex: DexName,
+        /// The action to perform
+        action: DexRawAction,
     },
 }
 
@@ -147,11 +113,24 @@ pub enum DexQueryMsg {
     #[returns(SimulateSwapResponse)]
     SimulateSwap {
         /// The asset to offer
-        offer_asset: OfferAsset,
+        offer_asset: AnsAsset,
         /// The asset to receive
         ask_asset: AssetEntry,
         /// Name of the dex to simulate the swap on
-        dex: Option<DexName>,
+        dex: DexName,
+    },
+    /// Simulate a swap between two assets
+    /// Returns [`SimulateSwapResponse`]
+    #[returns(SimulateSwapResponse<AssetInfoBase<String>>)]
+    SimulateSwapRaw {
+        /// The asset to offer
+        offer_asset: AssetBase<String>,
+        /// The asset to receive
+        ask_asset: AssetInfoBase<String>,
+        /// Identifies of the pool to simulate the swap on.
+        pool: UncheckedPoolAddress,
+        /// Name of the dex to simulate the swap on
+        dex: DexName,
     },
     /// Endpoint can be used by front-end to easily interact with contracts.
     /// Returns [`GenerateMessagesResponse`]

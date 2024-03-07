@@ -30,7 +30,7 @@ use ::{
 };
 
 #[cfg(feature = "full_integration")]
-impl DexCommand<DexError> for WynDex {
+impl DexCommand for WynDex {
     fn swap(
         &self,
         _deps: Deps,

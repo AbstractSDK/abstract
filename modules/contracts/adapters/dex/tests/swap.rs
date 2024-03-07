@@ -1,16 +1,15 @@
-use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
+use abstract_core::{ans_host::QueryMsgFns as _, objects::ABSTRACT_ACCOUNT_ID};
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_dex_standard::{msg::DexFeesResponse, DexError};
 use abstract_interface::{AbstractInterfaceError, AdapterDeployer, DeployStrategy};
-use cw20::msg::Cw20ExecuteMsgFns;
-use cw20_base::msg::QueryMsgFns;
-use cw_orch::deploy::Deploy;
+use cw20::msg::Cw20ExecuteMsgFns as _;
+use cw20_base::msg::QueryMsgFns as _;
 mod common;
 
 use abstract_dex_adapter::interface::DexAdapter;
 use abstract_interface::{Abstract, AbstractAccount};
 use common::create_default_account;
-use cosmwasm_std::{coin, Addr, Decimal, Empty};
+use cosmwasm_std::{coin, Decimal, Empty};
 use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
@@ -19,14 +18,14 @@ const WYNDEX: &str = "cosmos-testnet>wyndex";
 
 #[allow(clippy::type_complexity)]
 fn setup_mock() -> anyhow::Result<(
-    Mock,
+    MockBech32,
     wyndex_bundle::WynDex,
-    DexAdapter<Mock>,
-    AbstractAccount<Mock>,
-    Abstract<Mock>,
+    DexAdapter<MockBech32>,
+    AbstractAccount<MockBech32>,
+    Abstract<MockBech32>,
 )> {
-    let sender = Addr::unchecked(common::ROOT_USER);
-    let chain = Mock::new(&sender);
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
@@ -57,8 +56,11 @@ fn swap_native() -> anyhow::Result<()> {
     let (chain, _, dex_adapter, os, abstr) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
 
+    let pools = abstr.ans_host.pool_list(None, None, None)?;
+    println!("{:?}", pools);
+
     // swap 100 EUR to USD
-    dex_adapter.swap((EUR, 100), USD, WYNDEX.into(), &os)?;
+    dex_adapter.ans_swap((EUR, 100), USD, WYNDEX.into(), &os)?;
 
     // check balances
     let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
@@ -85,7 +87,7 @@ fn swap_native_without_chain() -> anyhow::Result<()> {
     let proxy_addr = os.proxy.address()?;
 
     // swap 100 EUR to USD
-    dex_adapter.swap((EUR, 100), USD, WYNDEX_WITHOUT_CHAIN.into(), &os)?;
+    dex_adapter.ans_swap((EUR, 100), USD, WYNDEX_WITHOUT_CHAIN.into(), &os)?;
 
     // check balances
     let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
@@ -110,14 +112,14 @@ fn swap_raw() -> anyhow::Result<()> {
     let proxy_addr = os.proxy.address()?;
 
     // transfer raw
-    let owner = Addr::unchecked(WYNDEX_OWNER);
+    let owner = chain.addr_make(WYNDEX_OWNER);
     wyndex
         .raw_token
         .call_as(&owner)
         .transfer(10_000u128.into(), proxy_addr.to_string())?;
 
     // swap 100 RAW to EUR
-    dex_adapter.swap((RAW_TOKEN, 100), EUR, WYNDEX.into(), &os)?;
+    dex_adapter.ans_swap((RAW_TOKEN, 100), EUR, WYNDEX.into(), &os)?;
 
     // check balances
     let raw_balance = wyndex.raw_token.balance(proxy_addr.to_string())?;

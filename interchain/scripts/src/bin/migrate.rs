@@ -4,12 +4,9 @@ use abstract_interface::{Abstract, AdapterDeployer, AppDeployer, DeployStrategy}
 use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
 use clap::Parser;
 use cosmwasm_std::Decimal;
-use cw_orch::{
-    deploy::Deploy,
-    prelude::{
-        networks::{parse_network, ChainInfo},
-        *,
-    },
+use cw_orch::prelude::{
+    networks::{parse_network, ChainInfo},
+    *,
 };
 use dca_app::{contract::DCA_APP_ID, DCA};
 use etf_app::{contract::interface::Etf, ETF_APP_ID};
@@ -58,10 +55,6 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             challenge_app::contract::CHALLENGE_APP_VERSION.parse()?,
             DeployStrategy::Try,
         )?;
-
-        // deployment.ibc.upload()?;
-        // deployment.ibc.instantiate(&deployment, &chain.sender())?;
-        // deployment.ibc.register(&deployment.version_control)?;
 
         deployment.version_control.approve_any_abstract_modules()?;
     }
