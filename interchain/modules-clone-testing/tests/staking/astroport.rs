@@ -4,6 +4,7 @@ use abstract_app::objects::{
 use abstract_client::{AbstractClient, Environment};
 use abstract_cw_staking::staking_tester::{MockStaking, StakingTester};
 use abstract_interface::ExecuteMsgFns;
+use abstract_modules_interchain_tests::common::load_abstr;
 use astroport::incentives::InputSchedule;
 use cosmwasm_std::{coin, Addr};
 use cw_asset::AssetInfoUnchecked;
@@ -11,9 +12,10 @@ use cw_orch::daemon::networks::NEUTRON_1;
 use cw_orch::prelude::*;
 use cw_orch_clone_testing::CloneTesting;
 
-use crate::clone_testing::dex::astroport::{FACTORY_ADDR, INCENTIVES_ADDR};
-
-use super::load_abstr;
+// https://docs.astroport.fi/docs/develop/smart-contracts/contract-addresses#neutron
+pub const INCENTIVES_ADDR: &str =
+    "neutron173fd8wpfzyqnfnpwq2zhtgdstujrjz2wkprkjfr6gqg4gknctjyq6m3tch";
+pub const FACTORY_ADDR: &str = "neutron1hptk0k5kng7hjy35vmh009qd5m6l33609nypgf2yc6nqnewduqasxplt4e";
 
 // mainnet addr of abstract
 const SENDER: &str = "neutron1kjzpqv393k4g064xh04j4hwy5d0s03wf7dnt4x";

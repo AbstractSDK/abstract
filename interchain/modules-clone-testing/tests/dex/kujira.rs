@@ -1,12 +1,12 @@
 //! Currently you can run only 1 test at a time: `cargo ct`
 //! Otherwise you will have too many requests
 
-use crate::clone_testing::dex::load_abstr;
 use abstract_app::objects::{
     pool_id::PoolAddressBase, AssetEntry, PoolMetadata, PoolType, UncheckedContractEntry,
 };
 use abstract_client::{AbstractClient, Environment};
 use abstract_interface::ExecuteMsgFns;
+use abstract_modules_interchain_tests::common::load_abstr;
 use anyhow::Ok;
 use cosmwasm_std::{Addr, Decimal};
 use cw_asset::AssetInfoUnchecked;
