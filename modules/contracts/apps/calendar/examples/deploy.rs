@@ -1,6 +1,6 @@
 //! Deploys the module to the Abstract platform by uploading it and registering it on the version control contract.
 //!
-//! This should be used for mainnet/testnet deployments in combination with our front-end at https://app.abstract.money
+//! This should be used for mainnet/testnet deployments in combination with our front-end at https://console.abstract.money
 //!
 //! **Requires you to have an account and namespace registered**
 //!
@@ -42,7 +42,7 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         app.deploy(version, DeployStrategy::Try)?;
 
         // Create an account on our front-end to install the module!
-        // https://app.abstract.money
+        // https://console.abstract.money
     }
     Ok(())
 }

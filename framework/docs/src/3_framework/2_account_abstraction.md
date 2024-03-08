@@ -39,7 +39,7 @@ you an idea of how an App is created with the Abstract SDK:
 ```
 
 The code above defines an **Abstract App**. This app can be installed on any Abstract Account through
-the <a href="https://app.abstract.money/juno/modules" target="_blank">Abstract App
+the <a href="https://console.abstract.money" target="_blank">Abstract App
 store</a>, allowing developers to monetize their code.
 
 The customizable handlers that are used in the builder are functions similar to the native CosmWasm entry-point
