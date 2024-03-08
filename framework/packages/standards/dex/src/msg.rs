@@ -78,8 +78,6 @@ pub struct DexInstantiateMsg {
 
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum DexExecuteMsg {
     /// Update the fee
     UpdateFee {
