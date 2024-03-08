@@ -88,7 +88,7 @@ pub mod interface {
                 .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
             Ok(())
         }
-        /// Swap using raw asset addresses
+        /// Swap using raw native assets denoms
         pub fn raw_swap_native(
             &self,
             offer_asset: (&str, u128),
@@ -107,6 +107,59 @@ pub mod interface {
                         pool,
                         max_spread: Some(Decimal::percent(30)),
                         belief_price: None,
+                    },
+                },
+            });
+            account
+                .manager
+                .execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
+            Ok(())
+        }
+        /// Provide liquidity using ans resolved assets
+        pub fn ans_provide_liquidity(
+            &self,
+            assets: Vec<(&str, u128)>,
+            dex: String,
+            account: &AbstractAccount<Chain>,
+        ) -> Result<(), AbstractInterfaceError> {
+            let assets = assets
+                .iter()
+                .map(|a| AnsAsset::new(AssetEntry::new(a.0), a.1))
+                .collect();
+
+            let provide_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: None,
+                request: DexExecuteMsg::AnsAction {
+                    dex,
+                    action: DexAnsAction::ProvideLiquidity {
+                        assets,
+                        max_spread: Some(Decimal::percent(30)),
+                    },
+                },
+            });
+            account
+                .manager
+                .execute_on_module(DEX_ADAPTER_ID, provide_msg)?;
+            Ok(())
+        }
+
+        /// Provide Liquidity raw native assets denoms
+        pub fn raw_provide_liquidity_native(
+            &self,
+            assets: Vec<(&str, u128)>,
+            dex: String,
+            account: &AbstractAccount<Chain>,
+            pool: PoolAddressBase<String>,
+        ) -> Result<(), AbstractInterfaceError> {
+            let assets = assets.iter().map(|a| AssetBase::native(a.0, a.1)).collect();
+            let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: None,
+                request: DexExecuteMsg::RawAction {
+                    dex,
+                    action: DexRawAction::ProvideLiquidity {
+                        assets,
+                        pool,
+                        max_spread: Some(Decimal::percent(30)),
                     },
                 },
             });
