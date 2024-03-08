@@ -57,18 +57,6 @@ pub trait DexCommand: Identify {
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
 
-    /// Implement your custom swap the DEX
-    fn custom_swap(
-        &self,
-        _deps: Deps,
-        _offer_assets: Vec<Asset>,
-        _ask_assets: Vec<Asset>,
-        _max_spread: Option<Decimal>,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        // Must be implemented in the base to be available
-        Err(DexError::NotImplemented(self.name().to_string()))
-    }
-
     /// Provides liquidity on the the DEX
     fn provide_liquidity(
         &self,

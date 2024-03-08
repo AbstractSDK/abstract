@@ -17,8 +17,8 @@ mod osmosis_test {
     use abstract_cw_staking::{
         contract::CONTRACT_VERSION,
         msg::{
-            ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg,
-            StakingQueryMsgFns,
+            ExecuteMsg, InstantiateMsg, QueryMsg, RewardTokensResponse, StakingAction,
+            StakingExecuteMsg, StakingQueryMsgFns,
         },
     };
     use abstract_interface::{
@@ -259,13 +259,11 @@ mod osmosis_test {
             }],
         });
 
-        // query reward tokens
-        let res: CwOrchError = staking
-            .reward_tokens(OSMOSIS.into(), vec![AssetEntry::new(LP)])
-            .unwrap_err();
-        assert_that!(res.to_string())
-            .contains(CwStakingError::NotImplemented("osmosis".to_owned()).to_string());
+        // query reward tokens should be empty for osmosis
+        let reward_tokens: RewardTokensResponse =
+            staking.reward_tokens(OSMOSIS.into(), vec![AssetEntry::new(LP)])?;
 
+        assert_eq!(reward_tokens, RewardTokensResponse { tokens: vec![] });
         Ok(())
     }
 
