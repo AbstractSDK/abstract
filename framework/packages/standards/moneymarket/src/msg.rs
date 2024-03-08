@@ -1,20 +1,15 @@
 #![warn(missing_docs)]
-//! # Dex Adapter API
+//! # Moneymarket Adapter API
 // re-export response types
 use abstract_core::{
     adapter,
-    objects::{
-        fee::{Fee, UsageFee},
-        pool_id::UncheckedPoolAddress,
-        AnsAsset, AssetEntry, DexAssetPairing,
-    },
+    objects::fee::{Fee, UsageFee},
     AbstractError, AbstractResult,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, CosmosMsg, Decimal, Uint128};
-use cw_asset::{AssetBase, AssetInfoBase};
+use cosmwasm_std::{Addr, CosmosMsg, Decimal};
 
-use crate::{ans_action::MoneyMarketAnsAction, raw_action::MoneyMarketRawAction};
+use crate::{ans_action::MoneymarketAnsAction, raw_action::MoneymarketRawAction};
 
 /// Contract that is responsible for lending
 pub const MONEYMARKET_LENDING_CONTRACT: &str = "lending";
@@ -27,36 +22,20 @@ pub const MONEYMARKET_BORROWING_CONTRACT: &str = "borrowing";
 pub const MAX_FEE: Decimal = Decimal::percent(5);
 
 /// The name of the dex to trade on.
-pub type DexName = String;
+pub type MoneymarketName = String;
 
 /// The callback id for interacting with a dex over ibc
 pub const IBC_DEX_PROVIDER_ID: &str = "IBC_DEX_ACTION";
 
 /// Top-level Abstract Adapter execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
-pub type ExecuteMsg = adapter::ExecuteMsg<DexExecuteMsg>;
+pub type ExecuteMsg = adapter::ExecuteMsg<MoneymarketExecuteMsg>;
 /// Top-level Abstract Adapter instantiate message. This is the message that is passed to the `instantiate` entrypoint of the smart-contract.
-pub type InstantiateMsg = adapter::InstantiateMsg<DexInstantiateMsg>;
+pub type InstantiateMsg = adapter::InstantiateMsg<MoneymarketInstantiateMsg>;
 /// Top-level Abstract Adapter query message. This is the message that is passed to the `query` entrypoint of the smart-contract.
-pub type QueryMsg = adapter::QueryMsg<DexQueryMsg>;
+pub type QueryMsg = adapter::QueryMsg<MoneymarketQueryMsg>;
 
-impl adapter::AdapterExecuteMsg for DexExecuteMsg {}
-impl adapter::AdapterQueryMsg for DexQueryMsg {}
-
-/// Response for simulating a swap.
-#[cosmwasm_schema::cw_serde]
-pub struct SimulateSwapResponse<A = AssetEntry> {
-    /// The pool on which the swap was simulated
-    pub pool: DexAssetPairing<A>,
-    /// Amount you would receive when performing the swap.
-    pub return_amount: Uint128,
-    /// Spread in ask_asset for this swap
-    pub spread_amount: Uint128,
-    // LP/protocol fees could be withheld from either input or output so commission asset must be included.
-    /// Commission charged for the swap
-    pub commission: (A, Uint128),
-    /// Adapter fee charged for the swap (paid in offer asset)
-    pub usage_fee: Uint128,
-}
+impl adapter::AdapterExecuteMsg for MoneymarketExecuteMsg {}
+impl adapter::AdapterQueryMsg for MoneymarketQueryMsg {}
 
 /// Response from GenerateMsgs
 #[cosmwasm_schema::cw_serde]
@@ -65,27 +44,27 @@ pub struct GenerateMessagesResponse {
     pub messages: Vec<CosmosMsg>,
 }
 
-/// Response for Dex Fees
+/// Response for Moneymarket Fees
 #[cosmwasm_schema::cw_serde]
-pub struct DexFeesResponse {
+pub struct MoneymarketFeesResponse {
     /// Fee for using swap action
-    pub swap_fee: Fee,
+    pub lending_fee: Fee,
     /// Address where all fees will go
     pub recipient: Addr,
 }
 
 /// Instantiation message for dex adapter
 #[cosmwasm_schema::cw_serde]
-pub struct DexInstantiateMsg {
+pub struct MoneymarketInstantiateMsg {
     /// Fee charged on each swap.
     pub swap_fee: Decimal,
     /// Recipient account for fees.
     pub recipient_account: u32,
 }
 
-/// Dex Execute msg
+/// Moneymarket Execute msg
 #[cosmwasm_schema::cw_serde]
-pub enum DexExecuteMsg {
+pub enum MoneymarketExecuteMsg {
     /// Update the fee
     UpdateFee {
         /// New fee to set
@@ -96,16 +75,16 @@ pub enum DexExecuteMsg {
     /// Action to perform on the DEX with ans asset denomination
     AnsAction {
         /// The name of the dex to interact with
-        dex: DexName,
+        dex: MoneymarketName,
         /// The action to perform
-        action: MoneyMarketAnsAction,
+        action: MoneymarketAnsAction,
     },
     /// Action to perform on the DEX with raw asset denominations
     RawAction {
         /// The name of the dex to interact with
-        dex: DexName,
+        dex: MoneymarketName,
         /// The action to perform
-        action: MoneyMarketRawAction,
+        action: MoneymarketRawAction,
     },
 }
 
@@ -114,56 +93,32 @@ pub enum DexExecuteMsg {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
-pub enum DexQueryMsg {
-    /// Simulate a swap between two assets
-    /// Returns [`SimulateSwapResponse`]
-    #[returns(SimulateSwapResponse)]
-    SimulateSwap {
-        /// The asset to offer
-        offer_asset: AnsAsset,
-        /// The asset to receive
-        ask_asset: AssetEntry,
-        /// Name of the dex to simulate the swap on
-        dex: DexName,
-    },
-    /// Simulate a swap between two assets
-    /// Returns [`SimulateSwapResponse`]
-    #[returns(SimulateSwapResponse<AssetInfoBase<String>>)]
-    SimulateSwapRaw {
-        /// The asset to offer
-        offer_asset: AssetBase<String>,
-        /// The asset to receive
-        ask_asset: AssetInfoBase<String>,
-        /// Identifies of the pool to simulate the swap on.
-        pool: UncheckedPoolAddress,
-        /// Name of the dex to simulate the swap on
-        dex: DexName,
-    },
+pub enum MoneymarketQueryMsg {
     /// Endpoint can be used by front-end to easily interact with contracts.
     /// Returns [`GenerateMessagesResponse`]
     #[returns(GenerateMessagesResponse)]
     GenerateMessages {
         /// Execute message to generate messages for
-        message: DexExecuteMsg,
+        message: MoneymarketExecuteMsg,
         /// Sender Addr generate messages for
         addr_as_sender: String,
     },
     /// Fee info for using the different dex actions
-    #[returns(DexFeesResponse)]
+    #[returns(MoneymarketFeesResponse)]
     Fees {},
 }
 
 /// Fees for using the dex adapter
 #[cosmwasm_schema::cw_serde]
-pub struct DexFees {
+pub struct MoneymarketFees {
     /// Fee for using swap action
     swap_fee: Fee,
     /// Address where all fees will go
     pub recipient: Addr,
 }
 
-impl DexFees {
-    /// Create checked DexFees
+impl MoneymarketFees {
+    /// Create checked MoneymarketFees
     pub fn new(swap_fee_share: Decimal, recipient: Addr) -> AbstractResult<Self> {
         Self::check_fee_share(swap_fee_share)?;
         Ok(Self {
