@@ -1,6 +1,8 @@
 use abstract_adapter_utils::identity::Identify;
 
-use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, Uint128};
+use abstract_core::objects::{ans_host::AnsHostError, AnsAsset, AssetEntry};
+use abstract_sdk::feature_objects::AnsHost;
+use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 use crate::error::MoneymarketError;
@@ -15,6 +17,29 @@ pub type FeeOnInput = bool;
 ///
 /// Implements the usual Moneymarket operations.
 pub trait MoneymarketCommand: Identify {
+    fn lending_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError>;
+
+    fn collateral_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        borrowed_asset: AssetEntry,
+        collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError>;
+
+    fn borrow_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        borrowed_asset: AssetEntry,
+        collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError>;
+
     /// Deposits funds to be lended on the given Money Market
     fn deposit(
         &self,

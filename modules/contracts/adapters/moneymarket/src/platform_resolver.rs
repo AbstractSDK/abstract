@@ -7,7 +7,7 @@ use cosmwasm_std::Env;
 /// Any exchange should be identified by the adapter
 /// This allows erroring the execution before sending any IBC message to another chain
 /// This provides superior UX in case of an IBC execution
-pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, MoneymarketError> {
+pub(crate) fn identify_moneymarket(value: &str) -> Result<Box<dyn Identify>, MoneymarketError> {
     match value {
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::dex::Kujira>::default())
@@ -15,11 +15,11 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, Moneym
         abstract_mars_adapter::MARS => {
             Ok(Box::<abstract_mars_adapter::moneymarket::Mars>::default())
         }
-        _ => Err(MoneymarketError::UnknownDex(value.to_owned())),
+        _ => Err(MoneymarketError::UnknownMoneymarket(value.to_owned())),
     }
 }
 
-pub(crate) fn resolve_exchange(
+pub(crate) fn resolve_moneymarket(
     value: &str,
 ) -> Result<Box<dyn MoneymarketCommand>, MoneymarketError> {
     match value {
@@ -31,7 +31,7 @@ pub(crate) fn resolve_exchange(
         abstract_mars_adapter::MARS => {
             Ok(Box::<abstract_mars_adapter::moneymarket::Mars>::default())
         }
-        _ => Err(MoneymarketError::ForeignMoneyMarket(value.to_owned())),
+        _ => Err(MoneymarketError::ForeignMoneymarket(value.to_owned())),
     }
 }
 
@@ -41,7 +41,7 @@ pub fn is_over_ibc(env: Env, platform_name: &str) -> Result<(String, bool), Mone
     if chain_name.is_some() && !is_current_chain(env.clone(), &chain_name.clone().unwrap()) {
         Ok((local_platform_name, true))
     } else {
-        let platform_id = identify_exchange(&local_platform_name)?;
+        let platform_id = identify_moneymarket(&local_platform_name)?;
         // We verify the adapter is available on the current chain
         if !is_available_on(platform_id, env, chain_name.as_deref()) {
             return Err(MoneymarketError::UnknownMoneymarket(

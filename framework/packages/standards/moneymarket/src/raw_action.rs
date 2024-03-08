@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 //! # Dex Adapter Raw Action Definition
 
-use cw_asset::AssetBase;
+use cw_asset::{AssetBase, AssetInfoBase};
 
 /// Possible actions to perform on a Money Market
 /// This is an example using raw assets
@@ -19,23 +19,31 @@ pub enum MoneymarketRawRequest {
     },
     /// Deposit Collateral to borrow against
     ProvideCollateral {
+        /// Asset that identifies the market you want to deposit in
+        borrowed_asset: AssetInfoBase<String>,
         /// Asset to deposit
-        asset: AssetBase<String>,
+        collateral_asset: AssetBase<String>,
     },
     /// Deposit Collateral to borrow against
     WithdrawCollateral {
+        /// Asset that identifies the market you want to withdraw from
+        borrowed_asset: AssetInfoBase<String>,
         /// Asset to deposit
-        asset: AssetBase<String>,
+        collateral_asset: AssetBase<String>,
     },
     /// Borrow funds from the money market
     Borrow {
-        /// Asset to deposit
-        asset: AssetBase<String>,
+        /// Asset to borrow
+        borrowed_asset: AssetBase<String>,
+        /// Asset that indentifies the market you want to borrow from
+        collateral_asset: AssetInfoBase<String>,
     },
     /// Repay funds to the money market
     Repay {
-        /// Asset to deposit
-        asset: AssetBase<String>,
+        /// Asset to repay
+        borrowed_asset: AssetBase<String>,
+        /// Asset that indentifies the market you want to borrow from
+        collateral_asset: AssetInfoBase<String>,
     },
 }
 

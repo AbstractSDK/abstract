@@ -12,11 +12,12 @@ use cw_asset::{AssetBase, AssetInfoBase};
 
 use crate::state::MONEYMARKET_FEES;
 
-pub const PROVIDE_LIQUIDITY: u64 = 7542;
-pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;
-pub const WITHDRAW_LIQUIDITY: u64 = 7546;
-pub const SWAP: u64 = 7544;
-pub const CUSTOM_SWAP: u64 = 7545;
+pub const DEPOSIT: u64 = 8142;
+pub const WITHDRAW: u64 = 8143;
+pub const PROVIDE_COLLATERAL: u64 = 8144;
+pub const WITHDRAW_COLLATERAL: u64 = 8145;
+pub const BORROW: u64 = 8146;
+pub const REPAY: u64 = 8147;
 
 impl<T> MoneymarketAdapter for T where T: AbstractNameService + Execution + AbstractRegistryAccess {}
 
@@ -29,185 +30,119 @@ pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         deps: Deps,
         sender: Addr,
         action: MoneymarketRawAction,
-        mut exchange: Box<dyn MoneymarketCommand>,
+        mut moneymarket: Box<dyn MoneymarketCommand>,
     ) -> Result<(Vec<CosmosMsg>, ReplyId), MoneymarketError> {
-        Ok(match action {
-            MoneymarketRawAction::ProvideLiquidity {
-                pool,
-                assets,
-                max_spread,
-            } => {
-                if assets.len() < 2 {
-                    return Err(MoneymarketError::TooFewAssets {});
-                }
-                (
-                    self.resolve_provide_liquidity(
-                        deps,
-                        sender,
-                        assets,
-                        pool,
-                        exchange.as_mut(),
-                        max_spread,
-                    )?,
-                    PROVIDE_LIQUIDITY,
-                )
+        Ok(match action.request {
+            abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Deposit { asset } => {
+                (self.resolve_deposit(deps, sender, asset, action.contract_addr, moneymarket.as_mut())?, DEPOSIT)
             }
-            MoneymarketRawAction::ProvideLiquiditySymmetric {
-                pool,
-                offer_asset,
-                paired_assets,
-            } => {
-                if paired_assets.is_empty() {
-                    return Err(MoneymarketError::TooFewAssets {});
-                }
-                (
-                    self.resolve_provide_liquidity_symmetric(
-                        deps,
-                        sender,
-                        pool,
-                        offer_asset,
-                        paired_assets,
-                        exchange.as_mut(),
-                    )?,
-                    PROVIDE_LIQUIDITY_SYM,
-                )
+            abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Withdraw { asset } => {
+                (self.resolve_withdraw(deps, sender, asset, action.contract_addr, moneymarket.as_mut())?, WITHDRAW)
             }
-            MoneymarketRawAction::WithdrawLiquidity { pool, lp_token } => (
-                self.resolve_withdraw_liquidity(deps, sender, lp_token, pool, exchange.as_mut())?,
-                WITHDRAW_LIQUIDITY,
-            ),
-            MoneymarketRawAction::Swap {
-                pool,
-                offer_asset,
-                ask_asset,
-                max_spread,
-                belief_price,
-            } => (
-                self.resolve_swap(
-                    deps,
-                    sender,
-                    offer_asset,
-                    ask_asset,
-                    pool,
-                    exchange.as_mut(),
-                    max_spread,
-                    belief_price,
-                )?,
-                SWAP,
-            ),
+            abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::ProvideCollateral { borrowed_asset, collateral_asset } => {
+                (self.resolve_provide_collateral(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, moneymarket.as_mut())?, PROVIDE_COLLATERAL)
+            }
+            abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::WithdrawCollateral { borrowed_asset, collateral_asset } => {
+                (self.resolve_withdraw_collateral(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, moneymarket.as_mut())?, WITHDRAW_COLLATERAL)
+            }
+            abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Borrow { borrowed_asset, collateral_asset } => {
+                (self.resolve_borrow(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, moneymarket.as_mut())?, BORROW)
+            }
+            abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Repay { borrowed_asset, collateral_asset } => {
+                (self.resolve_repay(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, moneymarket.as_mut())?, REPAY)
+            }
         })
     }
 
-    #[allow(clippy::too_many_arguments)]
-    fn resolve_swap(
+    fn resolve_deposit(
         &self,
         deps: Deps,
         sender: Addr,
-        offer_asset: AssetBase<String>,
-        ask_asset: AssetInfoBase<String>,
-        pool: PoolAddressBase<String>,
-        exchange: &mut dyn MoneymarketCommand,
-        max_spread: Option<Decimal>,
-        belief_price: Option<Decimal>,
+        asset: AssetBase<String>,
+        contract_addr: String,
+        moneymarket: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let pool_address = pool.check(deps.api)?;
-        let mut offer_asset = offer_asset.check(deps.api, None)?;
-        let ask_asset = ask_asset.check(deps.api, None)?;
+        let contract_addr = deps.api.addr_validate(&contract_addr)?;
+        let asset = asset.check(deps.api, None)?;
 
-        // account for fee
-        let moneymarket_fees = MONEYMARKET_FEES.load(deps.storage)?;
-        let usage_fee = moneymarket_fees.swap_usage_fee()?;
-        let fee_msg = offer_asset.charge_usage_fee(usage_fee)?;
-
-        exchange.fetch_data(
-            deps,
-            sender,
-            self.abstract_registry(deps)?,
-            self.ans_host(deps)?,
-        )?;
-        let mut swap_msgs = exchange.swap(
-            deps,
-            pool_address,
-            offer_asset,
-            ask_asset,
-            belief_price,
-            max_spread,
-        )?;
-        // insert fee msg
-        if let Some(f) = fee_msg {
-            swap_msgs.push(f)
-        }
-
-        Ok(swap_msgs)
+        moneymarket.deposit(deps, contract_addr, asset)
     }
 
-    fn resolve_provide_liquidity(
+    fn resolve_withdraw(
         &self,
         deps: Deps,
         sender: Addr,
-        offer_assets: Vec<AssetBase<String>>,
-        pool: PoolAddressBase<String>,
-        exchange: &mut dyn MoneymarketCommand,
-        max_spread: Option<Decimal>,
+        asset: AssetBase<String>,
+        contract_addr: String,
+        moneymarket: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let pool_address = pool.check(deps.api)?;
-        let offer_assets = offer_assets
-            .into_iter()
-            .map(|o| o.check(deps.api, None))
-            .collect::<Result<_, _>>()?;
+        let contract_addr = deps.api.addr_validate(&contract_addr)?;
+        let asset = asset.check(deps.api, None)?;
 
-        exchange.fetch_data(
-            deps,
-            sender,
-            self.abstract_registry(deps)?,
-            self.ans_host(deps)?,
-        )?;
-        exchange.provide_liquidity(deps, pool_address, offer_assets, max_spread)
+        moneymarket.withdraw(deps, contract_addr, asset)
     }
 
-    fn resolve_provide_liquidity_symmetric(
+    fn resolve_provide_collateral(
         &self,
         deps: Deps,
         sender: Addr,
-        pool: PoolAddressBase<String>,
-        offer_asset: AssetBase<String>,
-        paired_assets: Vec<AssetInfoBase<String>>,
-        exchange: &mut dyn MoneymarketCommand,
+        borrowed_asset: AssetInfoBase<String>,
+        collateral_asset: AssetBase<String>,
+        contract_addr: String,
+        moneymarket: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let pool_address = pool.check(deps.api)?;
-        let paired_assets = paired_assets
-            .into_iter()
-            .map(|o| o.check(deps.api, None))
-            .collect::<Result<_, _>>()?;
-        let offer_asset = offer_asset.check(deps.api, None)?;
+        let contract_addr = deps.api.addr_validate(&contract_addr)?;
+        let borrowed_asset = borrowed_asset.check(deps.api, None)?;
+        let collateral_asset = collateral_asset.check(deps.api, None)?;
 
-        exchange.fetch_data(
-            deps,
-            sender,
-            self.abstract_registry(deps)?,
-            self.ans_host(deps)?,
-        )?;
-        exchange.provide_liquidity_symmetric(deps, pool_address, offer_asset, paired_assets)
+        moneymarket.provide_collateral(deps, contract_addr, collateral_asset)
     }
 
-    /// @todo
-    fn resolve_withdraw_liquidity(
+    fn resolve_withdraw_collateral(
         &self,
         deps: Deps,
         sender: Addr,
-        lp_token: AssetBase<String>,
-        pool: PoolAddressBase<String>,
-        exchange: &mut dyn MoneymarketCommand,
+        borrowed_asset: AssetInfoBase<String>,
+        collateral_asset: AssetBase<String>,
+        contract_addr: String,
+        moneymarket: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let pool_address = pool.check(deps.api)?;
-        let lp_token = lp_token.check(deps.api, None)?;
+        let contract_addr = deps.api.addr_validate(&contract_addr)?;
+        let borrowed_asset = borrowed_asset.check(deps.api, None)?;
+        let collateral_asset = collateral_asset.check(deps.api, None)?;
 
-        exchange.fetch_data(
-            deps,
-            sender,
-            self.abstract_registry(deps)?,
-            self.ans_host(deps)?,
-        )?;
-        exchange.withdraw_liquidity(deps, pool_address, lp_token)
+        moneymarket.withdraw_collateral(deps, contract_addr, collateral_asset)
+    }
+
+    fn resolve_borrow(
+        &self,
+        deps: Deps,
+        sender: Addr,
+        borrowed_asset: AssetBase<String>,
+        collateral_asset: AssetInfoBase<String>,
+        contract_addr: String,
+        moneymarket: &mut dyn MoneymarketCommand,
+    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+        let contract_addr = deps.api.addr_validate(&contract_addr)?;
+        let borrowed_asset = borrowed_asset.check(deps.api, None)?;
+        let collateral_asset = collateral_asset.check(deps.api, None)?;
+
+        moneymarket.borrow(deps, contract_addr, borrowed_asset)
+    }
+
+    fn resolve_repay(
+        &self,
+        deps: Deps,
+        sender: Addr,
+        borrowed_asset: AssetBase<String>,
+        collateral_asset: AssetInfoBase<String>,
+        contract_addr: String,
+        moneymarket: &mut dyn MoneymarketCommand,
+    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+        let contract_addr = deps.api.addr_validate(&contract_addr)?;
+        let borrowed_asset = borrowed_asset.check(deps.api, None)?;
+        let collateral_asset = collateral_asset.check(deps.api, None)?;
+
+        moneymarket.repay(deps, contract_addr, borrowed_asset)
     }
 }

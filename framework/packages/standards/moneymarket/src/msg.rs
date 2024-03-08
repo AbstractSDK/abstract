@@ -11,13 +11,6 @@ use cosmwasm_std::{Addr, CosmosMsg, Decimal};
 
 use crate::{ans_action::MoneymarketAnsAction, raw_action::MoneymarketRawAction};
 
-/// Contract that is responsible for lending
-pub const MONEYMARKET_LENDING_CONTRACT: &str = "lending";
-/// Contract that is responsible for collateral deposits
-pub const MONEYMARKET_COLLATERAL_CONTRACT: &str = "collateral";
-/// Contract that is responsible for borrowing
-pub const MONEYMARKET_BORROWING_CONTRACT: &str = "borrowing";
-
 /// Max fee for the dex adapter actions
 pub const MAX_FEE: Decimal = Decimal::percent(5);
 
@@ -48,7 +41,7 @@ pub struct GenerateMessagesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct MoneymarketFeesResponse {
     /// Fee for using swap action
-    pub lending_fee: Fee,
+    pub moneymarket_fee: Fee,
     /// Address where all fees will go
     pub recipient: Addr,
 }
@@ -68,21 +61,21 @@ pub enum MoneymarketExecuteMsg {
     /// Update the fee
     UpdateFee {
         /// New fee to set
-        swap_fee: Option<Decimal>,
+        moneymarket_fee: Option<Decimal>,
         /// New recipient account for fees
         recipient_account: Option<u32>,
     },
     /// Action to perform on the DEX with ans asset denomination
     AnsAction {
         /// The name of the dex to interact with
-        dex: MoneymarketName,
+        moneymarket: MoneymarketName,
         /// The action to perform
         action: MoneymarketAnsAction,
     },
     /// Action to perform on the DEX with raw asset denominations
     RawAction {
         /// The name of the dex to interact with
-        dex: MoneymarketName,
+        moneymarket: MoneymarketName,
         /// The action to perform
         action: MoneymarketRawAction,
     },

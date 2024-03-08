@@ -17,12 +17,12 @@ use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use self::{ans::AnsMoneymarket, raw::Moneymarket};
 
 // API for Abstract SDK users
-/// Interact with the dex adapter in your module.
+/// Interact with the moneymarket adapter in your module.
 pub trait MoneymarketInterface:
     AccountIdentification + Dependencies + ModuleIdentification
 {
-    /// Construct a new dex interface.
-    fn dex<'a>(&'a self, deps: Deps<'a>, name: MoneymarketName) -> Moneymarket<Self> {
+    /// Construct a new moneymarket interface.
+    fn moneymarket<'a>(&'a self, deps: Deps<'a>, name: MoneymarketName) -> Moneymarket<Self> {
         Moneymarket {
             base: self,
             deps,
@@ -30,8 +30,12 @@ pub trait MoneymarketInterface:
             module_id: MONEYMARKET_ADAPTER_ID,
         }
     }
-    /// Construct a new dex interface with ANS support.
-    fn ans_dex<'a>(&'a self, deps: Deps<'a>, name: MoneymarketName) -> AnsMoneymarket<Self> {
+    /// Construct a new moneymarket interface with ANS support.
+    fn ans_moneymarket<'a>(
+        &'a self,
+        deps: Deps<'a>,
+        name: MoneymarketName,
+    ) -> AnsMoneymarket<Self> {
         AnsMoneymarket {
             base: self,
             deps,
@@ -60,7 +64,7 @@ pub mod raw {
             Self { module_id, ..self }
         }
 
-        /// Use Raw addresses, ids and denoms for dex-related operations
+        /// Use Raw addresses, ids and denoms for moneymarket-related operations
         pub fn ans(self) -> AnsMoneymarket<'a, T> {
             AnsMoneymarket {
                 base: self.base,
@@ -71,12 +75,12 @@ pub mod raw {
         }
 
         /// returns MONEYMARKET name
-        fn dex_name(&self) -> MoneymarketName {
+        fn moneymarket_name(&self) -> MoneymarketName {
             self.name.clone()
         }
 
         /// returns the MONEYMARKET module id
-        fn dex_module_id(&self) -> ModuleId {
+        fn moneymarket_module_id(&self) -> ModuleId {
             self.module_id
         }
 
@@ -85,9 +89,9 @@ pub mod raw {
             let adapters = self.base.adapters(self.deps);
 
             adapters.request(
-                self.dex_module_id(),
+                self.moneymarket_module_id(),
                 MoneymarketExecuteMsg::RawAction {
-                    dex: self.dex_name(),
+                    moneymarket: self.moneymarket_name(),
                     action,
                 },
             )
@@ -175,7 +179,7 @@ pub mod raw {
             let response: GenerateMessagesResponse =
                 self.query(MoneymarketQueryMsg::GenerateMessages {
                     message: MoneymarketExecuteMsg::RawAction {
-                        dex: self.dex_name(),
+                        moneymarket: self.moneymarket_name(),
                         action: MoneymarketRawAction::Swap {
                             offer_asset: offer_asset.into(),
                             ask_asset: ask_asset.into(),
@@ -212,7 +216,7 @@ pub mod ans {
             Self { module_id, ..self }
         }
 
-        /// Use Raw addresses, ids and denoms for dex-related operations
+        /// Use Raw addresses, ids and denoms for moneymarket-related operations
         pub fn raw(self) -> Moneymarket<'a, T> {
             Moneymarket {
                 base: self.base,
@@ -223,12 +227,12 @@ pub mod ans {
         }
 
         /// returns MONEYMARKET name
-        fn dex_name(&self) -> MoneymarketName {
+        fn moneymarket_name(&self) -> MoneymarketName {
             self.name.clone()
         }
 
         /// returns the MONEYMARKET module id
-        fn dex_module_id(&self) -> ModuleId {
+        fn moneymarket_module_id(&self) -> ModuleId {
             self.module_id
         }
 
@@ -237,9 +241,9 @@ pub mod ans {
             let adapters = self.base.adapters(self.deps);
 
             adapters.request(
-                self.dex_module_id(),
+                self.moneymarket_module_id(),
                 MoneymarketExecuteMsg::AnsAction {
-                    dex: self.dex_name(),
+                    moneymarket: self.moneymarket_name(),
                     action,
                 },
             )
@@ -310,7 +314,7 @@ pub mod ans {
             let response: GenerateMessagesResponse =
                 self.query(MoneymarketQueryMsg::GenerateMessages {
                     message: MoneymarketExecuteMsg::AnsAction {
-                        dex: self.dex_name(),
+                        moneymarket: self.moneymarket_name(),
                         action: MoneymarketAnsAction::Swap {
                             offer_asset,
                             ask_asset,
@@ -351,18 +355,18 @@ mod test {
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
-        let dex = stub
-            .ans_dex(deps.as_ref(), "junoswap".into())
+        let moneymarket = stub
+            .ans_moneymarket(deps.as_ref(), "junoswap".into())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-        let dex_name = "junoswap".to_string();
+        let moneymarket_name = "junoswap".to_string();
         let offer_asset = AnsAsset::new("juno", 1000u128);
         let ask_asset = AssetEntry::new("uusd");
         let max_spread = Some(Decimal::percent(1));
         let belief_price = Some(Decimal::percent(2));
 
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
-            dex: dex_name,
+            moneymarket: moneymarket_name,
             action: MoneymarketAnsAction::Swap {
                 offer_asset: offer_asset.clone(),
                 ask_asset: ask_asset.clone(),
@@ -371,7 +375,7 @@ mod test {
             },
         });
 
-        let actual = dex.swap(offer_asset, ask_asset, max_spread, belief_price);
+        let actual = moneymarket.swap(offer_asset, ask_asset, max_spread, belief_price);
 
         assert_that!(actual).is_ok();
 
@@ -394,24 +398,24 @@ mod test {
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
-        let dex_name = "junoswap".to_string();
+        let moneymarket_name = "junoswap".to_string();
 
-        let dex = stub
-            .ans_dex(deps.as_ref(), dex_name.clone())
+        let moneymarket = stub
+            .ans_moneymarket(deps.as_ref(), moneymarket_name.clone())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let assets = vec![AnsAsset::new("taco", 1000u128)];
         let max_spread = Some(Decimal::percent(1));
 
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
-            dex: dex_name,
+            moneymarket: moneymarket_name,
             action: MoneymarketAnsAction::ProvideLiquidity {
                 assets: assets.clone(),
                 max_spread,
             },
         });
 
-        let actual = dex.provide_liquidity(assets, max_spread);
+        let actual = moneymarket.provide_liquidity(assets, max_spread);
 
         assert_that!(actual).is_ok();
 
@@ -434,10 +438,10 @@ mod test {
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
-        let dex_name = "junoswap".to_string();
+        let moneymarket_name = "junoswap".to_string();
 
-        let dex = stub
-            .ans_dex(deps.as_ref(), dex_name.clone())
+        let moneymarket = stub
+            .ans_moneymarket(deps.as_ref(), moneymarket_name.clone())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let offer = AnsAsset::new("taco", 1000u128);
@@ -445,14 +449,14 @@ mod test {
         let _max_spread = Some(Decimal::percent(1));
 
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
-            dex: dex_name,
+            moneymarket: moneymarket_name,
             action: MoneymarketAnsAction::ProvideLiquiditySymmetric {
                 offer_asset: offer.clone(),
                 paired_assets: paired.clone(),
             },
         });
 
-        let actual = dex.provide_liquidity_symmetric(offer, paired);
+        let actual = moneymarket.provide_liquidity_symmetric(offer, paired);
 
         assert_that!(actual).is_ok();
 
@@ -475,22 +479,22 @@ mod test {
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
-        let dex_name = "junoswap".to_string();
+        let moneymarket_name = "junoswap".to_string();
 
-        let dex = stub
-            .ans_dex(deps.as_ref(), dex_name.clone())
+        let moneymarket = stub
+            .ans_moneymarket(deps.as_ref(), moneymarket_name.clone())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let lp_token = AnsAsset::new("taco", 1000u128);
 
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
-            dex: dex_name,
+            moneymarket: moneymarket_name,
             action: MoneymarketAnsAction::WithdrawLiquidity {
                 lp_token: lp_token.clone(),
             },
         });
 
-        let actual = dex.withdraw_liquidity(lp_token);
+        let actual = moneymarket.withdraw_liquidity(lp_token);
 
         assert_that!(actual).is_ok();
 
@@ -520,11 +524,11 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
             let stub = MockModule::new();
-            let dex = stub
-                .dex(deps.as_ref(), "junoswap".into())
+            let moneymarket = stub
+                .moneymarket(deps.as_ref(), "junoswap".into())
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-            let dex_name = "junoswap".to_string();
+            let moneymarket_name = "junoswap".to_string();
             let offer_asset = Asset::native("ujuno", 100_000u128);
             let ask_asset = AssetInfo::native("uusd");
             let max_spread = Some(Decimal::percent(1));
@@ -532,7 +536,7 @@ mod test {
             let pool = PoolAddressBase::Id(POOL);
 
             let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::RawAction {
-                dex: dex_name,
+                moneymarket: moneymarket_name,
                 action: MoneymarketRawAction::Swap {
                     offer_asset: offer_asset.clone().into(),
                     ask_asset: ask_asset.clone().into(),
@@ -542,7 +546,7 @@ mod test {
                 },
             });
 
-            let actual = dex.swap(offer_asset, ask_asset, max_spread, belief_price, pool);
+            let actual = moneymarket.swap(offer_asset, ask_asset, max_spread, belief_price, pool);
 
             assert_that!(actual).is_ok();
 
@@ -565,10 +569,10 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
             let stub = MockModule::new();
-            let dex_name = "junoswap".to_string();
+            let moneymarket_name = "junoswap".to_string();
 
-            let dex = stub
-                .dex(deps.as_ref(), dex_name.clone())
+            let moneymarket = stub
+                .moneymarket(deps.as_ref(), moneymarket_name.clone())
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
             let assets = vec![Asset::native("taco", 1000u128)];
@@ -576,7 +580,7 @@ mod test {
             let pool = PoolAddressBase::Id(POOL);
 
             let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::RawAction {
-                dex: dex_name,
+                moneymarket: moneymarket_name,
                 action: MoneymarketRawAction::ProvideLiquidity {
                     assets: assets.clone().into_iter().map(Into::into).collect(),
                     max_spread,
@@ -584,7 +588,7 @@ mod test {
                 },
             });
 
-            let actual = dex.provide_liquidity(assets, max_spread, pool);
+            let actual = moneymarket.provide_liquidity(assets, max_spread, pool);
 
             assert_that!(actual).is_ok();
 
@@ -607,10 +611,10 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
             let stub = MockModule::new();
-            let dex_name = "junoswap".to_string();
+            let moneymarket_name = "junoswap".to_string();
 
-            let dex = stub
-                .dex(deps.as_ref(), dex_name.clone())
+            let moneymarket = stub
+                .moneymarket(deps.as_ref(), moneymarket_name.clone())
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
             let offer = Asset::native("taco", 1000u128);
@@ -619,7 +623,7 @@ mod test {
             let pool = PoolAddressBase::Id(POOL);
 
             let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::RawAction {
-                dex: dex_name,
+                moneymarket: moneymarket_name,
                 action: MoneymarketRawAction::ProvideLiquiditySymmetric {
                     offer_asset: offer.clone().into(),
                     paired_assets: paired.clone().into_iter().map(Into::into).collect(),
@@ -627,7 +631,7 @@ mod test {
                 },
             });
 
-            let actual = dex.provide_liquidity_symmetric(offer, paired, pool);
+            let actual = moneymarket.provide_liquidity_symmetric(offer, paired, pool);
 
             assert_that!(actual).is_ok();
 
@@ -650,24 +654,24 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
             let stub = MockModule::new();
-            let dex_name = "junoswap".to_string();
+            let moneymarket_name = "junoswap".to_string();
 
-            let dex = stub
-                .dex(deps.as_ref(), dex_name.clone())
+            let moneymarket = stub
+                .moneymarket(deps.as_ref(), moneymarket_name.clone())
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
             let lp_token = Asset::native("taco", 1000u128);
             let pool = PoolAddressBase::Id(POOL);
 
             let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::RawAction {
-                dex: dex_name,
+                moneymarket: moneymarket_name,
                 action: MoneymarketRawAction::WithdrawLiquidity {
                     lp_token: lp_token.clone().into(),
                     pool: pool.clone().into(),
                 },
             });
 
-            let actual = dex.withdraw_liquidity(lp_token, pool);
+            let actual = moneymarket.withdraw_liquidity(lp_token, pool);
 
             assert_that!(actual).is_ok();
 

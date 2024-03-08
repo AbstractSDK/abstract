@@ -1,4 +1,9 @@
 use abstract_moneymarket_standard::Identify;
+use abstract_sdk::{
+    core::objects::{ans_host::AnsHostError, AnsAsset, AssetEntry, ContractEntry},
+    feature_objects::AnsHost,
+};
+use cosmwasm_std::QuerierWrapper;
 
 use crate::{AVAILABLE_CHAINS, KUJIRA};
 
@@ -236,6 +241,50 @@ impl MoneymarketCommand for Kujira {
             deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
 
         Ok(query_response.max_ltv)
+    }
+
+    fn lending_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        let lending_contract = ContractEntry {
+            protocol: self.name().to_string(),
+            contract: format!("lending/{}", lending_asset),
+        };
+
+        ans_host.query_contract(querier, &lending_contract)
+    }
+
+    fn collateral_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+        collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        let collateral_contract = ContractEntry {
+            protocol: self.name().to_string(),
+            contract: format!("collateral/{}/lended/{}", collateral_asset, lending_asset),
+        };
+
+        ans_host.query_contract(querier, &collateral_contract)
+    }
+
+    fn borrow_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+        collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        let borrow_contract = ContractEntry {
+            protocol: self.name().to_string(),
+            contract: format!("borrow/{}/collateral/{}", lending_asset, collateral_asset),
+        };
+
+        ans_host.query_contract(querier, &borrow_contract)
     }
 }
 

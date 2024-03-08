@@ -1,14 +1,19 @@
 use abstract_moneymarket_standard::Identify;
+use abstract_sdk::{
+    core::objects::{ans_host::AnsHostError, AnsAsset, AssetEntry, ContractEntry},
+    feature_objects::AnsHost,
+};
+use cosmwasm_std::QuerierWrapper;
 
-use crate::{AVAILABLE_CHAINS, KUJIRA};
+use crate::{AVAILABLE_CHAINS, MARS};
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
-pub struct Kujira {}
+pub struct Mars {}
 
-impl Identify for Kujira {
+impl Identify for Mars {
     fn name(&self) -> &'static str {
-        KUJIRA
+        MARS
     }
     fn is_available_on(&self, chain_name: &str) -> bool {
         AVAILABLE_CHAINS.contains(&chain_name)
@@ -16,7 +21,7 @@ impl Identify for Kujira {
 }
 
 #[cfg(feature = "full_integration")]
-use ::{
+use {
     abstract_moneymarket_standard::{
         coins_in_assets, Fee, FeeOnInput, MoneymarketCommand, MoneymarketError, Return, Spread,
     },
@@ -41,7 +46,7 @@ use ::{
 };
 
 #[cfg(feature = "full_integration")]
-impl MoneymarketCommand for Kujira {
+impl MoneymarketCommand for Mars {
     fn deposit(
         &self,
         deps: Deps,
@@ -237,30 +242,46 @@ impl MoneymarketCommand for Kujira {
 
         Ok(query_response.max_ltv)
     }
-}
 
-#[cfg(feature = "full_integration")]
-fn cw_asset_to_kujira(asset: &Asset) -> Result<kujira::Asset, MoneymarketError> {
-    match &asset.info {
-        AssetInfoBase::Native(denom) => Ok(kujira::Asset {
-            amount: asset.amount,
-            info: kujira::AssetInfo::NativeToken {
-                denom: denom.into(),
-            },
-        }),
-        _ => Err(MoneymarketError::UnsupportedAssetType(
-            asset.info.to_string(),
-        )),
+    fn lending_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        _lending_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        self.red_bank(querier, ans_host)
+    }
+
+    fn collateral_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        _lending_asset: AssetEntry,
+        _collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        self.red_bank(querier, ans_host)
+    }
+
+    fn borrow_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        _lending_asset: AssetEntry,
+        _collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        self.red_bank(querier, ans_host)
     }
 }
 
-#[cfg(feature = "full_integration")]
-/// Converts [`Decimal`] to [`Decimal256`].
-pub fn decimal2decimal256(dec_value: Decimal) -> StdResult<Decimal256> {
-    Decimal256::from_atomics(dec_value.atomics(), dec_value.decimal_places()).map_err(|_| {
-        StdError::generic_err(format!(
-            "Failed to convert Decimal {} to Decimal256",
-            dec_value
-        ))
-    })
+impl Mars {
+    fn red_bank(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> Result<Addr, AnsHostError> {
+        let contract_entry = ContractEntry {
+            protocol: self.name().to_string(),
+            contract: "red-bank".to_string(),
+        };
+
+        ans_host
+            .query_contract(querier, &contract_entry)
+            .map_err(Into::into)
+    }
 }

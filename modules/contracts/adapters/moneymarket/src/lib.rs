@@ -1,8 +1,8 @@
 pub mod adapter;
 pub mod api;
 pub mod contract;
-mod exchanges;
 pub(crate) mod handlers;
+mod platform_resolver;
 pub mod state;
 pub mod msg {
     pub use abstract_moneymarket_standard::msg::*;
@@ -55,61 +55,7 @@ pub mod interface {
     }
 
     impl<Chain: CwEnv> MoneymarketAdapter<Chain> {
-        /// Swap using ans resolved assets
-        pub fn ans_swap(
-            &self,
-            offer_asset: (&str, u128),
-            ask_asset: &str,
-            moneymarket: String,
-            account: &AbstractAccount<Chain>,
-        ) -> Result<(), AbstractInterfaceError> {
-            let asset = AssetEntry::new(offer_asset.0);
-            let ask_asset = AssetEntry::new(ask_asset);
-
-            let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: None,
-                request: MoneymarketExecuteMsg::AnsAction {
-                    moneymarket,
-                    action: MoneymarketAnsAction::Swap {
-                        offer_asset: AnsAsset::new(asset, offer_asset.1),
-                        ask_asset,
-                        max_spread: Some(Decimal::percent(30)),
-                        belief_price: None,
-                    },
-                },
-            });
-            account
-                .manager
-                .execute_on_module(MONEYMARKET_ADAPTER_ID, swap_msg)?;
-            Ok(())
-        }
-        /// Swap using raw asset addresses
-        pub fn raw_swap_native(
-            &self,
-            offer_asset: (&str, u128),
-            ask_asset: &str,
-            moneymarket: String,
-            account: &AbstractAccount<Chain>,
-            pool: PoolAddressBase<String>,
-        ) -> Result<(), AbstractInterfaceError> {
-            let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: None,
-                request: MoneymarketExecuteMsg::RawAction {
-                    moneymarket,
-                    action: MoneymarketRawAction::Swap {
-                        offer_asset: AssetBase::native(offer_asset.0, offer_asset.1),
-                        ask_asset: AssetInfoBase::native(ask_asset),
-                        pool,
-                        max_spread: Some(Decimal::percent(30)),
-                        belief_price: None,
-                    },
-                },
-            });
-            account
-                .manager
-                .execute_on_module(MONEYMARKET_ADAPTER_ID, swap_msg)?;
-            Ok(())
-        }
+        // TODO
     }
 
     impl<Chain: CwEnv> RegisteredModule for MoneymarketAdapter<Chain> {
