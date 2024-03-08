@@ -97,6 +97,18 @@ pub mod interface {
             account: &AbstractAccount<Chain>,
             pool: PoolAddressBase<String>,
         ) -> Result<(), AbstractInterfaceError> {
+            self.execute(
+                &DexExecuteMsg::AnsAction {
+                    dex: "osmosis".to_string(),
+                    action: DexAnsAction::ProvideLiquidity {
+                        assets: vec![],
+                        max_spread: None,
+                    },
+                }
+                .into(),
+                None,
+            )?;
+
             let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: DexExecuteMsg::RawAction {

@@ -9,7 +9,7 @@ use abstract_core::{
     },
 };
 use abstract_moneymarket_standard::{
-    ans_action::WholeMoneyMarketAction,
+    ans_action::WholeMoneymarketAction,
     msg::{ExecuteMsg, IBC_MONEYMARKET_PROVIDER_ID},
     raw_action::RawAction,
     MoneymarketError, MONEYMARKET_ADAPTER_ID,
@@ -42,7 +42,7 @@ pub fn execute_handler(
 ) -> MoneymarketResult {
     match msg {
         MoneymarketExecuteMsg::AnsAction {
-            dex: dex_name,
+            moneymarket: moneymarket_name,
             action,
         } => {
             let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
