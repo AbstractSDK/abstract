@@ -14,7 +14,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Uint128};
 use cw_asset::{AssetBase, AssetInfoBase};
 
-use crate::{ans_action::DexAnsAction, raw_action::DexRawAction};
+pub use crate::{ans_action::DexAnsAction, raw_action::DexRawAction};
 
 /// Max fee for the dex adapter actions
 pub const MAX_FEE: Decimal = Decimal::percent(5);
@@ -78,6 +78,8 @@ pub struct DexInstantiateMsg {
 
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum DexExecuteMsg {
     /// Update the fee
     UpdateFee {
