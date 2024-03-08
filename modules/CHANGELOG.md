@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
+
+- `staking_action` helper method for `CwStakingAdapter` interface
+- `ans_action` and `raw_action` helper methods for `DexAdapter` interface
   
 ### Changed
 
@@ -15,7 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-## [0.20.0] - 2024-02-20
+## [0.21.0] - 2024-02-20
 
 ### Added
 
