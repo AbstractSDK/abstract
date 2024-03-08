@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Removed
 
+- unused `custom_swap` of `DexCommand`
+
 ### Fixed
 
 ## [0.20.0] - 2024-02-20
