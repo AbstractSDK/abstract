@@ -156,7 +156,7 @@ pub fn handle_host_module_action(
         target_addr,
         &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
             client_chain,
-            source_module,
+            source_module: source_module.module_info,
             msg,
         }),
         vec![],

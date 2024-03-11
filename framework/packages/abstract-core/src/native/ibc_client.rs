@@ -310,8 +310,7 @@ mod tests {
     use polytone::callbacks::Callback;
     use speculoos::prelude::*;
 
-    use crate::ibc::IbcCallbackMsg;
-    use crate::ibc::IbcResponseMsg;
+    use crate::ibc::{IbcCallbackMsg, IbcCallbackMsgSerializeHelper};
     use crate::objects::module::ModuleInfo;
     use crate::objects::AccountId;
 
@@ -344,7 +343,7 @@ mod tests {
         assert_that!(actual).is_equal_to(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
             contract_addr: receiver,
             // we can't test the message because the fields in it are private
-            msg: to_json_binary(&IbcCallbackMsg::IbcCallback(response_msg)).unwrap(),
+            msg: to_json_binary(&IbcCallbackMsgSerializeHelper::IbcCallback(response_msg)).unwrap(),
             funds: vec![],
         }))
     }

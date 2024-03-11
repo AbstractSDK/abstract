@@ -32,7 +32,6 @@ pub use abstract_testing;
 pub mod mock {
     pub use abstract_core::app;
     use abstract_core::{
-        ibc_client::InstalledModuleIdentification,
         manager::ModuleInstallConfig,
         objects::{dependency::StaticDependency, module::ModuleInfo},
     };
@@ -76,7 +75,7 @@ pub mod mock {
 
     #[cosmwasm_schema::cw_serde]
     pub struct ReceivedIbcCallbackStatus {
-        pub received: Option<InstalledModuleIdentification>,
+        pub received: Option<ModuleInfo>,
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -134,8 +133,7 @@ pub mod mock {
         MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
     // Easy way to see if an ibc-callback was actually received.
-    pub const IBC_CALLBACK_RECEIVED: Item<Option<InstalledModuleIdentification>> =
-        Item::new("ibc_callback_received");
+    pub const IBC_CALLBACK_RECEIVED: Item<Option<ModuleInfo>> = Item::new("ibc_callback_received");
 
     pub const MOCK_APP_WITH_DEP: MockAppContract =
         MockAppContract::new(TEST_WITH_DEP_MODULE_ID, TEST_VERSION, None)

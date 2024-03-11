@@ -4,7 +4,9 @@ use polytone::callbacks::Callback;
 use schemars::JsonSchema;
 
 use crate::{
-    base::ExecuteMsg, ibc_client::InstalledModuleIdentification, objects::chain_name::ChainName,
+    base::ExecuteMsg,
+    ibc_client::InstalledModuleIdentification,
+    objects::{chain_name::ChainName, module::ModuleInfo},
 };
 
 // CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client
@@ -21,7 +23,7 @@ pub struct CallbackInfo {
 
 /// IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg
 #[cosmwasm_schema::cw_serde]
-pub struct IbcResponseMsg {
+pub struct IbcCallbackMsg {
     /// The ID chosen by the caller in the `callback_info.id`
     pub id: String,
     /// The msg sent with the callback request.
@@ -33,10 +35,10 @@ pub struct IbcResponseMsg {
     pub result: Callback,
 }
 
-impl IbcResponseMsg {
+impl IbcCallbackMsg {
     /// serializes the message
     pub fn into_json_binary(self) -> StdResult<Binary> {
-        let msg = IbcCallbackMsg::IbcCallback(self);
+        let msg = IbcCallbackMsgSerializeHelper::IbcCallback(self);
         to_json_binary(&msg)
     }
 
@@ -57,13 +59,13 @@ impl IbcResponseMsg {
 /// This is just a helper to properly serialize the above message.
 /// The actual receiver should include this variant in the larger ExecuteMsg enum
 #[cosmwasm_schema::cw_serde]
-pub(crate) enum IbcCallbackMsg {
-    IbcCallback(IbcResponseMsg),
+pub(crate) enum IbcCallbackMsgSerializeHelper {
+    IbcCallback(IbcCallbackMsg),
 }
 
 #[cw_serde]
 pub struct ModuleIbcMsg {
     pub client_chain: ChainName,
-    pub source_module: InstalledModuleIdentification,
+    pub source_module: ModuleInfo,
     pub msg: Binary,
 }

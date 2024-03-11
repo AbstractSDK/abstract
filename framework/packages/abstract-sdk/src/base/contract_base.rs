@@ -1,4 +1,4 @@
-use abstract_core::{ibc::ModuleIbcMsg, ibc_client::InstalledModuleIdentification};
+use abstract_core::{ibc::ModuleIbcMsg, objects::module::ModuleInfo};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
@@ -38,7 +38,7 @@ pub type IbcCallbackHandlerFn<Module, Error> = fn(
     Env,
     MessageInfo,
     Module,
-    InstalledModuleIdentification,
+    ModuleInfo,
     CallbackMessage,
     Callback,
 ) -> Result<Response, Error>;

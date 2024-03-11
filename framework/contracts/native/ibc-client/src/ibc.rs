@@ -1,5 +1,5 @@
 use abstract_core::{
-    ibc::IbcResponseMsg,
+    ibc::IbcCallbackMsg,
     ibc_client::{
         state::{IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
@@ -92,7 +92,7 @@ pub fn receive_action_callback(
             callback_info,
             sender_module,
         } => {
-            let callback = IbcResponseMsg {
+            let callback = IbcCallbackMsg {
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
                 result: callback.result,
