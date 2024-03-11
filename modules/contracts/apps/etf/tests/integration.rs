@@ -163,5 +163,10 @@ fn proper_initialization() -> AResult {
     // and the fee receiver received funds
     let etf_manager_balance = etf_token.balance(state.manager_addr.to_string())?.balance;
     assert_that!(etf_manager_balance.u128()).is_equal_to(25u128);
+
+    // etf contract shouldn't hold any etf lp
+    let etf_contract_balance = etf_token.balance(etf.addr_str()?)?.balance;
+    assert!(etf_contract_balance.is_zero());
+
     Ok(())
 }
