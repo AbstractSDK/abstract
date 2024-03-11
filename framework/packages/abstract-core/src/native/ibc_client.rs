@@ -313,6 +313,7 @@ mod tests {
     use crate::ibc::IbcCallbackMsg;
     use crate::ibc::IbcResponseMsg;
     use crate::objects::module::ModuleInfo;
+    use crate::objects::AccountId;
 
     use super::InstalledModuleIdentification;
     // ... (other test functions)
@@ -331,7 +332,7 @@ mod tests {
             result,
             sender_module: InstalledModuleIdentification {
                 module_info: ModuleInfo::from_id_latest("tester:test-module").unwrap(),
-                account_id: AccountId::local(1),
+                account_id: Some(AccountId::local(1)),
             },
         };
 

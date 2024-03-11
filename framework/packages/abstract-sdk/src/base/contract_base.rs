@@ -386,7 +386,7 @@ mod test {
     fn test_with_ibc_callback_handlers() {
         const IBC_ID: &str = "aoeu";
         const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
-            |_, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
+            |_, _, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_ibc_callbacks(&[(IBC_ID, HANDLER)]);
 
