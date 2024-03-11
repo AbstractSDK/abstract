@@ -8,7 +8,10 @@ use abstract_core::{
     },
     ibc_host,
     manager::{self, ModuleInstallConfig},
-    objects::{chain_name::ChainName, module_reference::ModuleReference, AccountId, AssetEntry},
+    objects::{
+        chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
+        AssetEntry,
+    },
     version_control::AccountBase,
 };
 use abstract_sdk::{
@@ -220,7 +223,7 @@ pub fn execute_send_module_to_module_packet(
     info: MessageInfo,
     host_chain: String,
     source_module: InstalledModuleIdentification,
-    target_module: InstalledModuleIdentification,
+    target_module: ModuleInfo,
     msg: Binary,
     callback_info: Option<CallbackInfo>,
 ) -> IbcClientResult {

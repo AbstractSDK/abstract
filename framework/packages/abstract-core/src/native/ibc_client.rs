@@ -107,7 +107,7 @@ pub enum ExecuteMsg {
     ModuleIbcAction {
         host_chain: String,
         source_module: InstalledModuleIdentification,
-        target_module: InstalledModuleIdentification,
+        target_module: ModuleInfo,
         msg: Binary,
         callback_info: Option<CallbackInfo>,
     },

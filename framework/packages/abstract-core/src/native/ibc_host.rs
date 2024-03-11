@@ -13,7 +13,7 @@ use cosmwasm_std::{Addr, Binary};
 use crate::{
     ibc_client::InstalledModuleIdentification,
     manager::{self, ModuleInstallConfig},
-    objects::{account::AccountId, chain_name::ChainName, AssetEntry},
+    objects::{account::AccountId, chain_name::ChainName, module::ModuleInfo, AssetEntry},
 };
 
 pub mod state {
@@ -130,7 +130,7 @@ pub enum ExecuteMsg {
     /// Allows for remote execution from the Polytone implementation on a local module
     ModuleExecute {
         source_module: InstalledModuleIdentification,
-        target_module: InstalledModuleIdentification,
+        target_module: ModuleInfo,
         msg: Binary,
     },
 }
