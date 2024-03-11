@@ -1,5 +1,5 @@
 use abstract_core::IBC_CLIENT;
-use abstract_sdk::{AbstractSdkError, ModuleInterface};
+use abstract_sdk::ModuleInterface;
 use cosmwasm_std::Addr;
 
 use crate::{state::ContractError, AppContract, IbcCallbackEndpoint};
@@ -23,7 +23,7 @@ impl<
         SudoMsg,
     >
 {
-    fn ibc_client(&self, deps: cosmwasm_std::Deps) -> Result<Addr, AbstractSdkError> {
+    fn ibc_client(&self, deps: cosmwasm_std::Deps) -> Result<Addr, Self::Error> {
         let ibc_client = self.modules(deps).module_address(IBC_CLIENT)?;
         Ok(ibc_client)
     }

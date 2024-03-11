@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use abstract_core::objects::dependency::StaticDependency;
+use abstract_core::{objects::dependency::StaticDependency, AbstractError};
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -22,11 +22,19 @@ pub const AUTHORIZED_ADDRESSES_NAMESPACE: &str = "authorized_addresses";
 pub const MAXIMUM_AUTHORIZED_ADDRESSES: u32 = 15;
 
 pub trait ContractError:
-    From<cosmwasm_std::StdError> + From<AdapterError> + From<AbstractSdkError> + 'static
+    From<cosmwasm_std::StdError>
+    + From<AdapterError>
+    + From<AbstractSdkError>
+    + From<AbstractError>
+    + 'static
 {
 }
 impl<T> ContractError for T where
-    T: From<cosmwasm_std::StdError> + From<AdapterError> + From<AbstractSdkError> + 'static
+    T: From<cosmwasm_std::StdError>
+        + From<AdapterError>
+        + From<AbstractSdkError>
+        + From<AbstractError>
+        + 'static
 {
 }
 
