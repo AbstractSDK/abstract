@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Etf fee distribution fixed
+
 ## [0.20.0] - 2024-02-20
 
 ### Added
