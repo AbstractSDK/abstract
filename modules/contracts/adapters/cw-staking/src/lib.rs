@@ -88,27 +88,34 @@ pub mod interface {
             Self(Contract::new(CW_STAKING_ADAPTER_ID, chain).with_address(Some(addr)))
         }
 
-        /// Swap using Abstract's OS (registered in daemon_state).
+        /// Staking action using Abstract Account
+        pub fn staking_action(
+            &self,
+            provider: String,
+            action: StakingAction,
+            account: impl AsRef<AbstractAccount<Chain>>,
+        ) -> Result<<Chain as TxHandler>::Response, AbstractInterfaceError> {
+            let account = account.as_ref();
+            let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(account.proxy.addr_str()?),
+                request: StakingExecuteMsg { provider, action },
+            });
+            self.execute(&swap_msg, None).map_err(Into::into)
+        }
+
+        /// Stake using Abstract Account (registered in daemon_state).
         pub fn stake(
             &self,
             stake_asset: AnsAsset,
             provider: String,
             duration: Option<cw_utils::Duration>,
-            account: &AbstractAccount<Chain>,
+            account: impl AsRef<AbstractAccount<Chain>>,
         ) -> Result<(), AbstractInterfaceError> {
-            let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: None,
-                request: StakingExecuteMsg {
-                    provider,
-                    action: StakingAction::Stake {
-                        assets: vec![stake_asset],
-                        unbonding_period: duration,
-                    },
-                },
-            });
-            account
-                .manager
-                .execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
+            let action = StakingAction::Stake {
+                assets: vec![stake_asset],
+                unbonding_period: duration,
+            };
+            self.staking_action(provider, action, account)?;
             Ok(())
         }
 
@@ -117,21 +124,13 @@ pub mod interface {
             stake_asset: AnsAsset,
             provider: String,
             duration: Option<cw_utils::Duration>,
-            account: &AbstractAccount<Chain>,
+            account: impl AsRef<AbstractAccount<Chain>>,
         ) -> Result<(), AbstractInterfaceError> {
-            let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: None,
-                request: StakingExecuteMsg {
-                    provider,
-                    action: StakingAction::Unstake {
-                        assets: vec![stake_asset],
-                        unbonding_period: duration,
-                    },
-                },
-            });
-            account
-                .manager
-                .execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
+            let action = StakingAction::Unstake {
+                assets: vec![stake_asset],
+                unbonding_period: duration,
+            };
+            self.staking_action(provider, action, account)?;
             Ok(())
         }
 
@@ -139,20 +138,12 @@ pub mod interface {
             &self,
             stake_asset: AssetEntry,
             provider: String,
-            account: &AbstractAccount<Chain>,
+            account: impl AsRef<AbstractAccount<Chain>>,
         ) -> Result<(), AbstractInterfaceError> {
-            let claim_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: None,
-                request: StakingExecuteMsg {
-                    provider,
-                    action: StakingAction::Claim {
-                        assets: vec![stake_asset],
-                    },
-                },
-            });
-            account
-                .manager
-                .execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg)?;
+            let action = StakingAction::Claim {
+                assets: vec![stake_asset],
+            };
+            self.staking_action(provider, action, account)?;
             Ok(())
         }
 
@@ -160,20 +151,12 @@ pub mod interface {
             &self,
             stake_asset: AssetEntry,
             provider: String,
-            account: &AbstractAccount<Chain>,
+            account: impl AsRef<AbstractAccount<Chain>>,
         ) -> Result<(), AbstractInterfaceError> {
-            let claim_rewards_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                proxy_address: None,
-                request: StakingExecuteMsg {
-                    provider,
-                    action: StakingAction::ClaimRewards {
-                        assets: vec![stake_asset],
-                    },
-                },
-            });
-            account
-                .manager
-                .execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg)?;
+            let action = StakingAction::ClaimRewards {
+                assets: vec![stake_asset],
+            };
+            self.staking_action(provider, action, account)?;
             Ok(())
         }
     }

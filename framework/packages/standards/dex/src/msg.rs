@@ -14,7 +14,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Uint128};
 use cw_asset::{AssetBase, AssetInfoBase};
 
-use crate::{ans_action::DexAnsAction, raw_action::DexRawAction};
+pub use crate::{ans_action::DexAnsAction, raw_action::DexRawAction};
 
 /// Max fee for the dex adapter actions
 pub const MAX_FEE: Decimal = Decimal::percent(5);
