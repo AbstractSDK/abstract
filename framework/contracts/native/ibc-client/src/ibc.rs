@@ -1,5 +1,4 @@
 use abstract_core::{
-    ibc::IbcResponseMsg,
     ibc_client::{
         state::{IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
@@ -87,22 +86,6 @@ pub fn receive_action_callback(
                     .add_attribute("account_id", account_id.to_string())
                     .add_attribute("chain", host_chain.to_string()),
             )
-        }
-        IbcClientCallback::UserRemoteAction {
-            sender,
-            callback_info,
-        } => {
-            // Here we transfer the callback back to the module that requested it
-            let callback = IbcResponseMsg {
-                id: callback_info.id.clone(),
-                msg: callback_info.msg,
-                result: callback.result,
-                sender,
-            };
-            Ok(IbcClientResponse::action("user_specific_callback")
-                .add_message(callback.into_cosmos_msg(callback_info.receiver)?)
-                .add_attribute("chain", host_chain.to_string())
-                .add_attribute("callback_id", callback_info.id))
         }
     }
 }

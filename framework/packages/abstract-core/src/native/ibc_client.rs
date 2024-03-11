@@ -1,10 +1,9 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Empty, QueryRequest};
+use cosmwasm_std::{Addr, Coin};
 use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
 use crate::{
-    ibc::CallbackInfo,
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
     objects::{account::AccountId, chain_name::ChainName, AssetEntry},
@@ -106,39 +105,19 @@ pub enum ExecuteMsg {
         host_chain: String,
         // execute the custom host function
         action: HostAction,
-        // optional callback info
-        callback_info: Option<CallbackInfo>,
-    },
-    /// Allows to query something on a remote contract and act on that query result
-    /// This has to be an Execute variant for IBC queries
-    RemoteQueries {
-        // host chain to be executed on
-        // Example: "osmosis"
-        host_chain: String,
-        // execute following queries
-        queries: Vec<QueryRequest<Empty>>,
-        // mandatory callback info
-        callback_info: CallbackInfo,
     },
     RemoveHost {
         host_chain: String,
     },
-
     /// Callback from the Polytone implementation
-    /// This is only triggered when a contract execution is succesful
+    /// This is NOT ONLY triggered when a contract execution is successful
     Callback(CallbackMessage),
 }
 
 /// This enum is used for sending callbacks to the note contract of the IBC client
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
-    UserRemoteAction {
-        sender: AccountId,
-        callback_info: CallbackInfo,
-    },
-    CreateAccount {
-        account_id: AccountId,
-    },
+    CreateAccount { account_id: AccountId },
     WhoAmI {},
 }
 
@@ -250,7 +229,6 @@ mod tests {
 
     use crate::ibc::IbcCallbackMsg;
     use crate::ibc::IbcResponseMsg;
-    use crate::objects::AccountId;
     // ... (other test functions)
 
     #[test]
@@ -265,7 +243,6 @@ mod tests {
             id: callback_id,
             msg: Some(callback_msg),
             result,
-            sender: AccountId::local(1),
         };
 
         let actual: CosmosMsg<Empty> = response_msg

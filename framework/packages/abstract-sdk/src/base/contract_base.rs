@@ -1,4 +1,3 @@
-use abstract_core::objects::AccountId;
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
@@ -33,15 +32,8 @@ pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
 type CallbackMessage = Option<Binary>;
 // ANCHOR: ibc
 /// Function signature for an IBC callback handler.
-pub type IbcCallbackHandlerFn<Module, Error> = fn(
-    DepsMut,
-    Env,
-    MessageInfo,
-    Module,
-    AccountId,
-    CallbackMessage,
-    Callback,
-) -> Result<Response, Error>;
+pub type IbcCallbackHandlerFn<Module, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, CallbackMessage, Callback) -> Result<Response, Error>;
 // ANCHOR_END: ibc
 
 // ANCHOR: mig
@@ -368,7 +360,7 @@ mod test {
     fn test_with_ibc_callback_handlers() {
         const IBC_ID: &str = "aoeu";
         const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
-            |_, _, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
+            |_, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_ibc_callbacks(&[(IBC_ID, HANDLER)]);
 

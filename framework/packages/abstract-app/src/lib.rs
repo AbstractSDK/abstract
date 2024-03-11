@@ -33,7 +33,7 @@ pub mod mock {
     pub use abstract_core::app;
     use abstract_core::{
         manager::ModuleInstallConfig,
-        objects::{dependency::StaticDependency, module::ModuleInfo, AccountId},
+        objects::{dependency::StaticDependency, module::ModuleInfo},
     };
     use abstract_interface::{AppDeployer, DependencyCreation};
     use cosmwasm_schema::QueryResponses;
@@ -41,7 +41,7 @@ pub mod mock {
     use cosmwasm_std::{to_json_binary, Response, StdError};
     use cw_controllers::AdminError;
     use cw_orch::prelude::*;
-    use cw_storage_plus::{Item, Map};
+    use cw_storage_plus::Item;
 
     pub type AppTestResult = Result<(), MockError>;
 
@@ -68,9 +68,6 @@ pub mod mock {
 
         #[returns(ReceivedIbcCallbackStatus)]
         GetReceivedIbcCallbackStatus {},
-
-        #[returns(ReceivedIbcCallbackStatus)]
-        GetReceivedIbcCallbackSenderStatus { sender: AccountId },
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -137,7 +134,6 @@ pub mod mock {
 
     // Easy way to see if an ibc-callback was actually received.
     pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
-    pub const IBC_CALLBACK_SENDER: Map<AccountId, bool> = Map::new("ibc_callback_sender");
 
     pub const MOCK_APP_WITH_DEP: MockAppContract =
         MockAppContract::new(TEST_WITH_DEP_MODULE_ID, TEST_VERSION, None)
@@ -156,20 +152,12 @@ pub mod mock {
                     })
                     .map_err(Into::into)
                 }
-                MockQueryMsg::GetReceivedIbcCallbackSenderStatus { sender } => {
-                    to_json_binary(&ReceivedIbcCallbackStatus {
-                        received: IBC_CALLBACK_SENDER.load(deps.storage, sender)?,
-                    })
-                    .map_err(Into::into)
-                }
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, sender, _, _| {
+            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _, _| {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
-                IBC_CALLBACK_SENDER
-                    .save(deps.storage, sender, &true)
-                    .unwrap();
+
                 Ok(Response::new().add_attribute("mock_callback", "executed"))
             })])
             .with_dependencies(&[StaticDependency::new(TEST_MODULE_ID, &[TEST_VERSION])])
