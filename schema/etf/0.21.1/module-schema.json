@@ -217,6 +217,7 @@
       "type": "object",
       "required": [
         "fee",
+        "manager_addr",
         "share_token_address"
       ],
       "properties": {
@@ -225,6 +226,14 @@
           "allOf": [
             {
               "$ref": "#/definitions/Decimal"
+            }
+          ]
+        },
+        "manager_addr": {
+          "description": "Address of the ETFs manager which receives the fee.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Addr"
             }
           ]
         },
