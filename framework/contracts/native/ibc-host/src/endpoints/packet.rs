@@ -5,9 +5,7 @@ use abstract_core::{
         state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
         HelperAction,
     },
-    objects::{
-        chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
-    },
+    objects::{chain_name::ChainName, module::ModuleInfo, AccountId},
 };
 use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
 use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
@@ -15,7 +13,6 @@ use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
 use crate::{
     account_commands::{self, receive_dispatch, receive_register, receive_send_all_back},
     contract::HostResult,
-    HostError,
 };
 
 use abstract_core::base::ExecuteMsg as MiddlewareExecMsg;
@@ -129,31 +126,19 @@ pub fn handle_host_module_action(
 ) -> HostResult {
     // We resolve the target module
     let vc = CONFIG.load(deps.storage)?.version_control;
-    let target_module_resolved = vc.query_module(target_module.clone(), &deps.querier)?;
-
-    // We can't send module actions to accounts base and native apps
-    let target_addr = match target_module_resolved.reference {
-        ModuleReference::AccountBase(_) | ModuleReference::Native(_) => {
-            return Err(HostError::WrongModuleAction(target_module.to_string()))
-        }
-        ModuleReference::Adapter(addr) => addr,
-        ModuleReference::App(_) | ModuleReference::Standalone(_) => {
-            let installed_module = InstalledModuleIdentification {
-                module_info: target_module,
-                account_id: source_module
-                    .account_id
-                    .clone()
-                    .map(|a| remote_account_id(client_chain.clone(), a))
-                    .transpose()?,
-            };
-            installed_module.addr(deps.as_ref(), vc)?
-        }
-        _ => unimplemented!(),
+    let target_module = InstalledModuleIdentification {
+        module_info: target_module,
+        account_id: source_module
+            .account_id
+            .map(|a| remote_account_id(client_chain.clone(), a))
+            .transpose()?,
     };
+
+    let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
 
     // We pass the message on to the module
     let msg = wasm_execute(
-        target_addr,
+        target_module_resolved.address,
         &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
             client_chain,
             source_module: source_module.module_info,

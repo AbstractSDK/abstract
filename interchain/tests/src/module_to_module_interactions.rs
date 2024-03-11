@@ -233,15 +233,10 @@ pub mod test {
         },
         JUNO, STARGAZE,
     };
-    use abstract_app::objects::{chain_name::ChainName, module::ModuleInfo, AccountId};
-    use abstract_core::{
-        ibc_client::InstalledModuleIdentification,
-        manager::{self, ModuleInstallConfig},
-        proxy,
-    };
+    use abstract_app::objects::{chain_name::ChainName, module::ModuleInfo};
+    use abstract_core::manager::{self, ModuleInstallConfig};
     use abstract_interface::{
-        AbstractAccount, AppDeployer, DeployStrategy, Manager, ManagerQueryFns, VCExecFns,
-        VCQueryFns,
+        AppDeployer, DeployStrategy, Manager, ManagerQueryFns, VCExecFns, VCQueryFns,
     };
     use abstract_testing::addresses::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION};
     use anyhow::Result as AnyResult;
@@ -257,7 +252,7 @@ pub mod test {
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
         // We just verified all steps pass
-        let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
+        let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
         ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE).to_string();

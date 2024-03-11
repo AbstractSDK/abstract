@@ -740,7 +740,7 @@ mod tests {
     use std::{assert_eq, str::FromStr};
 
     use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
-    use abstract_sdk::core::objects::{PoolAddress, PoolType};
+    use abstract_sdk::core::objects::PoolAddress;
     use cosmwasm_schema::serde::Deserialize;
     use cosmwasm_std::{
         coin, coins, from_json, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal,

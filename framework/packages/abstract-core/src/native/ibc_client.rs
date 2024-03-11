@@ -148,14 +148,24 @@ pub struct InstalledModuleIdentification {
     pub account_id: Option<AccountId>,
 }
 
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleAddr {
+    pub reference: ModuleReference,
+    pub address: Addr,
+}
+
 impl InstalledModuleIdentification {
-    pub fn addr(&self, deps: Deps, vc: VersionControlContract) -> Result<Addr, AbstractError> {
+    pub fn addr(
+        &self,
+        deps: Deps,
+        vc: VersionControlContract,
+    ) -> Result<ModuleAddr, AbstractError> {
         let target_module_resolved = vc.query_module(self.module_info.clone(), &deps.querier)?;
 
         let no_account_id_error =
             StdError::generic_err("Account id not specified in installed module definition");
 
-        let target_addr = match target_module_resolved.reference {
+        let target_addr = match &target_module_resolved.reference {
             ModuleReference::AccountBase(code_id) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
                 let account_base = vc.account_base(&target_account_id, &deps.querier)?;
@@ -164,14 +174,14 @@ impl InstalledModuleIdentification {
                     .querier
                     .query_wasm_contract_info(&account_base.proxy)?
                     .code_id
-                    == code_id
+                    == *code_id
                 {
                     account_base.proxy
                 } else if deps
                     .querier
                     .query_wasm_contract_info(&account_base.manager)?
                     .code_id
-                    == code_id
+                    == *code_id
                 {
                     account_base.manager
                 } else {
@@ -180,8 +190,8 @@ impl InstalledModuleIdentification {
                     ))?
                 }
             }
-            ModuleReference::Native(addr) => addr,
-            ModuleReference::Adapter(addr) => addr,
+            ModuleReference::Native(addr) => addr.clone(),
+            ModuleReference::Adapter(addr) => addr.clone(),
             ModuleReference::App(_) | ModuleReference::Standalone(_) => {
                 let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
                 let account_base = vc.account_base(&target_account_id, &deps.querier)?;
@@ -200,7 +210,10 @@ impl InstalledModuleIdentification {
                     .clone()
             }
         };
-        Ok(target_addr)
+        Ok(ModuleAddr {
+            reference: target_module_resolved.reference,
+            address: target_addr,
+        })
     }
 }
 
@@ -325,7 +338,7 @@ mod tests {
 
         let result = Callback::FatalError("ibc execution error".to_string());
 
-        let response_msg = IbcResponseMsg {
+        let response_msg = IbcCallbackMsg {
             id: callback_id,
             msg: Some(callback_msg),
             result,

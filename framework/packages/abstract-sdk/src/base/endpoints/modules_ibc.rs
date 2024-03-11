@@ -8,7 +8,7 @@ pub trait ModuleIbcEndpoint: Handler {
     /// Get the address of the ibc host associated with this module
     fn ibc_host(&self, deps: Deps) -> Result<Addr, Self::Error>;
 
-    /// Handler for the `ExecuteMsg::IbcCallback()` variant.
+    /// Handler for the `ExecuteMsg::ModuleIbc(ModuleIbcMsg)` variant.
     fn module_ibc(
         self,
         deps: DepsMut,
