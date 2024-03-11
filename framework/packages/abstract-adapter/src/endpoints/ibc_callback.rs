@@ -1,4 +1,7 @@
-use abstract_core::{objects::module::ModuleInfo, AbstractError, IBC_CLIENT};
+use abstract_core::{
+    objects::module::{ModuleInfo, ModuleVersion},
+    AbstractError, IBC_CLIENT,
+};
 use abstract_sdk::{base::IbcCallbackEndpoint, features::AbstractRegistryAccess};
 use cosmwasm_std::{Addr, Deps};
 
@@ -11,7 +14,13 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     fn ibc_client(&self, deps: Deps) -> Result<Addr, Self::Error> {
         let vc_query_result = self
             .abstract_registry(deps)?
-            .query_module(ModuleInfo::from_id_latest(IBC_CLIENT)?, &deps.querier)
+            .query_module(
+                ModuleInfo::from_id(
+                    IBC_CLIENT,
+                    ModuleVersion::from(abstract_ibc_client::contract::CONTRACT_VERSION),
+                )?,
+                &deps.querier,
+            )
             .map_err(Into::<AbstractError>::into)?;
 
         Ok(vc_query_result.reference.unwrap_native()?)
