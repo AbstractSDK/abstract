@@ -28,8 +28,8 @@ pub struct IbcResponseMsg {
     /// This is usually used to provide information to the ibc callback function for context
     pub msg: Option<Binary>,
     /// This identifies the module that called the action initially
-    /// This SHOULD be used by the callback function to identify the callback source
-    pub source_module: InstalledModuleIdentification,
+    /// This SHOULD be used by the callback function to identify the callback sender
+    pub sender_module: InstalledModuleIdentification,
     pub result: Callback,
 }
 
@@ -57,7 +57,7 @@ impl IbcResponseMsg {
 /// This is just a helper to properly serialize the above message.
 /// The actual receiver should include this variant in the larger ExecuteMsg enum
 #[cosmwasm_schema::cw_serde]
-enum IbcCallbackMsg {
+pub(crate) enum IbcCallbackMsg {
     IbcCallback(IbcResponseMsg),
 }
 

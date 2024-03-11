@@ -1,7 +1,7 @@
 use abstract_core::{
     ibc::IbcResponseMsg,
     ibc_client::{
-        state::{CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
+        state::{IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
     objects::chain_name::ChainName,
@@ -88,18 +88,6 @@ pub fn receive_action_callback(
                     .add_attribute("chain", host_chain.to_string()),
             )
         }
-        IbcClientCallback::UserRemoteAction(callback_info) => {
-            // Here we transfer the callback back to the module that requested it
-            let callback = IbcResponseMsg {
-                id: callback_info.id.clone(),
-                msg: callback_info.msg,
-                result: callback.result,
-            };
-            Ok(IbcClientResponse::action("user_specific_callback")
-                .add_message(callback.into_cosmos_msg(callback_info.receiver)?)
-                .add_attribute("chain", host_chain.to_string())
-                .add_attribute("callback_id", callback_info.id))
-        }
         IbcClientCallback::ModuleRemoteAction {
             callback_info,
             sender_module,
@@ -108,7 +96,7 @@ pub fn receive_action_callback(
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
                 result: callback.result,
-                source_module,
+                sender_module,
             };
             Ok(IbcClientResponse::action("module_specific_callback")
                 .add_message(callback.into_cosmos_msg(callback_info.receiver)?)

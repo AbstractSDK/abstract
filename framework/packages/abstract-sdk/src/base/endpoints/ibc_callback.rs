@@ -29,11 +29,12 @@ pub trait IbcCallbackEndpoint: Handler {
             id,
             msg: callback_msg,
             result,
+            sender_module,
         } = msg;
         let maybe_handler = self.maybe_ibc_callback_handler(&id);
         maybe_handler.map_or_else(
             || Ok(Response::new()),
-            |handler| handler(deps, env, info, self, id, callback_msg, result),
+            |handler| handler(deps, env, info, self, sender_module, callback_msg, result),
         )
     }
 }

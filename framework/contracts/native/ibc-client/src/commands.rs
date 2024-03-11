@@ -23,7 +23,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     ensure_eq, to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env,
-    IbcMsg, MessageInfo, QueryRequest, Storage,
+    IbcMsg, MessageInfo, Storage,
 };
 use polytone::callbacks::CallbackRequest;
 
@@ -169,38 +169,14 @@ fn send_remote_host_action(
     Ok(note_message.into())
 }
 
-/// Perform a ICQ on a remote chain
-fn send_remote_host_query(
-    deps: Deps,
-    host_chain: ChainName,
-    queries: Vec<QueryRequest<Empty>>,
-    callback_request: CallbackRequest,
-) -> IbcClientResult<CosmosMsg<Empty>> {
-    // Send this message via the Polytone infra
-    let note_contract = IBC_INFRA.load(deps.storage, &host_chain)?.polytone_note;
-
-    let note_message = wasm_execute(
-        note_contract.to_string(),
-        &polytone_note::msg::ExecuteMsg::Query {
-            msgs: queries,
-            callback: callback_request,
-            timeout_seconds: PACKET_LIFETIME.into(),
-        },
-        vec![],
-    )?;
-
-    Ok(note_message.into())
-}
-
 /// Sends a packet with an optional callback.
 /// This is the top-level function to do IBC related actions.
 pub fn execute_send_packet(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     host_chain: String,
     action: HostAction,
-    callback_info: Option<CallbackInfo>,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
 
@@ -218,18 +194,13 @@ pub fn execute_send_packet(
             // get account_id
             let account_id = account_base.account_id(deps.as_ref())?;
 
-            let callback_request = callback_info.map(|c| CallbackRequest {
-                receiver: env.contract.address.to_string(),
-                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(c)).unwrap(),
-            });
-
             send_remote_host_action(
                 deps.as_ref(),
                 account_id,
                 account_base,
                 host_chain,
                 action,
-                callback_request,
+                None,
             )?
         }
         HostAction::Internal(_) => {
@@ -237,27 +208,6 @@ pub fn execute_send_packet(
             return Err(IbcClientError::ForbiddenInternalCall {});
         }
     };
-
-    Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
-}
-
-// Top-level function for performing queries.
-pub fn execute_send_query(
-    deps: DepsMut,
-    env: Env,
-    host_chain: String,
-    queries: Vec<QueryRequest<Empty>>,
-    callback_info: CallbackInfo,
-) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
-
-    let callback_request = CallbackRequest {
-        receiver: env.contract.address.to_string(),
-        msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info)).unwrap(),
-    };
-
-    let note_message =
-        send_remote_host_query(deps.as_ref(), host_chain, queries, callback_request)?;
 
     Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
 }
