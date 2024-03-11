@@ -67,6 +67,7 @@ wasm:
   docker run --rm -v "$(pwd)":/code \
     --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
     --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+    -v "$(dirname "$(pwd)")/framework":/framework \
     ${image}:0.14.0
 
 ## Frontend Helpers ##
