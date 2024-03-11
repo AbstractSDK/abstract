@@ -104,16 +104,11 @@ pub fn receive_action_callback(
             callback_info,
             sender_module,
         } => {
-            // resolve the address for that sender module
-            let vc = CONFIG.load(deps.storage)?.version_control;
-
-            // TODO This will be used when the sender is part of the callback msg (https://github.com/AbstractSDK/abstract/pull/277)
-            let addr = sender_module.addr(deps.as_ref(), vc)?;
-
             let callback = IbcResponseMsg {
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
                 result: callback.result,
+                source_module,
             };
             Ok(IbcClientResponse::action("module_specific_callback")
                 .add_message(callback.into_cosmos_msg(callback_info.receiver)?)

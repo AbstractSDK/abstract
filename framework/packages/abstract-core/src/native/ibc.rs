@@ -27,6 +27,9 @@ pub struct IbcResponseMsg {
     /// The msg sent with the callback request.
     /// This is usually used to provide information to the ibc callback function for context
     pub msg: Option<Binary>,
+    /// This identifies the module that called the action initially
+    /// This SHOULD be used by the callback function to identify the callback source
+    pub source_module: InstalledModuleIdentification,
     pub result: Callback,
 }
 
