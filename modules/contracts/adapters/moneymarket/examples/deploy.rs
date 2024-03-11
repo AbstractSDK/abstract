@@ -1,5 +1,7 @@
-use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_interface::{AdapterDeployer, DeployStrategy};
+use abstract_moneymarket_adapter::{
+    interface::MoneymarketAdapter, msg::MoneymarketInstantiateMsg, MONEYMARKET_ADAPTER_ID,
+};
 use cosmwasm_std::Decimal;
 use cw_orch::daemon::{networks::parse_network, ChainInfo, DaemonBuilder};
 use semver::Version;
@@ -13,10 +15,10 @@ fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
         .handle(rt.handle())
         .chain(network)
         .build()?;
-    let dex = DexAdapter::new(DEX_ADAPTER_ID, chain);
+    let dex = MoneymarketAdapter::new(MONEYMARKET_ADAPTER_ID, chain);
     dex.deploy(
         version,
-        DexInstantiateMsg {
+        MoneymarketInstantiateMsg {
             swap_fee: Decimal::percent(1),
             recipient_account: 0,
         },

@@ -14,19 +14,11 @@ pub use crate::api::MoneymarketInterface;
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use crate::{contract::MONEYMARKET_ADAPTER, msg::*, MONEYMARKET_ADAPTER_ID};
-    use abstract_core::{
-        adapter,
-        objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
-    };
-    use abstract_interface::{AbstractAccount, AbstractInterfaceError};
+    use crate::{contract::MONEYMARKET_ADAPTER, msg::*};
     use abstract_interface::{AdapterDeployer, RegisteredModule};
-    use abstract_moneymarket_standard::ans_action::MoneymarketAnsAction;
-    use abstract_moneymarket_standard::raw_action::MoneymarketRawAction;
     use abstract_sdk::base::Handler;
     use abstract_sdk::features::ModuleIdentification;
-    use cosmwasm_std::{Decimal, Empty};
-    use cw_asset::{AssetBase, AssetInfoBase};
+    use cosmwasm_std::Empty;
     use cw_orch::{build::BuildPostfix, interface};
     use cw_orch::{contract::Contract, prelude::*};
 

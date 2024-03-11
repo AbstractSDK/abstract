@@ -1,6 +1,6 @@
 use abstract_adapter_utils::identity::Identify;
 
-use abstract_core::objects::{ans_host::AnsHostError, AnsAsset, AssetEntry};
+use abstract_core::objects::{ans_host::AnsHostError, AssetEntry};
 use abstract_sdk::feature_objects::AnsHost;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, Uint128};
 use cw_asset::{Asset, AssetInfo};

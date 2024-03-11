@@ -8,14 +8,13 @@ use abstract_moneymarket_standard::{
     MoneymarketError,
 };
 use abstract_sdk::features::AbstractNameService;
-use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 
 use crate::{
     contract::{MoneymarketAdapter, MoneymarketResult},
-    platform_resolver::{self, is_over_ibc, resolve_moneymarket},
+    platform_resolver::{self, is_over_ibc},
     state::MONEYMARKET_FEES,
 };
-use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 
 pub fn query_handler(
     deps: Deps,
