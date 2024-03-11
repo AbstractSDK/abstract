@@ -15,7 +15,7 @@ use cw_orch::prelude::*;
 use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use etf_app::{
     contract::interface::Etf,
-    msg::{Cw20HookMsg, EtfExecuteMsgFns, EtfQueryMsgFns},
+    msg::{Cw20HookMsg, EtfExecuteMsgFns, EtfQueryMsgFns, StateResponse},
     ETF_APP_ID,
 };
 use semver::Version;
@@ -26,6 +26,7 @@ type AResult = anyhow::Result<()>;
 
 const ETF_MANAGER: &str = "etf_manager";
 const ETF_TOKEN: &str = "etf_token";
+const FEE: Decimal = Decimal::percent(5);
 
 pub struct EtfEnv<Chain: CwEnv> {
     pub account: AbstractAccount<Chain>,
@@ -67,7 +68,7 @@ fn create_etf(mock: MockBech32) -> Result<EtfEnv<MockBech32>, AbstractInterfaceE
     account.install_app(
         &etf,
         &etf_app::msg::EtfInstantiateMsg {
-            fee: Decimal::percent(5),
+            fee: FEE,
             manager_addr: mock.addr_make(ETF_MANAGER).into(),
             token_code_id: etf_token_code_id,
             token_name: Some("Test ETF Shares".into()),
@@ -113,8 +114,16 @@ fn proper_initialization() -> AResult {
     assert_that!(base_asset.base_asset).is_equal_to(AssetInfo::native("usd"));
 
     // check config setup
+    let etf_manager_addr = mock.addr_make(ETF_MANAGER);
     let state = etf.state()?;
-    assert_that!(state.share_token_address).is_equal_to(etf_token.address()?);
+    assert_eq!(
+        state,
+        StateResponse {
+            share_token_address: etf_token.address()?,
+            manager_addr: etf_manager_addr,
+            fee: FEE
+        }
+    );
 
     // give user some funds
     mock.set_balances(&[(&owner, &[coin(1_000u128, usd_token.to_string())])])?;
@@ -150,5 +159,9 @@ fn proper_initialization() -> AResult {
     // and the owner USD balance increased (by 500 - fee (5%) = 475)
     let balances = mock.query_all_balances(&owner)?;
     assert_that!(balances).is_equal_to(vec![coin(475u128, usd_token.to_string())]);
+
+    // and the fee receiver received funds
+    let etf_manager_balance = etf_token.balance(state.manager_addr.to_string())?.balance;
+    assert_that!(etf_manager_balance.u128()).is_equal_to(25u128);
     Ok(())
 }
