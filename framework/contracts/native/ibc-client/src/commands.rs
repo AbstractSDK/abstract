@@ -255,9 +255,9 @@ pub fn execute_send_module_to_module_packet(
             }
             // If it does have the right code id, we verify the specified account has the app installed
             let account_base = cfg.version_control.account_base(
-                &source_module
+                source_module
                     .account_id
-                    .clone()
+                    .as_ref()
                     .ok_or(IbcClientError::ForbiddenModuleCall {})?,
                 &deps.querier,
             )?;
