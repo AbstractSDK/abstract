@@ -63,4 +63,5 @@ clap = { version = "4.3.7", features = ["derive"] }
 
 [patch.crates-io]
 cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "misha/orc-85-cw_orchqueryfnsexecutefns-attributes-fails-to-expand-with" }
-abstract-app = { path = "../framework/packages/abstract-app"}
+abstract-app = { path = "../framework/packages/abstract-app" }
+abstract-client = { path = "../framework/packages/abstract-client" }
