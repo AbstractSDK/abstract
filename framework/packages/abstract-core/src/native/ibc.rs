@@ -38,7 +38,7 @@ pub struct IbcCallbackMsg {
 impl IbcCallbackMsg {
     /// serializes the message
     pub fn into_json_binary(self) -> StdResult<Binary> {
-        let msg = IbcCallbackMsgSerializeHelper::IbcCallback(self);
+        let msg = ExecuteMsg::IbcCallback::<Empty, Empty>(self);
         to_json_binary(&msg)
     }
 
@@ -54,13 +54,6 @@ impl IbcCallbackMsg {
         )?
         .into())
     }
-}
-
-/// This is just a helper to properly serialize the above message.
-/// The actual receiver should include this variant in the larger ExecuteMsg enum
-#[cosmwasm_schema::cw_serde]
-pub(crate) enum IbcCallbackMsgSerializeHelper {
-    IbcCallback(IbcCallbackMsg),
 }
 
 #[cw_serde]
