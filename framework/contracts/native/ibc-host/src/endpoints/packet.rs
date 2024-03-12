@@ -5,7 +5,9 @@ use abstract_core::{
         state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
         HelperAction,
     },
-    objects::{chain_name::ChainName, module::ModuleInfo, AccountId},
+    objects::{
+        chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
+    },
 };
 use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
 use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
@@ -13,6 +15,7 @@ use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
 use crate::{
     account_commands::{self, receive_dispatch, receive_register, receive_send_all_back},
     contract::HostResult,
+    HostError,
 };
 
 use abstract_core::base::ExecuteMsg as MiddlewareExecMsg;
@@ -135,6 +138,15 @@ pub fn handle_host_module_action(
     };
 
     let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
+
+    match target_module_resolved.reference {
+        ModuleReference::AccountBase(_) | ModuleReference::Native(_) => {
+            return Err(HostError::WrongModuleAction(
+                "Can't send module-to-module message to an account or a native module".to_string(),
+            ))
+        }
+        _ => {}
+    }
 
     // We pass the message on to the module
     let msg = wasm_execute(
