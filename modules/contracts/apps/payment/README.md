@@ -4,6 +4,10 @@
 
 The payment app allows the user to create a “bucket” into which they can get paid in any asset, having it swap to their destination asset. It’s similar to paypal.me, where the user has a payment link.
 
+## Why use the Payment App?
+
+TBD
+
 ## Features
 - The payment app is “single-chain” meaning that the user can only get paid on one chain. This could be fixed by having the payment app itself create remote accounts (with the payment app) that would create new buckets on other chains to get paid.
 

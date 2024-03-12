@@ -6,6 +6,10 @@ The DCA (Dollar Cost Averaging) app module is designed to give you an automated 
 
 The advantage of this strategy is multifold. First, it allows you to move into an asset over time, allowing you to build a steady position without the short-term volatility. Secondly, big swaps can result in slippage, which can be avoided by splitting the swap into smaller chunks and executing them over time.
 
+## Why use the DCA App?
+
+TBD
+
 ## Features
 
 This module interacts with [croncat module](https://github.com/AbstractSDK/abstract/tree/main/modules/contracts/apps/croncat) to automated schedule and with [dex adapter](https://github.com/AbstractSDK/abstract/tree/main/modules/contracts/adapters/dex) for swaps!

@@ -4,6 +4,10 @@
 
 The Challenge App Module is used to create challenges with friends and motivate completing challenges by striking admin with chosen asset in case challenge got failed.
 
+## Why use the Challenge App?
+
+TBD
+
 ## Features
 - Admin of this contract can create challenge 
   - Name and description of the challenge

@@ -6,6 +6,10 @@ This dApp is used for buying shares in a portfolio Abstract Account. The owner o
 
 This App could be used to create a Cosmos version of the [Enzyme Finance](https://enzyme.finance/) protocol.
 
+## Why use the ETF App?
+
+TBD
+
 ## Features
 TBD
 

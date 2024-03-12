@@ -4,6 +4,10 @@
 
 The Calendar app module is used to require people to stake-to-schedule time with you to avoid not showing up.
 
+## Why use the Calendar App?
+
+TBD
+
 ## Features
 
 - Allow admin to specify
