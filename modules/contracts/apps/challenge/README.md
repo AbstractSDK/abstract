@@ -1,5 +1,7 @@
 # Challenge App
 
+## Description
+
 The Challenge App Module is used to create challenges with friends and motivate completing challenges by striking admin with chosen asset in case challenge got failed.
 
 ## Features
@@ -26,3 +28,11 @@ To use the Challenge App Module in your Rust project, add the following dependen
 ```toml
 challenge-app = { git = "https://github.com/AbstractSDK/abstract.git", tag = "v0.19.0", default-features = false }
 ```
+
+## Documentation
+
+- **App Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/6_module_types.html#apps).
+
+## Contributing
+
+If you have suggestions, improvements or want to contribute to the project, we welcome your input on [GitHub](https://github.com/AbstractSDK/abstract).

@@ -1,8 +1,11 @@
 # Calendar App module
 
+## Description
+
 The Calendar app module is used to require people to stake-to-schedule time with you to avoid not showing up.
 
 ## Features
+
 - Allow admin to specify
     - How much they charge per minute to determine the stake of a meeting
     - The denom of the staked asset
@@ -16,6 +19,7 @@ spec that timestamps should be able to be negative (to go back in time) and the 
     - Slash full stake: If the requester never showed up the entire stake gets slashed.
 
 ## Installation
+
 To use the Calendar App Module in your Rust project, add the following dependency to your `Cargo.toml`:
 ```toml
 [dependencies]
@@ -23,6 +27,7 @@ calendar-app = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.19
 ```
 
 ## Usage with the Abstract SDK
+
 To interact with the calendar, you first need to retrieve the calendar using the Calendar App. Here's a basic example in Rust:
 ```rust
 // Retrieve the calendar
@@ -32,3 +37,11 @@ use calendar_app::AppInterface;
 let calendar = app.calendar(deps.as_ref());
 let meeting_res = calendar.request_meeting(end_time, start_time)?;
 ```
+
+## Documentation
+
+- **App Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/6_module_types.html#apps).
+
+## Contributing
+
+If you have suggestions, improvements or want to contribute to the project, we welcome your input on [GitHub](https://github.com/AbstractSDK/abstract).

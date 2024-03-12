@@ -1,5 +1,7 @@
 # DCA App Module
 
+## Description
+
 The DCA (Dollar Cost Averaging) app module is designed to give you an automated way to exchange an asset over time. By specifying a source asset and a target asset, you can configure the application to periodically convert a specified amount of the source asset into the target asset, effectively implementing a Dollar Cost Averaging strategy, sometimes also referred to as a "stream-swap".
 
 The advantage of this strategy is multifold. First, it allows you to move into an asset over time, allowing you to build a steady position without the short-term volatility. Secondly, big swaps can result in slippage, which can be avoided by splitting the swap into smaller chunks and executing them over time.
@@ -23,7 +25,7 @@ dca-app = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.19.0", 
 
 ## Documentation
 
-- **App Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/7_module_types.html#apps).
+- **App Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/6_module_types.html#apps).
 
 ## Contributing
 
