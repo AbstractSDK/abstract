@@ -6,26 +6,6 @@ This app allows users to create subscriptions that other people can subscribe to
 
 When a user does'n top-up their balance, an external call is made to the `subscription` contract to cancel the subscription. The admin can opt to add a cancellation hook that will be called when the subscription is canceled and which contains the addresses of the now ex-subscribers.
 
-## Why use the Subscription App?
-
-The Subscription App represents a shift towards a more transparent, efficient, and user-controlled subscription model, leveraging the strengths of smart contracts to facilitate direct interactions between content creators and their audiences.
-
-- **Autonomy and Flexibility for Creators and Consumers**: It enables content creators or service providers to create their own subscription models directly, without intermediaries. Consumers can subscribe to these services by pre-funding their subscriptions, giving them flexibility to control their expenditure and commitments.
-
-- **Transparent and Direct Transactions**: Using smart contracts for transactions ensures transparency and direct payments between subscribers and content creators. This reduces the need for third-party payment processors, lowering transaction fees and potentially increasing the revenue for creators.
-
-- **Automated Payments and Subscriptions Management**: The use of smart contracts for managing subscriptions ensures that payments are automatically handled according to the funds available in a subscriber's account. This automation reduces the administrative burden on providers and improves the overall efficiency of the subscription process.
-
-- **Decentralization and Security**: Abstract Apps benefits from the inherent security and decentralization of distributed ledger technologies. This minimizes the risk of fraud, censorship, and centralized control, offering a more resilient platform for both creators and subscribers.
-
-- **Customizable User Experience**: The possibility for an admin to add a cancellation hook provides a customizable user experience. This feature can be used for various purposes, such as notifying users about the cancellation, offering alternatives or promotions to retain them, or even automating certain actions upon subscription cancellation.
-
--  **Improve Product Engagement and Loyalty**: Subscriptions create a direct relationship between creators and their audience. Allowing creators to directly communicate with their subscriber base, understand their preferences, and tailor their offerings accordingly.
-
-- **Efficient Funds Management**: Subscribers can manage their subscriptions efficiently by pre-funding their accounts. This helps in budgeting for content consumption and reduces the likelihood of unexpected charges, as the subscription only remains active as long as the funds suffice.
-
-- **Incentives for Early or Loyal Subscribers**: The platform could offer mechanisms for rewarding early or loyal subscribers, such as discounts or exclusive content, further enhancing the value proposition for users.
-
 ## Features
 
 The subscription app serves three primary functions:
