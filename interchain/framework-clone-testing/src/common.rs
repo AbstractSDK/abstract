@@ -20,15 +20,12 @@ pub fn rt() -> &'static tokio::runtime::Runtime {
 /// Returns the abstract deployment and sender (=mainnet admin)
 pub fn setup(
     chain: ChainInfo,
-    sender: &str,
+    sender: Addr,
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let _ = env_logger::builder().is_test(true).try_init();
-    let sender = Addr::unchecked(sender);
     // Run migration tests against Juno mainnet
-    // We set the state file to be able to clone test
-    std::env::set_var("STATE_FILE", "../scripts/state.json");
     let mut app = CloneTesting::new(rt(), chain)?;
-    app.set_sender(sender.clone());
+    app.set_sender(sender);
 
     let abstr_deployment = Abstract::load_from(app.clone())?;
     Ok((abstr_deployment, app))
@@ -38,7 +35,6 @@ pub fn setup(
 /// Returns the abstract client
 pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClient<CloneTesting>> {
     let _ = env_logger::builder().is_test(true).try_init();
-    std::env::set_var("STATE_FILE", "../scripts/state.json");
     // We set the state file to be able to clone test
     let gas_denom = chain.gas_denom;
     let mut app = CloneTesting::new(rt(), chain)?;

@@ -10,7 +10,8 @@ use abstract_core::{
     ANS_HOST,
 };
 use cosmwasm_std::Addr;
-use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked, AssetUnchecked};
+use cw_address_like::AddressLike;
+use cw_asset::{Asset, AssetInfo, AssetInfoBase, AssetInfoUnchecked, AssetUnchecked};
 use cw_orch::{interface, prelude::*};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -142,12 +143,17 @@ impl<Chain: CwEnv> ClientResolve<Chain> for AnsAsset {
     }
 }
 
-impl<Chain: CwEnv> ClientResolve<Chain> for AssetInfoUnchecked {
+impl<Chain: CwEnv, T: AddressLike> ClientResolve<Chain> for AssetInfoBase<T> {
     type Output = AssetEntry;
 
     fn resolve(&self, ans_host: &AnsHost<Chain>) -> Result<Self::Output, CwOrchError> {
+        let asset_info_unchecked = match self {
+            AssetInfoBase::Native(native) => AssetInfoUnchecked::native(native),
+            AssetInfoBase::Cw20(cw20) => AssetInfoUnchecked::cw20(cw20.to_string()),
+            _ => panic!("Not supported asset type"),
+        };
         let mut assets: AssetInfosResponse = ans_host.query(&QueryMsg::AssetInfos {
-            infos: vec![self.to_owned()],
+            infos: vec![asset_info_unchecked],
         })?;
         Ok(assets.infos.pop().unwrap().1)
     }
