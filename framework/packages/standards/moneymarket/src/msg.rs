@@ -1,6 +1,8 @@
 #![warn(missing_docs)]
 //! # Moneymarket Adapter API
 // re-export response types
+use crate::query::{MoneymarketAnsQuery, MoneymarketQueryResponse, MoneymarketRawQuery};
+use crate::{ans_action::MoneymarketAnsAction, raw_action::MoneymarketRawAction};
 use abstract_core::{
     adapter,
     objects::fee::{Fee, UsageFee},
@@ -8,8 +10,6 @@ use abstract_core::{
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal};
-
-use crate::{ans_action::MoneymarketAnsAction, raw_action::MoneymarketRawAction};
 
 /// Max fee for the dex adapter actions
 pub const MAX_FEE: Decimal = Decimal::percent(5);
@@ -96,6 +96,14 @@ pub enum MoneymarketQueryMsg {
         /// Sender Addr generate messages for
         addr_as_sender: String,
     },
+
+    /// Query using raw asset denoms and addresses
+    #[returns(MoneymarketQueryResponse)]
+    MoneymarketRawQuery(MoneymarketRawQuery),
+    /// Query using ans assets
+    #[returns(MoneymarketQueryResponse)]
+    MoneymarketAnsQuery(MoneymarketAnsQuery),
+
     /// Fee info for using the different dex actions
     #[returns(MoneymarketFeesResponse)]
     Fees {},

@@ -10,12 +10,12 @@ pub enum MoneymarketRawRequest {
     /// Deposit funds for lending.
     Deposit {
         /// Asset to deposit
-        asset: AssetBase<String>,
+        lending_asset: AssetBase<String>,
     },
     /// Withdraw lended funds
     Withdraw {
         /// Asset to withdraw
-        asset: AssetBase<String>,
+        receipt_asset: AssetBase<String>,
     },
     /// Deposit Collateral to borrow against
     ProvideCollateral {

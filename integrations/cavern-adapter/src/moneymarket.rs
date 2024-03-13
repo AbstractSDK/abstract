@@ -3,17 +3,17 @@ use abstract_sdk::{
     core::objects::{ans_host::AnsHostError, AnsAsset, AssetEntry, ContractEntry},
     feature_objects::AnsHost,
 };
-use cosmwasm_std::QuerierWrapper;
+use cosmwasm_std::{to_json_binary, QuerierWrapper};
 
 use crate::{AVAILABLE_CHAINS, MARS};
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
-pub struct Mars {
+pub struct Cavern {
     pub oracle_contract: Option<Addr>,
 }
 
-impl Identify for Mars {
+impl Identify for Cavern {
     fn name(&self) -> &'static str {
         MARS
     }
@@ -36,7 +36,7 @@ use {
 };
 
 #[cfg(feature = "full_integration")]
-impl MoneymarketCommand for Mars {
+impl MoneymarketCommand for Cavern {
     fn fetch_data(
         &mut self,
         querier: &QuerierWrapper,
@@ -58,7 +58,7 @@ impl MoneymarketCommand for Mars {
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Deposit { on_behalf_of: None };
+        let vault_msg = moneymarket::market::ExecuteMsg::DepositStable {};
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
 
@@ -71,11 +71,9 @@ impl MoneymarketCommand for Mars {
         contract_addr: Addr,
         receipt_asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Withdraw {
-            recipient: None,
-            denom: receipt_asset.to_string(),
-            amount: Some(receipt_asset.amount),
-        };
+        let vault_msg = moneymarket::market::Cw20HookMsg::RedeemStable {};
+
+        receipt_asset.send_msg(contract_addr, to_json_binary(&vault_msg)?)?;
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![])?;
 
@@ -88,9 +86,11 @@ impl MoneymarketCommand for Mars {
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Deposit { on_behalf_of: None };
+        let vault_msg = moneymarket::custody::Cw20HookMsg::DepositCollateral { borrower: None };
 
-        let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
+        asset.send_msg(contract_addr, to_json_binary(&vault_msg)?)?;
+
+        let msg = wasm_execute(contract_addr, &vault_msg, vec![])?;
 
         Ok(vec![msg.into()])
     }
@@ -101,10 +101,8 @@ impl MoneymarketCommand for Mars {
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Withdraw {
-            recipient: None,
-            denom: asset.to_string(),
-            amount: Some(asset.amount),
+        let vault_msg = moneymarket::custody::ExecuteMsg::WithdrawCollateral {
+            amount: Some(asset.amount.into()),
         };
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![])?;
@@ -118,13 +116,12 @@ impl MoneymarketCommand for Mars {
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Borrow {
-            recipient: None,
-            denom: asset.to_string(),
-            amount: asset.amount,
+        let vault_msg = moneymarket::market::ExecuteMsg::BorrowStable {
+            borrow_amount: asset.amount.into(),
+            to: None,
         };
 
-        let msg = wasm_execute(contract_addr, &vault_msg, vec![])?;
+        let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
 
         Ok(vec![msg.into()])
     }
@@ -135,7 +132,7 @@ impl MoneymarketCommand for Mars {
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Repay { on_behalf_of: None };
+        let vault_msg = moneymarket::market::ExecuteMsg::RepayStable { borrower: None };
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
 

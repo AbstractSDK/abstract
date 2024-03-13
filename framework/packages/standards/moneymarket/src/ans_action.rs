@@ -3,6 +3,7 @@
 //!
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use abstract_sdk::Resolve;
+use cw_asset::Asset;
 
 use crate::{
     raw_action::{MoneymarketRawAction, MoneymarketRawRequest},
@@ -16,12 +17,12 @@ pub enum MoneymarketAnsAction {
     /// Deposit funds for lending.
     Deposit {
         /// Asset to deposit
-        asset: AnsAsset,
+        lending_asset: AnsAsset,
     },
     /// Withdraw lended funds
     Withdraw {
         /// Asset to withdraw
-        asset: AnsAsset,
+        lending_asset: AnsAsset,
     },
     /// Deposit Collateral to borrow against
     ProvideCollateral {
@@ -66,26 +67,31 @@ impl Resolve for WholeMoneymarketAction {
         ans_host: &abstract_sdk::feature_objects::AnsHost,
     ) -> abstract_core::objects::ans_host::AnsHostResult<Self::Output> {
         let raw_action = match self.1.clone() {
-            MoneymarketAnsAction::Deposit { asset } => {
+            MoneymarketAnsAction::Deposit { lending_asset } => {
                 let contract_addr =
                     self.0
-                        .lending_address(querier, ans_host, asset.name.clone())?;
-                let asset = asset.resolve(querier, ans_host)?;
+                        .lending_address(querier, ans_host, lending_asset.name.clone())?;
+                let asset = lending_asset.resolve(querier, ans_host)?;
                 MoneymarketRawAction {
                     request: MoneymarketRawRequest::Deposit {
-                        asset: asset.into(),
+                        lending_asset: asset.into(),
                     },
                     contract_addr: contract_addr.to_string(),
                 }
             }
-            MoneymarketAnsAction::Withdraw { asset } => {
+            MoneymarketAnsAction::Withdraw { lending_asset } => {
                 let contract_addr =
                     self.0
-                        .lending_address(querier, ans_host, asset.name.clone())?;
-                let asset = asset.resolve(querier, ans_host)?;
+                        .lending_address(querier, ans_host, lending_asset.name.clone())?;
+
+                let receipt_asset =
+                    self.0
+                        .lending_receipt_asset(querier, ans_host, lending_asset.name)?;
+
+                let asset = receipt_asset.resolve(querier, ans_host)?;
                 MoneymarketRawAction {
                     request: MoneymarketRawRequest::Withdraw {
-                        asset: asset.into(),
+                        receipt_asset: Asset::new(asset, lending_asset.amount).into(),
                     },
                     contract_addr: contract_addr.to_string(),
                 }

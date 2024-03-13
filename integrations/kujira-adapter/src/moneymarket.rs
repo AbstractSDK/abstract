@@ -1,11 +1,11 @@
+use crate::{AVAILABLE_CHAINS, KUJIRA};
 use abstract_moneymarket_standard::Identify;
+use abstract_sdk::Resolve;
 use abstract_sdk::{
     core::objects::{ans_host::AnsHostError, AnsAsset, AssetEntry, ContractEntry},
     feature_objects::AnsHost,
 };
 use cosmwasm_std::QuerierWrapper;
-
-use crate::{AVAILABLE_CHAINS, KUJIRA};
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -65,14 +65,14 @@ impl MoneymarketCommand for Kujira {
         &self,
         deps: Deps,
         contract_addr: Addr,
-        asset: Asset,
+        receipt_asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let vault_msg = basic_vault::ExecuteMsg::Withdraw(basic_vault::WithdrawMsg {
             callback: None,
-            amount: asset.amount,
+            amount: receipt_asset.amount,
         });
 
-        let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
+        let msg = wasm_execute(contract_addr, &vault_msg, vec![receipt_asset.try_into()?])?;
 
         Ok(vec![msg.into()])
     }
@@ -255,6 +255,18 @@ impl MoneymarketCommand for Kujira {
         };
 
         ans_host.query_contract(querier, &lending_contract)
+    }
+
+    fn lending_receipt_asset(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+    ) -> Result<AssetEntry, AnsHostError> {
+        Ok(AssetEntry::new(&format!(
+            "${}>ghost-receipt",
+            lending_asset
+        )))
     }
 
     fn collateral_address(

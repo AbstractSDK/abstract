@@ -1,11 +1,10 @@
 use abstract_adapter_utils::identity::Identify;
 
+use crate::error::MoneymarketError;
 use abstract_core::objects::{ans_host::AnsHostError, AssetEntry};
 use abstract_sdk::feature_objects::AnsHost;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, Uint128};
 use cw_asset::{Asset, AssetInfo};
-
-use crate::error::MoneymarketError;
 
 pub type Return = Uint128;
 pub type Spread = Uint128;
@@ -17,12 +16,27 @@ pub type FeeOnInput = bool;
 ///
 /// Implements the usual Moneymarket operations.
 pub trait MoneymarketCommand: Identify {
+    fn fetch_data(
+        &mut self,
+        _querier: &QuerierWrapper,
+        _ans_host: &AnsHost,
+    ) -> Result<(), MoneymarketError> {
+        Ok(())
+    }
+
     fn lending_address(
         &self,
         querier: &QuerierWrapper,
         ans_host: &AnsHost,
         lending_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError>;
+
+    fn lending_receipt_asset(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+    ) -> Result<AssetEntry, AnsHostError>;
 
     fn collateral_address(
         &self,
@@ -45,7 +59,7 @@ pub trait MoneymarketCommand: Identify {
         &self,
         deps: Deps,
         contract_addr: Addr,
-        asset: Asset,
+        lending_asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError>;
 
     /// Withdraw lended funds on the given Money Market
@@ -53,7 +67,7 @@ pub trait MoneymarketCommand: Identify {
         &self,
         deps: Deps,
         contract_addr: Addr,
-        asset: Asset,
+        receipt_asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError>;
 
     /// Provide collateral on the given Money Market
