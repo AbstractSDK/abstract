@@ -370,7 +370,6 @@ pub fn claim_namespace(
     account_id: AccountId,
     namespace_to_claim: String,
 ) -> VCResult {
-    // verify the caller is the admin of the contract
     let Config {
         namespace_registration_fee: fee,
         security_disabled,
@@ -378,6 +377,7 @@ pub fn claim_namespace(
     } = CONFIG.load(deps.storage)?;
 
     if !security_disabled {
+        // When security is enabled, only the contract admin can claim namespaces
         cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
     } else {
         // If there is no security, only account owner can register a namespace
