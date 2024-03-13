@@ -18,10 +18,10 @@ It then mints LP tokens that are claimable for an equal portion of the proxy ass
 1. **Wallet Integration**: Connect from a wide range of supported crypto wallets.
 2. **ETF Creation**: Create an ETF by specifying the name of the share and the fee they will collect when shares are sold.
 3. **Share Trading**: Buy and Sell freely shares of an ETF.
-4. **Discover ETFs**: Discover exciting new vaults.
+4. **Discover ETFs**: Discover exciting new ETFs.
 5. **ETF Performance Tracking**: Track and Analyse performance of available ETFs.
 6. **Portfolio Page**: Track and Analyse performance of your shares in ETFs.
-7. **Investor Education**: Learn how to create and fund a vault, trade shares, and so on.
+7. **Investor Education**: Learn how to create and fund an ETF, trade shares, and so on.
 
 ## Documentation
 
