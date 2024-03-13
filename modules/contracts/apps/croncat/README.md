@@ -65,3 +65,8 @@ The CronCat App can help to execute certain actions within time limits (for exam
 ## Contributing
 
 If you have suggestions, improvements or want to contribute to the project, we welcome your input on [GitHub](https://github.com/AbstractSDK/abstract).
+
+## Community
+Check out the following places for support, discussions & feedback:
+
+- Join our [Discord server](https://discord.com/invite/uch3Tq3aym)

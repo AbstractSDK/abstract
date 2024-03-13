@@ -6,7 +6,8 @@ ETF is a decentralized application built on the Cosmos blockchain using the Abst
 
 This dApp is used for buying shares in a portfolio Abstract Account. The owner of the account has permissions to manage the asset allocations. By holding the shares the owner has the right to receive a share of the portfolio's assets, in proportion to the number of shares held.
 
-This App could be used to create a Cosmos version of the [Enzyme Finance](https://enzyme.finance/) protocol.
+It uses the proxy's value calculation configuration to get the value of the assets held in the proxy and the relative value of the deposit asset.
+It then mints LP tokens that are claimable for an equal portion of the proxy assets at a later date.
 
 ## Why use the ETF App?
 

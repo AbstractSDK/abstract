@@ -6,7 +6,23 @@ The Calendar app module is used to require people to stake-to-schedule time with
 
 ## Why use the Calendar App?
 
-TBD
+The Calendar App offers several potential benefits, particularly in enhancing the efficiency and respect for one's time in professional and personal scheduling. Here are some key advantages:
+
+1. **Reduction in No-shows**: The primary benefit of requiring a stake to schedule time is to significantly reduce the likelihood of no-shows. When there is a financial or valuable asset at stake, individuals are more likely to commit to the meeting or appointment, knowing that failure to show up would result in a loss.
+
+2. **Prioritization of Meetings**: This system ensures that only serious and important meetings are scheduled, as the stake acts as a filter to prioritize requests. It dissuades casual or non-essential meetings, thus helping to manage one's calendar more effectively.
+
+3. **Enhanced Time Management**: By reducing the number of frivolous meetings and no-shows, individuals can manage their time more effectively. This leads to increased productivity as the time saved can be allocated to other pressing tasks or personal downtime.
+
+4. **Incentivizes Punctuality and Preparation**: Knowing that there is something at stake, participants are more likely to be punctual and come prepared to the meeting. This can improve the overall quality and efficiency of the meeting.
+
+5. **Possible Revenue Generation**: For professionals whose time is highly valuable, this system could also serve as a means of revenue generation. The stakes collected from no-shows or cancellations could potentially be a source of income or be used to cover the administrative costs of scheduling and organizing meetings.
+
+6. **Enhances Respect for Individual's Time**: Implementing such a system sends a strong message about the value of one's time. It fosters a culture of respect and consideration for others' schedules, which is beneficial in both professional and personal interactions.
+
+7. **Customization and Flexibility**: The app could offer customizable options for the stake amount, which can be adjusted based on the nature of the meeting, the relationship between the parties, or the professional standing of the individual. This flexibility can make it suitable for various contexts and preferences.
+
+8. **Automated Scheduling and Enforcement**: Utilizing a digital platform for this process can streamline scheduling, reminders, and enforcement of the stake policy. Automation reduces the administrative burden and ensures a smooth, efficient process.
 
 ## Features
 
@@ -49,3 +65,8 @@ let meeting_res = calendar.request_meeting(end_time, start_time)?;
 ## Contributing
 
 If you have suggestions, improvements or want to contribute to the project, we welcome your input on [GitHub](https://github.com/AbstractSDK/abstract).
+
+## Community
+Check out the following places for support, discussions & feedback:
+
+- Join our [Discord server](https://discord.com/invite/uch3Tq3aym)
