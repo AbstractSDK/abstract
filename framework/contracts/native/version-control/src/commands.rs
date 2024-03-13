@@ -97,7 +97,7 @@ pub fn propose_modules(
         let store_has_module = PENDING_MODULES.has(deps.storage, &module)
             || REGISTERED_MODULES.has(deps.storage, &module)
             || YANKED_MODULES.has(deps.storage, &module);
-        if !config.allow_direct_module_registration_and_updates && store_has_module {
+        if !config.security_enabled && store_has_module {
             return Err(VCError::NotUpdateableModule(module));
         }
 
@@ -123,7 +123,7 @@ pub fn propose_modules(
             }
         }
 
-        if config.allow_direct_module_registration_and_updates {
+        if config.security_enabled {
             // assert that its data is equal to what it wants to be registered under.
             module::assert_module_data_validity(
                 &deps.querier,
@@ -511,7 +511,7 @@ pub fn update_config(
     deps: DepsMut,
     info: MessageInfo,
     account_factory_address: Option<String>,
-    allow_direct_module_registration_and_updates: Option<bool>,
+    security_enabled: Option<bool>,
     namespace_registration_fee: Option<Clearable<Coin>>,
 ) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
@@ -519,14 +519,11 @@ pub fn update_config(
 
     let mut attributes = vec![];
 
-    if let Some(allow) = allow_direct_module_registration_and_updates {
-        let previous_allow = config.allow_direct_module_registration_and_updates;
-        config.allow_direct_module_registration_and_updates = allow;
+    if let Some(allow) = security_enabled {
+        let previous_allow = config.security_enabled;
+        config.security_enabled = allow;
         attributes.extend(vec![
-            (
-                "previous_allow_direct_module_registration_and_updates",
-                previous_allow.to_string(),
-            ),
+            ("previous_security_enabled", previous_allow.to_string()),
             (
                 "allow_direct_module_registration_and_updates",
                 allow.to_string(),

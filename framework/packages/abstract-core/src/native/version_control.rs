@@ -12,9 +12,16 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 
 /// Contains configuration info of version control.
 #[cosmwasm_schema::cw_serde]
-pub struct Config {
+pub struct OldConfig {
     pub account_factory_address: Option<Addr>,
     pub allow_direct_module_registration_and_updates: bool,
+    pub namespace_registration_fee: Option<Coin>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct Config {
+    pub account_factory_address: Option<Addr>,
+    pub security_enabled: bool,
     pub namespace_registration_fee: Option<Coin>,
 }
 
@@ -93,8 +100,9 @@ pub struct InstantiateMsg {
     pub admin: String,
     /// allows users to directly register modules without going through approval
     /// Also allows them to change the module reference of an existing module
+    /// Also allows to claim namespaces permisionlessly
     /// SHOULD ONLY BE `true` FOR TESTING
-    pub allow_direct_module_registration_and_updates: Option<bool>,
+    pub security_enabled: Option<bool>,
     pub namespace_registration_fee: Option<Coin>,
 }
 
@@ -332,7 +340,7 @@ pub struct NamespaceListResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub account_factory_address: Option<Addr>,
-    pub allow_direct_module_registration_and_updates: bool,
+    pub security_enabled: bool,
     pub namespace_registration_fee: Option<Coin>,
 }
 

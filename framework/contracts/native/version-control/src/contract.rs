@@ -1,7 +1,9 @@
+use std::str::from_utf8;
+
 pub(crate) use abstract_core::objects::namespace::ABSTRACT_NAMESPACE;
 use abstract_core::{
     objects::namespace::Namespace,
-    version_control::{state::NAMESPACES_INFO, Config},
+    version_control::{state::NAMESPACES_INFO, Config, OldConfig},
 };
 use abstract_macros::abstract_response;
 use abstract_sdk::{
@@ -16,6 +18,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw_semver::Version;
+use cw_storage_plus::Item;
 
 use crate::{commands::*, error::VCError, queries};
 
@@ -30,28 +33,13 @@ pub struct VcResponse;
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let to_version: Version = CONTRACT_VERSION.parse()?;
 
-    let vc_addr_raw = deps.storage.get(b"fac");
-    if let Some(vc_addr) = vc_addr_raw {
-        let vc_addr: Option<cosmwasm_std::Addr> = cosmwasm_std::from_json(vc_addr)?;
-
-        CONFIG.update(deps.storage, |mut cfg| {
-            // Save factory address to a new place
-            cfg.account_factory_address = vc_addr;
-            // Check if fee requires in migration
-            if cfg
-                .namespace_registration_fee
-                .as_ref()
-                .map(|fee| fee.amount.is_zero())
-                .unwrap_or(false)
-            {
-                // registration_fee is Option now, but was 0 in previous version
-                cfg.namespace_registration_fee = None;
-            }
-            VCResult::Ok(cfg)
-        })?;
-    }
-    // Remove old factory
-    deps.storage.remove(b"fac");
+    let old_config = Item::<OldConfig>::new(from_utf8(CONFIG.as_slice())?).load(deps.storage)?;
+    let new_config = Config {
+        account_factory_address: old_config.account_factory_address,
+        security_enabled: old_config.allow_direct_module_registration_and_updates,
+        namespace_registration_fee: old_config.namespace_registration_fee,
+    };
+    CONFIG.save(deps.storage, &new_config)?;
 
     assert_cw_contract_upgrade(deps.storage, VERSION_CONTROL, to_version)?;
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
@@ -64,7 +52,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
 
     let InstantiateMsg {
         admin,
-        allow_direct_module_registration_and_updates,
+        security_enabled,
         namespace_registration_fee,
     } = msg;
 
@@ -73,8 +61,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
         &Config {
             // Account factory should be set by `update_config`
             account_factory_address: None,
-            allow_direct_module_registration_and_updates:
-                allow_direct_module_registration_and_updates.unwrap_or(false),
+            security_enabled: security_enabled.unwrap_or(false),
             namespace_registration_fee,
         },
     )?;
@@ -150,8 +137,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             let config = CONFIG.load(deps.storage)?;
             to_json_binary(&ConfigResponse {
                 account_factory_address: config.account_factory_address,
-                allow_direct_module_registration_and_updates: config
-                    .allow_direct_module_registration_and_updates,
+                security_enabled: config.security_enabled,
                 namespace_registration_fee: config.namespace_registration_fee,
             })
         }

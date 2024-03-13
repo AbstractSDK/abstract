@@ -198,9 +198,9 @@ impl<Chain: CwEnv> Abstract<Chain> {
             &abstract_core::version_control::InstantiateMsg {
                 admin: admin.to_string(),
                 #[cfg(feature = "integration")]
-                allow_direct_module_registration_and_updates: Some(true),
+                security_enabled: Some(true),
                 #[cfg(not(feature = "integration"))]
-                allow_direct_module_registration_and_updates: Some(false),
+                security_enabled: Some(false),
                 namespace_registration_fee: None,
             },
             Some(&admin),

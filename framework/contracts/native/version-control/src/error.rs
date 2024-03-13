@@ -1,3 +1,5 @@
+use std::str::Utf8Error;
+
 use abstract_core::{
     objects::{namespace::Namespace, AccountId},
     AbstractError,
@@ -22,6 +24,9 @@ pub enum VCError {
 
     #[error("{0}")]
     Validation(#[from] ValidationError),
+
+    #[error("{0}")]
+    Utf8(#[from] Utf8Error),
 
     #[error("{0}")]
     Ownership(#[from] cw_ownable::OwnershipError),
