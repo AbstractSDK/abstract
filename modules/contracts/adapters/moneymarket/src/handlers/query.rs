@@ -132,10 +132,16 @@ fn handle_local_query(
         } => {
             let user = deps.api.addr_validate(&user)?;
             let contract_addr = deps.api.addr_validate(&contract_addr)?;
-            let asset = collateral_asset.check(deps.api, None)?;
-            let asset = borrowed_asset.check(deps.api, None)?;
+            let collateral_asset = collateral_asset.check(deps.api, None)?;
+            let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
-            to_json_binary(&moneymarket.user_collateral(deps, contract_addr, user, asset)?)?
+            to_json_binary(&moneymarket.user_collateral(
+                deps,
+                contract_addr,
+                user,
+                borrowed_asset,
+                collateral_asset,
+            )?)?
         }
         MoneymarketRawQuery::UserBorrow {
             user,
