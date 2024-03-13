@@ -20,7 +20,7 @@ The Subscription App represents a shift towards a more transparent, efficient, a
 
 - **Customizable User Experience**: The possibility for an admin to add a cancellation hook provides a customizable user experience. This feature can be used for various purposes, such as notifying users about the cancellation, offering alternatives or promotions to retain them, or even automating certain actions upon subscription cancellation.
 
-- **Enhanced Engagement and Loyalty**: The direct relationship between creators and subscribers, facilitated by this model, can enhance user engagement and loyalty. Creators can directly communicate with their subscriber base, understand their preferences, and tailor their offerings accordingly.
+-  **Improve Product Engagement and Loyalty**: Subscriptions create a direct relationship between creators and their audience. Allowing creators to directly communicate with their subscriber base, understand their preferences, and tailor their offerings accordingly.
 
 - **Efficient Funds Management**: Subscribers can manage their subscriptions efficiently by pre-funding their accounts. This helps in budgeting for content consumption and reduces the likelihood of unexpected charges, as the subscription only remains active as long as the funds suffice.
 
