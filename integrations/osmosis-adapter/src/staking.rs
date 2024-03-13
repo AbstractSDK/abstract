@@ -216,14 +216,11 @@ pub mod fns {
             Ok(vec![msg.into()])
         }
 
-        // TODO, not sure this is needed in that case
         fn claim_rewards(
             &self,
             _deps: Deps,
         ) -> Result<Vec<cosmwasm_std::CosmosMsg>, CwStakingError> {
-            Err(CwStakingError::NotImplemented(
-                "osmosis does not support claiming rewards".to_owned(),
-            ))
+            Ok(Default::default())
         }
 
         // For osmosis, we don't have a staking token or a staking contract, everything happens at the sdk level
@@ -305,7 +302,9 @@ pub mod fns {
             &self,
             _querier: &QuerierWrapper,
         ) -> Result<RewardTokensResponse, CwStakingError> {
-            Err(CwStakingError::NotImplemented("osmosis".to_owned()))
+            Ok(RewardTokensResponse {
+                tokens: Default::default(),
+            })
         }
     }
 }

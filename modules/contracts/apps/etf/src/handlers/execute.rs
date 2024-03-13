@@ -99,7 +99,7 @@ pub fn try_provide_liquidity(
     // Get total supply of LP tokens and calculate share
     let total_share = query_supply(&deps.querier, state.share_token_address.clone())?;
 
-    let share = if total_share == Uint128::zero() || total_value.is_zero() {
+    let share = if total_share.is_zero() || total_value.is_zero() {
         // Initial share = deposit amount
         deposit
     } else {
@@ -189,7 +189,9 @@ pub fn try_withdraw_liquidity(
     // Construct repay msg by transferring the assets back to the sender
     let refund_msg = app
         .executor(deps.as_ref())
-        .execute(vec![bank.transfer(shares_assets, &sender)?])?;
+        .execute(vec![bank.transfer(shares_assets, &sender)?])?
+        .into();
+    msgs.push(refund_msg);
 
     // LP burn msg
     let burn_msg: CosmosMsg = wasm_execute(
@@ -201,13 +203,11 @@ pub fn try_withdraw_liquidity(
         vec![],
     )?
     .into();
+    msgs.push(burn_msg);
 
     Ok(app
         .custom_response("withdraw_liquidity", attrs)
-        // Burn LP tokens
-        .add_message(burn_msg)
-        // Send proxy funds to owner
-        .add_message(refund_msg))
+        .add_messages(msgs))
 }
 
 fn set_fee(deps: DepsMut, msg_info: MessageInfo, app: EtfApp, new_fee: Decimal) -> EtfResult {

@@ -109,19 +109,6 @@ impl DexCommand for Osmosis {
         Ok(vec![swap_msg])
     }
 
-    fn custom_swap(
-        &self,
-        _deps: Deps,
-        _offer_assets: Vec<Asset>,
-        _ask_assets: Vec<Asset>,
-        _max_spread: Option<Decimal>,
-    ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
-        // The offer_assets have already been sent to the host contract
-        // The ask_assets are the assets we want to receive
-        // Generate the swap message(s) between the offer and ask assets
-        Err(DexError::NotImplemented(self.name().to_string()))
-    }
-
     fn provide_liquidity(
         &self,
         deps: Deps,
