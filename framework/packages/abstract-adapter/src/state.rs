@@ -4,7 +4,7 @@ use abstract_core::{objects::dependency::StaticDependency, AbstractError};
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
-        QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
+        ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
     core::version_control::AccountBase,
     feature_objects::{AnsHost, VersionControlContract},
@@ -158,6 +158,15 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
     ) -> Self {
         self.contract = self.contract.with_ibc_callbacks(callbacks);
+        self
+    }
+
+    /// add Module IBC to contract
+    pub const fn with_module_ibc(
+        mut self,
+        module_handler: ModuleIbcHandlerFn<Self, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_module_ibc(module_handler);
         self
     }
 }

@@ -176,7 +176,7 @@ where
         }
         None
     }
-    /// Get an ibc callback handler if it exists.
+    /// Get an IBC module call handler if it exists.
     fn maybe_module_ibc_handler(&self) -> Option<ModuleIbcHandlerFn<Self, Self::Error>> {
         let contract = self.contract();
         contract.module_ibc_handler

@@ -63,9 +63,11 @@ pub(crate) enum IbcCallbackMsgSerializeHelper {
     IbcCallback(IbcCallbackMsg),
 }
 
+// ANCHOR: module_ibc_msg
 #[cw_serde]
 pub struct ModuleIbcMsg {
     pub client_chain: ChainName,
     pub source_module: ModuleInfo,
     pub msg: Binary,
 }
+// ANCHOR_END: module_ibc_msg
