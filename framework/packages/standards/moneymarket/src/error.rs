@@ -1,7 +1,7 @@
 use abstract_adapter::AdapterError;
 use abstract_core::{objects::ans_host::AnsHostError, AbstractError};
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::StdError;
+use cosmwasm_std::{ConversionOverflowError, DecimalRangeExceeded, StdError};
 use cw_asset::AssetError;
 use thiserror::Error;
 
@@ -24,6 +24,12 @@ pub enum MoneymarketError {
 
     #[error("{0}")]
     AnsHostError(#[from] AnsHostError),
+
+    #[error("{0}")]
+    ConversionOverflow(#[from] ConversionOverflowError),
+
+    #[error("{0}")]
+    DecimalRangeExceeded(#[from] DecimalRangeExceeded),
 
     #[error("Moneymarket {0} is not a known money-market on this network.")]
     UnknownMoneymarket(String),

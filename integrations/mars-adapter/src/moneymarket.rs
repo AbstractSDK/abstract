@@ -1,6 +1,6 @@
 use abstract_moneymarket_standard::Identify;
 use abstract_sdk::{
-    core::objects::{ans_host::AnsHostError, AnsAsset, AssetEntry, ContractEntry},
+    core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
     feature_objects::AnsHost,
 };
 use cosmwasm_std::QuerierWrapper;
@@ -24,15 +24,9 @@ impl Identify for Mars {
 
 #[cfg(feature = "full_integration")]
 use {
-    abstract_moneymarket_standard::{
-        coins_in_assets, Fee, FeeOnInput, MoneymarketCommand, MoneymarketError, Return, Spread,
-    },
-    abstract_sdk::core::objects::PoolAddress,
-    cosmwasm_std::{
-        wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult,
-        Uint128,
-    },
-    cw_asset::{Asset, AssetInfo, AssetInfoBase},
+    abstract_moneymarket_standard::{MoneymarketCommand, MoneymarketError},
+    cosmwasm_std::{wasm_execute, Addr, CosmosMsg, Decimal, Deps, Uint128},
+    cw_asset::{Asset, AssetInfo},
 };
 
 #[cfg(feature = "full_integration")]
@@ -54,7 +48,7 @@ impl MoneymarketCommand for Mars {
 
     fn deposit(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
@@ -67,14 +61,14 @@ impl MoneymarketCommand for Mars {
 
     fn withdraw(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
-        receipt_asset: Asset,
+        lending_asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Withdraw {
             recipient: None,
-            denom: receipt_asset.to_string(),
-            amount: Some(receipt_asset.amount),
+            denom: lending_asset.to_string(),
+            amount: Some(lending_asset.amount),
         };
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![])?;
@@ -84,7 +78,7 @@ impl MoneymarketCommand for Mars {
 
     fn provide_collateral(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
@@ -97,7 +91,7 @@ impl MoneymarketCommand for Mars {
 
     fn withdraw_collateral(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
@@ -114,7 +108,7 @@ impl MoneymarketCommand for Mars {
 
     fn borrow(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
@@ -131,7 +125,7 @@ impl MoneymarketCommand for Mars {
 
     fn repay(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
@@ -190,11 +184,12 @@ impl MoneymarketCommand for Mars {
         deps: Deps,
         contract_addr: Addr,
         user: Addr,
-        asset: AssetInfo,
+        _borrowed_asset: AssetInfo, // borrowed asset is not needed inside mars
+        collateral_asset: AssetInfo,
     ) -> Result<Uint128, MoneymarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserCollateral {
             user: user.to_string(),
-            denom: asset.to_string(),
+            denom: collateral_asset.to_string(),
         };
 
         let query_response: mars_red_bank_types::red_bank::UserCollateralResponse =
@@ -208,11 +203,12 @@ impl MoneymarketCommand for Mars {
         deps: Deps,
         contract_addr: Addr,
         user: Addr,
-        asset: AssetInfo,
+        borrowed_asset: AssetInfo,
+        _collateral_asset: AssetInfo, // collateral asset is not needed for borrow in mars implementation
     ) -> Result<Uint128, MoneymarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserDebt {
             user: user.to_string(),
-            denom: asset.to_string(),
+            denom: borrowed_asset.to_string(),
         };
 
         let query_response: mars_red_bank_types::red_bank::UserDebtResponse =
@@ -226,8 +222,8 @@ impl MoneymarketCommand for Mars {
         deps: Deps,
         contract_addr: Addr,
         user: Addr,
-        collateral_asset: AssetInfo,
-        borrowed_asset: AssetInfo,
+        _borrowed_asset: AssetInfo, // LTV is global on Mars and doesn't depend on collateral asset
+        _collateral_asset: AssetInfo, // LTV is global on Mars and doesn't depend on borrowed asset
     ) -> Result<Decimal, MoneymarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserPosition {
             user: user.to_string(),
@@ -247,7 +243,7 @@ impl MoneymarketCommand for Mars {
         deps: Deps,
         contract_addr: Addr,
         user: Addr,
-        collateral_asset: AssetInfo,
+        _collateral_asset: AssetInfo, // LTV is global on Mars and doesn't depend on collateral asset
     ) -> Result<Decimal, MoneymarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserPosition {
             user: user.to_string(),
@@ -271,16 +267,6 @@ impl MoneymarketCommand for Mars {
         self.red_bank(querier, ans_host)
     }
 
-    /// For Mars, there is no receipt asset, however, we need to pass the denom to the contract call, so this is warranted here
-    fn lending_receipt_asset(
-        &self,
-        _querier: &QuerierWrapper,
-        _ans_host: &AnsHost,
-        lending_asset: AssetEntry,
-    ) -> Result<AssetEntry, AnsHostError> {
-        Ok(lending_asset)
-    }
-
     fn collateral_address(
         &self,
         querier: &QuerierWrapper,
@@ -300,8 +286,29 @@ impl MoneymarketCommand for Mars {
     ) -> Result<Addr, AnsHostError> {
         self.red_bank(querier, ans_host)
     }
+
+    fn max_ltv_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        _lending_asset: AssetEntry,
+        _collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        self.red_bank(querier, ans_host)
+    }
+
+    fn current_ltv_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        _lending_asset: AssetEntry,
+        _collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        self.red_bank(querier, ans_host)
+    }
 }
 
+#[cfg(feature = "full_integration")]
 impl Mars {
     fn red_bank(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> Result<Addr, AnsHostError> {
         let contract_entry = ContractEntry {

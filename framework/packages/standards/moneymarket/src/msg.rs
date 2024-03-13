@@ -99,10 +99,20 @@ pub enum MoneymarketQueryMsg {
 
     /// Query using raw asset denoms and addresses
     #[returns(MoneymarketQueryResponse)]
-    MoneymarketRawQuery(MoneymarketRawQuery),
+    MoneymarketRawQuery {
+        /// Actual query
+        query: MoneymarketRawQuery,
+        /// The name of the dex to interact with
+        moneymarket: MoneymarketName,
+    },
     /// Query using ans assets
     #[returns(MoneymarketQueryResponse)]
-    MoneymarketAnsQuery(MoneymarketAnsQuery),
+    MoneymarketAnsQuery {
+        /// Actual query
+        query: MoneymarketAnsQuery,
+        /// The name of the dex to interact with
+        moneymarket: MoneymarketName,
+    },
 
     /// Fee info for using the different dex actions
     #[returns(MoneymarketFeesResponse)]

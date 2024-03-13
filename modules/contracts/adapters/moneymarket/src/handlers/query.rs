@@ -1,10 +1,10 @@
-use abstract_core::objects::{AssetEntry, PoolAddress};
 use abstract_moneymarket_standard::{
     ans_action::WholeMoneymarketAction,
     msg::{
         GenerateMessagesResponse, MoneymarketExecuteMsg, MoneymarketFeesResponse,
         MoneymarketQueryMsg,
     },
+    query::{MoneymarketRawQuery, WholeMoneymarketQuery},
     MoneymarketError,
 };
 use abstract_sdk::features::AbstractNameService;
@@ -20,8 +20,18 @@ pub fn query_handler(
     deps: Deps,
     env: Env,
     adapter: &MoneymarketAdapter,
-    msg: MoneymarketQueryMsg,
+    mut msg: MoneymarketQueryMsg,
 ) -> MoneymarketResult<Binary> {
+    if let MoneymarketQueryMsg::MoneymarketAnsQuery { query, moneymarket } = msg {
+        let ans = adapter.name_service(deps);
+        let whole_moneymarket_query =
+            WholeMoneymarketQuery(platform_resolver::resolve_moneymarket(&moneymarket)?, query);
+        msg = MoneymarketQueryMsg::MoneymarketRawQuery {
+            query: ans.query(&whole_moneymarket_query)?,
+            moneymarket,
+        };
+    }
+
     match msg {
         MoneymarketQueryMsg::GenerateMessages {
             mut message,
@@ -68,6 +78,18 @@ pub fn query_handler(
             }
         }
         MoneymarketQueryMsg::Fees {} => fees(deps),
+        MoneymarketQueryMsg::MoneymarketRawQuery { query, moneymarket } => {
+            let (local_moneymarket_name, is_over_ibc) = is_over_ibc(env.clone(), &moneymarket)?;
+
+            // if moneymarket is on an app-chain, execute the action on the app-chain
+            if is_over_ibc {
+                unimplemented!()
+            } else {
+                // the action can be executed on the local chain
+                handle_local_query(deps, env, &adapter, local_moneymarket_name, query)
+            }
+        }
+        _ => Err(MoneymarketError::IbcMsgQuery {}),
     }
 }
 
@@ -78,4 +100,61 @@ pub fn fees(deps: Deps) -> MoneymarketResult<Binary> {
         recipient: moneymarket_fees.recipient,
     };
     to_json_binary(&resp).map_err(Into::into)
+}
+
+/// Handle an adapter request that can be executed on the local chain
+fn handle_local_query(
+    deps: Deps,
+    _env: Env,
+    adapter: &MoneymarketAdapter,
+    moneymarket: String,
+    query: MoneymarketRawQuery,
+) -> MoneymarketResult<Binary> {
+    let moneymarket = platform_resolver::resolve_moneymarket(&moneymarket)?;
+
+    Ok(match query {
+        MoneymarketRawQuery::UserDeposit {
+            user,
+            asset,
+            contract_addr,
+        } => {
+            let user = deps.api.addr_validate(&user)?;
+            let contract_addr = deps.api.addr_validate(&contract_addr)?;
+            let asset = asset.check(deps.api, None)?;
+
+            to_json_binary(&moneymarket.user_deposit(deps, contract_addr, user, asset)?)?
+        }
+        MoneymarketRawQuery::UserCollateral {
+            user,
+            collateral_asset,
+            borrowed_asset,
+            contract_addr,
+        } => {
+            let user = deps.api.addr_validate(&user)?;
+            let contract_addr = deps.api.addr_validate(&contract_addr)?;
+            let asset = collateral_asset.check(deps.api, None)?;
+            let asset = borrowed_asset.check(deps.api, None)?;
+
+            to_json_binary(&moneymarket.user_collateral(deps, contract_addr, user, asset)?)?
+        }
+        MoneymarketRawQuery::UserBorrow {
+            user,
+            collateral_asset,
+            borrowed_asset,
+            contract_addr,
+        } => todo!(),
+        MoneymarketRawQuery::CurrentLTV {
+            user,
+            collateral_asset,
+            borrowed_asset,
+            contract_addr,
+        } => todo!(),
+        MoneymarketRawQuery::MaxLTV {
+            user,
+            collateral_asset,
+            borrowed_asset,
+            contract_addr,
+        } => todo!(),
+        MoneymarketRawQuery::Price { quote, base } => todo!(),
+    })
 }

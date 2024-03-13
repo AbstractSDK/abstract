@@ -60,7 +60,8 @@ abstract-client = { version = "0.21.0" }
 abstract-adapter-utils = { version = "0.21.0" }
 abstract-dex-standard = { version = "0.21.0" }
 abstract-staking-standard = { version = "0.21.0" }
-abstract-moneymarket-standard = { version = "0.21.0" }
+# abstract-moneymarket-standard = { version = "0.21.0" }
+abstract-moneymarket-standard = { path = "../framework/packages/standards/moneymarket" }
 
 # Integrations
 abstract-wyndex-adapter = { path = "../integrations/wyndex-adapter", default-features = false }

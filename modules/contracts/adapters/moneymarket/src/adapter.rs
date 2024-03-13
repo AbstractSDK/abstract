@@ -1,11 +1,12 @@
 use abstract_moneymarket_standard::{
-    raw_action::MoneymarketRawAction, MoneymarketCommand, MoneymarketError,
+    query::MoneymarketRawQuery, raw_action::MoneymarketRawAction, MoneymarketCommand,
+    MoneymarketError,
 };
 use abstract_sdk::{
     features::{AbstractNameService, AbstractRegistryAccess},
     Execution,
 };
-use cosmwasm_std::{Addr, CosmosMsg, Deps};
+use cosmwasm_std::{Addr, Binary, CosmosMsg, Deps};
 use cw_asset::{AssetBase, AssetInfoBase};
 
 pub const DEPOSIT: u64 = 8142;
@@ -29,11 +30,11 @@ pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         mut moneymarket: Box<dyn MoneymarketCommand>,
     ) -> Result<(Vec<CosmosMsg>, ReplyId), MoneymarketError> {
         Ok(match action.request {
-            abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Deposit { asset } => {
-                (self.resolve_deposit(deps, sender, asset, action.contract_addr, moneymarket.as_mut())?, DEPOSIT)
+            abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Deposit { lending_asset } => {
+                (self.resolve_deposit(deps, sender, lending_asset, action.contract_addr, moneymarket.as_mut())?, DEPOSIT)
             }
-            abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Withdraw { asset } => {
-                (self.resolve_withdraw(deps, sender, asset, action.contract_addr, moneymarket.as_mut())?, WITHDRAW)
+            abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Withdraw { lending_asset } => {
+                (self.resolve_withdraw(deps, sender, lending_asset, action.contract_addr, moneymarket.as_mut())?, WITHDRAW)
             }
             abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::ProvideCollateral { borrowed_asset, collateral_asset } => {
                 (self.resolve_provide_collateral(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, moneymarket.as_mut())?, PROVIDE_COLLATERAL)
@@ -54,12 +55,12 @@ pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         &self,
         deps: Deps,
         _sender: Addr,
-        asset: AssetBase<String>,
+        lending_asset: AssetBase<String>,
         contract_addr: String,
         moneymarket: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
-        let asset = asset.check(deps.api, None)?;
+        let asset = lending_asset.check(deps.api, None)?;
 
         moneymarket.deposit(deps, contract_addr, asset)
     }
@@ -68,12 +69,12 @@ pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         &self,
         deps: Deps,
         _sender: Addr,
-        asset: AssetBase<String>,
+        lending_asset: AssetBase<String>,
         contract_addr: String,
         moneymarket: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
-        let asset = asset.check(deps.api, None)?;
+        let asset = lending_asset.check(deps.api, None)?;
 
         moneymarket.withdraw(deps, contract_addr, asset)
     }

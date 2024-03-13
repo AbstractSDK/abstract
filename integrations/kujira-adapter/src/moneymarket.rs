@@ -1,11 +1,5 @@
 use crate::{AVAILABLE_CHAINS, KUJIRA};
 use abstract_moneymarket_standard::Identify;
-use abstract_sdk::Resolve;
-use abstract_sdk::{
-    core::objects::{ans_host::AnsHostError, AnsAsset, AssetEntry, ContractEntry},
-    feature_objects::AnsHost,
-};
-use cosmwasm_std::QuerierWrapper;
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -22,24 +16,17 @@ impl Identify for Kujira {
 
 #[cfg(feature = "full_integration")]
 use ::{
-    abstract_moneymarket_standard::{
-        coins_in_assets, Fee, FeeOnInput, MoneymarketCommand, MoneymarketError, Return, Spread,
+    abstract_moneymarket_standard::{MoneymarketCommand, MoneymarketError},
+    abstract_sdk::{
+        core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
+        feature_objects::AnsHost,
     },
-    abstract_sdk::core::objects::PoolAddress,
-    cosmwasm_std::{
-        wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult,
-        Uint128,
-    },
-    cw_asset::{Asset, AssetInfo, AssetInfoBase},
+    cosmwasm_std::{coins, wasm_execute, Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, Uint128},
+    cw_asset::{Asset, AssetInfo},
     kujira::{
-        bow::{
-            self,
-            market_maker::{ConfigResponse, PoolResponse},
-        },
-        fin,
         ghost::{
-            basic_vault,
-            market::{self, PositionResponse},
+            market::{self},
+            receipt_vault,
         },
         KujiraQuerier,
     },
@@ -49,12 +36,12 @@ use ::{
 impl MoneymarketCommand for Kujira {
     fn deposit(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let vault_msg =
-            basic_vault::ExecuteMsg::Deposit(basic_vault::DepositMsg { callback: None });
+            receipt_vault::ExecuteMsg::Deposit(receipt_vault::DepositMsg { callback: None });
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
 
@@ -65,21 +52,35 @@ impl MoneymarketCommand for Kujira {
         &self,
         deps: Deps,
         contract_addr: Addr,
-        receipt_asset: Asset,
+        asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
-        let vault_msg = basic_vault::ExecuteMsg::Withdraw(basic_vault::WithdrawMsg {
-            callback: None,
-            amount: receipt_asset.amount,
-        });
+        let config: receipt_vault::query::ConfigResponse = deps
+            .querier
+            .query_wasm_smart(&contract_addr, &receipt_vault::query::QueryMsg::Config {})?;
+        let status: receipt_vault::query::StatusResponse = deps
+            .querier
+            .query_wasm_smart(&contract_addr, &receipt_vault::query::QueryMsg::Status {})?;
 
-        let msg = wasm_execute(contract_addr, &vault_msg, vec![receipt_asset.try_into()?])?;
+        let vault_msg =
+            receipt_vault::ExecuteMsg::Withdraw(receipt_vault::WithdrawMsg { callback: None });
+
+        let msg = wasm_execute(
+            contract_addr,
+            &vault_msg,
+            coins(
+                ((Decimal::from_ratio(asset.amount, 1u128) / status.deposit_redemption_ratio)
+                    * Uint128::one())
+                .u128(),
+                config.receipt_denom,
+            ),
+        )?;
 
         Ok(vec![msg.into()])
     }
 
     fn provide_collateral(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
@@ -94,7 +95,7 @@ impl MoneymarketCommand for Kujira {
 
     fn withdraw_collateral(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
@@ -110,7 +111,7 @@ impl MoneymarketCommand for Kujira {
 
     fn borrow(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
@@ -125,7 +126,7 @@ impl MoneymarketCommand for Kujira {
 
     fn repay(
         &self,
-        deps: Deps,
+        _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
@@ -164,26 +165,33 @@ impl MoneymarketCommand for Kujira {
     fn user_deposit(
         &self,
         deps: Deps,
-        contract_addr: Addr,
+        vault_addr: Addr,
         user: Addr,
-        asset: AssetInfo,
+        _asset: AssetInfo, // vault_addr is already lending asset specific
     ) -> Result<Uint128, MoneymarketError> {
-        // We query the xToken balance
+        // We get the lending receipt denom
+        let config: receipt_vault::query::ConfigResponse = deps
+            .querier
+            .query_wasm_smart(vault_addr, &receipt_vault::query::QueryMsg::Config {})?;
 
-        todo!()
+        // We get the balance of that token denom
+        let balance = deps.querier.query_balance(user, config.receipt_denom)?;
+
+        Ok(balance.amount)
     }
 
     fn user_collateral(
         &self,
         deps: Deps,
-        contract_addr: Addr,
+        market_addr: Addr,
         user: Addr,
-        asset: AssetInfo,
+        _borrowed_asset: AssetInfo, // market_addr is already borrowed asset specific
+        _collateral_asset: AssetInfo, // market_addr is already collateral asset specific
     ) -> Result<Uint128, MoneymarketError> {
         let market_msg = market::QueryMsg::Position { holder: user };
 
         let query_response: market::PositionResponse =
-            deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
+            deps.querier.query_wasm_smart(market_addr, &market_msg)?;
 
         Ok(query_response.collateral_amount)
     }
@@ -193,7 +201,8 @@ impl MoneymarketCommand for Kujira {
         deps: Deps,
         contract_addr: Addr,
         user: Addr,
-        asset: AssetInfo,
+        _borrowed_asset: AssetInfo, // market_addr is already borrowed asset specific
+        _collateral_asset: AssetInfo, // market_addr is already collateral asset specific
     ) -> Result<Uint128, MoneymarketError> {
         let market_msg = market::QueryMsg::Position { holder: user };
 
@@ -206,19 +215,26 @@ impl MoneymarketCommand for Kujira {
     fn current_ltv(
         &self,
         deps: Deps,
-        contract_addr: Addr,
+        market_addr: Addr,
         user: Addr,
-        collateral_asset: AssetInfo,
         borrowed_asset: AssetInfo,
+        collateral_asset: AssetInfo,
     ) -> Result<Decimal, MoneymarketError> {
         // We get the borrowed_value / collateral value
         let collateral = self.user_collateral(
             deps,
-            contract_addr.clone(),
+            market_addr.clone(),
             user.clone(),
             collateral_asset.clone(),
+            borrowed_asset.clone(),
         )?;
-        let borrow = self.user_borrow(deps, contract_addr, user, borrowed_asset.clone())?;
+        let borrow = self.user_borrow(
+            deps,
+            market_addr,
+            user,
+            collateral_asset.clone(),
+            borrowed_asset.clone(),
+        )?;
 
         // This represents how much 1 unit of the collateral_asset is worth in terms of the borrowed_asset
         let collateral_price = self.price(deps, collateral_asset, borrowed_asset)?;
@@ -231,14 +247,14 @@ impl MoneymarketCommand for Kujira {
     fn max_ltv(
         &self,
         deps: Deps,
-        contract_addr: Addr,
-        user: Addr,
-        collateral_asset: AssetInfo,
+        market_addr: Addr,
+        _user: Addr, // This info is not user specific in this money market
+        _collateral_asset: AssetInfo, // market_addr is already collateral asset specific
     ) -> Result<Decimal, MoneymarketError> {
         let market_msg = market::QueryMsg::Config {};
 
         let query_response: market::ConfigResponse =
-            deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
+            deps.querier.query_wasm_smart(market_addr, &market_msg)?;
 
         Ok(query_response.max_ltv)
     }
@@ -249,24 +265,7 @@ impl MoneymarketCommand for Kujira {
         ans_host: &AnsHost,
         lending_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError> {
-        let lending_contract = ContractEntry {
-            protocol: self.name().to_string(),
-            contract: format!("lending/{}", lending_asset),
-        };
-
-        ans_host.query_contract(querier, &lending_contract)
-    }
-
-    fn lending_receipt_asset(
-        &self,
-        querier: &QuerierWrapper,
-        ans_host: &AnsHost,
-        lending_asset: AssetEntry,
-    ) -> Result<AssetEntry, AnsHostError> {
-        Ok(AssetEntry::new(&format!(
-            "${}>ghost-receipt",
-            lending_asset
-        )))
+        self.vault_address(querier, ans_host, lending_asset)
     }
 
     fn collateral_address(
@@ -276,12 +275,7 @@ impl MoneymarketCommand for Kujira {
         lending_asset: AssetEntry,
         collateral_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError> {
-        let collateral_contract = ContractEntry {
-            protocol: self.name().to_string(),
-            contract: format!("collateral/{}/lended/{}", collateral_asset, lending_asset),
-        };
-
-        ans_host.query_contract(querier, &collateral_contract)
+        self.market_address(querier, ans_host, lending_asset, collateral_asset)
     }
 
     fn borrow_address(
@@ -291,37 +285,57 @@ impl MoneymarketCommand for Kujira {
         lending_asset: AssetEntry,
         collateral_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError> {
-        let borrow_contract = ContractEntry {
+        self.market_address(querier, ans_host, lending_asset, collateral_asset)
+    }
+
+    fn max_ltv_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+        collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        self.market_address(querier, ans_host, lending_asset, collateral_asset)
+    }
+
+    fn current_ltv_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+        collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        self.market_address(querier, ans_host, lending_asset, collateral_asset)
+    }
+}
+
+#[cfg(feature = "full_integration")]
+impl Kujira {
+    fn vault_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        let vault_contract = ContractEntry {
             protocol: self.name().to_string(),
-            contract: format!("borrow/{}/collateral/{}", lending_asset, collateral_asset),
+            contract: format!("vault/{}", lending_asset),
         };
 
-        ans_host.query_contract(querier, &borrow_contract)
+        ans_host.query_contract(querier, &vault_contract)
     }
-}
+    fn market_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+        collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError> {
+        let market_contract = ContractEntry {
+            protocol: self.name().to_string(),
+            contract: format!("market/{}/{}", lending_asset, collateral_asset),
+        };
 
-#[cfg(feature = "full_integration")]
-fn cw_asset_to_kujira(asset: &Asset) -> Result<kujira::Asset, MoneymarketError> {
-    match &asset.info {
-        AssetInfoBase::Native(denom) => Ok(kujira::Asset {
-            amount: asset.amount,
-            info: kujira::AssetInfo::NativeToken {
-                denom: denom.into(),
-            },
-        }),
-        _ => Err(MoneymarketError::UnsupportedAssetType(
-            asset.info.to_string(),
-        )),
+        ans_host.query_contract(querier, &market_contract)
     }
-}
-
-#[cfg(feature = "full_integration")]
-/// Converts [`Decimal`] to [`Decimal256`].
-pub fn decimal2decimal256(dec_value: Decimal) -> StdResult<Decimal256> {
-    Decimal256::from_atomics(dec_value.atomics(), dec_value.decimal_places()).map_err(|_| {
-        StdError::generic_err(format!(
-            "Failed to convert Decimal {} to Decimal256",
-            dec_value
-        ))
-    })
 }

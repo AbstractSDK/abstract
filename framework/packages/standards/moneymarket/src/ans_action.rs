@@ -3,7 +3,6 @@
 //!
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use abstract_sdk::Resolve;
-use cw_asset::Asset;
 
 use crate::{
     raw_action::{MoneymarketRawAction, MoneymarketRawRequest},
@@ -84,14 +83,10 @@ impl Resolve for WholeMoneymarketAction {
                     self.0
                         .lending_address(querier, ans_host, lending_asset.name.clone())?;
 
-                let receipt_asset =
-                    self.0
-                        .lending_receipt_asset(querier, ans_host, lending_asset.name)?;
-
-                let asset = receipt_asset.resolve(querier, ans_host)?;
+                let lending_asset = lending_asset.resolve(querier, ans_host)?;
                 MoneymarketRawAction {
                     request: MoneymarketRawRequest::Withdraw {
-                        receipt_asset: Asset::new(asset, lending_asset.amount).into(),
+                        lending_asset: lending_asset.into(),
                     },
                     contract_addr: contract_addr.to_string(),
                 }

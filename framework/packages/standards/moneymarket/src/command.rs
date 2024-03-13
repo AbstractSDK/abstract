@@ -31,13 +31,6 @@ pub trait MoneymarketCommand: Identify {
         lending_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError>;
 
-    fn lending_receipt_asset(
-        &self,
-        querier: &QuerierWrapper,
-        ans_host: &AnsHost,
-        lending_asset: AssetEntry,
-    ) -> Result<AssetEntry, AnsHostError>;
-
     fn collateral_address(
         &self,
         querier: &QuerierWrapper,
@@ -114,7 +107,7 @@ pub trait MoneymarketCommand: Identify {
     fn user_deposit(
         &self,
         deps: Deps,
-        contract_addr: Addr,
+        lending_addr: Addr,
         user: Addr,
         asset: AssetInfo,
     ) -> Result<Uint128, MoneymarketError>;
@@ -122,33 +115,51 @@ pub trait MoneymarketCommand: Identify {
     fn user_collateral(
         &self,
         deps: Deps,
-        contract_addr: Addr,
+        collateral_addr: Addr,
         user: Addr,
-        asset: AssetInfo,
+        borrowed_asset: AssetInfo,
+        collateral_asset: AssetInfo,
     ) -> Result<Uint128, MoneymarketError>;
 
     fn user_borrow(
         &self,
         deps: Deps,
-        contract_addr: Addr,
+        borrow_addr: Addr,
         user: Addr,
-        asset: AssetInfo,
+        borrowed_asset: AssetInfo,
+        collateral_asset: AssetInfo,
     ) -> Result<Uint128, MoneymarketError>;
 
     fn current_ltv(
         &self,
         deps: Deps,
-        contract_addr: Addr,
+        current_ltv_addr: Addr,
         user: Addr,
-        collateral_asset: AssetInfo,
         borrowed_asset: AssetInfo,
+        collateral_asset: AssetInfo,
     ) -> Result<Decimal, MoneymarketError>;
+
+    fn current_ltv_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+        collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError>;
 
     fn max_ltv(
         &self,
         deps: Deps,
-        contract_addr: Addr,
+        max_ltv_addr: Addr,
         user: Addr,
         collateral_asset: AssetInfo,
     ) -> Result<Decimal, MoneymarketError>;
+
+    fn max_ltv_address(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+        lending_asset: AssetEntry,
+        collateral_asset: AssetEntry,
+    ) -> Result<Addr, AnsHostError>;
 }

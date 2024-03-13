@@ -97,21 +97,29 @@ pub mod raw {
         }
 
         /// Deposit assets
-        pub fn deposit(&self, contract_addr: Addr, asset: Asset) -> AbstractSdkResult<CosmosMsg> {
+        pub fn deposit(
+            &self,
+            contract_addr: Addr,
+            lending_asset: Asset,
+        ) -> AbstractSdkResult<CosmosMsg> {
             self.request(MoneymarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneymarketRawRequest::Deposit {
-                    asset: asset.into(),
+                    lending_asset: lending_asset.into(),
                 },
             })
         }
 
         /// Withdraw liquidity from MONEYMARKET
-        pub fn withdraw(&self, contract_addr: Addr, asset: Asset) -> AbstractSdkResult<CosmosMsg> {
+        pub fn withdraw(
+            &self,
+            contract_addr: Addr,
+            lending_asset: Asset,
+        ) -> AbstractSdkResult<CosmosMsg> {
             self.request(MoneymarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneymarketRawRequest::Withdraw {
-                    asset: asset.into(),
+                    lending_asset: lending_asset.into(),
                 },
             })
         }
@@ -248,13 +256,13 @@ pub mod ans {
         }
 
         /// Deposit assets
-        pub fn deposit(&self, asset: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneymarketAnsAction::Deposit { asset })
+        pub fn deposit(&self, lending_asset: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
+            self.request(MoneymarketAnsAction::Deposit { lending_asset })
         }
 
         /// Withdraw liquidity from MONEYMARKET
-        pub fn withdraw(&self, asset: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneymarketAnsAction::Withdraw { asset })
+        pub fn withdraw(&self, lending_asset: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
+            self.request(MoneymarketAnsAction::Withdraw { lending_asset })
         }
 
         /// Deposit Collateral in MONEYMARKET
@@ -354,7 +362,7 @@ mod test {
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
             moneymarket: moneymarket_name,
             action: MoneymarketAnsAction::Deposit {
-                asset: asset.clone(),
+                lending_asset: asset.clone(),
             },
         });
 
@@ -391,7 +399,7 @@ mod test {
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
             moneymarket: moneymarket_name,
             action: MoneymarketAnsAction::Withdraw {
-                asset: asset.clone(),
+                lending_asset: asset.clone(),
             },
         });
 
@@ -591,7 +599,7 @@ mod test {
                 action: MoneymarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneymarketRawRequest::Deposit {
-                        asset: asset.clone().into(),
+                        lending_asset: asset.clone().into(),
                     },
                 },
             });
@@ -631,7 +639,7 @@ mod test {
                 action: MoneymarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneymarketRawRequest::Withdraw {
-                        asset: asset.clone().into(),
+                        lending_asset: asset.clone().into(),
                     },
                 },
             });

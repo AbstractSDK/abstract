@@ -15,7 +15,7 @@ pub enum MoneymarketRawRequest {
     /// Withdraw lended funds
     Withdraw {
         /// Asset to withdraw
-        receipt_asset: AssetBase<String>,
+        lending_asset: AssetBase<String>,
     },
     /// Deposit Collateral to borrow against
     ProvideCollateral {

@@ -1,30 +1,20 @@
-use abstract_core::{
-    ibc::CallbackInfo,
-    objects::{
-        account::AccountTrace,
-        ans_host::AnsHost,
-        chain_name::ChainName,
-        namespace::{Namespace, ABSTRACT_NAMESPACE},
-        AccountId,
-    },
+use abstract_core::objects::{
+    account::AccountTrace,
+    namespace::{Namespace, ABSTRACT_NAMESPACE},
+    AccountId,
 };
 use abstract_moneymarket_standard::{
-    ans_action::WholeMoneymarketAction, msg::ExecuteMsg, raw_action::MoneymarketRawAction,
-    MoneymarketError, MONEYMARKET_ADAPTER_ID,
+    ans_action::WholeMoneymarketAction, raw_action::MoneymarketRawAction, MoneymarketError,
 };
 use abstract_sdk::{
-    features::AbstractNameService, AccountVerification, Execution, IbcInterface,
-    ModuleRegistryInterface,
+    features::AbstractNameService, AccountVerification, Execution, ModuleRegistryInterface,
 };
-use cosmwasm_std::{
-    ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
-};
-use cw_asset::AssetBase;
+use cosmwasm_std::{ensure_eq, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     contract::{MoneymarketAdapter, MoneymarketResult},
     handlers::execute::platform_resolver::is_over_ibc,
-    msg::{MoneymarketExecuteMsg, MoneymarketName},
+    msg::MoneymarketExecuteMsg,
     platform_resolver,
     state::MONEYMARKET_FEES,
 };

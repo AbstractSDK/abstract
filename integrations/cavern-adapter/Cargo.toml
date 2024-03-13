@@ -28,6 +28,7 @@ cosmwasm-schema = { workspace = true, optional = true }
 cw-asset = { workspace = true, optional = true }
 cw-utils = { workspace = true, optional = true }
 moneymarket = { git = "https://github.com/CavernPerson/money-market-contracts", version = "0.3.1", optional = true }
+cw20-base = { version = "1.1.2", features = ["library"] }
 
 [dev-dependencies]
 abstract-dex-standard = { workspace = true, features = ["testing"] }
