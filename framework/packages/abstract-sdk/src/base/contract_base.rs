@@ -1,8 +1,7 @@
-use abstract_core::{ibc::ModuleIbcMsg, objects::module::ModuleInfo};
+use abstract_core::ibc::{IbcCallbackMsg, ModuleIbcMsg};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
-use polytone::callbacks::Callback;
 
 use super::handler::Handler;
 use crate::{core::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};
@@ -30,18 +29,10 @@ pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
     fn(Deps, Env, &Module, CustomQueryMsg) -> Result<Binary, Error>;
 // ANCHOR_END: query
 
-type CallbackMessage = Option<Binary>;
 // ANCHOR: ibc
 /// Function signature for an IBC callback handler.
-pub type IbcCallbackHandlerFn<Module, Error> = fn(
-    DepsMut,
-    Env,
-    MessageInfo,
-    Module,
-    ModuleInfo,
-    CallbackMessage,
-    Callback,
-) -> Result<Response, Error>;
+pub type IbcCallbackHandlerFn<Module, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, IbcCallbackMsg) -> Result<Response, Error>;
 // ANCHOR_END: ibc
 
 // ANCHOR: module_ibc
@@ -386,7 +377,7 @@ mod test {
     fn test_with_ibc_callback_handlers() {
         const IBC_ID: &str = "aoeu";
         const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
-            |_, _, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
+            |_, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_ibc_callbacks(&[(IBC_ID, HANDLER)]);
 

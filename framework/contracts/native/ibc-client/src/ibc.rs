@@ -91,10 +91,12 @@ pub fn receive_action_callback(
         IbcClientCallback::ModuleRemoteAction {
             callback_info,
             sender_module,
+            initiator_msg,
         } => {
             let callback = IbcCallbackMsg {
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
+                initiator_msg,
                 result: callback.result,
                 sender_module,
             };

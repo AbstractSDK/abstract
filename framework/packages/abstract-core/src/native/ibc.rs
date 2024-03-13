@@ -5,7 +5,6 @@ use schemars::JsonSchema;
 
 use crate::{
     base::ExecuteMsg,
-    ibc_client::InstalledModuleIdentification,
     objects::{chain_name::ChainName, module::ModuleInfo},
 };
 
@@ -29,9 +28,11 @@ pub struct IbcCallbackMsg {
     /// The msg sent with the callback request.
     /// This is usually used to provide information to the ibc callback function for context
     pub msg: Option<Binary>,
+    /// The msg that initiated the ibc callback
+    pub initiator_msg: Binary,
     /// This identifies the module that called the action initially
     /// This SHOULD be used by the callback function to identify the callback sender
-    pub sender_module: InstalledModuleIdentification,
+    pub sender_module: ModuleInfo,
     pub result: Callback,
 }
 

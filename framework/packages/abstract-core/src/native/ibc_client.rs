@@ -130,8 +130,9 @@ pub enum ExecuteMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
     ModuleRemoteAction {
-        sender_module: InstalledModuleIdentification,
+        sender_module: ModuleInfo,
         callback_info: CallbackInfo,
+        initiator_msg: Binary,
     },
     CreateAccount {
         account_id: AccountId,
@@ -319,15 +320,14 @@ pub struct RemoteProxyResponse {
 
 #[cfg(test)]
 mod tests {
-    use cosmwasm_std::{to_json_binary, CosmosMsg, Empty};
+    use cosmwasm_std::{to_json_binary, Binary, CosmosMsg, Empty};
     use polytone::callbacks::Callback;
     use speculoos::prelude::*;
 
-    use crate::ibc::{IbcCallbackMsg, IbcCallbackMsgSerializeHelper};
+    use crate::app::ExecuteMsg;
+    use crate::ibc::IbcCallbackMsg;
     use crate::objects::module::ModuleInfo;
-    use crate::objects::AccountId;
 
-    use super::InstalledModuleIdentification;
     // ... (other test functions)
 
     #[test]
@@ -342,10 +342,8 @@ mod tests {
             id: callback_id,
             msg: Some(callback_msg),
             result,
-            sender_module: InstalledModuleIdentification {
-                module_info: ModuleInfo::from_id_latest("tester:test-module").unwrap(),
-                account_id: Some(AccountId::local(1)),
-            },
+            sender_module: ModuleInfo::from_id_latest("tester:test-module").unwrap(),
+            initiator_msg: Binary::from(vec![9u8, 7u8]),
         };
 
         let actual: CosmosMsg<Empty> = response_msg
@@ -356,7 +354,7 @@ mod tests {
         assert_that!(actual).is_equal_to(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
             contract_addr: receiver,
             // we can't test the message because the fields in it are private
-            msg: to_json_binary(&IbcCallbackMsgSerializeHelper::IbcCallback(response_msg)).unwrap(),
+            msg: to_json_binary(&ExecuteMsg::<Empty, Empty>::IbcCallback(response_msg)).unwrap(),
             funds: vec![],
         }))
     }

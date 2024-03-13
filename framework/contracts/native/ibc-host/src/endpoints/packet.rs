@@ -20,11 +20,14 @@ use crate::{
 
 use abstract_core::base::ExecuteMsg as MiddlewareExecMsg;
 
-pub fn remote_account_id(remote_chain: ChainName, account_id: AccountId) -> HostResult<AccountId> {
+pub fn client_to_host_account_id(
+    remote_chain: ChainName,
+    account_id: AccountId,
+) -> AccountId {
     let mut account_id = account_id.clone();
-    account_id.trace_mut().push_chain(remote_chain.clone());
+    account_id.trace_mut().push_chain(remote_chain);
 
-    Ok(account_id)
+    account_id
 }
 
 /// Handle actions that are passed to the IBC host contract
@@ -39,7 +42,7 @@ pub fn handle_host_action(
     host_action: HostAction,
 ) -> HostResult {
     // Push the client chain to the account trace
-    let account_id = remote_account_id(client_chain.clone(), received_account_id.clone())?;
+    let account_id = client_to_host_account_id(client_chain.clone(), received_account_id.clone());
 
     // get the local account information
     match host_action {
@@ -133,8 +136,7 @@ pub fn handle_host_module_action(
         module_info: target_module,
         account_id: source_module
             .account_id
-            .map(|a| remote_account_id(client_chain.clone(), a))
-            .transpose()?,
+            .map(|a| client_to_host_account_id(client_chain.clone(), a)),
     };
 
     let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;

@@ -285,8 +285,9 @@ pub fn execute_send_module_to_module_packet(
     let callback_request = callback_info.map(|c| CallbackRequest {
         receiver: env.contract.address.to_string(),
         msg: to_json_binary(&IbcClientCallback::ModuleRemoteAction {
-            sender_module: source_module.clone(),
+            sender_module: source_module.module_info.clone(),
             callback_info: c,
+            initiator_msg: msg.clone(),
         })
         .unwrap(),
     });

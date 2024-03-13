@@ -36,7 +36,7 @@ pub enum IbcClientError {
     #[error("Calling internal actions externally is not allowed")]
     ForbiddenInternalCall {},
 
-    #[error("A non-module package can execute an ibc module call")]
+    #[error("A non-module package (native or accounts) cannot execute an ibc module call")]
     ForbiddenModuleCall {},
 
     #[error("The host you are trying to connect is already connected")]
