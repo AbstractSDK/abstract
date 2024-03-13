@@ -16,7 +16,7 @@ cw-orch-clone-testing = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
-abstract-client = { version = "0.21.0" }
+abstract-client = { workspace = true }
 abstract-interface = { workspace = true }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
 

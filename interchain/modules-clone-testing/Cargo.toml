@@ -15,7 +15,7 @@ cw-orch-clone-testing = { workspace = true }
 
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-interface = { workspace = true }
-abstract-client = { version = "0.21.0" }
+abstract-client = { workspace = true }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }

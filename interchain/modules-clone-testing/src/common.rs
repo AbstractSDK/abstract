@@ -20,7 +20,6 @@ pub fn rt() -> &'static tokio::runtime::Runtime {
 /// Returns the abstract client
 pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClient<CloneTesting>> {
     let _ = env_logger::builder().is_test(true).try_init();
-    std::env::set_var("STATE_FILE", "../scripts/state.json");
     // We set the state file to be able to clone test
     let gas_denom = chain.gas_denom;
     let mut app = CloneTesting::new(rt(), chain)?;

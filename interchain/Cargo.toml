@@ -1,5 +1,10 @@
 [workspace]
-members = ["scripts", "interchain-tests", "framework-clone-testing", "modules-clone-testing"]
+members = [
+  "scripts",
+  "interchain-tests",
+  "framework-clone-testing",
+  "modules-clone-testing",
+]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -66,6 +71,7 @@ abstract-core = { version = "0.21.0", path = "../framework/packages/abstract-cor
 abstract-app = { version = "0.21.0", path = "../framework/packages/abstract-app" }
 abstract-adapter = { version = "0.21.0", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.21.0", path = "../framework/packages/abstract-testing" }
+abstract-client = { version = "0.21.0", path = "../framework/packages/abstract-client" }
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat", features = [
   "interface",
@@ -92,6 +98,7 @@ anyhow = "1"
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
+abstract-client = { path = "../framework/packages/abstract-client" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-core = { path = "../framework/packages/abstract-core" }
