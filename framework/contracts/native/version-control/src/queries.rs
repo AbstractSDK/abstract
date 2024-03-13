@@ -324,7 +324,7 @@ mod test {
             info,
             InstantiateMsg {
                 admin,
-                allow_direct_module_registration_and_updates: Some(true),
+                security_disabled: Some(true),
                 namespace_registration_fee: None,
             },
         )?;
@@ -332,7 +332,7 @@ mod test {
             deps.branch(),
             ExecuteMsg::UpdateConfig {
                 account_factory_address: Some(TEST_ACCOUNT_FACTORY.to_string()),
-                allow_direct_module_registration_and_updates: None,
+                security_disabled: None,
                 namespace_registration_fee: None,
             },
         )?;

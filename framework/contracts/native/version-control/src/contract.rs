@@ -36,7 +36,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let old_config = Item::<OldConfig>::new(from_utf8(CONFIG.as_slice())?).load(deps.storage)?;
     let new_config = Config {
         account_factory_address: old_config.account_factory_address,
-        security_enabled: old_config.allow_direct_module_registration_and_updates,
+        security_disabled: old_config.allow_direct_module_registration_and_updates,
         namespace_registration_fee: old_config.namespace_registration_fee,
     };
     CONFIG.save(deps.storage, &new_config)?;
@@ -52,7 +52,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
 
     let InstantiateMsg {
         admin,
-        security_enabled,
+        security_disabled,
         namespace_registration_fee,
     } = msg;
 
@@ -61,7 +61,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
         &Config {
             // Account factory should be set by `update_config`
             account_factory_address: None,
-            security_enabled: security_enabled.unwrap_or(false),
+            security_disabled: security_disabled.unwrap_or(false),
             namespace_registration_fee,
         },
     )?;
@@ -105,13 +105,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         } => add_account(deps, info, account_id, base, namespace),
         ExecuteMsg::UpdateConfig {
             account_factory_address,
-            allow_direct_module_registration_and_updates,
+            security_disabled,
             namespace_registration_fee,
         } => update_config(
             deps,
             info,
             account_factory_address,
-            allow_direct_module_registration_and_updates,
+            security_disabled,
             namespace_registration_fee,
         ),
         ExecuteMsg::UpdateOwnership(action) => {
@@ -137,7 +137,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             let config = CONFIG.load(deps.storage)?;
             to_json_binary(&ConfigResponse {
                 account_factory_address: config.account_factory_address,
-                security_enabled: config.security_enabled,
+                security_disabled: config.security_disabled,
                 namespace_registration_fee: config.namespace_registration_fee,
             })
         }
@@ -199,7 +199,7 @@ mod tests {
         #[test]
         fn disallow_same_version() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_old_init(deps.as_mut())?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -219,7 +219,7 @@ mod tests {
         #[test]
         fn disallow_downgrade() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_old_init(deps.as_mut())?;
 
             let big_version = "999.999.999";
             cw2::set_contract_version(deps.as_mut().storage, VERSION_CONTROL, big_version)?;
@@ -242,7 +242,7 @@ mod tests {
         #[test]
         fn disallow_name_change() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_old_init(deps.as_mut())?;
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
@@ -263,7 +263,7 @@ mod tests {
         #[test]
         fn works() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_old_init(deps.as_mut())?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 

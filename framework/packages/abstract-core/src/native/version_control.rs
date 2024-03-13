@@ -21,7 +21,7 @@ pub struct OldConfig {
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
     pub account_factory_address: Option<Addr>,
-    pub security_enabled: bool,
+    pub security_disabled: bool,
     pub namespace_registration_fee: Option<Coin>,
 }
 
@@ -102,7 +102,7 @@ pub struct InstantiateMsg {
     /// Also allows them to change the module reference of an existing module
     /// Also allows to claim namespaces permisionlessly
     /// SHOULD ONLY BE `true` FOR TESTING
-    pub security_enabled: Option<bool>,
+    pub security_disabled: Option<bool>,
     pub namespace_registration_fee: Option<Coin>,
 }
 
@@ -155,7 +155,7 @@ pub enum ExecuteMsg {
         /// Address of the account factory
         account_factory_address: Option<String>,
         /// Whether the contract allows direct module registration
-        allow_direct_module_registration_and_updates: Option<bool>,
+        security_disabled: Option<bool>,
         /// The fee charged when registering a namespace
         namespace_registration_fee: Option<Clearable<Coin>>,
     },
@@ -340,7 +340,7 @@ pub struct NamespaceListResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub account_factory_address: Option<Addr>,
-    pub security_enabled: bool,
+    pub security_disabled: bool,
     pub namespace_registration_fee: Option<Coin>,
 }
 
