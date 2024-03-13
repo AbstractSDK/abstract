@@ -20,10 +20,7 @@ use crate::{
 
 use abstract_core::base::ExecuteMsg as MiddlewareExecMsg;
 
-pub fn client_to_host_account_id(
-    remote_chain: ChainName,
-    account_id: AccountId,
-) -> AccountId {
+pub fn client_to_host_account_id(remote_chain: ChainName, account_id: AccountId) -> AccountId {
     let mut account_id = account_id.clone();
     account_id.trace_mut().push_chain(remote_chain);
 
