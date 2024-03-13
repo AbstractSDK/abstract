@@ -255,21 +255,21 @@ pub fn execute_send_module_to_module_packet(
             }
             // If it does have the right code id, we verify the specified account has the app installed
             let account_base = cfg.version_control.account_base(
-                &source_module
+                source_module
                     .account_id
-                    .clone()
+                    .as_ref()
                     .ok_or(IbcClientError::ForbiddenModuleCall {})?,
                 &deps.querier,
             )?;
 
-            let module_info: manager::ModuleAddressesResponse = deps.querier.query_wasm_smart(
+            let maybe_module_addr = manager::state::ACCOUNT_MODULES.query(
+                &deps.querier,
                 account_base.manager,
-                &manager::QueryMsg::ModuleAddresses {
-                    ids: vec![source_module.module_info.id()],
-                },
+                &source_module.module_info.id(),
             )?;
+            let module_addr = maybe_module_addr.ok_or(IbcClientError::ForbiddenModuleCall {})?;
             ensure_eq!(
-                module_info.modules[0].1,
+                module_addr,
                 info.sender,
                 IbcClientError::ForbiddenModuleCall {}
             );

@@ -33,7 +33,7 @@ pub enum IbcClientError {
     #[error("remote account changed from {old} to {addr}")]
     RemoteAccountChanged { addr: String, old: String },
 
-    #[error("packages that contain internal calls are not allowed")]
+    #[error("Calling internal actions externally is not allowed")]
     ForbiddenInternalCall {},
 
     #[error("A non-module package can execute an ibc module call")]
