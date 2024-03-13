@@ -23,8 +23,8 @@ pub fn setup(
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
     let _ = env_logger::builder().is_test(true).try_init();
     // Run migration tests against Juno mainnet
-    // TODO: remove, when cw-orch-interchain bumped from v0.20.2
-    std::env::set_var("STATE_FILE", "state.json");
+    // We set the state file to be able to clone test
+    std::env::set_var("STATE_FILE", "../scripts/state.json");
     let mut app = CloneTesting::new(rt(), chain)?;
     app.set_sender(sender);
 
