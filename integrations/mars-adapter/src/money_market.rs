@@ -1,4 +1,4 @@
-use abstract_moneymarket_standard::Identify;
+use abstract_money_market_standard::Identify;
 use abstract_sdk::{
     core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
     feature_objects::AnsHost,
@@ -24,18 +24,18 @@ impl Identify for Mars {
 
 #[cfg(feature = "full_integration")]
 use {
-    abstract_moneymarket_standard::{MoneymarketCommand, MoneymarketError},
+    abstract_money_market_standard::{MoneyMarketCommand, MoneyMarketError},
     cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw_asset::{Asset, AssetInfo},
 };
 
 #[cfg(feature = "full_integration")]
-impl MoneymarketCommand for Mars {
+impl MoneyMarketCommand for Mars {
     fn fetch_data(
         &mut self,
         querier: &QuerierWrapper,
         ans_host: &AnsHost,
-    ) -> Result<(), MoneymarketError> {
+    ) -> Result<(), MoneyMarketError> {
         let contract_entry = ContractEntry {
             protocol: self.name().to_string(),
             contract: "oracle".to_string(),
@@ -51,7 +51,7 @@ impl MoneymarketCommand for Mars {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Deposit { on_behalf_of: None };
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
@@ -64,7 +64,7 @@ impl MoneymarketCommand for Mars {
         _deps: Deps,
         contract_addr: Addr,
         lending_asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let denom = unwrap_native(lending_asset.info)?;
 
         let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Withdraw {
@@ -83,7 +83,7 @@ impl MoneymarketCommand for Mars {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Deposit { on_behalf_of: None };
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
@@ -96,7 +96,7 @@ impl MoneymarketCommand for Mars {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Withdraw {
             recipient: None,
             denom: unwrap_native(asset.info)?,
@@ -113,7 +113,7 @@ impl MoneymarketCommand for Mars {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Borrow {
             recipient: None,
             denom: unwrap_native(asset.info)?,
@@ -130,7 +130,7 @@ impl MoneymarketCommand for Mars {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Repay { on_behalf_of: None };
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
@@ -143,7 +143,7 @@ impl MoneymarketCommand for Mars {
         deps: Deps,
         base: AssetInfo,
         quote: AssetInfo,
-    ) -> Result<Decimal, MoneymarketError> {
+    ) -> Result<Decimal, MoneyMarketError> {
         let oracle_contract = &self.oracle_contract.clone().unwrap();
         let base_price: mars_red_bank_types::oracle::PriceResponse =
             deps.querier.query_wasm_smart(
@@ -169,7 +169,7 @@ impl MoneymarketCommand for Mars {
         contract_addr: Addr,
         user: Addr,
         asset: AssetInfo,
-    ) -> Result<Uint128, MoneymarketError> {
+    ) -> Result<Uint128, MoneyMarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserCollateral {
             user: user.to_string(),
             denom: unwrap_native(asset)?,
@@ -188,7 +188,7 @@ impl MoneymarketCommand for Mars {
         user: Addr,
         _borrowed_asset: AssetInfo, // borrowed asset is not needed inside mars
         collateral_asset: AssetInfo,
-    ) -> Result<Uint128, MoneymarketError> {
+    ) -> Result<Uint128, MoneyMarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserCollateral {
             user: user.to_string(),
             denom: unwrap_native(collateral_asset)?,
@@ -207,7 +207,7 @@ impl MoneymarketCommand for Mars {
         user: Addr,
         borrowed_asset: AssetInfo,
         _collateral_asset: AssetInfo, // collateral asset is not needed for borrow in mars implementation
-    ) -> Result<Uint128, MoneymarketError> {
+    ) -> Result<Uint128, MoneyMarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserDebt {
             user: user.to_string(),
             denom: unwrap_native(borrowed_asset)?,
@@ -226,7 +226,7 @@ impl MoneymarketCommand for Mars {
         user: Addr,
         _borrowed_asset: AssetInfo, // LTV is global on Mars and doesn't depend on collateral asset
         _collateral_asset: AssetInfo, // LTV is global on Mars and doesn't depend on borrowed asset
-    ) -> Result<Decimal, MoneymarketError> {
+    ) -> Result<Decimal, MoneyMarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserPosition {
             user: user.to_string(),
         };
@@ -247,7 +247,7 @@ impl MoneymarketCommand for Mars {
         user: Addr,
         _borrowed_asset: AssetInfo, // LTV is global on Mars and doesn't depend on borrowing asset
         _collateral_asset: AssetInfo, // LTV is global on Mars and doesn't depend on collateral asset
-    ) -> Result<Decimal, MoneymarketError> {
+    ) -> Result<Decimal, MoneyMarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserPosition {
             user: user.to_string(),
         };
@@ -325,10 +325,10 @@ impl Mars {
     }
 }
 
-fn unwrap_native(asset: AssetInfo) -> Result<String, MoneymarketError> {
+fn unwrap_native(asset: AssetInfo) -> Result<String, MoneyMarketError> {
     match asset {
         cw_asset::AssetInfoBase::Native(denom) => Ok(denom),
-        cw_asset::AssetInfoBase::Cw20(_) => Err(MoneymarketError::ExpectedNative {}),
+        cw_asset::AssetInfoBase::Cw20(_) => Err(MoneyMarketError::ExpectedNative {}),
         _ => todo!(),
     }
 }

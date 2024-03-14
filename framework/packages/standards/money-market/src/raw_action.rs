@@ -6,13 +6,13 @@ use cw_asset::{AssetBase, AssetInfoBase};
 /// Possible actions to perform on a Money Market
 /// This is an example using raw assets
 #[cosmwasm_schema::cw_serde]
-pub enum MoneymarketRawRequest {
+pub enum MoneyMarketRawRequest {
     /// Deposit funds for lending.
     Deposit {
         /// Asset to deposit
         lending_asset: AssetBase<String>,
     },
-    /// Withdraw lended funds
+    /// Withdraw lent funds
     Withdraw {
         /// Asset to withdraw
         lending_asset: AssetBase<String>,
@@ -35,23 +35,23 @@ pub enum MoneymarketRawRequest {
     Borrow {
         /// Asset to borrow
         borrowed_asset: AssetBase<String>,
-        /// Asset that indentifies the market you want to borrow from
+        /// Asset that identifies the market you want to borrow from
         collateral_asset: AssetInfoBase<String>,
     },
     /// Repay funds to the money market
     Repay {
         /// Asset to repay
         borrowed_asset: AssetBase<String>,
-        /// Asset that indentifies the market you want to borrow from
+        /// Asset that identifies the market you want to borrow from
         collateral_asset: AssetInfoBase<String>,
     },
 }
 
-/// Action to execute on a moneymarket
+/// Action to execute on a money_market
 #[cosmwasm_schema::cw_serde]
-pub struct MoneymarketRawAction {
+pub struct MoneyMarketRawAction {
     /// The action to execute
-    pub request: MoneymarketRawRequest,
+    pub request: MoneyMarketRawRequest,
     /// The contract address to execute it against
     pub contract_addr: String,
 }

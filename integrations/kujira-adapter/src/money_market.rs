@@ -1,5 +1,5 @@
 use crate::{AVAILABLE_CHAINS, KUJIRA};
-use abstract_moneymarket_standard::Identify;
+use abstract_money_market_standard::Identify;
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -16,7 +16,7 @@ impl Identify for Kujira {
 
 #[cfg(feature = "full_integration")]
 use ::{
-    abstract_moneymarket_standard::{MoneymarketCommand, MoneymarketError},
+    abstract_money_market_standard::{MoneyMarketCommand, MoneyMarketError},
     abstract_sdk::{
         core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
         feature_objects::AnsHost,
@@ -33,13 +33,13 @@ use ::{
 };
 
 #[cfg(feature = "full_integration")]
-impl MoneymarketCommand for Kujira {
+impl MoneyMarketCommand for Kujira {
     fn deposit(
         &self,
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg =
             receipt_vault::ExecuteMsg::Deposit(receipt_vault::DepositMsg { callback: None });
 
@@ -53,7 +53,7 @@ impl MoneymarketCommand for Kujira {
         deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let config: receipt_vault::query::ConfigResponse = deps
             .querier
             .query_wasm_smart(&contract_addr, &receipt_vault::query::QueryMsg::Config {})?;
@@ -83,7 +83,7 @@ impl MoneymarketCommand for Kujira {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = market::ExecuteMsg::Deposit(market::DepositMsg {
             position_holder: None,
         });
@@ -98,7 +98,7 @@ impl MoneymarketCommand for Kujira {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = market::ExecuteMsg::Withdraw(market::WithdrawMsg {
             amount: asset.amount,
             withdraw_to: None,
@@ -114,7 +114,7 @@ impl MoneymarketCommand for Kujira {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = market::ExecuteMsg::Borrow(market::BorrowMsg {
             amount: asset.amount,
         });
@@ -129,7 +129,7 @@ impl MoneymarketCommand for Kujira {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = market::ExecuteMsg::Repay(market::RepayMsg {
             position_holder: None,
         });
@@ -144,7 +144,7 @@ impl MoneymarketCommand for Kujira {
         deps: Deps,
         base: AssetInfo,
         quote: AssetInfo,
-    ) -> Result<Decimal, MoneymarketError> {
+    ) -> Result<Decimal, MoneyMarketError> {
         // let base_denom = base.to_string();
         // let quote_denom = quote.to_string();
 
@@ -168,7 +168,7 @@ impl MoneymarketCommand for Kujira {
         vault_addr: Addr,
         user: Addr,
         _asset: AssetInfo, // vault_addr is already lending asset specific
-    ) -> Result<Uint128, MoneymarketError> {
+    ) -> Result<Uint128, MoneyMarketError> {
         // We get the lending receipt denom
         let config: receipt_vault::query::ConfigResponse = deps
             .querier
@@ -187,7 +187,7 @@ impl MoneymarketCommand for Kujira {
         user: Addr,
         _borrowed_asset: AssetInfo, // market_addr is already borrowed asset specific
         _collateral_asset: AssetInfo, // market_addr is already collateral asset specific
-    ) -> Result<Uint128, MoneymarketError> {
+    ) -> Result<Uint128, MoneyMarketError> {
         let market_msg = market::QueryMsg::Position { holder: user };
 
         let query_response: market::PositionResponse =
@@ -203,7 +203,7 @@ impl MoneymarketCommand for Kujira {
         user: Addr,
         _borrowed_asset: AssetInfo, // market_addr is already borrowed asset specific
         _collateral_asset: AssetInfo, // market_addr is already collateral asset specific
-    ) -> Result<Uint128, MoneymarketError> {
+    ) -> Result<Uint128, MoneyMarketError> {
         let market_msg = market::QueryMsg::Position { holder: user };
 
         let query_response: market::PositionResponse =
@@ -219,7 +219,7 @@ impl MoneymarketCommand for Kujira {
         user: Addr,
         borrowed_asset: AssetInfo,
         collateral_asset: AssetInfo,
-    ) -> Result<Decimal, MoneymarketError> {
+    ) -> Result<Decimal, MoneyMarketError> {
         // We get the borrowed_value / collateral value
         let collateral = self.user_collateral(
             deps,
@@ -251,7 +251,7 @@ impl MoneymarketCommand for Kujira {
         _user: Addr,                // This info is not user specific in this money market
         _borrowed_asset: AssetInfo, // market_addr is already borrowed asset specific
         _collateral_asset: AssetInfo, // market_addr is already collateral asset specific
-    ) -> Result<Decimal, MoneymarketError> {
+    ) -> Result<Decimal, MoneyMarketError> {
         let market_msg = market::QueryMsg::Config {};
 
         let query_response: market::ConfigResponse =

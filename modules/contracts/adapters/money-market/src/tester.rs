@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::{
-    interface::MoneymarketAdapter, msg::MoneymarketInstantiateMsg, MONEYMARKET_ADAPTER_ID,
+    interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEYMARKET_ADAPTER_ID,
 };
 use abstract_client::{AbstractClient, Environment};
 use abstract_core::{
@@ -12,8 +12,8 @@ use abstract_core::{
     },
 };
 use abstract_interface::{AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
-use abstract_moneymarket_standard::{
-    ans_action::MoneymarketAnsAction, msg::MoneymarketExecuteMsg, query::MoneymarketAnsQuery,
+use abstract_money_market_standard::{
+    ans_action::MoneyMarketAnsAction, msg::MoneyMarketExecuteMsg, query::MoneyMarketAnsQuery,
 };
 use cosmwasm_schema::serde::{de::DeserializeOwned, Serialize};
 use cosmwasm_std::{coins, Decimal, Uint128};
@@ -36,7 +36,7 @@ pub trait MockMoneyMarket {
 }
 pub struct MoneyMarketTester<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> {
     pub abstr_deployment: AbstractClient<Chain>,
-    pub moneymarket_adapter: MoneymarketAdapter<Chain>,
+    pub moneymarket_adapter: MoneyMarketAdapter<Chain>,
     pub moneymarket: Moneymarket,
 }
 impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Moneymarket> {
@@ -52,10 +52,10 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
                 ModuleVersion::Version(crate::contract::CONTRACT_VERSION.to_owned()),
             )?);
         let moneymarket_adapter =
-            MoneymarketAdapter::new(MONEYMARKET_ADAPTER_ID, abstr_deployment.environment());
+            MoneyMarketAdapter::new(MONEYMARKET_ADAPTER_ID, abstr_deployment.environment());
         moneymarket_adapter.deploy(
             crate::contract::CONTRACT_VERSION.parse()?,
-            MoneymarketInstantiateMsg {
+            MoneyMarketInstantiateMsg {
                 recipient_account: 0,
                 fee: Decimal::permille(3),
             },
@@ -86,7 +86,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<MoneymarketAdapter<Chain>>()?
+            .install_adapter::<MoneyMarketAdapter<Chain>>()?
             .build()?;
         let proxy_addr = new_account.proxy()?;
 
@@ -95,7 +95,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         self.add_proxy_balance(&proxy_addr, &asset_info_lending, deposit_value)?;
 
         // Verify nothing was deposited using the moneymarket query
-        let user_deposit: Uint128 = self.query(MoneymarketAnsQuery::UserDeposit {
+        let user_deposit: Uint128 = self.query(MoneyMarketAnsQuery::UserDeposit {
             user: new_account.proxy()?.to_string(),
             asset: AssetEntry::new(&ans_lending_asset),
         })?;
@@ -105,7 +105,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         // swap 1_000_000_000 asset_a to asset_b
         self.execute(
             &proxy_addr,
-            MoneymarketAnsAction::Deposit {
+            MoneyMarketAnsAction::Deposit {
                 lending_asset: AnsAsset::new(AssetEntry::new(&ans_lending_asset), deposit_value),
             },
         )?;
@@ -115,7 +115,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         assert!(balance_lending.is_zero());
 
         // Verify the deposit using the moneymarket query
-        let user_deposit: Uint128 = self.query(MoneymarketAnsQuery::UserDeposit {
+        let user_deposit: Uint128 = self.query(MoneyMarketAnsQuery::UserDeposit {
             user: new_account.proxy()?.to_string(),
             asset: AssetEntry::new(&ans_lending_asset),
         })?;
@@ -140,7 +140,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         let new_account = self
             .abstr_deployment
             .account_builder()
-            .install_adapter::<MoneymarketAdapter<Chain>>()?
+            .install_adapter::<MoneyMarketAdapter<Chain>>()?
             .build()?;
         let proxy_addr = new_account.proxy()?;
 
@@ -151,7 +151,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         // swap 1_000_000_000 asset_a to asset_b
         self.execute(
             &proxy_addr,
-            MoneymarketAnsAction::Deposit {
+            MoneyMarketAnsAction::Deposit {
                 lending_asset: AnsAsset::new(AssetEntry::new(&ans_lending_asset), deposit_value),
             },
         )?;
@@ -159,13 +159,13 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         assert_eq!(current_balance, Uint128::zero());
 
         // Verify the deposit using the moneymarket query
-        let user_deposit_value: Uint128 = self.query(MoneymarketAnsQuery::UserDeposit {
+        let user_deposit_value: Uint128 = self.query(MoneyMarketAnsQuery::UserDeposit {
             user: new_account.proxy()?.to_string(),
             asset: AssetEntry::new(&ans_lending_asset),
         })?;
         self.execute(
             &proxy_addr,
-            MoneymarketAnsAction::Withdraw {
+            MoneyMarketAnsAction::Withdraw {
                 lending_asset: AnsAsset::new(
                     AssetEntry::new(&ans_lending_asset),
                     user_deposit_value.clone(),
@@ -181,14 +181,14 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
 
     fn query<T: Serialize + std::fmt::Debug + DeserializeOwned>(
         &self,
-        query: MoneymarketAnsQuery,
+        query: MoneyMarketAnsQuery,
     ) -> anyhow::Result<T> {
         Ok(self
             .moneymarket_adapter
             .query(&crate::msg::QueryMsg::Module(
-                crate::msg::MoneymarketQueryMsg::MoneymarketAnsQuery {
+                crate::msg::MoneyMarketQueryMsg::MoneyMarketAnsQuery {
                     query,
-                    moneymarket: self.moneymarket.name(),
+                    money_market: self.moneymarket.name(),
                 },
             ))?)
     }
@@ -196,13 +196,13 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
     fn execute(
         &self,
         proxy: &Addr,
-        action: MoneymarketAnsAction,
+        action: MoneyMarketAnsAction,
     ) -> anyhow::Result<<Chain as TxHandler>::Response> {
         Ok(self.moneymarket_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: Some(proxy.to_string()),
-                request: MoneymarketExecuteMsg::AnsAction {
-                    moneymarket: self.moneymarket.name(),
+                request: MoneyMarketExecuteMsg::AnsAction {
+                    money_market: self.moneymarket.name(),
                     action,
                 },
             }),

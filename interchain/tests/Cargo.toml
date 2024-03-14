@@ -58,7 +58,7 @@ abstract-scripts = { path = "../scripts" }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
 lazy_static = "1.4.0"
 abstract-client = { workspace = true }
-abstract-moneymarket-adapter = { version = "0.21.1", path = "../../modules/contracts/adapters/moneymarket", features = [
+abstract-money-market-adapter = { version = "0.21.1", path = "../../modules/contracts/adapters/money-market", features = [
   "testing",
   "mars",
   "cavern",

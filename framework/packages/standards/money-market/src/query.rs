@@ -1,13 +1,13 @@
 use cosmwasm_std::{Decimal, Uint128};
 
-pub use ans::{MoneymarketAnsQuery, WholeMoneymarketQuery};
-pub use raw::MoneymarketRawQuery;
+pub use ans::{MoneyMarketAnsQuery, WholeMoneyMarketQuery};
+pub use raw::MoneyMarketRawQuery;
 
 mod raw {
     use cw_asset::AssetInfoBase;
     /// Possible raw queries to run on the Money Market
     #[cosmwasm_schema::cw_serde]
-    pub enum MoneymarketRawQuery {
+    pub enum MoneyMarketRawQuery {
         /// Deposited funds for lending
         UserDeposit {
             /// User that has deposited some funds
@@ -70,15 +70,15 @@ mod raw {
 }
 
 mod ans {
-    use crate::MoneymarketCommand;
+    use crate::MoneyMarketCommand;
     use abstract_core::objects::AssetEntry;
     use abstract_sdk::Resolve;
 
-    use super::raw::MoneymarketRawQuery;
+    use super::raw::MoneyMarketRawQuery;
 
     /// Possible ans queries to run on the Money Market
     #[cosmwasm_schema::cw_serde]
-    pub enum MoneymarketAnsQuery {
+    pub enum MoneyMarketAnsQuery {
         /// Deposited funds for lending
         UserDeposit {
             /// User that has deposited some funds
@@ -132,10 +132,10 @@ mod ans {
     }
 
     /// Structure created to be able to resolve an action using ANS
-    pub struct WholeMoneymarketQuery(pub Box<dyn MoneymarketCommand>, pub MoneymarketAnsQuery);
+    pub struct WholeMoneyMarketQuery(pub Box<dyn MoneyMarketCommand>, pub MoneyMarketAnsQuery);
 
-    impl Resolve for WholeMoneymarketQuery {
-        type Output = MoneymarketRawQuery;
+    impl Resolve for WholeMoneyMarketQuery {
+        type Output = MoneyMarketRawQuery;
 
         /// TODO: this only works for protocols where there is only one address for depositing
         fn resolve(
@@ -144,16 +144,16 @@ mod ans {
             ans_host: &abstract_sdk::feature_objects::AnsHost,
         ) -> abstract_core::objects::ans_host::AnsHostResult<Self::Output> {
             let raw_action = match self.1.clone() {
-                MoneymarketAnsQuery::UserDeposit { user, asset } => {
+                MoneyMarketAnsQuery::UserDeposit { user, asset } => {
                     let contract_addr = self.0.lending_address(querier, ans_host, asset.clone())?;
                     let asset = asset.resolve(querier, ans_host)?;
-                    MoneymarketRawQuery::UserDeposit {
+                    MoneyMarketRawQuery::UserDeposit {
                         asset: asset.into(),
                         user,
                         contract_addr: contract_addr.to_string(),
                     }
                 }
-                MoneymarketAnsQuery::UserCollateral {
+                MoneyMarketAnsQuery::UserCollateral {
                     user,
                     collateral_asset,
                     borrowed_asset,
@@ -166,14 +166,14 @@ mod ans {
                     )?;
                     let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
                     let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
-                    MoneymarketRawQuery::UserCollateral {
+                    MoneyMarketRawQuery::UserCollateral {
                         user,
                         collateral_asset: collateral_asset.into(),
                         borrowed_asset: borrowed_asset.into(),
                         contract_addr: contract_addr.to_string(),
                     }
                 }
-                MoneymarketAnsQuery::UserBorrow {
+                MoneyMarketAnsQuery::UserBorrow {
                     user,
                     collateral_asset,
                     borrowed_asset,
@@ -186,7 +186,7 @@ mod ans {
                     )?;
                     let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
                     let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
-                    MoneymarketRawQuery::UserBorrow {
+                    MoneyMarketRawQuery::UserBorrow {
                         user,
                         collateral_asset: collateral_asset.into(),
                         borrowed_asset: borrowed_asset.into(),
@@ -194,7 +194,7 @@ mod ans {
                         contract_addr: contract_addr.to_string(),
                     }
                 }
-                MoneymarketAnsQuery::CurrentLTV {
+                MoneyMarketAnsQuery::CurrentLTV {
                     user,
                     collateral_asset,
                     borrowed_asset,
@@ -207,7 +207,7 @@ mod ans {
                     )?;
                     let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
                     let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
-                    MoneymarketRawQuery::CurrentLTV {
+                    MoneyMarketRawQuery::CurrentLTV {
                         user,
                         collateral_asset: collateral_asset.into(),
                         borrowed_asset: borrowed_asset.into(),
@@ -215,7 +215,7 @@ mod ans {
                         contract_addr: contract_addr.to_string(),
                     }
                 }
-                MoneymarketAnsQuery::MaxLTV {
+                MoneyMarketAnsQuery::MaxLTV {
                     user,
                     collateral_asset,
                     borrowed_asset,
@@ -228,7 +228,7 @@ mod ans {
                     )?;
                     let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
                     let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
-                    MoneymarketRawQuery::MaxLTV {
+                    MoneyMarketRawQuery::MaxLTV {
                         user,
                         collateral_asset: collateral_asset.into(),
                         borrowed_asset: borrowed_asset.into(),
@@ -236,10 +236,10 @@ mod ans {
                         contract_addr: contract_addr.to_string(),
                     }
                 }
-                MoneymarketAnsQuery::Price { quote, base } => {
+                MoneyMarketAnsQuery::Price { quote, base } => {
                     let quote = quote.resolve(querier, ans_host)?;
                     let base = base.resolve(querier, ans_host)?;
-                    MoneymarketRawQuery::Price {
+                    MoneyMarketRawQuery::Price {
                         quote: quote.into(),
                         base: base.into(),
                     }
@@ -253,7 +253,7 @@ mod ans {
 
 /// Responses for MoneyMarketQueries
 #[cosmwasm_schema::cw_serde]
-pub enum MoneymarketQueryResponse {
+pub enum MoneyMarketQueryResponse {
     /// Deposited funds for lending
     UserDeposit { deposit_amount: Uint128 },
     /// Deposited Collateral funds

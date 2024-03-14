@@ -1,5 +1,5 @@
 [package]
-name = "abstract-moneymarket-adapter"
+name = "abstract-money-market-adapter"
 description = "The MoneyMarket adapter is an Abstract adapter for interacting with usual MoneyMarket commands. It provides a common interface for all MoneyMarkets"
 
 version = { workspace = true }
@@ -29,7 +29,7 @@ interface = [
   "dep:abstract-interface",
   "dep:cw-orch",
   "export",
-  "abstract-moneymarket-standard/interface",
+  "abstract-money-market-standard/interface",
 ]
 schema = ["abstract-adapter/schema"]
 testing = ["interface", "dep:abstract-client", "dep:cw-orch", "dep:cw20"]
@@ -87,7 +87,7 @@ abstract-adapter = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 
 # Local
-abstract-moneymarket-standard = { workspace = true }
+abstract-money-market-standard = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 
 # Kujira #
@@ -114,11 +114,11 @@ clap = { workspace = true }
 wyndex-bundle = { workspace = true }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
-moneymarket = { path = ".", features = [
+money-market = { path = ".", features = [
   "interface",
-  "wynd",
-  "osmosis",
-], package = "abstract-moneymarket-adapter" }
+  "mars",
+  "kujira",
+], package = "abstract-money-market-adapter" }
 
 abstract-wyndex-adapter = { workspace = true, features = ["local"] }
 

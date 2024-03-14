@@ -1,4 +1,4 @@
-use abstract_moneymarket_standard::Identify;
+use abstract_money_market_standard::Identify;
 use abstract_sdk::{
     core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
     feature_objects::AnsHost,
@@ -23,18 +23,18 @@ impl Identify for Cavern {
 
 #[cfg(feature = "full_integration")]
 use {
-    abstract_moneymarket_standard::{MoneymarketCommand, MoneymarketError},
+    abstract_money_market_standard::{MoneyMarketCommand, MoneyMarketError},
     cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw_asset::{Asset, AssetInfo},
 };
 
 #[cfg(feature = "full_integration")]
-impl MoneymarketCommand for Cavern {
+impl MoneyMarketCommand for Cavern {
     fn fetch_data(
         &mut self,
         querier: &QuerierWrapper,
         ans_host: &AnsHost,
-    ) -> Result<(), MoneymarketError> {
+    ) -> Result<(), MoneyMarketError> {
         let contract_entry = ContractEntry {
             protocol: self.name().to_string(),
             contract: "oracle".to_string(),
@@ -50,7 +50,7 @@ impl MoneymarketCommand for Cavern {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = moneymarket::market::ExecuteMsg::DepositStable {};
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
@@ -63,7 +63,7 @@ impl MoneymarketCommand for Cavern {
         deps: Deps,
         contract_addr: Addr,
         lending_asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let aterra_address = self.aterra_address(&deps.querier, contract_addr.clone())?;
 
         let state = self.market_state(&deps.querier, contract_addr.clone())?;
@@ -86,7 +86,7 @@ impl MoneymarketCommand for Cavern {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = moneymarket::custody::Cw20HookMsg::DepositCollateral { borrower: None };
 
         let msg = asset.send_msg(contract_addr, to_json_binary(&vault_msg)?)?;
@@ -99,7 +99,7 @@ impl MoneymarketCommand for Cavern {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = moneymarket::custody::ExecuteMsg::WithdrawCollateral {
             amount: Some(asset.amount.into()),
         };
@@ -114,7 +114,7 @@ impl MoneymarketCommand for Cavern {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = moneymarket::market::ExecuteMsg::BorrowStable {
             borrow_amount: asset.amount.into(),
             to: None,
@@ -130,7 +130,7 @@ impl MoneymarketCommand for Cavern {
         _deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let vault_msg = moneymarket::market::ExecuteMsg::RepayStable { borrower: None };
 
         let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
@@ -143,7 +143,7 @@ impl MoneymarketCommand for Cavern {
         deps: Deps,
         base: AssetInfo,
         quote: AssetInfo,
-    ) -> Result<Decimal, MoneymarketError> {
+    ) -> Result<Decimal, MoneyMarketError> {
         let oracle_contract = &self.oracle_contract.clone().unwrap();
         let price: moneymarket::oracle::PriceResponse = deps.querier.query_wasm_smart(
             oracle_contract,
@@ -162,7 +162,7 @@ impl MoneymarketCommand for Cavern {
         contract_addr: Addr,
         user: Addr,
         _asset: AssetInfo, // contract_addr is already lending asset specific
-    ) -> Result<Uint128, MoneymarketError> {
+    ) -> Result<Uint128, MoneyMarketError> {
         let aterra_address = self.aterra_address(&deps.querier, contract_addr.clone())?;
 
         let state = self.market_state(&deps.querier, contract_addr.clone())?;
@@ -186,7 +186,7 @@ impl MoneymarketCommand for Cavern {
         user: Addr,
         _borrowed_asset: AssetInfo, // contract_addr is already borrowed asset specific
         _collateral_asset: AssetInfo, // contract_addr is already collateral asset specific
-    ) -> Result<Uint128, MoneymarketError> {
+    ) -> Result<Uint128, MoneyMarketError> {
         let custody_msg = moneymarket::custody::QueryMsg::Borrower {
             address: user.to_string(),
         };
@@ -204,7 +204,7 @@ impl MoneymarketCommand for Cavern {
         user: Addr,
         _borrowed_asset: AssetInfo, // contract_addr is already borrowed asset specific
         _collateral_asset: AssetInfo, // contract_addr is already collateral asset specific
-    ) -> Result<Uint128, MoneymarketError> {
+    ) -> Result<Uint128, MoneyMarketError> {
         let market_msg = moneymarket::market::QueryMsg::BorrowerInfo {
             borrower: user.to_string(),
             block_height: None,
@@ -225,7 +225,7 @@ impl MoneymarketCommand for Cavern {
         user: Addr,
         borrowed_asset: AssetInfo,
         collateral_asset: AssetInfo,
-    ) -> Result<Decimal, MoneymarketError> {
+    ) -> Result<Decimal, MoneyMarketError> {
         let borrow_limit: moneymarket::overseer::BorrowLimitResponse =
             deps.querier.query_wasm_smart(
                 overseer_addr.clone(),
@@ -259,7 +259,7 @@ impl MoneymarketCommand for Cavern {
         _user: Addr,                // The max LTV doesn't depend on the user in Cavern
         _borrowed_asset: AssetInfo, // The max LTV doesn't depend on the borrowed asset in Cavern
         collateral_asset: AssetInfo,
-    ) -> Result<Decimal, MoneymarketError> {
+    ) -> Result<Decimal, MoneyMarketError> {
         let overseer_msg = moneymarket::overseer::QueryMsg::Whitelist {
             collateral_token: Some(collateral_asset.to_string()),
             start_after: None,
@@ -356,7 +356,7 @@ impl Cavern {
         &self,
         querier: &QuerierWrapper,
         market_contract: Addr,
-    ) -> Result<Addr, MoneymarketError> {
+    ) -> Result<Addr, MoneyMarketError> {
         let config: moneymarket::market::ConfigResponse =
             querier.query_wasm_smart(market_contract, &moneymarket::market::QueryMsg::Config {})?;
 
