@@ -22,10 +22,16 @@ pub fn query_handler(
     adapter: &MoneymarketAdapter,
     mut msg: MoneymarketQueryMsg,
 ) -> MoneymarketResult<Binary> {
-    if let MoneymarketQueryMsg::MoneymarketAnsQuery { query, money_market } = msg {
+    if let MoneymarketQueryMsg::MoneymarketAnsQuery {
+        query,
+        money_market,
+    } = msg
+    {
         let ans = adapter.name_service(deps);
-        let whole_moneymarket_query =
-            WholeMoneymarketQuery(platform_resolver::resolve_moneymarket(&money_market)?, query);
+        let whole_moneymarket_query = WholeMoneymarketQuery(
+            platform_resolver::resolve_moneymarket(&money_market)?,
+            query,
+        );
         msg = MoneymarketQueryMsg::MoneymarketRawQuery {
             query: ans.query(&whole_moneymarket_query)?,
             money_market,
@@ -78,7 +84,10 @@ pub fn query_handler(
             }
         }
         MoneymarketQueryMsg::Fees {} => fees(deps),
-        MoneymarketQueryMsg::MoneymarketRawQuery { query, money_market } => {
+        MoneymarketQueryMsg::MoneymarketRawQuery {
+            query,
+            money_market,
+        } => {
             let (local_moneymarket_name, is_over_ibc) = is_over_ibc(env.clone(), &money_market)?;
 
             // if money_market is on an app-chain, execute the action on the app-chain
