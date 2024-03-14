@@ -1,6 +1,6 @@
 use crate::MONEYMARKET_ADAPTER_ID;
 use abstract_core::objects::{module::ModuleId, AnsAsset, AssetEntry};
-use abstract_moneymarket_standard::{
+use abstract_money_market_standard::{
     ans_action::MoneymarketAnsAction,
     msg::{MoneymarketExecuteMsg, MoneymarketName, MoneymarketQueryMsg},
     raw_action::{MoneymarketRawAction, MoneymarketRawRequest},
@@ -30,7 +30,7 @@ pub trait MoneymarketInterface:
         }
     }
     /// Construct a new money_market interface with ANS support.
-    fn ans_moneymarket<'a>(
+    fn ans_money_market<'a>(
         &'a self,
         deps: Deps<'a>,
         name: MoneymarketName,
@@ -74,12 +74,12 @@ pub mod raw {
         }
 
         /// returns MONEYMARKET name
-        fn moneymarket_name(&self) -> MoneymarketName {
+        fn money_market_name(&self) -> MoneymarketName {
             self.name.clone()
         }
 
         /// returns the MONEYMARKET module id
-        fn moneymarket_module_id(&self) -> ModuleId {
+        fn money_market_module_id(&self) -> ModuleId {
             self.module_id
         }
 
@@ -88,9 +88,9 @@ pub mod raw {
             let adapters = self.base.adapters(self.deps);
 
             adapters.request(
-                self.moneymarket_module_id(),
+                self.money_market_module_id(),
                 MoneymarketExecuteMsg::RawAction {
-                    money_market: self.moneymarket_name(),
+                    money_market: self.money_market_name(),
                     action,
                 },
             )
@@ -233,12 +233,12 @@ pub mod ans {
         }
 
         /// returns MONEYMARKET name
-        fn moneymarket_name(&self) -> MoneymarketName {
+        fn money_market_name(&self) -> MoneymarketName {
             self.name.clone()
         }
 
         /// returns the MONEYMARKET module id
-        fn moneymarket_module_id(&self) -> ModuleId {
+        fn money_market_module_id(&self) -> ModuleId {
             self.module_id
         }
 
@@ -247,9 +247,9 @@ pub mod ans {
             let adapters = self.base.adapters(self.deps);
 
             adapters.request(
-                self.moneymarket_module_id(),
+                self.money_market_module_id(),
                 MoneymarketExecuteMsg::AnsAction {
-                    money_market: self.moneymarket_name(),
+                    money_market: self.money_market_name(),
                     action,
                 },
             )
@@ -353,14 +353,14 @@ mod test {
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let money_market = stub
-            .ans_moneymarket(deps.as_ref(), "mars".into())
+            .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-        let moneymarket_name = "mars".to_string();
+        let money_market_name = "mars".to_string();
         let asset = AnsAsset::new("juno", 1000u128);
 
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
-            money_market: moneymarket_name,
+            money_market: money_market_name,
             action: MoneymarketAnsAction::Deposit {
                 lending_asset: asset.clone(),
             },
@@ -390,14 +390,14 @@ mod test {
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let money_market = stub
-            .ans_moneymarket(deps.as_ref(), "mars".into())
+            .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-        let moneymarket_name = "mars".to_string();
+        let money_market_name = "mars".to_string();
         let asset = AnsAsset::new("juno", 1000u128);
 
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
-            money_market: moneymarket_name,
+            money_market: money_market_name,
             action: MoneymarketAnsAction::Withdraw {
                 lending_asset: asset.clone(),
             },
@@ -427,15 +427,15 @@ mod test {
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let money_market = stub
-            .ans_moneymarket(deps.as_ref(), "mars".into())
+            .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-        let moneymarket_name = "mars".to_string();
+        let money_market_name = "mars".to_string();
         let borrowed_asset = AssetEntry::new("usdc");
         let collateral_asset = AnsAsset::new("juno", 1000u128);
 
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
-            money_market: moneymarket_name,
+            money_market: money_market_name,
             action: MoneymarketAnsAction::ProvideCollateral {
                 borrowed_asset: borrowed_asset.clone(),
                 collateral_asset: collateral_asset.clone(),
@@ -466,15 +466,15 @@ mod test {
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let money_market = stub
-            .ans_moneymarket(deps.as_ref(), "mars".into())
+            .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-        let moneymarket_name = "mars".to_string();
+        let money_market_name = "mars".to_string();
         let borrowed_asset = AssetEntry::new("usdc");
         let collateral_asset = AnsAsset::new("juno", 1000u128);
 
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
-            money_market: moneymarket_name,
+            money_market: money_market_name,
             action: MoneymarketAnsAction::WithdrawCollateral {
                 borrowed_asset: borrowed_asset.clone(),
                 collateral_asset: collateral_asset.clone(),
@@ -505,15 +505,15 @@ mod test {
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let money_market = stub
-            .ans_moneymarket(deps.as_ref(), "mars".into())
+            .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-        let moneymarket_name = "mars".to_string();
+        let money_market_name = "mars".to_string();
         let collateral_asset = AssetEntry::new("juno");
         let borrowed_asset = AnsAsset::new("usdc", 1000u128);
 
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
-            money_market: moneymarket_name,
+            money_market: money_market_name,
             action: MoneymarketAnsAction::Borrow {
                 borrowed_asset: borrowed_asset.clone(),
                 collateral_asset: collateral_asset.clone(),
@@ -544,15 +544,15 @@ mod test {
         deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let money_market = stub
-            .ans_moneymarket(deps.as_ref(), "mars".into())
+            .ans_money_market(deps.as_ref(), "mars".into())
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-        let moneymarket_name = "mars".to_string();
+        let money_market_name = "mars".to_string();
         let collateral_asset = AssetEntry::new("juno");
         let borrowed_asset = AnsAsset::new("usdc", 1000u128);
 
         let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::AnsAction {
-            money_market: moneymarket_name,
+            money_market: money_market_name,
             action: MoneymarketAnsAction::Repay {
                 borrowed_asset: borrowed_asset.clone(),
                 collateral_asset: collateral_asset.clone(),
@@ -591,11 +591,11 @@ mod test {
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-            let moneymarket_name = "mars".to_string();
+            let money_market_name = "mars".to_string();
             let asset = Asset::native("juno", 1000u128);
 
             let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::RawAction {
-                money_market: moneymarket_name,
+                money_market: money_market_name,
                 action: MoneymarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneymarketRawRequest::Deposit {
@@ -631,11 +631,11 @@ mod test {
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-            let moneymarket_name = "mars".to_string();
+            let money_market_name = "mars".to_string();
             let asset = Asset::native("juno", 1000u128);
 
             let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::RawAction {
-                money_market: moneymarket_name,
+                money_market: money_market_name,
                 action: MoneymarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneymarketRawRequest::Withdraw {
@@ -671,12 +671,12 @@ mod test {
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-            let moneymarket_name = "mars".to_string();
+            let money_market_name = "mars".to_string();
             let borrowed_asset = AssetInfo::native("usdc");
             let collateral_asset = Asset::native("juno", 1000u128);
 
             let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::RawAction {
-                money_market: moneymarket_name,
+                money_market: money_market_name,
                 action: MoneymarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneymarketRawRequest::ProvideCollateral {
@@ -717,12 +717,12 @@ mod test {
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-            let moneymarket_name = "mars".to_string();
+            let money_market_name = "mars".to_string();
             let borrowed_asset = AssetInfo::native("usdc");
             let collateral_asset = Asset::native("juno", 1000u128);
 
             let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::RawAction {
-                money_market: moneymarket_name,
+                money_market: money_market_name,
                 action: MoneymarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneymarketRawRequest::WithdrawCollateral {
@@ -763,12 +763,12 @@ mod test {
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-            let moneymarket_name = "mars".to_string();
+            let money_market_name = "mars".to_string();
             let collateral_asset = AssetInfo::native("juno");
             let borrowed_asset = Asset::native("usdc", 1000u128);
 
             let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::RawAction {
-                money_market: moneymarket_name,
+                money_market: money_market_name,
                 action: MoneymarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneymarketRawRequest::Borrow {
@@ -809,12 +809,12 @@ mod test {
                 .money_market(deps.as_ref(), "mars".into())
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
-            let moneymarket_name = "mars".to_string();
+            let money_market_name = "mars".to_string();
             let collateral_asset = AssetInfo::native("juno");
             let borrowed_asset = Asset::native("usdc", 1000u128);
 
             let expected = expected_request_with_test_proxy(MoneymarketExecuteMsg::RawAction {
-                money_market: moneymarket_name,
+                money_market: money_market_name,
                 action: MoneymarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneymarketRawRequest::Repay {

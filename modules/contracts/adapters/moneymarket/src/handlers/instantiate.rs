@@ -1,5 +1,5 @@
 use abstract_core::objects::{account::AccountTrace, AccountId};
-use abstract_moneymarket_standard::msg::{MoneymarketFees, MoneymarketInstantiateMsg};
+use abstract_money_market_standard::msg::{MoneymarketFees, MoneymarketInstantiateMsg};
 use abstract_sdk::AccountVerification;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
@@ -18,7 +18,7 @@ pub fn instantiate_handler(
     let recipient = adapter
         .account_registry(deps.as_ref())?
         .proxy_address(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
-    let moneymarket_fees = MoneymarketFees::new(msg.swap_fee, recipient)?;
-    MONEYMARKET_FEES.save(deps.storage, &moneymarket_fees)?;
+    let money_market_fees = MoneymarketFees::new(msg.swap_fee, recipient)?;
+    MONEYMARKET_FEES.save(deps.storage, &money_market_fees)?;
     Ok(Response::default())
 }

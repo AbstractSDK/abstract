@@ -1,4 +1,4 @@
-use abstract_moneymarket_standard::{
+use abstract_money_market_standard::{
     ans_action::WholeMoneymarketAction,
     msg::{
         GenerateMessagesResponse, MoneymarketExecuteMsg, MoneymarketFeesResponse,
@@ -28,12 +28,12 @@ pub fn query_handler(
     } = msg
     {
         let ans = adapter.name_service(deps);
-        let whole_moneymarket_query = WholeMoneymarketQuery(
-            platform_resolver::resolve_moneymarket(&money_market)?,
+        let whole_money_market_query = WholeMoneymarketQuery(
+            platform_resolver::resolve_money_market(&money_market)?,
             query,
         );
         msg = MoneymarketQueryMsg::MoneymarketRawQuery {
-            query: ans.query(&whole_moneymarket_query)?,
+            query: ans.query(&whole_money_market_query)?,
             money_market,
         };
     }
@@ -49,13 +49,13 @@ pub fn query_handler(
             } = message
             {
                 let ans = adapter.name_service(deps);
-                let whole_moneymarket_action = WholeMoneymarketAction(
-                    platform_resolver::resolve_moneymarket(&money_market)?,
+                let whole_money_market_action = WholeMoneymarketAction(
+                    platform_resolver::resolve_money_market(&money_market)?,
                     action,
                 );
                 message = MoneymarketExecuteMsg::RawAction {
                     money_market,
-                    action: ans.query(&whole_moneymarket_action)?,
+                    action: ans.query(&whole_money_market_action)?,
                 }
             }
             match message {
@@ -63,15 +63,15 @@ pub fn query_handler(
                     money_market,
                     action,
                 } => {
-                    let (local_moneymarket_name, is_over_ibc) = is_over_ibc(env, &money_market)?;
+                    let (local_money_market_name, is_over_ibc) = is_over_ibc(env, &money_market)?;
                     // if exchange is on an app-chain, execute the action on the app-chain
                     if is_over_ibc {
                         return Err(MoneymarketError::IbcMsgQuery);
                     }
-                    let exchange = platform_resolver::resolve_moneymarket(&local_moneymarket_name)?;
+                    let exchange = platform_resolver::resolve_money_market(&local_money_market_name)?;
                     let addr_as_sender = deps.api.addr_validate(&addr_as_sender)?;
                     let (messages, _) =
-                        crate::adapter::MoneymarketAdapter::resolve_moneymarket_action(
+                        crate::adapter::MoneymarketAdapter::resolve_money_market_action(
                             adapter,
                             deps,
                             addr_as_sender,
@@ -88,14 +88,14 @@ pub fn query_handler(
             query,
             money_market,
         } => {
-            let (local_moneymarket_name, is_over_ibc) = is_over_ibc(env.clone(), &money_market)?;
+            let (local_money_market_name, is_over_ibc) = is_over_ibc(env.clone(), &money_market)?;
 
             // if money_market is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
                 unimplemented!()
             } else {
                 // the action can be executed on the local chain
-                handle_local_query(deps, env, local_moneymarket_name, query)
+                handle_local_query(deps, env, local_money_market_name, query)
             }
         }
         _ => Err(MoneymarketError::IbcMsgQuery {}),
@@ -103,10 +103,10 @@ pub fn query_handler(
 }
 
 pub fn fees(deps: Deps) -> MoneymarketResult<Binary> {
-    let moneymarket_fees = MONEYMARKET_FEES.load(deps.storage)?;
+    let money_market_fees = MONEYMARKET_FEES.load(deps.storage)?;
     let resp = MoneymarketFeesResponse {
-        moneymarket_fee: moneymarket_fees.swap_fee(),
-        recipient: moneymarket_fees.recipient,
+        money_market_fee: money_market_fees.swap_fee(),
+        recipient: money_market_fees.recipient,
     };
     to_json_binary(&resp).map_err(Into::into)
 }
@@ -118,7 +118,7 @@ fn handle_local_query(
     money_market: String,
     query: MoneymarketRawQuery,
 ) -> MoneymarketResult<Binary> {
-    let money_market = platform_resolver::resolve_moneymarket(&money_market)?;
+    let money_market = platform_resolver::resolve_money_market(&money_market)?;
 
     Ok(match query {
         MoneymarketRawQuery::UserDeposit {

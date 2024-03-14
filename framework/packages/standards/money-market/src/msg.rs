@@ -41,7 +41,7 @@ pub struct GenerateMessagesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct MoneymarketFeesResponse {
     /// Fee for using swap action
-    pub moneymarket_fee: Fee,
+    pub money_market_fee: Fee,
     /// Address where all fees will go
     pub recipient: Addr,
 }
@@ -61,7 +61,7 @@ pub enum MoneymarketExecuteMsg {
     /// Update the fee
     UpdateFee {
         /// New fee to set
-        moneymarket_fee: Option<Decimal>,
+        money_market_fee: Option<Decimal>,
         /// New recipient account for fees
         recipient_account: Option<u32>,
     },

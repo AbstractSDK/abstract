@@ -1,5 +1,5 @@
 use crate::{AVAILABLE_CHAINS, KUJIRA};
-use abstract_moneymarket_standard::Identify;
+use abstract_money_market_standard::Identify;
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -16,7 +16,7 @@ impl Identify for Kujira {
 
 #[cfg(feature = "full_integration")]
 use ::{
-    abstract_moneymarket_standard::{MoneymarketCommand, MoneymarketError},
+    abstract_money_market_standard::{MoneymarketCommand, MoneymarketError},
     abstract_sdk::{
         core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
         feature_objects::AnsHost,

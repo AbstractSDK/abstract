@@ -1,6 +1,6 @@
 use std::{env::current_dir, fs::create_dir_all};
 
-use abstract_moneymarket_adapter::contract::MoneymarketAdapter;
+use abstract_money_market_adapter::contract::MoneymarketAdapter;
 use cosmwasm_schema::remove_schemas;
 
 fn main() {

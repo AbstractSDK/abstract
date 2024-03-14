@@ -3,7 +3,7 @@ use abstract_core::objects::{
     namespace::{Namespace, ABSTRACT_NAMESPACE},
     AccountId,
 };
-use abstract_moneymarket_standard::{
+use abstract_money_market_standard::{
     ans_action::WholeMoneymarketAction, raw_action::MoneymarketRawAction, MoneymarketError,
 };
 use abstract_sdk::{
@@ -30,23 +30,23 @@ pub fn execute_handler(
 ) -> MoneymarketResult {
     match msg {
         MoneymarketExecuteMsg::AnsAction {
-            money_market: moneymarket_name,
+            money_market: money_market_name,
             action,
         } => {
-            let (local_moneymarket_name, is_over_ibc) =
-                is_over_ibc(env.clone(), &moneymarket_name)?;
+            let (local_money_market_name, is_over_ibc) =
+                is_over_ibc(env.clone(), &money_market_name)?;
             // We resolve the Action to a RawAction to get the actual addresses, ids and denoms
-            let whole_moneymarket_action = WholeMoneymarketAction(
-                platform_resolver::resolve_moneymarket(&local_moneymarket_name)?,
+            let whole_money_market_action = WholeMoneymarketAction(
+                platform_resolver::resolve_money_market(&local_money_market_name)?,
                 action,
             );
             let ans = adapter.name_service(deps.as_ref());
-            let raw_action = ans.query(&whole_moneymarket_action)?;
+            let raw_action = ans.query(&whole_money_market_action)?;
 
             // if money_market is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
                 unimplemented!()
-            //  handle_ibc_request(&deps, info, &adapter, local_moneymarket_name, &raw_action)
+            //  handle_ibc_request(&deps, info, &adapter, local_money_market_name, &raw_action)
             } else {
                 // the action can be executed on the local chain
                 handle_local_request(
@@ -54,29 +54,29 @@ pub fn execute_handler(
                     env,
                     info,
                     &adapter,
-                    local_moneymarket_name,
+                    local_money_market_name,
                     raw_action,
                 )
             }
         }
         MoneymarketExecuteMsg::RawAction {
-            money_market: moneymarket_name,
+            money_market: money_market_name,
             action,
         } => {
-            let (local_moneymarket_name, is_over_ibc) =
-                is_over_ibc(env.clone(), &moneymarket_name)?;
+            let (local_money_market_name, is_over_ibc) =
+                is_over_ibc(env.clone(), &money_market_name)?;
 
             // if money_market is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
                 unimplemented!()
-                // handle_ibc_request(&deps, info, &adapter, local_moneymarket_name, &action)
+                // handle_ibc_request(&deps, info, &adapter, local_money_market_name, &action)
             } else {
                 // the action can be executed on the local chain
-                handle_local_request(deps, env, info, &adapter, local_moneymarket_name, action)
+                handle_local_request(deps, env, info, &adapter, local_money_market_name, action)
             }
         }
         MoneymarketExecuteMsg::UpdateFee {
-            moneymarket_fee,
+            money_market_fee,
             recipient_account: recipient_account_id,
         } => {
             // Only namespace owner (abstract) can change recipient address
@@ -94,7 +94,7 @@ pub fn execute_handler(
             let mut fee = MONEYMARKET_FEES.load(deps.storage)?;
 
             // Update swap fee
-            if let Some(swap_fee) = moneymarket_fee {
+            if let Some(swap_fee) = money_market_fee {
                 fee.set_swap_fee_share(swap_fee)?;
             }
 
@@ -121,9 +121,9 @@ fn handle_local_request(
     money_market: String,
     action: MoneymarketRawAction,
 ) -> MoneymarketResult {
-    let money_market = platform_resolver::resolve_moneymarket(&money_market)?;
+    let money_market = platform_resolver::resolve_money_market(&money_market)?;
     let target_account = adapter.account_base(deps.as_ref())?;
-    let (msgs, _) = crate::adapter::MoneymarketAdapter::resolve_moneymarket_action(
+    let (msgs, _) = crate::adapter::MoneymarketAdapter::resolve_money_market_action(
         adapter,
         deps.as_ref(),
         target_account.proxy,

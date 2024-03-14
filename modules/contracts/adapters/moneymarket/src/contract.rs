@@ -1,5 +1,5 @@
 use abstract_adapter::{export_endpoints, AdapterContract};
-use abstract_moneymarket_standard::{
+use abstract_money_market_standard::{
     msg::{MoneymarketExecuteMsg, MoneymarketInstantiateMsg, MoneymarketQueryMsg},
     MoneymarketError,
 };

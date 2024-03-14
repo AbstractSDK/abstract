@@ -1,13 +1,13 @@
 use abstract_adapter_utils::identity::{
     decompose_platform_name, is_available_on, is_current_chain,
 };
-use abstract_moneymarket_standard::{Identify, MoneymarketCommand, MoneymarketError};
+use abstract_money_market_standard::{Identify, MoneymarketCommand, MoneymarketError};
 use cosmwasm_std::Env;
 
 /// Any exchange should be identified by the adapter
 /// This allows erroring the execution before sending any IBC message to another chain
 /// This provides superior UX in case of an IBC execution
-pub(crate) fn identify_moneymarket(value: &str) -> Result<Box<dyn Identify>, MoneymarketError> {
+pub(crate) fn identify_money_market(value: &str) -> Result<Box<dyn Identify>, MoneymarketError> {
     match value {
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::dex::Kujira>::default())
@@ -19,7 +19,7 @@ pub(crate) fn identify_moneymarket(value: &str) -> Result<Box<dyn Identify>, Mon
     }
 }
 
-pub(crate) fn resolve_moneymarket(
+pub(crate) fn resolve_money_market(
     value: &str,
 ) -> Result<Box<dyn MoneymarketCommand>, MoneymarketError> {
     match value {
@@ -41,7 +41,7 @@ pub fn is_over_ibc(env: Env, platform_name: &str) -> Result<(String, bool), Mone
     if chain_name.is_some() && !is_current_chain(env.clone(), &chain_name.clone().unwrap()) {
         Ok((local_platform_name, true))
     } else {
-        let platform_id = identify_moneymarket(&local_platform_name)?;
+        let platform_id = identify_money_market(&local_platform_name)?;
         // We verify the adapter is available on the current chain
         if !is_available_on(platform_id, env, chain_name.as_deref()) {
             return Err(MoneymarketError::UnknownMoneymarket(

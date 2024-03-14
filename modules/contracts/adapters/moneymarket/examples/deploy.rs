@@ -1,5 +1,5 @@
 use abstract_interface::{AdapterDeployer, DeployStrategy};
-use abstract_moneymarket_adapter::{
+use abstract_money_market_adapter::{
     interface::MoneymarketAdapter, msg::MoneymarketInstantiateMsg, MONEYMARKET_ADAPTER_ID,
 };
 use cosmwasm_std::Decimal;

@@ -5,9 +5,9 @@ pub(crate) mod handlers;
 mod platform_resolver;
 pub mod state;
 pub mod msg {
-    pub use abstract_moneymarket_standard::msg::*;
+    pub use abstract_money_market_standard::msg::*;
 }
-pub use abstract_moneymarket_standard::MONEYMARKET_ADAPTER_ID;
+pub use abstract_money_market_standard::MONEYMARKET_ADAPTER_ID;
 
 // Export interface for use in SDK modules
 pub use crate::api::MoneymarketInterface;
@@ -39,7 +39,7 @@ pub mod interface {
         fn wasm(&self) -> WasmPath {
             artifacts_dir_from_workspace!()
                 .find_wasm_path_with_build_postfix(
-                    "abstract_moneymarket_adapter",
+                    "abstract_money_market_adapter",
                     BuildPostfix::<Chain>::ChainName(self.get_chain()),
                 )
                 .unwrap()
