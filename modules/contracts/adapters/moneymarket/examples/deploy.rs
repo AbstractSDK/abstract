@@ -19,7 +19,7 @@ fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
     dex.deploy(
         version,
         MoneymarketInstantiateMsg {
-            swap_fee: Decimal::percent(1),
+            fee: Decimal::percent(1),
             recipient_account: 0,
         },
         DeployStrategy::Try,

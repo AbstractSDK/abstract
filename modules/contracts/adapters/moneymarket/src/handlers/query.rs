@@ -86,7 +86,7 @@ pub fn query_handler(
                 unimplemented!()
             } else {
                 // the action can be executed on the local chain
-                handle_local_query(deps, env, local_moneymarket_name, query)
+                handle_local_query(deps, env, local_moneymarket_name, adapter, query)
             }
         }
         _ => Err(MoneymarketError::IbcMsgQuery {}),
@@ -107,10 +107,12 @@ fn handle_local_query(
     deps: Deps,
     _env: Env,
     moneymarket: String,
+    adapter: &MoneymarketAdapter,
     query: MoneymarketRawQuery,
 ) -> MoneymarketResult<Binary> {
-    let moneymarket = platform_resolver::resolve_moneymarket(&moneymarket)?;
-
+    let mut moneymarket = platform_resolver::resolve_moneymarket(&moneymarket)?;
+    let ans_host = adapter.ans_host(deps)?;
+    moneymarket.fetch_data(&deps.querier, &ans_host)?;
     Ok(match query {
         MoneymarketRawQuery::UserDeposit {
             user,

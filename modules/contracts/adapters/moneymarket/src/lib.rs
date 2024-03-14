@@ -7,6 +7,8 @@ pub mod state;
 pub mod msg {
     pub use abstract_moneymarket_standard::msg::*;
 }
+#[cfg(feature = "testing")]
+pub mod tester;
 pub use abstract_moneymarket_standard::MONEYMARKET_ADAPTER_ID;
 
 // Export interface for use in SDK modules
@@ -16,7 +18,6 @@ pub use crate::api::MoneymarketInterface;
 pub mod interface {
     use crate::{contract::MONEYMARKET_ADAPTER, msg::*};
     use abstract_interface::{AdapterDeployer, RegisteredModule};
-    use abstract_sdk::base::Handler;
     use abstract_sdk::features::ModuleIdentification;
     use cosmwasm_std::Empty;
     use cw_orch::{build::BuildPostfix, interface};
@@ -51,7 +52,7 @@ pub mod interface {
     }
 
     impl<Chain: CwEnv> RegisteredModule for MoneymarketAdapter<Chain> {
-        type InitMsg = <crate::contract::MoneymarketAdapter as Handler>::CustomInitMsg;
+        type InitMsg = Empty;
 
         fn module_id<'a>() -> &'a str {
             MONEYMARKET_ADAPTER.module_id()

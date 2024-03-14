@@ -3,7 +3,7 @@ use abstract_sdk::{
     core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
     feature_objects::AnsHost,
 };
-use cosmwasm_std::QuerierWrapper;
+use cosmwasm_std::{Addr, QuerierWrapper};
 
 use crate::{AVAILABLE_CHAINS, MARS};
 
@@ -25,7 +25,7 @@ impl Identify for Mars {
 #[cfg(feature = "full_integration")]
 use {
     abstract_moneymarket_standard::{MoneymarketCommand, MoneymarketError},
-    cosmwasm_std::{wasm_execute, Addr, CosmosMsg, Decimal, Deps, Uint128},
+    cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw_asset::{Asset, AssetInfo},
 };
 
@@ -65,9 +65,11 @@ impl MoneymarketCommand for Mars {
         contract_addr: Addr,
         lending_asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+        let denom = unwrap_native(lending_asset.info)?;
+
         let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Withdraw {
             recipient: None,
-            denom: lending_asset.to_string(),
+            denom,
             amount: Some(lending_asset.amount),
         };
 
@@ -97,7 +99,7 @@ impl MoneymarketCommand for Mars {
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Withdraw {
             recipient: None,
-            denom: asset.to_string(),
+            denom: unwrap_native(asset.info)?,
             amount: Some(asset.amount),
         };
 
@@ -114,7 +116,7 @@ impl MoneymarketCommand for Mars {
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let vault_msg = mars_red_bank_types::red_bank::ExecuteMsg::Borrow {
             recipient: None,
-            denom: asset.to_string(),
+            denom: unwrap_native(asset.info)?,
             amount: asset.amount,
         };
 
@@ -147,14 +149,14 @@ impl MoneymarketCommand for Mars {
             deps.querier.query_wasm_smart(
                 oracle_contract,
                 &mars_red_bank_types::oracle::QueryMsg::Price {
-                    denom: base.to_string(),
+                    denom: unwrap_native(base)?,
                 },
             )?;
         let quote_price: mars_red_bank_types::oracle::PriceResponse =
             deps.querier.query_wasm_smart(
                 oracle_contract,
                 &mars_red_bank_types::oracle::QueryMsg::Price {
-                    denom: quote.to_string(),
+                    denom: unwrap_native(quote)?,
                 },
             )?;
 
@@ -170,13 +172,13 @@ impl MoneymarketCommand for Mars {
     ) -> Result<Uint128, MoneymarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserCollateral {
             user: user.to_string(),
-            denom: asset.to_string(),
+            denom: unwrap_native(asset)?,
         };
 
         let query_response: mars_red_bank_types::red_bank::UserCollateralResponse =
             deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
 
-        Ok(query_response.amount_scaled)
+        Ok(query_response.amount)
     }
 
     fn user_collateral(
@@ -189,13 +191,13 @@ impl MoneymarketCommand for Mars {
     ) -> Result<Uint128, MoneymarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserCollateral {
             user: user.to_string(),
-            denom: collateral_asset.to_string(),
+            denom: unwrap_native(collateral_asset)?,
         };
 
         let query_response: mars_red_bank_types::red_bank::UserCollateralResponse =
             deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
 
-        Ok(query_response.amount_scaled)
+        Ok(query_response.amount)
     }
 
     fn user_borrow(
@@ -208,13 +210,13 @@ impl MoneymarketCommand for Mars {
     ) -> Result<Uint128, MoneymarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserDebt {
             user: user.to_string(),
-            denom: borrowed_asset.to_string(),
+            denom: unwrap_native(borrowed_asset)?,
         };
 
         let query_response: mars_red_bank_types::red_bank::UserDebtResponse =
             deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
 
-        Ok(query_response.amount_scaled)
+        Ok(query_response.amount)
     }
 
     fn current_ltv(
@@ -320,5 +322,13 @@ impl Mars {
         ans_host
             .query_contract(querier, &contract_entry)
             .map_err(Into::into)
+    }
+}
+
+fn unwrap_native(asset: AssetInfo) -> Result<String, MoneymarketError> {
+    match asset {
+        cw_asset::AssetInfoBase::Native(denom) => Ok(denom),
+        cw_asset::AssetInfoBase::Cw20(_) => Err(MoneymarketError::ExpectedNative {}),
+        _ => todo!(),
     }
 }

@@ -57,4 +57,7 @@ pub enum MoneymarketError {
 
     #[error("Only account of abstract namespace can update configuration")]
     Unauthorized {},
+
+    #[error("Expected native asset")]
+    ExpectedNative {},
 }

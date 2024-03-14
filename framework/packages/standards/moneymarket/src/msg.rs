@@ -50,7 +50,7 @@ pub struct MoneymarketFeesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct MoneymarketInstantiateMsg {
     /// Fee charged on each swap.
-    pub swap_fee: Decimal,
+    pub fee: Decimal,
     /// Recipient account for fees.
     pub recipient_account: u32,
 }

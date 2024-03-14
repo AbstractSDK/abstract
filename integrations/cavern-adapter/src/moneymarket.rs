@@ -3,11 +3,10 @@ use abstract_sdk::{
     core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
     feature_objects::AnsHost,
 };
-use cosmwasm_std::{to_json_binary, QuerierWrapper, StdError};
+use cosmwasm_std::{to_json_binary, Addr, QuerierWrapper, StdError};
 
 use crate::{AVAILABLE_CHAINS, CAVERN};
 
-// Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
 pub struct Cavern {
     pub oracle_contract: Option<Addr>,
@@ -25,7 +24,7 @@ impl Identify for Cavern {
 #[cfg(feature = "full_integration")]
 use {
     abstract_moneymarket_standard::{MoneymarketCommand, MoneymarketError},
-    cosmwasm_std::{wasm_execute, Addr, CosmosMsg, Decimal, Deps, Uint128},
+    cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw_asset::{Asset, AssetInfo},
 };
 
