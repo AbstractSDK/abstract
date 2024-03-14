@@ -1,5 +1,5 @@
 [package]
-name = "abstract-moneymarket-standard"
+name = "abstract-money-market-standard"
 description = "The money market adapter is an Abstract adapter for interacting with usual Money Market commands. It provides a common interface for all Money Markets"
 
 version = { workspace = true }
