@@ -248,7 +248,8 @@ impl MoneymarketCommand for Kujira {
         &self,
         deps: Deps,
         market_addr: Addr,
-        _user: Addr, // This info is not user specific in this money market
+        _user: Addr,                // This info is not user specific in this money market
+        _borrowed_asset: AssetInfo, // market_addr is already borrowed asset specific
         _collateral_asset: AssetInfo, // market_addr is already collateral asset specific
     ) -> Result<Decimal, MoneymarketError> {
         let market_msg = market::QueryMsg::Config {};
@@ -292,20 +293,20 @@ impl MoneymarketCommand for Kujira {
         &self,
         querier: &QuerierWrapper,
         ans_host: &AnsHost,
-        lending_asset: AssetEntry,
+        borrowed_asset: AssetEntry,
         collateral_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError> {
-        self.market_address(querier, ans_host, lending_asset, collateral_asset)
+        self.market_address(querier, ans_host, borrowed_asset, collateral_asset)
     }
 
     fn current_ltv_address(
         &self,
         querier: &QuerierWrapper,
         ans_host: &AnsHost,
-        lending_asset: AssetEntry,
+        borrowed_asset: AssetEntry,
         collateral_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError> {
-        self.market_address(querier, ans_host, lending_asset, collateral_asset)
+        self.market_address(querier, ans_host, borrowed_asset, collateral_asset)
     }
 }
 

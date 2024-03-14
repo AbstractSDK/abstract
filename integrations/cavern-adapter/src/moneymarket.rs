@@ -257,7 +257,8 @@ impl MoneymarketCommand for Cavern {
         &self,
         deps: Deps,
         contract_addr: Addr,
-        _user: Addr, // The max LTV doesn't depend on the user in Cavern
+        _user: Addr,                // The max LTV doesn't depend on the user in Cavern
+        _borrowed_asset: AssetInfo, // The max LTV doesn't depend on the borrowed asset in Cavern
         collateral_asset: AssetInfo,
     ) -> Result<Decimal, MoneymarketError> {
         let overseer_msg = moneymarket::overseer::QueryMsg::Whitelist {

@@ -143,7 +143,7 @@ pub trait MoneymarketCommand: Identify {
         &self,
         querier: &QuerierWrapper,
         ans_host: &AnsHost,
-        lending_asset: AssetEntry,
+        borrowed_asset: AssetEntry,
         collateral_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError>;
 
@@ -152,6 +152,7 @@ pub trait MoneymarketCommand: Identify {
         deps: Deps,
         max_ltv_addr: Addr,
         user: Addr,
+        borrowed_asset: AssetInfo,
         collateral_asset: AssetInfo,
     ) -> Result<Decimal, MoneymarketError>;
 

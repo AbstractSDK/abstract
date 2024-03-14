@@ -86,7 +86,7 @@ pub fn query_handler(
                 unimplemented!()
             } else {
                 // the action can be executed on the local chain
-                handle_local_query(deps, env, &adapter, local_moneymarket_name, query)
+                handle_local_query(deps, env, local_moneymarket_name, query)
             }
         }
         _ => Err(MoneymarketError::IbcMsgQuery {}),
@@ -106,7 +106,6 @@ pub fn fees(deps: Deps) -> MoneymarketResult<Binary> {
 fn handle_local_query(
     deps: Deps,
     _env: Env,
-    adapter: &MoneymarketAdapter,
     moneymarket: String,
     query: MoneymarketRawQuery,
 ) -> MoneymarketResult<Binary> {
@@ -148,19 +147,63 @@ fn handle_local_query(
             collateral_asset,
             borrowed_asset,
             contract_addr,
-        } => todo!(),
+        } => {
+            let user = deps.api.addr_validate(&user)?;
+            let contract_addr = deps.api.addr_validate(&contract_addr)?;
+            let collateral_asset = collateral_asset.check(deps.api, None)?;
+            let borrowed_asset = borrowed_asset.check(deps.api, None)?;
+
+            to_json_binary(&moneymarket.user_borrow(
+                deps,
+                contract_addr,
+                user,
+                borrowed_asset,
+                collateral_asset,
+            )?)?
+        }
         MoneymarketRawQuery::CurrentLTV {
             user,
             collateral_asset,
             borrowed_asset,
             contract_addr,
-        } => todo!(),
+        } => {
+            let user = deps.api.addr_validate(&user)?;
+            let contract_addr = deps.api.addr_validate(&contract_addr)?;
+            let collateral_asset = collateral_asset.check(deps.api, None)?;
+            let borrowed_asset = borrowed_asset.check(deps.api, None)?;
+
+            to_json_binary(&moneymarket.current_ltv(
+                deps,
+                contract_addr,
+                user,
+                borrowed_asset,
+                collateral_asset,
+            )?)?
+        }
         MoneymarketRawQuery::MaxLTV {
             user,
             collateral_asset,
             borrowed_asset,
             contract_addr,
-        } => todo!(),
-        MoneymarketRawQuery::Price { quote, base } => todo!(),
+        } => {
+            let user = deps.api.addr_validate(&user)?;
+            let contract_addr = deps.api.addr_validate(&contract_addr)?;
+            let collateral_asset = collateral_asset.check(deps.api, None)?;
+            let borrowed_asset = borrowed_asset.check(deps.api, None)?;
+
+            to_json_binary(&moneymarket.max_ltv(
+                deps,
+                contract_addr,
+                user,
+                borrowed_asset,
+                collateral_asset,
+            )?)?
+        }
+        MoneymarketRawQuery::Price { quote, base } => {
+            let quote = quote.check(deps.api, None)?;
+            let base = base.check(deps.api, None)?;
+
+            to_json_binary(&moneymarket.price(deps, base, quote)?)?
+        }
     })
 }

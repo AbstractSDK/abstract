@@ -1,12 +1,11 @@
 use abstract_moneymarket_standard::{
-    query::MoneymarketRawQuery, raw_action::MoneymarketRawAction, MoneymarketCommand,
-    MoneymarketError,
+    raw_action::MoneymarketRawAction, MoneymarketCommand, MoneymarketError,
 };
 use abstract_sdk::{
     features::{AbstractNameService, AbstractRegistryAccess},
     Execution,
 };
-use cosmwasm_std::{Addr, Binary, CosmosMsg, Deps};
+use cosmwasm_std::{Addr, CosmosMsg, Deps};
 use cw_asset::{AssetBase, AssetInfoBase};
 
 pub const DEPOSIT: u64 = 8142;

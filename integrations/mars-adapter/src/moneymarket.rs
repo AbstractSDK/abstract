@@ -243,6 +243,7 @@ impl MoneymarketCommand for Mars {
         deps: Deps,
         contract_addr: Addr,
         user: Addr,
+        _borrowed_asset: AssetInfo, // LTV is global on Mars and doesn't depend on borrowing asset
         _collateral_asset: AssetInfo, // LTV is global on Mars and doesn't depend on collateral asset
     ) -> Result<Decimal, MoneymarketError> {
         let market_msg = mars_red_bank_types::red_bank::QueryMsg::UserPosition {
