@@ -5,7 +5,7 @@ This document describes the status of the staking adapter's integrations with di
 | Protocol | Implementation | Execution Tests | Query Tests | Notes |
 | --- | --- | --- | --- | --- |
 | Osmosis | ✅ | ✅ | ❌ | Query failing because of missing whitelist. |
-| Astroport | ✅ | ✅ | ❌ | |
+| Astroport | ✅ | ✅ | ✅ | |
 | Wynd | ✅ | ✅ | ❌ | |
-| Bow | ✅ | ✅ | ❌ | Execution not possible because it uses custom module. |
+| Bow | ✅ | ✅ | ✅ | Creating pool not possible because it uses custom module. |
 | Astrovault | ✅ | ❌ | ❌ | |

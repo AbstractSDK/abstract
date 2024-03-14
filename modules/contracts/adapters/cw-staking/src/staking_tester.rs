@@ -9,7 +9,8 @@ use abstract_core::{
 };
 use abstract_interface::{AdapterDeployer, DeployStrategy, VCExecFns};
 use abstract_staking_standard::msg::{
-    StakeResponse, StakingAction, StakingExecuteMsg, StakingQueryMsg,
+    RewardTokensResponse, StakeResponse, StakingAction, StakingExecuteMsg, StakingInfoResponse,
+    StakingQueryMsg, StakingTarget,
 };
 use cosmwasm_std::Uint128;
 use cw_asset::AssetInfoUnchecked;
@@ -27,6 +28,9 @@ pub trait MockStaking {
 
     /// Generate rewards
     fn generate_rewards(&self, addr: &Addr, amount: u128) -> anyhow::Result<()>;
+
+    /// Staking_target
+    fn staking_target(&self) -> StakingTarget;
 
     /// Reward asset
     fn reward_asset(&self) -> AssetInfoUnchecked;
@@ -242,6 +246,67 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
             .query_proxy_balance(&proxy_addr, &self.provider.reward_asset())?
             .u128();
         assert!(reward >= reward_value);
+
+        Ok(())
+    }
+
+    pub fn test_staking_info(&self) -> anyhow::Result<()> {
+        let (ans_stake_token, asset_info_stake_token) = self.provider.stake_token();
+
+        let info_response: StakingInfoResponse =
+            self.staking_adapter
+                .query(&crate::msg::QueryMsg::Module(StakingQueryMsg::Info {
+                    provider: self.provider.name(),
+                    staking_tokens: vec![AssetEntry::new(&ans_stake_token)],
+                }))?;
+        let info = info_response.infos[0].clone();
+        assert_eq!(
+            AssetInfoUnchecked::from(info.staking_token),
+            asset_info_stake_token
+        );
+        assert_eq!(info.staking_target, self.provider.staking_target());
+
+        Ok(())
+    }
+
+    pub fn test_query_rewards(&self) -> anyhow::Result<()> {
+        let (ans_stake_token, _) = self.provider.stake_token();
+
+        let new_account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<CwStakingAdapter<Chain>>()?
+            .build()?;
+        let proxy_addr = new_account.proxy()?;
+
+        // In case it's mock incentive need to generate and stake it first
+        let stake_value = 1_000_000_000u128;
+        self.provider.mint_lp(&proxy_addr, stake_value)?;
+        self.staking_adapter.execute(
+            &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: Some(proxy_addr.to_string()),
+                request: StakingExecuteMsg {
+                    provider: self.provider.name(),
+                    action: StakingAction::Stake {
+                        assets: vec![AnsAsset::new(ans_stake_token.clone(), stake_value)],
+                        unbonding_period: None,
+                    },
+                },
+            }),
+            None,
+        )?;
+        self.provider
+            .generate_rewards(&proxy_addr, 10_000_000u128)?;
+
+        let rewards_respone: RewardTokensResponse = self.staking_adapter.query(
+            &crate::msg::QueryMsg::Module(StakingQueryMsg::RewardTokens {
+                provider: self.provider.name(),
+                staking_tokens: vec![AssetEntry::new(&ans_stake_token)],
+            }),
+        )?;
+        rewards_respone.tokens.iter().flatten().find(|&asset_info| {
+            self.provider.reward_asset() == AssetInfoUnchecked::from(asset_info)
+        });
 
         Ok(())
     }

@@ -167,6 +167,10 @@ impl MockStaking for KujiraStake {
     fn reward_asset(&self) -> AssetInfoUnchecked {
         cw_asset::AssetInfoBase::Native(REWARD_DENOM.to_owned())
     }
+
+    fn staking_target(&self) -> abstract_cw_staking::msg::StakingTarget {
+        abstract_cw_staking::msg::StakingTarget::Contract(Addr::unchecked(BOW_ADDR))
+    }
 }
 
 fn setup() -> anyhow::Result<StakingTester<CloneTesting, KujiraStake>> {
@@ -197,5 +201,13 @@ fn test_unstake() -> anyhow::Result<()> {
 fn test_claim() -> anyhow::Result<()> {
     let stake_tester = setup()?;
     stake_tester.test_claim()?;
+    Ok(())
+}
+
+#[test]
+fn test_queries() -> anyhow::Result<()> {
+    let stake_tester = setup()?;
+    stake_tester.test_staking_info()?;
+    stake_tester.test_query_rewards()?;
     Ok(())
 }
