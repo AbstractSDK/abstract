@@ -5,5 +5,5 @@ pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::LOCAL_CHAIN;
 pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::KUJIRA;
 
 pub mod dex;
-pub mod moneymarket;
+pub mod money_market;
 pub mod staking;

@@ -30,7 +30,7 @@ pub fn execute_handler(
 ) -> MoneymarketResult {
     match msg {
         MoneymarketExecuteMsg::AnsAction {
-            moneymarket: moneymarket_name,
+            money_market: moneymarket_name,
             action,
         } => {
             let (local_moneymarket_name, is_over_ibc) =
@@ -43,7 +43,7 @@ pub fn execute_handler(
             let ans = adapter.name_service(deps.as_ref());
             let raw_action = ans.query(&whole_moneymarket_action)?;
 
-            // if moneymarket is on an app-chain, execute the action on the app-chain
+            // if money_market is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
                 unimplemented!()
             //  handle_ibc_request(&deps, info, &adapter, local_moneymarket_name, &raw_action)
@@ -60,13 +60,13 @@ pub fn execute_handler(
             }
         }
         MoneymarketExecuteMsg::RawAction {
-            moneymarket: moneymarket_name,
+            money_market: moneymarket_name,
             action,
         } => {
             let (local_moneymarket_name, is_over_ibc) =
                 is_over_ibc(env.clone(), &moneymarket_name)?;
 
-            // if moneymarket is on an app-chain, execute the action on the app-chain
+            // if money_market is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
                 unimplemented!()
                 // handle_ibc_request(&deps, info, &adapter, local_moneymarket_name, &action)
@@ -118,17 +118,17 @@ fn handle_local_request(
     _env: Env,
     _info: MessageInfo,
     adapter: &MoneymarketAdapter,
-    moneymarket: String,
+    money_market: String,
     action: MoneymarketRawAction,
 ) -> MoneymarketResult {
-    let moneymarket = platform_resolver::resolve_moneymarket(&moneymarket)?;
+    let money_market = platform_resolver::resolve_moneymarket(&money_market)?;
     let target_account = adapter.account_base(deps.as_ref())?;
     let (msgs, _) = crate::adapter::MoneymarketAdapter::resolve_moneymarket_action(
         adapter,
         deps.as_ref(),
         target_account.proxy,
         action,
-        moneymarket,
+        money_market,
     )?;
     let proxy_msg = adapter
         .executor(deps.as_ref())

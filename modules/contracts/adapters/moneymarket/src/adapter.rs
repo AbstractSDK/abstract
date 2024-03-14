@@ -20,32 +20,32 @@ impl<T> MoneymarketAdapter for T where T: AbstractNameService + Execution + Abst
 pub(crate) type ReplyId = u64;
 
 pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
-    /// resolve the provided moneymarket action on a local moneymarket
+    /// resolve the provided money_market action on a local money_market
     fn resolve_moneymarket_action(
         &self,
         deps: Deps,
         sender: Addr,
         action: MoneymarketRawAction,
-        mut moneymarket: Box<dyn MoneymarketCommand>,
+        mut money_market: Box<dyn MoneymarketCommand>,
     ) -> Result<(Vec<CosmosMsg>, ReplyId), MoneymarketError> {
         Ok(match action.request {
             abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Deposit { lending_asset } => {
-                (self.resolve_deposit(deps, sender, lending_asset, action.contract_addr, moneymarket.as_mut())?, DEPOSIT)
+                (self.resolve_deposit(deps, sender, lending_asset, action.contract_addr, money_market.as_mut())?, DEPOSIT)
             }
             abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Withdraw { lending_asset } => {
-                (self.resolve_withdraw(deps, sender, lending_asset, action.contract_addr, moneymarket.as_mut())?, WITHDRAW)
+                (self.resolve_withdraw(deps, sender, lending_asset, action.contract_addr, money_market.as_mut())?, WITHDRAW)
             }
             abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::ProvideCollateral { borrowed_asset, collateral_asset } => {
-                (self.resolve_provide_collateral(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, moneymarket.as_mut())?, PROVIDE_COLLATERAL)
+                (self.resolve_provide_collateral(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, PROVIDE_COLLATERAL)
             }
             abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::WithdrawCollateral { borrowed_asset, collateral_asset } => {
-                (self.resolve_withdraw_collateral(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, moneymarket.as_mut())?, WITHDRAW_COLLATERAL)
+                (self.resolve_withdraw_collateral(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, WITHDRAW_COLLATERAL)
             }
             abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Borrow { borrowed_asset, collateral_asset } => {
-                (self.resolve_borrow(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, moneymarket.as_mut())?, BORROW)
+                (self.resolve_borrow(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, BORROW)
             }
             abstract_moneymarket_standard::raw_action::MoneymarketRawRequest::Repay { borrowed_asset, collateral_asset } => {
-                (self.resolve_repay(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, moneymarket.as_mut())?, REPAY)
+                (self.resolve_repay(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, REPAY)
             }
         })
     }
@@ -56,12 +56,12 @@ pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         _sender: Addr,
         lending_asset: AssetBase<String>,
         contract_addr: String,
-        moneymarket: &mut dyn MoneymarketCommand,
+        money_market: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let asset = lending_asset.check(deps.api, None)?;
 
-        moneymarket.deposit(deps, contract_addr, asset)
+        money_market.deposit(deps, contract_addr, asset)
     }
 
     fn resolve_withdraw(
@@ -70,12 +70,12 @@ pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         _sender: Addr,
         lending_asset: AssetBase<String>,
         contract_addr: String,
-        moneymarket: &mut dyn MoneymarketCommand,
+        money_market: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let asset = lending_asset.check(deps.api, None)?;
 
-        moneymarket.withdraw(deps, contract_addr, asset)
+        money_market.withdraw(deps, contract_addr, asset)
     }
 
     fn resolve_provide_collateral(
@@ -85,12 +85,12 @@ pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         _borrowed_asset: AssetInfoBase<String>,
         collateral_asset: AssetBase<String>,
         contract_addr: String,
-        moneymarket: &mut dyn MoneymarketCommand,
+        money_market: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let collateral_asset = collateral_asset.check(deps.api, None)?;
 
-        moneymarket.provide_collateral(deps, contract_addr, collateral_asset)
+        money_market.provide_collateral(deps, contract_addr, collateral_asset)
     }
 
     fn resolve_withdraw_collateral(
@@ -100,12 +100,12 @@ pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         _borrowed_asset: AssetInfoBase<String>,
         collateral_asset: AssetBase<String>,
         contract_addr: String,
-        moneymarket: &mut dyn MoneymarketCommand,
+        money_market: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let collateral_asset = collateral_asset.check(deps.api, None)?;
 
-        moneymarket.withdraw_collateral(deps, contract_addr, collateral_asset)
+        money_market.withdraw_collateral(deps, contract_addr, collateral_asset)
     }
 
     fn resolve_borrow(
@@ -115,12 +115,12 @@ pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         borrowed_asset: AssetBase<String>,
         _collateral_asset: AssetInfoBase<String>,
         contract_addr: String,
-        moneymarket: &mut dyn MoneymarketCommand,
+        money_market: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
-        moneymarket.borrow(deps, contract_addr, borrowed_asset)
+        money_market.borrow(deps, contract_addr, borrowed_asset)
     }
 
     fn resolve_repay(
@@ -130,11 +130,11 @@ pub trait MoneymarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         borrowed_asset: AssetBase<String>,
         _collateral_asset: AssetInfoBase<String>,
         contract_addr: String,
-        moneymarket: &mut dyn MoneymarketCommand,
+        money_market: &mut dyn MoneymarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
-        moneymarket.repay(deps, contract_addr, borrowed_asset)
+        money_market.repay(deps, contract_addr, borrowed_asset)
     }
 }

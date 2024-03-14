@@ -47,7 +47,7 @@ pub enum MoneymarketRawRequest {
     },
 }
 
-/// Action to execute on a moneymarket
+/// Action to execute on a money_market
 #[cosmwasm_schema::cw_serde]
 pub struct MoneymarketRawAction {
     /// The action to execute

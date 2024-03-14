@@ -22,13 +22,13 @@ pub fn query_handler(
     adapter: &MoneymarketAdapter,
     mut msg: MoneymarketQueryMsg,
 ) -> MoneymarketResult<Binary> {
-    if let MoneymarketQueryMsg::MoneymarketAnsQuery { query, moneymarket } = msg {
+    if let MoneymarketQueryMsg::MoneymarketAnsQuery { query, money_market } = msg {
         let ans = adapter.name_service(deps);
         let whole_moneymarket_query =
-            WholeMoneymarketQuery(platform_resolver::resolve_moneymarket(&moneymarket)?, query);
+            WholeMoneymarketQuery(platform_resolver::resolve_moneymarket(&money_market)?, query);
         msg = MoneymarketQueryMsg::MoneymarketRawQuery {
             query: ans.query(&whole_moneymarket_query)?,
-            moneymarket,
+            money_market,
         };
     }
 
@@ -38,26 +38,26 @@ pub fn query_handler(
             addr_as_sender,
         } => {
             if let MoneymarketExecuteMsg::AnsAction {
-                moneymarket,
+                money_market,
                 action,
             } = message
             {
                 let ans = adapter.name_service(deps);
                 let whole_moneymarket_action = WholeMoneymarketAction(
-                    platform_resolver::resolve_moneymarket(&moneymarket)?,
+                    platform_resolver::resolve_moneymarket(&money_market)?,
                     action,
                 );
                 message = MoneymarketExecuteMsg::RawAction {
-                    moneymarket,
+                    money_market,
                     action: ans.query(&whole_moneymarket_action)?,
                 }
             }
             match message {
                 MoneymarketExecuteMsg::RawAction {
-                    moneymarket,
+                    money_market,
                     action,
                 } => {
-                    let (local_moneymarket_name, is_over_ibc) = is_over_ibc(env, &moneymarket)?;
+                    let (local_moneymarket_name, is_over_ibc) = is_over_ibc(env, &money_market)?;
                     // if exchange is on an app-chain, execute the action on the app-chain
                     if is_over_ibc {
                         return Err(MoneymarketError::IbcMsgQuery);
@@ -78,10 +78,10 @@ pub fn query_handler(
             }
         }
         MoneymarketQueryMsg::Fees {} => fees(deps),
-        MoneymarketQueryMsg::MoneymarketRawQuery { query, moneymarket } => {
-            let (local_moneymarket_name, is_over_ibc) = is_over_ibc(env.clone(), &moneymarket)?;
+        MoneymarketQueryMsg::MoneymarketRawQuery { query, money_market } => {
+            let (local_moneymarket_name, is_over_ibc) = is_over_ibc(env.clone(), &money_market)?;
 
-            // if moneymarket is on an app-chain, execute the action on the app-chain
+            // if money_market is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
                 unimplemented!()
             } else {
@@ -106,10 +106,10 @@ pub fn fees(deps: Deps) -> MoneymarketResult<Binary> {
 fn handle_local_query(
     deps: Deps,
     _env: Env,
-    moneymarket: String,
+    money_market: String,
     query: MoneymarketRawQuery,
 ) -> MoneymarketResult<Binary> {
-    let moneymarket = platform_resolver::resolve_moneymarket(&moneymarket)?;
+    let money_market = platform_resolver::resolve_moneymarket(&money_market)?;
 
     Ok(match query {
         MoneymarketRawQuery::UserDeposit {
@@ -121,7 +121,7 @@ fn handle_local_query(
             let contract_addr = deps.api.addr_validate(&contract_addr)?;
             let asset = asset.check(deps.api, None)?;
 
-            to_json_binary(&moneymarket.user_deposit(deps, contract_addr, user, asset)?)?
+            to_json_binary(&money_market.user_deposit(deps, contract_addr, user, asset)?)?
         }
         MoneymarketRawQuery::UserCollateral {
             user,
@@ -134,7 +134,7 @@ fn handle_local_query(
             let collateral_asset = collateral_asset.check(deps.api, None)?;
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
-            to_json_binary(&moneymarket.user_collateral(
+            to_json_binary(&money_market.user_collateral(
                 deps,
                 contract_addr,
                 user,
@@ -153,7 +153,7 @@ fn handle_local_query(
             let collateral_asset = collateral_asset.check(deps.api, None)?;
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
-            to_json_binary(&moneymarket.user_borrow(
+            to_json_binary(&money_market.user_borrow(
                 deps,
                 contract_addr,
                 user,
@@ -172,7 +172,7 @@ fn handle_local_query(
             let collateral_asset = collateral_asset.check(deps.api, None)?;
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
-            to_json_binary(&moneymarket.current_ltv(
+            to_json_binary(&money_market.current_ltv(
                 deps,
                 contract_addr,
                 user,
@@ -191,7 +191,7 @@ fn handle_local_query(
             let collateral_asset = collateral_asset.check(deps.api, None)?;
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
-            to_json_binary(&moneymarket.max_ltv(
+            to_json_binary(&money_market.max_ltv(
                 deps,
                 contract_addr,
                 user,
@@ -203,7 +203,7 @@ fn handle_local_query(
             let quote = quote.check(deps.api, None)?;
             let base = base.check(deps.api, None)?;
 
-            to_json_binary(&moneymarket.price(deps, base, quote)?)?
+            to_json_binary(&money_market.price(deps, base, quote)?)?
         }
     })
 }

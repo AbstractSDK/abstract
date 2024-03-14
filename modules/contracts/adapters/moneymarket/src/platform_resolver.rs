@@ -13,7 +13,7 @@ pub(crate) fn identify_moneymarket(value: &str) -> Result<Box<dyn Identify>, Mon
             Ok(Box::<abstract_kujira_adapter::dex::Kujira>::default())
         }
         abstract_mars_adapter::MARS => {
-            Ok(Box::<abstract_mars_adapter::moneymarket::Mars>::default())
+            Ok(Box::<abstract_mars_adapter::money_market::Mars>::default())
         }
         _ => Err(MoneymarketError::UnknownMoneymarket(value.to_owned())),
     }
@@ -29,7 +29,7 @@ pub(crate) fn resolve_moneymarket(
         }
         #[cfg(feature = "mars")]
         abstract_mars_adapter::MARS => {
-            Ok(Box::<abstract_mars_adapter::moneymarket::Mars>::default())
+            Ok(Box::<abstract_mars_adapter::money_market::Mars>::default())
         }
         _ => Err(MoneymarketError::ForeignMoneymarket(value.to_owned())),
     }

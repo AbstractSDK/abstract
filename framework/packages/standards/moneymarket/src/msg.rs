@@ -68,14 +68,14 @@ pub enum MoneymarketExecuteMsg {
     /// Action to perform on the DEX with ans asset denomination
     AnsAction {
         /// The name of the dex to interact with
-        moneymarket: MoneymarketName,
+        money_market: MoneymarketName,
         /// The action to perform
         action: MoneymarketAnsAction,
     },
     /// Action to perform on the DEX with raw asset denominations
     RawAction {
         /// The name of the dex to interact with
-        moneymarket: MoneymarketName,
+        money_market: MoneymarketName,
         /// The action to perform
         action: MoneymarketRawAction,
     },
@@ -103,7 +103,7 @@ pub enum MoneymarketQueryMsg {
         /// Actual query
         query: MoneymarketRawQuery,
         /// The name of the dex to interact with
-        moneymarket: MoneymarketName,
+        money_market: MoneymarketName,
     },
     /// Query using ans assets
     #[returns(MoneymarketQueryResponse)]
@@ -111,7 +111,7 @@ pub enum MoneymarketQueryMsg {
         /// Actual query
         query: MoneymarketAnsQuery,
         /// The name of the dex to interact with
-        moneymarket: MoneymarketName,
+        money_market: MoneymarketName,
     },
 
     /// Fee info for using the different dex actions

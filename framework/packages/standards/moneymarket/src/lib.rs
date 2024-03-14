@@ -13,4 +13,4 @@ pub use abstract_adapter_utils::{coins_in_assets, cw_approve_msgs, Identify};
 pub use command::{Fee, FeeOnInput, MoneymarketCommand, Return, Spread};
 pub use error::MoneymarketError;
 
-pub const MONEYMARKET_ADAPTER_ID: &str = "abstract:moneymarket";
+pub const MONEYMARKET_ADAPTER_ID: &str = "abstract:money_market";
