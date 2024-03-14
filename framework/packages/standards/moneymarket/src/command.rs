@@ -47,7 +47,7 @@ pub trait MoneymarketCommand: Identify {
         collateral_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError>;
 
-    /// Deposits funds to be lent on the given Money Market
+    /// Deposits funds to be lent out on the given Money Market
     fn deposit(
         &self,
         deps: Deps,
