@@ -14,7 +14,7 @@ pub type FeeOnInput = bool;
 /// # MoneymarketCommand
 /// ensures Money Market adapters support the expected functionality.
 ///
-/// Implements the usual Moneymarket operations.
+/// Implements the usual MoneyMarket operations.
 pub trait MoneymarketCommand: Identify {
     fn fetch_data(
         &mut self,

@@ -13,7 +13,7 @@ use cosmwasm_schema::serde::de::DeserializeOwned;
 use cosmwasm_std::{Addr, CosmosMsg, Deps};
 use cw_asset::{Asset, AssetInfo};
 
-use self::{ans::AnsMoneymarket, raw::Moneymarket};
+use self::{ans::AnsMoneymarket, raw::MoneyMarket};
 
 // API for Abstract SDK users
 /// Interact with the moneymarket adapter in your module.
@@ -21,8 +21,8 @@ pub trait MoneymarketInterface:
     AccountIdentification + Dependencies + ModuleIdentification
 {
     /// Construct a new moneymarket interface.
-    fn moneymarket<'a>(&'a self, deps: Deps<'a>, name: MoneymarketName) -> Moneymarket<Self> {
-        Moneymarket {
+    fn moneymarket<'a>(&'a self, deps: Deps<'a>, name: MoneymarketName) -> MoneyMarket<Self> {
+        MoneyMarket {
             base: self,
             deps,
             name,
@@ -50,14 +50,14 @@ pub mod raw {
     use super::*;
 
     #[derive(Clone)]
-    pub struct Moneymarket<'a, T: MoneymarketInterface> {
+    pub struct MoneyMarket<'a, T: MoneymarketInterface> {
         pub(crate) base: &'a T,
         pub(crate) name: MoneymarketName,
         pub(crate) module_id: ModuleId<'a>,
         pub(crate) deps: Deps<'a>,
     }
 
-    impl<'a, T: MoneymarketInterface> Moneymarket<'a, T> {
+    impl<'a, T: MoneymarketInterface> MoneyMarket<'a, T> {
         /// Set the module id for the MONEYMARKET
         pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
             Self { module_id, ..self }
@@ -156,7 +156,7 @@ pub mod raw {
             })
         }
 
-        /// Borrow from Moneymarket
+        /// Borrow from MoneyMarket
         pub fn borrow(
             &self,
             contract_addr: Addr,
@@ -172,7 +172,7 @@ pub mod raw {
             })
         }
 
-        /// Repay borrowed assets from Moneymarket
+        /// Repay borrowed assets from MoneyMarket
         pub fn repay(
             &self,
             contract_addr: Addr,
@@ -189,7 +189,7 @@ pub mod raw {
         }
     }
 
-    impl<'a, T: MoneymarketInterface> Moneymarket<'a, T> {
+    impl<'a, T: MoneymarketInterface> MoneyMarket<'a, T> {
         /// Do a query in the MONEYMARKET
         pub fn query<R: DeserializeOwned>(
             &self,
@@ -204,7 +204,7 @@ pub mod raw {
 pub mod ans {
     use cosmwasm_schema::serde::de::DeserializeOwned;
 
-    use self::raw::Moneymarket;
+    use self::raw::MoneyMarket;
 
     use super::*;
 
@@ -223,8 +223,8 @@ pub mod ans {
         }
 
         /// Use Raw addresses, ids and denoms for moneymarket-related operations
-        pub fn raw(self) -> Moneymarket<'a, T> {
-            Moneymarket {
+        pub fn raw(self) -> MoneyMarket<'a, T> {
+            MoneyMarket {
                 base: self.base,
                 name: self.name,
                 module_id: self.module_id,
@@ -289,7 +289,7 @@ pub mod ans {
             })
         }
 
-        /// Borrow from Moneymarket
+        /// Borrow from MoneyMarket
         pub fn borrow(
             &self,
             collateral_asset: AssetEntry,
@@ -301,7 +301,7 @@ pub mod ans {
             })
         }
 
-        /// Repay borrowed assets from Moneymarket
+        /// Repay borrowed assets from MoneyMarket
         pub fn repay(
             &self,
             collateral_asset: AssetEntry,

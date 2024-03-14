@@ -31,10 +31,10 @@ pub enum MoneymarketError {
     #[error("{0}")]
     DecimalRangeExceeded(#[from] DecimalRangeExceeded),
 
-    #[error("Moneymarket {0} is not a known money-market on this network.")]
+    #[error("MoneyMarket {0} is not a known money-market on this network.")]
     UnknownMoneymarket(String),
 
-    #[error("Moneymarket {0} is not local to this network.")]
+    #[error("MoneyMarket {0} is not local to this network.")]
     ForeignMoneymarket(String),
 
     #[error("Asset type: {0} is unsupported.")]

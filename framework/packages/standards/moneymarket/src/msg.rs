@@ -1,5 +1,5 @@
 #![warn(missing_docs)]
-//! # Moneymarket Adapter API
+//! # MoneyMarket Adapter API
 // re-export response types
 use crate::query::{MoneymarketAnsQuery, MoneymarketQueryResponse, MoneymarketRawQuery};
 use crate::{ans_action::MoneymarketAnsAction, raw_action::MoneymarketRawAction};
@@ -37,7 +37,7 @@ pub struct GenerateMessagesResponse {
     pub messages: Vec<CosmosMsg>,
 }
 
-/// Response for Moneymarket Fees
+/// Response for MoneyMarket Fees
 #[cosmwasm_schema::cw_serde]
 pub struct MoneymarketFeesResponse {
     /// Fee for using swap action
@@ -55,7 +55,7 @@ pub struct MoneymarketInstantiateMsg {
     pub recipient_account: u32,
 }
 
-/// Moneymarket Execute msg
+/// MoneyMarket Execute msg
 #[cosmwasm_schema::cw_serde]
 pub enum MoneymarketExecuteMsg {
     /// Update the fee
