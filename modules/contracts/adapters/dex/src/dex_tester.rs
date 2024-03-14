@@ -625,7 +625,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
                     dex: self.dex.name(),
                 }))?;
 
-        // simulate swap 1_000_000_000 asset_a to asset_b
+        // Generate swap 1_000_000_000 asset_a to asset_b
         let generate_messages: GenerateMessagesResponse = self.dex_adapter.query(
             &crate::msg::QueryMsg::Module(DexQueryMsg::GenerateMessages {
                 message: DexExecuteMsg::AnsAction {
@@ -673,9 +673,9 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
                 .contains(&asset_b_balance)
         );
 
+        // Check Dex fee recipient received his fees
         let dex_fee_recipient_balance_after_swap =
             self.query_addr_balance(&dex_fees_response.recipient, &asset_info_a)?;
-
         assert_eq!(
             dex_fee_recipient_balance_before_swap + simulate_response.usage_fee,
             dex_fee_recipient_balance_after_swap
