@@ -4,11 +4,11 @@ use cosmwasm_std::{Addr, CosmosMsg, StdError};
 use cw_asset::Asset;
 use cw_orch::daemon::{live_mock::mock_dependencies, ChainRegistryData as ChainData};
 
-use crate::{MoneymarketCommand, MoneymarketError};
+use crate::{MoneyMarketCommand, MoneyMarketError};
 
-pub struct MoneymarketCommandTester {
+pub struct MoneyMarketCommandTester {
     chain: ChainData,
-    adapter: Box<dyn MoneymarketCommand>,
+    adapter: Box<dyn MoneyMarketCommand>,
 }
 
 pub fn expect_eq<T: PartialEq + Debug>(t1: T, t2: T) -> Result<(), StdError> {
@@ -21,8 +21,8 @@ pub fn expect_eq<T: PartialEq + Debug>(t1: T, t2: T) -> Result<(), StdError> {
     Ok(())
 }
 
-impl MoneymarketCommandTester {
-    pub fn new<T: MoneymarketCommand + 'static>(chain: ChainData, adapter: T) -> Self {
+impl MoneyMarketCommandTester {
+    pub fn new<T: MoneyMarketCommand + 'static>(chain: ChainData, adapter: T) -> Self {
         Self {
             chain,
             adapter: Box::new(adapter),
@@ -33,7 +33,7 @@ impl MoneymarketCommandTester {
         &self,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let deps = mock_dependencies(self.chain.clone());
         let msgs = self.adapter.deposit(deps.as_ref(), contract_addr, asset)?;
         Ok(msgs)
@@ -43,7 +43,7 @@ impl MoneymarketCommandTester {
         &self,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let deps = mock_dependencies(self.chain.clone());
         let msgs = self.adapter.withdraw(deps.as_ref(), contract_addr, asset)?;
         Ok(msgs)
@@ -53,7 +53,7 @@ impl MoneymarketCommandTester {
         &self,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let deps = mock_dependencies(self.chain.clone());
         let msgs = self
             .adapter
@@ -65,7 +65,7 @@ impl MoneymarketCommandTester {
         &self,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let deps = mock_dependencies(self.chain.clone());
         let msgs = self
             .adapter
@@ -77,7 +77,7 @@ impl MoneymarketCommandTester {
         &self,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let deps = mock_dependencies(self.chain.clone());
         let msgs = self.adapter.borrow(deps.as_ref(), contract_addr, asset)?;
         Ok(msgs)
@@ -87,7 +87,7 @@ impl MoneymarketCommandTester {
         &self,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError> {
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let deps = mock_dependencies(self.chain.clone());
         let msgs = self.adapter.repay(deps.as_ref(), contract_addr, asset)?;
         Ok(msgs)

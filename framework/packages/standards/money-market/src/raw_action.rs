@@ -6,7 +6,7 @@ use cw_asset::{AssetBase, AssetInfoBase};
 /// Possible actions to perform on a Money Market
 /// This is an example using raw assets
 #[cosmwasm_schema::cw_serde]
-pub enum MoneymarketRawRequest {
+pub enum MoneyMarketRawRequest {
     /// Deposit funds for lending.
     Deposit {
         /// Asset to deposit
@@ -49,9 +49,9 @@ pub enum MoneymarketRawRequest {
 
 /// Action to execute on a money_market
 #[cosmwasm_schema::cw_serde]
-pub struct MoneymarketRawAction {
+pub struct MoneyMarketRawAction {
     /// The action to execute
-    pub request: MoneymarketRawRequest,
+    pub request: MoneyMarketRawRequest,
     /// The contract address to execute it against
     pub contract_addr: String,
 }

@@ -10,7 +10,7 @@ pub mod msg {
 pub use abstract_money_market_standard::MONEYMARKET_ADAPTER_ID;
 
 // Export interface for use in SDK modules
-pub use crate::api::MoneymarketInterface;
+pub use crate::api::MoneyMarketInterface;
 
 #[cfg(feature = "interface")]
 pub mod interface {
@@ -23,12 +23,12 @@ pub mod interface {
     use cw_orch::{contract::Contract, prelude::*};
 
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
-    pub struct MoneymarketAdapter<Chain>;
+    pub struct MoneyMarketAdapter<Chain>;
 
     // Implement deployer trait
-    impl<Chain: CwEnv> AdapterDeployer<Chain, MoneymarketInstantiateMsg> for MoneymarketAdapter<Chain> {}
+    impl<Chain: CwEnv> AdapterDeployer<Chain, MoneyMarketInstantiateMsg> for MoneyMarketAdapter<Chain> {}
 
-    impl<Chain: CwEnv> Uploadable for MoneymarketAdapter<Chain> {
+    impl<Chain: CwEnv> Uploadable for MoneyMarketAdapter<Chain> {
         fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 crate::contract::execute,
@@ -46,12 +46,12 @@ pub mod interface {
         }
     }
 
-    impl<Chain: CwEnv> MoneymarketAdapter<Chain> {
+    impl<Chain: CwEnv> MoneyMarketAdapter<Chain> {
         // TODO
     }
 
-    impl<Chain: CwEnv> RegisteredModule for MoneymarketAdapter<Chain> {
-        type InitMsg = <crate::contract::MoneymarketAdapter as Handler>::CustomInitMsg;
+    impl<Chain: CwEnv> RegisteredModule for MoneyMarketAdapter<Chain> {
+        type InitMsg = <crate::contract::MoneyMarketAdapter as Handler>::CustomInitMsg;
 
         fn module_id<'a>() -> &'a str {
             MONEYMARKET_ADAPTER.module_id()
@@ -62,14 +62,14 @@ pub mod interface {
         }
     }
 
-    impl<Chain: CwEnv> From<Contract<Chain>> for MoneymarketAdapter<Chain> {
+    impl<Chain: CwEnv> From<Contract<Chain>> for MoneyMarketAdapter<Chain> {
         fn from(contract: Contract<Chain>) -> Self {
             Self(contract)
         }
     }
 
     impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
-        for MoneymarketAdapter<Chain>
+        for MoneyMarketAdapter<Chain>
     {
         type DependenciesConfig = cosmwasm_std::Empty;
 

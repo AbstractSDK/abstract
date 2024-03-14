@@ -1,6 +1,6 @@
 use abstract_adapter_utils::identity::Identify;
 
-use crate::error::MoneymarketError;
+use crate::error::MoneyMarketError;
 use abstract_core::objects::{ans_host::AnsHostError, AssetEntry};
 use abstract_sdk::feature_objects::AnsHost;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, Uint128};
@@ -11,16 +11,16 @@ pub type Spread = Uint128;
 pub type Fee = Uint128;
 pub type FeeOnInput = bool;
 
-/// # MoneymarketCommand
+/// # MoneyMarketCommand
 /// ensures Money Market adapters support the expected functionality.
 ///
 /// Implements the usual MoneyMarket operations.
-pub trait MoneymarketCommand: Identify {
+pub trait MoneyMarketCommand: Identify {
     fn fetch_data(
         &mut self,
         _querier: &QuerierWrapper,
         _ans_host: &AnsHost,
-    ) -> Result<(), MoneymarketError> {
+    ) -> Result<(), MoneyMarketError> {
         Ok(())
     }
 
@@ -53,7 +53,7 @@ pub trait MoneymarketCommand: Identify {
         deps: Deps,
         contract_addr: Addr,
         lending_asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError>;
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError>;
 
     /// Withdraw lent funds on the given Money Market
     fn withdraw(
@@ -61,7 +61,7 @@ pub trait MoneymarketCommand: Identify {
         deps: Deps,
         contract_addr: Addr,
         receipt_asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError>;
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError>;
 
     /// Provide collateral on the given Money Market
     fn provide_collateral(
@@ -69,7 +69,7 @@ pub trait MoneymarketCommand: Identify {
         deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError>;
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError>;
 
     /// Withdraw collateral from the given Money Market
     fn withdraw_collateral(
@@ -77,7 +77,7 @@ pub trait MoneymarketCommand: Identify {
         deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError>;
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError>;
 
     /// Borrow funds on the given Money Market
     fn borrow(
@@ -85,7 +85,7 @@ pub trait MoneymarketCommand: Identify {
         deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError>;
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError>;
 
     /// Repay borrowed funds on the given Money Market
     fn repay(
@@ -93,7 +93,7 @@ pub trait MoneymarketCommand: Identify {
         deps: Deps,
         contract_addr: Addr,
         asset: Asset,
-    ) -> Result<Vec<CosmosMsg>, MoneymarketError>;
+    ) -> Result<Vec<CosmosMsg>, MoneyMarketError>;
 
     //*****************   Queries   ****************/
     // This represents how much 1 unit of the base is worth in terms of the quote
@@ -102,7 +102,7 @@ pub trait MoneymarketCommand: Identify {
         deps: Deps,
         base: AssetInfo,
         quote: AssetInfo,
-    ) -> Result<Decimal, MoneymarketError>;
+    ) -> Result<Decimal, MoneyMarketError>;
 
     fn user_deposit(
         &self,
@@ -110,7 +110,7 @@ pub trait MoneymarketCommand: Identify {
         lending_addr: Addr,
         user: Addr,
         asset: AssetInfo,
-    ) -> Result<Uint128, MoneymarketError>;
+    ) -> Result<Uint128, MoneyMarketError>;
 
     fn user_collateral(
         &self,
@@ -119,7 +119,7 @@ pub trait MoneymarketCommand: Identify {
         user: Addr,
         borrowed_asset: AssetInfo,
         collateral_asset: AssetInfo,
-    ) -> Result<Uint128, MoneymarketError>;
+    ) -> Result<Uint128, MoneyMarketError>;
 
     fn user_borrow(
         &self,
@@ -128,7 +128,7 @@ pub trait MoneymarketCommand: Identify {
         user: Addr,
         borrowed_asset: AssetInfo,
         collateral_asset: AssetInfo,
-    ) -> Result<Uint128, MoneymarketError>;
+    ) -> Result<Uint128, MoneyMarketError>;
 
     fn current_ltv(
         &self,
@@ -137,7 +137,7 @@ pub trait MoneymarketCommand: Identify {
         user: Addr,
         borrowed_asset: AssetInfo,
         collateral_asset: AssetInfo,
-    ) -> Result<Decimal, MoneymarketError>;
+    ) -> Result<Decimal, MoneyMarketError>;
 
     fn current_ltv_address(
         &self,
@@ -154,7 +154,7 @@ pub trait MoneymarketCommand: Identify {
         user: Addr,
         borrowed_asset: AssetInfo,
         collateral_asset: AssetInfo,
-    ) -> Result<Decimal, MoneymarketError>;
+    ) -> Result<Decimal, MoneyMarketError>;
 
     fn max_ltv_address(
         &self,

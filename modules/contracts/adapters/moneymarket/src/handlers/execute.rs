@@ -4,7 +4,7 @@ use abstract_core::objects::{
     AccountId,
 };
 use abstract_money_market_standard::{
-    ans_action::WholeMoneymarketAction, raw_action::MoneymarketRawAction, MoneymarketError,
+    ans_action::WholeMoneyMarketAction, raw_action::MoneyMarketRawAction, MoneyMarketError,
 };
 use abstract_sdk::{
     features::AbstractNameService, AccountVerification, Execution, ModuleRegistryInterface,
@@ -12,9 +12,9 @@ use abstract_sdk::{
 use cosmwasm_std::{ensure_eq, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
-    contract::{MoneymarketAdapter, MoneymarketResult},
+    contract::{MoneyMarketAdapter, MoneyMarketResult},
     handlers::execute::platform_resolver::is_over_ibc,
-    msg::MoneymarketExecuteMsg,
+    msg::MoneyMarketExecuteMsg,
     platform_resolver,
     state::MONEYMARKET_FEES,
 };
@@ -25,18 +25,18 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    adapter: MoneymarketAdapter,
-    msg: MoneymarketExecuteMsg,
-) -> MoneymarketResult {
+    adapter: MoneyMarketAdapter,
+    msg: MoneyMarketExecuteMsg,
+) -> MoneyMarketResult {
     match msg {
-        MoneymarketExecuteMsg::AnsAction {
+        MoneyMarketExecuteMsg::AnsAction {
             money_market: money_market_name,
             action,
         } => {
             let (local_money_market_name, is_over_ibc) =
                 is_over_ibc(env.clone(), &money_market_name)?;
             // We resolve the Action to a RawAction to get the actual addresses, ids and denoms
-            let whole_money_market_action = WholeMoneymarketAction(
+            let whole_money_market_action = WholeMoneyMarketAction(
                 platform_resolver::resolve_money_market(&local_money_market_name)?,
                 action,
             );
@@ -59,7 +59,7 @@ pub fn execute_handler(
                 )
             }
         }
-        MoneymarketExecuteMsg::RawAction {
+        MoneyMarketExecuteMsg::RawAction {
             money_market: money_market_name,
             action,
         } => {
@@ -75,7 +75,7 @@ pub fn execute_handler(
                 handle_local_request(deps, env, info, &adapter, local_money_market_name, action)
             }
         }
-        MoneymarketExecuteMsg::UpdateFee {
+        MoneyMarketExecuteMsg::UpdateFee {
             money_market_fee,
             recipient_account: recipient_account_id,
         } => {
@@ -89,7 +89,7 @@ pub fn execute_handler(
             ensure_eq!(
                 namespace_info.account_base,
                 adapter.target_account.clone().unwrap(),
-                MoneymarketError::Unauthorized {}
+                MoneyMarketError::Unauthorized {}
             );
             let mut fee = MONEYMARKET_FEES.load(deps.storage)?;
 
@@ -117,13 +117,13 @@ fn handle_local_request(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    adapter: &MoneymarketAdapter,
+    adapter: &MoneyMarketAdapter,
     money_market: String,
-    action: MoneymarketRawAction,
-) -> MoneymarketResult {
+    action: MoneyMarketRawAction,
+) -> MoneyMarketResult {
     let money_market = platform_resolver::resolve_money_market(&money_market)?;
     let target_account = adapter.account_base(deps.as_ref())?;
-    let (msgs, _) = crate::adapter::MoneymarketAdapter::resolve_money_market_action(
+    let (msgs, _) = crate::adapter::MoneyMarketAdapter::resolve_money_market_action(
         adapter,
         deps.as_ref(),
         target_account.proxy,

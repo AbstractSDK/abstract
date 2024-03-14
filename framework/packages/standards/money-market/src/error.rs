@@ -6,7 +6,7 @@ use cw_asset::AssetError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum MoneymarketError {
+pub enum MoneyMarketError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -32,10 +32,10 @@ pub enum MoneymarketError {
     DecimalRangeExceeded(#[from] DecimalRangeExceeded),
 
     #[error("MoneyMarket {0} is not a known money-market on this network.")]
-    UnknownMoneymarket(String),
+    UnknownMoneyMarket(String),
 
     #[error("MoneyMarket {0} is not local to this network.")]
-    ForeignMoneymarket(String),
+    ForeignMoneyMarket(String),
 
     #[error("Asset type: {0} is unsupported.")]
     UnsupportedAssetType(String),
