@@ -1,10 +1,9 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Empty, QueryRequest};
+use cosmwasm_std::{Addr, Coin};
 use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
 use crate::{
-    ibc::CallbackInfo,
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
     objects::{account::AccountId, chain_name::ChainName, AssetEntry},
@@ -106,33 +105,18 @@ pub enum ExecuteMsg {
         host_chain: String,
         // execute the custom host function
         action: HostAction,
-        // optional callback info
-        callback_info: Option<CallbackInfo>,
-    },
-    /// Allows to query something on a remote contract and act on that query result
-    /// This has to be an Execute variant for IBC queries
-    RemoteQueries {
-        // host chain to be executed on
-        // Example: "osmosis"
-        host_chain: String,
-        // execute following queries
-        queries: Vec<QueryRequest<Empty>>,
-        // mandatory callback info
-        callback_info: CallbackInfo,
     },
     RemoveHost {
         host_chain: String,
     },
-
     /// Callback from the Polytone implementation
-    /// This is only triggered when a contract execution is succesful
+    /// This is NOT ONLY triggered when a contract execution is successful
     Callback(CallbackMessage),
 }
 
 /// This enum is used for sending callbacks to the note contract of the IBC client
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
-    UserRemoteAction(CallbackInfo),
     CreateAccount { account_id: AccountId },
     WhoAmI {},
 }
@@ -243,8 +227,8 @@ mod tests {
     use polytone::callbacks::Callback;
     use speculoos::prelude::*;
 
+    use crate::ibc::IbcCallbackMsg;
     use crate::ibc::IbcResponseMsg;
-
     // ... (other test functions)
 
     #[test]
@@ -261,18 +245,16 @@ mod tests {
             result,
         };
 
-        let actual: CosmosMsg<Empty> = response_msg.into_cosmos_msg(receiver.clone()).unwrap();
+        let actual: CosmosMsg<Empty> = response_msg
+            .clone()
+            .into_cosmos_msg(receiver.clone())
+            .unwrap();
 
-        assert_that!(actual).matches(|e| {
-            matches!(
-                e,
-                CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
-                    contract_addr: _receiver,
-                    // we can't test the message because the fields in it are private
-                    msg: _,
-                    funds: _
-                })
-            )
-        });
+        assert_that!(actual).is_equal_to(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
+            contract_addr: receiver,
+            // we can't test the message because the fields in it are private
+            msg: to_json_binary(&IbcCallbackMsg::IbcCallback(response_msg)).unwrap(),
+            funds: vec![],
+        }))
     }
 }

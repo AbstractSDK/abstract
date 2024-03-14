@@ -167,7 +167,7 @@ fn handle_ibc_request(
 
     // If the calling entity is a contract, we provide a callback on successful swap
     let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());
-    let callback = if maybe_contract_info.is_err() {
+    let _callback = if maybe_contract_info.is_err() {
         None
     } else {
         Some(CallbackInfo {
@@ -179,7 +179,7 @@ fn handle_ibc_request(
             receiver: info.sender.into_string(),
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action, callback)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action)?;
 
     // call both messages on the proxy
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
