@@ -32,17 +32,17 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
             abstract_money_market_standard::raw_action::MoneyMarketRawRequest::Deposit { lending_asset } => {
                 (self.resolve_deposit(deps, sender, lending_asset, action.contract_addr, money_market.as_mut())?, DEPOSIT)
             }
-            abstract_money_market_standard::raw_action::MoneyMarketRawRequest::Withdraw { lending_asset } => {
-                (self.resolve_withdraw(deps, sender, lending_asset, action.contract_addr, money_market.as_mut())?, WITHDRAW)
+            abstract_money_market_standard::raw_action::MoneyMarketRawRequest::Withdraw { lent_asset } => {
+                (self.resolve_withdraw(deps, sender, lent_asset, action.contract_addr, money_market.as_mut())?, WITHDRAW)
             }
-            abstract_money_market_standard::raw_action::MoneyMarketRawRequest::ProvideCollateral { borrowed_asset, collateral_asset } => {
-                (self.resolve_provide_collateral(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, PROVIDE_COLLATERAL)
+            abstract_money_market_standard::raw_action::MoneyMarketRawRequest::ProvideCollateral { borrowable_asset, collateral_asset } => {
+                (self.resolve_provide_collateral(deps, sender, borrowable_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, PROVIDE_COLLATERAL)
             }
-            abstract_money_market_standard::raw_action::MoneyMarketRawRequest::WithdrawCollateral { borrowed_asset, collateral_asset } => {
-                (self.resolve_withdraw_collateral(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, WITHDRAW_COLLATERAL)
+            abstract_money_market_standard::raw_action::MoneyMarketRawRequest::WithdrawCollateral { borrowable_asset, collateral_asset } => {
+                (self.resolve_withdraw_collateral(deps, sender, borrowable_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, WITHDRAW_COLLATERAL)
             }
-            abstract_money_market_standard::raw_action::MoneyMarketRawRequest::Borrow { borrowed_asset, collateral_asset } => {
-                (self.resolve_borrow(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, BORROW)
+            abstract_money_market_standard::raw_action::MoneyMarketRawRequest::Borrow { borrow_asset, collateral_asset } => {
+                (self.resolve_borrow(deps, sender, borrow_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, BORROW)
             }
             abstract_money_market_standard::raw_action::MoneyMarketRawRequest::Repay { borrowed_asset, collateral_asset } => {
                 (self.resolve_repay(deps, sender, borrowed_asset, collateral_asset, action.contract_addr, money_market.as_mut())?, REPAY)

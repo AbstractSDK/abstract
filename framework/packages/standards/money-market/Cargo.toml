@@ -21,7 +21,6 @@ testing = ["dep:cw-orch", "cw-orch/daemon"]
 cw-orch = ["dep:abstract-interface", "dep:cw-orch"]
 interface = ["dep:abstract-interface", "dep:cw-orch"]
 
-# Keep as is until TendermintStake updates.
 [dependencies]
 cosmwasm-std = { workspace = true }
 schemars = { workspace = true }
@@ -38,8 +37,6 @@ abstract-adapter-utils = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 abstract-adapter = { path = "../../abstract-adapter", version = "0.21.0" }
 abstract-interface = { path = "../../abstract-interface", version = "0.21.0", optional = true }
-
-ibc-chain-registry = { version = "0.25.0", optional = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }

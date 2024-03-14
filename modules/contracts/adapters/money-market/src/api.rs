@@ -114,12 +114,12 @@ pub mod raw {
         pub fn withdraw(
             &self,
             contract_addr: Addr,
-            lending_asset: Asset,
+            lent_asset: Asset,
         ) -> AbstractSdkResult<CosmosMsg> {
             self.request(MoneyMarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneyMarketRawRequest::Withdraw {
-                    lending_asset: lending_asset.into(),
+                    lent_asset: lent_asset.into(),
                 },
             })
         }
@@ -129,13 +129,13 @@ pub mod raw {
             &self,
             contract_addr: Addr,
             collateral_asset: Asset,
-            borrowed_asset: AssetInfo,
+            borrowable_asset: AssetInfo,
         ) -> AbstractSdkResult<CosmosMsg> {
             self.request(MoneyMarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneyMarketRawRequest::ProvideCollateral {
                     collateral_asset: collateral_asset.into(),
-                    borrowed_asset: borrowed_asset.into(),
+                    borrowable_asset: borrowable_asset.into(),
                 },
             })
         }
@@ -145,13 +145,13 @@ pub mod raw {
             &self,
             contract_addr: Addr,
             collateral_asset: Asset,
-            borrowed_asset: AssetInfo,
+            borrowable_asset: AssetInfo,
         ) -> AbstractSdkResult<CosmosMsg> {
             self.request(MoneyMarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneyMarketRawRequest::WithdrawCollateral {
                     collateral_asset: collateral_asset.into(),
-                    borrowed_asset: borrowed_asset.into(),
+                    borrowable_asset: borrowable_asset.into(),
                 },
             })
         }
@@ -161,13 +161,13 @@ pub mod raw {
             &self,
             contract_addr: Addr,
             collateral_asset: AssetInfo,
-            borrowed_asset: Asset,
+            borrow_asset: Asset,
         ) -> AbstractSdkResult<CosmosMsg> {
             self.request(MoneyMarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneyMarketRawRequest::Borrow {
                     collateral_asset: collateral_asset.into(),
-                    borrowed_asset: borrowed_asset.into(),
+                    borrow_asset: borrow_asset.into(),
                 },
             })
         }
@@ -261,19 +261,19 @@ pub mod ans {
         }
 
         /// Withdraw liquidity from MONEYMARKET
-        pub fn withdraw(&self, lending_asset: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketAnsAction::Withdraw { lending_asset })
+        pub fn withdraw(&self, lent_asset: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
+            self.request(MoneyMarketAnsAction::Withdraw { lent_asset })
         }
 
         /// Deposit Collateral in MONEYMARKET
         pub fn provide_collateral(
             &self,
             collateral_asset: AnsAsset,
-            borrowed_asset: AssetEntry,
+            borrowable_asset: AssetEntry,
         ) -> AbstractSdkResult<CosmosMsg> {
             self.request(MoneyMarketAnsAction::ProvideCollateral {
                 collateral_asset,
-                borrowed_asset,
+                borrowable_asset,
             })
         }
 
@@ -281,11 +281,11 @@ pub mod ans {
         pub fn withdraw_collateral(
             &self,
             collateral_asset: AnsAsset,
-            borrowed_asset: AssetEntry,
+            borrowable_asset: AssetEntry,
         ) -> AbstractSdkResult<CosmosMsg> {
             self.request(MoneyMarketAnsAction::WithdrawCollateral {
                 collateral_asset,
-                borrowed_asset,
+                borrowable_asset,
             })
         }
 
@@ -293,11 +293,11 @@ pub mod ans {
         pub fn borrow(
             &self,
             collateral_asset: AssetEntry,
-            borrowed_asset: AnsAsset,
+            borrow_asset: AnsAsset,
         ) -> AbstractSdkResult<CosmosMsg> {
             self.request(MoneyMarketAnsAction::Borrow {
                 collateral_asset,
-                borrowed_asset,
+                borrow_asset,
             })
         }
 
@@ -399,7 +399,7 @@ mod test {
         let expected = expected_request_with_test_proxy(MoneyMarketExecuteMsg::AnsAction {
             money_market: money_market_name,
             action: MoneyMarketAnsAction::Withdraw {
-                lending_asset: asset.clone(),
+                lent_asset: asset.clone(),
             },
         });
 
@@ -431,18 +431,18 @@ mod test {
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let money_market_name = "mars".to_string();
-        let borrowed_asset = AssetEntry::new("usdc");
+        let borrowable_asset = AssetEntry::new("usdc");
         let collateral_asset = AnsAsset::new("juno", 1000u128);
 
         let expected = expected_request_with_test_proxy(MoneyMarketExecuteMsg::AnsAction {
             money_market: money_market_name,
             action: MoneyMarketAnsAction::ProvideCollateral {
-                borrowed_asset: borrowed_asset.clone(),
+                borrowable_asset: borrowable_asset.clone(),
                 collateral_asset: collateral_asset.clone(),
             },
         });
 
-        let actual = money_market.provide_collateral(collateral_asset, borrowed_asset);
+        let actual = money_market.provide_collateral(collateral_asset, borrowable_asset);
 
         assert_that!(actual).is_ok();
 
@@ -470,18 +470,18 @@ mod test {
             .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let money_market_name = "mars".to_string();
-        let borrowed_asset = AssetEntry::new("usdc");
+        let borrowable_asset = AssetEntry::new("usdc");
         let collateral_asset = AnsAsset::new("juno", 1000u128);
 
         let expected = expected_request_with_test_proxy(MoneyMarketExecuteMsg::AnsAction {
             money_market: money_market_name,
             action: MoneyMarketAnsAction::WithdrawCollateral {
-                borrowed_asset: borrowed_asset.clone(),
+                borrowable_asset: borrowable_asset.clone(),
                 collateral_asset: collateral_asset.clone(),
             },
         });
 
-        let actual = money_market.withdraw_collateral(collateral_asset, borrowed_asset);
+        let actual = money_market.withdraw_collateral(collateral_asset, borrowable_asset);
 
         assert_that!(actual).is_ok();
 
@@ -510,17 +510,17 @@ mod test {
 
         let money_market_name = "mars".to_string();
         let collateral_asset = AssetEntry::new("juno");
-        let borrowed_asset = AnsAsset::new("usdc", 1000u128);
+        let borrow_asset = AnsAsset::new("usdc", 1000u128);
 
         let expected = expected_request_with_test_proxy(MoneyMarketExecuteMsg::AnsAction {
             money_market: money_market_name,
             action: MoneyMarketAnsAction::Borrow {
-                borrowed_asset: borrowed_asset.clone(),
+                borrow_asset: borrow_asset.clone(),
                 collateral_asset: collateral_asset.clone(),
             },
         });
 
-        let actual = money_market.borrow(collateral_asset, borrowed_asset);
+        let actual = money_market.borrow(collateral_asset, borrow_asset);
 
         assert_that!(actual).is_ok();
 
@@ -639,7 +639,7 @@ mod test {
                 action: MoneyMarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneyMarketRawRequest::Withdraw {
-                        lending_asset: asset.clone().into(),
+                        lent_asset: asset.clone().into(),
                     },
                 },
             });
@@ -672,7 +672,7 @@ mod test {
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
             let money_market_name = "mars".to_string();
-            let borrowed_asset = AssetInfo::native("usdc");
+            let borrowable_asset = AssetInfo::native("usdc");
             let collateral_asset = Asset::native("juno", 1000u128);
 
             let expected = expected_request_with_test_proxy(MoneyMarketExecuteMsg::RawAction {
@@ -680,7 +680,7 @@ mod test {
                 action: MoneyMarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneyMarketRawRequest::ProvideCollateral {
-                        borrowed_asset: borrowed_asset.clone().into(),
+                        borrowable_asset: borrowable_asset.clone().into(),
                         collateral_asset: collateral_asset.clone().into(),
                     },
                 },
@@ -689,7 +689,7 @@ mod test {
             let actual = money_market.provide_collateral(
                 Addr::unchecked(TEST_CONTRACT_ADDR),
                 collateral_asset,
-                borrowed_asset,
+                borrowable_asset,
             );
 
             assert_that!(actual).is_ok();
@@ -718,7 +718,7 @@ mod test {
                 .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
             let money_market_name = "mars".to_string();
-            let borrowed_asset = AssetInfo::native("usdc");
+            let borrowable_asset = AssetInfo::native("usdc");
             let collateral_asset = Asset::native("juno", 1000u128);
 
             let expected = expected_request_with_test_proxy(MoneyMarketExecuteMsg::RawAction {
@@ -726,7 +726,7 @@ mod test {
                 action: MoneyMarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneyMarketRawRequest::WithdrawCollateral {
-                        borrowed_asset: borrowed_asset.clone().into(),
+                        borrowable_asset: borrowable_asset.clone().into(),
                         collateral_asset: collateral_asset.clone().into(),
                     },
                 },
@@ -735,7 +735,7 @@ mod test {
             let actual = money_market.withdraw_collateral(
                 Addr::unchecked(TEST_CONTRACT_ADDR),
                 collateral_asset,
-                borrowed_asset,
+                borrowable_asset,
             );
 
             assert_that!(actual).is_ok();
@@ -765,14 +765,14 @@ mod test {
 
             let money_market_name = "mars".to_string();
             let collateral_asset = AssetInfo::native("juno");
-            let borrowed_asset = Asset::native("usdc", 1000u128);
+            let borrow_asset = Asset::native("usdc", 1000u128);
 
             let expected = expected_request_with_test_proxy(MoneyMarketExecuteMsg::RawAction {
                 money_market: money_market_name,
                 action: MoneyMarketRawAction {
                     contract_addr: TEST_CONTRACT_ADDR.to_string(),
                     request: MoneyMarketRawRequest::Borrow {
-                        borrowed_asset: borrowed_asset.clone().into(),
+                        borrow_asset: borrow_asset.clone().into(),
                         collateral_asset: collateral_asset.clone().into(),
                     },
                 },
@@ -781,7 +781,7 @@ mod test {
             let actual = money_market.borrow(
                 Addr::unchecked(TEST_CONTRACT_ADDR),
                 collateral_asset,
-                borrowed_asset,
+                borrow_asset,
             );
 
             assert_that!(actual).is_ok();

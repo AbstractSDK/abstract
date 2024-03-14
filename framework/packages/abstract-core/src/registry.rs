@@ -24,8 +24,6 @@ pub const TERRA: &[&str] = &["phoenix", "pisco"];
 pub const KUJIRA: &[&str] = &["kaiyo", "harpoon"];
 pub const NEUTRON: &[&str] = &["pion", "neutron"];
 pub const ARCHWAY: &[&str] = &["constantine", "archway"];
-// Mars is available on NEUTRON and OSMOSIS
-pub const MARS: &[&str] = &["pion", "neutron", "osmosis", "osmo", "osmo-test"];
 pub const LOCAL_CHAIN: &[&str] = &["cosmos-testnet"];
 /// Useful when deploying version control
 #[allow(unused)]

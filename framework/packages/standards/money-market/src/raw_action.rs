@@ -15,26 +15,26 @@ pub enum MoneyMarketRawRequest {
     /// Withdraw lent funds
     Withdraw {
         /// Asset to withdraw
-        lending_asset: AssetBase<String>,
+        lent_asset: AssetBase<String>,
     },
     /// Deposit Collateral to borrow against
     ProvideCollateral {
         /// Asset that identifies the market you want to deposit in
-        borrowed_asset: AssetInfoBase<String>,
+        borrowable_asset: AssetInfoBase<String>,
         /// Asset to deposit
         collateral_asset: AssetBase<String>,
     },
     /// Deposit Collateral to borrow against
     WithdrawCollateral {
         /// Asset that identifies the market you want to withdraw from
-        borrowed_asset: AssetInfoBase<String>,
+        borrowable_asset: AssetInfoBase<String>,
         /// Asset to deposit
         collateral_asset: AssetBase<String>,
     },
     /// Borrow funds from the money market
     Borrow {
         /// Asset to borrow
-        borrowed_asset: AssetBase<String>,
+        borrow_asset: AssetBase<String>,
         /// Asset that identifies the market you want to borrow from
         collateral_asset: AssetInfoBase<String>,
     },

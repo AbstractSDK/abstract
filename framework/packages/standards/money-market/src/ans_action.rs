@@ -21,26 +21,26 @@ pub enum MoneyMarketAnsAction {
     /// Withdraw lent funds
     Withdraw {
         /// Asset to withdraw
-        lending_asset: AnsAsset,
+        lent_asset: AnsAsset,
     },
     /// Deposit Collateral to borrow against
     ProvideCollateral {
         /// Asset that identifies the market you want to deposit in
-        borrowed_asset: AssetEntry,
+        borrowable_asset: AssetEntry,
         /// Asset to deposit
         collateral_asset: AnsAsset,
     },
     /// Deposit Collateral to borrow against
     WithdrawCollateral {
         /// Asset that identifies the market you want to withdraw from
-        borrowed_asset: AssetEntry,
+        borrowable_asset: AssetEntry,
         /// Asset to deposit
         collateral_asset: AnsAsset,
     },
     /// Borrow funds from the money market
     Borrow {
         /// Asset to borrow
-        borrowed_asset: AnsAsset,
+        borrow_asset: AnsAsset,
         /// Asset that identifies the market you want to borrow from
         collateral_asset: AssetEntry,
     },
@@ -54,9 +54,9 @@ pub enum MoneyMarketAnsAction {
 }
 
 /// Structure created to be able to resolve an action using ANS
-pub struct WholeMoneyMarketAction(pub Box<dyn MoneyMarketCommand>, pub MoneyMarketAnsAction);
+pub struct ActionOnMoneymarket(pub Box<dyn MoneyMarketCommand>, pub MoneyMarketAnsAction);
 
-impl Resolve for WholeMoneyMarketAction {
+impl Resolve for ActionOnMoneymarket {
     type Output = MoneyMarketRawAction;
 
     /// TODO: this only works for protocols where there is only one address for depositing
@@ -78,74 +78,74 @@ impl Resolve for WholeMoneyMarketAction {
                     contract_addr: contract_addr.to_string(),
                 }
             }
-            MoneyMarketAnsAction::Withdraw { lending_asset } => {
+            MoneyMarketAnsAction::Withdraw { lent_asset } => {
                 let contract_addr =
                     self.0
-                        .lending_address(querier, ans_host, lending_asset.name.clone())?;
+                        .lending_address(querier, ans_host, lent_asset.name.clone())?;
 
-                let lending_asset = lending_asset.resolve(querier, ans_host)?;
+                let lent_asset = lent_asset.resolve(querier, ans_host)?;
                 MoneyMarketRawAction {
                     request: MoneyMarketRawRequest::Withdraw {
-                        lending_asset: lending_asset.into(),
+                        lent_asset: lent_asset.into(),
                     },
                     contract_addr: contract_addr.to_string(),
                 }
             }
             MoneyMarketAnsAction::ProvideCollateral {
-                borrowed_asset,
+                borrowable_asset,
                 collateral_asset,
             } => {
                 let contract_addr = self.0.collateral_address(
                     querier,
                     ans_host,
-                    borrowed_asset.clone(),
+                    borrowable_asset.clone(),
                     collateral_asset.name.clone(),
                 )?;
-                let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
+                let borrowable_asset = borrowable_asset.resolve(querier, ans_host)?;
                 let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
                 MoneyMarketRawAction {
                     request: MoneyMarketRawRequest::ProvideCollateral {
-                        borrowed_asset: borrowed_asset.into(),
+                        borrowable_asset: borrowable_asset.into(),
                         collateral_asset: collateral_asset.into(),
                     },
                     contract_addr: contract_addr.to_string(),
                 }
             }
             MoneyMarketAnsAction::WithdrawCollateral {
-                borrowed_asset,
+                borrowable_asset,
                 collateral_asset,
             } => {
                 let contract_addr = self.0.collateral_address(
                     querier,
                     ans_host,
-                    borrowed_asset.clone(),
+                    borrowable_asset.clone(),
                     collateral_asset.name.clone(),
                 )?;
-                let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
+                let borrowable_asset = borrowable_asset.resolve(querier, ans_host)?;
                 let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
                 MoneyMarketRawAction {
                     request: MoneyMarketRawRequest::WithdrawCollateral {
-                        borrowed_asset: borrowed_asset.into(),
+                        borrowable_asset: borrowable_asset.into(),
                         collateral_asset: collateral_asset.into(),
                     },
                     contract_addr: contract_addr.to_string(),
                 }
             }
             MoneyMarketAnsAction::Borrow {
-                borrowed_asset,
+                borrow_asset,
                 collateral_asset,
             } => {
                 let contract_addr = self.0.borrow_address(
                     querier,
                     ans_host,
-                    borrowed_asset.name.clone(),
+                    borrow_asset.name.clone(),
                     collateral_asset.clone(),
                 )?;
-                let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
+                let borrow_asset = borrow_asset.resolve(querier, ans_host)?;
                 let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
                 MoneyMarketRawAction {
                     request: MoneyMarketRawRequest::Borrow {
-                        borrowed_asset: borrowed_asset.into(),
+                        borrow_asset: borrow_asset.into(),
                         collateral_asset: collateral_asset.into(),
                     },
                     contract_addr: contract_addr.to_string(),

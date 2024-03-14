@@ -166,7 +166,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         self.execute(
             &proxy_addr,
             MoneyMarketAnsAction::Withdraw {
-                lending_asset: AnsAsset::new(
+                lent_asset: AnsAsset::new(
                     AssetEntry::new(&ans_lending_asset),
                     user_deposit_value.clone(),
                 ),
