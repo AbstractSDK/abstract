@@ -68,7 +68,8 @@ pub fn query_handler(
                     if is_over_ibc {
                         return Err(MoneyMarketError::IbcMsgQuery);
                     }
-                    let exchange = platform_resolver::resolve_money_market(&local_money_market_name)?;
+                    let exchange =
+                        platform_resolver::resolve_money_market(&local_money_market_name)?;
                     let addr_as_sender = deps.api.addr_validate(&addr_as_sender)?;
                     let (messages, _) =
                         crate::adapter::MoneyMarketAdapter::resolve_money_market_action(
