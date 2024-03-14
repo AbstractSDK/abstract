@@ -44,5 +44,5 @@ etf-app = { workspace = true, features = ["interface"] }
 dca-app = { workspace = true, features = ["interface"] }
 abstract-dex-adapter = { workspace = true, features = ["interface"] }
 abstract-cw-staking = { workspace = true, features = ["interface"] }
-abstract-client = { version = "0.21.0", path = "../../framework/packages/abstract-client" }
+abstract-client = { workspace = true }
 polytone-note = { workspace = true }
