@@ -40,14 +40,14 @@ use ::{
     },
     abstract_staking_standard::{CwStakingCommand, CwStakingError},
     astroport::incentives::{
-        Config, Cw20Msg, ExecuteMsg as IncentivesExecuteMsg, QueryMsg as IncentivesQueryMsg,
+        Cw20Msg, ExecuteMsg as IncentivesExecuteMsg, QueryMsg as IncentivesQueryMsg,
     },
     cosmwasm_std::{
         to_json_binary, wasm_execute, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128,
     },
     cw20::Cw20ExecuteMsg,
     cw_asset::AssetInfo,
-    std::collections::{HashMap, HashSet},
+    std::collections::HashMap,
 };
 
 #[cfg(feature = "full_integration")]
@@ -167,40 +167,20 @@ impl CwStakingCommand for Astroport {
         Ok(claim_msgs)
     }
 
-    fn query_info(&self, querier: &QuerierWrapper) -> Result<StakingInfoResponse, CwStakingError> {
-        let generator_addrs: HashSet<&Addr> = self
+    fn query_info(&self, _querier: &QuerierWrapper) -> Result<StakingInfoResponse, CwStakingError> {
+        let infos = self
             .tokens
             .iter()
-            .map(|t| &t.incentives_contract_address)
-            .collect();
-
-        let mut infos = Vec::with_capacity(generator_addrs.len());
-        for g_addr in generator_addrs {
-            let Config { astro_token, .. } = querier
-                .query_wasm_smart::<Config>(g_addr.clone(), &IncentivesQueryMsg::Config {})
-                .map_err(|e| {
-                    StdError::generic_err(format!(
-                        "Failed to query staking info for {} with generator: {}, {:?}",
-                        self.name(),
-                        g_addr.clone(),
-                        e
-                    ))
-                })?;
-
-            let astro_token = match astro_token {
-                astroport::asset::AssetInfo::Token { contract_addr } => {
-                    AssetInfo::cw20(contract_addr)
+            .map(|t| {
+                let lp_token = AssetInfo::cw20(t.lp_token_address.clone());
+                StakingInfo {
+                    staking_target: t.incentives_contract_address.clone().into(),
+                    staking_token: lp_token,
+                    unbonding_periods: None,
+                    max_claims: None,
                 }
-                astroport::asset::AssetInfo::NativeToken { denom } => AssetInfo::native(denom),
-            };
-
-            infos.push(StakingInfo {
-                staking_target: g_addr.clone().into(),
-                staking_token: astro_token,
-                unbonding_periods: None,
-                max_claims: None,
-            });
-        }
+            })
+            .collect();
 
         Ok(StakingInfoResponse { infos })
     }
