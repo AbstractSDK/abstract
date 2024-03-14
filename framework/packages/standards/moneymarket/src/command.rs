@@ -47,7 +47,7 @@ pub trait MoneymarketCommand: Identify {
         collateral_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError>;
 
-    /// Deposits funds to be lended on the given Money Market
+    /// Deposits funds to be lent on the given Money Market
     fn deposit(
         &self,
         deps: Deps,
@@ -55,7 +55,7 @@ pub trait MoneymarketCommand: Identify {
         lending_asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneymarketError>;
 
-    /// Withdraw lended funds on the given Money Market
+    /// Withdraw lent funds on the given Money Market
     fn withdraw(
         &self,
         deps: Deps,

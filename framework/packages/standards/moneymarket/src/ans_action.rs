@@ -18,7 +18,7 @@ pub enum MoneymarketAnsAction {
         /// Asset to deposit
         lending_asset: AnsAsset,
     },
-    /// Withdraw lended funds
+    /// Withdraw lent funds
     Withdraw {
         /// Asset to withdraw
         lending_asset: AnsAsset,
@@ -41,14 +41,14 @@ pub enum MoneymarketAnsAction {
     Borrow {
         /// Asset to borrow
         borrowed_asset: AnsAsset,
-        /// Asset that indentifies the market you want to borrow from
+        /// Asset that identifies the market you want to borrow from
         collateral_asset: AssetEntry,
     },
     /// Repay funds to the money market
     Repay {
         /// Asset to repay
         borrowed_asset: AnsAsset,
-        /// Asset that indentifies the market you want to borrow from
+        /// Asset that identifies the market you want to borrow from
         collateral_asset: AssetEntry,
     },
 }

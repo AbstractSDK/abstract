@@ -12,7 +12,7 @@ pub enum MoneymarketRawRequest {
         /// Asset to deposit
         lending_asset: AssetBase<String>,
     },
-    /// Withdraw lended funds
+    /// Withdraw lent funds
     Withdraw {
         /// Asset to withdraw
         lending_asset: AssetBase<String>,
@@ -35,14 +35,14 @@ pub enum MoneymarketRawRequest {
     Borrow {
         /// Asset to borrow
         borrowed_asset: AssetBase<String>,
-        /// Asset that indentifies the market you want to borrow from
+        /// Asset that identifies the market you want to borrow from
         collateral_asset: AssetInfoBase<String>,
     },
     /// Repay funds to the money market
     Repay {
         /// Asset to repay
         borrowed_asset: AssetBase<String>,
-        /// Asset that indentifies the market you want to borrow from
+        /// Asset that identifies the market you want to borrow from
         collateral_asset: AssetInfoBase<String>,
     },
 }
