@@ -65,7 +65,7 @@ cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git
 cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { path = "../framework/packages/abstract-interface" }
+abstract-interface = { version = "0.21.0", path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.21.0", path = "../framework/packages/abstract-sdk" }
 abstract-core = { version = "0.21.0", path = "../framework/packages/abstract-core" }
 abstract-app = { version = "0.21.0", path = "../framework/packages/abstract-app" }

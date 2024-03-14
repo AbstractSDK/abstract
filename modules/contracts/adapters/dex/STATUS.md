@@ -5,7 +5,7 @@ This document describes the status of the dex adapter's integrations with differ
 | Protocol | Implementation | Execution Tests | Query Tests | Notes |
 | --- | --- | --- | --- | --- |
 | Osmosis | ✅ | ✅ | ❌ | |
-| Astroport | ✅ | ✅ | ❌ | |
+| Astroport | ✅ | ✅ | ✅ | |
 | Wynd | ✅ | ✅ | ❌ | |
-| Bow | ✅ | ❌ | ❌ | Liquidity tests not implemented because it uses custom module. |
+| Bow | ✅ | ❌ | ✅ | Liquidity tests not implemented because it uses custom module. |
 | Astrovault | ✅ | ❌ | ❌ | |

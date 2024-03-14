@@ -8,9 +8,14 @@ use abstract_core::{
         AnsAsset, AssetEntry, LpToken, PoolMetadata,
     },
 };
-use abstract_dex_standard::{ans_action::DexAnsAction, msg::DexExecuteMsg};
+use abstract_dex_standard::{
+    ans_action::DexAnsAction,
+    msg::{
+        DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, SimulateSwapResponse,
+    },
+};
 use abstract_interface::{AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
-use cosmwasm_std::{coins, Decimal, Uint128};
+use cosmwasm_std::{coins, from_json, BankMsg, CosmosMsg, Decimal, Uint128, WasmMsg};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{anyhow, environment::MutCwEnv, prelude::*};
 
@@ -120,9 +125,9 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         )?;
 
         // Assert balances
-        let balance_a = self.query_proxy_balance(&proxy_addr, &asset_info_a)?;
+        let balance_a = self.query_addr_balance(&proxy_addr, &asset_info_a)?;
         assert!(balance_a.is_zero());
-        let balance_b = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
+        let balance_b = self.query_addr_balance(&proxy_addr, &asset_info_b)?;
         assert!(!balance_b.is_zero());
 
         // swap balance_b asset_b to asset_a
@@ -143,9 +148,9 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         )?;
 
         // Assert balances
-        let balance_a = self.query_proxy_balance(&proxy_addr, &asset_info_a)?;
+        let balance_a = self.query_addr_balance(&proxy_addr, &asset_info_a)?;
         assert!(!balance_a.is_zero());
-        let balance_b = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
+        let balance_b = self.query_addr_balance(&proxy_addr, &asset_info_b)?;
         assert!(balance_b.is_zero());
 
         Ok(())
@@ -188,9 +193,9 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         )?;
 
         // Assert balances
-        let balance_a = self.query_proxy_balance(&proxy_addr, &asset_info_a)?;
+        let balance_a = self.query_addr_balance(&proxy_addr, &asset_info_a)?;
         assert!(balance_a.is_zero());
-        let balance_b = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
+        let balance_b = self.query_addr_balance(&proxy_addr, &asset_info_b)?;
         assert!(!balance_b.is_zero());
 
         // swap balance_b asset_b to asset_a
@@ -211,9 +216,9 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         )?;
 
         // Assert balances
-        let balance_a = self.query_proxy_balance(&proxy_addr, &asset_info_a)?;
+        let balance_a = self.query_addr_balance(&proxy_addr, &asset_info_a)?;
         assert!(!balance_a.is_zero());
-        let balance_b = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
+        let balance_b = self.query_addr_balance(&proxy_addr, &asset_info_b)?;
         assert!(balance_b.is_zero());
 
         // And invalid slippages
@@ -293,7 +298,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
             None,
         )?;
 
-        let lp_balance_first = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        let lp_balance_first = self.query_addr_balance(&proxy_addr, &self.lp_asset)?;
         assert!(!lp_balance_first.is_zero());
 
         // provide to the pool reversed
@@ -314,7 +319,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
             None,
         )?;
 
-        let lp_balance_second = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        let lp_balance_second = self.query_addr_balance(&proxy_addr, &self.lp_asset)?;
         assert!(lp_balance_second > lp_balance_first);
 
         Ok(())
@@ -357,7 +362,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
             None,
         )?;
 
-        let lp_balance_first = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        let lp_balance_first = self.query_addr_balance(&proxy_addr, &self.lp_asset)?;
         assert!(!lp_balance_first.is_zero());
 
         // provide to the pool reversed
@@ -378,7 +383,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
             None,
         )?;
 
-        let lp_balance_second = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        let lp_balance_second = self.query_addr_balance(&proxy_addr, &self.lp_asset)?;
         assert!(lp_balance_second > lp_balance_first);
 
         Ok(())
@@ -484,7 +489,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
             None,
         )?;
 
-        let lp_balance_first = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        let lp_balance_first = self.query_addr_balance(&proxy_addr, &self.lp_asset)?;
         assert!(!lp_balance_first.is_zero());
 
         // provide to the pool reversed
@@ -502,7 +507,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
             None,
         )?;
 
-        let lp_balance_second = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        let lp_balance_second = self.query_addr_balance(&proxy_addr, &self.lp_asset)?;
         assert!(lp_balance_second > lp_balance_first);
 
         Ok(())
@@ -546,13 +551,13 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         )?;
 
         // Check everything sent and we have some lp
-        let asset_a_balance = self.query_proxy_balance(&proxy_addr, &asset_info_a)?;
+        let asset_a_balance = self.query_addr_balance(&proxy_addr, &asset_info_a)?;
         assert!(asset_a_balance.is_zero());
 
-        let asset_b_balance = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
+        let asset_b_balance = self.query_addr_balance(&proxy_addr, &asset_info_b)?;
         assert!(asset_b_balance.is_zero());
 
-        let lp_balance = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        let lp_balance = self.query_addr_balance(&proxy_addr, &self.lp_asset)?;
         assert!(!lp_balance.is_zero());
 
         let lp_asset_entry = self
@@ -574,15 +579,107 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         )?;
 
         // After withdrawing, we should get some tokens in return and some lp token left
-        let lp_balance = self.query_proxy_balance(&proxy_addr, &self.lp_asset)?;
+        let lp_balance = self.query_addr_balance(&proxy_addr, &self.lp_asset)?;
         assert!(!lp_balance.is_zero());
 
-        let asset_a_balance = self.query_proxy_balance(&proxy_addr, &asset_info_a)?;
+        let asset_a_balance = self.query_addr_balance(&proxy_addr, &asset_info_a)?;
         assert!(!asset_a_balance.is_zero());
 
-        let asset_b_balance = self.query_proxy_balance(&proxy_addr, &asset_info_b)?;
+        let asset_b_balance = self.query_addr_balance(&proxy_addr, &asset_info_b)?;
         assert!(!asset_b_balance.is_zero());
 
+        Ok(())
+    }
+
+    pub fn test_queries(&self) -> anyhow::Result<()>
+    where
+        Chain: TxHandler<Sender = Addr>,
+    {
+        let (ans_asset_a, asset_info_a) = self.dex.asset_a();
+        let (ans_asset_b, asset_info_b) = self.dex.asset_b();
+
+        let new_account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<DexAdapter<Chain>>()?
+            .build()?;
+        let proxy_addr = new_account.proxy()?;
+
+        let swap_value = 1_000_000_000u128;
+
+        // We can get fees
+        let dex_fees_response: DexFeesResponse = self
+            .dex_adapter
+            .query(&crate::msg::QueryMsg::Module(DexQueryMsg::Fees {}))?;
+        let dex_fee_recipient_balance_before_swap =
+            self.query_addr_balance(&dex_fees_response.recipient, &asset_info_a)?;
+
+        let offer_asset = AnsAsset::new(AssetEntry::new(&ans_asset_a), swap_value);
+        let ask_asset = AssetEntry::new(&ans_asset_b);
+        // simulate swap 1_000_000_000 asset_a to asset_b
+        let simulate_response: SimulateSwapResponse =
+            self.dex_adapter
+                .query(&crate::msg::QueryMsg::Module(DexQueryMsg::SimulateSwap {
+                    offer_asset: offer_asset.clone(),
+                    ask_asset: ask_asset.clone(),
+                    dex: self.dex.name(),
+                }))?;
+
+        // simulate swap 1_000_000_000 asset_a to asset_b
+        let generate_messages: GenerateMessagesResponse = self.dex_adapter.query(
+            &crate::msg::QueryMsg::Module(DexQueryMsg::GenerateMessages {
+                message: DexExecuteMsg::AnsAction {
+                    dex: self.dex.name(),
+                    action: DexAnsAction::Swap {
+                        offer_asset,
+                        ask_asset,
+                        max_spread: None,
+                        belief_price: None,
+                    },
+                },
+                addr_as_sender: proxy_addr.to_string(),
+            }),
+        )?;
+
+        self.add_proxy_balance(&proxy_addr, &asset_info_a, swap_value)?;
+        // Send every message
+        let mut chain = self.abstr_deployment.environment();
+        for message in generate_messages.messages {
+            match message {
+                CosmosMsg::Bank(BankMsg::Send { to_address, amount }) => {
+                    chain.add_balance(to_address, amount)?;
+                }
+                CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr,
+                    msg,
+                    funds,
+                }) => {
+                    chain.call_as(&proxy_addr).execute(
+                        // Need to deserialize it back, to serialize
+                        &from_json::<serde_json::Value>(&msg).unwrap(),
+                        &funds,
+                        &Addr::unchecked(contract_addr),
+                    )?;
+                }
+                _ => unimplemented!(),
+            }
+        }
+
+        // Check it's swapped for somewhere between return_amount +- spread_amount
+        let asset_b_balance = self.query_addr_balance(&proxy_addr, &asset_info_b)?;
+        assert!(
+            (simulate_response.return_amount - simulate_response.spread_amount
+                ..=simulate_response.return_amount + simulate_response.spread_amount)
+                .contains(&asset_b_balance)
+        );
+
+        let dex_fee_recipient_balance_after_swap =
+            self.query_addr_balance(&dex_fees_response.recipient, &asset_info_a)?;
+
+        assert_eq!(
+            dex_fee_recipient_balance_before_swap + simulate_response.usage_fee,
+            dex_fee_recipient_balance_after_swap
+        );
         Ok(())
     }
 
@@ -613,7 +710,7 @@ impl<Chain: MutCwEnv, Dex: MockDex> DexTester<Chain, Dex> {
         Ok(())
     }
 
-    fn query_proxy_balance(
+    fn query_addr_balance(
         &self,
         proxy_addr: &Addr,
         asset: &AssetInfoUnchecked,

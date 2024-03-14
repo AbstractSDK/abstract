@@ -127,6 +127,13 @@ fn test_swap_slippage() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_queries() -> anyhow::Result<()> {
+    let dex_tester = setup()?;
+    dex_tester.test_queries()?;
+    Ok(())
+}
+
 // Can't test liquidity related functionality, because bow market maker uses custom modules
 
 // #[test]
