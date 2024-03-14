@@ -105,6 +105,8 @@ pub enum Cw20HookMsg {
 pub struct StateResponse {
     /// Address of the LP token
     pub share_token_address: Addr,
+    /// Address of the ETFs manager which receives the fee.
+    pub manager_addr: Addr,
     /// Fee charged on withdrawal
     pub fee: Decimal,
 }

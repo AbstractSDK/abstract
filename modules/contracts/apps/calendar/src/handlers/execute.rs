@@ -125,6 +125,7 @@ fn request_meeting(
     let start_of_day_timestamp: i64 = meeting_start_datetime
         .date_naive()
         .and_time(NaiveTime::default())
+        .and_utc()
         .timestamp();
 
     let mut existing_meetings: Vec<Meeting> = CALENDAR

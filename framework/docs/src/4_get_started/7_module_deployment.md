@@ -57,7 +57,6 @@ Abstract Version Control.
 
 ## Module Installation
 
-To install your module, go to the <a href="https://app.abstract.money" target="_blank">Abstract Account Dashboard</a>,
-go to your Account (or a new one) and click on the `Modules` tab. Here you will find a list of all the modules you have
+To install your module, go to the <a href="https://console.abstract.money" target="_blank">Abstract Account Dashboard</a>, enter the dev-mode by clicking Enter Dev Mode on Action tab, go to your Account (or a new one) and click on the `Modules` tab. Here you will find a list of all the modules you have
 registered on the Abstract Version Control. Click on the `Install` button next to your module and select the network you
 want to install it on. This will open a modal with the following fields:
