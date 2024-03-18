@@ -1,7 +1,5 @@
 use crate::{AVAILABLE_CHAINS, KUJIRA};
 use abstract_money_market_standard::Identify;
-use cosmwasm_std::StdError;
-use kujira::{ExchangeRateResponse, HumanPrice};
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -16,8 +14,6 @@ impl Identify for Kujira {
     }
 }
 
-use self::types::{exchange_rate_type_url, QueryExchangeRateRequest};
-
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_money_market_standard::{MoneyMarketCommand, MoneyMarketError},
@@ -25,13 +21,17 @@ use ::{
         core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
         feature_objects::AnsHost,
     },
-    cosmwasm_std::{coins, wasm_execute, Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, Uint128},
+    cosmwasm_std::{
+        coins, wasm_execute, Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, StdError, Uint128,
+    },
     cw_asset::{Asset, AssetInfo},
     kujira::ghost::{
         market::{self},
         receipt_vault,
     },
+    kujira::{ExchangeRateResponse, HumanPrice},
     prost::Message,
+    types::{exchange_rate_type_url, QueryExchangeRateRequest},
 };
 
 #[cfg(feature = "full_integration")]
