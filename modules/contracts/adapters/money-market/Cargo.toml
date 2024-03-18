@@ -44,30 +44,14 @@ osmosis-test = ["cw-orch/osmosis-test-tube"]
 # Builds
 [package.metadata.optimizer]
 builds = [
-  { name = "juno", features = [
-    "wynd",
+  { name = "osmosis", features = [
+    "mars",
   ] },
   { name = "terra2", features = [
-    "astroport",
-    "terraswap",
-  ] },
-  { name = "neutron", features = [
-    "astroport",
-  ] },
-  { name = "osmosis", features = [
-    "osmosis",
+    "cavern",
   ] },
   { name = "kujira", features = [
-    "bow",
-  ] },
-  { name = "injective", features = [
-    "astroport",
-  ] },
-  { name = "sei", features = [
-    "astroport",
-  ] },
-  { name = "archway", features = [
-    "astrovault",
+    "kujira",
   ] },
 ]
 
