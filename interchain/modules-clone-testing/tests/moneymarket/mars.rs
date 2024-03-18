@@ -97,3 +97,28 @@ fn withdraw() -> anyhow::Result<()> {
     mm_tester.test_withdraw()?;
     Ok(())
 }
+
+#[test]
+fn provide_collateral() -> anyhow::Result<()> {
+    let mm_tester = setup()?;
+    mm_tester.test_provide_collateral()?;
+    Ok(())
+}
+#[test]
+fn withdraw_collateral() -> anyhow::Result<()> {
+    let mm_tester = setup()?;
+    mm_tester.test_withdraw_collateral()?;
+    Ok(())
+}
+#[test]
+fn borrow() -> anyhow::Result<()> {
+    let mm_tester = setup()?;
+    mm_tester.test_borrow()?;
+    Ok(())
+}
+// #[test]
+// fn repay() -> anyhow::Result<()> {
+//     let mm_tester = setup()?;
+//     mm_tester.test_repay()?;
+//     Ok(())
+// }
