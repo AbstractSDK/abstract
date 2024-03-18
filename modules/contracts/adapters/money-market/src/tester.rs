@@ -20,6 +20,7 @@ use cosmwasm_std::{coins, Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{anyhow, environment::MutCwEnv, prelude::*};
 
+pub const PER_MILLE_FEE: u64 = 3;
 pub trait MockMoneyMarket {
     /// Name of the moneymarket
     fn name(&self) -> String;
@@ -57,7 +58,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             crate::contract::CONTRACT_VERSION.parse()?,
             MoneyMarketInstantiateMsg {
                 recipient_account: 0,
-                fee: Decimal::permille(3),
+                fee: Decimal::permille(PER_MILLE_FEE),
             },
             DeployStrategy::Force,
         )?;
@@ -162,18 +163,16 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             asset: AssetEntry::new(&ans_lending_asset),
         })?;
         assert!(user_deposit_value > Uint128::from(deposit_value) * Decimal::from_str("0.95")?);
+        let withdraw_fee = user_deposit_value * Decimal::permille(PER_MILLE_FEE);
         self.execute(
             &proxy_addr,
             MoneyMarketAnsAction::Withdraw {
-                lent_asset: AnsAsset::new(
-                    AssetEntry::new(&ans_lending_asset),
-                    user_deposit_value.clone(),
-                ),
+                lent_asset: AnsAsset::new(AssetEntry::new(&ans_lending_asset), user_deposit_value),
             },
         )?;
 
         let current_balance = self.query_proxy_balance(&proxy_addr, &asset_info_lending)?;
-        assert_eq!(current_balance, user_deposit_value);
+        assert_eq!(current_balance + withdraw_fee, user_deposit_value);
 
         Ok(())
     }
@@ -269,7 +268,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             &proxy_addr,
             MoneyMarketAnsAction::WithdrawCollateral {
                 borrowable_asset: AssetEntry::new(&ans_lending_asset),
-                collateral_asset: AnsAsset::new(&ans_collateral_asset, user_collateral.clone()),
+                collateral_asset: AnsAsset::new(&ans_collateral_asset, user_collateral),
             },
         )?;
 

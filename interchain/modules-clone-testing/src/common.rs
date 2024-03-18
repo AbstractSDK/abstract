@@ -34,7 +34,7 @@ pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClie
     // Migrate if needed
     {
         let deployment = Abstract::load_from(abstr_deployment.environment())?;
-        deployment.migrate_if_version_changed()?;
+        // deployment.migrate_if_version_changed()?;
     }
 
     // Allow registration of any module
