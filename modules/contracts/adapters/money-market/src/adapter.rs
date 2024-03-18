@@ -2,11 +2,14 @@ use abstract_money_market_standard::{
     raw_action::MoneyMarketRawAction, MoneyMarketCommand, MoneyMarketError,
 };
 use abstract_sdk::{
+    cw_helpers::Chargeable,
     features::{AbstractNameService, AbstractRegistryAccess},
     Execution,
 };
 use cosmwasm_std::{Addr, CosmosMsg, Deps};
 use cw_asset::{AssetBase, AssetInfoBase};
+
+use crate::state::MONEYMARKET_FEES;
 
 pub const DEPOSIT: u64 = 8142;
 pub const WITHDRAW: u64 = 8143;
@@ -73,9 +76,16 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         money_market: &mut dyn MoneyMarketCommand,
     ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
-        let asset = lending_asset.check(deps.api, None)?;
+        let mut asset = lending_asset.check(deps.api, None)?;
 
-        money_market.withdraw(deps, contract_addr, asset)
+        let mut withdraw_msgs = money_market.withdraw(deps, contract_addr, asset.clone())?;
+
+        // account for fee
+        let dex_fees = MONEYMARKET_FEES.load(deps.storage)?;
+        let fee_msg = asset.charge_usage_fee(dex_fees)?;
+
+        withdraw_msgs.extend(fee_msg);
+        Ok(withdraw_msgs)
     }
 
     fn resolve_provide_collateral(

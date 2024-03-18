@@ -1,9 +1,6 @@
 use abstract_money_market_standard::Identify;
-use abstract_sdk::{
-    core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
-    feature_objects::AnsHost,
-};
-use cosmwasm_std::{Addr, QuerierWrapper};
+
+use cosmwasm_std::Addr;
 
 use crate::{AVAILABLE_CHAINS, MARS};
 
@@ -25,7 +22,11 @@ impl Identify for Mars {
 #[cfg(feature = "full_integration")]
 use {
     abstract_money_market_standard::{MoneyMarketCommand, MoneyMarketError},
-    cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
+    abstract_sdk::{
+        core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
+        feature_objects::AnsHost,
+    },
+    cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, Deps, QuerierWrapper, Uint128},
     cw_asset::{Asset, AssetInfo},
 };
 
@@ -325,6 +326,7 @@ impl Mars {
     }
 }
 
+#[cfg(feature = "full_integration")]
 fn unwrap_native(asset: AssetInfo) -> Result<String, MoneyMarketError> {
     match asset {
         cw_asset::AssetInfoBase::Native(denom) => Ok(denom),

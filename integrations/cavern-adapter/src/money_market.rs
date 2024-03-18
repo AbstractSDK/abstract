@@ -1,9 +1,6 @@
 use abstract_money_market_standard::Identify;
-use abstract_sdk::{
-    core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
-    feature_objects::AnsHost,
-};
-use cosmwasm_std::{to_json_binary, Addr, QuerierWrapper, StdError};
+
+use cosmwasm_std::Addr;
 
 use crate::{AVAILABLE_CHAINS, CAVERN};
 
@@ -24,6 +21,11 @@ impl Identify for Cavern {
 #[cfg(feature = "full_integration")]
 use {
     abstract_money_market_standard::{MoneyMarketCommand, MoneyMarketError},
+    abstract_sdk::{
+        core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
+        feature_objects::AnsHost,
+    },
+    cosmwasm_std::{to_json_binary, QuerierWrapper, StdError},
     cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw_asset::{Asset, AssetInfo},
 };

@@ -3,13 +3,9 @@
 // re-export response types
 use crate::query::{MoneyMarketAnsQuery, MoneyMarketQueryResponse, MoneyMarketRawQuery};
 use crate::{ans_action::MoneyMarketAnsAction, raw_action::MoneyMarketRawAction};
-use abstract_core::{
-    adapter,
-    objects::fee::{Fee, UsageFee},
-    AbstractError, AbstractResult,
-};
+use abstract_core::{adapter, objects::fee::UsageFee};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, CosmosMsg, Decimal};
+use cosmwasm_std::{CosmosMsg, Decimal};
 
 /// Max fee for the dex adapter actions
 pub const MAX_FEE: Decimal = Decimal::percent(5);
@@ -38,13 +34,7 @@ pub struct GenerateMessagesResponse {
 }
 
 /// Response for MoneyMarket Fees
-#[cosmwasm_schema::cw_serde]
-pub struct MoneyMarketFeesResponse {
-    /// Fee for using swap action
-    pub money_market_fee: Fee,
-    /// Address where all fees will go
-    pub recipient: Addr,
-}
+pub type MoneyMarketFeesResponse = UsageFee;
 
 /// Instantiation message for dex adapter
 #[cosmwasm_schema::cw_serde]
@@ -117,50 +107,4 @@ pub enum MoneyMarketQueryMsg {
     /// Fee info for using the different dex actions
     #[returns(MoneyMarketFeesResponse)]
     Fees {},
-}
-
-/// Fees for using the dex adapter
-#[cosmwasm_schema::cw_serde]
-pub struct MoneyMarketFees {
-    /// Fee for using swap action
-    swap_fee: Fee,
-    /// Address where all fees will go
-    pub recipient: Addr,
-}
-
-impl MoneyMarketFees {
-    /// Create checked MoneyMarketFees
-    pub fn new(swap_fee_share: Decimal, recipient: Addr) -> AbstractResult<Self> {
-        Self::check_fee_share(swap_fee_share)?;
-        Ok(Self {
-            swap_fee: Fee::new(swap_fee_share)?,
-            recipient,
-        })
-    }
-
-    /// Update swap share
-    pub fn set_swap_fee_share(&mut self, new_swap_fee_share: Decimal) -> AbstractResult<()> {
-        Self::check_fee_share(new_swap_fee_share)?;
-        self.swap_fee = Fee::new(new_swap_fee_share)?;
-        Ok(())
-    }
-
-    /// Get swap fee
-    pub fn swap_fee(&self) -> Fee {
-        self.swap_fee
-    }
-
-    /// Usage fee for swap
-    pub fn swap_usage_fee(&self) -> AbstractResult<UsageFee> {
-        UsageFee::new(self.swap_fee.share(), self.recipient.clone())
-    }
-
-    fn check_fee_share(fee: Decimal) -> AbstractResult<()> {
-        if fee > MAX_FEE {
-            return Err(AbstractError::Fee(format!(
-                "fee share can't be bigger than {MAX_FEE}"
-            )));
-        }
-        Ok(())
-    }
 }

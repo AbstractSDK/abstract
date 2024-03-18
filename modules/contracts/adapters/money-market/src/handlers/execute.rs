@@ -95,7 +95,7 @@ pub fn execute_handler(
 
             // Update swap fee
             if let Some(swap_fee) = money_market_fee {
-                fee.set_swap_fee_share(swap_fee)?;
+                fee.set_share(swap_fee)?;
             }
 
             // Update recipient account id
@@ -103,7 +103,7 @@ pub fn execute_handler(
                 let recipient = adapter
                     .account_registry(deps.as_ref())?
                     .proxy_address(&AccountId::new(account_id, AccountTrace::Local)?)?;
-                fee.recipient = recipient;
+                fee.set_recipient(recipient);
             }
 
             MONEYMARKET_FEES.save(deps.storage, &fee)?;

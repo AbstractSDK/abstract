@@ -1,9 +1,6 @@
 use abstract_money_market_standard::{
     ans_action::ActionOnMoneymarket,
-    msg::{
-        GenerateMessagesResponse, MoneyMarketExecuteMsg, MoneyMarketFeesResponse,
-        MoneyMarketQueryMsg,
-    },
+    msg::{GenerateMessagesResponse, MoneyMarketExecuteMsg, MoneyMarketQueryMsg},
     query::{MoneyMarketRawQuery, WholeMoneyMarketQuery},
     MoneyMarketError,
 };
@@ -105,11 +102,8 @@ pub fn query_handler(
 
 pub fn fees(deps: Deps) -> MoneyMarketResult<Binary> {
     let money_market_fees = MONEYMARKET_FEES.load(deps.storage)?;
-    let resp = MoneyMarketFeesResponse {
-        money_market_fee: money_market_fees.swap_fee(),
-        recipient: money_market_fees.recipient,
-    };
-    to_json_binary(&resp).map_err(Into::into)
+
+    to_json_binary(&money_market_fees).map_err(Into::into)
 }
 
 /// Handle an adapter request that can be executed on the local chain

@@ -116,9 +116,9 @@ fn borrow() -> anyhow::Result<()> {
     mm_tester.test_borrow()?;
     Ok(())
 }
-// #[test]
-// fn repay() -> anyhow::Result<()> {
-//     let mm_tester = setup()?;
-//     mm_tester.test_repay()?;
-//     Ok(())
-// }
+#[test]
+fn repay() -> anyhow::Result<()> {
+    let mm_tester = setup()?;
+    mm_tester.test_repay()?;
+    Ok(())
+}
