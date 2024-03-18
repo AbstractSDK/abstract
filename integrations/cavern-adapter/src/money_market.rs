@@ -316,12 +316,12 @@ impl MoneyMarketCommand for Cavern {
         _lending_asset: AssetEntry,
         collateral_asset: AssetEntry,
     ) -> Result<Addr, AnsHostError> {
-        let lending_contract = ContractEntry {
+        let custody_contract = ContractEntry {
             protocol: self.name().to_string(),
             contract: format!("custody/{}", collateral_asset),
         };
 
-        ans_host.query_contract(querier, &lending_contract)
+        ans_host.query_contract(querier, &custody_contract)
     }
 
     fn borrow_address(
