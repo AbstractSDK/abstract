@@ -31,8 +31,10 @@ use ::{
     },
     kujira::{ExchangeRateResponse, HumanPrice},
     prost::Message,
-    types::{exchange_rate_type_url, QueryExchangeRateRequest},
 };
+
+#[cfg(feature = "full_integration")]
+use self::types::{exchange_rate_type_url, QueryExchangeRateRequest};
 
 #[cfg(feature = "full_integration")]
 impl MoneyMarketCommand for Kujira {
