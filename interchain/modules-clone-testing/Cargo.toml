@@ -13,7 +13,7 @@ cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-clone-testing = { workspace = true }
 
 abstract-app = { workspace = true, features = ["test-utils"] }
-abstract-interface = { workspace = true }
+abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-client = { workspace = true }
 
 tokio = { workspace = true }
