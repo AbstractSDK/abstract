@@ -1,5 +1,5 @@
 use abstract_client::{AbstractClient, Environment};
-use abstract_interface::{Abstract, VCExecFns, VCQueryFns};
+use abstract_interface::{Abstract, VCExecFns};
 use cosmwasm_std::{coins, Addr};
 use cw_orch::prelude::*;
 use cw_orch::{contract::Deploy, daemon::ChainInfo};
@@ -15,6 +15,7 @@ pub fn rt() -> &'static tokio::runtime::Runtime {
     }
     &RT
 }
+
 /// Sets up the CloneTesting for chain.
 /// Returns the abstract client
 pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClient<CloneTesting>> {
@@ -35,7 +36,6 @@ pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClie
         let deployment = Abstract::load_from(abstr_deployment.environment())?;
         deployment.migrate_if_version_changed()?;
     }
-    abstr_deployment.version_control().ownership()?;
 
     // Allow registration of any module
     abstr_deployment

@@ -1,12 +1,10 @@
 use abstract_app::objects::UncheckedContractEntry;
 use abstract_client::Environment;
+use abstract_modules_interchain_tests::common::load_abstr;
 use abstract_money_market_adapter::tester::{MockMoneyMarket, MoneyMarketTester};
 use cosmwasm_std::Addr;
 use cw_orch::daemon::networks::OSMOSIS_1;
 use cw_orch_clone_testing::CloneTesting;
-
-use crate::common::load_abstr;
-
 pub struct MarsMoneymarket {
     pub chain: CloneTesting,
     pub lending_asset: (String, String),

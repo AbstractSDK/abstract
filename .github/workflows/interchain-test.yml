@@ -4,13 +4,17 @@ permissions:
 on:
   push:
     branches: [main]
-    paths: 
+    paths:
       - interchain/**
+      - framework/**
+      - modules/**
   pull_request:
-    paths: 
+    paths:
       - interchain/**
+      - framework/**
+      - modules/**
 
-env: 
+env:
   SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: "sccache"
 

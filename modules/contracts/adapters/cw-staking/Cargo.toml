@@ -37,7 +37,7 @@ interface = [
   "abstract-staking-standard/interface",
 ]
 schema = ["abstract-adapter/schema"]
-testing = ["abstract-wyndex-adapter/local"]
+testing = ["dep:abstract-client", "dep:cw-orch", "dep:cw20"]
 cw-orch = ["dep:cw-orch"]
 osmosis-test = ["cw-orch/osmosis-test-tube"]
 
@@ -111,6 +111,10 @@ abstract-kujira-adapter = { workspace = true }
 
 # Astrovault #
 abstract-astrovault-adapter = { workspace = true }
+
+# Testing #
+abstract-client = { workspace = true, optional = true }
+cw20 = { workspace = true, optional = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

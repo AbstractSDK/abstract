@@ -17,6 +17,9 @@ pub mod host_exchange {
     pub use abstract_osmosis_adapter::dex::Osmosis;
 }
 
+#[cfg(feature = "testing")]
+pub mod dex_tester;
+
 #[cfg(feature = "interface")]
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*};
@@ -28,7 +31,6 @@ pub mod interface {
     use abstract_dex_standard::raw_action::DexRawAction;
     use abstract_interface::{AbstractAccount, AbstractInterfaceError};
     use abstract_interface::{AdapterDeployer, RegisteredModule};
-    use abstract_sdk::base::Handler;
     use abstract_sdk::features::ModuleIdentification;
     use cosmwasm_std::{Decimal, Empty};
     use cw_asset::{AssetBase, AssetInfoBase};
@@ -169,7 +171,7 @@ pub mod interface {
     }
 
     impl<Chain: CwEnv> RegisteredModule for DexAdapter<Chain> {
-        type InitMsg = <crate::contract::DexAdapter as Handler>::CustomInitMsg;
+        type InitMsg = Empty;
 
         fn module_id<'a>() -> &'a str {
             DEX_ADAPTER.module_id()

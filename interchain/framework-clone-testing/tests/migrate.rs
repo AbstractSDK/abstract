@@ -1,4 +1,4 @@
-//! Currently you can run only 1 test at a time: `cargo mt`
+//! Currently you can run only 1 test at a time: `cargo ct`
 //! Otherwise you will have too many requests
 
 use abstract_app::mock::MockInitMsg;
@@ -6,6 +6,7 @@ use abstract_core::{
     objects::{gov_type::GovernanceDetails, module::ModuleInfo},
     ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
+use abstract_framework_clone_testing::common;
 use abstract_integration_tests::manager::mock_app::{MockApp, APP_VERSION};
 use abstract_interface::{
     Abstract, AbstractAccount, AppDeployer, DeployStrategy, ManagerExecFns, VCExecFns,
@@ -15,39 +16,12 @@ use anyhow::Ok;
 use cosmwasm_std::{to_json_binary, Addr};
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
-
 // owner of the abstract infra
 const SENDER: &str = "juno1kjzpqv393k4g064xh04j4hwy5d0s03wfvqejga";
 
-/// Returns a shared tokio runtime for all tests
-fn rt() -> &'static tokio::runtime::Runtime {
-    lazy_static::lazy_static! {
-        static ref RT: tokio::runtime::Runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .expect("Should create a tokio runtime");
-    }
-    &RT
-}
-
-/// Sets up the CloneTesting for Juno mainnet.
-/// Returns the abstract deployment and sender (=mainnet admin)
-fn setup() -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
-    let _ = env_logger::builder().is_test(true).try_init();
-    let sender = Addr::unchecked(SENDER);
-    // Run migration tests against Juno mainnet
-    // We set the state file to be able to clone test
-    std::env::set_var("STATE_FILE", "../scripts/state.json");
-    let mut app = CloneTesting::new(rt(), JUNO_1)?;
-    app.set_sender(sender.clone());
-
-    let abstr_deployment = Abstract::load_from(app.clone())?;
-    Ok((abstr_deployment, app))
-}
-
 fn setup_migrate_allowed_direct_module_registration(
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
-    let (deployment, chain) = setup()?;
+    let (deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
     deployment.migrate_if_version_changed()?;
     deployment
         .version_control
@@ -57,7 +31,7 @@ fn setup_migrate_allowed_direct_module_registration(
 
 #[test]
 fn migrate_infra_success() -> anyhow::Result<()> {
-    let (abstr_deployment, _) = setup()?;
+    let (abstr_deployment, _) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
 
     let pre_code_id = abstr_deployment.version_control.code_id()?;
     let migrated = abstr_deployment.migrate_if_version_changed()?;
@@ -73,7 +47,7 @@ fn migrate_infra_success() -> anyhow::Result<()> {
 
 #[test]
 fn old_account_migrate() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = setup()?;
+    let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
 
     // Old message had no account_id field, need something to serialize
     #[cosmwasm_schema::cw_serde]
@@ -131,7 +105,7 @@ fn old_account_migrate() -> anyhow::Result<()> {
 
 #[test]
 fn old_account_functions() -> anyhow::Result<()> {
-    let (abstr_deployment, chain) = setup()?;
+    let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
 
     // Old message had no account_id field, need something to serialize
     #[cosmwasm_schema::cw_serde]
