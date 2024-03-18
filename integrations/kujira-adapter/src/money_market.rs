@@ -1,5 +1,7 @@
 use crate::{AVAILABLE_CHAINS, KUJIRA};
 use abstract_money_market_standard::Identify;
+use cosmwasm_std::StdError;
+use kujira::{ExchangeRateResponse, HumanPrice};
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -14,6 +16,8 @@ impl Identify for Kujira {
     }
 }
 
+use self::types::{exchange_rate_type_url, QueryExchangeRateRequest};
+
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_money_market_standard::{MoneyMarketCommand, MoneyMarketError},
@@ -23,13 +27,11 @@ use ::{
     },
     cosmwasm_std::{coins, wasm_execute, Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, Uint128},
     cw_asset::{Asset, AssetInfo},
-    kujira::{
-        ghost::{
-            market::{self},
-            receipt_vault,
-        },
-        KujiraQuerier,
+    kujira::ghost::{
+        market::{self},
+        receipt_vault,
     },
+    prost::Message,
 };
 
 #[cfg(feature = "full_integration")]
@@ -145,21 +147,21 @@ impl MoneyMarketCommand for Kujira {
         base: AssetInfo,
         quote: AssetInfo,
     ) -> Result<Decimal, MoneyMarketError> {
-        // let base_denom = base.to_string();
-        // let quote_denom = quote.to_string();
+        let base_denom = unwrap_native(base)?;
+        let quote_denom = unwrap_native(quote)?;
 
-        // let raw_base_price = KujiraQuerier::new(&deps.querier).query_exchange_rate(base_denom)?;
-        // // This is how much 1 unit of base is in terms of $
-        // let base_price = raw_base_price.normalize(6);
+        let raw_base_price = self.exchange_rate(&deps.querier, base_denom)?;
+        // This is how much 1 unit of base is in terms of $
+        // TODO, 6 decimal points ?
+        let base_price = raw_base_price.normalize(6);
 
-        // let raw_quote_price = KujiraQuerier::new(&deps.querier).query_exchange_rate(base_denom)?;
-        // // This is how much 1 unit of quote is in terms of $
-        // let quote_price = raw_quote_price.normalize(6);
+        let raw_quote_price = self.exchange_rate(&deps.querier, quote_denom)?;
+        // This is how much 1 unit of quote is in terms of $
+        // TODO, 6 decimal points ?
+        let quote_price = raw_quote_price.normalize(6);
 
-        // // This is how much 1 unit of base is in terms of quote
-        // Ok((base_price / quote_price).inner())
-
-        Ok(Decimal::one())
+        // This is how much 1 unit of base is in terms of quote
+        Ok((base_price / quote_price).inner())
     }
 
     fn user_deposit(
@@ -338,5 +340,38 @@ impl Kujira {
         };
 
         ans_host.query_contract(querier, &market_contract)
+    }
+
+    fn exchange_rate(
+        &self,
+        querier: &QuerierWrapper,
+        denom: String,
+    ) -> Result<HumanPrice, StdError> {
+        let res: ExchangeRateResponse = querier.query(&cosmwasm_std::QueryRequest::Stargate {
+            path: exchange_rate_type_url(denom),
+            data: QueryExchangeRateRequest {}.encode_to_vec().into(),
+        })?;
+
+        Ok(res.rate.into())
+    }
+}
+
+#[cfg(feature = "full_integration")]
+pub mod types {
+
+    pub fn exchange_rate_type_url(denom: String) -> String {
+        format!("/oracle/denoms/{denom}/exchange_rate")
+    }
+
+    #[derive(prost::Message)]
+    pub struct QueryExchangeRateRequest {}
+}
+
+#[cfg(feature = "full_integration")]
+fn unwrap_native(asset: AssetInfo) -> Result<String, MoneyMarketError> {
+    match asset {
+        cw_asset::AssetInfoBase::Native(denom) => Ok(denom),
+        cw_asset::AssetInfoBase::Cw20(_) => Err(MoneyMarketError::ExpectedNative {}),
+        _ => todo!(),
     }
 }

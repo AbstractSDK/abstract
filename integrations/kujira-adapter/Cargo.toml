@@ -23,6 +23,7 @@ cw20 = { workspace = true, optional = true }
 cosmwasm-schema = { workspace = true, optional = true }
 cw-asset = { workspace = true, optional = true }
 cw-utils = { workspace = true, optional = true }
+prost = "0.12.3"
 
 [dev-dependencies]
 abstract-dex-standard = { workspace = true, features = ["testing"] }
