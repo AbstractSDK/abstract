@@ -1,6 +1,6 @@
-# Dex Adapter Module
+# MoneyMarket Adapter Module
 
-The Dex Adapter Module provides a unified interface to interact with various decentralized exchanges (dexes) across the Cosmos ecosystem. By abstracting the differences between various dexes, it allows developers to interact with any dex using a standard interface, streamlining the development process and ensuring compatibility across various dex platforms.
+The MoneyMarket Adapter Module provides a unified interface to interact with various lending and borrowing markets (moneymarkets) across the Cosmos ecosystem. By abstracting the differences between various moneymarkets, it allows developers to interact with any moneymarket using a standard interface, streamlining the development process and ensuring compatibility across various moneymarket platforms.
 
 ## Features
 
@@ -13,51 +13,62 @@ The Dex Adapter Module provides a unified interface to interact with various dec
 
 ## Installation
 
-To use the Dex Adapter Module in your Rust project, add the following dependency to your `Cargo.toml`:
+To use the MoneyMarket Adapter Module in your Rust project, add the following dependency to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-abstract-dex-adapter = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.18.0", default-features = false }
+abstract-money-market-adapter = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.21.1", default-features = false }
 ```
 
 ## Usage with the Abstract SDK
 
-To interact with a dex, you first need to retrieve the dex using the Dex Adapter. Here's a basic example in Rust:
+To interact with a moneymarket, you first need to retrieve the moneymarket using the Moneymarket Api. Here's a basic example in Rust:
 
 ```rust
-// Retrieve the dex
-use abstract_dex_adapter::api::DexInterface;
+// Retrieve the money_market
+use abstract_money_market_adapter::api::MoneyMarketInterface;
 ...
 
-let dex_name = "osmosis".to_string();
-let offer_asset = OfferAsset::new("juno", 1000u128);
-let ask_asset = AssetEntry::new("uusd");
-let max_spread = Some(Decimal::percent(1));
-let belief_price = Some(Decimal::percent(2));
+let money_market_name = "mars".to_string();
+let deposit_asset = OfferAsset::new("juno", 1000u128);
 
-let dex = app.dex(deps.as_ref(), dex_name);
-
-let swap_msg = dex.swap(offer_asset, ask_asset, max_spread, belief_price);
+let money_market = app.money_market(deps.as_ref(), money_market_name);
+let deposit_msg = money_market.deposit(deposit_asset);
 ```
 
-## Why Use the Dex Adapter?
+## Limitation
+
+The Money Market adapter provides easy ways of interacting with Money Markets. However, some errors can appear without the adapter catching them:
+
+- The money market can have deposit limits enabled which may be crossed when using this adapter.
+- The money market may not have liquidity available to borrow funds.
+- The money market may not have liquidity available to withdraw deposited funds from
+- The user may not be able to withdraw collateral because they are borrowing too much funds.
+  
+All those errors and more have to be handled directly by the developers integrating this adapter.
+
+## Why Use the MoneyMarket Adapter?
 
 ### Simplified Development
-By using the Dex Adapter, developers can bypass the intricacies of each individual dex. This means less time spent on understanding and integrating with each dex's unique API, and more time focusing on building core functionalities.
+
+By using the Adapter, developers can bypass the intricacies of each individual platform. This means less time spent on understanding and integrating with each moneymarket's unique API, and more time focusing on building core functionalities.
 
 ### Flexibility
-The Dex Adapter ensures that your application remains flexible. If a new dex emerges or if there are changes to an existing one, your application can easily adapt without undergoing major overhauls.
+
+The MoneyMarket Adapter ensures that your application remains flexible. If a new moneymarket emerges or if there are changes to an existing one, your application can easily adapt without undergoing major overhauls.
 
 ### Use Cases
-- **Rapid Prototyping**: Quickly build and test applications on top of various dexes without the need for multiple integrations.
-- **Cross-Dex Applications**: Build applications that leverage multiple dexes simultaneously, offering users more options and better rates.
-- **Future-Proofing**: Ensure your application remains compatible with future dexes that emerge in the Cosmos ecosystem.
+
+- **Rapid Prototyping**: Quickly build and test applications on top of various moneymarkets without the need for multiple integrations.
+- **Cross-Dex Applications**: Build applications that leverage multiple moneymarkets simultaneously, offering users more options and better rates.
+- **Future-Proofing**: Ensure your application remains compatible with future moneymarkets that emerge in the Cosmos ecosystem.
 
 ## Documentation
 
-- **Dex Interface**: For a detailed look at the dex interface, refer to the [Rust trait interface](https://github.com/AbstractSDK/abstract/blob/bcf26f2f446478fd2825de5b187321dc9a626341/modules/contracts/adapters/dex/src/api.rs#L43).
+- **Moneymarket Interface**: For a detailed look at the moneymarket interface, refer to the [Rust trait interface](https://github.com/AbstractSDK/abstract/tree/main/modules/contracts/adapters/moneymarket/src/api.rs#L43). #TODO, fix this will be broken
+
 - **Adapters Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/7_module_types.html#adapters).
 
 ## Contributing
 
-If you have suggestions, improvements, new dexes, or want to contribute to the project, we welcome your input on GitHub.
+If you have suggestions, improvements, new moneymarkets, or want to contribute to the project, we welcome your input on GitHub.
