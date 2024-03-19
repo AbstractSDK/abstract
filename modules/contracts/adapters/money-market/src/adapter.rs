@@ -9,7 +9,7 @@ use abstract_sdk::{
 use cosmwasm_std::{Addr, CosmosMsg, Deps};
 use cw_asset::{AssetBase, AssetInfoBase};
 
-use crate::state::MONEYMARKET_FEES;
+use crate::state::MONEY_MARKET_FEES;
 
 pub const DEPOSIT: u64 = 8142;
 pub const WITHDRAW: u64 = 8143;
@@ -83,7 +83,7 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let mut withdraw_msgs = money_market.withdraw(deps, contract_addr, asset.clone())?;
 
         // account for fee
-        let dex_fees = MONEYMARKET_FEES.load(deps.storage)?;
+        let dex_fees = MONEY_MARKET_FEES.load(deps.storage)?;
         let fee_msg = asset.charge_usage_fee(dex_fees)?;
 
         withdraw_msgs.extend(fee_msg);

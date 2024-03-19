@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::{
-    interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEYMARKET_ADAPTER_ID,
+    interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEY_MARKET_ADAPTER_ID,
 };
 use abstract_client::{AbstractClient, Account, Environment};
 use abstract_core::{
@@ -52,11 +52,11 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         let _ = abstr_deployment
             .version_control()
             .remove_module(ModuleInfo::from_id(
-                MONEYMARKET_ADAPTER_ID,
+                MONEY_MARKET_ADAPTER_ID,
                 ModuleVersion::Version(crate::contract::CONTRACT_VERSION.to_owned()),
             )?);
         let moneymarket_adapter =
-            MoneyMarketAdapter::new(MONEYMARKET_ADAPTER_ID, abstr_deployment.environment());
+            MoneyMarketAdapter::new(MONEY_MARKET_ADAPTER_ID, abstr_deployment.environment());
         moneymarket_adapter.deploy(
             crate::contract::CONTRACT_VERSION.parse()?,
             MoneyMarketInstantiateMsg {
