@@ -26,7 +26,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     ensure_eq, to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env,
-    IbcMsg, MessageInfo, Storage,
+    IbcMsg, MessageInfo, QueryRequest, Storage,
 };
 use polytone::callbacks::CallbackRequest;
 
@@ -285,7 +285,7 @@ pub fn execute_send_module_to_module_packet(
     let callback_request = callback_info.map(|c| CallbackRequest {
         receiver: env.contract.address.to_string(),
         msg: to_json_binary(&IbcClientCallback::ModuleRemoteAction {
-            sender_module: source_module.module_info.clone(),
+            sender_address: info.sender.to_string(),
             callback_info: c,
             initiator_msg: msg.clone(),
         })
@@ -318,6 +318,42 @@ pub fn execute_send_module_to_module_packet(
     Ok(IbcClientResponse::action("handle_send_module_to_module_packet").add_message(note_message))
 }
 
+/// Sends a packet with an optional callback.
+/// This is the top-level function to do IBC related actions.
+pub fn execute_send_query(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    host_chain: String,
+    query: QueryRequest<Empty>,
+    callback_info: CallbackInfo,
+) -> IbcClientResult {
+    let host_chain = ChainName::from_str(&host_chain)?;
+
+    let callback_request = CallbackRequest {
+        receiver: env.contract.address.to_string(),
+        msg: to_json_binary(&IbcClientCallback::ModuleRemoteQuery {
+            callback_info,
+            sender_address: info.sender.to_string(),
+            query: query.clone(),
+        })
+        .unwrap(),
+    };
+
+    let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
+    let note_contract = ibc_infra.polytone_note;
+    let note_message = wasm_execute(
+        note_contract.to_string(),
+        &polytone_note::msg::ExecuteMsg::Query {
+            msgs: vec![query],
+            callback: callback_request,
+            timeout_seconds: PACKET_LIFETIME.into(),
+        },
+        vec![],
+    )?;
+
+    Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
+}
 /// Registers an Abstract Account on a remote chain.
 pub fn execute_register_account(
     deps: DepsMut,

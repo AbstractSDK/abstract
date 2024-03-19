@@ -1,5 +1,5 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Coin, Deps, StdError};
+use cosmwasm_std::{Addr, Binary, Coin, Deps, Empty, QueryRequest, StdError};
 use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
@@ -111,6 +111,11 @@ pub enum ExecuteMsg {
         msg: Binary,
         callback_info: Option<CallbackInfo>,
     },
+    IbcQuery {
+        host_chain: String,
+        query: QueryRequest<Empty>,
+        callback_info: CallbackInfo,
+    },
     RemoteAction {
         // host chain to be executed on
         // Example: "osmosis"
@@ -130,9 +135,14 @@ pub enum ExecuteMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
     ModuleRemoteAction {
-        sender_module: ModuleInfo,
+        sender_address: String,
         callback_info: CallbackInfo,
         initiator_msg: Binary,
+    },
+    ModuleRemoteQuery {
+        sender_address: String,
+        callback_info: CallbackInfo,
+        query: QueryRequest<Empty>,
     },
     CreateAccount {
         account_id: AccountId,
@@ -320,13 +330,12 @@ pub struct RemoteProxyResponse {
 
 #[cfg(test)]
 mod tests {
-    use cosmwasm_std::{to_json_binary, Binary, CosmosMsg, Empty};
+    use cosmwasm_std::{to_json_binary, CosmosMsg, Empty};
     use polytone::callbacks::Callback;
     use speculoos::prelude::*;
 
     use crate::app::ExecuteMsg;
-    use crate::ibc::IbcCallbackMsg;
-    use crate::objects::module::ModuleInfo;
+    use crate::ibc::{CallbackResult, IbcCallbackMsg};
 
     // ... (other test functions)
 
@@ -336,14 +345,13 @@ mod tests {
         let callback_id = "15".to_string();
         let callback_msg = to_json_binary("15").unwrap();
 
-        let result = Callback::FatalError("ibc execution error".to_string());
+        let result = CallbackResult::FatalError("ibc execution error".to_string());
 
         let response_msg = IbcCallbackMsg {
             id: callback_id,
             msg: Some(callback_msg),
             result,
-            sender_module: ModuleInfo::from_id_latest("tester:test-module").unwrap(),
-            initiator_msg: Binary::from(vec![9u8, 7u8]),
+            sender_address: "action_sender".to_string(),
         };
 
         let actual: CosmosMsg<Empty> = response_msg

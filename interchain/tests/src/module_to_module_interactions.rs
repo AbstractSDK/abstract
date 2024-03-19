@@ -1,13 +1,15 @@
 pub use abstract_core::app;
 use abstract_core::{
-    ibc::{CallbackInfo, ModuleIbcMsg},
+    ibc::{CallbackInfo, CallbackResult, ModuleIbcMsg},
     ibc_client::{self, InstalledModuleIdentification},
     objects::module::ModuleInfo,
     IBC_CLIENT,
 };
 use cosmwasm_schema::{cw_serde, QueryResponses};
 pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-use cosmwasm_std::{to_json_binary, wasm_execute, Response, StdError};
+use cosmwasm_std::{
+    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Response, StdError,
+};
 use cw_controllers::AdminError;
 use cw_storage_plus::Item;
 
@@ -28,6 +30,10 @@ pub enum MockExecMsg {
         remote_chain: String,
         target_module: ModuleInfo,
     },
+    QuerySomethingIbc {
+        remote_chain: String,
+        address: String,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -38,6 +44,9 @@ pub enum MockQueryMsg {
     #[returns(ReceivedIbcCallbackStatus)]
     GetReceivedIbcCallbackStatus {},
 
+    #[returns(ReceivedIbcQueryCallbackStatus)]
+    GetReceivedIbcQueryCallbackStatus {},
+
     #[returns(ReceivedIbcModuleStatus)]
     GetReceivedIbcModuleStatus {},
 }
@@ -45,6 +54,11 @@ pub enum MockQueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ReceivedIbcCallbackStatus {
     pub received: bool,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ReceivedIbcQueryCallbackStatus {
+    pub balance: Vec<Coin>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -105,6 +119,9 @@ pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received")
 // Easy way to see if an module ibc called was actually received.
 pub const MODULE_IBC_RECEIVED: Item<ModuleInfo> = Item::new("module_ibc_received");
 
+// Easy way to see if an ibc-callback was actually received.
+pub const IBC_CALLBACK_QUERY_RECEIVED: Item<Vec<Coin>> = Item::new("ibc_callback_query_received");
+
 pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContract {
     MockAppContract::new(id, version, None)
         .with_instantiate(|deps, _, _, _, _| {
@@ -143,6 +160,30 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
 
                 Ok(Response::new().add_message(msg))
             }
+            MockExecMsg::QuerySomethingIbc {
+                address,
+                remote_chain,
+            } => {
+                let ibc_client_addr = app.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
+                // We send an IBC Client module message
+                let msg = wasm_execute(
+                    ibc_client_addr,
+                    &ibc_client::ExecuteMsg::IbcQuery {
+                        host_chain: remote_chain,
+                        callback_info: CallbackInfo {
+                            id: "query_id".to_string(),
+                            msg: None,
+                            receiver: env.contract.address.to_string(),
+                        },
+                        query: cosmwasm_std::QueryRequest::Bank(
+                            cosmwasm_std::BankQuery::AllBalances { address },
+                        ),
+                    },
+                    vec![],
+                )?;
+
+                Ok(Response::new().add_message(msg))
+            }
             _ => Ok(Response::new().set_data("mock_exec".as_bytes())),
         })
         .with_query(|deps, _, _, msg| match msg {
@@ -158,13 +199,32 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                 })
                 .map_err(Into::into)
             }
+            MockQueryMsg::GetReceivedIbcQueryCallbackStatus {} => {
+                to_json_binary(&ReceivedIbcQueryCallbackStatus {
+                    balance: IBC_CALLBACK_QUERY_RECEIVED.load(deps.storage)?,
+                })
+                .map_err(Into::into)
+            }
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _, _, _| {
-            IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
-            Ok(Response::new().add_attribute("mock_callback", "executed"))
-        })])
+        .with_ibc_callbacks(&[
+            ("c_id", |deps, _, _, _, _| {
+                IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
+                Ok(Response::new().add_attribute("mock_callback", "executed"))
+            }),
+            ("query_id", |deps, _, _, _, msg| match msg.result {
+                CallbackResult::Query { query: _, result } => {
+                    let result = result.unwrap()[0].clone();
+                    let deser: AllBalanceResponse = from_json(result)?;
+                    IBC_CALLBACK_QUERY_RECEIVED
+                        .save(deps.storage, &deser.amount)
+                        .unwrap();
+                    Ok(Response::new().add_attribute("mock_callback_query", "executed"))
+                }
+                _ => panic!("Expected query result"),
+            }),
+        ])
         .with_replies(&[(1u64, |_, _, _, msg| {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
@@ -221,12 +281,27 @@ pub mod test {
         );
         Ok(())
     }
+
+    fn assert_query_callback_status(
+        app: &MockAppOriginI<MockBech32>,
+        balance: Vec<Coin>,
+    ) -> AnyResult<()> {
+        let get_received_ibc_query_callback_status_res: ReceivedIbcQueryCallbackStatus =
+            app.get_received_ibc_query_callback_status()?;
+
+        assert_eq!(
+            ReceivedIbcQueryCallbackStatus { balance },
+            get_received_ibc_query_callback_status_res
+        );
+        Ok(())
+    }
     use crate::{
         interchain_accounts::create_test_remote_account,
         module_to_module_interactions::{
             origin_app::interface::MockAppOriginI,
             remote_app::{interface::MockAppRemoteI, TEST_MODULE_ID_REMOTE, TEST_VERSION_REMOTE},
             MockExecMsgFns, MockInitMsg, MockQueryMsgFns, ReceivedIbcCallbackStatus,
+            ReceivedIbcQueryCallbackStatus,
         },
         setup::{
             ibc_abstract_setup, ibc_connect_polytone_and_abstract, mock_test::logger_test_init,
@@ -241,7 +316,7 @@ pub mod test {
     use abstract_testing::addresses::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION};
     use anyhow::Result as AnyResult;
     use base64::{engine::general_purpose, Engine};
-    use cosmwasm_std::to_json_binary;
+    use cosmwasm_std::{coins, to_json_binary};
     use cw_orch::interchain::MockBech32InterchainEnv;
     use cw_orch::prelude::*;
 
@@ -383,6 +458,7 @@ pub mod test {
 
         Ok(())
     }
+
     #[test]
     fn works() -> AnyResult<()> {
         logger_test_init();
@@ -472,6 +548,49 @@ pub mod test {
             Some(ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?),
         )?;
         assert_callback_status(&app, true)?;
+
+        Ok(())
+    }
+
+    pub const REMOTE_AMOUNT: u128 = 5674309;
+    pub const REMOTE_DENOM: &str = "remote_denom";
+    #[test]
+    fn queries() -> AnyResult<()> {
+        logger_test_init();
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+
+        // We just verified all steps pass
+        let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
+        ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
+
+        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+        let remote = mock_interchain.chain(STARGAZE)?;
+        let remote_address =
+            remote.addr_make_with_balance("remote-test", coins(REMOTE_AMOUNT, REMOTE_DENOM))?;
+
+        let (origin_account, _remote_account_id) =
+            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+
+        // Install local app
+        let app = MockAppOriginI::new(
+            TEST_MODULE_ID,
+            abstr_origin.version_control.get_chain().clone(),
+        );
+
+        abstr_origin
+            .version_control
+            .claim_namespace(origin_account.id()?, TEST_NAMESPACE.to_owned())?;
+
+        app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
+
+        origin_account.install_app(&app, &MockInitMsg {}, None)?;
+
+        let query_response = app.query_something_ibc(remote_address.to_string(), remote_name)?;
+
+        assert_query_callback_status(&app, coins(REMOTE_AMOUNT, REMOTE_DENOM)).unwrap_err();
+        mock_interchain.wait_ibc(JUNO, query_response)?;
+        assert_query_callback_status(&app, coins(REMOTE_AMOUNT, REMOTE_DENOM))?;
 
         Ok(())
     }

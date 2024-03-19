@@ -75,7 +75,7 @@ pub mod mock {
 
     #[cosmwasm_schema::cw_serde]
     pub struct ReceivedIbcCallbackStatus {
-        pub received: Option<ModuleInfo>,
+        pub received: Option<String>,
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -133,7 +133,7 @@ pub mod mock {
         MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
     // Easy way to see if an ibc-callback was actually received.
-    pub const IBC_CALLBACK_RECEIVED: Item<Option<ModuleInfo>> = Item::new("ibc_callback_received");
+    pub const IBC_CALLBACK_RECEIVED: Item<Option<String>> = Item::new("ibc_callback_received");
 
     pub const MOCK_APP_WITH_DEP: MockAppContract =
         MockAppContract::new(TEST_WITH_DEP_MODULE_ID, TEST_VERSION, None)
@@ -157,7 +157,7 @@ pub mod mock {
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
             .with_ibc_callbacks(&[("c_id", |deps, _, _, _, msg| {
                 IBC_CALLBACK_RECEIVED
-                    .save(deps.storage, &Some(msg.sender_module))
+                    .save(deps.storage, &Some(msg.sender_address))
                     .unwrap();
 
                 Ok(Response::new().add_attribute("mock_callback", "executed"))
