@@ -121,7 +121,13 @@ Now we define the functions that hold the logic of what these entrypoints do
 
 ```rust
 // in handlers/execute.rs
-fn create_position(deps: DepsMut, env: Env, info: MessageInfo, app: App,create_position_msg: CreatePositionMessage,) -> AppResult {
+fn create_position(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    app: App,
+    create_position_msg: CreatePositionMessage,
+) -> AppResult {
     Ok(app.response("create_position"))
 }
 fn deposit(deps: DepsMut, env: Env, info: MessageInfo, funds: Vec<Coin>, app: App) -> AppResult {
@@ -135,7 +141,17 @@ fn autocompound(deps: DepsMut, app: App) -> AppResult {
 }
 ```
 
-1. Let's start with the create_position. In order for the contract to be able to create a position for osmosis supercharged pools it needs certain data like the liquidity pool to open the position in and the ticks that define the range in which your assets will be available for swapping.
+### Create position
+
+7. Let's start with the create_position.
+   The create poisiton will do the following steps:
+   1. check that the caller is authorized
+   2. check that the osmosis pool has not been created yet
+   3. Swap the indicated funds to match the asset0/asset1 ratio and deposit as much as possible in the pool for the given parameters
+   4. Create a new position
+   5. Store position id from create position response
+
+In order for the contract to be able to create a position for osmosis supercharged pools it needs certain data like the liquidity pool for which to open the position and the ticks that define the range in which your assets will be available for swapping.
 
 ```rust
 // in msg.rs
@@ -151,4 +167,357 @@ pub struct CreatePositionMessage {
     pub asset0: Coin,
     pub asset1: Coin,
 }
+```
+
+#### check that the caller is authorized
+
+The `create_position` is permissioned so let's make sure the caller is the owner or the manager contract of the abstract account.
+
+```rust
+// in handlers/execute.rs under fn create_position
+// This is an abstract assert_admin function that makes sure the caller is the owner or the manager contract of the abstract account
+    // For more info check https://docs.abstract.money/3_framework/4_ownership.html
+app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+```
+
+#### check that the osmosis pool has not been created yet
+
+```rust
+// in handlers/execute.rs
+```
+
+Let's abstract away all the following logic in a new inner function that we call `_create_position`.
+that way from our `create_position` function we just have
+
+```rust
+// 3. Swap the indicated funds to match the asset0/asset1 ratio and deposit as much as possible in the pool for the given parameters
+    // 4. Create a new position
+    // 5. Store position id from create position response
+    let (swap_messages, create_position_msg) =
+        _create_position(deps.as_ref(), &env, &app, create_position_msg)?;
+```
+
+The \_create_position function can also be reused in the instantiate msg whenever the instantiator of this contract wants to also create the position within the same message.
+
+#### Swap the funds
+
+We need to Swap the indicated funds to match the asset0/asset1 ratio and deposit as much as possible in the pool for the given parameters.
+Imagine the user has 700USDC and 1300USDC and the ratio was 50%, Not doing this swap would mean that we could only deposit 700USDC/700USDT in the pool. Instead if we first swap 300USDC against 300 USDT we end up with roughly 1000USDC/1000USDT which allows us to create a position with more funds.
+The funds are not deposited by the owner to this endpoint instead the owner grants authz rights to this contract so that it can deposit funds on their behalf.
+
+```rust
+// in handlers/execute.rs
+// under fn _create_position add this
+
+pub(crate) fn _create_position(
+    deps: Deps,
+    env: &Env,
+    app: &App,
+    create_position_msg: CreatePositionMessage,
+) -> AppResult<(Vec<CosmosMsg>, SubMsg)> {
+    // Here we load
+
+
+    let CreatePositionMessage {
+        lower_tick,
+        upper_tick,
+        funds,
+        asset0,
+        asset1,
+        max_spread,
+        belief_price0,
+        belief_price1,
+    } = create_position_msg;
+
+    // 1. Swap the assets
+    let (swap_msgs, resulting_assets) = swap_to_enter_position(
+        deps,
+        env,
+        funds,
+        app,
+        asset0,
+        asset1,
+        max_spread,
+        belief_price0,
+        belief_price1,
+    )?;
+}
+```
+
+To make the swap we need to:
+
+1. Query the price
+2. calculate the amount of tokens to swap
+3. Execute the swap
+
+```rust
+#[allow(clippy::too_many_arguments)]
+pub fn swap_to_enter_position(
+    deps: Deps,
+    env: &Env,
+    funds: Vec<Coin>,
+    app: &App,
+    asset0: Coin,
+    asset1: Coin,
+    max_spread: Option<Decimal>,
+    belief_price0: Option<Decimal>,
+    belief_price1: Option<Decimal>,
+) -> AppResult<(Vec<CosmosMsg>, Vec<Coin>)> {
+    // 1. query the price
+    let price = query_price(deps, &funds, app, max_spread, belief_price0, belief_price1)?;
+    // 2. calculate the amount of tokens to swap
+    let (offer_asset, ask_asset, resulting_assets) =
+        tokens_to_swap(deps, funds, asset0, asset1, price)?;
+    // 3. Execute the swap
+    Ok((
+        swap_msg(deps, env, offer_asset, ask_asset, app)?,
+        resulting_assets,
+    ))
+}
+```
+
+##### Query price
+
+```rust
+pub fn query_price(
+    deps: Deps,
+    funds: &[Coin],
+    app: &App,
+    max_spread: Option<Decimal>,
+    belief_price0: Option<Decimal>,
+    belief_price1: Option<Decimal>,
+) -> AppResult<Decimal> {
+    let config = CONFIG.load(deps.storage)?;
+
+    let amount0 = funds
+        .iter()
+        .find(|c| c.denom == config.pool_config.token0)
+        .map(|c| c.amount)
+        .unwrap_or_default();
+    let amount1 = funds
+        .iter()
+        .find(|c| c.denom == config.pool_config.token1)
+        .map(|c| c.amount)
+        .unwrap_or_default();
+
+    // We take the biggest amount and simulate a swap for the corresponding asset
+    let price = if amount0 > amount1 {
+        let simulation_result = app.ans_dex(deps, OSMOSIS.to_string()).simulate_swap(
+            AnsAsset::new(config.pool_config.asset0, amount0),
+            config.pool_config.asset1,
+        )?;
+
+        let price = Decimal::from_ratio(amount0, simulation_result.return_amount);
+        if let Some(belief_price) = belief_price1 {
+            ensure!(
+                belief_price.abs_diff(price) <= max_spread.unwrap_or(DEFAULT_SLIPPAGE),
+                AppError::MaxSpreadAssertion { price }
+            );
+        }
+        price
+    } else {
+        let simulation_result = app.ans_dex(deps, OSMOSIS.to_string()).simulate_swap(
+            AnsAsset::new(config.pool_config.asset1, amount1),
+            config.pool_config.asset0,
+        )?;
+
+        let price = Decimal::from_ratio(simulation_result.return_amount, amount1);
+        if let Some(belief_price) = belief_price0 {
+            ensure!(
+                belief_price.abs_diff(price) <= max_spread.unwrap_or(DEFAULT_SLIPPAGE),
+                AppError::MaxSpreadAssertion { price }
+            );
+        }
+        price
+    };
+
+    Ok(price)
+}
+```
+
+##### calculate amount of tokens to swap
+
+```rust
+pub(crate) fn tokens_to_swap(
+    deps: Deps,
+    amount_to_swap: Vec<Coin>,
+    asset0: Coin, // Represents the amount of Coin 0 we would like the position to handle
+    asset1: Coin, // Represents the amount of Coin 1 we would like the position to handle,
+    price: Decimal, // Relative price (when swapping amount0 for amount1, equals amount0/amount1)
+) -> AppResult<(AnsAsset, AssetEntry, Vec<Coin>)> {
+    let config = CONFIG.load(deps.storage)?;
+
+    let x0 = amount_to_swap
+        .iter()
+        .find(|c| c.denom == asset0.denom)
+        .cloned()
+        .unwrap_or(Coin {
+            denom: asset0.denom,
+            amount: Uint128::zero(),
+        });
+    let x1 = amount_to_swap
+        .iter()
+        .find(|c| c.denom == asset1.denom)
+        .cloned()
+        .unwrap_or(Coin {
+            denom: asset1.denom,
+            amount: Uint128::zero(),
+        });
+
+    // We will swap on the pool to get the right coin ratio
+
+    // We have x0 and x1 to deposit. Let p (or price) be the price of asset1 (the number of asset0 you get for 1 unit of asset1)
+    // In order to deposit, you need to have X0 and X1 such that X0/X1 = A0/A1 where A0 and A1 are the current liquidity inside the position
+    // That is equivalent to X0*A1 = X1*A0
+    // We need to find how much to swap.
+    // If x0*A1 < x1*A0, we need to have more x0 to balance the swap --> so we need to send some of x1 to swap (lets say we wend y1 to swap)
+    // So   X1 = x1-y1
+    //      X0 = x0 + price*y1
+    // Therefore, the following equation needs to be true
+    // (x0 + price*y1)*A1 = (x1-y1)*A0 or y1 = (x1*a0 - x0*a1)/(a0 + p*a1)
+    // If x0*A1 > x1*A0, we need to have more x1 to balance the swap --> so we need to send some of x0 to swap (lets say we wend y0 to swap)
+    // So   X0 = x0-y0
+    //      X1 = x1 + y0/price
+    // Therefore, the following equation needs to be true
+    // (x0-y0)*A1 = (x1 + y0/price)*A0 or y0 = (x0*a1 - x1*a0)/(a1 + a0/p)
+
+    let x0_a1 = x0.amount * asset1.amount;
+    let x1_a0 = x1.amount * asset0.amount;
+
+    let (offer_asset, ask_asset, mut resulting_balance) = if x0_a1 < x1_a0 {
+        let numerator = x1_a0 - x0_a1;
+        let denominator = asset0.amount + price * asset1.amount;
+        let y1 = numerator / denominator;
+
+        (
+            AnsAsset::new(config.pool_config.asset1, y1),
+            config.pool_config.asset0,
+            vec![
+                Coin {
+                    amount: x0.amount + price * y1,
+                    denom: x0.denom,
+                },
+                Coin {
+                    amount: x1.amount - y1,
+                    denom: x1.denom,
+                },
+            ],
+        )
+    } else {
+        let numerator = x0_a1 - x1_a0;
+        let denominator =
+            asset1.amount + Decimal::from_ratio(asset0.amount, 1u128) / price * Uint128::one();
+        let y0 = numerator / denominator;
+
+        (
+            AnsAsset::new(config.pool_config.asset0, numerator / denominator),
+            config.pool_config.asset1,
+            vec![
+                Coin {
+                    amount: x0.amount - y0,
+                    denom: x0.denom,
+                },
+                Coin {
+                    amount: x1.amount + Decimal::from_ratio(y0, 1u128) / price * Uint128::one(),
+                    denom: x1.denom,
+                },
+            ],
+        )
+    };
+
+    resulting_balance.sort_by(|a, b| a.denom.cmp(&b.denom));
+    // TODO, compute the resulting balance to be able to deposit back into the pool
+    Ok((offer_asset, ask_asset, resulting_balance))
+}
+```
+
+#### execute the swap
+
+Now that we have the equalized pair of asset we can create the position with the maximized amount of funds.
+
+- Note below that for the execution we are using the abstract API for accessing the cosmos SDK AuthZ module
+- Note that we are using a get_user function that allows us to retrieve the owner account address, this is because the caller of this contract i.e `info.sender` is not necessarily the owner. In fact, this swap is occuring during the create_position stage which could be triggered upon contract instantiation by the manager address which is different from the owner address.
+- Note that we are using the abstract dex adapter API to generate the swapping message specific to osmosis. The format used here in `dex.generate_swap_messages` would remain the same if we would want to generate a swap message on a different dex thanks to this API abstraction.
+
+```rust
+pub(crate) fn swap_msg(
+    deps: Deps,
+    env: &Env,
+    offer_asset: AnsAsset,
+    ask_asset: AssetEntry,
+    app: &App,
+) -> AppResult<Vec<CosmosMsg>> {
+    // Don't swap if not required
+    if offer_asset.amount.is_zero() {
+        return Ok(vec![]);
+    }
+    // retrieve the owner account address
+    let sender = get_user(deps, app)?;
+
+    let dex = app.ans_dex(deps, OSMOSIS.to_string());
+    let trigger_swap_msg: GenerateMessagesResponse = dex.generate_swap_messages(
+        offer_asset,
+        ask_asset,
+        Some(Decimal::percent(MAX_SPREAD_PERCENT)),
+        None,
+        sender.clone(),
+    )?;
+    let authz = app.auth_z(deps, Some(sender))?;
+
+    Ok(trigger_swap_msg
+        .messages
+        .into_iter()
+        .map(|m| authz.execute(&env.contract.address, m))
+        .collect())
+}
+```
+
+We also add the get_user function
+
+```rust
+// in helpers.rs
+pub fn get_user(deps: Deps, app: &App) -> AppResult<Addr> {
+    Ok(app
+        .admin
+        .query_account_owner(deps)?
+        .admin
+        .ok_or(AppError::NoTopLevelAccount {})
+        .map(|admin| deps.api.addr_validate(&admin))??)
+}
+```
+
+### Create a new position
+
+```rust
+// in handlers/execute.rs
+// under fn _create_position add this
+    // We load here the pool_id from the config
+    let config = CONFIG.load(deps.storage)?;
+    let sender = get_user(deps, app)?;
+    // 2. Create a position
+    let tokens = cosmwasm_to_proto_coins(resulting_assets);
+    let create_msg = app.auth_z(deps, Some(sender.clone()))?.execute(
+        &env.contract.address,
+        MsgCreatePosition {
+            pool_id: config.pool_config.pool_id,
+            sender: sender.to_string(),
+            lower_tick,
+            upper_tick,
+            tokens_provided: tokens,
+            token_min_amount0: "0".to_string(),
+            token_min_amount1: "0".to_string(),
+        },
+    );
+
+    Ok((
+        swap_msgs,
+        // 3. Use a reply to get the stored position id
+        SubMsg::reply_on_success(create_msg, CREATE_POSITION_ID),
+    ))
+```
+
+#### Store position id from create position response
+
+```rust
+// in handlers/execute.rs
 ```
