@@ -331,7 +331,6 @@ pub struct RemoteProxyResponse {
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{to_json_binary, CosmosMsg, Empty};
-    use polytone::callbacks::Callback;
     use speculoos::prelude::*;
 
     use crate::app::ExecuteMsg;
