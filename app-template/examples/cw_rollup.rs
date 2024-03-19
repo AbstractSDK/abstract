@@ -7,7 +7,7 @@
 //! # Run
 //!
 //! `cargo run --example local_daemon`
-//! 
+//!
 //! Abstract namespace: 00006162737472616374
 
 /*
@@ -74,7 +74,8 @@ fn main() -> anyhow::Result<()> {
     let app_namespace = Namespace::from_id(APP_ID)?;
 
     // Create an [`AbstractClient`]
-    let abstract_client: AbstractClient<Daemon> = AbstractClient::builder(daemon.clone()).build()?;
+    let abstract_client: AbstractClient<Daemon> =
+        AbstractClient::builder(daemon.clone()).build()?;
 
     // Get the [`Publisher`] that owns the namespace.
     // If there isn't one, it creates an Account and claims the namespace.
