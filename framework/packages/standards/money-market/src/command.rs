@@ -18,6 +18,7 @@ pub type FeeOnInput = bool;
 pub trait MoneyMarketCommand: Identify {
     fn fetch_data(
         &mut self,
+        _addr_as_sender: Addr,
         _querier: &QuerierWrapper,
         _ans_host: &AnsHost,
     ) -> Result<(), MoneyMarketError> {

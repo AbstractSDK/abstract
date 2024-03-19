@@ -56,7 +56,7 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
     fn resolve_deposit(
         &self,
         deps: Deps,
-        _sender: Addr,
+        sender: Addr,
         lending_asset: AssetBase<String>,
         contract_addr: String,
         money_market: &mut dyn MoneyMarketCommand,
@@ -64,13 +64,14 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let asset = lending_asset.check(deps.api, None)?;
 
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
         money_market.deposit(deps, contract_addr, asset)
     }
 
     fn resolve_withdraw(
         &self,
         deps: Deps,
-        _sender: Addr,
+        sender: Addr,
         lending_asset: AssetBase<String>,
         contract_addr: String,
         money_market: &mut dyn MoneyMarketCommand,
@@ -78,6 +79,7 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let mut asset = lending_asset.check(deps.api, None)?;
 
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
         let mut withdraw_msgs = money_market.withdraw(deps, contract_addr, asset.clone())?;
 
         // account for fee
@@ -91,7 +93,7 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
     fn resolve_provide_collateral(
         &self,
         deps: Deps,
-        _sender: Addr,
+        sender: Addr,
         _borrowed_asset: AssetInfoBase<String>,
         collateral_asset: AssetBase<String>,
         contract_addr: String,
@@ -100,13 +102,14 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let collateral_asset = collateral_asset.check(deps.api, None)?;
 
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
         money_market.provide_collateral(deps, contract_addr, collateral_asset)
     }
 
     fn resolve_withdraw_collateral(
         &self,
         deps: Deps,
-        _sender: Addr,
+        sender: Addr,
         _borrowed_asset: AssetInfoBase<String>,
         collateral_asset: AssetBase<String>,
         contract_addr: String,
@@ -115,13 +118,14 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let collateral_asset = collateral_asset.check(deps.api, None)?;
 
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
         money_market.withdraw_collateral(deps, contract_addr, collateral_asset)
     }
 
     fn resolve_borrow(
         &self,
         deps: Deps,
-        _sender: Addr,
+        sender: Addr,
         borrowed_asset: AssetBase<String>,
         _collateral_asset: AssetInfoBase<String>,
         contract_addr: String,
@@ -130,13 +134,14 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
         money_market.borrow(deps, contract_addr, borrowed_asset)
     }
 
     fn resolve_repay(
         &self,
         deps: Deps,
-        _sender: Addr,
+        sender: Addr,
         borrowed_asset: AssetBase<String>,
         _collateral_asset: AssetInfoBase<String>,
         contract_addr: String,
@@ -145,6 +150,7 @@ pub trait MoneyMarketAdapter: AbstractNameService + AbstractRegistryAccess + Exe
         let contract_addr = deps.api.addr_validate(&contract_addr)?;
         let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
+        money_market.fetch_data(sender, &deps.querier, &self.ans_host(deps)?)?;
         money_market.repay(deps, contract_addr, borrowed_asset)
     }
 }

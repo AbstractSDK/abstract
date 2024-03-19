@@ -121,11 +121,8 @@ fn handle_local_request(
     money_market: String,
     action: MoneyMarketRawAction,
 ) -> MoneyMarketResult {
-    let mut money_market = platform_resolver::resolve_money_market(&money_market)?;
+    let money_market = platform_resolver::resolve_money_market(&money_market)?;
     let target_account = adapter.account_base(deps.as_ref())?;
-
-    let ans_host = adapter.ans_host(deps.as_ref())?;
-    money_market.fetch_data(&deps.querier, &ans_host)?;
 
     let (msgs, _) = crate::adapter::MoneyMarketAdapter::resolve_money_market_action(
         adapter,

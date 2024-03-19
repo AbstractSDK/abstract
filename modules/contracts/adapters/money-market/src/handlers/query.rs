@@ -65,16 +65,17 @@ pub fn query_handler(
                     if is_over_ibc {
                         return Err(MoneyMarketError::IbcMsgQuery);
                     }
-                    let exchange =
+                    let money_market =
                         platform_resolver::resolve_money_market(&local_money_market_name)?;
                     let addr_as_sender = deps.api.addr_validate(&addr_as_sender)?;
+
                     let (messages, _) =
                         crate::adapter::MoneyMarketAdapter::resolve_money_market_action(
                             adapter,
                             deps,
                             addr_as_sender,
                             action,
-                            exchange,
+                            money_market,
                         )?;
                     to_json_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }
@@ -109,14 +110,13 @@ pub fn fees(deps: Deps) -> MoneyMarketResult<Binary> {
 /// Handle an adapter request that can be executed on the local chain
 fn handle_local_query(
     deps: Deps,
-    _env: Env,
+    env: Env,
     money_market: String,
     adapter: &MoneyMarketAdapter,
     query: MoneyMarketRawQuery,
 ) -> MoneyMarketResult<Binary> {
     let mut money_market = platform_resolver::resolve_money_market(&money_market)?;
     let ans_host = adapter.ans_host(deps)?;
-    money_market.fetch_data(&deps.querier, &ans_host)?;
     Ok(match query {
         MoneyMarketRawQuery::UserDeposit {
             user,
@@ -127,6 +127,7 @@ fn handle_local_query(
             let contract_addr = deps.api.addr_validate(&contract_addr)?;
             let asset = asset.check(deps.api, None)?;
 
+            money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
             to_json_binary(&money_market.user_deposit(deps, contract_addr, user, asset)?)?
         }
         MoneyMarketRawQuery::UserCollateral {
@@ -140,6 +141,7 @@ fn handle_local_query(
             let collateral_asset = collateral_asset.check(deps.api, None)?;
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
+            money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
             to_json_binary(&money_market.user_collateral(
                 deps,
                 contract_addr,
@@ -159,6 +161,7 @@ fn handle_local_query(
             let collateral_asset = collateral_asset.check(deps.api, None)?;
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
+            money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
             to_json_binary(&money_market.user_borrow(
                 deps,
                 contract_addr,
@@ -178,6 +181,7 @@ fn handle_local_query(
             let collateral_asset = collateral_asset.check(deps.api, None)?;
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
+            money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
             to_json_binary(&money_market.current_ltv(
                 deps,
                 contract_addr,
@@ -197,6 +201,7 @@ fn handle_local_query(
             let collateral_asset = collateral_asset.check(deps.api, None)?;
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
+            money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
             to_json_binary(&money_market.max_ltv(
                 deps,
                 contract_addr,
@@ -209,6 +214,7 @@ fn handle_local_query(
             let quote = quote.check(deps.api, None)?;
             let base = base.check(deps.api, None)?;
 
+            money_market.fetch_data(env.contract.address.clone(), &deps.querier, &ans_host)?;
             to_json_binary(&money_market.price(deps, base, quote)?)?
         }
     })

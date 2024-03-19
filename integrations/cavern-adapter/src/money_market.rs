@@ -1,12 +1,11 @@
 use abstract_money_market_standard::Identify;
 
-use cosmwasm_std::Addr;
-
 use crate::{AVAILABLE_CHAINS, CAVERN};
-
+use cosmwasm_std::Addr;
 #[derive(Default)]
 pub struct Cavern {
     pub oracle_contract: Option<Addr>,
+    pub addr_as_sender: Option<Addr>,
 }
 
 impl Identify for Cavern {
@@ -25,15 +24,20 @@ use {
         core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
         feature_objects::AnsHost,
     },
+    cavern_lsd_wrapper_token::state::LSD_CONFIG_KEY,
+    cavern_lsd_wrapper_token::trait_def::LSDHub,
+    cosmwasm_std::{testing::mock_env, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cosmwasm_std::{to_json_binary, QuerierWrapper, StdError},
-    cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw_asset::{Asset, AssetInfo},
+    cw_storage_plus::Item,
+    wrapper_implementations::coin::StrideLSDConfig,
 };
 
 #[cfg(feature = "full_integration")]
 impl MoneyMarketCommand for Cavern {
     fn fetch_data(
         &mut self,
+        addr_as_sender: Addr,
         querier: &QuerierWrapper,
         ans_host: &AnsHost,
     ) -> Result<(), MoneyMarketError> {
@@ -43,7 +47,7 @@ impl MoneyMarketCommand for Cavern {
         };
 
         self.oracle_contract = Some(ans_host.query_contract(querier, &contract_entry)?);
-
+        self.addr_as_sender = Some(addr_as_sender);
         Ok(())
     }
 
@@ -85,30 +89,114 @@ impl MoneyMarketCommand for Cavern {
 
     fn provide_collateral(
         &self,
-        _deps: Deps,
+        deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
-        let vault_msg = moneymarket::custody::Cw20HookMsg::DepositCollateral { borrower: None };
+        // The asset is the collateral. The custody contract tells us which token should actually be deposited
 
-        let msg = asset.send_msg(contract_addr, to_json_binary(&vault_msg)?)?;
+        let custody_config: moneymarket::custody::LSDConfigResponse =
+            deps.querier.query_wasm_smart(
+                contract_addr.clone(),
+                &moneymarket::custody::QueryMsg::Config {},
+            )?;
 
-        Ok(vec![msg])
+        let msgs = match &asset.info {
+            cw_asset::AssetInfoBase::Native(_) => {
+                // For native tokens,we :
+                // Wrap the tokens into the collateral wrapper
+                // Deposit them into the custody contract
+                // Lock the collaterals in to be able to borrow with them
+                let vault_msg =
+                    moneymarket::custody::Cw20HookMsg::DepositCollateral { borrower: None };
+
+                let mint_with_message = wasm_execute(
+                    &custody_config.collateral_token,
+                    &basset::wrapper::ExecuteMsg::MintWith {
+                        recipient: self.addr_as_sender.clone().unwrap().to_string(),
+                        lsd_amount: asset.amount,
+                    },
+                    vec![asset.clone().try_into()?],
+                )?;
+
+                let exchange_rate = self.collateral_exchange_rate(deps, contract_addr.clone())?;
+
+                let resulting_wrapped_amount = exchange_rate * asset.amount;
+
+                let wrapped_collateral_asset = Asset::cw20(
+                    deps.api.addr_validate(&custody_config.collateral_token)?,
+                    resulting_wrapped_amount,
+                );
+
+                let lock_msg = wasm_execute(
+                    custody_config.overseer_contract.to_string(),
+                    &moneymarket::overseer::ExecuteMsg::LockCollateral {
+                        collaterals: vec![(
+                            custody_config.collateral_token,
+                            resulting_wrapped_amount.into(),
+                        )],
+                    },
+                    vec![],
+                )?;
+                vec![
+                    mint_with_message.into(),
+                    wrapped_collateral_asset
+                        .send_msg(contract_addr, to_json_binary(&vault_msg)?)?,
+                    lock_msg.into(),
+                ]
+            }
+            _ => unimplemented!(),
+        };
+
+        Ok(msgs)
     }
 
     fn withdraw_collateral(
         &self,
-        _deps: Deps,
+        deps: Deps,
         contract_addr: Addr,
         asset: Asset,
     ) -> Result<Vec<CosmosMsg>, MoneyMarketError> {
-        let vault_msg = moneymarket::custody::ExecuteMsg::WithdrawCollateral {
-            amount: Some(asset.amount.into()),
+        let custody_config: moneymarket::custody::LSDConfigResponse =
+            deps.querier.query_wasm_smart(
+                contract_addr.clone(),
+                &moneymarket::custody::QueryMsg::Config {},
+            )?;
+
+        let exchange_rate = self.collateral_exchange_rate(deps, contract_addr.clone())?;
+
+        let resulting_wrapped_amount = exchange_rate * asset.amount;
+
+        let unlock_msg = wasm_execute(
+            custody_config.overseer_contract.to_string(),
+            &moneymarket::overseer::ExecuteMsg::UnlockCollateral {
+                collaterals: vec![(
+                    custody_config.collateral_token.clone(),
+                    resulting_wrapped_amount.into(),
+                )],
+            },
+            vec![],
+        )?;
+        let withdraw_msg = moneymarket::custody::ExecuteMsg::WithdrawCollateral {
+            amount: Some(resulting_wrapped_amount.into()),
         };
 
-        let msg = wasm_execute(contract_addr, &vault_msg, vec![])?;
+        let burn_msg = basset::wrapper::ExecuteMsg::Burn {
+            amount: resulting_wrapped_amount,
+        };
 
-        Ok(vec![msg.into()])
+        println!(
+            "amount: {}, wrapped_amount : {}, exchange_rate, {}",
+            asset.amount, resulting_wrapped_amount, exchange_rate
+        );
+
+        let msgs = vec![
+            unlock_msg.into(),
+            wasm_execute(contract_addr, &withdraw_msg, vec![])?.into(),
+            wasm_execute(&custody_config.collateral_token, &burn_msg, vec![])?.into(),
+        ];
+
+        Ok(msgs)
     }
 
     fn borrow(
@@ -122,7 +210,7 @@ impl MoneyMarketCommand for Cavern {
             to: None,
         };
 
-        let msg = wasm_execute(contract_addr, &vault_msg, vec![asset.try_into()?])?;
+        let msg = wasm_execute(contract_addr, &vault_msg, vec![])?;
 
         Ok(vec![msg.into()])
     }
@@ -193,10 +281,16 @@ impl MoneyMarketCommand for Cavern {
             address: user.to_string(),
         };
 
-        let query_response: moneymarket::custody::BorrowerResponse =
-            deps.querier.query_wasm_smart(contract_addr, &custody_msg)?;
+        let query_response: moneymarket::custody::BorrowerResponse = deps
+            .querier
+            .query_wasm_smart(&contract_addr, &custody_msg)?;
 
-        Ok(query_response.balance.try_into()?)
+        let exchange_rate = self.collateral_exchange_rate(deps, contract_addr.clone())?;
+
+        let amount: Uint128 = (query_response.balance - query_response.spendable).try_into()?;
+        let resulting_lsd_amount = amount * (Decimal::one() / exchange_rate);
+
+        Ok(resulting_lsd_amount)
     }
 
     fn user_borrow(
@@ -373,5 +467,25 @@ impl Cavern {
             market_contract.clone(),
             &moneymarket::market::QueryMsg::State { block_height: None },
         )
+    }
+
+    fn collateral_exchange_rate(
+        &self,
+        deps: Deps,
+        custody_contract: Addr,
+    ) -> Result<Decimal, MoneyMarketError> {
+        // We need to apply the exchange rate to get the actual underlying asset total
+        let custody_config: moneymarket::custody::LSDConfigResponse =
+            deps.querier.query_wasm_smart(
+                custody_contract.clone(),
+                &moneymarket::custody::QueryMsg::Config {},
+            )?;
+        let lsd_config: StrideLSDConfig = Item::new(LSD_CONFIG_KEY).query(
+            &deps.querier,
+            deps.api.addr_validate(&custody_config.collateral_token)?,
+        )?;
+
+        // _env is not used here, so using mock_env
+        Ok(lsd_config.query_exchange_rate(deps, mock_env())?)
     }
 }

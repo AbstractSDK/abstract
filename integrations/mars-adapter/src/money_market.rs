@@ -34,6 +34,7 @@ use {
 impl MoneyMarketCommand for Mars {
     fn fetch_data(
         &mut self,
+        _addr_as_sender: Addr,
         querier: &QuerierWrapper,
         ans_host: &AnsHost,
     ) -> Result<(), MoneyMarketError> {

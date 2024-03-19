@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::{
     interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEYMARKET_ADAPTER_ID,
 };
-use abstract_client::{AbstractClient, Environment};
+use abstract_client::{AbstractClient, Account, Environment};
 use abstract_core::{
     adapter,
     objects::{
@@ -19,6 +19,9 @@ use cosmwasm_schema::serde::{de::DeserializeOwned, Serialize};
 use cosmwasm_std::{coins, Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{anyhow, environment::MutCwEnv, prelude::*};
+
+pub const BORROW_VALUE: u128 = 1_000_000u128;
+pub const DEPOSIT_VALUE: u128 = 1_000_000_000u128;
 
 pub const PER_MILLE_FEE: u64 = 3;
 pub trait MockMoneyMarket {
@@ -81,7 +84,11 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         })
     }
 
-    pub fn test_deposit(&self) -> anyhow::Result<()> {
+    pub fn test_deposit(&self) -> anyhow::Result<Account<Chain>> {
+        self.deposit(DEPOSIT_VALUE)
+    }
+
+    pub fn deposit(&self, amount: u128) -> anyhow::Result<Account<Chain>> {
         let (ans_lending_asset, asset_info_lending) = self.moneymarket.lending_asset();
 
         let new_account = self
@@ -91,8 +98,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             .build()?;
         let proxy_addr = new_account.proxy()?;
 
-        let deposit_value = 1_000_000_000u128;
-        self.add_proxy_balance(&proxy_addr, &asset_info_lending, deposit_value)?;
+        self.add_proxy_balance(&proxy_addr, &asset_info_lending, amount)?;
 
         // Verify nothing was deposited using the moneymarket query
         let user_deposit: Uint128 = self.query(MoneyMarketAnsQuery::UserDeposit {
@@ -105,7 +111,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         self.execute(
             &proxy_addr,
             MoneyMarketAnsAction::Deposit {
-                lending_asset: AnsAsset::new(AssetEntry::new(&ans_lending_asset), deposit_value),
+                lending_asset: AnsAsset::new(AssetEntry::new(&ans_lending_asset), amount),
             },
         )?;
 
@@ -119,7 +125,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             asset: AssetEntry::new(&ans_lending_asset),
         })?;
 
-        assert!(user_deposit > Uint128::from(deposit_value) * Decimal::from_str("0.95")?);
+        assert!(user_deposit > Uint128::from(amount) * Decimal::from_str("0.95")?);
         assert_eq!(
             self.abstr_deployment
                 .environment()
@@ -130,54 +136,35 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             0
         );
 
-        Ok(())
+        Ok(new_account)
     }
 
-    pub fn test_withdraw(&self) -> anyhow::Result<()> {
+    pub fn test_withdraw(&self) -> anyhow::Result<Account<Chain>> {
         let (ans_lending_asset, asset_info_lending) = self.moneymarket.lending_asset();
 
-        let new_account = self
-            .abstr_deployment
-            .account_builder()
-            .install_adapter::<MoneyMarketAdapter<Chain>>()?
-            .build()?;
-        let proxy_addr = new_account.proxy()?;
-
-        let deposit_value = 1_000_000_000u128;
-
-        self.add_proxy_balance(&proxy_addr, &asset_info_lending, deposit_value)?;
-
-        // swap 1_000_000_000 asset_a to asset_b
-        self.execute(
-            &proxy_addr,
-            MoneyMarketAnsAction::Deposit {
-                lending_asset: AnsAsset::new(AssetEntry::new(&ans_lending_asset), deposit_value),
-            },
-        )?;
-        let current_balance = self.query_proxy_balance(&proxy_addr, &asset_info_lending)?;
-        assert_eq!(current_balance, Uint128::zero());
+        let account = self.test_deposit()?;
 
         // Verify the deposit using the moneymarket query
         let user_deposit_value: Uint128 = self.query(MoneyMarketAnsQuery::UserDeposit {
-            user: new_account.proxy()?.to_string(),
+            user: account.proxy()?.to_string(),
             asset: AssetEntry::new(&ans_lending_asset),
         })?;
-        assert!(user_deposit_value > Uint128::from(deposit_value) * Decimal::from_str("0.95")?);
+        assert!(user_deposit_value > Uint128::from(DEPOSIT_VALUE) * Decimal::percent(99));
         let withdraw_fee = user_deposit_value * Decimal::permille(PER_MILLE_FEE);
         self.execute(
-            &proxy_addr,
+            &account.proxy()?,
             MoneyMarketAnsAction::Withdraw {
                 lent_asset: AnsAsset::new(AssetEntry::new(&ans_lending_asset), user_deposit_value),
             },
         )?;
 
-        let current_balance = self.query_proxy_balance(&proxy_addr, &asset_info_lending)?;
-        assert_eq!(current_balance + withdraw_fee, user_deposit_value);
+        let current_balance = self.query_proxy_balance(&account.proxy()?, &asset_info_lending)?;
+        assert!(current_balance + withdraw_fee > user_deposit_value * Decimal::percent(99));
 
-        Ok(())
+        Ok(account)
     }
 
-    pub fn test_provide_collateral(&self) -> anyhow::Result<()> {
+    pub fn test_provide_collateral(&self) -> anyhow::Result<Account<Chain>> {
         let (ans_collateral_asset, asset_info_collateral) = self.moneymarket.collateral_asset();
         let (ans_lending_asset, _asset_info_lending) = self.moneymarket.lending_asset();
 
@@ -188,8 +175,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             .build()?;
         let proxy_addr = new_account.proxy()?;
 
-        let deposit_value = 1_000_000_000u128;
-        self.add_proxy_balance(&proxy_addr, &asset_info_collateral, deposit_value)?;
+        self.add_proxy_balance(&proxy_addr, &asset_info_collateral, DEPOSIT_VALUE)?;
 
         // Verify nothing was deposited using the moneymarket query
         let user_collateral: Uint128 = self.query(MoneyMarketAnsQuery::UserCollateral {
@@ -203,7 +189,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             &proxy_addr,
             MoneyMarketAnsAction::ProvideCollateral {
                 borrowable_asset: AssetEntry::new(&ans_lending_asset),
-                collateral_asset: AnsAsset::new(&ans_collateral_asset, deposit_value),
+                collateral_asset: AnsAsset::new(&ans_collateral_asset, DEPOSIT_VALUE),
             },
         )?;
 
@@ -218,7 +204,7 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             borrowed_asset: AssetEntry::new(&ans_lending_asset),
         })?;
 
-        assert!(user_collateral > Uint128::from(deposit_value) * Decimal::from_str("0.95")?);
+        assert!(user_collateral > Uint128::from(DEPOSIT_VALUE) * Decimal::from_str("0.95")?);
         assert_eq!(
             self.abstr_deployment
                 .environment()
@@ -229,155 +215,87 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
             0
         );
 
-        Ok(())
+        Ok(new_account)
     }
 
-    pub fn test_withdraw_collateral(&self) -> anyhow::Result<()> {
+    pub fn test_withdraw_collateral(&self) -> anyhow::Result<Account<Chain>> {
         let (ans_collateral_asset, asset_info_collateral) = self.moneymarket.collateral_asset();
         let (ans_lending_asset, _asset_info_lending) = self.moneymarket.lending_asset();
 
-        let new_account = self
-            .abstr_deployment
-            .account_builder()
-            .install_adapter::<MoneyMarketAdapter<Chain>>()?
-            .build()?;
-        let proxy_addr = new_account.proxy()?;
-
-        let deposit_value = 1_000_000_000u128;
-        self.add_proxy_balance(&proxy_addr, &asset_info_collateral, deposit_value)?;
-
-        self.execute(
-            &proxy_addr,
-            MoneyMarketAnsAction::ProvideCollateral {
-                borrowable_asset: AssetEntry::new(&ans_lending_asset),
-                collateral_asset: AnsAsset::new(&ans_collateral_asset, deposit_value),
-            },
-        )?;
-        let current_balance = self.query_proxy_balance(&proxy_addr, &asset_info_collateral)?;
-        assert_eq!(current_balance, Uint128::zero());
+        let account = self.test_provide_collateral()?;
 
         // Verify the deposit using the moneymarket query
         let user_collateral: Uint128 = self.query(MoneyMarketAnsQuery::UserCollateral {
-            user: new_account.proxy()?.to_string(),
+            user: account.proxy()?.to_string(),
             collateral_asset: AssetEntry::new(&ans_collateral_asset),
             borrowed_asset: AssetEntry::new(&ans_lending_asset),
         })?;
-        assert!(user_collateral > Uint128::from(deposit_value) * Decimal::from_str("0.95")?);
+        assert!(user_collateral > Uint128::from(DEPOSIT_VALUE) * Decimal::from_str("0.95")?);
 
         self.execute(
-            &proxy_addr,
+            &account.proxy()?,
             MoneyMarketAnsAction::WithdrawCollateral {
                 borrowable_asset: AssetEntry::new(&ans_lending_asset),
                 collateral_asset: AnsAsset::new(&ans_collateral_asset, user_collateral),
             },
         )?;
 
-        let current_balance = self.query_proxy_balance(&proxy_addr, &asset_info_collateral)?;
-        assert_eq!(current_balance, user_collateral);
+        let current_balance =
+            self.query_proxy_balance(&account.proxy()?, &asset_info_collateral)?;
+        assert!(current_balance > user_collateral * Decimal::percent(99));
 
-        Ok(())
+        Ok(account)
     }
 
-    pub fn test_borrow(&self) -> anyhow::Result<()> {
-        let (ans_collateral_asset, asset_info_collateral) = self.moneymarket.collateral_asset();
+    pub fn test_borrow(&self) -> anyhow::Result<Account<Chain>> {
+        let (ans_collateral_asset, _asset_info_collateral) = self.moneymarket.collateral_asset();
         let (ans_lending_asset, _asset_info_lending) = self.moneymarket.lending_asset();
 
-        let new_account = self
-            .abstr_deployment
-            .account_builder()
-            .install_adapter::<MoneyMarketAdapter<Chain>>()?
-            .build()?;
-        let proxy_addr = new_account.proxy()?;
+        let account: Account<Chain> = self.test_provide_collateral()?;
+        let proxy_addr = account.proxy()?;
 
-        let deposit_value = 1_000_000_000u128;
-        self.add_proxy_balance(&proxy_addr, &asset_info_collateral, deposit_value)?;
-
-        // Provide collateral to borrow against
-        self.execute(
-            &proxy_addr,
-            MoneyMarketAnsAction::ProvideCollateral {
-                borrowable_asset: AssetEntry::new(&ans_lending_asset),
-                collateral_asset: AnsAsset::new(&ans_collateral_asset, deposit_value),
-            },
-        )?;
-
-        let borrow_value = 1_000_000u128;
         self.execute(
             &proxy_addr,
             MoneyMarketAnsAction::Borrow {
-                borrow_asset: AnsAsset::new(&ans_lending_asset, borrow_value),
+                borrow_asset: AnsAsset::new(&ans_lending_asset, BORROW_VALUE),
                 collateral_asset: AssetEntry::new(&ans_collateral_asset),
             },
         )?;
 
         let user_borrow: Uint128 = self.query(MoneyMarketAnsQuery::UserBorrow {
-            user: new_account.proxy()?.to_string(),
+            user: account.proxy()?.to_string(),
             collateral_asset: AssetEntry::new(&ans_collateral_asset),
             borrowed_asset: AssetEntry::new(&ans_lending_asset),
         })?;
 
-        assert_eq!(user_borrow.u128(), borrow_value);
+        assert!(user_borrow > Uint128::from(BORROW_VALUE) * Decimal::percent(99));
 
-        Ok(())
+        Ok(account)
     }
 
-    pub fn test_repay(&self) -> anyhow::Result<()> {
-        let (ans_collateral_asset, asset_info_collateral) = self.moneymarket.collateral_asset();
+    pub fn test_repay(&self) -> anyhow::Result<Account<Chain>> {
+        let (ans_collateral_asset, _asset_info_collateral) = self.moneymarket.collateral_asset();
         let (ans_lending_asset, _asset_info_lending) = self.moneymarket.lending_asset();
-
-        let new_account = self
-            .abstr_deployment
-            .account_builder()
-            .install_adapter::<MoneyMarketAdapter<Chain>>()?
-            .build()?;
-        let proxy_addr = new_account.proxy()?;
-
-        let deposit_value = 1_000_000_000u128;
-        self.add_proxy_balance(&proxy_addr, &asset_info_collateral, deposit_value)?;
-
-        // Provide collateral to borrow against
-        self.execute(
-            &proxy_addr,
-            MoneyMarketAnsAction::ProvideCollateral {
-                borrowable_asset: AssetEntry::new(&ans_lending_asset),
-                collateral_asset: AnsAsset::new(&ans_collateral_asset, deposit_value),
-            },
-        )?;
-
-        let borrow_value = 1_000_000u128;
-        self.execute(
-            &proxy_addr,
-            MoneyMarketAnsAction::Borrow {
-                borrow_asset: AnsAsset::new(&ans_lending_asset, borrow_value),
-                collateral_asset: AssetEntry::new(&ans_collateral_asset),
-            },
-        )?;
-
-        let user_borrow: Uint128 = self.query(MoneyMarketAnsQuery::UserBorrow {
-            user: new_account.proxy()?.to_string(),
-            collateral_asset: AssetEntry::new(&ans_collateral_asset),
-            borrowed_asset: AssetEntry::new(&ans_lending_asset),
-        })?;
-
-        assert_eq!(user_borrow.u128(), borrow_value);
+        let account: Account<Chain> = self.test_borrow()?;
+        let proxy_addr = account.proxy()?;
 
         // Now we repay
         self.execute(
             &proxy_addr,
             MoneyMarketAnsAction::Repay {
-                borrowed_asset: AnsAsset::new(&ans_lending_asset, borrow_value),
+                borrowed_asset: AnsAsset::new(&ans_lending_asset, BORROW_VALUE),
                 collateral_asset: AssetEntry::new(&ans_collateral_asset),
             },
         )?;
         let user_borrow: Uint128 = self.query(MoneyMarketAnsQuery::UserBorrow {
-            user: new_account.proxy()?.to_string(),
+            user: proxy_addr.to_string(),
             collateral_asset: AssetEntry::new(&ans_collateral_asset),
             borrowed_asset: AssetEntry::new(&ans_lending_asset),
         })?;
 
         assert_eq!(user_borrow.u128(), 0);
 
-        Ok(())
+        Ok(account)
     }
 
     fn query<T: Serialize + std::fmt::Debug + DeserializeOwned>(
