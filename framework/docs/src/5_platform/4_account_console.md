@@ -20,7 +20,7 @@ including:
 ## Accessing the Account Console
 
 You can access the Account Console where you can create an account, claim namespaces and more by
-visiting <a href="https://app.abstract.money/" target="_blank">app.abstract.money</a>. You will be able to select the
+visiting <a href="https://console.abstract.money/" target="_blank">console.abstract.money</a>. You will be able to select the
 network you want to connect to, and then proceed to create your Abstract Account.
 
 ## Account Management
