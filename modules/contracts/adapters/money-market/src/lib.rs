@@ -9,14 +9,14 @@ pub mod msg {
 }
 #[cfg(feature = "testing")]
 pub mod tester;
-pub use abstract_money_market_standard::MONEYMARKET_ADAPTER_ID;
+pub use abstract_money_market_standard::MONEY_MARKET_ADAPTER_ID;
 
 // Export interface for use in SDK modules
 pub use crate::api::MoneyMarketInterface;
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use crate::{contract::MONEYMARKET_ADAPTER, msg::*};
+    use crate::{contract::MONEY_MARKET_ADAPTER, msg::*};
     use abstract_interface::{AdapterDeployer, RegisteredModule};
     use abstract_sdk::features::ModuleIdentification;
     use cosmwasm_std::Empty;
@@ -55,11 +55,11 @@ pub mod interface {
         type InitMsg = Empty;
 
         fn module_id<'a>() -> &'a str {
-            MONEYMARKET_ADAPTER.module_id()
+            MONEY_MARKET_ADAPTER.module_id()
         }
 
         fn module_version<'a>() -> &'a str {
-            MONEYMARKET_ADAPTER.version()
+            MONEY_MARKET_ADAPTER.version()
         }
     }
 

@@ -16,7 +16,7 @@ use crate::{
     handlers::execute::platform_resolver::is_over_ibc,
     msg::MoneyMarketExecuteMsg,
     platform_resolver,
-    state::MONEYMARKET_FEES,
+    state::MONEY_MARKET_FEES,
 };
 
 use abstract_sdk::features::AccountIdentification;
@@ -91,7 +91,7 @@ pub fn execute_handler(
                 adapter.target_account.clone().unwrap(),
                 MoneyMarketError::Unauthorized {}
             );
-            let mut fee = MONEYMARKET_FEES.load(deps.storage)?;
+            let mut fee = MONEY_MARKET_FEES.load(deps.storage)?;
 
             // Update swap fee
             if let Some(swap_fee) = money_market_fee {
@@ -106,7 +106,7 @@ pub fn execute_handler(
                 fee.set_recipient(recipient);
             }
 
-            MONEYMARKET_FEES.save(deps.storage, &fee)?;
+            MONEY_MARKET_FEES.save(deps.storage, &fee)?;
             Ok(Response::default())
         }
     }

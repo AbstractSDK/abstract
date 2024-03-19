@@ -10,7 +10,7 @@ use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use crate::{
     contract::{MoneyMarketAdapter, MoneyMarketResult},
     platform_resolver::{self, is_over_ibc},
-    state::MONEYMARKET_FEES,
+    state::MONEY_MARKET_FEES,
 };
 
 pub fn query_handler(
@@ -102,7 +102,7 @@ pub fn query_handler(
 }
 
 pub fn fees(deps: Deps) -> MoneyMarketResult<Binary> {
-    let money_market_fees = MONEYMARKET_FEES.load(deps.storage)?;
+    let money_market_fees = MONEY_MARKET_FEES.load(deps.storage)?;
 
     to_json_binary(&money_market_fees).map_err(Into::into)
 }

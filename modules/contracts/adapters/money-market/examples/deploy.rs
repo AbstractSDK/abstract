@@ -1,6 +1,6 @@
 use abstract_interface::{AdapterDeployer, DeployStrategy};
 use abstract_money_market_adapter::{
-    interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEYMARKET_ADAPTER_ID,
+    interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEY_MARKET_ADAPTER_ID,
 };
 use cosmwasm_std::Decimal;
 use cw_orch::daemon::{networks::parse_network, ChainInfo, DaemonBuilder};
@@ -15,7 +15,7 @@ fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
         .handle(rt.handle())
         .chain(network)
         .build()?;
-    let dex = MoneyMarketAdapter::new(MONEYMARKET_ADAPTER_ID, chain);
+    let dex = MoneyMarketAdapter::new(MONEY_MARKET_ADAPTER_ID, chain);
     dex.deploy(
         version,
         MoneyMarketInstantiateMsg {

@@ -1,4 +1,4 @@
-use crate::MONEYMARKET_ADAPTER_ID;
+use crate::MONEY_MARKET_ADAPTER_ID;
 use abstract_core::objects::{module::ModuleId, AnsAsset, AssetEntry};
 use abstract_money_market_standard::{
     ans_action::MoneyMarketAnsAction,
@@ -26,7 +26,7 @@ pub trait MoneyMarketInterface:
             base: self,
             deps,
             name,
-            module_id: MONEYMARKET_ADAPTER_ID,
+            module_id: MONEY_MARKET_ADAPTER_ID,
         }
     }
     /// Construct a new money_market interface with ANS support.
@@ -39,7 +39,7 @@ pub trait MoneyMarketInterface:
             base: self,
             deps,
             name,
-            module_id: MONEYMARKET_ADAPTER_ID,
+            module_id: MONEY_MARKET_ADAPTER_ID,
         }
     }
 }
@@ -58,7 +58,7 @@ pub mod raw {
     }
 
     impl<'a, T: MoneyMarketInterface> MoneyMarket<'a, T> {
-        /// Set the module id for the MONEYMARKET
+        /// Set the module id for the MONEY_MARKET
         pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
             Self { module_id, ..self }
         }
@@ -73,17 +73,17 @@ pub mod raw {
             }
         }
 
-        /// returns MONEYMARKET name
+        /// returns MONEY_MARKET name
         fn money_market_name(&self) -> MoneyMarketName {
             self.name.clone()
         }
 
-        /// returns the MONEYMARKET module id
+        /// returns the MONEY_MARKET module id
         fn money_market_module_id(&self) -> ModuleId {
             self.module_id
         }
 
-        /// Executes a [MoneyMarketRawAction] in th MONEYMARKET
+        /// Executes a [MoneyMarketRawAction] in th MONEY_MARKET
         fn request(&self, action: MoneyMarketRawAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
@@ -110,7 +110,7 @@ pub mod raw {
             })
         }
 
-        /// Withdraw liquidity from MONEYMARKET
+        /// Withdraw liquidity from MONEY_MARKET
         pub fn withdraw(
             &self,
             contract_addr: Addr,
@@ -124,7 +124,7 @@ pub mod raw {
             })
         }
 
-        /// Deposit Collateral in MONEYMARKET
+        /// Deposit Collateral in MONEY_MARKET
         pub fn provide_collateral(
             &self,
             contract_addr: Addr,
@@ -140,7 +140,7 @@ pub mod raw {
             })
         }
 
-        /// Withdraw collateral liquidity from MONEYMARKET
+        /// Withdraw collateral liquidity from MONEY_MARKET
         pub fn withdraw_collateral(
             &self,
             contract_addr: Addr,
@@ -190,13 +190,13 @@ pub mod raw {
     }
 
     impl<'a, T: MoneyMarketInterface> MoneyMarket<'a, T> {
-        /// Do a query in the MONEYMARKET
+        /// Do a query in the MONEY_MARKET
         pub fn query<R: DeserializeOwned>(
             &self,
             query_msg: MoneyMarketQueryMsg,
         ) -> AbstractSdkResult<R> {
             let adapters = self.base.adapters(self.deps);
-            adapters.query(MONEYMARKET_ADAPTER_ID, query_msg)
+            adapters.query(MONEY_MARKET_ADAPTER_ID, query_msg)
         }
     }
 }
@@ -217,7 +217,7 @@ pub mod ans {
     }
 
     impl<'a, T: MoneyMarketInterface> AnsMoneyMarket<'a, T> {
-        /// Set the module id for the MONEYMARKET
+        /// Set the module id for the MONEY_MARKET
         pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
             Self { module_id, ..self }
         }
@@ -232,17 +232,17 @@ pub mod ans {
             }
         }
 
-        /// returns MONEYMARKET name
+        /// returns MONEY_MARKET name
         fn money_market_name(&self) -> MoneyMarketName {
             self.name.clone()
         }
 
-        /// returns the MONEYMARKET module id
+        /// returns the MONEY_MARKET module id
         fn money_market_module_id(&self) -> ModuleId {
             self.module_id
         }
 
-        /// Executes a [MoneyMarketAction] in th MONEYMARKET
+        /// Executes a [MoneyMarketAction] in th MONEY_MARKET
         fn request(&self, action: MoneyMarketAnsAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
@@ -260,12 +260,12 @@ pub mod ans {
             self.request(MoneyMarketAnsAction::Deposit { lending_asset })
         }
 
-        /// Withdraw liquidity from MONEYMARKET
+        /// Withdraw liquidity from MONEY_MARKET
         pub fn withdraw(&self, lent_asset: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
             self.request(MoneyMarketAnsAction::Withdraw { lent_asset })
         }
 
-        /// Deposit Collateral in MONEYMARKET
+        /// Deposit Collateral in MONEY_MARKET
         pub fn provide_collateral(
             &self,
             collateral_asset: AnsAsset,
@@ -277,7 +277,7 @@ pub mod ans {
             })
         }
 
-        /// Withdraw collateral liquidity from MONEYMARKET
+        /// Withdraw collateral liquidity from MONEY_MARKET
         pub fn withdraw_collateral(
             &self,
             collateral_asset: AnsAsset,
@@ -315,13 +315,13 @@ pub mod ans {
     }
 
     impl<'a, T: MoneyMarketInterface> AnsMoneyMarket<'a, T> {
-        /// Do a query in the MONEYMARKET
+        /// Do a query in the MONEY_MARKET
         pub fn query<R: DeserializeOwned>(
             &self,
             query_msg: MoneyMarketQueryMsg,
         ) -> AbstractSdkResult<R> {
             let adapters = self.base.adapters(self.deps);
-            adapters.query(MONEYMARKET_ADAPTER_ID, query_msg)
+            adapters.query(MONEY_MARKET_ADAPTER_ID, query_msg)
         }
     }
 }

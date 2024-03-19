@@ -5,7 +5,7 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     contract::{MoneyMarketAdapter, MoneyMarketResult},
-    state::MONEYMARKET_FEES,
+    state::MONEY_MARKET_FEES,
 };
 
 pub fn instantiate_handler(
@@ -19,6 +19,6 @@ pub fn instantiate_handler(
         .account_registry(deps.as_ref())?
         .proxy_address(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
     let money_market_fees = UsageFee::new(msg.fee, recipient)?;
-    MONEYMARKET_FEES.save(deps.storage, &money_market_fees)?;
+    MONEY_MARKET_FEES.save(deps.storage, &money_market_fees)?;
     Ok(Response::default())
 }
