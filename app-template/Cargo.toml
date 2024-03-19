@@ -28,6 +28,10 @@ name = "local_daemon"
 required-features = ["daemon"]
 
 [[example]]
+name = "cw_rollup"
+required-features = ["daemon"]
+
+[[example]]
 name = "publish"
 required-features = ["daemon"]
 

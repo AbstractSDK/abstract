@@ -7,6 +7,27 @@
 //! # Run
 //!
 //! `cargo run --example local_daemon`
+//! 
+//! Abstract namespace: 00006162737472616374
+
+/*
+Command to run after sync:
+
+docker run -d \
+-e NODE_TYPE=light \
+-e P2P_NETWORK=mocha \
+-p 26650:26650 \
+-p 26658:26658 \
+-p 26659:26659 \
+-v $HOME/.celestia-light-mocha-4/:/home/celestia/.celestia-light-mocha-4/ \
+ghcr.io/rollkit/celestia-da:v0.12.10 \
+celestia-da light start \
+--p2p.network=mocha \
+--da.grpc.namespace=00006162737472616374 \
+--da.grpc.listen=0.0.0.0:26650 \
+--core.ip rpc-mocha.pops.one \
+--gateway
+*/
 
 use abstract_app::objects::namespace::Namespace;
 use abstract_client::{AbstractClient, Publisher};
@@ -15,11 +36,26 @@ use app::{
     msg::AppInstantiateMsg,
     AppInterface,
 };
-use cw_orch::{anyhow, prelude::*, tokio::runtime::Runtime};
+use cw_orch::{anyhow, daemon::ChainInfo, prelude::*, tokio::runtime::Runtime};
 use semver::Version;
 use speculoos::assert_that;
 
 const LOCAL_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
+
+const MY_CW_ROLLUP: ChainInfo = ChainInfo {
+    chain_id: "celeswasm",
+    gas_denom: "uwasm",
+    network_info: networks::NetworkInfo {
+        id: "my_rollup",
+        pub_address_prefix: "wasm",
+        coin_type: 118u32,
+    },
+    fcd_url: None,
+    gas_price: 0.025,
+    grpc_urls: &["http://127.0.0.1:9290"],
+    kind: networks::ChainKind::Local,
+    lcd_url: None,
+};
 
 fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
@@ -29,7 +65,7 @@ fn main() -> anyhow::Result<()> {
     let runtime = Runtime::new()?;
 
     let daemon = Daemon::builder()
-        .chain(networks::LOCAL_JUNO)
+        .chain(MY_CW_ROLLUP)
         .mnemonic(LOCAL_MNEMONIC)
         .handle(runtime.handle())
         .build()
