@@ -62,6 +62,10 @@ pub enum AbstractSdkError {
         module: String,
     },
 
+    // callback not called by IBC host
+    #[error("Called an IBC module action on {0}, when no endpoint was registered.")]
+    NoModuleIbcHandler(String),
+
     // admin of proxy is not set
     #[error("Admin of proxy {proxy_addr} is not set.")]
     AdminNotSet { proxy_addr: Addr },

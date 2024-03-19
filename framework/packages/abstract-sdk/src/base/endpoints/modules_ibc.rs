@@ -1,7 +1,7 @@
+use crate::features::ModuleIdentification;
+use crate::{base::Handler, AbstractSdkError};
 use abstract_core::ibc::ModuleIbcMsg;
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
-
-use crate::{base::Handler, AbstractSdkError};
 
 /// Trait for a contract to call itself on an IBC counterpart.
 pub trait ModuleIbcEndpoint: Handler {
@@ -27,10 +27,12 @@ pub trait ModuleIbcEndpoint: Handler {
             .into());
         };
 
-        let maybe_handler = self.maybe_module_ibc_handler();
-        maybe_handler.map_or_else(
-            || Ok(Response::new()),
-            |handler| handler(deps, env, self, msg),
-        )
+        // If there is no handler and this endpoint is called we need to error
+        let handler =
+            self.maybe_module_ibc_handler()
+                .ok_or(AbstractSdkError::NoModuleIbcHandler(
+                    self.module_id().to_string(),
+                ))?;
+        handler(deps, env, self, msg)
     }
 }
