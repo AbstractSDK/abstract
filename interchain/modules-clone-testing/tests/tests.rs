@@ -1,3 +1,3 @@
 mod dex;
-mod moneymarket;
+mod money_market;
 mod staking;

@@ -43,8 +43,6 @@ impl MockMoneyMarket for MarsMoneymarket {
 
     fn setup(&self) -> Vec<(UncheckedContractEntry, String)> {
         // We need to register the red bank and the oracle inside abstract
-        // ANNNNND that's it
-
         vec![
             (
                 UncheckedContractEntry {
