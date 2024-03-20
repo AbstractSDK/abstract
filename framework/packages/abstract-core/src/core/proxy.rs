@@ -11,15 +11,13 @@
 //! After configuring the price sources [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{CosmosMsg, Empty, Uint128};
-use cw_asset::AssetInfo;
+use cosmwasm_std::{CosmosMsg, Empty};
 
 #[allow(unused_imports)]
 use crate::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     objects::{
         account::AccountId,
-        oracle::{AccountValue, Complexity},
         price_source::{PriceSource, UncheckedPriceSource},
         AssetEntry,
     },
@@ -81,82 +79,9 @@ pub enum QueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
-    /// Returns the total value of the assets held by this account
-    /// [`AccountValue`]
-    #[returns(AccountValue)]
-    TotalValue {},
-    /// Returns the value of one token with an optional amount set.
-    /// If amount is not set, the account's balance of the token is used.
-    /// [`TokenValueResponse`]
-    #[returns(TokenValueResponse)]
-    TokenValue { identifier: AssetEntry },
-    /// Returns the amount of specified tokens this contract holds
-    /// [`HoldingAmountResponse`]
-    #[returns(HoldingAmountResponse)]
-    HoldingAmount { identifier: AssetEntry },
-    /// Returns the oracle configuration value for the specified key
-    /// [`AssetConfigResponse`]
-    #[returns(AssetConfigResponse)]
-    AssetConfig { identifier: AssetEntry },
-    /// Returns [`AssetsConfigResponse`]
-    /// Human readable
-    #[returns(AssetsConfigResponse)]
-    AssetsConfig {
-        start_after: Option<AssetEntry>,
-        limit: Option<u8>,
-    },
-    /// Returns [`AssetsInfoResponse`]
-    /// Not human readable
-    #[returns(AssetsInfoResponse)]
-    AssetsInfo {
-        start_after: Option<AssetInfo>,
-        limit: Option<u8>,
-    },
-    /// Returns [`BaseAssetResponse`]
-    #[returns(BaseAssetResponse)]
-    BaseAsset {},
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub modules: Vec<String>,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct TokenValueResponse {
-    pub value: Uint128,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct BaseAssetResponse {
-    pub base_asset: AssetInfo,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct HoldingAmountResponse {
-    pub amount: Uint128,
-}
-
-/// Human readable config for a single asset
-#[cosmwasm_schema::cw_serde]
-pub struct AssetConfigResponse {
-    pub price_source: UncheckedPriceSource,
-}
-
-/// non-human readable asset configuration
-#[cosmwasm_schema::cw_serde]
-pub struct AssetsInfoResponse {
-    pub assets: Vec<(AssetInfo, OracleAsset)>,
-}
-
-/// Human readable asset configuration
-#[cosmwasm_schema::cw_serde]
-pub struct AssetsConfigResponse {
-    pub assets: Vec<(AssetEntry, UncheckedPriceSource)>,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct OracleAsset {
-    pub price_source: PriceSource,
-    pub complexity: Complexity,
 }

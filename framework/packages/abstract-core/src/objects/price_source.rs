@@ -49,7 +49,7 @@ impl AssetConversion {
 /// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[non_exhaustive]
-pub enum UncheckedPriceSource {
+pub enum UncheckedPriceSource<E: ExternalPriceSource> {
     /// A pool address of an asset/asset pair
     /// Both assets must be defined in the Proxy_assets state
     Pair(DexAssetPairing),
@@ -61,6 +61,7 @@ pub enum UncheckedPriceSource {
         asset: AssetEntry,
         multiplier: Decimal,
     },
+    External(E),
     None,
 }
 

@@ -8,7 +8,6 @@ pub mod version_control;
 
 mod entry;
 pub mod nested_admin;
-pub mod oracle;
 pub mod pool;
 pub mod salt;
 

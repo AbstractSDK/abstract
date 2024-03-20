@@ -1,15 +1,11 @@
 use std::collections::HashSet;
 
+use abstract_core::objects::price_source::UncheckedPriceSource;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Deps, DepsMut, Order, StdError, Uint128};
 use cw_asset::{Asset, AssetInfo};
 use cw_storage_plus::{Bound, Map};
 
-use super::{
-    ans_host::AnsHost,
-    price_source::{AssetConversion, PriceSource, UncheckedPriceSource},
-    AssetEntry,
-};
 use crate::AbstractResult;
 
 pub type Complexity = u8;
@@ -20,7 +16,7 @@ const DEFAULT_PAGE_LIMIT: u8 = 5;
 /// Struct for calculating asset prices/values for a smart contract.
 pub struct Oracle<'a> {
     /// map of human-readable asset names to their human-readable price source
-    pub config: Map<'static, &'a AssetEntry, UncheckedPriceSource>,
+    pub sources: Map<'static, &'a AssetEntry, UncheckedPriceSource>,
     /// Assets map to get the complexity and value calculation of an asset.
     assets: Map<'static, &'a AssetInfo, (PriceSource, Complexity)>,
     /// Complexity rating used for efficient total value calculation
@@ -33,11 +29,24 @@ pub struct Oracle<'a> {
 }
 
 impl<'a> Oracle<'a> {
+    /// Get Oracle object
+    /// Const version of [`Oracle::new_postfix`] where postfix is not required
     pub const fn new() -> Self {
         Oracle {
-            config: Map::new("oracle_config"),
+            sources: Map::new("sources"),
             assets: Map::new("assets"),
-            complexity: Map::new("complexity"),
+            complexity: Map::new("complexity{postfix}"),
+            asset_equivalent_cache: Vec::new(),
+        }
+    }
+
+    /// Get Oracle object
+    /// Postfix allows having same map for multiple users
+    pub fn new_postfix(postfix: &str) -> Self {
+        Oracle {
+            sources: Map::new(&format!("sources{postfix}")),
+            assets: Map::new(&format!("assets{postfix}")),
+            complexity: Map::new(&format!("complexity{postfix}")),
             asset_equivalent_cache: Vec::new(),
         }
     }
@@ -52,7 +61,7 @@ impl<'a> Oracle<'a> {
         to_remove: Vec<AssetEntry>,
     ) -> AbstractResult<()> {
         let current_vault_size = self
-            .config
+            .sources
             .keys(deps.storage, None, None, Order::Ascending)
             .count();
         let new_vault_size = current_vault_size + to_add.len() - to_remove.len();
@@ -90,7 +99,7 @@ impl<'a> Oracle<'a> {
         // optimistically update config
         // configuration check happens after all updates have been done.
         for (key, data) in assets.iter() {
-            self.config.save(deps.storage, key, data)?;
+            self.sources.save(deps.storage, key, data)?;
         }
 
         let (assets, price_sources): (Vec<AssetEntry>, Vec<_>) = assets.into_iter().unzip();
@@ -152,14 +161,14 @@ impl<'a> Oracle<'a> {
     ) -> AbstractResult<()> {
         for asset in assets {
             // assert asset was in config
-            if !self.config.has(deps.storage, &asset) {
+            if !self.sources.has(deps.storage, &asset) {
                 return Err(StdError::generic_err(format!(
                     "Asset {asset} not registered on oracle"
                 ))
                 .into());
             }
             // remove from config
-            self.config.remove(deps.storage, &asset);
+            self.sources.remove(deps.storage, &asset);
             // get its asset information
             let asset = ans.query_asset(&deps.querier, &asset)?;
             // get its complexity
@@ -418,7 +427,7 @@ impl<'a> Oracle<'a> {
         let start_bound = last_asset.as_ref().map(Bound::exclusive);
 
         let res: Result<Vec<(AssetEntry, UncheckedPriceSource)>, _> = self
-            .config
+            .sources
             .range(deps.storage, start_bound, None, Order::Ascending)
             .take(limit)
             .collect();
@@ -443,7 +452,7 @@ impl<'a> Oracle<'a> {
         deps: Deps,
         asset: &AssetEntry,
     ) -> AbstractResult<UncheckedPriceSource> {
-        self.config.load(deps.storage, asset).map_err(Into::into)
+        self.sources.load(deps.storage, asset).map_err(Into::into)
     }
 
     pub fn base_asset(&self, deps: Deps) -> AbstractResult<AssetInfo> {
@@ -576,7 +585,7 @@ mod tests {
         // ensure these assets were added
         // Ensure that all assets have been added to the oracle
         let assets = oracle
-            .config
+            .sources
             .range(&deps.storage, None, None, Order::Ascending)
             .collect::<StdResult<Vec<_>>>()?;
 
