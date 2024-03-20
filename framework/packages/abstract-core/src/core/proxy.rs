@@ -12,7 +12,7 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
-use cw_asset::{Asset, AssetInfo};
+use cw_asset::AssetInfo;
 
 #[allow(unused_imports)]
 use crate::{
@@ -159,15 +159,4 @@ pub struct AssetsConfigResponse {
 pub struct OracleAsset {
     pub price_source: PriceSource,
     pub complexity: Complexity,
-}
-/// Query message to external contract to get asset value
-#[cosmwasm_schema::cw_serde]
-pub struct ValueQueryMsg {
-    pub asset: AssetInfo,
-    pub amount: Uint128,
-}
-/// External contract value response
-#[cosmwasm_schema::cw_serde]
-pub struct ExternalValueResponse {
-    pub value: Asset,
 }
