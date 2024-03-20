@@ -31,7 +31,7 @@ fn setup(
     // You can set up Abstract with a builder.
     let client = AbstractClient::builder(mock).build()?;
     // The client supports setting balances for addresses and configuring ANS.
-    client.set_balance(&sender, &coins(123, "ucosm"))?;
+    client.set_balance(sender, &coins(123, "ucosm"))?;
 
     // Build a Publisher Account
     let publisher = client.publisher_builder(namespace).build()?;
