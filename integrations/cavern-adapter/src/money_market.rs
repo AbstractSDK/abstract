@@ -234,7 +234,7 @@ impl MoneyMarketCommand for Cavern {
         _base: AssetInfo,
         _quote: AssetInfo,
     ) -> Result<Decimal, MoneyMarketError> {
-        unimplemented!("Price query not implemented for Cavern, because cavern doesn't handle collaterals and doesn't have denoms inscribed normally")
+        Err(MoneyMarketError::NotImplemented("Price query not implemented for Cavern, because cavern doesn't handle collaterals and doesn't have denoms inscribed normally".to_string()))
     }
 
     fn user_deposit(
@@ -347,7 +347,7 @@ impl MoneyMarketCommand for Cavern {
         _borrowed_asset: AssetInfo, // The max LTV doesn't depend on the borrowed asset in Cavern
         _collateral_asset: AssetInfo,
     ) -> Result<Decimal, MoneyMarketError> {
-        unimplemented!("Max ltv query not implemented for Cavern, because cavern doesn't handle collaterals normally")
+        Err(MoneyMarketError::NotImplemented("Max ltv query not implemented for Cavern, because cavern doesn't handle collaterals normally".to_string()))
     }
 
     fn current_ltv_address(
