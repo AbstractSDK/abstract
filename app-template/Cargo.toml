@@ -46,14 +46,14 @@ cw-storage-plus = "1.2.0"
 thiserror = { version = "1.0.50" }
 schemars = "0.8"
 cw-asset = { version = "3.0.0" }
-abstract-app = { version = "0.21" }
+abstract-app = { version = "0.21.0" }
 
 # Dependencies for interface
 cw-orch = { version = "0.20.1", optional = true }
 
 [dev-dependencies]
 app = { path = ".", features = ["interface"] }
-abstract-client = { version = "0.21" }
+abstract-client = { version = "0.21.0" }
 abstract-app = { version = "0.21", features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"

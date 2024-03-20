@@ -11,7 +11,7 @@ fn successful_wasm() {
     // Create a sender
     let sender = Addr::unchecked(OWNER);
     // Create the mock
-    let mock = Mock::new(&sender);
+    let mock = Mock::new(sender);
 
     // Construct the counter interface
     let contract = AppInterface::new(APP_ID, mock);
