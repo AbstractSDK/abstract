@@ -298,6 +298,52 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         Ok(account)
     }
 
+    pub fn test_price(&self) -> anyhow::Result<()> {
+        let (ans_collateral_asset, _asset_info_collateral) = self.moneymarket.collateral_asset();
+        let (ans_lending_asset, _asset_info_lending) = self.moneymarket.lending_asset();
+        let _price: Decimal = self.query(MoneyMarketAnsQuery::Price {
+            quote: AssetEntry::new(&ans_collateral_asset),
+            base: AssetEntry::new(&ans_lending_asset),
+        })?;
+
+        Ok(())
+    }
+
+    pub fn test_user_ltv(&self) -> anyhow::Result<()> {
+        let (ans_collateral_asset, _asset_info_collateral) = self.moneymarket.collateral_asset();
+        let (ans_lending_asset, _asset_info_lending) = self.moneymarket.lending_asset();
+
+        let account = self.test_borrow()?;
+
+        let ltv: Decimal = self.query(MoneyMarketAnsQuery::CurrentLTV {
+            user: account.proxy()?.to_string(),
+            collateral_asset: AssetEntry::new(&ans_collateral_asset),
+            borrowed_asset: AssetEntry::new(&ans_lending_asset),
+        })?;
+        assert!(ltv > Decimal::zero());
+
+        Ok(())
+    }
+
+    pub fn test_max_ltv(&self) -> anyhow::Result<()> {
+        let (ans_collateral_asset, _asset_info_collateral) = self.moneymarket.collateral_asset();
+        let (ans_lending_asset, _asset_info_lending) = self.moneymarket.lending_asset();
+
+        let account = self
+            .abstr_deployment
+            .account_builder()
+            .install_adapter::<MoneyMarketAdapter<Chain>>()?
+            .build()?;
+
+        let _max_ltv: Decimal = self.query(MoneyMarketAnsQuery::MaxLTV {
+            user: account.proxy()?.to_string(),
+            collateral_asset: AssetEntry::new(&ans_collateral_asset),
+            borrowed_asset: AssetEntry::new(&ans_lending_asset),
+        })?;
+
+        Ok(())
+    }
+
     fn query<T: Serialize + std::fmt::Debug + DeserializeOwned>(
         &self,
         query: MoneyMarketAnsQuery,

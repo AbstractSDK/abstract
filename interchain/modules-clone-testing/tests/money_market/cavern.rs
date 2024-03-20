@@ -149,3 +149,11 @@ fn repay() -> anyhow::Result<()> {
     mm_tester.test_repay()?;
     Ok(())
 }
+
+#[test]
+fn user_ltv() -> anyhow::Result<()> {
+    let mm_tester = setup()?;
+    mm_tester.deposit(DEPOSIT_VALUE * 100)?;
+    mm_tester.test_user_ltv()?;
+    Ok(())
+}

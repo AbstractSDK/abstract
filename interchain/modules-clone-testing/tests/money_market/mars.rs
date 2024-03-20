@@ -120,3 +120,23 @@ fn repay() -> anyhow::Result<()> {
     mm_tester.test_repay()?;
     Ok(())
 }
+
+// Queries
+#[test]
+fn price() -> anyhow::Result<()> {
+    let mm_tester = setup()?;
+    mm_tester.test_price()?;
+    Ok(())
+}
+#[test]
+fn user_ltv() -> anyhow::Result<()> {
+    let mm_tester = setup()?;
+    mm_tester.test_user_ltv()?;
+    Ok(())
+}
+#[test]
+fn max_ltv() -> anyhow::Result<()> {
+    let mm_tester = setup()?;
+    mm_tester.test_max_ltv()?;
+    Ok(())
+}

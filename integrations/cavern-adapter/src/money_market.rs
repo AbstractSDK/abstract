@@ -230,20 +230,11 @@ impl MoneyMarketCommand for Cavern {
 
     fn price(
         &self,
-        deps: Deps,
-        base: AssetInfo,
-        quote: AssetInfo,
+        _deps: Deps,
+        _base: AssetInfo,
+        _quote: AssetInfo,
     ) -> Result<Decimal, MoneyMarketError> {
-        let oracle_contract = &self.oracle_contract.clone().unwrap();
-        let price: moneymarket::oracle::PriceResponse = deps.querier.query_wasm_smart(
-            oracle_contract,
-            &moneymarket::oracle::QueryMsg::Price {
-                base: base.to_string(),
-                quote: quote.to_string(),
-            },
-        )?;
-
-        Ok(price.rate.try_into()?)
+        unimplemented!("Price query not implemented for Cavern, because cavern doesn't handle collaterals and doesn't have denoms inscribed normally")
     }
 
     fn user_deposit(
@@ -350,23 +341,13 @@ impl MoneyMarketCommand for Cavern {
     /// This info is located inside the overseer contract (whitelist query) and only inside there
     fn max_ltv(
         &self,
-        deps: Deps,
-        contract_addr: Addr,
+        _deps: Deps,
+        _contract_addr: Addr,
         _user: Addr,                // The max LTV doesn't depend on the user in Cavern
         _borrowed_asset: AssetInfo, // The max LTV doesn't depend on the borrowed asset in Cavern
-        collateral_asset: AssetInfo,
+        _collateral_asset: AssetInfo,
     ) -> Result<Decimal, MoneyMarketError> {
-        let overseer_msg = moneymarket::overseer::QueryMsg::Whitelist {
-            collateral_token: Some(collateral_asset.to_string()),
-            start_after: None,
-            limit: None,
-        };
-
-        let query_response: moneymarket::overseer::WhitelistResponse = deps
-            .querier
-            .query_wasm_smart(contract_addr, &overseer_msg)?;
-
-        Ok(query_response.elems[0].max_ltv.try_into()?)
+        unimplemented!("Max ltv query not implemented for Cavern, because cavern doesn't handle collaterals normally")
     }
 
     fn current_ltv_address(
