@@ -69,16 +69,6 @@ wasm:
     --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
     ${image}:0.14.0
 
-## Frontend Helpers ##
-
-# Generate the typescript client for the app contract
-ts-codegen: schema
-  (cd packages/typescript && npm install && npm run codegen)
-
-# Publish the typescript sdk
-ts-publish: ts-codegen
-  (cd packages/typescript && npm publish --access public)
-
 # Generate the schemas for the app contract
 schema:
   cargo schema
@@ -128,8 +118,7 @@ publish-schemas namespace name version: schema
 ## Exection commands ##
 
 run-script script +CHAINS:
-  cargo run --example {{script}} -- --network-ids {{CHAINS}}
+  cargo run --example {{script}} --features="daemon" -- --network-ids {{CHAINS}}
 
 publish +CHAINS:
   just run-script publish {{CHAINS}}
-  
