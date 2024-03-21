@@ -183,8 +183,8 @@ pub enum QueryMsg {
         limit: Option<u8>,
     },
     /// Queries assets based on address
-    /// returns [`AssetsResponse`]
-    #[returns(AssetsResponse)]
+    /// returns [`AssetInfosResponse`]
+    #[returns(AssetInfosResponse)]
     AssetInfos {
         // Addresses of assets to query
         infos: Vec<AssetInfoUnchecked>,

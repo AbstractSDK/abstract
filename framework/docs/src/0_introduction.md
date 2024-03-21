@@ -52,6 +52,6 @@ Look at the
     <li><a href="https://github.com/AbstractSDK" target="_blank">Github</a></li>
     <li><a href="https://medium.com/@abstractmoney" target="_blank">Medium</a></li>
     <li><a href="https://docs.abstract.money/" target="_blank">Docs</a></li>
-    <li><a href="https://app.abstract.money" target="_blank">Account Console</a></li>
+    <li><a href="https://console.abstract.money" target="_blank">Account Console</a></li>
     <li><a href="https://api.abstract.money/" target="_blank">Graphql API Explorer</a></li>
 </ul>

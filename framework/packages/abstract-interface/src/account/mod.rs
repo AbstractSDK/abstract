@@ -35,6 +35,13 @@ pub struct AbstractAccount<Chain: CwEnv> {
     pub proxy: Proxy<Chain>,
 }
 
+// Auto-dereference itself to have similar api with `abstract_client::Account`
+impl<Chain: CwEnv> AsRef<AbstractAccount<Chain>> for AbstractAccount<Chain> {
+    fn as_ref(&self) -> &AbstractAccount<Chain> {
+        self
+    }
+}
+
 impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn upload(&mut self) -> Result<(), crate::AbstractInterfaceError> {
         self.manager.upload()?;

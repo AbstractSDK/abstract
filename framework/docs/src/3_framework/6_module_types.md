@@ -2,7 +2,7 @@
 
 As explained in the previous section, a _module_ is a smart-contract that **extends an Account's functionality**. You can explore
 all the available modules on the modules tab of your Account through
-the <a href="https://app.abstract.money/" target="_blank">web-app</a>.
+the <a href="https://console.abstract.money/modules" target="_blank">web-app</a>.
 
 <!-- ```admonish info
 In the previous sections we referred to these modules as "applications". We did this to simplify the mental framework of 
@@ -90,7 +90,7 @@ flowchart LR
 
 The following are sequence diagrams of the process of installing and uninstalling a module on an Abstract Account. As
 you can see, the process happens via the Manager, and it can be done by the Account owner through
-the [web-app](https://app.abstract.money/).
+the [web-app](https://console.abstract.money/).
 
 ```mermaid
 sequenceDiagram
