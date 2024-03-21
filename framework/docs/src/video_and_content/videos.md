@@ -6,7 +6,15 @@ A pitch of the Abstract Money CosmWasm application framework. A quick overview o
 
 <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/yYTB9kVcy6Y?si=hvmQOd8kiRmZ4PP_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-### An Overview of the Abstract Platform - You Don't Need To Know
+### Abstract in 20 Mins
+
+*Adair*
+
+An overview of Abstract Money's application platform and benefits to developers. Goes over Chain Abstraction, Account Abstraction, and Service Abstraction.
+
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/vPX425yAZHY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+### A Technical Overview of the Abstract Platform - You Don't Need To Know
 
 *Howard*
 
