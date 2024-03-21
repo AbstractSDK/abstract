@@ -370,23 +370,29 @@ pub fn claim_namespace(
     account_id: AccountId,
     namespace_to_claim: String,
 ) -> VCResult {
-    // verify account owner
-
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    let account_owner = query_account_owner(&deps.querier, account_base.manager, &account_id)?;
-
-    // The account owner as well as the account factory contract are able to claim namespaces
-    if msg_info.sender != account_owner {
-        return Err(VCError::AccountOwnerMismatch {
-            sender: msg_info.sender,
-            owner: account_owner,
-        });
-    }
-
     let Config {
         namespace_registration_fee: fee,
+        allow_direct_module_registration_and_updates,
         ..
     } = CONFIG.load(deps.storage)?;
+
+    if !allow_direct_module_registration_and_updates {
+        // When security is enabled, only the contract admin can claim namespaces
+        cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    } else {
+        // If there is no security, only account owner can register a namespace
+        let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+        let account_owner = query_account_owner(&deps.querier, account_base.manager, &account_id)?;
+
+        // The account owner as well as the account factory contract are able to claim namespaces
+        if msg_info.sender != account_owner {
+            return Err(VCError::AccountOwnerMismatch {
+                sender: msg_info.sender,
+                owner: account_owner,
+            });
+        }
+    }
+
     let fee_msg = claim_namespace_internal(
         deps.storage,
         fee,
