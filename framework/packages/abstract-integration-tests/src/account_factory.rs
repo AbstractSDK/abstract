@@ -21,7 +21,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
     chain
         .set_balance(&sender, vec![namespace_fee.clone()])
         .unwrap();
-    version_control.update_config(None, None, Some(Clearable::Set(namespace_fee.clone())))?;
+    version_control.update_config(None, Some(Clearable::Set(namespace_fee.clone())), None)?;
 
     let namespace_to_claim = "namespace-to-claim";
 

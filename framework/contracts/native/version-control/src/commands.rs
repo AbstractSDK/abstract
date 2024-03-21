@@ -97,7 +97,7 @@ pub fn propose_modules(
         let store_has_module = PENDING_MODULES.has(deps.storage, &module)
             || REGISTERED_MODULES.has(deps.storage, &module)
             || YANKED_MODULES.has(deps.storage, &module);
-        if !config.allow_direct_module_registration_and_updates && store_has_module {
+        if !config.security_disabled && store_has_module {
             return Err(VCError::NotUpdateableModule(module));
         }
 
@@ -123,7 +123,7 @@ pub fn propose_modules(
             }
         }
 
-        if config.allow_direct_module_registration_and_updates {
+        if config.security_disabled {
             // assert that its data is equal to what it wants to be registered under.
             module::assert_module_data_validity(
                 &deps.querier,
@@ -370,23 +370,29 @@ pub fn claim_namespace(
     account_id: AccountId,
     namespace_to_claim: String,
 ) -> VCResult {
-    // verify account owner
-
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    let account_owner = query_account_owner(&deps.querier, account_base.manager, &account_id)?;
-
-    // The account owner as well as the account factory contract are able to claim namespaces
-    if msg_info.sender != account_owner {
-        return Err(VCError::AccountOwnerMismatch {
-            sender: msg_info.sender,
-            owner: account_owner,
-        });
-    }
-
     let Config {
         namespace_registration_fee: fee,
+        security_disabled,
         ..
     } = CONFIG.load(deps.storage)?;
+
+    if !security_disabled {
+        // When security is enabled, only the contract admin can claim namespaces
+        cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    } else {
+        // If there is no security, only account owner can register a namespace
+        let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+        let account_owner = query_account_owner(&deps.querier, account_base.manager, &account_id)?;
+
+        // The account owner as well as the account factory contract are able to claim namespaces
+        if msg_info.sender != account_owner {
+            return Err(VCError::AccountOwnerMismatch {
+                sender: msg_info.sender,
+                owner: account_owner,
+            });
+        }
+    }
+
     let fee_msg = claim_namespace_internal(
         deps.storage,
         fee,
@@ -511,7 +517,7 @@ pub fn update_config(
     deps: DepsMut,
     info: MessageInfo,
     account_factory_address: Option<String>,
-    allow_direct_module_registration_and_updates: Option<bool>,
+    security_disabled: Option<bool>,
     namespace_registration_fee: Option<Clearable<Coin>>,
 ) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
@@ -519,14 +525,11 @@ pub fn update_config(
 
     let mut attributes = vec![];
 
-    if let Some(allow) = allow_direct_module_registration_and_updates {
-        let previous_allow = config.allow_direct_module_registration_and_updates;
-        config.allow_direct_module_registration_and_updates = allow;
+    if let Some(allow) = security_disabled {
+        let previous_allow = config.security_disabled;
+        config.security_disabled = allow;
         attributes.extend(vec![
-            (
-                "previous_allow_direct_module_registration_and_updates",
-                previous_allow.to_string(),
-            ),
+            ("previous_security_disabled", previous_allow.to_string()),
             (
                 "allow_direct_module_registration_and_updates",
                 allow.to_string(),
@@ -664,7 +667,7 @@ mod test {
             info,
             InstantiateMsg {
                 admin,
-                allow_direct_module_registration_and_updates: Some(true),
+                security_disabled: Some(true),
                 namespace_registration_fee: None,
             },
         )?;
@@ -672,14 +675,14 @@ mod test {
             deps,
             ExecuteMsg::UpdateConfig {
                 account_factory_address: Some(TEST_ACCOUNT_FACTORY.to_string()),
-                allow_direct_module_registration_and_updates: None,
+                security_disabled: None,
                 namespace_registration_fee: None,
             },
         )
     }
 
     /// Initialize the version_control with admin as creator and test account
-    fn mock_init_with_account(mut deps: DepsMut, direct_registration_and_update: bool) -> VCResult {
+    fn mock_init_with_account(mut deps: DepsMut, security_disabled: bool) -> VCResult {
         let admin_info = mock_info(OWNER, &[]);
         let admin = admin_info.sender.to_string();
 
@@ -689,7 +692,7 @@ mod test {
             admin_info,
             InstantiateMsg {
                 admin,
-                allow_direct_module_registration_and_updates: Some(direct_registration_and_update),
+                security_disabled: Some(security_disabled),
                 namespace_registration_fee: None,
             },
         )?;
@@ -697,7 +700,7 @@ mod test {
             deps.branch(),
             ExecuteMsg::UpdateConfig {
                 account_factory_address: Some(TEST_ACCOUNT_FACTORY.to_string()),
-                allow_direct_module_registration_and_updates: None,
+                security_disabled: None,
                 namespace_registration_fee: None,
             },
         )?;
@@ -780,7 +783,7 @@ mod test {
         fn only_admin_factory() -> VersionControlTestResult {
             let msg = ExecuteMsg::UpdateConfig {
                 account_factory_address: Some("new_factory".to_string()),
-                allow_direct_module_registration_and_updates: None,
+                security_disabled: None,
                 namespace_registration_fee: None,
             };
             test_only_admin(msg)
@@ -821,7 +824,7 @@ mod test {
             let new_factory = "new_factory";
             let msg = ExecuteMsg::UpdateConfig {
                 account_factory_address: Some(new_factory.to_string()),
-                allow_direct_module_registration_and_updates: None,
+                security_disabled: None,
                 namespace_registration_fee: None,
             };
 
@@ -888,7 +891,7 @@ mod test {
                 deps.as_mut(),
                 ExecuteMsg::UpdateConfig {
                     account_factory_address: None,
-                    allow_direct_module_registration_and_updates: None,
+                    security_disabled: None,
                     namespace_registration_fee: Clearable::new_opt(one_namespace_fee.clone()),
                 },
             )
@@ -1085,7 +1088,7 @@ mod test {
 
             let msg = ExecuteMsg::UpdateConfig {
                 account_factory_address: None,
-                allow_direct_module_registration_and_updates: Some(false),
+                security_disabled: Some(false),
                 namespace_registration_fee: None,
             };
 
@@ -1104,27 +1107,15 @@ mod test {
 
             let msg = ExecuteMsg::UpdateConfig {
                 account_factory_address: None,
-                allow_direct_module_registration_and_updates: Some(false),
+                security_disabled: Some(false),
                 namespace_registration_fee: None,
             };
 
             let res = execute_as_admin(deps.as_mut(), msg);
             assert_that!(&res).is_ok();
 
-            assert_that!(
-                CONFIG
-                    .load(&deps.storage)
-                    .unwrap()
-                    .allow_direct_module_registration_and_updates
-            )
-            .is_equal_to(false);
-            assert_that!(
-                CONFIG
-                    .load(&deps.storage)
-                    .unwrap()
-                    .allow_direct_module_registration_and_updates
-            )
-            .is_equal_to(false);
+            assert_that!(CONFIG.load(&deps.storage).unwrap().security_disabled).is_equal_to(false);
+            assert_that!(CONFIG.load(&deps.storage).unwrap().security_disabled).is_equal_to(false);
 
             Ok(())
         }
@@ -1142,7 +1133,7 @@ mod test {
 
             let msg = ExecuteMsg::UpdateConfig {
                 account_factory_address: None,
-                allow_direct_module_registration_and_updates: None,
+                security_disabled: None,
                 namespace_registration_fee: Clearable::new_opt(Coin {
                     denom: "ujunox".to_string(),
                     amount: Uint128::one(),
@@ -1169,7 +1160,7 @@ mod test {
 
             let msg = ExecuteMsg::UpdateConfig {
                 account_factory_address: None,
-                allow_direct_module_registration_and_updates: None,
+                security_disabled: None,
                 namespace_registration_fee: Clearable::new_opt(new_fee.clone()),
             };
 
@@ -2247,7 +2238,7 @@ mod test {
 
             let msg = ExecuteMsg::UpdateConfig {
                 account_factory_address: Some(TEST_ACCOUNT_FACTORY.into()),
-                allow_direct_module_registration_and_updates: None,
+                security_disabled: None,
                 namespace_registration_fee: None,
             };
 

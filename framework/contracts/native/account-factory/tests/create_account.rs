@@ -81,7 +81,7 @@ fn create_one_account() -> AResult {
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
         account_factory_address: Some(factory.address()?),
-        allow_direct_module_registration_and_updates: true,
+        security_disabled: true,
         namespace_registration_fee: Default::default(),
     };
 
@@ -157,7 +157,7 @@ fn create_two_account_s() -> AResult {
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
         account_factory_address: Some(factory.address()?),
-        allow_direct_module_registration_and_updates: true,
+        security_disabled: true,
         namespace_registration_fee: Default::default(),
     };
 
