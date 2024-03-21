@@ -926,9 +926,9 @@ mod test {
             };
 
             let res = execute_as(deps.as_mut(), THIRD_ACC_MANAGER, msg);
-            assert_that!(&res).is_err().is_equal_to(VCError::Ownership(
-                OwnershipError::NotOwner
-            ));
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::Ownership(OwnershipError::NotOwner));
 
             Ok(())
         }
