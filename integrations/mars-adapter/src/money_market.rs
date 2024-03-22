@@ -4,7 +4,7 @@ use cosmwasm_std::Addr;
 
 use crate::{AVAILABLE_CHAINS, MARS};
 
-// Source https://docs.rs/kujira/0.8.2/kujira/
+// https://docs.marsprotocol.io/docs/develop/contracts/red-bank
 #[derive(Default)]
 pub struct Mars {
     pub oracle_contract: Option<Addr>,
@@ -162,7 +162,7 @@ impl MoneyMarketCommand for Mars {
                 },
             )?;
 
-        Ok(base_price.price / quote_price.price)
+        Ok(base_price.price.checked_div(quote_price.price)?)
     }
 
     fn user_deposit(
@@ -236,6 +236,10 @@ impl MoneyMarketCommand for Mars {
         let query_response: mars_red_bank_types::red_bank::UserPositionResponse =
             deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
 
+        if query_response.total_enabled_collateral.is_zero() {
+            return Ok(Decimal::zero());
+        }
+
         Ok(Decimal::from_ratio(
             query_response.total_collateralized_debt,
             query_response.total_enabled_collateral,
@@ -256,6 +260,10 @@ impl MoneyMarketCommand for Mars {
 
         let query_response: mars_red_bank_types::red_bank::UserPositionResponse =
             deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
+
+        if query_response.total_enabled_collateral.is_zero() {
+            return Ok(Decimal::zero());
+        }
 
         Ok(Decimal::from_ratio(
             query_response.weighted_max_ltv_collateral,

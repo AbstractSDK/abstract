@@ -245,6 +245,9 @@ impl MoneyMarketCommand for Kujira {
 
         let collateral_value = Decimal::from_ratio(collateral, 1u128) * collateral_price;
 
+        if collateral_value.is_zero() {
+            return Ok(Decimal::zero());
+        }
         Ok(Decimal::from_ratio(borrow, 1u128) / collateral_value)
     }
 

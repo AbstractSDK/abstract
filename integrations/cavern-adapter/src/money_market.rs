@@ -335,6 +335,9 @@ impl MoneyMarketCommand for Cavern {
         )?;
 
         let borrow_limit: Uint128 = borrow_limit.borrow_limit.try_into()?;
+        if borrow_limit.is_zero() {
+            return Ok(Decimal::zero());
+        }
         Ok(Decimal::from_ratio(current_borrow, borrow_limit))
     }
 

@@ -1,7 +1,9 @@
 use abstract_adapter::AdapterError;
 use abstract_core::{objects::ans_host::AnsHostError, AbstractError};
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::{ConversionOverflowError, DecimalRangeExceeded, StdError};
+use cosmwasm_std::{
+    CheckedFromRatioError, ConversionOverflowError, DecimalRangeExceeded, StdError,
+};
 use cw_asset::AssetError;
 use thiserror::Error;
 
@@ -9,6 +11,9 @@ use thiserror::Error;
 pub enum MoneyMarketError {
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    FromRatio(#[from] CheckedFromRatioError),
 
     #[error("{0}")]
     AbstractOs(#[from] AbstractError),
