@@ -1,4 +1,4 @@
-use abstract_core::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
+use abstract_core::objects::{price_source::UncheckedPriceSource, AssetEntry};
 use abstract_sdk::core::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     proxy::state::{ADMIN, ANS_HOST, STATE},

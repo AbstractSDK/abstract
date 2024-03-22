@@ -10,7 +10,8 @@
 //! **There should only be ONE base asset when configuring your proxy**
 
 use cosmwasm_std::{
-    to_json_binary, Addr, Decimal, Deps, QuerierWrapper, QueryRequest, StdError, Uint128, WasmQuery,
+    to_json_binary, Addr, Decimal, Deps, Empty, QuerierWrapper, QueryRequest, StdError, Uint128,
+    WasmQuery,
 };
 use cw_asset::{Asset, AssetInfo};
 use schemars::JsonSchema;
@@ -48,8 +49,7 @@ impl AssetConversion {
 
 /// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[non_exhaustive]
-pub enum UncheckedPriceSource<E: ExternalPriceSource> {
+pub enum UncheckedPriceSource<E: ExternalPriceSource = Empty> {
     /// A pool address of an asset/asset pair
     /// Both assets must be defined in the Proxy_assets state
     Pair(DexAssetPairing),
@@ -63,6 +63,50 @@ pub enum UncheckedPriceSource<E: ExternalPriceSource> {
     },
     External(E),
     None,
+}
+
+pub trait ExternalPriceSource {
+    fn check(
+        &self,
+        deps: Deps,
+        ans_host: &AnsHost,
+        entry: &AssetEntry,
+    ) -> AbstractResult<PriceSource>;
+
+    fn dependencies(&self, asset: &AssetInfo) -> Vec<AssetInfo>;
+    fn conversion_rates(
+        &self,
+        deps: Deps,
+        asset: &AssetInfo,
+    ) -> AbstractResult<Vec<AssetConversion>>;
+}
+
+// Don't support external price source by default, unless module implements it
+impl ExternalPriceSource for Empty {
+    fn check(
+        &self,
+        _deps: Deps,
+        _ans_host: &AnsHost,
+        _entry: &AssetEntry,
+    ) -> AbstractResult<PriceSource> {
+        AbstractResult::Err(AbstractError::Assert(
+            "External price source not supported".to_owned(),
+        ))
+    }
+
+    // Should not be able to reach other methods after failing check
+
+    fn dependencies(&self, _asset: &AssetInfo) -> Vec<AssetInfo> {
+        unreachable!()
+    }
+
+    fn conversion_rates(
+        &self,
+        _deps: Deps,
+        _asset: &AssetInfo,
+    ) -> AbstractResult<Vec<AssetConversion>> {
+        unreachable!()
+    }
 }
 
 impl UncheckedPriceSource {
@@ -119,14 +163,14 @@ impl UncheckedPriceSource {
                 })
             }
             UncheckedPriceSource::None => Ok(PriceSource::None),
+            UncheckedPriceSource::External(external) => external.check(deps, ans_host, entry),
         }
     }
 }
 
 /// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
-#[non_exhaustive]
-pub enum PriceSource {
+pub enum PriceSource<E: ExternalPriceSource = Empty> {
     /// Should only be used for the base asset
     None,
     /// A pool name of an asset/asset pair
@@ -146,9 +190,11 @@ pub enum PriceSource {
         asset: AssetInfo,
         multiplier: Decimal,
     },
+    /// External price source
+    External(E),
 }
 
-impl PriceSource {
+impl<E: ExternalPriceSource> PriceSource<E> {
     /// Returns the assets that are required to calculate the price of the asset
     /// Panics if the price source is None
     pub fn dependencies(&self, asset: &AssetInfo) -> Vec<AssetInfo> {
@@ -160,6 +206,7 @@ impl PriceSource {
             PriceSource::LiquidityToken { pool_assets, .. } => pool_assets.clone(),
             PriceSource::ValueAs { asset, .. } => vec![asset.clone()],
             PriceSource::None => vec![],
+            PriceSource::External(e) => e.dependencies(asset),
         }
     }
 
@@ -187,6 +234,7 @@ impl PriceSource {
             }
             // None means it's the base asset
             PriceSource::None => Ok(vec![]),
+            PriceSource::External(e) => e.conversion_rates(deps, asset),
         }
     }
 
@@ -362,7 +410,7 @@ mod tests {
         #[test]
         fn fail_with_native_token() -> AbstractResult<()> {
             let deps = mock_dependencies();
-            let price_source = PriceSource::LiquidityToken {
+            let price_source = PriceSource::<Empty>::LiquidityToken {
                 pool_address: PoolAddress::contract(Addr::unchecked(TEST_POOL_ADDR)),
                 pool_assets: vec![AssetInfo::native(TEST_ASSET_1)],
             };
@@ -411,7 +459,7 @@ mod tests {
                 .build();
 
             let target_asset = AssetInfo::native(TEST_ASSET_1);
-            let price_source = PriceSource::LiquidityToken {
+            let price_source = PriceSource::<Empty>::LiquidityToken {
                 pool_address: PoolAddress::contract(Addr::unchecked(TEST_POOL_ADDR)),
                 pool_assets: vec![target_asset.clone()],
             };
