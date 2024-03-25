@@ -97,10 +97,9 @@ pub fn receive_action_callback(
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
                 result: CallbackResult::from_execute(callback.result, initiator_msg)?,
-                sender_address,
             };
             Ok(IbcClientResponse::action("module_action_ibc_callback")
-                .add_message(callback.into_cosmos_msg(callback_info.receiver)?)
+                .add_message(callback.into_cosmos_msg(sender_address)?)
                 .add_attribute("chain", host_chain.to_string())
                 .add_attribute("callback_id", callback_info.id))
         }
@@ -113,10 +112,9 @@ pub fn receive_action_callback(
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
                 result: CallbackResult::from_query(callback.result, query)?,
-                sender_address,
             };
             Ok(IbcClientResponse::action("module_query_ibc_callback")
-                .add_message(callback.into_cosmos_msg(callback_info.receiver)?)
+                .add_message(callback.into_cosmos_msg(sender_address)?)
                 .add_attribute("chain", host_chain.to_string())
                 .add_attribute("callback_id", callback_info.id))
         }

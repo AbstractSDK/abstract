@@ -350,7 +350,6 @@ mod tests {
             id: callback_id,
             msg: Some(callback_msg),
             result,
-            sender_address: "action_sender".to_string(),
         };
 
         let actual: CosmosMsg<Empty> = response_msg

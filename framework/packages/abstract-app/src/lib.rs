@@ -75,7 +75,7 @@ pub mod mock {
 
     #[cosmwasm_schema::cw_serde]
     pub struct ReceivedIbcCallbackStatus {
-        pub received: Option<String>,
+        pub received: bool,
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -133,12 +133,12 @@ pub mod mock {
         MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
     // Easy way to see if an ibc-callback was actually received.
-    pub const IBC_CALLBACK_RECEIVED: Item<Option<String>> = Item::new("ibc_callback_received");
+    pub const IBC_CALLBACK_RECEIVED: Item<bool> = Item::new("ibc_callback_received");
 
     pub const MOCK_APP_WITH_DEP: MockAppContract =
         MockAppContract::new(TEST_WITH_DEP_MODULE_ID, TEST_VERSION, None)
             .with_instantiate(|deps, _, _, _, _| {
-                IBC_CALLBACK_RECEIVED.save(deps.storage, &None)?;
+                IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
                 Ok(Response::new().set_data("mock_init".as_bytes()))
             })
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
@@ -155,10 +155,8 @@ pub mod mock {
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, msg| {
-                IBC_CALLBACK_RECEIVED
-                    .save(deps.storage, &Some(msg.sender_address))
-                    .unwrap();
+            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _| {
+                IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
 
                 Ok(Response::new().add_attribute("mock_callback", "executed"))
             })])

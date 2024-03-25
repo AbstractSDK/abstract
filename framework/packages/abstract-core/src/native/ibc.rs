@@ -10,7 +10,8 @@ use crate::{
     objects::{chain_name::ChainName, module::ModuleInfo},
 };
 
-// CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client
+/// CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client
+/// A callback can only be sent to itself
 #[cosmwasm_schema::cw_serde]
 pub struct CallbackInfo {
     /// Used to identify the callback that is sent (acts like the reply ID)
@@ -18,8 +19,6 @@ pub struct CallbackInfo {
     /// Used to add information to the callback.
     /// This is usually used to provide information to the ibc callback function for context
     pub msg: Option<Binary>,
-    /// Contract that will be called with the callback message
-    pub receiver: String,
 }
 
 /// IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg
@@ -30,9 +29,6 @@ pub struct IbcCallbackMsg {
     /// The msg sent with the callback request.
     /// This is usually used to provide information to the ibc callback function for context
     pub msg: Option<Binary>,
-    /// This identifies the sender of the callback
-    /// This SHOULD be used by the callback function to identify the callback sender
-    pub sender_address: String,
     pub result: CallbackResult,
 }
 

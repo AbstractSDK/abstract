@@ -128,7 +128,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
             Ok(Response::new().set_data("mock_init".as_bytes()))
         })
-        .with_execute(|deps, env, _, app, msg| match msg {
+        .with_execute(|deps, _env, _, app, msg| match msg {
             MockExecMsg::DoSomethingIbc {
                 remote_chain,
                 target_module,
@@ -152,7 +152,6 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                         callback_info: Some(CallbackInfo {
                             id: "c_id".to_string(),
                             msg: None,
-                            receiver: env.contract.address.to_string(),
                         }),
                     },
                     vec![],
@@ -173,7 +172,6 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                         callback_info: CallbackInfo {
                             id: "query_id".to_string(),
                             msg: None,
-                            receiver: env.contract.address.to_string(),
                         },
                         query: cosmwasm_std::QueryRequest::Bank(
                             cosmwasm_std::BankQuery::AllBalances { address },
