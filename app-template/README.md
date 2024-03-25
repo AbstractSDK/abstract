@@ -1,6 +1,6 @@
 # Abstract App Module Template
 
-The Abstract App Module Template is a starting point for developing composable smart-contracts, or "Apps" on the Abstract platform. An App is instantiated for each Account individually and is migratable. Apps are allowed to perform actions on Abstract Accounts and can integrate with other Apps and Adapters installed on the Account. To learn more about Abstract Accounts, please see the [abstract accounts documentation](https://docs.abstract.money/4_framework/4_architecture.html). To read more about apps, please see the [app module documentation](https://docs.abstract.money/4_framework/7_module_types.html).
+The Abstract App Module Template is a starting point for developing composable smart-contracts, or "Apps" on the Abstract platform. An App is instantiated for each Account individually and is migratable. Apps are allowed to perform actions on Abstract Accounts and can integrate with other Apps and Adapters installed on the Account. To learn more about Abstract Accounts, please see the [abstract accounts documentation](https://docs.abstract.money/3_framework/3_architecture.html). To read more about apps, please see the [app module documentation](https://docs.abstract.money/3_framework/6_module_types.html).
 
 ## Getting Started
 
@@ -54,7 +54,7 @@ You can see the full list of tasks available by running `just --list`.
 You can test the module using the different provided methods.
 
 1. **Integration testing:** We provide an integration testing setup [here](./tests/integration.rs). You should use this to set up your environment and test the different execution and query entry-points of your module. Once you are satisfied with the results you can try publishing it to a real chain.
-2. **Local Daemon:** Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [test-local](./examples/test-local.rs) example, which uses a locally running juno daemon to deploy to. You can setup local juno using `just juno-local` command. At this point you can also test your front-end with the contracts.
+2. **Local Daemon:** Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You need [Docker](https://www.docker.com/) installed for this step. You can do this by running the [test-local](./examples/test-local.rs) example, which uses a locally running juno daemon to deploy to. You can setup local juno using `just juno-local` command. At this point you can also test your front-end with the contracts.
 
 Once testing is done you can attempt an actual deployment on test and mainnet.
 
@@ -63,25 +63,15 @@ Once testing is done you can attempt an actual deployment on test and mainnet.
 Before attempting to publish your app you need to add your mnemonic to the `.env` file. **Don't use a mnemonic that has mainnet funds for this.**
 
 <!-- It's also assumed that you have an account and module namespace claimed with this account before publishing. You can read how to do that [here](https://docs.abstract.money/4_get_started/5_abstract_client.html). -->
+Select from a wide range of [supported chains](https://orchestrator.abstract.money/chains/index.html) before proceeding. Make sure you've some balance enough to pay gas for the transaction. If the chain does not have gas, complete at least 1 transaction with your account before proceeding.
 
 You can now use `just publish {{chain-id}}` to run the [`examples/publish.rs`](./examples/publish.rs) script. The script will publish the app to the networks that you provided. Make sure you have enough funds in your wallet on the different networks you aim to publish on.
-
-### Generating Typescript Client Code
-
-Before proceeding you need to install the required dependencies for the typescript client code generation.
-
-```bash
-cd packages/typescript
-npm install
-```
-
-To generate the typescript client code for the contract you can run `just ts-codegen`. This will generate the code in the `typescript/src` directory. You can then import the generated code in your frontend application.
-
-To publish the Typescript sdk, first change the name and version in the `typescript/package.json` file. Then run `just ts-publish`. This will publish the sdk to npm.
 
 ### Publishing Module Schemas
 
 To publish your module schemas, we provide the `publish-schemas` command, which creates a pull request on the Abstract [schemas](https://github.com/AbstractSDK/schemas) repository.
+
+Please install [github cli](https://cli.github.com/) before proceeding.
 
 ```bash
 just publish-schemas <namespace> <name> <version>
@@ -106,3 +96,8 @@ In the example above, `my-namespace` is the namespace, `my-module` is the module
 ## Contributing
 
 We welcome contributions to the Abstract App Module Template! To contribute, fork this repository and submit a pull request with your changes. If you have any questions or issues, please open an issue in the repository and we will be happy to assist you.
+
+## Community
+Check out the following places for support, discussions & feedback:
+
+- Join our [Discord server](https://discord.com/invite/uch3Tq3aym)
