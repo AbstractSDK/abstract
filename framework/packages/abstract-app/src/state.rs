@@ -3,7 +3,7 @@ use abstract_core::{
     AbstractError,
 };
 use abstract_sdk::{
-    base::SudoHandlerFn,
+    base::{ModuleIbcHandlerFn, SudoHandlerFn},
     feature_objects::{AnsHost, VersionControlContract},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
@@ -176,6 +176,15 @@ impl<
         self.contract = self.contract.with_ibc_callbacks(callbacks);
         self
     }
+
+    /// add Module IBC to contract
+    pub const fn with_module_ibc(
+        mut self,
+        module_handler: ModuleIbcHandlerFn<Self, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_module_ibc(module_handler);
+        self
+    }
 }
 
 #[cfg(test)]
@@ -193,7 +202,7 @@ mod tests {
             .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
+            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })])
             .with_replies(&[(1u64, |_, _, _, msg| {

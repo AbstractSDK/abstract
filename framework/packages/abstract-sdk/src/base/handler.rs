@@ -4,7 +4,7 @@ use cw2::ContractVersion;
 
 use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
+    MigrateHandlerFn, ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
 };
 use crate::{
     base::{
@@ -175,6 +175,11 @@ where
             }
         }
         None
+    }
+    /// Get an IBC module call handler if it exists.
+    fn maybe_module_ibc_handler(&self) -> Option<ModuleIbcHandlerFn<Self, Self::Error>> {
+        let contract = self.contract();
+        contract.module_ibc_handler
     }
     /// Get a reply handler if it exists.
     fn maybe_reply_handler(&self, id: u64) -> Option<ReplyHandlerFn<Self, Self::Error>> {

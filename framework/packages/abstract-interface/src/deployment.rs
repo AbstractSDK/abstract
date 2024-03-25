@@ -256,6 +256,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 self.ibc.client.as_instance(),
                 ibc_client::contract::CONTRACT_VERSION.to_string(),
             ),
+            (
+                self.ibc.host.as_instance(),
+                ibc_host::contract::CONTRACT_VERSION.to_string(),
+            ),
         ]
     }
 }
