@@ -32,7 +32,3 @@ edit-url-template = "https://github.com/AbstractSDK/abstract/edit/main/framework
 fold.enable = true
 no-section-label = true
 # [output.linkcheck]
-
-[output.html.search]
-enable = true            # enables the search feature
-copy-js = false           # include Javascript code for search
