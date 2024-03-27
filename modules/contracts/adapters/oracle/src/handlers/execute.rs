@@ -24,10 +24,10 @@ use cosmwasm_std::{
 use cw_asset::AssetBase;
 
 use crate::{
-    contract::{DexAdapter, DexResult},
-    exchanges::exchange_resolver,
-    handlers::execute::exchange_resolver::is_over_ibc,
+    contract::{OracleAdapter, OracleResult},
+    handlers::execute::oracle_resolver::is_over_ibc,
     msg::{DexExecuteMsg, DexName},
+    oracles::oracle_resolver,
     state::DEX_FEES,
 };
 
@@ -37,9 +37,9 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    adapter: DexAdapter,
+    adapter: OracleAdapter,
     msg: DexExecuteMsg,
-) -> DexResult {
+) -> OracleResult {
     match msg {
         DexExecuteMsg::AnsAction {
             dex: dex_name,
@@ -115,11 +115,11 @@ fn handle_local_request(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    adapter: &DexAdapter,
+    adapter: &OracleAdapter,
     exchange: String,
     action: DexRawAction,
-) -> DexResult {
-    let exchange = exchange_resolver::resolve_exchange(&exchange)?;
+) -> OracleResult {
+    let exchange = oracle_resolver::resolve_exchange(&exchange)?;
     let target_account = adapter.account_base(deps.as_ref())?;
     let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
         adapter,
@@ -139,10 +139,10 @@ fn handle_local_request(
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,
-    adapter: &DexAdapter,
+    adapter: &OracleAdapter,
     dex_name: DexName,
     action: &DexRawAction,
-) -> DexResult {
+) -> OracleResult {
     let host_chain = ChainName::from_string(dex_name.clone())?; // TODO, this is faulty
 
     let ans = adapter.name_service(deps.as_ref());
@@ -189,7 +189,7 @@ pub(crate) fn resolve_assets_to_transfer(
     deps: Deps,
     dex_action: &DexRawAction,
     _ans_host: &AnsHost,
-) -> DexResult<Vec<Coin>> {
+) -> OracleResult<Vec<Coin>> {
     // resolve asset to native asset
     let offer_to_coin = |offer: &AssetBase<String>| {
         offer

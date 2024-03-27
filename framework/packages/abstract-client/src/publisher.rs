@@ -2,7 +2,7 @@
 //!
 //! [`Publisher`] is an Account with helpers for publishing and maintaining Abstract Applications and Adapters
 
-use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
+use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace};
 use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule};
 use cw_orch::{
     contract::Contract,
@@ -72,12 +72,6 @@ impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
     /// Overwrite the configured namespace
     pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
         self.account_builder.namespace(namespace);
-        self
-    }
-
-    /// Base Asset for the account
-    pub fn base_asset(&mut self, base_asset: AssetEntry) -> &mut Self {
-        self.account_builder.base_asset(base_asset);
         self
     }
 

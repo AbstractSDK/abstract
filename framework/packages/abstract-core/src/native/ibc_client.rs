@@ -7,7 +7,7 @@ use crate::{
     ibc::CallbackInfo,
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
-    objects::{account::AccountId, chain_name::ChainName, AssetEntry},
+    objects::{account::AccountId, chain_name::ChainName},
 };
 
 pub mod state {
@@ -96,7 +96,6 @@ pub enum ExecuteMsg {
     /// This action creates a proxy for them on the remote chain.
     Register {
         host_chain: String,
-        base_asset: Option<AssetEntry>,
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     },

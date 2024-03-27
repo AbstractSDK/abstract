@@ -79,7 +79,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         }
         ExecuteMsg::Register {
             host_chain,
-            base_asset,
             namespace,
             install_modules,
         } => commands::execute_register_account(
@@ -87,7 +86,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             info,
             env,
             host_chain,
-            base_asset,
             namespace,
             install_modules,
         ),
@@ -519,7 +517,6 @@ mod tests {
                     name: String::from("name"),
                     description: None,
                     link: None,
-                    base_asset: None,
                     namespace: None,
                     install_modules: vec![],
                 }),
@@ -868,7 +865,6 @@ mod tests {
 
             let msg = ExecuteMsg::Register {
                 host_chain: chain_name.to_string(),
-                base_asset: None,
                 namespace: None,
                 install_modules: vec![],
             };
@@ -925,7 +921,6 @@ mod tests {
 
             let msg = ExecuteMsg::Register {
                 host_chain: chain_name.to_string(),
-                base_asset: None,
                 namespace: None,
                 install_modules: vec![],
             };
@@ -945,7 +940,6 @@ mod tests {
                                 description: None,
                                 link: None,
                                 name: String::from("name"),
-                                base_asset: None,
                                 namespace: None,
                                 install_modules: vec![],
                             }),

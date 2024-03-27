@@ -4,12 +4,14 @@ mod error;
 pub mod action;
 pub mod msg;
 pub mod state;
-#[cfg(feature = "testing")]
-pub mod tests;
+
+// TODO:
+// #[cfg(feature = "testing")]
+// pub mod tests;
 
 // Export interface for use in SDK modules
 pub use abstract_adapter_utils::{coins_in_assets, cw_approve_msgs, Identify};
-pub use command::{DexCommand, Fee, FeeOnInput, Return, Spread};
-pub use error::DexError;
+pub use command::OracleCommand;
+pub use error::OracleError;
 
-pub const DEX_ADAPTER_ID: &str = "abstract:dex";
+pub const ORACLE_ADAPTER_ID: &str = "abstract:oracle";

@@ -29,12 +29,11 @@ pub mod state {
     use cw_storage_plus::Item;
 
     pub use crate::objects::account::ACCOUNT_ID;
-    use crate::objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE};
+    use crate::objects::common_namespace::ADMIN_NAMESPACE;
     #[cosmwasm_schema::cw_serde]
     pub struct State {
         pub modules: Vec<Addr>,
     }
-    pub const ANS_HOST: Item<AnsHost> = Item::new("\u{0}{6}ans_host");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 }
@@ -42,9 +41,7 @@ pub mod state {
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub account_id: AccountId,
-    pub ans_host_address: String,
     pub manager_addr: String,
-    pub base_asset: Option<AssetEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -62,11 +59,6 @@ pub enum ExecuteMsg {
     AddModules { modules: Vec<String> },
     /// Removes the provided address from the whitelisted dapps
     RemoveModule { module: String },
-    /// Updates the VAULT_ASSETS map
-    UpdateAssets {
-        to_add: Vec<(AssetEntry, UncheckedPriceSource)>,
-        to_remove: Vec<AssetEntry>,
-    },
 }
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}

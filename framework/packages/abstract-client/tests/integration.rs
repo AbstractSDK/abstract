@@ -91,7 +91,6 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         monarch: chain.addr_make("monarch").to_string(),
     };
     let namespace = Namespace::new("test-namespace")?;
-    let base_asset = AssetEntry::new(asset);
     let account: Account<MockBech32> = client
         .account_builder()
         .name(name)
@@ -99,7 +98,6 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
         .description(description)
         .ownership(governance_details.clone())
         .namespace(namespace.clone())
-        .base_asset(base_asset)
         .build()?;
 
     let account_info = account.info()?;
@@ -203,14 +201,12 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
         monarch: chain.addr_make("monarch").to_string(),
     };
     let namespace = Namespace::new("test-namespace")?;
-    let base_asset = AssetEntry::new(asset);
     let publisher: Publisher<MockBech32> = client
         .publisher_builder(namespace.clone())
         .name(name)
         .link(link)
         .description(description)
         .ownership(governance_details.clone())
-        .base_asset(base_asset)
         .build()?;
 
     let account_info = publisher.account().info()?;

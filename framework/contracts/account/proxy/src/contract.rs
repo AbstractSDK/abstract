@@ -1,17 +1,12 @@
-use abstract_core::objects::{
-    module_version::assert_contract_upgrade, oracle::Oracle, price_source::UncheckedPriceSource,
-};
+use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
-use abstract_sdk::{
-    core::{
-        objects::account::ACCOUNT_ID,
-        proxy::{
-            state::{State, ADMIN, ANS_HOST, STATE},
-            AssetConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-        },
-        PROXY,
+use abstract_sdk::core::{
+    objects::account::ACCOUNT_ID,
+    proxy::{
+        state::{State, ADMIN, STATE},
+        ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
-    feature_objects::AnsHost,
+    PROXY,
 };
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, SubMsgResult,
@@ -52,22 +47,9 @@ pub fn instantiate(
             modules: vec![manager_addr.clone()],
         },
     )?;
-    let ans_host = AnsHost {
-        address: deps.api.addr_validate(&msg.ans_host_address)?,
-    };
-    ANS_HOST.save(deps.storage, &ans_host)?;
     let admin_addr = Some(manager_addr);
     ADMIN.set(deps.branch(), admin_addr)?;
 
-    if let Some(base_asset) = msg.base_asset {
-        let oracle = Oracle::new();
-        oracle.update_assets(
-            deps,
-            &ans_host,
-            vec![(base_asset, UncheckedPriceSource::None)],
-            vec![],
-        )?;
-    }
     Ok(Response::default())
 }
 
@@ -80,9 +62,6 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, &admin),
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
-        ExecuteMsg::UpdateAssets { to_add, to_remove } => {
-            update_assets(deps, info, to_add, to_remove)
-        }
     }
 }
 
@@ -96,7 +75,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
     }

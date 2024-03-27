@@ -3,7 +3,7 @@ use abstract_core::{
     module_factory::SimulateInstallModulesResponse,
     objects::{
         account::AccountTrace, module::assert_module_data_validity,
-        salt::generate_instantiate_salt, AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
+        salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
     },
     AbstractError,
 };
@@ -47,7 +47,6 @@ pub fn execute_create_account(
     description: Option<String>,
     link: Option<String>,
     namespace: Option<String>,
-    base_asset: Option<AssetEntry>,
     install_modules: Vec<ModuleInstallConfig>,
     account_id: Option<AccountId>,
 ) -> AccountFactoryResult {
@@ -187,9 +186,7 @@ pub fn execute_create_account(
 
     let proxy_message = ProxyInstantiateMsg {
         account_id: context.account_id,
-        ans_host_address: config.ans_host_contract.to_string(),
         manager_addr: context.account_base.manager.to_string(),
-        base_asset,
     };
 
     // Add Account base to version_control

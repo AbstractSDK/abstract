@@ -1,53 +1,61 @@
 use std::collections::HashSet;
 
-use abstract_core::objects::price_source::UncheckedPriceSource;
+use abstract_core::{
+    objects::{
+        price_source::{AssetConversion, ExternalPriceSource, PriceSource, UncheckedPriceSource},
+        AssetEntry,
+    },
+    AbstractError, AbstractResult,
+};
+use abstract_sdk::feature_objects::AnsHost;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Deps, DepsMut, Order, StdError, Uint128};
 use cw_asset::{Asset, AssetInfo};
 use cw_storage_plus::{Bound, Map};
-
-use crate::AbstractResult;
 
 pub type Complexity = u8;
 
 pub const LIST_SIZE_LIMIT: u8 = 15;
 const DEFAULT_PAGE_LIMIT: u8 = 5;
 
+#[cw_serde]
+pub struct OraclePriceSource {
+    pub provider: String,
+    pub price_source_key: String,
+}
+
+impl ExternalPriceSource for OraclePriceSource {
+    fn check(&self, deps: Deps, ans_host: &AnsHost, entry: &AssetEntry) -> AbstractResult<()> {
+        todo!()
+    }
+}
+
 /// Struct for calculating asset prices/values for a smart contract.
 pub struct Oracle<'a> {
     /// map of human-readable asset names to their human-readable price source
-    pub sources: Map<'static, &'a AssetEntry, UncheckedPriceSource>,
+    pub sources: Map<'static, (&'a str, &'a AssetEntry), UncheckedPriceSource<OraclePriceSource>>,
     /// Assets map to get the complexity and value calculation of an asset.
-    assets: Map<'static, &'a AssetInfo, (PriceSource, Complexity)>,
+    assets: Map<'static, (&'a str, &'a AssetInfo), (PriceSource<OraclePriceSource>, Complexity)>,
     /// Complexity rating used for efficient total value calculation
     /// Vec > HashSet because it's faster for small sets
-    complexity: Map<'static, Complexity, Vec<AssetInfo>>,
+    complexity: Map<'static, (&'a str, Complexity), Vec<AssetInfo>>,
     /// Cache of asset values for efficient total value calculation
     /// the amount set for an asset will be added to its balance.
     /// Vec instead of HashMap because it's faster for small sets + AssetInfo does not implement `Hash`!
     asset_equivalent_cache: Vec<(AssetInfo, Vec<(AssetInfo, Uint128)>)>,
+    user: &'a str,
 }
 
 impl<'a> Oracle<'a> {
     /// Get Oracle object
     /// Const version of [`Oracle::new_postfix`] where postfix is not required
-    pub const fn new() -> Self {
+    pub const fn new(user: &'a str) -> Self {
         Oracle {
             sources: Map::new("sources"),
             assets: Map::new("assets"),
             complexity: Map::new("complexity{postfix}"),
             asset_equivalent_cache: Vec::new(),
-        }
-    }
-
-    /// Get Oracle object
-    /// Postfix allows having same map for multiple users
-    pub fn new_postfix(postfix: &str) -> Self {
-        Oracle {
-            sources: Map::new(&format!("sources{postfix}")),
-            assets: Map::new(&format!("assets{postfix}")),
-            complexity: Map::new(&format!("complexity{postfix}")),
-            asset_equivalent_cache: Vec::new(),
+            user,
         }
     }
 
@@ -57,7 +65,7 @@ impl<'a> Oracle<'a> {
         &self,
         mut deps: DepsMut,
         ans: &AnsHost,
-        to_add: Vec<(AssetEntry, UncheckedPriceSource)>,
+        to_add: Vec<(AssetEntry, UncheckedPriceSource<OraclePriceSource>)>,
         to_remove: Vec<AssetEntry>,
     ) -> AbstractResult<()> {
         let current_vault_size = self
@@ -66,7 +74,7 @@ impl<'a> Oracle<'a> {
             .count();
         let new_vault_size = current_vault_size + to_add.len() - to_remove.len();
         if new_vault_size > LIST_SIZE_LIMIT as usize {
-            return Err(crate::AbstractError::Std(StdError::generic_err(
+            return Err(AbstractError::Std(StdError::generic_err(
                 "Oracle list size limit exceeded",
             )));
         }
@@ -74,7 +82,7 @@ impl<'a> Oracle<'a> {
         let mut all: Vec<&AssetEntry> = to_add.iter().map(|(a, _)| a).chain(&to_remove).collect();
         all.dedup();
         if all.len() != to_add.len() + to_remove.len() {
-            return Err(crate::AbstractError::Std(StdError::generic_err(
+            return Err(AbstractError::Std(StdError::generic_err(
                 "Duplicate assets in update",
             )));
         }
@@ -94,12 +102,12 @@ impl<'a> Oracle<'a> {
         &self,
         deps: DepsMut,
         ans: &AnsHost,
-        assets: Vec<(AssetEntry, UncheckedPriceSource)>,
+        assets: Vec<(AssetEntry, UncheckedPriceSource<OraclePriceSource>)>,
     ) -> AbstractResult<()> {
         // optimistically update config
         // configuration check happens after all updates have been done.
         for (key, data) in assets.iter() {
-            self.sources.save(deps.storage, key, data)?;
+            self.sources.save(deps.storage, (self.user, key), data)?;
         }
 
         let (assets, price_sources): (Vec<AssetEntry>, Vec<_>) = assets.into_iter().unzip();
@@ -109,7 +117,7 @@ impl<'a> Oracle<'a> {
             .into_iter()
             .enumerate()
             .map(|(ix, price_source)| price_source.check(deps.as_ref(), ans, &assets[ix]))
-            .collect::<Result<Vec<PriceSource>, _>>()?;
+            .collect::<Result<Vec<PriceSource<OraclePriceSource>>, _>>()?;
 
         let assets_and_sources = resolved_assets
             .into_iter()
@@ -129,17 +137,18 @@ impl<'a> Oracle<'a> {
             // depending on the type of price source, the complexity is calculated differently
             let complexity = self.asset_complexity(deps.as_ref(), &price_source, &dependencies)?;
             // Add asset to complexity level
-            self.complexity.update(deps.storage, complexity, |v| {
-                let mut v = v.unwrap_or_default();
-                if v.contains(&asset) {
-                    return Err(StdError::generic_err(format!(
-                        "Asset {asset} already registered"
-                    )));
-                }
-                v.push(asset.clone());
-                Result::<_, StdError>::Ok(v)
-            })?;
-            self.assets.update(deps.storage, &asset, |v| {
+            self.complexity
+                .update(deps.storage, (self.user, complexity), |v| {
+                    let mut v = v.unwrap_or_default();
+                    if v.contains(&asset) {
+                        return Err(StdError::generic_err(format!(
+                            "Asset {asset} already registered"
+                        )));
+                    }
+                    v.push(asset.clone());
+                    Result::<_, StdError>::Ok(v)
+                })?;
+            self.assets.update(deps.storage, (self.user, &asset), |v| {
                 if v.is_some() {
                     return Err(StdError::generic_err(format!(
                         "asset {asset} already registered"
@@ -161,26 +170,27 @@ impl<'a> Oracle<'a> {
     ) -> AbstractResult<()> {
         for asset in assets {
             // assert asset was in config
-            if !self.sources.has(deps.storage, &asset) {
+            if !self.sources.has(deps.storage, (self.user, &asset)) {
                 return Err(StdError::generic_err(format!(
                     "Asset {asset} not registered on oracle"
                 ))
                 .into());
             }
             // remove from config
-            self.sources.remove(deps.storage, &asset);
+            self.sources.remove(deps.storage, (self.user, &asset));
             // get its asset information
             let asset = ans.query_asset(&deps.querier, &asset)?;
             // get its complexity
-            let (_, complexity) = self.assets.load(deps.storage, &asset)?;
+            let (_, complexity) = self.assets.load(deps.storage, (self.user, &asset))?;
             // remove from assets
-            self.assets.remove(deps.storage, &asset);
+            self.assets.remove(deps.storage, (&self.user, &asset));
             // remove from complexity level
-            self.complexity.update(deps.storage, complexity, |v| {
-                let mut v = v.unwrap_or_default();
-                v.retain(|a| a != &asset);
-                Result::<_, StdError>::Ok(v)
-            })?;
+            self.complexity
+                .update(deps.storage, (&self.user, complexity), |v| {
+                    let mut v = v.unwrap_or_default();
+                    v.retain(|a| a != &asset);
+                    Result::<_, StdError>::Ok(v)
+                })?;
         }
         Ok(())
     }
@@ -191,22 +201,27 @@ impl<'a> Oracle<'a> {
     // Pair: paired asset + 1
     // LP: highest in pool + 1
     // ValueAs: equal asset + 1
+    // External: not related to the chain assets
     fn asset_complexity(
         &self,
         deps: Deps,
-        price_source: &PriceSource,
+        price_source: &PriceSource<OraclePriceSource>,
         dependencies: &[AssetInfo],
     ) -> AbstractResult<Complexity> {
         match price_source {
-            PriceSource::None => Ok(0),
+            PriceSource::Base => Ok(0),
             PriceSource::Pool { .. } => {
-                let compl = self.assets.load(deps.storage, &dependencies[0])?.1;
+                let compl = self
+                    .assets
+                    .load(deps.storage, (self.user, &dependencies[0]))?
+                    .1;
                 Ok(compl + 1)
             }
             PriceSource::LiquidityToken { .. } => {
                 let mut max = 0;
                 for dependency in dependencies {
-                    let (_, complexity) = self.assets.load(deps.storage, dependency)?;
+                    let (_, complexity) =
+                        self.assets.load(deps.storage, (self.user, dependency))?;
                     if complexity > max {
                         max = complexity;
                     }
@@ -214,9 +229,10 @@ impl<'a> Oracle<'a> {
                 Ok(max + 1)
             }
             PriceSource::ValueAs { asset, .. } => {
-                let (_, complexity) = self.assets.load(deps.storage, asset)?;
+                let (_, complexity) = self.assets.load(deps.storage, (self.user, asset))?;
                 Ok(complexity + 1)
             }
+            PriceSource::External(_) => unreachable!(),
         }
     }
 
@@ -224,7 +240,7 @@ impl<'a> Oracle<'a> {
     /// Does not make use of the cache to prevent querying the same price source multiple times.
     pub fn asset_value(&self, deps: Deps, asset: Asset) -> AbstractResult<Uint128> {
         // get the price source for the asset
-        let (price_source, _) = self.assets.load(deps.storage, &asset.info)?;
+        let (price_source, _) = self.assets.load(deps.storage, (self.user, &asset.info))?;
         // get the conversions for this asset
         let conversion_rates = price_source.conversion_rates(deps, &asset.info)?;
         if conversion_rates.is_empty() {
@@ -265,9 +281,11 @@ impl<'a> Oracle<'a> {
         complexity: u8,
         account: &Addr,
     ) -> AbstractResult<AccountValue> {
-        let assets = self.complexity.load(deps.storage, complexity)?;
+        let assets = self
+            .complexity
+            .load(deps.storage, (self.user, complexity))?;
         for asset in assets {
-            let (price_source, _) = self.assets.load(deps.storage, &asset)?;
+            let (price_source, _) = self.assets.load(deps.storage, (self.user, &asset))?;
             // get the balance for this asset
             let balance = asset.query_balance(&deps.querier, account)?;
             // and the cached balances
@@ -353,10 +371,12 @@ impl<'a> Oracle<'a> {
 
         let mut complexity = 1;
         while complexity <= max_complexity {
-            let assets = self.complexity.load(deps.storage, complexity)?;
+            let assets = self
+                .complexity
+                .load(deps.storage, (self.user, complexity))?;
 
             for asset in assets {
-                let (price_source, _) = self.assets.load(deps.storage, &asset)?;
+                let (price_source, _) = self.assets.load(deps.storage, (self.user, &asset))?;
                 let deps = price_source.dependencies(&asset);
                 for dep in &deps {
                     if !encountered_assets.contains(&dep.to_string()) {
@@ -385,9 +405,9 @@ impl<'a> Oracle<'a> {
         dependencies: &Vec<AssetInfo>,
     ) -> AbstractResult<()> {
         for dependency in dependencies {
-            let asset_info = self.assets.has(deps.storage, dependency);
+            let asset_info = self.assets.has(deps.storage, (self.user, dependency));
             if !asset_info {
-                return Err(crate::AbstractError::Std(StdError::generic_err(format!(
+                return Err(AbstractError::Std(StdError::generic_err(format!(
                     "Asset {dependency} not registered on oracle"
                 ))));
             }
@@ -403,12 +423,13 @@ impl<'a> Oracle<'a> {
         deps: Deps,
         last_asset: Option<AssetInfo>,
         limit: Option<u8>,
-    ) -> AbstractResult<Vec<(AssetInfo, (PriceSource, Complexity))>> {
+    ) -> AbstractResult<Vec<(AssetInfo, (PriceSource<OraclePriceSource>, Complexity))>> {
         let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(LIST_SIZE_LIMIT) as usize;
         let start_bound = last_asset.as_ref().map(Bound::exclusive);
 
-        let res: Result<Vec<(AssetInfo, (PriceSource, Complexity))>, _> = self
+        let res: Result<Vec<(AssetInfo, (PriceSource<OraclePriceSource>, Complexity))>, _> = self
             .assets
+            .prefix(self.user)
             .range(deps.storage, start_bound, None, Order::Ascending)
             .take(limit)
             .collect();
@@ -422,12 +443,13 @@ impl<'a> Oracle<'a> {
         deps: Deps,
         last_asset: Option<AssetEntry>,
         limit: Option<u8>,
-    ) -> AbstractResult<Vec<(AssetEntry, UncheckedPriceSource)>> {
+    ) -> AbstractResult<Vec<(AssetEntry, UncheckedPriceSource<OraclePriceSource>)>> {
         let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(LIST_SIZE_LIMIT) as usize;
         let start_bound = last_asset.as_ref().map(Bound::exclusive);
 
-        let res: Result<Vec<(AssetEntry, UncheckedPriceSource)>, _> = self
+        let res: Result<Vec<(AssetEntry, UncheckedPriceSource<OraclePriceSource>)>, _> = self
             .sources
+            .prefix(self.user)
             .range(deps.storage, start_bound, None, Order::Ascending)
             .take(limit)
             .collect();
@@ -439,6 +461,7 @@ impl<'a> Oracle<'a> {
     /// Note: this function will panic in case of missing base asset
     fn highest_complexity(&self, deps: Deps) -> AbstractResult<u8> {
         self.complexity
+            .prefix(self.user)
             .keys(deps.storage, None, None, Order::Descending)
             .next()
             // Presence of base asset should be done via `base_asset`
@@ -451,12 +474,14 @@ impl<'a> Oracle<'a> {
         &self,
         deps: Deps,
         asset: &AssetEntry,
-    ) -> AbstractResult<UncheckedPriceSource> {
-        self.sources.load(deps.storage, asset).map_err(Into::into)
+    ) -> AbstractResult<UncheckedPriceSource<OraclePriceSource>> {
+        self.sources
+            .load(deps.storage, (self.user, asset))
+            .map_err(Into::into)
     }
 
     pub fn base_asset(&self, deps: Deps) -> AbstractResult<AssetInfo> {
-        let base_asset = self.complexity.may_load(deps.storage, 0)?;
+        let base_asset = self.complexity.may_load(deps.storage, (self.user, 0))?;
         let Some(base_asset) = base_asset else {
             return Err(StdError::generic_err("No base asset registered").into());
         };
@@ -479,56 +504,15 @@ pub struct AccountValue {
     pub breakdown: Vec<(AssetInfo, Uint128)>,
 }
 
-// TODO: See if we can change this to multi-indexed maps when documentation improves.
-
-// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-// struct OracleAsset {
-//     asset: AssetInfo,
-//     price_source: PriceSource,
-//     complexity: Complexity,
-// }
-
-// struct Foo<'a> {
-//     map: IndexedMap<'a, &'a str, OracleAsset, OracleIndexes<'a> >
-// }
-
-// impl<'a> Foo<'a> {
-//     fn new() -> Self {
-//         let indexes = OracleIndexes {
-//             complexity: MultiIndex::<'a>::new(
-//                 |_pk ,d: &OracleAsset| d.complexity,
-//                 "tokens",
-//                 "tokens__owner",
-//             ),
-//             asset: UniqueIndex::<'_,AssetInfo,_,()>::new(|d: &OracleAsset| d.asset, "asset"),
-//         };
-//         IndexedMap::new("or_assets", indexes)
-//         Self {  } }
-// }
-
-// struct OracleIndexes<'a> {
-//     pub asset: UniqueIndex<'a, &'a AssetInfo, OracleAsset, String>,
-//     pub complexity: MultiIndex<'a, u8, OracleAsset, String>,
-// }
-
-// impl<'a> IndexList<OracleAsset> for OracleIndexes<'a> {
-//     fn get_indexes(&'_ self) ->Box<dyn Iterator<Item = &'_ dyn Index<OracleAsset>> + '_> {
-//         let v: Vec<&dyn Index<_>> = vec![&self.asset, &self.complexity];
-//         Box::new(v.into_iter())
-//     }
-// }
-// pub fn oracle_asset_complexity<T>(_pk: &[u8], d: &OracleAsset) -> u8 {
-//     d.complexity
-// }
-
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    use abstract_core::objects::DexAssetPairing;
     use abstract_testing::{prelude::*, MockAnsHost};
     use cosmwasm_std::{coin, testing::*, Addr, Decimal, StdResult};
     use speculoos::prelude::*;
 
-    use super::*;
-    use crate::objects::DexAssetPairing;
     type AResult = anyhow::Result<()>;
 
     pub fn get_ans() -> AnsHost {
@@ -537,11 +521,11 @@ mod tests {
         AnsHost::new(addr)
     }
 
-    pub fn base_asset() -> (AssetEntry, UncheckedPriceSource) {
+    pub fn base_asset() -> (AssetEntry, UncheckedPriceSource<OraclePriceSource>) {
         (AssetEntry::from(USD), UncheckedPriceSource::None)
     }
 
-    pub fn asset_with_dep() -> (AssetEntry, UncheckedPriceSource) {
+    pub fn asset_with_dep() -> (AssetEntry, UncheckedPriceSource<OraclePriceSource>) {
         let asset = AssetEntry::from(EUR);
         let price_source = UncheckedPriceSource::Pair(DexAssetPairing::new(
             AssetEntry::new(EUR),
@@ -551,7 +535,7 @@ mod tests {
         (asset, price_source)
     }
 
-    pub fn asset_as_half() -> (AssetEntry, UncheckedPriceSource) {
+    pub fn asset_as_half() -> (AssetEntry, UncheckedPriceSource<OraclePriceSource>) {
         let asset = AssetEntry::from(EUR);
         let price_source = UncheckedPriceSource::ValueAs {
             asset: AssetEntry::new(USD),
@@ -567,7 +551,7 @@ mod tests {
         deps.querier = mock_ans.to_querier();
         let ans = get_ans();
 
-        let oracle = Oracle::new();
+        let oracle = Oracle::new("");
         // first asset can not have dependency
         oracle
             .update_assets(deps.as_mut(), &ans, vec![asset_with_dep()], vec![])
@@ -586,6 +570,7 @@ mod tests {
         // Ensure that all assets have been added to the oracle
         let assets = oracle
             .sources
+            .prefix("")
             .range(&deps.storage, None, None, Order::Ascending)
             .collect::<StdResult<Vec<_>>>()?;
 
@@ -621,7 +606,7 @@ mod tests {
         deps.querier
             .update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, USD)]);
         let ans = get_ans();
-        let mut oracle = Oracle::new();
+        let mut oracle = Oracle::new("");
 
         // add base asset
         oracle.update_assets(deps.as_mut(), &ans, vec![base_asset()], vec![])?;
@@ -644,7 +629,7 @@ mod tests {
         let mut deps = mock_dependencies();
         let mock_ans = MockAnsHost::new().with_defaults();
         deps.querier = mock_ans.to_querier();
-        let mut oracle = Oracle::new();
+        let mut oracle = Oracle::new("");
 
         let value_result =
             oracle.account_value(deps.as_ref(), &Addr::unchecked(MOCK_CONTRACT_ADDR));
@@ -661,7 +646,7 @@ mod tests {
         deps.querier
             .update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, USD)]);
         let ans = get_ans();
-        let oracle = Oracle::new();
+        let oracle = Oracle::new("");
 
         // Empty update on empty assets - base asset not found error
         let update_res = oracle.update_assets(deps.as_mut(), &ans, vec![], vec![]);
@@ -685,7 +670,7 @@ mod tests {
         deps.querier
             .update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, EUR)]);
         let ans = get_ans();
-        let mut oracle = Oracle::new();
+        let mut oracle = Oracle::new("");
         // fails because base asset is not set.
         let res = oracle.update_assets(deps.as_mut(), &ans, vec![asset_as_half()], vec![]);
         // match when adding better errors
@@ -737,7 +722,7 @@ mod tests {
         let mock_ans = MockAnsHost::new().with_defaults();
         deps.querier = mock_ans.to_querier();
         let ans = get_ans();
-        let oracle = Oracle::new();
+        let oracle = Oracle::new("");
 
         // fails because base asset is not set.
         let res = oracle.update_assets(

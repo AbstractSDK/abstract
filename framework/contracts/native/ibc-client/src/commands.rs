@@ -8,7 +8,7 @@ use abstract_core::{
     },
     ibc_host, manager,
     manager::ModuleInstallConfig,
-    objects::{chain_name::ChainName, AccountId, AssetEntry},
+    objects::{chain_name::ChainName, AccountId},
     version_control::AccountBase,
 };
 use abstract_sdk::{
@@ -263,7 +263,6 @@ pub fn execute_register_account(
     info: MessageInfo,
     env: Env,
     host_chain: String,
-    base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
@@ -293,7 +292,6 @@ pub fn execute_register_account(
             description: account_info.description,
             link: account_info.link,
             name: account_info.name,
-            base_asset,
             namespace,
             install_modules,
         }),

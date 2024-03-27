@@ -33,7 +33,7 @@ use abstract_core::{
         namespace::Namespace,
         nested_admin::MAX_ADMIN_RECURSION,
         validation::verifiers,
-        AccountId, AssetEntry,
+        AccountId,
     },
     version_control::NamespaceResponse,
     PROXY,
@@ -76,7 +76,6 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     description: Option<String>,
     link: Option<String>,
     namespace: Option<Namespace>,
-    base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
     ownership: Option<GovernanceDetails<String>>,
     owner_account: Option<&'a Account<Chain>>,
@@ -102,7 +101,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             description: None,
             link: None,
             namespace: None,
-            base_asset: None,
             ownership: None,
             owner_account: None,
             install_modules: vec![],
@@ -136,12 +134,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     /// Setting this will claim the namespace for the account on construction.
     pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
         self.namespace = Some(namespace);
-        self
-    }
-
-    /// Base Asset for the account
-    pub fn base_asset(&mut self, base_asset: AssetEntry) -> &mut Self {
-        self.base_asset = Some(base_asset);
         self
     }
 
@@ -313,7 +305,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             description: self.description.clone(),
             link: self.link.clone(),
             namespace: self.namespace.as_ref().map(ToString::to_string),
-            base_asset: self.base_asset.clone(),
             install_modules,
             account_id: self.expected_local_account_id,
         };
@@ -558,7 +549,6 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn create_ibc_account(
         &self,
         host_chain: impl Into<String>,
-        base_asset: Option<AssetEntry>,
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
@@ -570,7 +560,6 @@ impl<Chain: CwEnv> Account<Chain> {
                     exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
                         msgs: vec![ibc_client::ExecuteMsg::Register {
                             host_chain: host_chain.into(),
-                            base_asset,
                             namespace,
                             install_modules,
                         }],
@@ -692,7 +681,6 @@ impl<Chain: CwEnv> Account<Chain> {
         let sub_account_response = self.abstr_account.manager.create_sub_account(
             modules,
             "Sub Account".to_owned(),
-            None,
             None,
             None,
             None,

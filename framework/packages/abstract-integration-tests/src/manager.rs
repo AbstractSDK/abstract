@@ -70,7 +70,6 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
             install_modules: vec![],
             account_id: None,
         },
@@ -103,7 +102,6 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
             ),
         ],
         String::from("sub_account"),
-        None,
         None,
         Some(String::from("account_description")),
         None,
@@ -163,7 +161,6 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
             description: Some(String::from("account_description")),
             link: Some(String::from("https://account_link_of_at_least_11_char")),
             namespace: Some(String::from(TEST_NAMESPACE)),
-            base_asset: None,
             install_modules: vec![],
             account_id: None,
         },
@@ -244,7 +241,6 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
                 description: None,
                 link: None,
                 namespace: None,
-                base_asset: None,
                 install_modules: vec![
                     ModuleInstallConfig::new(
                         ModuleInfo::from_id(
@@ -488,7 +484,6 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
-        None,
         None,
         None,
         None,

@@ -68,7 +68,6 @@ pub fn execute(
             description,
             account_id,
             namespace,
-            base_asset,
             install_modules,
         } => commands::execute_create_account(
             deps,
@@ -79,7 +78,6 @@ pub fn execute(
             description,
             link,
             namespace,
-            base_asset,
             install_modules,
             account_id,
         ),

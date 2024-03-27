@@ -1,24 +1,21 @@
 #![warn(missing_docs)]
-//! # Dex Adapter API
+//! # Oracle Adapter API
 // re-export response types
 use abstract_core::{
     adapter,
     objects::{
-        fee::{Fee, UsageFee},
-        pool_id::UncheckedPoolAddress,
-        price_source::UncheckedPriceSource,
-        AnsAsset, AssetEntry,
+        price_source::{PriceSource, UncheckedPriceSource},
+        AssetEntry,
     },
-    AbstractError, AbstractResult,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Decimal};
-use cw_asset::{AssetBase, AssetInfoBase};
+use cosmwasm_std::Uint128;
+use cw_asset::AssetInfo;
 
 pub use crate::action::OracleConfiguration;
-use crate::state::AccountValue;
+use crate::state::{AccountValue, Complexity};
 
-/// The name of the dex to trade on.
+/// The name of the oracle to trade on.
 pub type ProviderName = String;
 
 /// Top-level Abstract Adapter execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
@@ -48,7 +45,7 @@ pub enum OracleExecuteMsg {
     AccountAction(OracleConfiguration),
 }
 
-/// Query messages for the dex adapter
+/// Query messages for the oracle adapter
 #[cosmwasm_schema::cw_serde]
 pub enum OracleQueryMsg {
     /// Query for arbitrary address
@@ -134,6 +131,7 @@ pub struct AssetPriceSourcesResponse {
     pub sources: Vec<(AssetEntry, UncheckedPriceSource)>,
 }
 
+#[cosmwasm_schema::cw_serde]
 pub struct AssetIdentifiersResponse {
     pub identifiers: Vec<AssetEntry>,
 }

@@ -4,10 +4,7 @@ use abstract_core::{
         ClientProxyResponse, ConfigResponse, ExecuteMsgFns, HostAction, InternalAction, QueryMsgFns,
     },
     manager::ModuleInstallConfig,
-    objects::{
-        gov_type::GovernanceDetails, module::ModuleInfo, AccountId, AssetEntry,
-        UncheckedChannelEntry,
-    },
+    objects::{gov_type::GovernanceDetails, module::ModuleInfo, AccountId, UncheckedChannelEntry},
     ACCOUNT_FACTORY, ICS20, MANAGER, PROXY,
 };
 use abstract_ibc_host::HostError;
@@ -78,7 +75,6 @@ fn account_creation() -> anyhow::Result<()> {
                 name: "Abstract remote account 1".to_string(),
                 description: Some("account description".to_string()),
                 link: Some("https://abstract.money".to_string()),
-                base_asset: None,
                 namespace: None,
                 install_modules: vec![],
             }),
@@ -217,7 +213,6 @@ fn account_creation_full() -> anyhow::Result<()> {
                 name: "Abstract remote account 1".to_string(),
                 description: Some("account description".to_string()),
                 link: Some("https://abstract.money".to_string()),
-                base_asset: Some(AssetEntry::new("juno>juno")),
                 namespace: Some("namespace".to_owned()),
                 install_modules: vec![mock_module_install_config],
             }),
@@ -269,7 +264,6 @@ fn account_action() -> anyhow::Result<()> {
                 name: "Abstract remote account 1".to_string(),
                 description: Some("account description".to_string()),
                 link: Some("https://abstract.money".to_string()),
-                base_asset: None,
                 namespace: None,
                 install_modules: vec![],
             }),
@@ -403,7 +397,6 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
             name: "Abstract remote account 1".to_string(),
             description: Some("account description".to_string()),
             link: Some("https://abstract.money".to_string()),
-            base_asset: None,
             namespace: None,
             install_modules: vec![],
         }),

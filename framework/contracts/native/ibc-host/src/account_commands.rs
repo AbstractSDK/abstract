@@ -2,7 +2,7 @@ use abstract_core::{
     account_factory,
     ibc_host::state::CONFIG,
     manager::{self, ModuleInstallConfig},
-    objects::{chain_name::ChainName, AccountId, AssetEntry},
+    objects::{chain_name::ChainName, AccountId},
     proxy,
     version_control::AccountBase,
     PROXY,
@@ -33,7 +33,6 @@ pub fn receive_register(
     name: String,
     description: Option<String>,
     link: Option<String>,
-    base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
     with_reply: bool,
@@ -56,8 +55,6 @@ pub fn receive_register(
             link,
             // provide the origin chain id
             account_id: Some(account_id.clone()),
-
-            base_asset,
             install_modules,
             namespace,
         },

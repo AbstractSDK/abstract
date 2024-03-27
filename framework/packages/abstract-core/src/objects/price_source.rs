@@ -65,57 +65,33 @@ pub enum UncheckedPriceSource<E: ExternalPriceSource = Empty> {
     None,
 }
 
-pub trait ExternalPriceSource {
-    fn check(
-        &self,
-        deps: Deps,
-        ans_host: &AnsHost,
-        entry: &AssetEntry,
-    ) -> AbstractResult<PriceSource>;
+pub trait ExternalPriceSource: Sized {
+    fn check(&self, deps: Deps, ans_host: &AnsHost, entry: &AssetEntry) -> AbstractResult<()>;
 
-    fn dependencies(&self, asset: &AssetInfo) -> Vec<AssetInfo>;
-    fn conversion_rates(
-        &self,
-        deps: Deps,
-        asset: &AssetInfo,
-    ) -> AbstractResult<Vec<AssetConversion>>;
+    // TODO: We could have optional representation for
+    // fn conversion_rates(
+    //     &self,
+    //     deps: Deps,
+    //     asset: &AssetInfo,
+    // ) -> AbstractResult<Vec<AssetConversion>>;
 }
 
 // Don't support external price source by default, unless module implements it
 impl ExternalPriceSource for Empty {
-    fn check(
-        &self,
-        _deps: Deps,
-        _ans_host: &AnsHost,
-        _entry: &AssetEntry,
-    ) -> AbstractResult<PriceSource> {
+    fn check(&self, _deps: Deps, _ans_host: &AnsHost, _entry: &AssetEntry) -> AbstractResult<()> {
         AbstractResult::Err(AbstractError::Assert(
             "External price source not supported".to_owned(),
         ))
     }
-
-    // Should not be able to reach other methods after failing check
-
-    fn dependencies(&self, _asset: &AssetInfo) -> Vec<AssetInfo> {
-        unreachable!()
-    }
-
-    fn conversion_rates(
-        &self,
-        _deps: Deps,
-        _asset: &AssetInfo,
-    ) -> AbstractResult<Vec<AssetConversion>> {
-        unreachable!()
-    }
 }
 
-impl UncheckedPriceSource {
+impl<E: ExternalPriceSource> UncheckedPriceSource<E> {
     pub fn check(
         self,
         deps: Deps,
         ans_host: &AnsHost,
         entry: &AssetEntry,
-    ) -> AbstractResult<PriceSource> {
+    ) -> AbstractResult<PriceSource<E>> {
         match self {
             UncheckedPriceSource::Pair(pair_info) => {
                 let PoolReference {
@@ -162,8 +138,11 @@ impl UncheckedPriceSource {
                     multiplier,
                 })
             }
-            UncheckedPriceSource::None => Ok(PriceSource::None),
-            UncheckedPriceSource::External(external) => external.check(deps, ans_host, entry),
+            UncheckedPriceSource::None => Ok(PriceSource::Base),
+            UncheckedPriceSource::External(external) => {
+                external.check(deps, ans_host, entry)?;
+                Ok(PriceSource::External(external))
+            }
         }
     }
 }
@@ -172,7 +151,7 @@ impl UncheckedPriceSource {
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum PriceSource<E: ExternalPriceSource = Empty> {
     /// Should only be used for the base asset
-    None,
+    Base,
     /// A pool name of an asset/asset pair
     /// Both assets must be defined in the Vault_assets state
     Pool {
@@ -205,8 +184,8 @@ impl<E: ExternalPriceSource> PriceSource<E> {
             }
             PriceSource::LiquidityToken { pool_assets, .. } => pool_assets.clone(),
             PriceSource::ValueAs { asset, .. } => vec![asset.clone()],
-            PriceSource::None => vec![],
-            PriceSource::External(e) => e.dependencies(asset),
+            PriceSource::Base => vec![],
+            PriceSource::External(_) => vec![],
         }
     }
 
@@ -232,9 +211,8 @@ impl<E: ExternalPriceSource> PriceSource<E> {
             PriceSource::ValueAs { asset, multiplier } => {
                 Ok(vec![AssetConversion::new(asset.clone(), *multiplier)])
             }
-            // None means it's the base asset
-            PriceSource::None => Ok(vec![]),
-            PriceSource::External(e) => e.conversion_rates(deps, asset),
+            PriceSource::Base => Ok(vec![]),
+            PriceSource::External(_) => Ok(vec![]),
         }
     }
 
@@ -349,7 +327,7 @@ mod tests {
                 )
                 .build();
 
-            let price_source = UncheckedPriceSource::LiquidityToken {};
+            let price_source = UncheckedPriceSource::<Empty>::LiquidityToken {};
 
             let actual_source_res = price_source.check(
                 deps.as_ref(),
@@ -386,7 +364,7 @@ mod tests {
                 .with_contract_map_entries(TEST_ANS_HOST, ans_host::state::ASSET_PAIRINGS, vec![])
                 .build();
 
-            let price_source = UncheckedPriceSource::LiquidityToken {};
+            let price_source = UncheckedPriceSource::<Empty>::LiquidityToken {};
 
             let actual_source_res = price_source.check(
                 deps.as_ref(),

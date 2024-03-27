@@ -10,9 +10,9 @@ use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 
 use crate::{
-    contract::{DexAdapter, DexResult},
-    exchanges::exchange_resolver::{self, resolve_exchange},
-    handlers::query::exchange_resolver::is_over_ibc,
+    contract::{OracleAdapter, OracleResult},
+    handlers::query::oracle_resolver::is_over_ibc,
+    oracles::oracle_resolver::{self, resolve_exchange},
     state::DEX_FEES,
 };
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
@@ -20,9 +20,9 @@ use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 pub fn query_handler(
     deps: Deps,
     env: Env,
-    adapter: &DexAdapter,
+    adapter: &OracleAdapter,
     msg: DexQueryMsg,
-) -> DexResult<Binary> {
+) -> OracleResult<Binary> {
     match msg {
         DexQueryMsg::SimulateSwapRaw {
             offer_asset,
@@ -60,7 +60,7 @@ pub fn query_handler(
                     if is_over_ibc {
                         return Err(DexError::IbcMsgQuery);
                     }
-                    let exchange = exchange_resolver::resolve_exchange(&local_dex_name)?;
+                    let exchange = oracle_resolver::resolve_exchange(&local_dex_name)?;
                     let addr_as_sender = deps.api.addr_validate(&addr_as_sender)?;
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
                         adapter,
@@ -117,7 +117,7 @@ pub fn query_handler(
     }
 }
 
-pub fn fees(deps: Deps) -> DexResult<Binary> {
+pub fn fees(deps: Deps) -> OracleResult<Binary> {
     let dex_fees = DEX_FEES.load(deps.storage)?;
     let resp = DexFeesResponse {
         swap_fee: dex_fees.swap_fee(),
@@ -133,7 +133,7 @@ pub fn simulate_swap(
     pool: PoolAddress,
     mut offer_asset: Asset,
     ask_asset: AssetInfo,
-) -> DexResult<SimulateSwapResponse<AssetInfoBase<String>>> {
+) -> OracleResult<SimulateSwapResponse<AssetInfoBase<String>>> {
     let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
 
     let pool_info = DexAssetPairing::new(

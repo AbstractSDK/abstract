@@ -207,7 +207,6 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             description,
             link,
             namespace,
-            base_asset,
             install_modules,
             account_id,
         } = account_details;
@@ -217,7 +216,6 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
                 name,
                 description,
                 link,
-                base_asset,
                 namespace,
                 install_modules,
                 account_id,

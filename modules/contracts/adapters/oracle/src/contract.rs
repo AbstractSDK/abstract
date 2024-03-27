@@ -1,21 +1,23 @@
 use abstract_adapter::{export_endpoints, AdapterContract};
-use abstract_dex_standard::{
-    msg::{DexExecuteMsg, DexInstantiateMsg, DexQueryMsg},
-    DexError,
+use abstract_oracle_standard::{
+    msg::{OracleExecuteMsg, OracleInstantiateMsg, OracleQueryMsg},
+    OracleError,
 };
 use cosmwasm_std::Response;
 
-use crate::{handlers, DEX_ADAPTER_ID};
+use crate::{handlers, ORACLE_ADAPTER_ID};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type DexAdapter = AdapterContract<DexError, DexInstantiateMsg, DexExecuteMsg, DexQueryMsg>;
-pub type DexResult<T = Response> = Result<T, DexError>;
+pub type OracleAdapter =
+    AdapterContract<OracleError, OracleInstantiateMsg, OracleExecuteMsg, OracleQueryMsg>;
+pub type OracleResult<T = Response> = Result<T, OracleError>;
 
-pub const DEX_ADAPTER: DexAdapter = DexAdapter::new(DEX_ADAPTER_ID, CONTRACT_VERSION, None)
-    .with_instantiate(handlers::instantiate_handler)
-    .with_execute(handlers::execute_handler)
-    .with_query(handlers::query_handler);
+pub const ORACLE_ADAPTER: OracleAdapter =
+    OracleAdapter::new(ORACLE_ADAPTER_ID, CONTRACT_VERSION, None)
+        .with_instantiate(handlers::instantiate_handler)
+        .with_execute(handlers::execute_handler)
+        .with_query(handlers::query_handler);
 
 #[cfg(feature = "export")]
-export_endpoints!(DEX_ADAPTER, DexAdapter);
+export_endpoints!(ORACLE_ADAPTER, OracleAdapter);

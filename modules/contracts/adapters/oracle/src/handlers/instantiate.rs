@@ -4,7 +4,7 @@ use abstract_sdk::AccountVerification;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::{
-    contract::{DexAdapter, DexResult},
+    contract::{OracleAdapter, OracleResult},
     state::DEX_FEES,
 };
 
@@ -12,9 +12,9 @@ pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    adapter: DexAdapter,
+    adapter: OracleAdapter,
     msg: DexInstantiateMsg,
-) -> DexResult {
+) -> OracleResult {
     let recipient = adapter
         .account_registry(deps.as_ref())?
         .proxy_address(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;

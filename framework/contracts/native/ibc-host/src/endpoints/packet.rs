@@ -34,7 +34,6 @@ pub fn handle_host_action(
             description,
             link,
             name,
-            base_asset,
             namespace,
             install_modules,
         }) => receive_register(
@@ -44,7 +43,6 @@ pub fn handle_host_action(
             name,
             description,
             link,
-            base_asset,
             namespace,
             install_modules,
             false,
@@ -88,18 +86,7 @@ pub fn handle_host_action(
                         chain_name: client_chain,
                     },
                 )?;
-                receive_register(
-                    deps,
-                    env,
-                    account_id,
-                    name,
-                    None,
-                    None,
-                    None,
-                    None,
-                    vec![],
-                    true,
-                )
+                receive_register(deps, env, account_id, name, None, None, None, vec![], true)
             }
         }
     }
