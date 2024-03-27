@@ -26,8 +26,10 @@ use {
     },
     cavern_lsd_wrapper_token::state::LSD_CONFIG_KEY,
     cavern_lsd_wrapper_token::trait_def::LSDHub,
-    cosmwasm_std::{testing::mock_env, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
-    cosmwasm_std::{to_json_binary, QuerierWrapper, StdError},
+    cosmwasm_std::{
+        to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Env, QuerierWrapper, StdError,
+        Uint128,
+    },
     cw_asset::{Asset, AssetInfo},
     cw_storage_plus::Item,
     wrapper_implementations::coin::StrideLSDConfig,
@@ -469,7 +471,24 @@ impl Cavern {
             deps.api.addr_validate(&custody_config.collateral_token)?,
         )?;
 
-        // _env is not used here, so using mock_env
+        // _env is not used here, so using a mocked environment
         Ok(lsd_config.query_exchange_rate(deps, mock_env())?)
+    }
+}
+
+#[cfg(feature = "full_integration")]
+fn mock_env() -> Env {
+    use cosmwasm_std::{BlockInfo, ContractInfo, Timestamp, TransactionInfo};
+
+    Env {
+        block: BlockInfo {
+            height: 12_345,
+            time: Timestamp::from_nanos(1_571_797_419_879_305_533),
+            chain_id: "cosmos-testnet-14002".to_string(),
+        },
+        transaction: Some(TransactionInfo { index: 3 }),
+        contract: ContractInfo {
+            address: Addr::unchecked("mock_addr"),
+        },
     }
 }
