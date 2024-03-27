@@ -63,3 +63,5 @@ pub struct StaticDependency {
 `StaticDependency` also has `check` and `matches` functions. `check` tells you if the version requirement is valid and `matches` finds the most compatible version requirement.
 
 `version` uses uses [Semantic Versioning (SemVer)](https://semver.org/) for its packages. You can specify dependencies using exact versions, version ranges, or other qualifiers to ensure compatibility of your modules.
+
+Make sure to keep an eye out for deprecating dependencies as well. Security updates are a must to update and some patches can be ignored.
