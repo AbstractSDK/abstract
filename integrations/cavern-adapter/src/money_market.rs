@@ -471,11 +471,14 @@ impl Cavern {
             deps.api.addr_validate(&custody_config.collateral_token)?,
         )?;
 
-        // _env is not used here, so using a mocked environment
+        // mock_env() is not used inside the lsd config query exchange rate function.
+        // This is a fix because the direct query is not available on the contracts unfortunately.
+        // We can feed dummy information inside this mock_env function
         Ok(lsd_config.query_exchange_rate(deps, mock_env())?)
     }
 }
 
+/// This is only used as a fix to feed dummy information to the query_exchange_rate function
 #[cfg(feature = "full_integration")]
 fn mock_env() -> Env {
     use cosmwasm_std::{BlockInfo, ContractInfo, Timestamp, TransactionInfo};
