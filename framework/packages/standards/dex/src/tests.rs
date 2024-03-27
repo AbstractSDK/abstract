@@ -50,19 +50,6 @@ impl DexCommandTester {
         Ok(msgs)
     }
 
-    pub fn test_custom_swap(
-        &self,
-        offer_assets: Vec<Asset>,
-        ask_assets: Vec<Asset>,
-        max_spread: Option<Decimal>,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        let deps = mock_dependencies(self.chain.clone());
-        let msgs = self
-            .adapter
-            .custom_swap(deps.as_ref(), offer_assets, ask_assets, max_spread)?;
-        Ok(msgs)
-    }
-
     pub fn test_provide_liquidity(
         &self,
         pool_id: PoolAddress,

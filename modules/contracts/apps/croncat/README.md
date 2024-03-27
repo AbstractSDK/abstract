@@ -1,5 +1,7 @@
 # CronCat App module
 
+## Description
+
 The CronCat app module is used to automate Abstract Account actions or other modules
 
 ## Features
@@ -55,3 +57,16 @@ The CronCat App can help to execute certain actions within time limits (for exam
 - **CronCat Interface**: For a detailed look at the CronCat interface, refer to the [Rust trait interface](https://github.com/AbstractSDK/abstract/blob/42d967c3b13c1194e92a03244c8c5b2843726d12/modules/contracts/apps/croncat/src/api.rs#L21).
 - **Apps Documentation**: Comprehensive information about apps can be found in the [official documentation](https://docs.abstract.money/3_framework/7_module_types.html#apps).
 
+
+## Documentation
+
+- **App Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/6_module_types.html#apps).
+
+## Contributing
+
+If you have suggestions, improvements or want to contribute to the project, we welcome your input on [GitHub](https://github.com/AbstractSDK/abstract).
+
+## Community
+Check out the following places for support, discussions & feedback:
+
+- Join our [Discord server](https://discord.com/invite/uch3Tq3aym)

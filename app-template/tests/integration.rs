@@ -1,4 +1,3 @@
-use abstract_app::abstract_testing::OWNER;
 use abstract_app::objects::namespace::Namespace;
 
 use abstract_client::AbstractClient;
@@ -20,16 +19,19 @@ use cosmwasm_std::{coins, Addr};
 #[allow(clippy::type_complexity)]
 fn setup(
     count: i32,
-) -> anyhow::Result<(AbstractClient<Mock>, Application<Mock, AppInterface<Mock>>)> {
+) -> anyhow::Result<(
+    AbstractClient<MockBech32>,
+    Application<MockBech32, AppInterface<MockBech32>>,
+)> {
     // Create a sender and mock env
-    let mock = Mock::new("sender");
+    let mock = MockBech32::new("mock");
     let sender = mock.sender();
     let namespace = Namespace::from_id(APP_ID)?;
 
     // You can set up Abstract with a builder.
     let client = AbstractClient::builder(mock).build()?;
     // The client supports setting balances for addresses and configuring ANS.
-    client.set_balance(&sender, &coins(123, "ucosm"))?;
+    client.set_balance(sender, &coins(123, "ucosm"))?;
 
     // Build a Publisher Account
     let publisher = client.publisher_builder(namespace).build()?;

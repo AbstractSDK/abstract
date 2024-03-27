@@ -22,6 +22,7 @@ cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
+cw-address-like = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
 
 cw-orch = { workspace = true }

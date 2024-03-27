@@ -1,0 +1,1 @@
+{{#include ../../../../modules/contracts/adapters/dex/README.md}}
