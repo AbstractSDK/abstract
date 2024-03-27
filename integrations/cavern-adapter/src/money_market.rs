@@ -472,6 +472,7 @@ impl Cavern {
         )?;
 
         // mock_env() is not used inside the lsd config query exchange rate function.
+        // See: https://github.com/CavernPerson/cavern-lsd-wrapper/blob/8bcdfc0015423f2b4c47c2c3b3fe4cbcb10cf954/packages/wrapper_implementations/src/coin.rs#L56
         // This is a fix because the direct query is not available on the contracts unfortunately.
         // We can feed dummy information inside this mock_env function
         Ok(lsd_config.query_exchange_rate(deps, mock_env())?)
