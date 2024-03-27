@@ -60,12 +60,16 @@ abstract-client = { version = "0.21.0" }
 abstract-adapter-utils = { version = "0.21.0" }
 abstract-dex-standard = { version = "0.21.0" }
 abstract-staking-standard = { version = "0.21.0" }
+# abstract-money-market-standard = { version = "0.21.0" }
+abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
 # Integrations
 abstract-wyndex-adapter = { path = "../integrations/wyndex-adapter", default-features = false }
 abstract-osmosis-adapter = { path = "../integrations/osmosis-adapter", default-features = false }
 abstract-astroport-adapter = { path = "../integrations/astroport-adapter", default-features = false }
 abstract-kujira-adapter = { path = "../integrations/kujira-adapter", default-features = false }
+abstract-mars-adapter = { path = "../integrations/mars-adapter", default-features = false }
+abstract-cavern-adapter = { path = "../integrations/cavern-adapter", default-features = false }
 abstract-astrovault-adapter = { path = "../integrations/astrovault-adapter", default-features = false }
 
 wyndex-bundle = { path = "../integrations/bundles/wyndex" }
@@ -94,6 +98,7 @@ abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
+abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
 
