@@ -481,17 +481,17 @@ impl Cavern {
 /// This is only used as a fix to feed dummy information to the query_exchange_rate function
 #[cfg(feature = "full_integration")]
 fn mock_env() -> Env {
-    use cosmwasm_std::{BlockInfo, ContractInfo, Timestamp, TransactionInfo};
+    use cosmwasm_std::{BlockInfo, ContractInfo};
 
     Env {
         block: BlockInfo {
-            height: 12_345,
-            time: Timestamp::from_nanos(1_571_797_419_879_305_533),
-            chain_id: "cosmos-testnet-14002".to_string(),
+            height: Default::default(),
+            time: Default::default(),
+            chain_id: Default::default(),
         },
-        transaction: Some(TransactionInfo { index: 3 }),
+        transaction: None,
         contract: ContractInfo {
-            address: Addr::unchecked("mock_addr"),
+            address: Addr::unchecked(String::new()),
         },
     }
 }
