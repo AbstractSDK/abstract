@@ -31,6 +31,7 @@
   <!-- - [Abstract Testing](./1_products/3_abstract_testing.md) -->
 
 - [Application Design Space](./2_introduction/1_design_space.md)
+- [Business Model](./2_introduction/2_business_model.md)
   
 # Build With Abstract
 ---
