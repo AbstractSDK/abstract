@@ -67,8 +67,6 @@ pub struct StaticDependency {
 }
 ```
 
-`StaticDependency` also has `check` and `matches` functions. `check` tells you if the version requirement is valid and `matches` finds the most compatible version requirement.
-
 `version` uses uses [Semantic Versioning (SemVer)](https://semver.org/) for its packages. You can specify dependencies using exact versions, version ranges, or other qualifiers to ensure compatibility of your modules.
 
 ```admonish info
@@ -77,9 +75,9 @@ Make sure to keep an eye out for deprecating dependencies as well. Security upda
 
 ### Addressing other modules
 
-If your module needs some modules to be enabled, it can add those as a dependency. You can then easily call messages on these modules by using the ModuleInterface trait as described in Using Other Modules.
+If your module needs some modules to be enabled, it can add those as a dependency. You can then easily call messages on these modules by using the ModuleInterface trait as described in [Dependency Execution Flow](https://docs.abstract.money/3_framework/6_module_types.html#dependency-execution).
 
-Under the hood the name of the dependency will be resolved on the Manager contract. A call will be attempted with a custom rely-id. In case of a failed call the API will self-register itself as a trader and retry. This might be reviewed in the future.
+Under the hood the name of the dependency will be resolved on the Manager contract. A call will be attempted with a custom rely-id.
 
 You can also query dependencies using the same trait or by performing a raw-query provided by the SDK.
 
