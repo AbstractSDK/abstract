@@ -1,5 +1,7 @@
 [workspace]
 members = ["contracts/apps/*", "contracts/adapters/*"]
+# TODO: fix etf
+exclude = ["contracts/apps/etf"]
 
 resolver = "2"
 

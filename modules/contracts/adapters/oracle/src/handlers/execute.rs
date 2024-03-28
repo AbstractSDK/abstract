@@ -1,82 +1,25 @@
-use abstract_core::{
-    ibc::CallbackInfo,
-    objects::{
-        account::AccountTrace,
-        ans_host::AnsHost,
-        chain_name::ChainName,
-        namespace::{Namespace, ABSTRACT_NAMESPACE},
-        AccountId,
-    },
-};
-use abstract_dex_standard::{
-    ans_action::WholeDexAction,
-    msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID},
-    raw_action::DexRawAction,
-    DexError, DEX_ADAPTER_ID,
-};
-use abstract_sdk::{
-    features::AbstractNameService, AccountVerification, Execution, IbcInterface,
-    ModuleRegistryInterface,
-};
-use cosmwasm_std::{
-    ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
-};
-use cw_asset::AssetBase;
-
 use crate::{
     contract::{OracleAdapter, OracleResult},
-    handlers::execute::oracle_resolver::is_over_ibc,
-    msg::{DexExecuteMsg, DexName},
-    oracles::oracle_resolver,
-    state::DEX_FEES,
+    msg::{OracleAction, OracleExecuteMsg},
+    state::Oracle,
+    OracleError,
 };
-
-use abstract_sdk::features::AccountIdentification;
+use abstract_core::objects::namespace::{Namespace, ABSTRACT_NAMESPACE};
+use abstract_sdk::{
+    features::{AbstractNameService, AccountIdentification},
+    ModuleRegistryInterface,
+};
+use cosmwasm_std::{ensure_eq, DepsMut, Env, MessageInfo, Response};
 
 pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
     adapter: OracleAdapter,
-    msg: DexExecuteMsg,
+    msg: OracleExecuteMsg,
 ) -> OracleResult {
-    match msg {
-        DexExecuteMsg::AnsAction {
-            dex: dex_name,
-            action,
-        } => {
-            let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
-            // We resolve the Action to a RawAction to get the actual addresses, ids and denoms
-            let whole_dex_action = WholeDexAction(local_dex_name.clone(), action);
-            let ans = adapter.name_service(deps.as_ref());
-            let raw_action = ans.query(&whole_dex_action)?;
-
-            // if exchange is on an app-chain, execute the action on the app-chain
-            if is_over_ibc {
-                handle_ibc_request(&deps, info, &adapter, local_dex_name, &raw_action)
-            } else {
-                // the action can be executed on the local chain
-                handle_local_request(deps, env, info, &adapter, local_dex_name, raw_action)
-            }
-        }
-        DexExecuteMsg::RawAction {
-            dex: dex_name,
-            action,
-        } => {
-            let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
-
-            // if exchange is on an app-chain, execute the action on the app-chain
-            if is_over_ibc {
-                handle_ibc_request(&deps, info, &adapter, local_dex_name, &action)
-            } else {
-                // the action can be executed on the local chain
-                handle_local_request(deps, env, info, &adapter, local_dex_name, action)
-            }
-        }
-        DexExecuteMsg::UpdateFee {
-            swap_fee,
-            recipient_account: recipient_account_id,
-        } => {
+    let (oracle, action) = match msg {
+        OracleExecuteMsg::Admin(oracle_configuration) => {
             // Only namespace owner (abstract) can change recipient address
             let namespace = adapter
                 .module_registry(deps.as_ref())?
@@ -87,127 +30,25 @@ pub fn execute_handler(
             ensure_eq!(
                 namespace_info.account_base,
                 adapter.target_account.clone().unwrap(),
-                DexError::Unauthorized {}
+                OracleError::Unauthorized {}
             );
-            let mut fee = DEX_FEES.load(deps.storage)?;
-
-            // Update swap fee
-            if let Some(swap_fee) = swap_fee {
-                fee.set_swap_fee_share(swap_fee)?;
-            }
-
-            // Update recipient account id
-            if let Some(account_id) = recipient_account_id {
-                let recipient = adapter
-                    .account_registry(deps.as_ref())?
-                    .proxy_address(&AccountId::new(account_id, AccountTrace::Local)?)?;
-                fee.recipient = recipient;
-            }
-
-            DEX_FEES.save(deps.storage, &fee)?;
-            Ok(Response::default())
+            // Empty user - admin
+            let oracle = Oracle::new("");
+            (oracle, oracle_configuration)
+        }
+        OracleExecuteMsg::Account(oracle_configuration) => (
+            Oracle::new(adapter.target()?.as_str()),
+            oracle_configuration,
+        ),
+    };
+    match action {
+        OracleAction::UpdateConfig { external_age_max } => {
+            oracle.update_config(deps, external_age_max)?;
+        }
+        OracleAction::UpdateAssets { to_add, to_remove } => {
+            let ans = adapter.ans_host(deps.as_ref())?;
+            oracle.update_assets(deps, &ans, to_add, to_remove)?;
         }
     }
-}
-
-/// Handle an adapter request that can be executed on the local chain
-fn handle_local_request(
-    deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
-    adapter: &OracleAdapter,
-    exchange: String,
-    action: DexRawAction,
-) -> OracleResult {
-    let exchange = oracle_resolver::resolve_exchange(&exchange)?;
-    let target_account = adapter.account_base(deps.as_ref())?;
-    let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
-        adapter,
-        deps.as_ref(),
-        target_account.proxy,
-        action,
-        exchange,
-    )?;
-    let proxy_msg = adapter
-        .executor(deps.as_ref())
-        .execute(msgs.into_iter().map(Into::into).collect())?;
-    Ok(Response::new().add_message(proxy_msg))
-}
-
-/// Handle an adapter request that can be executed on an IBC chain
-/// TODO, this doesn't work as is, would have to change this for working with IBC hooks
-fn handle_ibc_request(
-    deps: &DepsMut,
-    info: MessageInfo,
-    adapter: &OracleAdapter,
-    dex_name: DexName,
-    action: &DexRawAction,
-) -> OracleResult {
-    let host_chain = ChainName::from_string(dex_name.clone())?; // TODO, this is faulty
-
-    let ans = adapter.name_service(deps.as_ref());
-    let ibc_client = adapter.ibc_client(deps.as_ref());
-    // get the to-be-sent assets from the action
-    let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
-    // construct the ics20 call(s)
-    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
-    // construct the action to be called on the host
-    let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
-        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
-            module_id: DEX_ADAPTER_ID.to_string(),
-            exec_msg: to_json_binary::<ExecuteMsg>(
-                &DexExecuteMsg::RawAction {
-                    dex: dex_name.clone(),
-                    action: action.clone(),
-                }
-                .into(),
-            )?,
-        },
-    };
-
-    // If the calling entity is a contract, we provide a callback on successful swap
-    let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());
-    let callback = if maybe_contract_info.is_err() {
-        None
-    } else {
-        Some(CallbackInfo {
-            id: IBC_DEX_PROVIDER_ID.into(),
-            msg: Some(to_json_binary(&DexExecuteMsg::RawAction {
-                dex: dex_name.clone(),
-                action: action.clone(),
-            })?),
-            receiver: info.sender.into_string(),
-        })
-    };
-    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action, callback)?;
-
-    // call both messages on the proxy
-    Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
-}
-
-pub(crate) fn resolve_assets_to_transfer(
-    deps: Deps,
-    dex_action: &DexRawAction,
-    _ans_host: &AnsHost,
-) -> OracleResult<Vec<Coin>> {
-    // resolve asset to native asset
-    let offer_to_coin = |offer: &AssetBase<String>| {
-        offer
-            .check(deps.api, None)
-            .and_then(|a| a.try_into())
-            .map_err(DexError::from)
-    };
-
-    match dex_action {
-        DexRawAction::ProvideLiquidity { assets, .. } => {
-            let coins: Result<Vec<Coin>, _> = assets.iter().map(offer_to_coin).collect();
-            coins
-        }
-        DexRawAction::ProvideLiquiditySymmetric { .. } => Err(DexError::Std(
-            StdError::generic_err("Cross-chain symmetric provide liquidity not supported."),
-        )),
-        DexRawAction::WithdrawLiquidity { lp_token, .. } => Ok(vec![offer_to_coin(lp_token)?]),
-        DexRawAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
-    }
-    .map_err(Into::into)
+    Ok(Response::default())
 }

@@ -1,24 +1,31 @@
-use abstract_core::objects::{account::AccountTrace, AccountId};
-use abstract_dex_standard::msg::{DexFees, DexInstantiateMsg};
-use abstract_sdk::AccountVerification;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-
 use crate::{
     contract::{OracleAdapter, OracleResult},
-    state::DEX_FEES,
+    msg::OracleInstantiateMsg,
+    state::{Oracle, ADDRESSES_OF_PROVIDERS},
 };
+
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
     adapter: OracleAdapter,
-    msg: DexInstantiateMsg,
+    msg: OracleInstantiateMsg,
 ) -> OracleResult {
-    let recipient = adapter
-        .account_registry(deps.as_ref())?
-        .proxy_address(&AccountId::new(msg.recipient_account, AccountTrace::Local)?)?;
-    let dex_fees = DexFees::new(msg.swap_fee, recipient)?;
-    DEX_FEES.save(deps.storage, &dex_fees)?;
+    let OracleInstantiateMsg {
+        external_age_max,
+        providers,
+    } = msg;
+
+    // Save config
+    let oracle = Oracle::new("");
+    oracle.update_config(deps, external_age_max)?;
+
+    // Save addresses of providers
+    for (provider, human_addr) in providers {
+        let addr = deps.api.addr_validate(&human_addr)?;
+        ADDRESSES_OF_PROVIDERS.save(deps.storage, &provider, &addr)?;
+    }
     Ok(Response::default())
 }

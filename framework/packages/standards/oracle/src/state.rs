@@ -13,6 +13,16 @@ use cosmwasm_std::{Addr, Deps, DepsMut, Order, StdError, Uint128};
 use cw_asset::{Asset, AssetInfo};
 use cw_storage_plus::{Bound, Map};
 
+use crate::msg::ProviderName;
+
+#[cw_serde]
+pub struct Config {
+    pub external_age_max: u64,
+}
+
+// TODO: do we save it here or in ans?
+pub const ADDRESSES_OF_PROVIDERS: Map<&ProviderName, Addr> = Map::new("providers");
+
 pub type Complexity = u8;
 
 pub const LIST_SIZE_LIMIT: u8 = 15;
@@ -32,6 +42,7 @@ impl ExternalPriceSource for OraclePriceSource {
 
 /// Struct for calculating asset prices/values for a smart contract.
 pub struct Oracle<'a> {
+    config: Map<'static, &'a str, Config>,
     /// map of human-readable asset names to their human-readable price source
     pub sources: Map<'static, (&'a str, &'a AssetEntry), UncheckedPriceSource<OraclePriceSource>>,
     /// Assets map to get the complexity and value calculation of an asset.
@@ -48,14 +59,33 @@ pub struct Oracle<'a> {
 
 impl<'a> Oracle<'a> {
     /// Get Oracle object
-    /// Const version of [`Oracle::new_postfix`] where postfix is not required
     pub const fn new(user: &'a str) -> Self {
         Oracle {
+            config: Map::new("config"),
             sources: Map::new("sources"),
             assets: Map::new("assets"),
             complexity: Map::new("complexity{postfix}"),
             asset_equivalent_cache: Vec::new(),
             user,
+        }
+    }
+
+    /// Update oracle config for the user
+    pub fn update_config(&self, deps: DepsMut, external_age_max: u64) -> AbstractResult<()> {
+        self.config
+            .save(deps.storage, self.user, &Config { external_age_max })
+            .map_err(Into::into)
+    }
+
+    /// Load config
+    /// Uses user defined config if present, or default if not
+    pub fn load_config(&self, deps: Deps) -> AbstractResult<Config> {
+        // Try to load user config
+        if let Some(config) = self.config.may_load(deps.storage, self.user)? {
+            Ok(config)
+        } else {
+            // Otherwise use default config
+            self.config.load(deps.storage, "").map_err(Into::into)
         }
     }
 
@@ -68,15 +98,18 @@ impl<'a> Oracle<'a> {
         to_add: Vec<(AssetEntry, UncheckedPriceSource<OraclePriceSource>)>,
         to_remove: Vec<AssetEntry>,
     ) -> AbstractResult<()> {
-        let current_vault_size = self
-            .sources
-            .keys(deps.storage, None, None, Order::Ascending)
-            .count();
-        let new_vault_size = current_vault_size + to_add.len() - to_remove.len();
-        if new_vault_size > LIST_SIZE_LIMIT as usize {
-            return Err(AbstractError::Std(StdError::generic_err(
-                "Oracle list size limit exceeded",
-            )));
+        // If it's an user oracle - check if it 's in size limit
+        if self.user != "" {
+            let current_vault_size = self
+                .sources
+                .keys(deps.storage, None, None, Order::Ascending)
+                .count();
+            let new_vault_size = current_vault_size + to_add.len() - to_remove.len();
+            if new_vault_size > LIST_SIZE_LIMIT as usize {
+                return Err(AbstractError::Std(StdError::generic_err(
+                    "Oracle list size limit exceeded",
+                )));
+            }
         }
 
         let mut all: Vec<&AssetEntry> = to_add.iter().map(|(a, _)| a).chain(&to_remove).collect();

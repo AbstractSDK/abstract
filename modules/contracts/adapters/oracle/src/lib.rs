@@ -11,6 +11,8 @@ pub mod msg {
 }
 pub use abstract_oracle_standard::ORACLE_ADAPTER_ID;
 
+pub use abstract_oracle_standard::OracleError;
+
 // TODO:
 // Export interface for use in SDK modules
 // pub use crate::api::OracleInterface;

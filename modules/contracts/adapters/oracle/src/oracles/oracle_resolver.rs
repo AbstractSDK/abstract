@@ -7,7 +7,7 @@ use cosmwasm_std::Env;
 /// Any oracle should be identified by the adapter
 /// This allows erroring the execution before sending any IBC message to another chain
 /// This provides superior UX in case of an IBC execution
-pub(crate) fn identify_oracle(value: &str) -> Result<impl Identify, OracleError> {
+pub(crate) fn identify_oracle(value: &str) -> Result<Box<dyn Identify>, OracleError> {
     match value {
         _ => Err(OracleError::UnknownProvider(value.to_owned())),
     }

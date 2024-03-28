@@ -25,6 +25,9 @@ pub enum OracleError {
     #[error("{0}")]
     AnsHostError(#[from] AnsHostError),
 
+    #[error("Only account of abstract namespace can update configuration")]
+    Unauthorized {},
+
     #[error("{0} is not a known Oracle provider on this network.")]
     UnknownProvider(String),
 

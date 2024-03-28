@@ -1,27 +1,15 @@
+use crate::contract::{OracleAdapter, OracleResult};
 use abstract_core::objects::{AssetEntry, DexAssetPairing, PoolAddress};
-use abstract_dex_standard::{
-    ans_action::{pool_address, WholeDexAction},
-    msg::{
-        DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, SimulateSwapResponse,
-    },
-    DexError,
-};
+use abstract_oracle_standard::msg::OracleQueryMsg;
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
-
-use crate::{
-    contract::{OracleAdapter, OracleResult},
-    handlers::query::oracle_resolver::is_over_ibc,
-    oracles::oracle_resolver::{self, resolve_exchange},
-    state::DEX_FEES,
-};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 
 pub fn query_handler(
     deps: Deps,
     env: Env,
     adapter: &OracleAdapter,
-    msg: DexQueryMsg,
+    msg: OracleQueryMsg,
 ) -> OracleResult<Binary> {
     match msg {
         DexQueryMsg::SimulateSwapRaw {
@@ -115,53 +103,4 @@ pub fn query_handler(
             to_json_binary(&resp).map_err(Into::into)
         }
     }
-}
-
-pub fn fees(deps: Deps) -> OracleResult<Binary> {
-    let dex_fees = DEX_FEES.load(deps.storage)?;
-    let resp = DexFeesResponse {
-        swap_fee: dex_fees.swap_fee(),
-        recipient: dex_fees.recipient,
-    };
-    to_json_binary(&resp).map_err(Into::into)
-}
-
-pub fn simulate_swap(
-    deps: Deps,
-    _env: Env,
-    dex: String,
-    pool: PoolAddress,
-    mut offer_asset: Asset,
-    ask_asset: AssetInfo,
-) -> OracleResult<SimulateSwapResponse<AssetInfoBase<String>>> {
-    let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
-
-    let pool_info = DexAssetPairing::new(
-        offer_asset.info.clone().into(),
-        ask_asset.clone().into(),
-        exchange.name(),
-    );
-
-    // compute adapter fee
-    let dex_fees = DEX_FEES.load(deps.storage)?;
-    let adapter_fee = dex_fees.swap_fee().compute(offer_asset.amount);
-    offer_asset.amount -= adapter_fee;
-
-    let (return_amount, spread_amount, commission_amount, fee_on_input) = exchange
-        .simulate_swap(deps, pool, offer_asset.clone(), ask_asset.clone())
-        .map_err(|e| StdError::generic_err(e.to_string()))?;
-    let commission_asset = if fee_on_input {
-        ask_asset
-    } else {
-        offer_asset.info
-    };
-
-    let resp = SimulateSwapResponse {
-        pool: pool_info,
-        return_amount,
-        spread_amount,
-        commission: (commission_asset.into(), commission_amount),
-        usage_fee: adapter_fee,
-    };
-    Ok(resp)
 }

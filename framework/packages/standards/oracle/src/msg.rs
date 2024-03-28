@@ -12,7 +12,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
 use cw_asset::AssetInfo;
 
-pub use crate::action::OracleConfiguration;
+pub use crate::action::OracleAction;
 use crate::state::{AccountValue, Complexity};
 
 /// The name of the oracle to trade on.
@@ -32,17 +32,20 @@ impl adapter::AdapterQueryMsg for OracleQueryMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct OracleInstantiateMsg {
     /// Maximum age of external price source before getting filtrated in calculations
-    external_age_max: u64,
+    pub external_age_max: u64,
+    /// Addresses of providers
+    pub providers: Vec<(ProviderName, String)>,
 }
 
 /// Oracle Execute msg
 #[cosmwasm_schema::cw_serde]
 pub enum OracleExecuteMsg {
-    /// Admin configuration to perform on the Oracle adapter
-    /// This can be done only oracle admin and will be used for default values during queries
-    AdminAction(OracleConfiguration),
-    /// Configuration to perform on the Oracle adapter
-    AccountAction(OracleConfiguration),
+    /// Admin action to perform on the Oracle adapter
+    /// This can be done only by oracle admin(abstract namespace owner) and saved state will be used for default values during queries
+    Admin(OracleAction),
+    /// Action to perform on the Oracle adapter
+    Account(OracleAction),
+    // TODO: update provider_addrs
 }
 
 /// Query messages for the oracle adapter
@@ -52,7 +55,7 @@ pub enum OracleQueryMsg {
     /// Default values provided by adapter owner used for calculations
     Address {
         address: String,
-        query_msg: AccountQueryMsg,
+        query_msg: AddressQueryMsg,
     },
     /// Query for proxy address
     Account {
@@ -67,6 +70,9 @@ pub enum AddressQueryMsg {
     /// Default oracle adapter configuration
     #[returns(AccountConfig)]
     Config {},
+    /// Returns the value of given tokens on account
+    #[returns(TokensValueResponse)]
+    TokensValue { identifiers: Vec<AssetEntry> },
 }
 
 #[cosmwasm_schema::cw_serde]
