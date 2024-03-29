@@ -1,29 +1,29 @@
 # Business Model
 
-Abstract business model is deeply involved with Decentralised Finance (DeFi), with a significant focus on DeFi adapters, each of which incurs a service fee. It also allows us, as a business to scale our operations and innovate on offerings in midst of ever-evolving market demands and technological advancements.
-Given the critical role our adapters play, our business model incorporates a structured service fee system, applicable to different types of transactions conducted through various interfaces.
+Abstract's business model is firmly grounded in Decentralized Finance (DeFi), with a particular emphasis on DeFi adapters, which attract service fees. This innovative model enables us to navigate and adapt swiftly in response to changing market needs and emerging technologies, enhancing our operational scalability.
+Given the essential function of these adapters, our business model integrates a well-defined service fee system. This system applies to a variety of transactions carried out via numerous interfaces, thereby ensuring smooth operations and facilitating ongoing innovation in our offerings.
 
 Here is a breakdown of the service fees associated with different types of transactions:
 
 ### DEX Adapter
 
-In our Decentralised Exchange (DEX) adapter, we implement a service fee structure where a charge of **0.3%** is levied on each swap transaction. This fee is calculated as a proportion of the total transaction amount, which implies that the absolute fee amount increases with the size of the transaction. In practical terms, this means that for larger transactions, the fee paid will be higher in absolute numbers, while for smaller transactions, the fee will be correspondingly lower.
+Our Decentralized Exchange (DEX) adapter implements a service fee structure that charges a rate of 0.3% on each swap transaction. This fee is calculated as a percentage of the total transaction amount, which means the fee amount increases or decreases proportionately with the size of the transaction.
 
-This fee model is strategic for several reasons. First, it aligns our revenue with the volume of transactions processed through our platform, incentivising us to continuously enhance the platform's performance and reliability. Second, it offers a clear and predictable fee structure for users, helping them to understand the cost implications of their transactions upfront.
+This fee model aligns with our strategic goals in several ways. First, it ties our revenue to the volume of transactions processed through our platform, motivating us to continually improve platform performance and reliability. Second, it provides users with a transparent and predictable fee structure, allowing them to anticipate the cost implications of their transactions in advance.
 
-Our DEX adapter is designed to provide users with a smooth and efficient interface for conducting swap transactions within the decentralised finance (DeFi) ecosystem. It is optimised for seamless integration with various blockchain networks and DeFi protocols, ensuring that users can execute their transactions with ease and reliability. By using our platform, users benefit from the robust technical infrastructure, which supports high transaction throughput and minimizes the risk of slippage or failed transactions.
+Our DEX adapter is engineered to facilitate smooth and efficient swap transactions within the Decentralized Finance (DeFi) ecosystem. It enables seamless integration with various blockchain networks and DeFi protocols, ensuring users can execute transactions with ease and confidence. Utilizing our platform offers access to robust technical infrastructure designed for high transaction throughput and minimizes the risk of slippage or failed transactions.
 
-Additionally, the fee model serves as an incentive for users to choose our platform for their swap transactions. By offering a competitive fee structure, combined with high-performance transaction processing, we aim to attract a broad user base, ranging from individual traders to large institutions. This approach not only enhances liquidity on our platform but also contributes to the overall efficiency of the DeFi ecosystem.
+Moreover, the fee model incentivizes users to choose our platform for their swap transactions. By providing a competitive fee structure coupled with high-performance transaction processing, we aim to attract a wide range of users, from individual traders to large institutions. This approach enhances liquidity on our platform and contributes to the overall efficiency of the DeFi ecosystem.
 
 ### Money Market Adapter
 
-In the context of interest repayments processed via our Money Market adapter, we impose a standard service fee of **0.3%**. This fee is levied as a percentage of the total repayment amount and is deducted at the time of transaction processing. The stated rate of **0.3%** serves as the baseline for the service charge, but it's important to note that this rate is not fixed and can be subject to adjustments.
+Our Money Market adapter applies a standard service fee of 0.3% to interest repayments processed through it. This fee is charged as a percentage of the total repayment amount and is deducted at the time of transaction processing. The 0.3% rate serves as the baseline fee but may be subject to change under certain conditions.
 
-The actual fee rate may vary depending on several factors. For instance, specific agreements or contracts between our company and the client can stipulate a different fee rate, either higher or lower than the standard. Such agreements might be influenced by the volume of transactions, the duration of the business relationship, or negotiated terms that reflect a mutual understanding of value and service expectations.
+The actual fee rate may differ based on various factors. For example, specific agreements or contracts between our company and the client may dictate a different fee rate than the standard, either higher or lower. Such agreements may be influenced by transactional volume, length of business relationship, or negotiated terms reflecting a mutual understanding of value and service expectations.
 
-Also, policy changes within our organisation can lead to adjustments in the service fee rate. These changes could be driven by market dynamics, regulatory requirements, operational costs, or strategic decisions aimed at aligning our services with market conditions and business objectives.
+Additionally, adjustments in the service fee rate may result from policy changes within our organization. These changes could be driven by market dynamics, regulatory requirements, operational costs, or strategic decisions aimed at aligning our services with market conditions and business objectives.
 
-Clients are advised to refer to their service agreement for precise fee details and to stay informed about any potential changes through official communications from our company. This ensures transparency and helps maintain a clear understanding of the financial aspects of our service offerings.
+To ensure transparency, clients are advised to review their service agreement for exact fee details and stay informed about any potential changes through official communications from our company. This approach maintains a clear understanding of the financial aspects of our service offerings.
 
 ```admonish info
 It's important to highlight that these fees are not rigid and can be adjusted based on the transaction volume.
