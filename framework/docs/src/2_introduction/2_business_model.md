@@ -7,7 +7,7 @@ Here is a breakdown of the service fees associated with different types of trans
 
 ### DEX Adapter
 
-Our Decentralized Exchange (DEX) adapter implements a service fee structure that charges a rate of 0.3% on each swap transaction. This fee is calculated as a percentage of the total transaction amount, which means the fee amount increases or decreases proportionately with the size of the transaction.
+Our Decentralized Exchange (DEX) adapter implements a service fee structure that charges a rate of **0.3%** on each swap transaction. This fee is calculated as a percentage of the total transaction amount, which means the fee amount increases or decreases proportionately with the size of the transaction.
 
 This fee model aligns with our strategic goals in several ways. First, it ties our revenue to the volume of transactions processed through our platform, motivating us to continually improve platform performance and reliability. Second, it provides users with a transparent and predictable fee structure, allowing them to anticipate the cost implications of their transactions in advance.
 
@@ -17,7 +17,7 @@ Moreover, the fee model incentivizes users to choose our platform for their swap
 
 ### Money Market Adapter
 
-Our Money Market adapter applies a standard service fee of 0.3% to interest repayments processed through it. This fee is charged as a percentage of the total repayment amount and is deducted at the time of transaction processing. The 0.3% rate serves as the baseline fee but may be subject to change under certain conditions.
+Our Money Market adapter applies a standard service fee of **0.3%** to interest repayments processed through it. This fee is charged as a percentage of the total repayment amount and is deducted at the time of transaction processing. The **0.3%** rate serves as the baseline fee but may be subject to change under certain conditions.
 
 The actual fee rate may differ based on various factors. For example, specific agreements or contracts between our company and the client may dictate a different fee rate than the standard, either higher or lower. Such agreements may be influenced by transactional volume, length of business relationship, or negotiated terms reflecting a mutual understanding of value and service expectations.
 
