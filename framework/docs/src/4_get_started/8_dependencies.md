@@ -77,7 +77,7 @@ Make sure to keep an eye out for deprecating dependencies as well. Security upda
 
 If your module needs some modules to be enabled, it can add those as a dependency. You can then easily call messages on these modules by using the ModuleInterface trait as described in [Dependency Execution Flow](https://docs.abstract.money/3_framework/6_module_types.html#dependency-execution).
 
-Under the hood the name of the dependency will be resolved on the Manager contract. A call will be attempted with a custom rely-id.
+Under the hood the ID of the dependency module will be resolved on the Manager contract, returning the address of that module. The address is then used to call or query the dependency. 
 
 You can also query dependencies using the same trait or by performing a raw-query provided by the SDK.
 
