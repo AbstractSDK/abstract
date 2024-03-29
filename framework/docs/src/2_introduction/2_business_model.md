@@ -3,7 +3,7 @@
 Abstract's business model is firmly grounded in Decentralized Finance (DeFi), with a particular emphasis on DeFi adapters, which attract service fees. This innovative model enables us to navigate and adapt swiftly in response to changing market needs and emerging technologies, enhancing our operational scalability.
 Given the essential function of these adapters, our business model integrates a well-defined service fee system. This system applies to a variety of transactions carried out via numerous interfaces, thereby ensuring smooth operations and facilitating ongoing innovation in our offerings.
 
-Here is a breakdown of the service fees associated with different types of transactions:
+Here is a breakdown of the service fees associated with different types of adapter:
 
 ### DEX Adapter
 
