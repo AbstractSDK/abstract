@@ -485,11 +485,11 @@ mod tests {
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name.to_string(),
                 action: HostAction::Dispatch {
-                    manager_msg: manager::ExecuteMsg::UpdateInfo {
+                    manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                         name: None,
                         description: None,
                         link: None,
-                    },
+                    }],
                 },
                 callback_info: None,
             };
@@ -555,11 +555,11 @@ mod tests {
             )?;
 
             let action = HostAction::Dispatch {
-                manager_msg: manager::ExecuteMsg::UpdateInfo {
+                manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                     name: None,
                     description: None,
                     link: None,
-                },
+                }],
             };
 
             let msg = ExecuteMsg::RemoteAction {
@@ -618,11 +618,11 @@ mod tests {
             )?;
 
             let action = HostAction::Dispatch {
-                manager_msg: manager::ExecuteMsg::UpdateInfo {
+                manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                     name: None,
                     description: None,
                     link: None,
-                },
+                }],
             };
 
             let callback_info = CallbackInfo {

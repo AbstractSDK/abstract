@@ -284,11 +284,11 @@ fn account_action() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::ProposeOwner {
+                manager_msgs: vec![abstract_core::manager::ExecuteMsg::ProposeOwner {
                     owner: GovernanceDetails::Monarchy {
                         monarch: mock.addr_make("new_owner").to_string(),
                     },
-                },
+                }],
             },
             proxy_addr.to_string(),
         )
@@ -336,11 +336,11 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::ProposeOwner {
+                manager_msgs: vec![abstract_core::manager::ExecuteMsg::ProposeOwner {
                     owner: GovernanceDetails::Monarchy {
                         monarch: mock.addr_make("new_owner").to_string(),
                     },
-                },
+                }],
             },
             mock.addr_make("proxy_address").to_string(),
         )

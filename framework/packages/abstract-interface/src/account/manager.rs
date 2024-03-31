@@ -214,7 +214,9 @@ impl<Chain: CwEnv> Manager<Chain> {
         let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
             msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: host_chain.into(),
-                action: HostAction::Dispatch { manager_msg: msg },
+                action: HostAction::Dispatch {
+                    manager_msgs: vec![msg],
+                },
                 callback_info,
             }],
         };
@@ -234,10 +236,10 @@ impl<Chain: CwEnv> Manager<Chain> {
             msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: host_chain.into(),
                 action: HostAction::Dispatch {
-                    manager_msg: ExecuteMsg::ExecOnModule {
+                    manager_msgs: vec![ExecuteMsg::ExecOnModule {
                         module_id: module_id.to_string(),
                         exec_msg: msg,
-                    },
+                    }],
                 },
                 callback_info,
             }],

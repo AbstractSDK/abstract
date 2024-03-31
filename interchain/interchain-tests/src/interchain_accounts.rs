@@ -773,11 +773,11 @@ mod test {
                 account_id: remote_account_id,
                 proxy_address: origin_account.proxy.address()?.to_string(),
                 action: HostAction::Dispatch {
-                    manager_msg: ManagerExecuteMsg::UpdateInfo {
+                    manager_msgs: vec![ManagerExecuteMsg::UpdateInfo {
                         name: Some("name".to_owned()),
                         description: Some("description".to_owned()),
                         link: Some("link".to_owned()),
-                    },
+                    }],
                 },
             },
             None,
