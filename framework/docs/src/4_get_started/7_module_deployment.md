@@ -31,11 +31,11 @@ Now you can go ahead and deploy the module to the network(s) you want to make it
 running the following command:
 
 ```bash
-$ just deploy uni-1
+$ just publish uni-1
 > Deploying module...
 ```
 
-This will use the module's `examples/deploy.rs` script to deploy the module to the `uni-1` network. The resulting
+This will use the module's `examples/publish.rs` script to deploy the module to the `uni-1` network. The resulting
 code-id of your contract should now be in the `state.json` file created for you. The script will also attempt to
 register the module on the Abstract Version Control, hence the mnemonic used in the script should be the same as the one
 you used to create the account and register the namespace.
