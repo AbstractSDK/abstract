@@ -6,7 +6,7 @@ An Abstract Adapter module that handles staking and unbonding interactions with 
 
 In order to easily identify and relate contracts to on-chain addresses we follow the following conventions:
 
-- *Staking AssetEntry*: an `AssetEntry` of the token that is stakeable. Formatted as `{provider}/{asset_pair}`
+- *Staking AssetEntry*: an `AssetEntry` of the token that is stakeable. For LP tokens this is formatted as `{provider}/{asset_pair}`.
     -    Ex: `osmosis/cosmoshub>atom,juno>juno`
 - *Staking AddressEntry*: a `ContractEntry` that is formatted as **{provider}:staking/{staking_asset_entry}**
     - Ex: `osmosis:staking/osmosis/cosmoshub>atom,juno>juno`
