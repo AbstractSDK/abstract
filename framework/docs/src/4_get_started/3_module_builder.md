@@ -1,17 +1,13 @@
 # Module Builder
 
 Abstract provides multiple module bases, as detailed in our section on [modules](../3_framework/6_module_types.md).
-These base implementation provide you with the minimal state and configuration required to start building your modular
-application. After setting up your module base from our template you'll probably want to customize it. Our module
-builder pattern allows you to do just that. It also gives you a great overview on all the entry points to your module,
-and those that others have built.
+These bases (`App` and `Adapter`) implement some basic functionality and store some abstract-related state that will enable you to easily interact with our infrastructure through our SDK (which we'll introduce later).
+
+For now just know that we provide you with a builder pattern that allows you to easily add custom logic to these base modules. In the rest of this section we'll outline how you can use this builder pattern to add custom functionality to your contract.
 
 ## Overview
 
-The builder pattern employed in building an Abstract module is a slight variation of the actual design pattern. Instead,
-the module builder lets you set custom entry point handlers at compile time, meaning you end up with a `const` value
-that is heavily optimized by the compiler. This ensures that the overhead of using Abstract has little effect on
-both the code's runtime and WASM binary size.
+The builder pattern employed in building an Abstract module is a slight variation of the actual "builder" design pattern. Instead of creating a new builder at runtime, our module builder lets you set custom attributes on your module at compile time, meaning you end up with a `const` value can be heavily optimized by the compiler. This system ensures that the overhead of using Abstract has little effect on both the code's runtime and WASM binary size.
 
 ```admonish info
 The code-snippets in this example can be found in the <a href="https://github.com/AbstractSDK/abstract/blob/main/framework/packages/abstract-app/examples/counter.rs" target="_blank">counter app example</a>.
@@ -21,14 +17,22 @@ In this tutorial we will be working on an [`App` module](../3_framework/6_module
 
 ### App Type
 
-To set up your App module, start by integrating your custom messages. These messages are inserted in the
-top-level entry point message types, which will be discussed in more detail later. Here's an example:
+Your custom `AppType` will be a type alias for a specific type that fills in the base `AppContract` type provided by the `abstract-app` crate. By constructing this type you're defining which messages you expect to receive at the custom endpoints of your contract.
+
+Here's what this looks like in the template:
 
 ```rust,ignore
-{{#include ../../../packages/abstract-app/examples/counter.rs:counter_app}}
+// src/contract.rs
+{{#include ../../../../app-template/src/contract.rs:20}}
 ```
 
-All of these messages can be customized and will be used to type-check the rest of your implementation.
+The type above contains all the mandatory types (Init, Exec, Query) to construct the type, but you can provide more types as well if you need 
+
+This type will be used in a couple more places throughout the contract, so it's a good idea to define it at the top of the file.
+<!-- 
+```rust,ignore
+{{#include ../../../packages/abstract-app/examples/counter.rs:counter_app}}
+``` -->
 
 ## Build The App
 
