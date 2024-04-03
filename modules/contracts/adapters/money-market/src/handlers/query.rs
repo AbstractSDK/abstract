@@ -1,11 +1,11 @@
 use abstract_money_market_standard::{
     ans_action::ActionOnMoneymarket,
     msg::{GenerateMessagesResponse, MoneyMarketExecuteMsg, MoneyMarketQueryMsg},
-    query::{MoneyMarketRawQuery, WholeMoneyMarketQuery},
+    query::WholeMoneyMarketQuery,
     MoneyMarketError,
 };
 use abstract_sdk::features::AbstractNameService;
-use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 
 use crate::{
     contract::{MoneyMarketAdapter, MoneyMarketResult},
@@ -17,23 +17,12 @@ pub fn query_handler(
     deps: Deps,
     env: Env,
     adapter: &MoneyMarketAdapter,
-    mut msg: MoneyMarketQueryMsg,
+    msg: MoneyMarketQueryMsg,
 ) -> MoneyMarketResult<Binary> {
-    if let MoneyMarketQueryMsg::MoneyMarketAnsQuery {
-        query,
-        money_market,
-    } = msg
-    {
-        let ans = adapter.name_service(deps);
-        let whole_money_market_query = WholeMoneyMarketQuery(
-            platform_resolver::resolve_money_market(&money_market)?,
-            query,
-        );
-        msg = MoneyMarketQueryMsg::MoneyMarketRawQuery {
-            query: ans.query(&whole_money_market_query)?,
-            money_market,
-        };
-    }
+    let ans = adapter.name_service(deps);
+    let whole_money_market_query =
+        WholeMoneyMarketQuery(platform_resolver::resolve_money_market, msg);
+    let msg = ans.query(&whole_money_market_query)?;
 
     match msg {
         MoneyMarketQueryMsg::GenerateMessages {
@@ -83,21 +72,19 @@ pub fn query_handler(
             }
         }
         MoneyMarketQueryMsg::Fees {} => fees(deps),
-        MoneyMarketQueryMsg::MoneyMarketRawQuery {
-            query,
-            money_market,
-        } => {
-            let (local_money_market_name, is_over_ibc) = is_over_ibc(env.clone(), &money_market)?;
+        _ => {
+            let money_market = msg.money_market()?;
+
+            let (local_money_market_name, is_over_ibc) = is_over_ibc(env.clone(), money_market)?;
 
             // if money_market is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
                 unimplemented!()
             } else {
                 // the action can be executed on the local chain
-                handle_local_query(deps, env, local_money_market_name, adapter, query)
+                handle_local_query(deps, env, local_money_market_name, adapter, msg)
             }
         }
-        _ => Err(MoneyMarketError::IbcMsgQuery {}),
     }
 }
 
@@ -108,20 +95,22 @@ pub fn fees(deps: Deps) -> MoneyMarketResult<Binary> {
 }
 
 /// Handle an adapter request that can be executed on the local chain
+/// We only execute local queries here
 fn handle_local_query(
     deps: Deps,
     env: Env,
     money_market: String,
     adapter: &MoneyMarketAdapter,
-    query: MoneyMarketRawQuery,
+    query: MoneyMarketQueryMsg,
 ) -> MoneyMarketResult<Binary> {
     let mut money_market = platform_resolver::resolve_money_market(&money_market)?;
     let ans_host = adapter.ans_host(deps)?;
     Ok(match query {
-        MoneyMarketRawQuery::UserDeposit {
+        MoneyMarketQueryMsg::RawUserDeposit {
             user,
             asset,
             contract_addr,
+            money_market: _,
         } => {
             let user = deps.api.addr_validate(&user)?;
             let contract_addr = deps.api.addr_validate(&contract_addr)?;
@@ -130,11 +119,12 @@ fn handle_local_query(
             money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
             to_json_binary(&money_market.user_deposit(deps, contract_addr, user, asset)?)?
         }
-        MoneyMarketRawQuery::UserCollateral {
+        MoneyMarketQueryMsg::RawUserCollateral {
             user,
             collateral_asset,
             borrowed_asset,
             contract_addr,
+            money_market: _,
         } => {
             let user = deps.api.addr_validate(&user)?;
             let contract_addr = deps.api.addr_validate(&contract_addr)?;
@@ -150,11 +140,12 @@ fn handle_local_query(
                 collateral_asset,
             )?)?
         }
-        MoneyMarketRawQuery::UserBorrow {
+        MoneyMarketQueryMsg::RawUserBorrow {
             user,
             collateral_asset,
             borrowed_asset,
             contract_addr,
+            money_market: _,
         } => {
             let user = deps.api.addr_validate(&user)?;
             let contract_addr = deps.api.addr_validate(&contract_addr)?;
@@ -170,11 +161,12 @@ fn handle_local_query(
                 collateral_asset,
             )?)?
         }
-        MoneyMarketRawQuery::CurrentLTV {
+        MoneyMarketQueryMsg::RawCurrentLTV {
             user,
             collateral_asset,
             borrowed_asset,
             contract_addr,
+            money_market: _,
         } => {
             let user = deps.api.addr_validate(&user)?;
             let contract_addr = deps.api.addr_validate(&contract_addr)?;
@@ -190,11 +182,12 @@ fn handle_local_query(
                 collateral_asset,
             )?)?
         }
-        MoneyMarketRawQuery::MaxLTV {
+        MoneyMarketQueryMsg::RawMaxLTV {
             user,
             collateral_asset,
             borrowed_asset,
             contract_addr,
+            money_market: _,
         } => {
             let user = deps.api.addr_validate(&user)?;
             let contract_addr = deps.api.addr_validate(&contract_addr)?;
@@ -210,12 +203,21 @@ fn handle_local_query(
                 collateral_asset,
             )?)?
         }
-        MoneyMarketRawQuery::Price { quote, base } => {
+        MoneyMarketQueryMsg::RawPrice {
+            quote,
+            base,
+            money_market: _,
+        } => {
             let quote = quote.check(deps.api, None)?;
             let base = base.check(deps.api, None)?;
 
             money_market.fetch_data(env.contract.address.clone(), &deps.querier, &ans_host)?;
             to_json_binary(&money_market.price(deps, base, quote)?)?
+        }
+        _ => {
+            return Err(
+                StdError::generic_err("Can't treat non-local ans query, unreachable").into(),
+            )
         }
     })
 }
