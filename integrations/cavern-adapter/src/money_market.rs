@@ -26,8 +26,10 @@ use {
     },
     cavern_lsd_wrapper_token::state::LSD_CONFIG_KEY,
     cavern_lsd_wrapper_token::trait_def::LSDHub,
-    cosmwasm_std::{testing::mock_env, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
-    cosmwasm_std::{to_json_binary, QuerierWrapper, StdError},
+    cosmwasm_std::{
+        to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, Env, QuerierWrapper, StdError,
+        Uint128,
+    },
     cw_asset::{Asset, AssetInfo},
     cw_storage_plus::Item,
     wrapper_implementations::coin::StrideLSDConfig,
@@ -469,7 +471,28 @@ impl Cavern {
             deps.api.addr_validate(&custody_config.collateral_token)?,
         )?;
 
-        // _env is not used here, so using mock_env
+        // mock_env() is not used inside the lsd config query exchange rate function.
+        // See: https://github.com/CavernPerson/cavern-lsd-wrapper/blob/8bcdfc0015423f2b4c47c2c3b3fe4cbcb10cf954/packages/wrapper_implementations/src/coin.rs#L56
+        // This is a fix because the direct query is not available on the contracts unfortunately.
+        // We can feed dummy information inside this mock_env function
         Ok(lsd_config.query_exchange_rate(deps, mock_env())?)
+    }
+}
+
+/// This is only used as a fix to feed dummy information to the query_exchange_rate function
+#[cfg(feature = "full_integration")]
+fn mock_env() -> Env {
+    use cosmwasm_std::{BlockInfo, ContractInfo};
+
+    Env {
+        block: BlockInfo {
+            height: Default::default(),
+            time: Default::default(),
+            chain_id: Default::default(),
+        },
+        transaction: None,
+        contract: ContractInfo {
+            address: Addr::unchecked(String::new()),
+        },
     }
 }
