@@ -81,7 +81,7 @@ The template contains a scaffold contract that you can use as a starting point f
 
 If there's anything you don't understand about the template please don't hesitate to reach out to us on our <a href="https://discord.com/invite/uch3Tq3aym" target="_blank">Discord</a> server.
 
-## Front-end layout
+<!-- ## Front-end layout
 
 To generate the front-end scaffold, you can run `just ts-codegen`, which will run a code generation script for you found in the `typescript/scripts` folder. The code generation script will generate TypeScript code based on the specifications defined in the contract schemas.
 
@@ -93,7 +93,7 @@ follows:
 - `Template.message-composer.ts`: Aids in crafting messages necessary for interacting with a specific
   blockchain contract, particularly for updating configurations. It contains a class that generates message objects that can be sent to the blockchain for execution.
 - `Template.msg-builder.ts`: Provides static methods on abstract classes to create message objects for querying or executing actions on the blockchain. It essentially facilitates the building of structured messages for blockchain interactions.
-- `Template.types.ts`: Defines various data structures and types that represent the structure of messages and responses within the blockchain module, aiding in maintaining consistency across different operations in the module.
+- `Template.types.ts`: Defines various data structures and types that represent the structure of messages and responses within the blockchain module, aiding in maintaining consistency across different operations in the module. -->
 
 ## Tools used in the template
 
