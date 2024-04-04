@@ -96,7 +96,9 @@ pub enum MoneyMarketQueryMsg {
         user: String,
         /// Lended asset to query
         asset: AssetInfoBase<String>,
+        /// Contract Address on which you execute the query
         contract_addr: String,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
     #[returns(Uint128)]
@@ -108,7 +110,9 @@ pub enum MoneyMarketQueryMsg {
         collateral_asset: AssetInfoBase<String>,
         /// Borrowed asset to query
         borrowed_asset: AssetInfoBase<String>,
+        /// Contract Address on which you execute the query
         contract_addr: String,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
     #[returns(Uint128)]
@@ -120,7 +124,9 @@ pub enum MoneyMarketQueryMsg {
         collateral_asset: AssetInfoBase<String>,
         /// Borrowed asset to query
         borrowed_asset: AssetInfoBase<String>,
+        /// Contract Address on which you execute the query
         contract_addr: String,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
     #[returns(Decimal)]
@@ -134,7 +140,9 @@ pub enum MoneyMarketQueryMsg {
         collateral_asset: AssetInfoBase<String>,
         /// Borrowed asset to query
         borrowed_asset: AssetInfoBase<String>,
+        /// Contract Address on which you execute the query
         contract_addr: String,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
     #[returns(Decimal)]
@@ -147,7 +155,9 @@ pub enum MoneyMarketQueryMsg {
         collateral_asset: AssetInfoBase<String>,
         /// Borrowed asset to query
         borrowed_asset: AssetInfoBase<String>,
+        /// Contract Address on which you execute the query
         contract_addr: String,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
     #[returns(Decimal)]
@@ -155,8 +165,11 @@ pub enum MoneyMarketQueryMsg {
     /// The returned decimal corresponds to
     /// How much quote assets can be bought with 1 base asset
     RawPrice {
+        /// Quote asset
         quote: AssetInfoBase<String>,
+        /// Base asset
         base: AssetInfoBase<String>,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
 
@@ -168,6 +181,7 @@ pub enum MoneyMarketQueryMsg {
         user: String,
         /// Lended asset to query
         asset: AssetEntry,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
     #[returns(Uint128)]
@@ -179,6 +193,7 @@ pub enum MoneyMarketQueryMsg {
         collateral_asset: AssetEntry,
         /// Borrowed asset to query
         borrowed_asset: AssetEntry,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
     #[returns(Uint128)]
@@ -190,6 +205,7 @@ pub enum MoneyMarketQueryMsg {
         collateral_asset: AssetEntry,
         /// Borrowed asset to query
         borrowed_asset: AssetEntry,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
     #[returns(Decimal)]
@@ -203,6 +219,7 @@ pub enum MoneyMarketQueryMsg {
         collateral_asset: AssetEntry,
         /// Borrowed asset to query
         borrowed_asset: AssetEntry,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
     #[returns(Decimal)]
@@ -215,6 +232,7 @@ pub enum MoneyMarketQueryMsg {
         collateral_asset: AssetEntry,
         /// Borrowed asset to query
         borrowed_asset: AssetEntry,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
     #[returns(Decimal)]
@@ -222,8 +240,11 @@ pub enum MoneyMarketQueryMsg {
     /// The returned decimal corresponds to
     /// How much quote assets can be bought with 1 base asset
     AnsPrice {
+        /// Quote asset
         quote: AssetEntry,
+        /// Base asset
         base: AssetEntry,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
 
@@ -233,85 +254,25 @@ pub enum MoneyMarketQueryMsg {
 }
 
 impl MoneyMarketQueryMsg {
+    /// Returns the moneymarket name associated with the query
     pub fn money_market(&self) -> StdResult<&str> {
         match self {
-            MoneyMarketQueryMsg::GenerateMessages {
-                message,
-                addr_as_sender,
-            } => Err(StdError::generic_err("Wrong query type")),
-            MoneyMarketQueryMsg::RawUserDeposit {
-                user,
-                asset,
-                contract_addr,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::RawUserCollateral {
-                user,
-                collateral_asset,
-                borrowed_asset,
-                contract_addr,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::RawUserBorrow {
-                user,
-                collateral_asset,
-                borrowed_asset,
-                contract_addr,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::RawCurrentLTV {
-                user,
-                collateral_asset,
-                borrowed_asset,
-                contract_addr,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::RawMaxLTV {
-                user,
-                collateral_asset,
-                borrowed_asset,
-                contract_addr,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::RawPrice {
-                quote,
-                base,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::AnsUserDeposit {
-                user,
-                asset,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::AnsUserCollateral {
-                user,
-                collateral_asset,
-                borrowed_asset,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::AnsUserBorrow {
-                user,
-                collateral_asset,
-                borrowed_asset,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::AnsCurrentLTV {
-                user,
-                collateral_asset,
-                borrowed_asset,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::AnsMaxLTV {
-                user,
-                collateral_asset,
-                borrowed_asset,
-                money_market,
-            } => Ok(money_market),
-            MoneyMarketQueryMsg::AnsPrice {
-                quote,
-                base,
-                money_market,
-            } => Ok(money_market),
+            MoneyMarketQueryMsg::RawUserDeposit { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::RawUserCollateral { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::RawUserBorrow { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::RawCurrentLTV { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::RawMaxLTV { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::RawPrice { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsUserDeposit { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsUserCollateral { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsUserBorrow { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsCurrentLTV { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsMaxLTV { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsPrice { money_market, .. } => Ok(money_market),
+
+            MoneyMarketQueryMsg::GenerateMessages { .. } => {
+                Err(StdError::generic_err("Wrong query type"))
+            }
             MoneyMarketQueryMsg::Fees {} => Err(StdError::generic_err("Wrong query type")),
         }
     }
