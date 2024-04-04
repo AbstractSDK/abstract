@@ -1,7 +1,0 @@
-[alias]
-wasm = "build --release --target wasm32-unknown-unknown"
-unit-test = "test --lib"
-schema = "run --example schema --features schema"
-
-publish = "run --example publish --features daemon"
-local_daemon = "run --example local_daemon --features daemon"
