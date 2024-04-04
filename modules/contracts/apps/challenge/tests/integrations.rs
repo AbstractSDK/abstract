@@ -134,7 +134,6 @@ fn setup() -> anyhow::Result<(
         description: None,
         link: None,
         namespace: None,
-        base_asset: None,
         install_modules: vec![],
         account_id: None,
     };

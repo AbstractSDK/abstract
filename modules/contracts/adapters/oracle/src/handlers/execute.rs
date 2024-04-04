@@ -5,16 +5,13 @@ use crate::{
     OracleError,
 };
 use abstract_core::objects::namespace::{Namespace, ABSTRACT_NAMESPACE};
-use abstract_sdk::{
-    features::{AbstractNameService, AccountIdentification},
-    ModuleRegistryInterface,
-};
+use abstract_sdk::{features::AbstractNameService, ModuleRegistryInterface};
 use cosmwasm_std::{ensure_eq, DepsMut, Env, MessageInfo, Response};
 
 pub fn execute_handler(
     deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
+    _env: Env,
+    _info: MessageInfo,
     adapter: OracleAdapter,
     msg: OracleExecuteMsg,
 ) -> OracleResult {
@@ -32,8 +29,7 @@ pub fn execute_handler(
                 adapter.target_account.clone().unwrap(),
                 OracleError::Unauthorized {}
             );
-            // Empty user - admin
-            let oracle = Oracle::new("");
+            let oracle = Oracle::default();
             (oracle, oracle_configuration)
         }
         OracleExecuteMsg::Account(oracle_configuration) => (

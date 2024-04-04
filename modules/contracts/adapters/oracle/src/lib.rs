@@ -1,4 +1,4 @@
-pub mod adapter;
+// pub mod adapter;
 pub mod api;
 pub mod contract;
 pub(crate) mod handlers;

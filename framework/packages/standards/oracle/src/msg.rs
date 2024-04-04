@@ -3,17 +3,14 @@
 // re-export response types
 use abstract_core::{
     adapter,
-    objects::{
-        price_source::{PriceSource, UncheckedPriceSource},
-        AssetEntry,
-    },
+    objects::{price_source::UncheckedPriceSource, AssetEntry},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
 use cw_asset::AssetInfo;
 
 pub use crate::action::OracleAction;
-use crate::state::{AccountValue, Complexity};
+use crate::state::{OraclePriceSource, TotalValue};
 
 /// The name of the oracle to trade on.
 pub type ProviderName = String;
@@ -48,79 +45,99 @@ pub enum OracleExecuteMsg {
     // TODO: update provider_addrs
 }
 
-/// Query messages for the oracle adapter
+// /// Query messages for the oracle adapter
+// #[cosmwasm_schema::cw_serde]
+// #[derive(QueryResponses)]
+// #[query_responses(nested)]
+// pub enum OracleQueryMsg {
+//     /// Query for arbitrary address
+//     /// Default values provided by adapter owner used for calculations
+//     Address(AddressQueryMsg),
+//     /// Query for proxy address
+//     Account(AccountQueryMsg),
+// }
+
+// #[cosmwasm_schema::cw_serde]
+// #[derive(QueryResponses)]
+// pub enum AddressQueryMsg {
+//     /// Default oracle adapter configuration
+//     #[returns(AccountConfig)]
+//     Config {},
+//     /// Returns the value of given tokens on account
+//     #[returns(TokensValueResponse)]
+//     TokensValue {
+//         address: String,
+//         identifiers: Vec<AssetEntry>,
+//     },
+// }
+
+// TODO: both of them actually address, figure out not confusing name
 #[cosmwasm_schema::cw_serde]
+pub enum ProxyOrAddr {
+    /// Address of the proxy account
+    Proxy(String),
+    /// Arbitrary address
+    Addr(String),
+}
+
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
 pub enum OracleQueryMsg {
-    /// Query for arbitrary address
-    /// Default values provided by adapter owner used for calculations
-    Address {
-        address: String,
-        query_msg: AddressQueryMsg,
-    },
-    /// Query for proxy address
-    Account {
-        proxy_address: String,
-        query_msg: AccountQueryMsg,
-    },
-}
-
-#[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-pub enum AddressQueryMsg {
-    /// Default oracle adapter configuration
-    #[returns(AccountConfig)]
-    Config {},
-    /// Returns the value of given tokens on account
+    /// Oracle adapter configuration
+    /// In case proxy address provided - returns config saved by user
+    /// Otherwise returns default value, saved by Oracle admin
+    #[returns(OracleConfig)]
+    Config { proxy_address: Option<String> },
+    /// Returns the total value of the assets held by provided account
     #[returns(TokensValueResponse)]
-    TokensValue { identifiers: Vec<AssetEntry> },
-}
-
-#[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-pub enum AccountQueryMsg {
-    /// Account oracle adapter configuration
-    #[returns(AccountConfig)]
-    Config {},
-    /// Returns the total value of the assets held by this account
-    #[returns(AccountValue)]
-    TotalValue {},
-    /// Returns the value of given tokens on account
+    TotalValue { proxy_address: String },
+    /// Returns the value of given tokens by provided account
     #[returns(TokensValueResponse)]
-    TokensValue { identifiers: Vec<AssetEntry> },
-    /// Returns the amounts of specified tokens this account holds
+    TokensValue {
+        proxy_or_address: ProxyOrAddr,
+        identifiers: Vec<AssetEntry>,
+    },
+    /// Returns the amounts of specified tokens provided account holds
     #[returns(HoldingAmountsResponse)]
-    HoldingAmounts { identifiers: Vec<AssetEntry> },
+    HoldingAmounts {
+        proxy_or_address: ProxyOrAddr,
+        identifiers: Vec<AssetEntry>,
+    },
     /// Returns price sources for given asset entries
     #[returns(AssetPriceSourcesResponse)]
-    AssetPriceSources { identifier: Vec<AssetEntry> },
+    AssetPriceSources {
+        proxy_address: Option<String>,
+        identifier: Vec<AssetEntry>,
+    },
     /// Returns list of identifiers
     #[returns(AssetIdentifiersResponse)]
     AssetIdentifiers {
+        proxy_address: Option<String>,
         start_after: Option<AssetEntry>,
         limit: Option<u8>,
     },
     /// Returns base asset
     #[returns(BaseAssetResponse)]
-    BaseAsset {},
+    BaseAsset { proxy_address: Option<String> },
 }
 
-/// Account oracle configuration
+/// Oracle configuration
 #[cosmwasm_schema::cw_serde]
-pub struct AccountConfig {
-    external_age_max: u64,
+pub struct OracleConfig {
+    /// Age limit of external quoted price
+    pub external_age_max: u64,
 }
 
-#[cosmwasm_schema::cw_serde]
-pub struct OracleAsset {
-    pub price_source: PriceSource,
-    pub complexity: Complexity,
-}
-
+/// Response from TokensValue
 #[cosmwasm_schema::cw_serde]
 pub struct TokensValueResponse {
-    pub tokens_value: Vec<(AssetEntry, Uint128)>,
+    /// Tokens value relative to base denom
+    pub tokens_value: TotalValue,
+    /// Tokens value relative to USD quoted by external oracle provider
+    pub external_tokens_value: TotalValue,
 }
 
+/// Response from HoldingAmounts
 #[cosmwasm_schema::cw_serde]
 pub struct HoldingAmountsResponse {
     pub amounts: Vec<(AssetEntry, Uint128)>,
@@ -134,7 +151,7 @@ pub struct BaseAssetResponse {
 /// Human readable config for a single asset
 #[cosmwasm_schema::cw_serde]
 pub struct AssetPriceSourcesResponse {
-    pub sources: Vec<(AssetEntry, UncheckedPriceSource)>,
+    pub sources: Vec<(AssetEntry, UncheckedPriceSource<OraclePriceSource>)>,
 }
 
 #[cosmwasm_schema::cw_serde]

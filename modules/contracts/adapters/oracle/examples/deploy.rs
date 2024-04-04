@@ -1,24 +1,26 @@
-use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_interface::{AdapterDeployer, DeployStrategy};
+use abstract_oracle_adapter::{
+    interface::OracleAdapter, msg::OracleInstantiateMsg, ORACLE_ADAPTER_ID,
+};
 use cosmwasm_std::Decimal;
 use cw_orch::daemon::{networks::parse_network, ChainInfo, DaemonBuilder};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
+fn deploy_oracle(network: ChainInfo) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let chain = DaemonBuilder::default()
         .handle(rt.handle())
         .chain(network)
         .build()?;
-    let dex = DexAdapter::new(DEX_ADAPTER_ID, chain);
+    let dex = OracleAdapter::new(ORACLE_ADAPTER_ID, chain);
     dex.deploy(
         version,
-        DexInstantiateMsg {
-            swap_fee: Decimal::percent(1),
-            recipient_account: 0,
+        OracleInstantiateMsg {
+            external_age_max: 120,
+            providers: vec![],
         },
         DeployStrategy::Try,
     )?;
@@ -46,5 +48,5 @@ fn main() -> anyhow::Result<()> {
 
     let network = parse_network(&args.network_id).unwrap();
 
-    deploy_dex(network)
+    deploy_oracle(network)
 }
