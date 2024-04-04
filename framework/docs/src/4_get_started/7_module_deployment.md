@@ -29,10 +29,6 @@ $ just wasm
 This should result in an `artifacts` directory being created in your project root. Inside you will find
 a `my_module.wasm` file that is your module's binary. 
 
-```admonish warning
-Make sure it's the same name as mentioned in `Cargo.toml` file. If not, just edit it to match.
-```
-
 ### Publish your module
 
 Before attempting to publish your app you need to add your mnemonic to the `.env` file. **Don't use a mnemonic that has mainnet funds for this.** Make sure this account has funds. If you don't have the deployment will fail. Get funds from respective chain faucets or ask for some test tokens on Abstract Discord.
