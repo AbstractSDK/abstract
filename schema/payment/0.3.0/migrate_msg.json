@@ -27,8 +27,8 @@
   "additionalProperties": false,
   "definitions": {
     "AppMigrateMsg": {
-      "type": "string",
-      "enum": []
+      "type": "object",
+      "additionalProperties": false
     },
     "BaseMigrateMsg": {
       "type": "object",
