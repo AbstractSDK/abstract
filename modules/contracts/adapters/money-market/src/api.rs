@@ -452,7 +452,6 @@ pub mod ans {
             user: String,
             collateral_asset: AssetEntry,
             borrowed_asset: AssetEntry,
-            contract_addr: String,
         ) -> AbstractSdkResult<Decimal> {
             self.query(MoneyMarketQueryMsg::AnsMaxLTV {
                 user,
