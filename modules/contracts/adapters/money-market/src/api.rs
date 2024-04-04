@@ -404,7 +404,7 @@ pub mod ans {
         pub fn user_deposit(&self, user: String, asset: AssetEntry) -> AbstractSdkResult<Uint128> {
             self.query(MoneyMarketQueryMsg::AnsUserDeposit {
                 user,
-                asset: asset.into(),
+                asset,
                 money_market: self.money_market_name(),
             })
         }
@@ -416,8 +416,8 @@ pub mod ans {
         ) -> AbstractSdkResult<Uint128> {
             self.query(MoneyMarketQueryMsg::AnsUserCollateral {
                 user,
-                borrowed_asset: borrowed_asset.into(),
-                collateral_asset: collateral_asset.into(),
+                borrowed_asset,
+                collateral_asset,
                 money_market: self.money_market_name(),
             })
         }
@@ -429,8 +429,8 @@ pub mod ans {
         ) -> AbstractSdkResult<Uint128> {
             self.query(MoneyMarketQueryMsg::AnsUserBorrow {
                 user,
-                borrowed_asset: borrowed_asset.into(),
-                collateral_asset: collateral_asset.into(),
+                borrowed_asset,
+                collateral_asset,
                 money_market: self.money_market_name(),
             })
         }
@@ -442,8 +442,8 @@ pub mod ans {
         ) -> AbstractSdkResult<Decimal> {
             self.query(MoneyMarketQueryMsg::AnsCurrentLTV {
                 user,
-                borrowed_asset: borrowed_asset.into(),
-                collateral_asset: collateral_asset.into(),
+                borrowed_asset,
+                collateral_asset,
                 money_market: self.money_market_name(),
             })
         }
@@ -455,15 +455,15 @@ pub mod ans {
         ) -> AbstractSdkResult<Decimal> {
             self.query(MoneyMarketQueryMsg::AnsMaxLTV {
                 user,
-                borrowed_asset: borrowed_asset.into(),
-                collateral_asset: collateral_asset.into(),
+                borrowed_asset,
+                collateral_asset,
                 money_market: self.money_market_name(),
             })
         }
         pub fn price(&self, quote: AssetEntry, base: AssetEntry) -> AbstractSdkResult<Decimal> {
             self.query(MoneyMarketQueryMsg::AnsPrice {
-                quote: quote.into(),
-                base: base.into(),
+                quote,
+                base,
                 money_market: self.money_market_name(),
             })
         }
