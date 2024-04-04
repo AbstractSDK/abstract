@@ -1,4 +1,4 @@
-workspaces := "./framework ./modules ./app-template ./interchain"
+workspaces := "./framework ./modules ./interchain"
 
 # Pull a specific repo from its main remote
 pull repo:
