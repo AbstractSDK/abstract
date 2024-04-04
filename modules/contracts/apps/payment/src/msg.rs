@@ -67,7 +67,7 @@ pub enum AppQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum AppMigrateMsg {}
+pub struct AppMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct Cw20TipMsg {}
