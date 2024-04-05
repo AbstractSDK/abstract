@@ -2,7 +2,7 @@
 
 ![SDK Background](../resources/abstract_platform/twitter_cover-1.png)
 
-Welcome to the builder section of the Abstract documentation. The following sections will walk you through the process of setting up your development environment, creating an [App Module](../3_framework/6_module_types.md#apps), and deploying it to our on-chain registry so that it can be used by others.
+Welcome to the builder section of the Abstract documentation. The following sections will walk you through the process of setting up your development environment, creating an [App Module](../3_framework/6_module_types.md#apps) and deploying it to our on-chain registry so that it can be used by others.
 
 ## Tools used in this guide
 

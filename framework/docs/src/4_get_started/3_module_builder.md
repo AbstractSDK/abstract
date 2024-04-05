@@ -26,24 +26,20 @@ Here's what this looks like in the template:
 {{#include ../../../../app-template/src/contract.rs:20}}
 ```
 
-The type above contains all the mandatory types (Init, Exec, Query) to construct the type, but you can provide more types as well if you need 
+The type above contains all the mandatory types (Init, Exec, Query). An optional `MigrateMsg` type is also added to allow you to customize the migration logic of your contract.
 
-This type will be used in a couple more places throughout the contract, so it's a good idea to define it at the top of the file.
-<!-- 
-```rust,ignore
-{{#include ../../../packages/abstract-app/examples/counter.rs:counter_app}}
-``` -->
+This `App` type will be used in a couple more places throughout the contract, so it's a good idea to define it at the top of the file.
 
 ## Build The App
 
-Now that you have defined your type, you can begin using the builder. To initiate this, first create the base version of
-the app:
+Now that you have defined your type, you can begin using the builder. To initiate this, first create the builder for the App:
 
 ```rust,ignore
+// src/contract.rs
 {{#include ../../../packages/abstract-app/examples/counter.rs:new}}
 ```
 
-The constructor takes three variables:
+The builder constructor takes three variables:
 
 1. `module_id`: The module ID is a string that will be saved to a `cw2` storage item. It's an important security
    measure as this ensures that the contract can not be migrated to a different contract with a different function and
@@ -53,21 +49,13 @@ The constructor takes three variables:
 3. `metadata`: An optional URL that can be used to retrieve data off-chain. Can be used with the Abstract Metadata
    Standard to automatically generate interactive front-end components for the module.
 
-All these fields are used in a custom `ModuleData` store as well, along with the module's dependencies, which we will
-come back to later. Here's the definition of the `ModuleData` field:
-
-```rust,ignore
-{{#include ../../../packages/abstract-core/src/objects/module_version.rs:metadata}}
-```
-
 All this data is stored on-chain when the App is instantiated.
 
 ### Handlers
 
-The app can then be customized by adding whatever handler functions you need. These functions are executed whenever a
-specific endpoint is called on the module. A special feature about the functions is that we insert the instance of your
-module into the function's attributes. This enables you to access the module struct in your code. You will learn why
-this is such a powerful feature in the next section on the [Abstract SDK](./4_sdk.md).
+The app can then be customized by adding handler functions for your endpoints. These functions are executed whenever a specific endpoint is called on the module.
+
+A special feature of the functions is that *we insert the instance of your module into the function's attributes*. This enables you to access the module struct in your code. You will learn why this is such a powerful feature in the next section on the [Abstract SDK](./4_sdk.md).
 
 Here's an example of a module with some handlers set:
 
@@ -75,12 +63,13 @@ Here's an example of a module with some handlers set:
 {{ #include ../../../packages/abstract-app/examples/counter.rs:handlers }}
 ```
 
-These handlers are functions that allow you to customize the smart contract's behavior. For example, here's a
-custom `execute` handler that updates the contract's config state.
+These handlers are where you will write your custom logic for your App. For example, here's a custom `execute` handler that updates the contract's config state.
 
 ```rust
 {{ #include ../../../packages/abstract-app/examples/counter.rs:execute }}
 ```
+
+The code above should look very familiar. It's only a slight variation of the code you would write in a regular CosmWasm contract. The main difference is that you have access to the `module` struct, which is the instance of your module. This allows you to easily access some of our pre-defined contract state and lets you work with our SDK.
 
 ```admonish info
 You can find more application code to read in our <a href="https://github.com/AbstractSDK/awesome-abstract" target="_blank">💥 Awesome Abstract repository 💥</a>.
@@ -95,11 +84,9 @@ The available handlers are:
 - `with_replies`: Called when the App's reply entry point is called. Matches the function's associated reply-id.
 - `with_sudo`: Called when the App's `SudoMsg` is called on the sudo entry point.
 - `with_receive`: Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
-- `with_ibc_callbacks`: Called when the App's `ExecuteMsg::IbcCallback` is called on the execute entry point. Matches
-  the callback's callback ID to its associated function.
+- `with_ibc_callbacks`: Called when the App's `ExecuteMsg::IbcCallback` is called on the execute entry point. Matches the callback's callback ID to its associated function.
 
-In the case of adapters, the handlers are the same, except for `with_migrate` and `with_sudo` that are missing for
-reasons we explain in the [adapter section](../3_framework/6_module_types.md#adapters).
+In the case of adapters, the handlers are the same, except for `with_migrate` and `with_sudo` that are missing for reasons we explain in the [adapter section](../3_framework/6_module_types.md#adapters).
 
 For a full overview of the list of handlers available, please refer to the respective module type documentation:
 
