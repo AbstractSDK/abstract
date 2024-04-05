@@ -9,6 +9,10 @@ easier integration and collaboration.
 Furthermore, cw-orchestrator allows for code reusability between testing and deployments, making it our
 primary tool in enabling Abstract's infrastructure to be highly available.
 
+### Cw-Orchestrator - The Best Developer Tooling in Cosmos by *Kayanski*
+
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/-2jjtugd-Ns?si=3Y0cMmTSZskM2glz&amp;start=2" title="youtube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 ## Usage
 
 Here's a snippet that sets up the **complete Abstract SDK framework** on a cw-multi-test environment, and deploys the

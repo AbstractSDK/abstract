@@ -66,6 +66,10 @@ To quickly get started, run `./template_setup.sh` and install the recommended to
 
 Go ahead and read through the readme of the template repository to learn how it is structured. It contains instructions on how to set up your development environment, useful commands you can perform using `just`, how to test and deploy your app, and more.
 
+Here's a video tutorial to help you through the entire process step by step.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/nYfl4VQ5vYI?si=a4jmAx2sTt2BbYYB" title="Create new Abstract App" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 ## Contract layout
 
 The template contains a scaffold contract that you can use as a starting point for your own contract. The contract is located in the `src` directory and is structured as follows:

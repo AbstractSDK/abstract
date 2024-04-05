@@ -33,3 +33,6 @@ npm i @abstract-money/abstract.js-react
 To read more about the available types and methods, please refer to
 the <a href="https://abstractjs.abstract.money/" target="_blank">Abstract.js Documentation</a>.
   
+Here's a quick video on using AbstractJs CLI to generate Typescript Types for CosmWasm Contracts:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_cwxcdf-rGM?si=re1kXbj9L0UOiM94" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>

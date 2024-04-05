@@ -14,3 +14,7 @@ Template Github Repo</a> and follow the instructions in the README.
 
 In there you can find instructions on how to generate a new Abstract App, how to test it, deploy it, and generate
 TypeScript client code.
+
+Here's how to use Abstract App Template to build your own Abstract App:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/nYfl4VQ5vYI?si=a4jmAx2sTt2BbYYB" title="Create new Abstract App" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>

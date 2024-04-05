@@ -85,10 +85,6 @@ The `Mock` struct provides a simulation of the CosmWasm environment, enabling te
 `cw-orchestrator` is a CosmWasm scripting tool that we developed to improve the speed at which we can test and deploy our applications. We recommend reading the [cw-orchestrator documentation](../1_products/1_cw_orchestrator.md) if you are not yet familiar with it.
 ```
 
-### Cw-Orchestrator - The Best Developer Tooling in Cosmos by *Kayanski*
-
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/-2jjtugd-Ns?si=3Y0cMmTSZskM2glz&amp;start=2" title="youtube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-
 ## Local Daemon Testing
 
 Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [local_daemon](https://github.com/AbstractSDK/app-template/blob/main/examples/local_daemon.rs) example, which uses a locally running juno daemon to
