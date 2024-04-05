@@ -15,6 +15,12 @@ Prefer to watch? Check out our [video library](./video_and_content/videos.md)!
 
 The Abstract SDK is designed for organizations and individual developers who want to build composable distributed applications in a fast, secure, and cost-effective manner.
 
+### Abstract In 5 Minutes
+
+A quick overview of the advanced features of the developer components and their relevance in an interchain ecosystem by *Adair*.
+
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/yYTB9kVcy6Y?si=hvmQOd8kiRmZ4PP_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 We expect developers to be familiar with the Rust programming language and general programming concepts.
 
 ```admonish info
@@ -28,6 +34,12 @@ Coming from 👾EVM👾 ? Be sure to read up on CosmWasm and its differences fro
 - **[cw-orchestrator](1_products/1_cw_orchestrator.md)**: A developer tool that simplifies the testing and deployment of smart contracts.
 
 - **[Abstract JS](1_products/4_abstract_js.md)**: A JavaScript library that facilitates smart-contract interactions from a browser-based environment.
+
+### An Overview of the Abstract Platform - You Don't Need To Know
+
+Explore the transformative potential of abstraction, focusing on account and chain abstraction within the Web3 and Cosmos ecosystems. We'll delve into how these concepts simplify blockchain interactions and enhance interoperability, while also touching on the importance of Web2 powered auth systems in bridging the authentication gap by *Howard*.
+<iframe width="560" height="315" src="https://www.youtube.com/embed/8hxx7LN5H2g?si=9BxzI-rDeGTCK-f3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 
 Together these products form a complete end-to-end development platform for distributed applications.
 

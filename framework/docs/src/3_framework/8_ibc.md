@@ -35,6 +35,13 @@ underlying technology. Using IBC is as simple as enabling it on an Abstract Acco
 SDK. Second, it aims to make IBC a backend technology, unbeknown to users. Users should not have to know about IBC. They
 should only have to know about the application they are using.
 
+### When All You Have is Cosmos, Everything Looks Like a Chain - The Fat Interface Thesis by *Adair*
+
+An overview of the migration from the Fat Protocol Thesis to the Fat Application Thesis, and finally the Fat Interface Thesis (same as FPT). Identifies the key components in realizing true interchain applications without the users being aware of the technology behind them.
+
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/5biJAkm3FoA?si=o1vTxwHdZs_igCAl&amp;start=4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+
 ## Interchain Abstract Accounts (ICAA)
 
 An Interchain Abstract Account is *an Abstract Account that is owned by another Abstract Account which is located on a

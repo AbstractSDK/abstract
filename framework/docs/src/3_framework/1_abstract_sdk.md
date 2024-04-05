@@ -4,6 +4,10 @@ The attentive reader will already know that the Abstract SDK is a Rust library t
 
 From a high-level perspective, modules built with the Abstract SDK can use on-chain dependencies (other modules) to isolate specific functionalities. In this way, a module built with the Abstract SDK can explicitly define its dependencies and use them to perform complex multi-contract interactions with very minimal code. This, in turn, allows you to focus on the novel functionality of your application without inheriting the complexity of the underlying infrastructure.
 
+### Abstract SDK - Quadratic Funding Demo by *Adair*
+
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/DQh-wu5cdeg?si=YA1NSLyLvMhS5BuN&amp;start=2" title="youtube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 <!-- ## Why build with Abstract?
 
 The Abstract SDK is designed to solve the following problems:

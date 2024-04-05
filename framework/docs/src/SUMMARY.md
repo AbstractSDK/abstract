@@ -64,7 +64,6 @@
     - [Specification](./ibc/spec.md) -->
 
 - [FAQ](./video_and_content/faq.md)
-- [Videos](./video_and_content/videos.md)
 - [Releases](./releases/index.md)
     - [v0](./releases/v0.md)
 
