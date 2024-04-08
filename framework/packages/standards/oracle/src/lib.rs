@@ -1,10 +1,6 @@
 mod command;
 mod error;
 
-pub mod action;
-pub mod msg;
-pub mod state;
-
 // TODO:
 // #[cfg(feature = "testing")]
 // pub mod tests;

@@ -23,8 +23,6 @@ pub struct Config {
 // TODO: do we save it here or in ans?
 pub const ADDRESSES_OF_PROVIDERS: Map<&ProviderName, Addr> = Map::new("providers");
 
-pub type Complexity = u8;
-
 pub const LIST_SIZE_LIMIT: u8 = 15;
 const DEFAULT_PAGE_LIMIT: u8 = 5;
 
@@ -527,14 +525,6 @@ impl<'a> Oracle<'a> {
         }
         Ok(base_asset[0].clone())
     }
-}
-
-#[cw_serde]
-pub struct AccountValue {
-    /// the total value of this account in the base denomination
-    pub total_value: Asset,
-    /// Vec of asset information and their value in the base asset denomination
-    pub breakdown: Vec<(AssetInfo, Uint128)>,
 }
 
 #[cfg(test)]

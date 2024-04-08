@@ -10,10 +10,9 @@ use abstract_core::{
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
-use cw_asset::AssetInfo;
+use cw_asset::{Asset, AssetInfo};
 
 pub use crate::action::OracleAction;
-use crate::state::{AccountValue, Complexity};
 
 /// The name of the oracle to trade on.
 pub type ProviderName = String;
@@ -110,10 +109,20 @@ pub struct AccountConfig {
     external_age_max: u64,
 }
 
+pub type Complexity = u8;
+
 #[cosmwasm_schema::cw_serde]
 pub struct OracleAsset {
     pub price_source: PriceSource,
     pub complexity: Complexity,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct AccountValue {
+    /// the total value of this account in the base denomination
+    pub total_value: Asset,
+    /// Vec of asset information and their value in the base asset denomination
+    pub breakdown: Vec<(AssetInfo, Uint128)>,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -9,12 +9,15 @@ use cosmwasm_std::Env;
 /// This provides superior UX in case of an IBC execution
 pub(crate) fn identify_oracle(value: &str) -> Result<Box<dyn Identify>, OracleError> {
     match value {
+        #[cfg(feature = "pyth")]
+        crate::oracles::pyth::PYTH => Ok(Box::<crate::oracles::pyth::Pyth>::default()),
         _ => Err(OracleError::UnknownProvider(value.to_owned())),
     }
 }
 
-pub(crate) fn resolve_exchange(value: &str) -> Result<impl OracleCommand, OracleError> {
+pub(crate) fn resolve_oracle(value: &str) -> Result<Box<dyn OracleCommand>, OracleError> {
     match value {
+        crate::oracles::pyth::PYTH => Ok(Box::<crate::oracles::pyth::Pyth>::default()),
         _ => Err(OracleError::ForeignOracle(value.to_owned())),
     }
 }
