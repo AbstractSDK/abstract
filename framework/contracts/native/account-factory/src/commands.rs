@@ -189,7 +189,7 @@ pub fn execute_create_account(
         account_id: context.account_id,
         ans_host_address: config.ans_host_contract.to_string(),
         manager_addr: context.account_base.manager.to_string(),
-        base_asset,
+        base_asset: base_asset.clone(),
     };
 
     // Add Account base to version_control
@@ -199,9 +199,27 @@ pub fn execute_create_account(
         msg: to_json_binary(&VCExecuteMsg::AddAccount {
             account_id: proxy_message.account_id.clone(),
             account_base: context.account_base,
-            namespace,
+            namespace: namespace.clone(),
         })?,
     });
+
+    // Add attributes relating the metadata to the account creation event
+    let mut metadata_attributes: Vec<(&str, String)> = vec![
+        ("governance", governance.to_string()),
+        ("name", name.clone()),
+    ];
+    if let Some(description) = &description {
+        metadata_attributes.push(("description", description.clone()))
+    }
+    if let Some(link) = &link {
+        metadata_attributes.push(("link", link.clone()))
+    }
+    if let Some(namespace) = namespace {
+        metadata_attributes.push(("namespace", namespace))
+    }
+    if let Some(base_asset) = base_asset {
+        metadata_attributes.push(("base_asset", base_asset.to_string()))
+    }
 
     // The execution order here is important.
     // Installing modules on the manager account requires that:
@@ -211,13 +229,17 @@ pub fn execute_create_account(
     // (this last step triggers the installation of the modules.)
     Ok(AccountFactoryResponse::new(
         "create_account",
-        vec![
-            (
-                "account_sequence",
-                &proxy_message.account_id.seq().to_string(),
-            ),
-            ("trace", &proxy_message.account_id.trace().to_string()),
-        ],
+        [
+            vec![
+                (
+                    "account_sequence",
+                    proxy_message.account_id.seq().to_string(),
+                ),
+                ("trace", proxy_message.account_id.trace().to_string()),
+            ],
+            metadata_attributes,
+        ]
+        .concat(),
     )
     // So first register account on version control
     .add_message(add_account_to_version_control_msg)
