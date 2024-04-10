@@ -1,13 +1,11 @@
 pub mod action;
-pub mod adapter;
+// pub mod adapter;
 pub mod api;
 pub mod contract;
 pub(crate) mod handlers;
+pub mod msg;
 mod oracles;
 pub mod state;
-pub mod msg {
-    pub use abstract_oracle_standard::msg::*;
-}
 pub use abstract_oracle_standard::ORACLE_ADAPTER_ID;
 
 pub use abstract_oracle_standard::OracleError;

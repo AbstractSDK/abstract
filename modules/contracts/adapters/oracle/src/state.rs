@@ -13,7 +13,7 @@ use cosmwasm_std::{Addr, Deps, DepsMut, Order, StdError, Uint128};
 use cw_asset::{Asset, AssetInfo};
 use cw_storage_plus::{Bound, Map};
 
-use crate::msg::ProviderName;
+use crate::msg::{AccountValue, Complexity, ProviderName};
 
 #[cw_serde]
 pub struct Config {

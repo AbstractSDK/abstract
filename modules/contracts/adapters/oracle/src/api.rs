@@ -1,6 +1,6 @@
+use crate::msg::{OracleExecuteMsg, OracleQueryMsg, ProviderName};
 use crate::ORACLE_ADAPTER_ID;
 use abstract_core::objects::{module::ModuleId, AnsAsset, AssetEntry, PoolAddress};
-use abstract_oracle_standard::msg::{OracleExecuteMsg, OracleQueryMsg, ProviderName};
 use abstract_sdk::{
     features::{AccountIdentification, Dependencies, ModuleIdentification},
     AbstractSdkResult, AdapterInterface,

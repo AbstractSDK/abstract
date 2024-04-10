@@ -50,7 +50,7 @@ pub fn query_handler(
                     }
                     let exchange = oracle_resolver::resolve_exchange(&local_dex_name)?;
                     let addr_as_sender = deps.api.addr_validate(&addr_as_sender)?;
-                    let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
+                    let (messages, _) = crate::adapter::OracleAdapter::resolve_dex_action(
                         adapter,
                         deps,
                         addr_as_sender,

@@ -33,7 +33,7 @@ schema = ["abstract-adapter/schema"]
 testing = ["dep:abstract-client", "dep:cw-orch", "dep:cw20", "dep:serde_json"]
 
 # Supported Providers
-pyth = []
+pyth = ["dep:pyth-sdk-cw"]
 
 # Builds
 [package.metadata.optimizer]
@@ -78,6 +78,9 @@ abstract-adapter-utils = { workspace = true }
 # Testing #
 abstract-client = { workspace = true, optional = true }
 serde_json = { version = "1.0", optional = true }
+
+# Pyth
+pyth-sdk-cw = { version = "1.0.0", optional = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }

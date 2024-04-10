@@ -1,11 +1,12 @@
-use abstract_adapter::{export_endpoints, AdapterContract};
-use abstract_oracle_standard::{
+use crate::{
+    handlers,
     msg::{OracleExecuteMsg, OracleInstantiateMsg, OracleQueryMsg},
-    OracleError,
+    ORACLE_ADAPTER_ID,
 };
-use cosmwasm_std::Response;
 
-use crate::{handlers, ORACLE_ADAPTER_ID};
+use abstract_adapter::{export_endpoints, AdapterContract};
+use abstract_oracle_standard::OracleError;
+use cosmwasm_std::Response;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

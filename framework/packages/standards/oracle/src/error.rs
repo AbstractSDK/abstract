@@ -33,4 +33,7 @@ pub enum OracleError {
 
     #[error("{0} is not local Oracle to this network.")]
     ForeignOracle(String),
+
+    #[error("No Address for {} oracle provider")]
+    NoAddressForProvider(String),
 }
