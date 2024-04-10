@@ -1,7 +1,10 @@
 //! # AnsHost Entry
 //! An entry (value) in the ans_host key-value store.
 
-use abstract_core::objects::{ans_host::AnsHostResult, AnsEntryConvertor};
+use abstract_core::objects::{
+    ans_host::{AnsHostError, AnsHostResult},
+    AnsEntryConvertor,
+};
 use cosmwasm_std::{Addr, QuerierWrapper};
 use cw_asset::{Asset, AssetInfo};
 
@@ -17,8 +20,23 @@ pub trait Resolve {
     /// Resolve an entry into its value.
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output>;
     /// Check if the entry is registered in the ANS.
-    fn is_registered(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> bool {
-        self.resolve(querier, ans_host).is_ok()
+    fn is_registered(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> Result<bool, AnsHostError> {
+        match self.resolve(querier, ans_host) {
+            Ok(_) => Ok(true),
+            Err(AnsHostError::QueryFailed {
+                method_name: _,
+                error: _,
+            }) => Ok(false),
+            Err(e) => Err(e),
+        }
+    }
+    /// Assert that a given entry is registered in the ANS.
+    fn assert_registered(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<()> {
+        self.resolve(querier, ans_host).map(|_| ())
     }
 }
 
@@ -181,12 +199,17 @@ mod tests {
         fn exists() {
             let test_asset_entry = AssetEntry::new("aoeu");
             let querier = MockQuerierBuilder::default()
-                .with_contract_map_entry(TEST_ANS_HOST, ASSET_ADDRESSES, (&test_asset_entry, AssetInfo::native("abc")))
+                .with_contract_map_entry(
+                    TEST_ANS_HOST,
+                    ASSET_ADDRESSES,
+                    (&test_asset_entry, AssetInfo::native("abc")),
+                )
                 .build();
 
             let ans_host = mock_ans_host();
 
-            let is_registered = test_asset_entry.is_registered(&QuerierWrapper::new(&querier), &ans_host);
+            let is_registered =
+                test_asset_entry.is_registered(&QuerierWrapper::new(&querier), &ans_host);
             assert_that!(is_registered).is_true();
         }
 
