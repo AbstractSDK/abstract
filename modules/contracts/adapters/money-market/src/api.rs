@@ -47,6 +47,8 @@ pub trait MoneyMarketInterface:
 impl<T: AccountIdentification + Dependencies + ModuleIdentification> MoneyMarketInterface for T {}
 
 pub mod raw {
+    use cosmwasm_std::{Decimal, Uint128};
+
     use super::*;
 
     #[derive(Clone)]
@@ -190,6 +192,88 @@ pub mod raw {
     }
 
     impl<'a, T: MoneyMarketInterface> MoneyMarket<'a, T> {
+        // Queries
+        pub fn user_deposit(
+            &self,
+            user: String,
+            asset: AssetInfo,
+            contract_addr: String,
+        ) -> AbstractSdkResult<Uint128> {
+            self.query(MoneyMarketQueryMsg::RawUserDeposit {
+                user,
+                asset: asset.into(),
+                contract_addr,
+                money_market: self.money_market_name(),
+            })
+        }
+        pub fn user_collateral(
+            &self,
+            user: String,
+            collateral_asset: AssetInfo,
+            borrowed_asset: AssetInfo,
+            contract_addr: String,
+        ) -> AbstractSdkResult<Uint128> {
+            self.query(MoneyMarketQueryMsg::RawUserCollateral {
+                user,
+                borrowed_asset: borrowed_asset.into(),
+                collateral_asset: collateral_asset.into(),
+                contract_addr,
+                money_market: self.money_market_name(),
+            })
+        }
+        pub fn user_borrow(
+            &self,
+            user: String,
+            collateral_asset: AssetInfo,
+            borrowed_asset: AssetInfo,
+            contract_addr: String,
+        ) -> AbstractSdkResult<Uint128> {
+            self.query(MoneyMarketQueryMsg::RawUserBorrow {
+                user,
+                borrowed_asset: borrowed_asset.into(),
+                collateral_asset: collateral_asset.into(),
+                contract_addr,
+                money_market: self.money_market_name(),
+            })
+        }
+        pub fn current_ltv(
+            &self,
+            user: String,
+            collateral_asset: AssetInfo,
+            borrowed_asset: AssetInfo,
+            contract_addr: String,
+        ) -> AbstractSdkResult<Decimal> {
+            self.query(MoneyMarketQueryMsg::RawCurrentLTV {
+                user,
+                borrowed_asset: borrowed_asset.into(),
+                collateral_asset: collateral_asset.into(),
+                contract_addr,
+                money_market: self.money_market_name(),
+            })
+        }
+        pub fn max_ltv(
+            &self,
+            user: String,
+            collateral_asset: AssetInfo,
+            borrowed_asset: AssetInfo,
+            contract_addr: String,
+        ) -> AbstractSdkResult<Decimal> {
+            self.query(MoneyMarketQueryMsg::RawMaxLTV {
+                user,
+                borrowed_asset: borrowed_asset.into(),
+                collateral_asset: collateral_asset.into(),
+                contract_addr,
+                money_market: self.money_market_name(),
+            })
+        }
+        pub fn price(&self, quote: AssetInfo, base: AssetInfo) -> AbstractSdkResult<Decimal> {
+            self.query(MoneyMarketQueryMsg::RawPrice {
+                quote: quote.into(),
+                base: base.into(),
+                money_market: self.money_market_name(),
+            })
+        }
+
         /// Do a query in the MONEY_MARKET
         pub fn query<R: DeserializeOwned>(
             &self,
@@ -203,6 +287,7 @@ pub mod raw {
 
 pub mod ans {
     use cosmwasm_schema::serde::de::DeserializeOwned;
+    use cosmwasm_std::{Decimal, Uint128};
 
     use self::raw::MoneyMarket;
 
@@ -315,6 +400,74 @@ pub mod ans {
     }
 
     impl<'a, T: MoneyMarketInterface> AnsMoneyMarket<'a, T> {
+        // Queries
+        pub fn user_deposit(&self, user: String, asset: AssetEntry) -> AbstractSdkResult<Uint128> {
+            self.query(MoneyMarketQueryMsg::AnsUserDeposit {
+                user,
+                asset,
+                money_market: self.money_market_name(),
+            })
+        }
+        pub fn user_collateral(
+            &self,
+            user: String,
+            collateral_asset: AssetEntry,
+            borrowed_asset: AssetEntry,
+        ) -> AbstractSdkResult<Uint128> {
+            self.query(MoneyMarketQueryMsg::AnsUserCollateral {
+                user,
+                borrowed_asset,
+                collateral_asset,
+                money_market: self.money_market_name(),
+            })
+        }
+        pub fn user_borrow(
+            &self,
+            user: String,
+            collateral_asset: AssetEntry,
+            borrowed_asset: AssetEntry,
+        ) -> AbstractSdkResult<Uint128> {
+            self.query(MoneyMarketQueryMsg::AnsUserBorrow {
+                user,
+                borrowed_asset,
+                collateral_asset,
+                money_market: self.money_market_name(),
+            })
+        }
+        pub fn current_ltv(
+            &self,
+            user: String,
+            collateral_asset: AssetEntry,
+            borrowed_asset: AssetEntry,
+        ) -> AbstractSdkResult<Decimal> {
+            self.query(MoneyMarketQueryMsg::AnsCurrentLTV {
+                user,
+                borrowed_asset,
+                collateral_asset,
+                money_market: self.money_market_name(),
+            })
+        }
+        pub fn max_ltv(
+            &self,
+            user: String,
+            collateral_asset: AssetEntry,
+            borrowed_asset: AssetEntry,
+        ) -> AbstractSdkResult<Decimal> {
+            self.query(MoneyMarketQueryMsg::AnsMaxLTV {
+                user,
+                borrowed_asset,
+                collateral_asset,
+                money_market: self.money_market_name(),
+            })
+        }
+        pub fn price(&self, quote: AssetEntry, base: AssetEntry) -> AbstractSdkResult<Decimal> {
+            self.query(MoneyMarketQueryMsg::AnsPrice {
+                quote,
+                base,
+                money_market: self.money_market_name(),
+            })
+        }
+
         /// Do a query in the MONEY_MARKET
         pub fn query<R: DeserializeOwned>(
             &self,
