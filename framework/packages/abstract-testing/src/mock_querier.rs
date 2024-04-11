@@ -96,17 +96,17 @@ where
 }
 
 impl MockQuerierBuilder {
-    pub fn with_fallback_smart_handler<SH: 'static>(mut self, handler: SH) -> Self
+    pub fn with_fallback_smart_handler<SH>(mut self, handler: SH) -> Self
     where
-        SH: Fn(&str, &Binary) -> BinaryQueryResult,
+        SH: 'static + Fn(&str, &Binary) -> BinaryQueryResult,
     {
         self.fallback_smart_handler = Box::new(handler);
         self
     }
 
-    pub fn with_fallback_raw_handler<RH: 'static>(mut self, handler: RH) -> Self
+    pub fn with_fallback_raw_handler<RH>(mut self, handler: RH) -> Self
     where
-        RH: Fn(&str, &Binary) -> BinaryQueryResult,
+        RH: 'static + Fn(&str, &Binary) -> BinaryQueryResult,
     {
         self.fallback_raw_handler = Box::new(handler);
         self
@@ -131,9 +131,9 @@ impl MockQuerierBuilder {
     /// }).build();
     ///
     /// ```
-    pub fn with_smart_handler<SH: 'static>(mut self, contract: &str, handler: SH) -> Self
+    pub fn with_smart_handler<SH>(mut self, contract: &str, handler: SH) -> Self
     where
-        SH: Fn(&Binary) -> BinaryQueryResult,
+        SH: 'static + Fn(&Binary) -> BinaryQueryResult,
     {
         self.smart_handlers
             .insert(contract.to_string(), Box::new(handler));
@@ -158,9 +158,9 @@ impl MockQuerierBuilder {
     ///     }
     /// }).build();
     /// ```
-    pub fn with_raw_handler<RH: 'static>(mut self, contract: &str, handler: RH) -> Self
+    pub fn with_raw_handler<RH>(mut self, contract: &str, handler: RH) -> Self
     where
-        RH: Fn(&str) -> BinaryQueryResult,
+        RH: 'static + Fn(&str) -> BinaryQueryResult,
     {
         self.raw_handlers
             .insert(contract.to_string(), Box::new(handler));

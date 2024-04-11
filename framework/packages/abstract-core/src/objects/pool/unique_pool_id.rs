@@ -1,4 +1,4 @@
-use std::{array::TryFromSliceError, convert::TryInto, fmt::Display};
+use std::{array::TryFromSliceError, fmt::Display};
 
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{IntKey, KeyDeserialize, Prefixer, PrimaryKey};
