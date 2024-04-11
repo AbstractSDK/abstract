@@ -90,7 +90,7 @@ pub enum HelperAction {
 #[cosmwasm_schema::cw_serde]
 pub enum HostAction {
     Dispatch {
-        manager_msgs: Vec<manager::ExecuteMsg>,
+        manager_msg: manager::ExecuteMsg,
     },
     /// Can't be called by an account directly. These are permissioned messages that only the IBC Client is allowed to call by itself.
     Internal(InternalAction),

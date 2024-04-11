@@ -59,7 +59,7 @@ pub enum ExecuteMsg {
     /// Execute a message and forward the Response data
     ModuleActionWithData { msg: CosmosMsg<Empty> },
     /// Execute IBC action on Client
-    IbcAction { msg: IbcClientMsg },
+    IbcAction { msgs: Vec<IbcClientMsg> },
     /// Adds the provided address to whitelisted dapps
     AddModules { modules: Vec<String> },
     /// Removes the provided address from the whitelisted dapps

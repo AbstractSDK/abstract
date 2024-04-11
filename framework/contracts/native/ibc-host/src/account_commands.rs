@@ -80,22 +80,18 @@ pub fn receive_register(
 pub fn receive_dispatch(
     _deps: DepsMut,
     account: AccountBase,
-    manager_msgs: Vec<manager::ExecuteMsg>,
+    manager_msg: manager::ExecuteMsg,
 ) -> HostResult {
     // execute the message on the manager
-    let msgs = manager_msgs
-        .into_iter()
-        .map(|msg| wasm_execute(&account.manager, &msg, vec![]))
-        .collect::<Result<Vec<_>, _>>()?;
+    let manager_call_msg = wasm_execute(account.manager, &manager_msg, vec![])?;
 
-    let response = Response::new().add_attribute("action", "receive_dispatch");
+    // We want to forward the data that this execution gets
+    let submsg = SubMsg::reply_on_success(manager_call_msg, RESPONSE_REPLY_ID);
 
-    // If there is only one executed message, we want to forward the data that this execution gets
-    Ok(if msgs.len() == 1 {
-        response.add_submessage(SubMsg::reply_on_success(msgs[0].clone(), RESPONSE_REPLY_ID))
-    } else {
-        response.add_messages(msgs)
-    })
+    // Polytone handles all the necessary
+    Ok(Response::new()
+        .add_submessage(submsg)
+        .add_attribute("action", "receive_dispatch"))
 }
 
 /// processes PacketMsg::SendAllBack variant

@@ -568,12 +568,12 @@ impl<Chain: CwEnv> Account<Chain> {
                 &abstract_core::manager::ExecuteMsg::ExecOnModule {
                     module_id: PROXY.to_owned(),
                     exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
-                        msg: ibc_client::ExecuteMsg::Register {
+                        msgs: vec![ibc_client::ExecuteMsg::Register {
                             host_chain: host_chain.into(),
                             base_asset,
                             namespace,
                             install_modules,
-                        },
+                        }],
                     })
                     .map_err(AbstractInterfaceError::from)?,
                 },
