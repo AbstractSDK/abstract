@@ -76,7 +76,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
     match msg {
         ExecuteMsg::ModuleAction { msgs } => execute_module_action(deps, info, msgs),
         ExecuteMsg::ModuleActionWithData { msg } => execute_module_action_response(deps, info, msg),
-        ExecuteMsg::IbcAction { msg } => execute_ibc_action(deps, info, msg),
+        ExecuteMsg::IbcAction { msgs } => execute_ibc_action(deps, info, msgs),
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, &admin),
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),

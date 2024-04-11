@@ -87,10 +87,10 @@ pub fn test_send_funds() -> AnyResult<()> {
     let send_funds_tx = origin_account.manager.execute_on_module(
         PROXY,
         abstract_core::proxy::ExecuteMsg::IbcAction {
-            msg: abstract_core::ibc_client::ExecuteMsg::SendFunds {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendFunds {
                 host_chain: "juno".into(),
                 funds: coins(test_amount, get_denom(&stargaze, token_subdenom.as_str())),
-            },
+            }],
         },
     )?;
 
