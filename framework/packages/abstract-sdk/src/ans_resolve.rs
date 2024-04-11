@@ -1,10 +1,7 @@
 //! # AnsHost Entry
 //! An entry (value) in the ans_host key-value store.
 
-use abstract_core::objects::{
-    ans_host::{AnsHostError, AnsHostResult},
-    AnsEntryConvertor,
-};
+use abstract_core::objects::{ans_host::AnsHostResult, AnsEntryConvertor};
 use cosmwasm_std::{Addr, QuerierWrapper};
 use cw_asset::{Asset, AssetInfo};
 
@@ -20,18 +17,10 @@ pub trait Resolve {
     /// Resolve an entry into its value.
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output>;
     /// Check if the entry is registered in the ANS.
-    fn is_registered(
-        &self,
-        querier: &QuerierWrapper,
-        ans_host: &AnsHost,
-    ) -> Result<bool, AnsHostError> {
+    fn is_registered(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> bool {
         match self.resolve(querier, ans_host) {
-            Ok(_) => Ok(true),
-            Err(AnsHostError::QueryFailed {
-                method_name: _,
-                error: _,
-            }) => Ok(false),
-            Err(e) => Err(e),
+            Ok(_) => true,
+            Err(_) => false,
         }
     }
     /// Assert that a given entry is registered in the ANS.
