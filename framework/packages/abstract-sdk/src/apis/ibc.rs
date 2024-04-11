@@ -102,12 +102,12 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
+                msg: abstract_core::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     base_asset: None,
                     namespace: None,
                     install_modules: vec![],
-                }],
+                },
             },
             vec![],
         )?
@@ -124,12 +124,12 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
+                manager_msgs: vec![abstract_core::manager::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(
                         module,
                         Some(to_json_binary(&init_msg)?),
                     )],
-                },
+                }],
             },
             None,
         )
@@ -144,9 +144,9 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
+                manager_msgs: vec![abstract_core::manager::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(module, None)],
-                },
+                }],
             },
             None,
         )
@@ -162,10 +162,10 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+                manager_msgs: vec![abstract_core::manager::ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg: to_json_binary(exec_msg)?,
-                },
+                }],
             },
             None,
         )
@@ -180,11 +180,11 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::RemoteAction {
+                msg: IbcClientMsg::RemoteAction {
                     host_chain,
                     action,
                     callback_info: callback,
-                }],
+                },
             },
             vec![],
         )?
@@ -199,10 +199,10 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::SendFunds {
+                msg: IbcClientMsg::SendFunds {
                     host_chain: receiving_chain,
                     funds,
-                }],
+                },
             },
             vec![],
         )?
@@ -229,9 +229,9 @@ mod test {
         let msg = client.host_action(
             TEST_HOST_CHAIN.into(),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                manager_msgs: vec![abstract_core::manager::ExecuteMsg::UpdateStatus {
                     is_suspended: None,
-                },
+                }],
             },
             None,
         );
@@ -240,15 +240,15 @@ mod test {
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::RemoteAction {
+                msg: IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
                     action: HostAction::Dispatch {
-                        manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                        manager_msgs: vec![abstract_core::manager::ExecuteMsg::UpdateStatus {
                             is_suspended: None,
-                        },
+                        }],
                     },
                     callback_info: None,
-                }],
+                },
             })
             .unwrap(),
             funds: vec![],
@@ -272,9 +272,9 @@ mod test {
         let actual = client.host_action(
             TEST_HOST_CHAIN.into(),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                manager_msgs: vec![abstract_core::manager::ExecuteMsg::UpdateStatus {
                     is_suspended: None,
-                },
+                }],
             },
             Some(expected_callback.clone()),
         );
@@ -284,15 +284,15 @@ mod test {
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::RemoteAction {
+                msg: IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
                     action: HostAction::Dispatch {
-                        manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                        manager_msgs: vec![abstract_core::manager::ExecuteMsg::UpdateStatus {
                             is_suspended: None,
-                        },
+                        }],
                     },
                     callback_info: Some(expected_callback),
-                }],
+                },
             })
             .unwrap(),
             funds: vec![],
@@ -316,10 +316,10 @@ mod test {
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::SendFunds {
+                msg: IbcClientMsg::SendFunds {
                     host_chain: TEST_HOST_CHAIN.into(),
                     funds: expected_funds,
-                }],
+                },
             })
             .unwrap(),
             // ensure empty
