@@ -18,10 +18,7 @@ pub trait Resolve {
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output>;
     /// Check if the entry is registered in the ANS.
     fn is_registered(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> bool {
-        match self.resolve(querier, ans_host) {
-            Ok(_) => true,
-            Err(_) => false,
-        }
+        self.resolve(querier, ans_host).is_ok()
     }
     /// Assert that a given entry is registered in the ANS.
     fn assert_registered(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<()> {
