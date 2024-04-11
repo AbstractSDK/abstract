@@ -1,5 +1,5 @@
 use abstract_money_market_standard::{
-    ans_action::ActionOnMoneymarket,
+    ans_action::MoneyMarketActionResolveWrapper,
     msg::{
         GenerateMessagesResponse, MoneyMarketExecuteMsg, MoneyMarketQueryMsg, PriceResponse,
         UserBorrowResponse, UserCollateralResponse, UserCurrentLTVResponse, UserDepositResponse,
@@ -39,7 +39,7 @@ pub fn query_handler(
             } = message
             {
                 let ans = adapter.name_service(deps);
-                let whole_money_market_action = ActionOnMoneymarket(
+                let whole_money_market_action = MoneyMarketActionResolveWrapper(
                     platform_resolver::resolve_money_market(&money_market)?,
                     action,
                 );

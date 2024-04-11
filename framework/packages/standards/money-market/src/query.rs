@@ -2,11 +2,12 @@ use crate::{msg::MoneyMarketQueryMsg, MoneyMarketCommand, MoneyMarketError};
 use abstract_core::objects::ans_host::AnsHostError;
 use abstract_sdk::Resolve;
 
+/// This is an alias for a resolve_money_market function.
+pub type PlatformResolver =
+    fn(value: &str) -> Result<Box<dyn MoneyMarketCommand>, MoneyMarketError>;
+
 /// Structure created to be able to resolve an action using ANS
-pub struct MoneyMarketQueryResolveWrapper(
-    pub fn(value: &str) -> Result<Box<dyn MoneyMarketCommand>, MoneyMarketError>,
-    pub MoneyMarketQueryMsg,
-);
+pub struct MoneyMarketQueryResolveWrapper(pub PlatformResolver, pub MoneyMarketQueryMsg);
 
 pub fn err(e: MoneyMarketError) -> AnsHostError {
     AnsHostError::QueryFailed {
