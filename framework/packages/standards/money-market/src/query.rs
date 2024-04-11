@@ -3,7 +3,7 @@ use abstract_core::objects::ans_host::AnsHostError;
 use abstract_sdk::Resolve;
 
 /// Structure created to be able to resolve an action using ANS
-pub struct WholeMoneyMarketQuery(
+pub struct MoneyMarketQueryResolveWrapper(
     pub fn(value: &str) -> Result<Box<dyn MoneyMarketCommand>, MoneyMarketError>,
     pub MoneyMarketQueryMsg,
 );
@@ -15,7 +15,7 @@ pub fn err(e: MoneyMarketError) -> AnsHostError {
     }
 }
 
-impl Resolve for WholeMoneyMarketQuery {
+impl Resolve for MoneyMarketQueryResolveWrapper {
     type Output = MoneyMarketQueryMsg;
 
     /// TODO: this only works for protocols where there is only one address for depositing

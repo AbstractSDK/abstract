@@ -1,7 +1,11 @@
 use abstract_money_market_standard::{
     ans_action::ActionOnMoneymarket,
-    msg::{GenerateMessagesResponse, MoneyMarketExecuteMsg, MoneyMarketQueryMsg},
-    query::WholeMoneyMarketQuery,
+    msg::{
+        GenerateMessagesResponse, MoneyMarketExecuteMsg, MoneyMarketQueryMsg, PriceResponse,
+        UserBorrowResponse, UserCollateralResponse, UserCurrentLTVResponse, UserDepositResponse,
+        UserMaxLTVResponse,
+    },
+    query::MoneyMarketQueryResolveWrapper,
     MoneyMarketError,
 };
 use abstract_sdk::features::AbstractNameService;
@@ -21,7 +25,7 @@ pub fn query_handler(
 ) -> MoneyMarketResult<Binary> {
     let ans = adapter.name_service(deps);
     let whole_money_market_query =
-        WholeMoneyMarketQuery(platform_resolver::resolve_money_market, msg);
+        MoneyMarketQueryResolveWrapper(platform_resolver::resolve_money_market, msg);
     let msg = ans.query(&whole_money_market_query)?;
 
     match msg {
@@ -117,7 +121,9 @@ fn handle_local_query(
             let asset = asset.check(deps.api, None)?;
 
             money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
-            to_json_binary(&money_market.user_deposit(deps, contract_addr, user, asset)?)?
+            to_json_binary(&UserDepositResponse {
+                amount: money_market.user_deposit(deps, contract_addr, user, asset)?,
+            })?
         }
         MoneyMarketQueryMsg::RawUserCollateral {
             user,
@@ -132,13 +138,15 @@ fn handle_local_query(
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
             money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
-            to_json_binary(&money_market.user_collateral(
-                deps,
-                contract_addr,
-                user,
-                borrowed_asset,
-                collateral_asset,
-            )?)?
+            to_json_binary(&UserCollateralResponse {
+                amount: money_market.user_collateral(
+                    deps,
+                    contract_addr,
+                    user,
+                    borrowed_asset,
+                    collateral_asset,
+                )?,
+            })?
         }
         MoneyMarketQueryMsg::RawUserBorrow {
             user,
@@ -153,13 +161,15 @@ fn handle_local_query(
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
             money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
-            to_json_binary(&money_market.user_borrow(
-                deps,
-                contract_addr,
-                user,
-                borrowed_asset,
-                collateral_asset,
-            )?)?
+            to_json_binary(&UserBorrowResponse {
+                amount: money_market.user_borrow(
+                    deps,
+                    contract_addr,
+                    user,
+                    borrowed_asset,
+                    collateral_asset,
+                )?,
+            })?
         }
         MoneyMarketQueryMsg::RawCurrentLTV {
             user,
@@ -174,13 +184,15 @@ fn handle_local_query(
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
             money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
-            to_json_binary(&money_market.current_ltv(
-                deps,
-                contract_addr,
-                user,
-                borrowed_asset,
-                collateral_asset,
-            )?)?
+            to_json_binary(&UserCurrentLTVResponse {
+                current_ltv: money_market.current_ltv(
+                    deps,
+                    contract_addr,
+                    user,
+                    borrowed_asset,
+                    collateral_asset,
+                )?,
+            })?
         }
         MoneyMarketQueryMsg::RawMaxLTV {
             user,
@@ -195,13 +207,15 @@ fn handle_local_query(
             let borrowed_asset = borrowed_asset.check(deps.api, None)?;
 
             money_market.fetch_data(user.clone(), &deps.querier, &ans_host)?;
-            to_json_binary(&money_market.max_ltv(
-                deps,
-                contract_addr,
-                user,
-                borrowed_asset,
-                collateral_asset,
-            )?)?
+            to_json_binary(&UserMaxLTVResponse {
+                max_ltv: money_market.max_ltv(
+                    deps,
+                    contract_addr,
+                    user,
+                    borrowed_asset,
+                    collateral_asset,
+                )?,
+            })?
         }
         MoneyMarketQueryMsg::RawPrice {
             quote,
@@ -212,7 +226,9 @@ fn handle_local_query(
             let base = base.check(deps.api, None)?;
 
             money_market.fetch_data(env.contract.address.clone(), &deps.querier, &ans_host)?;
-            to_json_binary(&money_market.price(deps, base, quote)?)?
+            to_json_binary(&PriceResponse {
+                price: money_market.price(deps, base, quote)?,
+            })?
         }
         _ => {
             return Err(

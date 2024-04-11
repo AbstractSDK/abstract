@@ -4,7 +4,7 @@
 use crate::{ans_action::MoneyMarketAnsAction, raw_action::MoneyMarketRawAction};
 use abstract_core::objects::AssetEntry;
 use abstract_core::{adapter, objects::fee::UsageFee};
-use cosmwasm_schema::QueryResponses;
+use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{CosmosMsg, Decimal, StdError, StdResult, Uint128};
 use cw_asset::AssetInfoBase;
 
@@ -276,4 +276,42 @@ impl MoneyMarketQueryMsg {
             MoneyMarketQueryMsg::Fees {} => Err(StdError::generic_err("Wrong query type")),
         }
     }
+}
+
+/// Response wrapper for user deposit query
+#[cw_serde]
+pub struct UserDepositResponse {
+    /// Deposit Amount
+    pub amount: Uint128,
+}
+/// Response wrapper for user collateral query
+#[cw_serde]
+pub struct UserCollateralResponse {
+    /// Collateral Amount
+    pub amount: Uint128,
+}
+/// Response wrapper for user borrow query
+#[cw_serde]
+pub struct UserBorrowResponse {
+    /// Borrow Amount
+    pub amount: Uint128,
+}
+/// Response wrapper for user current ltv query
+#[cw_serde]
+pub struct UserCurrentLTVResponse {
+    /// Current LTV
+    pub current_ltv: Decimal,
+}
+/// Response wrapper for user max ltv query
+#[cw_serde]
+pub struct UserMaxLTVResponse {
+    /// Maximum LTV
+    pub max_ltv: Decimal,
+}
+
+/// Response wrapper for price query
+#[cw_serde]
+pub struct PriceResponse {
+    /// Price
+    pub price: Decimal,
 }
