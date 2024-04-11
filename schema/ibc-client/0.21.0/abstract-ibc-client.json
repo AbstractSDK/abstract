@@ -1124,11 +1124,14 @@
               "dispatch": {
                 "type": "object",
                 "required": [
-                  "manager_msg"
+                  "manager_msgs"
                 ],
                 "properties": {
-                  "manager_msg": {
-                    "$ref": "#/definitions/ExecuteMsg"
+                  "manager_msgs": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/ExecuteMsg"
+                    }
                   }
                 },
                 "additionalProperties": false

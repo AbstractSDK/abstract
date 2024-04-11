@@ -178,14 +178,11 @@
           "ibc_action": {
             "type": "object",
             "required": [
-              "msgs"
+              "msg"
             ],
             "properties": {
-              "msgs": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/ExecuteMsg"
-                }
+              "msg": {
+                "$ref": "#/definitions/ExecuteMsg"
               }
             },
             "additionalProperties": false
@@ -1692,11 +1689,14 @@
               "dispatch": {
                 "type": "object",
                 "required": [
-                  "manager_msg"
+                  "manager_msgs"
                 ],
                 "properties": {
-                  "manager_msg": {
-                    "$ref": "#/definitions/ExecuteMsg2"
+                  "manager_msgs": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/ExecuteMsg2"
+                    }
                   }
                 },
                 "additionalProperties": false
