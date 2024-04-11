@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_adapter::abstract_core::{
     ibc::CallbackInfo,
     objects::{
         account::AccountTrace,
@@ -8,15 +8,15 @@ use abstract_core::{
         AccountId,
     },
 };
+use abstract_adapter::sdk::{
+    features::AbstractNameService, AccountVerification, Execution, IbcInterface,
+    ModuleRegistryInterface,
+};
 use abstract_dex_standard::{
     ans_action::WholeDexAction,
     msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID},
     raw_action::DexRawAction,
     DexError, DEX_ADAPTER_ID,
-};
-use abstract_sdk::{
-    features::AbstractNameService, AccountVerification, Execution, IbcInterface,
-    ModuleRegistryInterface,
 };
 use cosmwasm_std::{
     ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
@@ -31,7 +31,7 @@ use crate::{
     state::DEX_FEES,
 };
 
-use abstract_sdk::features::AccountIdentification;
+use abstract_adapter::sdk::features::AccountIdentification;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -152,8 +152,8 @@ fn handle_ibc_request(
     // construct the ics20 call(s)
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
-    let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
-        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+    let host_action = abstract_adapter::sdk::core::ibc_host::HostAction::Dispatch {
+        manager_msg: abstract_adapter::abstract_core::manager::ExecuteMsg::ExecOnModule {
             module_id: DEX_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(
                 &DexExecuteMsg::RawAction {

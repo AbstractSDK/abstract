@@ -10,7 +10,18 @@ pub use error::AdapterError;
 
 pub use crate::state::AdapterContract;
 
-pub mod endpoints;
+// Useful re-exports
+pub use abstract_core;
+// re-export objects specifically
+pub use abstract_core::objects;
+pub use abstract_sdk as sdk;
+pub mod traits {
+    pub use abstract_sdk::{features::*, prelude::*};
+}
+#[cfg(feature = "test-utils")]
+pub use abstract_testing;
+
+mod endpoints;
 pub mod error;
 /// Abstract SDK trait implementations
 pub mod features;

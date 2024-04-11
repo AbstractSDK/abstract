@@ -1,6 +1,5 @@
 use crate::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-use abstract_client::{AbstractClient, ClientResolve, Environment};
-use abstract_core::{
+use abstract_adapter::abstract_core::{
     adapter,
     objects::{
         module::{ModuleInfo, ModuleVersion},
@@ -8,6 +7,7 @@ use abstract_core::{
         AnsAsset, AssetEntry, LpToken, PoolMetadata,
     },
 };
+use abstract_client::{AbstractClient, ClientResolve, Environment};
 use abstract_dex_standard::{
     ans_action::DexAnsAction,
     msg::{

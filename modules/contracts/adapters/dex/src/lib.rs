@@ -23,15 +23,15 @@ pub mod dex_tester;
 #[cfg(feature = "interface")]
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*};
-    use abstract_core::{
+    use abstract_adapter::abstract_core::{
         adapter,
         objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
     };
+    use abstract_adapter::sdk::features::ModuleIdentification;
     use abstract_dex_standard::ans_action::DexAnsAction;
     use abstract_dex_standard::raw_action::DexRawAction;
     use abstract_interface::{AbstractAccount, AbstractInterfaceError};
     use abstract_interface::{AdapterDeployer, RegisteredModule};
-    use abstract_sdk::features::ModuleIdentification;
     use cosmwasm_std::{Decimal, Empty};
     use cw_asset::{AssetBase, AssetInfoBase};
     use cw_orch::{build::BuildPostfix, interface};
@@ -196,7 +196,7 @@ pub mod interface {
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
         ) -> Result<
-            Vec<abstract_core::manager::ModuleInstallConfig>,
+            Vec<abstract_adapter::abstract_core::manager::ModuleInstallConfig>,
             abstract_interface::AbstractInterfaceError,
         > {
             Ok(vec![])

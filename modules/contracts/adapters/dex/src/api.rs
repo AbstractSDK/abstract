@@ -1,14 +1,16 @@
 use crate::DEX_ADAPTER_ID;
-use abstract_core::objects::{module::ModuleId, AnsAsset, AssetEntry, PoolAddress};
+use abstract_adapter::abstract_core::objects::{
+    module::ModuleId, AnsAsset, AssetEntry, PoolAddress,
+};
+use abstract_adapter::sdk::{
+    features::{AccountIdentification, Dependencies, ModuleIdentification},
+    AbstractSdkResult, AdapterInterface,
+};
 use abstract_dex_standard::msg::GenerateMessagesResponse;
 use abstract_dex_standard::{
     ans_action::DexAnsAction,
     msg::{DexExecuteMsg, DexName, DexQueryMsg, SimulateSwapResponse},
     raw_action::DexRawAction,
-};
-use abstract_sdk::{
-    features::{AccountIdentification, Dependencies, ModuleIdentification},
-    AbstractSdkResult, AdapterInterface,
 };
 use cosmwasm_schema::serde::de::DeserializeOwned;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps};
@@ -348,11 +350,11 @@ pub mod ans {
 
 #[cfg(test)]
 mod test {
-    use abstract_core::{
+    use abstract_adapter::abstract_core::{
         adapter::AdapterRequestMsg,
         objects::{AnsAsset, AssetEntry},
     };
-    use abstract_sdk::mock_module::MockModule;
+    use abstract_adapter::sdk::mock_module::MockModule;
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};
     use speculoos::prelude::*;
 
@@ -361,7 +363,9 @@ mod test {
 
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
         AdapterRequestMsg {
-            proxy_address: Some(abstract_testing::prelude::TEST_PROXY.to_string()),
+            proxy_address: Some(
+                abstract_adapter::abstract_testing::prelude::TEST_PROXY.to_string(),
+            ),
             request,
         }
         .into()
@@ -370,11 +374,11 @@ mod test {
     #[test]
     fn swap_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = abstract_adapter::abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex = stub
             .ans_dex(deps.as_ref(), "junoswap".into())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
         let dex_name = "junoswap".to_string();
         let offer_asset = AnsAsset::new("juno", 1000u128);
@@ -401,7 +405,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
             &expected,
             vec![],
         )
@@ -413,13 +417,13 @@ mod test {
     #[test]
     fn provide_liquidity_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = abstract_adapter::abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex_name = "junoswap".to_string();
 
         let dex = stub
             .ans_dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
         let assets = vec![AnsAsset::new("taco", 1000u128)];
         let max_spread = Some(Decimal::percent(1));
@@ -441,7 +445,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
             &expected,
             vec![],
         )
@@ -453,13 +457,13 @@ mod test {
     #[test]
     fn provide_liquidity_symmetric_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = abstract_adapter::abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex_name = "junoswap".to_string();
 
         let dex = stub
             .ans_dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
         let offer = AnsAsset::new("taco", 1000u128);
         let paired = vec![AssetEntry::new("bell")];
@@ -482,7 +486,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
             &expected,
             vec![],
         )
@@ -494,13 +498,13 @@ mod test {
     #[test]
     fn withdraw_liquidity_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = abstract_adapter::abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex_name = "junoswap".to_string();
 
         let dex = stub
             .ans_dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
         let lp_token = AnsAsset::new("taco", 1000u128);
 
@@ -520,7 +524,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
             &expected,
             vec![],
         )
@@ -530,7 +534,7 @@ mod test {
     }
 
     mod raw {
-        use abstract_core::objects::pool_id::PoolAddressBase;
+        use abstract_adapter::abstract_core::objects::pool_id::PoolAddressBase;
 
         use super::*;
 
@@ -539,11 +543,11 @@ mod test {
         #[test]
         fn swap_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = abstract_adapter::abstract_testing::mock_querier();
             let stub = MockModule::new();
             let dex = stub
                 .dex(deps.as_ref(), "junoswap".into())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
             let dex_name = "junoswap".to_string();
             let offer_asset = Asset::native("ujuno", 100_000u128);
@@ -572,7 +576,7 @@ mod test {
                 _ => panic!("expected wasm msg"),
             };
             let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
                 &expected,
                 vec![],
             )
@@ -584,13 +588,13 @@ mod test {
         #[test]
         fn provide_liquidity_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = abstract_adapter::abstract_testing::mock_querier();
             let stub = MockModule::new();
             let dex_name = "junoswap".to_string();
 
             let dex = stub
                 .dex(deps.as_ref(), dex_name.clone())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
             let assets = vec![Asset::native("taco", 1000u128)];
             let max_spread = Some(Decimal::percent(1));
@@ -614,7 +618,7 @@ mod test {
                 _ => panic!("expected wasm msg"),
             };
             let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
                 &expected,
                 vec![],
             )
@@ -626,13 +630,13 @@ mod test {
         #[test]
         fn provide_liquidity_symmetric_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = abstract_adapter::abstract_testing::mock_querier();
             let stub = MockModule::new();
             let dex_name = "junoswap".to_string();
 
             let dex = stub
                 .dex(deps.as_ref(), dex_name.clone())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
             let offer = Asset::native("taco", 1000u128);
             let paired = vec![AssetInfo::native("bell")];
@@ -657,7 +661,7 @@ mod test {
                 _ => panic!("expected wasm msg"),
             };
             let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
                 &expected,
                 vec![],
             )
@@ -669,13 +673,13 @@ mod test {
         #[test]
         fn withdraw_liquidity_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = abstract_adapter::abstract_testing::mock_querier();
             let stub = MockModule::new();
             let dex_name = "junoswap".to_string();
 
             let dex = stub
                 .dex(deps.as_ref(), dex_name.clone())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
             let lp_token = Asset::native("taco", 1000u128);
             let pool = PoolAddressBase::Id(POOL);
@@ -697,7 +701,7 @@ mod test {
                 _ => panic!("expected wasm msg"),
             };
             let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
                 &expected,
                 vec![],
             )

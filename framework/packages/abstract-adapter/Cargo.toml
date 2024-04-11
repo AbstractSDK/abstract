@@ -11,7 +11,12 @@ resolver = "2"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-test-utils = ["dep:abstract-testing", "dep:abstract-interface", "dep:cw-orch"]
+test-utils = [
+  "dep:abstract-testing",
+  "dep:abstract-interface",
+  "dep:cw-orch",
+  "abstract-sdk/test-utils",
+]
 schema = []
 
 [dependencies]
