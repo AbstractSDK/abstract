@@ -26,9 +26,8 @@ pub mod juno {
 
 pub mod osmosis {
     pub const OSMOSIS_MAINNET: &str = "osmosis";
-    pub const OSMOSIS_TESTNET: &str = "osmo";
-    pub const OSMOSIS_LOCALNET: &str = "osmo-test";
-    pub const OSMOSIS: &[&str] = &[OSMOSIS_MAINNET, OSMOSIS_TESTNET, OSMOSIS_LOCALNET];
+    pub const OSMOSIS_TESTNET: &str = "osmo-test";
+    pub const OSMOSIS: &[&str] = &[OSMOSIS_MAINNET, OSMOSIS_TESTNET];
 }
 
 pub mod terra {
