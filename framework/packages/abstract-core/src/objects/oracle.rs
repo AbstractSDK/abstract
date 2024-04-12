@@ -32,6 +32,12 @@ pub struct Oracle<'a> {
     asset_equivalent_cache: Vec<(AssetInfo, Vec<(AssetInfo, Uint128)>)>,
 }
 
+impl Default for Oracle<'_> {
+    fn default() -> Self {
+        Oracle::new()
+    }
+}
+
 impl<'a> Oracle<'a> {
     pub const fn new() -> Self {
         Oracle {
