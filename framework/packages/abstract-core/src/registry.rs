@@ -18,13 +18,51 @@ pub const IBC_HOST: &str = "abstract:ibc-host";
 pub const ICS20: &str = "ics-20";
 
 // chain-id prefixes based on `https://cosmos.directory/`
-pub const JUNO: &[&str] = &["juno", "uni"];
-pub const OSMOSIS: &[&str] = &["osmosis", "osmo", "osmo-test"];
-pub const TERRA: &[&str] = &["phoenix", "pisco"];
-pub const KUJIRA: &[&str] = &["kaiyo", "harpoon"];
-pub const NEUTRON: &[&str] = &["pion", "neutron"];
-pub const ARCHWAY: &[&str] = &["constantine", "archway"];
-pub const LOCAL_CHAIN: &[&str] = &["cosmos-testnet"];
+pub mod juno {
+    pub const JUNO_MAINNET: &str = "juno";
+    pub const JUNO_TESTNET: &str = "uni";
+    pub const JUNO: &[&str] = &[JUNO_MAINNET, JUNO_TESTNET];
+}
+
+pub mod osmosis {
+    pub const OSMOSIS_MAINNET: &str = "osmosis";
+    pub const OSMOSIS_TESTNET: &str = "osmo";
+    pub const OSMOSIS_LOCALNET: &str = "osmo-test";
+    pub const OSMOSIS: &[&str] = &[OSMOSIS_MAINNET, OSMOSIS_TESTNET, OSMOSIS_LOCALNET];
+}
+
+pub mod terra {
+    pub const TERRA_MAINNET: &str = "phoenix";
+    pub const TERRA_TESTNET: &str = "pisco";
+    pub const TERRA: &[&str] = &[TERRA_MAINNET, TERRA_TESTNET];
+}
+
+pub mod kujira {
+    pub const KUJIRA_MAINNET: &str = "kaiyo";
+    pub const KUJIRA_TESTNET: &str = "harpoon";
+    pub const KUJIRA: &[&str] = &[KUJIRA_MAINNET, KUJIRA_TESTNET];
+}
+
+pub mod neutron {
+    pub const NEUTRON_MAINNET: &str = "neutron";
+    pub const NEUTRON_TESTNET: &str = "pion";
+    pub const NEUTRON: &[&str] = &[NEUTRON_MAINNET, NEUTRON_TESTNET];
+}
+
+pub mod archway {
+    pub const ARCHWAY_MAINNET: &str = "archway";
+    pub const ARCHWAY_TESTNET: &str = "constantine";
+    pub const ARCHWAY: &[&str] = &[ARCHWAY_MAINNET, ARCHWAY_TESTNET];
+}
+
+pub use archway::ARCHWAY;
+pub use juno::JUNO;
+pub use kujira::KUJIRA;
+pub use neutron::NEUTRON;
+pub use osmosis::OSMOSIS;
+pub use terra::TERRA;
+pub const MOCK_CHAIN: &str = "cosmos-testnet";
+
 /// Useful when deploying version control
 #[allow(unused)]
 pub static NATIVE_CONTRACTS: &[&str] = &[
