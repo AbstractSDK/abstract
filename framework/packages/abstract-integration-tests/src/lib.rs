@@ -7,7 +7,7 @@ pub mod manager;
 pub mod mock_modules;
 // pub mod proxy;
 
-use abstract_adapter::mock::{MockAdapterI, MockInitMsg};
+use abstract_adapter::mock::{interface::MockAdapterI, MockInitMsg};
 use abstract_core::objects::{
     module::{ModuleVersion, Monetization},
     namespace::Namespace,

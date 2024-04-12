@@ -17,7 +17,7 @@ pub type TendermintStakeAdapter = AdapterContract<
     TendermintStakingQueryMsg,
 >;
 
-const STAKING_ADAPTER: TendermintStakeAdapter =
+pub const STAKING_ADAPTER: TendermintStakeAdapter =
     TendermintStakeAdapter::new(TENDERMINT_STAKING, CONTRACT_VERSION, None)
         .with_execute(handle_request);
 
@@ -26,6 +26,14 @@ pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
 // Export handlers
 #[cfg(feature = "export")]
 abstract_adapter::export_endpoints!(STAKING_ADAPTER, TendermintStakeAdapter);
+
+#[cfg(feature = "interface")]
+abstract_adapter::cw_orch_interface!(
+    STAKING_ADAPTER,
+    TendermintStakeAdapter,
+    Empty,
+    TMintStakingAdapter
+);
 
 pub fn handle_request(
     deps: DepsMut,

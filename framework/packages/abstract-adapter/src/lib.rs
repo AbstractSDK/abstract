@@ -18,6 +18,11 @@ pub use abstract_sdk as sdk;
 pub mod traits {
     pub use abstract_sdk::{features::*, prelude::*};
 }
+
+#[cfg(feature = "interface-macro")]
+mod interface;
+#[cfg(feature = "interface-macro")]
+pub use abstract_interface;
 #[cfg(feature = "test-utils")]
 pub use abstract_testing;
 
@@ -33,20 +38,13 @@ pub mod state;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
-    use abstract_core::{
-        adapter::{self, *},
-        objects::dependency::StaticDependency,
-    };
-    use abstract_interface::{AdapterDeployer, RegisteredModule};
-    use abstract_sdk::{
-        base::InstantiateEndpoint, features::ModuleIdentification, AbstractSdkError,
-    };
+    use abstract_core::{adapter::*, objects::dependency::StaticDependency};
+    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
-        to_json_binary, DepsMut, Empty, Response, StdError,
+        to_json_binary, DepsMut, Response, StdError,
     };
-    use cw_orch::{contract::Contract, prelude::*};
     use cw_storage_plus::Item;
     use thiserror::Error;
 
@@ -147,6 +145,7 @@ pub mod mock {
     // export these for upload usage
     crate::export_endpoints!(MOCK_ADAPTER, MockAdapterContract);
 
+    crate::cw_orch_interface!(MOCK_ADAPTER, MockAdapterContract, MockInitMsg, MockAdapterI);
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
         let adapter = MOCK_ADAPTER;
         let info = mock_info(OWNER, &[]);
@@ -174,42 +173,6 @@ pub mod mock {
         };
         adapter.instantiate(deps, mock_env(), info, init_msg)
     }
-
-    impl<T: CwEnv> Uploadable for MockAdapterI<T> {
-        fn wrapper(&self) -> <Mock as cw_orch::environment::TxHandler>::ContractSource {
-            Box::new(ContractWrapper::new_with_empty(
-                self::execute,
-                self::instantiate,
-                self::query,
-            ))
-        }
-    }
-
-    type Exec = adapter::ExecuteMsg<MockExecMsg>;
-    type Query = adapter::QueryMsg<MockQueryMsg>;
-    type Init = adapter::InstantiateMsg<MockInitMsg>;
-
-    #[cw_orch::interface(Init, Exec, Query, Empty)]
-    pub struct MockAdapterI<Chain>;
-
-    impl<Chain: CwEnv> RegisteredModule for MockAdapterI<Chain> {
-        type InitMsg = Empty;
-
-        fn module_id<'a>() -> &'a str {
-            MOCK_ADAPTER.module_id()
-        }
-        fn module_version<'a>() -> &'a str {
-            MOCK_ADAPTER.version()
-        }
-    }
-
-    impl<Chain: CwEnv> From<Contract<Chain>> for MockAdapterI<Chain> {
-        fn from(value: Contract<Chain>) -> Self {
-            MockAdapterI(value)
-        }
-    }
-
-    impl<T: CwEnv> AdapterDeployer<T, MockInitMsg> for MockAdapterI<T> {}
 
     /// Generate a BOOT instance for a mock adapter
     /// - $name: name of the contract (&str)

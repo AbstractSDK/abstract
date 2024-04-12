@@ -1,5 +1,5 @@
 use abstract_adapter::mock::{
-    MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
+    interface::MockAdapterI, MockExecMsg as AdapterMockExecMsg, MockInitMsg as AdapterMockInitMsg,
     MockQueryMsg as AdapterMockQueryMsg, TEST_METADATA,
 };
 use abstract_app::{

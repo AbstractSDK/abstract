@@ -19,3 +19,11 @@ pub const DEX_ADAPTER: DexAdapter = DexAdapter::new(DEX_ADAPTER_ID, CONTRACT_VER
 
 #[cfg(feature = "export")]
 export_endpoints!(DEX_ADAPTER, DexAdapter);
+
+#[cfg(feature = "interface")]
+abstract_adapter::cw_orch_interface!(
+    DEX_ADAPTER,
+    crate::contract::DexAdapter,
+    DexInstantiateMsg,
+    DexAdapter
+);

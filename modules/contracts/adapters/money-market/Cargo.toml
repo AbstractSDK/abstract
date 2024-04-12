@@ -30,6 +30,7 @@ interface = [
   "dep:cw-orch",
   "export",
   "abstract-money-market-standard/interface",
+  "abstract-adapter/interface-macro",
 ]
 schema = ["abstract-adapter/schema"]
 testing = ["interface", "dep:abstract-client", "dep:cw-orch", "dep:cw20"]

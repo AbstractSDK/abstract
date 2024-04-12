@@ -22,44 +22,19 @@ pub mod dex_tester;
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use crate::{contract::DEX_ADAPTER, msg::*};
+    use crate::msg::*;
     use abstract_adapter::abstract_core::{
         adapter,
         objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
     };
-    use abstract_adapter::sdk::features::ModuleIdentification;
     use abstract_dex_standard::ans_action::DexAnsAction;
     use abstract_dex_standard::raw_action::DexRawAction;
     use abstract_interface::{AbstractAccount, AbstractInterfaceError};
-    use abstract_interface::{AdapterDeployer, RegisteredModule};
-    use cosmwasm_std::{Decimal, Empty};
+    use cosmwasm_std::Decimal;
     use cw_asset::{AssetBase, AssetInfoBase};
-    use cw_orch::{build::BuildPostfix, interface};
-    use cw_orch::{contract::Contract, prelude::*};
+    use cw_orch::prelude::*;
 
-    #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
-    pub struct DexAdapter<Chain>;
-
-    // Implement deployer trait
-    impl<Chain: CwEnv> AdapterDeployer<Chain, DexInstantiateMsg> for DexAdapter<Chain> {}
-
-    impl<Chain: CwEnv> Uploadable for DexAdapter<Chain> {
-        fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
-            Box::new(ContractWrapper::new_with_empty(
-                crate::contract::execute,
-                crate::contract::instantiate,
-                crate::contract::query,
-            ))
-        }
-        fn wasm(&self) -> WasmPath {
-            artifacts_dir_from_workspace!()
-                .find_wasm_path_with_build_postfix(
-                    "abstract_dex_adapter",
-                    BuildPostfix::<Chain>::ChainName(self.get_chain()),
-                )
-                .unwrap()
-        }
-    }
+    pub use crate::contract::interface::DexAdapter;
 
     impl<Chain: CwEnv> DexAdapter<Chain> {
         /// Ans action
@@ -167,24 +142,6 @@ pub mod interface {
             };
             self.raw_action(dex, action, account)?;
             Ok(())
-        }
-    }
-
-    impl<Chain: CwEnv> RegisteredModule for DexAdapter<Chain> {
-        type InitMsg = Empty;
-
-        fn module_id<'a>() -> &'a str {
-            DEX_ADAPTER.module_id()
-        }
-
-        fn module_version<'a>() -> &'a str {
-            DEX_ADAPTER.version()
-        }
-    }
-
-    impl<Chain: CwEnv> From<Contract<Chain>> for DexAdapter<Chain> {
-        fn from(contract: Contract<Chain>) -> Self {
-            Self(contract)
         }
     }
 

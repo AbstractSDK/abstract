@@ -30,6 +30,7 @@ interface = [
   "dep:cw-orch",
   "export",
   "abstract-dex-standard/interface",
+  "abstract-adapter/interface-macro",
 ]
 schema = ["abstract-adapter/schema"]
 # TODO: do we need all these deps here?

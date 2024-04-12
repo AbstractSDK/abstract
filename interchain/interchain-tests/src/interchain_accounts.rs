@@ -74,7 +74,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 mod test {
     use cw_orch::interchain::MockBech32InterchainEnv;
 
-    use abstract_adapter::mock::MockAdapterI;
+    use abstract_adapter::mock::interface::MockAdapterI;
     use abstract_adapter::mock::MockQueryMsgFns as _;
     use abstract_app::mock::{
         interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockInitMsg,

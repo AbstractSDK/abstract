@@ -11,10 +11,10 @@ resolver = "2"
 crate-type = ["cdylib", "rlib"]
 
 [features]
+interface-macro = ["dep:abstract-interface", "dep:cw-orch"]
 test-utils = [
   "dep:abstract-testing",
-  "dep:abstract-interface",
-  "dep:cw-orch",
+  "interface-macro",
   "abstract-sdk/test-utils",
 ]
 schema = []

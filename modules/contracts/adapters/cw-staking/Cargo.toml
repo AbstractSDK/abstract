@@ -35,6 +35,7 @@ interface = [
   "dep:abstract-interface",
   "export",
   "abstract-staking-standard/interface",
+  "abstract-adapter/interface-macro",
 ]
 schema = ["abstract-adapter/schema"]
 testing = ["dep:abstract-client", "dep:cw-orch", "dep:cw20"]
