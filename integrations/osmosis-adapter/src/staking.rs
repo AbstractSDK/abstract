@@ -47,13 +47,15 @@ pub mod fns {
     // const FORTEEN_DAYS: i64 = 60 * 60 * 24 * 14;
     use cosmwasm_std::Env;
     use cosmwasm_std::{Coin, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128};
-    use cw_asset::AssetInfoBase;
+    use cw_asset::{AssetInfo, AssetInfoBase};
     use cw_utils::Expiration;
     use osmosis_std::{
         shim::Duration,
         types::osmosis::{
             gamm::v1beta1::Pool,
+            incentives::IncentivesQuerier,
             lockup::{LockupQuerier, MsgBeginUnlocking, MsgBeginUnlockingAll, MsgLockTokens},
+            poolincentives::v1beta1::PoolincentivesQuerier,
             poolmanager::v1beta1::PoolmanagerQuerier,
         },
     };
@@ -300,11 +302,41 @@ pub mod fns {
 
         fn query_rewards(
             &self,
-            _querier: &QuerierWrapper,
+            querier: &QuerierWrapper,
         ) -> Result<RewardTokensResponse, CwStakingError> {
-            Ok(RewardTokensResponse {
-                tokens: Default::default(),
-            })
+            let pool_incentives_querier = PoolincentivesQuerier::new(querier);
+            let incentives_querier = IncentivesQuerier::new(querier);
+            let tokens = self
+                .tokens
+                .iter()
+                .map(|context| {
+                    pool_incentives_querier
+                        .gauge_ids(context.pool_id)
+                        .map(|gauge_ids_response| {
+                            let assets = gauge_ids_response
+                                .gauge_ids_with_duration
+                                .into_iter()
+                                .map(|gauge_id_with_duration| {
+                                    incentives_querier
+                                        .gauge_by_id(gauge_id_with_duration.gauge_id)
+                                        .map(|gauge_by_id_response| {
+                                            gauge_by_id_response
+                                                .gauge
+                                                .unwrap()
+                                                .coins
+                                                .into_iter()
+                                                .map(|coin| AssetInfo::Native(coin.denom))
+                                                .collect::<Vec<_>>()
+                                        })
+                                })
+                                .collect::<StdResult<Vec<_>>>()?;
+                            let mut assets = assets.into_iter().flatten().collect::<Vec<_>>();
+                            assets.dedup();
+                            StdResult::Ok(assets)
+                        })
+                })
+                .collect::<StdResult<StdResult<Vec<_>>>>()??;
+            Ok(RewardTokensResponse { tokens })
         }
     }
 }
