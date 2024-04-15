@@ -43,7 +43,7 @@ chrono = { version = "0.4.31", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.20.1" }
+cw-orch = { version = "0.21.2" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md

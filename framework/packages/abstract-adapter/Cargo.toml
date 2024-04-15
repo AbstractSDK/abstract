@@ -11,7 +11,7 @@ resolver = "2"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-test-utils = ["dep:abstract-testing", "dep:abstract-interface", "dep:cw-orch"]
+test-utils = ["dep:abstract-testing"]
 schema = []
 
 [dependencies]
@@ -26,9 +26,9 @@ cw2 = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-core = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true }
 # Keep this as a version and update when publishing new versions
-abstract-interface = { path = "../../packages/abstract-interface", version = "0.21.0", optional = true }
+abstract-interface = { path = "../../packages/abstract-interface", version = "0.21.0" }
 
 [dev-dependencies]
 speculoos = { workspace = true }
