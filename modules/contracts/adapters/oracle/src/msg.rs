@@ -36,71 +36,53 @@ pub struct OracleInstantiateMsg {
     pub providers: Vec<(ProviderName, String)>,
 }
 
-/// Oracle Execute msg
 #[cosmwasm_schema::cw_serde]
-pub enum OracleExecuteMsg {
-    /// Admin action to perform on the Oracle adapter
-    /// This can be done only by oracle admin(abstract namespace owner) and saved state will be used for default values during queries
-    Admin(OracleAction),
-    /// Action to perform on the Oracle adapter
-    Account(OracleAction),
-    // TODO: update provider_addrs
+pub enum ProxyOrAddr {
+    /// Address of the proxy account
+    Proxy(String),
+    /// Arbitrary address
+    Addr(String),
 }
 
-/// Query messages for the oracle adapter
 #[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
 pub enum OracleQueryMsg {
-    /// Query for arbitrary address
-    /// Default values provided by adapter owner used for calculations
-    Address {
-        address: String,
-        query_msg: AddressQueryMsg,
-    },
-    /// Query for proxy address
-    Account {
-        proxy_address: String,
-        query_msg: AccountQueryMsg,
-    },
-}
-
-#[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-pub enum AddressQueryMsg {
-    /// Default oracle adapter configuration
-    #[returns(AccountConfig)]
-    Config {},
-    /// Returns the value of given tokens on account
+    /// Oracle adapter configuration
+    /// In case proxy address provided - returns config saved by user
+    /// Otherwise returns default value, saved by Oracle admin
+    #[returns(OracleConfig)]
+    Config { proxy_address: Option<String> },
+    /// Returns the total value of the assets held by provided account
     #[returns(TokensValueResponse)]
-    TokensValue { identifiers: Vec<AssetEntry> },
-}
-
-#[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-pub enum AccountQueryMsg {
-    /// Account oracle adapter configuration
-    #[returns(AccountConfig)]
-    Config {},
-    /// Returns the total value of the assets held by this account
-    #[returns(AccountValue)]
-    TotalValue {},
-    /// Returns the value of given tokens on account
+    TotalValue { proxy_address: String },
+    /// Returns the value of given tokens by provided account
     #[returns(TokensValueResponse)]
-    TokensValue { identifiers: Vec<AssetEntry> },
-    /// Returns the amounts of specified tokens this account holds
+    TokensValue {
+        proxy_or_address: ProxyOrAddr,
+        identifiers: Vec<AssetEntry>,
+    },
+    /// Returns the amounts of specified tokens provided account holds
     #[returns(HoldingAmountsResponse)]
-    HoldingAmounts { identifiers: Vec<AssetEntry> },
+    HoldingAmounts {
+        proxy_or_address: ProxyOrAddr,
+        identifiers: Vec<AssetEntry>,
+    },
     /// Returns price sources for given asset entries
     #[returns(AssetPriceSourcesResponse)]
-    AssetPriceSources { identifier: Vec<AssetEntry> },
+    AssetPriceSources {
+        proxy_address: Option<String>,
+        identifier: Vec<AssetEntry>,
+    },
     /// Returns list of identifiers
     #[returns(AssetIdentifiersResponse)]
     AssetIdentifiers {
+        proxy_address: Option<String>,
         start_after: Option<AssetEntry>,
         limit: Option<u8>,
     },
     /// Returns base asset
     #[returns(BaseAssetResponse)]
-    BaseAsset {},
+    BaseAsset { proxy_address: Option<String> },
 }
 
 /// Account oracle configuration
@@ -118,16 +100,18 @@ pub struct OracleAsset {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AccountValue {
-    /// the total value of this account in the base denomination
-    pub total_value: Asset,
-    /// Vec of asset information and their value in the base asset denomination
-    pub breakdown: Vec<(AssetInfo, Uint128)>,
+pub struct OracleConfig {
+    /// Age limit of external quoted price
+    pub external_age_max: u64,
 }
 
+/// Response from TokensValue
 #[cosmwasm_schema::cw_serde]
 pub struct TokensValueResponse {
-    pub tokens_value: Vec<(AssetEntry, Uint128)>,
+    /// Tokens value relative to base denom
+    pub tokens_value: TotalValue,
+    /// Tokens value relative to USD quoted by external oracle provider
+    pub external_tokens_value: TotalValue,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -143,7 +127,7 @@ pub struct BaseAssetResponse {
 /// Human readable config for a single asset
 #[cosmwasm_schema::cw_serde]
 pub struct AssetPriceSourcesResponse {
-    pub sources: Vec<(AssetEntry, UncheckedPriceSource)>,
+    pub sources: Vec<(AssetEntry, UncheckedPriceSource<OraclePriceSource>)>,
 }
 
 #[cosmwasm_schema::cw_serde]

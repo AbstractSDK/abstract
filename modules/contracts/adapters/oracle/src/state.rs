@@ -55,6 +55,13 @@ pub struct Oracle<'a> {
     user: &'a str,
 }
 
+impl<'a> Default for Oracle<'a> {
+    fn default() -> Self {
+        // Empty user - admin
+        Self::new("")
+    }
+}
+
 impl<'a> Oracle<'a> {
     /// Get Oracle object
     pub const fn new(user: &'a str) -> Self {
@@ -83,7 +90,9 @@ impl<'a> Oracle<'a> {
             Ok(config)
         } else {
             // Otherwise use default config
-            self.config.load(deps.storage, "").map_err(Into::into)
+            self.config
+                .load(deps.storage, Default::default())
+                .map_err(Into::into)
         }
     }
 
@@ -232,7 +241,7 @@ impl<'a> Oracle<'a> {
     // Pair: paired asset + 1
     // LP: highest in pool + 1
     // ValueAs: equal asset + 1
-    // External: not related to the chain assets
+    // External: 1, as it requires exactly 1 query to figure out USD value of it
     fn asset_complexity(
         &self,
         deps: Deps,
@@ -263,28 +272,47 @@ impl<'a> Oracle<'a> {
                 let (_, complexity) = self.assets.load(deps.storage, (self.user, asset))?;
                 Ok(complexity + 1)
             }
-            PriceSource::External(_) => unreachable!(),
+            PriceSource::External(_) => Ok(1),
         }
     }
 
     /// Calculates the value of a single asset by recursive conversion to underlying asset(s).
     /// Does not make use of the cache to prevent querying the same price source multiple times.
-    pub fn asset_value(&self, deps: Deps, asset: Asset) -> AbstractResult<Uint128> {
+    pub fn asset_value(&self, deps: Deps, asset: Asset) -> AbstractResult<AssetValue> {
         // get the price source for the asset
         let (price_source, _) = self.assets.load(deps.storage, (self.user, &asset.info))?;
+        match price_source {
+            PriceSource::Base => {
+                return Ok(AssetValue {
+                    base: asset.amount,
+                    external: Uint128::zero(),
+                })
+            }
+            PriceSource::External(external) => {
+                return Ok(AssetValue {
+                    base: Uint128::zero(),
+                    external: self.external_asset_value(external)?,
+                })
+            }
+            _ => (),
+        }
         // get the conversions for this asset
         let conversion_rates = price_source.conversion_rates(deps, &asset.info)?;
-        if conversion_rates.is_empty() {
-            // no conversion rates means this is the base asset, return the amount
-            return Ok(asset.amount);
-        }
         // convert the asset into its underlying assets using the conversions
         let converted_assets = AssetConversion::convert(&conversion_rates, asset.amount);
         // recursively calculate the value of the underlying assets
-        converted_assets
+        let sum: AbstractResult<AssetValue> = converted_assets
             .into_iter()
             .map(|a| self.asset_value(deps, a))
-            .sum()
+            .fold(Ok(AssetValue::default()), |acc, e| Ok(acc? + e?));
+        todo!();
+    }
+
+    fn external_asset_value(
+        &self,
+        external_price_source: OraclePriceSource,
+    ) -> AbstractResult<Uint128> {
+        todo!()
     }
 
     /// Calculates the total value of an account's assets by efficiently querying the configured price sources
@@ -296,13 +324,13 @@ impl<'a> Oracle<'a> {
     /// 2. For each asset query it's balance, get the conversion ratios associated with that asset and load its cached values.
     /// 3. Using the conversion ratio convert the balance and cached values and save the resulting values in the cache for that lower complexity asset.
     /// 4. Repeat until the base asset is reached. (complexity = 0)
-    pub fn account_value(&mut self, deps: Deps, account: &Addr) -> AbstractResult<AccountValue> {
+    pub fn account_value(&mut self, deps: Deps) -> AbstractResult<TokensValueResponse> {
         // fist check that a base asset is registered
         let _ = self.base_asset(deps)?;
 
         // get the highest complexity
         let start_complexity = self.highest_complexity(deps)?;
-        self.complexity_value_calculation(deps, start_complexity, account)
+        self.complexity_value_calculation(deps, start_complexity, self.user)
     }
 
     /// Calculates the values of assets for a given complexity level
@@ -310,8 +338,8 @@ impl<'a> Oracle<'a> {
         &mut self,
         deps: Deps,
         complexity: u8,
-        account: &Addr,
-    ) -> AbstractResult<AccountValue> {
+        account: &str,
+    ) -> AbstractResult<TokensValueResponse> {
         let assets = self
             .complexity
             .load(deps.storage, (self.user, complexity))?;
@@ -324,17 +352,24 @@ impl<'a> Oracle<'a> {
             // add the balance to the cached balances
             cached_balances.push((asset.clone(), balance));
 
-            // get the conversion rates for this asset
-            let conversion_rates = price_source.conversion_rates(deps, &asset)?;
-            if conversion_rates.is_empty() {
+            if let PriceSource::Base = price_source {
                 // no conversion rates means this is the base asset, construct the account value and return
                 let total: Uint128 = cached_balances.iter().map(|(_, amount)| amount).sum();
 
-                return Ok(AccountValue {
-                    total_value: Asset::new(asset, total),
-                    breakdown: cached_balances,
+                return Ok(TokensValueResponse {
+                    tokens_value: TotalValue {
+                        total_value: total,
+                        breakdown: cached_balances,
+                    },
+                    // TODO:
+                    external_tokens_value: TotalValue {
+                        total_value: Uint128::zero(),
+                        breakdown: vec![],
+                    },
                 });
             }
+            // get the conversion rates for this asset
+            let conversion_rates = price_source.conversion_rates(deps, &asset)?;
             // convert the balance and cached values to this asset using the conversion rates
             self.update_cache(cached_balances, conversion_rates)?;
         }
@@ -525,6 +560,32 @@ impl<'a> Oracle<'a> {
         }
         Ok(base_asset[0].clone())
     }
+}
+
+#[derive(Default)]
+pub struct AssetValue {
+    pub base: Uint128,
+    pub external: Uint128,
+}
+
+impl std::ops::Add for AssetValue {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        AssetValue {
+            base: self.base + rhs.base,
+            external: self.base + rhs.base,
+        }
+    }
+}
+
+/// Total value
+#[cw_serde]
+pub struct TotalValue {
+    /// The total value in base denom or USD in case of external
+    pub total_value: Uint128,
+    /// Vec of asset information and their value in the base asset denomination
+    pub breakdown: Vec<(AssetInfo, Uint128)>,
 }
 
 #[cfg(test)]
