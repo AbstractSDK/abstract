@@ -74,9 +74,8 @@ pub enum MoneyMarketExecuteMsg {
 
 /// Query messages for the dex adapter
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg)]
 pub enum MoneyMarketQueryMsg {
     /// Endpoint can be used by front-end to easily interact with contracts.
     /// Returns [`GenerateMessagesResponse`]

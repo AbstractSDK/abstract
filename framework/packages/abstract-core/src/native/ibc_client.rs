@@ -66,7 +66,7 @@ pub struct InstantiateMsg {
 pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Update the ownership.
     UpdateOwnership(cw_ownable::Action),
@@ -138,8 +138,7 @@ pub enum IbcClientCallback {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[derive(QueryResponses)]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
     /// Queries the ownership of the ibc client contract
     /// Returns [`cw_ownable::Ownership<Addr>`]

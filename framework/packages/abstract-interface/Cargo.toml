@@ -23,7 +23,7 @@ thiserror = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
 cw-address-like = { workspace = true }
-abstract-core = { workspace = true, features = ["interface"] }
+abstract-core = { workspace = true }
 
 cw-orch = { workspace = true }
 log = "0.4.14"

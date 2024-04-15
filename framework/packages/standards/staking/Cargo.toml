@@ -15,7 +15,6 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-interface = ["dep:abstract-interface", "dep:cw-orch"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]
@@ -32,8 +31,7 @@ cw-utils = "1.0.1"
 abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter-utils = { workspace = true }
-cw-orch = { workspace = true, optional = true }
-abstract-interface = { path = "../../abstract-interface", version = "0.21.0", optional = true }
+cw-orch = { workspace = true }
 abstract-adapter = { path = "../../abstract-adapter", version = "0.21.0" }
 
 [dev-dependencies]

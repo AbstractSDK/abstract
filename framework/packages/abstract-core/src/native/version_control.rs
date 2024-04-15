@@ -101,7 +101,7 @@ pub struct InstantiateMsg {
 /// Version Control Execute Msg
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Remove some version of a module
     RemoveModule { module: ModuleInfo },
@@ -184,8 +184,7 @@ pub struct ModuleFilter {
 /// Version Control Query Msg
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
     /// Query Core of an Account
     /// Returns [`AccountBaseResponse`]

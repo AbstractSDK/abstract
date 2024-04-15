@@ -71,7 +71,7 @@ pub struct InstantiateMsg {
 /// Account Factory execute messages
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Update config
     UpdateConfig {
@@ -86,7 +86,7 @@ pub enum ExecuteMsg {
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
-    #[cfg_attr(feature = "interface", payable)]
+    #[payable]
     CreateAccount {
         // Governance details
         governance: GovernanceDetails<String>,
@@ -115,8 +115,7 @@ pub enum ExecuteMsg {
 /// Account Factory query messages
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
