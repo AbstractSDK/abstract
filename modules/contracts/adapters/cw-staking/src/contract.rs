@@ -25,11 +25,3 @@ pub const CW_STAKING_ADAPTER: CwStakingAdapter =
 // Export the endpoints for this contract
 #[cfg(feature = "export")]
 export_endpoints!(CW_STAKING_ADAPTER, CwStakingAdapter);
-
-#[cfg(feature = "interface")]
-abstract_adapter::cw_orch_interface!(
-    CW_STAKING_ADAPTER,
-    crate::contract::CwStakingAdapter,
-    Empty,
-    CwStakingAdapter
-);

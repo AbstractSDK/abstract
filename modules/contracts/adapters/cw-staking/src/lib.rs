@@ -29,12 +29,59 @@ pub mod interface {
         adapter,
         objects::{AnsAsset, AssetEntry},
     };
-    use abstract_interface::{AbstractAccount, AbstractInterfaceError};
-    use cw_orch::prelude::*;
+    use abstract_interface::{
+        AbstractAccount, AbstractInterfaceError, AdapterDeployer, RegisteredModule,
+    };
+    use abstract_sdk::{base::Handler, features::ModuleIdentification as _};
+    use cosmwasm_std::Empty;
+    use cw_orch::{build::BuildPostfix, contract::Contract, interface, prelude::*};
 
-    pub use crate::contract::interface::CwStakingAdapter;
-    use crate::msg::{StakingAction, StakingExecuteMsg};
+    use crate::{
+        contract::CW_STAKING_ADAPTER,
+        msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg},
+    };
 
+    /// Contract wrapper for interacting with BOOT
+    #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+    pub struct CwStakingAdapter<Chain>;
+
+    impl<Chain: CwEnv> AdapterDeployer<Chain, Empty> for CwStakingAdapter<Chain> {}
+
+    impl<Chain: CwEnv> Uploadable for CwStakingAdapter<Chain> {
+        fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+            Box::new(ContractWrapper::new_with_empty(
+                crate::contract::execute,
+                crate::contract::instantiate,
+                crate::contract::query,
+            ))
+        }
+        fn wasm(&self) -> WasmPath {
+            artifacts_dir_from_workspace!()
+                .find_wasm_path_with_build_postfix(
+                    "abstract_cw_staking",
+                    BuildPostfix::<Chain>::ChainName(self.get_chain()),
+                )
+                .unwrap()
+        }
+    }
+
+    impl<Chain: CwEnv> RegisteredModule for CwStakingAdapter<Chain> {
+        type InitMsg = <crate::contract::CwStakingAdapter as Handler>::CustomInitMsg;
+
+        fn module_id<'a>() -> &'a str {
+            CW_STAKING_ADAPTER.module_id()
+        }
+
+        fn module_version<'a>() -> &'a str {
+            CW_STAKING_ADAPTER.version()
+        }
+    }
+
+    impl<Chain: CwEnv> From<Contract<Chain>> for CwStakingAdapter<Chain> {
+        fn from(contract: Contract<Chain>) -> Self {
+            Self(contract)
+        }
+    }
     /// implement chain-generic functions
     impl<Chain: CwEnv> CwStakingAdapter<Chain>
     where
