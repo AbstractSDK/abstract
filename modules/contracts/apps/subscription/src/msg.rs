@@ -100,8 +100,8 @@ pub enum SubscriptionExecuteMsg {
 
 /// Subscriptions query messages
 #[cosmwasm_schema::cw_serde]
-#[impl_into(QueryMsg)]
 #[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg)]
 pub enum SubscriptionQueryMsg {
     /// Get state of subscriptions and contributors
     /// Returns [`StateResponse`]

@@ -136,6 +136,6 @@ dex = { path = ".", features = [
 
 abstract-wyndex-adapter = { workspace = true, features = ["local"] }
 
-cw20 = { workspace = true, features = ["interface"] }
-cw20-base = { workspace = true, features = ["interface"] }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
 cw-utils = { workspace = true }

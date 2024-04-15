@@ -126,5 +126,5 @@ cw-staking = { path = ".", features = [
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 wyndex-bundle = { workspace = true }
-cw20 = { workspace = true, features = ["interface"] }
-cw20-base = { workspace = true, features = ["interface"] }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }

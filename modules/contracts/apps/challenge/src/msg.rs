@@ -84,8 +84,8 @@ pub enum ChallengeExecuteMsg {
 
 /// Challenge query messages
 #[cosmwasm_schema::cw_serde]
-#[impl_into(QueryMsg)]
 #[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg)]
 pub enum ChallengeQueryMsg {
     /// Get challenge info, will return null if there was no challenge by Id
     /// Returns [`ChallengeResponse`]
