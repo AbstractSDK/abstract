@@ -43,7 +43,10 @@
 - [Abstract Client](./4_get_started/5_abstract_client.md)
 - [Deployment](./4_get_started/7_module_deployment.md)
 - [Dependencies](./4_get_started/8_dependencies.md)
-
+- [Modules](./modules/index.md)
+    - [CW Staking](./modules/cw-staking.md)
+    - [Dex](./modules/dex.md)
+    - [Subscription](./modules/subscription.md)
 
 # Case Studies
 ---

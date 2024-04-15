@@ -87,6 +87,9 @@ abstract-cw-staking = { path = "../modules/contracts/adapters/cw-staking", featu
 abstract-dex-adapter = { path = "../modules/contracts/adapters/dex", features = [
   "interface",
 ] }
+abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market", features = [
+  "interface",
+] }
 
 ## Testing
 rstest = "0.17.0"

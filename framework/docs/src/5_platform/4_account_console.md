@@ -52,3 +52,6 @@ You can easily claim your namespace by going to your Account on our website and 
 the account page. You will be asked to pay a small fee to claim your namespace. This fee is used to prevent namespace
 squatting and to help us maintain the Abstract ecosystem.
 
+```admonish info
+Please be aware that you need access to claim namespace on mainnet. Reach out to us on [discord](https://discord.com/invite/uch3Tq3aym) or drop us a mail at [support@abstract.money](mailto:support@abstract.money?subject=Namespace) if you are planning to claim a namespace on mainnet.
+```

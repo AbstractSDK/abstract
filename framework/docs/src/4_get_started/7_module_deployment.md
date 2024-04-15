@@ -42,8 +42,13 @@ you used to create the account and register the namespace.
 
 ## JSON Schema Linking
 
-To improve the user-experience for developers using your module we recommend linking your module's JSON schema to the
-Abstract Version Control. This will allow developers (and you) to use the Abstract web app to interact with your module.
+To improve the user-experience for developers using your module we recommend linking your module's JSON schema to the Abstract Version Control. This will allow developers (and you) to use the Abstract web app to interact with your module.
+
+```admonish warning
+You need to install [github cli](https://cli.github.com/) for this step.
+
+Follow [these install instructions](https://github.com/cli/cli#installation) as per your operating system needs.
+```
 
 To link your module's schema you can run the following command:
 

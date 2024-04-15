@@ -735,6 +735,27 @@ mod test {
         .unwrap();
     }
 
+    pub const THIRD_ACC_MANAGER: &str = "third-manager";
+    pub const THIRD_ACC_PROXY: &str = "third-proxy";
+    pub const THIRD_ACC_ID: AccountId = AccountId::const_new(3, AccountTrace::Local);
+
+    fn create_third_account(deps: DepsMut<'_>) {
+        // create second account
+        execute_as(
+            deps,
+            TEST_ACCOUNT_FACTORY,
+            ExecuteMsg::AddAccount {
+                account_id: SECOND_TEST_ACCOUNT_ID,
+                account_base: AccountBase {
+                    manager: Addr::unchecked(THIRD_ACC_MANAGER),
+                    proxy: Addr::unchecked(THIRD_ACC_PROXY),
+                },
+                namespace: None,
+            },
+        )
+        .unwrap();
+    }
+
     fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> VCResult {
         contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
@@ -872,6 +893,40 @@ mod test {
             assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
             let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace2)?;
             assert_that!(account_id).is_equal_to(SECOND_TEST_ACCOUNT_ID);
+            Ok(())
+        }
+
+        #[test]
+        fn fail_claim_permissioned_namespaces() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), false)?;
+            let new_namespace1 = Namespace::new("namespace1").unwrap();
+            let msg = ExecuteMsg::ClaimNamespace {
+                account_id: TEST_ACCOUNT_ID,
+                namespace: new_namespace1.to_string(),
+            };
+            // OWNER is also admin of the contract so this succeeds
+            let res = execute_as(deps.as_mut(), OWNER, msg);
+            assert_that!(&res).is_ok();
+
+            let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace1)?;
+            assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
+
+            create_third_account(deps.as_mut());
+
+            let new_namespace2 = Namespace::new("namespace2").unwrap();
+
+            let msg = ExecuteMsg::ClaimNamespace {
+                account_id: THIRD_ACC_ID,
+                namespace: new_namespace2.to_string(),
+            };
+
+            let res = execute_as(deps.as_mut(), THIRD_ACC_MANAGER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::Ownership(OwnershipError::NotOwner));
+
             Ok(())
         }
 

@@ -41,13 +41,18 @@ Read the [CI](./CI.md) document for more information.
 
 ## Documentation
 
+Please install [just command runner](https://github.com/casey/just) before proceeding if you have not already:
+```sh
+cargo install just
+```
+
 The documentation is generated using [mdbook](https://rust-lang.github.io/mdBook/index.html).  
-You can install mdbook and the mermaid pre-processor by running `just install-docs`.
+You can install mdbook and the mermaid pre-processor by running `just docs-install`.
 
 Then you can edit the files in the `docs/src` folder and run
 
 ```shell
-just serve-docs
+just docs-serve
 ```
 
 This will serve you the documentation and automatically re-compiles it when you make changes.
