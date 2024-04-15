@@ -7,10 +7,10 @@ use crate::{
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 pub fn instantiate_handler(
-    deps: DepsMut,
+    mut deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    adapter: OracleAdapter,
+    _adapter: OracleAdapter,
     msg: OracleInstantiateMsg,
 ) -> OracleResult {
     let OracleInstantiateMsg {
@@ -19,8 +19,8 @@ pub fn instantiate_handler(
     } = msg;
 
     // Save config
-    let oracle = Oracle::new("");
-    oracle.update_config(deps, external_age_max)?;
+    let oracle = Oracle::default();
+    oracle.update_config(deps.branch(), external_age_max)?;
 
     // Save addresses of providers
     for (provider, human_addr) in providers {
