@@ -62,6 +62,21 @@ impl<'a, T: ModuleIdentification + AbstractNameService> AbstractNameServiceClien
             .resolve(&self.deps.querier, &self.host)
             .map_err(|error| self.wrap_query_error(error))
     }
+
+    /// Returns if the entry is registered on the ANS.
+    /// Will return an Err if the query failed for technical reasons (like a wrong address or state parsing error).
+    /// Will return true if found.
+    /// Will return false if not found.
+    pub fn is_registered(&self, entry: &impl Resolve) -> bool {
+        entry.is_registered(&self.deps.querier, &self.host)
+    }
+    /// Assert that an entry is registered on the ANS. Will return an Err if the entry is not registered.
+    pub fn assert_registered(&self, entry: &impl Resolve) -> AbstractSdkResult<()> {
+        entry
+            .assert_registered(&self.deps.querier, &self.host)
+            .map_err(|error| self.wrap_query_error(error))
+    }
+
     /// Get AnsHost
     pub fn host(&self) -> &AnsHost {
         &self.host

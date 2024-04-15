@@ -157,16 +157,17 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
     }
 }
 
-impl<T: AddressLike> ToString for GovernanceDetails<T> {
-    fn to_string(&self) -> String {
-        match self {
+impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             GovernanceDetails::Monarchy { .. } => "monarch".to_string(),
             GovernanceDetails::SubAccount { .. } => "sub-account".to_string(),
             GovernanceDetails::External {
                 governance_type, ..
             } => governance_type.to_owned(),
             GovernanceDetails::Renounced {} => "renounced".to_string(),
-        }
+        };
+        write!(f, "{}", str)
     }
 }
 

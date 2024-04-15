@@ -174,6 +174,17 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(found)
     }
 
+    /// Get the address of a module
+    /// Will err when not installed.
+    pub fn module_address(
+        &self,
+        module_id: impl Into<String>,
+    ) -> Result<Addr, crate::AbstractInterfaceError> {
+        Ok(self.module_addresses(vec![module_id.into()])?.modules[0]
+            .1
+            .clone())
+    }
+
     pub fn is_module_installed(
         &self,
         module_id: &str,
