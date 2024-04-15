@@ -63,10 +63,10 @@ pub struct SubscriptionInstantiateMsg {
 
 /// App execution messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
+#[derive(cw_orch::ExecuteFns)]
+#[impl_into(ExecuteMsg)]
 pub enum SubscriptionExecuteMsg {
-    #[cfg_attr(feature = "interface", payable)]
+    #[payable]
     /// Subscriber payment
     Pay {
         /// Address of new subscriber
@@ -100,9 +100,8 @@ pub enum SubscriptionExecuteMsg {
 
 /// Subscriptions query messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
-#[derive(QueryResponses)]
+#[impl_into(QueryMsg)]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum SubscriptionQueryMsg {
     /// Get state of subscriptions and contributors
     /// Returns [`StateResponse`]

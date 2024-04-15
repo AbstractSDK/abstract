@@ -5,7 +5,7 @@ mod staking;
 
 pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
 
-#[cfg(feature = "interface")]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
 
     use abstract_interface::AdapterDeployer;

@@ -16,7 +16,6 @@ crate-type = ["cdylib", "rlib"]
 
 [[example]]
 name = "deploy"
-required-features = ["interface"]
 
 [[example]]
 name = "schema"
@@ -25,14 +24,8 @@ required-features = ["schema"]
 [features]
 default = ["export"]
 export = []
-interface = [
-  "dep:abstract-interface",
-  "dep:cw-orch",
-  "export",
-  "abstract-dex-standard/interface",
-]
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw-orch", "dep:cw20", "dep:serde_json"]
+testing = ["dep:abstract-client", "dep:cw20", "dep:serde_json"]
 
 # Supported Dexes
 wynd = [
@@ -87,11 +80,11 @@ cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 
-abstract-interface = { workspace = true, optional = true }
+abstract-interface = { workspace = true }
 abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true }
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true }
 
 # Local
 abstract-dex-standard = { workspace = true }
@@ -137,7 +130,6 @@ wyndex-bundle = { workspace = true }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 dex = { path = ".", features = [
-  "interface",
   "wynd",
   "osmosis",
 ], package = "abstract-dex-adapter" }

@@ -18,7 +18,6 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-interface = ["dep:abstract-interface", "dep:cw-orch", "export"]
 schema = ["abstract-adapter/schema"]
 
 
@@ -31,8 +30,8 @@ abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true }
 
-cw-orch = { workspace = true, optional = true }
-abstract-interface = { workspace = true, optional = true }
+cw-orch = { workspace = true }
+abstract-interface = { workspace = true }
 
 [dev-dependencies]
 abstract-adapter = { workspace = true, features = ["schema"] }

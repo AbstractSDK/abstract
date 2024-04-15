@@ -20,7 +20,7 @@ pub mod host_exchange {
 #[cfg(feature = "testing")]
 pub mod dex_tester;
 
-#[cfg(feature = "interface")]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*};
     use abstract_core::{

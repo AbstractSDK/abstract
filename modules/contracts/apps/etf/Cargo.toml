@@ -15,17 +15,10 @@ required-features = ["schema"]
 
 [[example]]
 name = "deploy"
-required-features = ["interface"]
 
 [features]
 default = ["export"]
 export = []
-interface = [
-  "export",
-  "dep:abstract-interface",
-  "dep:cw-orch",
-  "abstract-app/interface-macro",
-]
 schema = ["abstract-app/schema"]
 
 [dependencies]
@@ -44,8 +37,9 @@ abstract-core = { workspace = true }
 abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
 
-cw-orch = { workspace = true, optional = true }
-abstract-interface = { workspace = true, optional = true }
+# Dependencies for interface
+cw-orch = { workspace = true }
+abstract-interface = { workspace = true }
 
 [dev-dependencies]
 cw20-base = { workspace = true, features = ["interface"] }
@@ -60,5 +54,5 @@ env_logger = "0.10.0"
 dotenv = "0.15.0"
 clap = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
-etf-app = { path = ".", features = ["interface"] }
+etf-app = { path = "." }
 cw-plus-interface.workspace = true

@@ -36,12 +36,6 @@ required-features = ["schema"]
 [features]
 default = ["export"]
 export = []
-interface = [
-  "export",
-  "dep:abstract-interface",
-  "dep:cw-orch",
-  "abstract-app/interface-macro",
-]
 schema = ["abstract-app/schema"]
 
 [dependencies]
@@ -62,8 +56,8 @@ abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
 
 # Dependencies for interface
-abstract-interface = { workspace = true, optional = true }
-cw-orch = { workspace = true, optional = true }
+abstract-interface = { workspace = true }
+cw-orch = { workspace = true }
 
 # Croncat dependencies
 croncat-sdk-factory = { version = "1.0.4" }
@@ -75,7 +69,7 @@ croncat-factory = { version = "1.0.4", features = ["library"] }
 croncat-manager = { version = "1.0.4", features = ["library"] }
 
 [dev-dependencies]
-croncat-app = { path = ".", features = ["interface"] }
+croncat-app = { path = "." }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }

@@ -19,8 +19,8 @@ pub struct AppInstantiateMsg {}
 
 /// Croncat execute messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
+#[derive(cw_orch::ExecuteFns)]
+#[impl_into(ExecuteMsg)]
 pub enum AppExecuteMsg {
     /// Update config
     /// currently this method is just placeholder
@@ -56,9 +56,8 @@ pub enum AppExecuteMsg {
 
 /// Croncat Query Messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
-#[derive(QueryResponses)]
+#[impl_into(QueryMsg)]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum AppQueryMsg {
     /// Get config
     /// Returns [`ConfigResponse`]

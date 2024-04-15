@@ -6,7 +6,7 @@ pub mod state;
 
 pub use error::SubscriptionError;
 
-#[cfg(feature = "interface")]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
     use std::str::FromStr;
 

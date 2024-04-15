@@ -14,7 +14,7 @@ pub use abstract_money_market_standard::MONEY_MARKET_ADAPTER_ID;
 // Export interface for use in SDK modules
 pub use crate::api::MoneyMarketInterface;
 
-#[cfg(feature = "interface")]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
     use crate::{contract::MONEY_MARKET_ADAPTER, msg::*};
     use abstract_interface::{AdapterDeployer, RegisteredModule};

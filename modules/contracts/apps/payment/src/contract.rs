@@ -43,5 +43,4 @@ const APP: PaymentApp = PaymentApp::new(APP_ID, APP_VERSION, None)
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(APP, PaymentApp);
 
-#[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(APP, PaymentApp, PaymentAppInterface);

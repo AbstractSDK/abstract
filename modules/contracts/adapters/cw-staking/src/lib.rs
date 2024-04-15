@@ -21,7 +21,7 @@ pub use abstract_staking_standard::error;
 #[cfg(feature = "testing")]
 pub mod staking_tester;
 
-#[cfg(feature = "interface")]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
     use abstract_core::{
         adapter,
