@@ -2,7 +2,7 @@
 pub const WYNDEX: &str = "wyndex";
 
 #[cfg(feature = "local")]
-pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::LOCAL_CHAIN;
+pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::LOCAL;
 #[cfg(not(feature = "local"))]
 pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::JUNO;
 

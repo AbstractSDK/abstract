@@ -54,13 +54,18 @@ pub mod archway {
     pub const ARCHWAY: &[&str] = &[ARCHWAY_MAINNET, ARCHWAY_TESTNET];
 }
 
+pub mod local {
+    pub const MOCK_CHAIN: &str = "cosmos-testnet";
+    pub const LOCAL: &[&str] = &[MOCK_CHAIN];
+}
+
 pub use archway::ARCHWAY;
 pub use juno::JUNO;
 pub use kujira::KUJIRA;
+pub use local::LOCAL;
 pub use neutron::NEUTRON;
 pub use osmosis::OSMOSIS;
 pub use terra::TERRA;
-pub const MOCK_CHAIN: &str = "cosmos-testnet";
 
 /// Useful when deploying version control
 #[allow(unused)]
