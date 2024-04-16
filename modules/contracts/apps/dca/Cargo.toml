@@ -31,9 +31,8 @@ export = []
 node-tests = ["interface"]
 interface = [
   "export",
-  "dep:abstract-interface",
   "dep:cw-orch",
-  "abstract-app/interface-macro",
+  "abstract-app/test-utils",
 ]
 schema = ["abstract-app/schema"]
 
@@ -45,21 +44,15 @@ cw-storage-plus = { workspace = true }
 thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
-
-abstract-core = { workspace = true }
 abstract-app = { workspace = true }
-abstract-sdk = { workspace = true }
 
 # Dependencies for interface
-abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 croncat-app = { workspace = true, default-features = false }
 abstract-dex-adapter = { workspace = true, default-features = false }
 
 [dev-dependencies]
 dca-app = { path = ".", features = ["interface"] }
-abstract-interface = { workspace = true, features = ["daemon"] }
-abstract-testing = { workspace = true }
 abstract-client = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 speculoos = "0.11.0"

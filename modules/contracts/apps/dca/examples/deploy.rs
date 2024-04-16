@@ -1,4 +1,4 @@
-use abstract_interface::{AppDeployer, DeployStrategy};
+use abstract_app::abstract_interface::{AppDeployer, DeployStrategy};
 use cw_orch::{
     anyhow,
     prelude::{networks::parse_network, DaemonBuilder},

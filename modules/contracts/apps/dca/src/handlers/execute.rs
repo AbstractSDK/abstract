@@ -1,8 +1,8 @@
 #![allow(clippy::too_many_arguments)]
 
-use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
+use abstract_app::abstract_core::objects::{AnsAsset, AssetEntry, DexName};
 use abstract_dex_adapter::api::DexInterface;
-use abstract_sdk::{
+use abstract_app::abstract_sdk::{
     features::{AbstractNameService, AbstractResponse},
     AbstractSdkResult,
 };
