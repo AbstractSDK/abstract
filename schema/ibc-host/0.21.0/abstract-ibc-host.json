@@ -780,14 +780,11 @@
               "dispatch": {
                 "type": "object",
                 "required": [
-                  "manager_msgs"
+                  "manager_msg"
                 ],
                 "properties": {
-                  "manager_msgs": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/ExecuteMsg"
-                    }
+                  "manager_msg": {
+                    "$ref": "#/definitions/ExecuteMsg"
                   }
                 },
                 "additionalProperties": false
