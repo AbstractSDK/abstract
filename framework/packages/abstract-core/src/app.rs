@@ -58,7 +58,7 @@ pub struct BaseInstantiateMsg {
 
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-#[ impl_into(ExecuteMsg<T>)]
+#[impl_into(ExecuteMsg<T>)]
 pub enum BaseExecuteMsg {
     /// Updates the base config
     UpdateConfig {
