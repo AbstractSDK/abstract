@@ -543,18 +543,21 @@ pub fn update_config(
     if let Some(fee) = namespace_registration_fee {
         let previous_fee = config.namespace_registration_fee;
         let fee: Option<Coin> = fee.into();
-        config.namespace_registration_fee = fee.clone();
+        config.namespace_registration_fee = fee;
         attributes.extend(vec![
             (
                 "previous_namespace_registration_fee",
                 format!("{:?}", previous_fee),
             ),
-            ("namespace_registration_fee", format!("{fee:?}")),
+            (
+                "namespace_registration_fee",
+                format!("{:?}", config.namespace_registration_fee),
+            ),
         ])
     }
 
     if let Some(account_factory) = account_factory_address {
-        let previous_addr = config.account_factory_address.clone();
+        let previous_addr = config.account_factory_address;
 
         let addr = deps.api.addr_validate(&account_factory)?;
         config.account_factory_address = Some(addr);

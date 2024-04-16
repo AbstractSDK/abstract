@@ -150,6 +150,7 @@ pub struct AssetInfoFilter {}
 
 /// Filter on the pool metadatas
 #[cosmwasm_schema::cw_serde]
+#[derive(Default)]
 pub struct PoolMetadataFilter {
     /// Filter by pool type
     pub pool_type: Option<PoolType>,
