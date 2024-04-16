@@ -3333,10 +3333,7 @@ name = "dca-app"
 version = "0.3.0"
 dependencies = [
  "abstract-app",
- "abstract-core",
  "abstract-dex-adapter",
- "abstract-interface",
- "abstract-sdk",
  "cosmwasm-schema",
  "cosmwasm-std",
  "croncat-app",

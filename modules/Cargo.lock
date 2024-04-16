@@ -2921,11 +2921,8 @@ version = "0.3.0"
 dependencies = [
  "abstract-app",
  "abstract-client",
- "abstract-core",
  "abstract-dex-adapter",
- "abstract-interface",
  "abstract-sdk",
- "abstract-testing",
  "cosmwasm-schema",
  "cosmwasm-std",
  "croncat-agents",
