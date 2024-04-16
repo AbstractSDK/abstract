@@ -1,7 +1,7 @@
-use abstract_app::AppContract;
 use abstract_app::abstract_core::objects::dependency::StaticDependency;
 #[cfg(feature = "interface")]
 use abstract_app::abstract_core::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
+use abstract_app::AppContract;
 use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "interface")]
 use croncat_app::contract::interface::Croncat;
@@ -51,7 +51,8 @@ impl<Chain: cw_orch::environment::CwEnv> abstract_app::abstract_interface::Depen
 
     fn dependency_install_configs(
         _configuration: Self::DependenciesConfig,
-    ) -> Result<Vec<ModuleInstallConfig>, abstract_app::abstract_interface::AbstractInterfaceError> {
+    ) -> Result<Vec<ModuleInstallConfig>, abstract_app::abstract_interface::AbstractInterfaceError>
+    {
         let croncat_dependency_install_configs: Vec<ModuleInstallConfig> =
             <Croncat<Chain> as abstract_app::abstract_interface::DependencyCreation>::dependency_install_configs(
                 cosmwasm_std::Empty {},

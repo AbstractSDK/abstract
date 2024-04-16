@@ -1,17 +1,20 @@
 mod common;
 
-use abstract_client::{AbstractClient, Account};
-use abstract_app::{abstract_core::{
-    app::BaseQueryMsgFns,
-    objects::{
-        ans_host::AnsHostError, dependency::DependencyResponse, gov_type::GovernanceDetails,
-        module_version::ModuleDataResponse, AccountId, AnsAsset, AssetEntry, DexAssetPairing,
-        PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
-    },
-}, abstract_interface::DeployStrategy};
-use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_app::abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use abstract_app::abstract_sdk::AbstractSdkError;
+use abstract_app::{
+    abstract_core::{
+        app::BaseQueryMsgFns,
+        objects::{
+            ans_host::AnsHostError, dependency::DependencyResponse, gov_type::GovernanceDetails,
+            module_version::ModuleDataResponse, AccountId, AnsAsset, AssetEntry, DexAssetPairing,
+            PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
+        },
+    },
+    abstract_interface::DeployStrategy,
+};
+use abstract_client::{AbstractClient, Account};
+use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use common::contracts;
 use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, StdError, Uint128};
 use croncat_app::{
