@@ -7,7 +7,7 @@ pub mod state;
 pub mod msg {
     pub use abstract_money_market_standard::msg::*;
 }
-#[cfg(feature = "testing")]
+#[cfg(feature = "test-utils")]
 pub mod tester;
 pub use abstract_money_market_standard::MONEY_MARKET_ADAPTER_ID;
 

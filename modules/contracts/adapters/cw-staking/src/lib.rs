@@ -18,7 +18,7 @@ pub mod host_staking {
 
 pub use abstract_staking_standard::error;
 
-#[cfg(feature = "testing")]
+#[cfg(feature = "test-utils")]
 pub mod staking_tester;
 
 #[cfg(feature = "interface")]

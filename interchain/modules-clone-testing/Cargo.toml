@@ -23,17 +23,17 @@ lazy_static = "1.4.0"
 
 # # Clone testing
 abstract-dex-adapter = { workspace = true, features = [
-  "testing",
+  "test-utils",
   "astroport",
   "bow",
 ] }
 abstract-cw-staking = { workspace = true, features = [
-  "testing",
+  "test-utils",
   "astroport",
   "bow",
 ] }
 abstract-money-market-adapter = { workspace = true, features = [
-  "testing",
+  "test-utils",
   "mars",
   "cavern",
 ] }

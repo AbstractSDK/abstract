@@ -32,7 +32,13 @@ interface = [
   "abstract-dex-standard/interface",
 ]
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw-orch", "dep:cw20", "dep:serde_json"]
+testing = ["abstract-wyndex-adapter/local", "abstract-astroport-adapter/local"]
+test-utils = [
+  "dep:abstract-client",
+  "dep:cw-orch",
+  "dep:cw20",
+  "dep:serde_json",
+]
 
 # Supported Dexes
 wynd = [

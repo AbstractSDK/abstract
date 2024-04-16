@@ -37,7 +37,8 @@ interface = [
   "abstract-staking-standard/interface",
 ]
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw-orch", "dep:cw20"]
+testing = ["abstract-wyndex-adapter/local"]
+test-utils = ["dep:abstract-client", "dep:cw-orch", "dep:cw20"]
 cw-orch = ["dep:cw-orch"]
 osmosis-test = ["cw-orch/osmosis-test-tube"]
 

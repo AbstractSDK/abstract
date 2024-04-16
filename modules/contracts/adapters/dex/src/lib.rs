@@ -17,7 +17,7 @@ pub mod host_exchange {
     pub use abstract_osmosis_adapter::dex::Osmosis;
 }
 
-#[cfg(feature = "testing")]
+#[cfg(feature = "test-utils")]
 pub mod dex_tester;
 
 #[cfg(feature = "interface")]

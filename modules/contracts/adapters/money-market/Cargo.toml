@@ -32,7 +32,7 @@ interface = [
   "abstract-money-market-standard/interface",
 ]
 schema = ["abstract-adapter/schema"]
-testing = ["interface", "dep:abstract-client", "dep:cw-orch", "dep:cw20"]
+test-utils = ["interface", "dep:abstract-client", "dep:cw-orch", "dep:cw20"]
 
 # Supported Moneymarkets
 mars = ["abstract-mars-adapter/full_integration"]
