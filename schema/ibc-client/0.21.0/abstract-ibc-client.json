@@ -419,52 +419,6 @@
               }
             },
             "additionalProperties": false
-          },
-          {
-            "description": "This calls into the native bank module for querying metadata for a specific bank token. Return value is DenomMetadataResponse",
-            "type": "object",
-            "required": [
-              "denom_metadata"
-            ],
-            "properties": {
-              "denom_metadata": {
-                "type": "object",
-                "required": [
-                  "denom"
-                ],
-                "properties": {
-                  "denom": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This calls into the native bank module for querying metadata for all bank tokens that have a metadata entry. Return value is AllDenomMetadataResponse",
-            "type": "object",
-            "required": [
-              "all_denom_metadata"
-            ],
-            "properties": {
-              "all_denom_metadata": {
-                "type": "object",
-                "properties": {
-                  "pagination": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/PageRequest"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
           }
         ]
       },
@@ -599,98 +553,6 @@
             "type": "string"
           }
         }
-      },
-      "DistributionQuery": {
-        "oneOf": [
-          {
-            "description": "See <https://github.com/cosmos/cosmos-sdk/blob/c74e2887b0b73e81d48c2f33e6b1020090089ee0/proto/cosmos/distribution/v1beta1/query.proto#L222-L230>",
-            "type": "object",
-            "required": [
-              "delegator_withdraw_address"
-            ],
-            "properties": {
-              "delegator_withdraw_address": {
-                "type": "object",
-                "required": [
-                  "delegator_address"
-                ],
-                "properties": {
-                  "delegator_address": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "See <https://github.com/cosmos/cosmos-sdk/blob/c74e2887b0b73e81d48c2f33e6b1020090089ee0/proto/cosmos/distribution/v1beta1/query.proto#L157-L167>",
-            "type": "object",
-            "required": [
-              "delegation_rewards"
-            ],
-            "properties": {
-              "delegation_rewards": {
-                "type": "object",
-                "required": [
-                  "delegator_address",
-                  "validator_address"
-                ],
-                "properties": {
-                  "delegator_address": {
-                    "type": "string"
-                  },
-                  "validator_address": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "See <https://github.com/cosmos/cosmos-sdk/blob/c74e2887b0b73e81d48c2f33e6b1020090089ee0/proto/cosmos/distribution/v1beta1/query.proto#L180-L187>",
-            "type": "object",
-            "required": [
-              "delegation_total_rewards"
-            ],
-            "properties": {
-              "delegation_total_rewards": {
-                "type": "object",
-                "required": [
-                  "delegator_address"
-                ],
-                "properties": {
-                  "delegator_address": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "See <https://github.com/cosmos/cosmos-sdk/blob/b0acf60e6c39f7ab023841841fc0b751a12c13ff/proto/cosmos/distribution/v1beta1/query.proto#L202-L210>",
-            "type": "object",
-            "required": [
-              "delegator_validators"
-            ],
-            "properties": {
-              "delegator_validators": {
-                "type": "object",
-                "required": [
-                  "delegator_address"
-                ],
-                "properties": {
-                  "delegator_address": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
       },
       "Empty": {
         "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
@@ -1510,34 +1372,6 @@
         "description": "Represents an Abstract namespace for modules",
         "type": "string"
       },
-      "PageRequest": {
-        "description": "Simplified version of the PageRequest type for pagination from the cosmos-sdk",
-        "type": "object",
-        "required": [
-          "limit",
-          "reverse"
-        ],
-        "properties": {
-          "key": {
-            "anyOf": [
-              {
-                "$ref": "#/definitions/Binary"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "limit": {
-            "type": "integer",
-            "format": "uint32",
-            "minimum": 0.0
-          },
-          "reverse": {
-            "type": "boolean"
-          }
-        }
-      },
       "QueryRequest_for_Empty": {
         "oneOf": [
           {
@@ -1572,18 +1406,6 @@
             "properties": {
               "staking": {
                 "$ref": "#/definitions/StakingQuery"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "distribution"
-            ],
-            "properties": {
-              "distribution": {
-                "$ref": "#/definitions/DistributionQuery"
               }
             },
             "additionalProperties": false
