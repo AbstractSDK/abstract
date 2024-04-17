@@ -19,7 +19,6 @@ pub mod interface {
     use crate::{contract::MONEY_MARKET_ADAPTER, msg::*};
     use abstract_interface::{AdapterDeployer, RegisteredModule};
     use abstract_sdk::features::ModuleIdentification;
-    use cosmwasm_std::Empty;
     use cw_orch::{build::BuildPostfix, interface};
     use cw_orch::{contract::Contract, prelude::*};
 

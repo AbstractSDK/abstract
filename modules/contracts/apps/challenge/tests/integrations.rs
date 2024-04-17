@@ -5,7 +5,7 @@ use abstract_app::{
         voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
         AssetEntry,
     },
-    abstract_interface::{Abstract, AbstractAccount, AppDeployer, *},
+    abstract_interface::*,
 };
 use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},

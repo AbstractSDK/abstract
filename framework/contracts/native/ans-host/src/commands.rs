@@ -393,12 +393,9 @@ mod test {
     }
 
     mod update_dexes {
-        use cosmwasm_std::{
-            testing::{MockApi, MockQuerier, MockStorage},
-            Empty, OwnedDeps,
-        };
-
         use super::*;
+
+        use cosmwasm_std::{testing::MockApi, Empty, OwnedDeps};
 
         #[test]
         fn register_dex() -> AnsHostTestResult {
@@ -714,12 +711,11 @@ mod test {
     }
 
     mod update_asset_addresses {
-        use abstract_core::objects::AssetEntry;
+        use super::*;
+
         use abstract_testing::map_tester::CwMapTesterBuilder;
         use cw_asset::{AssetError, AssetInfo, AssetInfoBase};
         use cw_storage_plus::Map;
-
-        use super::*;
 
         fn unchecked_asset_map_entry(
             name: &str,
@@ -1090,15 +1086,14 @@ mod test {
     }
 
     mod update_pools {
+        use super::*;
+
         use abstract_core::{
             ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry},
             objects::PoolType,
             AbstractResult,
         };
         use cosmwasm_std::{Api, Order};
-        use speculoos::assert_that;
-
-        use super::*;
 
         type UncheckedPoolMapEntry = (UncheckedPoolAddress, PoolMetadata);
 

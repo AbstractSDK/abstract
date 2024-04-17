@@ -72,8 +72,12 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 
 #[cfg(test)]
 mod test {
-    use cw_orch::interchain::MockBech32InterchainEnv;
+    use super::*;
 
+    use crate::{
+        setup::{ibc_abstract_setup, mock_test::logger_test_init},
+        JUNO, OSMOSIS, STARGAZE,
+    };
     use abstract_adapter::mock::MockAdapterI;
     use abstract_adapter::mock::MockQueryMsgFns as _;
     use abstract_app::mock::{
@@ -91,31 +95,19 @@ mod test {
             state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg, InfoResponse,
             ModuleAddressesResponse,
         },
-        objects::{
-            chain_name::ChainName, gov_type::GovernanceDetails, AccountId, UncheckedChannelEntry,
-        },
+        objects::{gov_type::GovernanceDetails, UncheckedChannelEntry},
         ICS20, PROXY,
     };
     use abstract_interface::AdapterDeployer;
-    use abstract_interface::{
-        AbstractAccount, AccountFactoryExecFns, AppDeployer, DeployStrategy, ManagerExecFns,
-        ManagerQueryFns, VCExecFns,
-    };
+    use abstract_interface::{AccountFactoryExecFns, AppDeployer, DeployStrategy, VCExecFns};
     use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
     use abstract_testing::prelude::*;
     use anyhow::Result as AnyResult;
-    use cosmwasm_std::{coins, to_json_binary, wasm_execute, Addr, Uint128};
-    use cw_orch::{mock::cw_multi_test::AppResponse, prelude::ContractInstance};
+    use cosmwasm_std::{coins, wasm_execute, Uint128};
+    use cw_orch::mock::cw_multi_test::AppResponse;
     use cw_orch_polytone::Polytone;
     use ibc_relayer_types::core::ics24_host::identifier::PortId;
     use polytone::handshake::POLYTONE_VERSION;
-
-    use super::*;
-    use crate::{
-        interchain_accounts::create_test_remote_account,
-        setup::{ibc_abstract_setup, mock_test::logger_test_init},
-        JUNO, OSMOSIS, STARGAZE,
-    };
 
     #[test]
     fn ibc_account_action() -> AnyResult<()> {

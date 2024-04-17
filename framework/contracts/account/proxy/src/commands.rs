@@ -163,19 +163,16 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResul
 
 #[cfg(test)]
 mod test {
+    use super::*;
+
+    use crate::{contract::execute, test_common::*};
     use abstract_core::proxy::ExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
-        testing::{
-            mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
-            MOCK_CONTRACT_ADDR,
-        },
+        testing::{mock_dependencies, mock_env, mock_info, MockApi, MOCK_CONTRACT_ADDR},
         Addr, OwnedDeps, Storage,
     };
     use speculoos::prelude::*;
-
-    use super::*;
-    use crate::{contract::execute, test_common::*};
 
     const TEST_MODULE: &str = "module";
 
@@ -191,10 +188,9 @@ mod test {
     }
 
     mod add_module {
-        use cosmwasm_std::{testing::mock_dependencies, Addr};
-        use cw_controllers::AdminError;
-
         use super::*;
+
+        use cw_controllers::AdminError;
 
         #[test]
         fn only_admin_can_add_module() {
@@ -277,7 +273,6 @@ mod test {
 
     mod remove_module {
         use abstract_core::proxy::state::State;
-        use cosmwasm_std::{testing::mock_dependencies, Addr};
         use cw_controllers::AdminError;
 
         use super::*;
@@ -400,11 +395,10 @@ mod test {
     }
 
     mod execute_ibc {
-        use abstract_core::{manager, proxy::state::State};
-        use abstract_testing::{prelude::TEST_MANAGER, MockQuerierBuilder};
-        use cosmwasm_std::{coins, to_json_binary, SubMsg};
-
         use super::*;
+
+        use abstract_core::{manager, proxy::state::State};
+        use cosmwasm_std::coins;
 
         #[test]
         fn add_module() {

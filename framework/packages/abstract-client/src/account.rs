@@ -42,7 +42,7 @@ use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
     InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
 };
-use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{

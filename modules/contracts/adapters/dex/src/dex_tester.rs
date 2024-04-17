@@ -17,7 +17,11 @@ use abstract_dex_standard::{
 use abstract_interface::{AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
 use cosmwasm_std::{coins, from_json, BankMsg, CosmosMsg, Decimal, Uint128, WasmMsg};
 use cw_asset::AssetInfoUnchecked;
-use cw_orch::{anyhow, environment::MutCwEnv, prelude::*};
+use cw_orch::{environment::MutCwEnv, prelude::*};
+
+// TODO: beta clippy trips here, try again later
+#[allow(unused_imports)]
+use cw_orch::anyhow;
 
 pub trait MockDex {
     /// Name of the dex
