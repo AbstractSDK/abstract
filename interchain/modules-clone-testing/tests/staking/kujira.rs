@@ -9,7 +9,7 @@ use abstract_cw_staking::staking_tester::{MockStaking, StakingTester};
 use abstract_interface::ExecuteMsgFns;
 use abstract_modules_interchain_tests::common::load_abstr;
 use anyhow::Ok;
-use cosmwasm_std::{coin, coins, Addr, Decimal, Uint128};
+use cosmwasm_std::{coin, coins, Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::daemon::networks::HARPOON_4;
 use cw_orch::prelude::*;

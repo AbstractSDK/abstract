@@ -13,7 +13,6 @@ use abstract_interface::{
 };
 use abstract_testing::prelude::*;
 use anyhow::Ok;
-use cosmwasm_std::{to_json_binary, Addr};
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
 // owner of the abstract infra
