@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   
 ### Changed
 
+- Contracts now optimized for size(`s`) instead of performance(`3`)
+
 ### Removed
 
 ### Fixed
