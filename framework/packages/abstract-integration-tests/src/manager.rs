@@ -6,7 +6,6 @@ use abstract_core::{
     manager::{ModuleInstallConfig, ModuleVersionsResponse},
     module_factory::SimulateInstallModulesResponse,
     objects::{
-        account::TEST_ACCOUNT_ID,
         fee::FixedFee,
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion, Monetization},
@@ -27,9 +26,7 @@ use speculoos::prelude::*;
 
 use crate::{
     add_mock_adapter_install_fee, create_default_account, init_mock_adapter, install_adapter,
-    install_adapter_with_funds, install_module_version,
-    mock_modules::{standalone_cw2, *},
-    AResult,
+    install_adapter_with_funds, install_module_version, mock_modules::*, AResult,
 };
 
 pub mod mock_app {

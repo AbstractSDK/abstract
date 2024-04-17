@@ -260,9 +260,8 @@ mod tests {
 
     // TODO: abstract_testing has a circular dependency with this package, and so the mockAns host is unable to be used.
     mod check {
-        use cosmwasm_std::testing::mock_dependencies;
-
         use super::*;
+
         use crate::{
             ans_host,
             objects::{ans_host::AnsHostError, pool_id::PoolAddressBase},

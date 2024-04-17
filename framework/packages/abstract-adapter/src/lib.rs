@@ -33,7 +33,7 @@ pub mod mock {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
-        to_json_binary, DepsMut, Empty, Response, StdError,
+        DepsMut, Response, StdError,
     };
     use cw_orch::{contract::Contract, prelude::*};
     use cw_storage_plus::Item;

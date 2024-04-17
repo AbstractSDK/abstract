@@ -526,11 +526,12 @@ pub struct AccountValue {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::{prelude::*, MockAnsHost};
-    use cosmwasm_std::{coin, testing::*, Addr, Decimal};
+    use super::*;
+
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{coin, testing::*, Decimal};
     use speculoos::prelude::*;
 
-    use super::*;
     use crate::objects::DexAssetPairing;
     type AResult = anyhow::Result<()>;
 
