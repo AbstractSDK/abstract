@@ -11,8 +11,8 @@ use abstract_core::{
     },
     MANAGER, PROXY,
 };
-use cosmwasm_std::{to_json_binary, Binary, Empty};
-use cw_orch::{environment::TxHandler, interface, prelude::*};
+use cosmwasm_std::{to_json_binary, Binary};
+use cw_orch::{interface, prelude::*};
 use serde::Serialize;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -172,6 +172,17 @@ impl<Chain: CwEnv> Manager<Chain> {
             .into_iter()
             .find(|module_info| module_info.id == module_id);
         Ok(found)
+    }
+
+    /// Get the address of a module
+    /// Will err when not installed.
+    pub fn module_address(
+        &self,
+        module_id: impl Into<String>,
+    ) -> Result<Addr, crate::AbstractInterfaceError> {
+        Ok(self.module_addresses(vec![module_id.into()])?.modules[0]
+            .1
+            .clone())
     }
 
     pub fn is_module_installed(

@@ -32,12 +32,9 @@ use abstract_testing::{
     addresses::{TEST_MODULE_NAME, TTOKEN},
     prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
 };
-use cosmwasm_std::{coins, Addr, BankMsg, Coin, Empty, Uint128};
+use cosmwasm_std::{coins, BankMsg, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
-use cw_orch::{
-    contract::interface_traits::{ContractInstance, CwOrchExecute, CwOrchQuery},
-    prelude::*,
-};
+use cw_orch::prelude::*;
 use cw_ownable::Ownership;
 
 #[test]

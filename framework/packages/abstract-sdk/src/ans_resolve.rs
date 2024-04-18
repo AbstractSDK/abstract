@@ -16,6 +16,14 @@ pub trait Resolve {
     type Output;
     /// Resolve an entry into its value.
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output>;
+    /// Check if the entry is registered in the ANS.
+    fn is_registered(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> bool {
+        self.resolve(querier, ans_host).is_ok()
+    }
+    /// Assert that a given entry is registered in the ANS.
+    fn assert_registered(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<()> {
+        self.resolve(querier, ans_host).map(|_| ())
+    }
 }
 
 impl Resolve for AssetEntry {
@@ -120,23 +128,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Debug;
+    use super::*;
 
     use abstract_core::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{mock_dependencies, MockQuerier},
-        Binary, Empty,
-    };
+    use cosmwasm_std::{testing::mock_dependencies, Binary, Empty};
     use speculoos::prelude::*;
-
-    use super::*;
-
-    fn assert_not_found<T: Debug>(res: AnsHostResult<T>) {
-        assert_that!(res)
-            .is_err()
-            .matches(|e| e.to_string().contains("not found"));
-    }
+    use std::fmt::Debug;
 
     fn default_test_querier() -> MockQuerier {
         MockQuerierBuilder::default()
@@ -171,7 +169,41 @@ mod tests {
     {
         let res = test_resolve(&default_test_querier(), nonexistent);
 
-        assert_not_found(res);
+        assert_that!(res)
+            .is_err()
+            .matches(|e| e.to_string().contains("not found"));
+    }
+
+    mod is_registered {
+        use super::*;
+
+        #[test]
+        fn exists() {
+            let test_asset_entry = AssetEntry::new("aoeu");
+            let querier = MockQuerierBuilder::default()
+                .with_contract_map_entry(
+                    TEST_ANS_HOST,
+                    ASSET_ADDRESSES,
+                    (&test_asset_entry, AssetInfo::native("abc")),
+                )
+                .build();
+
+            let ans_host = mock_ans_host();
+
+            let is_registered =
+                test_asset_entry.is_registered(&QuerierWrapper::new(&querier), &ans_host);
+            assert_that!(is_registered).is_true();
+        }
+
+        #[test]
+        fn does_not_exist() {
+            let not_exist_asset = AssetEntry::new("aoeu");
+            let querier = default_test_querier();
+            let wrapper = wrap_querier(&querier);
+
+            let is_registered = not_exist_asset.is_registered(&wrapper, &mock_ans_host());
+            assert_that!(is_registered).is_false();
+        }
     }
 
     mod asset_entry {

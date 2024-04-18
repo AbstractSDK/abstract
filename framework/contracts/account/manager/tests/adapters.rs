@@ -20,7 +20,7 @@ use abstract_integration_tests::{
 };
 use abstract_interface::*;
 use abstract_testing::prelude::*;
-use cosmwasm_std::{coin, coins, Coin, Empty};
+use cosmwasm_std::{coin, coins};
 use cw_orch::prelude::*;
 use mock_modules::{adapter_1, V1, V2};
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
@@ -636,11 +636,10 @@ fn subaccount_adapter_ownership() -> AResult {
 }
 
 mod old_mock {
-    use abstract_adapter::gen_adapter_old_mock;
-    use abstract_integration_tests::{create_default_account, mock_modules, AResult};
-    use mock_modules::adapter_1::MOCK_ADAPTER_ID;
-
     use super::*;
+
+    use abstract_adapter::gen_adapter_old_mock;
+    use mock_modules::adapter_1::MOCK_ADAPTER_ID;
 
     gen_adapter_old_mock!(OldMockAdapter1V1, MOCK_ADAPTER_ID, "1.0.0", &[]);
 

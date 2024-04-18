@@ -1,6 +1,5 @@
 mod abstrct {
     use abstract_interface::Abstract;
-    use cosmwasm_std::Empty;
     use cw_orch::prelude::*;
     use wyndex_bundle::WynDex;
 
