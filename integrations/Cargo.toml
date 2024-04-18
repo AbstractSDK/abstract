@@ -82,7 +82,7 @@ abstract-money-market-standard = { path = "../framework/packages/standards/money
 rpath = false
 lto = true
 overflow-checks = true
-opt-level = "s"
+opt-level = 3
 debug = false
 debug-assertions = false
 codegen-units = 1
