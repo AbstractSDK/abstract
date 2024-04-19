@@ -2,8 +2,8 @@
 //! # MoneyMarket Adapter API
 // re-export response types
 use crate::{ans_action::MoneyMarketAnsAction, raw_action::MoneyMarketRawAction};
-use abstract_core::objects::AssetEntry;
-use abstract_core::{adapter, objects::fee::UsageFee};
+use abstract_std::objects::AssetEntry;
+use abstract_std::{adapter, objects::fee::UsageFee};
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{CosmosMsg, Decimal, StdError, StdResult, Uint128};
 use cw_asset::AssetInfoBase;

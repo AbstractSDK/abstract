@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use abstract_core::{adapter::AdapterRequestMsg, objects::module::ModuleId};
+use abstract_std::{adapter::AdapterRequestMsg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -70,14 +70,14 @@ pub struct Adapters<'a, T: AdapterInterface> {
 impl<'a, T: AdapterInterface> Adapters<'a, T> {
     /// Interactions with Abstract Adapters
     /// Construct an adapter request message.
-    pub fn request<M: Serialize + Into<abstract_core::adapter::ExecuteMsg<M, Empty>>>(
+    pub fn request<M: Serialize + Into<abstract_std::adapter::ExecuteMsg<M, Empty>>>(
         &self,
         adapter_id: ModuleId,
         message: M,
     ) -> AbstractSdkResult<CosmosMsg> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(adapter_id)?;
-        let adapter_msg = abstract_core::adapter::ExecuteMsg::<_>::Module(AdapterRequestMsg::new(
+        let adapter_msg = abstract_std::adapter::ExecuteMsg::<_>::Module(AdapterRequestMsg::new(
             Some(self.base.proxy_address(self.deps)?.into_string()),
             message,
         ));
@@ -89,9 +89,9 @@ impl<'a, T: AdapterInterface> Adapters<'a, T> {
     pub fn query<Q: Serialize, R: DeserializeOwned>(
         &self,
         adapter_id: ModuleId,
-        query: impl Into<abstract_core::adapter::QueryMsg<Q>>,
+        query: impl Into<abstract_std::adapter::QueryMsg<Q>>,
     ) -> AbstractSdkResult<R> {
-        let adapter_query: abstract_core::adapter::QueryMsg<Q> = query.into();
+        let adapter_query: abstract_std::adapter::QueryMsg<Q> = query.into();
         let modules = self.base.modules(self.deps);
         let adapter_address = modules.module_address(adapter_id)?;
         self.smart_query(adapter_address, &adapter_query)

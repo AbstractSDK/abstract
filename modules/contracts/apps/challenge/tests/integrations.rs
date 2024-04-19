@@ -1,11 +1,11 @@
 use abstract_app::{
-    abstract_core::objects::{
+    abstract_interface::{Abstract, AbstractAccount, AppDeployer, *},
+    abstract_std::objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
         AssetEntry,
     },
-    abstract_interface::{Abstract, AbstractAccount, AppDeployer, *},
 };
 use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
@@ -122,7 +122,7 @@ fn setup() -> anyhow::Result<(
     )?;
 
     abstr_deployment.ans_host.execute(
-        &abstract_app::abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
+        &abstract_app::abstract_std::ans_host::ExecuteMsg::UpdateAssetAddresses {
             to_add: vec![("denom".to_owned(), AssetInfo::native(DENOM).into())],
             to_remove: vec![],
         },

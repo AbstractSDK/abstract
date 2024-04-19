@@ -1,7 +1,7 @@
 use std::env;
 
-pub use abstract_core::ans_host::ExecuteMsgFns;
-use abstract_core::{
+pub use abstract_std::ans_host::ExecuteMsgFns;
+use abstract_std::{
     ans_host::*,
     objects::{
         pool_metadata::ResolvedPoolMetadata, AnsAsset, AnsEntryConvertor, AssetEntry, ChannelEntry,

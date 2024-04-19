@@ -1,4 +1,4 @@
-use abstract_adapter::abstract_core::objects::pool_id::PoolAddressBase;
+use abstract_adapter::abstract_std::objects::pool_id::PoolAddressBase;
 use abstract_adapter::sdk::{
     cw_helpers::Chargeable,
     features::{AbstractNameService, AbstractRegistryAccess},

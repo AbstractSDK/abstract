@@ -11,7 +11,7 @@
 //! - uninstall module
 //! - upgrade module
 
-use abstract_core::{manager::ModuleInstallConfig, ABSTRACT_EVENT_TYPE};
+use abstract_std::{manager::ModuleInstallConfig, ABSTRACT_EVENT_TYPE};
 
 use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
@@ -20,7 +20,7 @@ mod proxy;
 
 use std::collections::HashSet;
 
-use abstract_core::{manager::ManagerModuleInfo, objects::AccountId};
+use abstract_std::{manager::ManagerModuleInfo, objects::AccountId};
 use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 use serde::Serialize;
@@ -98,7 +98,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_addrs: Vec<String>,
     ) -> Result<Vec<ManagerModuleInfo>, crate::AbstractInterfaceError> {
-        let abstract_core::manager::ModuleInfosResponse {
+        let abstract_std::manager::ModuleInfosResponse {
             module_infos: manager_modules,
         } = self.manager.module_infos(None, None)?;
 
@@ -141,7 +141,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             .collect::<HashSet<_>>();
 
         // check proxy config
-        let abstract_core::proxy::ConfigResponse {
+        let abstract_std::proxy::ConfigResponse {
             modules: proxy_whitelist,
         } = self.proxy.config()?;
 
@@ -213,7 +213,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         } = account_details;
 
         let result = self.manager.execute(
-            &abstract_core::manager::ExecuteMsg::CreateSubAccount {
+            &abstract_std::manager::ExecuteMsg::CreateSubAccount {
                 name,
                 description,
                 link,
@@ -239,7 +239,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         let trace = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "trace")?;
         let id = AccountId::new(
             acc_seq.parse().unwrap(),
-            abstract_core::objects::account::AccountTrace::try_from((*trace).as_str())?,
+            abstract_std::objects::account::AccountTrace::try_from((*trace).as_str())?,
         )?;
         // construct manager and proxy ids
         let manager = Manager::new_from_id(&id, chain.clone());

@@ -1,4 +1,4 @@
-use abstract_core::version_control::AccountBase;
+use abstract_std::version_control::AccountBase;
 
 use abstract_sdk::{
     core::objects::AssetEntry,

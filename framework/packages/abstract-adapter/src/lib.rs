@@ -11,10 +11,10 @@ pub use error::AdapterError;
 pub use crate::state::AdapterContract;
 
 // Useful re-exports
-pub use abstract_core;
+pub use abstract_std;
 // re-export objects specifically
-pub use abstract_core::objects;
 pub use abstract_sdk as sdk;
+pub use abstract_std::objects;
 pub mod traits {
     pub use abstract_sdk::{features::*, prelude::*};
 }
@@ -38,8 +38,8 @@ pub mod state;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
-    use abstract_core::{adapter::*, objects::dependency::StaticDependency};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
+    use abstract_std::{adapter::*, objects::dependency::StaticDependency};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
@@ -64,7 +64,7 @@ pub mod mock {
         Adapter(#[from] AdapterError),
 
         #[error("{0}")]
-        Abstract(#[from] abstract_core::AbstractError),
+        Abstract(#[from] abstract_std::AbstractError),
 
         #[error("{0}")]
         AbstractSdk(#[from] AbstractSdkError),
@@ -182,7 +182,7 @@ pub mod mock {
     #[macro_export]
     macro_rules! gen_adapter_mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
-        use ::abstract_core::adapter::*;
+        use ::abstract_std::adapter::*;
         use ::cosmwasm_std::Empty;
         use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
@@ -222,9 +222,9 @@ pub mod mock {
             MOCK_ADAPTER.query(deps, env, msg)
         }
 
-        type Exec = ::abstract_core::adapter::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
-        type Query = ::abstract_core::adapter::QueryMsg<MockQueryMsg>;
-        type Init = ::abstract_core::adapter::InstantiateMsg<MockInitMsg>;
+        type Exec = ::abstract_std::adapter::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+        type Query = ::abstract_std::adapter::QueryMsg<MockQueryMsg>;
+        type Init = ::abstract_std::adapter::InstantiateMsg<MockInitMsg>;
         #[cw_orch::interface(Init, Exec, Query, Empty)]
         pub struct $name ;
 
@@ -265,7 +265,7 @@ pub mod mock {
     #[macro_export]
     macro_rules! gen_adapter_old_mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
-        use ::abstract_core::adapter::*;
+        use ::abstract_std::adapter::*;
         use ::cosmwasm_std::Empty;
         use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
@@ -288,7 +288,7 @@ pub mod mock {
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: ::abstract_core::base::ExecuteMsg<::abstract_core::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>,
+            msg: ::abstract_std::base::ExecuteMsg<::abstract_std::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>,
         ) -> Result<::cosmwasm_std::Response, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::ExecuteEndpoint;
             Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
@@ -304,9 +304,9 @@ pub mod mock {
             MOCK_ADAPTER.query(deps, env, msg)
         }
 
-        type Exec = ::abstract_core::base::ExecuteMsg<::abstract_core::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>;
-        type Query = ::abstract_core::adapter::QueryMsg<MockQueryMsg>;
-        type Init = ::abstract_core::adapter::InstantiateMsg<MockInitMsg>;
+        type Exec = ::abstract_std::base::ExecuteMsg<::abstract_std::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>;
+        type Query = ::abstract_std::adapter::QueryMsg<MockQueryMsg>;
+        type Init = ::abstract_std::adapter::InstantiateMsg<MockInitMsg>;
         #[cw_orch::interface(Init, Exec, Query, Empty)]
         pub struct $name ;
 

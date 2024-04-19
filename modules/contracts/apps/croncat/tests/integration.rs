@@ -1,12 +1,12 @@
 mod common;
 
-use abstract_core::{
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_std::{
     ans_host::ContractsResponse,
     objects::{
         account::AccountTrace, gov_type::GovernanceDetails, AccountId, UncheckedContractEntry,
     },
 };
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
 use common::contracts;
 use cosmwasm_std::{coins, to_json_binary, Addr, BankMsg, Uint128, WasmMsg};
 use croncat_app::{
@@ -248,7 +248,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
 
     let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?;
     abstr_deployment.ans_host.execute(
-        &abstract_core::ans_host::ExecuteMsg::UpdateContractAddresses {
+        &abstract_std::ans_host::ExecuteMsg::UpdateContractAddresses {
             to_add: vec![(factory_entry, factory_addr.to_string())],
             to_remove: vec![],
         },
@@ -831,7 +831,7 @@ fn remove_task() -> anyhow::Result<()> {
         let contracts_response: ContractsResponse =
             abstr_deployment
                 .ans_host
-                .query(&abstract_core::ans_host::QueryMsg::Contracts {
+                .query(&abstract_std::ans_host::QueryMsg::Contracts {
                     entries: vec![UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?.into()],
                 })?;
         let factory_addr: Addr = contracts_response.contracts[0].1.clone();

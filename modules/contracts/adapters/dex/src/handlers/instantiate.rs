@@ -1,4 +1,4 @@
-use abstract_adapter::abstract_core::objects::{account::AccountTrace, AccountId};
+use abstract_adapter::abstract_std::objects::{account::AccountTrace, AccountId};
 use abstract_adapter::sdk::AccountVerification;
 use abstract_dex_standard::msg::{DexFees, DexInstantiateMsg};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};

@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     module_factory, module_factory::FactoryModuleInstallConfig, objects::module::ModuleInfo,
 };
 use abstract_interface::*;
@@ -35,7 +35,7 @@ fn caller_must_be_manager() -> AResult {
     let factory = &deployment.module_factory;
     let test_module = ModuleInfo::from_id(
         "publisher:test",
-        abstract_core::objects::module::ModuleVersion::Latest,
+        abstract_std::objects::module::ModuleVersion::Latest,
     )?;
 
     let res = factory

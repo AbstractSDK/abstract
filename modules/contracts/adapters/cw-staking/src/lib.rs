@@ -25,7 +25,7 @@ pub use msg::StakingQueryMsgFns;
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use abstract_core::{
+    use abstract_std::{
         adapter,
         objects::{AnsAsset, AssetEntry},
     };

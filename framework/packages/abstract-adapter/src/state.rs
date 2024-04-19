@@ -1,6 +1,5 @@
 use std::fmt::Debug;
 
-use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -11,6 +10,7 @@ use abstract_sdk::{
     namespaces::BASE_STATE,
     AbstractSdkError,
 };
+use abstract_std::objects::dependency::StaticDependency;
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -55,7 +55,7 @@ pub struct AdapterContract<
     pub(crate) base_state: Item<'static, ApiState>,
     /// Map ProxyAddr -> AuthorizedAddrs
     pub authorized_addresses: Map<'static, Addr, Vec<Addr>>,
-    /// The Account on which commands are executed. Set each time in the [`abstract_core::adapter::ExecuteMsg::Base`] handler.
+    /// The Account on which commands are executed. Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
     pub target_account: Option<AccountBase>,
 }
 
@@ -85,7 +85,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     }
 
     /// Return the address of the proxy for the Account associated with this Adapter.
-    /// Set each time in the [`abstract_core::adapter::ExecuteMsg::Base`] handler.
+    /// Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, AdapterError> {
         Ok(&self
             .target_account

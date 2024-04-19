@@ -1,7 +1,7 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the Account.
 
-use abstract_core::manager::state::ACCOUNT_MODULES;
+use abstract_std::manager::state::ACCOUNT_MODULES;
 use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 

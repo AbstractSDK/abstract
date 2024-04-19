@@ -4,17 +4,17 @@ use crate::{
     interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEY_MARKET_ADAPTER_ID,
 };
 use abstract_client::{AbstractClient, Account, Environment};
-use abstract_core::{
+use abstract_interface::{AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
+use abstract_money_market_standard::{
+    ans_action::MoneyMarketAnsAction,
+    msg::{MoneyMarketExecuteMsg, MoneyMarketQueryMsg},
+};
+use abstract_std::{
     adapter,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         AnsAsset, AssetEntry, UncheckedContractEntry,
     },
-};
-use abstract_interface::{AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
-use abstract_money_market_standard::{
-    ans_action::MoneyMarketAnsAction,
-    msg::{MoneyMarketExecuteMsg, MoneyMarketQueryMsg},
 };
 use cosmwasm_schema::serde::{de::DeserializeOwned, Serialize};
 use cosmwasm_std::{coins, Decimal, Uint128};

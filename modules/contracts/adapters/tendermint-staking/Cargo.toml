@@ -32,7 +32,7 @@ schema = ["abstract-adapter/schema"]
 cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
 thiserror = { workspace = true }
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true }
 

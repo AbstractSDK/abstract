@@ -1,10 +1,3 @@
-use abstract_core::{
-    objects::module::ModuleStatus,
-    version_control::{
-        state::{NAMESPACES_INFO, PENDING_MODULES},
-        ModuleConfiguration, NamespaceInfo, NamespaceResponse,
-    },
-};
 use abstract_sdk::core::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
@@ -16,6 +9,13 @@ use abstract_sdk::core::{
         state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES, YANKED_MODULES},
         AccountBaseResponse, ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse,
         NamespaceListResponse,
+    },
+};
+use abstract_std::{
+    objects::module::ModuleStatus,
+    version_control::{
+        state::{NAMESPACES_INFO, PENDING_MODULES},
+        ModuleConfiguration, NamespaceInfo, NamespaceResponse,
     },
 };
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
@@ -262,7 +262,7 @@ fn filter_modules_by_namespace(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::{manager, objects::account::AccountTrace, version_control::*};
+    use abstract_std::{manager, objects::account::AccountTrace, version_control::*};
     use abstract_testing::{prelude::*, MockQuerierBuilder, MockQuerierOwnership};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
@@ -379,7 +379,7 @@ mod test {
     }
 
     mod module {
-        use abstract_core::objects::module::ModuleVersion::Latest;
+        use abstract_std::objects::module::ModuleVersion::Latest;
         use cosmwasm_std::from_json;
 
         use super::*;

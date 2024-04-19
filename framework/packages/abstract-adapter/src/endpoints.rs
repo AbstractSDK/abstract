@@ -70,10 +70,10 @@ macro_rules! export_endpoints {
 
 #[cfg(test)]
 mod test {
-    use abstract_core::adapter::{self, AdapterRequestMsg};
     use abstract_sdk::base::{
         ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint, ReplyEndpoint, SudoEndpoint,
     };
+    use abstract_std::adapter::{self, AdapterRequestMsg};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},

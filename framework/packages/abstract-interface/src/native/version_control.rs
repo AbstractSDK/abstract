@@ -1,5 +1,5 @@
-pub use abstract_core::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
-use abstract_core::{
+pub use abstract_std::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
+use abstract_std::{
     objects::{
         module::{Module, ModuleInfo, ModuleStatus, ModuleVersion},
         module_reference::ModuleReference,

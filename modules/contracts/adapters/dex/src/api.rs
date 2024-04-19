@@ -1,5 +1,5 @@
 use crate::DEX_ADAPTER_ID;
-use abstract_adapter::abstract_core::objects::{
+use abstract_adapter::abstract_std::objects::{
     module::ModuleId, AnsAsset, AssetEntry, PoolAddress,
 };
 use abstract_adapter::sdk::{
@@ -350,7 +350,7 @@ pub mod ans {
 
 #[cfg(test)]
 mod test {
-    use abstract_adapter::abstract_core::{
+    use abstract_adapter::abstract_std::{
         adapter::AdapterRequestMsg,
         objects::{AnsAsset, AssetEntry},
     };
@@ -534,7 +534,7 @@ mod test {
     }
 
     mod raw {
-        use abstract_adapter::abstract_core::objects::pool_id::PoolAddressBase;
+        use abstract_adapter::abstract_std::objects::pool_id::PoolAddressBase;
 
         use super::*;
 

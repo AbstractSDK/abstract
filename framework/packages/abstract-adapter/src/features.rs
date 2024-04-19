@@ -60,11 +60,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 }
 #[cfg(test)]
 mod tests {
-    use abstract_core::{
+    use abstract_sdk::base::ExecuteEndpoint;
+    use abstract_std::{
         adapter::{AdapterRequestMsg, ExecuteMsg},
         version_control::AccountBase,
     };
-    use abstract_sdk::base::ExecuteEndpoint;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},

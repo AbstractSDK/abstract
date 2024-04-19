@@ -53,7 +53,7 @@ All these fields are used in a custom `ModuleData` store as well, along with the
 come back to later. Here's the definition of the `ModuleData` field:
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/objects/module_version.rs:metadata}}
+{{#include ../../../packages/abstract-std/src/objects/module_version.rs:metadata}}
 ```
 
 All this data is stored on-chain when the App is instantiated.
@@ -127,7 +127,7 @@ Expected function signature for the custom instantiate handler:
 In order to instantiate an Abstract Module, you need to provide an InstantiateMsg with the following structure:
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:init}}
+{{#include ../../../packages/abstract-std/src/base.rs:init}}
 ```
 
 When the module's instantiate function is called the struct's `module` field is passed to your custom instantiation
@@ -155,7 +155,7 @@ Expected function signature for the custom execute handler:
 Called when the App's `ExecuteMsg::Module` variant is called on the execute entry point.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:exec}}
+{{#include ../../../packages/abstract-std/src/base.rs:exec}}
 ```
 
 The content of the `Module` variant is passed to your custom execute handler.
@@ -182,7 +182,7 @@ Expected function signature for the custom query handler:
 Called when the App's `QueryMsg::Module` variant is called on the query entry point.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:query}}
+{{#include ../../../packages/abstract-std/src/base.rs:query}}
 ```
 
 The content of the `Module` variant is passed to your custom query handler.
@@ -213,7 +213,7 @@ Called when the App's migrate entry point is called. Uses the struct's `module` 
 this field is passed to the handler function.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:migrate}}
+{{#include ../../../packages/abstract-std/src/base.rs:migrate}}
 ```
 
 </details>
@@ -288,7 +288,7 @@ Expected function signature for the custom receive handler:
 Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:exec}}
+{{#include ../../../packages/abstract-std/src/base.rs:exec}}
 ```
 
 </details>
@@ -320,7 +320,7 @@ Called when the App's `ExecuteMsg::IbcCallback` variant is called on the execute
 customizable but contains the IBC action acknowledgment.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:exec}}
+{{#include ../../../packages/abstract-std/src/base.rs:exec}}
 ```
 
 </details>

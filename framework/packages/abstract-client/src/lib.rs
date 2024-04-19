@@ -13,7 +13,7 @@ mod publisher;
 pub(crate) mod source;
 
 // Re-export common used types
-pub use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace};
+pub use abstract_std::objects::{gov_type::GovernanceDetails, namespace::Namespace};
 // Re-export `ClientResolve` trait
 pub use abstract_interface::ClientResolve;
 pub use account::{Account, AccountBuilder};

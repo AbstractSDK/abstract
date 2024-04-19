@@ -1,5 +1,5 @@
 #![allow(unused)]
-use abstract_core::{app as msg, objects::module::ModuleId};
+use abstract_std::{app as msg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 

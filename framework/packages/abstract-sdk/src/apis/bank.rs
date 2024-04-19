@@ -1,7 +1,7 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
-use abstract_core::objects::ans_host::AnsHostError;
+use abstract_std::objects::ans_host::AnsHostError;
 use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
@@ -99,8 +99,8 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// Transfer the provided funds from the Account to the recipient.
     /// ```
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
-    /// # use abstract_core::objects::AnsAsset;
-    /// # use abstract_core::objects::ans_host::AnsHost;
+    /// # use abstract_std::objects::AnsAsset;
+    /// # use abstract_std::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
     /// #    features::{AccountIdentification, AbstractNameService, ModuleIdentification},
     /// #    TransferInterface, AbstractSdkResult, Execution,
@@ -270,7 +270,7 @@ mod test {
     use crate::mock_module::*;
 
     mod transfer_coins {
-        use abstract_core::proxy::ExecuteMsg;
+        use abstract_std::proxy::ExecuteMsg;
 
         use super::*;
         use crate::{Execution, Executor, ExecutorMsg};

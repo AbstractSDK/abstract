@@ -28,16 +28,16 @@
 //! # Ok::<(), AbstractClientError>(())
 //! ```
 
-use abstract_core::objects::{
+use abstract_interface::{
+    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, RegisteredModule,
+    VersionControl,
+};
+use abstract_std::objects::{
     module::{ModuleInfo, ModuleVersion},
     module_reference::ModuleReference,
     namespace::Namespace,
     salt::generate_instantiate_salt,
     AccountId,
-};
-use abstract_interface::{
-    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, RegisteredModule,
-    VersionControl,
 };
 use cosmwasm_std::{Addr, BlockInfo, Coin, Empty, Uint128};
 use cw_orch::prelude::*;
@@ -82,7 +82,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// # use abstract_client::AbstractClientError;
     /// # let chain = cw_orch::prelude::MockBech32::new("mock");
     /// # let client = abstract_client::AbstractClient::builder(chain).build().unwrap();
-    /// use abstract_core::objects::{module_reference::ModuleReference, module::ModuleInfo};
+    /// use abstract_std::objects::{module_reference::ModuleReference, module::ModuleInfo};
     /// // For getting version control address
     /// use cw_orch::prelude::*;
     ///
@@ -183,18 +183,18 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             }
             AccountSource::App(app) => {
                 // Query app for manager address and get AccountId from it.
-                let app_config: abstract_core::app::AppConfigResponse = chain
+                let app_config: abstract_std::app::AppConfigResponse = chain
                     .query(
-                        &abstract_core::app::QueryMsg::<Empty>::Base(
-                            abstract_core::app::BaseQueryMsg::BaseConfig {},
+                        &abstract_std::app::QueryMsg::<Empty>::Base(
+                            abstract_std::app::BaseQueryMsg::BaseConfig {},
                         ),
                         &app,
                     )
                     .map_err(Into::into)?;
 
-                let manager_config: abstract_core::manager::ConfigResponse = chain
+                let manager_config: abstract_std::manager::ConfigResponse = chain
                     .query(
-                        &abstract_core::manager::QueryMsg::Config {},
+                        &abstract_std::manager::QueryMsg::Config {},
                         &app_config.manager_address,
                     )
                     .map_err(Into::into)?;
@@ -324,7 +324,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             }
             _ => {
                 return Err(AbstractClientError::Abstract(
-                    abstract_core::AbstractError::Assert(
+                    abstract_std::AbstractError::Assert(
                         "module reference not account base, app or standalone".to_owned(),
                     ),
                 ))
@@ -339,7 +339,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 }
 
 pub(crate) fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountId>> {
-    if !id.starts_with(abstract_core::MANAGER) {
+    if !id.starts_with(abstract_std::MANAGER) {
         return Ok(None);
     }
 
@@ -391,7 +391,7 @@ mod tests {
         client
             .account_builder()
             .ownership(
-                abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
+                abstract_std::objects::gov_type::GovernanceDetails::Monarchy {
                     monarch: other_owner.to_string(),
                 },
             )

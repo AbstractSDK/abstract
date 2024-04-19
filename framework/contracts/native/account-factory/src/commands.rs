@@ -1,12 +1,3 @@
-use abstract_core::{
-    manager::ModuleInstallConfig,
-    module_factory::SimulateInstallModulesResponse,
-    objects::{
-        account::AccountTrace, module::assert_module_data_validity,
-        salt::generate_instantiate_salt, AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
-    },
-    AbstractError,
-};
 use abstract_sdk::{
     core::{
         manager::InstantiateMsg as ManagerInstantiateMsg,
@@ -22,6 +13,15 @@ use abstract_sdk::{
         AbstractResult, MANAGER, PROXY,
     },
     feature_objects::VersionControlContract,
+};
+use abstract_std::{
+    manager::ModuleInstallConfig,
+    module_factory::SimulateInstallModulesResponse,
+    objects::{
+        account::AccountTrace, module::assert_module_data_validity,
+        salt::generate_instantiate_salt, AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
+    },
+    AbstractError,
 };
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
@@ -108,7 +108,7 @@ pub fn execute_create_account(
 
     let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
         config.module_factory_address.to_string(),
-        &abstract_core::module_factory::QueryMsg::SimulateInstallModules {
+        &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
             modules: install_modules.iter().map(|m| m.module.clone()).collect(),
         },
     )?;

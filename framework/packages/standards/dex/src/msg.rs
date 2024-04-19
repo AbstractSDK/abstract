@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 //! # Dex Adapter API
 // re-export response types
-use abstract_core::{
+use abstract_std::{
     adapter,
     objects::{
         fee::{Fee, UsageFee},

@@ -1,8 +1,8 @@
-use abstract_core::objects::AnsAsset;
 use abstract_sdk::{
     core::objects::{AssetEntry, ContractEntry},
     feature_objects::{AnsHost, VersionControlContract},
 };
+use abstract_std::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper};
 
 use crate::{

@@ -1,6 +1,6 @@
 use abstract_app::AppError as AbstractAppError;
-use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
+use abstract_std::AbstractError;
 use cosmwasm_std::{StdError, Uint128};
 use cw_asset::AssetError;
 use cw_controllers::AdminError;

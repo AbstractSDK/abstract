@@ -1,10 +1,10 @@
-use abstract_core::{
-    ibc_host::state::{Config, CONFIG},
-    IBC_HOST,
-};
 use abstract_sdk::{
     core::ibc_host::InstantiateMsg,
     feature_objects::{AnsHost, VersionControlContract},
+};
+use abstract_std::{
+    ibc_host::state::{Config, CONFIG},
+    IBC_HOST,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 use cw2::set_contract_version;

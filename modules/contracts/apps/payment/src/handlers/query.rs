@@ -1,4 +1,4 @@
-use abstract_core::objects::{AnsAsset, AssetEntry};
+use abstract_std::objects::{AnsAsset, AssetEntry};
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, Order, StdResult};
 use cw_storage_plus::Bound;
 

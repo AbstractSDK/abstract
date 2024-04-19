@@ -1,4 +1,4 @@
-use abstract_adapter::abstract_core::{
+use abstract_adapter::abstract_std::{
     ibc::CallbackInfo,
     objects::{
         account::AccountTrace,
@@ -153,7 +153,7 @@ fn handle_ibc_request(
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
     let host_action = abstract_adapter::sdk::core::ibc_host::HostAction::Dispatch {
-        manager_msg: abstract_adapter::abstract_core::manager::ExecuteMsg::ExecOnModule {
+        manager_msg: abstract_adapter::abstract_std::manager::ExecuteMsg::ExecOnModule {
             module_id: DEX_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(
                 &DexExecuteMsg::RawAction {

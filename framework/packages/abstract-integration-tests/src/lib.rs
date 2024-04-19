@@ -8,13 +8,13 @@ pub mod mock_modules;
 // pub mod proxy;
 
 use abstract_adapter::mock::{interface::MockAdapterI, MockInitMsg};
-use abstract_core::objects::{
+use abstract_interface::*;
+use abstract_sdk::core::objects::gov_type::GovernanceDetails;
+use abstract_std::objects::{
     module::{ModuleVersion, Monetization},
     namespace::Namespace,
     AccountId,
 };
-use abstract_interface::*;
-use abstract_sdk::core::objects::gov_type::GovernanceDetails;
 use abstract_testing::prelude::*;
 use cw_orch::prelude::*;
 pub type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
@@ -71,7 +71,7 @@ pub fn add_mock_adapter_install_fee<T: CwEnv>(
     deployment.version_control.update_module_configuration(
         "test-module-id".to_string(),
         Namespace::new(TEST_NAMESPACE).unwrap(),
-        abstract_core::version_control::UpdateModule::Versioned {
+        abstract_std::version_control::UpdateModule::Versioned {
             version,
             metadata: None,
             monetization: Some(monetization),

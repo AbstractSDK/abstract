@@ -13,10 +13,10 @@ pub use crate::state::AppContract;
 pub type AppResult<C = cosmwasm_std::Empty> = Result<cosmwasm_std::Response<C>, AppError>;
 
 // Useful re-exports
-pub use abstract_core;
+pub use abstract_std;
 // re-export objects specifically
-pub use abstract_core::objects;
 pub use abstract_sdk;
+pub use abstract_std::objects;
 pub mod traits {
     pub use abstract_sdk::{features::*, prelude::*};
 }
@@ -30,12 +30,12 @@ pub use abstract_testing;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
-    pub use abstract_core::app;
-    use abstract_core::{
+    use abstract_interface::{AppDeployer, DependencyCreation};
+    pub use abstract_std::app;
+    use abstract_std::{
         manager::ModuleInstallConfig,
         objects::{dependency::StaticDependency, module::ModuleInfo},
     };
-    use abstract_interface::{AppDeployer, DependencyCreation};
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{to_json_binary, Response, StdError};
@@ -109,7 +109,7 @@ pub mod mock {
         DappError(#[from] AppError),
 
         #[error("{0}")]
-        Abstract(#[from] abstract_core::AbstractError),
+        Abstract(#[from] abstract_std::AbstractError),
 
         #[error("{0}")]
         AbstractSdk(#[from] AbstractSdkError),
@@ -251,7 +251,7 @@ pub mod mock {
     #[macro_export]
     macro_rules! gen_app_mock {
     ($name:ident,$id:expr, $version:expr, $deps:expr) => {
-        use ::abstract_core::app;
+        use ::abstract_std::app;
         use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
         use ::cw_orch::prelude::*;
         use ::abstract_sdk::base::Handler;
@@ -281,7 +281,7 @@ pub mod mock {
                 println!("checking address of adapter1");
                 let manager = module.admin.get(deps.as_ref())?.unwrap();
                 // Check if the adapter has access to its dependency during instantiation.
-                let adapter1_addr = ::abstract_core::manager::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
+                let adapter1_addr = ::abstract_std::manager::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
                 // We have address!
                 ::cosmwasm_std::ensure!(
                     adapter1_addr.is_some(),

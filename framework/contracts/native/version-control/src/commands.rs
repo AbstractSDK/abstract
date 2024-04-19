@@ -1,12 +1,3 @@
-use abstract_core::{
-    objects::{
-        fee::FixedFee,
-        module::{self, Module},
-        validation::validate_link,
-        ABSTRACT_ACCOUNT_ID,
-    },
-    version_control::{ModuleDefaultConfiguration, UpdateModule},
-};
 use abstract_sdk::{
     core::{
         objects::{
@@ -18,6 +9,15 @@ use abstract_sdk::{
         version_control::{state::*, AccountBase, Config},
     },
     cw_helpers::Clearable,
+};
+use abstract_std::{
+    objects::{
+        fee::FixedFee,
+        module::{self, Module},
+        validation::validate_link,
+        ABSTRACT_ACCOUNT_ID,
+    },
+    version_control::{ModuleDefaultConfiguration, UpdateModule},
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
@@ -575,7 +575,7 @@ pub fn query_account_owner(
     account_id: &AccountId,
 ) -> VCResult<Addr> {
     let cw_ownable::Ownership { owner, .. } =
-        abstract_core::manager::state::OWNER.query(querier, manager_addr)?;
+        abstract_std::manager::state::OWNER.query(querier, manager_addr)?;
 
     owner.ok_or_else(|| VCError::NoAccountOwner {
         account_id: account_id.clone(),
@@ -610,7 +610,7 @@ pub fn validate_account_owner(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::{
+    use abstract_std::{
         manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
         objects::account::AccountTrace,
         version_control::*,
@@ -863,7 +863,7 @@ mod test {
     }
 
     mod claim_namespace {
-        use abstract_core::{objects, AbstractError};
+        use abstract_std::{objects, AbstractError};
         use cosmwasm_std::{coins, BankMsg, CosmosMsg, SubMsg};
         use objects::ABSTRACT_ACCOUNT_ID;
 
@@ -1250,7 +1250,7 @@ mod test {
     }
 
     mod remove_namespaces {
-        use abstract_core::objects::module_reference::ModuleReference;
+        use abstract_std::objects::module_reference::ModuleReference;
         use cosmwasm_std::attr;
 
         use super::*;
@@ -1403,7 +1403,7 @@ mod test {
     }
 
     mod propose_modules {
-        use abstract_core::{
+        use abstract_std::{
             objects::{fee::FixedFee, module::Monetization, module_reference::ModuleReference},
             AbstractError,
         };

@@ -1,9 +1,9 @@
-use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{account_factory::*, ACCOUNT_FACTORY},
     execute_update_ownership, query_ownership,
 };
+use abstract_std::objects::module_version::assert_contract_upgrade;
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
@@ -366,7 +366,7 @@ mod tests {
     }
 
     mod migrate {
-        use abstract_core::AbstractError;
+        use abstract_std::AbstractError;
 
         use super::*;
         use crate::contract;

@@ -1,11 +1,11 @@
 #![warn(missing_docs)]
 //! Message types for the challenge app
 use abstract_app::{
-    abstract_core::objects::{
+    abstract_sdk::{AbstractSdkResult, AccountVerification},
+    abstract_std::objects::{
         voting::{ProposalId, ProposalInfo, Vote, VoteConfig},
         AccountId, AssetEntry,
     },
-    abstract_sdk::{AbstractSdkResult, AccountVerification},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Deps, StdResult, Timestamp, Uint64};
@@ -23,7 +23,7 @@ abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMs
 /// Challenge instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeInstantiateMsg {
-    /// Config for [`SimpleVoting`](abstract_core::objects::voting::SimpleVoting) object
+    /// Config for [`SimpleVoting`](abstract_std::objects::voting::SimpleVoting) object
     pub vote_config: VoteConfig,
 }
 

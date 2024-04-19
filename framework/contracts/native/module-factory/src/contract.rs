@@ -1,11 +1,11 @@
-use abstract_core::objects::{
-    module::{ModuleInfo, Monetization},
-    module_version::assert_contract_upgrade,
-};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{module_factory::*, MODULE_FACTORY},
     feature_objects::VersionControlContract,
+};
+use abstract_std::objects::{
+    module::{ModuleInfo, Monetization},
+    module_version::assert_contract_upgrade,
 };
 use cosmwasm_std::{
     to_json_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
@@ -145,7 +145,7 @@ mod tests {
     use crate::{contract, test_common::*};
 
     mod migrate {
-        use abstract_core::AbstractError;
+        use abstract_std::AbstractError;
         use cw2::get_contract_version;
 
         use super::*;

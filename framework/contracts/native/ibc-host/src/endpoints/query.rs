@@ -1,13 +1,13 @@
 use std::str::FromStr;
 
-use abstract_core::{
+use abstract_sdk::core::ibc_host::QueryMsg;
+use abstract_std::{
     ibc_host::{
         state::{CHAIN_PROXIES, CONFIG},
         ClientProxiesResponse, ClientProxyResponse, ConfigResponse,
     },
     objects::chain_name::ChainName,
 };
-use abstract_sdk::core::ibc_host::QueryMsg;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use cw_storage_plus::Bound;
 
@@ -62,7 +62,7 @@ mod test {
 
     #[test]
     fn test_registered_client() {
-        use abstract_core::ibc_host::{ClientProxyResponse, InstantiateMsg, QueryMsg};
+        use abstract_std::ibc_host::{ClientProxyResponse, InstantiateMsg, QueryMsg};
         use cosmwasm_std::{
             from_json,
             testing::{mock_dependencies, mock_env, mock_info},
@@ -89,7 +89,7 @@ mod test {
             deps.as_mut(),
             mock_env(),
             info,
-            abstract_core::ibc_host::ExecuteMsg::RegisterChainProxy {
+            abstract_std::ibc_host::ExecuteMsg::RegisterChainProxy {
                 chain: "juno".into(),
                 proxy: "juno-proxy".to_string(),
             },

@@ -12,7 +12,7 @@
     ],
     "properties": {
       "vote_config": {
-        "description": "Config for [`SimpleVoting`](abstract_core::objects::voting::SimpleVoting) object",
+        "description": "Config for [`SimpleVoting`](abstract_std::objects::voting::SimpleVoting) object",
         "allOf": [
           {
             "$ref": "#/definitions/VoteConfig"

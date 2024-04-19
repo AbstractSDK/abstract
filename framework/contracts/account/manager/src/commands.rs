@@ -1,24 +1,3 @@
-use abstract_core::{
-    adapter::{
-        AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
-        ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
-    },
-    manager::{
-        state::{PENDING_GOVERNANCE, REMOVE_ADAPTER_AUTHORIZED_CONTEXT, SUB_ACCOUNTS},
-        InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction,
-    },
-    module_factory::FactoryModuleInstallConfig,
-    objects::{
-        gov_type::GovernanceDetails,
-        module::assert_module_data_validity,
-        nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION},
-        salt::generate_instantiate_salt,
-        version_control::VersionControlContract,
-        AccountId, AssetEntry,
-    },
-    proxy::state::ACCOUNT_ID,
-    version_control::ModuleResponse,
-};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
@@ -40,6 +19,27 @@ use abstract_sdk::{
         IBC_CLIENT, MANAGER, PROXY,
     },
     cw_helpers::AbstractAttributes,
+};
+use abstract_std::{
+    adapter::{
+        AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
+        ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
+    },
+    manager::{
+        state::{PENDING_GOVERNANCE, REMOVE_ADAPTER_AUTHORIZED_CONTEXT, SUB_ACCOUNTS},
+        InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction,
+    },
+    module_factory::FactoryModuleInstallConfig,
+    objects::{
+        gov_type::GovernanceDetails,
+        module::assert_module_data_validity,
+        nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION},
+        salt::generate_instantiate_salt,
+        version_control::VersionControlContract,
+        AccountId, AssetEntry,
+    },
+    proxy::state::ACCOUNT_ID,
+    version_control::ModuleResponse,
 };
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
@@ -285,7 +285,7 @@ pub fn create_sub_account(
     // only owner can create a subaccount
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
-    let create_account_msg = &abstract_core::account_factory::ExecuteMsg::CreateAccount {
+    let create_account_msg = &abstract_std::account_factory::ExecuteMsg::CreateAccount {
         // proxy of this manager will be the account owner
         governance: GovernanceDetails::SubAccount {
             manager: env.contract.address.into_string(),
@@ -302,7 +302,7 @@ pub fn create_sub_account(
 
     let account_factory_addr = query_module(
         deps.as_ref(),
-        ModuleInfo::from_id_latest(abstract_core::ACCOUNT_FACTORY)?,
+        ModuleInfo::from_id_latest(abstract_std::ACCOUNT_FACTORY)?,
         None,
     )?
     .module
@@ -337,7 +337,7 @@ pub fn handle_sub_account_action(
 fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
-    let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
+    let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
         config.version_control_address,
         &AccountId::local(id),
@@ -359,7 +359,7 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerR
 fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
-    let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
+    let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
         config.version_control_address,
         &AccountId::local(id),
@@ -576,7 +576,7 @@ pub(crate) fn renounce_governance(
         msgs.push(
             wasm_execute(
                 vc.address,
-                &abstract_core::version_control::ExecuteMsg::RemoveNamespaces {
+                &abstract_std::version_control::ExecuteMsg::RemoveNamespaces {
                     namespaces: vec![namespace.to_string()],
                 },
                 vec![],
@@ -1078,7 +1078,7 @@ fn configure_old_adapter(
     adapter_address: impl Into<String>,
     message: AdapterBaseMsg,
 ) -> StdResult<CosmosMsg> {
-    type OldAdapterBaseExecuteMsg = abstract_core::base::ExecuteMsg<AdapterBaseMsg, Empty, Empty>;
+    type OldAdapterBaseExecuteMsg = abstract_std::base::ExecuteMsg<AdapterBaseMsg, Empty, Empty>;
 
     let adapter_msg = OldAdapterBaseExecuteMsg::Base(message);
     Ok(wasm_execute(adapter_address, &adapter_msg, vec![])?.into())
@@ -1277,7 +1277,7 @@ mod tests {
             assert_that!(res).is_err().matches(|err| {
                 matches!(
                     err,
-                    ManagerError::Abstract(abstract_core::AbstractError::Std(
+                    ManagerError::Abstract(abstract_std::AbstractError::Std(
                         StdError::GenericErr { .. }
                     ))
                 )
@@ -1349,7 +1349,7 @@ mod tests {
     }
 
     mod update_module_addresses {
-        use abstract_core::manager::InternalConfigAction;
+        use abstract_std::manager::InternalConfigAction;
 
         use super::*;
 
@@ -1613,7 +1613,7 @@ mod tests {
     }
 
     mod update_info {
-        use abstract_core::objects::validation::ValidationError;
+        use abstract_std::objects::validation::ValidationError;
 
         use super::*;
 
@@ -1969,7 +1969,7 @@ mod tests {
     }
 
     mod update_internal_config {
-        use abstract_core::manager::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
+        use abstract_std::manager::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
 
         use super::*;
 

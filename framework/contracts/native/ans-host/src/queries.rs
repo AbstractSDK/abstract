@@ -1,4 +1,5 @@
-use abstract_core::{
+use abstract_sdk::cw_helpers::load_many;
+use abstract_std::{
     ans_host::{
         state::{
             Config, ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONFIG, CONTRACT_ADDRESSES,
@@ -16,7 +17,6 @@ use abstract_core::{
         PoolReference, UniquePoolId,
     },
 };
-use abstract_sdk::cw_helpers::load_many;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
 use cw_storage_plus::Bound;
@@ -299,7 +299,7 @@ fn load_pool_metadata_entry(
 mod test {
     use std::str::FromStr;
 
-    use abstract_core::{
+    use abstract_std::{
         ans_host::*,
         objects::{chain_name::ChainName, pool_id::PoolAddressBase, PoolType},
     };

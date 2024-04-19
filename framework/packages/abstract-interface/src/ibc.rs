@@ -1,4 +1,4 @@
-use abstract_core::{IBC_CLIENT, IBC_HOST};
+use abstract_std::{IBC_CLIENT, IBC_HOST};
 use cw_orch::prelude::*;
 
 use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, VersionControl};
@@ -26,7 +26,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 
     pub fn instantiate(&self, abstr: &Abstract<Chain>, admin: &Addr) -> Result<(), CwOrchError> {
         self.client.instantiate(
-            &abstract_core::ibc_client::InstantiateMsg {
+            &abstract_std::ibc_client::InstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
                 version_control_address: abstr.version_control.addr_str()?,
             },
@@ -35,7 +35,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
         )?;
 
         self.host.instantiate(
-            &abstract_core::ibc_host::InstantiateMsg {
+            &abstract_std::ibc_host::InstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
                 account_factory_address: abstr.account_factory.addr_str()?,
                 version_control_address: abstr.version_control.addr_str()?,

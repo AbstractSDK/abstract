@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY,
     VERSION_CONTROL,
 };

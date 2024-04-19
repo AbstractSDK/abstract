@@ -1,8 +1,8 @@
 //! # Tendermint Staking Adapter
 //!
-//! `abstract_core::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`] and [`cosmwasm_std::CosmosMsg::Distribution`].
+//! `abstract_std::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`] and [`cosmwasm_std::CosmosMsg::Distribution`].
 
-use abstract_core::adapter;
+use abstract_std::adapter;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Empty, Uint128};
 

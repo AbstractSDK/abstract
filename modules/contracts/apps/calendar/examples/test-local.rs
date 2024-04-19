@@ -6,9 +6,9 @@
 //!
 //! `cargo run --example test-local`
 
-use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
 use abstract_interface::VCExecFns;
 use abstract_interface::{Abstract, AppDeployer, DeployStrategy};
+use abstract_std::objects::{gov_type::GovernanceDetails, AssetEntry};
 use calendar_app::{
     contract::{APP_ID, APP_VERSION},
     msg::{CalendarInstantiateMsg, Time},

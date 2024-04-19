@@ -1,6 +1,6 @@
 //! Mock module for API and feature testing
 
-use abstract_core::objects::{
+use abstract_std::objects::{
     ans_host::AnsHost, dependency::StaticDependency, version_control::VersionControlContract,
 };
 use abstract_testing::prelude::*;
@@ -78,10 +78,10 @@ pub struct MockModuleQueryMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct MockModuleQueryResponse {}
 
-impl abstract_core::adapter::AdapterExecuteMsg for MockModuleExecuteMsg {}
+impl abstract_std::adapter::AdapterExecuteMsg for MockModuleExecuteMsg {}
 
-impl abstract_core::adapter::AdapterQueryMsg for MockModuleQueryMsg {}
+impl abstract_std::adapter::AdapterQueryMsg for MockModuleQueryMsg {}
 
-impl abstract_core::app::AppExecuteMsg for MockModuleExecuteMsg {}
+impl abstract_std::app::AppExecuteMsg for MockModuleExecuteMsg {}
 
-impl abstract_core::app::AppQueryMsg for MockModuleQueryMsg {}
+impl abstract_std::app::AppQueryMsg for MockModuleQueryMsg {}

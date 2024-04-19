@@ -21,7 +21,7 @@ mod test_common {
             deps,
             mock_env(),
             info,
-            abstract_core::module_factory::InstantiateMsg {
+            abstract_std::module_factory::InstantiateMsg {
                 admin,
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 ans_host_address: TEST_ANS_HOST.to_string(),

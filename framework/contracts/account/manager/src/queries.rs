@@ -1,6 +1,14 @@
 use std::collections::BTreeMap;
 
-use abstract_core::{
+use abstract_sdk::{
+    core::manager::{
+        state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO},
+        ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
+        ModuleInfosResponse, ModuleVersionsResponse,
+    },
+    feature_objects::VersionControlContract,
+};
+use abstract_std::{
     manager::{
         state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS},
         SubAccountIdsResponse,
@@ -10,14 +18,6 @@ use abstract_core::{
         nested_admin::{query_top_level_owner, TopLevelOwnerResponse},
     },
     AbstractError,
-};
-use abstract_sdk::{
-    core::manager::{
-        state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO},
-        ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
-        ModuleInfosResponse, ModuleVersionsResponse,
-    },
-    feature_objects::VersionControlContract,
 };
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult};
 use cw2::ContractVersion;

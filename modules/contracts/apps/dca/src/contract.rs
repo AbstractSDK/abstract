@@ -1,7 +1,7 @@
 use abstract_app::AppContract;
-use abstract_core::objects::dependency::StaticDependency;
+use abstract_std::objects::dependency::StaticDependency;
 #[cfg(feature = "interface")]
-use abstract_core::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
+use abstract_std::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
 use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "interface")]
 use croncat_app::contract::interface::Croncat;

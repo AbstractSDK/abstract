@@ -41,7 +41,7 @@ schemars = { workspace = true }
 cw-asset = { workspace = true }
 cw20 = { workspace = true }
 
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
 

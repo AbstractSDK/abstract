@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 
 use abstract_app::{
-    abstract_core::objects::{
-        voting::{ProposalId, ProposalInfo, ProposalOutcome, Vote},
-        AnsAsset,
-    },
     abstract_sdk::{
         features::AbstractResponse, AbstractSdkResult, AccountVerification, Execution,
         TransferInterface,
+    },
+    abstract_std::objects::{
+        voting::{ProposalId, ProposalInfo, ProposalOutcome, Vote},
+        AnsAsset,
     },
 };
 use cosmwasm_std::{

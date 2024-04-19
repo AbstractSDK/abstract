@@ -1,4 +1,6 @@
-use abstract_core::{
+use abstract_macros::abstract_response;
+use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_std::{
     ibc_client::{state::*, *},
     objects::{
         ans_host::AnsHost,
@@ -6,8 +8,6 @@ use abstract_core::{
     },
     IBC_CLIENT,
 };
-use abstract_macros::abstract_response;
-use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
@@ -211,7 +211,7 @@ mod tests {
     }
 
     mod migrate {
-        use abstract_core::AbstractError;
+        use abstract_std::AbstractError;
         use cosmwasm_std::testing::mock_dependencies;
 
         use super::*;
@@ -313,7 +313,7 @@ mod tests {
     mod register_infrastructure {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
+        use abstract_std::objects::chain_name::ChainName;
         use cosmwasm_std::{from_json, wasm_execute};
         use polytone::callbacks::CallbackRequest;
 
@@ -456,7 +456,7 @@ mod tests {
     mod remote_action {
         use std::str::FromStr;
 
-        use abstract_core::{
+        use abstract_std::{
             ibc::CallbackInfo,
             ibc_host::{self, HostAction, InternalAction},
             manager,
@@ -675,7 +675,7 @@ mod tests {
     mod remote_query {
         use std::str::FromStr;
 
-        use abstract_core::{ibc::CallbackInfo, objects::chain_name::ChainName};
+        use abstract_std::{ibc::CallbackInfo, objects::chain_name::ChainName};
         use cosmwasm_std::{wasm_execute, BankQuery, Binary, QueryRequest};
         use polytone::callbacks::CallbackRequest;
 
@@ -747,7 +747,7 @@ mod tests {
     mod send_funds {
         use std::str::FromStr;
 
-        use abstract_core::{
+        use abstract_std::{
             objects::{
                 account::TEST_ACCOUNT_ID, chain_name::ChainName,
                 version_control::VersionControlError, ChannelEntry,
@@ -841,7 +841,7 @@ mod tests {
     mod register_account {
         use std::str::FromStr;
 
-        use abstract_core::{
+        use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
             objects::{
@@ -976,7 +976,7 @@ mod tests {
     mod update_config {
         use std::str::FromStr;
 
-        use abstract_core::{
+        use abstract_std::{
             ibc_client::state::Config,
             objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
         };
@@ -1073,7 +1073,7 @@ mod tests {
     mod remove_host {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
+        use abstract_std::objects::chain_name::ChainName;
 
         use super::*;
 
@@ -1130,7 +1130,7 @@ mod tests {
     mod callback {
         use std::str::FromStr;
 
-        use abstract_core::{
+        use abstract_std::{
             ibc::{CallbackInfo, IbcResponseMsg},
             objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
         };
@@ -1562,7 +1562,7 @@ mod tests {
     mod list_proxies_by_account_id {
         use std::str::FromStr;
 
-        use abstract_core::objects::{
+        use abstract_std::objects::{
             account::{AccountTrace, TEST_ACCOUNT_ID},
             chain_name::ChainName,
             AccountId,

@@ -4,7 +4,7 @@ pub mod error;
 pub mod queries;
 #[cfg(test)]
 mod testing {
-    use abstract_core::version_control;
+    use abstract_std::version_control;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, DepsMut, Response};
 

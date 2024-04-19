@@ -1,12 +1,12 @@
-use abstract_core::{
-    adapter::{AdapterBaseMsg, AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
-    manager::state::ACCOUNT_MODULES,
-    objects::nested_admin::query_top_level_owner,
-};
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
     AbstractResponse, AccountVerification,
+};
+use abstract_std::{
+    adapter::{AdapterBaseMsg, AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
+    manager::state::ACCOUNT_MODULES,
+    objects::nested_admin::query_top_level_owner,
 };
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, QuerierWrapper, Response, StdResult};
 use schemars::JsonSchema;
@@ -242,7 +242,7 @@ fn get_addr_from_module_id_or_addr(
 
 #[cfg(test)]
 mod tests {
-    use abstract_core::adapter;
+    use abstract_std::adapter;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
@@ -445,7 +445,7 @@ mod tests {
     }
 
     mod execute_app {
-        use abstract_core::objects::{account::AccountTrace, AccountId};
+        use abstract_std::objects::{account::AccountTrace, AccountId};
 
         use super::*;
         use crate::mock::{MOCK_ADAPTER, TEST_AUTHORIZED_ADDRESS};

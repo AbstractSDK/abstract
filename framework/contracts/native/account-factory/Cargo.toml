@@ -18,7 +18,7 @@ default = ["export"]
 export = []
 
 [dependencies]
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
 cosmwasm-schema = { workspace = true }

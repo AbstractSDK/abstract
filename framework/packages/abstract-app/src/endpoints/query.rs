@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
     objects::{
         module_version::{ModuleDataResponse, MODULE},
@@ -170,7 +170,7 @@ mod test {
     }
 
     mod base_query {
-        use abstract_core::app::{AppConfigResponse, BaseQueryMsg};
+        use abstract_std::app::{AppConfigResponse, BaseQueryMsg};
         use abstract_testing::prelude::*;
         use cosmwasm_std::{from_json, Addr};
         use cw_controllers::AdminResponse;

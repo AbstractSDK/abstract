@@ -1,8 +1,8 @@
-use abstract_core::objects::module::ModuleId;
 use abstract_sdk::{
     features::{AccountIdentification, Dependencies, ModuleIdentification},
     AbstractSdkResult, AppInterface, ModuleInterface,
 };
+use abstract_std::objects::module::ModuleId;
 use cosmwasm_std::{Addr, CosmosMsg, Deps};
 use croncat_integration_utils::CronCatTaskRequest;
 use croncat_sdk_manager::types::TaskBalanceResponse;

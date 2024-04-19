@@ -1,11 +1,11 @@
-use abstract_core::ibc::CallbackInfo;
-use abstract_core::objects::chain_name::ChainName;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse, AccountIdentification};
 use abstract_sdk::{IbcInterface, Resolve};
 use abstract_staking_standard::msg::{
     ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
 };
+use abstract_std::ibc::CallbackInfo;
+use abstract_std::objects::chain_name::ChainName;
 use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo};
 
 use crate::{
@@ -78,7 +78,7 @@ fn handle_ibc_request(
     // construct the action to be called on the host
     // construct the action to be called on the host
     let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
-        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+        manager_msg: abstract_std::manager::ExecuteMsg::ExecOnModule {
             module_id: CW_STAKING_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(
                 &StakingExecuteMsg {

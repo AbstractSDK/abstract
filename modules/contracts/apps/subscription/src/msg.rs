@@ -2,7 +2,7 @@
 
 //! # Subscription Add-On
 //!
-//! `abstract_core::subscription` provides OS owners with a tool to easily create smart-contract subscriptions for their products.
+//! `abstract_std::subscription` provides OS owners with a tool to easily create smart-contract subscriptions for their products.
 //!
 //! ## Description
 //! The subscription contract has three main uses.

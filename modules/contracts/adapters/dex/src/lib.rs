@@ -23,7 +23,7 @@ pub mod dex_tester;
 #[cfg(feature = "interface")]
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*};
-    use abstract_adapter::abstract_core::{
+    use abstract_adapter::abstract_std::{
         adapter,
         objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
     };
@@ -196,7 +196,7 @@ pub mod interface {
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
         ) -> Result<
-            Vec<abstract_adapter::abstract_core::manager::ModuleInstallConfig>,
+            Vec<abstract_adapter::abstract_std::manager::ModuleInstallConfig>,
             abstract_interface::AbstractInterfaceError,
         > {
             Ok(vec![])

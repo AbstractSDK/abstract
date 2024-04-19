@@ -1,4 +1,4 @@
-use abstract_adapter::abstract_core::objects::{AssetEntry, DexAssetPairing, PoolAddress};
+use abstract_adapter::abstract_std::objects::{AssetEntry, DexAssetPairing, PoolAddress};
 use abstract_adapter::sdk::features::AbstractNameService;
 use abstract_dex_standard::{
     ans_action::{pool_address, WholeDexAction},

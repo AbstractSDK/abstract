@@ -1,12 +1,12 @@
-use abstract_core::{
-    ans_host::ExecuteMsgFns,
-    objects::{gov_type::GovernanceDetails, AccountId, AnsAsset, AssetEntry},
-};
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg};
 use abstract_interface::{
     Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, VCExecFns,
 };
 use abstract_sdk::cw_helpers::Clearable;
+use abstract_std::{
+    ans_host::ExecuteMsgFns,
+    objects::{gov_type::GovernanceDetails, AccountId, AnsAsset, AssetEntry},
+};
 use cosmwasm_std::{coin, coins, to_json_binary, Decimal, Uint128};
 use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
 use cw20_base::msg::{InstantiateMsg as Cw20InstantiateMsg, QueryMsgFns};

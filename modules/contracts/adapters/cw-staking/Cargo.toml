@@ -89,7 +89,7 @@ thiserror = { workspace = true }
 serde = { workspace = true }
 
 abstract-sdk = { workspace = true }
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-adapter = { workspace = true }
 abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }

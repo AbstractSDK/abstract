@@ -1,5 +1,5 @@
-use abstract_core::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
 use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
+use abstract_std::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
@@ -13,7 +13,7 @@ impl<
         Error: From<cosmwasm_std::StdError>
             + From<AppError>
             + From<abstract_sdk::AbstractSdkError>
-            + From<abstract_core::AbstractError>
+            + From<abstract_std::AbstractError>
             + 'static,
         CustomInitMsg,
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
@@ -118,8 +118,8 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use abstract_core::app::BaseExecuteMsg;
     use abstract_sdk::base::ExecuteEndpoint;
+    use abstract_std::app::BaseExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},

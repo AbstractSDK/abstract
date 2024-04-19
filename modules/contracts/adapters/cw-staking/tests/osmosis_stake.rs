@@ -6,14 +6,6 @@ mod osmosis_test {
 
     use std::path::PathBuf;
 
-    use abstract_core::{
-        adapter,
-        ans_host::ExecuteMsgFns,
-        objects::{
-            pool_id::PoolAddressBase, AccountId, AnsAsset, AssetEntry, PoolMetadata, PoolType,
-        },
-        MANAGER,
-    };
     use abstract_cw_staking::{
         contract::CONTRACT_VERSION,
         msg::{
@@ -27,6 +19,14 @@ mod osmosis_test {
     use abstract_staking_standard::{
         msg::{StakingInfo, StakingInfoResponse},
         CwStakingError,
+    };
+    use abstract_std::{
+        adapter,
+        ans_host::ExecuteMsgFns,
+        objects::{
+            pool_id::PoolAddressBase, AccountId, AnsAsset, AssetEntry, PoolMetadata, PoolType,
+        },
+        MANAGER,
     };
     use cosmwasm_std::{coin, coins, Addr, Empty, Uint128};
     use cw_asset::AssetInfoBase;

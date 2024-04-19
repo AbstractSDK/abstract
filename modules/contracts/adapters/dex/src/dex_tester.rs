@@ -1,5 +1,5 @@
 use crate::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-use abstract_adapter::abstract_core::{
+use abstract_adapter::abstract_std::{
     adapter,
     objects::{
         module::{ModuleInfo, ModuleVersion},

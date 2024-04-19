@@ -1,4 +1,4 @@
-use abstract_core::{objects::time_weighted_average::TimeWeightedAverage, AbstractResult};
+use abstract_std::{objects::time_weighted_average::TimeWeightedAverage, AbstractResult};
 use cosmwasm_std::{Addr, Api, BlockInfo, Decimal, Timestamp};
 use cw_address_like::AddressLike;
 use cw_asset::{AssetInfo, AssetInfoBase};

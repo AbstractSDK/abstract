@@ -1,7 +1,7 @@
 //! # AnsHost Entry
 //! An entry (value) in the ans_host key-value store.
 
-use abstract_core::objects::{ans_host::AnsHostResult, AnsEntryConvertor};
+use abstract_std::objects::{ans_host::AnsHostResult, AnsEntryConvertor};
 use cosmwasm_std::{Addr, QuerierWrapper};
 use cw_asset::{Asset, AssetInfo};
 
@@ -130,7 +130,7 @@ where
 mod tests {
     use std::fmt::Debug;
 
-    use abstract_core::ans_host::state::ASSET_ADDRESSES;
+    use abstract_std::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, MockQuerier},
@@ -373,7 +373,7 @@ mod tests {
     }
 
     mod pools {
-        use abstract_core::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
+        use abstract_std::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
 
         use super::*;
         use crate::core::objects::{PoolAddress, PoolType};
@@ -498,7 +498,7 @@ mod tests {
     mod channel_entry {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
+        use abstract_std::objects::chain_name::ChainName;
 
         use super::*;
         use crate::core::ans_host::state::CHANNELS;

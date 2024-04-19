@@ -1,13 +1,13 @@
-use abstract_core::objects::{
-    account::AccountTrace,
-    namespace::{Namespace, ABSTRACT_NAMESPACE},
-    AccountId,
-};
 use abstract_money_market_standard::{
     ans_action::MoneyMarketActionResolveWrapper, raw_action::MoneyMarketRawAction, MoneyMarketError,
 };
 use abstract_sdk::{
     features::AbstractNameService, AccountVerification, Execution, ModuleRegistryInterface,
+};
+use abstract_std::objects::{
+    account::AccountTrace,
+    namespace::{Namespace, ABSTRACT_NAMESPACE},
+    AccountId,
 };
 use cosmwasm_std::{ensure_eq, DepsMut, Env, MessageInfo, Response};
 

@@ -16,7 +16,8 @@ use abstract_client::{
     AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
     Publisher,
 };
-use abstract_core::{
+use abstract_interface::{ClientResolve, RegisteredModule, VCExecFns, VCQueryFns};
+use abstract_std::{
     adapter::AuthorizedAddressesResponse,
     ans_host::QueryMsgFns,
     manager::{
@@ -27,7 +28,6 @@ use abstract_core::{
         module_version::ModuleDataResponse, namespace::Namespace, AccountId, AssetEntry,
     },
 };
-use abstract_interface::{ClientResolve, RegisteredModule, VCExecFns, VCQueryFns};
 use abstract_testing::{
     addresses::{TEST_MODULE_NAME, TTOKEN},
     prelude::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION, TEST_WITH_DEP_NAMESPACE},
@@ -869,10 +869,9 @@ fn can_use_adapter_object_after_publishing() -> anyhow::Result<()> {
 
     let adapter = publisher
         .publish_adapter::<AdapterMockInitMsg, MockAdapterI<MockBech32>>(AdapterMockInitMsg {})?;
-    let module_data: ModuleDataResponse =
-        adapter.query(&abstract_core::adapter::QueryMsg::Base(
-            abstract_core::adapter::BaseQueryMsg::ModuleData {},
-        ))?;
+    let module_data: ModuleDataResponse = adapter.query(&abstract_std::adapter::QueryMsg::Base(
+        abstract_std::adapter::BaseQueryMsg::ModuleData {},
+    ))?;
 
     assert_eq!(
         module_data,
@@ -903,7 +902,7 @@ fn can_register_dex_with_client() -> anyhow::Result<()> {
     let dexes_response = client.name_service().registered_dexes()?;
     assert_eq!(
         dexes_response,
-        abstract_core::ans_host::RegisteredDexesResponse { dexes }
+        abstract_std::ans_host::RegisteredDexesResponse { dexes }
     );
     Ok(())
 }
@@ -1054,10 +1053,10 @@ fn auto_funds_work() -> anyhow::Result<()> {
     client.version_control().update_module_configuration(
         TEST_MODULE_NAME.to_owned(),
         Namespace::new(TEST_NAMESPACE)?,
-        abstract_core::version_control::UpdateModule::Versioned {
+        abstract_std::version_control::UpdateModule::Versioned {
             version: MockAdapterI::<MockBech32>::module_version().to_owned(),
             metadata: None,
-            monetization: Some(abstract_core::objects::module::Monetization::InstallFee(
+            monetization: Some(abstract_std::objects::module::Monetization::InstallFee(
                 FixedFee::new(&Coin {
                     denom: TTOKEN.to_owned(),
                     amount: Uint128::new(50),
@@ -1191,7 +1190,7 @@ fn authorize_app_on_adapters() -> anyhow::Result<()> {
 
     // Check it authorized
     let authorized_addrs_resp: AuthorizedAddressesResponse = adapter.query(
-        &abstract_core::adapter::BaseQueryMsg::AuthorizedAddresses {
+        &abstract_std::adapter::BaseQueryMsg::AuthorizedAddresses {
             proxy_address: app.account().proxy()?.to_string(),
         }
         .into(),
@@ -1294,7 +1293,7 @@ fn instantiate2_raw_addr() -> anyhow::Result<()> {
 
     let proxy_addr = client.module_instantiate2_address_raw(
         &account_id,
-        ModuleInfo::from_id_latest(abstract_core::PROXY)?,
+        ModuleInfo::from_id_latest(abstract_std::PROXY)?,
     )?;
     let account = client
         .account_builder()
