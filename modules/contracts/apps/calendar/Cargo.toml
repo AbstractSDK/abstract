@@ -30,6 +30,7 @@ export = []
 node-tests = ["interface"]
 interface = ["export", "dep:cw-orch", "abstract-app/interface-macro"]
 schema = ["abstract-app/schema"]
+testing = ["abstract-app/test-utils"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -49,7 +50,7 @@ cw-utils = "1.0.1"
 cw-orch = { workspace = true, optional = true }
 
 [dev-dependencies]
-calendar-app = { path = ".", features = ["interface"] }
+calendar-app = { path = ".", features = ["interface", "testing"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-client = { workspace = true, features = ["test-utils"] }
 speculoos = { workspace = true }
