@@ -42,7 +42,7 @@ use abstract_std::{
     version_control::NamespaceResponse,
     PROXY,
 };
-use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{

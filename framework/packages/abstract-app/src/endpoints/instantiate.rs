@@ -76,17 +76,15 @@ impl<
 
 #[cfg(test)]
 mod test {
+    use super::InstantiateMsg as SuperInstantiateMsg;
+    use crate::mock::*;
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_std::app::BaseInstantiateMsg;
     use abstract_testing::{
         addresses::test_account_base,
         prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL},
     };
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use speculoos::{assert_that, prelude::*};
-
-    use super::InstantiateMsg as SuperInstantiateMsg;
-    use crate::mock::*;
 
     #[test]
     fn test_instantiate() {

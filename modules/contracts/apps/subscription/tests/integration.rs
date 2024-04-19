@@ -13,7 +13,7 @@ use abstract_subscription::{
 
 pub const WEEK_IN_SECONDS: u64 = 7 * 24 * 60 * 60;
 
-use cosmwasm_std::{coins, Addr, Decimal, StdError, Uint128, Uint64};
+use cosmwasm_std::{coins, Decimal, StdError, Uint128, Uint64};
 use cw20_builder::{Cw20Base, Cw20Coin, Cw20ExecuteMsgFns, Cw20QueryMsgFns};
 use cw_asset::{AssetInfo, AssetInfoBase, AssetInfoUnchecked};
 // Use prelude to get all the necessary imports
@@ -194,10 +194,10 @@ fn subscribe() -> anyhow::Result<()> {
         payment_asset: _,
         emission_cw20: _,
     } = setup_native(vec![
-        (&subscriber1, &sub_amount),
-        (&subscriber2, &sub_amount),
-        (&subscriber3, &sub_amount),
-        (&subscriber4, &sub_amount),
+        (subscriber1, &sub_amount),
+        (subscriber2, &sub_amount),
+        (subscriber3, &sub_amount),
+        (subscriber4, &sub_amount),
     ])?;
 
     let subscription_addr = subscription_app.address()?;
@@ -272,10 +272,7 @@ fn claim_emissions_week_shared() -> anyhow::Result<()> {
         payment_asset: _,
         emission_cw20,
         mock,
-    } = setup_native(vec![
-        (&subscriber1, &sub_amount),
-        (&subscriber2, &sub_amount),
-    ])?;
+    } = setup_native(vec![(subscriber1, &sub_amount), (subscriber2, &sub_amount)])?;
     let subscriber1 = mock.addr_make(subscriber1);
     let subscriber2 = mock.addr_make(subscriber2);
 
@@ -335,7 +332,7 @@ fn claim_emissions_none() -> anyhow::Result<()> {
         payment_asset: _,
         emission_cw20: _,
         mock,
-    } = setup_native(vec![(&subscriber1, &sub_amount)])?;
+    } = setup_native(vec![(subscriber1, &sub_amount)])?;
     let subscriber1 = mock.addr_make(subscriber1);
 
     subscription_app
@@ -369,10 +366,7 @@ fn claim_emissions_week_per_user() -> anyhow::Result<()> {
         payment_asset: _,
         emission_cw20,
         mock,
-    } = setup_native(vec![
-        (&subscriber1, &sub_amount),
-        (&subscriber2, &sub_amount),
-    ])?;
+    } = setup_native(vec![(subscriber1, &sub_amount), (subscriber2, &sub_amount)])?;
     let subscriber1 = mock.addr_make(subscriber1);
     let subscriber2 = mock.addr_make(subscriber2);
 
@@ -449,7 +443,7 @@ fn claim_emissions_errors() -> anyhow::Result<()> {
         payment_asset: _,
         emission_cw20: _,
         mock,
-    } = setup_native(vec![(&subscriber1, &sub_amount)])?;
+    } = setup_native(vec![(subscriber1, &sub_amount)])?;
     let subscriber1 = mock.addr_make(subscriber1);
 
     // no subs
@@ -495,7 +489,7 @@ fn unsubscribe() -> anyhow::Result<()> {
         payment_asset: _,
         emission_cw20,
         mock,
-    } = setup_native(vec![(&subscriber1, &sub_amount)])?;
+    } = setup_native(vec![(subscriber1, &sub_amount)])?;
     let subscriber1 = mock.addr_make(subscriber1);
     let subscriber2 = mock.addr_make(subscriber2);
 
@@ -561,8 +555,8 @@ fn unsubscribe_part_of_list() -> anyhow::Result<()> {
         emission_cw20: _,
         mock,
     } = setup_native(vec![
-        (&subscriber1, coins(2200, DENOM).as_slice()),
-        (&subscriber2, coins(220, DENOM).as_slice()),
+        (subscriber1, coins(2200, DENOM).as_slice()),
+        (subscriber2, coins(220, DENOM).as_slice()),
     ])?;
     let subscriber1 = mock.addr_make(subscriber1);
     let subscriber2 = mock.addr_make(subscriber2);

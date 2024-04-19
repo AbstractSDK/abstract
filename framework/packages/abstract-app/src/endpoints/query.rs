@@ -170,12 +170,12 @@ mod test {
     }
 
     mod base_query {
+        use super::*;
+
         use abstract_std::app::{AppConfigResponse, BaseQueryMsg};
         use abstract_testing::prelude::*;
-        use cosmwasm_std::{from_json, Addr};
+        use cosmwasm_std::Addr;
         use cw_controllers::AdminResponse;
-
-        use super::*;
 
         #[test]
         fn config() -> AppTestResult {

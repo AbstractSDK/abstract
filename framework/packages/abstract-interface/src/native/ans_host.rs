@@ -9,7 +9,6 @@ use abstract_std::{
     },
     ANS_HOST,
 };
-use cosmwasm_std::Addr;
 use cw_address_like::AddressLike;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase, AssetInfoUnchecked, AssetUnchecked};
 use cw_orch::{interface, prelude::*};

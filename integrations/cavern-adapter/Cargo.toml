@@ -34,14 +34,14 @@ cw-asset = { workspace = true, optional = true }
 cw-utils = { workspace = true, optional = true }
 cw-storage-plus = { workspace = true, optional = true }
 
-moneymarket = { git = "https://github.com/CavernPerson/money-market-contracts", version = "0.3.1", optional = true }
-basset = { git = "https://github.com/CavernPerson/cavern-lsd-wrapper", optional = true }
+moneymarket = { git = "https://github.com/CavernPerson/money-market-contracts", version = "0.3.1", optional = true, rev = "ea773bb" }
+basset = { git = "https://github.com/CavernPerson/cavern-lsd-wrapper", optional = true, rev = "3643800" }
 cavern-lsd-wrapper-token = { git = "https://github.com/CavernPerson/cavern-lsd-wrapper", optional = true, features = [
   "library",
-] }
+], rev = "3643800" }
 wrapper-implementations = { git = "https://github.com/CavernPerson/cavern-lsd-wrapper", optional = true, features = [
   "library",
-] }
+], rev = "3643800" }
 
 
 [dev-dependencies]

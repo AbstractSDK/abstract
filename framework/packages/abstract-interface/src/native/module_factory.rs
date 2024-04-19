@@ -2,7 +2,7 @@ use abstract_std::module_factory::*;
 pub use abstract_std::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
 };
-use cw_orch::{environment::TxHandler, interface, prelude::*};
+use cw_orch::{interface, prelude::*};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;

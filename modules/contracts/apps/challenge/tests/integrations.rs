@@ -1,5 +1,5 @@
 use abstract_app::{
-    abstract_interface::{Abstract, AbstractAccount, AppDeployer, *},
+    abstract_interface::*,
     std::objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},

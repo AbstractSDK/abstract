@@ -57,6 +57,7 @@ pub const FAKE_MODULE_ID: ModuleId = "fake_module";
 
 /// A mock module that can be used for testing.
 /// Identifies itself as [`TEST_MODULE_ID`].
+#[derive(Default)]
 pub struct MockModule {}
 
 impl MockModule {

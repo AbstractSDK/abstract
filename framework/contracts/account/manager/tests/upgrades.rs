@@ -20,7 +20,7 @@ use abstract_std::{
     AbstractError,
 };
 use abstract_testing::prelude::*;
-use cosmwasm_std::{coin, to_json_binary};
+use cosmwasm_std::coin;
 use cw2::ContractVersion;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;

@@ -203,10 +203,6 @@ pub mod raw {
 }
 
 pub mod ans {
-    use cosmwasm_schema::serde::de::DeserializeOwned;
-
-    use self::raw::Dex;
-
     use super::*;
 
     #[derive(Clone)]
@@ -349,10 +345,7 @@ pub mod ans {
 #[cfg(test)]
 mod test {
     use abstract_adapter::sdk::mock_module::MockModule;
-    use abstract_adapter::std::{
-        adapter::AdapterRequestMsg,
-        objects::{AnsAsset, AssetEntry},
-    };
+    use abstract_adapter::std::adapter::AdapterRequestMsg;
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};
     use speculoos::prelude::*;
 

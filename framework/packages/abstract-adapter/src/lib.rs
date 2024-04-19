@@ -43,7 +43,7 @@ pub mod mock {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
-        to_json_binary, DepsMut, Response, StdError,
+        DepsMut, Response, StdError,
     };
     use cw_storage_plus::Item;
     use thiserror::Error;

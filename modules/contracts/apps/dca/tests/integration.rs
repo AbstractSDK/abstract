@@ -11,9 +11,9 @@ use abstract_app::std::{
 };
 use abstract_client::{AbstractClient, Account};
 use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use abstract_interface::*;
 use common::contracts;
-use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, StdError, Uint128};
+use cosmwasm_std::{coin, coins, to_json_binary, Decimal, StdError, Uint128};
 use croncat_app::{
     contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION},
     croncat_integration_utils::{AGENTS_NAME, MANAGER_NAME, TASKS_NAME},

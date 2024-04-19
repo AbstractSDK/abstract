@@ -543,13 +543,16 @@ pub fn update_config(
     if let Some(fee) = namespace_registration_fee {
         let previous_fee = config.namespace_registration_fee;
         let fee: Option<Coin> = fee.into();
-        config.namespace_registration_fee = fee.clone();
+        config.namespace_registration_fee = fee;
         attributes.extend(vec![
             (
                 "previous_namespace_registration_fee",
                 format!("{:?}", previous_fee),
             ),
-            ("namespace_registration_fee", format!("{fee:?}")),
+            (
+                "namespace_registration_fee",
+                format!("{:?}", config.namespace_registration_fee),
+            ),
         ])
     }
 
@@ -863,11 +866,10 @@ mod test {
     }
 
     mod claim_namespace {
-        use abstract_std::{objects, AbstractError};
-        use cosmwasm_std::{coins, BankMsg, CosmosMsg, SubMsg};
-        use objects::ABSTRACT_ACCOUNT_ID;
-
         use super::*;
+
+        use abstract_std::AbstractError;
+        use cosmwasm_std::{coins, SubMsg};
 
         #[test]
         fn claim_namespaces_by_owner() -> VersionControlTestResult {
@@ -1250,10 +1252,9 @@ mod test {
     }
 
     mod remove_namespaces {
-        use abstract_std::objects::module_reference::ModuleReference;
-        use cosmwasm_std::attr;
-
         use super::*;
+
+        use cosmwasm_std::attr;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))
@@ -1403,14 +1404,11 @@ mod test {
     }
 
     mod propose_modules {
-        use abstract_std::{
-            objects::{fee::FixedFee, module::Monetization, module_reference::ModuleReference},
-            AbstractError,
-        };
-        use cosmwasm_std::coin;
-
         use super::*;
+
         use crate::contract::query;
+        use abstract_std::{objects::module::Monetization, AbstractError};
+        use cosmwasm_std::coin;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))

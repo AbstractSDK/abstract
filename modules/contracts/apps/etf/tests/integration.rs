@@ -1,13 +1,12 @@
 // #[cfg(test)]
 // mod test_utils;
 
-use abstract_app::std as abstract_std;
+use abstract_app::objects::{price_source::UncheckedPriceSource, AssetEntry};
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, DeployStrategy, ProxyExecFns,
     ProxyQueryFns,
 };
-use abstract_std::objects::{price_source::UncheckedPriceSource, AssetEntry};
-use cosmwasm_std::{coin, Addr, Decimal, Empty};
+use cosmwasm_std::{coin, Decimal};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::{AssetInfo, AssetUnchecked};
@@ -42,7 +41,7 @@ fn create_etf(mock: MockBech32) -> Result<EtfEnv<MockBech32>, AbstractInterfaceE
     let abstract_ = Abstract::deploy_on(mock.clone(), mock.sender.to_string())?;
     // create first AbstractAccount
     abstract_.account_factory.create_default_account(
-        abstract_std::objects::gov_type::GovernanceDetails::Monarchy {
+        abstract_app::std::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: mock.sender.to_string(),
         },
     )?;
@@ -59,7 +58,7 @@ fn create_etf(mock: MockBech32) -> Result<EtfEnv<MockBech32>, AbstractInterfaceE
 
     // Create an AbstractAccount that we will turn into a etf
     let account = abstract_.account_factory.create_default_account(
-        abstract_std::objects::gov_type::GovernanceDetails::Monarchy {
+        abstract_app::std::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: mock.sender.to_string(),
         },
     )?;

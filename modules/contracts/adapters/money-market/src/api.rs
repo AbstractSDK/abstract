@@ -286,12 +286,9 @@ pub mod raw {
 }
 
 pub mod ans {
-    use cosmwasm_schema::serde::de::DeserializeOwned;
-    use cosmwasm_std::{Decimal, Uint128};
-
-    use self::raw::MoneyMarket;
-
     use super::*;
+
+    use cosmwasm_std::{Decimal, Uint128};
 
     #[derive(Clone)]
     pub struct AnsMoneyMarket<'a, T: MoneyMarketInterface> {
@@ -481,16 +478,13 @@ pub mod ans {
 
 #[cfg(test)]
 mod test {
+    use super::*;
+
+    use crate::msg::ExecuteMsg;
     use abstract_adapter::sdk::mock_module::MockModule;
-    use abstract_adapter::std::{
-        adapter::AdapterRequestMsg,
-        objects::{AnsAsset, AssetEntry},
-    };
+    use abstract_adapter::std::adapter::AdapterRequestMsg;
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};
     use speculoos::prelude::*;
-
-    use super::*;
-    use crate::msg::ExecuteMsg;
 
     fn expected_request_with_test_proxy(request: MoneyMarketExecuteMsg) -> ExecuteMsg {
         AdapterRequestMsg {

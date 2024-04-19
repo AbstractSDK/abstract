@@ -7,12 +7,12 @@ use abstract_std::{
     },
     version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
-use cosmwasm_std::{testing::MockQuerier, Addr};
+use cosmwasm_std::Addr;
 use cw_asset::AssetInfo;
 use cw_ownable::Ownership;
 use cw_storage_plus::Item;
 
-use crate::{mock_ans::MockAnsHost, prelude::*, MockQuerierBuilder};
+use crate::prelude::*;
 
 /// A mock querier setup with the proper responses for proxy/manager/accountId.
 pub fn mocked_account_querier_builder() -> AbstractMockQuerierBuilder {

@@ -363,11 +363,10 @@ mod test {
     }
 
     mod send_coins {
+        use super::*;
+
         use cw20::Cw20ExecuteMsg;
         use cw_asset::AssetError;
-
-        use super::*;
-        use crate::AbstractSdkError;
 
         #[test]
         fn send_cw20() {

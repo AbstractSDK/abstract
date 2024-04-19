@@ -16,7 +16,7 @@ impl Identify for Astrovault {
     }
 }
 #[cfg(feature = "full_integration")]
-use ::{
+use {
     abstract_dex_standard::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },

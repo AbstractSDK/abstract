@@ -128,17 +128,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Debug;
+    use super::*;
 
     use abstract_std::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{mock_dependencies, MockQuerier},
-        Binary, Empty,
-    };
+    use cosmwasm_std::{testing::mock_dependencies, Binary, Empty};
     use speculoos::prelude::*;
-
-    use super::*;
+    use std::fmt::Debug;
 
     fn default_test_querier() -> MockQuerier {
         MockQuerierBuilder::default()

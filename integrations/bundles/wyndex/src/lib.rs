@@ -10,7 +10,7 @@ use abstract_std::{
         pool_id::PoolAddressBase, AssetEntry, LpToken, PoolMetadata, UncheckedContractEntry,
     },
 };
-use cosmwasm_std::{coin, Addr, Decimal, Empty, Uint128};
+use cosmwasm_std::{coin, Decimal, Uint128};
 use cw20::Cw20Coin;
 use cw_orch::prelude::*;
 use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;

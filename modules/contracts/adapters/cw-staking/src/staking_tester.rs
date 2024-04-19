@@ -14,7 +14,11 @@ use abstract_staking_standard::msg::{
 };
 use cosmwasm_std::Uint128;
 use cw_asset::AssetInfoUnchecked;
-use cw_orch::{anyhow, environment::MutCwEnv, prelude::*};
+use cw_orch::{environment::MutCwEnv, prelude::*};
+
+// TODO: beta clippy trips here, try again later
+#[allow(unused_imports)]
+use cw_orch::anyhow;
 
 pub trait MockStaking {
     /// Name of the staking provider

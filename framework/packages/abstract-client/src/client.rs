@@ -39,7 +39,7 @@ use abstract_std::objects::{
     salt::generate_instantiate_salt,
     AccountId,
 };
-use cosmwasm_std::{Addr, BlockInfo, Coin, Empty, Uint128};
+use cosmwasm_std::{BlockInfo, Uint128};
 use cw_orch::prelude::*;
 
 use crate::{

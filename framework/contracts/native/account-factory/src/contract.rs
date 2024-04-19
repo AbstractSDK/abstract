@@ -154,8 +154,6 @@ mod tests {
     }
 
     mod update_config {
-        use cosmwasm_std::Addr;
-
         use super::*;
 
         #[test]

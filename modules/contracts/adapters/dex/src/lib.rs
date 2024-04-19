@@ -28,11 +28,10 @@ pub mod interface {
         adapter,
         objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
     };
-    use abstract_dex_standard::ans_action::DexAnsAction;
-    use abstract_dex_standard::raw_action::DexRawAction;
     use abstract_interface::{AbstractAccount, AbstractInterfaceError};
     use abstract_interface::{AdapterDeployer, RegisteredModule};
-    use cosmwasm_std::{Decimal, Empty};
+
+    use cosmwasm_std::Decimal;
     use cw_asset::{AssetBase, AssetInfoBase};
     use cw_orch::{build::BuildPostfix, interface};
     use cw_orch::{contract::Contract, prelude::*};

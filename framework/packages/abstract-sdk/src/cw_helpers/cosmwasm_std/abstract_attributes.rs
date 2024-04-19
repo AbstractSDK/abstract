@@ -36,10 +36,9 @@ impl AbstractAttributes for Response {
 
 #[cfg(test)]
 mod test {
-    use cosmwasm_std::{Event, Response};
-    use speculoos::prelude::*;
-
     use super::*;
+
+    use speculoos::prelude::*;
 
     #[test]
     fn test_add_abstract_attributes_no_abstract_event() {
