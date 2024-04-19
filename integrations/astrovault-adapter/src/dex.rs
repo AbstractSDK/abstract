@@ -685,7 +685,7 @@ fn cw_asset_info_to_astrovault(
 }
 
 /// Minimalistic versions of astrovault messages
-/// Currently only ConfigResponse in use
+/// Currently messages not in use
 #[cfg(feature = "full_integration")]
 mod mini_astrovault {
     use super::*;
