@@ -131,12 +131,12 @@ mod test {
     use super::*;
 
     use crate::AbstractSdkError;
-    use abstract_testing::prelude::*;
     use abstract_std::{
         objects::{account::AccountTrace, module::ModuleId, version_control::VersionControlError},
         proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
+    use abstract_testing::prelude::*;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
