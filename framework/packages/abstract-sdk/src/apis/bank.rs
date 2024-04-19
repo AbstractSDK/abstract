@@ -315,7 +315,7 @@ mod test {
     mod deposit {
         use super::*;
         use crate::apis::respond::AbstractResponse;
-        
+
         #[test]
         fn deposit() {
             let app = MockModule::new();
