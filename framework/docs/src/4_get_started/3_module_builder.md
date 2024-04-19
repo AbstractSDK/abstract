@@ -10,7 +10,7 @@ For now just know that we provide you with a builder pattern that allows you to 
 The builder pattern employed in building an Abstract module is a slight variation of the actual "builder" design pattern. Instead of creating a new builder at runtime, our module builder lets you set custom attributes on your module at compile time, meaning you end up with a `const` value can be heavily optimized by the compiler. This system ensures that the overhead of using Abstract has little effect on both the code's runtime and WASM binary size.
 
 ```admonish info
-The code-snippets in this example can be found in the <a href="https://github.com/AbstractSDK/abstract/blob/main/framework/packages/abstract-app/examples/counter.rs" target="_blank">counter app example</a>.
+The code-snippets in this example can be found in the <a href="https://github.com/AbstractSDK/app-template" target="_blank">app template</a>.
 ```
 
 In this tutorial we will be working on an [`App` module](../3_framework/6_module_types.md#apps).
