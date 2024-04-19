@@ -1,4 +1,4 @@
-use abstract_sdk::core::{
+use abstract_sdk::std::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     proxy::state::{ADMIN, ANS_HOST, STATE},
     IBC_CLIENT,
@@ -57,7 +57,7 @@ pub fn execute_ibc_action(
         return Err(ProxyError::SenderNotWhitelisted {});
     }
     let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
-    let ibc_client_address = abstract_sdk::core::manager::state::ACCOUNT_MODULES
+    let ibc_client_address = abstract_sdk::std::manager::state::ACCOUNT_MODULES
         .query(&deps.querier, manager_address, IBC_CLIENT)?
         .ok_or_else(|| {
             StdError::generic_err(format!(

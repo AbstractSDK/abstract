@@ -1,5 +1,5 @@
+use abstract_adapter::sdk::Execution;
 use abstract_adapter::AdapterContract;
-use abstract_sdk::Execution;
 use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response};
 
 use crate::{

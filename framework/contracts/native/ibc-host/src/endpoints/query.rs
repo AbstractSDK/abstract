@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use abstract_sdk::core::ibc_host::QueryMsg;
+use abstract_sdk::std::ibc_host::QueryMsg;
 use abstract_std::{
     ibc_host::{
         state::{CHAIN_PROXIES, CONFIG},

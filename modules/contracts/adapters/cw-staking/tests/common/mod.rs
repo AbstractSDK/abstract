@@ -1,8 +1,8 @@
 #[allow(unused)]
 pub const ROOT_USER: &str = "root_user";
 
+use abstract_adapter::std::objects::gov_type::GovernanceDetails;
 use abstract_interface::{AbstractAccount, AccountFactory};
-use abstract_std::objects::gov_type::GovernanceDetails;
 use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 

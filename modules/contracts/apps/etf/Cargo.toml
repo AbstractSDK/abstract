@@ -40,9 +40,7 @@ schemars = { workspace = true }
 protobuf = { workspace = true }
 cw-asset = { workspace = true }
 
-abstract-std = { workspace = true }
 abstract-app = { workspace = true }
-abstract-sdk = { workspace = true }
 
 cw-orch = { workspace = true, optional = true }
 abstract-interface = { workspace = true, optional = true }

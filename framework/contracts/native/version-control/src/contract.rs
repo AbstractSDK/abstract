@@ -1,13 +1,13 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    core::{
+    execute_update_ownership, query_ownership,
+    std::{
         objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
         version_control::{
             state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
         },
         VERSION_CONTROL,
     },
-    execute_update_ownership, query_ownership,
 };
 pub(crate) use abstract_std::objects::namespace::ABSTRACT_NAMESPACE;
 use abstract_std::{

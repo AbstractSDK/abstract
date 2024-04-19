@@ -5,8 +5,8 @@ use abstract_std::{
 use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
 
-use crate::core::objects::AccountId;
-// see core::proxy::state::ADMIN
+use crate::std::objects::AccountId;
+// see std::proxy::state::ADMIN
 use crate::{AbstractSdkError, AbstractSdkResult};
 
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);

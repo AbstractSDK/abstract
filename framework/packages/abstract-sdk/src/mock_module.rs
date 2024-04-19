@@ -7,11 +7,11 @@ use abstract_testing::prelude::*;
 use cosmwasm_std::{Addr, Deps};
 
 use crate::{
-    core::objects::module::ModuleId,
     features::{
         AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies,
         ModuleIdentification,
     },
+    std::objects::module::ModuleId,
     AbstractSdkResult,
 };
 

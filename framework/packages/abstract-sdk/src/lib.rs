@@ -7,7 +7,7 @@
 pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;
 
 /// The Abstract Core crate which contains the state and message objects for the native contracts. Also contains helper objects.
-pub use abstract_std as core;
+pub use abstract_std as std;
 
 mod account_action;
 mod ans_resolve;

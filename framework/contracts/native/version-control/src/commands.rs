@@ -1,5 +1,6 @@
 use abstract_sdk::{
-    core::{
+    cw_helpers::Clearable,
+    std::{
         objects::{
             module::{ModuleInfo, ModuleVersion},
             module_reference::ModuleReference,
@@ -8,7 +9,6 @@ use abstract_sdk::{
         },
         version_control::{state::*, AccountBase, Config},
     },
-    cw_helpers::Clearable,
 };
 use abstract_std::{
     objects::{

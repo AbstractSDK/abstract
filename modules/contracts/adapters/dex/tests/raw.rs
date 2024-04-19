@@ -1,4 +1,4 @@
-use abstract_adapter::abstract_std::{
+use abstract_adapter::std::{
     adapter::AdapterRequestMsg,
     ans_host::QueryMsgFns as _,
     objects::{PoolAddress, ABSTRACT_ACCOUNT_ID},

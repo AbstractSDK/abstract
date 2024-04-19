@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    core::{objects::ChannelEntry, ICS20},
+    std::{objects::ChannelEntry, ICS20},
     Resolve,
 };
 use abstract_std::{

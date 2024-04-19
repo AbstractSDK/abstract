@@ -10,7 +10,7 @@ use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, StdResult};
 use crate::state::{AdapterContract, ContractError};
 
 /// Where we dispatch the queries for the AdapterContract
-/// These AdapterQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
+/// These AdapterQueryMsg declarations can be found in `abstract_sdk::std::common_module::app_msg`
 impl<
         Error: ContractError,
         CustomInitMsg,

@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use abstract_sdk::{core::ibc_host::ExecuteMsg, feature_objects::VersionControlContract};
+use abstract_sdk::{feature_objects::VersionControlContract, std::ibc_host::ExecuteMsg};
 use abstract_std::{
     ibc_host::state::{CHAIN_PROXIES, CONFIG, REVERSE_CHAIN_PROXIES},
     objects::chain_name::ChainName,

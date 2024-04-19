@@ -32,9 +32,9 @@ macro_rules! export_endpoints {
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: <$app_type as $crate::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::abstract_sdk::base::Handler>::Error> {
-            use $crate::abstract_sdk::base::InstantiateEndpoint;
+            msg: <$app_type as $crate::sdk::base::InstantiateEndpoint>::InstantiateMsg,
+        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error> {
+            use $crate::sdk::base::InstantiateEndpoint;
             $app_const.instantiate(deps, env, info, msg)
         }
 
@@ -44,9 +44,9 @@ macro_rules! export_endpoints {
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: <$app_type as $crate::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::abstract_sdk::base::Handler>::Error> {
-            use $crate::abstract_sdk::base::ExecuteEndpoint;
+            msg: <$app_type as $crate::sdk::base::ExecuteEndpoint>::ExecuteMsg,
+        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error> {
+            use $crate::sdk::base::ExecuteEndpoint;
             $app_const.execute(deps, env, info, msg)
         }
 
@@ -55,9 +55,9 @@ macro_rules! export_endpoints {
         pub fn query(
             deps: ::cosmwasm_std::Deps,
             env: ::cosmwasm_std::Env,
-            msg: <$app_type as $crate::abstract_sdk::base::QueryEndpoint>::QueryMsg,
-        ) -> Result<::cosmwasm_std::Binary, <$app_type as $crate::abstract_sdk::base::Handler>::Error> {
-            use $crate::abstract_sdk::base::QueryEndpoint;
+            msg: <$app_type as $crate::sdk::base::QueryEndpoint>::QueryMsg,
+        ) -> Result<::cosmwasm_std::Binary, <$app_type as $crate::sdk::base::Handler>::Error> {
+            use $crate::sdk::base::QueryEndpoint;
             $app_const.query(deps, env, msg)
         }
 
@@ -66,9 +66,9 @@ macro_rules! export_endpoints {
         pub fn migrate(
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
-            msg: <$app_type as $crate::abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::abstract_sdk::base::Handler>::Error> {
-            use $crate::abstract_sdk::base::MigrateEndpoint;
+            msg: <$app_type as $crate::sdk::base::MigrateEndpoint>::MigrateMsg,
+        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error> {
+            use $crate::sdk::base::MigrateEndpoint;
             $app_const.migrate(deps, env, msg)
         }
 
@@ -78,8 +78,8 @@ macro_rules! export_endpoints {
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             msg: ::cosmwasm_std::Reply,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::abstract_sdk::base::Handler>::Error> {
-            use $crate::abstract_sdk::base::ReplyEndpoint;
+        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error> {
+            use $crate::sdk::base::ReplyEndpoint;
             $app_const.reply(deps, env, msg)
         }
 
@@ -88,9 +88,9 @@ macro_rules! export_endpoints {
         pub fn sudo(
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
-            msg: <$app_type as $crate::abstract_sdk::base::Handler>::SudoMsg,
-        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::abstract_sdk::base::Handler>::Error> {
-            use $crate::abstract_sdk::base::SudoEndpoint;
+            msg: <$app_type as $crate::sdk::base::Handler>::SudoMsg,
+        ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error> {
+            use $crate::sdk::base::SudoEndpoint;
             $app_const.sudo(deps, env, msg)
         }
     };
@@ -98,7 +98,7 @@ macro_rules! export_endpoints {
 
 #[cfg(test)]
 mod test {
-    use abstract_sdk::base::{
+    use crate::sdk::base::{
         ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
         SudoEndpoint,
     };

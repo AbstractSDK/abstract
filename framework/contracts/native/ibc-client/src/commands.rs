@@ -1,13 +1,13 @@
 use std::str::FromStr;
 
 use abstract_sdk::{
-    core::{
+    features::AccountIdentification,
+    std::{
         ibc_client::state::{ACCOUNTS, CONFIG},
         ibc_host::{HostAction, InternalAction},
         objects::{ans_host::AnsHost, version_control::VersionControlContract, ChannelEntry},
         ICS20,
     },
-    features::AccountIdentification,
     Resolve,
 };
 use abstract_std::{

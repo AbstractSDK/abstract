@@ -1,8 +1,8 @@
 #![warn(missing_docs)]
 //! Message types for the challenge app
 use abstract_app::{
-    abstract_sdk::{AbstractSdkResult, AccountVerification},
-    abstract_std::objects::{
+    sdk::{AbstractSdkResult, AccountVerification},
+    std::objects::{
         voting::{ProposalId, ProposalInfo, Vote, VoteConfig},
         AccountId, AssetEntry,
     },

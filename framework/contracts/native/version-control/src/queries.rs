@@ -1,4 +1,4 @@
-use abstract_sdk::core::{
+use abstract_sdk::std::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,

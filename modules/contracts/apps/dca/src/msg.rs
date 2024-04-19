@@ -3,7 +3,7 @@
 //!
 //! `abstract::cw-staking`
 
-use abstract_std::objects::{AnsAsset, AssetEntry, DexName, PoolReference};
+use abstract_app::std::objects::{AnsAsset, AssetEntry, DexName, PoolReference};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
 use croncat_app::croncat_integration_utils::CronCatInterval;

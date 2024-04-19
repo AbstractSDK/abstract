@@ -1,5 +1,5 @@
+use abstract_app::std::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
 use abstract_client::{AbstractClient, Application, Publisher};
-use abstract_std::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
 // Use prelude to get all the necessary imports
 use abstract_testing::prelude::*;
 use calendar_app::{
@@ -1089,7 +1089,7 @@ fn cannot_request_meeting_with_start_and_end_being_on_different_days() -> anyhow
 
     let error: anyhow::Error = app
         .execute(
-            &abstract_std::base::ExecuteMsg::Module(CalendarExecuteMsg::RequestMeeting {
+            &abstract_app::std::base::ExecuteMsg::Module(CalendarExecuteMsg::RequestMeeting {
                 start_time: meeting_start_datetime.and_utc().timestamp().into(),
                 end_time: meeting_end_datetime.and_utc().timestamp().into(),
             }),

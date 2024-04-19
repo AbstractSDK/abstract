@@ -1,12 +1,12 @@
 use std::collections::BTreeMap;
 
 use abstract_sdk::{
-    core::manager::{
+    feature_objects::VersionControlContract,
+    std::manager::{
         state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO},
         ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleVersionsResponse,
     },
-    feature_objects::VersionControlContract,
 };
 use abstract_std::{
     manager::{

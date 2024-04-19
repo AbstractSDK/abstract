@@ -3,12 +3,12 @@ use abstract_adapter::mock::{
     MockQueryMsg as AdapterMockQueryMsg, TEST_METADATA,
 };
 use abstract_app::{
-    abstract_sdk::base::Handler,
     mock::{
         interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockExecMsgFns,
         MockInitMsg, MockQueryMsgFns, MockQueryResponse,
     },
     objects::module::ModuleInfo,
+    sdk::base::Handler,
     traits::ModuleIdentification,
 };
 use abstract_client::{

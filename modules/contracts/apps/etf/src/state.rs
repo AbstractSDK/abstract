@@ -1,4 +1,4 @@
-use abstract_std::objects::fee::Fee;
+use abstract_app::std::objects::fee::Fee;
 use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
 

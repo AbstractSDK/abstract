@@ -9,8 +9,8 @@ use abstract_std::version_control::AccountBase;
 use cosmwasm_std::{Addr, Deps};
 
 use crate::{
-    core::PROXY,
     features::{AccountIdentification, ModuleIdentification},
+    std::PROXY,
     AbstractSdkResult,
 };
 

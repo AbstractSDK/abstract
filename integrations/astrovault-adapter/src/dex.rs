@@ -21,8 +21,8 @@ use ::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
     abstract_sdk::{
-        core::objects::{PoolAddress, PoolType},
         feature_objects::{AnsHost, VersionControlContract},
+        std::objects::{PoolAddress, PoolType},
     },
     cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps, StdError, Uint128},
     cw20::Cw20ExecuteMsg,
@@ -740,7 +740,7 @@ mod tests {
     use std::{assert_eq, str::FromStr};
 
     use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
-    use abstract_sdk::core::objects::{PoolAddress, PoolType};
+    use abstract_sdk::std::objects::PoolAddress;
     use cosmwasm_schema::serde::Deserialize;
     use cosmwasm_std::{
         coin, coins, from_json, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal,

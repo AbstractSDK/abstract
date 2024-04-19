@@ -1,10 +1,7 @@
 mod common;
 
-use abstract_client::{AbstractClient, Account};
-use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
-use abstract_sdk::AbstractSdkError;
-use abstract_std::{
+use abstract_app::sdk::AbstractSdkError;
+use abstract_app::std::{
     app::BaseQueryMsgFns,
     objects::{
         ans_host::AnsHostError, dependency::DependencyResponse, gov_type::GovernanceDetails,
@@ -12,6 +9,9 @@ use abstract_std::{
         PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
     },
 };
+use abstract_client::{AbstractClient, Account};
+use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use common::contracts;
 use cosmwasm_std::{coin, coins, to_json_binary, Addr, Decimal, StdError, Uint128};
 use croncat_app::{
@@ -283,7 +283,7 @@ fn setup() -> anyhow::Result<(
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
     abstr_deployment.ans_host.execute(
-        &abstract_std::ans_host::ExecuteMsg::UpdateAssetAddresses {
+        &abstract_app::std::ans_host::ExecuteMsg::UpdateAssetAddresses {
             to_add: vec![("denom".to_owned(), AssetInfo::native(DENOM).into())],
             to_remove: vec![],
         },
@@ -322,7 +322,7 @@ fn setup() -> anyhow::Result<(
     // Register factory entry
     let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?;
     abstr_deployment.ans_host.execute(
-        &abstract_std::ans_host::ExecuteMsg::UpdateContractAddresses {
+        &abstract_app::std::ans_host::ExecuteMsg::UpdateContractAddresses {
             to_add: vec![(factory_entry, cron_cat_addrs.factory.to_string())],
             to_remove: vec![],
         },

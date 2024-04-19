@@ -1,6 +1,6 @@
 use abstract_app::{
-    abstract_sdk::AbstractSdkError,
-    abstract_std::{
+    sdk::AbstractSdkError,
+    std::{
         objects::{validation::ValidationError, voting::VoteError},
         AbstractError,
     },

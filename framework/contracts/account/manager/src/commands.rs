@@ -1,45 +1,32 @@
 use abstract_macros::abstract_response;
-use abstract_sdk::{
-    core::{
-        manager::{
-            state::{
-                AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, DEPENDENTS, INFO,
-                SUSPENSION_STATUS,
-            },
-            CallbackMsg, ExecuteMsg,
-        },
-        module_factory::ExecuteMsg as ModuleFactoryMsg,
-        objects::{
-            dependency::Dependency,
-            module::{Module, ModuleInfo, ModuleVersion},
-            module_reference::ModuleReference,
-            validation::{validate_description, validate_link, validate_name},
-        },
-        proxy::ExecuteMsg as ProxyMsg,
-        IBC_CLIENT, MANAGER, PROXY,
-    },
-    cw_helpers::AbstractAttributes,
-};
+use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_std::{
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
         ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
     },
     manager::{
-        state::{PENDING_GOVERNANCE, REMOVE_ADAPTER_AUTHORIZED_CONTEXT, SUB_ACCOUNTS},
-        InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction,
+        state::{
+            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, DEPENDENTS, INFO,
+            PENDING_GOVERNANCE, REMOVE_ADAPTER_AUTHORIZED_CONTEXT, SUB_ACCOUNTS, SUSPENSION_STATUS,
+        },
+        CallbackMsg, ExecuteMsg, InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction,
     },
-    module_factory::FactoryModuleInstallConfig,
+    module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
     objects::{
+        dependency::Dependency,
         gov_type::GovernanceDetails,
-        module::assert_module_data_validity,
+        module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
+        module_reference::ModuleReference,
         nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION},
         salt::generate_instantiate_salt,
+        validation::{validate_description, validate_link, validate_name},
         version_control::VersionControlContract,
         AccountId, AssetEntry,
     },
-    proxy::state::ACCOUNT_ID,
+    proxy::{state::ACCOUNT_ID, ExecuteMsg as ProxyMsg},
     version_control::ModuleResponse,
+    IBC_CLIENT, MANAGER, PROXY,
 };
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,

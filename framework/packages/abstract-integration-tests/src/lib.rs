@@ -9,7 +9,7 @@ pub mod mock_modules;
 
 use abstract_adapter::mock::{interface::MockAdapterI, MockInitMsg};
 use abstract_interface::*;
-use abstract_sdk::core::objects::gov_type::GovernanceDetails;
+use abstract_sdk::std::objects::gov_type::GovernanceDetails;
 use abstract_std::objects::{
     module::{ModuleVersion, Monetization},
     namespace::Namespace,

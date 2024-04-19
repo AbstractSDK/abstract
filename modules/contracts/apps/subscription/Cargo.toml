@@ -41,9 +41,7 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 semver = { workspace = true }
 
-abstract-sdk = { workspace = true }
 abstract-app = { workspace = true }
-abstract-std = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 
 abstract-interface = { workspace = true, optional = true }

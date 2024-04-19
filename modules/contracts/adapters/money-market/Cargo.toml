@@ -66,8 +66,6 @@ cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 
 abstract-interface = { workspace = true, optional = true }
-abstract-std = { workspace = true }
-abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 
@@ -98,7 +96,7 @@ env_logger = "0.10.0"
 clap = { workspace = true }
 wyndex-bundle = { workspace = true }
 abstract-testing = { workspace = true }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
+abstract-adapter = { workspace = true, features = ["test-utils"] }
 money-market = { path = ".", features = [
   "interface",
   "mars",

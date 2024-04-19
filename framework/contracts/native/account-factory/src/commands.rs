@@ -1,5 +1,6 @@
 use abstract_sdk::{
-    core::{
+    feature_objects::VersionControlContract,
+    std::{
         manager::InstantiateMsg as ManagerInstantiateMsg,
         objects::{
             gov_type::GovernanceDetails,
@@ -12,7 +13,6 @@ use abstract_sdk::{
         },
         AbstractResult, MANAGER, PROXY,
     },
-    feature_objects::VersionControlContract,
 };
 use abstract_std::{
     manager::ModuleInstallConfig,

@@ -1,5 +1,5 @@
-use abstract_sdk::features::AbstractNameService;
-use abstract_std::objects::DexAssetPairing;
+use abstract_app::sdk::features::AbstractNameService;
+use abstract_app::std::objects::DexAssetPairing;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use cw_asset::AssetInfo;
 

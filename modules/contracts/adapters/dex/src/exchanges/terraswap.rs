@@ -16,7 +16,7 @@ impl Identify for Terraswap {
 
 #[cfg(feature = "terraswap")]
 use ::{
-    abstract_adapter::abstract_std::objects::PoolAddress,
+    abstract_adapter::std::objects::PoolAddress,
     abstract_dex_standard::{coins_in_assets, cw_approve_msgs},
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
     cosmwasm_std::{to_json_binary, wasm_execute, CosmosMsg, Decimal, Deps},

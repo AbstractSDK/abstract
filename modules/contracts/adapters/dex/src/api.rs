@@ -1,11 +1,9 @@
 use crate::DEX_ADAPTER_ID;
-use abstract_adapter::abstract_std::objects::{
-    module::ModuleId, AnsAsset, AssetEntry, PoolAddress,
-};
 use abstract_adapter::sdk::{
     features::{AccountIdentification, Dependencies, ModuleIdentification},
     AbstractSdkResult, AdapterInterface,
 };
+use abstract_adapter::std::objects::{module::ModuleId, AnsAsset, AssetEntry, PoolAddress};
 use abstract_dex_standard::msg::GenerateMessagesResponse;
 use abstract_dex_standard::{
     ans_action::DexAnsAction,
@@ -350,11 +348,11 @@ pub mod ans {
 
 #[cfg(test)]
 mod test {
-    use abstract_adapter::abstract_std::{
+    use abstract_adapter::sdk::mock_module::MockModule;
+    use abstract_adapter::std::{
         adapter::AdapterRequestMsg,
         objects::{AnsAsset, AssetEntry},
     };
-    use abstract_adapter::sdk::mock_module::MockModule;
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};
     use speculoos::prelude::*;
 
@@ -534,7 +532,7 @@ mod test {
     }
 
     mod raw {
-        use abstract_adapter::abstract_std::objects::pool_id::PoolAddressBase;
+        use abstract_adapter::std::objects::pool_id::PoolAddressBase;
 
         use super::*;
 

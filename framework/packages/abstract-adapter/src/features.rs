@@ -40,7 +40,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     fn account_base(
         &self,
         _deps: Deps,
-    ) -> AbstractSdkResult<abstract_sdk::core::version_control::AccountBase> {
+    ) -> AbstractSdkResult<abstract_sdk::std::version_control::AccountBase> {
         if let Some(target) = &self.target_account {
             Ok(target.clone())
         } else {

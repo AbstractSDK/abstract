@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    core::{
+    std::{
         objects::AssetEntry,
         proxy::{
             state::{ANS_HOST, STATE},

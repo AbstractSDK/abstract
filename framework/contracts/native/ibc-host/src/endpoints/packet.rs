@@ -1,4 +1,4 @@
-use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
+use abstract_sdk::std::ibc_host::{HostAction, InternalAction};
 use abstract_std::{
     ibc_host::{
         state::{ActionAfterCreationCache, TEMP_ACTION_AFTER_CREATION},

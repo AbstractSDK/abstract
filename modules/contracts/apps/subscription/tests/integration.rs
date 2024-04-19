@@ -1,7 +1,9 @@
 use std::str::FromStr;
 
+use abstract_app::std::objects::{
+    namespace::Namespace, time_weighted_average::TimeWeightedAverageData,
+};
 use abstract_client::{builder::cw20_builder, AbstractClient, Application, Environment, Publisher};
-use abstract_std::objects::{namespace::Namespace, time_weighted_average::TimeWeightedAverageData};
 use abstract_subscription::{
     contract::interface::SubscriptionInterface,
     msg::{SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg, SubscriptionQueryMsgFns},

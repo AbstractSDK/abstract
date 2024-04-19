@@ -1,7 +1,7 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    core::{account_factory::*, ACCOUNT_FACTORY},
     execute_update_ownership, query_ownership,
+    std::{account_factory::*, ACCOUNT_FACTORY},
 };
 use abstract_std::objects::module_version::assert_contract_upgrade;
 use cosmwasm_std::{

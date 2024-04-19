@@ -1,6 +1,6 @@
 use abstract_sdk::{
-    core::ibc_host::InstantiateMsg,
     feature_objects::{AnsHost, VersionControlContract},
+    std::ibc_host::InstantiateMsg,
 };
 use abstract_std::{
     ibc_host::state::{Config, CONFIG},

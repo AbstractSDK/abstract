@@ -1,5 +1,5 @@
+use abstract_app::std::objects::gov_type::GovernanceDetails;
 use abstract_interface::*;
-use abstract_std::objects::gov_type::GovernanceDetails;
 use croncat_app::{
     contract::{interface::Croncat, CRONCAT_ID},
     msg::AppInstantiateMsg,

@@ -88,8 +88,6 @@ schemars = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
 
-abstract-sdk = { workspace = true }
-abstract-std = { workspace = true }
 abstract-adapter = { workspace = true }
 abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
@@ -133,7 +131,7 @@ cw-staking = { path = ".", features = [
   "wynd",
   "osmosis",
 ], package = "abstract-cw-staking" }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
+abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 wyndex-bundle = { workspace = true }
 cw20 = { workspace = true, features = ["interface"] }

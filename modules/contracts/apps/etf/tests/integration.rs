@@ -1,11 +1,11 @@
 // #[cfg(test)]
 // mod test_utils;
 
+use abstract_app::std as abstract_std;
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, DeployStrategy, ProxyExecFns,
     ProxyQueryFns,
 };
-use abstract_sdk::core as abstract_std;
 use abstract_std::objects::{price_source::UncheckedPriceSource, AssetEntry};
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
 use cw20::msg::Cw20ExecuteMsgFns;

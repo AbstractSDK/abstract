@@ -1,4 +1,4 @@
-use abstract_sdk::core::{
+use abstract_sdk::std::{
     manager::{
         state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,

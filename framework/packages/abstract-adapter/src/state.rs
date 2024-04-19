@@ -5,9 +5,9 @@ use abstract_sdk::{
         AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
         QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
-    core::version_control::AccountBase,
     feature_objects::{AnsHost, VersionControlContract},
     namespaces::BASE_STATE,
+    std::version_control::AccountBase,
     AbstractSdkError,
 };
 use abstract_std::objects::dependency::StaticDependency;

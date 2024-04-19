@@ -1,4 +1,4 @@
-use abstract_adapter::abstract_std::{ans_host::QueryMsgFns as _, objects::ABSTRACT_ACCOUNT_ID};
+use abstract_adapter::std::{ans_host::QueryMsgFns as _, objects::ABSTRACT_ACCOUNT_ID};
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_dex_standard::{msg::DexFeesResponse, DexError};
 use abstract_interface::{AbstractInterfaceError, AdapterDeployer, DeployStrategy};
@@ -159,7 +159,7 @@ fn authorized_update_fee() -> anyhow::Result<()> {
     let account0 = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID);
 
     let update_fee_msg = abstract_dex_standard::msg::ExecuteMsg::Module(
-        abstract_adapter::abstract_std::adapter::AdapterRequestMsg {
+        abstract_adapter::std::adapter::AdapterRequestMsg {
             proxy_address: Some(account0.proxy.addr_str()?),
             request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
                 swap_fee: Some(Decimal::percent(5)),
@@ -182,7 +182,7 @@ fn unauthorized_update_fee() -> anyhow::Result<()> {
     let (_, _, _, account, _) = setup_mock()?;
 
     let update_fee_msg = abstract_dex_standard::msg::ExecuteMsg::Module(
-        abstract_adapter::abstract_std::adapter::AdapterRequestMsg {
+        abstract_adapter::std::adapter::AdapterRequestMsg {
             proxy_address: None,
             request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
                 swap_fee: Some(Decimal::percent(5)),

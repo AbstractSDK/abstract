@@ -45,9 +45,7 @@ thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
 
-abstract-std = { workspace = true }
 abstract-app = { workspace = true }
-abstract-sdk = { workspace = true }
 
 chrono = { version = "0.4.31", default_features = false }
 cw-utils = "1.0.1"
@@ -61,7 +59,6 @@ calendar-app = { path = ".", features = ["interface"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
 abstract-client = { workspace = true, features = ["test-utils"] }
-abstract-sdk = { workspace = true }
 speculoos = { workspace = true }
 semver = { workspace = true }
 dotenv = "0.15.0"

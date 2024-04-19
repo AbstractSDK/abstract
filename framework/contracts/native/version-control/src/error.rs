@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    core::objects::{module::ModuleInfo, validation::ValidationError},
+    std::objects::{module::ModuleInfo, validation::ValidationError},
     AbstractSdkError,
 };
 use abstract_std::{

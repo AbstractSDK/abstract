@@ -46,9 +46,7 @@ thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
 
-abstract-std = { workspace = true }
 abstract-app = { workspace = true }
-abstract-sdk = { workspace = true }
 
 # Dependencies for interface
 abstract-interface = { workspace = true, optional = true }
@@ -61,7 +59,7 @@ dca-app = { path = ".", features = ["interface"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
 abstract-client = { workspace = true }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
+abstract-app = { workspace = true, features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"

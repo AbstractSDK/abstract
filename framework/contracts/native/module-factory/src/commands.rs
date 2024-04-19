@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    core::{
+    std::{
         module_factory::FactoryModuleInstallConfig,
         objects::{
             module::ModuleInfo, module_reference::ModuleReference,
@@ -147,7 +147,7 @@ pub fn execute_create_modules(
 
     let sum_of_monetization = sum_of_monetization.into_vec();
     if sum_of_monetization != info.funds {
-        return Err(core::AbstractError::Fee(format!(
+        return Err(std::AbstractError::Fee(format!(
             "Invalid fee payment sent. Expected {:?}, sent {:?}",
             sum_of_monetization, info.funds
         ))

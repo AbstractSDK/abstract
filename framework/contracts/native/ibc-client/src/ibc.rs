@@ -1,4 +1,4 @@
-use abstract_sdk::core::ibc_client::state::ACCOUNTS;
+use abstract_sdk::std::ibc_client::state::ACCOUNTS;
 use abstract_std::{
     ibc::IbcResponseMsg,
     ibc_client::{

@@ -126,7 +126,7 @@ mod tests {
     }
     mod adapter_request {
         use super::*;
-        use crate::core::adapter::{self, AdapterRequestMsg};
+        use crate::std::adapter::{self, AdapterRequestMsg};
 
         #[test]
         fn should_return_err_if_not_dependency() {

@@ -1,7 +1,7 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
-use abstract_std::objects::ans_host::AnsHostError;
+use abstract_std::objects::{ans_host::AnsHostError, AnsAsset, AssetEntry};
 use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
@@ -9,7 +9,6 @@ use serde::Serialize;
 use super::{AbstractApi, ApiIdentification};
 use crate::{
     ans_resolve::Resolve,
-    core::objects::{AnsAsset, AssetEntry},
     cw_helpers::ApiQuery,
     features::{AbstractNameService, AccountIdentification, ModuleIdentification},
     AbstractSdkError, AbstractSdkResult, AccountAction,

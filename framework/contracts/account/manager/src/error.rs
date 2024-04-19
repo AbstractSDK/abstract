@@ -1,4 +1,4 @@
-use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
+use abstract_sdk::{std::objects::module::ModuleInfo, AbstractSdkError};
 use abstract_std::{
     objects::{validation::ValidationError, version_control::VersionControlError},
     AbstractError,

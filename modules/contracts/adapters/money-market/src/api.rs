@@ -1,14 +1,14 @@
 use crate::MONEY_MARKET_ADAPTER_ID;
+use abstract_adapter::sdk::{
+    features::{AccountIdentification, Dependencies, ModuleIdentification},
+    AbstractSdkResult, AdapterInterface,
+};
+use abstract_adapter::std::objects::{module::ModuleId, AnsAsset, AssetEntry};
 use abstract_money_market_standard::{
     ans_action::MoneyMarketAnsAction,
     msg::{MoneyMarketExecuteMsg, MoneyMarketName, MoneyMarketQueryMsg},
     raw_action::{MoneyMarketRawAction, MoneyMarketRawRequest},
 };
-use abstract_sdk::{
-    features::{AccountIdentification, Dependencies, ModuleIdentification},
-    AbstractSdkResult, AdapterInterface,
-};
-use abstract_std::objects::{module::ModuleId, AnsAsset, AssetEntry};
 use cosmwasm_schema::serde::de::DeserializeOwned;
 use cosmwasm_std::{Addr, CosmosMsg, Deps};
 use cw_asset::{Asset, AssetInfo};
@@ -481,8 +481,8 @@ pub mod ans {
 
 #[cfg(test)]
 mod test {
-    use abstract_sdk::mock_module::MockModule;
-    use abstract_std::{
+    use abstract_adapter::sdk::mock_module::MockModule;
+    use abstract_adapter::std::{
         adapter::AdapterRequestMsg,
         objects::{AnsAsset, AssetEntry},
     };

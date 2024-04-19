@@ -1,9 +1,6 @@
 use abstract_adapter_utils::identity::Identify;
-use abstract_sdk::{
-    core::objects::AssetEntry,
-    feature_objects::{AnsHost, VersionControlContract},
-};
-use abstract_std::objects::{DexAssetPairing, PoolAddress, PoolReference};
+use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_std::objects::{AssetEntry, DexAssetPairing, PoolAddress, PoolReference};
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 

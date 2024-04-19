@@ -1,6 +1,6 @@
 use abstract_app::{
     abstract_interface::{Abstract, AbstractAccount, AppDeployer, *},
-    abstract_std::objects::{
+    std::objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
@@ -122,7 +122,7 @@ fn setup() -> anyhow::Result<(
     )?;
 
     abstr_deployment.ans_host.execute(
-        &abstract_app::abstract_std::ans_host::ExecuteMsg::UpdateAssetAddresses {
+        &abstract_app::std::ans_host::ExecuteMsg::UpdateAssetAddresses {
             to_add: vec![("denom".to_owned(), AssetInfo::native(DENOM).into())],
             to_remove: vec![],
         },

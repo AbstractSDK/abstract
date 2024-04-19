@@ -17,7 +17,7 @@ impl Identify for JunoSwap {
 
 #[cfg(feature = "wynd")]
 use ::{
-    abstract_adapter::abstract_std::objects::PoolAddress,
+    abstract_adapter::std::objects::PoolAddress,
     abstract_dex_standard::DexError,
     abstract_dex_standard::{coins_in_assets, cw_approve_msgs},
     abstract_dex_standard::{DexCommand, Fee, FeeOnInput, Return, Spread},

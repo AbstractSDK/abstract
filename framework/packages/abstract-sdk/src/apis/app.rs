@@ -134,7 +134,7 @@ mod tests {
 
     mod app_request {
         use super::*;
-        use crate::{core::app, mock_module::MockModuleExecuteMsg};
+        use crate::{mock_module::MockModuleExecuteMsg, std::app};
 
         #[test]
         fn should_return_err_if_not_dependency() {
@@ -172,7 +172,7 @@ mod tests {
 
     mod app_configure {
         use super::*;
-        use crate::core::app;
+        use crate::std::app;
 
         #[test]
         fn should_return_err_if_not_dependency() {

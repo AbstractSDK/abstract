@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 
 use abstract_app::{
-    abstract_sdk::{
+    sdk::{
         features::AbstractResponse, AbstractSdkResult, AccountVerification, Execution,
         TransferInterface,
     },
-    abstract_std::objects::{
+    std::objects::{
         voting::{ProposalId, ProposalInfo, ProposalOutcome, Vote},
         AnsAsset,
     },
