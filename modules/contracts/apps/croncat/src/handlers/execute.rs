@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    features::{AbstractNameService, AbstractResponse, AccountIdentification},
+    features::{AbstractNameService, AccountIdentification},
     prelude::*,
     AccountAction,
 };

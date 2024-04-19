@@ -31,7 +31,6 @@ pub mod interface {
         AbstractAccount, AbstractInterfaceError, AdapterDeployer, RegisteredModule,
     };
     use abstract_sdk::{base::Handler, features::ModuleIdentification as _};
-    use cosmwasm_std::{Addr, Empty};
     use cw_orch::{build::BuildPostfix, contract::Contract, interface, prelude::*};
 
     use crate::{

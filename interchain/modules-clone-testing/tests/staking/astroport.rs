@@ -6,7 +6,7 @@ use abstract_cw_staking::staking_tester::{MockStaking, StakingTester};
 use abstract_interface::ExecuteMsgFns;
 use abstract_modules_interchain_tests::common::load_abstr;
 use astroport::incentives::InputSchedule;
-use cosmwasm_std::{coin, Addr};
+use cosmwasm_std::coin;
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::daemon::networks::NEUTRON_1;
 use cw_orch::prelude::*;

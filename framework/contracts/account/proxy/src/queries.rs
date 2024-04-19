@@ -112,22 +112,19 @@ pub fn query_holding_amount(
 
 #[cfg(test)]
 mod test {
+    use super::*;
+
+    use crate::contract::{execute, instantiate, query};
     use abstract_core::{
         objects::price_source::{PriceSource, UncheckedPriceSource},
-        proxy::{AssetConfigResponse, ExecuteMsg, InstantiateMsg, TokenValueResponse},
+        proxy::{AssetConfigResponse, ExecuteMsg, InstantiateMsg},
     };
-    use abstract_testing::{prelude::*, MockAnsHost};
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         coin,
-        testing::{
-            mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
-            MOCK_CONTRACT_ADDR,
-        },
+        testing::{mock_dependencies, mock_env, mock_info, MockApi, MOCK_CONTRACT_ADDR},
         Decimal, DepsMut, OwnedDeps,
     };
-
-    use super::*;
-    use crate::contract::{execute, instantiate, query};
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 

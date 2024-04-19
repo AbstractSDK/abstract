@@ -21,7 +21,6 @@ mod proxy;
 use std::collections::HashSet;
 
 use abstract_core::{manager::ManagerModuleInfo, objects::AccountId};
-use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 use serde::Serialize;
 use speculoos::prelude::*;
