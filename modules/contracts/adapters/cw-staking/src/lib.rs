@@ -25,13 +25,13 @@ pub use msg::StakingQueryMsgFns;
 
 #[cfg(feature = "interface")]
 pub mod interface {
+    use abstract_adapter::abstract_interface::{
+        AbstractAccount, AbstractInterfaceError, AdapterDeployer, RegisteredModule,
+    };
     use abstract_adapter::sdk::{base::Handler, features::ModuleIdentification as _};
     use abstract_adapter::std::{
         adapter,
         objects::{AnsAsset, AssetEntry},
-    };
-    use abstract_interface::{
-        AbstractAccount, AbstractInterfaceError, AdapterDeployer, RegisteredModule,
     };
     use cw_orch::{build::BuildPostfix, contract::Contract, interface, prelude::*};
 

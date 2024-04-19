@@ -481,14 +481,16 @@ mod test {
     use super::*;
 
     use crate::msg::ExecuteMsg;
-    use abstract_adapter::sdk::mock_module::MockModule;
+    use abstract_adapter::abstract_testing::addresses::{TEST_MODULE_ADDRESS, TEST_MODULE_ID};
+    use abstract_adapter::abstract_testing::mock_querier;
     use abstract_adapter::std::adapter::AdapterRequestMsg;
+    use abstract_adapter::{abstract_testing::addresses::TEST_PROXY, sdk::mock_module::MockModule};
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};
     use speculoos::prelude::*;
 
     fn expected_request_with_test_proxy(request: MoneyMarketExecuteMsg) -> ExecuteMsg {
         AdapterRequestMsg {
-            proxy_address: Some(abstract_testing::prelude::TEST_PROXY.to_string()),
+            proxy_address: Some(TEST_PROXY.to_string()),
             request,
         }
         .into()
@@ -497,11 +499,11 @@ mod test {
     #[test]
     fn deposit_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = mock_querier();
         let stub = MockModule::new();
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(TEST_MODULE_ID);
 
         let money_market_name = "mars".to_string();
         let asset = AnsAsset::new("juno", 1000u128);
@@ -521,12 +523,7 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -534,11 +531,11 @@ mod test {
     #[test]
     fn withdraw_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = mock_querier();
         let stub = MockModule::new();
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(TEST_MODULE_ID);
 
         let money_market_name = "mars".to_string();
         let asset = AnsAsset::new("juno", 1000u128);
@@ -558,12 +555,7 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -571,11 +563,11 @@ mod test {
     #[test]
     fn provide_collateral_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = mock_querier();
         let stub = MockModule::new();
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(TEST_MODULE_ID);
 
         let money_market_name = "mars".to_string();
         let borrowable_asset = AssetEntry::new("usdc");
@@ -597,12 +589,7 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -610,11 +597,11 @@ mod test {
     #[test]
     fn withdraw_collateral_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = mock_querier();
         let stub = MockModule::new();
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(TEST_MODULE_ID);
 
         let money_market_name = "mars".to_string();
         let borrowable_asset = AssetEntry::new("usdc");
@@ -636,12 +623,7 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -649,11 +631,11 @@ mod test {
     #[test]
     fn borrow_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = mock_querier();
         let stub = MockModule::new();
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(TEST_MODULE_ID);
 
         let money_market_name = "mars".to_string();
         let collateral_asset = AssetEntry::new("juno");
@@ -675,12 +657,7 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -688,11 +665,11 @@ mod test {
     #[test]
     fn repay_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = mock_querier();
         let stub = MockModule::new();
         let money_market = stub
             .ans_money_market(deps.as_ref(), "mars".into())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(TEST_MODULE_ID);
 
         let money_market_name = "mars".to_string();
         let collateral_asset = AssetEntry::new("juno");
@@ -714,17 +691,17 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
 
     mod raw {
+        use abstract_adapter::abstract_testing::{
+            addresses::{TEST_MODULE_ADDRESS, TEST_MODULE_ID},
+            mock_querier,
+        };
+
         use super::*;
 
         pub const TEST_CONTRACT_ADDR: &str = "test-mm-addr";
@@ -732,11 +709,11 @@ mod test {
         #[test]
         fn deposit_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = mock_querier();
             let stub = MockModule::new();
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(TEST_MODULE_ID);
 
             let money_market_name = "mars".to_string();
             let asset = Asset::native("juno", 1000u128);
@@ -759,12 +736,7 @@ mod test {
                 CosmosMsg::Wasm(msg) => msg,
                 _ => panic!("expected wasm msg"),
             };
-            let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
-                &expected,
-                vec![],
-            )
-            .unwrap();
+            let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
             assert_that!(actual).is_equal_to(expected);
         }
@@ -772,11 +744,11 @@ mod test {
         #[test]
         fn withdraw_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = mock_querier();
             let stub = MockModule::new();
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(TEST_MODULE_ID);
 
             let money_market_name = "mars".to_string();
             let asset = Asset::native("juno", 1000u128);
@@ -799,12 +771,7 @@ mod test {
                 CosmosMsg::Wasm(msg) => msg,
                 _ => panic!("expected wasm msg"),
             };
-            let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
-                &expected,
-                vec![],
-            )
-            .unwrap();
+            let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
             assert_that!(actual).is_equal_to(expected);
         }
@@ -812,11 +779,11 @@ mod test {
         #[test]
         fn provide_collateral_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = mock_querier();
             let stub = MockModule::new();
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(TEST_MODULE_ID);
 
             let money_market_name = "mars".to_string();
             let borrowable_asset = AssetInfo::native("usdc");
@@ -845,12 +812,7 @@ mod test {
                 CosmosMsg::Wasm(msg) => msg,
                 _ => panic!("expected wasm msg"),
             };
-            let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
-                &expected,
-                vec![],
-            )
-            .unwrap();
+            let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
             assert_that!(actual).is_equal_to(expected);
         }
@@ -858,11 +820,11 @@ mod test {
         #[test]
         fn withdraw_collateral_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = mock_querier();
             let stub = MockModule::new();
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(TEST_MODULE_ID);
 
             let money_market_name = "mars".to_string();
             let borrowable_asset = AssetInfo::native("usdc");
@@ -891,12 +853,7 @@ mod test {
                 CosmosMsg::Wasm(msg) => msg,
                 _ => panic!("expected wasm msg"),
             };
-            let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
-                &expected,
-                vec![],
-            )
-            .unwrap();
+            let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
             assert_that!(actual).is_equal_to(expected);
         }
@@ -904,11 +861,11 @@ mod test {
         #[test]
         fn borrow_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = mock_querier();
             let stub = MockModule::new();
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(TEST_MODULE_ID);
 
             let money_market_name = "mars".to_string();
             let collateral_asset = AssetInfo::native("juno");
@@ -937,12 +894,7 @@ mod test {
                 CosmosMsg::Wasm(msg) => msg,
                 _ => panic!("expected wasm msg"),
             };
-            let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
-                &expected,
-                vec![],
-            )
-            .unwrap();
+            let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
             assert_that!(actual).is_equal_to(expected);
         }
@@ -950,11 +902,11 @@ mod test {
         #[test]
         fn repay_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = mock_querier();
             let stub = MockModule::new();
             let money_market = stub
                 .money_market(deps.as_ref(), "mars".into())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(TEST_MODULE_ID);
 
             let money_market_name = "mars".to_string();
             let collateral_asset = AssetInfo::native("juno");
@@ -983,12 +935,7 @@ mod test {
                 CosmosMsg::Wasm(msg) => msg,
                 _ => panic!("expected wasm msg"),
             };
-            let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
-                &expected,
-                vec![],
-            )
-            .unwrap();
+            let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
             assert_that!(actual).is_equal_to(expected);
         }

@@ -6,6 +6,9 @@ mod osmosis_test {
 
     use std::path::PathBuf;
 
+    use abstract_adapter::abstract_interface::{
+        Abstract, AbstractAccount, AbstractInterfaceError, AdapterDeployer, DeployStrategy, Manager,
+    };
     use abstract_adapter::std::{
         adapter,
         ans_host::ExecuteMsgFns,
@@ -20,9 +23,6 @@ mod osmosis_test {
             ExecuteMsg, InstantiateMsg, QueryMsg, RewardTokensResponse, StakingAction,
             StakingExecuteMsg, StakingQueryMsgFns,
         },
-    };
-    use abstract_interface::{
-        Abstract, AbstractAccount, AbstractInterfaceError, AdapterDeployer, DeployStrategy, Manager,
     };
     use abstract_staking_standard::{
         msg::{StakingInfo, StakingInfoResponse},

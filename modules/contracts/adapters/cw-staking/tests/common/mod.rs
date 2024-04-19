@@ -1,8 +1,8 @@
 #[allow(unused)]
 pub const ROOT_USER: &str = "root_user";
 
+use abstract_adapter::abstract_interface::{AbstractAccount, AccountFactory};
 use abstract_adapter::std::objects::gov_type::GovernanceDetails;
-use abstract_interface::{AbstractAccount, AccountFactory};
 use cw_orch::prelude::*;
 
 pub fn create_default_account<Chain: CwEnv>(

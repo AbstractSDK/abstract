@@ -20,12 +20,7 @@ required-features = ["interface"]
 [features]
 default = ["export"]
 export = []
-interface = [
-  "export",
-  "dep:abstract-interface",
-  "dep:cw-orch",
-  "abstract-app/interface-macro",
-]
+interface = ["export", "dep:cw-orch", "abstract-app/interface-macro"]
 schema = ["abstract-app/schema"]
 
 [dependencies]
@@ -43,14 +38,12 @@ cw-asset = { workspace = true }
 abstract-app = { workspace = true }
 
 cw-orch = { workspace = true, optional = true }
-abstract-interface = { workspace = true, optional = true }
 
 [dev-dependencies]
 cw20-base = { workspace = true, features = ["interface"] }
 cw20 = { workspace = true, features = ["interface"] }
 wyndex-bundle = { workspace = true }
 abstract-interface = { workspace = true, features = ["daemon"] }
-abstract-testing = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }

@@ -28,12 +28,7 @@ export = []
 # enable node-backed tests (ensure Docker is running)
 # run with `cargo test --jobs 1 --features node-tests`
 node-tests = ["interface"]
-interface = [
-  "export",
-  "dep:abstract-interface",
-  "dep:cw-orch",
-  "abstract-app/interface-macro",
-]
+interface = ["export", "dep:cw-orch", "abstract-app/interface-macro"]
 schema = ["abstract-app/schema"]
 
 [dependencies]
@@ -51,13 +46,11 @@ chrono = { version = "0.4.31", default_features = false }
 cw-utils = "1.0.1"
 
 # Dependencies for interface
-abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 
 [dev-dependencies]
 calendar-app = { path = ".", features = ["interface"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
-abstract-testing = { workspace = true }
 abstract-client = { workspace = true, features = ["test-utils"] }
 speculoos = { workspace = true }
 semver = { workspace = true }

@@ -1,7 +1,7 @@
 use abstract_app::std::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
 use abstract_client::{AbstractClient, Application, Publisher};
 // Use prelude to get all the necessary imports
-use abstract_testing::prelude::*;
+use abstract_app::abstract_testing::prelude::*;
 use calendar_app::{
     error::CalendarError,
     msg::{CalendarExecuteMsg, CalendarInstantiateMsg, ConfigResponse, Time},

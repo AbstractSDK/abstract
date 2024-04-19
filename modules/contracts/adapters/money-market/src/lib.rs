@@ -24,8 +24,8 @@ pub mod interface {
         // TODO
     }
 
-    impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
-        for MoneyMarketAdapter<Chain>
+    impl<Chain: cw_orch::environment::CwEnv>
+        abstract_adapter::abstract_interface::DependencyCreation for MoneyMarketAdapter<Chain>
     {
         type DependenciesConfig = cosmwasm_std::Empty;
 
@@ -33,7 +33,7 @@ pub mod interface {
             _configuration: Self::DependenciesConfig,
         ) -> Result<
             Vec<abstract_adapter::std::manager::ModuleInstallConfig>,
-            abstract_interface::AbstractInterfaceError,
+            abstract_adapter::abstract_interface::AbstractInterfaceError,
         > {
             Ok(vec![])
         }

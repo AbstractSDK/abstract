@@ -26,7 +26,6 @@ required-features = ["schema"]
 default = ["export"]
 export = []
 interface = [
-  "dep:abstract-interface",
   "dep:cw-orch",
   "export",
   "abstract-dex-standard/interface",
@@ -94,7 +93,6 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
-abstract-interface = { workspace = true, optional = true }
 abstract-adapter = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 

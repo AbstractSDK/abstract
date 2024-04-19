@@ -1,4 +1,5 @@
 use crate::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
+use abstract_adapter::abstract_interface::{AdapterDeployer, DeployStrategy, VCExecFns};
 use abstract_adapter::std::{
     adapter,
     objects::{
@@ -7,7 +8,6 @@ use abstract_adapter::std::{
     },
 };
 use abstract_client::{AbstractClient, Environment};
-use abstract_interface::{AdapterDeployer, DeployStrategy, VCExecFns};
 use abstract_staking_standard::msg::{
     RewardTokensResponse, StakeResponse, StakingAction, StakingExecuteMsg, StakingInfoResponse,
     StakingQueryMsg, StakingTarget,

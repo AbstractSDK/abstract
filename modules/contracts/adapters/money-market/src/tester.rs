@@ -3,6 +3,9 @@ use std::str::FromStr;
 use crate::{
     interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEY_MARKET_ADAPTER_ID,
 };
+use abstract_adapter::abstract_interface::{
+    AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns,
+};
 use abstract_adapter::std::{
     adapter,
     objects::{
@@ -11,7 +14,6 @@ use abstract_adapter::std::{
     },
 };
 use abstract_client::{AbstractClient, Account, Environment};
-use abstract_interface::{AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
 use abstract_money_market_standard::{
     ans_action::MoneyMarketAnsAction,
     msg::{MoneyMarketExecuteMsg, MoneyMarketQueryMsg},

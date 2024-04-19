@@ -1,5 +1,8 @@
 mod common;
 
+use abstract_adapter::abstract_interface::{
+    Abstract, AbstractAccount, AdapterDeployer, DeployStrategy,
+};
 use abstract_adapter::std::{
     adapter::BaseQueryMsgFns,
     objects::{module_version::ModuleDataResponse, AnsAsset, AssetEntry},
@@ -7,7 +10,6 @@ use abstract_adapter::std::{
 use abstract_cw_staking::{
     contract::CONTRACT_VERSION, interface::CwStakingAdapter, msg::StakingQueryMsgFns,
 };
-use abstract_interface::{Abstract, AbstractAccount, AdapterDeployer, DeployStrategy};
 use abstract_staking_standard::msg::{
     Claim, RewardTokensResponse, StakingInfo, StakingInfoResponse, UnbondingResponse,
 };
