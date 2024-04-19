@@ -1,7 +1,7 @@
+use abstract_interface::*;
 use abstract_std::{
     module_factory, module_factory::FactoryModuleInstallConfig, objects::module::ModuleInfo,
 };
-use abstract_interface::*;
 use cosmwasm_std::Binary;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;

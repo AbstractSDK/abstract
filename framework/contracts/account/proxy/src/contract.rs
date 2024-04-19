@@ -1,5 +1,6 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::{
+    feature_objects::AnsHost,
     std::{
         objects::account::ACCOUNT_ID,
         proxy::{
@@ -8,7 +9,6 @@ use abstract_sdk::{
         },
         PROXY,
     },
-    feature_objects::AnsHost,
 };
 use abstract_std::objects::{
     module_version::assert_contract_upgrade, oracle::Oracle, price_source::UncheckedPriceSource,
