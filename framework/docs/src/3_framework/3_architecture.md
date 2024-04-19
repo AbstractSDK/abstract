@@ -1,6 +1,8 @@
 # Abstract Accounts
 
-Abstract's account architecture is designed around modularity, scalability, and security.
+Abstract Accounts are programmable smart-contract wallets used as the backbone for Abstract Apps, which will be covered later. Abstract Accounts hold funds for users and/or applications while exposing a set of programmable endpoints that can be used to configure and interact with the account.
+
+Abstract Apps use the Abstract Account on which they are installed as the settlement layer for their transactions. In other words, Abstract Apps rarely hold funds themselves. Instead they control the funds of the Account that they are installed on. This separation of concerns allows for a more secure and modular design.
 
 In the upcoming sections, we will delve deeper into the architecture of Abstract Accounts, providing insights into its design principles and components.
 
