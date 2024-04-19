@@ -1,0 +1,36 @@
+name: Link Checker
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Runs at 00:00 UTC every Monday
+    - cron: '0 0 * * 1'
+
+jobs:
+  link_check:
+    name: Check Links
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        url:
+          - https://orchestrator.abstract.money
+          - https://docs.abstract.money
+    steps:
+      - name: Check links at ${{ matrix.url }}
+        id: linkcheck
+        uses: filiph/linkcheck@3.0.0
+        with:
+          arguments: ${{ matrix.url }}
+      - name: Notify on failure
+        if: ${{ failure() }}
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.LINTER_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.LINTER_WEBHOOK_TOKEN }}
+          username: Abstract Link Checker
+          avatar_url: https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/link_broken.png
+          message: |
+            **:red_circle: Link Check Failed**
+            **URL Checked:** ${{ matrix.url }}
+            **Status:** Failure :x:
+            **Action Details:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
