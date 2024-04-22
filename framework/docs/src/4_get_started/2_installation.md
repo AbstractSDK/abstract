@@ -61,3 +61,28 @@ The template contains a scaffold contract that you can use as a starting point f
 - `handlers/`: Message handlers that your contract will use to handle the different messages it can receive.
 
 If there's anything you don't understand about the template please don't hesitate to reach out to us on our <a href="https://discord.com/invite/uch3Tq3aym" target="_blank">Discord</a> server.
+
+<!-- ## Front-end layout
+
+To generate the front-end scaffold, you can run `just ts-codegen`, which will run a code generation script for you found in the `typescript/scripts` folder. The code generation script will generate TypeScript code based on the specifications defined in the contract schemas.
+
+Once the script is complete, you will find the newly generated code under `typescript/src`, and it's structured as
+follows:
+
+- `index.ts`: Index file bundles and exports all the functionalities from the generated files (Template.types, Template.client, Template.message-composer, Template.msg-builder) under a single namespace called contracts, making it easier to access the various functionalities encapsulated in the other files.
+- `Template.client.ts`: Client file contains classes for creating client instances to query and interact with a blockchain module. These client instances can be used to retrieve module configurations or to connect a signing client for transaction functionalities.
+- `Template.message-composer.ts`: Aids in crafting messages necessary for interacting with a specific
+  blockchain contract, particularly for updating configurations. It contains a class that generates message objects that can be sent to the blockchain for execution.
+- `Template.msg-builder.ts`: Provides static methods on abstract classes to create message objects for querying or executing actions on the blockchain. It essentially facilitates the building of structured messages for blockchain interactions.
+- `Template.types.ts`: Defines various data structures and types that represent the structure of messages and responses within the blockchain module, aiding in maintaining consistency across different operations in the module. -->
+
+## Tools used in the template
+
+The following Rust tools are used extensively in our template to improve your productivity.
+
+- <a href="https://taplo.tamasfe.dev/cli/installation/cargo.html" target="_blank">Taplo</a>: The CI shipped with the template will perform formatting checks. To ensure you pass the checks, you can install Taplo and use the `just format` command to format your code and toml files.
+- <a href="https://nexte.st/index.html" target="_blank">Nextest</a>: A better cargo test runner.
+- <a href="https://github.com/alopatindev/cargo-limit" target="_blank">Cargo Limit</a>: Prioritizes errors over warnings in compile output as well as some other small improvements.
+- <a href="https://crates.io/crates/cargo-watch" target="_blank">Cargo Watch</a>: Allows you to automatically re-run compilation when files change. This is useful when you are working on the contracts and want to fix compiler errors one by one.
+
+You can install them by running `just install-tools`. All the tools are built from the source by Cargo.
