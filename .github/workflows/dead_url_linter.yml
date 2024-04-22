@@ -13,8 +13,8 @@ jobs:
     strategy:
       matrix:
         url:
-          - https://orchestrator.abstract.money
-          - https://docs.abstract.money
+          - https://dev-orchestrator.abstract.money
+          - https://dev-docs.abstract.money
     steps:
       - name: Check links at ${{ matrix.url }}
         id: linkcheck
