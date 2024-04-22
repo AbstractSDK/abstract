@@ -114,7 +114,7 @@ flowchart LR
 ```
 
 ```admonish reminder
-The `Account` is a set of smart-contracts that function as smart-contract wallet infrastructure. It holds the application's funds. We covered the `Account` architecture in detail [here](./3_architecture.md.md).
+The `Account` is a set of smart-contracts that function as smart-contract wallet infrastructure. It holds the application's funds. We covered the `Account` architecture in detail [here](3_architecture.md).
 ```
 
 Each solid arrow represents permissions to perform actions on behalf of the account. These permissions allow the contracts to move funds, interact with other contracts through the account, and perform other actions. It does this by sending messages to the account, which then executes them on behalf of the module. This is the basic idea behind account abstraction and is further elaborated in on the [account abstraction](./2_account_abstraction.md) page. Now, let's focus on the dotted arrows.
