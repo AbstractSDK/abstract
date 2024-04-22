@@ -32,6 +32,12 @@ pub struct Oracle<'a> {
     asset_equivalent_cache: Vec<(AssetInfo, Vec<(AssetInfo, Uint128)>)>,
 }
 
+impl Default for Oracle<'_> {
+    fn default() -> Self {
+        Oracle::new()
+    }
+}
+
 impl<'a> Oracle<'a> {
     pub const fn new() -> Self {
         Oracle {
@@ -520,11 +526,12 @@ pub struct AccountValue {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::{prelude::*, MockAnsHost};
-    use cosmwasm_std::{coin, testing::*, Addr, Decimal};
+    use super::*;
+
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{coin, testing::*, Decimal};
     use speculoos::prelude::*;
 
-    use super::*;
     use crate::objects::DexAssetPairing;
     type AResult = anyhow::Result<()>;
 

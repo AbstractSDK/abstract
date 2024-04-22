@@ -75,12 +75,12 @@ abstract-astrovault-adapter = { path = "../integrations/astrovault-adapter", def
 wyndex-bundle = { path = "../integrations/bundles/wyndex" }
 
 ## Modules
-croncat-app = { path = "./contracts/apps/croncat" }
-challenge-app = { path = "./contracts/apps/challenge" }
-etf-app = { path = "./contracts/apps/etf" }
-dca-app = { path = "./contracts/apps/dca" }
-abstract-cw-staking = { path = "./contracts/adapters/cw-staking" }
-abstract-dex-adapter = { path = "./contracts/adapters/dex" }
+croncat-app = { path = "./contracts/apps/croncat", default-features = false }
+challenge-app = { path = "./contracts/apps/challenge", default-features = false }
+etf-app = { path = "./contracts/apps/etf", default-features = false }
+dca-app = { path = "./contracts/apps/dca", default-features = false }
+abstract-cw-staking = { path = "./contracts/adapters/cw-staking", default-features = false }
+abstract-dex-adapter = { path = "./contracts/adapters/dex", default-features = false }
 
 ## Testing
 rstest = "0.17.0"

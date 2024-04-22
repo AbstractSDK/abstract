@@ -115,7 +115,7 @@ pub enum CalendarQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum CalendarMigrateMsg {}
+pub struct CalendarMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {

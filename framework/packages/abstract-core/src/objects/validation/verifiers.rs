@@ -1,5 +1,3 @@
-use core::result::Result::{Err, Ok};
-
 use super::ValidationError;
 
 pub(crate) const MIN_DESC_LENGTH: usize = 1;

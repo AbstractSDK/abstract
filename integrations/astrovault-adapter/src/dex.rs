@@ -40,55 +40,22 @@ pub const RATIO_POOL_FACTORY: &str =
 impl Astrovault {
     fn fetch_pool_type(&self, deps: Deps, pool: &Addr) -> Result<PoolType, DexError> {
         // The pool type can be queried via identification of the factory contract associated with the pool
-        // We try the 3 different queries for one to match and get the factory address
+        // We try the 3 different known factory addresses for one to match and get the factory address
 
-        let standard_config: Result<astrovault::standard_pool::query_msg::ConfigResponse, _> =
-            deps.querier.query_wasm_smart(
-                pool,
-                &astrovault::standard_pool::query_msg::QueryMsg::Config {},
-            );
+        let config: mini_astrovault::ConfigResponse = deps.querier.query_wasm_smart(
+            pool,
+            &astrovault::standard_pool::query_msg::QueryMsg::Config {},
+        )?;
 
-        if let Ok(config) = standard_config {
-            if config.factory.eq(STANDARD_POOL_FACTORY) {
-                return Ok(PoolType::ConstantProduct);
-            }
+        match config {
+            config if config.factory == STANDARD_POOL_FACTORY => Ok(PoolType::ConstantProduct),
+            config if config.factory == STABLE_POOL_FACTORY => Ok(PoolType::Stable),
+            config if config.factory == RATIO_POOL_FACTORY => Ok(PoolType::Weighted),
+            _ => Err(DexError::Std(StdError::generic_err(
+                "Couldn't query the astrovault pool type",
+            ))),
         }
-
-        let stable_config: Result<astrovault::stable_pool::query_msg::ConfigResponse, _> =
-            deps.querier.query_wasm_smart(
-                pool,
-                &astrovault::stable_pool::query_msg::QueryMsg::Config {},
-            );
-
-        if let Ok(config) = stable_config {
-            if config.factory.eq(STABLE_POOL_FACTORY) {
-                return Ok(PoolType::Stable);
-            }
-        }
-
-        let ratio_config: Result<astrovault::ratio_pool::query_msg::ConfigResponse, _> =
-            deps.querier.query_wasm_smart(
-                pool,
-                &astrovault::ratio_pool::query_msg::QueryMsg::Config {},
-            );
-
-        if let Ok(config) = ratio_config {
-            if config.factory.eq(RATIO_POOL_FACTORY) {
-                return Ok(PoolType::Weighted);
-            }
-        }
-
-        Err(DexError::Std(StdError::generic_err(
-            "Couldn't query the astrovault pool type",
-        )))
     }
-}
-#[cfg(feature = "full_integration")]
-/// This structure describes a CW20 hook message.
-#[cosmwasm_schema::cw_serde]
-pub enum StubCw20HookMsg {
-    /// Withdraw liquidity from the pool
-    WithdrawLiquidity {},
 }
 
 #[cfg(feature = "full_integration")]
@@ -422,29 +389,12 @@ impl DexCommand for Astrovault {
         }
         // Get pair info
         let pair_assets = match self.fetch_pool_type(deps, &pair_address)? {
-            PoolType::ConstantProduct => {
-                let pool_response: astrovault::standard_pool::query_msg::PoolResponse =
-                    deps.querier.query_wasm_smart(
-                        pair_address.to_string(),
-                        &astrovault::standard_pool::query_msg::QueryMsg::Pool {},
-                    )?;
-                pool_response.assets.to_vec()
-            }
-            PoolType::Stable => {
-                let pool_response: astrovault::stable_pool::query_msg::PoolResponse =
-                    deps.querier.query_wasm_smart(
-                        pair_address.to_string(),
-                        &astrovault::stable_pool::query_msg::QueryMsg::Pool {},
-                    )?;
+            PoolType::ConstantProduct | PoolType::Stable | PoolType::Weighted => {
+                let pool_response: mini_astrovault::PoolResponse = deps.querier.query_wasm_smart(
+                    pair_address.to_string(),
+                    &astrovault::standard_pool::query_msg::QueryMsg::Pool {},
+                )?;
                 pool_response.assets
-            }
-            PoolType::Weighted => {
-                let pool_response: astrovault::ratio_pool::query_msg::PoolResponse =
-                    deps.querier.query_wasm_smart(
-                        pair_address.to_string(),
-                        &astrovault::ratio_pool::query_msg::QueryMsg::Pool {},
-                    )?;
-                pool_response.assets.to_vec()
             }
             _ => panic!("Unsupported pool type"),
         };
@@ -545,11 +495,10 @@ impl DexCommand for Astrovault {
                     AssetInfoBase::Cw20(lp_addr) => lp_addr,
                     _ => unreachable!(),
                 };
-                let balance: astrovault::lp_staking::query_msg::LpBalanceResponse =
-                    deps.querier.query_wasm_smart(
-                        lp_addr.to_string(),
-                        &astrovault::lp_staking::query_msg::QueryMsg::Balance { address },
-                    )?;
+                let balance: mini_astrovault::LpBalanceResponse = deps.querier.query_wasm_smart(
+                    lp_addr.to_string(),
+                    &astrovault::lp_staking::query_msg::QueryMsg::Balance { address },
+                )?;
                 to_json_binary(
                     &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
                         astrovault::stable_pool::handle_msg::WithdrawalToLockupInputs {
@@ -735,12 +684,130 @@ fn cw_asset_info_to_astrovault(
     }
 }
 
+/// Minimalistic versions of astrovault messages
+/// Currently messages not in use
+#[cfg(feature = "full_integration")]
+mod mini_astrovault {
+    use super::*;
+
+    #[derive(cosmwasm_schema::serde::Deserialize)]
+    #[serde(rename_all = "snake_case", crate = "::cosmwasm_schema::serde")]
+    // Ignoring unknown fields
+    pub struct ConfigResponse {
+        pub factory: String,
+    }
+
+    #[derive(cosmwasm_schema::serde::Deserialize)]
+    #[serde(rename_all = "snake_case", crate = "::cosmwasm_schema::serde")]
+    pub struct LpBalanceResponse {
+        pub locked: Uint128,
+    }
+
+    /// This is enum that includes all of the messages we use in astrovault cw20 hook
+    /// It's separated for minimizing the size of the wasm
+    #[cosmwasm_schema::cw_serde]
+    pub enum AstrovaultCw20HookMsg {
+        WithdrawLiquidity {
+            to: Option<String>,
+        },
+        #[serde(rename(serialize = "withdrawal_to_lockup"))]
+        WithdrawalToLockupStable {
+            withdrawal_lockup_assets_amount: Vec<Uint128>,
+            to: Option<String>,
+            is_instant_withdrawal: Option<bool>,
+            expected_return: Option<Vec<Uint128>>,
+        },
+        #[serde(rename(serialize = "withdrawal_to_lockup"))]
+        WithdrawalToLockupWeighted {
+            to: Option<String>,
+            is_instant_withdrawal: Option<bool>,
+            expected_return: Option<Vec<Uint128>>,
+        },
+    }
+
+    /// This is enum that includes all of the messages we use in astrovault execution
+    /// It's separated for minimizing the size of the wasm
+    #[cosmwasm_schema::cw_serde]
+    pub enum AstrovaultExecuteMsg {
+        #[serde(rename(serialize = "swap"))]
+        SwapStandard {
+            // cw20 hook don't have this field, need to skip this one
+            #[serde(skip_serializing_if = "Option::is_none")]
+            offer_asset: Option<astrovault::assets::asset::Asset>,
+            belief_price: Option<Decimal>,
+            max_spread: Option<Decimal>,
+            expected_return: Option<Uint128>,
+            to: Option<String>,
+        },
+        #[serde(rename(serialize = "swap"))]
+        SwapStable {
+            swap_to_asset_index: u32,
+            to: Option<String>,
+            expected_return: Option<Uint128>,
+        },
+        #[serde(rename(serialize = "swap"))]
+        SwapWeighted {
+            to: Option<String>,
+            expected_return: Option<Uint128>,
+        },
+        ProvideLiquidity {
+            assets: [astrovault::assets::asset::Asset; 2],
+            slippage_tolerance: Option<Decimal>,
+            receiver: Option<String>,
+            direct_staking: Option<cosmwasm_std::Empty>,
+        },
+        #[serde(rename(serialize = "deposit"))]
+        DepositStable {
+            assets_amount: Vec<Uint128>,
+            receiver: Option<String>,
+            direct_staking: Option<cosmwasm_std::Empty>,
+        },
+        #[serde(rename(serialize = "deposit"))]
+        DepositWeighted {
+            assets_amount: [Uint128; 2],
+            receiver: Option<String>,
+            direct_staking: Option<cosmwasm_std::Empty>,
+            expected_return: Option<Uint128>,
+        },
+    }
+
+    /// This is enum that includes all of the messages we use in astrovault queries
+    /// It's separated for minimizing the size of the wasm
+    #[cosmwasm_schema::cw_serde]
+    pub enum AstrovaultQueryMsg {
+        Config {},
+        PoolInfo {},
+        Pool {},
+        Simulation {
+            offer_asset: astrovault::assets::asset::Asset,
+        },
+        #[serde(rename(serialize = "swap_simulation"))]
+        SwapSimulationStable {
+            amount: Uint128,
+            swap_from_asset_index: u32,
+            swap_to_asset_index: u32,
+        },
+        #[serde(rename(serialize = "swap_simulation"))]
+        SwapSimulationWeighted {
+            amount: Uint128,
+            swap_from_asset_index: u8,
+        },
+    }
+
+    /// Response for [`AstrovaultQueryMsg::Pool`]
+    #[cosmwasm_schema::cw_serde]
+    pub struct PoolResponse {
+        pub assets: Vec<astrovault::assets::asset::Asset>,
+        pub total_share: Uint128,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::{assert_eq, str::FromStr};
 
     use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
-    use abstract_sdk::core::objects::{PoolAddress, PoolType};
+    use abstract_sdk::core::objects::PoolAddress;
     use cosmwasm_schema::serde::Deserialize;
     use cosmwasm_std::{
         coin, coins, from_json, to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal,

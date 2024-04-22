@@ -2,11 +2,8 @@
 //!
 //! This module provides useful helpers for integration tests
 
-use abstract_core::{
-    self,
-    objects::{
-        pool_id::UncheckedPoolAddress, PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry,
-    },
+use abstract_core::objects::{
+    pool_id::UncheckedPoolAddress, PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry,
 };
 use abstract_interface::{Abstract, ExecuteMsgFns};
 use cw_asset::AssetInfoUnchecked;

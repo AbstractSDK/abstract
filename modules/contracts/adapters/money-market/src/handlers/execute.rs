@@ -4,7 +4,7 @@ use abstract_core::objects::{
     AccountId,
 };
 use abstract_money_market_standard::{
-    ans_action::ActionOnMoneymarket, raw_action::MoneyMarketRawAction, MoneyMarketError,
+    ans_action::MoneyMarketActionResolveWrapper, raw_action::MoneyMarketRawAction, MoneyMarketError,
 };
 use abstract_sdk::{
     features::AbstractNameService, AccountVerification, Execution, ModuleRegistryInterface,
@@ -36,7 +36,7 @@ pub fn execute_handler(
             let (local_money_market_name, is_over_ibc) =
                 is_over_ibc(env.clone(), &money_market_name)?;
             // We resolve the Action to a RawAction to get the actual addresses, ids and denoms
-            let whole_money_market_action = ActionOnMoneymarket(
+            let whole_money_market_action = MoneyMarketActionResolveWrapper(
                 platform_resolver::resolve_money_market(&local_money_market_name)?,
                 action,
             );

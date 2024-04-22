@@ -297,8 +297,13 @@ fn load_pool_metadata_entry(
 
 #[cfg(test)]
 mod test {
-    use std::str::FromStr;
+    use super::*;
 
+    use crate::{
+        contract,
+        contract::{instantiate, AnsHostResult},
+        error::AnsHostError,
+    };
     use abstract_core::{
         ans_host::*,
         objects::{chain_name::ChainName, pool_id::PoolAddressBase, PoolType},
@@ -309,15 +314,9 @@ mod test {
         testing::{mock_dependencies, mock_env, mock_info, MockApi},
         Addr, DepsMut,
     };
-    use cw_asset::{AssetInfo, AssetInfoUnchecked};
+    use cw_asset::AssetInfo;
     use speculoos::prelude::*;
-
-    use super::*;
-    use crate::{
-        contract,
-        contract::{instantiate, AnsHostResult},
-        error::AnsHostError,
-    };
+    use std::str::FromStr;
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 

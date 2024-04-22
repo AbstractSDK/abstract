@@ -27,22 +27,6 @@ $ rustup target add wasm32-unknown-unknown
 
 You will also need `git` installed to clone our template repository. You can find instructions for installing `git` on your operative system <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git" target="_blank">here</a>.
 
-## IDE
-
-You will need an IDE to write code. Here are a few options we recommend:
-
-- <a href="https://code.visualstudio.com/" target="_blank">VS Code</a>
-- <a href="https://www.jetbrains.com/idea/download/" target="_blank">Intellij IDEA Community Edition</a>
-- <a href="https://www.jetbrains.com/rust/" target="_blank">Intellij Rust Rover</a>
-- <a href="https://zed.dev/" target="_blank">Zed</a>
-
-## Recommended tools
-
-- <a href="https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer" target="_blank">Rust Analyzer</a>: Rust Analyzer is a language server that provides IDE support for Rust. If you use VS-Code it's highly recommended.
-- <a href="https://plugins.jetbrains.com/plugin/8182-rust" target="_blank">Intellij Rust Plugin</a>: open-source Rust plugin compatible with all IntelliJ-based IDEs. You are going to need it if you are using the Intellij IDEA Community Edition IDE, however it's not needed for the Rust Rover.
-- <a href="https://docs.docker.com/desktop/" target="_blank">Docker</a>: Our testing infrastructure uses Docker to run the tests. If you want to run the tests locally, you will need to install Docker.
-- <a href="https://github.com/casey/just#installation" target="_blank">Just</a>: Just is a command runner that we use to improve the development flow. You can install it by following the instructions on the Github repository.
-
 ## Using the Template
 
 Now we'll get you set up with the Abstract App template which contains:
@@ -51,10 +35,7 @@ Now we'll get you set up with the Abstract App template which contains:
   - A basic contract
   - [cw-orchestrator](../1_products/1_cw_orchestrator.md) interface and deployment script
   - Integration tests
-- A scaffold front-end with:
-  - A basic UI
-  - A basic API client
-- A set of just commands that will boost your productivity.
+- A set of just commands that will help you in your development.
 
 Go to <a href="https://github.com/AbstractSDK/app-template" target="_blank">our App Template on Github</a> and click on the "Use this template" button to create a new repository based on the template. You can name the repository whatever you want, but we recommend using the name of your module.
 
@@ -66,7 +47,7 @@ To quickly get started, run `./template_setup.sh` and install the recommended to
 
 Go ahead and read through the readme of the template repository to learn how it is structured. It contains instructions on how to set up your development environment, useful commands you can perform using `just`, how to test and deploy your app, and more.
 
-## Contract layout
+## Contract file structure
 
 The template contains a scaffold contract that you can use as a starting point for your own contract. The contract is located in the `src` directory and is structured as follows:
 

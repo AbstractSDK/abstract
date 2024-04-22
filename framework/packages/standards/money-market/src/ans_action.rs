@@ -54,9 +54,12 @@ pub enum MoneyMarketAnsAction {
 }
 
 /// Structure created to be able to resolve an action using ANS
-pub struct ActionOnMoneymarket(pub Box<dyn MoneyMarketCommand>, pub MoneyMarketAnsAction);
+pub struct MoneyMarketActionResolveWrapper(
+    pub Box<dyn MoneyMarketCommand>,
+    pub MoneyMarketAnsAction,
+);
 
-impl Resolve for ActionOnMoneymarket {
+impl Resolve for MoneyMarketActionResolveWrapper {
     type Output = MoneyMarketRawAction;
 
     /// TODO: this only works for protocols where there is only one address for depositing

@@ -338,13 +338,10 @@ mod test {
     }
 
     mod instantiate_contract {
-        use abstract_core::objects::{module::ModuleVersion, AccountId};
-        use cosmwasm_std::{
-            coin, testing::mock_info, to_json_binary, Api, CodeInfoResponse, Empty, HexBinary,
-            QuerierResult,
-        };
-
         use super::*;
+
+        use abstract_core::objects::{module::ModuleVersion, AccountId};
+        use cosmwasm_std::{coin, Api, CodeInfoResponse, Empty, HexBinary, QuerierResult};
 
         #[test]
         fn should_create_msg_with_instantiate2_msg() -> ModuleFactoryTestResult {
