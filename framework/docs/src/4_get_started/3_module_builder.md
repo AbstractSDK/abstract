@@ -63,7 +63,7 @@ The builder constructor takes three variables:
 
 1. `module_id`: The module ID is a string that we defined above.
 2. `contract_version`: The contract version.
-3. `metadata`: An optional URL that can be used to retrieve data off-chain. Can be used with the Abstract Metadata Standard to automatically generate interactive front-end components for the module. This is explained in more detail in the [metadata section](./9_metadata.md).
+3. `metadata`: An optional URL that can be used to retrieve data off-chain. Can be used with the Abstract Metadata Standard to automatically generate interactive front-end components for the module. This is explained in more detail in the [metadata section](9_metadata.md).
 
 Amazing! You now have a very basic Abstract module. You can now add your custom logic to your module by adding handlers to the module.
 
