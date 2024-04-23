@@ -82,7 +82,7 @@ pub mod raw {
         fn request(&self, action: DexRawAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
-            adapters.request(
+            adapters.execute(
                 self.dex_module_id(),
                 DexExecuteMsg::RawAction {
                     dex: self.dex_name(),
@@ -243,7 +243,7 @@ pub mod ans {
         fn request(&self, action: DexAnsAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
-            adapters.request(
+            adapters.execute(
                 self.dex_module_id(),
                 DexExecuteMsg::AnsAction {
                     dex: self.dex_name(),

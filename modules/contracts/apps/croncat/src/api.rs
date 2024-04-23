@@ -54,7 +54,7 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
         task_tag: impl Into<String>,
         assets: AssetListUnchecked,
     ) -> AbstractSdkResult<CosmosMsg> {
-        self.base.apps(self.deps).request(
+        self.base.apps(self.deps).execute(
             self.module_id,
             AppExecuteMsg::CreateTask {
                 task: Box::new(task),
@@ -70,7 +70,7 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
         task_tag: impl Into<String>,
         assets: AssetListUnchecked,
     ) -> AbstractSdkResult<CosmosMsg> {
-        self.base.apps(self.deps).request(
+        self.base.apps(self.deps).execute(
             self.module_id,
             AppExecuteMsg::RefillTask {
                 task_tag: task_tag.into(),
@@ -81,7 +81,7 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
 
     // Remove task by tag
     pub fn remove_task(&self, task_tag: impl Into<String>) -> AbstractSdkResult<CosmosMsg> {
-        self.base.apps(self.deps).request(
+        self.base.apps(self.deps).execute(
             self.module_id,
             AppExecuteMsg::RemoveTask {
                 task_tag: task_tag.into(),
@@ -93,7 +93,7 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
     pub fn purge(&self, task_tags: Vec<String>) -> AbstractSdkResult<CosmosMsg> {
         self.base
             .apps(self.deps)
-            .request(self.module_id, AppExecuteMsg::Purge { task_tags })
+            .execute(self.module_id, AppExecuteMsg::Purge { task_tags })
     }
 }
 

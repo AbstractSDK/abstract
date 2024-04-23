@@ -86,10 +86,10 @@ pub mod raw {
         }
 
         /// Executes a [MoneyMarketRawAction] in th MONEY_MARKET
-        fn request(&self, action: MoneyMarketRawAction) -> AbstractSdkResult<CosmosMsg> {
+        fn execute(&self, action: MoneyMarketRawAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
-            adapters.request(
+            adapters.execute(
                 self.money_market_module_id(),
                 MoneyMarketExecuteMsg::RawAction {
                     money_market: self.money_market_name(),
@@ -104,7 +104,7 @@ pub mod raw {
             contract_addr: Addr,
             lending_asset: Asset,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketRawAction {
+            self.execute(MoneyMarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneyMarketRawRequest::Deposit {
                     lending_asset: lending_asset.into(),
@@ -118,7 +118,7 @@ pub mod raw {
             contract_addr: Addr,
             lent_asset: Asset,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketRawAction {
+            self.execute(MoneyMarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneyMarketRawRequest::Withdraw {
                     lent_asset: lent_asset.into(),
@@ -133,7 +133,7 @@ pub mod raw {
             collateral_asset: Asset,
             borrowable_asset: AssetInfo,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketRawAction {
+            self.execute(MoneyMarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneyMarketRawRequest::ProvideCollateral {
                     collateral_asset: collateral_asset.into(),
@@ -149,7 +149,7 @@ pub mod raw {
             collateral_asset: Asset,
             borrowable_asset: AssetInfo,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketRawAction {
+            self.execute(MoneyMarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneyMarketRawRequest::WithdrawCollateral {
                     collateral_asset: collateral_asset.into(),
@@ -165,7 +165,7 @@ pub mod raw {
             collateral_asset: AssetInfo,
             borrow_asset: Asset,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketRawAction {
+            self.execute(MoneyMarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneyMarketRawRequest::Borrow {
                     collateral_asset: collateral_asset.into(),
@@ -181,7 +181,7 @@ pub mod raw {
             collateral_asset: AssetInfo,
             borrowed_asset: Asset,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketRawAction {
+            self.execute(MoneyMarketRawAction {
                 contract_addr: contract_addr.to_string(),
                 request: MoneyMarketRawRequest::Repay {
                     collateral_asset: collateral_asset.into(),
@@ -325,10 +325,10 @@ pub mod ans {
         }
 
         /// Executes a [MoneyMarketAction] in th MONEY_MARKET
-        fn request(&self, action: MoneyMarketAnsAction) -> AbstractSdkResult<CosmosMsg> {
+        fn execute(&self, action: MoneyMarketAnsAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
-            adapters.request(
+            adapters.execute(
                 self.money_market_module_id(),
                 MoneyMarketExecuteMsg::AnsAction {
                     money_market: self.money_market_name(),
@@ -339,12 +339,12 @@ pub mod ans {
 
         /// Deposit assets
         pub fn deposit(&self, lending_asset: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketAnsAction::Deposit { lending_asset })
+            self.execute(MoneyMarketAnsAction::Deposit { lending_asset })
         }
 
         /// Withdraw liquidity from MONEY_MARKET
         pub fn withdraw(&self, lent_asset: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketAnsAction::Withdraw { lent_asset })
+            self.execute(MoneyMarketAnsAction::Withdraw { lent_asset })
         }
 
         /// Deposit Collateral in MONEY_MARKET
@@ -353,7 +353,7 @@ pub mod ans {
             collateral_asset: AnsAsset,
             borrowable_asset: AssetEntry,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketAnsAction::ProvideCollateral {
+            self.execute(MoneyMarketAnsAction::ProvideCollateral {
                 collateral_asset,
                 borrowable_asset,
             })
@@ -365,7 +365,7 @@ pub mod ans {
             collateral_asset: AnsAsset,
             borrowable_asset: AssetEntry,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketAnsAction::WithdrawCollateral {
+            self.execute(MoneyMarketAnsAction::WithdrawCollateral {
                 collateral_asset,
                 borrowable_asset,
             })
@@ -377,7 +377,7 @@ pub mod ans {
             collateral_asset: AssetEntry,
             borrow_asset: AnsAsset,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketAnsAction::Borrow {
+            self.execute(MoneyMarketAnsAction::Borrow {
                 collateral_asset,
                 borrow_asset,
             })
@@ -389,7 +389,7 @@ pub mod ans {
             collateral_asset: AssetEntry,
             borrowed_asset: AnsAsset,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(MoneyMarketAnsAction::Repay {
+            self.execute(MoneyMarketAnsAction::Repay {
                 collateral_asset,
                 borrowed_asset,
             })
