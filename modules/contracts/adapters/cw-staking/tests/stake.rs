@@ -11,7 +11,7 @@ use abstract_interface::{Abstract, AbstractAccount, AdapterDeployer, DeployStrat
 use abstract_staking_standard::msg::{
     Claim, RewardTokensResponse, StakingInfo, StakingInfoResponse, UnbondingResponse,
 };
-use cosmwasm_std::{coin, Empty, Uint128};
+use cosmwasm_std::{coin, Uint128};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::AssetInfoBase;

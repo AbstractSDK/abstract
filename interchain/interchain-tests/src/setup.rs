@@ -63,7 +63,6 @@ pub mod mock_test {
 
     use super::*;
     use crate::{JUNO, STARGAZE};
-    use cw_orch::interchain::MockBech32InterchainEnv;
 
     /// This allows env_logger to start properly for tests
     /// The logs will be printed only if the test fails !

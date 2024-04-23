@@ -1,8 +1,9 @@
 use abstract_client::{AbstractClient, Environment};
+use abstract_interface::VCQueryFns;
 use abstract_interface::{Abstract, VCExecFns};
-use cosmwasm_std::{coins, Addr};
+use cosmwasm_std::coins;
+use cw_orch::daemon::ChainInfo;
 use cw_orch::prelude::*;
-use cw_orch::{contract::Deploy, daemon::ChainInfo};
 use cw_orch_clone_testing::CloneTesting;
 
 /// Returns a shared tokio runtime for all tests
@@ -36,6 +37,8 @@ pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClie
         let deployment = Abstract::load_from(abstr_deployment.environment())?;
         deployment.migrate_if_version_changed()?;
     }
+
+    abstr_deployment.version_control().ownership()?;
 
     // Allow registration of any module
     abstr_deployment

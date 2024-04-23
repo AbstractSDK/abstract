@@ -446,10 +446,10 @@ mod tests {
     }
 
     mod execute_app {
-        use abstract_core::objects::{account::AccountTrace, AccountId};
-
         use super::*;
-        use crate::mock::{MOCK_ADAPTER, TEST_AUTHORIZED_ADDRESS};
+
+        use crate::mock::TEST_AUTHORIZED_ADDRESS;
+        use abstract_core::objects::{account::AccountTrace, AccountId};
 
         /// This sets up the test with the following:
         /// TEST_PROXY has a single authorized address, test_authorized_address

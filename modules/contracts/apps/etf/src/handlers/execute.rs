@@ -4,7 +4,6 @@ use abstract_sdk::{
         objects::{deposit_info::DepositInfo, fee::Fee},
         proxy::AssetsInfoResponse,
     },
-    features::AbstractResponse,
     *,
 };
 use cosmwasm_std::{

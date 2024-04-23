@@ -1188,15 +1188,15 @@ pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> 
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    use crate::{contract, test_common::mock_init};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage},
-        Order, OwnedDeps, StdError, Storage,
+        Order, OwnedDeps, StdError,
     };
     use speculoos::prelude::*;
-
-    use super::*;
-    use crate::{contract, test_common::mock_init};
 
     type ManagerTestResult = Result<(), ManagerError>;
 
@@ -1349,8 +1349,6 @@ mod tests {
     }
 
     mod update_module_addresses {
-        use abstract_core::manager::InternalConfigAction;
-
         use super::*;
 
         #[test]
@@ -1862,8 +1860,6 @@ mod tests {
     }
 
     mod handle_callback {
-        use cosmwasm_std::StdError;
-
         use super::*;
 
         #[test]
@@ -2021,8 +2017,6 @@ mod tests {
     }
 
     mod add_module_upgrade_to_context {
-        use cosmwasm_std::testing::mock_dependencies;
-
         use super::*;
 
         #[test]

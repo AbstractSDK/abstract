@@ -8,7 +8,7 @@ use abstract_core::{
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
 use common::contracts;
-use cosmwasm_std::{coins, to_json_binary, Addr, BankMsg, Uint128, WasmMsg};
+use cosmwasm_std::{coins, to_json_binary, BankMsg, Uint128, WasmMsg};
 use croncat_app::{
     contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION},
     error::AppError,

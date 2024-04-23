@@ -7,7 +7,7 @@ use abstract_interface::{
     ProxyQueryFns,
 };
 use abstract_sdk::core as abstract_core;
-use cosmwasm_std::{coin, Addr, Decimal, Empty};
+use cosmwasm_std::{coin, Decimal};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::{AssetInfo, AssetUnchecked};

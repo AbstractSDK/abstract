@@ -187,8 +187,6 @@ mod test {
     }
 
     mod execute {
-        use cosmwasm_std::to_json_binary;
-
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
@@ -314,8 +312,6 @@ mod test {
     }
 
     mod execute_with_response {
-        use cosmwasm_std::coins;
-
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
