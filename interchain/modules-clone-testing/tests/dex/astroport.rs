@@ -240,7 +240,7 @@ mod native_tests {
     #[test]
     fn test_provide_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_native()?;
-        dex_tester.test_provide_liquidity_two_sided()?;
+        dex_tester.test_provide_liquidity_two_sided(None, None)?;
         dex_tester.test_provide_liquidity_one_sided()?;
         Ok(())
     }
@@ -248,7 +248,7 @@ mod native_tests {
     #[test]
     fn test_provide_liquidity_symmetric() -> anyhow::Result<()> {
         let dex_tester = setup_native()?;
-        dex_tester.test_provide_liquidity_symmetric()?;
+        dex_tester.test_provide_liquidity_symmetric(None, None)?;
         Ok(())
     }
 
@@ -262,7 +262,7 @@ mod native_tests {
     #[test]
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_native()?;
-        dex_tester.test_withdraw_liquidity()?;
+        dex_tester.test_withdraw_liquidity(None, None)?;
         Ok(())
     }
 
@@ -334,7 +334,7 @@ mod cw20_tests {
     #[test]
     fn test_provide_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_cw20()?;
-        dex_tester.test_provide_liquidity_two_sided()?;
+        dex_tester.test_provide_liquidity_two_sided(None, None)?;
         dex_tester.test_provide_liquidity_one_sided()?;
         Ok(())
     }
@@ -342,7 +342,7 @@ mod cw20_tests {
     #[test]
     fn test_provide_liquidity_symmetric() -> anyhow::Result<()> {
         let dex_tester = setup_cw20()?;
-        dex_tester.test_provide_liquidity_symmetric()?;
+        dex_tester.test_provide_liquidity_symmetric(None, None)?;
         Ok(())
     }
 
@@ -356,7 +356,7 @@ mod cw20_tests {
     #[test]
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_cw20()?;
-        dex_tester.test_withdraw_liquidity()?;
+        dex_tester.test_withdraw_liquidity(None, None)?;
         Ok(())
     }
 

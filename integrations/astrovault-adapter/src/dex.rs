@@ -15,6 +15,7 @@ impl Identify for Astrovault {
         AVAILABLE_CHAINS.contains(&chain_name)
     }
 }
+
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_dex_standard::{
@@ -29,6 +30,8 @@ use ::{
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
 };
 
+// TODO: those won't work on testnet
+// Also note that we can't edit addresses without migration with current implementation
 pub const STANDARD_POOL_FACTORY: &str =
     "archway1cq6tgc32az7zpq5w7t2d89taekkn9q95g2g79ka6j46ednw7xkkq7n55a2";
 pub const STABLE_POOL_FACTORY: &str =
@@ -295,14 +298,13 @@ impl DexCommand for Astrovault {
             );
 
             // simulate swap to get the amount of ask asset we can provide after swapping
-            let simulated_received = self
-                .simulate_swap(
-                    deps,
-                    pool_id.clone(),
-                    offer_asset.clone(),
-                    ask_asset.clone(),
-                )?
-                .0;
+            let (return_amount, _spread, ..) = self.simulate_swap(
+                deps,
+                pool_id.clone(),
+                offer_asset.clone(),
+                ask_asset.clone(),
+            )?;
+            let simulated_received = return_amount;
             let swap_msg = self.swap(
                 deps,
                 pool_id,
