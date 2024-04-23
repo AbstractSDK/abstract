@@ -2,7 +2,7 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
-use abstract_core::{
+use abstract_std::{
     ibc::CallbackInfo,
     ibc_client::ExecuteMsg as IbcClientMsg,
     ibc_host::HostAction,
@@ -83,7 +83,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     pub fn register_ibc_client(&self) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.manager_address(self.deps)?,
-            &abstract_core::manager::ExecuteMsg::InstallModules {
+            &abstract_std::manager::ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
                     None,
@@ -102,7 +102,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
+                msgs: vec![abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     base_asset: None,
                     namespace: None,
@@ -124,7 +124,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
+                manager_msg: abstract_std::manager::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(
                         module,
                         Some(to_json_binary(&init_msg)?),
@@ -144,7 +144,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
+                manager_msg: abstract_std::manager::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(module, None)],
                 },
             },
@@ -162,7 +162,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+                manager_msg: abstract_std::manager::ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg: to_json_binary(exec_msg)?,
                 },
@@ -229,9 +229,7 @@ mod test {
         let msg = client.host_action(
             TEST_HOST_CHAIN.into(),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
-                    is_suspended: None,
-                },
+                manager_msg: abstract_std::manager::ExecuteMsg::UpdateStatus { is_suspended: None },
             },
             None,
         );
@@ -243,7 +241,7 @@ mod test {
                 msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
                     action: HostAction::Dispatch {
-                        manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                        manager_msg: abstract_std::manager::ExecuteMsg::UpdateStatus {
                             is_suspended: None,
                         },
                     },
@@ -272,9 +270,7 @@ mod test {
         let actual = client.host_action(
             TEST_HOST_CHAIN.into(),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
-                    is_suspended: None,
-                },
+                manager_msg: abstract_std::manager::ExecuteMsg::UpdateStatus { is_suspended: None },
             },
             Some(expected_callback.clone()),
         );
@@ -287,7 +283,7 @@ mod test {
                 msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
                     action: HostAction::Dispatch {
-                        manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                        manager_msg: abstract_std::manager::ExecuteMsg::UpdateStatus {
                             is_suspended: None,
                         },
                     },

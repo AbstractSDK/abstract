@@ -2,10 +2,10 @@
 //!
 //! This module provides useful helpers for integration tests
 
-use abstract_core::objects::{
+use abstract_interface::{Abstract, ExecuteMsgFns};
+use abstract_std::objects::{
     pool_id::UncheckedPoolAddress, PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry,
 };
-use abstract_interface::{Abstract, ExecuteMsgFns};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::prelude::*;
 

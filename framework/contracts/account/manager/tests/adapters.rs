@@ -2,7 +2,14 @@ use abstract_adapter::{
     mock::{self, MockError, MockExecMsg, MockInitMsg},
     AdapterError,
 };
-use abstract_core::{
+use abstract_integration_tests::{
+    add_mock_adapter_install_fee, create_default_account, init_mock_adapter, install_adapter,
+    install_adapter_with_funds, mock_modules,
+    mock_modules::adapter_1::{MockAdapterI1V1, MockAdapterI1V2},
+    AResult,
+};
+use abstract_interface::*;
+use abstract_std::{
     adapter::{AdapterBaseMsg, AdapterRequestMsg, BaseExecuteMsg, BaseQueryMsgFns},
     manager::{ManagerModuleInfo, ModuleInstallConfig},
     objects::{
@@ -12,13 +19,6 @@ use abstract_core::{
     },
     *,
 };
-use abstract_integration_tests::{
-    add_mock_adapter_install_fee, create_default_account, init_mock_adapter, install_adapter,
-    install_adapter_with_funds, mock_modules,
-    mock_modules::adapter_1::{MockAdapterI1V1, MockAdapterI1V2},
-    AResult,
-};
-use abstract_interface::*;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins};
 use cw_orch::prelude::*;
@@ -328,7 +328,7 @@ fn manager_adapter_exec() -> AResult {
 
     account.manager.execute_on_module(
         TEST_MODULE_ID,
-        Into::<abstract_core::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
+        Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
     )?;
 
     Ok(())

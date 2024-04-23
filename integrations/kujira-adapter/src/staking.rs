@@ -1,4 +1,4 @@
-use abstract_sdk::core::objects::LpToken;
+use abstract_sdk::std::objects::LpToken;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -29,8 +29,8 @@ impl Identify for Kujira {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
-        core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
+        std::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         Resolve,
     },
     abstract_staking_standard::msg::{
@@ -261,7 +261,7 @@ impl CwStakingCommand for Kujira {
 
 #[cfg(feature = "full_integration")]
 impl abstract_sdk::features::ModuleIdentification for Kujira {
-    fn module_id(&self) -> abstract_sdk::core::objects::module::ModuleId<'static> {
+    fn module_id(&self) -> abstract_sdk::std::objects::module::ModuleId<'static> {
         abstract_staking_standard::CW_STAKING_ADAPTER_ID
     }
 }

@@ -1,14 +1,6 @@
-use abstract_core::{
-    objects::{
-        fee::FixedFee,
-        module::{self, Module},
-        validation::validate_link,
-        ABSTRACT_ACCOUNT_ID,
-    },
-    version_control::{ModuleDefaultConfiguration, UpdateModule},
-};
 use abstract_sdk::{
-    core::{
+    cw_helpers::Clearable,
+    std::{
         objects::{
             module::{ModuleInfo, ModuleVersion},
             module_reference::ModuleReference,
@@ -17,7 +9,15 @@ use abstract_sdk::{
         },
         version_control::{state::*, AccountBase, Config},
     },
-    cw_helpers::Clearable,
+};
+use abstract_std::{
+    objects::{
+        fee::FixedFee,
+        module::{self, Module},
+        validation::validate_link,
+        ABSTRACT_ACCOUNT_ID,
+    },
+    version_control::{ModuleDefaultConfiguration, UpdateModule},
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
@@ -578,7 +578,7 @@ pub fn query_account_owner(
     account_id: &AccountId,
 ) -> VCResult<Addr> {
     let cw_ownable::Ownership { owner, .. } =
-        abstract_core::manager::state::OWNER.query(querier, manager_addr)?;
+        abstract_std::manager::state::OWNER.query(querier, manager_addr)?;
 
     owner.ok_or_else(|| VCError::NoAccountOwner {
         account_id: account_id.clone(),
@@ -613,7 +613,7 @@ pub fn validate_account_owner(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::{
+    use abstract_std::{
         manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
         objects::account::AccountTrace,
         version_control::*,
@@ -868,7 +868,7 @@ mod test {
     mod claim_namespace {
         use super::*;
 
-        use abstract_core::AbstractError;
+        use abstract_std::AbstractError;
         use cosmwasm_std::{coins, SubMsg};
 
         #[test]
@@ -1407,7 +1407,7 @@ mod test {
         use super::*;
 
         use crate::contract::query;
-        use abstract_core::{objects::module::Monetization, AbstractError};
+        use abstract_std::{objects::module::Monetization, AbstractError};
         use cosmwasm_std::coin;
 
         fn test_module() -> ModuleInfo {

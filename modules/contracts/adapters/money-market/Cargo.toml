@@ -26,10 +26,10 @@ required-features = ["schema"]
 default = ["export"]
 export = []
 interface = [
-  "dep:abstract-interface",
   "dep:cw-orch",
   "export",
   "abstract-money-market-standard/interface",
+  "abstract-adapter/interface-macro",
 ]
 schema = ["abstract-adapter/schema"]
 testing = ["interface", "dep:abstract-client", "dep:cw-orch", "dep:cw20"]
@@ -64,9 +64,6 @@ cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 
-abstract-interface = { workspace = true, optional = true }
-abstract-core = { workspace = true }
-abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 
@@ -96,8 +93,7 @@ dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
 wyndex-bundle = { workspace = true }
-abstract-testing = { workspace = true }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
+abstract-adapter = { workspace = true, features = ["test-utils"] }
 money-market = { path = ".", features = [
   "interface",
   "mars",

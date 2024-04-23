@@ -1,5 +1,8 @@
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
-use abstract_core::{
+use abstract_integration_tests::*;
+use abstract_interface::*;
+use abstract_manager::{contract::CONTRACT_VERSION, error::ManagerError};
+use abstract_std::{
     manager::{InfoResponse, ManagerModuleInfo, ModuleInstallConfig, ModuleVersionsResponse},
     objects::{
         fee::FixedFee,
@@ -12,9 +15,6 @@ use abstract_core::{
     version_control::{NamespaceResponse, UpdateModule},
     PROXY,
 };
-use abstract_integration_tests::*;
-use abstract_interface::*;
-use abstract_manager::{contract::CONTRACT_VERSION, error::ManagerError};
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
 use cw_orch::prelude::*;
@@ -41,7 +41,7 @@ fn instantiate() -> AResult {
     });
 
     // assert manager config
-    assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
+    assert_that!(account.manager.config()?).is_equal_to(abstract_std::manager::ConfigResponse {
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         account_id: TEST_ACCOUNT_ID,
@@ -72,7 +72,7 @@ fn exec_through_manager() -> AResult {
     let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TTOKEN)];
 
     account.manager.exec_on_module(
-        cosmwasm_std::to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+        cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
             })],
@@ -106,7 +106,7 @@ fn default_without_response_data() -> AResult {
 
     let resp = account.manager.execute_on_module(
         TEST_MODULE_ID,
-        Into::<abstract_core::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
+        Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
     )?;
     assert_that!(resp.data).is_none();
     take_storage_snapshot!(chain, "default_without_response_data");
@@ -205,7 +205,7 @@ fn install_standalone_versions_not_met() -> AResult {
         let err: ManagerError = err.downcast()?;
         assert_eq!(
             err,
-            ManagerError::Abstract(abstract_core::AbstractError::UnequalModuleData {
+            ManagerError::Abstract(abstract_std::AbstractError::UnequalModuleData {
                 cw2: mock_modules::V1.to_owned(),
                 module: mock_modules::V2.to_owned(),
             })

@@ -1,8 +1,8 @@
-use abstract_core::{adapter::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
     feature_objects::{AnsHost, VersionControlContract},
 };
+use abstract_std::{adapter::InstantiateMsg, objects::module_version::set_module_data};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
@@ -56,13 +56,13 @@ impl<
 
 #[cfg(test)]
 mod tests {
-    use abstract_core::{
-        adapter::{BaseInstantiateMsg, InstantiateMsg},
-        objects::module_version::{ModuleData, MODULE},
-    };
     use abstract_sdk::{
         base::InstantiateEndpoint,
         feature_objects::{AnsHost, VersionControlContract},
+    };
+    use abstract_std::{
+        adapter::{BaseInstantiateMsg, InstantiateMsg},
+        objects::module_version::{ModuleData, MODULE},
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::{

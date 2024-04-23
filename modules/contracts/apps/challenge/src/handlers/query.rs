@@ -1,6 +1,4 @@
-use abstract_app::abstract_core::objects::voting::{
-    ProposalId, ProposalInfo, VoteResult, DEFAULT_LIMIT,
-};
+use abstract_app::std::objects::voting::{ProposalId, ProposalInfo, VoteResult, DEFAULT_LIMIT};
 use cosmwasm_std::{to_json_binary, Binary, BlockInfo, Deps, Env, Order, StdResult};
 use cw_storage_plus::Bound;
 

@@ -1,4 +1,4 @@
-use abstract_core::AbstractError;
+use abstract_std::AbstractError;
 use cosmwasm_std::{Binary, QueryRequest, StdResult, WasmQuery};
 use serde::{de::DeserializeOwned, Serialize};
 

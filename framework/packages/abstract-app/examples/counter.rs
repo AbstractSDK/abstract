@@ -1,4 +1,4 @@
-pub use abstract_core::app;
+pub use abstract_std::app;
 pub use cosmwasm_std::testing::*;
 use cosmwasm_std::{Response, StdError};
 
@@ -41,7 +41,7 @@ pub enum CounterError {
     DappError(#[from] AppError),
 
     #[error("{0}")]
-    Abstract(#[from] abstract_core::AbstractError),
+    Abstract(#[from] abstract_std::AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

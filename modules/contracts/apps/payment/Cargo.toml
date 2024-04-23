@@ -23,12 +23,7 @@ export = []
 # enable node-backed tests (ensure Docker is running)
 # run with `cargo test --jobs 1 --features node-tests`
 node-tests = ["interface"]
-interface = [
-  "export",
-  "dep:abstract-interface",
-  "dep:cw-orch",
-  "abstract-app/interface-macro",
-]
+interface = ["export", "dep:cw-orch", "abstract-app/interface-macro"]
 schema = ["abstract-app/schema"]
 
 [dependencies]
@@ -41,21 +36,17 @@ schemars = { workspace = true }
 cw-asset = { workspace = true }
 cw20 = { workspace = true }
 
-abstract-core = { workspace = true }
 abstract-app = { workspace = true }
-abstract-sdk = { workspace = true }
 
 abstract-dex-adapter = { workspace = true, default-features = false }
 
 # Dependencies for interface
-abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 
 [dev-dependencies]
 payment-app = { path = ".", features = ["interface"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
-abstract-testing = { workspace = true }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
+abstract-app = { workspace = true, features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"

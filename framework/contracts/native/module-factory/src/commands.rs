@@ -1,6 +1,5 @@
-use abstract_core::objects::module;
 use abstract_sdk::{
-    core::{
+    std::{
         module_factory::FactoryModuleInstallConfig,
         objects::{
             module::ModuleInfo, module_reference::ModuleReference,
@@ -9,6 +8,7 @@ use abstract_sdk::{
     },
     *,
 };
+use abstract_std::objects::module;
 use cosmwasm_std::{
     from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
     DepsMut, Env, MessageInfo, StdResult, WasmMsg,
@@ -82,7 +82,7 @@ pub fn execute_create_modules(
                     amount: vec![fee],
                 }));
             }
-            abstract_core::objects::module::Monetization::None => {}
+            abstract_std::objects::module::Monetization::None => {}
             // The monetization must be known to the factory for a module to be installed
             _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
         };
@@ -96,13 +96,13 @@ pub fn execute_create_modules(
                 let init_msg = owner_init_msg.unwrap();
                 let init_msg_as_value: Value = from_json(init_msg)?;
                 // App base message
-                let app_base_msg = abstract_core::app::BaseInstantiateMsg {
+                let app_base_msg = abstract_std::app::BaseInstantiateMsg {
                     ans_host_address: config.ans_host_address.to_string(),
                     version_control_address: version_control.address.to_string(),
                     account_base: account_base.clone(),
                 };
 
-                let app_init_msg = abstract_core::app::InstantiateMsg::<Value> {
+                let app_init_msg = abstract_std::app::InstantiateMsg::<Value> {
                     base: app_base_msg,
                     module: init_msg_as_value,
                 };
@@ -147,7 +147,7 @@ pub fn execute_create_modules(
 
     let sum_of_monetization = sum_of_monetization.into_vec();
     if sum_of_monetization != info.funds {
-        return Err(core::AbstractError::Fee(format!(
+        return Err(std::AbstractError::Fee(format!(
             "Invalid fee payment sent. Expected {:?}, sent {:?}",
             sum_of_monetization, info.funds
         ))
@@ -263,7 +263,7 @@ pub fn update_factory_binaries(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::module_factory::ExecuteMsg;
+    use abstract_std::module_factory::ExecuteMsg;
     use abstract_testing::OWNER;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use speculoos::prelude::*;
@@ -340,7 +340,7 @@ mod test {
     mod instantiate_contract {
         use super::*;
 
-        use abstract_core::objects::{module::ModuleVersion, AccountId};
+        use abstract_std::objects::{module::ModuleVersion, AccountId};
         use cosmwasm_std::{coin, Api, CodeInfoResponse, Empty, HexBinary, QuerierResult};
 
         #[test]
@@ -434,7 +434,7 @@ mod test {
     use cosmwasm_std::to_json_binary;
 
     mod update_factory_binaries {
-        use abstract_core::{objects::module::ModuleVersion, AbstractError};
+        use abstract_std::{objects::module::ModuleVersion, AbstractError};
         use abstract_testing::map_tester::*;
 
         use super::*;

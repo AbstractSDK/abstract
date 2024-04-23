@@ -1,4 +1,4 @@
-use abstract_app::abstract_core::objects::{
+use abstract_app::std::objects::{
     validation::{self, ValidationError},
     voting::{ProposalId, SimpleVoting},
     AssetEntry,

@@ -1,4 +1,4 @@
-use abstract_core::AbstractError;
+use abstract_std::AbstractError;
 use cosmwasm_std::StdError;
 use cw_orch::prelude::CwOrchError;
 use thiserror::Error;

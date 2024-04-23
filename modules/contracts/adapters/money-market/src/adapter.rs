@@ -1,10 +1,10 @@
-use abstract_money_market_standard::{
-    raw_action::MoneyMarketRawAction, MoneyMarketCommand, MoneyMarketError,
-};
-use abstract_sdk::{
+use abstract_adapter::sdk::{
     cw_helpers::Chargeable,
     features::{AbstractNameService, AbstractRegistryAccess},
     Execution,
+};
+use abstract_money_market_standard::{
+    raw_action::MoneyMarketRawAction, MoneyMarketCommand, MoneyMarketError,
 };
 use cosmwasm_std::{Addr, CosmosMsg, Deps};
 use cw_asset::{AssetBase, AssetInfoBase};

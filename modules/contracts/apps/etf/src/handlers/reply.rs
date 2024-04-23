@@ -1,4 +1,4 @@
-use abstract_sdk::features::AbstractResponse;
+use abstract_app::sdk::features::AbstractResponse;
 use cosmwasm_std::{DepsMut, Env, Reply, StdError, StdResult};
 use protobuf::Message;
 

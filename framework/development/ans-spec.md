@@ -108,7 +108,7 @@ Delimiters should be processed in the following priority:
 
 ## Storage Maps
 
-These maps can be found in the updated [ans state documentation](../packages/abstract-core/src/native/ans_host.rs):
+These maps can be found in the updated [ans state documentation](../packages/abstract-std/src/native/ans_host.rs):
 
 - [Asset](#asset) - `ASSET_ADDRESSES`
 - [LP Token](#lp-token) - `ASSET_ADDRESSES`

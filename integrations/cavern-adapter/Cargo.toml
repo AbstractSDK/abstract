@@ -10,14 +10,14 @@ license = "MIT OR Apache-2.0"
 default = ["full_integration"]
 local = []
 full_integration = [
-    "dep:moneymarket",
-    "dep:basset",
-    "dep:cavern-lsd-wrapper-token",
-    "dep:wrapper-implementations",
-    "dep:cw20",
-    "dep:cw-asset",
-    "dep:cw-utils",
-    "dep:cw-storage-plus",
+  "dep:moneymarket",
+  "dep:basset",
+  "dep:cavern-lsd-wrapper-token",
+  "dep:wrapper-implementations",
+  "dep:cw20",
+  "dep:cw-asset",
+  "dep:cw-utils",
+  "dep:cw-storage-plus",
 ]
 
 [dependencies]
@@ -37,10 +37,10 @@ cw-storage-plus = { workspace = true, optional = true }
 moneymarket = { git = "https://github.com/CavernPerson/money-market-contracts", version = "0.3.1", optional = true, rev = "ea773bb" }
 basset = { git = "https://github.com/CavernPerson/cavern-lsd-wrapper", optional = true, rev = "3643800" }
 cavern-lsd-wrapper-token = { git = "https://github.com/CavernPerson/cavern-lsd-wrapper", optional = true, features = [
-    "library",
+  "library",
 ], rev = "3643800" }
 wrapper-implementations = { git = "https://github.com/CavernPerson/cavern-lsd-wrapper", optional = true, features = [
-    "library",
+  "library",
 ], rev = "3643800" }
 
 
