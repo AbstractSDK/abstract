@@ -228,6 +228,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())))
         .with_module_ibc(|deps, _, _, msg| {
+            let _received_msg: IbcModuleToModuleMsg = msg.parse_msg()?;
             let ModuleIbcMsg { source_module, .. } = msg;
             // We save the module info status
             MODULE_IBC_RECEIVED.save(deps.storage, &source_module)?;

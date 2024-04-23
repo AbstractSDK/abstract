@@ -1,9 +1,11 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, Binary, CosmosMsg, Empty, QueryRequest, StdError, StdResult,
+    from_json, to_json_binary, wasm_execute, Binary, CosmosMsg, Empty, QueryRequest, StdError,
+    StdResult,
 };
 use polytone::callbacks::{Callback, ErrorResponse, ExecutionResponse};
 use schemars::JsonSchema;
+use serde::de::DeserializeOwned;
 
 use crate::{
     base::ExecuteMsg,
@@ -110,3 +112,9 @@ pub struct ModuleIbcMsg {
     pub msg: Binary,
 }
 // ANCHOR_END: module_ibc_msg
+
+impl ModuleIbcMsg {
+    pub fn parse_msg<T: DeserializeOwned>(&self) -> StdResult<T> {
+        from_json(&self.msg)
+    }
+}
