@@ -680,7 +680,7 @@ pub mod test {
                 ModuleInfo::from_id(TEST_MODULE_ID_REMOTE, TEST_VERSION_REMOTE.into())?;
 
             // The user triggers manually a module-to-module interaction
-            let err = abstr_origin
+            abstr_origin
                 .ibc
                 .client
                 .module_ibc_action(
