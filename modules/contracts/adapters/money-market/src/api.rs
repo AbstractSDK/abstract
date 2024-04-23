@@ -697,11 +697,6 @@ mod test {
     }
 
     mod raw {
-        use abstract_adapter::abstract_testing::{
-            addresses::{TEST_MODULE_ADDRESS, TEST_MODULE_ID},
-            mock_querier,
-        };
-
         use super::*;
 
         pub const TEST_CONTRACT_ADDR: &str = "test-mm-addr";
