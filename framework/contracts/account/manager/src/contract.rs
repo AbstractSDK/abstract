@@ -118,7 +118,8 @@ pub fn instantiate(
     }
 
     if msg.account_id.is_remote() {
-        install_ibc_client(deps.branch(), proxy_addr)?;
+        let install_client_msg = install_ibc_client(deps.branch(), proxy_addr)?;
+        response = response.add_message(install_client_msg);
     }
 
     // Register on manager if it's sub-account
