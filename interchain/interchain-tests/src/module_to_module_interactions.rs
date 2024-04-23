@@ -592,4 +592,114 @@ pub mod test {
 
         Ok(())
     }
+
+    pub mod security {
+        use abstract_core::ibc_client::{ExecuteMsgFns, InstalledModuleIdentification};
+
+        use crate::module_to_module_interactions::IbcModuleToModuleMsg;
+
+        use super::*;
+
+        #[test]
+        fn calling_module_should_match() -> AnyResult<()> {
+            logger_test_init();
+            let mock_interchain =
+                MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+
+            // We just verified all steps pass
+            let (abstr_origin, abstr_remote) =
+                ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
+            ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
+
+            let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+
+            let (origin_account, remote_account_id) =
+                create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+
+            let (remote_account, _) =
+                create_test_remote_account(&abstr_remote, STARGAZE, JUNO, &mock_interchain, None)?;
+
+            // Install local app
+            let app = MockAppOriginI::new(
+                TEST_MODULE_ID,
+                abstr_origin.version_control.get_chain().clone(),
+            );
+
+            abstr_origin
+                .version_control
+                .claim_namespace(origin_account.id()?, TEST_NAMESPACE.to_owned())?;
+
+            app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
+
+            origin_account.install_app(&app, &MockInitMsg {}, None)?;
+
+            // Install remote app
+            let app_remote = MockAppRemoteI::new(
+                TEST_MODULE_ID_REMOTE,
+                abstr_remote.version_control.get_chain().clone(),
+            );
+
+            abstr_remote
+                .version_control
+                .claim_namespace(remote_account.id()?, TEST_NAMESPACE.to_owned())?;
+
+            app_remote.deploy(TEST_VERSION_REMOTE.parse()?, DeployStrategy::Try)?;
+
+            let remote_install_response = origin_account.manager.execute_on_remote(
+                &remote_name,
+                manager::ExecuteMsg::InstallModules {
+                    modules: vec![ModuleInstallConfig::new(
+                        ModuleInfo::from_id_latest(TEST_MODULE_ID_REMOTE)?,
+                        Some(to_json_binary(&MockInitMsg {})?),
+                    )],
+                },
+            )?;
+
+            mock_interchain.wait_ibc(JUNO, remote_install_response)?;
+
+            // We get the object for handling the actual module on the remote account
+            let remote_manager = abstr_remote
+                .version_control
+                .account_base(remote_account_id)?
+                .account_base
+                .manager;
+            let manager = Manager::new(
+                "remote-account-manager",
+                abstr_remote.version_control.get_chain().clone(),
+            );
+            manager.set_address(&remote_manager);
+            let module_address = manager.module_info(TEST_MODULE_ID_REMOTE)?.unwrap().address;
+            let remote_account_app = MockAppRemoteI::new(
+                "remote-account-app",
+                abstr_remote.version_control.get_chain().clone(),
+            );
+            remote_account_app.set_address(&module_address);
+
+            // The user on origin chain triggers a module-to-module interaction
+            let target_module_info =
+                ModuleInfo::from_id(TEST_MODULE_ID_REMOTE, TEST_VERSION_REMOTE.into())?;
+
+            // The user triggers manually a module-to-module interaction
+            let err = abstr_origin
+                .ibc
+                .client
+                .module_ibc_action(
+                    remote_name,
+                    to_json_binary(&IbcModuleToModuleMsg {
+                        ibc_msg: "module_to_module:msg".to_string(),
+                    })
+                    .unwrap(),
+                    InstalledModuleIdentification {
+                        module_info: ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())
+                            .unwrap(),
+                        account_id: Some(origin_account.id()?),
+                    },
+                    target_module_info,
+                    None,
+                )
+                .unwrap_err();
+
+            Ok(())
+        }
+    }
 }
