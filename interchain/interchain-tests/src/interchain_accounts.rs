@@ -568,6 +568,7 @@ mod test {
                 }
             }
         );
+
         // We make sure the ibc client is installed on the remote account
         let installed_remote_modules = remote_abstract_account.manager.module_infos(None, None)?;
         assert!(installed_remote_modules
