@@ -75,7 +75,9 @@ mod test {
     use super::*;
 
     use crate::{
-        setup::{ibc_abstract_setup, mock_test::logger_test_init},
+        setup::{
+            ibc_abstract_setup, ibc_connect_polytone_and_abstract, mock_test::logger_test_init,
+        },
         JUNO, OSMOSIS, STARGAZE,
     };
     use abstract_adapter::mock::MockAdapterI;
@@ -87,23 +89,23 @@ mod test {
     use abstract_core::{
         ans_host::ExecuteMsgFns as AnsExecuteMsgFns,
         ibc::CallbackInfo,
-        ibc_client::AccountResponse,
+        ibc_client::{self, AccountResponse},
         ibc_host::{
             ExecuteMsg as HostExecuteMsg, ExecuteMsgFns, HelperAction, HostAction, InternalAction,
         },
         manager::{
-            state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg, InfoResponse,
-            ModuleAddressesResponse,
+            self, state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg,
+            InfoResponse, ModuleAddressesResponse,
         },
         objects::{gov_type::GovernanceDetails, UncheckedChannelEntry},
-        IBC_CLIENT, ICS20, PROXY,
+        proxy, IBC_CLIENT, ICS20, PROXY,
     };
     use abstract_interface::AdapterDeployer;
     use abstract_interface::{AccountFactoryExecFns, AppDeployer, DeployStrategy, VCExecFns};
     use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
     use abstract_testing::prelude::*;
     use anyhow::Result as AnyResult;
-    use cosmwasm_std::{coins, wasm_execute, Uint128};
+    use cosmwasm_std::{coin, coins, wasm_execute, BankMsg, Uint128};
     use cw_orch::mock::cw_multi_test::AppResponse;
     use cw_orch_polytone::Polytone;
     use ibc_relayer_types::core::ics24_host::identifier::PortId;
@@ -963,6 +965,65 @@ mod test {
             .chain(JUNO)?
             .query_balance(&origin_account.proxy.address()?, origin_denom)?;
         assert_eq!(Uint128::from(10u128), origin_balance);
+
+        Ok(())
+    }
+
+    #[test]
+    fn duplex_ibc() -> AnyResult<()> {
+        logger_test_init();
+
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+
+        // We just verified all steps pass
+        let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
+        ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
+
+        let (origin_account, remote_account_id) =
+            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+
+        let test_amount = coin(10_000, "mock_tokens");
+        let origin = mock_interchain.chain(JUNO)?;
+        origin.add_balance(&origin_account.proxy.address()?, vec![test_amount.clone()])?;
+        let to_address = origin.addr_make("to_address");
+
+        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+        let origin_name = ChainName::from_chain_id(JUNO).to_string();
+
+        // The user on origin chain wants to execute an action on the origin chain
+        let ibc_action_response = origin_account.manager.execute_on_remote(
+            &remote_name,
+            ManagerExecuteMsg::ExecOnModule {
+                module_id: PROXY.to_string(),
+                exec_msg: to_json_binary(&proxy::ExecuteMsg::IbcAction {
+                    msgs: vec![ibc_client::ExecuteMsg::RemoteAction {
+                        host_chain: origin_name,
+                        action: HostAction::Dispatch {
+                            manager_msg: manager::ExecuteMsg::ExecOnModule {
+                                module_id: "PROXY".to_string(),
+                                exec_msg: to_json_binary(&proxy::ExecuteMsg::ModuleAction {
+                                    msgs: vec![BankMsg::Send {
+                                        to_address: to_address.to_string(),
+                                        amount: vec![test_amount.clone()],
+                                    }
+                                    .into()],
+                                })?,
+                            },
+                        },
+                        callback_info: None,
+                    }],
+                })?,
+            },
+            None,
+        )?;
+
+        mock_interchain.wait_ibc(JUNO, ibc_action_response)?;
+
+        assert_eq!(
+            origin.bank_querier().balance(to_address, None)?,
+            vec![test_amount]
+        );
 
         Ok(())
     }

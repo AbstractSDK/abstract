@@ -13,6 +13,13 @@ use crate::{
     contract::HostResult,
 };
 
+pub fn client_to_host_account_id(remote_chain: ChainName, account_id: AccountId) -> AccountId {
+    let mut account_id = account_id.clone();
+    account_id.trace_mut().push_chain(remote_chain);
+
+    account_id
+}
+
 /// Handle actions that are passed to the IBC host contract
 /// This function is not permissioned and access control needs to be handled outside of it
 /// Usually the `client_chain` argument needs to be derived from the message sender
@@ -24,9 +31,27 @@ pub fn handle_host_action(
     received_account_id: AccountId,
     host_action: HostAction,
 ) -> HostResult {
-    // Push the client chain to the account trace
-    let mut account_id = received_account_id.clone();
-    account_id.trace_mut().push_chain(client_chain.clone());
+    // Get the local account id from the remote account id
+    // If the account_id is remote and the last trace matches the current chain, we unpack the chain name
+    // Otherwise, we just add the sending chain to the trace
+    let account_id = match received_account_id.trace() {
+        abstract_core::objects::account::AccountTrace::Local => {
+            client_to_host_account_id(client_chain.clone(), received_account_id.clone())
+        }
+        abstract_core::objects::account::AccountTrace::Remote(trace) => {
+            if trace.last() == Some(&ChainName::from_chain_id(&env.block.chain_id)) {
+                let mut new_trace = trace.clone();
+                new_trace.pop();
+                if new_trace.is_empty() {
+                    AccountId::local(received_account_id.seq())
+                } else {
+                    AccountId::remote(received_account_id.seq(), new_trace)?
+                }
+            } else {
+                client_to_host_account_id(client_chain.clone(), received_account_id.clone())
+            }
+        }
+    };
 
     // get the local account information
     match host_action {

@@ -20,8 +20,27 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
         Abstract::deploy_on(remote_chain.clone(), remote_chain.sender().to_string())?;
 
     // Deploying polytone on both chains
-    let origin_polytone = Polytone::deploy_on(origin_chain.clone(), None)?;
-    let remote_polytone = Polytone::deploy_on(remote_chain.clone(), None)?;
+    Polytone::deploy_on(origin_chain.clone(), None)?;
+    Polytone::deploy_on(remote_chain.clone(), None)?;
+
+    ibc_connect_polytone_and_abstract(interchain, origin_chain_id, remote_chain_id)?;
+
+    Ok((abstr_origin, abstr_remote))
+}
+
+pub fn ibc_connect_polytone_and_abstract<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
+    interchain: &IBC,
+    origin_chain_id: &str,
+    remote_chain_id: &str,
+) -> AnyResult<()> {
+    let origin_chain = interchain.chain(origin_chain_id).unwrap();
+    let remote_chain = interchain.chain(remote_chain_id).unwrap();
+
+    let abstr_origin = Abstract::load_from(origin_chain.clone())?;
+    let abstr_remote = Abstract::load_from(remote_chain.clone())?;
+
+    let origin_polytone = Polytone::load_from(origin_chain.clone())?;
+    let remote_polytone = Polytone::load_from(remote_chain.clone())?;
 
     // Creating a connection between 2 polytone deployments
     interchain.create_contract_channel(
@@ -34,7 +53,7 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     // Create the connection between client and host
     abstract_ibc_connection_with(&abstr_origin, interchain, &abstr_remote, &origin_polytone)?;
 
-    Ok((abstr_origin, abstr_remote))
+    Ok(())
 }
 
 #[cfg(test)]
