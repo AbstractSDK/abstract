@@ -1,6 +1,7 @@
 #![allow(missing_docs)]
 use std::fmt::{Display, Formatter};
 
+use abstract_core::objects::module::Module;
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use thiserror::Error;
@@ -21,6 +22,7 @@ impl Display for EndpointError {
     }
 }
 /// Error type for the abstract sdk crate.
+#[allow(clippy::large_enum_variant)]
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractSdkError {
     #[error("Abstract Account error in the sdk: {0}")]
@@ -64,6 +66,20 @@ pub enum AbstractSdkError {
         api: String,
         module_id: String,
         error: Box<AbstractError>,
+    },
+
+    // Queried address is not a module
+    #[error("Queried address {addr} is not a module : {err}")]
+    NotAModule { addr: Addr, err: String },
+
+    // Queried address is not a module
+    #[error(
+        "Queried address {addr} is a module ({module}) but has the wrong stored address : {err}"
+    )]
+    WrongModuleInfo {
+        addr: Addr,
+        module: Module,
+        err: String,
     },
 }
 
