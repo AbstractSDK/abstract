@@ -946,7 +946,7 @@ pub fn update_ibc_status(
         .add_message(proxy_callback_msg))
 }
 
-fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
+pub fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
     // retrieve the latest version
     let ibc_client_module =
         query_module(deps.as_ref(), ModuleInfo::from_id_latest(IBC_CLIENT)?, None)?;
