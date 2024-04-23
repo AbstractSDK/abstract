@@ -29,9 +29,7 @@ jobs:
 
       - name: Setup | Rust
         id: rustup
-        uses: ATiltedTree/setup-rust@v1
-        with:
-          rust-version: stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Setup | Just
         id: just
