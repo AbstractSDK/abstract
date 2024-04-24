@@ -43,7 +43,7 @@ pub fn load_abstr(chain: ChainInfo, sender: Addr) -> anyhow::Result<AbstractClie
     // Allow registration of any module
     abstr_deployment
         .version_control()
-        .update_config(None, Some(true), None)?;
+        .update_config(None, None, Some(true))?;
 
     Ok(abstr_deployment)
 }

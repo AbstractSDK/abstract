@@ -28,7 +28,7 @@ impl<Chain: CwEnv> Uploadable for VersionControl<Chain> {
                 ::version_control::contract::instantiate,
                 ::version_control::contract::query,
             )
-            .with_migrate(::version_control::contract::migrate),
+            .with_migrate(::version_control::migrate::migrate),
         )
     }
     fn wasm(&self) -> WasmPath {

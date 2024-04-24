@@ -1,24 +1,18 @@
-use std::str::from_utf8;
-
 pub(crate) use abstract_core::objects::namespace::ABSTRACT_NAMESPACE;
 use abstract_core::{
     objects::namespace::Namespace,
-    version_control::{state::NAMESPACES_INFO, Config, OldConfig},
+    version_control::{state::NAMESPACES_INFO, Config},
 };
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
-        objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
-        version_control::{
-            state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-        },
+        objects::ABSTRACT_ACCOUNT_ID,
+        version_control::{state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg},
         VERSION_CONTROL,
     },
     execute_update_ownership, query_ownership,
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
-use cw_semver::Version;
-use cw_storage_plus::Item;
 
 use crate::{commands::*, error::VCError, queries};
 
@@ -28,23 +22,6 @@ pub type VCResult<T = Response> = Result<T, VCError>;
 
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
-
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
-    let to_version: Version = CONTRACT_VERSION.parse()?;
-
-    let old_config = Item::<OldConfig>::new(from_utf8(CONFIG.as_slice())?).load(deps.storage)?;
-    let new_config = Config {
-        account_factory_address: old_config.account_factory_address,
-        security_disabled: old_config.allow_direct_module_registration_and_updates,
-        namespace_registration_fee: old_config.namespace_registration_fee,
-    };
-    CONFIG.save(deps.storage, &new_config)?;
-
-    assert_cw_contract_upgrade(deps.storage, VERSION_CONTROL, to_version)?;
-    cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
-    Ok(VcResponse::action("migrate"))
-}
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: InstantiateMsg) -> VCResult {
@@ -171,7 +148,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::{contract, testing::*};
+    use crate::testing::*;
 
     mod instantiate {
         use super::*;
@@ -192,7 +169,8 @@ mod tests {
     }
 
     mod migrate {
-        use abstract_core::AbstractError;
+        use abstract_core::{version_control::MigrateMsg, AbstractError};
+        use cw_semver::Version;
 
         use super::*;
 
@@ -203,7 +181,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res).is_err().is_equal_to(VCError::Abstract(
                 AbstractError::CannotDowngradeContract {
@@ -226,7 +204,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res).is_err().is_equal_to(VCError::Abstract(
                 AbstractError::CannotDowngradeContract {
@@ -248,7 +226,7 @@ mod tests {
             let old_name = "old:contract";
             cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-            let res = migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res).is_err().is_equal_to(VCError::Abstract(
                 AbstractError::ContractNameMismatch {
@@ -274,7 +252,7 @@ mod tests {
             .to_string();
             cw2::set_contract_version(deps.as_mut().storage, VERSION_CONTROL, small_version)?;
 
-            let res = migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
             assert_that!(res.messages).has_length(0);
 
             assert_that!(cw2::get_contract_version(&deps.storage)?.version)

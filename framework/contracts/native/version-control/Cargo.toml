@@ -30,6 +30,7 @@ abstract-sdk = { workspace = true }
 abstract-core = { workspace = true }
 abstract-macros = { workspace = true }
 cw-ownable = { workspace = true }
+cosmwasm-schema = "2.0.2"
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
