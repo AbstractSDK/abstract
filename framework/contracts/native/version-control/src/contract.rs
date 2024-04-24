@@ -1,16 +1,14 @@
-pub(crate) use abstract_core::objects::namespace::ABSTRACT_NAMESPACE;
-use abstract_core::{
+use abstract_macros::abstract_response;
+use abstract_sdk::{execute_update_ownership, query_ownership};
+pub(crate) use abstract_std::objects::namespace::ABSTRACT_NAMESPACE;
+use abstract_std::{
     objects::namespace::Namespace,
     version_control::{state::NAMESPACES_INFO, Config},
 };
-use abstract_macros::abstract_response;
-use abstract_sdk::{
-    core::{
-        objects::ABSTRACT_ACCOUNT_ID,
-        version_control::{state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg},
-        VERSION_CONTROL,
-    },
-    execute_update_ownership, query_ownership,
+use abstract_std::{
+    objects::ABSTRACT_ACCOUNT_ID,
+    version_control::{state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg},
+    VERSION_CONTROL,
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
@@ -143,7 +141,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
 
 #[cfg(test)]
 mod tests {
-    use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
+    use abstract_std::objects::ABSTRACT_ACCOUNT_ID;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
@@ -169,7 +167,7 @@ mod tests {
     }
 
     mod migrate {
-        use abstract_core::{version_control::MigrateMsg, AbstractError};
+        use abstract_std::{version_control::MigrateMsg, AbstractError};
         use cw_semver::Version;
 
         use super::*;

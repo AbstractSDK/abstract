@@ -1,6 +1,6 @@
+use abstract_app::sdk::AbstractSdkError;
+use abstract_app::std::AbstractError;
 use abstract_app::AppError;
-use abstract_core::AbstractError;
-use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{
     CheckedMultiplyFractionError, DecimalRangeExceeded, OverflowError, StdError, Uint128,
 };

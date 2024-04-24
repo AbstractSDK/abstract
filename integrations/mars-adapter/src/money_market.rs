@@ -23,8 +23,8 @@ impl Identify for Mars {
 use {
     abstract_money_market_standard::{MoneyMarketCommand, MoneyMarketError},
     abstract_sdk::{
-        core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
         feature_objects::AnsHost,
+        std::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
     },
     cosmwasm_std::{wasm_execute, CosmosMsg, Decimal, Deps, QuerierWrapper, Uint128},
     cw_asset::{Asset, AssetInfo},

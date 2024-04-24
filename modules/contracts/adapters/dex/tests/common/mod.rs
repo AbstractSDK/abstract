@@ -1,6 +1,5 @@
-use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_adapter::std::objects::gov_type::GovernanceDetails;
 use abstract_interface::{AbstractAccount, AccountFactory};
-use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 pub fn create_default_account<Chain: CwEnv>(
     factory: &AccountFactory<Chain>,
@@ -33,7 +32,7 @@ pub fn create_default_account<Chain: CwEnv>(
 //                 swap_fee: Decimal::percent(1),
 //                 recipient_os: 0,
 //             },
-//             base: abstract_core::adapter::BaseInstantiateMsg {
+//             base: abstract_adapter::std::adapter::BaseInstantiateMsg {
 //                 ans_host_address: deployment.ans_host.addr_str()?,
 //                 version_control_address: deployment.version_control.addr_str()?,
 //             },

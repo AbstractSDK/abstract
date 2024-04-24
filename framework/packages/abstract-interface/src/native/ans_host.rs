@@ -1,7 +1,7 @@
 use std::env;
 
-pub use abstract_core::ans_host::ExecuteMsgFns;
-use abstract_core::{
+pub use abstract_std::ans_host::ExecuteMsgFns;
+use abstract_std::{
     ans_host::*,
     objects::{
         pool_metadata::ResolvedPoolMetadata, AnsAsset, AnsEntryConvertor, AssetEntry, ChannelEntry,
@@ -9,7 +9,6 @@ use abstract_core::{
     },
     ANS_HOST,
 };
-use cosmwasm_std::Addr;
 use cw_address_like::AddressLike;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase, AssetInfoUnchecked, AssetUnchecked};
 use cw_orch::{interface, prelude::*};

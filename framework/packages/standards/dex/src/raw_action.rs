@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 //! # Dex Adapter Raw Action Definition
 
-use abstract_core::objects::pool_id::UncheckedPoolAddress;
+use abstract_std::objects::pool_id::UncheckedPoolAddress;
 use cosmwasm_std::Decimal;
 use cw_asset::{AssetBase, AssetInfoBase};
 

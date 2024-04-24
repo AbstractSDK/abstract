@@ -177,10 +177,9 @@ mod test {
     use super::*;
 
     mod key {
-        use std::str::FromStr;
-
         use super::*;
-        use crate::objects::chain_name::ChainName;
+
+        use std::str::FromStr;
 
         fn mock_key() -> AccountId {
             AccountId {

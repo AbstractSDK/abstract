@@ -23,16 +23,15 @@ pub mod dex_tester;
 #[cfg(feature = "interface")]
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*};
-    use abstract_core::{
+    use abstract_adapter::abstract_interface::{AbstractAccount, AbstractInterfaceError};
+    use abstract_adapter::abstract_interface::{AdapterDeployer, RegisteredModule};
+    use abstract_adapter::sdk::features::ModuleIdentification;
+    use abstract_adapter::std::{
         adapter,
         objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
     };
-    use abstract_dex_standard::ans_action::DexAnsAction;
-    use abstract_dex_standard::raw_action::DexRawAction;
-    use abstract_interface::{AbstractAccount, AbstractInterfaceError};
-    use abstract_interface::{AdapterDeployer, RegisteredModule};
-    use abstract_sdk::features::ModuleIdentification;
-    use cosmwasm_std::{Decimal, Empty};
+
+    use cosmwasm_std::Decimal;
     use cw_asset::{AssetBase, AssetInfoBase};
     use cw_orch::{build::BuildPostfix, interface};
     use cw_orch::{contract::Contract, prelude::*};
@@ -188,16 +187,16 @@ pub mod interface {
         }
     }
 
-    impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
-        for DexAdapter<Chain>
+    impl<Chain: cw_orch::environment::CwEnv>
+        abstract_adapter::abstract_interface::DependencyCreation for DexAdapter<Chain>
     {
         type DependenciesConfig = cosmwasm_std::Empty;
 
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
         ) -> Result<
-            Vec<abstract_core::manager::ModuleInstallConfig>,
-            abstract_interface::AbstractInterfaceError,
+            Vec<abstract_adapter::std::manager::ModuleInstallConfig>,
+            abstract_adapter::abstract_interface::AbstractInterfaceError,
         > {
             Ok(vec![])
         }

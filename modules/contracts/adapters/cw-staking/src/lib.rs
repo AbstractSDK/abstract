@@ -9,7 +9,6 @@ pub mod msg {
 }
 
 pub use abstract_staking_standard::{CwStakingCommand, CW_STAKING_ADAPTER_ID};
-pub use adapter::CwStakingAdapter;
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_staking {
@@ -22,22 +21,23 @@ pub use abstract_staking_standard::error;
 pub mod staking_tester;
 
 #[cfg(feature = "interface")]
+pub use msg::StakingQueryMsgFns;
+
+#[cfg(feature = "interface")]
 pub mod interface {
-    use abstract_core::{
+    use abstract_adapter::abstract_interface::{
+        AbstractAccount, AbstractInterfaceError, AdapterDeployer, RegisteredModule,
+    };
+    use abstract_adapter::sdk::{base::Handler, features::ModuleIdentification as _};
+    use abstract_adapter::std::{
         adapter,
         objects::{AnsAsset, AssetEntry},
     };
-    use abstract_interface::{
-        AbstractAccount, AbstractInterfaceError, AdapterDeployer, RegisteredModule,
-    };
-    use abstract_sdk::{base::Handler, features::ModuleIdentification as _};
-    use cosmwasm_std::{Addr, Empty};
     use cw_orch::{build::BuildPostfix, contract::Contract, interface, prelude::*};
 
     use crate::{
         contract::CW_STAKING_ADAPTER,
         msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg},
-        CW_STAKING_ADAPTER_ID,
     };
 
     /// Contract wrapper for interacting with BOOT
@@ -81,16 +81,11 @@ pub mod interface {
             Self(contract)
         }
     }
-
     /// implement chain-generic functions
     impl<Chain: CwEnv> CwStakingAdapter<Chain>
     where
         TxResponse<Chain>: IndexResponse,
     {
-        pub fn load(chain: Chain, addr: &Addr) -> Self {
-            Self(Contract::new(CW_STAKING_ADAPTER_ID, chain).with_address(Some(addr)))
-        }
-
         /// Staking action using Abstract Account
         pub fn staking_action(
             &self,

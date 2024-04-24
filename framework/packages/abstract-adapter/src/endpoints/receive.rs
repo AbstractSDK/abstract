@@ -10,7 +10,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
 #[cfg(test)]
 mod tests {
-    use abstract_core::adapter::ExecuteMsg;
+    use abstract_std::adapter::ExecuteMsg;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use speculoos::prelude::*;
 

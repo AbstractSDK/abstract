@@ -1,4 +1,5 @@
-use abstract_core::{
+use abstract_sdk::std::ibc_client::state::ACCOUNTS;
+use abstract_std::{
     ibc::IbcResponseMsg,
     ibc_client::{
         state::{IBC_INFRA, REVERSE_POLYTONE_NOTE},
@@ -6,7 +7,6 @@ use abstract_core::{
     },
     objects::chain_name::ChainName,
 };
-use abstract_sdk::core::ibc_client::state::ACCOUNTS;
 use cosmwasm_std::{from_json, Attribute, DepsMut, Env, MessageInfo};
 use polytone::callbacks::{Callback, CallbackMessage};
 

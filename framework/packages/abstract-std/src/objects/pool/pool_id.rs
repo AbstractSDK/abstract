@@ -137,7 +137,7 @@ impl UncheckedPoolAddress {
     ///
     /// ```rust,no_run
     /// use cosmwasm_std::{Addr, Api};
-    /// use abstract_core::{objects::pool_id::UncheckedPoolAddress, AbstractResult};
+    /// use abstract_std::{objects::pool_id::UncheckedPoolAddress, AbstractResult};
     ///
     /// fn validate_pool_id(api: &dyn Api, pool_id_unchecked: &UncheckedPoolAddress) {
     ///     match pool_id_unchecked.check(api) {

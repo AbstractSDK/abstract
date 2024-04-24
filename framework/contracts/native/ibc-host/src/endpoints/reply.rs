@@ -1,4 +1,4 @@
-use abstract_core::ibc_host::state::TEMP_ACTION_AFTER_CREATION;
+use abstract_std::ibc_host::state::TEMP_ACTION_AFTER_CREATION;
 use cosmwasm_std::{DepsMut, Env, Reply, Response};
 use cw_utils::MsgExecuteContractResponse;
 

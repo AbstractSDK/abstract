@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     ans_host::{
         AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, QueryMsg,
         RegisteredDexesResponse,
@@ -9,9 +9,9 @@ use cosmwasm_std::Deps;
 
 use super::ModuleIdentification;
 use crate::apis::{AbstractApi, ApiIdentification};
-/// ANCHOR: ans
 use crate::{ans_resolve::Resolve, cw_helpers::ApiQuery, AbstractSdkResult};
 
+/// ANCHOR: ans
 /// Accessor to the Abstract Name Service.
 pub trait AbstractNameService: Sized {
     /// Get the ANS host address.

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use abstract_core::{
+use abstract_std::{
     account_factory::ExecuteMsgFns as _, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
@@ -81,7 +81,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         // Set Factory
         deployment.version_control.execute(
-            &abstract_core::version_control::ExecuteMsg::UpdateConfig {
+            &abstract_std::version_control::ExecuteMsg::UpdateConfig {
                 account_factory_address: Some(deployment.account_factory.address()?.into_string()),
                 namespace_registration_fee: None,
                 security_disabled: None,
@@ -115,7 +115,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
-        use abstract_core::objects::gov_type::GovernanceDetails;
+        use abstract_std::objects::gov_type::GovernanceDetails;
         #[cfg(feature = "integration")]
         deployment
             .account_factory
@@ -187,7 +187,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         let admin = Addr::unchecked(admin);
 
         self.ans_host.instantiate(
-            &abstract_core::ans_host::InstantiateMsg {
+            &abstract_std::ans_host::InstantiateMsg {
                 admin: admin.to_string(),
             },
             Some(&admin),
@@ -195,7 +195,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         )?;
 
         self.version_control.instantiate(
-            &abstract_core::version_control::InstantiateMsg {
+            &abstract_std::version_control::InstantiateMsg {
                 admin: admin.to_string(),
                 #[cfg(feature = "integration")]
                 security_disabled: Some(true),
@@ -208,7 +208,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         )?;
 
         self.module_factory.instantiate(
-            &abstract_core::module_factory::InstantiateMsg {
+            &abstract_std::module_factory::InstantiateMsg {
                 admin: admin.to_string(),
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
@@ -218,7 +218,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         )?;
 
         self.account_factory.instantiate(
-            &abstract_core::account_factory::InstantiateMsg {
+            &abstract_std::account_factory::InstantiateMsg {
                 admin: admin.to_string(),
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),

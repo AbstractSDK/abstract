@@ -1,8 +1,8 @@
-use abstract_core::objects::module_version::assert_cw_contract_upgrade;
-use abstract_core::version_control::state::CONFIG;
-use abstract_core::version_control::Config;
-use abstract_core::version_control::MigrateMsg;
-use abstract_core::VERSION_CONTROL;
+use abstract_std::{
+    objects::module_version::assert_cw_contract_upgrade,
+    version_control::{state::CONFIG, Config, MigrateMsg},
+    VERSION_CONTROL,
+};
 
 use cosmwasm_std::{Addr, Coin, DepsMut, Env};
 use cw_semver::Version;

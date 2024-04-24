@@ -5,7 +5,7 @@ pub mod migrate;
 pub mod queries;
 #[cfg(test)]
 mod testing {
-    use abstract_core::version_control::{self, state::CONFIG};
+    use abstract_std::version_control;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, DepsMut, Response};
 
@@ -34,7 +34,7 @@ mod testing {
     /// Initialize the version_control with admin as creator and factory
     pub fn mock_old_init(mut deps: DepsMut) -> Result<Response, VCError> {
         let init = mock_init(deps.branch())?;
-        let new_config = CONFIG.load(deps.storage)?;
+        let new_config = version_control::state::CONFIG.load(deps.storage)?;
         CONFIG0_21.save(
             deps.storage,
             &Config0_21 {

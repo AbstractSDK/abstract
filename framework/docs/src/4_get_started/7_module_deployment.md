@@ -14,6 +14,8 @@ network.
 
 ### Compiling your module
 
+Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You need [Docker](https://www.docker.com/) installed for this step. 
+
 You can compile your module by running the following command:
 
 ```bash
@@ -25,17 +27,20 @@ $ just wasm
 > it from <a href="https://docs.docker.com/get-docker/" target="_blank">here</a>.
 
 This should result in an `artifacts` directory being created in your project root. Inside you will find
-a `my_module.wasm` file that is your module's binary.
+a `my_module.wasm` file that is your module's binary. 
 
-Now you can go ahead and deploy the module to the network(s) you want to make it available on. You can do this by
-running the following command:
+### Publish your module
+
+Before attempting to publish your app you need to add your mnemonic to the `.env` file. **Don't use a mnemonic that has mainnet funds for this.** Make sure this account has funds. If you don't have the deployment will fail. Get funds from respective chain faucets or ask for some test tokens on Abstract Discord.
+
+Now you can go ahead and publish the module to the network(s) you want to make it available on. You can do this by running the following command:
 
 ```bash
-$ just deploy uni-1
+$ just publish uni-6
 > Deploying module...
 ```
 
-This will use the module's `examples/deploy.rs` script to deploy the module to the `uni-1` network. The resulting
+This will use the module's `examples/publish.rs` script to deploy the module to the `uni-1` network. The resulting
 code-id of your contract should now be in the `state.json` file created for you. The script will also attempt to
 register the module on the Abstract Version Control, hence the mnemonic used in the script should be the same as the one
 you used to create the account and register the namespace.
