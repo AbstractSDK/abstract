@@ -11,6 +11,18 @@ The Dex Adapter Module provides a unified interface to interact with various dec
 - **Provide Liquidity Symmetric**: Add an equal value of two assets to a liquidity pool.
 - **Custom Swap**: Execute a swap with custom parameters, allowing for more advanced trading strategies.
 
+## Supported Dexes
+
+The following Dexes are currently supported:
+
+- Osmosis (Osmosis)
+- Astroport (Neutron, Terra, Injective, Sei)
+- Kujira (Kujira)
+- Astrovault (Archway)
+- Wyndex (Juno)
+
+If you would like to request support for an additional Dex, please create a GitHub issue or reach out to us on Discord.
+
 ## Installation
 
 To use the Dex Adapter Module in your Rust project, add the following dependency to your `Cargo.toml`:
