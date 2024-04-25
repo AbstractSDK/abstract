@@ -262,7 +262,7 @@ mod native_tests {
     #[test]
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_native()?;
-        dex_tester.test_withdraw_liquidity(None, None)?;
+        dex_tester.test_withdraw_liquidity(None, None, None)?;
         Ok(())
     }
 
@@ -356,7 +356,7 @@ mod cw20_tests {
     #[test]
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_cw20()?;
-        dex_tester.test_withdraw_liquidity(None, None)?;
+        dex_tester.test_withdraw_liquidity(None, None, None)?;
         Ok(())
     }
 

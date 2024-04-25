@@ -1,13 +1,11 @@
 //! Currently you can run only 1 test at a time: `cargo ct`
 //! Otherwise you will have too many requests
 
-use abstract_app::objects::{
-    pool_id::PoolAddressBase, AssetEntry, PoolMetadata, PoolType, UncheckedContractEntry,
-};
-use abstract_client::{AbstractClient, Environment};
+use abstract_app::objects::{pool_id::PoolAddressBase, AssetEntry, PoolMetadata, PoolType};
+use abstract_client::Environment;
 use abstract_modules_interchain_tests::common::load_abstr;
 use anyhow::Ok;
-use cosmwasm_std::{coins, Addr};
+use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{daemon::networks::ARCHWAY_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
@@ -32,6 +30,7 @@ pub struct AstrovaultDex {
     pool_addr: Addr,
     liquidity_token: Addr,
     chain: CloneTesting,
+    pool_type: PoolType,
     asset_a: (String, cw_asset::AssetInfoUnchecked),
     asset_b: (String, cw_asset::AssetInfoUnchecked),
 }
@@ -148,7 +147,7 @@ impl MockDex for AstrovaultDex {
         let pool = PoolAddressBase::Contract(self.pool_addr.to_string());
         let pool_metadata = PoolMetadata {
             dex: self.name(),
-            pool_type: PoolType::ConstantProduct,
+            pool_type: self.pool_type,
             assets: vec![
                 AssetEntry::new(&self.asset_a.0),
                 AssetEntry::new(&self.asset_b.0),
@@ -228,6 +227,7 @@ mod standard_pool_tests {
             AstrovaultDex {
                 pool_addr: Addr::unchecked(STANDARD_POOL_ADDR),
                 liquidity_token: Addr::unchecked(LIQUIDITY_TOKEN),
+                pool_type: PoolType::ConstantProduct,
                 chain,
                 asset_a,
                 asset_b,
@@ -320,8 +320,214 @@ mod standard_pool_tests {
 
         let provide_value_b = simulate_response.return_amount + simulate_response.spread_amount;
 
+        dex_tester.test_withdraw_liquidity(
+            Some(provide_value_a.u128()),
+            Some(provide_value_b.u128()),
+            None,
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_queries() -> anyhow::Result<()> {
+        let dex_tester = setup_standard_pool()?;
+        dex_tester.test_queries()?;
+        Ok(())
+    }
+}
+
+mod xasset_stable_pool_tests {
+    //   "asset_decimals": [
+    //     18,
+    //     18
+    //   ],
+    //   "asset_infos": [
+    //     {
+    //       "native_token": {
+    //         "denom": "aarch"
+    //       }
+    //     },
+    //     {
+    //       "token": {
+    //         "contract_addr": "archway1cutfh7m87cyq5qgqqw49f289qha7vhsg6wtr6rl5fvm28ulnl9ssg0vk0n"
+    //       }
+    //     }
+    //   ],
+    //   "cashback": "archway14cdu335ljp6rst337070nejhg7h0j2az7zmx8q0sah88s4uhcczq20fv84",
+    //   "contract_addr": "archway1vq9jza8kuz80f7ypyvm3pttvpcwlsa5fvum9hxhew5u95mffknxsjy297r",
+    //   "liquidity_token": "archway123h0jfnk3rhhuapkytrzw22u6w4xkf563lqhy42a9r5lmv32w73s8f6ql2",
+    //   "lockups": "archway1qydzzm0tnta98v9tk8fd3rwnhxwwjlz8sqdsy4z6w0hu7yyq7jpsvk7dyk",
+    //   "lp_staking": "archway13xeat9u6s0x7vphups0r096fl3tkr3zenhdvfjrsc2t0t70ayugscdw46g"
+
+    const ASSET_A: &str = "archway>archv2";
+    const ASSET_B: &str = "archway>xarchv2";
+    const ASSET_A_DENOM: &str = "aarch";
+    const ASSET_B_ADDR: &str = "archway1cutfh7m87cyq5qgqqw49f289qha7vhsg6wtr6rl5fvm28ulnl9ssg0vk0n";
+    const STABLE_POOL_ADDR: &str =
+        "archway1vq9jza8kuz80f7ypyvm3pttvpcwlsa5fvum9hxhew5u95mffknxsjy297r";
+    const LIQUIDITY_TOKEN: &str =
+        "archway123h0jfnk3rhhuapkytrzw22u6w4xkf563lqhy42a9r5lmv32w73s8f6ql2";
+
+    use super::*;
+
+    fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
+        let chain_info = ARCHWAY_1;
+        let sender = Addr::unchecked(SENDER);
+        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let chain = abstr_deployment.environment();
+
+        let asset_a = (
+            ASSET_A.to_owned(),
+            AssetInfoUnchecked::Native(ASSET_A_DENOM.to_owned()),
+        );
+        let asset_b = (
+            ASSET_B.to_owned(),
+            AssetInfoUnchecked::Cw20(ASSET_B_ADDR.to_owned()),
+        );
+        DexTester::new(
+            abstr_deployment,
+            AstrovaultDex {
+                pool_addr: Addr::unchecked(STABLE_POOL_ADDR),
+                liquidity_token: Addr::unchecked(LIQUIDITY_TOKEN),
+                pool_type: PoolType::Stable,
+                chain,
+                asset_a,
+                asset_b,
+            },
+        )
+    }
+
+    #[test]
+    fn test_swap() -> anyhow::Result<()> {
+        let dex_tester = setup_stable_pool()?;
+        dex_tester.test_swap()?;
+        Ok(())
+    }
+
+    // Skipping slippage swap test as it's not applicable to stable pool
+
+    #[test]
+    fn test_provide_liquidity() -> anyhow::Result<()> {
+        let dex_tester = setup_stable_pool()?;
+
+        let asset_to_provide = AssetEntry::new(&dex_tester.dex.asset_a.0);
+        dex_tester.test_provide_liquidity_one_direction(asset_to_provide)?;
+        Ok(())
+    }
+
+    // Skipping slippage provide_liquidity test as it's not applicable to stable pool
+
+    #[test]
+    fn test_withdraw_liquidity() -> anyhow::Result<()> {
+        let dex_tester = setup_stable_pool()?;
+
+        dex_tester.test_withdraw_liquidity(
+            Some(1_000_000_000_000_000),
+            Some(0),
+            Some(vec![dex_tester.dex.asset_b.1.clone()]),
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_queries() -> anyhow::Result<()> {
+        let dex_tester = setup_stable_pool()?;
+        dex_tester.test_queries()?;
+        Ok(())
+    }
+}
+
+mod stable_pool_tests {
+    // "asset_decimals": [
+    //     6,
+    //     6
+    //   ],
+    //   "asset_infos": [
+    //     {
+    //       "native_token": {
+    //         "denom": "ibc/C0336ECF2DF64E7D2C98B1422EC2B38DE9EF33C34AAADF18C6F2E3FFC7BE3615"
+    //       }
+    //     },
+    //     {
+    //       "native_token": {
+    //         "denom": "ibc/43897B9739BD63E3A08A88191999C632E052724AB96BD4C74AE31375C991F48D"
+    //       }
+    //     }
+    //   ],
+    //   "cashback": "archway14cdu335ljp6rst337070nejhg7h0j2az7zmx8q0sah88s4uhcczq20fv84",
+    //   "contract_addr": "archway102gh7tqaeptt88nckg73mfx8j8du64hw4qqm53zwwykcchwar86sza46ge",
+    //   "liquidity_token": "archway1xrmvl87p7mmyntyg6dydmlawjzktled2cvrl8wpeja5qp0xupdvqq0lwuf",
+    //   "lockups": "archway14ujr0zy8n5wly4khydsndeuzft0fmt8w9dkchv4rzzn9jx7d3luswkzwsk",
+    //   "lp_staking": "archway1aqn5mp6f8gg3fxs5y2dt8k3mk92xms9rq5gpw3rqhgyr6ar9k0vs8ehnfm"
+
+    const ASSET_A: &str = "agoric>istv2";
+    const ASSET_B: &str = "axelar>usdcv2";
+    const ASSET_A_DENOM: &str =
+        "ibc/C0336ECF2DF64E7D2C98B1422EC2B38DE9EF33C34AAADF18C6F2E3FFC7BE3615";
+    const ASSET_B_DENOM: &str =
+        "ibc/43897B9739BD63E3A08A88191999C632E052724AB96BD4C74AE31375C991F48D";
+    const STABLE_POOL_ADDR: &str =
+        "archway102gh7tqaeptt88nckg73mfx8j8du64hw4qqm53zwwykcchwar86sza46ge";
+    const LIQUIDITY_TOKEN: &str =
+        "archway1xrmvl87p7mmyntyg6dydmlawjzktled2cvrl8wpeja5qp0xupdvqq0lwuf";
+
+    use super::*;
+
+    fn setup_standard_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
+        let chain_info = ARCHWAY_1;
+        let sender = Addr::unchecked(SENDER);
+        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let chain = abstr_deployment.environment();
+
+        let asset_a = (
+            ASSET_A.to_owned(),
+            AssetInfoUnchecked::Native(ASSET_A_DENOM.to_owned()),
+        );
+        let asset_b = (
+            ASSET_B.to_owned(),
+            AssetInfoUnchecked::Native(ASSET_B_DENOM.to_owned()),
+        );
+        DexTester::new(
+            abstr_deployment,
+            AstrovaultDex {
+                pool_addr: Addr::unchecked(STABLE_POOL_ADDR),
+                liquidity_token: Addr::unchecked(LIQUIDITY_TOKEN),
+                pool_type: PoolType::Stable,
+                chain,
+                asset_a,
+                asset_b,
+            },
+        )
+    }
+
+    #[test]
+    fn test_swap() -> anyhow::Result<()> {
+        let dex_tester = setup_standard_pool()?;
+        dex_tester.test_swap()?;
+        Ok(())
+    }
+
+    // Skipping slippage swap test as it's not applicable to stable pool
+
+    #[test]
+    // #[ignore = "Deposit failed due to unbalance threshold reached: 872084 > 750000"]
+    fn test_provide_liquidity() -> anyhow::Result<()> {
+        let dex_tester = setup_standard_pool()?;
+
+        // TODO: can't deposit asset_a, see commented out `ignore`
         dex_tester
-            .test_withdraw_liquidity(Some(provide_value_a.u128()), Some(provide_value_b.u128()))?;
+            .test_provide_liquidity_two_sided(Some(0), Some(1_000_000))
+            .unwrap();
+        Ok(())
+    }
+
+    // Skipping slippage provide_liquidity test as it's not applicable to stable pool
+
+    #[test]
+    fn test_withdraw_liquidity() -> anyhow::Result<()> {
+        let dex_tester = setup_standard_pool()?;
+
+        dex_tester.test_withdraw_liquidity(Some(0), Some(1_000_000_000), None)?;
         Ok(())
     }
 
