@@ -50,11 +50,11 @@ pub mod interface {
                 crate::contract::query,
             ))
         }
-        fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
+        fn wasm(chain: &ChainInfoOwned) -> WasmPath {
             artifacts_dir_from_workspace!()
                 .find_wasm_path_with_build_postfix(
                     "abstract_dex_adapter",
-                    BuildPostfix::<Chain>::ChainName(self.get_chain()),
+                    BuildPostfix::<Chain>::Custom(chain.network_info.id.clone()),
                 )
                 .unwrap()
         }

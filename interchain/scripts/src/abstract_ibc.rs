@@ -3,7 +3,6 @@ use abstract_std::ibc_client::{ExecuteMsgFns as _, QueryMsgFns as _};
 use abstract_std::ibc_host::{ExecuteMsgFns, QueryMsgFns};
 use abstract_std::objects::chain_name::ChainName;
 use anyhow::anyhow;
-use cw_orch::daemon::ChainInfo;
 use cw_orch::interchain::InterchainError;
 use cw_orch::prelude::*;
 use cw_orch_polytone::Polytone;

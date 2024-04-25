@@ -1,12 +1,7 @@
 #![allow(unused_imports)]
 use abstract_interface::{Abstract, AbstractIbc};
 use cw_orch::{
-    daemon::{
-        networks::{neutron::NEUTRON_NETWORK, ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1},
-        ChainInfo, ChainKind,
-    },
-    prelude::*,
-    tokio::runtime::{Handle, Runtime},
+    daemon::networks::{neutron::NEUTRON_NETWORK, ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1}, environment::ChainKind, prelude::*, tokio::runtime::{Handle, Runtime}
 };
 
 /// <https://github.com/cosmos/chain-registry/blob/master/neutron/chain.json>
