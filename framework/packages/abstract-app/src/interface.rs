@@ -53,12 +53,10 @@ macro_rules! cw_orch_interface {
                 deps: ::cosmwasm_std::DepsMut,
                 env: ::cosmwasm_std::Env,
                 info: ::cosmwasm_std::MessageInfo,
-                msg: <$app_type as $crate::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
-            ) -> Result<
-                ::cosmwasm_std::Response,
-                <$app_type as $crate::abstract_sdk::base::Handler>::Error,
-            > {
-                use $crate::abstract_sdk::base::InstantiateEndpoint;
+                msg: <$app_type as $crate::sdk::base::InstantiateEndpoint>::InstantiateMsg,
+            ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error>
+            {
+                use $crate::sdk::base::InstantiateEndpoint;
                 $app_const.instantiate(deps, env, info, msg)
             }
 
@@ -66,36 +64,30 @@ macro_rules! cw_orch_interface {
                 deps: ::cosmwasm_std::DepsMut,
                 env: ::cosmwasm_std::Env,
                 info: ::cosmwasm_std::MessageInfo,
-                msg: <$app_type as $crate::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
-            ) -> Result<
-                ::cosmwasm_std::Response,
-                <$app_type as $crate::abstract_sdk::base::Handler>::Error,
-            > {
-                use $crate::abstract_sdk::base::ExecuteEndpoint;
+                msg: <$app_type as $crate::sdk::base::ExecuteEndpoint>::ExecuteMsg,
+            ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error>
+            {
+                use $crate::sdk::base::ExecuteEndpoint;
                 $app_const.execute(deps, env, info, msg)
             }
 
             pub fn query(
                 deps: ::cosmwasm_std::Deps,
                 env: ::cosmwasm_std::Env,
-                msg: <$app_type as $crate::abstract_sdk::base::QueryEndpoint>::QueryMsg,
-            ) -> Result<
-                ::cosmwasm_std::Binary,
-                <$app_type as $crate::abstract_sdk::base::Handler>::Error,
-            > {
-                use $crate::abstract_sdk::base::QueryEndpoint;
+                msg: <$app_type as $crate::sdk::base::QueryEndpoint>::QueryMsg,
+            ) -> Result<::cosmwasm_std::Binary, <$app_type as $crate::sdk::base::Handler>::Error>
+            {
+                use $crate::sdk::base::QueryEndpoint;
                 $app_const.query(deps, env, msg)
             }
 
             pub fn migrate(
                 deps: ::cosmwasm_std::DepsMut,
                 env: ::cosmwasm_std::Env,
-                msg: <$app_type as $crate::abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
-            ) -> Result<
-                ::cosmwasm_std::Response,
-                <$app_type as $crate::abstract_sdk::base::Handler>::Error,
-            > {
-                use $crate::abstract_sdk::base::MigrateEndpoint;
+                msg: <$app_type as $crate::sdk::base::MigrateEndpoint>::MigrateMsg,
+            ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error>
+            {
+                use $crate::sdk::base::MigrateEndpoint;
                 $app_const.migrate(deps, env, msg)
             }
 
@@ -103,33 +95,27 @@ macro_rules! cw_orch_interface {
                 deps: ::cosmwasm_std::DepsMut,
                 env: ::cosmwasm_std::Env,
                 msg: ::cosmwasm_std::Reply,
-            ) -> Result<
-                ::cosmwasm_std::Response,
-                <$app_type as $crate::abstract_sdk::base::Handler>::Error,
-            > {
-                use $crate::abstract_sdk::base::ReplyEndpoint;
+            ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error>
+            {
+                use $crate::sdk::base::ReplyEndpoint;
                 $app_const.reply(deps, env, msg)
             }
 
             pub fn sudo(
                 deps: ::cosmwasm_std::DepsMut,
                 env: ::cosmwasm_std::Env,
-                msg: <$app_type as $crate::abstract_sdk::base::Handler>::SudoMsg,
-            ) -> Result<
-                ::cosmwasm_std::Response,
-                <$app_type as $crate::abstract_sdk::base::Handler>::Error,
-            > {
-                use $crate::abstract_sdk::base::SudoEndpoint;
+                msg: <$app_type as $crate::sdk::base::Handler>::SudoMsg,
+            ) -> Result<::cosmwasm_std::Response, <$app_type as $crate::sdk::base::Handler>::Error>
+            {
+                use $crate::sdk::base::SudoEndpoint;
                 $app_const.sudo(deps, env, msg)
             }
 
             pub type InstantiateMsg =
-                <$app_type as $crate::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
-            pub type ExecuteMsg =
-                <$app_type as $crate::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
-            pub type QueryMsg = <$app_type as $crate::abstract_sdk::base::QueryEndpoint>::QueryMsg;
-            pub type MigrateMsg =
-                <$app_type as $crate::abstract_sdk::base::MigrateEndpoint>::MigrateMsg;
+                <$app_type as $crate::sdk::base::InstantiateEndpoint>::InstantiateMsg;
+            pub type ExecuteMsg = <$app_type as $crate::sdk::base::ExecuteEndpoint>::ExecuteMsg;
+            pub type QueryMsg = <$app_type as $crate::sdk::base::QueryEndpoint>::QueryMsg;
+            pub type MigrateMsg = <$app_type as $crate::sdk::base::MigrateEndpoint>::MigrateMsg;
         }
 
         pub mod interface {
@@ -186,7 +172,7 @@ macro_rules! cw_orch_interface {
             impl<Chain: ::cw_orch::prelude::CwEnv> $crate::abstract_interface::RegisteredModule
                 for $interface_name<Chain>
             {
-                type InitMsg = <$app_type as $crate::abstract_sdk::base::Handler>::CustomInitMsg;
+                type InitMsg = <$app_type as $crate::sdk::base::Handler>::CustomInitMsg;
 
                 fn module_id<'a>() -> &'a str {
                     $app_const.module_id()

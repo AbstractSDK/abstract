@@ -4,8 +4,8 @@ use abstract_adapter::{
     AdapterContract,
 };
 use abstract_app::{gen_app_mock, mock::MockError as AppMockError, AppContract};
-use abstract_core::objects::dependency::StaticDependency;
 use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy};
+use abstract_std::objects::dependency::StaticDependency;
 use cw_orch::prelude::*;
 
 pub type MockAdapterContract = AdapterContract<AdapterMockError, Empty, Empty, Empty, Empty, Empty>;

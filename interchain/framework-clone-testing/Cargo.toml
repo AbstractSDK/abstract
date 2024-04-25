@@ -13,7 +13,7 @@ cosmwasm-schema = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-clone-testing = { workspace = true }
 
-abstract-core = { workspace = true }
+abstract-std = { workspace = true, features = ["interface"] }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-client = { workspace = true }

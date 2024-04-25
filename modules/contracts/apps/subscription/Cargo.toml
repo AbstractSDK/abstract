@@ -15,10 +15,12 @@ required-features = ["schema"]
 
 [[example]]
 name = "deploy"
+required-features = ["interface"]
 
 [features]
 default = ["export"]
 export = []
+interface = ["export", "dep:cw-orch", "abstract-app/interface-macro"]
 schema = ["abstract-app/schema"]
 
 [dependencies]
@@ -34,21 +36,16 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 semver = { workspace = true }
 
-abstract-sdk = { workspace = true }
 abstract-app = { workspace = true }
-abstract-core = { workspace = true }
+cw-orch = { workspace = true, optional = true }
 
-# Dependencies for interface
-cw-orch = { workspace = true }
-abstract-interface = { workspace = true }
 
 cw-address-like = { workspace = true }
 
 [dev-dependencies]
 abstract-client = { workspace = true, features = ["test-utils"] }
-abstract-testing = { workspace = true }
 # Deploy
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
-abstract-subscription = { path = "." }
+abstract-subscription = { path = ".", features = ["interface"] }

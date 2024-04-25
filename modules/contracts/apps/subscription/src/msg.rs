@@ -2,7 +2,7 @@
 
 //! # Subscription Add-On
 //!
-//! `abstract_core::subscription` provides OS owners with a tool to easily create smart-contract subscriptions for their products.
+//! `abstract_std::subscription` provides OS owners with a tool to easily create smart-contract subscriptions for their products.
 //!
 //! ## Description
 //! The subscription contract has three main uses.
@@ -28,7 +28,7 @@
 //! * The total income of the system is shared between the DAO and the contributors. See [`ContributionConfig`].
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
-use abstract_sdk::cw_helpers::Clearable;
+use abstract_app::sdk::cw_helpers::Clearable;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{to_json_binary, Addr, Binary, CosmosMsg, Decimal, StdResult, Uint64, WasmMsg};
 use cw_asset::{Asset, AssetInfoUnchecked};

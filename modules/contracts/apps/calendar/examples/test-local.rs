@@ -6,7 +6,7 @@
 //!
 //! `cargo run --example test-local`
 
-use abstract_core::objects::{gov_type::GovernanceDetails, AssetEntry};
+use abstract_app::std::objects::{gov_type::GovernanceDetails, AssetEntry};
 use abstract_interface::VCExecFns;
 use abstract_interface::{Abstract, AppDeployer, DeployStrategy};
 use calendar_app::{

@@ -1,6 +1,6 @@
 //! # Registry
 //!
-//! `abstract_core` contains all contract names supported by Abstract.
+//! `abstract_std` contains all contract names supported by Abstract.
 //!
 //! ## Description
 //! These fixed names can be used to provide name-addressable searches for complex logic.
@@ -56,13 +56,13 @@ pub mod archway {
 
 pub mod local {
     pub const MOCK_CHAIN: &str = "cosmos-testnet";
-    pub const LOCAL: &[&str] = &[MOCK_CHAIN];
+    pub const LOCAL_CHAIN: &[&str] = &[MOCK_CHAIN];
 }
 
 pub use archway::ARCHWAY;
 pub use juno::JUNO;
 pub use kujira::KUJIRA;
-pub use local::LOCAL;
+pub use local::LOCAL_CHAIN;
 pub use neutron::NEUTRON;
 pub use osmosis::OSMOSIS;
 pub use terra::TERRA;

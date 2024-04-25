@@ -11,7 +11,7 @@ cosmwasm-std = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-proto = { workspace = true }
 
-abstract-core = { workspace = true }
+abstract-std = { workspace = true, features = ["interface"] }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }

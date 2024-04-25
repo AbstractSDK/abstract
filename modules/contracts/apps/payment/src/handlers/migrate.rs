@@ -1,4 +1,4 @@
-use abstract_sdk::AbstractResponse;
+use abstract_app::sdk::AbstractResponse;
 use cosmwasm_std::{DepsMut, Env};
 
 use crate::{

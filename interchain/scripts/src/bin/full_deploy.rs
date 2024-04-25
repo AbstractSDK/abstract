@@ -4,9 +4,9 @@ use std::{
     net::TcpStream,
 };
 
-use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
+use abstract_std::objects::gov_type::GovernanceDetails;
 use clap::Parser;
 use cw_orch::prelude::{
     networks::{parse_network, ChainInfo},

@@ -1,3 +1,4 @@
+use abstract_adapter::sdk::features::AbstractNameService;
 use abstract_money_market_standard::{
     ans_action::MoneyMarketActionResolveWrapper,
     msg::{
@@ -8,7 +9,6 @@ use abstract_money_market_standard::{
     query::MoneyMarketQueryResolveWrapper,
     MoneyMarketError,
 };
-use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 
 use crate::{

@@ -36,10 +36,11 @@ const SUBSCRIPTION_MODULE: SubscriptionApp =
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(SUBSCRIPTION_MODULE, SubscriptionApp);
 
+#[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(SUBSCRIPTION_MODULE, SubscriptionApp, SubscriptionInterface);
 
-#[cfg(not(target_arch = "wasm32"))]
-impl<Chain: cw_orch::prelude::CwEnv> abstract_interface::DependencyCreation
+#[cfg(feature = "interface")]
+impl<Chain: cw_orch::prelude::CwEnv> abstract_app::abstract_interface::DependencyCreation
     for self::interface::SubscriptionInterface<Chain>
 {
     type DependenciesConfig = cosmwasm_std::Empty;

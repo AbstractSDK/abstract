@@ -1,6 +1,6 @@
 //! # AnsHost
 //!
-//! `abstract_core::ans_host` stores chain-specific contract addresses.
+//! `abstract_std::ans_host` stores chain-specific contract addresses.
 //!
 //! ## Description
 //! Contract and asset addresses are stored on the ans_host contract and are retrievable trough smart or raw queries.

@@ -67,7 +67,7 @@ cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interc
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { version = "0.21.0", path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.21.0", path = "../framework/packages/abstract-sdk" }
-abstract-core = { version = "0.21.0", path = "../framework/packages/abstract-core" }
+abstract-std = { version = "0.21.0", path = "../framework/packages/abstract-std" }
 abstract-app = { version = "0.21.0", path = "../framework/packages/abstract-app" }
 abstract-adapter = { version = "0.21.0", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.21.0", path = "../framework/packages/abstract-testing" }
@@ -94,7 +94,7 @@ abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-client = { path = "../framework/packages/abstract-client" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
-abstract-core = { path = "../framework/packages/abstract-core" }
+abstract-std = { path = "../framework/packages/abstract-std" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }

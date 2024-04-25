@@ -2,7 +2,7 @@
 //! # Staking Adapter
 //!
 //! `abstract::cw-staking`
-use abstract_core::{
+use abstract_std::{
     adapter,
     objects::{AnsAsset, AssetEntry},
 };
@@ -130,20 +130,20 @@ pub enum StakingTarget {
 
 impl StakingTarget {
     /// Extract contract address
-    pub fn expect_contract(self) -> abstract_core::AbstractResult<Addr> {
+    pub fn expect_contract(self) -> abstract_std::AbstractResult<Addr> {
         match self {
             StakingTarget::Contract(addr) => Ok(addr),
-            _ => Err(abstract_core::AbstractError::Assert(
+            _ => Err(abstract_std::AbstractError::Assert(
                 "Staking target is not a contract address.".into(),
             )),
         }
     }
 
     /// Extract pool id
-    pub fn expect_id(self) -> abstract_core::AbstractResult<u64> {
+    pub fn expect_id(self) -> abstract_std::AbstractResult<u64> {
         match self {
             StakingTarget::Id(id) => Ok(id),
-            _ => Err(abstract_core::AbstractError::Assert(
+            _ => Err(abstract_std::AbstractError::Assert(
                 "Staking target is not an pool ID.".into(),
             )),
         }

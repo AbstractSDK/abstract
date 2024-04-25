@@ -1,8 +1,8 @@
-use abstract_core::{
+use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_std::{
     app::{BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
 };
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
@@ -76,17 +76,15 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use abstract_core::app::BaseInstantiateMsg;
+    use super::InstantiateMsg as SuperInstantiateMsg;
+    use crate::mock::*;
     use abstract_sdk::base::InstantiateEndpoint;
+    use abstract_std::app::BaseInstantiateMsg;
     use abstract_testing::{
         addresses::test_account_base,
         prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL},
     };
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use speculoos::{assert_that, prelude::*};
-
-    use super::InstantiateMsg as SuperInstantiateMsg;
-    use crate::mock::*;
 
     #[test]
     fn test_instantiate() {

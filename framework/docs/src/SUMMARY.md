@@ -43,6 +43,7 @@
 - [Abstract Client](./4_get_started/5_abstract_client.md)
 - [Deployment](./4_get_started/7_module_deployment.md)
 - [Dependencies](./4_get_started/8_dependencies.md)
+- [Metadata](./4_get_started/9_metadata.md)
 - [Modules](./modules/index.md)
     - [CW Staking](./modules/cw-staking.md)
     - [Dex](./modules/dex.md)

@@ -1,6 +1,6 @@
 //! # Account Factory
 //!
-//! `abstract_core::account_factory` handles Account creation and registration.
+//! `abstract_std::account_factory` handles Account creation and registration.
 //!
 //! ## Description
 //! The Account factory instantiates a new Account instance and registers it with the [`crate::version_control`] contract.  

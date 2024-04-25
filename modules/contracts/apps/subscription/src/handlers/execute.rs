@@ -1,4 +1,4 @@
-use abstract_sdk::{
+use abstract_app::sdk::{
     cw_helpers::Clearable, AbstractResponse, AccountAction, Execution, TransferInterface,
 };
 use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};

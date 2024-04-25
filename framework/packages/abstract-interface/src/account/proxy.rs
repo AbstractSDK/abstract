@@ -1,5 +1,5 @@
-pub use abstract_core::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
-use abstract_core::{objects::AccountId, proxy::*, PROXY};
+pub use abstract_std::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
+use abstract_std::{objects::AccountId, proxy::*, PROXY};
 use cw_orch::{interface, prelude::*};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

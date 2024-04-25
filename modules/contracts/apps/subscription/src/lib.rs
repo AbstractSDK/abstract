@@ -10,7 +10,7 @@ pub use error::SubscriptionError;
 pub mod interface {
     use std::str::FromStr;
 
-    use abstract_interface::AppDeployer;
+    use abstract_app::abstract_interface::AppDeployer;
     use cosmwasm_std::Decimal;
     use cw_asset::AssetInfoUnchecked;
     use cw_orch::{interface, prelude::*};

@@ -39,13 +39,12 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
 
 #[cfg(test)]
 pub mod mock_test {
-    use abstract_core::{
+    use abstract_std::{
         ibc_client::QueryMsgFns, ibc_host::QueryMsgFns as _, objects::chain_name::ChainName,
     };
 
     use super::*;
     use crate::{JUNO, STARGAZE};
-    use cw_orch::interchain::MockBech32InterchainEnv;
 
     /// This allows env_logger to start properly for tests
     /// The logs will be printed only if the test fails !

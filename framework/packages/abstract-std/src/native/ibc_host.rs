@@ -1,6 +1,6 @@
 //! # Abstract Api Base
 //!
-//! `abstract_core::adapter` implements shared functionality that's useful for creating new Abstract adapters.
+//! `abstract_std::adapter` implements shared functionality that's useful for creating new Abstract adapters.
 //!
 //! ## Description
 //! An Abstract adapter contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.

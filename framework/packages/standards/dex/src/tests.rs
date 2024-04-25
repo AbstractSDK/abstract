@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use abstract_core::objects::PoolAddress;
+use abstract_std::objects::PoolAddress;
 use cosmwasm_std::{CosmosMsg, Decimal, StdError};
 use cw_asset::{Asset, AssetInfo};
 use cw_orch::daemon::live_mock::mock_dependencies;
