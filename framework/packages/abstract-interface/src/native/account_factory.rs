@@ -27,7 +27,7 @@ pub struct AccountFactory<Chain>;
 
 impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+    fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
                 ::account_factory::contract::execute,
@@ -39,7 +39,7 @@ impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
         )
     }
 
-    fn wasm(&self) -> WasmPath {
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path("account_factory")
             .unwrap()

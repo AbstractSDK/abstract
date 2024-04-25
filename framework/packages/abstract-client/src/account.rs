@@ -671,8 +671,8 @@ impl<Chain: CwEnv> Account<Chain> {
             .install_modules(modules, Some(funds))?;
 
         let module_addr = Self::parse_modules_installing_response(install_module_response);
-        let contract = Contract::new(M::module_id().to_owned(), self.environment())
-            .with_address(Some(&module_addr));
+        let contract = Contract::new(M::module_id().to_owned(), self.environment());
+        contract.set_address(&module_addr);
 
         let adapter: M = contract.into();
 
@@ -708,10 +708,10 @@ impl<Chain: CwEnv> Account<Chain> {
             AccountId::local(parsed_account_creation_response.sub_account_id),
         );
 
-        let contract =
-            Contract::new(M::module_id().to_owned(), self.environment()).with_address(Some(
-                &Addr::unchecked(parsed_account_creation_response.module_address),
-            ));
+        let contract = Contract::new(M::module_id().to_owned(), self.environment());
+        contract.set_address(&Addr::unchecked(
+            parsed_account_creation_response.module_address,
+        ));
 
         let app: M = contract.into();
 
@@ -787,8 +787,8 @@ impl<Chain: CwEnv> Account<Chain> {
         let maybe_module_addr = self.module_addresses(vec![module_id.to_string()])?.modules;
 
         if !maybe_module_addr.is_empty() {
-            let contract = Contract::new(module_id.to_owned(), self.environment())
-                .with_address(Some(&maybe_module_addr[0].1));
+            let contract = Contract::new(module_id.to_owned(), self.environment());
+            contract.set_address(&maybe_module_addr[0].1);
             let module: T = contract.into();
             Ok(module)
         } else {

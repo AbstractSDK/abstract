@@ -24,11 +24,11 @@ cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "1.2.0"
 cw2 = { version = "1.0" }
-cw-plus-interface = { package = "abstract-cw-plus-interface", version = "1.4.0" }
+cw-plus-interface = { package = "abstract-cw-plus-interface", version = "2.0.0-rc" }
 cw20-base = { package = "abstract-cw20-base", features = [
   "library",
-], version = "1.4.0" }
-cw20 = { package = "abstract-cw20", version = "1.4.0" }
+], version = "2.0.0-rc" }
+cw20 = { package = "abstract-cw20", version = "2.0.0-rc" }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
@@ -43,7 +43,7 @@ chrono = { version = "0.4.31", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.21.2" }
+cw-orch = { version = "0.22.0-rc" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md

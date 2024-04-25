@@ -23,14 +23,14 @@ pub mod interface {
     impl<Chain: CwEnv> AppDeployer<Chain> for Subscription<Chain> {}
 
     impl<Chain: CwEnv> Uploadable for Subscription<Chain> {
-        fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+        fn wrapper() -> <Mock as TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 crate::contract::execute,
                 crate::contract::instantiate,
                 crate::contract::query,
             ))
         }
-        fn wasm(&self) -> WasmPath {
+        fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
             artifacts_dir_from_workspace!()
                 .find_wasm_path("abstract_subscription")
                 .unwrap()

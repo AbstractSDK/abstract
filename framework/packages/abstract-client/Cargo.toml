@@ -31,9 +31,9 @@ cw-ownable.workspace = true
 cw-asset = { workspace = true, optional = true }
 
 # For Cw20 builder
-cw-plus-interface = { package = "abstract-cw-plus-interface", version = "1.4.0", optional = true }
-cw20 = { package = "abstract-cw20", version = "1.4.0", optional = true }
-cw20-base = { package = "abstract-cw20-base", version = "1.4.0", optional = true }
+cw-plus-interface = { package = "abstract-cw-plus-interface", version = "2.0.0-rc", optional = true }
+cw20 = { package = "abstract-cw20", version = "2.0.0-rc", optional = true }
+cw20-base = { package = "abstract-cw20-base", version = "2.0.0-rc", optional = true }
 
 [dev-dependencies]
 abstract-testing.workspace = true

@@ -238,7 +238,7 @@ pub mod mock {
     impl<T: cw_orch::prelude::CwEnv> AppDeployer<T> for MockAppI<T> {}
 
     impl<T: cw_orch::prelude::CwEnv> Uploadable for MockAppI<T> {
-        fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+        fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
             Box::new(
                 ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
                     .with_migrate(self::migrate),
@@ -352,7 +352,7 @@ pub mod mock {
         impl<T: cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<T> for $name <T> {}
 
         impl<T: cw_orch::prelude::CwEnv> Uploadable for $name<T> {
-            fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+            fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
                     Exec,
                     _,

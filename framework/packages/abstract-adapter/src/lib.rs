@@ -165,7 +165,7 @@ pub mod mock {
     }
 
     impl<T: CwEnv> Uploadable for MockAdapterI<T> {
-        fn wrapper(&self) -> <Mock as cw_orch::environment::TxHandler>::ContractSource {
+        fn wrapper() -> <Mock as cw_orch::environment::TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 self::execute,
                 self::instantiate,
@@ -257,7 +257,7 @@ pub mod mock {
         impl <T: ::cw_orch::prelude::CwEnv> ::abstract_interface::AdapterDeployer<T, MockInitMsg> for $name <T> {}
 
         impl<T: ::cw_orch::prelude::CwEnv> Uploadable for $name<T> {
-            fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+            fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
                     Exec,
                     _,
@@ -339,7 +339,7 @@ pub mod mock {
         impl ::abstract_interface::AdapterDeployer<::cw_orch::prelude::MockBech32, MockInitMsg> for $name <::cw_orch::prelude::MockBech32> {}
 
         impl Uploadable for $name<::cw_orch::prelude::MockBech32> {
-            fn wrapper(&self) -> <MockBech32 as ::cw_orch::environment::TxHandler>::ContractSource {
+            fn wrapper() -> <MockBech32 as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
                     Exec,
                     _,

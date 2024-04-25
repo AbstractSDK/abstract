@@ -146,7 +146,9 @@ macro_rules! cw_orch_interface {
             impl<Chain: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::Uploadable
                 for $interface_name<Chain>
             {
-                fn wasm(&self) -> ::cw_orch::prelude::WasmPath {
+                fn wasm(
+                    _chain: &::cw_orch::prelude::ChainInfoOwned,
+                ) -> ::cw_orch::prelude::WasmPath {
                     let wasm_name = env!("CARGO_CRATE_NAME").replace('-', "_");
                     ::cw_orch::prelude::ArtifactsDir::auto(Some(
                         env!("CARGO_MANIFEST_DIR").to_string(),
@@ -155,9 +157,7 @@ macro_rules! cw_orch_interface {
                     .unwrap()
                 }
 
-                fn wrapper(
-                    &self,
-                ) -> Box<
+                fn wrapper() -> Box<
                     dyn ::cw_orch::prelude::MockContract<
                         ::cosmwasm_std::Empty,
                         ::cosmwasm_std::Empty,

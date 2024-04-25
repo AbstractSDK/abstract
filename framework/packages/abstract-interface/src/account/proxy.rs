@@ -14,7 +14,7 @@ impl<Chain: CwEnv> Proxy<Chain> {
 
 impl<Chain: CwEnv> Uploadable for Proxy<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+    fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
                 ::proxy::contract::execute,
@@ -25,7 +25,7 @@ impl<Chain: CwEnv> Uploadable for Proxy<Chain> {
             .with_reply(::proxy::contract::reply),
         )
     }
-    fn wasm(&self) -> WasmPath {
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path("proxy")
             .unwrap()

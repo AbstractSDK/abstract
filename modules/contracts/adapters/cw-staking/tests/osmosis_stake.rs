@@ -64,14 +64,14 @@ mod osmosis_test {
     impl<Chain: CwEnv> AdapterDeployer<Chain, Empty> for OsmosisStakingAdapter<Chain> {}
 
     impl<Chain: CwEnv> Uploadable for OsmosisStakingAdapter<Chain> {
-        fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+        fn wrapper() -> <Mock as TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 abstract_cw_staking::contract::execute,
                 abstract_cw_staking::contract::instantiate,
                 abstract_cw_staking::contract::query,
             ))
         }
-        fn wasm(&self) -> WasmPath {
+        fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
             let mut artifacts_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             artifacts_path.push("../../../artifacts");
 
