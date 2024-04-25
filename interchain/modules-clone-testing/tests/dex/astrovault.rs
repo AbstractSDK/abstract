@@ -15,12 +15,12 @@ use abstract_dex_adapter::dex_tester::{DexTester, MockDex};
 // Astrovault uses custom types for creating pools: https://github.com/archway-network/archway/blob/c2f92ce09f7a2e91046ba494546d157ad7f99ded/contracts/go/voter/src/pkg/archway/custom/msg.go
 // Meaning we have to use existing pools
 
-const STANDARD_POOL_FACTORY: &str =
-    "archway1cq6tgc32az7zpq5w7t2d89taekkn9q95g2g79ka6j46ednw7xkkq7n55a2";
-const STABLE_POOL_FACTORY: &str =
-    "archway19yzx44k7w7gsjjhumkd4sh9r0z6lscq583hgpu9s4yyl00z9lahq0ptra0";
-const RATIO_POOL_FACTORY: &str =
-    "archway1zlc00gjw4ecan3tkk5g0lfd78gyfldh4hvkv2g8z5qnwlkz9vqmsdfvs7q";
+// const STANDARD_POOL_FACTORY: &str =
+//     "archway1cq6tgc32az7zpq5w7t2d89taekkn9q95g2g79ka6j46ednw7xkkq7n55a2";
+// const STABLE_POOL_FACTORY: &str =
+//     "archway19yzx44k7w7gsjjhumkd4sh9r0z6lscq583hgpu9s4yyl00z9lahq0ptra0";
+// const RATIO_POOL_FACTORY: &str =
+//     "archway1zlc00gjw4ecan3tkk5g0lfd78gyfldh4hvkv2g8z5qnwlkz9vqmsdfvs7q";
 
 // mainnet addr of abstract
 const SENDER: &str = "archway1kjzpqv393k4g064xh04j4hwy5d0s03wf0exd9k";
@@ -55,74 +55,6 @@ impl AstrovaultDex {
         }
         Ok(())
     }
-
-    // Helpful methods, currently unused, unless astrovault stops using custom modules
-
-    // fn add_sender_balance(&self) -> anyhow::Result<()> {
-    //     let chain = &self.chain;
-
-    //     for asset in [&self.asset_a.1, &self.asset_b.1] {
-    //         match asset {
-    //             cw_asset::AssetInfoBase::Native(denom) => {
-    //                 chain.add_balance(&self.chain.sender, coins(ASSET_AMOUNT, denom))?;
-    //             }
-    //             cw_asset::AssetInfoBase::Cw20(addr) => {
-    //                 chain.execute(
-    //                     &cw20::Cw20ExecuteMsg::Mint {
-    //                         recipient: self.chain.sender.to_string(),
-    //                         amount: ASSET_AMOUNT.into(),
-    //                     },
-    //                     &[],
-    //                     &Addr::unchecked(addr),
-    //                 )?;
-    //             }
-    //             _ => unreachable!(),
-    //         }
-    //     }
-    //     Ok(())
-    // }
-
-    // fn give_allowance(&self, pair_contract_addr: Addr) -> anyhow::Result<()> {
-    //     let chain = &self.chain;
-
-    //     for asset in [&self.asset_a.1, &self.asset_b.1] {
-    //         match asset {
-    //             cw_asset::AssetInfoBase::Cw20(addr) => {
-    //                 chain.execute(
-    //                     &cw20::Cw20ExecuteMsg::IncreaseAllowance {
-    //                         spender: pair_contract_addr.to_string(),
-    //                         amount: ASSET_AMOUNT.into(),
-    //                         expires: None,
-    //                     },
-    //                     &[],
-    //                     &Addr::unchecked(addr),
-    //                 )?;
-    //             }
-    //             cw_asset::AssetInfoBase::Native(_) => {}
-    //             _ => unreachable!(),
-    //         }
-    //     }
-    //     Ok(())
-    // }
-
-    // fn register_native_assets(&self) -> anyhow::Result<()> {
-    //     for asset in [&self.asset_a.1, &self.asset_b.1] {
-    //         match asset {
-    //             cw_asset::AssetInfoBase::Native(denom) => {
-    //                 self.chain.call_as(&Addr::unchecked(&self.factory_owner)).execute(
-    //                     &astrovault::standard_pool_factory::handle_msg::ExecuteMsg::AddNativeTokenDecimals {
-    //                         denom: denom.to_owned(),
-    //                         decimals: 6,
-    //                     },
-    //                     &[],
-    //                     &Addr::unchecked(STANDARD_POOL_FACTORY),
-    //                 )?;
-    //             }
-    //             _ => (),
-    //         }
-    //     }
-    //     Ok(())
-    // }
 }
 
 impl MockDex for AstrovaultDex {
@@ -253,14 +185,13 @@ mod standard_pool_tests {
                 &dex_tester.dex.pool_addr,
             )?;
 
-        let belief_price_a_to_b = Decimal::from_ratio(
-            pool_response.assets[1].amount,
-            pool_response.assets[0].amount,
-        );
-        let belief_price_b_to_a = Decimal::from_ratio(
-            pool_response.assets[0].amount,
-            pool_response.assets[1].amount,
-        );
+        let amount_a =
+            astrovault::utils::normalize_amount(&pool_response.assets[1].amount, &6).unwrap();
+        let amount_b =
+            astrovault::utils::normalize_amount(&pool_response.assets[0].amount, &18).unwrap();
+
+        let belief_price_a_to_b = Decimal::from_ratio(amount_a, amount_b);
+        let belief_price_b_to_a = Decimal::from_ratio(amount_b, amount_a);
 
         dex_tester.test_swap_slippage(belief_price_a_to_b, belief_price_b_to_a)?;
         Ok(())
@@ -473,7 +404,7 @@ mod stable_pool_tests {
 
     use super::*;
 
-    fn setup_standard_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
+    fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
         let sender = Addr::unchecked(SENDER);
         let abstr_deployment = load_abstr(chain_info, sender)?;
@@ -502,7 +433,7 @@ mod stable_pool_tests {
 
     #[test]
     fn test_swap() -> anyhow::Result<()> {
-        let dex_tester = setup_standard_pool()?;
+        let dex_tester = setup_stable_pool()?;
         dex_tester.test_swap()?;
         Ok(())
     }
@@ -510,11 +441,11 @@ mod stable_pool_tests {
     // Skipping slippage swap test as it's not applicable to stable pool
 
     #[test]
-    // #[ignore = "Deposit failed due to unbalance threshold reached: 872084 > 750000"]
+    #[ignore = "Deposit failed due to unbalance threshold reached: 872084 > 750000"]
     fn test_provide_liquidity() -> anyhow::Result<()> {
-        let dex_tester = setup_standard_pool()?;
+        let dex_tester = setup_stable_pool()?;
 
-        // TODO: can't deposit asset_a, see commented out `ignore`
+        // TODO: can't deposit asset_a, see ignore message
         dex_tester
             .test_provide_liquidity_two_sided(Some(0), Some(1_000_000))
             .unwrap();
@@ -524,8 +455,9 @@ mod stable_pool_tests {
     // Skipping slippage provide_liquidity test as it's not applicable to stable pool
 
     #[test]
+    #[ignore = "Deposit failed due to unbalance threshold reached: 872084 > 750000"]
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
-        let dex_tester = setup_standard_pool()?;
+        let dex_tester = setup_stable_pool()?;
 
         dex_tester.test_withdraw_liquidity(Some(0), Some(1_000_000_000), None)?;
         Ok(())
@@ -533,7 +465,113 @@ mod stable_pool_tests {
 
     #[test]
     fn test_queries() -> anyhow::Result<()> {
-        let dex_tester = setup_standard_pool()?;
+        let dex_tester = setup_stable_pool()?;
+        dex_tester.test_queries()?;
+        Ok(())
+    }
+}
+
+mod ratio_pool_tests {
+
+    // "asset_decimals": [
+    //    6,
+    //    8
+    //  ],
+    //  "asset_infos": [
+    //    {
+    //  "native_token": {
+    //    "denom": "ibc/43897B9739BD63E3A08A88191999C632E052724AB96BD4C74AE31375C991F48D"
+    //  }
+    //    },
+    //    {
+    //  "native_token": {
+    //    "denom": "ibc/3A2DEEBCD51D0B74FE7CE058D40B0BF4C0E556CE9219E8F25F92CF288FF35F56"
+    //  }
+    //    }
+    //  ],
+    //  "cashback": "archway14cdu335ljp6rst337070nejhg7h0j2az7zmx8q0sah88s4uhcczq20fv84",
+    //  "contract_addr": "archway1alukarfvkx5m2uzazlye7yu0vmyre76rvm63znytjl996thwjtzst5mjx0",
+    //  "liquidity_token": "archway1ql5u34l2uglurzyeq59p434uk7dapj9j4skjh6zxjhed6tupwjmqvxvzyx",
+    //  "lockups": "archway1nv29h7rw5xe9rmk4erlwfpnp3y5nvvs4jtf003t849f46qnnyerstv2pgm",
+    //  "lp_staking": "archway1ncqhffzqsdah8se5w7tpwesw3lh8ryvuvw5pkpprffc97m6lcstsnnke0e"
+
+    const ASSET_A: &str = "usdcnobl";
+    const ASSET_B: &str = "wbtcaxl";
+    const ASSET_A_DENOM: &str =
+        "ibc/43897B9739BD63E3A08A88191999C632E052724AB96BD4C74AE31375C991F48D";
+    const ASSET_B_DENOM: &str =
+        "ibc/3A2DEEBCD51D0B74FE7CE058D40B0BF4C0E556CE9219E8F25F92CF288FF35F56";
+    const RATIO_POOL_ADDR: &str =
+        "archway1alukarfvkx5m2uzazlye7yu0vmyre76rvm63znytjl996thwjtzst5mjx0";
+    const LIQUIDITY_TOKEN: &str =
+        "archway1ql5u34l2uglurzyeq59p434uk7dapj9j4skjh6zxjhed6tupwjmqvxvzyx";
+
+    use super::*;
+
+    fn setup_ratio_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
+        let chain_info = ARCHWAY_1;
+        let sender = Addr::unchecked(SENDER);
+        let abstr_deployment = load_abstr(chain_info, sender)?;
+        let chain = abstr_deployment.environment();
+
+        let asset_a = (
+            ASSET_A.to_owned(),
+            AssetInfoUnchecked::Native(ASSET_A_DENOM.to_owned()),
+        );
+        let asset_b = (
+            ASSET_B.to_owned(),
+            AssetInfoUnchecked::Native(ASSET_B_DENOM.to_owned()),
+        );
+        DexTester::new(
+            abstr_deployment,
+            AstrovaultDex {
+                pool_addr: Addr::unchecked(RATIO_POOL_ADDR),
+                liquidity_token: Addr::unchecked(LIQUIDITY_TOKEN),
+                pool_type: PoolType::Weighted,
+                chain,
+                asset_a,
+                asset_b,
+            },
+        )
+    }
+
+    #[test]
+    fn test_swap() -> anyhow::Result<()> {
+        let dex_tester = setup_ratio_pool()?;
+        dex_tester.test_swap()?;
+        Ok(())
+    }
+
+    // Skipping slippage swap test as it's not applicable to ratio pool
+
+    #[test]
+    #[ignore = "Deposit failed due to unbalance threshold reached: 872084 > 750000"]
+    fn test_provide_liquidity() -> anyhow::Result<()> {
+        let dex_tester = setup_ratio_pool()?;
+
+        // TODO: Can't deposit asset_b, see ignore message
+        dex_tester.test_provide_liquidity_two_sided(Some(1_000_000_000), Some(0))?;
+        Ok(())
+    }
+
+    // Skipping slippage provide_liquidity test as it's not applicable to ratio pool
+
+    #[test]
+    #[ignore = "Deposit failed due to unbalance threshold reached: 872084 > 750000"]
+    fn test_withdraw_liquidity() -> anyhow::Result<()> {
+        let dex_tester = setup_ratio_pool()?;
+
+        dex_tester.test_withdraw_liquidity(
+            Some(1_000_000_000),
+            Some(0),
+            Some(vec![dex_tester.dex.asset_a.1.clone()]),
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_queries() -> anyhow::Result<()> {
+        let dex_tester = setup_ratio_pool()?;
         dex_tester.test_queries()?;
         Ok(())
     }

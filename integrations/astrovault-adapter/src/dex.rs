@@ -280,9 +280,9 @@ impl DexCommand for Astrovault {
         if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
         } else if offer_assets.iter().any(|a| a.amount.is_zero())
-        // Stable could be deposited one at a time
+        // Stable and ratio pools could be deposited one at a time
         // Also for xAsset Mode, only the native side can be deposited
-        && !matches!(pool_type, AstrovaultPoolType::Stable { .. })
+        && !matches!(pool_type, AstrovaultPoolType::Stable { .. } | AstrovaultPoolType::Ratio)
         {
             // find 0 asset
             let (index, non_zero_offer_asset) = offer_assets
@@ -369,19 +369,28 @@ impl DexCommand for Astrovault {
                     coins,
                 )?
             }
-            AstrovaultPoolType::Ratio => wasm_execute(
-                pair_address,
-                &astrovault::ratio_pool::handle_msg::ExecuteMsg::Deposit {
-                    assets_amount: [
-                        astrovault_assets.swap_remove(0).amount,
-                        astrovault_assets.swap_remove(0).amount,
-                    ],
-                    direct_staking: None,
-                    receiver: None,
-                    expected_return: None,
-                },
-                coins,
-            )?,
+            AstrovaultPoolType::Ratio => {
+                // Normalize order
+                let pool_info: astrovault::assets::pools::PoolInfo =
+                    deps.querier.query_wasm_smart(
+                        pair_address.clone(),
+                        &astrovault::ratio_pool::query_msg::QueryMsg::PoolInfo {},
+                    )?;
+                let astrovault_assets =
+                    astrovault_assets_normalize_order(astrovault_assets, &pool_info.asset_infos);
+                // Remove zero amounts in funds
+                coins.retain(|c| !c.amount.is_zero());
+                wasm_execute(
+                    pair_address,
+                    &astrovault::ratio_pool::handle_msg::ExecuteMsg::Deposit {
+                        assets_amount: [astrovault_assets[0].amount, astrovault_assets[1].amount],
+                        direct_staking: None,
+                        receiver: None,
+                        expected_return: None,
+                    },
+                    coins,
+                )?
+            }
         };
 
         // actual call to pair
@@ -504,11 +513,6 @@ impl DexCommand for Astrovault {
                 ),
             )?,
             AstrovaultPoolType::Stable { is_xasset } => {
-                let address = self.addr_as_sender.clone().unwrap().into_string();
-                let lp_addr = match &lp_token.info {
-                    AssetInfoBase::Cw20(lp_addr) => lp_addr,
-                    _ => unreachable!(),
-                };
                 if is_xasset {
                     to_json_binary(
                         &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalXassetMode(
@@ -654,10 +658,11 @@ impl DexCommand for Astrovault {
                             .collect(),
                     ))?;
 
-                let astrovault::ratio_pool::query_msg::RatioPoolQuerySwapSimulation {
-                    from_assets_amount: _,
-                    mut to_assets_amount,
-                    mut assets_fee_amount,
+                let astrovault::ratio_pool_factory::query_msg::SwapCalcResponse {
+                    from_amount: _,
+                    to_amount_without_fee: _,
+                    to_amount_minus_fee,
+                    fee_amount,
                 } = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
                     &astrovault::ratio_pool::query_msg::QueryMsg::SwapSimulation {
@@ -666,12 +671,7 @@ impl DexCommand for Astrovault {
                     },
                 )?;
                 // commission paid in result asset
-                Ok((
-                    to_assets_amount.pop().unwrap_or_default(),
-                    Uint128::zero(),
-                    assets_fee_amount.pop().unwrap_or_default(),
-                    false,
-                ))
+                Ok((to_amount_minus_fee, Uint128::zero(), fee_amount, false))
             }
         }
     }

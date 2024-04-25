@@ -42,3 +42,6 @@ abstract-money-market-adapter = { workspace = true, features = [
 astroport = { version = "3.11.1" }
 kujira = { version = "0.8" }
 astrovault = { version = "0.1.4" }
+
+serde_json = "1"
+serde = "1"
