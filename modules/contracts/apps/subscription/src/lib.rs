@@ -10,34 +10,13 @@ pub use error::SubscriptionError;
 pub mod interface {
     use std::str::FromStr;
 
-    use abstract_app::abstract_interface::AppDeployer;
     use cosmwasm_std::Decimal;
     use cw_asset::AssetInfoUnchecked;
-    use cw_orch::{interface, prelude::*};
+    use cw_orch::prelude::*;
 
-    use crate::msg::*;
+    use crate::{contract::interface::SubscriptionInterface, msg::*};
 
-    #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, SubscriptionMigrateMsg)]
-    pub struct Subscription;
-
-    impl<Chain: CwEnv> AppDeployer<Chain> for Subscription<Chain> {}
-
-    impl<Chain: CwEnv> Uploadable for Subscription<Chain> {
-        fn wrapper() -> <Mock as TxHandler>::ContractSource {
-            Box::new(ContractWrapper::new_with_empty(
-                crate::contract::execute,
-                crate::contract::instantiate,
-                crate::contract::query,
-            ))
-        }
-        fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
-            artifacts_dir_from_workspace!()
-                .find_wasm_path("abstract_subscription")
-                .unwrap()
-        }
-    }
-
-    impl<Chain: CwEnv> Subscription<Chain> {
+    impl<Chain: CwEnv> SubscriptionInterface<Chain> {
         pub fn init_msg(payment_denom: String, token_addr: String) -> SubscriptionInstantiateMsg {
             SubscriptionInstantiateMsg {
                 payment_asset: AssetInfoUnchecked::native(payment_denom),
