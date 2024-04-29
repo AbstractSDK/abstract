@@ -12,7 +12,7 @@ cargo clean -p osmosis-test-tube
 sudo apt-get update && sudo apt-get install libclang-dev -y
 
 # Set Go version
-GO_VERSION="1.19"
+GO_VERSION="1.21"
 
 # Download Go
 wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz -O /tmp/go${GO_VERSION}.linux-amd64.tar.gz
