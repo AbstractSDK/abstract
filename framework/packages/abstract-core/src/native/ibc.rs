@@ -114,6 +114,8 @@ pub struct ModuleIbcMsg {
 // ANCHOR_END: module_ibc_msg
 
 impl ModuleIbcMsg {
+    /// Deserializes the underlying message to a type
+    /// This message is specified directly by the calling module
     pub fn parse_msg<T: DeserializeOwned>(&self) -> StdResult<T> {
         from_json(&self.msg)
     }
