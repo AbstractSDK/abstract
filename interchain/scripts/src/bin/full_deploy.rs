@@ -3,6 +3,8 @@ use std::{
     io::BufReader,
     net::TcpStream,
 };
+use abstract_interface::Abstract;
+use abstract_std::objects::gov_type::GovernanceDetails;
 
 
 use abstract_scripts::{
@@ -58,27 +60,25 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network.clone())
             .build()?;
 
-        let _sender = chain.sender();
+        let sender = chain.sender();
 
-        // let polytone = Polytone::deploy_on(chain, None)?;
+        let deployment = match Abstract::deploy_on(chain, sender.to_string()) {
+            Ok(deployment) => {
+                // write_deployment(&deployment_status)?;
+                deployment
+            }
+            Err(e) => {
+                // write_deployment(&deployment_status)?;
+                return Err(e.into());
+            }
+        };
 
-        // let deployment = match Abstract::deploy_on(chain, sender.to_string()) {
-        //     Ok(deployment) => {
-        //         // write_deployment(&deployment_status)?;
-        //         deployment
-        //     }
-        //     Err(e) => {
-        //         // write_deployment(&deployment_status)?;
-        //         return Err(e.into());
-        //     }
-        // };
-        //
-        // // Create the Abstract Account because it's needed for the fees for the dex module
-        // deployment
-        //     .account_factory
-        //     .create_default_account(GovernanceDetails::Monarchy {
-        //         monarch: sender.to_string(),
-        //     })?;
+        // Create the Abstract Account because it's needed for the fees for the dex module
+        deployment
+            .account_factory
+            .create_default_account(GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            })?;
     }
 
     // fs::copy(Path::new("~/.cw-orchestrator/state.json"), to)
