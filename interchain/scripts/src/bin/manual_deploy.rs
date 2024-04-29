@@ -1,17 +1,15 @@
 use std::{
-    fs::{self, File},
-    io::BufReader,
     net::TcpStream,
 };
 
-use abstract_interface::{Abstract, AbstractInterfaceError};
+use abstract_interface::{Abstract};
 use abstract_scripts::{
-    assert_wallet_balance, DeploymentStatus, ROLLKIT_NETWORK, ROLLKIT_TESTNET, SUPPORTED_CHAINS,
+    assert_wallet_balance,
 };
 use abstract_std::objects::gov_type::GovernanceDetails;
 use clap::Parser;
 use cw_orch::prelude::{
-    networks::{parse_network, ChainInfo},
+    networks::{ChainInfo},
     *,
 };
 use reqwest::Url;
@@ -42,7 +40,7 @@ fn manual_deploy(network: ChainInfo) -> anyhow::Result<()> {
     let sender = chain.sender();
 
     // Abstract
-    let abstr = match Abstract::load_from(chain.clone()) {
+    let _abstr = match Abstract::load_from(chain.clone()) {
         Ok(deployed) => deployed,
         Err(_) => {
             let abs = Abstract::deploy_on(chain.clone(), sender.to_string())?;
@@ -57,7 +55,7 @@ fn manual_deploy(network: ChainInfo) -> anyhow::Result<()> {
     };
 
     // Attempt to load or deploy Polytone based on condition check
-    let polytone = match Polytone::load_from(chain.clone()) {
+    let _polytone = match Polytone::load_from(chain.clone()) {
         Ok(deployed) => {
             // Check if the address property of deployed Polytone indicates it's properly deployed
             match deployed.note.address() {

@@ -66,7 +66,7 @@ pub const ROLLKIT_NETWORK: NetworkInfo = NetworkInfo {
     coin_type: 118u32,
 };
 
-const ROLLKIT_GRPC: &'static str = "http://grpc.rosm.rollkit.dev:9290";
+const ROLLKIT_GRPC: &str = "http://grpc.rosm.rollkit.dev:9290";
 pub const ROLLKIT_TESTNET: ChainInfo = ChainInfo {
     kind: ChainKind::Testnet,
     chain_id: "rosm",

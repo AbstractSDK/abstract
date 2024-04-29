@@ -4,14 +4,14 @@ use std::{
     net::TcpStream,
 };
 
-use abstract_interface::Abstract;
+
 use abstract_scripts::{
-    assert_wallet_balance, DeploymentStatus, ROLLKIT_TESTNET, SUPPORTED_CHAINS,
+    assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS,
 };
-use abstract_std::objects::gov_type::GovernanceDetails;
+
 use clap::Parser;
 use cw_orch::prelude::{
-    networks::{parse_network, ChainInfo},
+    networks::{ChainInfo},
     *,
 };
 use reqwest::Url;
@@ -58,7 +58,7 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network.clone())
             .build()?;
 
-        let sender = chain.sender();
+        let _sender = chain.sender();
 
         // let polytone = Polytone::deploy_on(chain, None)?;
 
@@ -141,7 +141,7 @@ fn main() {
     use abstract_scripts::ROLLKIT_TESTNET;
     use dotenv::dotenv;
 
-    let args = Arguments::parse();
+    let _args = Arguments::parse();
 
     // let networks = args
     //     .network_ids
@@ -167,5 +167,5 @@ fn main() {
     }
 }
 
-use cw_orch::daemon::{ChainKind, NetworkInfo};
-use cw_orch_polytone::Polytone;
+
+
