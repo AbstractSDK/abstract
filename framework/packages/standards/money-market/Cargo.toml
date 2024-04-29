@@ -17,7 +17,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-testing = []
+testing = ["cw-orch/daemon"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
