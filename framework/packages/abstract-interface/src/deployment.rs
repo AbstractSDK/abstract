@@ -183,7 +183,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         }
     }
 
-    pub fn instantiate(&mut self, _chain: &Chain, admin: String) -> Result<(), CwOrchError> {
+    pub fn instantiate(&mut self, _chain: &Chain, admin: String) -> Result<(), AbstractInterfaceError> {
         let admin = Addr::unchecked(admin);
 
         self.ans_host.instantiate(
@@ -230,6 +230,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
 
         // We also instantiate ibc contracts
         self.ibc.instantiate(self, &admin)?;
+        self.ibc.register(&self.version_control)?;
 
         Ok(())
     }

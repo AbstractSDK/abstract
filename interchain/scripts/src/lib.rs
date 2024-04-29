@@ -1,5 +1,7 @@
 pub mod abstract_ibc;
 
+use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
+use cw_orch::daemon::{ChainKind, NetworkInfo};
 use cw_orch::{
     daemon::ChainInfo,
     prelude::{
@@ -13,17 +15,6 @@ const GAS_TO_DEPLOY: u64 = 60_000_000;
 pub const SUPPORTED_CHAINS: &[ChainInfo] = &[
     UNI_6, OSMO_5, PISCO_1, PHOENIX_1, JUNO_1, PION_1, NEUTRON_1, HARPOON_4,
 ];
-
-pub const NEUTRON_1: ChainInfo = ChainInfo {
-    kind: cw_orch::daemon::ChainKind::Mainnet,
-    chain_id: "neutron-1",
-    gas_denom: "untrn",
-    gas_price: 0.001,
-    grpc_urls: &["https://grpc.novel.remedy.tm.p2p.org"],
-    network_info: networks::neutron::NEUTRON_NETWORK,
-    lcd_url: Some("https://rest-kralum.neutron-1.neutron.org"),
-    fcd_url: None,
-};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct DeploymentStatus {
@@ -68,3 +59,33 @@ pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [
 
     chains
 }
+
+pub const ROLLKIT_NETWORK: NetworkInfo = NetworkInfo {
+    id: "rosm",
+    pub_address_prefix: "wasm",
+    coin_type: 118u32,
+};
+
+const ROLLKIT_GRPC: &'static str = "http://grpc.rosm.rollkit.dev:9290";
+pub const ROLLKIT_TESTNET: ChainInfo = ChainInfo {
+    kind: ChainKind::Testnet,
+    chain_id: "rosm",
+    gas_denom: "urosm",
+    gas_price: 0.025,
+    grpc_urls: &[ROLLKIT_GRPC],
+    network_info: ROLLKIT_NETWORK,
+    lcd_url: None,
+    fcd_url: None,
+};
+
+/// <https://github.com/cosmos/chain-registry/blob/master/neutron/chain.json>
+pub const NEUTRON_1: ChainInfo = ChainInfo {
+    kind: ChainKind::Mainnet,
+    chain_id: "neutron-1",
+    gas_denom: "untrn",
+    gas_price: 0.075,
+    grpc_urls: &["http://grpc-kralum.neutron-1.neutron.org:80"],
+    network_info: NEUTRON_NETWORK,
+    lcd_url: Some("https://rest-kralum.neutron-1.neutron.org"),
+    fcd_url: None,
+};

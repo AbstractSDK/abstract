@@ -29,6 +29,9 @@ impl ChainName {
         // -> `cosmos-testnet` and `53159`
         let parts: Vec<&str> = chain_id.rsplitn(2, '-').collect();
         // the parts vector should look like [53159, cosmos-tesnet], because we are using rsplitn
+        if parts.len() == 1 {
+            return Self(parts[0].to_string());
+        }
         Self(parts[1].to_string())
     }
 

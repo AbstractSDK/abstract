@@ -1,38 +1,26 @@
 use abstract_interface::Abstract;
 use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
-use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
-use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
-use cw_orch::daemon::ChainKind;
+use abstract_scripts::{NEUTRON_1, ROLLKIT_TESTNET};
+use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMO_5, PHOENIX_1};
 use cw_orch::prelude::*;
 use cw_orch::{daemon::ChainInfo, tokio::runtime::Handle};
 use cw_orch_polytone::Polytone;
 use tokio::runtime::Runtime;
 
-/// <https://github.com/cosmos/chain-registry/blob/master/neutron/chain.json>
-pub const NEUTRON_1: ChainInfo = ChainInfo {
-    kind: ChainKind::Mainnet,
-    chain_id: "neutron-1",
-    gas_denom: "untrn",
-    gas_price: 0.075,
-    grpc_urls: &["http://grpc-kralum.neutron-1.neutron.org:80"],
-    network_info: NEUTRON_NETWORK,
-    lcd_url: Some("https://rest-kralum.neutron-1.neutron.org"),
-    fcd_url: None,
-};
-
+/// Connect IBC between two chains.
+/// @TODO update this to take in the networks as arguments.
 fn main() -> cw_orch::anyhow::Result<()> {
     dotenv::dotenv()?;
     env_logger::init();
 
-    let mut neutron = NEUTRON_1;
-    neutron.gas_price = 0.075;
-
     let chains = vec![
+        (ROLLKIT_TESTNET, None),
+        (OSMO_5, None),
         (JUNO_1, None),
         (PHOENIX_1, None),
         (ARCHWAY_1, None),
-        (neutron, None),
-        (OSMOSIS_1, Some(std::env::var("OSMOSIS_MNEMONIC")?)),
+        (NEUTRON_1, None),
+        // (OSMOSIS_1, Some(std::env::var("OSMOSIS_MNEMONIC")?)),
     ];
     let runtime = Runtime::new()?;
 

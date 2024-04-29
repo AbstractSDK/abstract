@@ -5,7 +5,9 @@ use std::{
 };
 
 use abstract_interface::Abstract;
-use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
+use abstract_scripts::{
+    assert_wallet_balance, DeploymentStatus, ROLLKIT_TESTNET, SUPPORTED_CHAINS,
+};
 use abstract_std::objects::gov_type::GovernanceDetails;
 use clap::Parser;
 use cw_orch::prelude::{
@@ -58,23 +60,25 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         let sender = chain.sender();
 
-        let deployment = match Abstract::deploy_on(chain, sender.to_string()) {
-            Ok(deployment) => {
-                // write_deployment(&deployment_status)?;
-                deployment
-            }
-            Err(e) => {
-                // write_deployment(&deployment_status)?;
-                return Err(e.into());
-            }
-        };
+        // let polytone = Polytone::deploy_on(chain, None)?;
 
-        // Create the Abstract Account because it's needed for the fees for the dex module
-        deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
-            })?;
+        // let deployment = match Abstract::deploy_on(chain, sender.to_string()) {
+        //     Ok(deployment) => {
+        //         // write_deployment(&deployment_status)?;
+        //         deployment
+        //     }
+        //     Err(e) => {
+        //         // write_deployment(&deployment_status)?;
+        //         return Err(e.into());
+        //     }
+        // };
+        //
+        // // Create the Abstract Account because it's needed for the fees for the dex module
+        // deployment
+        //     .account_factory
+        //     .create_default_account(GovernanceDetails::Monarchy {
+        //         monarch: sender.to_string(),
+        //     })?;
     }
 
     // fs::copy(Path::new("~/.cw-orchestrator/state.json"), to)
@@ -134,15 +138,18 @@ fn main() {
     dotenv().ok();
     env_logger::init();
 
+    use abstract_scripts::ROLLKIT_TESTNET;
     use dotenv::dotenv;
 
     let args = Arguments::parse();
 
-    let networks = args
-        .network_ids
-        .iter()
-        .map(|n| parse_network(n).unwrap())
-        .collect::<Vec<_>>();
+    // let networks = args
+    //     .network_ids
+    //     .iter()
+    //     .map(|n| parse_network(n).unwrap())
+    //     .collect::<Vec<_>>();
+
+    let networks = vec![ROLLKIT_TESTNET];
 
     if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);
@@ -159,3 +166,6 @@ fn main() {
         ::std::process::exit(1);
     }
 }
+
+use cw_orch::daemon::{ChainKind, NetworkInfo};
+use cw_orch_polytone::Polytone;
