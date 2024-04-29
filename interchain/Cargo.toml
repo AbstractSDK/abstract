@@ -60,9 +60,10 @@ polytone = { package = "abstract-polytone", version = "1.0.5" }
 polytone-note = { package = "abstract-polytone-note", version = "2.0.0-rc" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "2.0.0-rc" }
 
-cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.22.0-rc" }
-cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.22.0-rc" }
-cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.22.0-rc" }
+# cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.22.0-rc" }
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", rev = "07b2e96" }
+cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", rev = "07b2e96" }
+cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", rev = "07b2e96" }
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { version = "0.21.0", path = "../framework/packages/abstract-interface" }
@@ -99,6 +100,12 @@ abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
+
+# cw-orch stabilization - TODO
+cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
+cw-orch-networks = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
+cw-orch-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
