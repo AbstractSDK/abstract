@@ -43,6 +43,7 @@ pub mod interface {
     impl<Chain: CwEnv> AdapterDeployer<Chain, DexInstantiateMsg> for DexAdapter<Chain> {}
 
     impl<Chain: CwEnv> Uploadable for DexAdapter<Chain> {
+        #[cfg(feature = "export")]
         fn wrapper() -> <Mock as TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 crate::contract::execute,
