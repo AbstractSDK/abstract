@@ -29,6 +29,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
         security_disabled: old_config.allow_direct_module_registration_and_updates,
         namespace_registration_fee: old_config.namespace_registration_fee,
     };
+    // No need to remove old config, because this uses same storage key
     CONFIG.save(deps.storage, &new_config)?;
 
     assert_cw_contract_upgrade(deps.storage, VERSION_CONTROL, to_version)?;
