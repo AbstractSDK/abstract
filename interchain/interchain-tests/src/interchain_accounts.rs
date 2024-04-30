@@ -102,7 +102,7 @@ mod test {
             ModuleAddressesResponse,
         },
         objects::{gov_type::GovernanceDetails, UncheckedChannelEntry},
-        ICS20, PROXY,
+        IBC_CLIENT, ICS20, PROXY,
     };
     use abstract_testing::prelude::*;
     use anyhow::Result as AnyResult;
@@ -536,9 +536,9 @@ mod test {
         let (origin_account, remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
 
+        // We assert the account was created with the right properties
         let remote_abstract_account =
             AbstractAccount::new(&abstr_remote, remote_account_id.clone());
-
         let manager_config = remote_abstract_account.manager.config()?;
         assert_eq!(
             manager_config,
@@ -571,6 +571,12 @@ mod test {
                 }
             }
         );
+        // We make sure the ibc client is installed on the remote account
+        let installed_remote_modules = remote_abstract_account.manager.module_infos(None, None)?;
+        assert!(installed_remote_modules
+            .module_infos
+            .iter()
+            .any(|m| m.id == IBC_CLIENT));
 
         // We try to execute a message from the proxy contract (account creation for instance)
 

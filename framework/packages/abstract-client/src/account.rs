@@ -40,7 +40,7 @@ use abstract_std::{
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
-    PROXY,
+    IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
@@ -560,8 +560,16 @@ impl<Chain: CwEnv> Account<Chain> {
         host_chain: impl Into<String>,
         base_asset: Option<AssetEntry>,
         namespace: Option<String>,
-        install_modules: Vec<ModuleInstallConfig>,
+        mut install_modules: Vec<ModuleInstallConfig>,
     ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+        // We add the IBC Client by default in the modules installed on the remote account
+        if !install_modules.iter().any(|m| m.module.id() == IBC_CLIENT) {
+            install_modules.push(ModuleInstallConfig::new(
+                ModuleInfo::from_id_latest(IBC_CLIENT)?,
+                None,
+            ));
+        }
+
         self.abstr_account
             .manager
             .execute(
