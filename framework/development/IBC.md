@@ -18,7 +18,7 @@ on the Account's manager. This ensures that the user/developer is aware of enabl
 # IBC Client
 The IBC client contract is a single contract deployed to the client chain (the chain on which the developer aims to
 deploy his application). The client contract can only be called by an Account proxy. By providing
-an [`abstract_sdk::core::ibc_client:ExecuteMsg::RemoteAction`] message, the Client contract will resolve the target
+an [`abstract_sdk::std::ibc_client:ExecuteMsg::RemoteAction`] message, the Client contract will resolve the target
 chain and related Polytone contracts to send the message through. 
 
 ```rust
@@ -65,7 +65,7 @@ An action and optional callback data is also included in the message :
 
 The IBC host is a contract that is included in Abstract's deployments as well and that is responsible for authenticating the messages it receives from its IBC-Client counterparts. It is very general and can handle executing arbitrary messages on remote Abstract accounts.
 
-It accepts [`abstract_sdk::core::ibc_host::HostAction`] messages over IBC. This HostAction can either be : 
+It accepts [`abstract_sdk::std::ibc_host::HostAction`] messages over IBC. This HostAction can either be : 
 - Registering an account on the local chain from a remote chain
 - Executing an action on a local account from a remote chain. In case this action is called, when no local account attached to the calling remote account was previously created, an account on the local chain will be created automatically on behalf of the calling remote account.
 - Send all native funds back to the calling remote account 

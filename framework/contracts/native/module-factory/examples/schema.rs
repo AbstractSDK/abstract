@@ -1,4 +1,4 @@
-use abstract_sdk::core::module_factory::*;
+use abstract_sdk::std::module_factory::*;
 use cosmwasm_schema::write_api;
 
 fn main() {

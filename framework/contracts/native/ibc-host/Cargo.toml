@@ -31,7 +31,7 @@ schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 cw-semver = { workspace = true }
 abstract-macros = { workspace = true }
 cw-orch = { workspace = true, optional = true }
@@ -40,7 +40,7 @@ cw-paginate = "0.2.1"
 [dev-dependencies]
 abstract-interface = { workspace = true }
 cw-orch = { workspace = true }
-abstract-core = { workspace = true, features = ["interface"] }
+abstract-std = { workspace = true, features = ["interface"] }
 anyhow.workspace = true
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }

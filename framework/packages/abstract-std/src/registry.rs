@@ -1,6 +1,6 @@
 //! # Registry
 //!
-//! `abstract_core` contains all contract names supported by Abstract.
+//! `abstract_std` contains all contract names supported by Abstract.
 //!
 //! ## Description
 //! These fixed names can be used to provide name-addressable searches for complex logic.

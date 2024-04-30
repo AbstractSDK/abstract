@@ -1,7 +1,7 @@
 use crate::{Abstract, AbstractIbc};
-use abstract_core::version_control::QueryMsgFns;
-use abstract_core::PROXY;
-use abstract_core::{
+use abstract_std::version_control::QueryMsgFns;
+use abstract_std::PROXY;
+use abstract_std::{
     account_factory, ans_host, ibc_client, ibc_host, module_factory, objects::module::ModuleInfo,
     version_control, MANAGER,
 };

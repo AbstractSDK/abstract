@@ -1,12 +1,12 @@
-use abstract_core::{
+use abstract_std::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
     version_control::AccountBase,
 };
 use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
 
-use crate::core::objects::AccountId;
-// see core::proxy::state::ADMIN
+use crate::std::objects::AccountId;
+// see std::proxy::state::ADMIN
 use crate::{AbstractSdkError, AbstractSdkResult};
 
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);

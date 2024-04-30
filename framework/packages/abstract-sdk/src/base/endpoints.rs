@@ -10,9 +10,9 @@
 //! ## Message format
 //! Each Abstract module accepts a fixed message format that can be customized by the developer to add their own functionality.
 //!
-//! The base message format is defined [here](abstract_core::base) as follows:
+//! The base message format is defined [here](abstract_std::base) as follows:
 //! ```rust
-//! use abstract_core::ibc::IbcResponseMsg;
+//! use abstract_std::ibc::IbcResponseMsg;
 //! use cosmwasm_std::Empty;
 //!
 //! /// EndpointMsg to the Base.
@@ -65,7 +65,7 @@
 //!
 //!
 //! ```rust,ignore
-//! use abstract_sdk::core::app::{ExecuteMsg, AppExecuteMsg};
+//! use abstract_sdk::std::app::{ExecuteMsg, AppExecuteMsg};
 //! use abstract_app::{AppContract, AppError};
 //! # use abstract_sdk::base::ExecuteEndpoint;
 //! # use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
@@ -75,7 +75,7 @@
 //! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg: Serialize + JsonSchema >
 //! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg > {
 //!     
-//!     // Expected entrypoint ExecuteMsg type, imported from abstract_core.
+//!     // Expected entrypoint ExecuteMsg type, imported from abstract_std.
 //!     // As you can see from the type definition, the `AppContract` accepts a custom `AppExecuteMsg`
 //!     // type that is inserted into the expected execute message.
 //!     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;

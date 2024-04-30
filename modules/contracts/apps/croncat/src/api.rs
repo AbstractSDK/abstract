@@ -1,8 +1,8 @@
-use abstract_core::objects::module::ModuleId;
-use abstract_sdk::{
+use abstract_app::sdk::{
     features::{AccountIdentification, Dependencies, ModuleIdentification},
     AbstractSdkResult, AppInterface, ModuleInterface,
 };
+use abstract_app::std::objects::module::ModuleId;
 use cosmwasm_std::{Addr, CosmosMsg, Deps};
 use croncat_integration_utils::CronCatTaskRequest;
 use croncat_sdk_manager::types::TaskBalanceResponse;
@@ -182,8 +182,8 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
 
 #[cfg(test)]
 mod test {
-    use abstract_sdk::mock_module::MockModule;
-    use abstract_testing::prelude::TEST_MODULE_ID;
+    use abstract_app::abstract_testing::addresses::{TEST_MODULE_ADDRESS, TEST_MODULE_ID};
+    use abstract_app::{abstract_testing::mock_querier, sdk::mock_module::MockModule};
     use cosmwasm_std::{coins, testing::mock_dependencies, wasm_execute, BankMsg};
     use croncat_integration_utils::*;
     use cw_asset::AssetList;
@@ -196,7 +196,7 @@ mod test {
     #[test]
     fn create_task_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = mock_querier();
         let stub = MockModule::new();
         let mut cron_cat = stub.cron_cat(deps.as_ref());
         cron_cat.module_id = TEST_MODULE_ID;
@@ -233,12 +233,7 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -246,7 +241,7 @@ mod test {
     #[test]
     fn refill_task_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = mock_querier();
         let stub = MockModule::new();
         let mut cron_cat = stub.cron_cat(deps.as_ref());
         cron_cat.module_id = TEST_MODULE_ID;
@@ -267,12 +262,7 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -280,7 +270,7 @@ mod test {
     #[test]
     fn remove_task_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = mock_querier();
         let stub = MockModule::new();
         let mut cron_cat = stub.cron_cat(deps.as_ref());
         cron_cat.module_id = TEST_MODULE_ID;
@@ -299,12 +289,7 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -312,7 +297,7 @@ mod test {
     #[test]
     fn purge_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = mock_querier();
         let stub = MockModule::new();
         let mut cron_cat = stub.cron_cat(deps.as_ref());
         cron_cat.module_id = TEST_MODULE_ID;
@@ -334,12 +319,7 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let expected = wasm_execute(TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }

@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use abstract_core::{
+use abstract_std::{
     ibc_client::{
         state::{Config, ACCOUNTS, CONFIG, IBC_INFRA},
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
@@ -34,7 +34,7 @@ pub fn list_accounts(
 
     let accounts: Vec<(
         AccountId,
-        abstract_core::objects::chain_name::ChainName,
+        abstract_std::objects::chain_name::ChainName,
         String,
     )> = cw_paginate::paginate_map(
         &ACCOUNTS,
@@ -54,18 +54,16 @@ pub fn list_proxies_by_account_id(
     deps: Deps,
     account_id: AccountId,
 ) -> IbcClientResult<ListRemoteProxiesResponse> {
-    let proxies: Vec<(
-        abstract_core::objects::chain_name::ChainName,
-        Option<String>,
-    )> = cw_paginate::paginate_map_prefix(
-        &ACCOUNTS,
-        deps.storage,
-        (account_id.trace(), account_id.seq()),
-        // Not using pagination as there are not a lot of chains.
-        None,
-        None,
-        |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
-    )?;
+    let proxies: Vec<(abstract_std::objects::chain_name::ChainName, Option<String>)> =
+        cw_paginate::paginate_map_prefix(
+            &ACCOUNTS,
+            deps.storage,
+            (account_id.trace(), account_id.seq()),
+            // Not using pagination as there are not a lot of chains.
+            None,
+            None,
+            |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
+        )?;
 
     Ok(ListRemoteProxiesResponse { proxies })
 }

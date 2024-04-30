@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     objects::{
         module::{Module, ModuleInfo},
         module_reference::ModuleReference,

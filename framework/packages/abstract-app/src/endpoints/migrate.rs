@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     app::MigrateMsg,
     objects::module_version::{assert_contract_upgrade, set_module_data},
 };

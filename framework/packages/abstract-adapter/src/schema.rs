@@ -1,10 +1,10 @@
 use std::path::Path;
 
-use abstract_core::{
+use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
+use abstract_std::{
     adapter,
     adapter::{AdapterExecuteMsg, AdapterQueryMsg},
 };
-use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
 use cosmwasm_std::Empty;
 use schemars::JsonSchema;

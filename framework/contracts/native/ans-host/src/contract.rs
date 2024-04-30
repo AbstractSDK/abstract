@@ -1,4 +1,6 @@
-use abstract_core::{
+use abstract_macros::abstract_response;
+use abstract_sdk::query_ownership;
+use abstract_std::{
     ans_host::{
         state::{Config, CONFIG, REGISTERED_DEXES},
         ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -6,8 +8,6 @@ use abstract_core::{
     objects::module_version::assert_contract_upgrade,
     ANS_HOST,
 };
-use abstract_macros::abstract_response;
-use abstract_sdk::query_ownership;
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 use semver::Version;
@@ -121,7 +121,7 @@ mod tests {
     use crate::test_common::*;
 
     mod migrate {
-        use abstract_core::AbstractError;
+        use abstract_std::AbstractError;
         use cw2::get_contract_version;
 
         use super::*;
