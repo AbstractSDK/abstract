@@ -65,6 +65,20 @@ pub enum AbstractSdkError {
         module_id: String,
         error: Box<AbstractError>,
     },
+
+    // Queried address is not a module
+    #[error("Queried address {addr} is not a module: {err}")]
+    NotAModule { addr: Addr, err: String },
+
+    // Queried address is not a module
+    #[error(
+        "Queried address {addr} is a module ({module}) but has the wrong stored address : {err}"
+    )]
+    WrongModuleInfo {
+        addr: Addr,
+        module: String,
+        err: String,
+    },
 }
 
 impl AbstractSdkError {
