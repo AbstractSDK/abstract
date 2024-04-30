@@ -123,7 +123,6 @@ impl CwStakingCommand for Astrovault {
                 Ok(msg)
             })
             .collect::<Result<_, CwStakingError>>()?;
-        dbg!(&stake_msgs);
         Ok(stake_msgs)
     }
 
