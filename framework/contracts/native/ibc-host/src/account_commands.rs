@@ -88,14 +88,16 @@ pub fn receive_dispatch(
         .map(|msg| wasm_execute(&account.manager, &msg, vec![]))
         .collect::<Result<Vec<_>, _>>()?;
 
-    let response = Response::new().add_attribute("action", "receive_dispatch");
+    let response = Response::new()
+        .add_attribute("action", "receive_dispatch")
+        // This is used to forward the data of the calling message
+        // This means that only the last present data of will be forwarded
+        .add_submessages(
+            msgs.into_iter()
+                .map(|m| SubMsg::reply_on_success(m.clone(), RESPONSE_REPLY_ID)),
+        );
 
-    // If there is only one executed message, we want to forward the data that this execution gets
-    Ok(if msgs.len() == 1 {
-        response.add_submessage(SubMsg::reply_on_success(msgs[0].clone(), RESPONSE_REPLY_ID))
-    } else {
-        response.add_messages(msgs)
-    })
+    Ok(response)
 }
 
 /// processes PacketMsg::SendAllBack variant
