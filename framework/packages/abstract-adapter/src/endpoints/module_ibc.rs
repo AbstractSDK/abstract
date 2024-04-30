@@ -1,23 +1,22 @@
-use abstract_sdk::{base::IbcCallbackEndpoint, features::AbstractRegistryAccess};
+use crate::{state::ContractError, AdapterContract};
+use abstract_sdk::{base::ModuleIbcEndpoint, features::AbstractRegistryAccess};
 use abstract_std::{
     objects::module::{ModuleInfo, ModuleVersion},
-    AbstractError, IBC_CLIENT,
+    AbstractError, IBC_HOST,
 };
-use cosmwasm_std::{Addr, Deps};
-
-use crate::{state::ContractError, AdapterContract};
+use cosmwasm_std::Addr;
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    IbcCallbackEndpoint
+    ModuleIbcEndpoint
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
-    fn ibc_client(&self, deps: Deps) -> Result<Addr, Self::Error> {
+    fn ibc_host(&self, deps: cosmwasm_std::Deps) -> Result<Addr, Self::Error> {
         let vc_query_result = self
             .abstract_registry(deps)?
             .query_module(
                 ModuleInfo::from_id(
-                    IBC_CLIENT,
-                    ModuleVersion::from(abstract_ibc_client::contract::CONTRACT_VERSION),
+                    IBC_HOST,
+                    ModuleVersion::from(abstract_ibc_host::contract::CONTRACT_VERSION),
                 )?,
                 &deps.querier,
             )

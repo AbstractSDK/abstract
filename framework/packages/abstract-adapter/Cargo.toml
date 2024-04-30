@@ -34,6 +34,8 @@ abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 # Keep this as a version and update when publishing new versions
 abstract-interface = { path = "../../packages/abstract-interface", version = "0.21.0", optional = true }
+abstract-ibc-client = { version = "0.21.0", path = "../../contracts/native/ibc-client" }
+abstract-ibc-host = { version = "0.21.0", path = "../../contracts/native/ibc-host" }
 
 [dev-dependencies]
 speculoos = { workspace = true }

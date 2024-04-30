@@ -1,4 +1,5 @@
 use abstract_std::{
+    ibc::{CallbackResult, IbcResponseMsg},
     ibc_client::{
         state::{ACCOUNTS, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
@@ -85,6 +86,36 @@ pub fn receive_action_callback(
                     .add_attribute("account_id", account_id.to_string())
                     .add_attribute("chain", host_chain.to_string()),
             )
+        }
+        IbcClientCallback::ModuleRemoteAction {
+            callback_info,
+            sender_address,
+            initiator_msg,
+        } => {
+            let callback = IbcResponseMsg {
+                id: callback_info.id.clone(),
+                msg: callback_info.msg,
+                result: CallbackResult::from_execute(callback.result, initiator_msg)?,
+            };
+            Ok(IbcClientResponse::action("module_action_ibc_callback")
+                .add_message(callback.into_cosmos_msg(sender_address)?)
+                .add_attribute("chain", host_chain.to_string())
+                .add_attribute("callback_id", callback_info.id))
+        }
+        IbcClientCallback::ModuleRemoteQuery {
+            sender_address,
+            callback_info,
+            query,
+        } => {
+            let callback = IbcResponseMsg {
+                id: callback_info.id.clone(),
+                msg: callback_info.msg,
+                result: CallbackResult::from_query(callback.result, query)?,
+            };
+            Ok(IbcClientResponse::action("module_query_ibc_callback")
+                .add_message(callback.into_cosmos_msg(sender_address)?)
+                .add_attribute("chain", host_chain.to_string())
+                .add_attribute("callback_id", callback_info.id))
         }
     }
 }

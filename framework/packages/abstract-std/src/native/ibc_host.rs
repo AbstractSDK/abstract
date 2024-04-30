@@ -8,12 +8,12 @@
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Binary};
 
 use crate::{
-    manager,
-    manager::ModuleInstallConfig,
-    objects::{account::AccountId, chain_name::ChainName, AssetEntry},
+    ibc_client::InstalledModuleIdentification,
+    manager::{self, ModuleInstallConfig},
+    objects::{account::AccountId, chain_name::ChainName, module::ModuleInfo, AssetEntry},
 };
 
 pub mod state {
@@ -126,6 +126,12 @@ pub enum ExecuteMsg {
         /// We include it in all messages one-the-less to simpify the users life
         proxy_address: String,
         action: HostAction,
+    },
+    /// Allows for remote execution from the Polytone implementation on a local module
+    ModuleExecute {
+        source_module: InstalledModuleIdentification,
+        target_module: ModuleInfo,
+        msg: Binary,
     },
 }
 

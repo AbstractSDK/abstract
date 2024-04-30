@@ -93,9 +93,9 @@ mod test {
         objects::{gov_type::GovernanceDetails, UncheckedChannelEntry},
         IBC_CLIENT, ICS20, PROXY,
     };
-    use abstract_testing::prelude::*;
+
     use anyhow::Result as AnyResult;
-    use cosmwasm_std::{coins, wasm_execute, Uint128};
+    use cosmwasm_std::{coins, to_json_binary, wasm_execute, Uint128};
     use cw_orch::mock::cw_multi_test::AppResponse;
     use cw_orch_polytone::Polytone;
     use ibc_relayer_types::core::ics24_host::identifier::PortId;

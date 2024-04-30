@@ -155,7 +155,7 @@ pub mod mock {
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _, _| {
+            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _| {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
 
                 Ok(Response::new().add_attribute("mock_callback", "executed"))

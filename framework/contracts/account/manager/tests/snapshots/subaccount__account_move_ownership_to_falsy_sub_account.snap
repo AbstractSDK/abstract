@@ -164,6 +164,8 @@ expression: all_storage
     - "{\"account_base\":5}"
   - - "\u0000\u0003lib\u0000\babstract\u0000\bans-host0.21.0"
     - "{\"native\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
+  - - "\u0000\u0003lib\u0000\babstract\u0000\bibc-host0.21.0"
+    - "{\"native\":\"mock14ejqjyq8um4p3xfqj74yld5waqljf88fz25yxnma0cngspxe3les6xzvf5\"}"
   - - "\u0000\u0003lib\u0000\babstract\u0000\nibc-client0.21.0"
     - "{\"native\":\"mock1aaf9r6s7nxhysuegqrxv0wpm27ypyv4886medd3mrkrw6t4yfcns7ctvz5\"}"
   - - "\u0000\u0003lib\u0000\babstract\u0000\u000emodule-factory0.21.0"

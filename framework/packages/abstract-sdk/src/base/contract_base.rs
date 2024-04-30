@@ -1,7 +1,7 @@
+use abstract_std::ibc::{IbcResponseMsg, ModuleIbcMsg};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
-use polytone::callbacks::Callback;
 
 use super::handler::Handler;
 use crate::{std::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};
@@ -29,12 +29,17 @@ pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
     fn(Deps, Env, &Module, CustomQueryMsg) -> Result<Binary, Error>;
 // ANCHOR_END: query
 
-type CallbackMessage = Option<Binary>;
 // ANCHOR: ibc
 /// Function signature for an IBC callback handler.
 pub type IbcCallbackHandlerFn<Module, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, CallbackMessage, Callback) -> Result<Response, Error>;
+    fn(DepsMut, Env, MessageInfo, Module, IbcResponseMsg) -> Result<Response, Error>;
 // ANCHOR_END: ibc
+
+// ANCHOR: module_ibc
+/// Function signature for an Module to Module IBC handler.
+pub type ModuleIbcHandlerFn<Module, Error> =
+    fn(DepsMut, Env, Module, ModuleIbcMsg) -> Result<Response, Error>;
+// ANCHOR_END: module_ibc
 
 // ANCHOR: mig
 /// Function signature for a migrate handler.
@@ -94,6 +99,8 @@ pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkEr
     /// IBC callbacks handlers following an IBC action, per callback ID.
     pub(crate) ibc_callback_handlers:
         &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
+    /// Module IBC handler for passing messages between a module on different chains.
+    pub(crate) module_ibc_handler: Option<ModuleIbcHandlerFn<Module, Error>>,
 }
 
 impl<Module, Error: From<AbstractSdkError>> AbstractContract<Module, Error>
@@ -114,6 +121,7 @@ where
             sudo_handler: None,
             instantiate_handler: None,
             query_handler: None,
+            module_ibc_handler: None,
         }
     }
     /// Gets the cw2 version of the contract.
@@ -144,6 +152,15 @@ where
         callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
     ) -> Self {
         self.ibc_callback_handlers = callbacks;
+        self
+    }
+
+    /// add IBC callback handler to contract
+    pub const fn with_module_ibc(
+        mut self,
+        module_handler: ModuleIbcHandlerFn<Module, Error>,
+    ) -> Self {
+        self.module_ibc_handler = Some(module_handler);
         self
     }
 
@@ -360,7 +377,7 @@ mod test {
     fn test_with_ibc_callback_handlers() {
         const IBC_ID: &str = "aoeu";
         const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
-            |_, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
+            |_, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_ibc_callbacks(&[(IBC_ID, HANDLER)]);
 

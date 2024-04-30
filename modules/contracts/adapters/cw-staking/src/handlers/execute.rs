@@ -103,7 +103,6 @@ fn handle_ibc_request(
                 provider: provider_name.clone(),
                 action: action.clone(),
             })?),
-            receiver: info.sender.into_string(),
         })
     };
     let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action)?;

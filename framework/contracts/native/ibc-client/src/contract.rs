@@ -90,6 +90,25 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::Callback(c) => {
             ibc::receive_action_callback(deps, env, info, c).map_err(Into::into)
         }
+        ExecuteMsg::ModuleIbcAction {
+            host_chain,
+            target_module,
+            msg,
+            callback_info,
+        } => commands::execute_send_module_to_module_packet(
+            deps,
+            env,
+            info,
+            host_chain,
+            target_module,
+            msg,
+            callback_info,
+        ),
+        ExecuteMsg::IbcQuery {
+            host_chain,
+            query,
+            callback_info,
+        } => commands::execute_send_query(deps, env, info, host_chain, query, callback_info),
     }
 }
 
@@ -451,6 +470,7 @@ mod tests {
             manager,
             objects::{chain_name::ChainName, version_control::VersionControlError},
         };
+
         use cosmwasm_std::wasm_execute;
 
         use crate::commands::PACKET_LIFETIME;

@@ -2,13 +2,16 @@ use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
     feature_objects::{AnsHost, VersionControlContract},
 };
-use abstract_std::{adapter::InstantiateMsg, objects::module_version::set_module_data};
+use abstract_std::{
+    adapter::{AdapterState, InstantiateMsg},
+    objects::module_version::set_module_data,
+};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::Serialize;
 
-use crate::state::{AdapterContract, ApiState, ContractError};
+use crate::state::{AdapterContract, ContractError};
 
 impl<
         Error: ContractError,
@@ -38,7 +41,7 @@ impl<
         };
 
         // Base state
-        let state = ApiState {
+        let state = AdapterState {
             version_control,
             ans_host,
         };
@@ -61,7 +64,7 @@ mod tests {
         feature_objects::{AnsHost, VersionControlContract},
     };
     use abstract_std::{
-        adapter::{BaseInstantiateMsg, InstantiateMsg},
+        adapter::{AdapterState, BaseInstantiateMsg, InstantiateMsg},
         objects::module_version::{ModuleData, MODULE},
     };
     use abstract_testing::prelude::*;
@@ -72,10 +75,7 @@ mod tests {
     use cw2::{ContractVersion, CONTRACT};
     use speculoos::prelude::*;
 
-    use crate::{
-        mock::{AdapterMockResult, MockInitMsg, MOCK_ADAPTER, MOCK_DEP, TEST_METADATA},
-        state::ApiState,
-    };
+    use crate::mock::{AdapterMockResult, MockInitMsg, MOCK_ADAPTER, MOCK_DEP, TEST_METADATA};
 
     #[test]
     fn successful() -> AdapterMockResult {
@@ -115,7 +115,7 @@ mod tests {
         assert!(none_authorized);
 
         let state = api.base_state.load(&deps.storage)?;
-        assert_that!(state).is_equal_to(ApiState {
+        assert_that!(state).is_equal_to(AdapterState {
             version_control: VersionControlContract {
                 address: Addr::unchecked(TEST_VERSION_CONTROL),
             },
