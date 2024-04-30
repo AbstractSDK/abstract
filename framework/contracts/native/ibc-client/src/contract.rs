@@ -443,9 +443,8 @@ mod tests {
     }
 
     mod remote_action {
-        use std::str::FromStr;
-
         use super::*;
+        use std::str::FromStr;
 
         use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
