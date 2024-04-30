@@ -49,6 +49,6 @@ impl IbcResponseMsg {
 /// This is just a helper to properly serialize the above message.
 /// The actual receiver should include this variant in the larger ExecuteMsg enum
 #[cosmwasm_schema::cw_serde]
-enum IbcCallbackMsg {
+pub(crate) enum IbcCallbackMsg {
     IbcCallback(IbcResponseMsg),
 }

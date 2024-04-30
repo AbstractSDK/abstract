@@ -1,7 +1,6 @@
 pub use abstract_std::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_std::{
     adapter::{self, AdapterBaseMsg},
-    ibc::CallbackInfo,
     ibc_host::{HelperAction, HostAction},
     manager::*,
     module_factory::SimulateInstallModulesResponse,
@@ -222,7 +221,6 @@ impl<Chain: CwEnv> Manager<Chain> {
         &self,
         host_chain: &str,
         msg: ExecuteMsg,
-        callback_info: Option<CallbackInfo>,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
@@ -231,7 +229,6 @@ impl<Chain: CwEnv> Manager<Chain> {
                 action: HostAction::Dispatch {
                     manager_msgs: vec![msg],
                 },
-                callback_info,
             },
         };
 
@@ -243,7 +240,6 @@ impl<Chain: CwEnv> Manager<Chain> {
         host_chain: &str,
         module_id: &str,
         msg: Binary,
-        callback_info: Option<CallbackInfo>,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
@@ -255,7 +251,6 @@ impl<Chain: CwEnv> Manager<Chain> {
                         exec_msg: msg,
                     }],
                 },
-                callback_info,
             },
         };
 
@@ -265,14 +260,12 @@ impl<Chain: CwEnv> Manager<Chain> {
     pub fn send_all_funds_back(
         &self,
         host_chain: &str,
-        callback_info: Option<CallbackInfo>,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: host_chain.into(),
                 action: HostAction::Helpers(HelperAction::SendAllBack),
-                callback_info,
             },
         };
 

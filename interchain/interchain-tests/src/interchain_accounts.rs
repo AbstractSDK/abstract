@@ -72,34 +72,23 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 
 #[cfg(test)]
 mod test {
-    use super::*;
-
     use crate::{
         setup::{ibc_abstract_setup, mock_test::logger_test_init},
         JUNO, OSMOSIS, STARGAZE,
     };
-    use abstract_adapter::mock::interface::MockAdapterI;
-    use abstract_adapter::mock::MockQueryMsgFns as _;
-    use abstract_app::mock::{
-        interface::MockAppWithDepI, mock_app_dependency::interface::MockAppI, MockInitMsg,
-        MockQueryMsgFns, ReceivedIbcCallbackStatus,
-    };
-    use abstract_interface::AdapterDeployer;
-    use abstract_interface::{
-        AbstractAccount, AccountFactoryExecFns, AppDeployer, DeployStrategy, ManagerExecFns,
-        ManagerQueryFns, VCExecFns,
-    };
+
+    use super::*;
+
+    use abstract_interface::AccountFactoryExecFns;
     use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
     use abstract_std::{
         ans_host::ExecuteMsgFns as AnsExecuteMsgFns,
-        ibc::CallbackInfo,
         ibc_client::AccountResponse,
         ibc_host::{
             ExecuteMsg as HostExecuteMsg, ExecuteMsgFns, HelperAction, HostAction, InternalAction,
         },
         manager::{
             state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg, InfoResponse,
-            ModuleAddressesResponse,
         },
         objects::{gov_type::GovernanceDetails, UncheckedChannelEntry},
         IBC_CLIENT, ICS20, PROXY,
@@ -138,7 +127,6 @@ mod test {
                 description: Some(new_description.to_string()),
                 link: Some(new_link.to_string()),
             },
-            None,
         )?;
 
         mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
@@ -173,206 +161,6 @@ mod test {
             account_response
         );
 
-        Ok(())
-    }
-
-    #[test]
-    fn ibc_app_callback() -> AnyResult<()> {
-        logger_test_init();
-        let mock_interchain =
-            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
-
-        // We just verified all steps pass
-        let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-
-        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
-
-        let (origin_account, _remote_account_id) =
-            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
-
-        let app = MockAppWithDepI::new(
-            TEST_WITH_DEP_MODULE_ID,
-            abstr_origin.version_control.get_chain().clone(),
-        );
-
-        let app_dep = MockAppI::new(
-            TEST_MODULE_ID,
-            abstr_origin.version_control.get_chain().clone(),
-        );
-
-        let app_account =
-            abstr_origin
-                .account_factory
-                .create_default_account(GovernanceDetails::Monarchy {
-                    monarch: abstr_origin
-                        .version_control
-                        .get_chain()
-                        .sender()
-                        .into_string(),
-                })?;
-
-        let app_deps_account =
-            abstr_origin
-                .account_factory
-                .create_default_account(GovernanceDetails::Monarchy {
-                    monarch: abstr_origin
-                        .version_control
-                        .get_chain()
-                        .sender()
-                        .into_string(),
-                })?;
-
-        abstr_origin.version_control.claim_namespace(
-            app_account.manager.config()?.account_id,
-            TEST_WITH_DEP_NAMESPACE.to_owned(),
-        )?;
-        abstr_origin.version_control.claim_namespace(
-            app_deps_account.manager.config()?.account_id,
-            TEST_NAMESPACE.to_owned(),
-        )?;
-
-        app.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
-        app_dep.deploy(TEST_VERSION.parse()?, DeployStrategy::Try)?;
-
-        origin_account.install_app(&app_dep, &MockInitMsg {}, None)?;
-        origin_account.install_app(&app, &MockInitMsg {}, None)?;
-        let res: ModuleAddressesResponse = origin_account
-            .manager
-            .module_addresses(vec![TEST_WITH_DEP_MODULE_ID.to_owned()])?;
-
-        assert_eq!(1, res.modules.len());
-
-        let module_address = res.modules[0].1.to_string();
-
-        let new_name = "Funky Crazy Name";
-        let new_description = "Funky new account with wonderful capabilities";
-        let new_link = "https://abstract.money";
-
-        // The user on origin chain wants to change the account description
-        let ibc_action_result = origin_account.manager.execute_on_remote(
-            &remote_name,
-            ManagerExecuteMsg::UpdateInfo {
-                name: Some(new_name.to_string()),
-                description: Some(new_description.to_string()),
-                link: Some(new_link.to_string()),
-            },
-            Some(CallbackInfo {
-                id: String::from("c_id"),
-                msg: None,
-                receiver: module_address,
-            }),
-        )?;
-
-        assert_callback_status(&app, false)?;
-
-        mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
-
-        // Switched to true by the callback.
-        assert_callback_status(&app, true)?;
-
-        Ok(())
-    }
-
-    #[test]
-    fn ibc_adapter_callback() -> AnyResult<()> {
-        logger_test_init();
-        let mock_interchain =
-            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
-
-        // We just verified all steps pass
-        let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-
-        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
-
-        let (origin_account, _remote_account_id) =
-            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
-
-        let adapter = MockAdapterI::new(
-            TEST_MODULE_ID,
-            abstr_origin.version_control.get_chain().clone(),
-        );
-
-        let adapter_account =
-            abstr_origin
-                .account_factory
-                .create_default_account(GovernanceDetails::Monarchy {
-                    monarch: abstr_origin
-                        .version_control
-                        .get_chain()
-                        .sender()
-                        .into_string(),
-                })?;
-
-        abstr_origin.version_control.claim_namespace(
-            adapter_account.manager.config()?.account_id,
-            TEST_NAMESPACE.to_owned(),
-        )?;
-
-        adapter.deploy(
-            TEST_VERSION.parse()?,
-            abstract_adapter::mock::MockInitMsg {},
-            DeployStrategy::Try,
-        )?;
-
-        origin_account.install_adapter(&adapter, None)?;
-        let res: ModuleAddressesResponse = origin_account
-            .manager
-            .module_addresses(vec![TEST_MODULE_ID.to_owned()])?;
-
-        assert_eq!(1, res.modules.len());
-
-        let module_address = res.modules[0].1.to_string();
-
-        let new_name = "Funky Crazy Name";
-        let new_description = "Funky new account with wonderful capabilities";
-        let new_link = "https://abstract.money";
-
-        // The user on origin chain wants to change the account description
-        let ibc_action_result = origin_account.manager.execute_on_remote(
-            &remote_name,
-            ManagerExecuteMsg::UpdateInfo {
-                name: Some(new_name.to_string()),
-                description: Some(new_description.to_string()),
-                link: Some(new_link.to_string()),
-            },
-            Some(CallbackInfo {
-                id: String::from("c_id"),
-                msg: None,
-                receiver: module_address,
-            }),
-        )?;
-
-        assert_adapter_callback_status(&adapter, false)?;
-
-        mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
-
-        // Switched to true by the callback.
-        assert_adapter_callback_status(&adapter, true)?;
-
-        Ok(())
-    }
-
-    fn assert_callback_status(app: &MockAppWithDepI<MockBech32>, status: bool) -> AnyResult<()> {
-        let get_received_ibc_callback_status_res: ReceivedIbcCallbackStatus =
-            app.get_received_ibc_callback_status()?;
-
-        assert_eq!(
-            ReceivedIbcCallbackStatus { received: status },
-            get_received_ibc_callback_status_res
-        );
-        Ok(())
-    }
-
-    fn assert_adapter_callback_status(
-        app: &MockAdapterI<MockBech32>,
-        status: bool,
-    ) -> AnyResult<()> {
-        let get_received_ibc_callback_status_res = app.get_received_ibc_callback_status()?;
-
-        assert_eq!(
-            abstract_adapter::mock::ReceivedIbcCallbackStatus { received: status },
-            get_received_ibc_callback_status_res
-        );
         Ok(())
     }
 
@@ -474,7 +262,6 @@ mod test {
             ManagerExecuteMsg::UpdateSettings {
                 ibc_enabled: Some(true),
             },
-            None,
         )?;
 
         mock_interchain.wait_ibc(JUNO, enable_ibc_tx)?;
@@ -491,7 +278,6 @@ mod test {
                     install_modules: vec![],
                 },
             })?,
-            None,
         )?;
 
         mock_interchain.wait_ibc(JUNO, create_account_remote_tx)?;
@@ -604,7 +390,6 @@ mod test {
                 )?
                 .into()],
             })?,
-            None,
         )?;
 
         // The create remote account tx is passed ?
@@ -950,7 +735,7 @@ mod test {
         // Send all back.
         let send_funds_back_tx = origin_account
             .manager
-            .send_all_funds_back(&ChainName::from_chain_id(STARGAZE).to_string(), None)?;
+            .send_all_funds_back(&ChainName::from_chain_id(STARGAZE).to_string())?;
 
         mock_interchain.wait_ibc(JUNO, send_funds_back_tx)?;
 
