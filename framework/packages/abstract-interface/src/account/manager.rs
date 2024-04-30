@@ -209,7 +209,7 @@ impl<Chain: CwEnv> Manager<Chain> {
                         ModuleInfo::from_id_latest(IBC_CLIENT)?,
                         None,
                     )],
-                }],
+                },
             })?,
             PROXY.to_string(),
             &[],
