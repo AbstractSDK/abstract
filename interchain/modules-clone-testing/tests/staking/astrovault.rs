@@ -137,16 +137,13 @@ impl MockStaking for AstrovaultStake {
     fn mint_lp(&self, addr: &Addr, amount: u128) -> anyhow::Result<()> {
         let chain = &self.chain;
 
-        let funds = coins(amount * 100_000, ASSET_A_DENOM);
+        let funds = coins(amount, ASSET_A_DENOM);
         chain.add_balance(addr, funds.clone())?;
         chain.execute(
             &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
-                assets_amount: vec![Uint128::new(amount * 100_000), Uint128::zero()],
+                assets_amount: vec![Uint128::new(amount), Uint128::zero()],
                 receiver: None,
-                direct_staking: Some(astrovault::standard_pool::handle_msg::DirectStaking {
-                    not_claim_rewards: Some(true),
-                    notify: None,
-                }),
+                direct_staking: None,
             },
             &funds,
             &Addr::unchecked(POOL_ADDR),

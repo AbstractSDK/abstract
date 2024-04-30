@@ -71,16 +71,16 @@ fn native_swap(
     pair_address: Addr,
     offer_asset: Asset,
     ask_asset: AssetInfo,
-    belief_price: Option<Decimal>,
-    max_spread: Option<Decimal>,
 ) -> Result<Vec<CosmosMsg>, DexError> {
     let msgs = match pool_type {
         AstrovaultPoolType::Standard => vec![wasm_execute(
             pair_address.to_string(),
             &astrovault::standard_pool::handle_msg::ExecuteMsg::Swap {
                 offer_asset: cw_asset_to_astrovault(&offer_asset)?,
-                belief_price,
-                max_spread,
+                // Those 2 fields deprecated
+                belief_price: None,
+                max_spread: None,
+                // TODO: can we inherit expected_return from deprecated values?
                 expected_return: None,
                 to: None,
             },
@@ -140,8 +140,6 @@ fn cw20_swap(
     pair_address: Addr,
     offer_asset: &Asset,
     ask_asset: AssetInfo,
-    belief_price: Option<Decimal>,
-    max_spread: Option<Decimal>,
 ) -> Result<Vec<CosmosMsg>, DexError> {
     let msgs = match pool_type {
         AstrovaultPoolType::Standard => vec![wasm_execute(
@@ -150,8 +148,10 @@ fn cw20_swap(
                 contract: pair_address.to_string(),
                 amount: offer_asset.amount,
                 msg: to_json_binary(&astrovault::standard_pool::handle_msg::Cw20HookMsg::Swap {
-                    belief_price,
-                    max_spread,
+                    // Those 2 fields deprecated
+                    belief_price: None,
+                    max_spread: None,
+                    // TODO: can we inherit expected_return from deprecated values?
                     expected_return: None,
                     to: None,
                 })?,
@@ -230,32 +230,19 @@ impl DexCommand for Astrovault {
         pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
-        belief_price: Option<Decimal>,
-        max_spread: Option<Decimal>,
+        _belief_price: Option<Decimal>,
+        _max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
 
         let pool_type = self.fetch_pool_type(deps, &pair_address)?;
         let swap_msg: Vec<CosmosMsg> = match &offer_asset.info {
-            AssetInfo::Native(_) => native_swap(
-                deps,
-                pool_type,
-                pair_address,
-                offer_asset,
-                ask_asset,
-                belief_price,
-                max_spread,
-            )?,
-            AssetInfo::Cw20(addr) => cw20_swap(
-                deps,
-                addr,
-                pool_type,
-                pair_address,
-                &offer_asset,
-                ask_asset,
-                belief_price,
-                max_spread,
-            )?,
+            AssetInfo::Native(_) => {
+                native_swap(deps, pool_type, pair_address, offer_asset, ask_asset)?
+            }
+            AssetInfo::Cw20(addr) => {
+                cw20_swap(deps, addr, pool_type, pair_address, &offer_asset, ask_asset)?
+            }
             _ => panic!("unsupported asset"),
         };
         Ok(swap_msg)
@@ -741,12 +728,6 @@ mod mini_astrovault {
         Standard,
         Stable { is_xasset: bool },
         Ratio,
-    }
-
-    impl AstrovaultPoolType {
-        pub fn is_xasset(&self) -> bool {
-            matches!(self, AstrovaultPoolType::Stable { is_xasset: true })
-        }
     }
 
     #[derive(cosmwasm_schema::serde::Deserialize)]

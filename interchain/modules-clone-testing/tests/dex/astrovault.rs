@@ -174,28 +174,28 @@ mod standard_pool_tests {
         Ok(())
     }
 
-    #[test]
-    // TODO: Something weird inside astrovault contract
-    #[ignore = "Generic error: Generic error: Parsing u256: (bnum) attempt to parse integer from string containing invalid digit"]
-    fn test_swap_slippage() -> anyhow::Result<()> {
-        let dex_tester = setup_standard_pool()?;
-        let pool_response: astrovault::standard_pool::query_msg::PoolResponse =
-            dex_tester.dex.chain.query(
-                &astrovault::standard_pool::query_msg::QueryMsg::Pool {},
-                &dex_tester.dex.pool_addr,
-            )?;
+    // TODO: Slippage got deprecated on astrovault in favor of "expected_return"
+    // #[test]
+    // #[ignore]
+    // fn test_swap_slippage() -> anyhow::Result<()> {
+    //     let dex_tester = setup_standard_pool()?;
+    //     let pool_response: astrovault::standard_pool::query_msg::PoolResponse =
+    //         dex_tester.dex.chain.query(
+    //             &astrovault::standard_pool::query_msg::QueryMsg::Pool {},
+    //             &dex_tester.dex.pool_addr,
+    //         )?;
 
-        let amount_a =
-            astrovault::utils::normalize_amount(&pool_response.assets[1].amount, &6).unwrap();
-        let amount_b =
-            astrovault::utils::normalize_amount(&pool_response.assets[0].amount, &18).unwrap();
+    //     let amount_a =
+    //         astrovault::utils::normalize_amount(&pool_response.assets[1].amount, &6).unwrap();
+    //     let amount_b =
+    //         astrovault::utils::normalize_amount(&pool_response.assets[0].amount, &18).unwrap();
 
-        let belief_price_a_to_b = Decimal::from_ratio(amount_a, amount_b);
-        let belief_price_b_to_a = Decimal::from_ratio(amount_b, amount_a);
+    //     let belief_price_a_to_b = Decimal::from_ratio(amount_a, amount_b);
+    //     let belief_price_b_to_a = Decimal::from_ratio(amount_b, amount_a);
 
-        dex_tester.test_swap_slippage(belief_price_a_to_b, belief_price_b_to_a)?;
-        Ok(())
-    }
+    //     dex_tester.test_swap_slippage(belief_price_a_to_b, belief_price_b_to_a)?;
+    //     Ok(())
+    // }
 
     #[test]
     fn test_provide_liquidity() -> anyhow::Result<()> {
@@ -548,7 +548,57 @@ mod ratio_pool_tests {
     const LIQUIDITY_TOKEN: &str =
         "archway1ql5u34l2uglurzyeq59p434uk7dapj9j4skjh6zxjhed6tupwjmqvxvzyx";
 
+    const PRECISION: Uint128 = Uint128::new(1_000_000);
+
+    use astrovault::utils::{denormalize_amount, normalize_amount};
+    use cosmwasm_std::{coin, coins, Uint128};
+
     use super::*;
+
+    //  Astrovault ratio calculator reference
+    //
+    // export const hybridStakeCheckUnbalancingThreshold = (pool: IPool, amountsToDeposit: bigint[]) => {
+    //   const PRECISION = BigInt(1000000);
+    //
+    //   // normalize the assets_amount
+    //   const assets_amount_normalized = [
+    // normalize_amount(amountsToDeposit[0], pool.assetDecimals[0]),
+    // normalize_amount(amountsToDeposit[1], pool.assetDecimals[1]),
+    //   ];
+    //
+    //   const pools_amount_normalized = [
+    // normalize_amount(pool.poolAssets[0].amount, pool.assetDecimals[0]),
+    // normalize_amount(pool.poolAssets[1].amount, pool.assetDecimals[1]),
+    //   ];
+    //
+    //   const pool0_value = BigInt(pools_amount_normalized[0]);
+    //   const pool1_value = (BigInt(pools_amount_normalized[1]) * BigInt(pool.hybridRatioDetails.ratio)) / PRECISION;
+    //
+    //   const pool_total_value = pool0_value + pool1_value;
+    //
+    //   const asset0_deposit_value = assets_amount_normalized[0];
+    //   const asset1_deposit_value = (assets_amount_normalized[1] * BigInt(pool.hybridRatioDetails.ratio)) / PRECISION;
+    //
+    //   const pool_asset0_after_per =
+    // ((pool0_value + asset0_deposit_value) * PRECISION) /
+    // (pool_total_value + asset0_deposit_value + asset1_deposit_value);
+    //   const pool_asset1_after_per =
+    // ((pool1_value + asset1_deposit_value) * PRECISION) /
+    // (pool_total_value + asset0_deposit_value + asset1_deposit_value);
+    //
+    //   if (pool_asset0_after_per > BigInt(pool.settings.max_deposit_unbalancing_threshold)) {
+    // if (amountsToDeposit[0] > BigInt(0)) {
+    //   return true;
+    // }
+    //   }
+    //   if (pool_asset1_after_per > BigInt(pool.settings.max_deposit_unbalancing_threshold)) {
+    // if (amountsToDeposit[1] > BigInt(0)) {
+    //   return true;
+    // }
+    //   }
+    //
+    //   return false;
+    // };
 
     fn setup_ratio_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
         let chain_info = ARCHWAY_1;
@@ -564,6 +614,54 @@ mod ratio_pool_tests {
             ASSET_B.to_owned(),
             AssetInfoUnchecked::Native(ASSET_B_DENOM.to_owned()),
         );
+        // Normalize ratio pool
+        let ratio: Uint128 = chain.query(
+            &astrovault::ratio_pool::query_msg::QueryMsg::Ratio {},
+            &Addr::unchecked(RATIO_POOL_ADDR),
+        )?;
+        let pool: astrovault::ratio_pool::query_msg::PoolResponse = chain.query(
+            &astrovault::ratio_pool::query_msg::QueryMsg::Pool {},
+            &Addr::unchecked(RATIO_POOL_ADDR),
+        )?;
+        let pool0_value = Uint128::new(normalize_amount(&pool.assets[0].amount, &6).unwrap());
+        let pool1_value =
+            Uint128::new(normalize_amount(&pool.assets[1].amount, &8).unwrap()) * ratio / PRECISION;
+        match pool0_value.cmp(&pool1_value) {
+            std::cmp::Ordering::Less => {
+                let amount = denormalize_amount(&(pool1_value - pool0_value), &6).unwrap();
+                let funds = coins(amount, ASSET_A_DENOM);
+                chain.add_balance(&chain.sender, funds.clone())?;
+                chain.execute(
+                    &astrovault::ratio_pool::handle_msg::ExecuteMsg::Deposit {
+                        assets_amount: [amount.into(), Uint128::zero()],
+                        receiver: None,
+                        direct_staking: None,
+                        expected_return: None,
+                    },
+                    &funds,
+                    &Addr::unchecked(RATIO_POOL_ADDR),
+                )?;
+            }
+            std::cmp::Ordering::Greater => {
+                let amount =
+                    denormalize_amount(&((pool0_value - pool1_value) / ratio * PRECISION), &8)
+                        .unwrap();
+                let funds = coins(amount, ASSET_B_DENOM);
+                chain.add_balance(&chain.sender, funds.clone())?;
+                chain.execute(
+                    &astrovault::ratio_pool::handle_msg::ExecuteMsg::Deposit {
+                        assets_amount: [Uint128::zero(), amount.into()],
+                        receiver: None,
+                        direct_staking: None,
+                        expected_return: None,
+                    },
+                    &funds,
+                    &Addr::unchecked(RATIO_POOL_ADDR),
+                )?;
+            }
+            // Already normalized, no need to do anything
+            std::cmp::Ordering::Equal => (),
+        }
         DexTester::new(
             abstr_deployment,
             AstrovaultDex {
@@ -587,26 +685,29 @@ mod ratio_pool_tests {
     // Skipping slippage swap test as it's not applicable to ratio pool
 
     #[test]
-    #[ignore = "Deposit failed due to unbalance threshold reached: 872084 > 750000"]
     fn test_provide_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_ratio_pool()?;
 
-        // TODO: Can't deposit asset_b, see ignore message
-        dex_tester.test_provide_liquidity_two_sided(Some(1_000_000_000), Some(0))?;
+        let deposit_amount = 10_000_000;
+
+        // Pool is normalized right now so should be fine to provide "non-equal" amounts
+
+        dex_tester.test_provide_liquidity_two_sided(Some(deposit_amount), Some(deposit_amount))?;
         Ok(())
     }
 
     // Skipping slippage provide_liquidity test as it's not applicable to ratio pool
 
     #[test]
-    #[ignore = "Deposit failed due to unbalance threshold reached: 872084 > 750000"]
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_ratio_pool()?;
 
+        let deposit_amount = 10_000_000;
+
         dex_tester.test_withdraw_liquidity(
-            Some(1_000_000_000),
-            Some(0),
-            Some(vec![dex_tester.dex.asset_a.1.clone()]),
+            Some(deposit_amount),
+            Some(deposit_amount),
+            Some(vec![dex_tester.dex.asset_b.1.clone()]),
         )?;
         Ok(())
     }
