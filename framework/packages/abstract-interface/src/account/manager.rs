@@ -1,9 +1,15 @@
 pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_core::{
-    adapter::{self, AdapterBaseMsg}, ibc::CallbackInfo, ibc_host::{HelperAction, HostAction}, manager::*, module_factory::SimulateInstallModulesResponse, objects::{
+    adapter::{self, AdapterBaseMsg},
+    ibc::CallbackInfo,
+    ibc_host::{HelperAction, HostAction},
+    manager::*,
+    module_factory::SimulateInstallModulesResponse,
+    objects::{
         module::{ModuleInfo, ModuleVersion},
         AccountId,
-    }, IBC_CLIENT, MANAGER, PROXY
+    },
+    IBC_CLIENT, MANAGER, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Binary};
 use cw_orch::{interface, prelude::*};
