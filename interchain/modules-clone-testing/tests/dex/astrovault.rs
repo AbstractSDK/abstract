@@ -136,8 +136,6 @@ mod standard_pool_tests {
     const LIQUIDITY_TOKEN: &str =
         "archway1j5vevvsrm5ayqmfvhng7rkkgjqad37pk35j3nanzmevlq4ntwpfqayv6z4";
 
-    use cosmwasm_std::Decimal;
-
     use super::*;
 
     fn setup_standard_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
@@ -551,7 +549,7 @@ mod ratio_pool_tests {
     const PRECISION: Uint128 = Uint128::new(1_000_000);
 
     use astrovault::utils::{denormalize_amount, normalize_amount};
-    use cosmwasm_std::{coin, coins, Uint128};
+    use cosmwasm_std::{coins, Uint128};
 
     use super::*;
 
