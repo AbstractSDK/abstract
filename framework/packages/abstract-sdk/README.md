@@ -32,7 +32,7 @@ The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) Adapter
 
 ```rust,no_run
 use abstract_sdk::{TransferInterface,AbstractSdkResult, Execution, AccountAction};
-use abstract_core::objects::AnsAsset;
+use abstract_std::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
 
 // Trait to retrieve the Splitter object

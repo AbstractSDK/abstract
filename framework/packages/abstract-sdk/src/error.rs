@@ -5,7 +5,7 @@ use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use thiserror::Error;
 
-use crate::core::{objects::AssetEntry, AbstractError};
+use crate::std::{objects::AssetEntry, AbstractError};
 
 /// Error type for the abstract module endpoints.
 #[derive(Error, Debug, PartialEq)]

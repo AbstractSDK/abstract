@@ -4,11 +4,11 @@ pub mod error;
 pub(crate) mod queries;
 mod response;
 
-pub(crate) use abstract_sdk::core::account_factory::state;
+pub(crate) use abstract_sdk::std::account_factory::state;
 
 #[cfg(test)]
 mod test_common {
-    use abstract_core::account_factory::InstantiateMsg;
+    use abstract_std::account_factory::InstantiateMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},

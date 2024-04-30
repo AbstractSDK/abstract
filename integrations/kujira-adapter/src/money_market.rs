@@ -18,8 +18,8 @@ impl Identify for Kujira {
 use ::{
     abstract_money_market_standard::{MoneyMarketCommand, MoneyMarketError},
     abstract_sdk::{
-        core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
         feature_objects::AnsHost,
+        std::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
     },
     cosmwasm_std::{
         coins, wasm_execute, Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, StdError, Uint128,

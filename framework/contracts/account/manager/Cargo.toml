@@ -31,7 +31,7 @@ schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 semver = { workspace = true }
 cw-semver = { workspace = true }
 abstract-macros = { workspace = true }

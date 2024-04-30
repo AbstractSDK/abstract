@@ -1,11 +1,11 @@
 #![warn(missing_docs)]
 //! # Dex Adapter ANS Action Definition
 //!
-use abstract_core::objects::{
+use abstract_sdk::{feature_objects::AnsHost, Resolve};
+use abstract_std::objects::{
     ans_host::AnsHostError, AnsAsset, AnsEntryConvertor, AssetEntry, DexAssetPairing, PoolAddress,
     PoolReference,
 };
-use abstract_sdk::{feature_objects::AnsHost, Resolve};
 use cosmwasm_std::{Decimal, StdError};
 use cw_asset::Asset;
 
@@ -57,7 +57,7 @@ pub fn pool_address(
     assets: (AssetEntry, AssetEntry),
     querier: &cosmwasm_std::QuerierWrapper,
     ans_host: &AnsHost,
-) -> abstract_core::objects::ans_host::AnsHostResult<PoolAddress> {
+) -> abstract_std::objects::ans_host::AnsHostResult<PoolAddress> {
     let dex_pair = DexAssetPairing::new(assets.0, assets.1, &dex);
     let mut pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
     // Currently takes the first pool found, but should be changed to take the best pool
@@ -75,7 +75,7 @@ impl Resolve for WholeDexAction {
         &self,
         querier: &cosmwasm_std::QuerierWrapper,
         ans_host: &abstract_sdk::feature_objects::AnsHost,
-    ) -> abstract_core::objects::ans_host::AnsHostResult<Self::Output> {
+    ) -> abstract_std::objects::ans_host::AnsHostResult<Self::Output> {
         match self.1.clone() {
             DexAnsAction::ProvideLiquidity { assets, max_spread } => {
                 let mut asset_names = assets

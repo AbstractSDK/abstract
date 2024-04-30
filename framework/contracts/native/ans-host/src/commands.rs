@@ -1,4 +1,5 @@
-use abstract_core::{
+use abstract_sdk::execute_update_ownership;
+use abstract_std::{
     ans_host::{state::*, AssetPair, ExecuteMsg},
     objects::{
         pool_id::{PoolAddress, UncheckedPoolAddress},
@@ -8,7 +9,6 @@ use abstract_core::{
         UniquePoolId,
     },
 };
-use abstract_sdk::execute_update_ownership;
 use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
 
@@ -533,7 +533,7 @@ mod test {
     }
 
     mod update_contract_addresses {
-        use abstract_core::{ans_host::ContractMapEntry, objects::ContractEntry};
+        use abstract_std::{ans_host::ContractMapEntry, objects::ContractEntry};
         use abstract_testing::map_tester::CwMapTesterBuilder;
 
         use super::*;
@@ -907,7 +907,7 @@ mod test {
     }
 
     mod update_channels {
-        use abstract_core::objects::ChannelEntry;
+        use abstract_std::objects::ChannelEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
 
         use super::*;
@@ -1088,7 +1088,7 @@ mod test {
     mod update_pools {
         use super::*;
 
-        use abstract_core::{
+        use abstract_std::{
             ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry},
             objects::PoolType,
             AbstractResult,

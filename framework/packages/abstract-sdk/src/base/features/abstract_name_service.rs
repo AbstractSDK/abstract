@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     ans_host::{
         AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, QueryMsg,
         RegisteredDexesResponse,

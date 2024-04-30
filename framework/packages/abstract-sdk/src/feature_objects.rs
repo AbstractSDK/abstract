@@ -4,13 +4,13 @@
 //! These objects are mostly used internally to easy re-use application code without
 //! requiring the usage of a base contract.
 
-pub use abstract_core::objects::{ans_host::AnsHost, version_control::VersionControlContract};
-use abstract_core::version_control::AccountBase;
+pub use abstract_std::objects::{ans_host::AnsHost, version_control::VersionControlContract};
+use abstract_std::version_control::AccountBase;
 use cosmwasm_std::{Addr, Deps};
 
 use crate::{
-    core::PROXY,
     features::{AccountIdentification, ModuleIdentification},
+    std::PROXY,
     AbstractSdkResult,
 };
 

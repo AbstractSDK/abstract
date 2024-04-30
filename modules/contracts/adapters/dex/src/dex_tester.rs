@@ -1,6 +1,8 @@
 use crate::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-use abstract_client::{AbstractClient, ClientResolve, Environment};
-use abstract_core::{
+use abstract_adapter::abstract_interface::{
+    AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns,
+};
+use abstract_adapter::std::{
     adapter,
     objects::{
         module::{ModuleInfo, ModuleVersion},
@@ -8,13 +10,13 @@ use abstract_core::{
         AnsAsset, AssetEntry, LpToken, PoolMetadata,
     },
 };
+use abstract_client::{AbstractClient, ClientResolve, Environment};
 use abstract_dex_standard::{
     ans_action::DexAnsAction,
     msg::{
         DexExecuteMsg, DexFeesResponse, DexQueryMsg, GenerateMessagesResponse, SimulateSwapResponse,
     },
 };
-use abstract_interface::{AdapterDeployer, DeployStrategy, ExecuteMsgFns, VCExecFns};
 use cosmwasm_std::{coins, from_json, BankMsg, CosmosMsg, Decimal, Uint128, WasmMsg};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{environment::MutCwEnv, prelude::*};

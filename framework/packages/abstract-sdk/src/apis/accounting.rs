@@ -1,7 +1,7 @@
 //! # Accountant
 //! The Accountant object provides function for querying balances and asset values for the Account.
 
-use abstract_core::{
+use abstract_std::{
     objects::{
         oracle::{self, AccountValue},
         AssetEntry,

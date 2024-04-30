@@ -1,13 +1,14 @@
-use abstract_core::objects::{
+use abstract_adapter::sdk::{
+    features::{AbstractNameService, AccountIdentification},
+    AccountVerification, Execution, ModuleRegistryInterface,
+};
+use abstract_adapter::std::objects::{
     account::AccountTrace,
     namespace::{Namespace, ABSTRACT_NAMESPACE},
     AccountId,
 };
 use abstract_money_market_standard::{
     ans_action::MoneyMarketActionResolveWrapper, raw_action::MoneyMarketRawAction, MoneyMarketError,
-};
-use abstract_sdk::{
-    features::AbstractNameService, AccountVerification, Execution, ModuleRegistryInterface,
 };
 use cosmwasm_std::{ensure_eq, DepsMut, Env, MessageInfo, Response};
 
@@ -18,8 +19,6 @@ use crate::{
     platform_resolver,
     state::MONEY_MARKET_FEES,
 };
-
-use abstract_sdk::features::AccountIdentification;
 
 pub fn execute_handler(
     deps: DepsMut,

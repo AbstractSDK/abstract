@@ -1,5 +1,5 @@
 #![allow(unused)]
-use abstract_core::objects::AnsAsset;
+use abstract_std::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
 
 use super::{AbstractApi, ApiIdentification};
@@ -70,7 +70,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 
 #[cfg(test)]
 mod test {
-    use abstract_core::objects::AnsAsset;
+    use abstract_std::objects::AnsAsset;
     use cosmwasm_std::{testing::mock_dependencies, Addr, CosmosMsg, Response, StdError, Uint128};
 
     use crate::{

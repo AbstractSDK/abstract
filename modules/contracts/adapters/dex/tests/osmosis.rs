@@ -2,7 +2,7 @@
 
 use std::format;
 
-use abstract_core::{
+use abstract_adapter::std::{
     adapter,
     ans_host::ExecuteMsgFns,
     objects::{

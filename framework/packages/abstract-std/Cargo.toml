@@ -1,5 +1,5 @@
 [package]
-name = "abstract-core"
+name = "abstract-std"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }

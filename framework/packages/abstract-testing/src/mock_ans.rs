@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     ans_host::{
         state::{
             ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,

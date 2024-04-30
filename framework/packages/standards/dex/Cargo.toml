@@ -32,7 +32,7 @@ cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 cw-orch = { workspace = true, optional = true }

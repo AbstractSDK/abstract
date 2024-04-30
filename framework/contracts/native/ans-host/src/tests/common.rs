@@ -1,4 +1,4 @@
-use abstract_core::ans_host::ExecuteMsg;
+use abstract_std::ans_host::ExecuteMsg;
 use cosmwasm_std::{
     testing::{mock_env, mock_info},
     DepsMut,
