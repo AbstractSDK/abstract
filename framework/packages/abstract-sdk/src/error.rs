@@ -69,7 +69,7 @@ pub enum AbstractSdkError {
     },
 
     // Queried address is not a module
-    #[error("Queried address {addr} is not a module : {err}")]
+    #[error("Queried address {addr} is not a module: {err}")]
     NotAModule { addr: Addr, err: String },
 
     // Queried address is not a module
