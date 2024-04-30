@@ -1,15 +1,9 @@
 pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_core::{
-    adapter::{self, AdapterBaseMsg},
-    ibc::CallbackInfo,
-    ibc_host::{HelperAction, HostAction},
-    manager::*,
-    module_factory::SimulateInstallModulesResponse,
-    objects::{
+    adapter::{self, AdapterBaseMsg}, ibc::CallbackInfo, ibc_host::{HelperAction, HostAction}, manager::*, module_factory::SimulateInstallModulesResponse, objects::{
         module::{ModuleInfo, ModuleVersion},
         AccountId,
-    },
-    MANAGER, PROXY,
+    }, IBC_CLIENT, MANAGER, PROXY
 };
 use cosmwasm_std::{to_json_binary, Binary};
 use cw_orch::{interface, prelude::*};
@@ -205,7 +199,10 @@ impl<Chain: CwEnv> Manager<Chain> {
                     host_chain: host_chain.into(),
                     base_asset: None,
                     namespace: None,
-                    install_modules: vec![],
+                    install_modules: vec![ModuleInstallConfig::new(
+                        ModuleInfo::from_id_latest(IBC_CLIENT)?,
+                        None,
+                    )],
                 }],
             })?,
             PROXY.to_string(),

@@ -86,9 +86,12 @@ pub fn instantiate(
     INFO.save(deps.storage, &account_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
-    let proxy_addr = deps.api.addr_validate(&msg.proxy_addr)?;
     // Add proxy to modules
-    ACCOUNT_MODULES.save(deps.storage, PROXY, &proxy_addr)?;
+    ACCOUNT_MODULES.save(
+        deps.storage,
+        PROXY,
+        &deps.api.addr_validate(&msg.proxy_addr)?,
+    )?;
 
     // Set owner
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner.as_str()))?;
@@ -115,11 +118,6 @@ pub fn instantiate(
             .add_message(add_to_proxy)
             .add_submessage(install_msg)
             .add_attribute(install_attribute.key, install_attribute.value);
-    }
-
-    if msg.account_id.is_remote() {
-        let install_client_msg = install_ibc_client(deps.branch(), proxy_addr)?;
-        response = response.add_message(install_client_msg);
     }
 
     // Register on manager if it's sub-account
