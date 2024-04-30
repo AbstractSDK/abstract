@@ -1,12 +1,4 @@
-use abstract_core::{
-    manager::{
-        state::{ACCOUNT_MODULES, PENDING_GOVERNANCE},
-        UpdateSubAccountAction,
-    },
-    objects::gov_type::GovernanceDetails,
-    PROXY,
-};
-use abstract_sdk::core::{
+use abstract_sdk::std::{
     manager::{
         state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -17,6 +9,14 @@ use abstract_sdk::core::{
     },
     proxy::state::ACCOUNT_ID,
     MANAGER,
+};
+use abstract_std::{
+    manager::{
+        state::{ACCOUNT_MODULES, PENDING_GOVERNANCE},
+        UpdateSubAccountAction,
+    },
+    objects::gov_type::GovernanceDetails,
+    PROXY,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
@@ -298,7 +298,7 @@ mod tests {
     use crate::{contract, test_common::mock_init};
 
     mod migrate {
-        use abstract_core::AbstractError;
+        use abstract_std::AbstractError;
         use cw2::get_contract_version;
 
         use super::*;

@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use abstract_core::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
+use abstract_std::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 use abstract_interface::{
     Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns,
@@ -41,7 +41,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
             namespace: None,
             account_id: None,
         },
-        abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
+        abstract_std::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: abstr_origin
                 .version_control
                 .get_chain()
@@ -72,13 +72,16 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 
 #[cfg(test)]
 mod test {
-    use super::*;
-
     use crate::{
         setup::{ibc_abstract_setup, mock_test::logger_test_init},
         JUNO, OSMOSIS, STARGAZE,
     };
-    use abstract_core::{
+
+    use super::*;
+
+    use abstract_interface::AccountFactoryExecFns;
+    use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
+    use abstract_std::{
         ans_host::ExecuteMsgFns as AnsExecuteMsgFns,
         ibc_client::AccountResponse,
         ibc_host::{
@@ -88,12 +91,9 @@ mod test {
             state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg, InfoResponse,
         },
         objects::{gov_type::GovernanceDetails, UncheckedChannelEntry},
-        ICS20, PROXY,
+        IBC_CLIENT, ICS20, PROXY,
     };
-    use abstract_interface::{
-        AbstractAccount, AccountFactoryExecFns, ManagerExecFns, ManagerQueryFns,
-    };
-    use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
+
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary, wasm_execute, Uint128};
     use cw_orch::mock::cw_multi_test::AppResponse;
@@ -149,7 +149,7 @@ mod test {
             abstr_origin
                 .ibc
                 .client
-                .query(&abstract_core::ibc_client::QueryMsg::Account {
+                .query(&abstract_std::ibc_client::QueryMsg::Account {
                     chain: ChainName::from_chain_id(STARGAZE).to_string(),
                     account_id: AccountId::new(1, AccountTrace::Local)?,
                 })?;
@@ -236,7 +236,7 @@ mod test {
                     namespace: None,
                     account_id: None,
                 },
-                abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
+                abstract_std::objects::gov_type::GovernanceDetails::Monarchy {
                     monarch: abstr_origin
                         .version_control
                         .get_chain()
@@ -270,8 +270,8 @@ mod test {
         let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
             &ChainName::from_chain_id(STARGAZE).to_string(),
             PROXY,
-            to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
+            to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
+                msgs: vec![abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: ChainName::from_chain_id(OSMOSIS).to_string(),
                     base_asset: None,
                     namespace: None,
@@ -322,9 +322,9 @@ mod test {
         let (origin_account, remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
 
+        // We assert the account was created with the right properties
         let remote_abstract_account =
             AbstractAccount::new(&abstr_remote, remote_account_id.clone());
-
         let manager_config = remote_abstract_account.manager.config()?;
         assert_eq!(
             manager_config,
@@ -344,10 +344,10 @@ mod test {
         assert_eq!(
             manager_info,
             InfoResponse {
-                info: abstract_core::manager::state::AccountInfo {
+                info: abstract_std::manager::state::AccountInfo {
                     name: account_name,
                     governance_details:
-                        abstract_core::objects::gov_type::GovernanceDetails::External {
+                        abstract_std::objects::gov_type::GovernanceDetails::External {
                             governance_address: abstr_remote.ibc.host.address()?,
                             governance_type: "abstract-ibc".to_string()
                         },
@@ -357,6 +357,12 @@ mod test {
                 }
             }
         );
+        // We make sure the ibc client is installed on the remote account
+        let installed_remote_modules = remote_abstract_account.manager.module_infos(None, None)?;
+        assert!(installed_remote_modules
+            .module_infos
+            .iter()
+            .any(|m| m.id == IBC_CLIENT));
 
         // We try to execute a message from the proxy contract (account creation for instance)
 
@@ -365,10 +371,10 @@ mod test {
         let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
             &ChainName::from_chain_id(STARGAZE).to_string(),
             PROXY,
-            to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+            to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
                 msgs: vec![wasm_execute(
                     abstr_remote.account_factory.address()?,
-                    &abstract_core::account_factory::ExecuteMsg::CreateAccount {
+                    &abstract_std::account_factory::ExecuteMsg::CreateAccount {
                         governance: GovernanceDetails::Monarchy {
                             monarch: abstr_remote.version_control.address()?.to_string(),
                         },
@@ -702,8 +708,8 @@ mod test {
         // Send funds from juno to stargaze.
         let send_funds_tx = origin_account.manager.execute_on_module(
             PROXY,
-            abstract_core::proxy::ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendFunds {
+            abstract_std::proxy::ExecuteMsg::IbcAction {
+                msgs: vec![abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     funds: coins(10, origin_denom),
                     host_chain: ChainName::from_chain_id(STARGAZE).to_string(),
                 }],

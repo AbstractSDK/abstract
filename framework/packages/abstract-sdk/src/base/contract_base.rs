@@ -1,10 +1,10 @@
-use abstract_core::ibc::{IbcCallbackMsg, ModuleIbcMsg};
+use abstract_std::ibc::{IbcResponseMsg, ModuleIbcMsg};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 
 use super::handler::Handler;
-use crate::{core::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};
+use crate::{std::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};
 
 pub type ModuleId = &'static str;
 /// Version of the contract in str format.
@@ -32,7 +32,7 @@ pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
 // ANCHOR: ibc
 /// Function signature for an IBC callback handler.
 pub type IbcCallbackHandlerFn<Module, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, IbcCallbackMsg) -> Result<Response, Error>;
+    fn(DepsMut, Env, MessageInfo, Module, IbcResponseMsg) -> Result<Response, Error>;
 // ANCHOR_END: ibc
 
 // ANCHOR: module_ibc

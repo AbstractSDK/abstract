@@ -1,5 +1,5 @@
 use crate::{base::Handler, AbstractSdkError};
-use abstract_core::ibc::IbcCallbackMsg;
+use abstract_std::ibc::IbcResponseMsg;
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
 
 /// Trait for a contract's IBC callback ExecuteMsg variant.
@@ -13,7 +13,7 @@ pub trait IbcCallbackEndpoint: Handler {
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: IbcCallbackMsg,
+        msg: IbcResponseMsg,
     ) -> Result<Response, Self::Error> {
         let ibc_client = self.ibc_client(deps.as_ref())?;
 

@@ -1,10 +1,10 @@
 use std::path::Path;
 
-use abstract_core::{
+use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
+use abstract_std::{
     adapter,
     adapter::{AdapterExecuteMsg, AdapterQueryMsg},
 };
-use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
 use cosmwasm_std::Empty;
 use schemars::JsonSchema;
@@ -16,7 +16,7 @@ impl<
         Error: From<cosmwasm_std::StdError>
             + From<AdapterError>
             + From<abstract_sdk::AbstractSdkError>
-            + From<abstract_core::AbstractError>
+            + From<abstract_std::AbstractError>
             + 'static,
         CustomExecMsg: Serialize + JsonSchema + AdapterExecuteMsg,
         CustomInitMsg: Serialize + JsonSchema,

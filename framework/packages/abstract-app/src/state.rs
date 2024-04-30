@@ -1,12 +1,12 @@
-use abstract_core::{
-    objects::{dependency::StaticDependency, nested_admin::NestedAdmin},
-    AbstractError,
-};
 use abstract_sdk::{
     base::{ModuleIbcHandlerFn, SudoHandlerFn},
     feature_objects::{AnsHost, VersionControlContract},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
+};
+use abstract_std::{
+    objects::{dependency::StaticDependency, nested_admin::NestedAdmin},
+    AbstractError,
 };
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw_storage_plus::Item;

@@ -1,9 +1,9 @@
 use abstract_app::{
-    abstract_core::{
+    sdk::AbstractSdkError,
+    std::{
         objects::{validation::ValidationError, voting::VoteError},
         AbstractError,
     },
-    abstract_sdk::AbstractSdkError,
     AppError as AbstractAppError,
 };
 use cosmwasm_std::{StdError, Timestamp};

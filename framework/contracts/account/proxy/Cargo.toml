@@ -21,7 +21,7 @@ export = []
 
 
 [dependencies]
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cosmwasm-std = { workspace = true, features = ["stargate"] }

@@ -1,8 +1,9 @@
 use crate::{state::ContractError, AdapterContract};
-use abstract_core::objects::module::ModuleVersion;
-use abstract_core::IBC_HOST;
-use abstract_core::{objects::module::ModuleInfo, AbstractError};
 use abstract_sdk::{base::ModuleIbcEndpoint, features::AbstractRegistryAccess};
+use abstract_std::{
+    objects::module::{ModuleInfo, ModuleVersion},
+    AbstractError, IBC_HOST,
+};
 use cosmwasm_std::Addr;
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>

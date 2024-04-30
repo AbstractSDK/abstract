@@ -1,5 +1,5 @@
-use abstract_core::objects::ContractEntry;
-use abstract_sdk::{prelude::*, AbstractNameServiceClient, AbstractSdkResult};
+use abstract_app::sdk::{prelude::*, AbstractNameServiceClient, AbstractSdkResult};
+use abstract_app::std::objects::ContractEntry;
 use cosmwasm_std::{coin, Addr, Api, Coin, Deps};
 use croncat_sdk_manager::msg::ManagerQueryMsg;
 use cw20::Cw20CoinVerified;
@@ -17,7 +17,7 @@ pub(crate) fn assert_module_installed(
     let modules = app.modules(deps);
     let module_addr = modules.module_address(&contract_version.contract)?;
     if module_addr != contract_addr {
-        Err(abstract_core::AbstractError::AppNotInstalled(contract_version.contract).into())
+        Err(abstract_app::std::AbstractError::AppNotInstalled(contract_version.contract).into())
     } else {
         Ok(())
     }

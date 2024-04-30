@@ -1,8 +1,10 @@
-use abstract_core::ibc::CallbackInfo;
-use abstract_core::objects::chain_name::ChainName;
-use abstract_sdk::feature_objects::AnsHost;
-use abstract_sdk::features::{AbstractNameService, AbstractResponse, AccountIdentification};
-use abstract_sdk::{IbcInterface, Resolve};
+use abstract_adapter::sdk::{
+    feature_objects::AnsHost,
+    features::{AbstractNameService, AbstractResponse, AccountIdentification},
+    IbcInterface, Resolve,
+};
+use abstract_adapter::std::ibc::CallbackInfo;
+use abstract_adapter::std::objects::chain_name::ChainName;
 use abstract_staking_standard::msg::{
     ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
 };
@@ -77,8 +79,8 @@ fn handle_ibc_request(
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
     // construct the action to be called on the host
-    let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
-        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+    let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
+        manager_msg: abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
             module_id: CW_STAKING_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(
                 &StakingExecuteMsg {

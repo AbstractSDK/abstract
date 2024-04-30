@@ -9,3 +9,4 @@ Currently, available modules to build with:
 - [CW Staking](./cw-staking.md)
 - [Dex](./dex.md)
 - [Subscription](./subscription.md)
+- [Lending Markets](./lending-market.md)

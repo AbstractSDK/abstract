@@ -31,7 +31,7 @@ thiserror = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 

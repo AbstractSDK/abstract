@@ -1,21 +1,16 @@
-pub(crate) use abstract_core::objects::namespace::ABSTRACT_NAMESPACE;
-use abstract_core::{
+use abstract_macros::abstract_response;
+use abstract_sdk::{execute_update_ownership, query_ownership};
+pub(crate) use abstract_std::objects::namespace::ABSTRACT_NAMESPACE;
+use abstract_std::{
     objects::namespace::Namespace,
     version_control::{state::NAMESPACES_INFO, Config},
 };
-use abstract_macros::abstract_response;
-use abstract_sdk::{
-    core::{
-        objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
-        version_control::{
-            state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-        },
-        VERSION_CONTROL,
-    },
-    execute_update_ownership, query_ownership,
+use abstract_std::{
+    objects::ABSTRACT_ACCOUNT_ID,
+    version_control::{state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg},
+    VERSION_CONTROL,
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
-use cw_semver::Version;
 
 use crate::{commands::*, error::VCError, queries};
 
@@ -27,44 +22,12 @@ pub type VCResult<T = Response> = Result<T, VCError>;
 pub struct VcResponse;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
-    let to_version: Version = CONTRACT_VERSION.parse()?;
-
-    let vc_addr_raw = deps.storage.get(b"fac");
-    if let Some(vc_addr) = vc_addr_raw {
-        let vc_addr: Option<cosmwasm_std::Addr> = cosmwasm_std::from_json(vc_addr)?;
-
-        CONFIG.update(deps.storage, |mut cfg| {
-            // Save factory address to a new place
-            cfg.account_factory_address = vc_addr;
-            // Check if fee requires in migration
-            if cfg
-                .namespace_registration_fee
-                .as_ref()
-                .map(|fee| fee.amount.is_zero())
-                .unwrap_or(false)
-            {
-                // registration_fee is Option now, but was 0 in previous version
-                cfg.namespace_registration_fee = None;
-            }
-            VCResult::Ok(cfg)
-        })?;
-    }
-    // Remove old factory
-    deps.storage.remove(b"fac");
-
-    assert_cw_contract_upgrade(deps.storage, VERSION_CONTROL, to_version)?;
-    cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
-    Ok(VcResponse::action("migrate"))
-}
-
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: InstantiateMsg) -> VCResult {
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
 
     let InstantiateMsg {
         admin,
-        allow_direct_module_registration_and_updates,
+        security_disabled,
         namespace_registration_fee,
     } = msg;
 
@@ -73,8 +36,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: Instantiat
         &Config {
             // Account factory should be set by `update_config`
             account_factory_address: None,
-            allow_direct_module_registration_and_updates:
-                allow_direct_module_registration_and_updates.unwrap_or(false),
+            security_disabled: security_disabled.unwrap_or(false),
             namespace_registration_fee,
         },
     )?;
@@ -118,13 +80,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         } => add_account(deps, info, account_id, base, namespace),
         ExecuteMsg::UpdateConfig {
             account_factory_address,
-            allow_direct_module_registration_and_updates,
+            security_disabled,
             namespace_registration_fee,
         } => update_config(
             deps,
             info,
             account_factory_address,
-            allow_direct_module_registration_and_updates,
+            security_disabled,
             namespace_registration_fee,
         ),
         ExecuteMsg::UpdateOwnership(action) => {
@@ -150,8 +112,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             let config = CONFIG.load(deps.storage)?;
             to_json_binary(&ConfigResponse {
                 account_factory_address: config.account_factory_address,
-                allow_direct_module_registration_and_updates: config
-                    .allow_direct_module_registration_and_updates,
+                security_disabled: config.security_disabled,
                 namespace_registration_fee: config.namespace_registration_fee,
             })
         }
@@ -180,12 +141,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
 
 #[cfg(test)]
 mod tests {
-    use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
+    use abstract_std::objects::ABSTRACT_ACCOUNT_ID;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::{contract, testing::*};
+    use crate::testing::*;
 
     mod instantiate {
         use super::*;
@@ -206,18 +167,19 @@ mod tests {
     }
 
     mod migrate {
-        use abstract_core::AbstractError;
+        use abstract_std::{version_control::MigrateMsg, AbstractError};
+        use cw_semver::Version;
 
         use super::*;
 
         #[test]
         fn disallow_same_version() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_old_init(deps.as_mut())?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res).is_err().is_equal_to(VCError::Abstract(
                 AbstractError::CannotDowngradeContract {
@@ -233,14 +195,14 @@ mod tests {
         #[test]
         fn disallow_downgrade() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_old_init(deps.as_mut())?;
 
             let big_version = "999.999.999";
             cw2::set_contract_version(deps.as_mut().storage, VERSION_CONTROL, big_version)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res).is_err().is_equal_to(VCError::Abstract(
                 AbstractError::CannotDowngradeContract {
@@ -256,13 +218,13 @@ mod tests {
         #[test]
         fn disallow_name_change() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_old_init(deps.as_mut())?;
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
             cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-            let res = migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res).is_err().is_equal_to(VCError::Abstract(
                 AbstractError::ContractNameMismatch {
@@ -277,7 +239,7 @@ mod tests {
         #[test]
         fn works() -> VCResult<()> {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            mock_old_init(deps.as_mut())?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -288,7 +250,7 @@ mod tests {
             .to_string();
             cw2::set_contract_version(deps.as_mut().storage, VERSION_CONTROL, small_version)?;
 
-            let res = migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
             assert_that!(res.messages).has_length(0);
 
             assert_that!(cw2::get_contract_version(&deps.storage)?.version)

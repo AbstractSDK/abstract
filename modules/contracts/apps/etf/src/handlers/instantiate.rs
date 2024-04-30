@@ -1,4 +1,4 @@
-use abstract_core::objects::fee::Fee;
+use abstract_app::std::objects::fee::Fee;
 use cosmwasm_std::{
     to_json_binary, Addr, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg, WasmMsg,
 };

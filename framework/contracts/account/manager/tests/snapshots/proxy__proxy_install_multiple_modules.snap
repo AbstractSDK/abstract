@@ -113,7 +113,7 @@ expression: all_storage
   - - "\u0000\u0007nmspc_a\u0000\u0005local\u0000\u0004\u0000\u0000\u0000\u0000abstract"
     - "8"
   - - cfg
-    - "{\"account_factory_address\":\"mock17p9rzwnnfxcjp32un9ug7yhhzgtkhvl9jfksztgw5uh69wac2pgszycl2y\",\"allow_direct_module_registration_and_updates\":true,\"namespace_registration_fee\":null}"
+    - "{\"account_factory_address\":\"mock17p9rzwnnfxcjp32un9ug7yhhzgtkhvl9jfksztgw5uh69wac2pgszycl2y\",\"security_disabled\":true,\"namespace_registration_fee\":null}"
   - - contract_info
     - "{\"contract\":\"abstract:version-control\",\"version\":\"0.21.0\"}"
   - - ownership

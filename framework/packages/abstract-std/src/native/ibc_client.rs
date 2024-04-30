@@ -334,7 +334,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::app::ExecuteMsg;
-    use crate::ibc::{CallbackResult, IbcCallbackMsg};
+    use crate::ibc::{CallbackResult, IbcResponseMsg};
 
     // ... (other test functions)
 
@@ -346,7 +346,7 @@ mod tests {
 
         let result = CallbackResult::FatalError("ibc execution error".to_string());
 
-        let response_msg = IbcCallbackMsg {
+        let response_msg = IbcResponseMsg {
             id: callback_id,
             msg: Some(callback_msg),
             result,

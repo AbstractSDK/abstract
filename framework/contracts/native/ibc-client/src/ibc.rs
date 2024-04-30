@@ -1,12 +1,11 @@
-use abstract_core::{
-    ibc::{CallbackResult, IbcCallbackMsg},
+use abstract_std::{
+    ibc::{CallbackResult, IbcResponseMsg},
     ibc_client::{
-        state::{IBC_INFRA, REVERSE_POLYTONE_NOTE},
+        state::{ACCOUNTS, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
     objects::chain_name::ChainName,
 };
-use abstract_sdk::core::ibc_client::state::ACCOUNTS;
 use cosmwasm_std::{from_json, Attribute, DepsMut, Env, MessageInfo};
 use polytone::callbacks::{Callback, CallbackMessage};
 
@@ -93,7 +92,7 @@ pub fn receive_action_callback(
             sender_address,
             initiator_msg,
         } => {
-            let callback = IbcCallbackMsg {
+            let callback = IbcResponseMsg {
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
                 result: CallbackResult::from_execute(callback.result, initiator_msg)?,
@@ -108,7 +107,7 @@ pub fn receive_action_callback(
             callback_info,
             query,
         } => {
-            let callback = IbcCallbackMsg {
+            let callback = IbcResponseMsg {
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
                 result: CallbackResult::from_query(callback.result, query)?,

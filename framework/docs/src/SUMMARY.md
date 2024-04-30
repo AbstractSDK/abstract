@@ -47,6 +47,7 @@
 - [Modules](./modules/index.md)
     - [CW Staking](./modules/cw-staking.md)
     - [Dex](./modules/dex.md)
+    - [Lending Market](./modules/lending-market.md)
     - [Subscription](./modules/subscription.md)
 
 # Case Studies

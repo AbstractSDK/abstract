@@ -1,5 +1,5 @@
-pub use abstract_core::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
-use abstract_core::{
+pub use abstract_std::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
+use abstract_std::{
     objects::{
         module::{Module, ModuleInfo, ModuleStatus, ModuleVersion},
         module_reference::ModuleReference,
@@ -27,7 +27,7 @@ impl<Chain: CwEnv> Uploadable for VersionControl<Chain> {
                 ::version_control::contract::instantiate,
                 ::version_control::contract::query,
             )
-            .with_migrate(::version_control::contract::migrate),
+            .with_migrate(::version_control::migrate::migrate),
         )
     }
     fn wasm(&self) -> WasmPath {

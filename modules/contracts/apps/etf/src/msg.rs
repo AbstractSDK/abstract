@@ -28,7 +28,7 @@
 //!                         name: ETF.into(),
 //!                         version: None,
 //!                     },
-//!                     kind: crate::core::modules::ModuleKind::External,
+//!                     kind: crate::std::modules::ModuleKind::External,
 //!                 },
 //!                 init_msg: Some(to_json_binary(&etf_init_msg).unwrap()),
 //!        };

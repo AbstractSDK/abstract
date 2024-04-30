@@ -23,7 +23,7 @@ pub struct CallbackInfo {
 
 /// IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg
 #[cosmwasm_schema::cw_serde]
-pub struct IbcCallbackMsg {
+pub struct IbcResponseMsg {
     /// The ID chosen by the caller in the `callback_info.id`
     pub id: String,
     /// The msg sent with the callback request.
@@ -32,7 +32,7 @@ pub struct IbcCallbackMsg {
     pub result: CallbackResult,
 }
 
-impl IbcCallbackMsg {
+impl IbcResponseMsg {
     /// serializes the message
     pub fn into_json_binary(self) -> StdResult<Binary> {
         let msg = ExecuteMsg::IbcCallback::<Empty, Empty>(self);

@@ -1,10 +1,10 @@
 use std::str::FromStr;
 
-use abstract_core::{
+use abstract_sdk::{feature_objects::VersionControlContract, std::ibc_host::ExecuteMsg};
+use abstract_std::{
     ibc_host::state::{CHAIN_PROXIES, CONFIG, REVERSE_CHAIN_PROXIES},
     objects::chain_name::ChainName,
 };
-use abstract_sdk::{core::ibc_host::ExecuteMsg, feature_objects::VersionControlContract};
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
 use super::packet::{handle_host_action, handle_host_module_action};

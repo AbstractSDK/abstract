@@ -1,4 +1,6 @@
-use abstract_core::{
+use abstract_macros::abstract_response;
+use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_std::{
     ibc_client::{state::*, *},
     objects::{
         ans_host::AnsHost,
@@ -6,8 +8,6 @@ use abstract_core::{
     },
     IBC_CLIENT,
 };
-use abstract_macros::abstract_response;
-use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
@@ -225,7 +225,7 @@ mod tests {
         use super::*;
 
         use crate::contract;
-        use abstract_core::AbstractError;
+        use abstract_std::AbstractError;
 
         #[test]
         fn disallow_same_version() -> IbcClientResult<()> {
@@ -323,7 +323,7 @@ mod tests {
     mod register_infrastructure {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
+        use abstract_std::objects::chain_name::ChainName;
         use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
 
@@ -465,8 +465,8 @@ mod tests {
 
     mod remote_action {
         use super::*;
-        use crate::commands::PACKET_LIFETIME;
-        use abstract_core::{
+
+        use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
             objects::{chain_name::ChainName, version_control::VersionControlError},
@@ -474,6 +474,8 @@ mod tests {
 
         use cosmwasm_std::wasm_execute;
         use std::str::FromStr;
+
+        use crate::commands::PACKET_LIFETIME;
 
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
@@ -600,7 +602,7 @@ mod tests {
         use super::*;
 
         use crate::commands::PACKET_LIFETIME;
-        use abstract_core::{
+        use abstract_std::{
             objects::{chain_name::ChainName, version_control::VersionControlError, ChannelEntry},
             ICS20,
         };
@@ -687,7 +689,7 @@ mod tests {
         use super::*;
 
         use crate::commands::PACKET_LIFETIME;
-        use abstract_core::{
+        use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
             objects::{
@@ -817,7 +819,7 @@ mod tests {
     mod update_config {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
+        use abstract_std::objects::chain_name::ChainName;
 
         use super::*;
 
@@ -911,7 +913,7 @@ mod tests {
     mod remove_host {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
+        use abstract_std::objects::chain_name::ChainName;
 
         use super::*;
 
@@ -968,7 +970,7 @@ mod tests {
     mod callback {
         use std::str::FromStr;
 
-        use abstract_core::objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName};
+        use abstract_std::objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName};
         use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
         use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
 
@@ -1349,7 +1351,7 @@ mod tests {
 
         use std::str::FromStr;
 
-        use abstract_core::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
+        use abstract_std::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
 
         #[test]
         fn works_with_multiple_local_accounts() -> IbcClientTestResult {

@@ -1,8 +1,8 @@
-use abstract_core::{
+use abstract_sdk::{base::ModuleIbcEndpoint, features::AbstractRegistryAccess};
+use abstract_std::{
     objects::module::{ModuleInfo, ModuleVersion},
     AbstractError, IBC_HOST,
 };
-use abstract_sdk::{base::ModuleIbcEndpoint, features::AbstractRegistryAccess};
 use cosmwasm_std::Addr;
 
 use crate::{state::ContractError, AppContract};

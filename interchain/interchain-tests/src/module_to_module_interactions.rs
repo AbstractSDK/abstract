@@ -1,5 +1,5 @@
-pub use abstract_core::app;
-use abstract_core::{
+pub use abstract_std::app;
+use abstract_std::{
     ibc::{CallbackInfo, CallbackResult, ModuleIbcMsg},
     ibc_client::{self, InstalledModuleIdentification},
     objects::module::ModuleInfo,
@@ -89,7 +89,7 @@ pub enum MockError {
     DappError(#[from] AppError),
 
     #[error("{0}")]
-    Abstract(#[from] abstract_core::AbstractError),
+    Abstract(#[from] abstract_std::AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),
@@ -307,10 +307,10 @@ pub mod test {
         JUNO, STARGAZE,
     };
     use abstract_app::objects::{chain_name::ChainName, module::ModuleInfo};
-    use abstract_core::manager::{self, ModuleInstallConfig};
     use abstract_interface::{
         AppDeployer, DeployStrategy, Manager, ManagerQueryFns, VCExecFns, VCQueryFns,
     };
+    use abstract_std::manager::{self, ModuleInstallConfig};
     use abstract_testing::addresses::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION};
     use anyhow::Result as AnyResult;
     use base64::{engine::general_purpose, Engine};
@@ -594,7 +594,7 @@ pub mod test {
     }
 
     pub mod security {
-        use abstract_core::ibc_client::{ExecuteMsgFns, InstalledModuleIdentification};
+        use abstract_std::ibc_client::{ExecuteMsgFns, InstalledModuleIdentification};
 
         use crate::module_to_module_interactions::IbcModuleToModuleMsg;
 

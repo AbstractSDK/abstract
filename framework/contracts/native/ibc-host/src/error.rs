@@ -1,8 +1,8 @@
-use abstract_core::{
+use abstract_sdk::AbstractSdkError;
+use abstract_std::{
     objects::{ans_host::AnsHostError, version_control::VersionControlError, AccountId},
     AbstractError,
 };
-use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_ownable::OwnershipError;
 use cw_utils::ParseReplyError;

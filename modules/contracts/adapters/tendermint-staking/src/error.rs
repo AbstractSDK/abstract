@@ -1,6 +1,6 @@
+use abstract_adapter::sdk::AbstractSdkError;
+use abstract_adapter::std::AbstractError;
 use abstract_adapter::AdapterError;
-use abstract_core::AbstractError;
-use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use thiserror::Error;
 

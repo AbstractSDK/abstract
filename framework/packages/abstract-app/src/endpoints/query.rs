@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
     objects::{
         module_version::{ModuleDataResponse, MODULE},
@@ -42,7 +42,7 @@ impl<
     }
 }
 /// Where we dispatch the queries for the AppContract
-/// These BaseQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
+/// These BaseQueryMsg declarations can be found in `abstract_sdk::std::common_module::app_msg`
 impl<
         Error: ContractError,
         CustomInitMsg,
@@ -172,7 +172,7 @@ mod test {
     mod base_query {
         use super::*;
 
-        use abstract_core::app::{AppConfigResponse, BaseQueryMsg};
+        use abstract_std::app::{AppConfigResponse, BaseQueryMsg};
         use abstract_testing::prelude::*;
         use cosmwasm_std::Addr;
         use cw_controllers::AdminResponse;

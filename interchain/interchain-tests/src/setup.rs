@@ -57,7 +57,7 @@ pub fn ibc_connect_polytone_and_abstract<Chain: IbcQueryHandler, IBC: Interchain
 
 #[cfg(test)]
 pub mod mock_test {
-    use abstract_core::{
+    use abstract_std::{
         ibc_client::QueryMsgFns, ibc_host::QueryMsgFns as _, objects::chain_name::ChainName,
     };
 

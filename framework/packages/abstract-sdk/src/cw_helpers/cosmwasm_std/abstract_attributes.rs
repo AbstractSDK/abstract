@@ -1,4 +1,4 @@
-use abstract_core::ABSTRACT_EVENT_TYPE;
+use abstract_std::ABSTRACT_EVENT_TYPE;
 use cosmwasm_std::{Attribute, Event, Response};
 
 /// Trait for adding `abstract` attributes to something
