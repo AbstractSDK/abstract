@@ -21,7 +21,6 @@ impl Display for EndpointError {
     }
 }
 /// Error type for the abstract sdk crate.
-#[allow(clippy::large_enum_variant)]
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractSdkError {
     #[error("Abstract Account error in the sdk: {0}")]
