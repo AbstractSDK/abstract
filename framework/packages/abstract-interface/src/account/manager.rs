@@ -9,7 +9,7 @@ use abstract_std::{
         module::{ModuleInfo, ModuleVersion},
         AccountId,
     },
-    MANAGER, PROXY,
+    IBC_CLIENT, MANAGER, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Binary};
 use cw_orch::{interface, prelude::*};
@@ -205,7 +205,10 @@ impl<Chain: CwEnv> Manager<Chain> {
                     host_chain: host_chain.into(),
                     base_asset: None,
                     namespace: None,
-                    install_modules: vec![],
+                    install_modules: vec![ModuleInstallConfig::new(
+                        ModuleInfo::from_id_latest(IBC_CLIENT)?,
+                        None,
+                    )],
                 }],
             })?,
             PROXY.to_string(),
