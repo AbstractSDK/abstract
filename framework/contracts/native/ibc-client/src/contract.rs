@@ -472,7 +472,6 @@ mod tests {
         };
 
         use cosmwasm_std::wasm_execute;
-        use std::str::FromStr;
 
         use crate::commands::PACKET_LIFETIME;
 
