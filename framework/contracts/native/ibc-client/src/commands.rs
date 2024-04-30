@@ -7,13 +7,20 @@ use abstract_sdk::{
     ModuleRegistryInterface, Resolve,
 };
 use abstract_std::{
-    app::AppState, ibc::CallbackInfo, ibc_client::{
+    app::AppState,
+    ibc::CallbackInfo,
+    ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback, InstalledModuleIdentification,
-    }, ibc_host::{self, HostAction, InternalAction}, manager::{self, ModuleInstallConfig}, objects::{
+    },
+    ibc_host::{self, HostAction, InternalAction},
+    manager::{self, ModuleInstallConfig},
+    objects::{
         chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
         AssetEntry, ChannelEntry,
-    }, version_control::AccountBase, ICS20
+    },
+    version_control::AccountBase,
+    ICS20,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg,
