@@ -2,7 +2,8 @@ use std::str::FromStr;
 
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::AccountIdentification, Resolve,
+    features::AccountIdentification,
+    Resolve,
 };
 use abstract_std::{
     ibc_client::{
