@@ -84,7 +84,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             &abstract_std::version_control::ExecuteMsg::UpdateConfig {
                 account_factory_address: Some(deployment.account_factory.address()?.into_string()),
                 namespace_registration_fee: None,
-                allow_direct_module_registration_and_updates: None,
+                security_disabled: None,
             },
             None,
         )?;
@@ -198,9 +198,9 @@ impl<Chain: CwEnv> Abstract<Chain> {
             &abstract_std::version_control::InstantiateMsg {
                 admin: admin.to_string(),
                 #[cfg(feature = "integration")]
-                allow_direct_module_registration_and_updates: Some(true),
+                security_disabled: Some(true),
                 #[cfg(not(feature = "integration"))]
-                allow_direct_module_registration_and_updates: Some(false),
+                security_disabled: Some(false),
                 namespace_registration_fee: None,
             },
             Some(&admin),
