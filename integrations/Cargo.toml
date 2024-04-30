@@ -6,6 +6,8 @@ members = [
   "osmosis-adapter",
   "wyndex-adapter",
   "kujira-adapter",
+  "mars-adapter",
+  "cavern-adapter",
 ]
 
 resolver = "2"
@@ -55,22 +57,25 @@ semver = "1.0"
 abstract-interface = { version = "0.21.0" }
 abstract-adapter = { version = "0.21.0" }
 abstract-sdk = { version = "0.21.0" }
-abstract-core = { version = "0.21.0" }
+abstract-std = { version = "0.21.0" }
 
 abstract-adapter-utils = { version = "0.21.0" }
 abstract-dex-standard = { version = "0.21.0" }
+# abstract-money-market-standard = { version = "0.21.0" }
+abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 abstract-staking-standard = { version = "0.21.0" }
 
 # TODO: REMOVE As soon as new dex-standard published
 [patch.crates-io]
-abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
-abstract-core = { path = "../framework/packages/abstract-core" }
+abstract-std = { path = "../framework/packages/abstract-std" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
+abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
+abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

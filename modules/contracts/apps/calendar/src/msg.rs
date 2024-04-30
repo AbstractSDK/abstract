@@ -1,4 +1,4 @@
-use abstract_core::objects::AssetEntry;
+use abstract_app::std::objects::AssetEntry;
 use chrono::NaiveTime;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Int64, Uint128};
@@ -115,7 +115,7 @@ pub enum CalendarQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum CalendarMigrateMsg {}
+pub struct CalendarMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {

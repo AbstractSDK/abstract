@@ -1,17 +1,19 @@
 mod common;
 
-use abstract_core::{
+use abstract_adapter::abstract_interface::{
+    Abstract, AbstractAccount, AdapterDeployer, DeployStrategy,
+};
+use abstract_adapter::std::{
     adapter::BaseQueryMsgFns,
     objects::{module_version::ModuleDataResponse, AnsAsset, AssetEntry},
 };
 use abstract_cw_staking::{
     contract::CONTRACT_VERSION, interface::CwStakingAdapter, msg::StakingQueryMsgFns,
 };
-use abstract_interface::{Abstract, AbstractAccount, AdapterDeployer, DeployStrategy};
 use abstract_staking_standard::msg::{
     Claim, RewardTokensResponse, StakingInfo, StakingInfoResponse, UnbondingResponse,
 };
-use cosmwasm_std::{coin, Empty, Uint128};
+use cosmwasm_std::{coin, Uint128};
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::AssetInfoBase;

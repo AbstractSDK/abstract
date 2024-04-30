@@ -13,19 +13,6 @@ fi
 
 starting_dir=$(pwd)
 
-echo "Wasming app-template"
-cd ./app-template
-
-# Delete all the current wasms first
-rm -rf ./artifacts/*.wasm
-# Optimized builds
-docker run --rm -v "$(pwd)":/code \
---mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
---mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-${image}:0.14.0
-
-cd $starting_dir
-
 echo "Wasming framework"
 cd ./framework
 

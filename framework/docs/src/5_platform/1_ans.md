@@ -17,7 +17,7 @@ The ANS is a smart contract that stores the following data:
 The ANS contract state layout is defined here. It consists of key-value mappings for the different entries.
 
 ```rust,no_run
-{{#include ../../../packages/abstract-core/src/native/ans_host.rs:ans_state}}
+{{#include ../../../packages/abstract-std/src/native/ans_host.rs:ans_state}}
 ```
 
 ```admonish info

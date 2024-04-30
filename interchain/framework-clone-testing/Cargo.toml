@@ -1,0 +1,26 @@
+[package]
+name = "abstract-framework-clone-testing"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lib]
+
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+
+cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch-clone-testing = { workspace = true }
+
+abstract-std = { workspace = true, features = ["interface"] }
+abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-testing = { workspace = true }
+abstract-client = { workspace = true }
+abstract-interface = { workspace = true }
+abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
+
+tokio = { workspace = true }
+anyhow = { workspace = true }
+env_logger = "0.10.0"
+lazy_static = "1.4.0"

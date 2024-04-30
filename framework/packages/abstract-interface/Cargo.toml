@@ -22,7 +22,8 @@ cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
-abstract-core = { workspace = true, features = ["interface"] }
+cw-address-like = { workspace = true }
+abstract-std = { workspace = true, features = ["interface"] }
 
 cw-orch = { workspace = true }
 log = "0.4.14"

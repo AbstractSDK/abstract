@@ -51,32 +51,34 @@ tokio = { version = "1.4", features = ["full"] }
 abstract-interface = { version = "0.21.0" }
 abstract-adapter = { version = "0.21.0" }
 abstract-app = { version = "0.21.0" }
-abstract-sdk = { version = "0.21.0" }
 abstract-testing = { version = "0.21.0" }
-abstract-core = { version = "0.21.0" }
 abstract-macros = { version = "0.21.0" }
 abstract-client = { version = "0.21.0" }
 
 abstract-adapter-utils = { version = "0.21.0" }
 abstract-dex-standard = { version = "0.21.0" }
 abstract-staking-standard = { version = "0.21.0" }
+# abstract-money-market-standard = { version = "0.21.0" }
+abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
 # Integrations
 abstract-wyndex-adapter = { path = "../integrations/wyndex-adapter", default-features = false }
 abstract-osmosis-adapter = { path = "../integrations/osmosis-adapter", default-features = false }
 abstract-astroport-adapter = { path = "../integrations/astroport-adapter", default-features = false }
 abstract-kujira-adapter = { path = "../integrations/kujira-adapter", default-features = false }
+abstract-mars-adapter = { path = "../integrations/mars-adapter", default-features = false }
+abstract-cavern-adapter = { path = "../integrations/cavern-adapter", default-features = false }
 abstract-astrovault-adapter = { path = "../integrations/astrovault-adapter", default-features = false }
 
 wyndex-bundle = { path = "../integrations/bundles/wyndex" }
 
 ## Modules
-croncat-app = { path = "./contracts/apps/croncat" }
-challenge-app = { path = "./contracts/apps/challenge" }
-etf-app = { path = "./contracts/apps/etf" }
-dca-app = { path = "./contracts/apps/dca" }
-abstract-cw-staking = { path = "./contracts/adapters/cw-staking" }
-abstract-dex-adapter = { path = "./contracts/adapters/dex" }
+croncat-app = { path = "./contracts/apps/croncat", default-features = false }
+challenge-app = { path = "./contracts/apps/challenge", default-features = false }
+etf-app = { path = "./contracts/apps/etf", default-features = false }
+dca-app = { path = "./contracts/apps/dca", default-features = false }
+abstract-cw-staking = { path = "./contracts/adapters/cw-staking", default-features = false }
+abstract-dex-adapter = { path = "./contracts/adapters/dex", default-features = false }
 
 ## Testing
 rstest = "0.17.0"
@@ -90,10 +92,11 @@ abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
-abstract-core = { path = "../framework/packages/abstract-core" }
+abstract-std = { path = "../framework/packages/abstract-std" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
+abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
 

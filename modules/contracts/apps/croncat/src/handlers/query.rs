@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use abstract_sdk::features::AbstractNameService;
+use abstract_app::sdk::features::AbstractNameService;
 use cosmwasm_std::{to_json_binary, Addr, Binary, Deps, Env, QuerierWrapper, StdResult};
 use croncat_integration_utils::{task_creation::get_croncat_contract, MANAGER_NAME, TASKS_NAME};
 use croncat_sdk_manager::{msg::ManagerQueryMsg, types::TaskBalanceResponse};

@@ -1,8 +1,10 @@
 mod common;
 
-use abstract_core::{
+use abstract_interface::{
+    AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
+};
+use abstract_std::{
     account_factory,
-    ans_host::ExecuteMsgFns,
     objects::{
         account::AccountTrace, gov_type::GovernanceDetails, namespace::Namespace, AccountId,
         AssetEntry,
@@ -11,13 +13,9 @@ use abstract_core::{
     version_control::{AccountBase, NamespaceInfo, NamespaceResponse},
     ABSTRACT_EVENT_TYPE,
 };
-use abstract_interface::{
-    AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
-};
 use abstract_testing::prelude::*;
-use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoBase};
-use cw_orch::prelude::{MockBech32, *};
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
@@ -79,7 +77,7 @@ fn create_one_account() -> AResult {
     assert_that!(&factory_config).is_equal_to(&expected);
 
     let vc_config = version_control.config()?;
-    let expected = abstract_core::version_control::ConfigResponse {
+    let expected = abstract_std::version_control::ConfigResponse {
         account_factory_address: Some(factory.address()?),
         allow_direct_module_registration_and_updates: true,
         namespace_registration_fee: Default::default(),
@@ -155,7 +153,7 @@ fn create_two_account_s() -> AResult {
     assert_that!(&factory_config).is_equal_to(&expected);
 
     let vc_config = version_control.config()?;
-    let expected = abstract_core::version_control::ConfigResponse {
+    let expected = abstract_std::version_control::ConfigResponse {
         account_factory_address: Some(factory.address()?),
         allow_direct_module_registration_and_updates: true,
         namespace_registration_fee: Default::default(),
@@ -220,7 +218,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let account_config = account_1.manager.config()?;
 
-    assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
+    assert_that!(account_config).is_equal_to(abstract_std::manager::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
@@ -256,7 +254,7 @@ fn sender_is_not_admin_external() -> AResult {
     let account = AbstractAccount::new(&deployment, TEST_ACCOUNT_ID);
     let account_config = account.manager.config()?;
 
-    assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
+    assert_that!(account_config).is_equal_to(abstract_std::manager::ConfigResponse {
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
         version_control_address: version_control.address()?,

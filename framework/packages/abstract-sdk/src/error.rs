@@ -5,7 +5,7 @@ use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use thiserror::Error;
 
-use crate::core::{objects::AssetEntry, AbstractError};
+use crate::std::{objects::AssetEntry, AbstractError};
 
 /// Error type for the abstract module endpoints.
 #[derive(Error, Debug, PartialEq)]
@@ -64,6 +64,20 @@ pub enum AbstractSdkError {
         api: String,
         module_id: String,
         error: Box<AbstractError>,
+    },
+
+    // Queried address is not a module
+    #[error("Queried address {addr} is not a module: {err}")]
+    NotAModule { addr: Addr, err: String },
+
+    // Queried address is not a module
+    #[error(
+        "Queried address {addr} is a module ({module}) but has the wrong stored address : {err}"
+    )]
+    WrongModuleInfo {
+        addr: Addr,
+        module: String,
+        err: String,
     },
 }
 

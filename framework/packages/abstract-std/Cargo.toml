@@ -1,0 +1,45 @@
+[package]
+name = "abstract-std"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+description = "Abstract contract interfaces and storage layouts"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/AbstractSDK/abstract"
+
+
+[features]
+interface = ["dep:cw-orch"]
+# for quicker tests, cargo test --lib
+
+[dependencies]
+cosmwasm-std = { workspace = true, features = ["iterator"] }
+cosmwasm-schema = { workspace = true }
+thiserror = { workspace = true }
+schemars = { workspace = true }
+cw-utils = { workspace = true }
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+serde = { workspace = true }
+cw-semver = { workspace = true, features = ["serde"] }
+semver = { workspace = true, features = ["serde"] }
+cw-asset = { workspace = true }
+cw-address-like = { workspace = true }
+cw2 = { workspace = true }
+cw20 = { workspace = true }
+cw-orch = { workspace = true, optional = true }
+cw-ownable = { workspace = true }
+polytone = { workspace = true }
+sha2 = { version = "0.10.8", default-features = false }
+cw-clearable = { workspace = true }
+
+## Stringify function names
+function_name = { version = "0.3.0" }
+
+[dev-dependencies]
+speculoos = { workspace = true }
+rstest = { workspace = true }
+anyhow = { workspace = true }
+abstract-testing = { path = "../abstract-testing" }
+cw20-base = { workspace = true }

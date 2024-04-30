@@ -1,26 +1,40 @@
-use abstract_sdk::{
+use abstract_app::sdk::{
     features::{AbstractResponse, AccountIdentification},
     Execution,
 };
-use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Env, Reply};
-use croncat_integration_utils::reply_handler::reply_handle_croncat_task_creation;
+use cosmwasm_std::{
+    from_json, wasm_execute, CosmosMsg, DepsMut, Env, Reply, StdError, SubMsgResponse, SubMsgResult,
+};
 use croncat_sdk_manager::msg::ManagerExecuteMsg;
 
 use crate::{
     contract::{CroncatApp, CroncatResult},
+    error::AppError,
     state::{ACTIVE_TASKS, REMOVED_TASK_MANAGER_ADDR, TEMP_TASK_KEY},
     utils::user_balance_nonempty,
 };
 
 pub fn create_task_reply(deps: DepsMut, _env: Env, app: CroncatApp, reply: Reply) -> CroncatResult {
-    let (task, bin) = reply_handle_croncat_task_creation(reply)?;
+    let SubMsgResult::Ok(SubMsgResponse { data: Some(b), .. }) = reply.result else {
+        return Err(AppError::Std(StdError::generic_err(
+            "Failed to create a task",
+        )));
+    };
+
+    let proxy_execution_response = cw_utils::parse_execute_response_data(&b)?
+        .data
+        .unwrap_or_default();
+    let task_bin = cw_utils::parse_execute_response_data(&proxy_execution_response.0)?
+        .data
+        .unwrap_or_default();
+    let task: croncat_integration_utils::CronCatTaskExecutionInfo = from_json(&task_bin)?;
     let key = TEMP_TASK_KEY.load(deps.storage)?;
     ACTIVE_TASKS.save(deps.storage, key, &(task.task_hash.clone(), task.version))?;
 
     Ok(app
         .response("create_task_reply")
         .add_attribute("task_hash", task.task_hash)
-        .set_data(bin))
+        .set_data(task_bin))
 }
 
 pub fn task_remove_reply(

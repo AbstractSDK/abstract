@@ -19,7 +19,7 @@ full_integration = [
 ]
 
 [dependencies]
-astroport = { version = "3.6.1", optional = true }
+astroport = { version = "3.11.1", optional = true }
 lazy_static = "1.4.0"
 
 cosmwasm-std = { workspace = true }

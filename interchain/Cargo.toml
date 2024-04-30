@@ -1,5 +1,10 @@
 [workspace]
-members = ["scripts", "tests"]
+members = [
+  "scripts",
+  "interchain-tests",
+  "framework-clone-testing",
+  "modules-clone-testing",
+]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -60,12 +65,13 @@ cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git
 cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { path = "../framework/packages/abstract-interface" }
+abstract-interface = { version = "0.21.0", path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.21.0", path = "../framework/packages/abstract-sdk" }
-abstract-core = { version = "0.21.0", path = "../framework/packages/abstract-core" }
+abstract-std = { version = "0.21.0", path = "../framework/packages/abstract-std" }
 abstract-app = { version = "0.21.0", path = "../framework/packages/abstract-app" }
 abstract-adapter = { version = "0.21.0", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.21.0", path = "../framework/packages/abstract-testing" }
+abstract-client = { version = "0.21.0", path = "../framework/packages/abstract-client" }
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat", features = [
   "interface",
@@ -81,6 +87,9 @@ abstract-cw-staking = { path = "../modules/contracts/adapters/cw-staking", featu
 abstract-dex-adapter = { path = "../modules/contracts/adapters/dex", features = [
   "interface",
 ] }
+abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market", features = [
+  "interface",
+] }
 
 ## Testing
 rstest = "0.17.0"
@@ -92,9 +101,10 @@ anyhow = "1"
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
+abstract-client = { path = "../framework/packages/abstract-client" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
-abstract-core = { path = "../framework/packages/abstract-core" }
+abstract-std = { path = "../framework/packages/abstract-std" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }

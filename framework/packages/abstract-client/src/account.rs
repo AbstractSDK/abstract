@@ -21,7 +21,11 @@
 //! ```
 use std::fmt::{Debug, Display};
 
-use abstract_core::{
+use abstract_interface::{
+    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
+    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+};
+use abstract_std::{
     ibc_client,
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
@@ -36,13 +40,9 @@ use abstract_core::{
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
-    PROXY,
+    IBC_CLIENT, PROXY,
 };
-use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
-};
-use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
@@ -474,16 +474,16 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<()> {
         self.abstr_account.manager.upgrade(vec![
             (
-                ModuleInfo::from_id(abstract_core::registry::MANAGER, version.clone())?,
+                ModuleInfo::from_id(abstract_std::registry::MANAGER, version.clone())?,
                 Some(
-                    to_json_binary(&abstract_core::manager::MigrateMsg {})
+                    to_json_binary(&abstract_std::manager::MigrateMsg {})
                         .map_err(Into::<CwOrchError>::into)?,
                 ),
             ),
             (
-                ModuleInfo::from_id(abstract_core::registry::PROXY, version)?,
+                ModuleInfo::from_id(abstract_std::registry::PROXY, version)?,
                 Some(
-                    to_json_binary(&abstract_core::proxy::MigrateMsg {})
+                    to_json_binary(&abstract_std::proxy::MigrateMsg {})
                         .map_err(Into::<CwOrchError>::into)?,
                 ),
             ),
@@ -508,7 +508,7 @@ impl<Chain: CwEnv> Account<Chain> {
                 GovernanceDetails::SubAccount { manager, .. } => {
                     governance = environment
                         .query::<_, InfoResponse>(
-                            &abstract_core::manager::QueryMsg::Info {},
+                            &abstract_std::manager::QueryMsg::Info {},
                             manager,
                         )
                         .map_err(|err| err.into())?
@@ -535,9 +535,9 @@ impl<Chain: CwEnv> Account<Chain> {
         self.abstr_account
             .manager
             .execute(
-                &abstract_core::manager::ExecuteMsg::ExecOnModule {
+                &abstract_std::manager::ExecuteMsg::ExecOnModule {
                     module_id: PROXY.to_owned(),
-                    exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+                    exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
                         msgs,
                     })
                     .map_err(AbstractInterfaceError::from)?,
@@ -560,14 +560,22 @@ impl<Chain: CwEnv> Account<Chain> {
         host_chain: impl Into<String>,
         base_asset: Option<AssetEntry>,
         namespace: Option<String>,
-        install_modules: Vec<ModuleInstallConfig>,
+        mut install_modules: Vec<ModuleInstallConfig>,
     ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+        // We add the IBC Client by default in the modules installed on the remote account
+        if !install_modules.iter().any(|m| m.module.id() == IBC_CLIENT) {
+            install_modules.push(ModuleInstallConfig::new(
+                ModuleInfo::from_id_latest(IBC_CLIENT)?,
+                None,
+            ));
+        }
+
         self.abstr_account
             .manager
             .execute(
-                &abstract_core::manager::ExecuteMsg::ExecOnModule {
+                &abstract_std::manager::ExecuteMsg::ExecOnModule {
                     module_id: PROXY.to_owned(),
-                    exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
+                    exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
                         msgs: vec![ibc_client::ExecuteMsg::Register {
                             host_chain: host_chain.into(),
                             base_asset,

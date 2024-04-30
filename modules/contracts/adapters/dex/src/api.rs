@@ -1,14 +1,14 @@
 use crate::DEX_ADAPTER_ID;
-use abstract_core::objects::{module::ModuleId, AnsAsset, AssetEntry, PoolAddress};
+use abstract_adapter::sdk::{
+    features::{AccountIdentification, Dependencies, ModuleIdentification},
+    AbstractSdkResult, AdapterInterface,
+};
+use abstract_adapter::std::objects::{module::ModuleId, AnsAsset, AssetEntry, PoolAddress};
 use abstract_dex_standard::msg::GenerateMessagesResponse;
 use abstract_dex_standard::{
     ans_action::DexAnsAction,
     msg::{DexExecuteMsg, DexName, DexQueryMsg, SimulateSwapResponse},
     raw_action::DexRawAction,
-};
-use abstract_sdk::{
-    features::{AccountIdentification, Dependencies, ModuleIdentification},
-    AbstractSdkResult, AdapterInterface,
 };
 use cosmwasm_schema::serde::de::DeserializeOwned;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps};
@@ -79,10 +79,10 @@ pub mod raw {
         }
 
         /// Executes a [DexRawAction] in th DEX
-        fn request(&self, action: DexRawAction) -> AbstractSdkResult<CosmosMsg> {
+        fn execute(&self, action: DexRawAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
-            adapters.request(
+            adapters.execute(
                 self.dex_module_id(),
                 DexExecuteMsg::RawAction {
                     dex: self.dex_name(),
@@ -100,7 +100,7 @@ pub mod raw {
             belief_price: Option<Decimal>,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexRawAction::Swap {
+            self.execute(DexRawAction::Swap {
                 offer_asset: offer_asset.into(),
                 ask_asset: ask_asset.into(),
                 belief_price,
@@ -116,7 +116,7 @@ pub mod raw {
             max_spread: Option<Decimal>,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexRawAction::ProvideLiquidity {
+            self.execute(DexRawAction::ProvideLiquidity {
                 assets: assets.into_iter().map(Into::into).collect(),
                 pool: pool.into(),
                 max_spread,
@@ -130,7 +130,7 @@ pub mod raw {
             paired_assets: Vec<AssetInfo>,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexRawAction::ProvideLiquiditySymmetric {
+            self.execute(DexRawAction::ProvideLiquiditySymmetric {
                 offer_asset: offer_asset.into(),
                 paired_assets: paired_assets.into_iter().map(Into::into).collect(),
                 pool: pool.into(),
@@ -143,7 +143,7 @@ pub mod raw {
             lp_token: Asset,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexRawAction::WithdrawLiquidity {
+            self.execute(DexRawAction::WithdrawLiquidity {
                 lp_token: lp_token.into(),
                 pool: pool.into(),
             })
@@ -203,10 +203,6 @@ pub mod raw {
 }
 
 pub mod ans {
-    use cosmwasm_schema::serde::de::DeserializeOwned;
-
-    use self::raw::Dex;
-
     use super::*;
 
     #[derive(Clone)]
@@ -244,10 +240,10 @@ pub mod ans {
         }
 
         /// Executes a [DexAction] in th DEX
-        fn request(&self, action: DexAnsAction) -> AbstractSdkResult<CosmosMsg> {
+        fn execute(&self, action: DexAnsAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
-            adapters.request(
+            adapters.execute(
                 self.dex_module_id(),
                 DexExecuteMsg::AnsAction {
                     dex: self.dex_name(),
@@ -264,7 +260,7 @@ pub mod ans {
             max_spread: Option<Decimal>,
             belief_price: Option<Decimal>,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexAnsAction::Swap {
+            self.execute(DexAnsAction::Swap {
                 offer_asset,
                 ask_asset,
                 belief_price,
@@ -278,7 +274,7 @@ pub mod ans {
             assets: Vec<AnsAsset>,
             max_spread: Option<Decimal>,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexAnsAction::ProvideLiquidity { assets, max_spread })
+            self.execute(DexAnsAction::ProvideLiquidity { assets, max_spread })
         }
 
         /// Provide symmetrict liquidity in the DEX
@@ -287,7 +283,7 @@ pub mod ans {
             offer_asset: AnsAsset,
             paired_assets: Vec<AssetEntry>,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexAnsAction::ProvideLiquiditySymmetric {
+            self.execute(DexAnsAction::ProvideLiquiditySymmetric {
                 offer_asset,
                 paired_assets,
             })
@@ -295,7 +291,7 @@ pub mod ans {
 
         /// Withdraw liquidity from the DEX
         pub fn withdraw_liquidity(&self, lp_token: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexAnsAction::WithdrawLiquidity { lp_token })
+            self.execute(DexAnsAction::WithdrawLiquidity { lp_token })
         }
     }
 
@@ -348,11 +344,8 @@ pub mod ans {
 
 #[cfg(test)]
 mod test {
-    use abstract_core::{
-        adapter::AdapterRequestMsg,
-        objects::{AnsAsset, AssetEntry},
-    };
-    use abstract_sdk::mock_module::MockModule;
+    use abstract_adapter::sdk::mock_module::MockModule;
+    use abstract_adapter::std::adapter::AdapterRequestMsg;
     use cosmwasm_std::{testing::mock_dependencies, wasm_execute};
     use speculoos::prelude::*;
 
@@ -361,7 +354,9 @@ mod test {
 
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
         AdapterRequestMsg {
-            proxy_address: Some(abstract_testing::prelude::TEST_PROXY.to_string()),
+            proxy_address: Some(
+                abstract_adapter::abstract_testing::prelude::TEST_PROXY.to_string(),
+            ),
             request,
         }
         .into()
@@ -370,11 +365,11 @@ mod test {
     #[test]
     fn swap_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = abstract_adapter::abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex = stub
             .ans_dex(deps.as_ref(), "junoswap".into())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
         let dex_name = "junoswap".to_string();
         let offer_asset = AnsAsset::new("juno", 1000u128);
@@ -401,7 +396,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
             &expected,
             vec![],
         )
@@ -413,13 +408,13 @@ mod test {
     #[test]
     fn provide_liquidity_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = abstract_adapter::abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex_name = "junoswap".to_string();
 
         let dex = stub
             .ans_dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
         let assets = vec![AnsAsset::new("taco", 1000u128)];
         let max_spread = Some(Decimal::percent(1));
@@ -441,7 +436,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
             &expected,
             vec![],
         )
@@ -453,13 +448,13 @@ mod test {
     #[test]
     fn provide_liquidity_symmetric_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = abstract_adapter::abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex_name = "junoswap".to_string();
 
         let dex = stub
             .ans_dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
         let offer = AnsAsset::new("taco", 1000u128);
         let paired = vec![AssetEntry::new("bell")];
@@ -482,7 +477,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
             &expected,
             vec![],
         )
@@ -494,13 +489,13 @@ mod test {
     #[test]
     fn withdraw_liquidity_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+        deps.querier = abstract_adapter::abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex_name = "junoswap".to_string();
 
         let dex = stub
             .ans_dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+            .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
         let lp_token = AnsAsset::new("taco", 1000u128);
 
@@ -520,7 +515,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
             &expected,
             vec![],
         )
@@ -530,7 +525,7 @@ mod test {
     }
 
     mod raw {
-        use abstract_core::objects::pool_id::PoolAddressBase;
+        use abstract_adapter::std::objects::pool_id::PoolAddressBase;
 
         use super::*;
 
@@ -539,11 +534,11 @@ mod test {
         #[test]
         fn swap_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = abstract_adapter::abstract_testing::mock_querier();
             let stub = MockModule::new();
             let dex = stub
                 .dex(deps.as_ref(), "junoswap".into())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
             let dex_name = "junoswap".to_string();
             let offer_asset = Asset::native("ujuno", 100_000u128);
@@ -572,7 +567,7 @@ mod test {
                 _ => panic!("expected wasm msg"),
             };
             let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
                 &expected,
                 vec![],
             )
@@ -584,13 +579,13 @@ mod test {
         #[test]
         fn provide_liquidity_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = abstract_adapter::abstract_testing::mock_querier();
             let stub = MockModule::new();
             let dex_name = "junoswap".to_string();
 
             let dex = stub
                 .dex(deps.as_ref(), dex_name.clone())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
             let assets = vec![Asset::native("taco", 1000u128)];
             let max_spread = Some(Decimal::percent(1));
@@ -614,7 +609,7 @@ mod test {
                 _ => panic!("expected wasm msg"),
             };
             let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
                 &expected,
                 vec![],
             )
@@ -626,13 +621,13 @@ mod test {
         #[test]
         fn provide_liquidity_symmetric_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = abstract_adapter::abstract_testing::mock_querier();
             let stub = MockModule::new();
             let dex_name = "junoswap".to_string();
 
             let dex = stub
                 .dex(deps.as_ref(), dex_name.clone())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
             let offer = Asset::native("taco", 1000u128);
             let paired = vec![AssetInfo::native("bell")];
@@ -657,7 +652,7 @@ mod test {
                 _ => panic!("expected wasm msg"),
             };
             let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
                 &expected,
                 vec![],
             )
@@ -669,13 +664,13 @@ mod test {
         #[test]
         fn withdraw_liquidity_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
+            deps.querier = abstract_adapter::abstract_testing::mock_querier();
             let stub = MockModule::new();
             let dex_name = "junoswap".to_string();
 
             let dex = stub
                 .dex(deps.as_ref(), dex_name.clone())
-                .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+                .with_module_id(abstract_adapter::abstract_testing::prelude::TEST_MODULE_ID);
 
             let lp_token = Asset::native("taco", 1000u128);
             let pool = PoolAddressBase::Id(POOL);
@@ -697,7 +692,7 @@ mod test {
                 _ => panic!("expected wasm msg"),
             };
             let expected = wasm_execute(
-                abstract_testing::prelude::TEST_MODULE_ADDRESS,
+                abstract_adapter::abstract_testing::prelude::TEST_MODULE_ADDRESS,
                 &expected,
                 vec![],
             )

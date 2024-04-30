@@ -1,4 +1,4 @@
-use abstract_core::objects::{AssetEntry, DexName};
+use abstract_app::std::objects::{AssetEntry, DexName};
 use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, SnapshotMap, Strategy};
 

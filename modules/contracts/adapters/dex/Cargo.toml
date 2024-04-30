@@ -26,13 +26,20 @@ required-features = ["schema"]
 default = ["export"]
 export = []
 interface = [
-  "dep:abstract-interface",
   "dep:cw-orch",
   "export",
   "abstract-dex-standard/interface",
+  "abstract-adapter/interface-macro",
 ]
 schema = ["abstract-adapter/schema"]
-testing = ["abstract-wyndex-adapter/local", "abstract-astroport-adapter/local"]
+# TODO: do we need all these deps here?
+testing = [
+  "dep:abstract-client",
+  "dep:cw-orch",
+  "dep:cw20",
+  "dep:serde_json",
+  "abstract-adapter/test-utils",
+]
 
 # Supported Dexes
 wynd = [
@@ -86,10 +93,6 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
-
-abstract-interface = { workspace = true, optional = true }
-abstract-core = { workspace = true }
-abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 
@@ -120,6 +123,10 @@ terraswap = { version = "2.8.0", optional = true }
 # Astrovault #
 abstract-astrovault-adapter = { workspace = true }
 
+# Testing #
+abstract-client = { workspace = true, optional = true }
+serde_json = { version = "1.0", optional = true }
+
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }
 tokio = { workspace = true }
@@ -130,12 +137,12 @@ dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
 wyndex-bundle = { workspace = true }
-abstract-testing = { workspace = true }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
+
 dex = { path = ".", features = [
   "interface",
   "wynd",
   "osmosis",
+  "testing",
 ], package = "abstract-dex-adapter" }
 
 abstract-wyndex-adapter = { workspace = true, features = ["local"] }

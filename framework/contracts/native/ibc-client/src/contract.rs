@@ -1,4 +1,6 @@
-use abstract_core::{
+use abstract_macros::abstract_response;
+use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_std::{
     ibc_client::{state::*, *},
     objects::{
         ans_host::AnsHost,
@@ -6,8 +8,6 @@ use abstract_core::{
     },
     IBC_CLIENT,
 };
-use abstract_macros::abstract_response;
-use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
@@ -129,10 +129,10 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::{
-        prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL, *},
-        OWNER,
-    };
+    use super::*;
+
+    use crate::test_common::mock_init;
+    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL, *};
     use cosmwasm_std::{
         from_json,
         testing::{mock_dependencies, mock_env, mock_info},
@@ -141,9 +141,6 @@ mod tests {
     use cw2::CONTRACT;
     use cw_ownable::{Ownership, OwnershipError};
     use speculoos::prelude::*;
-
-    use super::*;
-    use crate::test_common::mock_init;
 
     type IbcClientTestResult = Result<(), IbcClientError>;
 
@@ -204,11 +201,10 @@ mod tests {
     }
 
     mod migrate {
-        use abstract_core::AbstractError;
-        use cosmwasm_std::testing::mock_dependencies;
-
         use super::*;
+
         use crate::contract;
+        use abstract_std::AbstractError;
 
         #[test]
         fn disallow_same_version() -> IbcClientResult<()> {
@@ -306,8 +302,8 @@ mod tests {
     mod register_infrastructure {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
-        use cosmwasm_std::{from_json, wasm_execute};
+        use abstract_std::objects::chain_name::ChainName;
+        use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
 
         use super::*;
@@ -447,22 +443,15 @@ mod tests {
     }
 
     mod remote_action {
-        use std::str::FromStr;
+        use super::*;
 
-        use abstract_core::{
+        use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
-            objects::{
-                account::TEST_ACCOUNT_ID, chain_name::ChainName,
-                version_control::VersionControlError,
-            },
-        };
-        use abstract_testing::prelude::{
-            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
+            objects::{chain_name::ChainName, version_control::VersionControlError},
         };
         use cosmwasm_std::wasm_execute;
 
-        use super::*;
         use crate::commands::PACKET_LIFETIME;
 
         #[test]
@@ -587,22 +576,15 @@ mod tests {
     }
 
     mod send_funds {
-        use std::str::FromStr;
+        use super::*;
 
-        use abstract_core::{
-            objects::{
-                account::TEST_ACCOUNT_ID, chain_name::ChainName,
-                version_control::VersionControlError, ChannelEntry,
-            },
+        use crate::commands::PACKET_LIFETIME;
+        use abstract_std::{
+            objects::{chain_name::ChainName, version_control::VersionControlError, ChannelEntry},
             ICS20,
         };
-        use abstract_testing::prelude::{
-            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
-        };
         use cosmwasm_std::{coins, Coin, CosmosMsg, IbcMsg};
-
-        use super::*;
-        use crate::commands::PACKET_LIFETIME;
+        use std::str::FromStr;
 
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
@@ -681,24 +663,20 @@ mod tests {
     }
 
     mod register_account {
-        use std::str::FromStr;
+        use super::*;
 
-        use abstract_core::{
+        use crate::commands::PACKET_LIFETIME;
+        use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
             objects::{
-                account::TEST_ACCOUNT_ID, chain_name::ChainName, gov_type::GovernanceDetails,
+                chain_name::ChainName, gov_type::GovernanceDetails,
                 version_control::VersionControlError,
             },
         };
-        use abstract_testing::prelude::{
-            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
-        };
-        use cosmwasm_std::{from_json, wasm_execute};
+        use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
-
-        use super::*;
-        use crate::commands::PACKET_LIFETIME;
+        use std::str::FromStr;
 
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
@@ -818,10 +796,7 @@ mod tests {
     mod update_config {
         use std::str::FromStr;
 
-        use abstract_core::{
-            ibc_client::state::Config,
-            objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
-        };
+        use abstract_std::objects::chain_name::ChainName;
 
         use super::*;
 
@@ -915,7 +890,7 @@ mod tests {
     mod remove_host {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
+        use abstract_std::objects::chain_name::ChainName;
 
         use super::*;
 
@@ -972,7 +947,7 @@ mod tests {
     mod callback {
         use std::str::FromStr;
 
-        use abstract_core::objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName};
+        use abstract_std::objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName};
         use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
         use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
 
@@ -1349,16 +1324,11 @@ mod tests {
         }
     }
     mod list_proxies_by_account_id {
+        use super::*;
+
         use std::str::FromStr;
 
-        use abstract_core::objects::{
-            account::{AccountTrace, TEST_ACCOUNT_ID},
-            chain_name::ChainName,
-            AccountId,
-        };
-        use cosmwasm_std::from_json;
-
-        use super::*;
+        use abstract_std::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
 
         #[test]
         fn works_with_multiple_local_accounts() -> IbcClientTestResult {

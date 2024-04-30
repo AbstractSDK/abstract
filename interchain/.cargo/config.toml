@@ -2,5 +2,5 @@
 git-fetch-with-cli = true
 
 [alias]
-# Migration tests
-mt = "test -- --test-threads=1"
+# Clone tests
+ct = "test -- --test-threads=1"

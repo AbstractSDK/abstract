@@ -7,8 +7,8 @@
   # Match all of native folders
   - framework/contracts/native/**/*
 "breaking?":
-  # Match all of abstract_core folders
-  - framework/packages/abstract_core/**/*
+  # Match all of abstract_std folders
+  - framework/packages/abstract_std/**/*
 "sdk":
   # Match all of sdk folders
   - framework/packages/abstract-sdk/**/*
@@ -22,7 +22,7 @@
   - build_release.sh
 "CI":
   - .github/**/*.yml
-# Add "C:documentation" label to documented related files and directories. 
+# Add "C:documentation" label to documented related files and directories.
 "documentation":
   - README.md
   - framework/contracts/**/*.md

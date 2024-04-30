@@ -1,4 +1,4 @@
-pub use abstract_core::ibc_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+pub use abstract_std::ibc_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cw_orch::{
     interface,
     prelude::{

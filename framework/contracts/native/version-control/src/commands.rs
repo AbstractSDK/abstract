@@ -1,14 +1,6 @@
-use abstract_core::{
-    objects::{
-        fee::FixedFee,
-        module::{self, Module},
-        validation::validate_link,
-        ABSTRACT_ACCOUNT_ID,
-    },
-    version_control::{ModuleDefaultConfiguration, UpdateModule},
-};
 use abstract_sdk::{
-    core::{
+    cw_helpers::Clearable,
+    std::{
         objects::{
             module::{ModuleInfo, ModuleVersion},
             module_reference::ModuleReference,
@@ -17,7 +9,15 @@ use abstract_sdk::{
         },
         version_control::{state::*, AccountBase, Config},
     },
-    cw_helpers::Clearable,
+};
+use abstract_std::{
+    objects::{
+        fee::FixedFee,
+        module::{self, Module},
+        validation::validate_link,
+        ABSTRACT_ACCOUNT_ID,
+    },
+    version_control::{ModuleDefaultConfiguration, UpdateModule},
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
@@ -370,23 +370,29 @@ pub fn claim_namespace(
     account_id: AccountId,
     namespace_to_claim: String,
 ) -> VCResult {
-    // verify account owner
-
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    let account_owner = query_account_owner(&deps.querier, account_base.manager, &account_id)?;
-
-    // The account owner as well as the account factory contract are able to claim namespaces
-    if msg_info.sender != account_owner {
-        return Err(VCError::AccountOwnerMismatch {
-            sender: msg_info.sender,
-            owner: account_owner,
-        });
-    }
-
     let Config {
         namespace_registration_fee: fee,
+        allow_direct_module_registration_and_updates,
         ..
     } = CONFIG.load(deps.storage)?;
+
+    if !allow_direct_module_registration_and_updates {
+        // When security is enabled, only the contract admin can claim namespaces
+        cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    } else {
+        // If there is no security, only account owner can register a namespace
+        let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+        let account_owner = query_account_owner(&deps.querier, account_base.manager, &account_id)?;
+
+        // The account owner as well as the account factory contract are able to claim namespaces
+        if msg_info.sender != account_owner {
+            return Err(VCError::AccountOwnerMismatch {
+                sender: msg_info.sender,
+                owner: account_owner,
+            });
+        }
+    }
+
     let fee_msg = claim_namespace_internal(
         deps.storage,
         fee,
@@ -537,13 +543,16 @@ pub fn update_config(
     if let Some(fee) = namespace_registration_fee {
         let previous_fee = config.namespace_registration_fee;
         let fee: Option<Coin> = fee.into();
-        config.namespace_registration_fee = fee.clone();
+        config.namespace_registration_fee = fee;
         attributes.extend(vec![
             (
                 "previous_namespace_registration_fee",
                 format!("{:?}", previous_fee),
             ),
-            ("namespace_registration_fee", format!("{fee:?}")),
+            (
+                "namespace_registration_fee",
+                format!("{:?}", config.namespace_registration_fee),
+            ),
         ])
     }
 
@@ -569,7 +578,7 @@ pub fn query_account_owner(
     account_id: &AccountId,
 ) -> VCResult<Addr> {
     let cw_ownable::Ownership { owner, .. } =
-        abstract_core::manager::state::OWNER.query(querier, manager_addr)?;
+        abstract_std::manager::state::OWNER.query(querier, manager_addr)?;
 
     owner.ok_or_else(|| VCError::NoAccountOwner {
         account_id: account_id.clone(),
@@ -604,7 +613,7 @@ pub fn validate_account_owner(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::{
+    use abstract_std::{
         manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
         objects::account::AccountTrace,
         version_control::*,
@@ -732,6 +741,27 @@ mod test {
         .unwrap();
     }
 
+    pub const THIRD_ACC_MANAGER: &str = "third-manager";
+    pub const THIRD_ACC_PROXY: &str = "third-proxy";
+    pub const THIRD_ACC_ID: AccountId = AccountId::const_new(3, AccountTrace::Local);
+
+    fn create_third_account(deps: DepsMut<'_>) {
+        // create second account
+        execute_as(
+            deps,
+            TEST_ACCOUNT_FACTORY,
+            ExecuteMsg::AddAccount {
+                account_id: SECOND_TEST_ACCOUNT_ID,
+                account_base: AccountBase {
+                    manager: Addr::unchecked(THIRD_ACC_MANAGER),
+                    proxy: Addr::unchecked(THIRD_ACC_PROXY),
+                },
+                namespace: None,
+            },
+        )
+        .unwrap();
+    }
+
     fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> VCResult {
         contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
@@ -836,11 +866,10 @@ mod test {
     }
 
     mod claim_namespace {
-        use abstract_core::{objects, AbstractError};
-        use cosmwasm_std::{coins, BankMsg, CosmosMsg, SubMsg};
-        use objects::ABSTRACT_ACCOUNT_ID;
-
         use super::*;
+
+        use abstract_std::AbstractError;
+        use cosmwasm_std::{coins, SubMsg};
 
         #[test]
         fn claim_namespaces_by_owner() -> VersionControlTestResult {
@@ -869,6 +898,40 @@ mod test {
             assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
             let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace2)?;
             assert_that!(account_id).is_equal_to(SECOND_TEST_ACCOUNT_ID);
+            Ok(())
+        }
+
+        #[test]
+        fn fail_claim_permissioned_namespaces() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), false)?;
+            let new_namespace1 = Namespace::new("namespace1").unwrap();
+            let msg = ExecuteMsg::ClaimNamespace {
+                account_id: TEST_ACCOUNT_ID,
+                namespace: new_namespace1.to_string(),
+            };
+            // OWNER is also admin of the contract so this succeeds
+            let res = execute_as(deps.as_mut(), OWNER, msg);
+            assert_that!(&res).is_ok();
+
+            let account_id = NAMESPACES_INFO.load(&deps.storage, &new_namespace1)?;
+            assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
+
+            create_third_account(deps.as_mut());
+
+            let new_namespace2 = Namespace::new("namespace2").unwrap();
+
+            let msg = ExecuteMsg::ClaimNamespace {
+                account_id: THIRD_ACC_ID,
+                namespace: new_namespace2.to_string(),
+            };
+
+            let res = execute_as(deps.as_mut(), THIRD_ACC_MANAGER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::Ownership(OwnershipError::NotOwner));
+
             Ok(())
         }
 
@@ -1189,10 +1252,9 @@ mod test {
     }
 
     mod remove_namespaces {
-        use abstract_core::objects::module_reference::ModuleReference;
-        use cosmwasm_std::attr;
-
         use super::*;
+
+        use cosmwasm_std::attr;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))
@@ -1342,14 +1404,11 @@ mod test {
     }
 
     mod propose_modules {
-        use abstract_core::{
-            objects::{fee::FixedFee, module::Monetization, module_reference::ModuleReference},
-            AbstractError,
-        };
-        use cosmwasm_std::coin;
-
         use super::*;
+
         use crate::contract::query;
+        use abstract_std::{objects::module::Monetization, AbstractError};
+        use cosmwasm_std::coin;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))

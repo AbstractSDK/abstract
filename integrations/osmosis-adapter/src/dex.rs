@@ -23,7 +23,7 @@ impl Identify for Osmosis {
 use ::{
     abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::{
-        core::objects::PoolAddress, feature_objects::AnsHost, features::AbstractRegistryAccess,
+        feature_objects::AnsHost, features::AbstractRegistryAccess, std::objects::PoolAddress,
         AbstractSdkError,
     },
     cosmwasm_std::{
@@ -438,7 +438,7 @@ fn assert_slippage_tolerance(
 
 #[cfg(feature = "full_integration")]
 impl abstract_sdk::features::ModuleIdentification for Osmosis {
-    fn module_id(&self) -> abstract_sdk::core::objects::module::ModuleId<'static> {
+    fn module_id(&self) -> abstract_sdk::std::objects::module::ModuleId<'static> {
         abstract_dex_standard::DEX_ADAPTER_ID
     }
 }

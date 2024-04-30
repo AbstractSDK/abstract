@@ -1,12 +1,5 @@
-use abstract_core::{
-    objects::oracle::{AccountValue, Oracle},
-    proxy::{
-        AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset,
-        TokenValueResponse,
-    },
-};
 use abstract_sdk::{
-    core::{
+    std::{
         objects::AssetEntry,
         proxy::{
             state::{ANS_HOST, STATE},
@@ -14,6 +7,13 @@ use abstract_sdk::{
         },
     },
     Resolve,
+};
+use abstract_std::{
+    objects::oracle::{AccountValue, Oracle},
+    proxy::{
+        AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset,
+        TokenValueResponse,
+    },
 };
 use cosmwasm_std::{Addr, Deps, Env, StdResult};
 use cw_asset::{Asset, AssetInfo};
@@ -112,22 +112,19 @@ pub fn query_holding_amount(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::{
+    use super::*;
+
+    use crate::contract::{execute, instantiate, query};
+    use abstract_std::{
         objects::price_source::{PriceSource, UncheckedPriceSource},
-        proxy::{AssetConfigResponse, ExecuteMsg, InstantiateMsg, TokenValueResponse},
+        proxy::{AssetConfigResponse, ExecuteMsg, InstantiateMsg},
     };
-    use abstract_testing::{prelude::*, MockAnsHost};
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         coin,
-        testing::{
-            mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
-            MOCK_CONTRACT_ADDR,
-        },
+        testing::{mock_dependencies, mock_env, mock_info, MockApi, MOCK_CONTRACT_ADDR},
         Decimal, DepsMut, OwnedDeps,
     };
-
-    use super::*;
-    use crate::contract::{execute, instantiate, query};
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
@@ -178,7 +175,7 @@ mod test {
             query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_core::proxy::QueryMsg::BaseAsset {},
+                abstract_std::proxy::QueryMsg::BaseAsset {},
             )
             .unwrap(),
         )
@@ -208,7 +205,7 @@ mod test {
             query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_core::proxy::QueryMsg::Config {},
+                abstract_std::proxy::QueryMsg::Config {},
             )
             .unwrap(),
         )
@@ -245,7 +242,7 @@ mod test {
             query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_core::proxy::QueryMsg::HoldingAmount {
+                abstract_std::proxy::QueryMsg::HoldingAmount {
                     identifier: AssetEntry::from(USD),
                 },
             )
@@ -260,7 +257,7 @@ mod test {
             query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_core::proxy::QueryMsg::TotalValue {},
+                abstract_std::proxy::QueryMsg::TotalValue {},
             )
             .unwrap(),
         )
@@ -277,7 +274,7 @@ mod test {
             query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_core::proxy::QueryMsg::TokenValue {
+                abstract_std::proxy::QueryMsg::TokenValue {
                     identifier: AssetEntry::from(USD),
                 },
             )
@@ -291,7 +288,7 @@ mod test {
             query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_core::proxy::QueryMsg::AssetConfig {
+                abstract_std::proxy::QueryMsg::AssetConfig {
                     identifier: AssetEntry::from(USD),
                 },
             )
@@ -319,7 +316,7 @@ mod test {
             query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_core::proxy::QueryMsg::AssetsConfig {
+                abstract_std::proxy::QueryMsg::AssetsConfig {
                     start_after: None,
                     limit: None,
                 },
@@ -353,7 +350,7 @@ mod test {
             query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_core::proxy::QueryMsg::AssetsInfo {
+                abstract_std::proxy::QueryMsg::AssetsInfo {
                     start_after: None,
                     limit: None,
                 },

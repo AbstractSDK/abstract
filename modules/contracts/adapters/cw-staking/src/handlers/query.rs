@@ -1,4 +1,4 @@
-use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
+use abstract_adapter::sdk::features::{AbstractNameService, AbstractRegistryAccess};
 use abstract_staking_standard::{msg::StakingQueryMsg, CwStakingError};
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 

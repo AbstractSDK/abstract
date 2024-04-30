@@ -1,4 +1,4 @@
-use abstract_core::objects::dependency::StaticDependency;
+use abstract_std::objects::dependency::StaticDependency;
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;
 

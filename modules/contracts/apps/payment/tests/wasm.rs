@@ -1,4 +1,4 @@
-use abstract_testing::OWNER;
+use abstract_app::abstract_testing::OWNER;
 use cw_orch::prelude::*;
 use payment_app::{contract::APP_ID, PaymentAppInterface};
 

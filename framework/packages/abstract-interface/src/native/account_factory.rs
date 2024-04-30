@@ -1,7 +1,7 @@
-pub use abstract_core::account_factory::{
+pub use abstract_std::account_factory::{
     ExecuteMsgFns as AccountFactoryExecFns, QueryMsgFns as AccountFactoryQueryFns,
 };
-use abstract_core::{
+use abstract_std::{
     account_factory::*,
     manager::ModuleInstallConfig,
     objects::{gov_type::GovernanceDetails, AccountId, AssetEntry},
@@ -10,7 +10,7 @@ use cw_orch::{interface, prelude::*};
 
 use crate::AbstractAccount;
 
-/// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
+/// A helper struct that contains fields from [`abstract_std::manager::state::AccountInfo`]
 #[derive(Default)]
 pub struct AccountDetails {
     pub name: String,

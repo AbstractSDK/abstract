@@ -4,7 +4,7 @@ use cw_storage_plus::Item;
 use polytone::callbacks::Callback;
 
 use super::handler::Handler;
-use crate::{core::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};
+use crate::{std::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};
 
 pub type ModuleId = &'static str;
 /// Version of the contract in str format.
