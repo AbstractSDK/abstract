@@ -92,7 +92,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         }
         ExecuteMsg::ModuleIbcAction {
             host_chain,
-            source_module,
             target_module,
             msg,
             callback_info,
@@ -101,7 +100,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             env,
             info,
             host_chain,
-            source_module,
             target_module,
             msg,
             callback_info,

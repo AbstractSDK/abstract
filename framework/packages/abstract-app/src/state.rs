@@ -1,17 +1,15 @@
 use abstract_sdk::{
     base::{ModuleIbcHandlerFn, SudoHandlerFn},
-    feature_objects::{AnsHost, VersionControlContract},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
 };
 use abstract_std::{
+    app::AppState,
     objects::{dependency::StaticDependency, nested_admin::NestedAdmin},
     AbstractError,
 };
-use cosmwasm_std::{Addr, Empty, StdResult, Storage};
+use cosmwasm_std::{Empty, StdResult, Storage};
 use cw_storage_plus::Item;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::{
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -34,17 +32,6 @@ impl<T> ContractError for T where
         + From<AbstractError>
         + 'static
 {
-}
-
-/// The BaseState contains the main addresses needed for sending and verifying messages
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct AppState {
-    /// Proxy contract address for relaying transactions
-    pub proxy_address: Addr,
-    /// AnsHost contract struct (address)
-    pub ans_host: AnsHost,
-    /// Used to verify requests
-    pub version_control: VersionControlContract,
 }
 
 /// The state variables for our AppContract.

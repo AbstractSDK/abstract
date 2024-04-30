@@ -1,20 +1,15 @@
-use std::fmt::Debug;
-
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
         ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
-    feature_objects::{AnsHost, VersionControlContract},
     namespaces::BASE_STATE,
     std::version_control::AccountBase,
     AbstractSdkError,
 };
-use abstract_std::{objects::dependency::StaticDependency, AbstractError};
+use abstract_std::{adapter::AdapterState, objects::dependency::StaticDependency, AbstractError};
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::AdapterError;
 
@@ -38,16 +33,6 @@ impl<T> ContractError for T where
 {
 }
 
-/// The BaseState contains the main addresses needed for sending and verifying messages
-/// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ApiState {
-    /// Used to verify requests
-    pub version_control: VersionControlContract,
-    /// AnsHost contract struct (address)
-    pub ans_host: AnsHost,
-}
-
 /// The state variables for our AdapterContract.
 pub struct AdapterContract<
     Error: ContractError,
@@ -60,7 +45,7 @@ pub struct AdapterContract<
     Self: Handler,
 {
     pub(crate) contract: AbstractContract<Self, Error>,
-    pub(crate) base_state: Item<'static, ApiState>,
+    pub(crate) base_state: Item<'static, AdapterState>,
     /// Map ProxyAddr -> AuthorizedAddrs
     pub authorized_addresses: Map<'static, Addr, Vec<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_std::adapter::ExecuteMsg::Base`] handler.
@@ -88,7 +73,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self.contract.info().1
     }
 
-    pub fn state(&self, store: &dyn Storage) -> StdResult<ApiState> {
+    pub fn state(&self, store: &dyn Storage) -> StdResult<AdapterState> {
         self.base_state.load(store)
     }
 

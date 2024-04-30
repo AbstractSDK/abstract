@@ -1,7 +1,7 @@
 pub use abstract_std::app;
 use abstract_std::{
     ibc::{CallbackInfo, CallbackResult, ModuleIbcMsg},
-    ibc_client::{self, InstalledModuleIdentification},
+    ibc_client::{self},
     objects::module::ModuleInfo,
     IBC_CLIENT,
 };
@@ -75,7 +75,7 @@ pub struct MockReceiveMsg;
 #[cosmwasm_schema::cw_serde]
 pub struct MockSudoMsg;
 
-use abstract_sdk::{features::AccountIdentification, AbstractSdkError, ModuleInterface};
+use abstract_sdk::{AbstractSdkError, ModuleInterface};
 use thiserror::Error;
 
 use abstract_app::{AppContract, AppError};
@@ -139,11 +139,6 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     ibc_client_addr,
                     &ibc_client::ExecuteMsg::ModuleIbcAction {
                         host_chain: remote_chain,
-                        source_module: InstalledModuleIdentification {
-                            module_info: ModuleInfo::from_id(app.module_id(), app.version().into())
-                                .unwrap(),
-                            account_id: Some(app.account_id(deps.as_ref())?),
-                        },
                         target_module,
                         msg: to_json_binary(&IbcModuleToModuleMsg {
                             ibc_msg: "module_to_module:msg".to_string(),
@@ -594,7 +589,7 @@ pub mod test {
     }
 
     pub mod security {
-        use abstract_std::ibc_client::{ExecuteMsgFns, InstalledModuleIdentification};
+        use abstract_std::ibc_client::ExecuteMsgFns;
 
         use crate::module_to_module_interactions::IbcModuleToModuleMsg;
 
@@ -689,11 +684,6 @@ pub mod test {
                         ibc_msg: "module_to_module:msg".to_string(),
                     })
                     .unwrap(),
-                    InstalledModuleIdentification {
-                        module_info: ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())
-                            .unwrap(),
-                        account_id: Some(origin_account.id()?),
-                    },
                     target_module_info,
                     None,
                 )

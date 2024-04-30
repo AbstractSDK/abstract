@@ -3,27 +3,23 @@ use std::str::FromStr;
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
     features::AccountIdentification,
-    Resolve,
+    namespaces::BASE_STATE,
+    ModuleRegistryInterface, Resolve,
 };
 use abstract_std::{
-    ibc::CallbackInfo,
-    ibc_client::{
+    app::AppState, ibc::CallbackInfo, ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback, InstalledModuleIdentification,
-    },
-    ibc_host::{self, HostAction, InternalAction},
-    manager::{self, ModuleInstallConfig},
-    objects::{
+    }, ibc_host::{self, HostAction, InternalAction}, manager::{self, ModuleInstallConfig}, objects::{
         chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
         AssetEntry, ChannelEntry,
-    },
-    version_control::AccountBase,
-    ICS20,
+    }, version_control::AccountBase, ICS20
 };
 use cosmwasm_std::{
-    ensure_eq, to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env,
-    IbcMsg, MessageInfo, QueryRequest, Storage,
+    to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg,
+    MessageInfo, QueryRequest, Storage,
 };
+use cw_storage_plus::Item;
 use polytone::callbacks::CallbackRequest;
 
 use crate::{
@@ -219,7 +215,6 @@ pub fn execute_send_module_to_module_packet(
     env: Env,
     info: MessageInfo,
     host_chain: String,
-    source_module: InstalledModuleIdentification,
     target_module: ModuleInfo,
     msg: Binary,
     callback_info: Option<CallbackInfo>,
@@ -227,54 +222,37 @@ pub fn execute_send_module_to_module_packet(
     let host_chain = ChainName::from_str(&host_chain)?;
     let cfg = CONFIG.load(deps.storage)?;
 
-    // We make sure the source_module is indeed who they say they are
-    let registry = cfg
+    // Query the sender module information
+    let module_info = cfg
         .version_control
-        .query_module(source_module.module_info.clone(), &deps.querier)?;
+        .module_registry(deps.as_ref())?
+        .module_info(info.sender.clone())?;
 
-    match registry.reference {
+    // We need additional information depending on the module type
+    let source_module = match module_info.reference {
         ModuleReference::AccountBase(_) => return Err(IbcClientError::Unauthorized {}),
         ModuleReference::Native(_) => return Err(IbcClientError::Unauthorized {}),
-        ModuleReference::Adapter(addr) => {
-            // For adapters, we just need to verify they have the right address
-            if addr != info.sender {
-                return Err(IbcClientError::ForbiddenModuleCall {});
-            }
-        }
-        ModuleReference::App(code_id) | ModuleReference::Standalone(code_id) => {
-            // We verify the caller has indeed the right code id
-            let sender_code_id = deps
-                .querier
-                .query_wasm_contract_info(info.sender.clone())?
-                .code_id;
-            if code_id != sender_code_id {
-                return Err(IbcClientError::ForbiddenModuleCall {});
-            }
-            // If it does have the right code id, we verify the specified account has the app installed
-            let account_base = cfg.version_control.account_base(
-                source_module
-                    .account_id
-                    .as_ref()
-                    .ok_or(IbcClientError::ForbiddenModuleCall {})?,
-                &deps.querier,
-            )?;
+        ModuleReference::Standalone(_) => return Err(IbcClientError::Unauthorized {}),
+        ModuleReference::Adapter(_) => InstalledModuleIdentification {
+            module_info: module_info.info,
+            account_id: None,
+        },
+        ModuleReference::App(_) => {
+            // We verify the associated account id
+            let proxy_addr = Item::<AppState>::new(BASE_STATE)
+                .query(&deps.querier, info.sender.clone())?
+                .proxy_address;
+            let account_id = cfg.version_control.account_id(&proxy_addr, &deps.querier)?;
 
-            let maybe_module_addr = manager::state::ACCOUNT_MODULES.query(
-                &deps.querier,
-                account_base.manager,
-                &source_module.module_info.id(),
-            )?;
-            let module_addr = maybe_module_addr.ok_or(IbcClientError::ForbiddenModuleCall {})?;
-            ensure_eq!(
-                module_addr,
-                info.sender,
-                IbcClientError::ForbiddenModuleCall {}
-            );
+            InstalledModuleIdentification {
+                module_info: module_info.info,
+                account_id: Some(account_id),
+            }
         }
         _ => unimplemented!(
             "This module type didn't exist when implementing module-to-module interactions"
         ),
-    }
+    };
 
     // We send a message to the target module on the remote chain
     // Send this message via the Polytone implementation
