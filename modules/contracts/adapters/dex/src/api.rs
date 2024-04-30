@@ -79,10 +79,10 @@ pub mod raw {
         }
 
         /// Executes a [DexRawAction] in th DEX
-        fn request(&self, action: DexRawAction) -> AbstractSdkResult<CosmosMsg> {
+        fn execute(&self, action: DexRawAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
-            adapters.request(
+            adapters.execute(
                 self.dex_module_id(),
                 DexExecuteMsg::RawAction {
                     dex: self.dex_name(),
@@ -100,7 +100,7 @@ pub mod raw {
             belief_price: Option<Decimal>,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexRawAction::Swap {
+            self.execute(DexRawAction::Swap {
                 offer_asset: offer_asset.into(),
                 ask_asset: ask_asset.into(),
                 belief_price,
@@ -116,7 +116,7 @@ pub mod raw {
             max_spread: Option<Decimal>,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexRawAction::ProvideLiquidity {
+            self.execute(DexRawAction::ProvideLiquidity {
                 assets: assets.into_iter().map(Into::into).collect(),
                 pool: pool.into(),
                 max_spread,
@@ -130,7 +130,7 @@ pub mod raw {
             paired_assets: Vec<AssetInfo>,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexRawAction::ProvideLiquiditySymmetric {
+            self.execute(DexRawAction::ProvideLiquiditySymmetric {
                 offer_asset: offer_asset.into(),
                 paired_assets: paired_assets.into_iter().map(Into::into).collect(),
                 pool: pool.into(),
@@ -143,7 +143,7 @@ pub mod raw {
             lp_token: Asset,
             pool: PoolAddress,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexRawAction::WithdrawLiquidity {
+            self.execute(DexRawAction::WithdrawLiquidity {
                 lp_token: lp_token.into(),
                 pool: pool.into(),
             })
@@ -240,10 +240,10 @@ pub mod ans {
         }
 
         /// Executes a [DexAction] in th DEX
-        fn request(&self, action: DexAnsAction) -> AbstractSdkResult<CosmosMsg> {
+        fn execute(&self, action: DexAnsAction) -> AbstractSdkResult<CosmosMsg> {
             let adapters = self.base.adapters(self.deps);
 
-            adapters.request(
+            adapters.execute(
                 self.dex_module_id(),
                 DexExecuteMsg::AnsAction {
                     dex: self.dex_name(),
@@ -260,7 +260,7 @@ pub mod ans {
             max_spread: Option<Decimal>,
             belief_price: Option<Decimal>,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexAnsAction::Swap {
+            self.execute(DexAnsAction::Swap {
                 offer_asset,
                 ask_asset,
                 belief_price,
@@ -274,7 +274,7 @@ pub mod ans {
             assets: Vec<AnsAsset>,
             max_spread: Option<Decimal>,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexAnsAction::ProvideLiquidity { assets, max_spread })
+            self.execute(DexAnsAction::ProvideLiquidity { assets, max_spread })
         }
 
         /// Provide symmetrict liquidity in the DEX
@@ -283,7 +283,7 @@ pub mod ans {
             offer_asset: AnsAsset,
             paired_assets: Vec<AssetEntry>,
         ) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexAnsAction::ProvideLiquiditySymmetric {
+            self.execute(DexAnsAction::ProvideLiquiditySymmetric {
                 offer_asset,
                 paired_assets,
             })
@@ -291,7 +291,7 @@ pub mod ans {
 
         /// Withdraw liquidity from the DEX
         pub fn withdraw_liquidity(&self, lp_token: AnsAsset) -> AbstractSdkResult<CosmosMsg> {
-            self.request(DexAnsAction::WithdrawLiquidity { lp_token })
+            self.execute(DexAnsAction::WithdrawLiquidity { lp_token })
         }
     }
 
