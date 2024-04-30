@@ -37,7 +37,7 @@ abstract_app::export_endpoints!(CRONCAT_APP, CroncatApp);
 abstract_app::cw_orch_interface!(CRONCAT_APP, CroncatApp, Croncat);
 
 #[cfg(feature = "interface")]
-impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
+impl<Chain: cw_orch::environment::CwEnv> abstract_app::abstract_interface::DependencyCreation
     for crate::Croncat<Chain>
 {
     type DependenciesConfig = Empty;

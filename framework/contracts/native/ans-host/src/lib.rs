@@ -9,7 +9,7 @@ mod tests;
 
 #[cfg(test)]
 mod test_common {
-    use abstract_core::ans_host::InstantiateMsg;
+    use abstract_std::ans_host::InstantiateMsg;
     use abstract_testing::OWNER;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},

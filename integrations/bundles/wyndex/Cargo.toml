@@ -15,7 +15,7 @@ wyndex-stake = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2
 wyndex = { git = "https://github.com/cosmorama/wynddex.git", tag = "v1.1.2" }
 cw-controllers = "1.0.1"
 
-abstract-core = { workspace = true, features = ["interface"] }
+abstract-std = { workspace = true, features = ["interface"] }
 abstract-interface = { workspace = true, features = ["integration"] }
 cw20-base = { workspace = true, features = ["interface"] }
 cw20 = { workspace = true, features = ["interface"] }

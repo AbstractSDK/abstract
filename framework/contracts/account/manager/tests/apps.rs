@@ -1,12 +1,12 @@
 use abstract_app::{gen_app_mock, mock, mock::MockError};
-use abstract_core::{
+use abstract_integration_tests::{create_default_account, AResult};
+use abstract_interface::*;
+use abstract_manager::error::ManagerError;
+use abstract_std::{
     manager::ModuleInstallConfig,
     objects::{module::ModuleInfo, nested_admin::TopLevelOwnerResponse, AccountId},
     PROXY,
 };
-use abstract_integration_tests::{create_default_account, AResult};
-use abstract_interface::*;
-use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, CosmosMsg};
 use cw_controllers::{AdminError, AdminResponse};
@@ -41,7 +41,7 @@ fn execute_on_proxy_through_manager() -> AResult {
     let forwarded_coin: Coin = coin(100, "other_coin");
 
     account.manager.exec_on_module(
-        cosmwasm_std::to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+        cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
             })],

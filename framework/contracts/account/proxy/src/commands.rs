@@ -1,9 +1,9 @@
-use abstract_core::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
-use abstract_sdk::core::{
+use abstract_sdk::std::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     proxy::state::{ADMIN, ANS_HOST, STATE},
     IBC_CLIENT,
 };
+use abstract_std::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
 use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg};
 
 use crate::{
@@ -57,7 +57,7 @@ pub fn execute_ibc_action(
         return Err(ProxyError::SenderNotWhitelisted {});
     }
     let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
-    let ibc_client_address = abstract_sdk::core::manager::state::ACCOUNT_MODULES
+    let ibc_client_address = abstract_sdk::std::manager::state::ACCOUNT_MODULES
         .query(&deps.querier, manager_address, IBC_CLIENT)?
         .ok_or_else(|| {
             StdError::generic_err(format!(
@@ -166,7 +166,7 @@ mod test {
     use super::*;
 
     use crate::{contract::execute, test_common::*};
-    use abstract_core::proxy::ExecuteMsg;
+    use abstract_std::proxy::ExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info, MockApi, MOCK_CONTRACT_ADDR},
@@ -272,7 +272,7 @@ mod test {
     type ProxyTestResult = Result<(), ProxyError>;
 
     mod remove_module {
-        use abstract_core::proxy::state::State;
+        use abstract_std::proxy::state::State;
         use cw_controllers::AdminError;
 
         use super::*;
@@ -334,7 +334,7 @@ mod test {
     }
 
     mod execute_action {
-        use abstract_core::proxy::state::State;
+        use abstract_std::proxy::state::State;
 
         use super::*;
 
@@ -397,7 +397,7 @@ mod test {
     mod execute_ibc {
         use super::*;
 
-        use abstract_core::{manager, proxy::state::State};
+        use abstract_std::{manager, proxy::state::State};
         use cosmwasm_std::coins;
 
         #[test]
@@ -415,7 +415,7 @@ mod test {
                 .unwrap();
 
             let msg = ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
+                msgs: vec![abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: "juno".into(),
                     base_asset: None,
                     namespace: None,
@@ -443,7 +443,7 @@ mod test {
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: "ibc_client_addr".into(),
-                    msg: to_json_binary(&abstract_core::ibc_client::ExecuteMsg::Register {
+                    msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
                         host_chain: "juno".into(),
                         base_asset: None,
                         namespace: None,
@@ -471,7 +471,7 @@ mod test {
 
             let funds = coins(10, "denom");
             let msg = ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendFunds {
+                msgs: vec![abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     host_chain: "juno".to_owned(),
                     funds: funds.clone(),
                 }],
@@ -497,7 +497,7 @@ mod test {
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: "ibc_client_addr".into(),
-                    msg: to_json_binary(&abstract_core::ibc_client::ExecuteMsg::SendFunds {
+                    msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
                         host_chain: "juno".into(),
                         funds: funds.clone(),
                     })

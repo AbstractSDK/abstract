@@ -7,7 +7,7 @@ mod versioning;
 
 #[cfg(test)]
 mod test_common {
-    use abstract_core::{
+    use abstract_std::{
         manager,
         objects::{account::AccountTrace, gov_type::GovernanceDetails, AccountId},
     };

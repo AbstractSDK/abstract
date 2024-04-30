@@ -20,7 +20,7 @@ use ::{
     abstract_dex_standard::{
         coins_in_assets, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
-    abstract_sdk::core::objects::PoolAddress,
+    abstract_sdk::std::objects::PoolAddress,
     cosmwasm_std::{
         wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult,
         Uint128,
@@ -318,7 +318,7 @@ mod tests {
     use std::{assert_eq, str::FromStr};
 
     use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
-    use abstract_sdk::core::objects::PoolAddress;
+    use abstract_sdk::std::objects::PoolAddress;
     use cosmwasm_schema::serde::Deserialize;
     use cosmwasm_std::{
         coin, coins, from_json, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, WasmMsg,

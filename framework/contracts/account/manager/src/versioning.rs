@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     manager::state::{ACCOUNT_MODULES, DEPENDENTS},
     objects::{dependency::Dependency, module_version::MODULE},
 };

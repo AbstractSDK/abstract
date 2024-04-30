@@ -2,8 +2,8 @@
 //!
 //! [`Publisher`] is an Account with helpers for publishing and maintaining Abstract Applications and Adapters
 
-use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
 use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule};
+use abstract_std::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
 use cw_orch::{
     contract::Contract,
     prelude::{ContractInstance, CwEnv},

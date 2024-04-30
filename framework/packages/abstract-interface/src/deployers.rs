@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     manager::ModuleInstallConfig,
     objects::module::{ModuleInfo, ModuleVersion},
 };
@@ -68,7 +68,7 @@ pub enum DeployStrategy {
 
 /// Trait for deploying Adapters
 pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInstance<Chain>
-    + CwOrchInstantiate<Chain, InstantiateMsg = abstract_core::adapter::InstantiateMsg<CustomInitMsg>>
+    + CwOrchInstantiate<Chain, InstantiateMsg = abstract_std::adapter::InstantiateMsg<CustomInitMsg>>
     + Uploadable
     + Sized
 {
@@ -110,9 +110,9 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
         }
 
         if self.upload_if_needed()?.is_some() {
-            let init_msg = abstract_core::adapter::InstantiateMsg {
+            let init_msg = abstract_std::adapter::InstantiateMsg {
                 module: custom_init_msg,
-                base: abstract_core::adapter::BaseInstantiateMsg {
+                base: abstract_std::adapter::BaseInstantiateMsg {
                     ans_host_address: abstr.ans_host.address()?.into(),
                     version_control_address: abstr.version_control.address()?.into(),
                 },

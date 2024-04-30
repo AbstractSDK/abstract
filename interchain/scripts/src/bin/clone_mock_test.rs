@@ -1,9 +1,9 @@
-use abstract_core::ibc_host::ExecuteMsgFns;
-use abstract_core::ibc_host::HostAction;
-use abstract_core::ibc_host::InternalAction;
-use abstract_core::ibc_host::QueryMsgFns;
-use abstract_core::objects::AccountId;
 use abstract_interface::Abstract;
+use abstract_std::ibc_host::ExecuteMsgFns;
+use abstract_std::ibc_host::HostAction;
+use abstract_std::ibc_host::InternalAction;
+use abstract_std::ibc_host::QueryMsgFns;
+use abstract_std::objects::AccountId;
 use cw_orch::daemon::networks::OSMOSIS_1;
 use cw_orch::prelude::*;
 use cw_orch_clone_testing::CloneTesting;

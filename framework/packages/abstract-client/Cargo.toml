@@ -20,7 +20,7 @@ test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
 [dependencies]
 abstract-interface = { version = "0.21.0", path = "../abstract-interface" }
 cosmwasm-std.workspace = true
-abstract-core.workspace = true
+abstract-std.workspace = true
 cw-orch.workspace = true
 serde.workspace = true
 semver.workspace = true

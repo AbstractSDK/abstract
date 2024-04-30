@@ -1,4 +1,4 @@
-use abstract_core::{
+use abstract_std::{
     ibc_client::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     IBC_CLIENT,
 };

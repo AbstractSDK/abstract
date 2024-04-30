@@ -1,6 +1,6 @@
 //! # Account Proxy
 //!
-//! `abstract_core::proxy` hold all the assets associated with the Account instance. It accepts Cosmos messages from whitelisted addresses and executes them.
+//! `abstract_std::proxy` hold all the assets associated with the Account instance. It accepts Cosmos messages from whitelisted addresses and executes them.
 //!
 //! ## Description
 //! The proxy is part of the Core Account contracts along with the [`crate::manager`] contract.
