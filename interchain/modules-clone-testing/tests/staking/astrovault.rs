@@ -5,11 +5,13 @@ use abstract_client::{AbstractClient, Environment};
 use abstract_cw_staking::staking_tester::{MockStaking, StakingTester};
 use abstract_interface::ExecuteMsgFns;
 use abstract_modules_interchain_tests::common::load_abstr;
+use cosmwasm_std::{coins, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::daemon::networks::ARCHWAY_1;
 use cw_orch::prelude::*;
 use cw_orch_clone_testing::CloneTesting;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 // Astrovault uses custom types for creating pools: https://github.com/archway-network/archway/blob/c2f92ce09f7a2e91046ba494546d157ad7f99ded/contracts/go/voter/src/pkg/archway/custom/msg.go
 // Meaning we have to use existing pools
@@ -111,24 +113,7 @@ impl AstrovaultStake {
     }
 }
 
-// TODO: astrovault have broken response types here
-/*
-   [
-  {
-    "address": "archway1udst73crj6yq77srw5ajcgjxgu4sc3w7m5tq0n66d6qxj79zw5fq0d029f",
-    "info": {
-      "acc_reward_per_share": "11080603619931.49004765787140531", // It's string
-      "active": true,
-      "residue": "0", // It's string
-      "reward_asset": {
-        "token": {
-          "contract_addr": "archway1ecjefhcf8r60wtfnhwefrxhj9caeqa90fj58cqsaafqveawn6cjs5znd2n"
-        }
-      }
-    }
-  }
-]
-*/
+// astrovault have broken response types here
 #[derive(Serialize, Deserialize, Clone)]
 struct RewardSourceResponse {
     pub address: String,
@@ -152,17 +137,44 @@ impl MockStaking for AstrovaultStake {
     fn mint_lp(&self, addr: &Addr, amount: u128) -> anyhow::Result<()> {
         let chain = &self.chain;
 
-        let AssetInfoUnchecked::Cw20(contract_addr) = &self.lp_asset.1 else {
-            unreachable!();
-        };
-        chain.call_as(&self.minter).execute(
-            &cw20::Cw20ExecuteMsg::Mint {
-                recipient: addr.to_string(),
-                amount: amount.into(),
+        let funds = coins(amount * 100_000, ASSET_A_DENOM);
+        chain.add_balance(addr, funds.clone())?;
+        chain.execute(
+            &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
+                assets_amount: vec![Uint128::new(amount * 100_000), Uint128::zero()],
+                receiver: None,
+                direct_staking: Some(astrovault::standard_pool::handle_msg::DirectStaking {
+                    not_claim_rewards: Some(true),
+                    notify: None,
+                }),
             },
-            &[],
-            &Addr::unchecked(contract_addr),
+            &funds,
+            &Addr::unchecked(POOL_ADDR),
         )?;
+
+        // let AssetInfoUnchecked::Cw20(contract_addr) = &self.lp_asset.1 else {
+        //     unreachable!();
+        // };
+        // chain.call_as(&self.minter).execute(
+        //     &cw20::Cw20ExecuteMsg::Mint {
+        //         recipient: addr.to_string(),
+        //         amount: amount.into(),
+        //     },
+        //     &[],
+        //     &Addr::unchecked(contract_addr),
+        // )?;
+
+        let lp_balance_response: astrovault::lp_staking::query_msg::LpBalanceResponse = chain
+            .query(
+                &astrovault::lp_staking::query_msg::QueryMsg::Balance {
+                    address: addr.to_string(),
+                },
+                &Addr::unchecked(LP_STAKING_ADDR),
+            )?;
+        let res =
+            chain.query::<_, serde_json::Value>(&json!({"user_source_debt": {"address": addr, "reward_source_address": "archway1udst73crj6yq77srw5ajcgjxgu4sc3w7m5tq0n66d6qxj79zw5fq0d029f"}}), &Addr::unchecked(LP_STAKING_ADDR));
+        dbg!(lp_balance_response);
+        dbg!(res);
         Ok(())
     }
 
@@ -222,6 +234,7 @@ fn setup() -> anyhow::Result<StakingTester<CloneTesting, AstrovaultStake>> {
 #[test]
 fn test_stake() -> anyhow::Result<()> {
     let stake_tester = setup()?;
+
     // Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'attempt to subtract with overflow', contracts/lp-staking/src/handles/self_callback.rs:641:24
     stake_tester.test_stake()?;
     Ok(())

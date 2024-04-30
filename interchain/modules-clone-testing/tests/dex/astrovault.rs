@@ -402,6 +402,8 @@ mod stable_pool_tests {
     const LIQUIDITY_TOKEN: &str =
         "archway1xrmvl87p7mmyntyg6dydmlawjzktled2cvrl8wpeja5qp0xupdvqq0lwuf";
 
+    use cosmwasm_std::coins;
+
     use super::*;
 
     fn setup_stable_pool() -> anyhow::Result<DexTester<CloneTesting, AstrovaultDex>> {
@@ -418,10 +420,53 @@ mod stable_pool_tests {
             ASSET_B.to_owned(),
             AssetInfoUnchecked::Native(ASSET_B_DENOM.to_owned()),
         );
+        let pool_addr = Addr::unchecked(STABLE_POOL_ADDR);
+        // Normalize stable pool
+        {
+            let pool_response: astrovault::stable_pool::query_msg::PoolResponse = chain.query(
+                &astrovault::stable_pool::query_msg::QueryMsg::Pool {},
+                &pool_addr,
+            )?;
+            match pool_response.assets[0]
+                .amount
+                .cmp(&pool_response.assets[1].amount)
+            {
+                std::cmp::Ordering::Less => {
+                    let amount = pool_response.assets[1].amount - pool_response.assets[0].amount;
+                    let funds = coins(amount.u128(), ASSET_A_DENOM);
+                    chain.add_balance(&chain.sender, funds.clone())?;
+                    chain.execute(
+                        &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
+                            assets_amount: vec![amount, cosmwasm_std::Uint128::zero()],
+                            receiver: None,
+                            direct_staking: None,
+                        },
+                        &funds,
+                        &pool_addr,
+                    )?;
+                }
+                std::cmp::Ordering::Greater => {
+                    let amount = pool_response.assets[0].amount - pool_response.assets[1].amount;
+                    let funds = coins(amount.u128(), ASSET_B_DENOM);
+                    chain.add_balance(&chain.sender, funds.clone())?;
+                    chain.execute(
+                        &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
+                            assets_amount: vec![cosmwasm_std::Uint128::zero(), amount],
+                            receiver: None,
+                            direct_staking: None,
+                        },
+                        &funds,
+                        &pool_addr,
+                    )?;
+                }
+                // Already normalized, no need to do anything
+                std::cmp::Ordering::Equal => (),
+            }
+        }
         DexTester::new(
             abstr_deployment,
             AstrovaultDex {
-                pool_addr: Addr::unchecked(STABLE_POOL_ADDR),
+                pool_addr,
                 liquidity_token: Addr::unchecked(LIQUIDITY_TOKEN),
                 pool_type: PoolType::Stable,
                 chain,
@@ -441,13 +486,11 @@ mod stable_pool_tests {
     // Skipping slippage swap test as it's not applicable to stable pool
 
     #[test]
-    #[ignore = "Deposit failed due to unbalance threshold reached: 872084 > 750000"]
     fn test_provide_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_stable_pool()?;
 
-        // TODO: can't deposit asset_a, see ignore message
         dex_tester
-            .test_provide_liquidity_two_sided(Some(0), Some(1_000_000))
+            .test_provide_liquidity_two_sided(None, None)
             .unwrap();
         Ok(())
     }
@@ -455,11 +498,10 @@ mod stable_pool_tests {
     // Skipping slippage provide_liquidity test as it's not applicable to stable pool
 
     #[test]
-    #[ignore = "Deposit failed due to unbalance threshold reached: 872084 > 750000"]
     fn test_withdraw_liquidity() -> anyhow::Result<()> {
         let dex_tester = setup_stable_pool()?;
 
-        dex_tester.test_withdraw_liquidity(Some(0), Some(1_000_000_000), None)?;
+        dex_tester.test_withdraw_liquidity(None, None, None)?;
         Ok(())
     }
 

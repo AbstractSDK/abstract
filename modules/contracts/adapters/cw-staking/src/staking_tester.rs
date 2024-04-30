@@ -87,8 +87,6 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
 
         self.provider.mint_lp(&proxy_addr, stake_value)?;
 
-        // TODO: unbonding period
-
         // stake 1_000_000_000
         self.staking_adapter.execute(
             &crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
