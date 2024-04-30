@@ -1,10 +1,10 @@
-use abstract_core::{
+use abstract_macros::abstract_response;
+use abstract_sdk::std::ibc_host::{InstantiateMsg, QueryMsg};
+use abstract_std::{
     ibc_host::{ExecuteMsg, MigrateMsg},
     objects::module_version::{assert_cw_contract_upgrade, migrate_module_data},
     IBC_HOST,
 };
-use abstract_macros::abstract_response;
-use abstract_sdk::core::ibc_host::{InstantiateMsg, QueryMsg};
 use cosmwasm_std::{
     Binary, Deps, DepsMut, Env, IbcReceiveResponse, MessageInfo, Reply, Response, StdError,
 };

@@ -1,11 +1,11 @@
 //! # AnsHost Entry
 //! An entry (value) in the ans_host key-value store.
 
-use abstract_core::objects::{ans_host::AnsHostResult, AnsEntryConvertor};
+use abstract_std::objects::{ans_host::AnsHostResult, AnsEntryConvertor};
 use cosmwasm_std::{Addr, QuerierWrapper};
 use cw_asset::{Asset, AssetInfo};
 
-use crate::core::objects::{
+use crate::std::objects::{
     ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
 };
@@ -130,7 +130,7 @@ where
 mod tests {
     use super::*;
 
-    use abstract_core::ans_host::state::ASSET_ADDRESSES;
+    use abstract_std::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::mock_dependencies, Binary, Empty};
     use speculoos::prelude::*;
@@ -314,7 +314,7 @@ mod tests {
 
     mod pool_metadata {
         use super::*;
-        use crate::core::objects::PoolType;
+        use crate::std::objects::PoolType;
 
         #[test]
         fn exists() {
@@ -369,10 +369,10 @@ mod tests {
     }
 
     mod pools {
-        use abstract_core::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
+        use abstract_std::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
 
         use super::*;
-        use crate::core::objects::{PoolAddress, PoolType};
+        use crate::std::objects::{PoolAddress, PoolType};
 
         #[test]
         fn exists() {
@@ -420,7 +420,7 @@ mod tests {
 
     mod contract_entry {
         use super::*;
-        use crate::core::ans_host::state::CONTRACT_ADDRESSES;
+        use crate::std::ans_host::state::CONTRACT_ADDRESSES;
 
         #[test]
         fn exists() {
@@ -494,10 +494,10 @@ mod tests {
     mod channel_entry {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
+        use abstract_std::objects::chain_name::ChainName;
 
         use super::*;
-        use crate::core::ans_host::state::CHANNELS;
+        use crate::std::ans_host::state::CHANNELS;
 
         #[test]
         fn exists() {
@@ -533,7 +533,7 @@ mod tests {
 
     mod asset_info_and_asset {
         use super::*;
-        use crate::core::ans_host::state::REV_ASSET_ADDRESSES;
+        use crate::std::ans_host::state::REV_ASSET_ADDRESSES;
 
         #[test]
         fn exists() {

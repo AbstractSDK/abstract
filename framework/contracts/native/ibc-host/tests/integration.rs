@@ -1,5 +1,9 @@
 use abstract_adapter::mock::MockInitMsg;
-use abstract_core::{
+use abstract_ibc_host::HostError;
+use abstract_interface::{
+    Abstract, AdapterDeployer, DeployStrategy, ExecuteMsgFns as InterfaceExecuteMsgFns,
+};
+use abstract_std::{
     ibc_host::{
         ClientProxyResponse, ConfigResponse, ExecuteMsgFns, HostAction, InternalAction, QueryMsgFns,
     },
@@ -9,10 +13,6 @@ use abstract_core::{
         UncheckedChannelEntry,
     },
     ACCOUNT_FACTORY, ICS20, MANAGER, PROXY,
-};
-use abstract_ibc_host::HostError;
-use abstract_interface::{
-    Abstract, AdapterDeployer, DeployStrategy, ExecuteMsgFns as InterfaceExecuteMsgFns,
 };
 use cosmwasm_std::Event;
 use cw_orch::prelude::*;
@@ -284,11 +284,11 @@ fn account_action() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::ProposeOwner {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ProposeOwner {
                     owner: GovernanceDetails::Monarchy {
                         monarch: mock.addr_make("new_owner").to_string(),
                     },
-                },
+                }],
             },
             proxy_addr.to_string(),
         )
@@ -336,11 +336,11 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::ProposeOwner {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ProposeOwner {
                     owner: GovernanceDetails::Monarchy {
                         monarch: mock.addr_make("new_owner").to_string(),
                     },
-                },
+                }],
             },
             mock.addr_make("proxy_address").to_string(),
         )
@@ -413,7 +413,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     // We call the action and verify that it completes without issues.
     let account_action_response = abstr.ibc.host.call_as(&polytone_proxy).ibc_execute(
         AccountId::local(account_sequence),
-        HostAction::Helpers(abstract_core::ibc_host::HelperAction::SendAllBack {}),
+        HostAction::Helpers(abstract_std::ibc_host::HelperAction::SendAllBack {}),
         proxy_addr.to_string(),
     )?;
 

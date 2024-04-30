@@ -1,10 +1,10 @@
-use abstract_app::state::AppState;
-use abstract_sdk::{
-    core::{
+use abstract_app::sdk::*;
+use abstract_app::{
+    sdk::std::{
         objects::{deposit_info::DepositInfo, fee::Fee},
         proxy::AssetsInfoResponse,
     },
-    *,
+    std::app::AppState,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo,

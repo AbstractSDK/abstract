@@ -1,8 +1,8 @@
-use abstract_core::{
+use abstract_sdk::AbstractSdkError;
+use abstract_std::{
     objects::{ans_host::AnsHostError, version_control::VersionControlError},
     AbstractError,
 };
-use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use polytone::callbacks::CallbackMessage;
 use thiserror::Error;
@@ -33,8 +33,11 @@ pub enum IbcClientError {
     #[error("remote account changed from {old} to {addr}")]
     RemoteAccountChanged { addr: String, old: String },
 
-    #[error("packages that contain internal calls are not allowed")]
+    #[error("Calling internal actions externally is not allowed")]
     ForbiddenInternalCall {},
+
+    #[error("A non-module package (native or accounts) cannot execute an ibc module call")]
+    ForbiddenModuleCall {},
 
     #[error("The host you are trying to connect is already connected")]
     HostAlreadyExists {},

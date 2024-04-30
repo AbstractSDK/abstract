@@ -1,8 +1,10 @@
-use abstract_core::ibc::CallbackInfo;
-use abstract_core::objects::chain_name::ChainName;
-use abstract_sdk::feature_objects::AnsHost;
-use abstract_sdk::features::{AbstractNameService, AbstractResponse, AccountIdentification};
-use abstract_sdk::{IbcInterface, Resolve};
+use abstract_adapter::sdk::{
+    feature_objects::AnsHost,
+    features::{AbstractNameService, AbstractResponse, AccountIdentification},
+    IbcInterface, Resolve,
+};
+use abstract_adapter::std::ibc::CallbackInfo;
+use abstract_adapter::std::objects::chain_name::ChainName;
 use abstract_staking_standard::msg::{
     ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
 };
@@ -77,8 +79,8 @@ fn handle_ibc_request(
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
     // construct the action to be called on the host
-    let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
-        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+    let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
+        manager_msgs: vec![abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
             module_id: CW_STAKING_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(
                 &StakingExecuteMsg {
@@ -87,12 +89,12 @@ fn handle_ibc_request(
                 }
                 .into(),
             )?,
-        },
+        }],
     };
 
     // If the calling entity is a contract, we provide a callback on successful cross-chain-staking
     let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());
-    let callback = if maybe_contract_info.is_err() {
+    let _callback = if maybe_contract_info.is_err() {
         None
     } else {
         Some(CallbackInfo {
@@ -101,10 +103,9 @@ fn handle_ibc_request(
                 provider: provider_name.clone(),
                 action: action.clone(),
             })?),
-            receiver: info.sender.into_string(),
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action, callback)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action)?;
 
     Ok(adapter
         .custom_response("handle_ibc_request", vec![("provider", provider_name)])

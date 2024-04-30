@@ -36,7 +36,7 @@ fi
 
 # these are imported by other packages
 BASE_PACKAGES="abstract-macros"
-UTILS_PACKAGES="abstract-core abstract-testing abstract-sdk"
+UTILS_PACKAGES="abstract-std abstract-testing abstract-sdk"
 CORE_CONTRACTS="manager proxy"
 NATIVE_CONTRACTS="ans-host account-factory module-factory version-control ibc-host ibc-client"
 

@@ -1,8 +1,8 @@
 use abstract_adapter_utils::identity::Identify;
 
 use crate::error::MoneyMarketError;
-use abstract_core::objects::{ans_host::AnsHostError, AssetEntry};
 use abstract_sdk::feature_objects::AnsHost;
+use abstract_std::objects::{ans_host::AnsHostError, AssetEntry};
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, QuerierWrapper, Uint128};
 use cw_asset::{Asset, AssetInfo};
 

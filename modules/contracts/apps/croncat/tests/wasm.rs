@@ -1,4 +1,4 @@
-use abstract_testing::OWNER;
+use abstract_app::abstract_testing::OWNER;
 use croncat_app::{contract::CRONCAT_ID, Croncat};
 use cw_orch::prelude::*;
 

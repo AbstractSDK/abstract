@@ -63,7 +63,7 @@ The builder constructor takes three variables:
 
 1. `module_id`: The module ID is a string that we defined above.
 2. `contract_version`: The contract version.
-3. `metadata`: An optional URL that can be used to retrieve data off-chain. Can be used with the Abstract Metadata Standard to automatically generate interactive front-end components for the module. This is explained in more detail in the [metadata section](./9_metadata.md).
+3. `metadata`: An optional URL that can be used to retrieve data off-chain. Can be used with the Abstract Metadata Standard to automatically generate interactive front-end components for the module. This is explained in more detail in the [metadata section](9_metadata.md).
 
 Amazing! You now have a very basic Abstract module. You can now add your custom logic to your module by adding handlers to the module.
 
@@ -135,6 +135,7 @@ This appendix contains all the available handlers, what type of handler `Fn` the
 - `with_sudo`: Called when the App's `SudoMsg` is called on the sudo entry point.
 - `with_receive`: Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
 - `with_ibc_callbacks`: Called when the App's `ExecuteMsg::IbcCallback` is called on the execute entry point. Matches the callback's callback ID to its associated function.
+- `with_module_ibc`: Called when a Module wants to call another module over IBC.
 
 In the case of adapters, the handlers are the same, except for `with_migrate` and `with_sudo` that are missing for reasons we explain in the [adapter section](../3_framework/6_module_types.md#adapters).
 
@@ -166,7 +167,7 @@ Expected function signature for the custom instantiate handler:
 In order to instantiate an Abstract Module, you need to provide an InstantiateMsg with the following structure:
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:init}}
+{{#include ../../../packages/abstract-std/src/base.rs:init}}
 ```
 
 When the module's instantiate function is called the struct's `module` field is passed to your custom instantiation
@@ -194,7 +195,7 @@ Expected function signature for the custom execute handler:
 Called when the App's `ExecuteMsg::Module` variant is called on the execute entry point.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:exec}}
+{{#include ../../../packages/abstract-std/src/base.rs:exec}}
 ```
 
 The content of the `Module` variant is passed to your custom execute handler.
@@ -221,7 +222,7 @@ Expected function signature for the custom query handler:
 Called when the App's `QueryMsg::Module` variant is called on the query entry point.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:query}}
+{{#include ../../../packages/abstract-std/src/base.rs:query}}
 ```
 
 The content of the `Module` variant is passed to your custom query handler.
@@ -252,7 +253,7 @@ Called when the App's migrate entry point is called. Uses the struct's `module` 
 this field is passed to the handler function.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:migrate}}
+{{#include ../../../packages/abstract-std/src/base.rs:migrate}}
 ```
 
 </details>
@@ -327,7 +328,7 @@ Expected function signature for the custom receive handler:
 Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:exec}}
+{{#include ../../../packages/abstract-std/src/base.rs:exec}}
 ```
 
 </details>
@@ -359,7 +360,40 @@ Called when the App's `ExecuteMsg::IbcCallback` variant is called on the execute
 customizable but contains the IBC action acknowledgment.
 
 ```rust,ignore
+{{#include ../../../packages/abstract-std/src/base.rs:exec}}
+```
+
+</details>
+
+
+### Module Ibc
+
+The module ibc handler is a mutable entry point of the contract. It is similar to the `execute` handler but is
+specifically geared towards handling module-to-module IBC calls. On this endpoint, the sender is a module on a remote chain. Module developers should test the `client_chain` AND `source_module` variables against their local storage. Without it, any module could execute the logic inside this functio
+
+<!-- > We cover Abstract's IBC logic later in this book (TODO: add link to that section.) -->
+
+<details>
+
+#### Function Signature
+
+```rust,ignore
+{{#include ../../../packages/abstract-sdk/src/base/contract_base.rs:module_ibc}}
+```
+
+#### Message
+
+Called when the App's `ExecuteMsg::ModuleIbc` variant is called on the execute entry point. The receiving type is not
+customizable. It contains : 
+
+- `client_chain` the remote chain identification
+- `source_module` the sending module on the remote chain
+- `msg` the message sent by the module. This is usually deserialized by the module's developer to trigger actions.
+
+```rust,ignore
 {{#include ../../../packages/abstract-core/src/base.rs:exec}}
+
+{{#include ../../../packages/abstract-core/src/native/ibc.rs:module_ibc_msg}}
 ```
 
 </details>

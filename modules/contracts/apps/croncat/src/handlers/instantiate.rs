@@ -1,4 +1,4 @@
-use abstract_sdk::{features::AbstractNameService, AbstractSdkError};
+use abstract_app::sdk::{features::AbstractNameService, AbstractSdkError};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::{

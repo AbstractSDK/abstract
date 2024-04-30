@@ -1,6 +1,6 @@
 //! # Account Proxy
 //!
-//! `abstract_core::proxy` hold all the assets associated with the Account instance. It accepts Cosmos messages from whitelisted addresses and executes them.
+//! `abstract_std::proxy` hold all the assets associated with the Account instance. It accepts Cosmos messages from whitelisted addresses and executes them.
 //!
 //! ## Description
 //! The proxy is part of the Core Account contracts along with the [`crate::manager`] contract.
@@ -59,7 +59,7 @@ pub enum ExecuteMsg {
     /// Execute a message and forward the Response data
     ModuleActionWithData { msg: CosmosMsg<Empty> },
     /// Execute IBC action on Client
-    IbcAction { msgs: Vec<IbcClientMsg> },
+    IbcAction { msg: IbcClientMsg },
     /// Adds the provided address to whitelisted dapps
     AddModules { modules: Vec<String> },
     /// Removes the provided address from the whitelisted dapps

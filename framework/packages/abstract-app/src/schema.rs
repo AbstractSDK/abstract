@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use abstract_core::app::{self, AppExecuteMsg, AppQueryMsg};
+use abstract_std::app::{self, AppExecuteMsg, AppQueryMsg};
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Serialize};
@@ -13,7 +13,7 @@ impl<
         Error: From<cosmwasm_std::StdError>
             + From<AppError>
             + From<abstract_sdk::AbstractSdkError>
-            + From<abstract_core::AbstractError>
+            + From<abstract_std::AbstractError>
             + 'static,
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomInitMsg: Serialize + DeserializeOwned + JsonSchema,

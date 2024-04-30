@@ -11,6 +11,16 @@ The MoneyMarket Adapter Module provides a unified interface to interact with var
 - **Provide Liquidity Symmetric**: Add an equal value of two assets to a liquidity pool.
 - **Custom Swap**: Execute a swap with custom parameters, allowing for more advanced trading strategies.
 
+## Supported Lending Markets
+
+The following lending markets are currently supported:
+
+- Mars (Osmosis)
+- Kujira Ghost (Kujira)
+- Cavern Protocol (Terra)
+
+If you would like to request support for an additional lending market, please create a GitHub issue or reach out to us on Discord.
+
 ## Installation
 
 To use the MoneyMarket Adapter Module in your Rust project, add the following dependency to your `Cargo.toml`:
@@ -44,7 +54,7 @@ The Money Market adapter provides easy ways of interacting with Money Markets. H
 - The money market may not have liquidity available to borrow funds.
 - The money market may not have liquidity available to withdraw deposited funds from
 - The user may not be able to withdraw collateral because they are borrowing too much funds.
-  
+
 All those errors and more have to be handled directly by the developers integrating this adapter.
 
 ## Why Use the MoneyMarket Adapter?

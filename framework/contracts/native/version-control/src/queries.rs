@@ -1,11 +1,4 @@
-use abstract_core::{
-    objects::module::ModuleStatus,
-    version_control::{
-        state::{NAMESPACES_INFO, PENDING_MODULES},
-        ModuleConfiguration, NamespaceInfo, NamespaceResponse,
-    },
-};
-use abstract_sdk::core::{
+use abstract_sdk::std::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
@@ -16,6 +9,13 @@ use abstract_sdk::core::{
         state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES, YANKED_MODULES},
         AccountBaseResponse, ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse,
         NamespaceListResponse,
+    },
+};
+use abstract_std::{
+    objects::module::ModuleStatus,
+    version_control::{
+        state::{NAMESPACES_INFO, PENDING_MODULES},
+        ModuleConfiguration, NamespaceInfo, NamespaceResponse,
     },
 };
 use cosmwasm_std::{Deps, Order, StdError, StdResult};
@@ -265,7 +265,7 @@ mod test {
     use super::*;
 
     use crate::contract;
-    use abstract_core::{manager, objects::account::AccountTrace, version_control::*};
+    use abstract_std::{manager, objects::account::AccountTrace, version_control::*};
     use abstract_testing::{prelude::*, MockQuerierOwnership};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
@@ -324,7 +324,7 @@ mod test {
             info,
             InstantiateMsg {
                 admin,
-                allow_direct_module_registration_and_updates: Some(true),
+                security_disabled: Some(true),
                 namespace_registration_fee: None,
             },
         )?;
@@ -332,7 +332,7 @@ mod test {
             deps.branch(),
             ExecuteMsg::UpdateConfig {
                 account_factory_address: Some(TEST_ACCOUNT_FACTORY.to_string()),
-                allow_direct_module_registration_and_updates: None,
+                security_disabled: None,
                 namespace_registration_fee: None,
             },
         )?;
@@ -381,7 +381,7 @@ mod test {
     mod module {
         use super::*;
 
-        use abstract_core::objects::module::ModuleVersion::Latest;
+        use abstract_std::objects::module::ModuleVersion::Latest;
 
         fn add_namespace(deps: DepsMut, namespace: &str) {
             let msg = ExecuteMsg::ClaimNamespace {

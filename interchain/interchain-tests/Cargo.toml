@@ -11,8 +11,9 @@ cosmwasm-std = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-proto = { workspace = true }
 
-abstract-core = { workspace = true, features = ["interface"] }
+abstract-std = { workspace = true, features = ["interface"] }
 abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-interface = { workspace = true }
@@ -27,3 +28,8 @@ ibc-relayer-types = "0.25"
 
 cw-orch-polytone = { workspace = true }
 polytone = { workspace = true }
+cosmwasm-schema.workspace = true
+cw-controllers = { workspace = true }
+cw-storage-plus.workspace = true
+thiserror.workspace = true
+base64 = "0.22.0"

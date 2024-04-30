@@ -1,6 +1,6 @@
 //! # Abstract Api Base
 //!
-//! `abstract_core::adapter` implements shared functionality that's useful for creating new Abstract adapters.
+//! `abstract_std::adapter` implements shared functionality that's useful for creating new Abstract adapters.
 //!
 //! ## Description
 //! An Abstract adapter contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.
@@ -16,7 +16,10 @@ use crate::{
         ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
         QueryMsg as MiddlewareQueryMsg,
     },
-    objects::module_version::ModuleDataResponse,
+    objects::{
+        ans_host::AnsHost, module_version::ModuleDataResponse,
+        version_control::VersionControlContract,
+    },
 };
 
 pub type ExecuteMsg<Request = Empty, ReceiveMsg = Empty> =
@@ -155,4 +158,14 @@ pub struct AdapterConfigResponse {
 pub struct AuthorizedAddressesResponse {
     /// Contains all authorized addresses
     pub addresses: Vec<Addr>,
+}
+
+/// The BaseState contains the main addresses needed for sending and verifying messages
+/// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
+#[cosmwasm_schema::cw_serde]
+pub struct AdapterState {
+    /// Used to verify requests
+    pub version_control: VersionControlContract,
+    /// AnsHost contract struct (address)
+    pub ans_host: AnsHost,
 }

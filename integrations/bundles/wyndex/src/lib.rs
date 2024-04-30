@@ -3,13 +3,13 @@ pub mod suite;
 
 use std::fmt::Debug;
 
-use abstract_core::{
+use abstract_interface::{Abstract, AbstractInterfaceError};
+use abstract_std::{
     ans_host::ExecuteMsgFns,
     objects::{
         pool_id::PoolAddressBase, AssetEntry, LpToken, PoolMetadata, UncheckedContractEntry,
     },
 };
-use abstract_interface::{Abstract, AbstractInterfaceError};
 use cosmwasm_std::{coin, Decimal, Uint128};
 use cw20::Cw20Coin;
 use cw_orch::prelude::*;

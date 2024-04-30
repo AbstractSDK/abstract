@@ -1,9 +1,9 @@
-use abstract_core::{
+use abstract_interface::{Abstract, AccountDetails, AccountFactoryExecFns, VCExecFns, VCQueryFns};
+use abstract_sdk::cw_helpers::Clearable;
+use abstract_std::{
     objects::{gov_type::GovernanceDetails, namespace::Namespace},
     version_control::{AccountBase, NamespaceInfo, NamespaceResponse},
 };
-use abstract_interface::{Abstract, AccountDetails, AccountFactoryExecFns, VCExecFns, VCQueryFns};
-use abstract_sdk::cw_helpers::Clearable;
 use cosmwasm_std::coin;
 use cw_orch::{environment::MutCwEnv, prelude::*};
 
@@ -21,7 +21,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
     chain
         .set_balance(&sender, vec![namespace_fee.clone()])
         .unwrap();
-    version_control.update_config(None, None, Some(Clearable::Set(namespace_fee.clone())))?;
+    version_control.update_config(None, Some(Clearable::Set(namespace_fee.clone())), None)?;
 
     let namespace_to_claim = "namespace-to-claim";
 

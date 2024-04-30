@@ -1,4 +1,4 @@
-use abstract_sdk::core::objects::LpToken;
+use abstract_sdk::std::objects::LpToken;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -30,8 +30,8 @@ impl Identify for WynDex {
 #[cfg(feature = "full_integration")]
 use {
     abstract_sdk::{
-        core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
+        std::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         Resolve,
     },
     abstract_staking_standard::msg::{

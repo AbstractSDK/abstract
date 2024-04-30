@@ -1,13 +1,13 @@
-use abstract_core::{
+use abstract_integration_tests::{create_default_account, mock_modules, AResult};
+use abstract_interface::{Abstract, AbstractAccount, VCExecFns};
+use abstract_manager::error::ManagerError;
+use abstract_std::{
     manager::{
         ExecuteMsg as ManagerMsg, ModuleAddressesResponse, ModuleInstallConfig,
         QueryMsg as ManagerQuery,
     },
     objects::{account::TEST_ACCOUNT_ID, module::ModuleInfo},
 };
-use abstract_integration_tests::{create_default_account, mock_modules, AResult};
-use abstract_interface::{Abstract, AbstractAccount, VCExecFns};
-use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::TEST_NAMESPACE;
 use cw_orch::{prelude::*, take_storage_snapshot};
 use mock_modules::{adapter_1, deploy_modules, V1};

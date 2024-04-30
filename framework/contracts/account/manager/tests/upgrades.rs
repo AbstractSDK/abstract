@@ -1,5 +1,11 @@
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
-use abstract_core::{
+use abstract_integration_tests::{create_default_account, mock_modules::*, AResult, *};
+use abstract_interface::{
+    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
+    ManagerExecFns, ManagerQueryFns, VCExecFns,
+};
+use abstract_manager::error::ManagerError;
+use abstract_std::{
     app,
     manager::{ModuleInstallConfig, ModuleVersionsResponse},
     module_factory::SimulateInstallModulesResponse,
@@ -13,12 +19,6 @@ use abstract_core::{
     version_control::UpdateModule,
     AbstractError,
 };
-use abstract_integration_tests::{mock_modules::*, *};
-use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns,
-    ManagerExecFns, ManagerQueryFns, VCExecFns,
-};
-use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 use cosmwasm_std::coin;
 use cw2::ContractVersion;

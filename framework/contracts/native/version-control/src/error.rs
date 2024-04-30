@@ -1,10 +1,7 @@
-use abstract_core::{
-    objects::{namespace::Namespace, AccountId},
+use abstract_sdk::AbstractSdkError;
+use abstract_std::{
+    objects::{module::ModuleInfo, namespace::Namespace, validation::ValidationError, AccountId},
     AbstractError,
-};
-use abstract_sdk::{
-    core::objects::{module::ModuleInfo, validation::ValidationError},
-    AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Coin, StdError};
 use thiserror::Error;
