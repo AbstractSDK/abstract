@@ -145,7 +145,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     }
 
     /// Queries the Module information for an address.
-    /// This will error if the Address is not an Abstract Module (App, Adapter or Standalone)
+    /// This will error if the Address is not an Abstract Module (Native, Account, App, Adapter or Standalone)
     pub fn module_info(&self, address: Addr) -> AbstractSdkResult<Module> {
         // We start by testing if the address is a module
         let module_response = MODULE
@@ -162,34 +162,28 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         )?)?;
 
         match module.reference.clone() {
-            ModuleReference::AccountBase(_) => Err(AbstractSdkError::NotAModule {
-                addr: address,
-                err: "got an account".to_string(),
-            }),
-            ModuleReference::Native(_) => Err(AbstractSdkError::NotAModule {
-                addr: address,
-                err: "got an native module".to_string(),
-            }),
-            ModuleReference::Adapter(queried_address) => {
+            ModuleReference::Adapter(queried_address)
+            | ModuleReference::Native(queried_address) => {
                 if queried_address == address {
                     Ok(module)
                 } else {
                     Err(AbstractSdkError::WrongModuleInfo {
                         addr: address.clone(),
-                        module,
+                        module: module.to_string(),
                         err: format!("Expected address {queried_address}, got address {address}",),
                     })
                 }
             }
             ModuleReference::App(queried_code_id)
-            | ModuleReference::Standalone(queried_code_id) => {
+            | ModuleReference::Standalone(queried_code_id)
+            | ModuleReference::AccountBase(queried_code_id) => {
                 let request_contract = self.deps.querier.query_wasm_contract_info(&address)?;
                 if queried_code_id == request_contract.code_id {
                     Ok(module)
                 } else {
                     Err(AbstractSdkError::WrongModuleInfo {
                         addr: address,
-                        module,
+                        module: module.to_string(),
                         err: format!(
                             "Expected code_id {queried_code_id}, got code_id {}",
                             request_contract.code_id

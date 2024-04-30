@@ -1,7 +1,6 @@
 #![allow(missing_docs)]
 use std::fmt::{Display, Formatter};
 
-use abstract_core::objects::module::Module;
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use thiserror::Error;
@@ -78,7 +77,7 @@ pub enum AbstractSdkError {
     )]
     WrongModuleInfo {
         addr: Addr,
-        module: Module,
+        module: String,
         err: String,
     },
 }
