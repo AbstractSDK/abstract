@@ -576,12 +576,12 @@ impl<Chain: CwEnv> Account<Chain> {
                 &abstract_std::manager::ExecuteMsg::ExecOnModule {
                     module_id: PROXY.to_owned(),
                     exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
-                        msgs: vec![ibc_client::ExecuteMsg::Register {
+                        msg: ibc_client::ExecuteMsg::Register {
                             host_chain: host_chain.into(),
                             base_asset,
                             namespace,
                             install_modules,
-                        }],
+                        },
                     })
                     .map_err(AbstractInterfaceError::from)?,
                 },
