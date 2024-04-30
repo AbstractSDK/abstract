@@ -33,7 +33,7 @@ pub trait IbcCallbackEndpoint: Handler {
         let maybe_handler = self.maybe_ibc_callback_handler(&id);
         maybe_handler.map_or_else(
             || Ok(Response::new()),
-            |handler| handler(deps, env, info, self, id, callback_msg, result),
+            |handler| handler(deps, env, info, self, callback_msg, result),
         )
     }
 }
