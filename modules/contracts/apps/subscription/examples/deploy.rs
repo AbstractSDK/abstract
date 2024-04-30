@@ -1,4 +1,4 @@
-use abstract_interface::*;
+use abstract_app::abstract_interface::*;
 use abstract_subscription::contract::{interface::SubscriptionInterface, SUBSCRIPTION_ID};
 use clap::Parser;
 use cw_orch::{

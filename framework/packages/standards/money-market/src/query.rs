@@ -1,276 +1,157 @@
-use cosmwasm_std::{Decimal, Uint128};
+use crate::{msg::MoneyMarketQueryMsg, MoneyMarketCommand, MoneyMarketError};
+use abstract_sdk::Resolve;
+use abstract_std::objects::ans_host::AnsHostError;
 
-pub use ans::{MoneyMarketAnsQuery, WholeMoneyMarketQuery};
-pub use raw::MoneyMarketRawQuery;
+/// This is an alias for a resolve_money_market function.
+pub type PlatformResolver =
+    fn(value: &str) -> Result<Box<dyn MoneyMarketCommand>, MoneyMarketError>;
 
-mod raw {
-    use cw_asset::AssetInfoBase;
-    /// Possible raw queries to run on the Money Market
-    #[cosmwasm_schema::cw_serde]
-    pub enum MoneyMarketRawQuery {
-        /// Deposited funds for lending
-        UserDeposit {
-            /// User that has deposited some funds
-            user: String,
-            /// Lended asset to query
-            asset: AssetInfoBase<String>,
-            contract_addr: String,
-        },
-        /// Deposited Collateral funds
-        UserCollateral {
-            /// User that has deposited some collateral
-            user: String,
-            /// Collateral asset to query
-            collateral_asset: AssetInfoBase<String>,
-            /// Borrowed asset to query
-            borrowed_asset: AssetInfoBase<String>,
-            contract_addr: String,
-        },
-        /// Borrowed funds
-        UserBorrow {
-            /// User that has borrowed some funds
-            user: String,
-            /// Collateral asset to query
-            collateral_asset: AssetInfoBase<String>,
-            /// Borrowed asset to query
-            borrowed_asset: AssetInfoBase<String>,
-            contract_addr: String,
-        },
-        /// Current Loan-to-Value ratio
-        /// Represents the borrow usage for a specific user
-        /// Allows to know how much asset are currently borrowed
-        CurrentLTV {
-            /// User that has borrowed some funds
-            user: String,
-            /// Collateral asset to query
-            collateral_asset: AssetInfoBase<String>,
-            /// Borrowed asset to query
-            borrowed_asset: AssetInfoBase<String>,
-            contract_addr: String,
-        },
-        /// Maximum Loan to Value ratio for a user
-        /// Allows to know how much assets can to be borrowed
-        MaxLTV {
-            /// User that has borrowed some funds
-            user: String,
-            /// Collateral asset to query
-            collateral_asset: AssetInfoBase<String>,
-            /// Borrowed asset to query
-            borrowed_asset: AssetInfoBase<String>,
-            contract_addr: String,
-        },
-        /// Price of an asset compared to another asset
-        /// The returned decimal corresponds to
-        /// How much quote assets can be bought with 1 base asset
-        Price {
-            quote: AssetInfoBase<String>,
-            base: AssetInfoBase<String>,
-        },
+/// Structure created to be able to resolve an action using ANS
+pub struct MoneyMarketQueryResolveWrapper(pub PlatformResolver, pub MoneyMarketQueryMsg);
+
+pub fn err(e: MoneyMarketError) -> AnsHostError {
+    AnsHostError::QueryFailed {
+        method_name: "resolve money market".to_string(),
+        error: cosmwasm_std::StdError::GenericErr { msg: e.to_string() },
     }
 }
 
-mod ans {
-    use crate::MoneyMarketCommand;
-    use abstract_core::objects::AssetEntry;
-    use abstract_sdk::Resolve;
+impl Resolve for MoneyMarketQueryResolveWrapper {
+    type Output = MoneyMarketQueryMsg;
 
-    use super::raw::MoneyMarketRawQuery;
-
-    /// Possible ans queries to run on the Money Market
-    #[cosmwasm_schema::cw_serde]
-    pub enum MoneyMarketAnsQuery {
-        /// Deposited funds for lending
-        UserDeposit {
-            /// User that has deposited some funds
-            user: String,
-            /// Lended asset to query
-            asset: AssetEntry,
-        },
-        /// Deposited Collateral funds
-        UserCollateral {
-            /// User that has deposited some collateral
-            user: String,
-            /// Collateral asset to query
-            collateral_asset: AssetEntry,
-            /// Borrowed asset to query
-            borrowed_asset: AssetEntry,
-        },
-        /// Borrowed funds
-        UserBorrow {
-            /// User that has borrowed some funds
-            user: String,
-            /// Collateral asset to query
-            collateral_asset: AssetEntry,
-            /// Borrowed asset to query
-            borrowed_asset: AssetEntry,
-        },
-        /// Current Loan-to-Value ratio
-        /// Represents the borrow usage for a specific user
-        /// Allows to know how much asset are currently borrowed
-        CurrentLTV {
-            /// User that has borrowed some funds
-            user: String,
-            /// Collateral asset to query
-            collateral_asset: AssetEntry,
-            /// Borrowed asset to query
-            borrowed_asset: AssetEntry,
-        },
-        /// Maximum Loan to Value ratio for a user
-        /// Allows to know how much assets can to be borrowed
-        MaxLTV {
-            /// User that has borrowed some funds
-            user: String,
-            /// Collateral asset to query
-            collateral_asset: AssetEntry,
-            /// Borrowed asset to query
-            borrowed_asset: AssetEntry,
-        },
-        /// Price of an asset compared to another asset
-        /// The returned decimal corresponds to
-        /// How much quote assets can be bought with 1 base asset
-        Price { quote: AssetEntry, base: AssetEntry },
-    }
-
-    /// Structure created to be able to resolve an action using ANS
-    pub struct WholeMoneyMarketQuery(pub Box<dyn MoneyMarketCommand>, pub MoneyMarketAnsQuery);
-
-    impl Resolve for WholeMoneyMarketQuery {
-        type Output = MoneyMarketRawQuery;
-
-        /// TODO: this only works for protocols where there is only one address for depositing
-        fn resolve(
-            &self,
-            querier: &cosmwasm_std::QuerierWrapper,
-            ans_host: &abstract_sdk::feature_objects::AnsHost,
-        ) -> abstract_core::objects::ans_host::AnsHostResult<Self::Output> {
-            let raw_action = match self.1.clone() {
-                MoneyMarketAnsQuery::UserDeposit { user, asset } => {
-                    let contract_addr = self.0.lending_address(querier, ans_host, asset.clone())?;
-                    let asset = asset.resolve(querier, ans_host)?;
-                    MoneyMarketRawQuery::UserDeposit {
-                        asset: asset.into(),
-                        user,
-                        contract_addr: contract_addr.to_string(),
-                    }
-                }
-                MoneyMarketAnsQuery::UserCollateral {
+    /// TODO: this only works for protocols where there is only one address for depositing
+    fn resolve(
+        &self,
+        querier: &cosmwasm_std::QuerierWrapper,
+        ans_host: &abstract_sdk::feature_objects::AnsHost,
+    ) -> abstract_std::objects::ans_host::AnsHostResult<Self::Output> {
+        let raw_action = match self.1.clone() {
+            MoneyMarketQueryMsg::AnsUserDeposit {
+                user,
+                asset,
+                money_market,
+            } => {
+                let platform = self.0(&money_market).map_err(err)?;
+                let contract_addr = platform.lending_address(querier, ans_host, asset.clone())?;
+                let asset = asset.resolve(querier, ans_host)?;
+                MoneyMarketQueryMsg::RawUserDeposit {
+                    asset: asset.into(),
                     user,
-                    collateral_asset,
-                    borrowed_asset,
-                } => {
-                    let contract_addr = self.0.collateral_address(
-                        querier,
-                        ans_host,
-                        borrowed_asset.clone(),
-                        collateral_asset.clone(),
-                    )?;
-                    let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
-                    let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
-                    MoneyMarketRawQuery::UserCollateral {
-                        user,
-                        collateral_asset: collateral_asset.into(),
-                        borrowed_asset: borrowed_asset.into(),
-                        contract_addr: contract_addr.to_string(),
-                    }
+                    contract_addr: contract_addr.to_string(),
+                    money_market,
                 }
-                MoneyMarketAnsQuery::UserBorrow {
+            }
+            MoneyMarketQueryMsg::AnsUserCollateral {
+                user,
+                collateral_asset,
+                borrowed_asset,
+                money_market,
+            } => {
+                let platform = self.0(&money_market).map_err(err)?;
+                let contract_addr = platform.collateral_address(
+                    querier,
+                    ans_host,
+                    borrowed_asset.clone(),
+                    collateral_asset.clone(),
+                )?;
+                let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
+                let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
+                MoneyMarketQueryMsg::RawUserCollateral {
                     user,
-                    collateral_asset,
-                    borrowed_asset,
-                } => {
-                    let contract_addr = self.0.borrow_address(
-                        querier,
-                        ans_host,
-                        borrowed_asset.clone(),
-                        collateral_asset.clone(),
-                    )?;
-                    let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
-                    let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
-                    MoneyMarketRawQuery::UserBorrow {
-                        user,
-                        collateral_asset: collateral_asset.into(),
-                        borrowed_asset: borrowed_asset.into(),
-
-                        contract_addr: contract_addr.to_string(),
-                    }
+                    collateral_asset: collateral_asset.into(),
+                    borrowed_asset: borrowed_asset.into(),
+                    contract_addr: contract_addr.to_string(),
+                    money_market,
                 }
-                MoneyMarketAnsQuery::CurrentLTV {
+            }
+            MoneyMarketQueryMsg::AnsUserBorrow {
+                user,
+                collateral_asset,
+                borrowed_asset,
+                money_market,
+            } => {
+                let platform = self.0(&money_market).map_err(err)?;
+                let contract_addr = platform.borrow_address(
+                    querier,
+                    ans_host,
+                    borrowed_asset.clone(),
+                    collateral_asset.clone(),
+                )?;
+                let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
+                let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
+                MoneyMarketQueryMsg::RawUserBorrow {
                     user,
-                    collateral_asset,
-                    borrowed_asset,
-                } => {
-                    let contract_addr = self.0.current_ltv_address(
-                        querier,
-                        ans_host,
-                        borrowed_asset.clone(),
-                        collateral_asset.clone(),
-                    )?;
-                    let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
-                    let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
-                    MoneyMarketRawQuery::CurrentLTV {
-                        user,
-                        collateral_asset: collateral_asset.into(),
-                        borrowed_asset: borrowed_asset.into(),
+                    collateral_asset: collateral_asset.into(),
+                    borrowed_asset: borrowed_asset.into(),
 
-                        contract_addr: contract_addr.to_string(),
-                    }
+                    contract_addr: contract_addr.to_string(),
+                    money_market,
                 }
-                MoneyMarketAnsQuery::MaxLTV {
+            }
+            MoneyMarketQueryMsg::AnsCurrentLTV {
+                user,
+                collateral_asset,
+                borrowed_asset,
+                money_market,
+            } => {
+                let platform = self.0(&money_market).map_err(err)?;
+                let contract_addr = platform.current_ltv_address(
+                    querier,
+                    ans_host,
+                    borrowed_asset.clone(),
+                    collateral_asset.clone(),
+                )?;
+                let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
+                let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
+                MoneyMarketQueryMsg::RawCurrentLTV {
                     user,
-                    collateral_asset,
-                    borrowed_asset,
-                } => {
-                    let contract_addr = self.0.max_ltv_address(
-                        querier,
-                        ans_host,
-                        borrowed_asset.clone(),
-                        collateral_asset.clone(),
-                    )?;
-                    let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
-                    let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
-                    MoneyMarketRawQuery::MaxLTV {
-                        user,
-                        collateral_asset: collateral_asset.into(),
-                        borrowed_asset: borrowed_asset.into(),
+                    collateral_asset: collateral_asset.into(),
+                    borrowed_asset: borrowed_asset.into(),
 
-                        contract_addr: contract_addr.to_string(),
-                    }
+                    contract_addr: contract_addr.to_string(),
+                    money_market,
                 }
-                MoneyMarketAnsQuery::Price { quote, base } => {
-                    let quote = quote.resolve(querier, ans_host)?;
-                    let base = base.resolve(querier, ans_host)?;
-                    MoneyMarketRawQuery::Price {
-                        quote: quote.into(),
-                        base: base.into(),
-                    }
-                }
-            };
+            }
+            MoneyMarketQueryMsg::AnsMaxLTV {
+                user,
+                collateral_asset,
+                borrowed_asset,
+                money_market,
+            } => {
+                let platform = self.0(&money_market).map_err(err)?;
+                let contract_addr = platform.max_ltv_address(
+                    querier,
+                    ans_host,
+                    borrowed_asset.clone(),
+                    collateral_asset.clone(),
+                )?;
+                let collateral_asset = collateral_asset.resolve(querier, ans_host)?;
+                let borrowed_asset = borrowed_asset.resolve(querier, ans_host)?;
+                MoneyMarketQueryMsg::RawMaxLTV {
+                    user,
+                    collateral_asset: collateral_asset.into(),
+                    borrowed_asset: borrowed_asset.into(),
 
-            Ok(raw_action)
-        }
+                    contract_addr: contract_addr.to_string(),
+                    money_market,
+                }
+            }
+            MoneyMarketQueryMsg::AnsPrice {
+                quote,
+                base,
+                money_market,
+            } => {
+                let quote = quote.resolve(querier, ans_host)?;
+                let base = base.resolve(querier, ans_host)?;
+                MoneyMarketQueryMsg::RawPrice {
+                    quote: quote.into(),
+                    base: base.into(),
+                    money_market,
+                }
+            }
+            _ => self.1.clone(),
+        };
+
+        Ok(raw_action)
     }
 }
-
-/// Responses for MoneyMarketQueries
-#[cosmwasm_schema::cw_serde]
-pub enum MoneyMarketQueryResponse {
-    /// Deposited funds for lending
-    UserDeposit { deposit_amount: Uint128 },
-    /// Deposited Collateral funds
-    UserCollateral { provided_collateral_amount: Uint128 },
-    /// Borrowed funds
-    UserBorrow { borrowed_amount: Uint128 },
-    /// Current Loan-to-Value ratio
-    /// Represents the borrow usage for a specific user
-    /// Allows to know how much asset are currently borrowed
-    CurrentLTV { ltv: Decimal },
-    /// Maximum Loan to Value ratio for a user
-    /// Allows to know how much assets can to be borrowed
-    MaxLTV { ltv: Decimal },
-    /// Price of an asset compared to another asset
-    /// The returned decimal corresponds to
-    /// How much quote assets can be bought with 1 base asset
-    Price { price: Decimal },
-}
-
-pub struct UserMoneyMarketPosition {}

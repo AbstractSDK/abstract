@@ -1,11 +1,12 @@
 #![warn(missing_docs)]
 //! # MoneyMarket Adapter API
 // re-export response types
-use crate::query::{MoneyMarketAnsQuery, MoneyMarketQueryResponse, MoneyMarketRawQuery};
 use crate::{ans_action::MoneyMarketAnsAction, raw_action::MoneyMarketRawAction};
-use abstract_core::{adapter, objects::fee::UsageFee};
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{CosmosMsg, Decimal};
+use abstract_std::objects::AssetEntry;
+use abstract_std::{adapter, objects::fee::UsageFee};
+use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::{CosmosMsg, Decimal, StdError, StdResult, Uint128};
+use cw_asset::AssetInfoBase;
 
 /// Max fee for the dex adapter actions
 pub const MAX_FEE: Decimal = Decimal::percent(5);
@@ -88,23 +89,229 @@ pub enum MoneyMarketQueryMsg {
     },
 
     /// Query using raw asset denoms and addresses
-    #[returns(MoneyMarketQueryResponse)]
-    MoneyMarketRawQuery {
-        /// Actual query
-        query: MoneyMarketRawQuery,
-        /// The name of the dex to interact with
+    /// Deposited funds for lending
+    #[returns(Uint128)]
+    RawUserDeposit {
+        /// User that has deposited some funds
+        user: String,
+        /// Lended asset to query
+        asset: AssetInfoBase<String>,
+        /// Contract Address on which you execute the query
+        contract_addr: String,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
+    #[returns(Uint128)]
+    /// Deposited Collateral funds
+    RawUserCollateral {
+        /// User that has deposited some collateral
+        user: String,
+        /// Collateral asset to query
+        collateral_asset: AssetInfoBase<String>,
+        /// Borrowed asset to query
+        borrowed_asset: AssetInfoBase<String>,
+        /// Contract Address on which you execute the query
+        contract_addr: String,
+        /// Name of the MoneyMarket to interact with
+        money_market: MoneyMarketName,
+    },
+    #[returns(Uint128)]
+    /// Borrowed funds
+    RawUserBorrow {
+        /// User that has borrowed some funds
+        user: String,
+        /// Collateral asset to query
+        collateral_asset: AssetInfoBase<String>,
+        /// Borrowed asset to query
+        borrowed_asset: AssetInfoBase<String>,
+        /// Contract Address on which you execute the query
+        contract_addr: String,
+        /// Name of the MoneyMarket to interact with
+        money_market: MoneyMarketName,
+    },
+    #[returns(Decimal)]
+    /// Current Loan-to-Value ratio
+    /// Represents the borrow usage for a specific user
+    /// Allows to know how much asset are currently borrowed
+    RawCurrentLTV {
+        /// User that has borrowed some funds
+        user: String,
+        /// Collateral asset to query
+        collateral_asset: AssetInfoBase<String>,
+        /// Borrowed asset to query
+        borrowed_asset: AssetInfoBase<String>,
+        /// Contract Address on which you execute the query
+        contract_addr: String,
+        /// Name of the MoneyMarket to interact with
+        money_market: MoneyMarketName,
+    },
+    #[returns(Decimal)]
+    /// Maximum Loan to Value ratio for a user
+    /// Allows to know how much assets can to be borrowed
+    RawMaxLTV {
+        /// User that has borrowed some funds
+        user: String,
+        /// Collateral asset to query
+        collateral_asset: AssetInfoBase<String>,
+        /// Borrowed asset to query
+        borrowed_asset: AssetInfoBase<String>,
+        /// Contract Address on which you execute the query
+        contract_addr: String,
+        /// Name of the MoneyMarket to interact with
+        money_market: MoneyMarketName,
+    },
+    #[returns(Decimal)]
+    /// Price of an asset compared to another asset
+    /// The returned decimal corresponds to
+    /// How much quote assets can be bought with 1 base asset
+    RawPrice {
+        /// Quote asset
+        quote: AssetInfoBase<String>,
+        /// Base asset
+        base: AssetInfoBase<String>,
+        /// Name of the MoneyMarket to interact with
+        money_market: MoneyMarketName,
+    },
+
+    #[returns(Uint128)]
     /// Query using ans assets
-    #[returns(MoneyMarketQueryResponse)]
-    MoneyMarketAnsQuery {
-        /// Actual query
-        query: MoneyMarketAnsQuery,
-        /// The name of the dex to interact with
+    /// Deposited funds for lending
+    AnsUserDeposit {
+        /// User that has deposited some funds
+        user: String,
+        /// Lended asset to query
+        asset: AssetEntry,
+        /// Name of the MoneyMarket to interact with
+        money_market: MoneyMarketName,
+    },
+    #[returns(Uint128)]
+    /// Deposited Collateral funds
+    AnsUserCollateral {
+        /// User that has deposited some collateral
+        user: String,
+        /// Collateral asset to query
+        collateral_asset: AssetEntry,
+        /// Borrowed asset to query
+        borrowed_asset: AssetEntry,
+        /// Name of the MoneyMarket to interact with
+        money_market: MoneyMarketName,
+    },
+    #[returns(Uint128)]
+    /// Borrowed funds
+    AnsUserBorrow {
+        /// User that has borrowed some funds
+        user: String,
+        /// Collateral asset to query
+        collateral_asset: AssetEntry,
+        /// Borrowed asset to query
+        borrowed_asset: AssetEntry,
+        /// Name of the MoneyMarket to interact with
+        money_market: MoneyMarketName,
+    },
+    #[returns(Decimal)]
+    /// Current Loan-to-Value ratio
+    /// Represents the borrow usage for a specific user
+    /// Allows to know how much asset are currently borrowed
+    AnsCurrentLTV {
+        /// User that has borrowed some funds
+        user: String,
+        /// Collateral asset to query
+        collateral_asset: AssetEntry,
+        /// Borrowed asset to query
+        borrowed_asset: AssetEntry,
+        /// Name of the MoneyMarket to interact with
+        money_market: MoneyMarketName,
+    },
+    #[returns(Decimal)]
+    /// Maximum Loan to Value ratio for a user
+    /// Allows to know how much assets can to be borrowed
+    AnsMaxLTV {
+        /// User that has borrowed some funds
+        user: String,
+        /// Collateral asset to query
+        collateral_asset: AssetEntry,
+        /// Borrowed asset to query
+        borrowed_asset: AssetEntry,
+        /// Name of the MoneyMarket to interact with
+        money_market: MoneyMarketName,
+    },
+    #[returns(Decimal)]
+    /// Price of an asset compared to another asset
+    /// The returned decimal corresponds to
+    /// How much quote assets can be bought with 1 base asset
+    AnsPrice {
+        /// Quote asset
+        quote: AssetEntry,
+        /// Base asset
+        base: AssetEntry,
+        /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
 
     /// Fee info for using the different dex actions
     #[returns(MoneyMarketFeesResponse)]
     Fees {},
+}
+
+impl MoneyMarketQueryMsg {
+    /// Returns the moneymarket name associated with the query
+    pub fn money_market(&self) -> StdResult<&str> {
+        match self {
+            MoneyMarketQueryMsg::RawUserDeposit { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::RawUserCollateral { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::RawUserBorrow { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::RawCurrentLTV { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::RawMaxLTV { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::RawPrice { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsUserDeposit { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsUserCollateral { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsUserBorrow { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsCurrentLTV { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsMaxLTV { money_market, .. } => Ok(money_market),
+            MoneyMarketQueryMsg::AnsPrice { money_market, .. } => Ok(money_market),
+
+            MoneyMarketQueryMsg::GenerateMessages { .. } => {
+                Err(StdError::generic_err("Wrong query type"))
+            }
+            MoneyMarketQueryMsg::Fees {} => Err(StdError::generic_err("Wrong query type")),
+        }
+    }
+}
+
+/// Response wrapper for user deposit query
+#[cw_serde]
+pub struct UserDepositResponse {
+    /// Deposit Amount
+    pub amount: Uint128,
+}
+/// Response wrapper for user collateral query
+#[cw_serde]
+pub struct UserCollateralResponse {
+    /// Collateral Amount
+    pub amount: Uint128,
+}
+/// Response wrapper for user borrow query
+#[cw_serde]
+pub struct UserBorrowResponse {
+    /// Borrow Amount
+    pub amount: Uint128,
+}
+/// Response wrapper for user current ltv query
+#[cw_serde]
+pub struct UserCurrentLTVResponse {
+    /// Current LTV
+    pub current_ltv: Decimal,
+}
+/// Response wrapper for user max ltv query
+#[cw_serde]
+pub struct UserMaxLTVResponse {
+    /// Maximum LTV
+    pub max_ltv: Decimal,
+}
+
+/// Response wrapper for price query
+#[cw_serde]
+pub struct PriceResponse {
+    /// Price
+    pub price: Decimal,
 }

@@ -1,8 +1,8 @@
-use abstract_core::version_control::AccountBase;
+use abstract_adapter::std::version_control::AccountBase;
 
-use abstract_sdk::{
-    core::objects::AssetEntry,
+use abstract_adapter::sdk::{
     features::{AbstractNameService, AbstractRegistryAccess},
+    std::objects::AssetEntry,
     Execution,
 };
 use abstract_staking_standard::{msg::StakingAction, CwStakingCommand, CwStakingError};

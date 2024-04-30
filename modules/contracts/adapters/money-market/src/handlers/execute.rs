@@ -1,13 +1,14 @@
-use abstract_core::objects::{
+use abstract_adapter::sdk::{
+    features::{AbstractNameService, AccountIdentification},
+    AccountVerification, Execution, ModuleRegistryInterface,
+};
+use abstract_adapter::std::objects::{
     account::AccountTrace,
     namespace::{Namespace, ABSTRACT_NAMESPACE},
     AccountId,
 };
 use abstract_money_market_standard::{
-    ans_action::ActionOnMoneymarket, raw_action::MoneyMarketRawAction, MoneyMarketError,
-};
-use abstract_sdk::{
-    features::AbstractNameService, AccountVerification, Execution, ModuleRegistryInterface,
+    ans_action::MoneyMarketActionResolveWrapper, raw_action::MoneyMarketRawAction, MoneyMarketError,
 };
 use cosmwasm_std::{ensure_eq, DepsMut, Env, MessageInfo, Response};
 
@@ -18,8 +19,6 @@ use crate::{
     platform_resolver,
     state::MONEY_MARKET_FEES,
 };
-
-use abstract_sdk::features::AccountIdentification;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -36,7 +35,7 @@ pub fn execute_handler(
             let (local_money_market_name, is_over_ibc) =
                 is_over_ibc(env.clone(), &money_market_name)?;
             // We resolve the Action to a RawAction to get the actual addresses, ids and denoms
-            let whole_money_market_action = ActionOnMoneymarket(
+            let whole_money_market_action = MoneyMarketActionResolveWrapper(
                 platform_resolver::resolve_money_market(&local_money_market_name)?,
                 action,
             );

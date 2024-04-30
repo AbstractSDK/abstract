@@ -457,11 +457,10 @@ impl AuthZ {
 
 #[cfg(test)]
 mod tests {
-    use cosmwasm_std::testing::mock_dependencies;
-    use prost_types::Any;
-
     use super::*;
+
     use crate::{apis::stargate::convert_stamp, mock_module::*};
+    use cosmwasm_std::testing::mock_dependencies;
 
     #[test]
     fn generic_authorization() {

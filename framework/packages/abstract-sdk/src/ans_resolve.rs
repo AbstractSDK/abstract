@@ -1,11 +1,11 @@
 //! # AnsHost Entry
 //! An entry (value) in the ans_host key-value store.
 
-use abstract_core::objects::{ans_host::AnsHostResult, AnsEntryConvertor};
+use abstract_std::objects::{ans_host::AnsHostResult, AnsEntryConvertor};
 use cosmwasm_std::{Addr, QuerierWrapper};
 use cw_asset::{Asset, AssetInfo};
 
-use crate::core::objects::{
+use crate::std::objects::{
     ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
 };
@@ -16,6 +16,14 @@ pub trait Resolve {
     type Output;
     /// Resolve an entry into its value.
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<Self::Output>;
+    /// Check if the entry is registered in the ANS.
+    fn is_registered(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> bool {
+        self.resolve(querier, ans_host).is_ok()
+    }
+    /// Assert that a given entry is registered in the ANS.
+    fn assert_registered(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> AnsHostResult<()> {
+        self.resolve(querier, ans_host).map(|_| ())
+    }
 }
 
 impl Resolve for AssetEntry {
@@ -120,23 +128,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Debug;
-
-    use abstract_core::ans_host::state::ASSET_ADDRESSES;
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{mock_dependencies, MockQuerier},
-        Binary, Empty,
-    };
-    use speculoos::prelude::*;
-
     use super::*;
 
-    fn assert_not_found<T: Debug>(res: AnsHostResult<T>) {
-        assert_that!(res)
-            .is_err()
-            .matches(|e| e.to_string().contains("not found"));
-    }
+    use abstract_std::ans_host::state::ASSET_ADDRESSES;
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{testing::mock_dependencies, Binary, Empty};
+    use speculoos::prelude::*;
+    use std::fmt::Debug;
 
     fn default_test_querier() -> MockQuerier {
         MockQuerierBuilder::default()
@@ -171,7 +169,41 @@ mod tests {
     {
         let res = test_resolve(&default_test_querier(), nonexistent);
 
-        assert_not_found(res);
+        assert_that!(res)
+            .is_err()
+            .matches(|e| e.to_string().contains("not found"));
+    }
+
+    mod is_registered {
+        use super::*;
+
+        #[test]
+        fn exists() {
+            let test_asset_entry = AssetEntry::new("aoeu");
+            let querier = MockQuerierBuilder::default()
+                .with_contract_map_entry(
+                    TEST_ANS_HOST,
+                    ASSET_ADDRESSES,
+                    (&test_asset_entry, AssetInfo::native("abc")),
+                )
+                .build();
+
+            let ans_host = mock_ans_host();
+
+            let is_registered =
+                test_asset_entry.is_registered(&QuerierWrapper::new(&querier), &ans_host);
+            assert_that!(is_registered).is_true();
+        }
+
+        #[test]
+        fn does_not_exist() {
+            let not_exist_asset = AssetEntry::new("aoeu");
+            let querier = default_test_querier();
+            let wrapper = wrap_querier(&querier);
+
+            let is_registered = not_exist_asset.is_registered(&wrapper, &mock_ans_host());
+            assert_that!(is_registered).is_false();
+        }
     }
 
     mod asset_entry {
@@ -282,7 +314,7 @@ mod tests {
 
     mod pool_metadata {
         use super::*;
-        use crate::core::objects::PoolType;
+        use crate::std::objects::PoolType;
 
         #[test]
         fn exists() {
@@ -337,10 +369,10 @@ mod tests {
     }
 
     mod pools {
-        use abstract_core::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
+        use abstract_std::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
 
         use super::*;
-        use crate::core::objects::{PoolAddress, PoolType};
+        use crate::std::objects::{PoolAddress, PoolType};
 
         #[test]
         fn exists() {
@@ -388,7 +420,7 @@ mod tests {
 
     mod contract_entry {
         use super::*;
-        use crate::core::ans_host::state::CONTRACT_ADDRESSES;
+        use crate::std::ans_host::state::CONTRACT_ADDRESSES;
 
         #[test]
         fn exists() {
@@ -462,10 +494,10 @@ mod tests {
     mod channel_entry {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
+        use abstract_std::objects::chain_name::ChainName;
 
         use super::*;
-        use crate::core::ans_host::state::CHANNELS;
+        use crate::std::ans_host::state::CHANNELS;
 
         #[test]
         fn exists() {
@@ -501,7 +533,7 @@ mod tests {
 
     mod asset_info_and_asset {
         use super::*;
-        use crate::core::ans_host::state::REV_ASSET_ADDRESSES;
+        use crate::std::ans_host::state::REV_ASSET_ADDRESSES;
 
         #[test]
         fn exists() {

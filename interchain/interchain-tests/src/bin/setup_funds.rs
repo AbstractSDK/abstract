@@ -4,12 +4,12 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use abstract_core::{ans_host::ExecuteMsgFns, objects::UncheckedChannelEntry, ICS20, PROXY};
 use abstract_interchain_tests::{
     interchain_accounts::{create_test_remote_account, set_env},
     JUNO, STARGAZE,
 };
 use abstract_interface::{Abstract, AbstractAccount, ProxyQueryFns};
+use abstract_std::{ans_host::ExecuteMsgFns, objects::UncheckedChannelEntry, ICS20, PROXY};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::coins;
 use cw_orch::prelude::*;
@@ -86,8 +86,8 @@ pub fn test_send_funds() -> AnyResult<()> {
     // Send funds to the remote account
     let send_funds_tx = origin_account.manager.execute_on_module(
         PROXY,
-        abstract_core::proxy::ExecuteMsg::IbcAction {
-            msg: abstract_core::ibc_client::ExecuteMsg::SendFunds {
+        abstract_std::proxy::ExecuteMsg::IbcAction {
+            msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
                 host_chain: "juno".into(),
                 funds: coins(test_amount, get_denom(&stargaze, token_subdenom.as_str())),
             },

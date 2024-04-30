@@ -1,4 +1,8 @@
-use abstract_core::{
+use abstract_sdk::{
+    std::{objects::ChannelEntry, ICS20},
+    Resolve,
+};
+use abstract_std::{
     account_factory,
     ibc_host::state::CONFIG,
     manager::{self, ModuleInstallConfig},
@@ -6,10 +10,6 @@ use abstract_core::{
     proxy,
     version_control::AccountBase,
     PROXY,
-};
-use abstract_sdk::{
-    core::{objects::ChannelEntry, ICS20},
-    Resolve,
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response, SubMsg,
@@ -47,7 +47,7 @@ pub fn receive_register(
     let factory_msg = wasm_execute(
         cfg.account_factory,
         &account_factory::ExecuteMsg::CreateAccount {
-            governance: abstract_core::objects::gov_type::GovernanceDetails::External {
+            governance: abstract_std::objects::gov_type::GovernanceDetails::External {
                 governance_address: env.contract.address.into_string(),
                 governance_type: "abstract-ibc".into(), // at least 4 characters
             },

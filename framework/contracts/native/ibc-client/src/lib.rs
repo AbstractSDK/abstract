@@ -6,7 +6,7 @@ mod queries;
 
 #[cfg(test)]
 mod test_common {
-    use abstract_core::ibc_client::InstantiateMsg;
+    use abstract_std::ibc_client::InstantiateMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},

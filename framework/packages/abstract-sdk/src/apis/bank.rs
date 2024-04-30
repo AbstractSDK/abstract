@@ -1,7 +1,7 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
-use abstract_core::objects::ans_host::AnsHostError;
+use abstract_std::objects::{ans_host::AnsHostError, AnsAsset, AssetEntry};
 use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 use serde::Serialize;
@@ -9,7 +9,6 @@ use serde::Serialize;
 use super::{AbstractApi, ApiIdentification};
 use crate::{
     ans_resolve::Resolve,
-    core::objects::{AnsAsset, AssetEntry},
     cw_helpers::ApiQuery,
     features::{AbstractNameService, AccountIdentification, ModuleIdentification},
     AbstractSdkError, AbstractSdkResult, AccountAction,
@@ -99,8 +98,8 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// Transfer the provided funds from the Account to the recipient.
     /// ```
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
-    /// # use abstract_core::objects::AnsAsset;
-    /// # use abstract_core::objects::ans_host::AnsHost;
+    /// # use abstract_std::objects::AnsAsset;
+    /// # use abstract_std::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
     /// #    features::{AccountIdentification, AbstractNameService, ModuleIdentification},
     /// #    TransferInterface, AbstractSdkResult, Execution,
@@ -270,7 +269,7 @@ mod test {
     use crate::mock_module::*;
 
     mod transfer_coins {
-        use abstract_core::proxy::ExecuteMsg;
+        use abstract_std::proxy::ExecuteMsg;
 
         use super::*;
         use crate::{Execution, Executor, ExecutorMsg};
@@ -314,6 +313,7 @@ mod test {
 
     mod deposit {
         use super::*;
+        use crate::apis::respond::AbstractResponse;
 
         #[test]
         fn deposit() {
@@ -323,20 +323,20 @@ mod test {
             // ANCHOR: deposit
             // Get bank API struct from the app
             let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
-            // Create coins to deposit
-            let coins: Vec<Coin> = coins(100u128, "asset");
+            // Define coins to send
+            let coins: Vec<Coin> = coins(100u128, "denom");
             // Construct messages for deposit (transfer from this contract to the account)
             let deposit_msgs: Vec<CosmosMsg> = bank.deposit(coins.clone()).unwrap();
-            // Add to response
-            let response: Response = Response::new().add_messages(deposit_msgs);
+            // Create response and add deposit msgs
+            let response: Response = app.response("deposit").add_messages(deposit_msgs);
             // ANCHOR_END: deposit
 
-            let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
+            let bank_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: TEST_PROXY.to_string(),
                 amount: coins,
             });
 
-            assert_that!(response.messages[0].msg).is_equal_to::<CosmosMsg>(expected_msg);
+            assert_that!(response.messages[0].msg).is_equal_to::<CosmosMsg>(bank_msg);
         }
     }
 
@@ -364,11 +364,10 @@ mod test {
     }
 
     mod send_coins {
+        use super::*;
+
         use cw20::Cw20ExecuteMsg;
         use cw_asset::AssetError;
-
-        use super::*;
-        use crate::AbstractSdkError;
 
         #[test]
         fn send_cw20() {

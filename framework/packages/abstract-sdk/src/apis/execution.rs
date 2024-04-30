@@ -2,8 +2,8 @@
 //! The executor provides function for executing commands on the Account.
 //!
 
-use abstract_core::proxy::ExecuteMsg;
 use abstract_macros::with_abstract_event;
+use abstract_std::proxy::ExecuteMsg;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 use super::{AbstractApi, ApiIdentification};
@@ -167,7 +167,7 @@ impl From<ExecutorMsg> for CosmosMsg {
 
 #[cfg(test)]
 mod test {
-    use abstract_core::proxy::ExecuteMsg;
+    use abstract_std::proxy::ExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
@@ -187,8 +187,6 @@ mod test {
     }
 
     mod execute {
-        use cosmwasm_std::to_json_binary;
-
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
@@ -314,8 +312,6 @@ mod test {
     }
 
     mod execute_with_response {
-        use cosmwasm_std::coins;
-
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided

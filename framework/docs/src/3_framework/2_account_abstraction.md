@@ -1,12 +1,29 @@
 # Account Abstraction
 
-Abstract uses Account Abstraction as a conceptual framework for building smart-contract applications. Our central idea is that, instead of building a monolithic smart-contract that users interact with, you let the smart-contract interact with the user's account instead. Let's dive a bit deeper into this concept and how it applies to Abstract's own Abstract Accounts.
+Abstract uses Account Abstraction as a conceptual framework for building smart-contract applications. Our central idea is that, instead of building a monolithic smart-contract that users interact with, you let the smart-contract interact with a user-owned smart-contract wallet instead. Let's dive a bit deeper into this concept and how it applies to Abstract's own Abstract Accounts.
 
 ## What is Account Abstraction?
 
 In traditional blockchain interactions, a transaction is typically initiated by a user signing some data with their private key and transmitting that data (and its signature) to an endpoint for validation. Account abstraction modifies this process by making the transaction initiation and validation programmable. Essentially, it allows the transaction logic to be customized within a smart-contract, vastly extending the scope of UX possibilities.
 
 The Abstract SDK provides what we call an **Abstract Account**, an extensible smart-contract wallet capable of holding tokens and interacting with other smart contracts. The ownership structure of an Abstract Account is customizable to fit your use-case.
+
+```mermaid
+flowchart
+    subgraph Account Abstraction
+    User2[fa:fa-user User] -- owns --> AA["Abstract Account (holds funds)"]
+    direction TB
+    Application2[Application] == interacts ==> AA
+    end
+
+    subgraph Traditional
+    User[fa:fa-user Wallet] == funds ==> Application
+    end
+```
+
+As displayed in the figure above, the Abstract Account (AA) is a smart contract wallet that is owned by the user. User action validation on the account is currently still performed through regular transaction authorization (wallet-based) but can be customized in the future to allow for OAuth login or other types of login methods.
+
+The purpose of the Account is to hold funds for the user. Now if the user wants to interact with an application, they give the application permission to interact with the Abstract Account, and its funds. This way the user never gives the application custody over his/her funds.
 
 ```admonish info
 See <a href="https://eips.ethereum.org/EIPS/eip-4337" target="_blank">EIP-4337</a> to read about account abstraction in the Ethereum ecosystem.

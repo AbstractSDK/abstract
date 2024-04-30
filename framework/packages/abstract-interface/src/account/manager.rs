@@ -1,5 +1,5 @@
-pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
-use abstract_core::{
+pub use abstract_std::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
+use abstract_std::{
     adapter::{self, AdapterBaseMsg},
     ibc::CallbackInfo,
     ibc_host::{HelperAction, HostAction},
@@ -11,8 +11,8 @@ use abstract_core::{
     },
     MANAGER, PROXY,
 };
-use cosmwasm_std::{to_json_binary, Binary, Empty};
-use cw_orch::{environment::TxHandler, interface, prelude::*};
+use cosmwasm_std::{to_json_binary, Binary};
+use cw_orch::{interface, prelude::*};
 use serde::Serialize;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -92,7 +92,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         let sim_response: SimulateInstallModulesResponse = self
             .get_chain()
             .query(
-                &abstract_core::module_factory::QueryMsg::SimulateInstallModules {
+                &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
                     modules: module_infos,
                 },
                 &config.module_factory_address,
@@ -174,6 +174,17 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(found)
     }
 
+    /// Get the address of a module
+    /// Will err when not installed.
+    pub fn module_address(
+        &self,
+        module_id: impl Into<String>,
+    ) -> Result<Addr, crate::AbstractInterfaceError> {
+        Ok(self.module_addresses(vec![module_id.into()])?.modules[0]
+            .1
+            .clone())
+    }
+
     pub fn is_module_installed(
         &self,
         module_id: &str,
@@ -189,8 +200,8 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let result = self.exec_on_module(
-            to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
-                msg: abstract_core::ibc_client::ExecuteMsg::Register {
+            to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
+                msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: host_chain.into(),
                     base_asset: None,
                     namespace: None,
@@ -211,8 +222,8 @@ impl<Chain: CwEnv> Manager<Chain> {
         callback_info: Option<CallbackInfo>,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
-            msg: abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+        let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
+            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: host_chain.into(),
                 action: HostAction::Dispatch {
                     manager_msgs: vec![msg],
@@ -232,8 +243,8 @@ impl<Chain: CwEnv> Manager<Chain> {
         callback_info: Option<CallbackInfo>,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
-            msg: abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+        let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
+            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: host_chain.into(),
                 action: HostAction::Dispatch {
                     manager_msgs: vec![ExecuteMsg::ExecOnModule {
@@ -254,8 +265,8 @@ impl<Chain: CwEnv> Manager<Chain> {
         callback_info: Option<CallbackInfo>,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
-            msg: abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+        let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
+            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: host_chain.into(),
                 action: HostAction::Helpers(HelperAction::SendAllBack),
                 callback_info,

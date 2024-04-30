@@ -1,9 +1,7 @@
-use abstract_core::objects::{
-    module_version::assert_contract_upgrade, oracle::Oracle, price_source::UncheckedPriceSource,
-};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    core::{
+    feature_objects::AnsHost,
+    std::{
         objects::account::ACCOUNT_ID,
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE},
@@ -11,7 +9,9 @@ use abstract_sdk::{
         },
         PROXY,
     },
-    feature_objects::AnsHost,
+};
+use abstract_std::objects::{
+    module_version::assert_contract_upgrade, oracle::Oracle, price_source::UncheckedPriceSource,
 };
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, SubMsgResult,
@@ -141,7 +141,7 @@ mod tests {
     use crate::{contract, test_common::*};
 
     mod migrate {
-        use abstract_core::AbstractError;
+        use abstract_std::AbstractError;
 
         use super::*;
 

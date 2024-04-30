@@ -1,8 +1,8 @@
 #![warn(missing_docs)]
 //! # Dex Adapter ANS Action Definition
 //!
-use abstract_core::objects::{AnsAsset, AssetEntry};
 use abstract_sdk::Resolve;
+use abstract_std::objects::{AnsAsset, AssetEntry};
 
 use crate::{
     raw_action::{MoneyMarketRawAction, MoneyMarketRawRequest},
@@ -54,9 +54,12 @@ pub enum MoneyMarketAnsAction {
 }
 
 /// Structure created to be able to resolve an action using ANS
-pub struct ActionOnMoneymarket(pub Box<dyn MoneyMarketCommand>, pub MoneyMarketAnsAction);
+pub struct MoneyMarketActionResolveWrapper(
+    pub Box<dyn MoneyMarketCommand>,
+    pub MoneyMarketAnsAction,
+);
 
-impl Resolve for ActionOnMoneymarket {
+impl Resolve for MoneyMarketActionResolveWrapper {
     type Output = MoneyMarketRawAction;
 
     /// TODO: this only works for protocols where there is only one address for depositing
@@ -64,7 +67,7 @@ impl Resolve for ActionOnMoneymarket {
         &self,
         querier: &cosmwasm_std::QuerierWrapper,
         ans_host: &abstract_sdk::feature_objects::AnsHost,
-    ) -> abstract_core::objects::ans_host::AnsHostResult<Self::Output> {
+    ) -> abstract_std::objects::ans_host::AnsHostResult<Self::Output> {
         let raw_action = match self.1.clone() {
             MoneyMarketAnsAction::Deposit { lending_asset } => {
                 let contract_addr =
