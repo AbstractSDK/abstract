@@ -444,6 +444,7 @@ mod tests {
 
     mod remote_action {
         use super::*;
+        use std::str::FromStr;
 
         use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
@@ -465,11 +466,11 @@ mod tests {
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name.to_string(),
                 action: HostAction::Dispatch {
-                    manager_msg: manager::ExecuteMsg::UpdateInfo {
+                    manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                         name: None,
                         description: None,
                         link: None,
-                    },
+                    }],
                 },
             };
 
@@ -533,11 +534,11 @@ mod tests {
             )?;
 
             let action = HostAction::Dispatch {
-                manager_msg: manager::ExecuteMsg::UpdateInfo {
+                manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                     name: None,
                     description: None,
                     link: None,
-                },
+                }],
             };
 
             let msg = ExecuteMsg::RemoteAction {

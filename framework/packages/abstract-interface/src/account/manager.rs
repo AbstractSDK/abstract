@@ -200,7 +200,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     {
         let result = self.exec_on_module(
             to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
-                msgs: vec![abstract_std::ibc_client::ExecuteMsg::Register {
+                msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: host_chain.into(),
                     base_asset: None,
                     namespace: None,
@@ -208,7 +208,7 @@ impl<Chain: CwEnv> Manager<Chain> {
                         ModuleInfo::from_id_latest(IBC_CLIENT)?,
                         None,
                     )],
-                }],
+                },
             })?,
             PROXY.to_string(),
             &[],
@@ -224,10 +224,12 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
-            msgs: vec![abstract_std::ibc_client::ExecuteMsg::RemoteAction {
+            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: host_chain.into(),
-                action: HostAction::Dispatch { manager_msg: msg },
-            }],
+                action: HostAction::Dispatch {
+                    manager_msgs: vec![msg],
+                },
+            },
         };
 
         self.execute_on_module(PROXY, msg)
@@ -241,15 +243,15 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
-            msgs: vec![abstract_std::ibc_client::ExecuteMsg::RemoteAction {
+            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: host_chain.into(),
                 action: HostAction::Dispatch {
-                    manager_msg: ExecuteMsg::ExecOnModule {
+                    manager_msgs: vec![ExecuteMsg::ExecOnModule {
                         module_id: module_id.to_string(),
                         exec_msg: msg,
-                    },
+                    }],
                 },
-            }],
+            },
         };
 
         self.execute_on_module(PROXY, msg)
@@ -261,10 +263,10 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
-            msgs: vec![abstract_std::ibc_client::ExecuteMsg::RemoteAction {
+            msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: host_chain.into(),
                 action: HostAction::Helpers(HelperAction::SendAllBack),
-            }],
+            },
         };
 
         self.execute_on_module(PROXY, msg)

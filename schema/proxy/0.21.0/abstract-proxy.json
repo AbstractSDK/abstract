@@ -178,14 +178,11 @@
           "ibc_action": {
             "type": "object",
             "required": [
-              "msgs"
+              "msg"
             ],
             "properties": {
-              "msgs": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/ExecuteMsg"
-                }
+              "msg": {
+                "$ref": "#/definitions/ExecuteMsg"
               }
             },
             "additionalProperties": false
@@ -416,77 +413,6 @@
           }
         ]
       },
-      "BankQuery": {
-        "oneOf": [
-          {
-            "description": "This calls into the native bank module for querying the total supply of one denomination. It does the same as the SupplyOf call in Cosmos SDK's RPC API. Return value is of type SupplyResponse.",
-            "type": "object",
-            "required": [
-              "supply"
-            ],
-            "properties": {
-              "supply": {
-                "type": "object",
-                "required": [
-                  "denom"
-                ],
-                "properties": {
-                  "denom": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This calls into the native bank module for one denomination Return value is BalanceResponse",
-            "type": "object",
-            "required": [
-              "balance"
-            ],
-            "properties": {
-              "balance": {
-                "type": "object",
-                "required": [
-                  "address",
-                  "denom"
-                ],
-                "properties": {
-                  "address": {
-                    "type": "string"
-                  },
-                  "denom": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "This calls into the native bank module for all denominations. Note that this may be much more expensive than Balance and should be avoided if possible. Return value is AllBalanceResponse.",
-            "type": "object",
-            "required": [
-              "all_balances"
-            ],
-            "properties": {
-              "all_balances": {
-                "type": "object",
-                "required": [
-                  "address"
-                ],
-                "properties": {
-                  "address": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
       "Binary": {
         "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
         "type": "string"
@@ -533,35 +459,6 @@
             "additionalProperties": false
           }
         ]
-      },
-      "CallbackInfo": {
-        "type": "object",
-        "required": [
-          "id",
-          "receiver"
-        ],
-        "properties": {
-          "id": {
-            "description": "Used to identify the callback that is sent (acts like the reply ID)",
-            "type": "string"
-          },
-          "msg": {
-            "description": "Used to add information to the callback. This is usually used to provide information to the ibc callback function for context",
-            "anyOf": [
-              {
-                "$ref": "#/definitions/Binary"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "receiver": {
-            "description": "Contract that will be called with the callback message",
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
       },
       "CallbackMessage": {
         "description": "Executed on the callback receiver upon message completion. When being executed, the message will be tagged with \"callback\":\n\n```json {\"callback\": { \"initiator\": ..., \"initiator_msg\": ..., \"result\": ..., }} ```",
@@ -1014,51 +911,8 @@
                   "action": {
                     "$ref": "#/definitions/HostAction"
                   },
-                  "callback_info": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/CallbackInfo"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
                   "host_chain": {
                     "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Allows to query something on a remote contract and act on that query result This has to be an Execute variant for IBC queries",
-            "type": "object",
-            "required": [
-              "remote_queries"
-            ],
-            "properties": {
-              "remote_queries": {
-                "type": "object",
-                "required": [
-                  "callback_info",
-                  "host_chain",
-                  "queries"
-                ],
-                "properties": {
-                  "callback_info": {
-                    "$ref": "#/definitions/CallbackInfo"
-                  },
-                  "host_chain": {
-                    "type": "string"
-                  },
-                  "queries": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/QueryRequest_for_Empty"
-                    }
                   }
                 },
                 "additionalProperties": false
@@ -1088,7 +942,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Callback from the Polytone implementation This is only triggered when a contract execution is succesful",
+            "description": "Callback from the Polytone implementation This is NOT ONLY triggered when a contract execution is successful",
             "type": "object",
             "required": [
               "callback"
@@ -1692,11 +1546,14 @@
               "dispatch": {
                 "type": "object",
                 "required": [
-                  "manager_msg"
+                  "manager_msgs"
                 ],
                 "properties": {
-                  "manager_msg": {
-                    "$ref": "#/definitions/ExecuteMsg2"
+                  "manager_msgs": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/ExecuteMsg2"
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -1829,72 +1686,6 @@
                 "properties": {
                   "channel_id": {
                     "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-      "IbcQuery": {
-        "description": "These are queries to the various IBC modules to see the state of the contract's IBC connection. These will return errors if the contract is not \"ibc enabled\"",
-        "oneOf": [
-          {
-            "description": "Gets the Port ID the current contract is bound to.\n\nReturns a `PortIdResponse`.",
-            "type": "object",
-            "required": [
-              "port_id"
-            ],
-            "properties": {
-              "port_id": {
-                "type": "object"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Lists all channels that are bound to a given port. If `port_id` is omitted, this list all channels bound to the contract's port.\n\nReturns a `ListChannelsResponse`.",
-            "type": "object",
-            "required": [
-              "list_channels"
-            ],
-            "properties": {
-              "list_channels": {
-                "type": "object",
-                "properties": {
-                  "port_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Lists all information for a (portID, channelID) pair. If port_id is omitted, it will default to the contract's own channel. (To save a PortId{} call)\n\nReturns a `ChannelResponse`.",
-            "type": "object",
-            "required": [
-              "channel"
-            ],
-            "properties": {
-              "channel": {
-                "type": "object",
-                "required": [
-                  "channel_id"
-                ],
-                "properties": {
-                  "channel_id": {
-                    "type": "string"
-                  },
-                  "port_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
                   }
                 }
               }
@@ -2093,101 +1884,6 @@
         "description": "Represents an Abstract namespace for modules",
         "type": "string"
       },
-      "QueryRequest_for_Empty": {
-        "oneOf": [
-          {
-            "type": "object",
-            "required": [
-              "bank"
-            ],
-            "properties": {
-              "bank": {
-                "$ref": "#/definitions/BankQuery"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "custom"
-            ],
-            "properties": {
-              "custom": {
-                "$ref": "#/definitions/Empty"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "staking"
-            ],
-            "properties": {
-              "staking": {
-                "$ref": "#/definitions/StakingQuery"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "A Stargate query is encoded the same way as abci_query, with path and protobuf encoded request data. The format is defined in [ADR-21](https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-021-protobuf-query-encoding.md). The response is protobuf encoded data directly without a JSON response wrapper. The caller is responsible for compiling the proper protobuf definitions for both requests and responses.",
-            "type": "object",
-            "required": [
-              "stargate"
-            ],
-            "properties": {
-              "stargate": {
-                "type": "object",
-                "required": [
-                  "data",
-                  "path"
-                ],
-                "properties": {
-                  "data": {
-                    "description": "this is the expected protobuf message type (not any), binary encoded",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Binary"
-                      }
-                    ]
-                  },
-                  "path": {
-                    "description": "this is the fully qualified service path used for routing, eg. custom/cosmos_sdk.x.bank.v1.Query/QueryBalance",
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "ibc"
-            ],
-            "properties": {
-              "ibc": {
-                "$ref": "#/definitions/IbcQuery"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "wasm"
-            ],
-            "properties": {
-              "wasm": {
-                "$ref": "#/definitions/WasmQuery"
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
       "Result_of_Array_of_Binary_or_ErrorResponse": {
         "oneOf": [
           {
@@ -2318,104 +2014,6 @@
                     "type": "string"
                   },
                   "src_validator": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-      "StakingQuery": {
-        "oneOf": [
-          {
-            "description": "Returns the denomination that can be bonded (if there are multiple native tokens on the chain)",
-            "type": "object",
-            "required": [
-              "bonded_denom"
-            ],
-            "properties": {
-              "bonded_denom": {
-                "type": "object"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "AllDelegations will return all delegations by the delegator",
-            "type": "object",
-            "required": [
-              "all_delegations"
-            ],
-            "properties": {
-              "all_delegations": {
-                "type": "object",
-                "required": [
-                  "delegator"
-                ],
-                "properties": {
-                  "delegator": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Delegation will return more detailed info on a particular delegation, defined by delegator/validator pair",
-            "type": "object",
-            "required": [
-              "delegation"
-            ],
-            "properties": {
-              "delegation": {
-                "type": "object",
-                "required": [
-                  "delegator",
-                  "validator"
-                ],
-                "properties": {
-                  "delegator": {
-                    "type": "string"
-                  },
-                  "validator": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Returns all validators in the currently active validator set.\n\nThe query response type is `AllValidatorsResponse`.",
-            "type": "object",
-            "required": [
-              "all_validators"
-            ],
-            "properties": {
-              "all_validators": {
-                "type": "object"
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Returns the validator at the given address. Returns None if the validator is not part of the currently active validator set.\n\nThe query response type is `ValidatorResponse`.",
-            "type": "object",
-            "required": [
-              "validator"
-            ],
-            "properties": {
-              "validator": {
-                "type": "object",
-                "required": [
-                  "address"
-                ],
-                "properties": {
-                  "address": {
-                    "description": "The validator's address (e.g. (e.g. cosmosvaloper1...))",
                     "type": "string"
                   }
                 }
@@ -2808,114 +2406,6 @@
                 "properties": {
                   "contract_addr": {
                     "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
-      },
-      "WasmQuery": {
-        "oneOf": [
-          {
-            "description": "this queries the public API of another contract at a known address (with known ABI) Return value is whatever the contract returns (caller should know), wrapped in a ContractResult that is JSON encoded.",
-            "type": "object",
-            "required": [
-              "smart"
-            ],
-            "properties": {
-              "smart": {
-                "type": "object",
-                "required": [
-                  "contract_addr",
-                  "msg"
-                ],
-                "properties": {
-                  "contract_addr": {
-                    "type": "string"
-                  },
-                  "msg": {
-                    "description": "msg is the json-encoded QueryMsg struct",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Binary"
-                      }
-                    ]
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "this queries the raw kv-store of the contract. returns the raw, unparsed data stored at that key, which may be an empty vector if not present",
-            "type": "object",
-            "required": [
-              "raw"
-            ],
-            "properties": {
-              "raw": {
-                "type": "object",
-                "required": [
-                  "contract_addr",
-                  "key"
-                ],
-                "properties": {
-                  "contract_addr": {
-                    "type": "string"
-                  },
-                  "key": {
-                    "description": "Key is the raw key used in the contracts Storage",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/Binary"
-                      }
-                    ]
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Returns a [`ContractInfoResponse`] with metadata on the contract from the runtime",
-            "type": "object",
-            "required": [
-              "contract_info"
-            ],
-            "properties": {
-              "contract_info": {
-                "type": "object",
-                "required": [
-                  "contract_addr"
-                ],
-                "properties": {
-                  "contract_addr": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Returns a [`CodeInfoResponse`] with metadata of the code",
-            "type": "object",
-            "required": [
-              "code_info"
-            ],
-            "properties": {
-              "code_info": {
-                "type": "object",
-                "required": [
-                  "code_id"
-                ],
-                "properties": {
-                  "code_id": {
-                    "type": "integer",
-                    "format": "uint64",
-                    "minimum": 0.0
                   }
                 }
               }

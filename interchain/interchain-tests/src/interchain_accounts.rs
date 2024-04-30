@@ -271,12 +271,12 @@ mod test {
             &ChainName::from_chain_id(STARGAZE).to_string(),
             PROXY,
             to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
-                msgs: vec![abstract_std::ibc_client::ExecuteMsg::Register {
+                msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: ChainName::from_chain_id(OSMOSIS).to_string(),
                     base_asset: None,
                     namespace: None,
                     install_modules: vec![],
-                }],
+                },
             })?,
         )?;
 
@@ -559,11 +559,11 @@ mod test {
                 account_id: remote_account_id,
                 proxy_address: origin_account.proxy.address()?.to_string(),
                 action: HostAction::Dispatch {
-                    manager_msg: ManagerExecuteMsg::UpdateInfo {
+                    manager_msgs: vec![ManagerExecuteMsg::UpdateInfo {
                         name: Some("name".to_owned()),
                         description: Some("description".to_owned()),
                         link: Some("link".to_owned()),
-                    },
+                    }],
                 },
             },
             None,
@@ -709,10 +709,10 @@ mod test {
         let send_funds_tx = origin_account.manager.execute_on_module(
             PROXY,
             abstract_std::proxy::ExecuteMsg::IbcAction {
-                msgs: vec![abstract_std::ibc_client::ExecuteMsg::SendFunds {
+                msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     funds: coins(10, origin_denom),
                     host_chain: ChainName::from_chain_id(STARGAZE).to_string(),
-                }],
+                },
             },
         )?;
 

@@ -14,13 +14,6 @@
       "admin": {
         "type": "string"
       },
-      "allow_direct_module_registration_and_updates": {
-        "description": "allows users to directly register modules without going through approval Also allows them to change the module reference of an existing module SHOULD ONLY BE `true` FOR TESTING",
-        "type": [
-          "boolean",
-          "null"
-        ]
-      },
       "namespace_registration_fee": {
         "anyOf": [
           {
@@ -29,6 +22,13 @@
           {
             "type": "null"
           }
+        ]
+      },
+      "security_disabled": {
+        "description": "allows users to directly register modules without going through approval Also allows them to change the module reference of an existing module Also allows to claim namespaces permisionlessly SHOULD ONLY BE `true` FOR TESTING",
+        "type": [
+          "boolean",
+          "null"
         ]
       }
     },
@@ -301,13 +301,6 @@
                   "null"
                 ]
               },
-              "allow_direct_module_registration_and_updates": {
-                "description": "Whether the contract allows direct module registration",
-                "type": [
-                  "boolean",
-                  "null"
-                ]
-              },
               "namespace_registration_fee": {
                 "description": "The fee charged when registering a namespace",
                 "anyOf": [
@@ -317,6 +310,13 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "security_disabled": {
+                "description": "Whether the contract allows direct module registration",
+                "type": [
+                  "boolean",
+                  "null"
                 ]
               }
             },
@@ -1252,7 +1252,7 @@
       "title": "ConfigResponse",
       "type": "object",
       "required": [
-        "allow_direct_module_registration_and_updates"
+        "security_disabled"
       ],
       "properties": {
         "account_factory_address": {
@@ -1265,9 +1265,6 @@
             }
           ]
         },
-        "allow_direct_module_registration_and_updates": {
-          "type": "boolean"
-        },
         "namespace_registration_fee": {
           "anyOf": [
             {
@@ -1277,6 +1274,9 @@
               "type": "null"
             }
           ]
+        },
+        "security_disabled": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
