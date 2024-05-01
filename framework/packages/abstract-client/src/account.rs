@@ -40,7 +40,7 @@ use abstract_std::{
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
-    PROXY,
+    IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
@@ -560,20 +560,28 @@ impl<Chain: CwEnv> Account<Chain> {
         host_chain: impl Into<String>,
         base_asset: Option<AssetEntry>,
         namespace: Option<String>,
-        install_modules: Vec<ModuleInstallConfig>,
+        mut install_modules: Vec<ModuleInstallConfig>,
     ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+        // We add the IBC Client by default in the modules installed on the remote account
+        if !install_modules.iter().any(|m| m.module.id() == IBC_CLIENT) {
+            install_modules.push(ModuleInstallConfig::new(
+                ModuleInfo::from_id_latest(IBC_CLIENT)?,
+                None,
+            ));
+        }
+
         self.abstr_account
             .manager
             .execute(
                 &abstract_std::manager::ExecuteMsg::ExecOnModule {
                     module_id: PROXY.to_owned(),
                     exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
-                        msgs: vec![ibc_client::ExecuteMsg::Register {
+                        msg: ibc_client::ExecuteMsg::Register {
                             host_chain: host_chain.into(),
                             base_asset,
                             namespace,
                             install_modules,
-                        }],
+                        },
                     })
                     .map_err(AbstractInterfaceError::from)?,
                 },

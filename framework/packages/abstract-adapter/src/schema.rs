@@ -16,6 +16,7 @@ impl<
         Error: From<cosmwasm_std::StdError>
             + From<AdapterError>
             + From<abstract_sdk::AbstractSdkError>
+            + From<abstract_std::AbstractError>
             + 'static,
         CustomExecMsg: Serialize + JsonSchema + AdapterExecuteMsg,
         CustomInitMsg: Serialize + JsonSchema,

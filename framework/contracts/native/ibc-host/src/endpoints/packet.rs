@@ -1,17 +1,29 @@
-use abstract_sdk::std::ibc_host::{HostAction, InternalAction};
 use abstract_std::{
+    base::ExecuteMsg as MiddlewareExecMsg,
+    ibc::ModuleIbcMsg,
+    ibc_client::InstalledModuleIdentification,
     ibc_host::{
-        state::{ActionAfterCreationCache, TEMP_ACTION_AFTER_CREATION},
-        HelperAction,
+        state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
+        HelperAction, HostAction, InternalAction,
     },
-    objects::{chain_name::ChainName, AccountId},
+    objects::{
+        chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
+    },
 };
-use cosmwasm_std::{DepsMut, Env};
+use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
 
 use crate::{
     account_commands::{self, receive_dispatch, receive_register, receive_send_all_back},
     contract::HostResult,
+    HostError,
 };
+
+pub fn client_to_host_account_id(remote_chain: ChainName, account_id: AccountId) -> AccountId {
+    let mut account_id = account_id.clone();
+    account_id.trace_mut().push_chain(remote_chain);
+
+    account_id
+}
 
 /// Handle actions that are passed to the IBC host contract
 /// This function is not permissioned and access control needs to be handled outside of it
@@ -25,8 +37,7 @@ pub fn handle_host_action(
     host_action: HostAction,
 ) -> HostResult {
     // Push the client chain to the account trace
-    let mut account_id = received_account_id.clone();
-    account_id.trace_mut().push_chain(client_chain.clone());
+    let account_id = client_to_host_account_id(client_chain.clone(), received_account_id.clone());
 
     // get the local account information
     match host_action {
@@ -54,8 +65,8 @@ pub fn handle_host_action(
             // If this account already exists, we can propagate the action
             if let Ok(account) = account_commands::get_account(deps.as_ref(), &account_id) {
                 match action {
-                    HostAction::Dispatch { manager_msg } => {
-                        receive_dispatch(deps, account, manager_msg)
+                    HostAction::Dispatch { manager_msgs } => {
+                        receive_dispatch(deps, account, manager_msgs)
                     }
                     HostAction::Helpers(helper_action) => match helper_action {
                         HelperAction::SendAllBack => {
@@ -104,4 +115,48 @@ pub fn handle_host_action(
         }
     }
     .map_err(Into::into)
+}
+
+/// Handle actions that are passed to the IBC host contract and originate from a registered module
+pub fn handle_host_module_action(
+    deps: DepsMut,
+    client_chain: ChainName,
+    source_module: InstalledModuleIdentification,
+    target_module: ModuleInfo,
+    msg: Binary,
+) -> HostResult {
+    // We resolve the target module
+    let vc = CONFIG.load(deps.storage)?.version_control;
+    let target_module = InstalledModuleIdentification {
+        module_info: target_module,
+        account_id: source_module
+            .account_id
+            .map(|a| client_to_host_account_id(client_chain.clone(), a)),
+    };
+
+    let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
+
+    match target_module_resolved.reference {
+        ModuleReference::AccountBase(_) | ModuleReference::Native(_) => {
+            return Err(HostError::WrongModuleAction(
+                "Can't send module-to-module message to an account or a native module".to_string(),
+            ))
+        }
+        _ => {}
+    }
+
+    // We pass the message on to the module
+    let msg = wasm_execute(
+        target_module_resolved.address,
+        &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
+            client_chain,
+            source_module: source_module.module_info,
+            msg,
+        }),
+        vec![],
+    )?;
+
+    Ok(Response::new()
+        .add_attribute("action", "module-ibc-call")
+        .add_message(msg))
 }

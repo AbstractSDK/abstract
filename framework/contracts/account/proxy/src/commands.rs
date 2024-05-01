@@ -47,11 +47,7 @@ pub fn execute_module_action_response(
 
 /// Executes IBC actions forwarded by whitelisted contracts
 /// Calls the messages on the IBC client (ensuring permission)
-pub fn execute_ibc_action(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    msgs: Vec<IbcClientMsg>,
-) -> ProxyResult {
+pub fn execute_ibc_action(deps: DepsMut, msg_info: MessageInfo, msg: IbcClientMsg) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
     if !state.modules.contains(&msg_info.sender) {
         return Err(ProxyError::SenderNotWhitelisted {});
@@ -64,19 +60,15 @@ pub fn execute_ibc_action(
                 "ibc_client not found on manager. Add it under the {IBC_CLIENT} name."
             ))
         })?;
-    let client_msgs: Result<Vec<_>, _> = msgs
-        .into_iter()
-        .map(|execute_msg| {
-            let funds_to_send = if let IbcClientMsg::SendFunds { funds, .. } = &execute_msg {
-                funds.to_vec()
-            } else {
-                vec![]
-            };
-            wasm_execute(&ibc_client_address, &execute_msg, funds_to_send)
-        })
-        .collect();
 
-    Ok(ProxyResponse::action("execute_ibc_action").add_messages(client_msgs?))
+    let funds_to_send = if let IbcClientMsg::SendFunds { funds, .. } = &msg {
+        funds.to_vec()
+    } else {
+        vec![]
+    };
+    let client_msg = wasm_execute(ibc_client_address, &msg, funds_to_send)?;
+
+    Ok(ProxyResponse::action("execute_ibc_action").add_message(client_msg))
 }
 
 /// Update the stored vault asset information
@@ -415,12 +407,12 @@ mod test {
                 .unwrap();
 
             let msg = ExecuteMsg::IbcAction {
-                msgs: vec![abstract_std::ibc_client::ExecuteMsg::Register {
+                msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: "juno".into(),
                     base_asset: None,
                     namespace: None,
                     install_modules: vec![],
-                }],
+                },
             };
 
             let not_whitelisted_info = mock_info(TEST_MANAGER, &[]);
@@ -471,10 +463,10 @@ mod test {
 
             let funds = coins(10, "denom");
             let msg = ExecuteMsg::IbcAction {
-                msgs: vec![abstract_std::ibc_client::ExecuteMsg::SendFunds {
+                msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     host_chain: "juno".to_owned(),
                     funds: funds.clone(),
-                }],
+                },
             };
 
             let not_whitelisted_info = mock_info(TEST_MANAGER, &[]);

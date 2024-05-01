@@ -24,7 +24,7 @@ fn setup_migrate_allowed_direct_module_registration(
     deployment.migrate_if_version_changed()?;
     deployment
         .version_control
-        .update_config(None, Some(true), None)?;
+        .update_config(None, None, Some(true))?;
     Ok((deployment, chain))
 }
 
@@ -148,7 +148,7 @@ fn old_account_functions() -> anyhow::Result<()> {
         // Allow registration
         abstr_deployment
             .version_control
-            .update_config(None, Some(true), None)?;
+            .update_config(None, None, Some(true))?;
         // Try to install
         let app = MockApp::new_test(chain.clone());
         MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;

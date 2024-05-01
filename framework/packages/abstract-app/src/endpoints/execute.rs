@@ -1,6 +1,9 @@
-use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
+use abstract_sdk::{
+    base::{ModuleIbcEndpoint, ReceiveEndpoint},
+    features::AbstractResponse,
+};
 use abstract_std::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -48,8 +51,7 @@ impl<
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
             ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
-            #[allow(unreachable_patterns)]
-            _ => Err(StdError::generic_err("Unsupported App execute message variant").into()),
+            ExecuteMsg::ModuleIbc(msg) => self.module_ibc(deps, env, info, msg),
         }
     }
 }

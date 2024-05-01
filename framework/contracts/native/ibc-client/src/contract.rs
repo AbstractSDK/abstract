@@ -61,16 +61,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             version_control,
         } => commands::execute_update_config(deps, info, ans_host, version_control)
             .map_err(Into::into),
-        ExecuteMsg::RemoteAction {
-            host_chain,
-            action,
-            callback_info,
-        } => commands::execute_send_packet(deps, env, info, host_chain, action, callback_info),
-        ExecuteMsg::RemoteQueries {
-            host_chain,
-            queries,
-            callback_info,
-        } => commands::execute_send_query(deps, env, host_chain, queries, callback_info),
+        ExecuteMsg::RemoteAction { host_chain, action } => {
+            commands::execute_send_packet(deps, env, info, host_chain, action)
+        }
         ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
             commands::execute_register_infrastructure(deps, env, info, chain, host, note)
         }
@@ -97,6 +90,25 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::Callback(c) => {
             ibc::receive_action_callback(deps, env, info, c).map_err(Into::into)
         }
+        ExecuteMsg::ModuleIbcAction {
+            host_chain,
+            target_module,
+            msg,
+            callback_info,
+        } => commands::execute_send_module_to_module_packet(
+            deps,
+            env,
+            info,
+            host_chain,
+            target_module,
+            msg,
+            callback_info,
+        ),
+        ExecuteMsg::IbcQuery {
+            host_chain,
+            query,
+            callback_info,
+        } => commands::execute_send_query(deps, env, info, host_chain, query, callback_info),
     }
 }
 
@@ -451,17 +463,17 @@ mod tests {
 
     mod remote_action {
         use super::*;
+        use std::str::FromStr;
 
-        use crate::commands::PACKET_LIFETIME;
         use abstract_std::{
-            ibc::CallbackInfo,
             ibc_host::{self, HostAction, InternalAction},
             manager,
             objects::{chain_name::ChainName, version_control::VersionControlError},
         };
-        use cosmwasm_std::{wasm_execute, Binary};
-        use polytone::callbacks::CallbackRequest;
-        use std::str::FromStr;
+
+        use cosmwasm_std::wasm_execute;
+
+        use crate::commands::PACKET_LIFETIME;
 
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
@@ -474,13 +486,12 @@ mod tests {
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name.to_string(),
                 action: HostAction::Dispatch {
-                    manager_msg: manager::ExecuteMsg::UpdateInfo {
+                    manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                         name: None,
                         description: None,
                         link: None,
-                    },
+                    }],
                 },
-                callback_info: None,
             };
 
             let res = execute_as(deps.as_mut(), TEST_MANAGER, msg);
@@ -512,7 +523,6 @@ mod tests {
                     namespace: None,
                     install_modules: vec![],
                 }),
-                callback_info: None,
             };
 
             let res = execute_as(deps.as_mut(), TEST_PROXY, msg);
@@ -544,17 +554,16 @@ mod tests {
             )?;
 
             let action = HostAction::Dispatch {
-                manager_msg: manager::ExecuteMsg::UpdateInfo {
+                manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                     name: None,
                     description: None,
                     link: None,
-                },
+                }],
             };
 
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name.to_string(),
                 action: action.clone(),
-                callback_info: None,
             };
 
             let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
@@ -583,152 +592,6 @@ mod tests {
                 IbcClientResponse::action("handle_send_msgs").add_message(note_message),
                 res
             );
-            Ok(())
-        }
-
-        #[test]
-        fn send_packet_with_callback() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
-            mock_init(deps.as_mut())?;
-
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
-            let note_contract = Addr::unchecked("note");
-            let remote_ibc_host = String::from("test_remote_host");
-
-            IBC_INFRA.save(
-                deps.as_mut().storage,
-                &chain_name,
-                &IbcInfrastructure {
-                    polytone_note: note_contract.clone(),
-                    remote_abstract_host: remote_ibc_host.clone(),
-                    remote_proxy: None,
-                },
-            )?;
-
-            let action = HostAction::Dispatch {
-                manager_msg: manager::ExecuteMsg::UpdateInfo {
-                    name: None,
-                    description: None,
-                    link: None,
-                },
-            };
-
-            let callback_info = CallbackInfo {
-                id: String::from("id"),
-                receiver: String::from("receiver"),
-                msg: Some(Binary(vec![])),
-            };
-
-            let callback_request = CallbackRequest {
-                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info.clone()))?,
-                receiver: mock_env().contract.address.to_string(),
-            };
-
-            let msg = ExecuteMsg::RemoteAction {
-                host_chain: chain_name.to_string(),
-                action: action.clone(),
-                callback_info: Some(callback_info),
-            };
-
-            let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
-
-            let note_message = wasm_execute(
-                note_contract.to_string(),
-                &polytone_note::msg::ExecuteMsg::Execute {
-                    msgs: vec![wasm_execute(
-                        // The note's remote proxy will call the ibc host
-                        remote_ibc_host,
-                        &ibc_host::ExecuteMsg::Execute {
-                            proxy_address: TEST_PROXY.to_owned(),
-                            account_id: TEST_ACCOUNT_ID,
-                            action,
-                        },
-                        vec![],
-                    )?
-                    .into()],
-                    callback: Some(callback_request),
-                    timeout_seconds: PACKET_LIFETIME.into(),
-                },
-                vec![],
-            )?;
-
-            assert_eq!(
-                IbcClientResponse::action("handle_send_msgs").add_message(note_message),
-                res
-            );
-            Ok(())
-        }
-    }
-
-    mod remote_query {
-        use std::str::FromStr;
-
-        use abstract_std::{ibc::CallbackInfo, objects::chain_name::ChainName};
-        use cosmwasm_std::{wasm_execute, BankQuery, Binary, QueryRequest};
-        use polytone::callbacks::CallbackRequest;
-
-        use super::*;
-        use crate::commands::PACKET_LIFETIME;
-
-        #[test]
-        fn works() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
-            mock_init(deps.as_mut())?;
-
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
-            let note_contract = Addr::unchecked("note");
-            let remote_ibc_host = String::from("test_remote_host");
-
-            IBC_INFRA.save(
-                deps.as_mut().storage,
-                &chain_name,
-                &IbcInfrastructure {
-                    polytone_note: note_contract.clone(),
-                    remote_abstract_host: remote_ibc_host.clone(),
-                    remote_proxy: None,
-                },
-            )?;
-
-            let callback_info = CallbackInfo {
-                id: String::from("id"),
-                receiver: String::from("receiver"),
-                msg: Some(Binary(vec![])),
-            };
-
-            let callback_request = CallbackRequest {
-                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info.clone()))?,
-                receiver: mock_env().contract.address.to_string(),
-            };
-
-            let queries = vec![QueryRequest::Bank(BankQuery::AllBalances {
-                address: String::from("addr"),
-            })];
-
-            let msg = ExecuteMsg::RemoteQueries {
-                host_chain: chain_name.to_string(),
-                queries: queries.clone(),
-                callback_info,
-            };
-
-            let res = execute_as(deps.as_mut(), "sender", msg)?;
-
-            let note_message = wasm_execute(
-                note_contract.to_string(),
-                &polytone_note::msg::ExecuteMsg::Query {
-                    msgs: queries,
-                    callback: callback_request,
-                    timeout_seconds: PACKET_LIFETIME.into(),
-                },
-                vec![],
-            )?;
-
-            assert_eq!(
-                IbcClientResponse::action("handle_send_msgs").add_message(note_message),
-                res
-            );
-
             Ok(())
         }
     }
@@ -1105,11 +968,8 @@ mod tests {
     mod callback {
         use std::str::FromStr;
 
-        use abstract_std::{
-            ibc::{CallbackInfo, IbcResponseMsg},
-            objects::chain_name::ChainName,
-        };
-        use cosmwasm_std::{Binary, Event, SubMsgResponse};
+        use abstract_std::objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName};
+        use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
         use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
 
         use super::*;
@@ -1479,56 +1339,6 @@ mod tests {
                     proxies: vec![(chain_name, Some(remote_proxy))]
                 },
                 proxies_response
-            );
-
-            Ok(())
-        }
-
-        #[test]
-        fn user_remote_action() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-            let env = mock_env();
-
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
-            let note = Addr::unchecked("note");
-            let remote_proxy = String::from("remote_proxy");
-
-            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
-            let id = String::from("id");
-            let callback_info_msg = Binary(vec![]);
-            let receiver = String::from("receiver");
-            let callback_msg = CallbackMessage {
-                initiator: env.contract.address,
-                initiator_msg: to_json_binary(&IbcClientCallback::UserRemoteAction(
-                    CallbackInfo {
-                        id: id.clone(),
-                        msg: Some(callback_info_msg.clone()),
-                        receiver: receiver.clone(),
-                    },
-                ))?,
-                result: Callback::Execute(Ok(ExecutionResponse {
-                    executed_by: remote_proxy.clone(),
-                    result: vec![],
-                })),
-            };
-            let msg = ExecuteMsg::Callback(callback_msg.clone());
-
-            let res = execute_as(deps.as_mut(), note.as_ref(), msg)?;
-
-            assert_eq!(
-                IbcClientResponse::action("user_specific_callback")
-                    .add_message(
-                        IbcResponseMsg {
-                            id: id.clone(),
-                            msg: Some(callback_info_msg),
-                            result: callback_msg.result,
-                        }
-                        .into_cosmos_msg(receiver)?
-                    )
-                    .add_attribute("chain", chain_name.to_string())
-                    .add_attribute("callback_id", id),
-                res
             );
 
             Ok(())

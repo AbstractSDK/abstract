@@ -1,13 +1,17 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Empty, QueryRequest};
+use cosmwasm_std::{Addr, Binary, Coin, Deps, Empty, QueryRequest, StdError};
 use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
 use crate::{
     ibc::CallbackInfo,
     ibc_host::HostAction,
-    manager::ModuleInstallConfig,
-    objects::{account::AccountId, chain_name::ChainName, AssetEntry},
+    manager::{self, ModuleInstallConfig},
+    objects::{
+        account::AccountId, chain_name::ChainName, module::ModuleInfo,
+        module_reference::ModuleReference, version_control::VersionControlContract, AssetEntry,
+    },
+    AbstractError,
 };
 
 pub mod state {
@@ -100,41 +104,127 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     },
+    ModuleIbcAction {
+        host_chain: String,
+        target_module: ModuleInfo,
+        msg: Binary,
+        callback_info: Option<CallbackInfo>,
+    },
+    IbcQuery {
+        host_chain: String,
+        query: QueryRequest<Empty>,
+        callback_info: CallbackInfo,
+    },
     RemoteAction {
         // host chain to be executed on
         // Example: "osmosis"
         host_chain: String,
         // execute the custom host function
         action: HostAction,
-        // optional callback info
-        callback_info: Option<CallbackInfo>,
-    },
-    /// Allows to query something on a remote contract and act on that query result
-    /// This has to be an Execute variant for IBC queries
-    RemoteQueries {
-        // host chain to be executed on
-        // Example: "osmosis"
-        host_chain: String,
-        // execute following queries
-        queries: Vec<QueryRequest<Empty>>,
-        // mandatory callback info
-        callback_info: CallbackInfo,
     },
     RemoveHost {
         host_chain: String,
     },
-
     /// Callback from the Polytone implementation
-    /// This is only triggered when a contract execution is succesful
+    /// This is NOT ONLY triggered when a contract execution is successful
     Callback(CallbackMessage),
 }
 
 /// This enum is used for sending callbacks to the note contract of the IBC client
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
-    UserRemoteAction(CallbackInfo),
-    CreateAccount { account_id: AccountId },
+    ModuleRemoteAction {
+        sender_address: String,
+        callback_info: CallbackInfo,
+        initiator_msg: Binary,
+    },
+    ModuleRemoteQuery {
+        sender_address: String,
+        callback_info: CallbackInfo,
+        query: QueryRequest<Empty>,
+    },
+    CreateAccount {
+        account_id: AccountId,
+    },
     WhoAmI {},
+}
+
+/// This is used for identifying calling modules
+/// For adapters, we don't need the account id because it's independent of an account
+/// For apps and standalone, the account id is used to identify the calling module
+#[cosmwasm_schema::cw_serde]
+pub struct InstalledModuleIdentification {
+    pub module_info: ModuleInfo,
+    pub account_id: Option<AccountId>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleAddr {
+    pub reference: ModuleReference,
+    pub address: Addr,
+}
+
+impl InstalledModuleIdentification {
+    pub fn addr(
+        &self,
+        deps: Deps,
+        vc: VersionControlContract,
+    ) -> Result<ModuleAddr, AbstractError> {
+        let target_module_resolved = vc.query_module(self.module_info.clone(), &deps.querier)?;
+
+        let no_account_id_error =
+            StdError::generic_err("Account id not specified in installed module definition");
+
+        let target_addr = match &target_module_resolved.reference {
+            ModuleReference::AccountBase(code_id) => {
+                let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
+                let account_base = vc.account_base(&target_account_id, &deps.querier)?;
+
+                if deps
+                    .querier
+                    .query_wasm_contract_info(&account_base.proxy)?
+                    .code_id
+                    == *code_id
+                {
+                    account_base.proxy
+                } else if deps
+                    .querier
+                    .query_wasm_contract_info(&account_base.manager)?
+                    .code_id
+                    == *code_id
+                {
+                    account_base.manager
+                } else {
+                    Err(StdError::generic_err(
+                        "Account base contract doesn't correspond to any of the proxy or manager",
+                    ))?
+                }
+            }
+            ModuleReference::Native(addr) => addr.clone(),
+            ModuleReference::Adapter(addr) => addr.clone(),
+            ModuleReference::App(_) | ModuleReference::Standalone(_) => {
+                let target_account_id = self.account_id.clone().ok_or(no_account_id_error)?;
+                let account_base = vc.account_base(&target_account_id, &deps.querier)?;
+
+                let module_info: manager::ModuleAddressesResponse = deps.querier.query_wasm_smart(
+                    account_base.manager,
+                    &manager::QueryMsg::ModuleAddresses {
+                        ids: vec![self.module_info.id()],
+                    },
+                )?;
+                module_info
+                    .modules
+                    .first()
+                    .ok_or(AbstractError::AppNotInstalled(self.module_info.to_string()))?
+                    .1
+                    .clone()
+            }
+        };
+        Ok(ModuleAddr {
+            reference: target_module_resolved.reference,
+            address: target_addr,
+        })
+    }
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -239,10 +329,10 @@ pub struct RemoteProxyResponse {
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{to_json_binary, CosmosMsg, Empty};
-    use polytone::callbacks::Callback;
     use speculoos::prelude::*;
 
-    use crate::ibc::IbcResponseMsg;
+    use crate::app::ExecuteMsg;
+    use crate::ibc::{CallbackResult, IbcResponseMsg};
 
     // ... (other test functions)
 
@@ -252,7 +342,7 @@ mod tests {
         let callback_id = "15".to_string();
         let callback_msg = to_json_binary("15").unwrap();
 
-        let result = Callback::FatalError("ibc execution error".to_string());
+        let result = CallbackResult::FatalError("ibc execution error".to_string());
 
         let response_msg = IbcResponseMsg {
             id: callback_id,
@@ -260,18 +350,16 @@ mod tests {
             result,
         };
 
-        let actual: CosmosMsg<Empty> = response_msg.into_cosmos_msg(receiver.clone()).unwrap();
+        let actual: CosmosMsg<Empty> = response_msg
+            .clone()
+            .into_cosmos_msg(receiver.clone())
+            .unwrap();
 
-        assert_that!(actual).matches(|e| {
-            matches!(
-                e,
-                CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
-                    contract_addr: _receiver,
-                    // we can't test the message because the fields in it are private
-                    msg: _,
-                    funds: _
-                })
-            )
-        });
+        assert_that!(actual).is_equal_to(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
+            contract_addr: receiver,
+            // we can't test the message because the fields in it are private
+            msg: to_json_binary(&ExecuteMsg::<Empty, Empty>::IbcCallback(response_msg)).unwrap(),
+            funds: vec![],
+        }))
     }
 }

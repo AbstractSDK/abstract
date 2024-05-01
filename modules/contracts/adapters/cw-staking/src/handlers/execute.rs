@@ -80,7 +80,7 @@ fn handle_ibc_request(
     // construct the action to be called on the host
     // construct the action to be called on the host
     let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
-        manager_msg: abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
+        manager_msgs: vec![abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
             module_id: CW_STAKING_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(
                 &StakingExecuteMsg {
@@ -89,12 +89,12 @@ fn handle_ibc_request(
                 }
                 .into(),
             )?,
-        },
+        }],
     };
 
     // If the calling entity is a contract, we provide a callback on successful cross-chain-staking
     let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());
-    let callback = if maybe_contract_info.is_err() {
+    let _callback = if maybe_contract_info.is_err() {
         None
     } else {
         Some(CallbackInfo {
@@ -103,10 +103,9 @@ fn handle_ibc_request(
                 provider: provider_name.clone(),
                 action: action.clone(),
             })?),
-            receiver: info.sender.into_string(),
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action, callback)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action)?;
 
     Ok(adapter
         .custom_response("handle_ibc_request", vec![("provider", provider_name)])

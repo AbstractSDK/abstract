@@ -5,7 +5,7 @@
 //! requiring the usage of a base contract.
 
 pub use abstract_std::objects::{ans_host::AnsHost, version_control::VersionControlContract};
-use abstract_std::version_control::AccountBase;
+use abstract_std::{version_control::AccountBase, VERSION_CONTROL};
 use cosmwasm_std::{Addr, Deps};
 
 use crate::{
@@ -67,6 +67,12 @@ impl ModuleIdentification for AccountBase {
 impl crate::features::AbstractRegistryAccess for VersionControlContract {
     fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
         Ok(self.clone())
+    }
+}
+
+impl ModuleIdentification for VersionControlContract {
+    fn module_id(&self) -> abstract_std::objects::module::ModuleId<'static> {
+        VERSION_CONTROL
     }
 }
 

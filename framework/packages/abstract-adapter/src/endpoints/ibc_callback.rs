@@ -1,5 +1,8 @@
-use abstract_sdk::{base::IbcCallbackEndpoint, features::AbstractRegistryAccess, AbstractSdkError};
-use abstract_std::{objects::module::ModuleInfo, AbstractError, IBC_CLIENT};
+use abstract_sdk::{base::IbcCallbackEndpoint, features::AbstractRegistryAccess};
+use abstract_std::{
+    objects::module::{ModuleInfo, ModuleVersion},
+    AbstractError, IBC_CLIENT,
+};
 use cosmwasm_std::{Addr, Deps};
 
 use crate::{state::ContractError, AdapterContract};
@@ -12,21 +15,14 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         let vc_query_result = self
             .abstract_registry(deps)?
             .query_module(
-                ModuleInfo::from_id_latest(IBC_CLIENT).map_err(|err| {
-                    let err: AbstractSdkError = err.into();
-                    err
-                })?,
+                ModuleInfo::from_id(
+                    IBC_CLIENT,
+                    ModuleVersion::from(abstract_ibc_client::contract::CONTRACT_VERSION),
+                )?,
                 &deps.querier,
             )
-            .map_err(|err| {
-                let err: AbstractError = err.into();
-                let err: AbstractSdkError = err.into();
-                err
-            })?;
+            .map_err(Into::<AbstractError>::into)?;
 
-        Ok(vc_query_result.reference.unwrap_native().map_err(|err| {
-            let err: AbstractSdkError = err.into();
-            err
-        })?)
+        Ok(vc_query_result.reference.unwrap_native()?)
     }
 }

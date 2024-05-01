@@ -9,7 +9,10 @@ use crate::{
         ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
         MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
     },
-    objects::{module_version::ModuleDataResponse, nested_admin::TopLevelOwnerResponse},
+    objects::{
+        ans_host::AnsHost, module_version::ModuleDataResponse, nested_admin::TopLevelOwnerResponse,
+        version_control::VersionControlContract,
+    },
     version_control::AccountBase,
 };
 
@@ -109,3 +112,14 @@ pub struct AppConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct BaseMigrateMsg {}
+
+/// The BaseState contains the main addresses needed for sending and verifying messages
+#[cosmwasm_schema::cw_serde]
+pub struct AppState {
+    /// Proxy contract address for relaying transactions
+    pub proxy_address: Addr,
+    /// AnsHost contract struct (address)
+    pub ans_host: AnsHost,
+    /// Used to verify requests
+    pub version_control: VersionControlContract,
+}
