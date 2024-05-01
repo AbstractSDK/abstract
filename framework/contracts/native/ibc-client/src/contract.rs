@@ -1,4 +1,6 @@
-use abstract_core::{
+use abstract_macros::abstract_response;
+use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_std::{
     ibc_client::{state::*, *},
     objects::{
         ans_host::AnsHost,
@@ -6,8 +8,6 @@ use abstract_core::{
     },
     IBC_CLIENT,
 };
-use abstract_macros::abstract_response;
-use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::{to_json_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
@@ -61,16 +61,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             version_control,
         } => commands::execute_update_config(deps, info, ans_host, version_control)
             .map_err(Into::into),
-        ExecuteMsg::RemoteAction {
-            host_chain,
-            action,
-            callback_info,
-        } => commands::execute_send_packet(deps, env, info, host_chain, action, callback_info),
-        ExecuteMsg::RemoteQueries {
-            host_chain,
-            queries,
-            callback_info,
-        } => commands::execute_send_query(deps, env, host_chain, queries, callback_info),
+        ExecuteMsg::RemoteAction { host_chain, action } => {
+            commands::execute_send_packet(deps, env, info, host_chain, action)
+        }
         ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
             commands::execute_register_infrastructure(deps, env, info, chain, host, note)
         }
@@ -97,6 +90,25 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::Callback(c) => {
             ibc::receive_action_callback(deps, env, info, c).map_err(Into::into)
         }
+        ExecuteMsg::ModuleIbcAction {
+            host_chain,
+            target_module,
+            msg,
+            callback_info,
+        } => commands::execute_send_module_to_module_packet(
+            deps,
+            env,
+            info,
+            host_chain,
+            target_module,
+            msg,
+            callback_info,
+        ),
+        ExecuteMsg::IbcQuery {
+            host_chain,
+            query,
+            callback_info,
+        } => commands::execute_send_query(deps, env, info, host_chain, query, callback_info),
     }
 }
 
@@ -136,10 +148,10 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
 
 #[cfg(test)]
 mod tests {
-    use abstract_testing::{
-        prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL, *},
-        OWNER,
-    };
+    use super::*;
+
+    use crate::test_common::mock_init;
+    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL, *};
     use cosmwasm_std::{
         from_json,
         testing::{mock_dependencies, mock_env, mock_info},
@@ -148,9 +160,6 @@ mod tests {
     use cw2::CONTRACT;
     use cw_ownable::{Ownership, OwnershipError};
     use speculoos::prelude::*;
-
-    use super::*;
-    use crate::test_common::mock_init;
 
     type IbcClientTestResult = Result<(), IbcClientError>;
 
@@ -211,11 +220,10 @@ mod tests {
     }
 
     mod migrate {
-        use abstract_core::AbstractError;
-        use cosmwasm_std::testing::mock_dependencies;
-
         use super::*;
+
         use crate::contract;
+        use abstract_std::AbstractError;
 
         #[test]
         fn disallow_same_version() -> IbcClientResult<()> {
@@ -313,8 +321,8 @@ mod tests {
     mod register_infrastructure {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
-        use cosmwasm_std::{from_json, wasm_execute};
+        use abstract_std::objects::chain_name::ChainName;
+        use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
 
         use super::*;
@@ -454,24 +462,17 @@ mod tests {
     }
 
     mod remote_action {
+        use super::*;
         use std::str::FromStr;
 
-        use abstract_core::{
-            ibc::CallbackInfo,
+        use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
-            objects::{
-                account::TEST_ACCOUNT_ID, chain_name::ChainName,
-                version_control::VersionControlError,
-            },
+            objects::{chain_name::ChainName, version_control::VersionControlError},
         };
-        use abstract_testing::prelude::{
-            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
-        };
-        use cosmwasm_std::{wasm_execute, Binary};
-        use polytone::callbacks::CallbackRequest;
 
-        use super::*;
+        use cosmwasm_std::wasm_execute;
+
         use crate::commands::PACKET_LIFETIME;
 
         #[test]
@@ -485,13 +486,12 @@ mod tests {
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name.to_string(),
                 action: HostAction::Dispatch {
-                    manager_msg: manager::ExecuteMsg::UpdateInfo {
+                    manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                         name: None,
                         description: None,
                         link: None,
-                    },
+                    }],
                 },
-                callback_info: None,
             };
 
             let res = execute_as(deps.as_mut(), TEST_MANAGER, msg);
@@ -523,7 +523,6 @@ mod tests {
                     namespace: None,
                     install_modules: vec![],
                 }),
-                callback_info: None,
             };
 
             let res = execute_as(deps.as_mut(), TEST_PROXY, msg);
@@ -555,17 +554,16 @@ mod tests {
             )?;
 
             let action = HostAction::Dispatch {
-                manager_msg: manager::ExecuteMsg::UpdateInfo {
+                manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                     name: None,
                     description: None,
                     link: None,
-                },
+                }],
             };
 
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name.to_string(),
                 action: action.clone(),
-                callback_info: None,
             };
 
             let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
@@ -596,171 +594,18 @@ mod tests {
             );
             Ok(())
         }
-
-        #[test]
-        fn send_packet_with_callback() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
-            mock_init(deps.as_mut())?;
-
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
-            let note_contract = Addr::unchecked("note");
-            let remote_ibc_host = String::from("test_remote_host");
-
-            IBC_INFRA.save(
-                deps.as_mut().storage,
-                &chain_name,
-                &IbcInfrastructure {
-                    polytone_note: note_contract.clone(),
-                    remote_abstract_host: remote_ibc_host.clone(),
-                    remote_proxy: None,
-                },
-            )?;
-
-            let action = HostAction::Dispatch {
-                manager_msg: manager::ExecuteMsg::UpdateInfo {
-                    name: None,
-                    description: None,
-                    link: None,
-                },
-            };
-
-            let callback_info = CallbackInfo {
-                id: String::from("id"),
-                receiver: String::from("receiver"),
-                msg: Some(Binary(vec![])),
-            };
-
-            let callback_request = CallbackRequest {
-                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info.clone()))?,
-                receiver: mock_env().contract.address.to_string(),
-            };
-
-            let msg = ExecuteMsg::RemoteAction {
-                host_chain: chain_name.to_string(),
-                action: action.clone(),
-                callback_info: Some(callback_info),
-            };
-
-            let res = execute_as(deps.as_mut(), TEST_PROXY, msg)?;
-
-            let note_message = wasm_execute(
-                note_contract.to_string(),
-                &polytone_note::msg::ExecuteMsg::Execute {
-                    msgs: vec![wasm_execute(
-                        // The note's remote proxy will call the ibc host
-                        remote_ibc_host,
-                        &ibc_host::ExecuteMsg::Execute {
-                            proxy_address: TEST_PROXY.to_owned(),
-                            account_id: TEST_ACCOUNT_ID,
-                            action,
-                        },
-                        vec![],
-                    )?
-                    .into()],
-                    callback: Some(callback_request),
-                    timeout_seconds: PACKET_LIFETIME.into(),
-                },
-                vec![],
-            )?;
-
-            assert_eq!(
-                IbcClientResponse::action("handle_send_msgs").add_message(note_message),
-                res
-            );
-            Ok(())
-        }
-    }
-
-    mod remote_query {
-        use std::str::FromStr;
-
-        use abstract_core::{ibc::CallbackInfo, objects::chain_name::ChainName};
-        use cosmwasm_std::{wasm_execute, BankQuery, Binary, QueryRequest};
-        use polytone::callbacks::CallbackRequest;
-
-        use super::*;
-        use crate::commands::PACKET_LIFETIME;
-
-        #[test]
-        fn works() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            deps.querier = mocked_account_querier_builder().build();
-            mock_init(deps.as_mut())?;
-
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
-            let note_contract = Addr::unchecked("note");
-            let remote_ibc_host = String::from("test_remote_host");
-
-            IBC_INFRA.save(
-                deps.as_mut().storage,
-                &chain_name,
-                &IbcInfrastructure {
-                    polytone_note: note_contract.clone(),
-                    remote_abstract_host: remote_ibc_host.clone(),
-                    remote_proxy: None,
-                },
-            )?;
-
-            let callback_info = CallbackInfo {
-                id: String::from("id"),
-                receiver: String::from("receiver"),
-                msg: Some(Binary(vec![])),
-            };
-
-            let callback_request = CallbackRequest {
-                msg: to_json_binary(&IbcClientCallback::UserRemoteAction(callback_info.clone()))?,
-                receiver: mock_env().contract.address.to_string(),
-            };
-
-            let queries = vec![QueryRequest::Bank(BankQuery::AllBalances {
-                address: String::from("addr"),
-            })];
-
-            let msg = ExecuteMsg::RemoteQueries {
-                host_chain: chain_name.to_string(),
-                queries: queries.clone(),
-                callback_info,
-            };
-
-            let res = execute_as(deps.as_mut(), "sender", msg)?;
-
-            let note_message = wasm_execute(
-                note_contract.to_string(),
-                &polytone_note::msg::ExecuteMsg::Query {
-                    msgs: queries,
-                    callback: callback_request,
-                    timeout_seconds: PACKET_LIFETIME.into(),
-                },
-                vec![],
-            )?;
-
-            assert_eq!(
-                IbcClientResponse::action("handle_send_msgs").add_message(note_message),
-                res
-            );
-
-            Ok(())
-        }
     }
 
     mod send_funds {
-        use std::str::FromStr;
+        use super::*;
 
-        use abstract_core::{
-            objects::{
-                account::TEST_ACCOUNT_ID, chain_name::ChainName,
-                version_control::VersionControlError, ChannelEntry,
-            },
+        use crate::commands::PACKET_LIFETIME;
+        use abstract_std::{
+            objects::{chain_name::ChainName, version_control::VersionControlError, ChannelEntry},
             ICS20,
         };
-        use abstract_testing::prelude::{
-            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
-        };
         use cosmwasm_std::{coins, Coin, CosmosMsg, IbcMsg};
-
-        use super::*;
-        use crate::commands::PACKET_LIFETIME;
+        use std::str::FromStr;
 
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
@@ -839,24 +684,20 @@ mod tests {
     }
 
     mod register_account {
-        use std::str::FromStr;
+        use super::*;
 
-        use abstract_core::{
+        use crate::commands::PACKET_LIFETIME;
+        use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
             objects::{
-                account::TEST_ACCOUNT_ID, chain_name::ChainName, gov_type::GovernanceDetails,
+                chain_name::ChainName, gov_type::GovernanceDetails,
                 version_control::VersionControlError,
             },
         };
-        use abstract_testing::prelude::{
-            mocked_account_querier_builder, TEST_CHAIN, TEST_MANAGER, TEST_PROXY,
-        };
-        use cosmwasm_std::{from_json, wasm_execute};
+        use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
-
-        use super::*;
-        use crate::commands::PACKET_LIFETIME;
+        use std::str::FromStr;
 
         #[test]
         fn throw_when_sender_is_not_proxy() -> IbcClientTestResult {
@@ -976,10 +817,7 @@ mod tests {
     mod update_config {
         use std::str::FromStr;
 
-        use abstract_core::{
-            ibc_client::state::Config,
-            objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
-        };
+        use abstract_std::objects::chain_name::ChainName;
 
         use super::*;
 
@@ -1073,7 +911,7 @@ mod tests {
     mod remove_host {
         use std::str::FromStr;
 
-        use abstract_core::objects::chain_name::ChainName;
+        use abstract_std::objects::chain_name::ChainName;
 
         use super::*;
 
@@ -1130,10 +968,7 @@ mod tests {
     mod callback {
         use std::str::FromStr;
 
-        use abstract_core::{
-            ibc::{CallbackInfo, IbcResponseMsg},
-            objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName},
-        };
+        use abstract_std::objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName};
         use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
         use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
 
@@ -1508,68 +1343,13 @@ mod tests {
 
             Ok(())
         }
-
-        #[test]
-        fn user_remote_action() -> IbcClientTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-            let env = mock_env();
-
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
-            let note = Addr::unchecked("note");
-            let remote_proxy = String::from("remote_proxy");
-
-            REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
-            let id = String::from("id");
-            let callback_info_msg = Binary(vec![]);
-            let receiver = String::from("receiver");
-            let callback_msg = CallbackMessage {
-                initiator: env.contract.address,
-                initiator_msg: to_json_binary(&IbcClientCallback::UserRemoteAction(
-                    CallbackInfo {
-                        id: id.clone(),
-                        msg: Some(callback_info_msg.clone()),
-                        receiver: receiver.clone(),
-                    },
-                ))?,
-                result: Callback::Execute(Ok(ExecutionResponse {
-                    executed_by: remote_proxy.clone(),
-                    result: vec![],
-                })),
-            };
-            let msg = ExecuteMsg::Callback(callback_msg.clone());
-
-            let res = execute_as(deps.as_mut(), note.as_ref(), msg)?;
-
-            assert_eq!(
-                IbcClientResponse::action("user_specific_callback")
-                    .add_message(
-                        IbcResponseMsg {
-                            id: id.clone(),
-                            msg: Some(callback_info_msg),
-                            result: callback_msg.result,
-                        }
-                        .into_cosmos_msg(receiver)?
-                    )
-                    .add_attribute("chain", chain_name.to_string())
-                    .add_attribute("callback_id", id),
-                res
-            );
-
-            Ok(())
-        }
     }
     mod list_proxies_by_account_id {
+        use super::*;
+
         use std::str::FromStr;
 
-        use abstract_core::objects::{
-            account::{AccountTrace, TEST_ACCOUNT_ID},
-            chain_name::ChainName,
-            AccountId,
-        };
-        use cosmwasm_std::from_json;
-
-        use super::*;
+        use abstract_std::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
 
         #[test]
         fn works_with_multiple_local_accounts() -> IbcClientTestResult {

@@ -23,8 +23,8 @@
 /// // Implements the trait-bounds for the abstract adapter messages, which allows them to be used in the Adapter type.
 /// // Also implements `Into<ExecuteMsg> for MyAdapterExecuteMsg` and `Into<QueryMsg> for MyAdapterQueryMsg`.
 /// // This enables the use of the `impl_into` macro of cw-orchestrator.
-/// impl abstract_core::adapter::AdapterExecuteMsg for MyAdapterExecuteMsg {}
-/// impl abstract_core::adapter::AdapterQueryMsg for MyAdapterQueryMsg {}
+/// impl abstract_std::adapter::AdapterExecuteMsg for MyAdapterExecuteMsg {}
+/// impl abstract_std::adapter::AdapterQueryMsg for MyAdapterQueryMsg {}
 /// ```
 macro_rules! adapter_msg_types {
     ($adapter_type:ty, $adapter_execute_msg: ty, $adapter_query_msg: ty) => {
@@ -36,7 +36,7 @@ macro_rules! adapter_msg_types {
         /// Top-level Abstract Adapter query message. This is the message that is passed to the `query` entrypoint of the smart-contract.
         pub type QueryMsg = <$adapter_type as ::abstract_sdk::base::QueryEndpoint>::QueryMsg;
 
-        impl ::abstract_core::adapter::AdapterExecuteMsg for $adapter_execute_msg {}
-        impl ::abstract_core::adapter::AdapterQueryMsg for $adapter_query_msg {}
+        impl ::abstract_std::adapter::AdapterExecuteMsg for $adapter_execute_msg {}
+        impl ::abstract_std::adapter::AdapterQueryMsg for $adapter_query_msg {}
     };
 }

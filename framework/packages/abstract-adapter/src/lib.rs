@@ -10,7 +10,21 @@ pub use error::AdapterError;
 
 pub use crate::state::AdapterContract;
 
-pub mod endpoints;
+// Useful re-exports
+pub use abstract_std as std;
+// re-export objects specifically
+pub use abstract_sdk as sdk;
+pub use abstract_std::objects;
+pub mod traits {
+    pub use abstract_sdk::{features::*, prelude::*};
+}
+
+mod interface;
+pub use abstract_interface;
+#[cfg(feature = "test-utils")]
+pub use abstract_testing;
+
+mod endpoints;
 pub mod error;
 /// Abstract SDK trait implementations
 pub mod features;
@@ -22,20 +36,13 @@ pub mod state;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
-    use abstract_core::{
-        adapter::{self, *},
-        objects::dependency::StaticDependency,
-    };
-    use abstract_interface::{AdapterDeployer, RegisteredModule};
-    use abstract_sdk::{
-        base::InstantiateEndpoint, features::ModuleIdentification, AbstractSdkError,
-    };
+    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
+    use abstract_std::{adapter::*, objects::dependency::StaticDependency};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
-        to_json_binary, DepsMut, Empty, Response, StdError,
+        DepsMut, Response, StdError,
     };
-    use cw_orch::{contract::Contract, prelude::*};
     use cw_storage_plus::Item;
     use thiserror::Error;
 
@@ -55,7 +62,7 @@ pub mod mock {
         Adapter(#[from] AdapterError),
 
         #[error("{0}")]
-        Abstract(#[from] abstract_core::AbstractError),
+        Abstract(#[from] abstract_std::AbstractError),
 
         #[error("{0}")]
         AbstractSdk(#[from] AbstractSdkError),
@@ -124,7 +131,7 @@ pub mod mock {
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _, _, _| {
+            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _| {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })])
@@ -136,6 +143,7 @@ pub mod mock {
     // export these for upload usage
     crate::export_endpoints!(MOCK_ADAPTER, MockAdapterContract);
 
+    crate::cw_orch_interface!(MOCK_ADAPTER, MockAdapterContract, MockInitMsg, MockAdapterI);
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
         let adapter = MOCK_ADAPTER;
         let info = mock_info(OWNER, &[]);
@@ -164,42 +172,6 @@ pub mod mock {
         adapter.instantiate(deps, mock_env(), info, init_msg)
     }
 
-    impl<T: CwEnv> Uploadable for MockAdapterI<T> {
-        fn wrapper(&self) -> <Mock as cw_orch::environment::TxHandler>::ContractSource {
-            Box::new(ContractWrapper::new_with_empty(
-                self::execute,
-                self::instantiate,
-                self::query,
-            ))
-        }
-    }
-
-    type Exec = adapter::ExecuteMsg<MockExecMsg>;
-    type Query = adapter::QueryMsg<MockQueryMsg>;
-    type Init = adapter::InstantiateMsg<MockInitMsg>;
-
-    #[cw_orch::interface(Init, Exec, Query, Empty)]
-    pub struct MockAdapterI<Chain>;
-
-    impl<Chain: CwEnv> RegisteredModule for MockAdapterI<Chain> {
-        type InitMsg = Empty;
-
-        fn module_id<'a>() -> &'a str {
-            MOCK_ADAPTER.module_id()
-        }
-        fn module_version<'a>() -> &'a str {
-            MOCK_ADAPTER.version()
-        }
-    }
-
-    impl<Chain: CwEnv> From<Contract<Chain>> for MockAdapterI<Chain> {
-        fn from(value: Contract<Chain>) -> Self {
-            MockAdapterI(value)
-        }
-    }
-
-    impl<T: CwEnv> AdapterDeployer<T, MockInitMsg> for MockAdapterI<T> {}
-
     /// Generate a BOOT instance for a mock adapter
     /// - $name: name of the contract (&str)
     /// - $id: id of the contract (&str)
@@ -208,7 +180,7 @@ pub mod mock {
     #[macro_export]
     macro_rules! gen_adapter_mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
-        use ::abstract_core::adapter::*;
+        use $crate::std::adapter::*;
         use ::cosmwasm_std::Empty;
         use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
@@ -248,16 +220,16 @@ pub mod mock {
             MOCK_ADAPTER.query(deps, env, msg)
         }
 
-        type Exec = ::abstract_core::adapter::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
-        type Query = ::abstract_core::adapter::QueryMsg<MockQueryMsg>;
-        type Init = ::abstract_core::adapter::InstantiateMsg<MockInitMsg>;
+        type Exec = $crate::std::adapter::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+        type Query = $crate::std::adapter::QueryMsg<MockQueryMsg>;
+        type Init = $crate::std::adapter::InstantiateMsg<MockInitMsg>;
         #[cw_orch::interface(Init, Exec, Query, Empty)]
         pub struct $name ;
 
         impl <T: ::cw_orch::prelude::CwEnv> ::abstract_interface::AdapterDeployer<T, MockInitMsg> for $name <T> {}
 
         impl<T: ::cw_orch::prelude::CwEnv> Uploadable for $name<T> {
-            fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+            fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
                     Exec,
                     _,
@@ -291,7 +263,7 @@ pub mod mock {
     #[macro_export]
     macro_rules! gen_adapter_old_mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
-        use ::abstract_core::adapter::*;
+        use $crate::std::adapter::*;
         use ::cosmwasm_std::Empty;
         use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
         use ::cw_orch::environment::CwEnv;
@@ -314,7 +286,7 @@ pub mod mock {
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: ::abstract_core::base::ExecuteMsg<::abstract_core::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>,
+            msg: $crate::std::base::ExecuteMsg<$crate::std::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>,
         ) -> Result<::cosmwasm_std::Response, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::ExecuteEndpoint;
             Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
@@ -330,16 +302,16 @@ pub mod mock {
             MOCK_ADAPTER.query(deps, env, msg)
         }
 
-        type Exec = ::abstract_core::base::ExecuteMsg<::abstract_core::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>;
-        type Query = ::abstract_core::adapter::QueryMsg<MockQueryMsg>;
-        type Init = ::abstract_core::adapter::InstantiateMsg<MockInitMsg>;
+        type Exec = $crate::std::base::ExecuteMsg<$crate::std::adapter::AdapterBaseMsg, MockExecMsg, MockReceiveMsg>;
+        type Query = $crate::std::adapter::QueryMsg<MockQueryMsg>;
+        type Init = $crate::std::adapter::InstantiateMsg<MockInitMsg>;
         #[cw_orch::interface(Init, Exec, Query, Empty)]
         pub struct $name ;
 
         impl ::abstract_interface::AdapterDeployer<::cw_orch::prelude::MockBech32, MockInitMsg> for $name <::cw_orch::prelude::MockBech32> {}
 
         impl Uploadable for $name<::cw_orch::prelude::MockBech32> {
-            fn wrapper(&self) -> <MockBech32 as ::cw_orch::environment::TxHandler>::ContractSource {
+            fn wrapper() -> <MockBech32 as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
                     Exec,
                     _,

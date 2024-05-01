@@ -1,4 +1,4 @@
-use abstract_core::ABSTRACT_EVENT_TYPE;
+use abstract_std::ABSTRACT_EVENT_TYPE;
 use cosmwasm_std::{Attribute, Event, Response};
 
 /// Trait for adding `abstract` attributes to something
@@ -36,10 +36,9 @@ impl AbstractAttributes for Response {
 
 #[cfg(test)]
 mod test {
-    use cosmwasm_std::{Event, Response};
-    use speculoos::prelude::*;
-
     use super::*;
+
+    use speculoos::prelude::*;
 
     #[test]
     fn test_add_abstract_attributes_no_abstract_event() {

@@ -2,8 +2,8 @@
 //! # MoneyMarket Adapter API
 // re-export response types
 use crate::{ans_action::MoneyMarketAnsAction, raw_action::MoneyMarketRawAction};
-use abstract_core::objects::AssetEntry;
-use abstract_core::{adapter, objects::fee::UsageFee};
+use abstract_std::objects::AssetEntry;
+use abstract_std::{adapter, objects::fee::UsageFee};
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{CosmosMsg, Decimal, StdError, StdResult, Uint128};
 use cw_asset::AssetInfoBase;
@@ -74,9 +74,8 @@ pub enum MoneyMarketExecuteMsg {
 
 /// Query messages for the dex adapter
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg)]
 pub enum MoneyMarketQueryMsg {
     /// Endpoint can be used by front-end to easily interact with contracts.
     /// Returns [`GenerateMessagesResponse`]

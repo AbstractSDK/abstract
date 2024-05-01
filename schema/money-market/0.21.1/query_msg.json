@@ -367,233 +367,6 @@
         }
       ]
     },
-    "MoneyMarketAnsQuery": {
-      "description": "Possible ans queries to run on the Money Market",
-      "oneOf": [
-        {
-          "description": "Deposited funds for lending",
-          "type": "object",
-          "required": [
-            "user_deposit"
-          ],
-          "properties": {
-            "user_deposit": {
-              "type": "object",
-              "required": [
-                "asset",
-                "user"
-              ],
-              "properties": {
-                "asset": {
-                  "description": "Lended asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    }
-                  ]
-                },
-                "user": {
-                  "description": "User that has deposited some funds",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Deposited Collateral funds",
-          "type": "object",
-          "required": [
-            "user_collateral"
-          ],
-          "properties": {
-            "user_collateral": {
-              "type": "object",
-              "required": [
-                "borrowed_asset",
-                "collateral_asset",
-                "user"
-              ],
-              "properties": {
-                "borrowed_asset": {
-                  "description": "Borrowed asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    }
-                  ]
-                },
-                "collateral_asset": {
-                  "description": "Collateral asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    }
-                  ]
-                },
-                "user": {
-                  "description": "User that has deposited some collateral",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Borrowed funds",
-          "type": "object",
-          "required": [
-            "user_borrow"
-          ],
-          "properties": {
-            "user_borrow": {
-              "type": "object",
-              "required": [
-                "borrowed_asset",
-                "collateral_asset",
-                "user"
-              ],
-              "properties": {
-                "borrowed_asset": {
-                  "description": "Borrowed asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    }
-                  ]
-                },
-                "collateral_asset": {
-                  "description": "Collateral asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    }
-                  ]
-                },
-                "user": {
-                  "description": "User that has borrowed some funds",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Current Loan-to-Value ratio Represents the borrow usage for a specific user Allows to know how much asset are currently borrowed",
-          "type": "object",
-          "required": [
-            "current_l_t_v"
-          ],
-          "properties": {
-            "current_l_t_v": {
-              "type": "object",
-              "required": [
-                "borrowed_asset",
-                "collateral_asset",
-                "user"
-              ],
-              "properties": {
-                "borrowed_asset": {
-                  "description": "Borrowed asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    }
-                  ]
-                },
-                "collateral_asset": {
-                  "description": "Collateral asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    }
-                  ]
-                },
-                "user": {
-                  "description": "User that has borrowed some funds",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Maximum Loan to Value ratio for a user Allows to know how much assets can to be borrowed",
-          "type": "object",
-          "required": [
-            "max_l_t_v"
-          ],
-          "properties": {
-            "max_l_t_v": {
-              "type": "object",
-              "required": [
-                "borrowed_asset",
-                "collateral_asset",
-                "user"
-              ],
-              "properties": {
-                "borrowed_asset": {
-                  "description": "Borrowed asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    }
-                  ]
-                },
-                "collateral_asset": {
-                  "description": "Collateral asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    }
-                  ]
-                },
-                "user": {
-                  "description": "User that has borrowed some funds",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Price of an asset compared to another asset The returned decimal corresponds to How much quote assets can be bought with 1 base asset",
-          "type": "object",
-          "required": [
-            "price"
-          ],
-          "properties": {
-            "price": {
-              "type": "object",
-              "required": [
-                "base",
-                "quote"
-              ],
-              "properties": {
-                "base": {
-                  "$ref": "#/definitions/AssetEntry"
-                },
-                "quote": {
-                  "$ref": "#/definitions/AssetEntry"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
     "MoneyMarketExecuteMsg": {
       "description": "MoneyMarket Execute msg",
       "oneOf": [
@@ -735,28 +508,283 @@
           "additionalProperties": false
         },
         {
-          "description": "Query using raw asset denoms and addresses",
+          "description": "Query using raw asset denoms and addresses Deposited funds for lending",
           "type": "object",
           "required": [
-            "money_market_raw_query"
+            "raw_user_deposit"
           ],
           "properties": {
-            "money_market_raw_query": {
+            "raw_user_deposit": {
               "type": "object",
               "required": [
+                "asset",
+                "contract_addr",
                 "money_market",
-                "query"
+                "user"
               ],
               "properties": {
-                "money_market": {
-                  "description": "The name of the dex to interact with",
-                  "type": "string"
-                },
-                "query": {
-                  "description": "Actual query",
+                "asset": {
+                  "description": "Lended asset to query",
                   "allOf": [
                     {
-                      "$ref": "#/definitions/MoneyMarketRawQuery"
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ]
+                },
+                "contract_addr": {
+                  "description": "Contract Address on which you execute the query",
+                  "type": "string"
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "user": {
+                  "description": "User that has deposited some funds",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Deposited Collateral funds",
+          "type": "object",
+          "required": [
+            "raw_user_collateral"
+          ],
+          "properties": {
+            "raw_user_collateral": {
+              "type": "object",
+              "required": [
+                "borrowed_asset",
+                "collateral_asset",
+                "contract_addr",
+                "money_market",
+                "user"
+              ],
+              "properties": {
+                "borrowed_asset": {
+                  "description": "Borrowed asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ]
+                },
+                "collateral_asset": {
+                  "description": "Collateral asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ]
+                },
+                "contract_addr": {
+                  "description": "Contract Address on which you execute the query",
+                  "type": "string"
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "user": {
+                  "description": "User that has deposited some collateral",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Borrowed funds",
+          "type": "object",
+          "required": [
+            "raw_user_borrow"
+          ],
+          "properties": {
+            "raw_user_borrow": {
+              "type": "object",
+              "required": [
+                "borrowed_asset",
+                "collateral_asset",
+                "contract_addr",
+                "money_market",
+                "user"
+              ],
+              "properties": {
+                "borrowed_asset": {
+                  "description": "Borrowed asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ]
+                },
+                "collateral_asset": {
+                  "description": "Collateral asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ]
+                },
+                "contract_addr": {
+                  "description": "Contract Address on which you execute the query",
+                  "type": "string"
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "user": {
+                  "description": "User that has borrowed some funds",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Current Loan-to-Value ratio Represents the borrow usage for a specific user Allows to know how much asset are currently borrowed",
+          "type": "object",
+          "required": [
+            "raw_current_l_t_v"
+          ],
+          "properties": {
+            "raw_current_l_t_v": {
+              "type": "object",
+              "required": [
+                "borrowed_asset",
+                "collateral_asset",
+                "contract_addr",
+                "money_market",
+                "user"
+              ],
+              "properties": {
+                "borrowed_asset": {
+                  "description": "Borrowed asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ]
+                },
+                "collateral_asset": {
+                  "description": "Collateral asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ]
+                },
+                "contract_addr": {
+                  "description": "Contract Address on which you execute the query",
+                  "type": "string"
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "user": {
+                  "description": "User that has borrowed some funds",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Maximum Loan to Value ratio for a user Allows to know how much assets can to be borrowed",
+          "type": "object",
+          "required": [
+            "raw_max_l_t_v"
+          ],
+          "properties": {
+            "raw_max_l_t_v": {
+              "type": "object",
+              "required": [
+                "borrowed_asset",
+                "collateral_asset",
+                "contract_addr",
+                "money_market",
+                "user"
+              ],
+              "properties": {
+                "borrowed_asset": {
+                  "description": "Borrowed asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ]
+                },
+                "collateral_asset": {
+                  "description": "Collateral asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ]
+                },
+                "contract_addr": {
+                  "description": "Contract Address on which you execute the query",
+                  "type": "string"
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "user": {
+                  "description": "User that has borrowed some funds",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Price of an asset compared to another asset The returned decimal corresponds to How much quote assets can be bought with 1 base asset",
+          "type": "object",
+          "required": [
+            "raw_price"
+          ],
+          "properties": {
+            "raw_price": {
+              "type": "object",
+              "required": [
+                "base",
+                "money_market",
+                "quote"
+              ],
+              "properties": {
+                "base": {
+                  "description": "Base asset",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ]
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "quote": {
+                  "description": "Quote asset",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
                     }
                   ]
                 }
@@ -767,28 +795,258 @@
           "additionalProperties": false
         },
         {
-          "description": "Query using ans assets",
+          "description": "Query using ans assets Deposited funds for lending",
           "type": "object",
           "required": [
-            "money_market_ans_query"
+            "ans_user_deposit"
           ],
           "properties": {
-            "money_market_ans_query": {
+            "ans_user_deposit": {
               "type": "object",
               "required": [
+                "asset",
                 "money_market",
-                "query"
+                "user"
               ],
               "properties": {
-                "money_market": {
-                  "description": "The name of the dex to interact with",
-                  "type": "string"
-                },
-                "query": {
-                  "description": "Actual query",
+                "asset": {
+                  "description": "Lended asset to query",
                   "allOf": [
                     {
-                      "$ref": "#/definitions/MoneyMarketAnsQuery"
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "user": {
+                  "description": "User that has deposited some funds",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Deposited Collateral funds",
+          "type": "object",
+          "required": [
+            "ans_user_collateral"
+          ],
+          "properties": {
+            "ans_user_collateral": {
+              "type": "object",
+              "required": [
+                "borrowed_asset",
+                "collateral_asset",
+                "money_market",
+                "user"
+              ],
+              "properties": {
+                "borrowed_asset": {
+                  "description": "Borrowed asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
+                },
+                "collateral_asset": {
+                  "description": "Collateral asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "user": {
+                  "description": "User that has deposited some collateral",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Borrowed funds",
+          "type": "object",
+          "required": [
+            "ans_user_borrow"
+          ],
+          "properties": {
+            "ans_user_borrow": {
+              "type": "object",
+              "required": [
+                "borrowed_asset",
+                "collateral_asset",
+                "money_market",
+                "user"
+              ],
+              "properties": {
+                "borrowed_asset": {
+                  "description": "Borrowed asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
+                },
+                "collateral_asset": {
+                  "description": "Collateral asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "user": {
+                  "description": "User that has borrowed some funds",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Current Loan-to-Value ratio Represents the borrow usage for a specific user Allows to know how much asset are currently borrowed",
+          "type": "object",
+          "required": [
+            "ans_current_l_t_v"
+          ],
+          "properties": {
+            "ans_current_l_t_v": {
+              "type": "object",
+              "required": [
+                "borrowed_asset",
+                "collateral_asset",
+                "money_market",
+                "user"
+              ],
+              "properties": {
+                "borrowed_asset": {
+                  "description": "Borrowed asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
+                },
+                "collateral_asset": {
+                  "description": "Collateral asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "user": {
+                  "description": "User that has borrowed some funds",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Maximum Loan to Value ratio for a user Allows to know how much assets can to be borrowed",
+          "type": "object",
+          "required": [
+            "ans_max_l_t_v"
+          ],
+          "properties": {
+            "ans_max_l_t_v": {
+              "type": "object",
+              "required": [
+                "borrowed_asset",
+                "collateral_asset",
+                "money_market",
+                "user"
+              ],
+              "properties": {
+                "borrowed_asset": {
+                  "description": "Borrowed asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
+                },
+                "collateral_asset": {
+                  "description": "Collateral asset to query",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "user": {
+                  "description": "User that has borrowed some funds",
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Price of an asset compared to another asset The returned decimal corresponds to How much quote assets can be bought with 1 base asset",
+          "type": "object",
+          "required": [
+            "ans_price"
+          ],
+          "properties": {
+            "ans_price": {
+              "type": "object",
+              "required": [
+                "base",
+                "money_market",
+                "quote"
+              ],
+              "properties": {
+                "base": {
+                  "description": "Base asset",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    }
+                  ]
+                },
+                "money_market": {
+                  "description": "Name of the MoneyMarket to interact with",
+                  "type": "string"
+                },
+                "quote": {
+                  "description": "Quote asset",
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
                     }
                   ]
                 }
@@ -836,253 +1094,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "MoneyMarketRawQuery": {
-      "description": "Possible raw queries to run on the Money Market",
-      "oneOf": [
-        {
-          "description": "Deposited funds for lending",
-          "type": "object",
-          "required": [
-            "user_deposit"
-          ],
-          "properties": {
-            "user_deposit": {
-              "type": "object",
-              "required": [
-                "asset",
-                "contract_addr",
-                "user"
-              ],
-              "properties": {
-                "asset": {
-                  "description": "Lended asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetInfoBase_for_String"
-                    }
-                  ]
-                },
-                "contract_addr": {
-                  "type": "string"
-                },
-                "user": {
-                  "description": "User that has deposited some funds",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Deposited Collateral funds",
-          "type": "object",
-          "required": [
-            "user_collateral"
-          ],
-          "properties": {
-            "user_collateral": {
-              "type": "object",
-              "required": [
-                "borrowed_asset",
-                "collateral_asset",
-                "contract_addr",
-                "user"
-              ],
-              "properties": {
-                "borrowed_asset": {
-                  "description": "Borrowed asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetInfoBase_for_String"
-                    }
-                  ]
-                },
-                "collateral_asset": {
-                  "description": "Collateral asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetInfoBase_for_String"
-                    }
-                  ]
-                },
-                "contract_addr": {
-                  "type": "string"
-                },
-                "user": {
-                  "description": "User that has deposited some collateral",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Borrowed funds",
-          "type": "object",
-          "required": [
-            "user_borrow"
-          ],
-          "properties": {
-            "user_borrow": {
-              "type": "object",
-              "required": [
-                "borrowed_asset",
-                "collateral_asset",
-                "contract_addr",
-                "user"
-              ],
-              "properties": {
-                "borrowed_asset": {
-                  "description": "Borrowed asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetInfoBase_for_String"
-                    }
-                  ]
-                },
-                "collateral_asset": {
-                  "description": "Collateral asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetInfoBase_for_String"
-                    }
-                  ]
-                },
-                "contract_addr": {
-                  "type": "string"
-                },
-                "user": {
-                  "description": "User that has borrowed some funds",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Current Loan-to-Value ratio Represents the borrow usage for a specific user Allows to know how much asset are currently borrowed",
-          "type": "object",
-          "required": [
-            "current_l_t_v"
-          ],
-          "properties": {
-            "current_l_t_v": {
-              "type": "object",
-              "required": [
-                "borrowed_asset",
-                "collateral_asset",
-                "contract_addr",
-                "user"
-              ],
-              "properties": {
-                "borrowed_asset": {
-                  "description": "Borrowed asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetInfoBase_for_String"
-                    }
-                  ]
-                },
-                "collateral_asset": {
-                  "description": "Collateral asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetInfoBase_for_String"
-                    }
-                  ]
-                },
-                "contract_addr": {
-                  "type": "string"
-                },
-                "user": {
-                  "description": "User that has borrowed some funds",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Maximum Loan to Value ratio for a user Allows to know how much assets can to be borrowed",
-          "type": "object",
-          "required": [
-            "max_l_t_v"
-          ],
-          "properties": {
-            "max_l_t_v": {
-              "type": "object",
-              "required": [
-                "borrowed_asset",
-                "collateral_asset",
-                "contract_addr",
-                "user"
-              ],
-              "properties": {
-                "borrowed_asset": {
-                  "description": "Borrowed asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetInfoBase_for_String"
-                    }
-                  ]
-                },
-                "collateral_asset": {
-                  "description": "Collateral asset to query",
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/AssetInfoBase_for_String"
-                    }
-                  ]
-                },
-                "contract_addr": {
-                  "type": "string"
-                },
-                "user": {
-                  "description": "User that has borrowed some funds",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Price of an asset compared to another asset The returned decimal corresponds to How much quote assets can be bought with 1 base asset",
-          "type": "object",
-          "required": [
-            "price"
-          ],
-          "properties": {
-            "price": {
-              "type": "object",
-              "required": [
-                "base",
-                "quote"
-              ],
-              "properties": {
-                "base": {
-                  "$ref": "#/definitions/AssetInfoBase_for_String"
-                },
-                "quote": {
-                  "$ref": "#/definitions/AssetInfoBase_for_String"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
     },
     "MoneyMarketRawRequest": {
       "description": "Possible actions to perform on a Money Market This is an example using raw assets",

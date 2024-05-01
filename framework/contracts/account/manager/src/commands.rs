@@ -1,45 +1,32 @@
-use abstract_core::{
+use abstract_macros::abstract_response;
+use abstract_sdk::cw_helpers::AbstractAttributes;
+use abstract_std::{
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
         ExecuteMsg as AdapterExecMsg, QueryMsg as AdapterQuery,
     },
     manager::{
-        state::{PENDING_GOVERNANCE, REMOVE_ADAPTER_AUTHORIZED_CONTEXT, SUB_ACCOUNTS},
-        InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction,
+        state::{
+            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, DEPENDENTS, INFO,
+            PENDING_GOVERNANCE, REMOVE_ADAPTER_AUTHORIZED_CONTEXT, SUB_ACCOUNTS, SUSPENSION_STATUS,
+        },
+        CallbackMsg, ExecuteMsg, InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction,
     },
-    module_factory::FactoryModuleInstallConfig,
+    module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
     objects::{
+        dependency::Dependency,
         gov_type::GovernanceDetails,
-        module::assert_module_data_validity,
+        module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
+        module_reference::ModuleReference,
         nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION},
         salt::generate_instantiate_salt,
+        validation::{validate_description, validate_link, validate_name},
         version_control::VersionControlContract,
         AccountId, AssetEntry,
     },
-    proxy::state::ACCOUNT_ID,
+    proxy::{state::ACCOUNT_ID, ExecuteMsg as ProxyMsg},
     version_control::ModuleResponse,
-};
-use abstract_macros::abstract_response;
-use abstract_sdk::{
-    core::{
-        manager::{
-            state::{
-                AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, DEPENDENTS, INFO,
-                SUSPENSION_STATUS,
-            },
-            CallbackMsg, ExecuteMsg,
-        },
-        module_factory::ExecuteMsg as ModuleFactoryMsg,
-        objects::{
-            dependency::Dependency,
-            module::{Module, ModuleInfo, ModuleVersion},
-            module_reference::ModuleReference,
-            validation::{validate_description, validate_link, validate_name},
-        },
-        proxy::ExecuteMsg as ProxyMsg,
-        IBC_CLIENT, MANAGER, PROXY,
-    },
-    cw_helpers::AbstractAttributes,
+    IBC_CLIENT, MANAGER, PROXY,
 };
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
@@ -285,7 +272,7 @@ pub fn create_sub_account(
     // only owner can create a subaccount
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
-    let create_account_msg = &abstract_core::account_factory::ExecuteMsg::CreateAccount {
+    let create_account_msg = &abstract_std::account_factory::ExecuteMsg::CreateAccount {
         // proxy of this manager will be the account owner
         governance: GovernanceDetails::SubAccount {
             manager: env.contract.address.into_string(),
@@ -302,7 +289,7 @@ pub fn create_sub_account(
 
     let account_factory_addr = query_module(
         deps.as_ref(),
-        ModuleInfo::from_id_latest(abstract_core::ACCOUNT_FACTORY)?,
+        ModuleInfo::from_id_latest(abstract_std::ACCOUNT_FACTORY)?,
         None,
     )?
     .module
@@ -337,7 +324,7 @@ pub fn handle_sub_account_action(
 fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
-    let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
+    let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
         config.version_control_address,
         &AccountId::local(id),
@@ -359,7 +346,7 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerR
 fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
-    let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
+    let account = abstract_std::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
         config.version_control_address,
         &AccountId::local(id),
@@ -576,7 +563,7 @@ pub(crate) fn renounce_governance(
         msgs.push(
             wasm_execute(
                 vc.address,
-                &abstract_core::version_control::ExecuteMsg::RemoveNamespaces {
+                &abstract_std::version_control::ExecuteMsg::RemoveNamespaces {
                     namespaces: vec![namespace.to_string()],
                 },
                 vec![],
@@ -946,7 +933,7 @@ pub fn update_ibc_status(
         .add_message(proxy_callback_msg))
 }
 
-fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
+pub fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
     // retrieve the latest version
     let ibc_client_module =
         query_module(deps.as_ref(), ModuleInfo::from_id_latest(IBC_CLIENT)?, None)?;
@@ -1078,7 +1065,7 @@ fn configure_old_adapter(
     adapter_address: impl Into<String>,
     message: AdapterBaseMsg,
 ) -> StdResult<CosmosMsg> {
-    type OldAdapterBaseExecuteMsg = abstract_core::base::ExecuteMsg<AdapterBaseMsg, Empty, Empty>;
+    type OldAdapterBaseExecuteMsg = abstract_std::base::ExecuteMsg<AdapterBaseMsg, Empty, Empty>;
 
     let adapter_msg = OldAdapterBaseExecuteMsg::Base(message);
     Ok(wasm_execute(adapter_address, &adapter_msg, vec![])?.into())
@@ -1188,15 +1175,15 @@ pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> 
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    use crate::{contract, test_common::mock_init};
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage},
-        Order, OwnedDeps, StdError, Storage,
+        Order, OwnedDeps, StdError,
     };
     use speculoos::prelude::*;
-
-    use super::*;
-    use crate::{contract, test_common::mock_init};
 
     type ManagerTestResult = Result<(), ManagerError>;
 
@@ -1277,7 +1264,7 @@ mod tests {
             assert_that!(res).is_err().matches(|err| {
                 matches!(
                     err,
-                    ManagerError::Abstract(abstract_core::AbstractError::Std(
+                    ManagerError::Abstract(abstract_std::AbstractError::Std(
                         StdError::GenericErr { .. }
                     ))
                 )
@@ -1349,8 +1336,6 @@ mod tests {
     }
 
     mod update_module_addresses {
-        use abstract_core::manager::InternalConfigAction;
-
         use super::*;
 
         #[test]
@@ -1613,7 +1598,7 @@ mod tests {
     }
 
     mod update_info {
-        use abstract_core::objects::validation::ValidationError;
+        use abstract_std::objects::validation::ValidationError;
 
         use super::*;
 
@@ -1862,8 +1847,6 @@ mod tests {
     }
 
     mod handle_callback {
-        use cosmwasm_std::StdError;
-
         use super::*;
 
         #[test]
@@ -1969,7 +1952,7 @@ mod tests {
     }
 
     mod update_internal_config {
-        use abstract_core::manager::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
+        use abstract_std::manager::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
 
         use super::*;
 
@@ -2021,8 +2004,6 @@ mod tests {
     }
 
     mod add_module_upgrade_to_context {
-        use cosmwasm_std::testing::mock_dependencies;
-
         use super::*;
 
         #[test]

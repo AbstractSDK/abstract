@@ -1,7 +1,7 @@
 use std::env;
 
-pub use abstract_core::ans_host::ExecuteMsgFns;
-use abstract_core::{
+pub use abstract_std::ans_host::ExecuteMsgFns;
+use abstract_std::{
     ans_host::*,
     objects::{
         pool_metadata::ResolvedPoolMetadata, AnsAsset, AnsEntryConvertor, AssetEntry, ChannelEntry,
@@ -9,7 +9,6 @@ use abstract_core::{
     },
     ANS_HOST,
 };
-use cosmwasm_std::Addr;
 use cw_address_like::AddressLike;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase, AssetInfoUnchecked, AssetUnchecked};
 use cw_orch::{interface, prelude::*};
@@ -25,7 +24,7 @@ impl<Chain: CwEnv> AnsHost<Chain> {
 
 impl<Chain: CwEnv> Uploadable for AnsHost<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+    fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
                 ::ans_host::contract::execute,
@@ -35,7 +34,7 @@ impl<Chain: CwEnv> Uploadable for AnsHost<Chain> {
             .with_migrate(::ans_host::contract::migrate),
         )
     }
-    fn wasm(&self) -> WasmPath {
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path("ans_host")
             .unwrap()
@@ -47,7 +46,9 @@ where
     TxResponse<Chain>: IndexResponse,
 {
     pub fn load(chain: Chain, address: &Addr) -> Self {
-        Self(cw_orch::contract::Contract::new(ANS_HOST, chain).with_address(Some(address)))
+        let contract = cw_orch::contract::Contract::new(ANS_HOST, chain);
+        contract.set_address(address);
+        Self(contract)
     }
 }
 

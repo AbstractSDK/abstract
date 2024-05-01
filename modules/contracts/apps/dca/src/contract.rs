@@ -1,10 +1,6 @@
+use abstract_app::std::objects::dependency::StaticDependency;
 use abstract_app::AppContract;
-use abstract_core::objects::dependency::StaticDependency;
-#[cfg(feature = "interface")]
-use abstract_core::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
 use cosmwasm_std::{Empty, Response};
-#[cfg(feature = "interface")]
-use croncat_app::contract::interface::Croncat;
 use croncat_app::contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION};
 
 use crate::{
@@ -40,20 +36,24 @@ const DCA_APP: DCAApp = DCAApp::new(DCA_APP_ID, DCA_APP_VERSION, None)
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(DCA_APP, DCAApp);
 
-#[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(DCA_APP, DCAApp, DCA);
 
-#[cfg(feature = "interface")]
-impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
+#[cfg(not(target_arch = "wasm32"))]
+use abstract_app::std::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
+#[cfg(not(target_arch = "wasm32"))]
+use croncat_app::contract::interface::Croncat;
+#[cfg(not(target_arch = "wasm32"))]
+impl<Chain: cw_orch::environment::CwEnv> abstract_app::abstract_interface::DependencyCreation
     for crate::DCA<Chain>
 {
     type DependenciesConfig = cosmwasm_std::Empty;
 
     fn dependency_install_configs(
         _configuration: Self::DependenciesConfig,
-    ) -> Result<Vec<ModuleInstallConfig>, abstract_interface::AbstractInterfaceError> {
+    ) -> Result<Vec<ModuleInstallConfig>, abstract_app::abstract_interface::AbstractInterfaceError>
+    {
         let croncat_dependency_install_configs: Vec<ModuleInstallConfig> =
-            <Croncat<Chain> as abstract_interface::DependencyCreation>::dependency_install_configs(
+            <Croncat<Chain> as abstract_app::abstract_interface::DependencyCreation>::dependency_install_configs(
                 cosmwasm_std::Empty {},
             )?;
         let adapter_install_config = ModuleInstallConfig::new(
@@ -64,7 +64,7 @@ impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
             None,
         );
         let croncat_install_config =
-            <Croncat<Chain> as abstract_interface::InstallConfig>::install_config(
+            <Croncat<Chain> as abstract_app::abstract_interface::InstallConfig>::install_config(
                 &croncat_app::msg::AppInstantiateMsg {},
             )?;
 

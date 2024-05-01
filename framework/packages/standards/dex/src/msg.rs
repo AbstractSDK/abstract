@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 //! # Dex Adapter API
 // re-export response types
-use abstract_core::{
+use abstract_std::{
     adapter,
     objects::{
         fee::{Fee, UsageFee},
@@ -104,9 +104,8 @@ pub enum DexExecuteMsg {
 
 /// Query messages for the dex adapter
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg)]
 pub enum DexQueryMsg {
     /// Simulate a swap between two assets
     /// Returns [`SimulateSwapResponse`]

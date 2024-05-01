@@ -4,9 +4,9 @@ use std::{
     net::TcpStream,
 };
 
-use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
+use abstract_std::objects::gov_type::GovernanceDetails;
 use clap::Parser;
 use cw_orch::prelude::{
     networks::{parse_network, ChainInfo},
@@ -41,7 +41,7 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     //     networks = deployment_status.chain_ids.into_iter().map(|n| parse_network(&n)).collect();
     // }
 
-    let networks = rt.block_on(assert_wallet_balance(&networks));
+    let networks = rt.block_on(assert_wallet_balance(networks));
 
     // write_deployment(&deployment_status)?;
 

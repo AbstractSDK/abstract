@@ -1,13 +1,13 @@
 use std::{collections::HashMap, ops::Deref};
 
-use abstract_core::{
+use abstract_std::{
     manager::state::{ACCOUNT_ID, ACCOUNT_MODULES},
     objects::common_namespace::OWNERSHIP_STORAGE_KEY,
     version_control::state::ACCOUNT_ADDRESSES,
 };
 use cosmwasm_std::{
-    from_json, testing::MockQuerier, to_json_binary, Addr, Binary, ContractInfoResponse,
-    ContractResult, Empty, QuerierWrapper, SystemResult, WasmQuery,
+    Addr, Binary, ContractInfoResponse, ContractResult, Empty, QuerierWrapper, SystemResult,
+    WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map, PrimaryKey};
@@ -422,7 +422,7 @@ pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {
 
 #[cfg(test)]
 mod tests {
-    use abstract_core::{
+    use abstract_std::{
         manager::state::ACCOUNT_MODULES, proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
@@ -432,7 +432,7 @@ mod tests {
     use super::*;
 
     mod account {
-        use abstract_core::version_control::AccountBase;
+        use abstract_std::version_control::AccountBase;
 
         use super::*;
 
@@ -457,10 +457,10 @@ mod tests {
     }
 
     mod queries {
-        use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
-        use cosmwasm_std::{from_json, QueryRequest};
-
         use super::*;
+
+        use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
+        use cosmwasm_std::QueryRequest;
 
         #[test]
         fn smart_query() {

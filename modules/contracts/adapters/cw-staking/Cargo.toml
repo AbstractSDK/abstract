@@ -18,7 +18,6 @@ exclude = [
 
 [[example]]
 name = "deploy"
-required-features = ["interface"]
 
 [[example]]
 name = "schema"
@@ -30,15 +29,8 @@ crate-type = ["cdylib", "rlib"]
 [features]
 export = []
 default = ["export"]
-interface = [
-  "dep:cw-orch",
-  "dep:abstract-interface",
-  "export",
-  "abstract-staking-standard/interface",
-]
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw-orch", "dep:cw20"]
-cw-orch = ["dep:cw-orch"]
+testing = ["dep:abstract-client", "dep:cw20"]
 osmosis-test = ["cw-orch/osmosis-test-tube"]
 
 # Supported Dexes
@@ -87,11 +79,8 @@ schemars = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
 
-abstract-sdk = { workspace = true }
-abstract-core = { workspace = true }
 abstract-adapter = { workspace = true }
-abstract-interface = { workspace = true, optional = true }
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true }
 
 # Local
 abstract-staking-standard = { workspace = true }
@@ -125,15 +114,12 @@ env_logger = "0.10.0"
 log = "0.4.14"
 speculoos = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
-abstract-interface = { workspace = true }
 clap = { workspace = true }
 cw-staking = { path = ".", features = [
-  "interface",
   "wynd",
   "osmosis",
 ], package = "abstract-cw-staking" }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
-abstract-testing = { workspace = true }
+abstract-adapter = { workspace = true, features = ["test-utils"] }
 wyndex-bundle = { workspace = true }
-cw20 = { workspace = true, features = ["interface"] }
-cw20-base = { workspace = true, features = ["interface"] }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }

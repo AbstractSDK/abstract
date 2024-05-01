@@ -39,8 +39,8 @@ sequenceDiagram
 To declare a dependency, we recommend creating a `dependencies.rs` file in your contract `src` directory. Say, for instance, your module depended on the DEX API with a version constraint of `>=0.3.0`. Your dependencies would look as follows:
 
 ```rust
-use abstract_sdk::core::EXCHANGE;
-use abstract_sdk::core::objects::dependency::StaticDependency;
+use abstract_sdk::std::EXCHANGE;
+use abstract_sdk::std::objects::dependency::StaticDependency;
 
 const DEX_DEP: StaticDependency = StaticDependency::new(EXCHANGE, &[">=0.3.0"]);
 

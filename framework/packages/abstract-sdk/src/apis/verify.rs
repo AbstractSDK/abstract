@@ -1,6 +1,6 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
-use abstract_core::{
+use abstract_std::{
     objects::{version_control::VersionControlContract, AccountId},
     version_control::AccountBase,
 };
@@ -128,22 +128,17 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
 
 #[cfg(test)]
 mod test {
+    use super::*;
 
-    use abstract_core::{
-        objects::{
-            account::AccountTrace,
-            module::ModuleId,
-            version_control::{VersionControlContract, VersionControlError},
-        },
+    use crate::AbstractSdkError;
+    use abstract_std::{
+        objects::{account::AccountTrace, module::ModuleId, version_control::VersionControlError},
         proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
-
-    use super::*;
-    use crate::AbstractSdkError;
 
     struct MockBinding;
 

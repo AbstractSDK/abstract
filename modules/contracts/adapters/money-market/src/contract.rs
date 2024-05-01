@@ -25,3 +25,10 @@ pub const MONEY_MARKET_ADAPTER: MoneyMarketAdapter =
 
 #[cfg(feature = "export")]
 export_endpoints!(MONEY_MARKET_ADAPTER, MoneyMarketAdapter);
+
+abstract_adapter::cw_orch_interface!(
+    MONEY_MARKET_ADAPTER,
+    crate::contract::MoneyMarketAdapter,
+    MoneyMarketInstantiateMsg,
+    MoneyMarketAdapter
+);

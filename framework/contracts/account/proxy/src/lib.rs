@@ -6,7 +6,7 @@ pub mod reply;
 
 #[cfg(test)]
 mod test_common {
-    use abstract_core::{objects::account::TEST_ACCOUNT_ID, proxy::InstantiateMsg};
+    use abstract_std::proxy::InstantiateMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_env, mock_info, MOCK_CONTRACT_ADDR},

@@ -1,13 +1,7 @@
-use calendar_app::{contract::APP_ID, CalendarAppInterface};
-use cw_orch::prelude::*;
+use calendar_app::CalendarAppInterface;
+use cw_orch::{daemon::networks::OSMOSIS_1, prelude::*};
 
 #[test]
 fn successful_wasm() {
-    // Create the mock
-    let mock = MockBech32::new("mock");
-
-    // Construct the counter interface
-    let contract = CalendarAppInterface::new(APP_ID, mock);
-    // Panics if no path to a .wasm file is found
-    contract.wasm();
+    CalendarAppInterface::<MockBech32>::wasm(&OSMOSIS_1.into());
 }

@@ -18,7 +18,7 @@ cw20-base = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-clone-testing = { workspace = true }
 cw-orch-polytone = { workspace = true }
-abstract-core = { workspace = true, features = ["interface"] }
+abstract-std = { workspace = true }
 abstract-interface = { workspace = true, features = ["daemon"] }
 tokio = { workspace = true }
 log = "0.4.14"
@@ -38,11 +38,11 @@ sha256 = "1"
 clap = { workspace = true }
 dirs = "5.0.1"
 
-croncat-app = { workspace = true, features = ["interface"] }
-challenge-app = { workspace = true, features = ["interface"] }
-etf-app = { workspace = true, features = ["interface"] }
-dca-app = { workspace = true, features = ["interface"] }
-abstract-dex-adapter = { workspace = true, features = ["interface"] }
-abstract-cw-staking = { workspace = true, features = ["interface"] }
+croncat-app = { workspace = true }
+challenge-app = { workspace = true }
+etf-app = { workspace = true }
+dca-app = { workspace = true }
+abstract-dex-adapter = { workspace = true }
+abstract-cw-staking = { workspace = true }
 abstract-client = { workspace = true }
 polytone-note = { workspace = true }

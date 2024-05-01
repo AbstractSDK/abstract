@@ -1,16 +1,9 @@
-use abstract_core::{
+use abstract_std::{
     ibc_client::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     IBC_CLIENT,
 };
 
-use cw_orch::{
-    contract::Contract,
-    interface,
-    prelude::{
-        artifacts_dir_from_workspace, ArtifactsDir, ContractWrapper, CwEnv, Mock, TxHandler,
-        Uploadable, WasmPath,
-    },
-};
+use cw_orch::{contract::Contract, interface, prelude::*};
 
 use crate::RegisteredModule;
 
@@ -19,7 +12,7 @@ pub struct IbcClient<Chain>;
 
 impl<Chain: CwEnv> Uploadable for IbcClient<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+    fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
                 ::ibc_client::contract::execute,
@@ -29,7 +22,7 @@ impl<Chain: CwEnv> Uploadable for IbcClient<Chain> {
             .with_migrate(::ibc_client::contract::migrate),
         )
     }
-    fn wasm(&self) -> WasmPath {
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path("ibc_client")
             .unwrap()

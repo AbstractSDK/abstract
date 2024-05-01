@@ -1,4 +1,4 @@
-use abstract_sdk::core::objects::version_control::VersionControlContract;
+use abstract_sdk::std::objects::version_control::VersionControlContract;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
@@ -30,10 +30,10 @@ pub mod fns {
     use std::str::FromStr;
 
     use abstract_sdk::{
-        core::objects::{
+        features::AbstractRegistryAccess,
+        std::objects::{
             ans_host::AnsHost, AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference, PoolType,
         },
-        features::AbstractRegistryAccess,
         AbstractSdkError,
     };
 
@@ -343,7 +343,7 @@ pub mod fns {
 
 #[cfg(feature = "full_integration")]
 impl abstract_sdk::features::ModuleIdentification for Osmosis {
-    fn module_id(&self) -> abstract_sdk::core::objects::module::ModuleId<'static> {
+    fn module_id(&self) -> abstract_sdk::std::objects::module::ModuleId<'static> {
         abstract_staking_standard::CW_STAKING_ADAPTER_ID
     }
 }

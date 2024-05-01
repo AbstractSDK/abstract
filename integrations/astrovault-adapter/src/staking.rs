@@ -32,9 +32,9 @@ impl Identify for Astrovault {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
-        core::objects::{AnsAsset, AssetEntry},
         feature_objects::AnsHost,
         features::AbstractRegistryAccess,
+        std::objects::{AnsAsset, AssetEntry},
         Resolve,
     },
     abstract_staking_standard::msg::{
@@ -371,7 +371,7 @@ impl AbstractRegistryAccess for Astrovault {
 
 #[cfg(feature = "full_integration")]
 impl abstract_sdk::features::ModuleIdentification for Astrovault {
-    fn module_id(&self) -> abstract_sdk::core::objects::module::ModuleId<'static> {
+    fn module_id(&self) -> abstract_sdk::std::objects::module::ModuleId<'static> {
         abstract_staking_standard::CW_STAKING_ADAPTER_ID
     }
 }

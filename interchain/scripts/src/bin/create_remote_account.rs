@@ -1,19 +1,16 @@
 #![allow(unused_imports)]
 use abstract_client::AbstractClient;
-use abstract_core::objects::chain_name::ChainName;
-use abstract_core::objects::module::ModuleVersion;
-use abstract_core::objects::namespace::Namespace;
 use abstract_scripts::abstract_ibc::{
     has_abstract_ibc, has_polytone_connection, verify_abstract_ibc,
 };
+use abstract_std::objects::chain_name::ChainName;
+use abstract_std::objects::module::ModuleVersion;
+use abstract_std::objects::namespace::Namespace;
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
 use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
-use cw_orch::daemon::ChainKind;
+use cw_orch::environment::ChainKind;
 use cw_orch::prelude::*;
-use cw_orch::{
-    daemon::{ChainInfo, Daemon},
-    tokio::runtime::Handle,
-};
+use cw_orch::tokio::runtime::Handle;
 use tokio::runtime::Runtime;
 
 /// <https://github.com/cosmos/chain-registry/blob/master/neutron/chain.json>

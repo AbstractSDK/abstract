@@ -21,8 +21,8 @@ impl Identify for Cavern {
 use {
     abstract_money_market_standard::{MoneyMarketCommand, MoneyMarketError},
     abstract_sdk::{
-        core::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
         feature_objects::AnsHost,
+        std::objects::{ans_host::AnsHostError, AssetEntry, ContractEntry},
     },
     cavern_lsd_wrapper_token::state::LSD_CONFIG_KEY,
     cavern_lsd_wrapper_token::trait_def::LSDHub,

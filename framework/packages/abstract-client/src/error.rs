@@ -1,7 +1,7 @@
 //! # Represents Abstract Client Errors
 
-use abstract_core::{objects::validation::ValidationError, AbstractError};
 use abstract_interface::AbstractInterfaceError;
+use abstract_std::{objects::validation::ValidationError, AbstractError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]

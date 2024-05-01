@@ -57,39 +57,30 @@ cw-semver = { version = "1.0" }
 tokio = { version = "1.33.0", features = ["full"] }
 
 polytone = { package = "abstract-polytone", version = "1.0.5" }
-polytone-note = { package = "abstract-polytone-note", version = "1.0.5" }
-cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "1.0.5" }
+polytone-note = { package = "abstract-polytone-note", version = "2.0.0-rc" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "2.0.0-rc" }
 
-cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
-cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
-cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.20.2" }
+# cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.22.0-rc" }
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", rev = "07b2e96" }
+cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", rev = "07b2e96" }
+cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", rev = "07b2e96" }
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
 abstract-interface = { version = "0.21.0", path = "../framework/packages/abstract-interface" }
 abstract-sdk = { version = "0.21.0", path = "../framework/packages/abstract-sdk" }
-abstract-core = { version = "0.21.0", path = "../framework/packages/abstract-core" }
+abstract-std = { version = "0.21.0", path = "../framework/packages/abstract-std" }
 abstract-app = { version = "0.21.0", path = "../framework/packages/abstract-app" }
 abstract-adapter = { version = "0.21.0", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.21.0", path = "../framework/packages/abstract-testing" }
 abstract-client = { version = "0.21.0", path = "../framework/packages/abstract-client" }
 # Modules
-croncat-app = { path = "../modules/contracts/apps/croncat", features = [
-  "interface",
-] }
-challenge-app = { path = "../modules/contracts/apps/challenge", features = [
-  "interface",
-] }
-etf-app = { path = "../modules/contracts/apps/etf", features = ["interface"] }
-dca-app = { path = "../modules/contracts/apps/dca", features = ["interface"] }
-abstract-cw-staking = { path = "../modules/contracts/adapters/cw-staking", features = [
-  "interface",
-] }
-abstract-dex-adapter = { path = "../modules/contracts/adapters/dex", features = [
-  "interface",
-] }
-abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market", features = [
-  "interface",
-] }
+croncat-app = { path = "../modules/contracts/apps/croncat" }
+challenge-app = { path = "../modules/contracts/apps/challenge" }
+etf-app = { path = "../modules/contracts/apps/etf" }
+dca-app = { path = "../modules/contracts/apps/dca" }
+abstract-cw-staking = { path = "../modules/contracts/adapters/cw-staking" }
+abstract-dex-adapter = { path = "../modules/contracts/adapters/dex" }
+abstract-money-market-adapter = { path = "../modules/contracts/adapters/money-market" }
 
 ## Testing
 rstest = "0.17.0"
@@ -104,11 +95,17 @@ abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-client = { path = "../framework/packages/abstract-client" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
-abstract-core = { path = "../framework/packages/abstract-core" }
+abstract-std = { path = "../framework/packages/abstract-std" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
+
+# cw-orch stabilization - TODO
+cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
+cw-orch-networks = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
+cw-orch-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

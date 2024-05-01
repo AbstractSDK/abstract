@@ -2,18 +2,17 @@
 //! Otherwise you will have too many requests
 
 use abstract_app::mock::MockInitMsg;
-use abstract_core::{
-    objects::{gov_type::GovernanceDetails, module::ModuleInfo},
-    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
-};
 use abstract_framework_clone_testing::common;
 use abstract_integration_tests::manager::mock_app::{MockApp, APP_VERSION};
 use abstract_interface::{
     Abstract, AbstractAccount, AppDeployer, DeployStrategy, ManagerExecFns, VCExecFns,
 };
+use abstract_std::{
+    objects::{gov_type::GovernanceDetails, module::ModuleInfo},
+    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
+};
 use abstract_testing::prelude::*;
 use anyhow::Ok;
-use cosmwasm_std::{to_json_binary, Addr};
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
 // owner of the abstract infra
@@ -25,7 +24,7 @@ fn setup_migrate_allowed_direct_module_registration(
     deployment.migrate_if_version_changed()?;
     deployment
         .version_control
-        .update_config(None, Some(true), None)?;
+        .update_config(None, None, Some(true))?;
     Ok((deployment, chain))
 }
 
@@ -74,8 +73,8 @@ fn old_account_migrate() -> anyhow::Result<()> {
 
     let manager_address =
         Addr::unchecked(result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?);
-    let res: abstract_core::manager::ConfigResponse = chain.query(
-        &abstract_core::manager::QueryMsg::Config {},
+    let res: abstract_std::manager::ConfigResponse = chain.query(
+        &abstract_std::manager::QueryMsg::Config {},
         &manager_address,
     )?;
 
@@ -87,11 +86,11 @@ fn old_account_migrate() -> anyhow::Result<()> {
         let account_migrate_modules = vec![
             (
                 ModuleInfo::from_id_latest(MANAGER)?,
-                Some(to_json_binary(&abstract_core::manager::MigrateMsg {})?),
+                Some(to_json_binary(&abstract_std::manager::MigrateMsg {})?),
             ),
             (
                 ModuleInfo::from_id_latest(PROXY)?,
-                Some(to_json_binary(&abstract_core::proxy::MigrateMsg {})?),
+                Some(to_json_binary(&abstract_std::proxy::MigrateMsg {})?),
             ),
         ];
         old_account.manager.upgrade(account_migrate_modules)?;
@@ -132,8 +131,8 @@ fn old_account_functions() -> anyhow::Result<()> {
 
     let manager_address =
         Addr::unchecked(result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?);
-    let res: abstract_core::manager::ConfigResponse = chain.query(
-        &abstract_core::manager::QueryMsg::Config {},
+    let res: abstract_std::manager::ConfigResponse = chain.query(
+        &abstract_std::manager::QueryMsg::Config {},
         &manager_address,
     )?;
 
@@ -149,7 +148,7 @@ fn old_account_functions() -> anyhow::Result<()> {
         // Allow registration
         abstr_deployment
             .version_control
-            .update_config(None, Some(true), None)?;
+            .update_config(None, None, Some(true))?;
         // Try to install
         let app = MockApp::new_test(chain.clone());
         MockApp::deploy(&app, APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;

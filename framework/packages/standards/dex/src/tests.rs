@@ -1,14 +1,15 @@
 use std::fmt::Debug;
 
-use abstract_core::objects::PoolAddress;
+use abstract_std::objects::PoolAddress;
 use cosmwasm_std::{CosmosMsg, Decimal, StdError};
 use cw_asset::{Asset, AssetInfo};
-use cw_orch::daemon::{live_mock::mock_dependencies, ChainRegistryData as ChainData};
+use cw_orch::daemon::live_mock::mock_dependencies;
+use cw_orch::prelude::*;
 
 use crate::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread};
 
 pub struct DexCommandTester {
-    chain: ChainData,
+    chain: ChainInfoOwned,
     adapter: Box<dyn DexCommand>,
 }
 
@@ -23,7 +24,7 @@ pub fn expect_eq<T: PartialEq + Debug>(t1: T, t2: T) -> Result<(), StdError> {
 }
 
 impl DexCommandTester {
-    pub fn new<T: DexCommand + 'static>(chain: ChainData, adapter: T) -> Self {
+    pub fn new<T: DexCommand + 'static>(chain: ChainInfoOwned, adapter: T) -> Self {
         Self {
             chain,
             adapter: Box::new(adapter),

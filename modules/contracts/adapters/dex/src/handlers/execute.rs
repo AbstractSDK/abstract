@@ -1,4 +1,8 @@
-use abstract_core::{
+use abstract_adapter::sdk::{
+    features::AbstractNameService, AccountVerification, Execution, IbcInterface,
+    ModuleRegistryInterface,
+};
+use abstract_adapter::std::{
     ibc::CallbackInfo,
     objects::{
         account::AccountTrace,
@@ -14,10 +18,6 @@ use abstract_dex_standard::{
     raw_action::DexRawAction,
     DexError, DEX_ADAPTER_ID,
 };
-use abstract_sdk::{
-    features::AbstractNameService, AccountVerification, Execution, IbcInterface,
-    ModuleRegistryInterface,
-};
 use cosmwasm_std::{
     ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
 };
@@ -31,7 +31,7 @@ use crate::{
     state::DEX_FEES,
 };
 
-use abstract_sdk::features::AccountIdentification;
+use abstract_adapter::sdk::features::AccountIdentification;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -152,8 +152,8 @@ fn handle_ibc_request(
     // construct the ics20 call(s)
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
-    let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
-        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+    let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
+        manager_msgs: vec![abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
             module_id: DEX_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(
                 &DexExecuteMsg::RawAction {
@@ -162,12 +162,12 @@ fn handle_ibc_request(
                 }
                 .into(),
             )?,
-        },
+        }],
     };
 
     // If the calling entity is a contract, we provide a callback on successful swap
     let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());
-    let callback = if maybe_contract_info.is_err() {
+    let _callback = if maybe_contract_info.is_err() {
         None
     } else {
         Some(CallbackInfo {
@@ -176,10 +176,9 @@ fn handle_ibc_request(
                 dex: dex_name.clone(),
                 action: action.clone(),
             })?),
-            receiver: info.sender.into_string(),
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action, callback)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action)?;
 
     // call both messages on the proxy
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))

@@ -1,8 +1,8 @@
 //! # Tendermint Staking Adapter
 //!
-//! `abstract_core::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`] and [`cosmwasm_std::CosmosMsg::Distribution`].
+//! `abstract_std::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`] and [`cosmwasm_std::CosmosMsg::Distribution`].
 
-use abstract_core::adapter;
+use abstract_adapter::std::adapter;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Empty, Uint128};
 
@@ -14,8 +14,8 @@ impl adapter::AdapterExecuteMsg for TendermintStakingExecuteMsg {}
 impl adapter::AdapterQueryMsg for TendermintStakingQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
+#[derive(cw_orch::ExecuteFns)]
+#[impl_into(ExecuteMsg)]
 pub enum TendermintStakingExecuteMsg {
     Delegate {
         /// Validator address
@@ -49,7 +49,6 @@ pub enum TendermintStakingExecuteMsg {
 
 /// Staking queries are available on [`cosmwasm_std::QuerierWrapper`] through [`cosmwasm_std::Deps`].
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg)]
 pub enum TendermintStakingQueryMsg {}
