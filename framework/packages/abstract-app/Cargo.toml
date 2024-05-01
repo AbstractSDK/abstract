@@ -31,7 +31,7 @@ abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 
 abstract-interface = { path = "../../packages/abstract-interface", version = "0.21.0" }
-abstract-ibc-host = { version = "0.21.0", path = "../../contracts/native/ibc-host" }
+abstract-ibc-host = { version = "0.21.0", path = "../../contracts/native/ibc-host", default-features = false }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

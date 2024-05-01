@@ -120,7 +120,7 @@ macro_rules! cw_orch_interface {
         }
 
         pub mod interface {
-            use super::{_wrapper_fns, *};
+            use super::*;
             #[::cw_orch::interface(
                 _wrapper_fns::InstantiateMsg,
                 _wrapper_fns::ExecuteMsg,
