@@ -1,7 +1,7 @@
 use abstract_interface::Abstract;
 use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
-use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1, PION_1, XION_TESTNET_1};
+use cw_orch::daemon::networks::{PION_1, XION_TESTNET_1};
 use cw_orch::environment::ChainKind;
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
