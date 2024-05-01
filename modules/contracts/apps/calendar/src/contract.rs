@@ -34,5 +34,4 @@ const APP: CalendarApp = CalendarApp::new(APP_ID, APP_VERSION, None)
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(APP, CalendarApp);
 
-#[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(APP, CalendarApp, CalendarAppInterface);

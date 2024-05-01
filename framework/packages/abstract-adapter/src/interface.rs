@@ -46,6 +46,7 @@
 /// ```
 macro_rules! cw_orch_interface {
     ($adapter_const:expr, $adapter_type:ty, $init_msg:ty,$interface_name: ident) => {
+        #[cfg(not(target_arch = "wasm32"))]
         mod _wrapper_fns {
             use super::*;
 
@@ -119,7 +120,7 @@ macro_rules! cw_orch_interface {
         }
 
         pub mod interface {
-            use super::{_wrapper_fns, *};
+            use super::*;
             #[::cw_orch::interface(
                 _wrapper_fns::InstantiateMsg,
                 _wrapper_fns::ExecuteMsg,
@@ -128,10 +129,11 @@ macro_rules! cw_orch_interface {
             )]
             pub struct $interface_name;
 
+            #[cfg(not(target_arch = "wasm32"))]
             impl<Chain: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::Uploadable
                 for $interface_name<Chain>
             {
-                fn wasm(&self) -> ::cw_orch::prelude::WasmPath {
+                fn wasm(_chain: &cw_orch::prelude::ChainInfoOwned) -> ::cw_orch::prelude::WasmPath {
                     let wasm_name = env!("CARGO_CRATE_NAME").replace('-', "_");
                     ::cw_orch::prelude::ArtifactsDir::auto(Some(
                         env!("CARGO_MANIFEST_DIR").to_string(),
@@ -140,9 +142,7 @@ macro_rules! cw_orch_interface {
                     .unwrap()
                 }
 
-                fn wrapper(
-                    &self,
-                ) -> Box<
+                fn wrapper() -> Box<
                     dyn ::cw_orch::prelude::MockContract<
                         ::cosmwasm_std::Empty,
                         ::cosmwasm_std::Empty,
@@ -160,12 +160,15 @@ macro_rules! cw_orch_interface {
                 }
             }
 
+            #[cfg(not(target_arch = "wasm32"))]
             impl<Chain: ::cw_orch::prelude::CwEnv>
                 $crate::abstract_interface::AdapterDeployer<Chain, $init_msg> for $interface_name<Chain>
             {
             }
 
+            #[cfg(not(target_arch = "wasm32"))]
             use $crate::sdk::features::ModuleIdentification;
+            #[cfg(not(target_arch = "wasm32"))]
             impl<Chain: ::cw_orch::prelude::CwEnv> $crate::abstract_interface::RegisteredModule
                 for $interface_name<Chain>
             {
@@ -180,6 +183,7 @@ macro_rules! cw_orch_interface {
                 }
             }
 
+            #[cfg(not(target_arch = "wasm32"))]
             impl<T: ::cw_orch::prelude::CwEnv> From<::cw_orch::contract::Contract<T>>
                 for $interface_name<T>
             {

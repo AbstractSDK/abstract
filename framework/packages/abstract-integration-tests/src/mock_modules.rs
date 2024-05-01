@@ -165,7 +165,7 @@ pub mod gen_mock {
             pub struct $name;
 
             impl<T: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::Uploadable for $name<T> {
-                fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+                fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
                     Box::new(ContractWrapper::<MockMsg, _, _, _, _, _>::new_with_empty(
                         self::mock_execute,
                         self::mock_instantiate,

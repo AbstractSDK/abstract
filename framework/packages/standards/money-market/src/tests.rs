@@ -2,12 +2,13 @@ use std::fmt::Debug;
 
 use cosmwasm_std::{Addr, CosmosMsg, StdError};
 use cw_asset::Asset;
-use cw_orch::daemon::{live_mock::mock_dependencies, ChainRegistryData as ChainData};
+use cw_orch::daemon::live_mock::mock_dependencies;
+use cw_orch::prelude::*;
 
 use crate::{MoneyMarketCommand, MoneyMarketError};
 
 pub struct MoneyMarketCommandTester {
-    chain: ChainData,
+    chain: ChainInfoOwned,
     adapter: Box<dyn MoneyMarketCommand>,
 }
 
@@ -22,7 +23,7 @@ pub fn expect_eq<T: PartialEq + Debug>(t1: T, t2: T) -> Result<(), StdError> {
 }
 
 impl MoneyMarketCommandTester {
-    pub fn new<T: MoneyMarketCommand + 'static>(chain: ChainData, adapter: T) -> Self {
+    pub fn new<T: MoneyMarketCommand + 'static>(chain: ChainInfoOwned, adapter: T) -> Self {
         Self {
             chain,
             adapter: Box::new(adapter),

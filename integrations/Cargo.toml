@@ -31,16 +31,16 @@ cosmwasm-std = { version = "1.2" }
 cosmwasm-schema = { version = "1.2" }
 cw-storage-plus = "1.2.0"
 cw2 = "1.1.2"
-cw-plus-interface = { package = "abstract-cw-plus-interface", version = "1.3.0" }
-cw20 = { package = "abstract-cw20", version = "1.3.0" }
-cw20-base = { package = "abstract-cw20-base", version = "1.3.0" }
+cw-plus-interface = { package = "abstract-cw-plus-interface", version = "2.0.0" }
+cw20 = { package = "abstract-cw20", version = "2.0.0" }
+cw20-base = { package = "abstract-cw20-base", version = "2.0.0" }
 cw-utils = "1.0"
 cw-controllers = "1.1"
 cw-ownable = { version = "0.5" }
 cw-address-like = { version = "1.0" }
 cw-asset = { version = "3.0" }
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.20.1" }
+cw-orch = { version = "0.22.0" }
 
 anyhow = "1.0"
 

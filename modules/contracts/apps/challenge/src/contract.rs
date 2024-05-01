@@ -29,5 +29,4 @@ const CHALLENGE_APP: ChallengeApp =
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(CHALLENGE_APP, ChallengeApp);
 
-#[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(CHALLENGE_APP, ChallengeApp, Challenge);

@@ -1,5 +1,5 @@
 use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
-use cw_orch::prelude::*;
+use cw_orch::{daemon::networks::OSMOSIS_1, prelude::*};
 
 #[test]
 fn successful_wasm() {
@@ -9,6 +9,6 @@ fn successful_wasm() {
     // Construct the counter interface
     let contract = Challenge::new(CHALLENGE_APP_ID, mock);
 
-    contract.wasm();
+    Challenge::<MockBech32>::wasm(&OSMOSIS_1.into());
     let _ = contract.upload();
 }

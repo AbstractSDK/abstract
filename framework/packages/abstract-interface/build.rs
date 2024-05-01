@@ -1,6 +1,10 @@
 use std::path::PathBuf;
-
 fn main() {
+    // We don't need build script for wasm
+    if std::env::var("TARGET").unwrap().contains("wasm") {
+        return;
+    }
+
     // This is where the custom state comes from, not possible to change that for now
     let state_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("state.json")
@@ -38,7 +42,7 @@ fn main() {
     // )
     // .unwrap();
 
-    // We also verify that the local artifacts fir exists
+    // We also verify that the local artifacts dir exists
     assert!(std::fs::metadata(artifacts_path).is_ok(), "You should create an artifacts dir in your crate to export the wasm files along with the cw-orch library");
 
     println!("cargo:rerun-if-changed=build.rs");

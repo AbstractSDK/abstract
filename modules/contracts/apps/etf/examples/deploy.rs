@@ -1,9 +1,6 @@
 use abstract_interface::{AppDeployer, DeployStrategy};
 use clap::Parser;
-use cw_orch::{
-    daemon::{networks::parse_network, ChainInfo, DaemonBuilder},
-    tokio::runtime::Runtime,
-};
+use cw_orch::{daemon::networks::parse_network, prelude::*, tokio::runtime::Runtime};
 use etf_app::{contract::interface::Etf, ETF_APP_ID};
 use semver::Version;
 

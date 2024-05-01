@@ -10,7 +10,7 @@ use abstract_std::{
     },
     IBC_CLIENT, MANAGER, PROXY,
 };
-use cosmwasm_std::{to_json_binary, Binary};
+use cosmwasm_std::{to_json_binary, Binary, Empty};
 use cw_orch::{interface, prelude::*};
 use serde::Serialize;
 
@@ -25,7 +25,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 }
 
 impl<Chain: CwEnv> Uploadable for Manager<Chain> {
-    fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+    fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
                 ::manager::contract::execute,
@@ -36,7 +36,7 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
             .with_reply(::manager::contract::reply),
         )
     }
-    fn wasm(&self) -> WasmPath {
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path("manager")
             .unwrap()

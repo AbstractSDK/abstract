@@ -22,8 +22,7 @@ use calendar_app::{
 use clap::Parser;
 use cw_orch::{
     anyhow,
-    daemon::ChainInfo,
-    prelude::{networks::parse_network, DaemonBuilder},
+    prelude::{networks::parse_network, *},
     tokio::runtime::Runtime,
 };
 use semver::Version;

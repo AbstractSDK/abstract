@@ -3,7 +3,8 @@ use abstract_money_market_adapter::{
     interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEY_MARKET_ADAPTER_ID,
 };
 use cosmwasm_std::Decimal;
-use cw_orch::daemon::{networks::parse_network, ChainInfo, DaemonBuilder};
+use cw_orch::daemon::{networks::parse_network, DaemonBuilder};
+use cw_orch::prelude::*;
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
