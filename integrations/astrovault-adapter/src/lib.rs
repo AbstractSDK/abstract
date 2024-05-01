@@ -12,3 +12,6 @@ lazy_static::lazy_static! {
 
 pub mod dex;
 pub mod staking;
+
+#[cfg(feature = "full_integration")]
+pub mod mini_astrovault;

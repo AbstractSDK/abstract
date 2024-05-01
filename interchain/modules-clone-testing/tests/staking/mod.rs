@@ -1,5 +1,3 @@
 mod astroport;
+mod astrovault;
 mod kujira;
-
-// Currently unusable
-// mod astrovault;

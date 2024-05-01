@@ -30,7 +30,8 @@ impl Identify for Astrovault {
 }
 
 #[cfg(feature = "full_integration")]
-use ::{
+use {
+    crate::mini_astrovault::RewardSourceResponse,
     abstract_sdk::{
         feature_objects::AnsHost,
         features::AbstractRegistryAccess,
@@ -44,9 +45,7 @@ use ::{
     abstract_staking_standard::{CwStakingCommand, CwStakingError},
     astrovault::lp_staking::{
         handle_msg::ExecuteMsg as LpExecuteMsg,
-        query_msg::{
-            LpBalanceResponse, LpConfigResponse, QueryMsg as LpQueryMsg, RewardSourceResponse,
-        },
+        query_msg::{LpBalanceResponse, LpConfigResponse, QueryMsg as LpQueryMsg},
     },
     cosmwasm_std::{
         to_json_binary, wasm_execute, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Timestamp,

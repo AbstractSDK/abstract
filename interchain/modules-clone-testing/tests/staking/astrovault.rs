@@ -137,52 +137,22 @@ impl MockStaking for AstrovaultStake {
     fn mint_lp(&self, addr: &Addr, amount: u128) -> anyhow::Result<()> {
         let chain = &self.chain;
 
-        let funds = coins(amount, ASSET_A_DENOM);
-        chain.add_balance(addr, funds.clone())?;
-        chain.execute(
-            &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
-                assets_amount: vec![Uint128::new(amount), Uint128::zero()],
-                receiver: None,
-                direct_staking: None,
+        let AssetInfoUnchecked::Cw20(contract_addr) = &self.lp_asset.1 else {
+            unreachable!();
+        };
+        chain.call_as(&self.minter).execute(
+            &cw20::Cw20ExecuteMsg::Mint {
+                recipient: addr.to_string(),
+                amount: amount.into(),
             },
-            &funds,
-            &Addr::unchecked(POOL_ADDR),
+            &[],
+            &Addr::unchecked(contract_addr),
         )?;
-
-        // let AssetInfoUnchecked::Cw20(contract_addr) = &self.lp_asset.1 else {
-        //     unreachable!();
-        // };
-        // chain.call_as(&self.minter).execute(
-        //     &cw20::Cw20ExecuteMsg::Mint {
-        //         recipient: addr.to_string(),
-        //         amount: amount.into(),
-        //     },
-        //     &[],
-        //     &Addr::unchecked(contract_addr),
-        // )?;
-
-        let lp_balance_response: astrovault::lp_staking::query_msg::LpBalanceResponse = chain
-            .query(
-                &astrovault::lp_staking::query_msg::QueryMsg::Balance {
-                    address: addr.to_string(),
-                },
-                &Addr::unchecked(LP_STAKING_ADDR),
-            )?;
-        let res =
-            chain.query::<_, serde_json::Value>(&json!({"user_source_debt": {"address": addr, "reward_source_address": "archway1udst73crj6yq77srw5ajcgjxgu4sc3w7m5tq0n66d6qxj79zw5fq0d029f"}}), &Addr::unchecked(LP_STAKING_ADDR));
-        dbg!(lp_balance_response);
-        dbg!(res);
         Ok(())
     }
 
     fn generate_rewards(&self, addr: &Addr, amount: u128) -> anyhow::Result<()> {
         let chain = &self.chain;
-        // make sure it doesn't get eaten up by some rounding
-        let amount = amount + 100;
-
-        // let AssetInfoUnchecked::Cw20(lp_token) = self.lp_asset.1.clone() else {
-        //     unreachable!();
-        // };
 
         let mint_distributor_addr = &self.rewards_source.address;
 
@@ -193,6 +163,14 @@ impl MockStaking for AstrovaultStake {
             )?;
 
         chain.call_as(&Addr::unchecked(config.owner)).execute(
+            &astrovault::mint_distributor::handle_msg::ExecuteMsg::UpdateExternalMintAllowlist {
+                allowlist: Some(vec![chain.sender().to_string()]),
+            },
+            &[],
+            &Addr::unchecked(mint_distributor_addr),
+        )?;
+
+        chain.execute(
             &astrovault::mint_distributor::handle_msg::ExecuteMsg::ExternalMint {
                 recipient: addr.to_string(),
                 amount: amount.into(),
@@ -232,7 +210,6 @@ fn setup() -> anyhow::Result<StakingTester<CloneTesting, AstrovaultStake>> {
 fn test_stake() -> anyhow::Result<()> {
     let stake_tester = setup()?;
 
-    // Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'attempt to subtract with overflow', contracts/lp-staking/src/handles/self_callback.rs:641:24
     stake_tester.test_stake()?;
     Ok(())
 }
@@ -240,6 +217,7 @@ fn test_stake() -> anyhow::Result<()> {
 #[test]
 fn test_unstake() -> anyhow::Result<()> {
     let stake_tester = setup()?;
+
     stake_tester.test_unstake()?;
     Ok(())
 }
@@ -247,6 +225,7 @@ fn test_unstake() -> anyhow::Result<()> {
 #[test]
 fn test_claim() -> anyhow::Result<()> {
     let stake_tester = setup()?;
+
     stake_tester.test_claim()?;
     Ok(())
 }
@@ -254,6 +233,7 @@ fn test_claim() -> anyhow::Result<()> {
 #[test]
 fn test_queries() -> anyhow::Result<()> {
     let stake_tester = setup()?;
+
     stake_tester.test_staking_info()?;
     stake_tester.test_query_rewards()?;
     Ok(())
