@@ -3,7 +3,6 @@ mod common;
 
 #[cfg(feature = "osmosis-test")]
 mod osmosis_test {
-
     use std::path::PathBuf;
 
     use abstract_adapter::abstract_interface::{
@@ -30,6 +29,12 @@ mod osmosis_test {
     };
     use cosmwasm_std::{coin, coins, Addr, Empty, Uint128};
     use cw_asset::AssetInfoBase;
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::shim::Timestamp;
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::MsgCreateGauge;
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::lockup::{
+        LockQueryType, QueryCondition,
+    };
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::{Module, OsmosisTestApp};
     use cw_orch::{
         interface,
         osmosis_test_tube::osmosis_test_tube::{
@@ -460,5 +465,77 @@ mod osmosis_test {
             panic!("Expected stderror");
         };
         Ok(())
+    }
+
+    #[test]
+    fn reward_tokens() -> anyhow::Result<()> {
+        let (mut chain, pool_id, staking, os) = setup_osmosis()?;
+        let proxy_addr = os.proxy.address()?;
+
+        let res = staking.reward_tokens(OSMOSIS.to_owned(), vec![AssetEntry::new(LP)])?;
+        assert!(res.tokens.is_empty());
+
+        chain.add_balance(chain.sender(), coins(1_000_000_000_000, ASSET_1))?;
+
+        // Now incentivize pool
+        let test_tube: std::cell::Ref<OsmosisTestApp> = chain.app.borrow();
+        let time = test_tube.get_block_timestamp().plus_seconds(5);
+
+        super::incentives::Incentives::new(&*test_tube).create_gauge(
+            MsgCreateGauge {
+                is_perpetual: false,
+                owner: chain.sender().to_string(),
+                distribute_to: Some(QueryCondition {
+                    lock_query_type: LockQueryType::NoLock.into(),
+                    denom: "".to_owned(),
+                    duration: None,
+                    timestamp: None,
+                }),
+                coins: vec![cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::cosmos::base::v1beta1::Coin {
+                    denom: ASSET_1.to_owned(),
+                    amount: "100000000".to_owned(),
+                }],
+                start_time: Some(Timestamp {
+                    seconds: time.seconds() as i64,
+                    nanos: time.subsec_nanos() as i32,
+                }),
+                num_epochs_paid_over: 2,
+                pool_id,
+            },
+            &chain.sender,
+        ).unwrap();
+
+        let res = staking.reward_tokens(OSMOSIS.to_owned(), vec![AssetEntry::new(LP)])?;
+        assert!(!res.tokens.is_empty());
+        Ok(())
+    }
+}
+
+pub mod incentives {
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::{
+        MsgCreateGauge, MsgCreateGaugeResponse,
+    };
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::{fn_execute, Module, Runner};
+
+    #[allow(unused)]
+    pub struct Incentives<'a, R: Runner<'a>> {
+        runner: &'a R,
+    }
+
+    impl<'a, R: Runner<'a>> Module<'a, R> for Incentives<'a, R> {
+        fn new(runner: &'a R) -> Self {
+            Self { runner }
+        }
+    }
+
+    impl<'a, R> Incentives<'a, R>
+    where
+        R: Runner<'a>,
+    {
+        // macro for creating execute function
+        fn_execute! {
+            // (pub)? <fn_name>: <request_type> => <response_type>
+            pub create_gauge: MsgCreateGauge => MsgCreateGaugeResponse
+        }
     }
 }
