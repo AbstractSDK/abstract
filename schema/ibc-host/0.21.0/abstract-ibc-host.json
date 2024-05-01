@@ -156,6 +156,36 @@
           }
         },
         "additionalProperties": false
+      },
+      {
+        "description": "Allows for remote execution from the Polytone implementation on a local module",
+        "type": "object",
+        "required": [
+          "module_execute"
+        ],
+        "properties": {
+          "module_execute": {
+            "type": "object",
+            "required": [
+              "msg",
+              "source_module",
+              "target_module"
+            ],
+            "properties": {
+              "msg": {
+                "$ref": "#/definitions/Binary"
+              },
+              "source_module": {
+                "$ref": "#/definitions/InstalledModuleIdentification"
+              },
+              "target_module": {
+                "$ref": "#/definitions/ModuleInfo"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
       }
     ],
     "definitions": {
@@ -822,6 +852,29 @@
             "additionalProperties": false
           }
         ]
+      },
+      "InstalledModuleIdentification": {
+        "description": "This is used for identifying calling modules For adapters, we don't need the account id because it's independent of an account For apps and standalone, the account id is used to identify the calling module",
+        "type": "object",
+        "required": [
+          "module_info"
+        ],
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/AccountId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "module_info": {
+            "$ref": "#/definitions/ModuleInfo"
+          }
+        },
+        "additionalProperties": false
       },
       "InternalAction": {
         "oneOf": [
