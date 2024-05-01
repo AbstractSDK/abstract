@@ -1,7 +1,7 @@
 use abstract_interface::Abstract;
 use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
-use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
+use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1, PION_1, XION_TESTNET_1};
 use cw_orch::environment::ChainKind;
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
@@ -24,16 +24,10 @@ fn main() -> cw_orch::anyhow::Result<()> {
     dotenv::dotenv()?;
     env_logger::init();
 
-    let mut neutron = NEUTRON_1;
-    neutron.gas_price = 0.075;
+    let mut neutron = PION_1;
+    neutron.gas_price = 0.02;
 
-    let chains = vec![
-        (JUNO_1, None),
-        (PHOENIX_1, None),
-        (ARCHWAY_1, None),
-        (neutron, None),
-        (OSMOSIS_1, Some(std::env::var("OSMOSIS_MNEMONIC")?)),
-    ];
+    let chains = vec![(XION_TESTNET_1, None), (neutron, None)];
     let runtime = Runtime::new()?;
 
     let src_chain = &chains[1];
