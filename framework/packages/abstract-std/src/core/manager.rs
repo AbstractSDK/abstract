@@ -176,16 +176,16 @@ impl ModuleInstallConfig {
 /// Manager execute messages
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Forward execution message to module
-    #[cfg_attr(feature = "interface", payable)]
+    #[payable]
     ExecOnModule { module_id: String, exec_msg: Binary },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(Binary),
     /// Install module using module factory, callable by Owner
-    #[cfg_attr(feature = "interface", payable)]
+    #[payable]
     InstallModules {
         // Module information and Instantiate message to instantiate the contract
         modules: Vec<ModuleInstallConfig>,
@@ -198,7 +198,7 @@ pub enum ExecuteMsg {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
     /// Creates a sub-account on the account
-    #[cfg_attr(feature = "interface", payable)]
+    #[payable]
     CreateSubAccount {
         // Name of the sub-account
         name: String,
@@ -241,8 +241,7 @@ pub enum ExecuteMsg {
 /// Manager query messages
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
     /// Query the versions of modules installed on the account given their `ids`.
     /// Returns [`ModuleVersionsResponse`]

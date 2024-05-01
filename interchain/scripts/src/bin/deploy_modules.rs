@@ -6,10 +6,7 @@ use abstract_interface::*;
 use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
 use clap::Parser;
 use cosmwasm_std::Decimal;
-use cw_orch::{
-    daemon::{networks::parse_network, ChainInfo},
-    prelude::*,
-};
+use cw_orch::{daemon::networks::parse_network, prelude::*};
 use dca_app::{contract::DCA_APP_ID, DCA};
 use etf_app::{contract::interface::Etf, ETF_APP_ID};
 use reqwest::Url;

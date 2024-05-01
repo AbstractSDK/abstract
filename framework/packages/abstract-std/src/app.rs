@@ -60,8 +60,8 @@ pub struct BaseInstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg<T>))]
+#[derive(cw_orch::ExecuteFns)]
+#[impl_into(ExecuteMsg<T>)]
 pub enum BaseExecuteMsg {
     /// Updates the base config
     UpdateConfig {
@@ -77,9 +77,8 @@ impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg<ModuleMsg>))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg<ModuleMsg>)]
 pub enum BaseQueryMsg {
     /// Returns [`AppConfigResponse`]
     #[returns(AppConfigResponse)]

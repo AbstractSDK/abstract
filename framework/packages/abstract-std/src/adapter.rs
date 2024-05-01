@@ -125,9 +125,8 @@ pub enum AdapterBaseMsg {
 
 /// Query adapter message
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg<ModuleMsg>))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg<ModuleMsg>)]
 pub enum BaseQueryMsg {
     /// Returns [`AdapterConfigResponse`].
     #[returns(AdapterConfigResponse)]

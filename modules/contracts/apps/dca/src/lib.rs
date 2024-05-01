@@ -4,7 +4,5 @@ mod handlers;
 pub mod msg;
 pub mod state;
 
-#[cfg(feature = "interface")]
 pub use contract::interface::DCA;
-#[cfg(feature = "interface")]
 pub use msg::{DCAExecuteMsgFns, DCAQueryMsgFns};

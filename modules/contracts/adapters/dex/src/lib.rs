@@ -20,7 +20,7 @@ pub mod host_exchange {
 #[cfg(feature = "testing")]
 pub mod dex_tester;
 
-#[cfg(feature = "interface")]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*};
     use abstract_adapter::abstract_interface::{AbstractAccount, AbstractInterfaceError};
@@ -43,18 +43,19 @@ pub mod interface {
     impl<Chain: CwEnv> AdapterDeployer<Chain, DexInstantiateMsg> for DexAdapter<Chain> {}
 
     impl<Chain: CwEnv> Uploadable for DexAdapter<Chain> {
-        fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+        #[cfg(feature = "export")]
+        fn wrapper() -> <Mock as TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 crate::contract::execute,
                 crate::contract::instantiate,
                 crate::contract::query,
             ))
         }
-        fn wasm(&self) -> WasmPath {
+        fn wasm(chain: &ChainInfoOwned) -> WasmPath {
             artifacts_dir_from_workspace!()
                 .find_wasm_path_with_build_postfix(
                     "abstract_dex_adapter",
-                    BuildPostfix::<Chain>::ChainName(self.get_chain()),
+                    BuildPostfix::ChainName(chain),
                 )
                 .unwrap()
         }

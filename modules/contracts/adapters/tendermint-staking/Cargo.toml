@@ -18,7 +18,6 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-interface = ["dep:cw-orch", "export", "abstract-adapter/interface-macro"]
 schema = ["abstract-adapter/schema"]
 
 
@@ -29,7 +28,7 @@ cosmwasm-schema = { workspace = true }
 thiserror = { workspace = true }
 abstract-adapter = { workspace = true }
 
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true }
 
 [dev-dependencies]
 abstract-adapter = { workspace = true, features = ["schema"] }

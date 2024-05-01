@@ -30,5 +30,4 @@ const ETF_APP: EtfApp = EtfApp::new(ETF_APP_ID, CONTRACT_VERSION, None)
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(ETF_APP, EtfApp);
 
-#[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(ETF_APP, EtfApp, Etf);

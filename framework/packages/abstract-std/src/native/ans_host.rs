@@ -85,7 +85,7 @@ pub struct InstantiateMsg {
 /// AnsHost Execute msg
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Updates the contract addressbook
     UpdateContractAddresses {
@@ -150,6 +150,7 @@ pub struct AssetInfoFilter {}
 
 /// Filter on the pool metadatas
 #[cosmwasm_schema::cw_serde]
+#[derive(Default)]
 pub struct PoolMetadataFilter {
     /// Filter by pool type
     pub pool_type: Option<PoolType>,
@@ -160,8 +161,7 @@ pub struct PoolMetadataFilter {
 /// AnsHost smart-query
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
     /// Query the config
     /// Returns [`ConfigResponse`]

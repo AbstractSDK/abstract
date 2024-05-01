@@ -100,7 +100,7 @@ pub enum HostAction {
 
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     UpdateOwnership(cw_ownable::Action),
     UpdateConfig {
@@ -119,7 +119,7 @@ pub enum ExecuteMsg {
         chain: String,
     },
     /// Allows for remote execution from the Polytone implementation
-    #[cfg_attr(feature = "interface", fn_name("ibc_execute"))]
+    #[fn_name("ibc_execute")]
     Execute {
         account_id: AccountId,
         /// The address of the calling account id. This is used purely for the send-all-back method.
@@ -137,8 +137,7 @@ pub enum ExecuteMsg {
 
 /// Query Host message
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
     /// Queries the ownership of the ibc client contract
     /// Returns [`cw_ownable::Ownership<Addr>`]

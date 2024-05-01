@@ -554,7 +554,7 @@ pub fn update_config(
     }
 
     if let Some(account_factory) = account_factory_address {
-        let previous_addr = config.account_factory_address.clone();
+        let previous_addr = config.account_factory_address;
 
         let addr = deps.api.addr_validate(&account_factory)?;
         config.account_factory_address = Some(addr);

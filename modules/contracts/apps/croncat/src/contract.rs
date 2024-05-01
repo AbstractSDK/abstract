@@ -33,10 +33,9 @@ pub const CRONCAT_APP: CroncatApp = CroncatApp::new(CRONCAT_ID, CRONCAT_MODULE_V
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(CRONCAT_APP, CroncatApp);
 
-#[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(CRONCAT_APP, CroncatApp, Croncat);
 
-#[cfg(feature = "interface")]
+#[cfg(not(target_arch = "wasm32"))]
 impl<Chain: cw_orch::environment::CwEnv> abstract_app::abstract_interface::DependencyCreation
     for crate::Croncat<Chain>
 {

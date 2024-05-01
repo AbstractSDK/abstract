@@ -66,9 +66,8 @@ pub enum StakingAction {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg)]
 /// Query messages for the staking adapter
 pub enum StakingQueryMsg {
     /// Get the staking info for a given provider
