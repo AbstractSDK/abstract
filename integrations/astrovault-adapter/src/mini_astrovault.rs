@@ -39,7 +39,7 @@ pub enum AstrovaultCw20HookMsg {
     },
     WithdrawalXassetMode {
         to: Option<String>,
-        expected_return: Option<String>, // it's Option<Vec<Uint128>> but we don't use this field
+        expected_return: Option<Vec<Uint128>>,
     },
     #[serde(rename(serialize = "withdrawal_to_lockup"))]
     WithdrawalToLockupStable {
