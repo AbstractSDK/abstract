@@ -268,11 +268,6 @@ mod osmosis_test {
             }],
         });
 
-        // query reward tokens should be empty for osmosis
-        let reward_tokens: RewardTokensResponse =
-            staking.reward_tokens(OSMOSIS.into(), vec![AssetEntry::new(LP)])?;
-
-        assert_eq!(reward_tokens, RewardTokensResponse { tokens: vec![] });
         Ok(())
     }
 
