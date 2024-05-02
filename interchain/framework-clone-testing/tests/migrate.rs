@@ -4,12 +4,10 @@
 use abstract_app::mock::MockInitMsg;
 use abstract_framework_clone_testing::common;
 use abstract_integration_tests::manager::mock_app::{MockApp, APP_VERSION};
-use abstract_interface::{
-    Abstract, AbstractAccount, AppDeployer, DeployStrategy, ManagerExecFns, VCExecFns,
-};
+use abstract_interface::{Abstract, AppDeployer, DeployStrategy, ManagerExecFns, VCExecFns};
 use abstract_std::{
     objects::{gov_type::GovernanceDetails, module::ModuleInfo},
-    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
+    MANAGER, PROXY,
 };
 use abstract_testing::prelude::*;
 use anyhow::Ok;
@@ -48,41 +46,16 @@ fn migrate_infra_success() -> anyhow::Result<()> {
 fn old_account_migrate() -> anyhow::Result<()> {
     let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
 
-    // Old message had no account_id field, need something to serialize
-    #[cosmwasm_schema::cw_serde]
-    enum MockAccountFactoryExecuteMsg {
-        CreateAccount {
-            name: String,
-            governance: GovernanceDetails<String>,
-            install_modules: Vec<Empty>,
-        },
-    }
-
-    let account_factory_address = abstr_deployment.account_factory.address()?;
-    let result = chain.execute(
-        &MockAccountFactoryExecuteMsg::CreateAccount {
-            name: "Default name".to_owned(),
-            governance: GovernanceDetails::Monarchy {
+    let old_account =
+        abstr_deployment
+            .account_factory
+            .create_default_account(GovernanceDetails::Monarchy {
                 monarch: chain.sender().to_string(),
-            },
-            install_modules: vec![],
-        },
-        &[],
-        &account_factory_address,
-    )?;
-
-    let manager_address =
-        Addr::unchecked(result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?);
-    let res: abstract_std::manager::ConfigResponse = chain.query(
-        &abstract_std::manager::QueryMsg::Config {},
-        &manager_address,
-    )?;
+            })?;
 
     let migrated = abstr_deployment.migrate_if_version_changed()?;
 
     if migrated {
-        let old_account = AbstractAccount::new(&abstr_deployment, res.account_id);
-
         let account_migrate_modules = vec![
             (
                 ModuleInfo::from_id_latest(MANAGER)?,
@@ -106,41 +79,15 @@ fn old_account_migrate() -> anyhow::Result<()> {
 fn old_account_functions() -> anyhow::Result<()> {
     let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
 
-    // Old message had no account_id field, need something to serialize
-    #[cosmwasm_schema::cw_serde]
-    enum MockAccountFactoryExecuteMsg {
-        CreateAccount {
-            name: String,
-            governance: GovernanceDetails<String>,
-            install_modules: Vec<Empty>,
-        },
-    }
-
-    let account_factory_address = abstr_deployment.account_factory.address()?;
-    let result = chain.execute(
-        &MockAccountFactoryExecuteMsg::CreateAccount {
-            name: "Default name".to_owned(),
-            governance: GovernanceDetails::Monarchy {
+    let old_account =
+        abstr_deployment
+            .account_factory
+            .create_default_account(GovernanceDetails::Monarchy {
                 monarch: chain.sender().to_string(),
-            },
-            install_modules: vec![],
-        },
-        &[],
-        &account_factory_address,
-    )?;
-
-    let manager_address =
-        Addr::unchecked(result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?);
-    let res: abstract_std::manager::ConfigResponse = chain.query(
-        &abstract_std::manager::QueryMsg::Config {},
-        &manager_address,
-    )?;
-
+            })?;
     let migrated = abstr_deployment.migrate_if_version_changed()?;
 
     if migrated {
-        let old_account = AbstractAccount::new(&abstr_deployment, res.account_id);
-
         // Claim namespace
         abstr_deployment
             .version_control
