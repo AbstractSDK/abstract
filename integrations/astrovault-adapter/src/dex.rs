@@ -399,7 +399,7 @@ impl DexCommand for Astrovault {
         // TODO: implementation is broken anyway, fixes required:
         // - Stable pool: should it be 1:1 deposit?
         // - Stable xAsset pool: Not really sure if we should support symmetric for xAsset as it's 1:0
-        // - Ratio pool: query ratio (astrovault::ratio_pool::query_msg::QueryMsg::Ratio) and provide with this amount
+        // - Ratio pool: query ratio (astrovault::ratio_pool::query_msg::QueryMsg::Ratio) and provide with this "ratio"
 
         // let pair_address = pool_id.expect_contract()?;
         // let pool_type = self.fetch_pool_type(deps, &pair_address)?;
