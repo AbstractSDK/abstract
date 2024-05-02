@@ -1,7 +1,8 @@
 #![allow(unused)]
+#![cfg(feature = "osmosis-test")]
+
 mod common;
 
-#[cfg(feature = "osmosis-test")]
 mod osmosis_test {
     use std::path::PathBuf;
 
@@ -565,7 +566,6 @@ mod osmosis_test {
     }
 
     #[test]
-    #[should_panic]
     #[ignore = "Tracking how deserialization is managed as it's broken in v24"]
     fn deserialize_gauge_by_id_response() {
         use serde_cw_value::Value::*;
@@ -611,8 +611,10 @@ mod osmosis_test {
         )]
         .into_iter()
         .collect());
+
         let bin = to_json_binary(&value).unwrap();
-        let gauge_by_id_response: cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::GaugeByIdResponse = from_json(bin).unwrap();
+        let gauge_by_id_response = from_json::<cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::GaugeByIdResponse>(bin);
+        assert!(gauge_by_id_response.is_err());
     }
 }
 
