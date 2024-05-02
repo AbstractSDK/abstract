@@ -46,10 +46,9 @@ impl Astrovault {
         // The pool type can be queried via identification of the factory contract associated with the pool
         // We try the 3 different known factory addresses for one to match and get the factory address
 
-        let config: mini_astrovault::ConfigResponse = deps.querier.query_wasm_smart(
-            pool,
-            &astrovault::standard_pool::query_msg::QueryMsg::Config {},
-        )?;
+        let config: mini_astrovault::ConfigResponse = deps
+            .querier
+            .query_wasm_smart(pool, &mini_astrovault::AstrovaultQueryMsg::Config {})?;
 
         match config {
             config if config.factory == STANDARD_POOL_FACTORY => Ok(AstrovaultPoolType::Standard),
@@ -75,8 +74,8 @@ fn native_swap(
     let msgs = match pool_type {
         AstrovaultPoolType::Standard => vec![wasm_execute(
             pair_address.to_string(),
-            &astrovault::standard_pool::handle_msg::ExecuteMsg::Swap {
-                offer_asset: cw_asset_to_astrovault(&offer_asset)?,
+            &mini_astrovault::AstrovaultExecuteMsg::SwapStandard {
+                offer_asset: Some(cw_asset_to_astrovault(&offer_asset)?),
                 // Those 2 fields deprecated
                 belief_price: None,
                 max_spread: None,
@@ -88,9 +87,9 @@ fn native_swap(
         )?
         .into()],
         AstrovaultPoolType::Stable { .. } => {
-            let pool_info: astrovault::assets::pools::PoolInfo = deps.querier.query_wasm_smart(
+            let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
                 pair_address.to_string(),
-                &astrovault::stable_pool::query_msg::QueryMsg::PoolInfo {},
+                &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
             )?;
             let ask_asset = cw_asset_info_to_astrovault(&ask_asset)?;
             let index = pool_info
@@ -107,7 +106,7 @@ fn native_swap(
                 ))?;
             vec![wasm_execute(
                 pair_address.to_string(),
-                &astrovault::stable_pool::handle_msg::ExecuteMsg::Swap {
+                &mini_astrovault::AstrovaultExecuteMsg::SwapStable {
                     swap_to_asset_index: index as u32,
                     expected_return: None,
                     to: None,
@@ -119,7 +118,7 @@ fn native_swap(
         AstrovaultPoolType::Ratio => {
             vec![wasm_execute(
                 pair_address.to_string(),
-                &astrovault::ratio_pool::handle_msg::ExecuteMsg::Swap {
+                &mini_astrovault::AstrovaultExecuteMsg::SwapRatio {
                     expected_return: None,
                     to: None,
                 },
@@ -147,7 +146,8 @@ fn cw20_swap(
             &Cw20ExecuteMsg::Send {
                 contract: pair_address.to_string(),
                 amount: offer_asset.amount,
-                msg: to_json_binary(&astrovault::standard_pool::handle_msg::Cw20HookMsg::Swap {
+                msg: to_json_binary(&mini_astrovault::AstrovaultExecuteMsg::SwapStandard {
+                    offer_asset: None,
                     // Those 2 fields deprecated
                     belief_price: None,
                     max_spread: None,
@@ -160,9 +160,9 @@ fn cw20_swap(
         )?
         .into()],
         AstrovaultPoolType::Stable { .. } => {
-            let pool_info: astrovault::assets::pools::PoolInfo = deps.querier.query_wasm_smart(
+            let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
                 pair_address.to_string(),
-                &astrovault::stable_pool::query_msg::QueryMsg::PoolInfo {},
+                &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
             )?;
             let ask_asset = cw_asset_info_to_astrovault(&ask_asset)?;
             let index = pool_info
@@ -182,7 +182,7 @@ fn cw20_swap(
                 &Cw20ExecuteMsg::Send {
                     contract: pair_address.to_string(),
                     amount: offer_asset.amount,
-                    msg: to_json_binary(&astrovault::stable_pool::handle_msg::Cw20HookMsg::Swap {
+                    msg: to_json_binary(&mini_astrovault::AstrovaultExecuteMsg::SwapStable {
                         swap_to_asset_index: index as u32,
                         expected_return: None,
                         to: None,
@@ -198,7 +198,7 @@ fn cw20_swap(
                 &Cw20ExecuteMsg::Send {
                     contract: pair_address.to_string(),
                     amount: offer_asset.amount,
-                    msg: to_json_binary(&astrovault::ratio_pool::handle_msg::Cw20HookMsg::Swap {
+                    msg: to_json_binary(&mini_astrovault::AstrovaultExecuteMsg::SwapRatio {
                         expected_return: None,
                         to: None,
                     })?,
@@ -324,7 +324,7 @@ impl DexCommand for Astrovault {
         let liquidity_msg = match pool_type {
             AstrovaultPoolType::Standard => wasm_execute(
                 pair_address,
-                &astrovault::standard_pool::handle_msg::ExecuteMsg::ProvideLiquidity {
+                &mini_astrovault::AstrovaultExecuteMsg::ProvideLiquidity {
                     assets: [
                         astrovault_assets.swap_remove(0),
                         astrovault_assets.swap_remove(0),
@@ -337,18 +337,17 @@ impl DexCommand for Astrovault {
             )?,
             AstrovaultPoolType::Stable { .. } => {
                 // Normalize order
-                let pool_info: astrovault::assets::pools::PoolInfo =
-                    deps.querier.query_wasm_smart(
-                        pair_address.clone(),
-                        &astrovault::stable_pool::query_msg::QueryMsg::PoolInfo {},
-                    )?;
+                let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
+                    pair_address.clone(),
+                    &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
+                )?;
                 let astrovault_assets =
-                    astrovault_assets_normalize_order(astrovault_assets, &pool_info.asset_infos);
+                    astrovault_assets_normalize_order(astrovault_assets, &pool_info.asset_infos)?;
                 // Remove zero amounts in funds
                 coins.retain(|c| !c.amount.is_zero());
                 wasm_execute(
                     pair_address,
-                    &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
+                    &mini_astrovault::AstrovaultExecuteMsg::DepositStable {
                         assets_amount: astrovault_assets.into_iter().map(|a| a.amount).collect(),
                         direct_staking: None,
                         receiver: None,
@@ -358,18 +357,17 @@ impl DexCommand for Astrovault {
             }
             AstrovaultPoolType::Ratio => {
                 // Normalize order
-                let pool_info: astrovault::assets::pools::PoolInfo =
-                    deps.querier.query_wasm_smart(
-                        pair_address.clone(),
-                        &astrovault::ratio_pool::query_msg::QueryMsg::PoolInfo {},
-                    )?;
+                let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
+                    pair_address.clone(),
+                    &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
+                )?;
                 let astrovault_assets =
-                    astrovault_assets_normalize_order(astrovault_assets, &pool_info.asset_infos);
+                    astrovault_assets_normalize_order(astrovault_assets, &pool_info.asset_infos)?;
                 // Remove zero amounts in funds
                 coins.retain(|c| !c.amount.is_zero());
                 wasm_execute(
                     pair_address,
-                    &astrovault::ratio_pool::handle_msg::ExecuteMsg::Deposit {
+                    &mini_astrovault::AstrovaultExecuteMsg::DepositRatio {
                         assets_amount: [astrovault_assets[0].amount, astrovault_assets[1].amount],
                         direct_staking: None,
                         receiver: None,
@@ -403,7 +401,7 @@ impl DexCommand for Astrovault {
         let pair_assets = {
             let pool_response: mini_astrovault::PoolResponse = deps.querier.query_wasm_smart(
                 pair_address.to_string(),
-                &astrovault::standard_pool::query_msg::QueryMsg::Pool {},
+                &mini_astrovault::AstrovaultQueryMsg::Pool {},
             )?;
             pool_response.assets
         };
@@ -445,7 +443,7 @@ impl DexCommand for Astrovault {
         let liquidity_msg = match pool_type {
             AstrovaultPoolType::Standard => wasm_execute(
                 pair_address,
-                &astrovault::standard_pool::handle_msg::ExecuteMsg::ProvideLiquidity {
+                &mini_astrovault::AstrovaultExecuteMsg::ProvideLiquidity {
                     assets: [astrovault_assets[0].clone(), astrovault_assets[1].clone()],
                     slippage_tolerance: None,
                     direct_staking: None,
@@ -456,7 +454,7 @@ impl DexCommand for Astrovault {
             // TODO: for xAsset pools should we just let it error by astrovault or provide single asset
             AstrovaultPoolType::Stable { .. } => wasm_execute(
                 pair_address,
-                &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
+                &mini_astrovault::AstrovaultExecuteMsg::DepositStable {
                     assets_amount: astrovault_assets
                         .into_iter()
                         .map(|asset| asset.amount)
@@ -468,7 +466,7 @@ impl DexCommand for Astrovault {
             )?,
             AstrovaultPoolType::Ratio => wasm_execute(
                 pair_address,
-                &astrovault::ratio_pool::handle_msg::ExecuteMsg::Deposit {
+                &mini_astrovault::AstrovaultExecuteMsg::DepositRatio {
                     assets_amount: [astrovault_assets[0].amount, astrovault_assets[1].amount],
                     direct_staking: None,
                     receiver: None,
@@ -494,20 +492,18 @@ impl DexCommand for Astrovault {
         let pool_type = self.fetch_pool_type(deps, &pair_address)?;
 
         let hook_msg = match pool_type {
-            AstrovaultPoolType::Standard => to_json_binary(
-                &astrovault::standard_pool::handle_msg::Cw20HookMsg::WithdrawLiquidity(
-                    astrovault::standard_pool::handle_msg::WithdrawLiquidityInputs { to: None },
-                ),
-            )?,
+            AstrovaultPoolType::Standard => {
+                to_json_binary(&mini_astrovault::AstrovaultCw20HookMsg::WithdrawLiquidity {
+                    to: None,
+                })?
+            }
             AstrovaultPoolType::Stable { is_xasset } => {
                 if is_xasset {
                     to_json_binary(
-                        &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalXassetMode(
-                            astrovault::stable_pool::handle_msg::WithdrawalXassetModeInputs {
-                                to: None,
-                                expected_return: None,
-                            },
-                        ),
+                        &mini_astrovault::AstrovaultCw20HookMsg::WithdrawalXassetMode {
+                            to: None,
+                            expected_return: None,
+                        },
                     )?
                 } else {
                     // Withdraw equal amounts, but remainder goes to first asset
@@ -516,28 +512,24 @@ impl DexCommand for Astrovault {
                         lp_token.amount % Uint128::new(2),
                     );
                     to_json_binary(
-                        &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
-                            astrovault::stable_pool::handle_msg::WithdrawalToLockupInputs {
-                                withdrawal_lockup_assets_amount: vec![
-                                    withdraw_amount + remainder,
-                                    withdraw_amount,
-                                ],
-                                to: None,
-                                is_instant_withdrawal: Some(true),
-                                expected_return: None,
-                            },
-                        ),
+                        &mini_astrovault::AstrovaultCw20HookMsg::WithdrawalToLockupStable {
+                            withdrawal_lockup_assets_amount: vec![
+                                withdraw_amount + remainder,
+                                withdraw_amount,
+                            ],
+                            to: None,
+                            is_instant_withdrawal: Some(true),
+                            expected_return: None,
+                        },
                     )?
                 }
             }
             AstrovaultPoolType::Ratio => to_json_binary(
-                &astrovault::ratio_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
-                    astrovault::ratio_pool::handle_msg::RatioWithdrawalToLockupInputs {
-                        to: None,
-                        is_instant_withdrawal: Some(true),
-                        expected_return: None,
-                    },
-                ),
+                &mini_astrovault::AstrovaultCw20HookMsg::WithdrawalToLockupRatio {
+                    to: None,
+                    is_instant_withdrawal: Some(true),
+                    expected_return: None,
+                },
             )?,
         };
 
@@ -564,7 +556,7 @@ impl DexCommand for Astrovault {
                     buybackburn_amount: _,
                 } = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
-                    &astrovault::standard_pool::query_msg::QueryMsg::Simulation {
+                    &mini_astrovault::AstrovaultQueryMsg::Simulation {
                         offer_asset: cw_asset_to_astrovault(&offer_asset)?,
                     },
                 )?;
@@ -572,11 +564,10 @@ impl DexCommand for Astrovault {
                 Ok((return_amount, spread_amount, commission_amount, false))
             }
             AstrovaultPoolType::Stable { .. } => {
-                let pool_info: astrovault::assets::pools::PoolInfo =
-                    deps.querier.query_wasm_smart(
-                        pair_address.to_string(),
-                        &astrovault::stable_pool::query_msg::QueryMsg::PoolInfo {},
-                    )?;
+                let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
+                    pair_address.to_string(),
+                    &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
+                )?;
                 let ask_astrovault_asset = cw_asset_info_to_astrovault(&ask_asset)?;
                 let ask_index = pool_info
                     .asset_infos
@@ -611,7 +602,7 @@ impl DexCommand for Astrovault {
                     mint_to_assets_amount: _,
                 } = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
-                    &astrovault::stable_pool::query_msg::QueryMsg::SwapSimulation {
+                    &mini_astrovault::AstrovaultQueryMsg::SwapSimulationStable {
                         amount: offer_asset.amount,
                         swap_from_asset_index: offer_index as u32,
                         swap_to_asset_index: ask_index as u32,
@@ -626,11 +617,10 @@ impl DexCommand for Astrovault {
                 ))
             }
             AstrovaultPoolType::Ratio => {
-                let pool_info: astrovault::assets::pools::PoolInfo =
-                    deps.querier.query_wasm_smart(
-                        pair_address.to_string(),
-                        &astrovault::ratio_pool::query_msg::QueryMsg::PoolInfo {},
-                    )?;
+                let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
+                    pair_address.to_string(),
+                    &astrovault::ratio_pool::query_msg::QueryMsg::PoolInfo {},
+                )?;
                 let offer_astrovault_asset = cw_asset_info_to_astrovault(&offer_asset.info)?;
                 let offer_index = pool_info
                     .asset_infos
@@ -652,7 +642,7 @@ impl DexCommand for Astrovault {
                     fee_amount,
                 } = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
-                    &astrovault::ratio_pool::query_msg::QueryMsg::SwapSimulation {
+                    &mini_astrovault::AstrovaultQueryMsg::SwapSimulationRatio {
                         amount: offer_asset.amount,
                         swap_from_asset_index: offer_index as u8,
                     },
@@ -702,7 +692,7 @@ fn cw_asset_info_to_astrovault(
 fn astrovault_assets_normalize_order(
     mut assets: Vec<astrovault::assets::asset::Asset>,
     assets_order: &[astrovault::assets::asset::AssetInfo],
-) -> Vec<astrovault::assets::asset::Asset> {
+) -> Result<Vec<astrovault::assets::asset::Asset>, DexError> {
     let mut resulting_assets = Vec::with_capacity(assets_order.len());
     for item in assets_order {
         if let Some(position) = assets.iter().position(|a| a.info.eq(item)) {
@@ -715,7 +705,13 @@ fn astrovault_assets_normalize_order(
             })
         }
     }
-    resulting_assets
+    if !assets.is_empty() {
+        return Err(DexError::ArgumentMismatch(
+            assets[0].to_string(),
+            assets_order.iter().map(ToString::to_string).collect(),
+        ));
+    }
+    Ok(resulting_assets)
 }
 
 #[cfg(test)]
@@ -803,8 +799,8 @@ mod tests {
                             denom: USDC.to_string(),
                         },
                     },
-                    belief_price: Some(Decimal::from_str("0.2").unwrap()),
-                    max_spread: Some(max_spread()),
+                    belief_price: None,
+                    max_spread: None,
                     expected_return: None,
                     to: None,
                 },
@@ -894,25 +890,38 @@ mod tests {
             .test_provide_liquidity(
                 PoolAddress::contract(Addr::unchecked(STABLE_POOL_CONTRACT)),
                 vec![
-                    Asset::new(AssetInfo::native(USDC), amount_usdc),
                     Asset::new(AssetInfo::native(ARCH), amount_aarch),
+                    Asset::new(AssetInfo::cw20(Addr::unchecked(CW20_ARCH)), amount_usdc),
                 ],
                 Some(max_spread()),
             )
             .unwrap();
 
         expect_eq(
-            vec![wasm_execute(
-                STABLE_POOL_CONTRACT,
-                &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
-                    direct_staking: None,
-                    receiver: None,
-                    assets_amount: vec![amount_usdc.into(), amount_aarch.into()],
-                },
-                vec![coin(amount_aarch, ARCH), coin(amount_usdc, USDC)],
-            )
-            .unwrap()
-            .into()],
+            vec![
+                wasm_execute(
+                    CW20_ARCH,
+                    &cw20::Cw20ExecuteMsg::IncreaseAllowance {
+                        spender: STABLE_POOL_CONTRACT.to_owned(),
+                        amount: amount_usdc.into(),
+                        expires: None,
+                    },
+                    vec![],
+                )
+                .unwrap()
+                .into(),
+                wasm_execute(
+                    STABLE_POOL_CONTRACT,
+                    &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
+                        direct_staking: None,
+                        receiver: None,
+                        assets_amount: vec![amount_aarch.into(), amount_usdc.into()],
+                    },
+                    vec![coin(amount_aarch, ARCH)],
+                )
+                .unwrap()
+                .into(),
+            ],
             msgs,
         )
         .unwrap();
@@ -946,7 +955,7 @@ mod tests {
                         },
                     },
                     belief_price: None,
-                    max_spread: Some(max_spread()),
+                    max_spread: None,
                     expected_return: None,
                     to: None,
                 },
@@ -974,22 +983,17 @@ mod tests {
         // We can't really test much further, because this unit test is querying mainnet liquidity pools
         expect_eq(
             wasm_execute(
-                CW20_ARCH,
-                &cw20::Cw20ExecuteMsg::Send {
-                    contract: STABLE_POOL_CONTRACT.to_owned(),
-                    amount: Uint128::new(amount_usdc / 2u128),
-                    msg: to_json_binary(&astrovault::stable_pool::handle_msg::ExecuteMsg::Swap {
-                        swap_to_asset_index: 0,
-                        expected_return: None,
-                        to: None,
-                    })
-                    .unwrap(),
+                STABLE_POOL_CONTRACT,
+                &astrovault::stable_pool::handle_msg::ExecuteMsg::Deposit {
+                    assets_amount: vec![amount_aarch.into(), amount_usdc.into()],
+                    receiver: None,
+                    direct_staking: None,
                 },
                 vec![],
             )
             .unwrap()
             .into(),
-            msgs[0].clone(),
+            msgs[1].clone(),
         )
         .unwrap();
     }
@@ -1122,14 +1126,9 @@ mod tests {
                     contract: STABLE_POOL_CONTRACT.to_string(),
                     amount: amount_lp.into(),
                     msg: to_json_binary(
-                        &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalToLockup(
-                            astrovault::stable_pool::handle_msg::WithdrawalToLockupInputs {
+                        &astrovault::stable_pool::handle_msg::Cw20HookMsg::WithdrawalXassetMode(
+                            astrovault::stable_pool::handle_msg::WithdrawalXassetModeInputs {
                                 to: None,
-                                withdrawal_lockup_assets_amount: vec![
-                                    Uint128::zero(),
-                                    Uint128::zero()
-                                ],
-                                is_instant_withdrawal: Some(true),
                                 expected_return: None
                             }
                         )
