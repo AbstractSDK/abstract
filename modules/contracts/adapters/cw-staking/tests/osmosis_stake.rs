@@ -1,9 +1,9 @@
 #![allow(unused)]
+#![cfg(feature = "osmosis-test")]
+
 mod common;
 
-#[cfg(feature = "osmosis-test")]
 mod osmosis_test {
-
     use std::path::PathBuf;
 
     use abstract_adapter::abstract_interface::{
@@ -28,8 +28,17 @@ mod osmosis_test {
         msg::{StakingInfo, StakingInfoResponse},
         CwStakingError,
     };
-    use cosmwasm_std::{coin, coins, Addr, Empty, Uint128};
+    use cosmwasm_std::{coin, coins, from_json, to_json_binary, Addr, Empty, Uint128};
     use cw_asset::AssetInfoBase;
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::shim::{Duration, Timestamp};
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::{
+        MsgAddToGauge, MsgCreateGauge, QueryLockableDurationsRequest
+    };
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::lockup::{
+        LockQueryType, QueryCondition,
+    };
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::poolincentives::v1beta1::QueryGaugeIdsRequest;
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::{Module, OsmosisTestApp};
     use cw_orch::{
         interface,
         osmosis_test_tube::osmosis_test_tube::{
@@ -259,11 +268,6 @@ mod osmosis_test {
             }],
         });
 
-        // query reward tokens should be empty for osmosis
-        let reward_tokens: RewardTokensResponse =
-            staking.reward_tokens(OSMOSIS.into(), vec![AssetEntry::new(LP)])?;
-
-        assert_eq!(reward_tokens, RewardTokensResponse { tokens: vec![] });
         Ok(())
     }
 
@@ -460,5 +464,221 @@ mod osmosis_test {
             panic!("Expected stderror");
         };
         Ok(())
+    }
+
+    #[test]
+    fn reward_tokens_add_to_gauge() -> anyhow::Result<()> {
+        let (mut chain, pool_id, staking, os) = setup_osmosis()?;
+        // For gauge
+        chain.add_balance(chain.sender(), coins(1_000_000_000_000, ASSET_1))?;
+        let proxy_addr = os.proxy.address()?;
+
+        let test_tube = chain.app.borrow();
+        let incentives = super::incentives::Incentives::new(&*test_tube);
+        let poolincentives = super::poolincentives::Poolincentives::new(&*test_tube);
+
+        // Check that we have empty assets at start
+        let res = staking.reward_tokens(OSMOSIS.to_owned(), vec![AssetEntry::new(LP)])?;
+        assert_eq!(res.tokens, [[]]);
+
+        // Select gauge to refill
+        let gauge_ids = poolincentives.query_gauge_ids(&QueryGaugeIdsRequest { pool_id })?;
+        let gauge_id_for_refill = gauge_ids.gauge_ids_with_duration[0].gauge_id;
+
+        // Now incentivize pool
+        let time = test_tube.get_block_timestamp().plus_seconds(5);
+        let lockable_durations =
+            incentives.query_lockable_durations(&QueryLockableDurationsRequest {})?;
+        let res = incentives.add_to_gauge(
+            MsgAddToGauge {
+                owner: chain.sender().to_string(),
+                gauge_id: gauge_id_for_refill,
+                rewards: vec![cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::cosmos::base::v1beta1::Coin {
+                    denom: ASSET_1.to_owned(),
+                    amount: "100000000".to_owned(),
+                }],
+            },
+            &chain.sender,
+        )?;
+        chain.wait_seconds(10);
+
+        let res = staking.reward_tokens(OSMOSIS.to_owned(), vec![AssetEntry::new(LP)])?;
+        assert_eq!(res.tokens, [[AssetInfoBase::Native(ASSET_1.to_owned())]]);
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Currently broken, see https://github.com/osmosis-labs/test-tube/pull/53"]
+    fn reward_tokens_create_gauge() -> anyhow::Result<()> {
+        let (mut chain, pool_id, staking, os) = setup_osmosis()?;
+        // For gauge
+        chain.add_balance(chain.sender(), coins(1_000_000_000_000, ASSET_1))?;
+        let proxy_addr = os.proxy.address()?;
+
+        let test_tube = chain.app.borrow();
+        let incentives = super::incentives::Incentives::new(&*test_tube);
+        let poolincentives = super::poolincentives::Poolincentives::new(&*test_tube);
+
+        // Check that we have empty assets at start
+        let res = staking.reward_tokens(OSMOSIS.to_owned(), vec![AssetEntry::new(LP)])?;
+        assert_eq!(res.tokens, [[]]);
+
+        // Now incentivize pool
+        let time = test_tube.get_block_timestamp().plus_seconds(5);
+        let lockable_durations =
+            incentives.query_lockable_durations(&QueryLockableDurationsRequest {})?;
+        let res = incentives.create_gauge(
+            MsgCreateGauge {
+                pool_id,
+                is_perpetual: true,
+                owner: chain.sender().to_string(),
+                distribute_to: Some(QueryCondition {
+                    lock_query_type: LockQueryType::ByDuration.into(),
+                    denom: get_pool_token(pool_id),
+                    duration: Some(lockable_durations.lockable_durations[0].clone()),
+                    timestamp: None,
+                }),
+                coins: vec![cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::cosmos::base::v1beta1::Coin {
+                    denom: ASSET_1.to_owned(),
+                    amount: "100000000".to_owned(),
+                }],
+                start_time: Some(Timestamp {
+                    seconds: time.seconds() as i64,
+                    nanos: 0,
+                }),
+                num_epochs_paid_over: 1,
+            },
+            &chain.sender,
+        )?;
+        chain.wait_seconds(10);
+
+        let res = staking.reward_tokens(OSMOSIS.to_owned(), vec![AssetEntry::new(LP)])?;
+        assert_eq!(
+            res.tokens,
+            [vec![], vec![AssetInfoBase::Native(ASSET_1.to_owned())]]
+        );
+        Ok(())
+    }
+
+    #[test]
+    #[ignore = "Tracking how deserialization is managed as it's broken in v24"]
+    fn deserialize_gauge_by_id_response() {
+        use serde_cw_value::Value::*;
+        let value = Map([(
+            String("gauge".to_owned()),
+            Map([
+                (String("id".to_owned()), String("1".to_owned())),
+                (String("is_perpetual".to_owned()), Bool(true)),
+                (
+                    String("distribute_to".to_string()),
+                    Map([
+                        (
+                            String("denom".to_string()),
+                            String("gamm/pool/1".to_string()),
+                        ),
+                        (String("duration".to_string()), String("3600s".to_string())),
+                        (
+                            String("lock_query_type".to_string()),
+                            String("ByDuration".to_string()),
+                        ),
+                        (
+                            String("timestamp".to_string()),
+                            String("0001-01-01T00:00:00Z".to_string()),
+                        ),
+                    ]
+                    .into_iter()
+                    .collect()),
+                ),
+                (String("coins".to_owned()), Seq(vec![])),
+                (
+                    String("start_time".to_owned()),
+                    String("2024-05-01T15:09:38.190576621Z".to_owned()),
+                ),
+                (
+                    String("num_epochs_paid_over".to_owned()),
+                    String("1".to_owned()),
+                ),
+                (String("filled_epochs".to_owned()), String("0".to_owned())),
+                (String("distributed_coins".to_owned()), Seq(vec![])),
+            ]
+            .into_iter()
+            .collect()),
+        )]
+        .into_iter()
+        .collect());
+
+        let bin = to_json_binary(&value).unwrap();
+        let gauge_by_id_response = from_json::<cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::GaugeByIdResponse>(bin);
+        assert!(gauge_by_id_response.is_err());
+    }
+}
+
+#[allow(unused)]
+pub mod incentives {
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::{
+        GaugeByIdRequest, GaugeByIdResponse, MsgAddToGauge, MsgAddToGaugeResponse, MsgCreateGauge,
+        MsgCreateGaugeResponse, QueryLockableDurationsRequest, QueryLockableDurationsResponse,
+    };
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::{fn_execute, fn_query, Module, Runner};
+
+    pub struct Incentives<'a, R: Runner<'a>> {
+        runner: &'a R,
+    }
+
+    impl<'a, R: Runner<'a>> Module<'a, R> for Incentives<'a, R> {
+        fn new(runner: &'a R) -> Self {
+            Self { runner }
+        }
+    }
+
+    impl<'a, R> Incentives<'a, R>
+    where
+        R: Runner<'a>,
+    {
+        fn_execute! {
+            pub create_gauge: MsgCreateGauge => MsgCreateGaugeResponse
+        }
+
+        fn_execute! {
+            pub add_to_gauge: MsgAddToGauge => MsgAddToGaugeResponse
+        }
+
+        fn_query! {
+            pub query_lockable_durations ["/osmosis.incentives.Query/LockableDurations"]: QueryLockableDurationsRequest => QueryLockableDurationsResponse
+        }
+
+        fn_query! {
+            pub query_gauge_by_id ["/osmosis.incentives.Query/GaugeByID"]: GaugeByIdRequest => GaugeByIdResponse
+        }
+    }
+}
+
+#[allow(unused)]
+pub mod poolincentives {
+    use cw_orch::osmosis_test_tube::osmosis_test_tube::{
+        fn_execute, fn_query,
+        osmosis_std::types::osmosis::poolincentives::v1beta1::{
+            QueryGaugeIdsRequest, QueryGaugeIdsResponse,
+        },
+        Module, Runner,
+    };
+
+    pub struct Poolincentives<'a, R: Runner<'a>> {
+        runner: &'a R,
+    }
+
+    impl<'a, R: Runner<'a>> Module<'a, R> for Poolincentives<'a, R> {
+        fn new(runner: &'a R) -> Self {
+            Self { runner }
+        }
+    }
+
+    impl<'a, R> Poolincentives<'a, R>
+    where
+        R: Runner<'a>,
+    {
+        fn_query! {
+            pub query_gauge_ids ["/osmosis.poolincentives.v1beta1.Query/GaugeIds"]: QueryGaugeIdsRequest => QueryGaugeIdsResponse
+        }
     }
 }
