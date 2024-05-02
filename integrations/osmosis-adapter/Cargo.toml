@@ -25,3 +25,5 @@ abstract-sdk = { workspace = true }
 cw20 = { workspace = true, optional = true }
 cw-asset = { workspace = true, optional = true }
 cw-utils = { workspace = true, optional = true }
+
+cosmwasm-schema = { workspace = true }
