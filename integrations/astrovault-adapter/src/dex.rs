@@ -384,6 +384,7 @@ impl DexCommand for Astrovault {
         Ok(msgs)
     }
 
+    #[allow(unused)]
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
@@ -391,95 +392,104 @@ impl DexCommand for Astrovault {
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pair_address = pool_id.expect_contract()?;
-        let pool_type = self.fetch_pool_type(deps, &pair_address)?;
+        Err(DexError::NotImplemented(
+            "No space for implementation".to_owned(),
+        ))
+        // Sacrificed this method to decrease wasm size
+        // TODO: implementation is broken anyway, fixes required:
+        // - Stable pool: should it be 1:1 deposit?
+        // - Stable xAsset pool: Not really sure if we should support symmetric for xAsset as it's 1:0
+        // - Ratio pool: query ratio (astrovault::ratio_pool::query_msg::QueryMsg::Ratio) and provide with this amount
 
-        if paired_assets.len() > 1 {
-            return Err(DexError::TooManyAssets(1));
-        }
-        // Get pair info
-        let pair_assets = {
-            let pool_response: mini_astrovault::PoolResponse = deps.querier.query_wasm_smart(
-                pair_address.to_string(),
-                &mini_astrovault::AstrovaultQueryMsg::Pool {},
-            )?;
-            pool_response.assets
-        };
-        let astrovault_offer_asset = cw_asset_to_astrovault(&offer_asset)?;
-        let other_asset = if pair_assets[0].info == astrovault_offer_asset.info {
-            let price = Decimal::from_ratio(pair_assets[1].amount, pair_assets[0].amount);
-            let other_token_amount = price * offer_asset.amount;
-            Asset {
-                amount: other_token_amount,
-                info: paired_assets[0].clone(),
-            }
-        } else if pair_assets[1].info == astrovault_offer_asset.info {
-            let price = Decimal::from_ratio(pair_assets[0].amount, pair_assets[1].amount);
-            let other_token_amount = price * offer_asset.amount;
-            Asset {
-                amount: other_token_amount,
-                info: paired_assets[0].clone(),
-            }
-        } else {
-            return Err(DexError::ArgumentMismatch(
-                offer_asset.to_string(),
-                pair_assets.iter().map(|e| e.info.to_string()).collect(),
-            ));
-        };
+        // let pair_address = pool_id.expect_contract()?;
+        // let pool_type = self.fetch_pool_type(deps, &pair_address)?;
 
-        let offer_assets = [offer_asset, other_asset];
+        // if paired_assets.len() > 1 {
+        //     return Err(DexError::TooManyAssets(1));
+        // }
+        // // Get pair info
+        // let pair_assets = {
+        //     let pool_response: mini_astrovault::PoolResponse = deps.querier.query_wasm_smart(
+        //         pair_address.to_string(),
+        //         &mini_astrovault::AstrovaultQueryMsg::Pool {},
+        //     )?;
+        //     pool_response.assets
+        // };
+        // let astrovault_offer_asset = cw_asset_to_astrovault(&offer_asset)?;
+        // let other_asset = if pair_assets[0].info == astrovault_offer_asset.info {
+        //     let price = Decimal::from_ratio(pair_assets[1].amount, pair_assets[0].amount);
+        //     let other_token_amount = price * offer_asset.amount;
+        //     Asset {
+        //         amount: other_token_amount,
+        //         info: paired_assets[0].clone(),
+        //     }
+        // } else if pair_assets[1].info == astrovault_offer_asset.info {
+        //     let price = Decimal::from_ratio(pair_assets[0].amount, pair_assets[1].amount);
+        //     let other_token_amount = price * offer_asset.amount;
+        //     Asset {
+        //         amount: other_token_amount,
+        //         info: paired_assets[0].clone(),
+        //     }
+        // } else {
+        //     return Err(DexError::ArgumentMismatch(
+        //         offer_asset.to_string(),
+        //         pair_assets.iter().map(|e| e.info.to_string()).collect(),
+        //     ));
+        // };
 
-        let coins = coins_in_assets(&offer_assets);
+        // let offer_assets = [offer_asset, other_asset];
 
-        // approval msgs for cw20 tokens (if present)
-        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
+        // let coins = coins_in_assets(&offer_assets);
 
-        // construct execute msg
-        let astrovault_assets = offer_assets
-            .iter()
-            .map(cw_asset_to_astrovault)
-            .collect::<Result<Vec<_>, _>>()?;
+        // // approval msgs for cw20 tokens (if present)
+        // let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
 
-        let liquidity_msg = match pool_type {
-            AstrovaultPoolType::Standard => wasm_execute(
-                pair_address,
-                &mini_astrovault::AstrovaultExecuteMsg::ProvideLiquidity {
-                    assets: [astrovault_assets[0].clone(), astrovault_assets[1].clone()],
-                    slippage_tolerance: None,
-                    direct_staking: None,
-                    receiver: None,
-                },
-                coins,
-            )?,
-            // TODO: for xAsset pools should we just let it error by astrovault or provide single asset
-            AstrovaultPoolType::Stable { .. } => wasm_execute(
-                pair_address,
-                &mini_astrovault::AstrovaultExecuteMsg::DepositStable {
-                    assets_amount: astrovault_assets
-                        .into_iter()
-                        .map(|asset| asset.amount)
-                        .collect(),
-                    direct_staking: None,
-                    receiver: None,
-                },
-                coins,
-            )?,
-            AstrovaultPoolType::Ratio => wasm_execute(
-                pair_address,
-                &mini_astrovault::AstrovaultExecuteMsg::DepositRatio {
-                    assets_amount: [astrovault_assets[0].amount, astrovault_assets[1].amount],
-                    direct_staking: None,
-                    receiver: None,
-                    expected_return: None,
-                },
-                coins,
-            )?,
-        };
+        // // construct execute msg
+        // let astrovault_assets = offer_assets
+        //     .iter()
+        //     .map(cw_asset_to_astrovault)
+        //     .collect::<Result<Vec<_>, _>>()?;
 
-        // actual call to pair
-        msgs.push(liquidity_msg.into());
+        // let liquidity_msg = match pool_type {
+        //     AstrovaultPoolType::Standard => wasm_execute(
+        //         pair_address,
+        //         &mini_astrovault::AstrovaultExecuteMsg::ProvideLiquidity {
+        //             assets: [astrovault_assets[0].clone(), astrovault_assets[1].clone()],
+        //             slippage_tolerance: None,
+        //             direct_staking: None,
+        //             receiver: None,
+        //         },
+        //         coins,
+        //     )?,
+        //     // TODO: for xAsset pools should we just let it error by astrovault or provide single asset
+        //     AstrovaultPoolType::Stable { .. } => wasm_execute(
+        //         pair_address,
+        //         &mini_astrovault::AstrovaultExecuteMsg::DepositStable {
+        //             assets_amount: astrovault_assets
+        //                 .into_iter()
+        //                 .map(|asset| asset.amount)
+        //                 .collect(),
+        //             direct_staking: None,
+        //             receiver: None,
+        //         },
+        //         coins,
+        //     )?,
+        //     AstrovaultPoolType::Ratio => wasm_execute(
+        //         pair_address,
+        //         &mini_astrovault::AstrovaultExecuteMsg::DepositRatio {
+        //             assets_amount: [astrovault_assets[0].amount, astrovault_assets[1].amount],
+        //             direct_staking: None,
+        //             receiver: None,
+        //             expected_return: None,
+        //         },
+        //         coins,
+        //     )?,
+        // };
 
-        Ok(msgs)
+        // // actual call to pair
+        // msgs.push(liquidity_msg.into());
+
+        // Ok(msgs)
     }
 
     fn withdraw_liquidity(
