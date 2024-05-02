@@ -619,7 +619,7 @@ impl DexCommand for Astrovault {
             AstrovaultPoolType::Ratio => {
                 let pool_info: mini_astrovault::PoolInfo = deps.querier.query_wasm_smart(
                     pair_address.to_string(),
-                    &astrovault::ratio_pool::query_msg::QueryMsg::PoolInfo {},
+                    &mini_astrovault::AstrovaultQueryMsg::PoolInfo {},
                 )?;
                 let offer_astrovault_asset = cw_asset_info_to_astrovault(&offer_asset.info)?;
                 let offer_index = pool_info
