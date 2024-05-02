@@ -44,7 +44,7 @@ serde-cw-value = "0.7.0"
 sha256 = "1.1.1"
 clap.workspace = true
 async-recursion = "1.0.4"
-base64 = "0.21.0"
+base64 = "0.22.0"
 futures = "0.3.28"
 
 ibc-chain-registry = "0.25"
@@ -57,5 +57,5 @@ polytone = { workspace = true }
 abstract-scripts = { path = "../scripts" }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
 lazy_static = "1.4.0"
-abstract-client = { version = "0.21.0", path = "../../framework/packages/abstract-client" }
+abstract-client = { version = "0.22.0", path = "../../framework/packages/abstract-client" }
 cw-storage-plus = "1.2.0"
