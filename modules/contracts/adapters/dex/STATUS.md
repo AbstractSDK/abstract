@@ -8,4 +8,4 @@ This document describes the status of the dex adapter's integrations with differ
 | Astroport | ✅ | ✅ | ✅ | |
 | Wynd | ✅ | ✅ | ❌ | |
 | Bow | ✅ | ❌ | ✅ | Liquidity tests not implemented because it uses custom module. |
-| Astrovault | ✅ | ❌ | ❌ | |
+| Astrovault | ✅ | ✅ | ✅ | Astrovault uses custom archway module to create pool, so we rely on existing pools. |
