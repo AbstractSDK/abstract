@@ -18,18 +18,19 @@ license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
 [workspace.dependencies]
+
+
 cosmwasm-std = { version = "1.5" }
 cosmwasm-schema = { version = "1.2" }
 cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "1.2.0"
 cw2 = { version = "1.0" }
-cw-plus-interface = { package = "abstract-cw-plus-interface", version = "2.0.0-rc" }
+cw-plus-interface = { package = "abstract-cw-plus-interface", version = "2.0.0" }
 cw20-base = { package = "abstract-cw20-base", features = [
   "library",
-], version = "2.0.0-rc" }
-cw20 = { package = "abstract-cw20", version = "2.0.0-rc" }
-
+], version = "2.0.0" }
+cw20 = { package = "abstract-cw20", version = "2.0.0" }
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
 cw-address-like = { version = "1.0" }
@@ -39,11 +40,12 @@ serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.50" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
+
 chrono = { version = "0.4.31", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.22.0-rc" }
+cw-orch = { version = "0.22.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -99,12 +101,6 @@ abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
-
-# cw-orch stabilization - TODO
-cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
-cw-orch-networks = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
-cw-orch-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "stabilization/cw-orch-core" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
