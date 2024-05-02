@@ -17,7 +17,7 @@ abstract-std = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-client = { workspace = true }
-abstract-interface = { workspace = true }
+abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
 
 tokio = { workspace = true }
