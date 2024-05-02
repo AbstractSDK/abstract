@@ -53,7 +53,6 @@ pub mod fns {
         shim::Duration,
         types::osmosis::{
             gamm::v1beta1::Pool,
-            incentives::IncentivesQuerier,
             lockup::{LockupQuerier, MsgBeginUnlocking, MsgBeginUnlockingAll, MsgLockTokens},
             poolincentives::v1beta1::PoolincentivesQuerier,
             poolmanager::v1beta1::PoolmanagerQuerier,
@@ -305,7 +304,7 @@ pub mod fns {
             querier: &QuerierWrapper,
         ) -> Result<RewardTokensResponse, CwStakingError> {
             let pool_incentives_querier = PoolincentivesQuerier::new(querier);
-            let incentives_querier = IncentivesQuerier::new(querier);
+            // let incentives_querier = IncentivesQuerier::new(querier);
             let tokens = self
                 .tokens
                 .iter()
@@ -317,8 +316,10 @@ pub mod fns {
                                 .gauge_ids_with_duration
                                 .into_iter()
                                 .map(|gauge_id_with_duration| {
-                                    incentives_querier
-                                        .gauge_by_id(gauge_id_with_duration.gauge_id)
+                                    querier.query::<MiniGaugeByIdResponse>(&osmosis_std::types::osmosis::incentives::GaugeByIdRequest{id: gauge_id_with_duration.gauge_id}.into())
+                                    // TODO: use osmosis api when fixed
+                                    // incentives_querier
+                                    //     .gauge_by_id(gauge_id_with_duration.gauge_id)
                                         .map(|gauge_by_id_response| {
                                             gauge_by_id_response
                                                 .gauge
@@ -339,6 +340,21 @@ pub mod fns {
             Ok(RewardTokensResponse { tokens })
         }
     }
+}
+
+#[cfg(feature = "full_integration")]
+// Osmosis returns broken response for `lock_query_type` (Enum stringified instead of Enum.into::<i32> )
+#[derive(cosmwasm_schema::serde::Deserialize)]
+#[serde(rename_all = "snake_case", crate = "::cosmwasm_schema::serde")]
+pub struct MiniGaugeByIdResponse {
+    pub gauge: Option<MiniGauge>,
+}
+
+#[cfg(feature = "full_integration")]
+#[derive(cosmwasm_schema::serde::Deserialize)]
+#[serde(rename_all = "snake_case", crate = "::cosmwasm_schema::serde")]
+pub struct MiniGauge {
+    pub coins: Vec<osmosis_std::types::cosmos::base::v1beta1::Coin>,
 }
 
 #[cfg(feature = "full_integration")]
