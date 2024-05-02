@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Etf fee distribution fixed
 - Replaced empty enum migrate messages with empty structs
 - Astrovault dex adapter now deployable on archway (reduced wasm size)
+- reward_tokens query fixed for Osmosis integration for staking adapter
 
 ## [0.21.0] - 2024-02-20
 
