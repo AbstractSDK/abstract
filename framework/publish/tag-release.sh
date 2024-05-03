@@ -34,7 +34,7 @@ fi
 
 # Adding Cargo.lock files and committing
 git add $(find . -name Cargo.lock) .gitignore
-git commit -m "Add Cargo.lock for tag $TAG_NAME"
+git commit --allow-empty -m "Add Cargo.lock for tag $TAG_NAME"
 
 # Tagging the commit
 git tag -a $TAG_NAME -m "Version $TAG_NAME with Cargo.lock"
