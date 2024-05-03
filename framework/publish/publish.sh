@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # shellcheck disable=all
-set -o errexit -o nounset -o pipefail
 command -v shellcheck >/dev/null && shellcheck "$0"
 
 function print_usage() {
@@ -8,7 +7,7 @@ function print_usage() {
   echo -e "\tPublishes crates to crates.io."
   echo -e "\t- Set ABSTRACT_TOKEN variable for crates.io publisher token."
   echo -e "\t- Use it from the root of the monorepo."
-  echo -e "\t- Make sure you don't have unstaged changes and you are on branch for release."
+  echo -e "\t- Make sure you don't have unstaged changes and you are on a branch for release."
 }
 
 publish_crate() {
@@ -37,10 +36,18 @@ then
     exit 0
 fi
 
+# Make sure we're in the root
+if [[ ! -f ".gitignore" ]]; then
+  echo ".gitignore not found, make sure you are in the root of monorepo."
+  exit 1
+fi
+
 if [ -z "${ABSTRACT_TOKEN}" ]; then
-    echo "Must provide crates.io ABSTRACT_TOKEN in environment" 1>&2
+    echo "Must provide ABSTRACT_TOKEN for crates.io in environment" 1>&2
     exit 1
 fi
+
+set -o errexit -o nounset -o pipefail
 
 # these are imported by other packages
 BASE_PACKAGES="abstract-macros"
