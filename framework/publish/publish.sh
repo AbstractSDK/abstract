@@ -3,6 +3,11 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck >/dev/null && shellcheck "$0"
 
+if [ -z "${ABSTRACT_TOKEN}" ]; then
+    echo "Must provide crates.io ABSTRACT_TOKEN in environment" 1>&2
+    exit 1
+fi
+
 function print_usage() {
   echo "Usage: $0 [-h|--help]"
   echo "Publishes crates to crates.io."
@@ -11,7 +16,7 @@ function print_usage() {
 publish_crate() {
   # Run the cargo publish command, capturing both stdout and stderr
   # Check if the command was successful
-  if output=$(cargo publish 2>&1); then
+  if output=$(cargo publish --token $ABSTRACT_TOKEN 2>&1); then
     echo "Successfully published crate. 🎉"
   else
     # Check for the specific error message
@@ -77,7 +82,7 @@ echo "All the contracts are published!"
 # Now all the packages and standards
 
 PACKAGES="abstract-interface abstract-adapter abstract-app abstract-client"
-STANDARDS="utils staking dex"
+STANDARDS="utils staking dex money-market"
 
 for pack in $PACKAGES; do
   (
@@ -96,4 +101,4 @@ for pack in $STANDARDS; do
 done
 
 VERSION=$(grep -A1 "\[workspace.package\]" Cargo.toml | awk -F'"' '/version/ {print $2}');
-sh ./publish/tag-release.sh "$VERSION"
+sh ./publish/tag-release.sh "v$VERSION"
