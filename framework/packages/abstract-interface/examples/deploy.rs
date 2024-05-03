@@ -2,10 +2,7 @@ use abstract_interface::Abstract;
 use abstract_std::objects::gov_type::GovernanceDetails;
 use cw_orch::{
     daemon::networks::LOCAL_JUNO,
-    prelude::{
-        networks::{parse_network, ChainInfo},
-        *,
-    },
+    prelude::{networks::ChainInfo, *},
 };
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
