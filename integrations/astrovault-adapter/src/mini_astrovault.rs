@@ -37,6 +37,10 @@ pub enum AstrovaultCw20HookMsg {
     WithdrawLiquidity {
         to: Option<String>,
     },
+    WithdrawalXassetMode {
+        to: Option<String>,
+        expected_return: Option<Vec<Uint128>>,
+    },
     #[serde(rename(serialize = "withdrawal_to_lockup"))]
     WithdrawalToLockupStable {
         withdrawal_lockup_assets_amount: Vec<Uint128>,
@@ -45,7 +49,7 @@ pub enum AstrovaultCw20HookMsg {
         expected_return: Option<Vec<Uint128>>,
     },
     #[serde(rename(serialize = "withdrawal_to_lockup"))]
-    WithdrawalToLockupWeighted {
+    WithdrawalToLockupRatio {
         to: Option<String>,
         is_instant_withdrawal: Option<bool>,
         expected_return: Option<Vec<Uint128>>,
@@ -73,7 +77,7 @@ pub enum AstrovaultExecuteMsg {
         expected_return: Option<Uint128>,
     },
     #[serde(rename(serialize = "swap"))]
-    SwapWeighted {
+    SwapRatio {
         to: Option<String>,
         expected_return: Option<Uint128>,
     },
@@ -90,7 +94,7 @@ pub enum AstrovaultExecuteMsg {
         direct_staking: Option<cosmwasm_std::Empty>,
     },
     #[serde(rename(serialize = "deposit"))]
-    DepositWeighted {
+    DepositRatio {
         assets_amount: [Uint128; 2],
         receiver: Option<String>,
         direct_staking: Option<cosmwasm_std::Empty>,
@@ -115,7 +119,7 @@ pub enum AstrovaultQueryMsg {
         swap_to_asset_index: u32,
     },
     #[serde(rename(serialize = "swap_simulation"))]
-    SwapSimulationWeighted {
+    SwapSimulationRatio {
         amount: Uint128,
         swap_from_asset_index: u8,
     },
@@ -138,4 +142,10 @@ pub struct RewardSourceResponse {
 #[serde(rename_all = "snake_case", crate = "::cosmwasm_schema::serde")]
 pub struct RewardSource {
     pub reward_asset: astrovault::assets::asset::AssetInfo,
+}
+
+#[derive(cosmwasm_schema::serde::Deserialize)]
+#[serde(rename_all = "snake_case", crate = "::cosmwasm_schema::serde")]
+pub struct PoolInfo {
+    pub asset_infos: Vec<astrovault::assets::asset::AssetInfo>,
 }
