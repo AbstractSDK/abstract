@@ -17,7 +17,6 @@ use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-// Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
 
