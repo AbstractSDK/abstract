@@ -42,11 +42,13 @@ if [[ ! -f ".gitignore" ]]; then
   exit 1
 fi
 
+# Check that crates.io token is set
 if [ -z "${ABSTRACT_TOKEN}" ]; then
     echo "Must provide ABSTRACT_TOKEN for crates.io in environment" 1>&2
     exit 1
 fi
 
+# Make it stop if something goes wrong
 set -o errexit -o nounset -o pipefail
 
 # these are imported by other packages
