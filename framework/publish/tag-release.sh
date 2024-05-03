@@ -19,17 +19,18 @@ function sed_in_place() {
 
 # Function to restore the original state in case of an error
 function restore_state {
-    git reset --hard HEAD
-    git checkout .
+    git reset HEAD~
     git tag -d $TAG_NAME
     echo "Error occurred. Restored the original state."
 }
 
-# Stashing any uncommitted changes
-git stash
-
 # Removing **/Cargo.lock from .gitignore
-sed_in_place '/\*\*\/Cargo.lock/d' .gitignore
+if sed_in_place '/\*\*\/Cargo.lock/d' .gitignore; then 
+    echo "Removed Cargo.lock from .gitignore"
+else
+    echo ".gitignore not found, make sure you are running command from the root of the monorepo"
+    exit 1
+fi
 
 # Adding Cargo.lock files and committing
 git add $(find . -name Cargo.lock) .gitignore
@@ -45,12 +46,5 @@ else
     restore_state
     exit 1
 fi
-
-# Reverting changes
-git reset --hard HEAD~1
-git checkout .gitignore
-
-# Re-applying stashed changes
-git stash pop
 
 echo "Completed. Tag $TAG_NAME contains Cargo.lock."

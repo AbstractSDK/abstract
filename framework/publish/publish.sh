@@ -3,14 +3,12 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck >/dev/null && shellcheck "$0"
 
-if [ -z "${ABSTRACT_TOKEN}" ]; then
-    echo "Must provide crates.io ABSTRACT_TOKEN in environment" 1>&2
-    exit 1
-fi
-
 function print_usage() {
-  echo "Usage: $0 [-h|--help]"
-  echo "Publishes crates to crates.io."
+  echo "Usage: ABSTRACT_TOKEN=[TOKEN] $0 [-h|--help]"
+  echo -e "\tPublishes crates to crates.io."
+  echo -e "\t- Set ABSTRACT_TOKEN variable for crates.io publisher token."
+  echo -e "\t- Use it from the root of the monorepo."
+  echo -e "\t- Make sure you don't have unstaged changes and you are on branch for release."
 }
 
 publish_crate() {
@@ -36,6 +34,11 @@ publish_crate() {
 if [ $# = 1 ] && { [ "$1" = "-h" ] || [ "$1" = "--help" ] ; }
 then
     print_usage
+    exit 0
+fi
+
+if [ -z "${ABSTRACT_TOKEN}" ]; then
+    echo "Must provide crates.io ABSTRACT_TOKEN in environment" 1>&2
     exit 1
 fi
 
