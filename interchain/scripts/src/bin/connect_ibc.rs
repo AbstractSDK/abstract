@@ -24,14 +24,8 @@ fn main() -> cw_orch::anyhow::Result<()> {
     dotenv::dotenv()?;
     env_logger::init();
 
-    let mut neutron = NEUTRON_1;
-    neutron.gas_price = 0.075;
-
     let chains = vec![
         (JUNO_1, None),
-        (PHOENIX_1, None),
-        (ARCHWAY_1, None),
-        (neutron, None),
         (OSMOSIS_1, Some(std::env::var("OSMOSIS_MNEMONIC")?)),
     ];
     let runtime = Runtime::new()?;
