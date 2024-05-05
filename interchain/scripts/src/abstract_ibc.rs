@@ -52,16 +52,24 @@ pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<C
     Ok(())
 }
 
-pub fn get_polytone_deployment_id(src_chain: &ChainInfo, dst_chain: &ChainInfo) -> String {
-    format!("{}-->{}", src_chain.chain_id, dst_chain.chain_id)
+pub fn get_polytone_deployment_id(
+    src_chain: impl Into<ChainInfoOwned>,
+    dst_chain: impl Into<ChainInfoOwned>,
+) -> String {
+    format!(
+        "{}-->{}",
+        src_chain.into().chain_id,
+        dst_chain.into().chain_id
+    )
 }
+
 pub fn verify_polytone_connection(
     src_chain: ChainInfo,
     dst_chain: ChainInfo,
     rt: &Handle,
 ) -> anyhow::Result<()> {
     // We just need to verify if the polytone deployment crate has the contracts in it
-    let deployment_id = get_polytone_deployment_id(&src_chain, &dst_chain);
+    let deployment_id = get_polytone_deployment_id(src_chain.clone(), dst_chain);
     let src_daemon = Daemon::builder()
         .handle(rt)
         .chain(src_chain)

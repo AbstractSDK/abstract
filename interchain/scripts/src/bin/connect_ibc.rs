@@ -1,5 +1,5 @@
 use abstract_interface::Abstract;
-use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
+use abstract_scripts::abstract_ibc::{abstract_ibc_connection_with, get_polytone_deployment_id};
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
 use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
 use cw_orch::environment::ChainKind;
@@ -61,10 +61,6 @@ fn get_daemon(
     Ok(builder.build()?)
 }
 
-pub fn get_deployment_id(src_chain: &ChainInfo, dst_chain: &ChainInfo) -> String {
-    format!("{}-->{}", src_chain.chain_id, dst_chain.chain_id)
-}
-
 fn connect(
     (src_chain, src_mnemonic): (ChainInfo, Option<String>),
     (dst_chain, dst_mnemonic): (ChainInfo, Option<String>),
@@ -80,7 +76,7 @@ fn connect(
         src_chain.clone(),
         handle,
         src_mnemonic,
-        Some(get_deployment_id(&src_chain, &dst_chain)),
+        Some(get_polytone_deployment_id(src_chain, dst_chain)),
     )?;
 
     let src_polytone = Polytone::load_from(src_polytone_daemon)?;
