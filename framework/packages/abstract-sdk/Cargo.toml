@@ -11,7 +11,8 @@ resolver = "2"
 
 # for quicker tests, cargo test --lib
 [features]
-default = []
+default = ["module-ibc"]
+module-ibc = []
 stargate = ["dep:cosmos-sdk-proto", "dep:prost-types"]
 
 # Expose MockModule for testing with other Adapters

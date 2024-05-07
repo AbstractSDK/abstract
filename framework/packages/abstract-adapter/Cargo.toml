@@ -11,6 +11,13 @@ resolver = "2"
 crate-type = ["cdylib", "rlib"]
 
 [features]
+default = ["ibc"]
+ibc = [
+    "dep:abstract-ibc-client",
+    "dep:abstract-ibc-host",
+    "abstract-sdk/module-ibc",
+    "abstract-std/module-ibc",
+]
 test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils"]
 schema = []
 
@@ -23,14 +30,14 @@ schemars = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
-abstract-sdk = { workspace = true }
-abstract-std = { workspace = true }
+abstract-sdk = { workspace = true, default-features = false }
+abstract-std = { workspace = true, default-features = false }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 # Keep this as a version and update when publishing new versions
 abstract-interface = { path = "../../packages/abstract-interface", version = "0.21.0" }
-abstract-ibc-client = { version = "0.21.0", path = "../../contracts/native/ibc-client", default-features = false }
-abstract-ibc-host = { version = "0.21.0", path = "../../contracts/native/ibc-host", default-features = false }
+abstract-ibc-client = { version = "0.21.0", path = "../../contracts/native/ibc-client", default-features = false, optional = true }
+abstract-ibc-host = { version = "0.21.0", path = "../../contracts/native/ibc-host", default-features = false, optional = true }
 
 [dev-dependencies]
 speculoos = { workspace = true }

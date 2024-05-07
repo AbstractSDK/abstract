@@ -130,6 +130,7 @@ mod execute;
 mod ibc_callback;
 mod instantiate;
 pub(crate) mod migrate;
+#[cfg(feature = "module-ibc")]
 mod modules_ibc;
 mod query;
 mod receive;
@@ -141,6 +142,7 @@ pub use execute::ExecuteEndpoint;
 pub use ibc_callback::IbcCallbackEndpoint;
 pub use instantiate::InstantiateEndpoint;
 pub use migrate::MigrateEndpoint;
+#[cfg(feature = "module-ibc")]
 pub use modules_ibc::ModuleIbcEndpoint;
 pub use query::QueryEndpoint;
 pub use receive::ReceiveEndpoint;

@@ -10,6 +10,8 @@ repository = "https://github.com/AbstractSDK/abstract"
 
 
 [features]
+default = ["module-ibc"]
+module-ibc = []
 # for quicker tests, cargo test --lib
 
 [dependencies]

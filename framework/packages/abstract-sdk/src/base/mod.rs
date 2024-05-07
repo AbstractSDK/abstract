@@ -7,13 +7,17 @@ mod endpoints;
 pub(crate) mod features;
 mod handler;
 
+#[cfg(feature = "module-ibc")]
+pub use contract_base::ModuleIbcHandlerFn;
 pub use contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
-    SudoHandlerFn, VersionString,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
+    VersionString,
 };
+#[cfg(feature = "module-ibc")]
+pub use endpoints::ModuleIbcEndpoint;
 pub use endpoints::{
-    ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint, MigrateEndpoint, ModuleIbcEndpoint,
-    QueryEndpoint, ReceiveEndpoint, ReplyEndpoint, SudoEndpoint,
+    ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint,
+    ReceiveEndpoint, ReplyEndpoint, SudoEndpoint,
 };
 pub use handler::Handler;

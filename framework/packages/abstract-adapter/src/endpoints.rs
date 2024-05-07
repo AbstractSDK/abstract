@@ -1,6 +1,7 @@
 mod execute;
 mod ibc_callback;
 mod instantiate;
+#[cfg(feature = "ibc")]
 mod module_ibc;
 mod query;
 mod receive;
