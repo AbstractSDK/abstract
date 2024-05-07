@@ -10,6 +10,10 @@ Welcome to the Abstract Documentation!
 This first part of our documentation aims to provide you with the conceptual knowledge you need to understand the Abstract framework. The second part is a step-by-step guide on how to use the Abstract SDK to build your decentralized application.
 
 ```admonish info
+Want a TL;DR? Read a [high-level overview on the Abstract Platform](https://medium.com/abstract-money/a-high-level-overview-of-abstract-moneys-interchain-app-platform-d30813c7a1b4).
+```
+
+```admonish info
 Prefer to watch? Check out our [video library](./video_and_content/videos.md)!
 ```
 
