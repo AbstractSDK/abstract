@@ -54,6 +54,7 @@ pub enum AbstractSdkError {
         module: String,
     },
 
+    #[cfg(feature = "module-ibc")]
     // callback not called by IBC host
     #[error("Module {module} Ibc Endpoint called by {caller} instead of IBC host {host_addr}.")]
     ModuleIbcNotCalledByHost {
@@ -62,6 +63,7 @@ pub enum AbstractSdkError {
         module: String,
     },
 
+    #[cfg(feature = "module-ibc")]
     // callback not called by IBC host
     #[error("Called an IBC module action on {0}, when no endpoint was registered.")]
     NoModuleIbcHandler(String),
