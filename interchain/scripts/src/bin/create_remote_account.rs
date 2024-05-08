@@ -3,6 +3,7 @@ use abstract_client::AbstractClient;
 use abstract_scripts::abstract_ibc::{
     has_abstract_ibc, has_polytone_connection, verify_abstract_ibc,
 };
+use abstract_scripts::NEUTRON_1;
 use abstract_std::objects::chain_name::ChainName;
 use abstract_std::objects::module::ModuleVersion;
 use abstract_std::objects::namespace::Namespace;
@@ -12,18 +13,6 @@ use cw_orch::environment::ChainKind;
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
 use tokio::runtime::Runtime;
-
-/// <https://github.com/cosmos/chain-registry/blob/master/neutron/chain.json>
-pub const NEUTRON_1: ChainInfo = ChainInfo {
-    kind: ChainKind::Mainnet,
-    chain_id: "neutron-1",
-    gas_denom: "untrn",
-    gas_price: 0.075,
-    grpc_urls: &["http://grpc-kralum.neutron-1.neutron.org:80"],
-    network_info: NEUTRON_NETWORK,
-    lcd_url: Some("https://rest-kralum.neutron-1.neutron.org"),
-    fcd_url: None,
-};
 
 fn main() -> cw_orch::anyhow::Result<()> {
     dotenv::dotenv()?;
