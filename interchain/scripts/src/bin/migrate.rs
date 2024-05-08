@@ -1,6 +1,9 @@
 use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
 use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_interface::{Abstract, AdapterDeployer, AppDeployer, DeployStrategy};
+use abstract_money_market_adapter::{
+    interface::MoneyMarketAdapter, msg::MoneyMarketInstantiateMsg, MONEY_MARKET_ADAPTER_ID,
+};
 use challenge_app::{contract::CHALLENGE_APP_ID, Challenge};
 use clap::Parser;
 use cosmwasm_std::Decimal;
@@ -37,6 +40,14 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             DexInstantiateMsg {
                 recipient_account: 0,
                 swap_fee: Decimal::permille(3),
+            },
+            DeployStrategy::Try,
+        )?;
+        MoneyMarketAdapter::new(MONEY_MARKET_ADAPTER_ID, chain.clone()).deploy(
+            abstract_money_market_adapter::contract::CONTRACT_VERSION.parse()?,
+            MoneyMarketInstantiateMsg {
+                recipient_account: 0,
+                fee: Decimal::permille(3),
             },
             DeployStrategy::Try,
         )?;

@@ -34,7 +34,7 @@ abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 cw-orch = { workspace = true }
-abstract-adapter = { version = "0.22.0", path = "../../abstract-adapter" }
+abstract-adapter = { version = "0.22.1", path = "../../abstract-adapter" }
 
 ibc-chain-registry = { version = "0.25.0", optional = true }
 

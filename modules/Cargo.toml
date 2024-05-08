@@ -4,7 +4,7 @@ members = ["contracts/apps/*", "contracts/adapters/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.22.0"
+version = "0.22.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -45,22 +45,22 @@ chrono = { version = "0.4.31", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.22.0" }
+cw-orch = { version = "0.22.1" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.22.0" }
-abstract-adapter = { version = "0.22.0" }
-abstract-app = { version = "0.22.0" }
-abstract-testing = { version = "0.22.0" }
-abstract-macros = { version = "0.22.0" }
-abstract-client = { version = "0.22.0" }
+abstract-interface = { version = "0.22.1" }
+abstract-adapter = { version = "0.22.1" }
+abstract-app = { version = "0.22.1" }
+abstract-testing = { version = "0.22.1" }
+abstract-macros = { version = "0.22.1" }
+abstract-client = { version = "0.22.1" }
 
-abstract-adapter-utils = { version = "0.22.0" }
-abstract-dex-standard = { version = "0.22.0" }
-abstract-staking-standard = { version = "0.22.0" }
-# abstract-money-market-standard = { version = "0.22.0" }
+abstract-adapter-utils = { version = "0.22.1" }
+abstract-dex-standard = { version = "0.22.1" }
+abstract-staking-standard = { version = "0.22.1" }
+# abstract-money-market-standard = { version = "0.22.1" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
 # Integrations

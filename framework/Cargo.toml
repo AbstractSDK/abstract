@@ -17,7 +17,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.22.0"
+version = "0.22.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -79,15 +79,15 @@ ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 proxy = { package = "abstract-proxy", path = "contracts/account/proxy" }
 manager = { package = "abstract-manager", path = "contracts/account/manager" }
 
-abstract-sdk = { version = "0.22.0", path = "packages/abstract-sdk" }
-abstract-testing = { version = "0.22.0", path = "packages/abstract-testing" }
-abstract-std = { version = "0.22.0", path = "packages/abstract-std" }
+abstract-sdk = { version = "0.22.1", path = "packages/abstract-sdk" }
+abstract-testing = { version = "0.22.1", path = "packages/abstract-testing" }
+abstract-std = { version = "0.22.1", path = "packages/abstract-std" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
-abstract-macros = { version = "0.22.0", path = "packages/abstract-macros" }
-abstract-ica = { version = "0.22.0", path = "packages/abstract-ica" }
+abstract-macros = { version = "0.22.1", path = "packages/abstract-macros" }
+abstract-ica = { version = "0.22.1", path = "packages/abstract-ica" }
 
-abstract-adapter-utils = { version = "0.22.0", path = "packages/standards/utils" }
+abstract-adapter-utils = { version = "0.22.1", path = "packages/standards/utils" }
 abstract-dex-standard = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 

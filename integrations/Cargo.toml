@@ -13,7 +13,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.22.0"
+version = "0.22.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -40,7 +40,7 @@ cw-ownable = { version = "0.5" }
 cw-address-like = { version = "1.0" }
 cw-asset = { version = "3.0" }
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.22.0" }
+cw-orch = { version = "0.22.1" }
 
 anyhow = "1.0"
 
@@ -54,16 +54,16 @@ semver = "1.0"
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.22.0" }
-abstract-adapter = { version = "0.22.0" }
-abstract-sdk = { version = "0.22.0" }
-abstract-std = { version = "0.22.0" }
+abstract-interface = { version = "0.22.1" }
+abstract-adapter = { version = "0.22.1" }
+abstract-sdk = { version = "0.22.1" }
+abstract-std = { version = "0.22.1" }
 
-abstract-adapter-utils = { version = "0.22.0" }
-abstract-dex-standard = { version = "0.22.0" }
-# abstract-money-market-standard = { version = "0.22.0" }
+abstract-adapter-utils = { version = "0.22.1" }
+abstract-dex-standard = { version = "0.22.1" }
+# abstract-money-market-standard = { version = "0.22.1" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
-abstract-staking-standard = { version = "0.22.0" }
+abstract-staking-standard = { version = "0.22.1" }
 
 # TODO: REMOVE As soon as new dex-standard published
 [patch.crates-io]
