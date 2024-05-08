@@ -12,7 +12,8 @@ repository = "https://github.com/AbstractSDK/abstract"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["export"]
+default = ["export", "module-ibc"]
+module-ibc = ["abstract-sdk/module-ibc", "abstract-std/module-ibc"]
 export = []
 
 [dependencies]

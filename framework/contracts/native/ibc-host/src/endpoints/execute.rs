@@ -7,7 +7,9 @@ use abstract_std::{
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
-use super::packet::{handle_host_action, handle_host_module_action};
+use super::packet::handle_host_action;
+#[cfg(feature = "module-ibc")]
+use super::packet::handle_host_module_action;
 use crate::{
     contract::{HostResponse, HostResult},
     HostError,
@@ -44,6 +46,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
             Ok(HostResponse::action("update_ownership"))
         }
+        #[cfg(feature = "module-ibc")]
         ExecuteMsg::ModuleExecute {
             msg,
             source_module,

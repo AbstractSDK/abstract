@@ -12,9 +12,9 @@ crate-type = ["cdylib", "rlib"]
 
 
 [features]
-
 # # use library feature to disable all instantiate/execute/query exports
-default = ["export"]
+default = ["export", "module-ibc"]
+module-ibc = ["abstract-sdk/module-ibc", "abstract-std/module-ibc"]
 export = []
 schema = []
 
@@ -30,8 +30,8 @@ cw-ownable = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
-abstract-sdk = { workspace = true, features = ["module-ibc"] }
-abstract-std = { workspace = true, features = ["module-ibc"] }
+abstract-sdk = { workspace = true }
+abstract-std = { workspace = true }
 cw-semver = { workspace = true }
 abstract-macros = { workspace = true }
 cw-orch = { workspace = true }

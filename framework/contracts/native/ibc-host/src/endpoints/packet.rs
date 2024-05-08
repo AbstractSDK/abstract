@@ -1,21 +1,15 @@
 use abstract_std::{
-    base::ExecuteMsg as MiddlewareExecMsg,
-    ibc::ModuleIbcMsg,
-    ibc_client::InstalledModuleIdentification,
     ibc_host::{
-        state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
+        state::{ActionAfterCreationCache, TEMP_ACTION_AFTER_CREATION},
         HelperAction, HostAction, InternalAction,
     },
-    objects::{
-        chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
-    },
+    objects::{chain_name::ChainName, AccountId},
 };
-use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
+use cosmwasm_std::{DepsMut, Env};
 
 use crate::{
     account_commands::{self, receive_dispatch, receive_register, receive_send_all_back},
     contract::HostResult,
-    HostError,
 };
 
 pub fn client_to_host_account_id(remote_chain: ChainName, account_id: AccountId) -> AccountId {
@@ -117,46 +111,66 @@ pub fn handle_host_action(
     .map_err(Into::into)
 }
 
-/// Handle actions that are passed to the IBC host contract and originate from a registered module
-pub fn handle_host_module_action(
-    deps: DepsMut,
-    client_chain: ChainName,
-    source_module: InstalledModuleIdentification,
-    target_module: ModuleInfo,
-    msg: Binary,
-) -> HostResult {
-    // We resolve the target module
-    let vc = CONFIG.load(deps.storage)?.version_control;
-    let target_module = InstalledModuleIdentification {
-        module_info: target_module,
-        account_id: source_module
-            .account_id
-            .map(|a| client_to_host_account_id(client_chain.clone(), a)),
+#[cfg(feature = "module-ibc")]
+pub use module_ibc::*;
+
+#[cfg(feature = "module-ibc")]
+mod module_ibc {
+    use crate::HostError;
+
+    use super::*;
+
+    use abstract_std::{
+        base::ExecuteMsg as MiddlewareExecMsg,
+        ibc::ModuleIbcMsg,
+        ibc_client::InstalledModuleIdentification,
+        ibc_host::state::CONFIG,
+        objects::{module::ModuleInfo, module_reference::ModuleReference},
     };
+    use cosmwasm_std::{wasm_execute, Binary, Empty, Response};
 
-    let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
+    /// Handle actions that are passed to the IBC host contract and originate from a registered module
+    pub fn handle_host_module_action(
+        deps: DepsMut,
+        client_chain: ChainName,
+        source_module: InstalledModuleIdentification,
+        target_module: ModuleInfo,
+        msg: Binary,
+    ) -> HostResult {
+        // We resolve the target module
+        let vc = CONFIG.load(deps.storage)?.version_control;
+        let target_module = InstalledModuleIdentification {
+            module_info: target_module,
+            account_id: source_module
+                .account_id
+                .map(|a| client_to_host_account_id(client_chain.clone(), a)),
+        };
 
-    match target_module_resolved.reference {
-        ModuleReference::AccountBase(_) | ModuleReference::Native(_) => {
-            return Err(HostError::WrongModuleAction(
-                "Can't send module-to-module message to an account or a native module".to_string(),
-            ))
+        let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
+
+        match target_module_resolved.reference {
+            ModuleReference::AccountBase(_) | ModuleReference::Native(_) => {
+                return Err(HostError::WrongModuleAction(
+                    "Can't send module-to-module message to an account or a native module"
+                        .to_string(),
+                ))
+            }
+            _ => {}
         }
-        _ => {}
+
+        // We pass the message on to the module
+        let msg = wasm_execute(
+            target_module_resolved.address,
+            &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
+                client_chain,
+                source_module: source_module.module_info,
+                msg,
+            }),
+            vec![],
+        )?;
+
+        Ok(Response::new()
+            .add_attribute("action", "module-ibc-call")
+            .add_message(msg))
     }
-
-    // We pass the message on to the module
-    let msg = wasm_execute(
-        target_module_resolved.address,
-        &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
-            client_chain,
-            source_module: source_module.module_info,
-            msg,
-        }),
-        vec![],
-    )?;
-
-    Ok(Response::new()
-        .add_attribute("action", "module-ibc-call")
-        .add_message(msg))
 }

@@ -128,6 +128,7 @@ pub enum ExecuteMsg {
         action: HostAction,
     },
     /// Allows for remote execution from the Polytone implementation on a local module
+    #[cfg(feature = "module-ibc")]
     ModuleExecute {
         source_module: InstalledModuleIdentification,
         target_module: ModuleInfo,

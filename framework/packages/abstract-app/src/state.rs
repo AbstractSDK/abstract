@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    base::{ModuleIbcHandlerFn, SudoHandlerFn},
+    base::SudoHandlerFn,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
 };
@@ -164,10 +164,11 @@ impl<
         self
     }
 
+    #[cfg(feature = "ibc")]
     /// add Module IBC to contract
     pub const fn with_module_ibc(
         mut self,
-        module_handler: ModuleIbcHandlerFn<Self, Error>,
+        module_handler: abstract_sdk::base::ModuleIbcHandlerFn<Self, Error>,
     ) -> Self {
         self.contract = self.contract.with_module_ibc(module_handler);
         self

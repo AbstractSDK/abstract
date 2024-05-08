@@ -17,7 +17,7 @@ ibc = [
     "abstract-sdk/module-ibc",
     "abstract-std/module-ibc",
 ]
-test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils"]
+test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils", "ibc"]
 schema = []
 
 [dependencies]
