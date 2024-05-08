@@ -59,7 +59,7 @@ NATIVE_CONTRACTS="ans-host account-factory module-factory version-control ibc-ho
 
  for pack in $BASE_PACKAGES; do
    (
-     cd "packages/$pack"
+     cd "framework/packages/$pack"
      echo "Publishing base $pack"
     publish_crate
    )
@@ -67,7 +67,7 @@ NATIVE_CONTRACTS="ans-host account-factory module-factory version-control ibc-ho
 
 for pack in $UTILS_PACKAGES; do
   (
-    cd "packages/$pack"
+    cd "framework/packages/$pack"
     echo "Publishing util $pack"
     publish_crate
   )
@@ -75,7 +75,7 @@ done
 
 for con in $CORE_CONTRACTS; do
   (
-    cd "contracts/account/$con"
+    cd "framework/contracts/account/$con"
     echo "Publishing account base $con"
     publish_crate
   )
@@ -83,7 +83,7 @@ done
 
 for con in $NATIVE_CONTRACTS; do
   (
-    cd "contracts/native/$con"
+    cd "framework/contracts/native/$con"
     echo "Publishing native $con"
     publish_crate
   )
@@ -98,7 +98,7 @@ STANDARDS="utils staking dex money-market"
 
 for pack in $PACKAGES; do
   (
-    cd "packages/$pack"
+    cd "framework/packages/$pack"
     echo "Publishing $pack"
     publish_crate
   )
@@ -106,11 +106,11 @@ done
 
 for pack in $STANDARDS; do
   (
-    cd "packages/standards/$pack"
+    cd "framework/packages/standards/$pack"
     echo "Publishing $pack"
     publish_crate
   )
 done
 
-VERSION=$(grep -A1 "\[workspace.package\]" Cargo.toml | awk -F'"' '/version/ {print $2}');
+VERSION=$(grep -A1 "\[workspace.package\]" framework/Cargo.toml | awk -F'"' '/version/ {print $2}');
 sh ./publish/tag-release.sh "v$VERSION"
