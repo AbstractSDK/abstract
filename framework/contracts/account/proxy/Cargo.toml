@@ -42,14 +42,3 @@ cw20 = { workspace = true }
 rstest = { workspace = true }
 speculoos = { workspace = true }
 abstract-testing = { workspace = true }
-
-[profile.release]
-rpath = false
-lto = true
-overflow-checks = true
-opt-level = 3
-debug = false
-debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false

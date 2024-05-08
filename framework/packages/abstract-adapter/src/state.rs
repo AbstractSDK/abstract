@@ -1,7 +1,9 @@
+#[cfg(feature = "ibc")]
+use abstract_sdk::base::ModuleIbcHandlerFn;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
-        ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
+        QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
     namespaces::BASE_STATE,
     std::version_control::AccountBase,
@@ -147,6 +149,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     }
 
     /// add Module IBC to contract
+    #[cfg(feature = "ibc")]
     pub const fn with_module_ibc(
         mut self,
         module_handler: ModuleIbcHandlerFn<Self, Error>,

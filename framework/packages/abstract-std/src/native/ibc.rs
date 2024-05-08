@@ -1,3 +1,4 @@
+#[cfg(feature = "module-ibc")]
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Binary, CosmosMsg, Empty, QueryRequest, StdError, StdResult,
@@ -5,10 +6,10 @@ use cosmwasm_std::{
 use polytone::callbacks::{Callback, ErrorResponse, ExecutionResponse};
 use schemars::JsonSchema;
 
-use crate::{
-    base::ExecuteMsg,
-    objects::{chain_name::ChainName, module::ModuleInfo},
-};
+use crate::base::ExecuteMsg;
+
+#[cfg(feature = "module-ibc")]
+use crate::objects::{chain_name::ChainName, module::ModuleInfo};
 
 /// CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client
 /// A callback can only be sent to itself
@@ -103,6 +104,7 @@ impl CallbackResult {
 }
 
 // ANCHOR: module_ibc_msg
+#[cfg(feature = "module-ibc")]
 #[cw_serde]
 pub struct ModuleIbcMsg {
     pub client_chain: ChainName,

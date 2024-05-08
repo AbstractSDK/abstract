@@ -1,7 +1,10 @@
-use abstract_std::ibc::{IbcResponseMsg, ModuleIbcMsg};
+use abstract_std::ibc::IbcResponseMsg;
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
+
+#[cfg(feature = "module-ibc")]
+use abstract_std::ibc::ModuleIbcMsg;
 
 use super::handler::Handler;
 use crate::{std::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};
@@ -100,8 +103,8 @@ pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkEr
     /// IBC callbacks handlers following an IBC action, per callback ID.
     pub(crate) ibc_callback_handlers:
         &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
-    #[cfg(feature = "module-ibc")]
     /// Module IBC handler for passing messages between a module on different chains.
+    #[cfg(feature = "module-ibc")]
     pub(crate) module_ibc_handler: Option<ModuleIbcHandlerFn<Module, Error>>,
 }
 

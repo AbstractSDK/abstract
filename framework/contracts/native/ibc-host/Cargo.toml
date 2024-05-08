@@ -30,8 +30,8 @@ cw-ownable = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
-abstract-sdk = { workspace = true }
-abstract-std = { workspace = true }
+abstract-sdk = { workspace = true, features = ["module-ibc"] }
+abstract-std = { workspace = true, features = ["module-ibc"] }
 cw-semver = { workspace = true }
 abstract-macros = { workspace = true }
 cw-orch = { workspace = true }

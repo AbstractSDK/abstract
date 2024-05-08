@@ -31,8 +31,8 @@ cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
-abstract-sdk = { workspace = true, default-features = false }
-abstract-std = { workspace = true, default-features = false }
+abstract-sdk = { workspace = true }
+abstract-std = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 
@@ -42,5 +42,5 @@ abstract-ibc-host = { version = "0.21.0", path = "../../contracts/native/ibc-hos
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
 speculoos = { workspace = true }
-abstract-app = { path = ".", features = ["test-utils"] }
+abstract-app = { path = ".", features = ["test-utils", "ibc"] }
 abstract-integration-tests = { workspace = true }

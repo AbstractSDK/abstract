@@ -1,7 +1,10 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Empty;
 
-use crate::ibc::{IbcResponseMsg, ModuleIbcMsg};
+use crate::ibc::IbcResponseMsg;
+
+#[cfg(feature = "module-ibc")]
+use crate::ibc::ModuleIbcMsg;
 
 // ANCHOR: exec
 /// Wrapper around all possible messages that can be sent to the module.
@@ -17,6 +20,7 @@ pub enum ExecuteMsg<BaseMsg, CustomExecMsg, ReceiveMsg = Empty> {
     /// ModuleIbc endpoint to receive messages from modules on other chains  
     /// In order to trust this, the apps and adapters verify this comes from the ibc-host contract.
     /// They should also trust the sending chain
+    #[cfg(feature = "module-ibc")]
     ModuleIbc(ModuleIbcMsg),
     /// Receive endpoint for CW20 / external service integrations
     Receive(ReceiveMsg),

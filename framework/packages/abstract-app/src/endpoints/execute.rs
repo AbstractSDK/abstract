@@ -1,11 +1,11 @@
-use abstract_sdk::{
-    base::{ModuleIbcEndpoint, ReceiveEndpoint},
-    features::AbstractResponse,
-};
+use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
 use abstract_std::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use schemars::JsonSchema;
 use serde::Serialize;
+
+#[cfg(feature = "ibc")]
+use abstract_sdk::base::ModuleIbcEndpoint;
 
 use crate::{
     state::{AppContract, ContractError},
@@ -51,6 +51,7 @@ impl<
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
             ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
+            #[cfg(feature = "ibc")]
             ExecuteMsg::ModuleIbc(msg) => self.module_ibc(deps, env, info, msg),
         }
     }

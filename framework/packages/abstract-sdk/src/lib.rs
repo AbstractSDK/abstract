@@ -22,11 +22,13 @@ pub mod prelude;
 pub use account_action::AccountAction;
 pub use error::{AbstractSdkError, EndpointError};
 
+#[cfg(feature = "module-ibc")]
+pub use crate::apis::ibc::*;
 #[cfg(feature = "stargate")]
 pub use crate::apis::{authz::*, distribution::*, feegrant::*};
 pub use crate::{
     apis::{
-        accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
+        accounting::*, adapter::*, app::*, bank::*, execution::*, modules::*, respond::*,
         verify::*, version_registry::*,
     },
     features::AbstractNameServiceClient,

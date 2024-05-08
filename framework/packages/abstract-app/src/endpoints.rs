@@ -2,6 +2,7 @@ mod execute;
 mod ibc_callback;
 pub mod instantiate;
 mod migrate;
+#[cfg(feature = "ibc")]
 mod module_ibc;
 mod query;
 mod receive;

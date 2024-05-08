@@ -2,9 +2,11 @@ use abstract_std::objects::dependency::StaticDependency;
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;
 
+#[cfg(feature = "module-ibc")]
+use super::contract_base::ModuleIbcHandlerFn;
 use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
 };
 use crate::{
     base::{
@@ -177,6 +179,7 @@ where
         None
     }
     /// Get an IBC module call handler if it exists.
+    #[cfg(feature = "module-ibc")]
     fn maybe_module_ibc_handler(&self) -> Option<ModuleIbcHandlerFn<Self, Self::Error>> {
         let contract = self.contract();
         contract.module_ibc_handler

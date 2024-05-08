@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ModuleIbcEndpoint, ReceiveEndpoint},
+    base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
     AbstractResponse, AccountVerification,
 };
@@ -8,6 +8,10 @@ use abstract_std::{
     manager::state::ACCOUNT_MODULES,
     objects::nested_admin::query_top_level_owner,
 };
+
+#[cfg(feature = "ibc")]
+use abstract_sdk::base::ModuleIbcEndpoint;
+
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, QuerierWrapper, Response, StdResult};
 use schemars::JsonSchema;
 use serde::Serialize;
@@ -44,6 +48,7 @@ impl<
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
             ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
+            #[cfg(feature = "ibc")]
             ExecuteMsg::ModuleIbc(msg) => self.module_ibc(deps, env, info, msg),
         }
     }

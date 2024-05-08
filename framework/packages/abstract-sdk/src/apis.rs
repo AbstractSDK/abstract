@@ -3,7 +3,6 @@ pub mod adapter;
 pub mod app;
 pub mod bank;
 pub mod execution;
-pub mod ibc;
 pub mod modules;
 pub mod respond;
 mod splitter;
@@ -19,5 +18,7 @@ pub mod authz;
 pub mod distribution;
 #[cfg(feature = "stargate")]
 pub mod feegrant;
+#[cfg(feature = "module-ibc")]
+pub mod ibc;
 #[cfg(feature = "stargate")]
 pub mod stargate;

@@ -10,6 +10,7 @@ use abstract_std::{
     proxy::ExecuteMsg,
     IBC_CLIENT,
 };
+
 use cosmwasm_std::{to_json_binary, wasm_execute, Coin, CosmosMsg, Deps};
 use serde::Serialize;
 
@@ -166,6 +167,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             },
         )
     }
+
     /// Call a [`HostAction`] on the host of the provided `host_chain`.
     pub fn host_action(
         &self,
