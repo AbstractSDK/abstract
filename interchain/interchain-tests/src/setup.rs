@@ -49,7 +49,6 @@ pub fn ibc_connect_polytone_and_abstract<Chain: IbcQueryHandler, IBC: Interchain
         POLYTONE_VERSION,
         None, // Unordered channel
     )?;
-
     // Create the connection between client and host
     abstract_ibc_connection_with(&abstr_origin, interchain, &abstr_remote, &origin_polytone)?;
     Ok(())

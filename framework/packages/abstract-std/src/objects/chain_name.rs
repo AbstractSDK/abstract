@@ -27,9 +27,9 @@ impl ChainName {
         // split on the last -
         // `cosmos-testnet-53159`
         // -> `cosmos-testnet` and `53159`
-        let parts: Vec<&str> = chain_id.rsplitn(2, '-').collect();
-        // the parts vector should look like [53159, cosmos-tesnet], because we are using rsplitn
-        Self(parts[1].to_string())
+        let parts = chain_id.rsplitn(2, '-');
+        // the parts should look like [53159, cosmos-tesnet] or [cosmos-testnet], because we are using rsplitn
+        Self(parts.last().unwrap().to_string())
     }
 
     pub fn from_string(value: String) -> AbstractResult<Self> {
