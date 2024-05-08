@@ -50,7 +50,7 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Sets the admin
     SetAdmin { admin: String },
@@ -59,7 +59,7 @@ pub enum ExecuteMsg {
     /// Execute a message and forward the Response data
     ModuleActionWithData { msg: CosmosMsg<Empty> },
     /// Execute IBC action on Client
-    IbcAction { msgs: Vec<IbcClientMsg> },
+    IbcAction { msg: IbcClientMsg },
     /// Adds the provided address to whitelisted dapps
     AddModules { modules: Vec<String> },
     /// Removes the provided address from the whitelisted dapps
@@ -74,8 +74,7 @@ pub enum ExecuteMsg {
 pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
     /// Contains the enabled modules
     /// Returns [`ConfigResponse`]

@@ -69,8 +69,8 @@ pub struct Adapters<'a, T: AdapterInterface> {
 
 impl<'a, T: AdapterInterface> Adapters<'a, T> {
     /// Interactions with Abstract Adapters
-    /// Construct an adapter request message.
-    pub fn request<M: Serialize + Into<abstract_std::adapter::ExecuteMsg<M, Empty>>>(
+    /// Construct an adapter execute message.
+    pub fn execute<M: Serialize + Into<abstract_std::adapter::ExecuteMsg<M, Empty>>>(
         &self,
         adapter_id: ModuleId,
         message: M,
@@ -134,7 +134,7 @@ mod tests {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.adapters(deps);
-                    mods.request(FAKE_MODULE_ID, MockModuleExecuteMsg {})
+                    mods.execute(FAKE_MODULE_ID, MockModuleExecuteMsg {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -148,7 +148,7 @@ mod tests {
 
             let mods = app.adapters(deps.as_ref());
 
-            let res = mods.request(TEST_MODULE_ID, MockModuleExecuteMsg {});
+            let res = mods.execute(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
             let expected_msg: adapter::ExecuteMsg<_, Empty> =
                 adapter::ExecuteMsg::Module(AdapterRequestMsg {

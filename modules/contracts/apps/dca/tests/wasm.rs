@@ -1,16 +1,7 @@
-use abstract_app::abstract_testing::OWNER;
-use cw_orch::prelude::*;
-use dca_app::{contract::DCA_APP_ID, DCA};
+use cw_orch::{daemon::networks::OSMOSIS_1, prelude::*};
+use dca_app::DCA;
 
 #[test]
 fn successful_wasm() {
-    // Create a sender
-    let sender = Addr::unchecked(OWNER);
-    // Create the mock
-    let mock = Mock::new(sender);
-
-    // Construct the counter interface
-    let contract = DCA::new(DCA_APP_ID, mock);
-
-    contract.wasm();
+    DCA::<MockBech32>::wasm(&OSMOSIS_1.into());
 }

@@ -8,4 +8,4 @@ This document describes the status of the staking adapter's integrations with di
 | Astroport | ✅ | ✅ | ✅ | |
 | Wynd | ✅ | ✅ | ❌ | |
 | Bow | ✅ | ✅ | ✅ | Creating pool not possible because it uses custom module. |
-| Astrovault | ✅ | ❌ | ❌ | |
+| Astrovault | ✅ | ✅ | ✅ | Astrovault uses custom archway module to create pool, so we rely on existing pools. |

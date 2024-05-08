@@ -8,7 +8,7 @@ use cw_orch::{interface, prelude::*};
 pub struct ModuleFactory<Chain>;
 
 impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
-    fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+    fn wrapper() -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
                 ::module_factory::contract::execute,
@@ -18,7 +18,7 @@ impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
             .with_migrate(::module_factory::contract::migrate),
         )
     }
-    fn wasm(&self) -> WasmPath {
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path("module_factory")
             .unwrap()

@@ -1,5 +1,4 @@
 use abstract_interface::Abstract;
-use cw_orch::daemon::ChainInfo;
 use cw_orch::prelude::*;
 use cw_orch_clone_testing::CloneTesting;
 

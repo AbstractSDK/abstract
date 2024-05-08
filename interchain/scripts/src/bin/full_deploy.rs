@@ -42,7 +42,7 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     //     networks = deployment_status.chain_ids.into_iter().map(|n| parse_network(&n)).collect();
     // }
 
-    let networks = rt.block_on(assert_wallet_balance(&networks));
+    let networks = rt.block_on(assert_wallet_balance(networks));
 
     // write_deployment(&deployment_status)?;
 

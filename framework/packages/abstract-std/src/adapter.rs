@@ -16,7 +16,10 @@ use crate::{
         ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
         QueryMsg as MiddlewareQueryMsg,
     },
-    objects::module_version::ModuleDataResponse,
+    objects::{
+        ans_host::AnsHost, module_version::ModuleDataResponse,
+        version_control::VersionControlContract,
+    },
 };
 
 pub type ExecuteMsg<Request = Empty, ReceiveMsg = Empty> =
@@ -122,9 +125,8 @@ pub enum AdapterBaseMsg {
 
 /// Query adapter message
 #[cosmwasm_schema::cw_serde]
-#[derive(QueryResponses)]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg<ModuleMsg>))]
+#[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg<ModuleMsg>)]
 pub enum BaseQueryMsg {
     /// Returns [`AdapterConfigResponse`].
     #[returns(AdapterConfigResponse)]
@@ -155,4 +157,14 @@ pub struct AdapterConfigResponse {
 pub struct AuthorizedAddressesResponse {
     /// Contains all authorized addresses
     pub addresses: Vec<Addr>,
+}
+
+/// The BaseState contains the main addresses needed for sending and verifying messages
+/// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
+#[cosmwasm_schema::cw_serde]
+pub struct AdapterState {
+    /// Used to verify requests
+    pub version_control: VersionControlContract,
+    /// AnsHost contract struct (address)
+    pub ans_host: AnsHost,
 }

@@ -2,10 +2,8 @@
 use abstract_interface::{Abstract, AbstractIbc};
 use abstract_scripts::ROLLKIT_TESTNET;
 use cw_orch::{
-    daemon::{
-        networks::{neutron::NEUTRON_NETWORK, ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1},
-        ChainInfo, ChainKind,
-    },
+    daemon::networks::{neutron::NEUTRON_NETWORK, ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1},
+    environment::ChainKind,
     prelude::*,
     tokio::runtime::{Handle, Runtime},
 };

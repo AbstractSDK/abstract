@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
+    base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ModuleIbcEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
     AbstractResponse, AccountVerification,
 };
@@ -44,6 +44,7 @@ impl<
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
             ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
+            ExecuteMsg::ModuleIbc(msg) => self.module_ibc(deps, env, info, msg),
         }
     }
 }

@@ -16,7 +16,6 @@ crate-type = ["cdylib", "rlib"]
 
 [[example]]
 name = "deploy"
-required-features = ["interface"]
 
 [[example]]
 name = "schema"
@@ -25,14 +24,8 @@ required-features = ["schema"]
 [features]
 default = ["export"]
 export = []
-interface = [
-  "dep:cw-orch",
-  "export",
-  "abstract-money-market-standard/interface",
-  "abstract-adapter/interface-macro",
-]
 schema = ["abstract-adapter/schema"]
-testing = ["interface", "dep:abstract-client", "dep:cw-orch", "dep:cw20"]
+testing = ["dep:abstract-client", "dep:cw20"]
 
 # Supported Moneymarkets
 mars = ["abstract-mars-adapter/full_integration"]
@@ -65,7 +58,7 @@ cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 
 abstract-adapter = { workspace = true }
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true }
 
 # Local
 abstract-money-market-standard = { workspace = true }
@@ -95,13 +88,12 @@ clap = { workspace = true }
 wyndex-bundle = { workspace = true }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 money-market = { path = ".", features = [
-  "interface",
   "mars",
   "kujira",
 ], package = "abstract-money-market-adapter" }
 
 abstract-wyndex-adapter = { workspace = true, features = ["local"] }
 
-cw20 = { workspace = true, features = ["interface"] }
-cw20-base = { workspace = true, features = ["interface"] }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
 cw-utils = { workspace = true }

@@ -178,14 +178,11 @@
           "ibc_action": {
             "type": "object",
             "required": [
-              "msgs"
+              "msg"
             ],
             "properties": {
-              "msgs": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/ExecuteMsg"
-                }
+              "msg": {
+                "$ref": "#/definitions/ExecuteMsg"
               }
             },
             "additionalProperties": false
@@ -484,6 +481,52 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "description": "This calls into the native bank module for querying metadata for a specific bank token. Return value is DenomMetadataResponse",
+            "type": "object",
+            "required": [
+              "denom_metadata"
+            ],
+            "properties": {
+              "denom_metadata": {
+                "type": "object",
+                "required": [
+                  "denom"
+                ],
+                "properties": {
+                  "denom": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "This calls into the native bank module for querying metadata for all bank tokens that have a metadata entry. Return value is AllDenomMetadataResponse",
+            "type": "object",
+            "required": [
+              "all_denom_metadata"
+            ],
+            "properties": {
+              "all_denom_metadata": {
+                "type": "object",
+                "properties": {
+                  "pagination": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/PageRequest"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },
@@ -535,10 +578,10 @@
         ]
       },
       "CallbackInfo": {
+        "description": "CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client A callback can only be sent to itself",
         "type": "object",
         "required": [
-          "id",
-          "receiver"
+          "id"
         ],
         "properties": {
           "id": {
@@ -555,10 +598,6 @@
                 "type": "null"
               }
             ]
-          },
-          "receiver": {
-            "description": "Contract that will be called with the callback message",
-            "type": "string"
           }
         },
         "additionalProperties": false
@@ -799,6 +838,123 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "description": "This is translated to a [[MsgFundCommunityPool](https://github.com/cosmos/cosmos-sdk/blob/v0.42.4/proto/cosmos/distribution/v1beta1/tx.proto#LL69C1-L76C2). `depositor` is automatically filled with the current contract's address.",
+            "type": "object",
+            "required": [
+              "fund_community_pool"
+            ],
+            "properties": {
+              "fund_community_pool": {
+                "type": "object",
+                "required": [
+                  "amount"
+                ],
+                "properties": {
+                  "amount": {
+                    "description": "The amount to spend",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/Coin"
+                    }
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "DistributionQuery": {
+        "oneOf": [
+          {
+            "description": "See <https://github.com/cosmos/cosmos-sdk/blob/c74e2887b0b73e81d48c2f33e6b1020090089ee0/proto/cosmos/distribution/v1beta1/query.proto#L222-L230>",
+            "type": "object",
+            "required": [
+              "delegator_withdraw_address"
+            ],
+            "properties": {
+              "delegator_withdraw_address": {
+                "type": "object",
+                "required": [
+                  "delegator_address"
+                ],
+                "properties": {
+                  "delegator_address": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "See <https://github.com/cosmos/cosmos-sdk/blob/c74e2887b0b73e81d48c2f33e6b1020090089ee0/proto/cosmos/distribution/v1beta1/query.proto#L157-L167>",
+            "type": "object",
+            "required": [
+              "delegation_rewards"
+            ],
+            "properties": {
+              "delegation_rewards": {
+                "type": "object",
+                "required": [
+                  "delegator_address",
+                  "validator_address"
+                ],
+                "properties": {
+                  "delegator_address": {
+                    "type": "string"
+                  },
+                  "validator_address": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "See <https://github.com/cosmos/cosmos-sdk/blob/c74e2887b0b73e81d48c2f33e6b1020090089ee0/proto/cosmos/distribution/v1beta1/query.proto#L180-L187>",
+            "type": "object",
+            "required": [
+              "delegation_total_rewards"
+            ],
+            "properties": {
+              "delegation_total_rewards": {
+                "type": "object",
+                "required": [
+                  "delegator_address"
+                ],
+                "properties": {
+                  "delegator_address": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "See <https://github.com/cosmos/cosmos-sdk/blob/b0acf60e6c39f7ab023841841fc0b751a12c13ff/proto/cosmos/distribution/v1beta1/query.proto#L202-L210>",
+            "type": "object",
+            "required": [
+              "delegator_validators"
+            ],
+            "properties": {
+              "delegator_validators": {
+                "type": "object",
+                "required": [
+                  "delegator_address"
+                ],
+                "properties": {
+                  "delegator_address": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },
@@ -1001,6 +1157,74 @@
           {
             "type": "object",
             "required": [
+              "module_ibc_action"
+            ],
+            "properties": {
+              "module_ibc_action": {
+                "type": "object",
+                "required": [
+                  "host_chain",
+                  "msg",
+                  "target_module"
+                ],
+                "properties": {
+                  "callback_info": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/CallbackInfo"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "host_chain": {
+                    "type": "string"
+                  },
+                  "msg": {
+                    "$ref": "#/definitions/Binary"
+                  },
+                  "target_module": {
+                    "$ref": "#/definitions/ModuleInfo"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "ibc_query"
+            ],
+            "properties": {
+              "ibc_query": {
+                "type": "object",
+                "required": [
+                  "callback_info",
+                  "host_chain",
+                  "query"
+                ],
+                "properties": {
+                  "callback_info": {
+                    "$ref": "#/definitions/CallbackInfo"
+                  },
+                  "host_chain": {
+                    "type": "string"
+                  },
+                  "query": {
+                    "$ref": "#/definitions/QueryRequest_for_Empty"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
               "remote_action"
             ],
             "properties": {
@@ -1014,51 +1238,8 @@
                   "action": {
                     "$ref": "#/definitions/HostAction"
                   },
-                  "callback_info": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/CallbackInfo"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
                   "host_chain": {
                     "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Allows to query something on a remote contract and act on that query result This has to be an Execute variant for IBC queries",
-            "type": "object",
-            "required": [
-              "remote_queries"
-            ],
-            "properties": {
-              "remote_queries": {
-                "type": "object",
-                "required": [
-                  "callback_info",
-                  "host_chain",
-                  "queries"
-                ],
-                "properties": {
-                  "callback_info": {
-                    "$ref": "#/definitions/CallbackInfo"
-                  },
-                  "host_chain": {
-                    "type": "string"
-                  },
-                  "queries": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/QueryRequest_for_Empty"
-                    }
                   }
                 },
                 "additionalProperties": false
@@ -1088,7 +1269,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Callback from the Polytone implementation This is only triggered when a contract execution is succesful",
+            "description": "Callback from the Polytone implementation This is NOT ONLY triggered when a contract execution is successful",
             "type": "object",
             "required": [
               "callback"
@@ -1692,11 +1873,14 @@
               "dispatch": {
                 "type": "object",
                 "required": [
-                  "manager_msg"
+                  "manager_msgs"
                 ],
                 "properties": {
-                  "manager_msg": {
-                    "$ref": "#/definitions/ExecuteMsg2"
+                  "manager_msgs": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/ExecuteMsg2"
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -2093,6 +2277,34 @@
         "description": "Represents an Abstract namespace for modules",
         "type": "string"
       },
+      "PageRequest": {
+        "description": "Simplified version of the PageRequest type for pagination from the cosmos-sdk",
+        "type": "object",
+        "required": [
+          "limit",
+          "reverse"
+        ],
+        "properties": {
+          "key": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Binary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          },
+          "reverse": {
+            "type": "boolean"
+          }
+        }
+      },
       "QueryRequest_for_Empty": {
         "oneOf": [
           {
@@ -2127,6 +2339,18 @@
             "properties": {
               "staking": {
                 "$ref": "#/definitions/StakingQuery"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "distribution"
+            ],
+            "properties": {
+              "distribution": {
+                "$ref": "#/definitions/DistributionQuery"
               }
             },
             "additionalProperties": false

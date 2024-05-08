@@ -22,22 +22,24 @@ pub struct DeploymentStatus {
     pub success: bool,
 }
 
-pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [ChainInfo<'a>] {
+pub async fn assert_wallet_balance<'a>(mut chains: Vec<ChainInfo>) -> Vec<ChainInfo> {
     if chains.is_empty() {
-        chains = SUPPORTED_CHAINS;
+        chains = SUPPORTED_CHAINS.iter().cloned().map(Into::into).collect();
     }
     // check that the wallet has enough gas on all the chains we want to support
-    for chain_info in chains {
+    for chain_info in &chains {
         let chain = DaemonAsyncBuilder::default()
             .chain(chain_info.clone())
             .build()
             .await
             .unwrap();
-        let fee_token = chain.state.as_ref().chain_data.fees.fee_tokens[0].clone();
-        let fee = (GAS_TO_DEPLOY as f64 * fee_token.fixed_min_gas_price) as u128;
+
+        let gas_denom = chain.state.as_ref().chain_data.gas_denom.clone();
+        let gas_price = chain.state.as_ref().chain_data.gas_price;
+        let fee = (GAS_TO_DEPLOY as f64 * gas_price) as u128;
         let bank = queriers::Bank::new_async(chain.channel());
         let balance = bank
-            ._balance(chain.sender(), Some(fee_token.denom.clone()))
+            ._balance(chain.sender(), Some(gas_denom.clone()))
             .await
             .unwrap()
             .clone()[0]
@@ -49,10 +51,10 @@ pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [
             chain_info.chain_id,
             chain.sender(),
             fee,
-            fee_token.denom.as_str()
+            gas_denom
         );
         if fee > balance.amount.parse().unwrap() {
-            panic!("Not enough funds on chain {} to deploy the contract. Needed: {}{} but only have: {}{}", chain_info.chain_id, fee, fee_token.denom.as_str(), balance.amount, fee_token.denom);
+            panic!("Not enough funds on chain {} to deploy the contract. Needed: {}{} but only have: {}{}", chain_info.chain_id, fee, gas_denom, balance.amount, gas_denom);
         }
         // check if we have enough funds
     }

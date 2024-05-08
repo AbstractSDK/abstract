@@ -1,8 +1,7 @@
-use abstract_sdk::std::ibc_client::state::ACCOUNTS;
 use abstract_std::{
-    ibc::IbcResponseMsg,
+    ibc::{CallbackResult, IbcResponseMsg},
     ibc_client::{
-        state::{IBC_INFRA, REVERSE_POLYTONE_NOTE},
+        state::{ACCOUNTS, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
     objects::chain_name::ChainName,
@@ -88,15 +87,33 @@ pub fn receive_action_callback(
                     .add_attribute("chain", host_chain.to_string()),
             )
         }
-        IbcClientCallback::UserRemoteAction(callback_info) => {
-            // Here we transfer the callback back to the module that requested it
+        IbcClientCallback::ModuleRemoteAction {
+            callback_info,
+            sender_address,
+            initiator_msg,
+        } => {
             let callback = IbcResponseMsg {
                 id: callback_info.id.clone(),
                 msg: callback_info.msg,
-                result: callback.result,
+                result: CallbackResult::from_execute(callback.result, initiator_msg)?,
             };
-            Ok(IbcClientResponse::action("user_specific_callback")
-                .add_message(callback.into_cosmos_msg(callback_info.receiver)?)
+            Ok(IbcClientResponse::action("module_action_ibc_callback")
+                .add_message(callback.into_cosmos_msg(sender_address)?)
+                .add_attribute("chain", host_chain.to_string())
+                .add_attribute("callback_id", callback_info.id))
+        }
+        IbcClientCallback::ModuleRemoteQuery {
+            sender_address,
+            callback_info,
+            query,
+        } => {
+            let callback = IbcResponseMsg {
+                id: callback_info.id.clone(),
+                msg: callback_info.msg,
+                result: CallbackResult::from_query(callback.result, query)?,
+            };
+            Ok(IbcClientResponse::action("module_query_ibc_callback")
+                .add_message(callback.into_cosmos_msg(sender_address)?)
                 .add_attribute("chain", host_chain.to_string())
                 .add_attribute("callback_id", callback_info.id))
         }

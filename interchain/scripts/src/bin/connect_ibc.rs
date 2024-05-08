@@ -3,7 +3,7 @@ use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
 use abstract_scripts::{NEUTRON_1, ROLLKIT_TESTNET};
 use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMO_5, PHOENIX_1};
 use cw_orch::prelude::*;
-use cw_orch::{daemon::ChainInfo, tokio::runtime::Handle};
+use cw_orch::tokio::runtime::Handle;
 use cw_orch_polytone::Polytone;
 use tokio::runtime::Runtime;
 

@@ -30,7 +30,8 @@ impl Identify for Astrovault {
 }
 
 #[cfg(feature = "full_integration")]
-use ::{
+use {
+    crate::mini_astrovault::RewardSourceResponse,
     abstract_sdk::{
         feature_objects::AnsHost,
         features::AbstractRegistryAccess,
@@ -44,9 +45,7 @@ use ::{
     abstract_staking_standard::{CwStakingCommand, CwStakingError},
     astrovault::lp_staking::{
         handle_msg::ExecuteMsg as LpExecuteMsg,
-        query_msg::{
-            LpBalanceResponse, LpConfigResponse, QueryMsg as LpQueryMsg, RewardSourceResponse,
-        },
+        query_msg::{LpBalanceResponse, LpConfigResponse, QueryMsg as LpQueryMsg},
     },
     cosmwasm_std::{
         to_json_binary, wasm_execute, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Timestamp,
@@ -101,7 +100,7 @@ impl CwStakingCommand for Astrovault {
         let msg = to_json_binary(
             &astrovault::lp_staking::handle_msg::LPStakingReceiveMsg::Deposit {
                 sender: None,
-                not_claim_rewards: None,
+                not_claim_rewards: Some(true),
                 notify: None,
             },
         )?;
@@ -123,7 +122,6 @@ impl CwStakingCommand for Astrovault {
                 Ok(msg)
             })
             .collect::<Result<_, CwStakingError>>()?;
-
         Ok(stake_msgs)
     }
 
@@ -143,7 +141,7 @@ impl CwStakingCommand for Astrovault {
                         amount: Some(unstake.amount),
                         direct_pool_withdrawal: None,
                         to: None,
-                        not_claim_rewards: None,
+                        not_claim_rewards: Some(false),
                         withdrawal_unlocked: None,
                         notify: None,
                     },
@@ -188,7 +186,7 @@ impl CwStakingCommand for Astrovault {
                         amount: Some(Uint128::zero()),
                         direct_pool_withdrawal: None,
                         to: None,
-                        not_claim_rewards: None,
+                        not_claim_rewards: Some(false),
                         withdrawal_unlocked: None,
                         notify: None,
                     },

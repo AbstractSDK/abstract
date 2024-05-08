@@ -20,17 +20,17 @@ pub struct VersionControl<Chain>;
 
 impl<Chain: CwEnv> Uploadable for VersionControl<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+    fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
                 ::version_control::contract::execute,
                 ::version_control::contract::instantiate,
                 ::version_control::contract::query,
             )
-            .with_migrate(::version_control::contract::migrate),
+            .with_migrate(::version_control::migrate::migrate),
         )
     }
-    fn wasm(&self) -> WasmPath {
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path("version_control")
             .unwrap()
@@ -39,7 +39,9 @@ impl<Chain: CwEnv> Uploadable for VersionControl<Chain> {
 
 impl<Chain: CwEnv> VersionControl<Chain> {
     pub fn load(chain: Chain, address: &Addr) -> Self {
-        Self(cw_orch::contract::Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
+        let contract = cw_orch::contract::Contract::new(VERSION_CONTROL, chain);
+        contract.set_address(address);
+        Self(contract)
     }
 
     /// Query a single module

@@ -268,10 +268,9 @@ pub fn list_pool_metadata_entries(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = start_after.map(Bound::exclusive);
 
-    let pool_type_filter = match filter {
-        Some(PoolMetadataFilter { pool_type }) => pool_type,
-        None => None,
-    };
+    let PoolMetadataFilter {
+        pool_type: pool_type_filter,
+    } = filter.unwrap_or_default();
 
     let res: Result<Vec<(UniquePoolId, PoolMetadata)>, _> = POOL_METADATA
         // If the asset_pair_filter is provided, we must use that prefix...

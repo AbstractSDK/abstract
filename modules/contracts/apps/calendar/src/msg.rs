@@ -51,10 +51,10 @@ pub struct CalendarInstantiateMsg {
 
 /// App execute messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
+#[derive(cw_orch::ExecuteFns)]
+#[impl_into(ExecuteMsg)]
 pub enum CalendarExecuteMsg {
-    #[cfg_attr(feature = "interface", payable)]
+    #[payable]
     /// Request a new meeting.
     RequestMeeting {
         /// The unix timestamp of the start datetime of the meeting.
@@ -100,9 +100,8 @@ pub enum CalendarExecuteMsg {
 
 /// App query messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
-#[derive(QueryResponses)]
+#[derive(QueryResponses, cw_orch::QueryFns)]
+#[impl_into(QueryMsg)]
 pub enum CalendarQueryMsg {
     /// Returns the config.
     /// Returns [`ConfigResponse`]

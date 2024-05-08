@@ -11,12 +11,7 @@ crate-type = ["cdylib", "rlib"]
 
 
 [features]
-interface-macro = ["dep:abstract-interface", "dep:cw-orch"]
-test-utils = [
-  "dep:abstract-testing",
-  "interface-macro",
-  "abstract-sdk/test-utils",
-]
+test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils"]
 schema = []
 
 [dependencies]
@@ -33,9 +28,10 @@ cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true }
 
-abstract-interface = { path = "../../packages/abstract-interface", version = "0.21.0", optional = true }
+abstract-interface = { path = "../../packages/abstract-interface", version = "0.21.0" }
+abstract-ibc-host = { version = "0.21.0", path = "../../contracts/native/ibc-host", default-features = false }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

@@ -1,10 +1,6 @@
 use abstract_app::std::objects::dependency::StaticDependency;
-#[cfg(feature = "interface")]
-use abstract_app::std::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
 use abstract_app::AppContract;
 use cosmwasm_std::{Empty, Response};
-#[cfg(feature = "interface")]
-use croncat_app::contract::interface::Croncat;
 use croncat_app::contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION};
 
 use crate::{
@@ -40,10 +36,13 @@ const DCA_APP: DCAApp = DCAApp::new(DCA_APP_ID, DCA_APP_VERSION, None)
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(DCA_APP, DCAApp);
 
-#[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(DCA_APP, DCAApp, DCA);
 
-#[cfg(feature = "interface")]
+#[cfg(not(target_arch = "wasm32"))]
+use abstract_app::std::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
+#[cfg(not(target_arch = "wasm32"))]
+use croncat_app::contract::interface::Croncat;
+#[cfg(not(target_arch = "wasm32"))]
 impl<Chain: cw_orch::environment::CwEnv> abstract_app::abstract_interface::DependencyCreation
     for crate::DCA<Chain>
 {

@@ -19,9 +19,7 @@ pub mod traits {
     pub use abstract_sdk::{features::*, prelude::*};
 }
 
-#[cfg(feature = "interface-macro")]
 mod interface;
-#[cfg(feature = "interface-macro")]
 pub use abstract_interface;
 #[cfg(feature = "test-utils")]
 pub use abstract_testing;
@@ -133,7 +131,7 @@ pub mod mock {
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _, _, _| {
+            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _| {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })])
@@ -231,7 +229,7 @@ pub mod mock {
         impl <T: ::cw_orch::prelude::CwEnv> ::abstract_interface::AdapterDeployer<T, MockInitMsg> for $name <T> {}
 
         impl<T: ::cw_orch::prelude::CwEnv> Uploadable for $name<T> {
-            fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+            fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
                     Exec,
                     _,
@@ -313,7 +311,7 @@ pub mod mock {
         impl ::abstract_interface::AdapterDeployer<::cw_orch::prelude::MockBech32, MockInitMsg> for $name <::cw_orch::prelude::MockBech32> {}
 
         impl Uploadable for $name<::cw_orch::prelude::MockBech32> {
-            fn wrapper(&self) -> <MockBech32 as ::cw_orch::environment::TxHandler>::ContractSource {
+            fn wrapper() -> <MockBech32 as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
                     Exec,
                     _,

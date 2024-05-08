@@ -1,6 +1,6 @@
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use abstract_std::{
-    app::{BaseInstantiateMsg, InstantiateMsg},
+    app::{AppState, BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
@@ -9,7 +9,7 @@ use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
-    state::{AppContract, AppState, ContractError},
+    state::{AppContract, ContractError},
     Handler, InstantiateEndpoint,
 };
 
