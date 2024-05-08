@@ -1,13 +1,10 @@
 pub mod abstract_ibc;
 
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
-use cw_orch::daemon::{ChainKind, NetworkInfo};
-use cw_orch::{
-    daemon::ChainInfo,
-    prelude::{
-        networks::{HARPOON_4, JUNO_1, OSMO_5, PHOENIX_1, PION_1, PISCO_1, UNI_6},
-        *,
-    },
+use cw_orch::environment::{ChainKind, NetworkInfo};
+use cw_orch::prelude::{
+    networks::{HARPOON_4, JUNO_1, OSMO_5, PHOENIX_1, PION_1, PISCO_1, UNI_6},
+    *,
 };
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +19,7 @@ pub struct DeploymentStatus {
     pub success: bool,
 }
 
-pub async fn assert_wallet_balance<'a>(mut chains: Vec<ChainInfo>) -> Vec<ChainInfo> {
+pub async fn assert_wallet_balance(mut chains: Vec<ChainInfoOwned>) -> Vec<ChainInfoOwned> {
     if chains.is_empty() {
         chains = SUPPORTED_CHAINS.iter().cloned().map(Into::into).collect();
     }
@@ -63,7 +60,7 @@ pub async fn assert_wallet_balance<'a>(mut chains: Vec<ChainInfo>) -> Vec<ChainI
 }
 
 pub const ROLLKIT_NETWORK: NetworkInfo = NetworkInfo {
-    id: "rosm",
+    chain_name: "rosm",
     pub_address_prefix: "wasm",
     coin_type: 118u32,
 };

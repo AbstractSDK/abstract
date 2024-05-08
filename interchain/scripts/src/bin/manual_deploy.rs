@@ -4,25 +4,25 @@ use abstract_interface::Abstract;
 use abstract_scripts::assert_wallet_balance;
 use abstract_std::objects::gov_type::GovernanceDetails;
 use clap::Parser;
-use cw_orch::prelude::{networks::ChainInfo, *};
+use cw_orch::{environment::NetworkInfoOwned, prelude::*};
 use reqwest::Url;
 use tokio::runtime::Runtime;
 
-use cw_orch::daemon::{ChainKind, NetworkInfo};
+use cw_orch::environment::ChainKind;
 use cw_orch_polytone::Polytone;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Script to deploy Abstract & polytone to a new network provided by commmand line arguments
 /// Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
-fn manual_deploy(network: ChainInfo) -> anyhow::Result<()> {
+fn manual_deploy(network: ChainInfoOwned) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
 
-    rt.block_on(assert_wallet_balance(&[network.clone()]));
+    rt.block_on(assert_wallet_balance(vec![network.clone()]));
 
     let urls = network.grpc_urls.to_vec();
     for url in urls {
-        rt.block_on(ping_grpc(url))?;
+        rt.block_on(ping_grpc(&url))?;
     }
 
     let chain = DaemonBuilder::default()
@@ -120,18 +120,18 @@ fn main() {
 
     let args = Arguments::parse();
 
-    let network_info: NetworkInfo = NetworkInfo {
-        id: &args.network_id,
-        pub_address_prefix: &args.address_prefix,
+    let network_info: NetworkInfoOwned = NetworkInfoOwned {
+        chain_name: args.network_id,
+        pub_address_prefix: args.address_prefix,
         coin_type: args.coin_type.unwrap_or(118u32),
     };
 
-    let chain_info: ChainInfo = ChainInfo {
+    let chain_info: ChainInfoOwned = ChainInfoOwned {
         kind: ChainKind::Testnet,
-        chain_id: &args.chain_id,
-        gas_denom: &args.gas_denom,
+        chain_id: args.chain_id,
+        gas_denom: args.gas_denom,
         gas_price: args.gas_price.unwrap_or(0.025),
-        grpc_urls: &[&args.grpc_url],
+        grpc_urls: vec![args.grpc_url],
         network_info,
         lcd_url: None,
         fcd_url: None,
