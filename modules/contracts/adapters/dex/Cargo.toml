@@ -23,6 +23,7 @@ required-features = ["schema"]
 
 [features]
 default = ["export"]
+ibc = ["abstract-adapter/ibc", "abstract-dex-standard/module-ibc"]
 export = []
 schema = ["abstract-adapter/schema"]
 # TODO: do we need all these deps here?
@@ -85,7 +86,7 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
-abstract-adapter = { workspace = true, default-features = false }
+abstract-adapter = { workspace = true }
 cw-orch = { workspace = true }
 
 # Local

@@ -1,7 +1,10 @@
+#[cfg(feature = "ibc")]
+use abstract_adapter::sdk::IbcInterface;
+
 use abstract_adapter::sdk::{
-    features::AbstractNameService, AccountVerification, Execution, IbcInterface,
-    ModuleRegistryInterface,
+    features::AbstractNameService, AccountVerification, Execution, ModuleRegistryInterface,
 };
+
 use abstract_adapter::std::{
     ibc::CallbackInfo,
     objects::{
@@ -53,6 +56,9 @@ pub fn execute_handler(
 
             // if exchange is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
+                #[cfg(not(feature = "ibc"))]
+                panic!("Ibc is not enabled on this dex adapter");
+                #[cfg(feature = "ibc")]
                 handle_ibc_request(&deps, info, &adapter, local_dex_name, &raw_action)
             } else {
                 // the action can be executed on the local chain
@@ -67,6 +73,9 @@ pub fn execute_handler(
 
             // if exchange is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
+                #[cfg(not(feature = "ibc"))]
+                panic!("Ibc is not enabled on this dex adapter");
+                #[cfg(feature = "ibc")]
                 handle_ibc_request(&deps, info, &adapter, local_dex_name, &action)
             } else {
                 // the action can be executed on the local chain
@@ -134,6 +143,7 @@ fn handle_local_request(
     Ok(Response::new().add_message(proxy_msg))
 }
 
+#[cfg(feature = "ibc")]
 /// Handle an adapter request that can be executed on an IBC chain
 /// TODO, this doesn't work as is, would have to change this for working with IBC hooks
 fn handle_ibc_request(

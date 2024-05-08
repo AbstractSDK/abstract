@@ -15,7 +15,12 @@ resolver = "2"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["export"]
+default = ["export", "module-ibc"]
+module-ibc = [
+    "abstract-std/module-ibc",
+    "abstract-sdk/module-ibc",
+    "abstract-adapter/ibc",
+]
 export = []
 testing = ["cw-orch/daemon"]
 
@@ -33,4 +38,4 @@ abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 cw-orch = { workspace = true }
-abstract-adapter = { path = "../../abstract-adapter", version = "0.21.0" }
+abstract-adapter = { workspace = true }

@@ -217,6 +217,7 @@ pub fn execute_send_packet(
 /// Sends a packet with an optional callback.
 /// This is the top-level function to do IBC related actions.
 #[allow(clippy::too_many_arguments)]
+#[cfg(feature = "module-ibc")]
 pub fn execute_send_module_to_module_packet(
     deps: DepsMut,
     env: Env,

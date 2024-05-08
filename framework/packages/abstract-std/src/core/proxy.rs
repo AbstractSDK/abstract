@@ -14,6 +14,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
+use crate::ibc_client::ExecuteMsg as IbcClientMsg;
 #[allow(unused_imports)]
 use crate::objects::{
     account::AccountId,
@@ -21,9 +22,6 @@ use crate::objects::{
     price_source::{PriceSource, UncheckedPriceSource},
     AssetEntry,
 };
-
-#[cfg(feature = "module-ibc")]
-use crate::ibc_client::ExecuteMsg as IbcClientMsg;
 
 pub mod state {
     use cosmwasm_std::Addr;
@@ -59,7 +57,6 @@ pub enum ExecuteMsg {
     /// Execute a message and forward the Response data
     ModuleActionWithData { msg: CosmosMsg<Empty> },
     /// Execute IBC action on Client
-    #[cfg(feature = "module-ibc")]
     IbcAction { msg: IbcClientMsg },
     /// Adds the provided address to whitelisted dapps
     AddModules { modules: Vec<String> },

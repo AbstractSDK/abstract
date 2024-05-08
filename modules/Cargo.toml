@@ -50,7 +50,7 @@ tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.21.0" }
+abstract-interface = { version = "0.21.0", default-features = false }
 abstract-adapter = { version = "0.21.0", default-features = false }
 abstract-app = { version = "0.21.0", default-features = false }
 abstract-testing = { version = "0.21.0" }
@@ -58,10 +58,10 @@ abstract-macros = { version = "0.21.0" }
 abstract-client = { version = "0.21.0" }
 
 abstract-adapter-utils = { version = "0.21.0" }
-abstract-dex-standard = { version = "0.21.0" }
-abstract-staking-standard = { version = "0.21.0" }
+abstract-dex-standard = { version = "0.21.0", default-features = false }
+abstract-staking-standard = { version = "0.21.0", default-features = false }
 # abstract-money-market-standard = { version = "0.21.0" }
-abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
+abstract-money-market-standard = { path = "../framework/packages/standards/money-market", default-features = false }
 
 # Integrations
 abstract-wyndex-adapter = { path = "../integrations/wyndex-adapter", default-features = false }

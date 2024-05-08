@@ -54,16 +54,16 @@ semver = "1.0"
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.21.0" }
-abstract-adapter = { version = "0.21.0" }
+abstract-interface = { version = "0.21.0", default-features = false }
+abstract-adapter = { version = "0.21.0", default-features = false }
 abstract-sdk = { version = "0.21.0" }
 abstract-std = { version = "0.21.0" }
 
 abstract-adapter-utils = { version = "0.21.0" }
-abstract-dex-standard = { version = "0.21.0" }
+abstract-dex-standard = { version = "0.21.0", default-features = false }
 # abstract-money-market-standard = { version = "0.21.0" }
-abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
-abstract-staking-standard = { version = "0.21.0" }
+abstract-money-market-standard = { path = "../framework/packages/standards/money-market", default-features = false }
+abstract-staking-standard = { version = "0.21.0", default-features = false }
 
 # TODO: REMOVE As soon as new dex-standard published
 [patch.crates-io]

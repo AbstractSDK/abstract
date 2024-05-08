@@ -90,6 +90,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::Callback(c) => {
             ibc::receive_action_callback(deps, env, info, c).map_err(Into::into)
         }
+        #[cfg(feature = "module-ibc")]
         ExecuteMsg::ModuleIbcAction {
             host_chain,
             target_module,
@@ -104,6 +105,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             msg,
             callback_info,
         ),
+        #[cfg(feature = "module-ibc")]
         ExecuteMsg::IbcQuery {
             host_chain,
             query,
