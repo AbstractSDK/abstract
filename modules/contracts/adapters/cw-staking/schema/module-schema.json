@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.20.0",
+  "contract_version": "0.22.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -229,7 +229,7 @@
     "description": "Query messages for the staking adapter",
     "oneOf": [
       {
-        "description": "Get the staking info for a given provider",
+        "description": "Get the staking info for a given provider Returns [`StakingInfoResponse`]",
         "type": "object",
         "required": [
           "info"
@@ -260,7 +260,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get the staked amount for a given provider, staking token, staker address and unbonding period",
+        "description": "Get the staked amount for a given provider, staking token, staker address and unbonding period Returns [`StakeResponse`]",
         "type": "object",
         "required": [
           "staked"
@@ -307,7 +307,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get the unbonding entries for a given provider, staking token and staker address",
+        "description": "Get the unbonding entries for a given provider, staking token and staker address Returns [`UnbondingResponse`]",
         "type": "object",
         "required": [
           "unbonding"
@@ -343,7 +343,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get the reward tokens for a given provider and staking token",
+        "description": "Get the reward tokens for a given provider and staking token Returns [`RewardTokensResponse`]",
         "type": "object",
         "required": [
           "reward_tokens"

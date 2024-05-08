@@ -516,7 +516,7 @@
                   "null"
                 ],
                 "format": "uint64",
-                "minimum": 0
+                "minimum": 0.0
               },
               "start_after": {
                 "description": "Start after subscriber address",
@@ -814,7 +814,7 @@
               "description": "amount of active subscribers",
               "type": "integer",
               "format": "uint32",
-              "minimum": 0
+              "minimum": 0.0
             }
           },
           "additionalProperties": false

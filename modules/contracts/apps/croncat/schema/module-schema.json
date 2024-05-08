@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.2.0",
+  "contract_version": "0.3.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -1537,7 +1537,7 @@
     "description": "Croncat Query Messages",
     "oneOf": [
       {
-        "description": "Get config",
+        "description": "Get config Returns [`ConfigResponse`]",
         "type": "object",
         "required": [
           "config"
@@ -1551,7 +1551,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get active tasks",
+        "description": "Get active tasks Returns [`ActiveTasksResponse`]",
         "type": "object",
         "required": [
           "active_tasks"
@@ -1600,7 +1600,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get active tasks by creator",
+        "description": "Get active tasks by creator Returns [`ActiveTasksByCreatorResponse`]",
         "type": "object",
         "required": [
           "active_tasks_by_creator"
@@ -1646,7 +1646,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get task info",
+        "description": "Get task info Returns [`croncat_sdk_tasks::types::TaskResponse`]",
         "type": "object",
         "required": [
           "task_info"
@@ -1674,7 +1674,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get task balance",
+        "description": "Get task balance Returns [`croncat_sdk_manager::types::TaskBalanceResponse`]",
         "type": "object",
         "required": [
           "task_balance"
@@ -1702,7 +1702,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get croncat manager address of task Used to verify sender",
+        "description": "Get croncat manager address of task Used to verify sender Returns [`Addr`]",
         "type": "object",
         "required": [
           "manager_addr"

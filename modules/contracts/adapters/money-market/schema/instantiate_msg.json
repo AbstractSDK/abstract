@@ -19,7 +19,7 @@
       "description": "custom instantiate msg",
       "allOf": [
         {
-          "$ref": "#/definitions/DexInstantiateMsg"
+          "$ref": "#/definitions/MoneyMarketInstantiateMsg"
         }
       ]
     }
@@ -49,27 +49,27 @@
       "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
       "type": "string"
     },
-    "DexInstantiateMsg": {
+    "MoneyMarketInstantiateMsg": {
       "description": "Instantiation message for dex adapter",
       "type": "object",
       "required": [
-        "recipient_account",
-        "swap_fee"
+        "fee",
+        "recipient_account"
       ],
       "properties": {
-        "recipient_account": {
-          "description": "Recipient account for fees.",
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0.0
-        },
-        "swap_fee": {
+        "fee": {
           "description": "Fee charged on each swap.",
           "allOf": [
             {
               "$ref": "#/definitions/Decimal"
             }
           ]
+        },
+        "recipient_account": {
+          "description": "Recipient account for fees.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
         }
       },
       "additionalProperties": false

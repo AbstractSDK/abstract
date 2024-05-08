@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.2.0",
+  "contract_version": "0.4.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -136,6 +136,7 @@
     "title": "QueryMsg",
     "oneOf": [
       {
+        "description": "Returns [`ConfigResponse`]",
         "type": "object",
         "required": [
           "config"
@@ -149,6 +150,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Returns [`TipperResponse`]",
         "type": "object",
         "required": [
           "tipper"
@@ -196,6 +198,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Returns [`TipCountResponse`]",
         "type": "object",
         "required": [
           "tip_count"
@@ -209,6 +212,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Returns [`TippersCountResponse`]",
         "type": "object",
         "required": [
           "list_tippers_count"
@@ -248,8 +252,8 @@
   "migrate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MigrateMsg",
-    "type": "string",
-    "enum": []
+    "type": "object",
+    "additionalProperties": false
   },
   "sudo": null,
   "responses": {
