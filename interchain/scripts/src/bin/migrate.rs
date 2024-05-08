@@ -27,7 +27,7 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         let deployment = Abstract::load_from(chain.clone())?;
 
-        deployment.migrate_if_needed()?;
+        deployment.migrate_if_version_changed()?;
 
         // Deploy Adapters
         CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone()).deploy(
