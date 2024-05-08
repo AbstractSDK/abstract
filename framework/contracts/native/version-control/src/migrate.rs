@@ -23,7 +23,7 @@ pub(crate) struct Config0_21 {
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let to_version: Version = CONTRACT_VERSION.parse()?;
 
-    if let Some(old_config) = CONFIG0_21.may_load(deps.storage)? {
+    if let Ok(old_config) = CONFIG0_21.load(deps.storage) {
         let new_config = Config {
             account_factory_address: old_config.account_factory_address,
             security_disabled: old_config.allow_direct_module_registration_and_updates,
