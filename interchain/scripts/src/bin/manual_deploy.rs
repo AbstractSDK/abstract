@@ -1,17 +1,10 @@
-use std::{
-    net::TcpStream,
-};
+use std::net::TcpStream;
 
-use abstract_interface::{Abstract};
-use abstract_scripts::{
-    assert_wallet_balance,
-};
+use abstract_interface::Abstract;
+use abstract_scripts::assert_wallet_balance;
 use abstract_std::objects::gov_type::GovernanceDetails;
 use clap::Parser;
-use cw_orch::prelude::{
-    networks::{ChainInfo},
-    *,
-};
+use cw_orch::prelude::{networks::ChainInfo, *};
 use reqwest::Url;
 use tokio::runtime::Runtime;
 

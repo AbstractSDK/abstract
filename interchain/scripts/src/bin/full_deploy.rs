@@ -1,20 +1,17 @@
+use abstract_interface::Abstract;
+use abstract_std::objects::gov_type::GovernanceDetails;
 use std::{
     fs::{self, File},
     io::BufReader,
     net::TcpStream,
 };
-use abstract_interface::Abstract;
-use abstract_std::objects::gov_type::GovernanceDetails;
 
-
-use abstract_scripts::{
-    assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS,
-};
+use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 
 use clap::Parser;
-use cw_orch::prelude::{
-    networks::{ChainInfo},
-    *,
+use cw_orch::{
+    daemon::networks::parse_network,
+    prelude::{networks::ChainInfo, *},
 };
 use reqwest::Url;
 use tokio::runtime::Runtime;
@@ -138,18 +135,17 @@ fn main() {
     dotenv().ok();
     env_logger::init();
 
-    use abstract_scripts::ROLLKIT_TESTNET;
     use dotenv::dotenv;
 
-    let _args = Arguments::parse();
+    let args = Arguments::parse();
 
-    // let networks = args
-    //     .network_ids
-    //     .iter()
-    //     .map(|n| parse_network(n).unwrap())
-    //     .collect::<Vec<_>>();
+    // let networks = vec![abstract_scripts::ROLLKIT_TESTNET];
 
-    let networks = vec![ROLLKIT_TESTNET];
+    let networks = args
+        .network_ids
+        .iter()
+        .map(|n| parse_network(n).unwrap())
+        .collect::<Vec<_>>();
 
     if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);
@@ -166,6 +162,3 @@ fn main() {
         ::std::process::exit(1);
     }
 }
-
-
-

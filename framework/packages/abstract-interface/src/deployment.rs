@@ -183,7 +183,11 @@ impl<Chain: CwEnv> Abstract<Chain> {
         }
     }
 
-    pub fn instantiate(&mut self, _chain: &Chain, admin: String) -> Result<(), AbstractInterfaceError> {
+    pub fn instantiate(
+        &mut self,
+        _chain: &Chain,
+        admin: String,
+    ) -> Result<(), AbstractInterfaceError> {
         let admin = Addr::unchecked(admin);
 
         self.ans_host.instantiate(
