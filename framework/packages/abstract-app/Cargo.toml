@@ -1,6 +1,6 @@
 [package]
 name = "abstract-app"
-version = "0.21.0"
+version = "0.22.1"
 edition = { workspace = true }
 license = { workspace = true }
 description = "base app contract implementation"
@@ -30,8 +30,8 @@ abstract-std = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 
-abstract-interface = { path = "../../packages/abstract-interface", version = "0.21.0" }
-abstract-ibc-host = { version = "0.21.0", path = "../../contracts/native/ibc-host", default-features = false }
+abstract-interface = { version = "0.22.1", path = "../../packages/abstract-interface" }
+abstract-ibc-host = { version = "0.22.1", path = "../../contracts/native/ibc-host", default-features = false }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [0.22.1] - 2024-05-08
+
+### Added
+
 - `staking_action` helper method for `CwStakingAdapter` interface
 - `ans_action` and `raw_action` helper methods for `DexAdapter` interface
   
