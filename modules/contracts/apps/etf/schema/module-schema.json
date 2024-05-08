@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.20.0",
+  "contract_version": "0.22.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -217,6 +217,7 @@
       "type": "object",
       "required": [
         "fee",
+        "manager_addr",
         "share_token_address"
       ],
       "properties": {
@@ -225,6 +226,14 @@
           "allOf": [
             {
               "$ref": "#/definitions/Decimal"
+            }
+          ]
+        },
+        "manager_addr": {
+          "description": "Address of the ETFs manager which receives the fee.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Addr"
             }
           ]
         },

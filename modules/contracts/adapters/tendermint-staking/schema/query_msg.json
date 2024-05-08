@@ -70,7 +70,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns module data",
+          "description": "Returns module data Returns [`ModuleDataResponse`].",
           "type": "object",
           "required": [
             "module_data"

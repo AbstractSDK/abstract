@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.20.0",
+  "contract_version": "0.22.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -428,7 +428,7 @@
     "description": "Subscriptions query messages",
     "oneOf": [
       {
-        "description": "Get state of subscriptions and contributors",
+        "description": "Get state of subscriptions and contributors Returns [`StateResponse`]",
         "type": "object",
         "required": [
           "state"
@@ -442,7 +442,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get config of subscriptions and contributors",
+        "description": "Get config of subscriptions and contributors Returns [`SubscriptionConfig`]",
         "type": "object",
         "required": [
           "config"
@@ -456,7 +456,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get minimum of one month's worth to (re)-subscribe.",
+        "description": "Get minimum of one month's worth to (re)-subscribe. Returns [`SubscriptionFeeResponse`]",
         "type": "object",
         "required": [
           "fee"
@@ -470,7 +470,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get state of the subscriber",
+        "description": "Get state of the subscriber Returns [`SubscriberResponse`]",
         "type": "object",
         "required": [
           "subscriber"
@@ -493,7 +493,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get list of subscribers",
+        "description": "Get list of subscribers Returns [`SubscribersResponse`]",
         "type": "object",
         "required": [
           "subscribers"
