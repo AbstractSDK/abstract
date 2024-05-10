@@ -10,7 +10,7 @@ use abstract_std::{
     proxy::ExecuteMsg,
     IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, wasm_execute, Coin, CosmosMsg, Deps};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
 use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
@@ -78,6 +78,11 @@ pub struct IbcClient<'a, T: IbcInterface> {
 }
 
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
+    /// Get address of this module
+    pub fn module_address(&self) -> AbstractSdkResult<Addr> {
+        self.base.modules(self.deps).module_address(IBC_CLIENT)
+    }
+
     /// Registers the ibc client to be able to use IBC capabilities
     pub fn register_ibc_client(&self) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(

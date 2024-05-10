@@ -105,6 +105,7 @@ pub enum ExecuteMsg {
         install_modules: Vec<ModuleInstallConfig>,
     },
     ModuleIbcAction {
+        // TODO: Should it be ChainName?
         host_chain: String,
         target_module: ModuleInfo,
         msg: Binary,

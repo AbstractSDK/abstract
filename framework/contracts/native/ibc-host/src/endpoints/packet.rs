@@ -18,10 +18,8 @@ use crate::{
     HostError,
 };
 
-pub fn client_to_host_account_id(remote_chain: ChainName, account_id: AccountId) -> AccountId {
-    let mut account_id = account_id.clone();
-    account_id.trace_mut().push_chain(remote_chain);
-
+pub fn client_to_host_account_id(remote_chain: ChainName, mut account_id: AccountId) -> AccountId {
+    account_id.client_to_host(remote_chain);
     account_id
 }
 

@@ -70,6 +70,11 @@ impl AccountId {
         !self.is_local()
     }
 
+    /// Push the client chain to the account trace
+    pub fn client_to_host(&mut self, remote_chain_name: ChainName) {
+        self.trace_mut().push_chain(remote_chain_name)
+    }
+
     pub fn decompose(self) -> (AccountTrace, AccountSequence) {
         (self.trace, self.seq)
     }
