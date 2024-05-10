@@ -9,7 +9,16 @@ license = "MIT OR Apache-2.0"
 [features]
 default = ["full_integration"]
 local = []
-full_integration = ["dep:kujira", "dep:cw20", "dep:cw-asset", "dep:cw-utils"]
+full_integration = [
+    "dep:kujira",
+    "dep:cw20",
+    "dep:cw-asset",
+    "dep:cw-utils",
+    "abstract-staking-standard/module-ibc",
+    "abstract-dex-standard/module-ibc",
+    "abstract-money-market-standard/module-ibc",
+    "abstract-sdk/module-ibc",
+]
 
 [dependencies]
 kujira = { version = "0.8.2", optional = true }

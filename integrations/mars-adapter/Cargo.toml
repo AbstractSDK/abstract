@@ -15,6 +15,10 @@ full_integration = [
   "dep:cw-asset",
   "dep:cw-utils",
   "dep:cosmwasm-schema",
+  "abstract-staking-standard/module-ibc",
+  "abstract-dex-standard/module-ibc",
+  "abstract-sdk/module-ibc",
+  "abstract-money-market-standard/module-ibc",
 ]
 
 [dependencies]

@@ -13,6 +13,9 @@ full_integration = [
   "dep:cw-asset",
   "dep:cw-utils",
   "dep:osmosis-std",
+  "abstract-staking-standard/module-ibc",
+  "abstract-dex-standard/module-ibc",
+  "abstract-sdk/module-ibc",
 ]
 
 [dependencies]

@@ -39,14 +39,15 @@ wynd = [
   "dep:wasmswap",
   "dep:cw20_junoswap",
   "abstract-wyndex-adapter/full_integration",
+  "ibc",
 ]
-osmosis = ["abstract-osmosis-adapter/full_integration"]
-astroport = ["abstract-astroport-adapter/full_integration"]
-bow = ["abstract-kujira-adapter/full_integration"]
-terraswap = ["dep:terraswap", "dep:cw20"]
+osmosis = ["abstract-osmosis-adapter/full_integration", "ibc"]
+astroport = ["abstract-astroport-adapter/full_integration", "ibc"]
+bow = ["abstract-kujira-adapter/full_integration", "ibc"]
+terraswap = ["dep:terraswap", "dep:cw20", "ibc"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
 
-osmosis-test = ["cw-orch/osmosis-test-tube"]
+osmosis-test = ["cw-orch/osmosis-test-tube", "ibc"]
 
 # Builds
 [package.metadata.optimizer]

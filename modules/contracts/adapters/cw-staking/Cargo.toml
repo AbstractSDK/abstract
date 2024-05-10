@@ -28,16 +28,17 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 export = []
+ibc = ["abstract-adapter/ibc", "abstract-staking-standard/module-ibc"]
 default = ["export"]
 schema = ["abstract-adapter/schema"]
 testing = ["dep:abstract-client", "dep:cw20"]
 osmosis-test = ["cw-orch/osmosis-test-tube"]
 
 # Supported Dexes
-wynd = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
-osmosis = ["abstract-osmosis-adapter/full_integration"]
-astroport = ["abstract-astroport-adapter/full_integration"]
-bow = ["abstract-kujira-adapter/full_integration"]
+wynd = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers", "ibc"]
+osmosis = ["abstract-osmosis-adapter/full_integration", "ibc"]
+astroport = ["abstract-astroport-adapter/full_integration", "ibc"]
+bow = ["abstract-kujira-adapter/full_integration", "ibc"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
 
 # Builds

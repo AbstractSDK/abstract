@@ -1,7 +1,7 @@
 use abstract_adapter::sdk::{
     feature_objects::AnsHost,
     features::{AbstractNameService, AbstractResponse, AccountIdentification},
-    IbcInterface, Resolve,
+    Resolve,
 };
 use abstract_adapter::std::ibc::CallbackInfo;
 use abstract_adapter::std::objects::chain_name::ChainName;
@@ -9,6 +9,9 @@ use abstract_staking_standard::msg::{
     ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
 };
 use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo};
+
+#[cfg(feature = "ibc")]
+use abstract_adapter::sdk::IbcInterface;
 
 use crate::{
     adapter::CwStakingAdapter,
@@ -32,6 +35,9 @@ pub fn execute_handler(
     // if provider is on an app-chain, execute the action on the app-chain
     let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider_name)?;
     if is_over_ibc {
+        #[cfg(not(feature = "ibc"))]
+        panic!("Ibc is not enabled on this dex adapter");
+        #[cfg(feature = "ibc")]
         handle_ibc_request(&deps, info, &adapter, local_provider_name, &action)
     } else {
         // the action can be executed on the local chain
@@ -61,6 +67,7 @@ fn handle_local_request(
         )?))
 }
 
+#[cfg(feature = "ibc")]
 /// Handle a request that needs to be executed on a remote chain
 /// TODO, this doesn't work as is. This should be corrected when working with ibc hooks ?
 fn handle_ibc_request(

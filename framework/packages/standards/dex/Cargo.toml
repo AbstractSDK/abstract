@@ -15,14 +15,14 @@ resolver = "2"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["export", "module-ibc"]
+default = ["export"]
 module-ibc = [
     "abstract-std/module-ibc",
     "abstract-sdk/module-ibc",
     "abstract-adapter/ibc",
 ]
 export = []
-testing = ["cw-orch/daemon"]
+testing = ["cw-orch/daemon", "module-ibc"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]
