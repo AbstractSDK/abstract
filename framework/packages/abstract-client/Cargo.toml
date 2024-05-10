@@ -1,6 +1,6 @@
 [package]
 name = "abstract-client"
-version = "0.21.0"
+version = "0.22.1"
 description = "A client oriented package for the Abstract Framework."
 authors.workspace = true
 edition.workspace = true
@@ -18,7 +18,7 @@ default = ["test-utils"]
 test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
 
 [dependencies]
-abstract-interface = { version = "0.21.0", path = "../abstract-interface" }
+abstract-interface = { version = "0.22.1", path = "../abstract-interface" }
 cosmwasm-std.workspace = true
 abstract-std.workspace = true
 cw-orch.workspace = true

@@ -1,6 +1,6 @@
 [package]
 name = "abstract-adapter"
-version = "0.21.0"
+version = "0.22.1"
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -35,11 +35,11 @@ abstract-std = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 # Keep this as a version and update when publishing new versions
-abstract-interface = { path = "../../packages/abstract-interface", version = "0.21.0" }
-abstract-ibc-client = { version = "0.21.0", path = "../../contracts/native/ibc-client", default-features = false, features = [
+abstract-interface = { version = "0.22.1", path = "../../packages/abstract-interface" }
+abstract-ibc-client = { version = "0.22.1", path = "../../contracts/native/ibc-client", default-features = false, features = [
     "module-ibc",
 ], optional = true }
-abstract-ibc-host = { version = "0.21.0", path = "../../contracts/native/ibc-host", default-features = false, features = [
+abstract-ibc-host = { version = "0.22.1", path = "../../contracts/native/ibc-host", default-features = false, features = [
     "module-ibc",
 ], optional = true }
 

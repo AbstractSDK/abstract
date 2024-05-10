@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.2.0",
+  "contract_version": "0.4.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -374,7 +374,7 @@
     "description": "DCA query messages",
     "oneOf": [
       {
-        "description": "Get config of the DCA app",
+        "description": "Get config of the DCA app Returns [`ConfigResponse`]",
         "type": "object",
         "required": [
           "config"
@@ -388,7 +388,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get DCA Entry",
+        "description": "Get DCA Entry Returns [`DCAResponse`]",
         "type": "object",
         "required": [
           "d_c_a"
