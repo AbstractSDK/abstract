@@ -36,7 +36,7 @@ abstract-std = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 
-abstract-interface = { path = "../../packages/abstract-interface", version = "0.22.1" }
+abstract-interface = { version = "0.22.1", path = "../../packages/abstract-interface" }
 abstract-ibc-host = { version = "0.22.1", path = "../../contracts/native/ibc-host", default-features = false, features = [
     "module-ibc",
 ], optional = true }

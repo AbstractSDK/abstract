@@ -15,7 +15,7 @@ module-ibc = ["abstract-std/module-ibc"]
 stargate = ["dep:cosmos-sdk-proto", "dep:prost-types"]
 
 # Expose MockModule for testing with other Adapters
-test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
+test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema", "module-ibc"]
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["iterator", "staking"] }
