@@ -965,7 +965,6 @@ dependencies = [
  "abstract-cw-staking",
  "abstract-dex-adapter",
  "abstract-interface",
- "abstract-money-market-adapter",
  "abstract-polytone-note 2.0.0",
  "abstract-std",
  "anyhow",

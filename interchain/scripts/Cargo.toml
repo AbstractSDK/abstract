@@ -44,6 +44,6 @@ etf-app = { workspace = true }
 dca-app = { workspace = true }
 abstract-dex-adapter = { workspace = true }
 abstract-cw-staking = { workspace = true }
-abstract-money-market-adapter = { workspace = true }
+#abstract-money-market-adapter = { workspace = true }
 abstract-client = { workspace = true }
 polytone-note = { workspace = true }
