@@ -29,7 +29,7 @@ dotenv = "0.15.0"
 env_logger = "0.10.0"
 url = "2.4.1"
 
-cosmos-sdk-proto = { version = "0.19.0", features = [
+cosmos-sdk-proto = { version = "0.20.0", features = [
   "grpc-transport",
   "cosmwasm",
 ] }
@@ -46,3 +46,4 @@ abstract-dex-adapter = { workspace = true }
 abstract-cw-staking = { workspace = true }
 abstract-client = { workspace = true }
 polytone-note = { workspace = true }
+cosmwasm-schema.workspace = true
