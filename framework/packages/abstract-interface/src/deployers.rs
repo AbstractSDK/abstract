@@ -1,6 +1,9 @@
 use abstract_std::{
     manager::ModuleInstallConfig,
-    objects::module::{ModuleInfo, ModuleVersion},
+    objects::{
+        module::{ModuleInfo, ModuleVersion},
+        AccountId,
+    },
 };
 use cosmwasm_std::to_json_binary;
 use cw_orch::prelude::{CwOrchError::StdErr, *};
@@ -17,6 +20,10 @@ pub trait RegisteredModule {
     fn module_id<'a>() -> &'a str;
     /// The version of the module.
     fn module_version<'a>() -> &'a str;
+    /// The id of the module for the account
+    fn account_module_id(account_id: &AccountId) -> String {
+        format!("{}-{}", Self::module_id(), account_id)
+    }
 }
 
 /// Trait to access module dependency information tied directly to the type.
