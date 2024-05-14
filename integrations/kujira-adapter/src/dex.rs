@@ -1,6 +1,8 @@
 use abstract_dex_standard::Identify;
 
-use crate::{AVAILABLE_CHAINS, KUJIRA};
+use crate::AVAILABLE_CHAINS;
+
+pub const FIN: &str = "fin";
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -8,7 +10,7 @@ pub struct Fin {}
 
 impl Identify for Fin {
     fn name(&self) -> &'static str {
-        KUJIRA
+        FIN
     }
     fn is_available_on(&self, chain_name: &str) -> bool {
         AVAILABLE_CHAINS.contains(&chain_name)

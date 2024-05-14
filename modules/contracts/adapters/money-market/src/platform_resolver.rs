@@ -9,7 +9,7 @@ use cosmwasm_std::Env;
 /// This provides superior UX in case of an IBC execution
 pub(crate) fn identify_money_market(value: &str) -> Result<Box<dyn Identify>, MoneyMarketError> {
     match value {
-        abstract_kujira_adapter::KUJIRA => {
+        abstract_kujira_adapter::money_market::GHOST => {
             Ok(Box::<abstract_kujira_adapter::money_market::Ghost>::default())
         }
         abstract_mars_adapter::MARS => {
@@ -27,7 +27,7 @@ pub(crate) fn resolve_money_market(
 ) -> Result<Box<dyn MoneyMarketCommand>, MoneyMarketError> {
     match value {
         #[cfg(feature = "ghost")]
-        abstract_kujira_adapter::KUJIRA => {
+        abstract_kujira_adapter::money_market::GHOST => {
             Ok(Box::<abstract_kujira_adapter::money_market::Ghost>::default())
         }
         #[cfg(feature = "mars")]

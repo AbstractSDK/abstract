@@ -24,7 +24,9 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
         }
-        abstract_kujira_adapter::KUJIRA => Ok(Box::<abstract_kujira_adapter::dex::Fin>::default()),
+        abstract_kujira_adapter::dex::FIN => {
+            Ok(Box::<abstract_kujira_adapter::dex::Fin>::default())
+        }
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::dex::Astrovault>::default())
         }
@@ -55,7 +57,9 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<Box<dyn DexCommand>, DexEr
             Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
         }
         #[cfg(feature = "fin")]
-        abstract_kujira_adapter::KUJIRA => Ok(Box::<abstract_kujira_adapter::dex::Fin>::default()),
+        abstract_kujira_adapter::dex::FIN => {
+            Ok(Box::<abstract_kujira_adapter::dex::Fin>::default())
+        }
         #[cfg(feature = "astrovault")]
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::dex::Astrovault>::default())

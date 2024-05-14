@@ -2,7 +2,9 @@ use abstract_sdk::std::objects::LpToken;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
-use crate::{AVAILABLE_CHAINS, KUJIRA};
+use crate::AVAILABLE_CHAINS;
+
+pub const BOW: &str = "bow";
 
 // TODO: use optional values here?
 #[derive(Clone, Debug, Default)]
@@ -19,7 +21,7 @@ pub struct KujiraTokenContext {
 
 impl Identify for Bow {
     fn name(&self) -> &'static str {
-        KUJIRA
+        BOW
     }
     fn is_available_on(&self, chain_name: &str) -> bool {
         AVAILABLE_CHAINS.contains(&chain_name)

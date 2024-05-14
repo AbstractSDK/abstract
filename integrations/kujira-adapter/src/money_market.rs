@@ -1,5 +1,7 @@
-use crate::{AVAILABLE_CHAINS, KUJIRA};
+use crate::AVAILABLE_CHAINS;
 use abstract_money_market_standard::Identify;
+
+pub const GHOST: &str = "ghost";
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -7,7 +9,7 @@ pub struct Ghost {}
 
 impl Identify for Ghost {
     fn name(&self) -> &'static str {
-        KUJIRA
+        GHOST
     }
     fn is_available_on(&self, chain_name: &str) -> bool {
         AVAILABLE_CHAINS.contains(&chain_name)

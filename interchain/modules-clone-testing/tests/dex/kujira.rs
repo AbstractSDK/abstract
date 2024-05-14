@@ -38,7 +38,7 @@ pub struct KujiraDex {
 
 impl MockDex for KujiraDex {
     fn name(&self) -> String {
-        "kujira".to_owned()
+        "fin".to_owned()
     }
 
     fn asset_a(&self) -> (String, cw_asset::AssetInfoUnchecked) {
