@@ -17,6 +17,10 @@ pub trait RegisteredModule {
     fn module_id<'a>() -> &'a str;
     /// The version of the module.
     fn module_version<'a>() -> &'a str;
+    /// The module's info
+    fn module_info() -> Result<ModuleInfo, crate::AbstractInterfaceError> {
+        ModuleInfo::from_id(Self::module_id(), Self::module_version().into()).map_err(Into::into)
+    }
 }
 
 /// Trait to access module dependency information tied directly to the type.
