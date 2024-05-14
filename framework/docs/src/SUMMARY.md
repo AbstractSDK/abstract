@@ -39,7 +39,7 @@
 - [Setup](./4_get_started/2_installation.md)
 - [Module Builder](./4_get_started/3_module_builder.md)
 - [Account Abstraction SDK](./4_get_started/4_sdk.md)
-- [Ibc Capabilities](./4_get_started/10_ibc_capabilities.md)
+- [IBC Capabilities](./4_get_started/10_ibc_capabilities.md)
   - [Account IBC](./ibc/account-ibc.md)
   - [Module IBC](./ibc/module-ibc.md)
 - [Testing](./4_get_started/6_module_testing.md)

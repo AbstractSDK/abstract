@@ -2,12 +2,12 @@
 
 ## Introduction
 
-Interchain Abstract Accounts is Abstract's solution to chain-agnostic accounts. It allows users to create an account on
+Interchain Abstract Accounts (ICAAs) are Abstract's approach to providing chain-agnostic smart-contract wallets, aka Accounts. It allows users to create an Account on
 one chain and use it on any other chain that supports Abstract. This is achieved by using a combination of
 the <a href="https://ibcprotocol.org/" target="_blank">Inter-Blockchain Communication (IBC) protocol</a> and
 the [Abstract Accounts](../3_framework/3_architecture.md).
 
-IAA allow users to interact with any smart-contract on any chain using their local account. This mechanism is powered by a set of Abstract smart-contracts that will dispatch messages that users send locally to a remote chain.
+ICAA allow users to interact with any smart-contract on any chain using their local account. This mechanism relies on a set of Abstract smart-contracts that will dispatch locally executed messages to remote chains.
 
 ## Integrating with Interchain Abstract Accounts
 
@@ -17,9 +17,8 @@ Abstract Accounts can be connected to IBC very easily. The first step for an acc
 
 ```rust
 pub enum ManagerExecuteMsg{
-    ...,
     UpdateSettings { ibc_enabled: Option<bool> },
-    ...,
+    //...
 }
 ```
 
@@ -27,19 +26,20 @@ pub enum ManagerExecuteMsg{
 
 After the initialization step, the account is ready to send messages across IBC. However, if you wish, you can customize the remote account metadata before sending any messages. This is done by sending the following message on the [`manager`](https://docs.rs/abstract-std/latest/abstract_std/manager/index.html) contract:
 <pre>
- <code class="language-rust">pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a>{
+ <code class="language-rust">pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a> {
     ExecOnModule{
         module_id: "abstract:proxy",
-        exec_msg: pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/proxy/enum.ExecuteMsg.html" target="blank">ProxyExecuteMsg</a>{
-            IbcAction{
-                msg: pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_client/enum.ExecuteMsg.html" target="blank">IbcClientExecuteMsg</a>{
+        exec_msg:<a href="https://docs.rs/abstract-std/latest/abstract_std/proxy/enum.ExecuteMsg.html" target="blank">ProxyExecuteMsg</a> {
+            IbcAction {
+                msg: <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_client/enum.ExecuteMsg.html" target="blank">IbcClientExecuteMsg</a>{
                     Register {
                         host_chain: "destination-chain",
-                        base_asset: "<optional account base asset>",
-                        namespace: "<optional namespace to claim>",
-                        install_modules: Vec<<optional modules to install on the account at creation>>
+                        // Customizable parameters
+                        base_asset: None,
+                        namespace: None,
+                        install_modules: vec![],
                     },
-                    ...,
+                ...,
                 }
             },
             ...,
@@ -60,22 +60,24 @@ The created Interchain Abstract Account will have the same account sequence but 
 - Their account sequence on `Osmosis` is `juno-42`.
 - Their account sequence on `Stargaze` is `juno-42` as well!
 
+Remote accounts can create other remote accounts. So traces can be chained. For instance, the `juno-42` account on `Osmosis` can create an account on `Stargaze` which will have the sequence `juno>osmosis-42`.
+
 ### Sending messages on remote accounts
 
-With or without an existing remote account, Abstract Accounts are able to send messages on remote accounts. The `manager_msgs` will be executed in order on the remote account's `manager`.
+With or without a pre-existing remote account, Abstract Accounts are able to send messages on remote accounts. The `manager_msgs` will be executed in order on the remote account's `manager`.
 
 <pre>
- <code class="language-rust">pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a>{
+ <code class="language-rust">pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a> {
     ExecOnModule{
         module_id: "abstract:proxy",
-        exec_msg: pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/proxy/enum.ExecuteMsg.html" target="blank">ProxyExecuteMsg</a>{
+        exec_msg: <a href="https://docs.rs/abstract-std/latest/abstract_std/proxy/enum.ExecuteMsg.html" target="blank">ProxyExecuteMsg</a> {
             IbcAction{
-                msg: pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_client/enum.ExecuteMsg.html" target="blank">IbcClientExecuteMsg</a>{
+                msg: <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_client/enum.ExecuteMsg.html" target="blank">IbcClientExecuteMsg</a> {
                     RemoteAction{
                         host_chain: "destination-chain",
-                        action: pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_host/enum.HostAction.html" target="blank">HostAction</a>{
+                        action: <a href="https://docs.rs/abstract-std/latest/abstract_std/ibc_host/enum.HostAction.html" target="blank">HostAction</a>{
                             Dispatch{
-                                manager_msgs: Vec<<a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a>>
+                                manager_msgs: Vec<<a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a> { ... }>
                             },
                             ...,
                         }
@@ -91,7 +93,7 @@ With or without an existing remote account, Abstract Accounts are able to send m
 </code>
 </pre>
 
-Note that the two instances of the `ManagerExecuteMsg` enum are the exact same type. It allows you to send multi-hop IBC messages. However, as Abstract's infrastructure is completely linked and doesn't have a home-chain (yet), multi-hop transactions are not really something you would use often.
+Note that the two instances of the `ManagerExecuteMsg` enum are the exact same type. It allows you to send multi-hop IBC messages. However, as Abstract's infrastructure is completely linked and doesn't have a home-chain (yet), multi-hop transactions (of these kind) are not really something you would use often.
 
 ## Specification of Interchain Abstract Accounts
 
