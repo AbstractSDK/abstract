@@ -11,7 +11,6 @@
 
 In order to allow Modules to send messages to other modules across IBC, Abstract introduces Interchain Module Communication. This mechanism allows developers to send messages from a module directly to another module on a remote chain. This remote module can be any module and it allows interoperable permissionned actions between all Abstract modules. Let's see how to create a contract with Interchain Module capabilities.
 
-
 ### Sending a message
 
 In order to send a message, a module needs to send a message on the current `ibc-client` module. To query the address of the `ibc-client` module, you can use the `app` or `adapter` variable available inside the endpoint like so:
@@ -38,7 +37,7 @@ pub enum IbcClientExecuteMsg{
 
 In order for a module to receive an message coming from a remote Module, they need to implement the [`module-ibc`](../4_get_started/3_module_builder.md#module-ibc) endpoint. Here is what this endpoint looks like:
 
-```rust 
+```rust
 pub fn module_ibc(deps: DepsMut, env: Env, module: Module, msg: ModuleIbcMsg) -> Result<Response, Error>;
 ```
 
@@ -46,7 +45,6 @@ The `deps`, `env` and `module` variables are common to the `execute` endpoint an
 
 - `deps` and `env` are described in the <a target="blank" href="https://docs.cosmwasm.com/docs/smart-contracts/contract-semantics">CosmWasm documentation</a>
 - `module` (or `app` or `adapter` usually) are described in the [Abstract SDK](../4_get_started/4_sdk.md) section of our docs
-
 
 The `msg` variable describes the msg sent by the remote module <a target="blank" href="https://docs.rs/abstract-std/0.22.1/abstract_std/ibc/struct.ModuleIbcMsg.html">Link to the technical docs</a>:
 
@@ -85,7 +83,7 @@ The `callback_info` field allows conditional message execution after the success
 
 If a callback was asked for when sending a module IBC message, this callback will be called wether the execution was successful or not. A callback message will be sent on the ̀[`ibc_callback`](./4_get_started/3_module_builder.md#ibc-callback) endpoint. This endpoint has the following structure:
 
-```rust 
+```rust
 pub fn ibc_callback(deps: DepsMut, env: Env, module: Module, response_msg: IbcResponseMsg) -> Result<Response, Error>;
 ```
 
@@ -104,4 +102,4 @@ The last field `result` contains information about the execution result of the i
 
 ## Specification of Interchain Module Communication
 
-TODO
+This part is not yet done. This is an outstanding TODO for the Abstract Team. If you're a module developer, you should have all the information you need in the previous sections.

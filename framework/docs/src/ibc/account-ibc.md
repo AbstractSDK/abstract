@@ -60,7 +60,6 @@ The created Interchain Abstract Account will have the same account sequence but 
 - Their account sequence on `Osmosis` is `juno-42`.
 - Their account sequence on `Stargaze` is `juno-42` as well!
 
-
 ### Sending messages on remote accounts
 
 With or without an existing remote account, Abstract Accounts are able to send messages on remote accounts. The `manager_msgs` will be executed in order on the remote account's `manager`.
@@ -200,7 +199,6 @@ Abstract only uses Polytone Callbacks when:
 Because accounts created across chains using the IAA protocol are controlled by an account located on a remote chain, the account that is calling the action needs to be related to the account on the remote chain. This is done through the <a href="https://docs.rs/abstract-std/latest/abstract_std/objects/account/struct.AccountId.html" target="blank">AccountId</a> struct. The IBC-host module leverages the `AccountId::trace` field of this struct. An account is wether `AccountTrace::Local` or `AccountTrace::Remote`. When a PacketMsg is sent across an IBC channel, the account id is transformed on the receiving chain in the following manner:
 
 - If it was `AccountTrace::Local` before transfer, it turns into an `AccountTrace::Remote` account with one chain in the associated vector being the chain calling the `PacketMsg` (`PacketMsg::client_chain`)
-- 
 - If it was `AccountTrace::Remote` before transfer, it stays remote and the `client_chain` field is added to the associated vector.
 
 This allows full traceability of the account creations and calls.
