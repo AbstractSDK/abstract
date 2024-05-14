@@ -25,7 +25,7 @@ lazy_static = "1.4.0"
 abstract-dex-adapter = { workspace = true, features = [
   "testing",
   "astroport",
-  "bow",
+  "fin",
   "astrovault",
 ] }
 abstract-cw-staking = { workspace = true, features = [

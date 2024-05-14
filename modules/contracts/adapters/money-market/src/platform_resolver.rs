@@ -10,7 +10,7 @@ use cosmwasm_std::Env;
 pub(crate) fn identify_money_market(value: &str) -> Result<Box<dyn Identify>, MoneyMarketError> {
     match value {
         abstract_kujira_adapter::KUJIRA => {
-            Ok(Box::<abstract_kujira_adapter::money_market::Kujira>::default())
+            Ok(Box::<abstract_kujira_adapter::money_market::Ghost>::default())
         }
         abstract_mars_adapter::MARS => {
             Ok(Box::<abstract_mars_adapter::money_market::Mars>::default())
@@ -26,9 +26,9 @@ pub(crate) fn resolve_money_market(
     value: &str,
 ) -> Result<Box<dyn MoneyMarketCommand>, MoneyMarketError> {
     match value {
-        #[cfg(feature = "kujira")]
+        #[cfg(feature = "ghost")]
         abstract_kujira_adapter::KUJIRA => {
-            Ok(Box::<abstract_kujira_adapter::money_market::Kujira>::default())
+            Ok(Box::<abstract_kujira_adapter::money_market::Ghost>::default())
         }
         #[cfg(feature = "mars")]
         abstract_mars_adapter::MARS => {

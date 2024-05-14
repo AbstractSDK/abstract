@@ -6,7 +6,7 @@ use crate::{AVAILABLE_CHAINS, KUJIRA};
 
 // TODO: use optional values here?
 #[derive(Clone, Debug, Default)]
-pub struct Kujira {
+pub struct Bow {
     pub tokens: Vec<KujiraTokenContext>,
 }
 
@@ -17,7 +17,7 @@ pub struct KujiraTokenContext {
     pub staking_contract_address: Addr,
 }
 
-impl Identify for Kujira {
+impl Identify for Bow {
     fn name(&self) -> &'static str {
         KUJIRA
     }
@@ -43,7 +43,7 @@ use ::{
 };
 
 #[cfg(feature = "full_integration")]
-impl CwStakingCommand for Kujira {
+impl CwStakingCommand for Bow {
     fn fetch_data(
         &mut self,
         deps: Deps,
@@ -260,7 +260,7 @@ impl CwStakingCommand for Kujira {
 }
 
 #[cfg(feature = "full_integration")]
-impl abstract_sdk::features::ModuleIdentification for Kujira {
+impl abstract_sdk::features::ModuleIdentification for Bow {
     fn module_id(&self) -> abstract_sdk::std::objects::module::ModuleId<'static> {
         abstract_staking_standard::CW_STAKING_ADAPTER_ID
     }
