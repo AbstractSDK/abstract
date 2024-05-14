@@ -38,7 +38,10 @@ impl<Chain: CwEnv, M: RegisteredModule> Application<Chain, M> {
         // Sanity check: the module must be installed on the account
         account.module_addresses(vec![M::module_id().to_string()])?;
         // figure out if contract is adapter or app
-        let module = account.infrastructure()?.version_control.module(M::module_info()?)?;
+        let module = account
+            .infrastructure()?
+            .version_control
+            .module(M::module_info()?)?;
         let execute_through_manager = match module {
             Module::Adapter(_) => true,
             Module::App(_) => false,
