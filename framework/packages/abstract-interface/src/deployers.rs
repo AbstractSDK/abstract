@@ -21,7 +21,7 @@ pub trait RegisteredModule {
     /// The version of the module.
     fn module_version<'a>() -> &'a str;
     /// Create the unique contract ID for a module installed on an Account.
-    fn account_module_id(account_id: &AccountId) -> String {
+    fn installed_module_contract_id(account_id: &AccountId) -> String {
         format!("{}-{}", Self::module_id(), account_id)
     }
 }
