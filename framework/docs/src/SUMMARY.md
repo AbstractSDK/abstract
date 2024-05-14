@@ -39,6 +39,9 @@
 - [Setup](./4_get_started/2_installation.md)
 - [Module Builder](./4_get_started/3_module_builder.md)
 - [Account Abstraction SDK](./4_get_started/4_sdk.md)
+- [Ibc Capabilities](./4_get_started/10_ibc_capabilities.md)
+  - [Account IBC](./ibc/account-ibc.md)
+  - [Module IBC](./ibc/module-ibc.md)
 - [Testing](./4_get_started/6_module_testing.md)
 - [Abstract Client](./4_get_started/5_abstract_client.md)
 - [Deployment](./4_get_started/7_module_deployment.md)
@@ -61,9 +64,6 @@
 # Resources and Support
 
 ---
-<!-- - [Interchain Abstract Accounts](./ibc/index.md)
-    - [Overview](./ibc/overview.md)
-    - [Specification](./ibc/spec.md) -->
 
 - [FAQ](./video_and_content/faq.md)
 - [Videos](./video_and_content/videos.md)

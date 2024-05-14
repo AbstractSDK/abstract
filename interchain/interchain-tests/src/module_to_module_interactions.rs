@@ -8,7 +8,8 @@ use abstract_std::{
 use cosmwasm_schema::{cw_serde, QueryResponses};
 pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{
-    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Response, StdError,
+    ensure_eq, from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Response,
+    StdError,
 };
 use cw_controllers::AdminError;
 use cw_storage_plus::Item;
@@ -222,10 +223,15 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())))
-        .with_module_ibc(|deps, _, _, msg| {
+        .with_module_ibc(|deps, _, module, msg| {
             let ModuleIbcMsg { source_module, .. } = msg;
             // We save the module info status
             MODULE_IBC_RECEIVED.save(deps.storage, &source_module)?;
+            ensure_eq!(
+                source_module.namespace,
+                APP_NAMESPACE,
+                ContractError::Unauthorized {}
+            );
             Ok(Response::new().add_attribute("mock_module_ibc", "executed"))
         })
 }

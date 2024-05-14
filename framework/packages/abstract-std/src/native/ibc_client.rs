@@ -104,12 +104,14 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     },
+    // ANCHOR: module-ibc-action
     ModuleIbcAction {
         host_chain: String,
         target_module: ModuleInfo,
         msg: Binary,
         callback_info: Option<CallbackInfo>,
     },
+    // ANCHOR_END: module-ibc-action
     IbcQuery {
         host_chain: String,
         query: QueryRequest<Empty>,
