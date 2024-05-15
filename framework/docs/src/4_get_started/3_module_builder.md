@@ -391,9 +391,9 @@ customizable. It contains :
 - `msg` the message sent by the module. This is usually deserialized by the module's developer to trigger actions.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-core/src/base.rs:exec}}
+{{#include ../../../packages/abstract-std/src/base.rs:exec}}
 
-{{#include ../../../packages/abstract-core/src/native/ibc.rs:module_ibc_msg}}
+{{#include ../../../packages/abstract-std/src/native/ibc.rs:module_ibc_msg}}
 ```
 
 </details>

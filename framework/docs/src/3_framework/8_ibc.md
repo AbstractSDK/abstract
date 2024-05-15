@@ -1,19 +1,14 @@
 # Interchain Abstract Accounts
 
-The cosmos is going interchain. The arrival of Inter-Blockchain Communication (IBC) launched us into a new paradigm in
+The Cosmos is going interchain. The arrival of Inter-Blockchain Communication (IBC) launched us into a new paradigm in
 application development. New use-cases and solutions to existing UX problems are now possible. As the interchain
 application platform, Abstract attempts to make IBC accessible to developers and users alike. In this section we'll
-delve into interchain application development, what makes it so hard and how Abstract can help you create your first
+delve into interchain application development, what makes it so hard, and how Abstract can help you create your first
 #Interchain application.
 
 ## What is The Interchain?
 
-The interchain, sometimes called the internet of blockchains, is the concept of a network of blockchains that can
-communicate with each other. This is made possible by the Inter-Blockchain Communication (IBC) protocol, which is a
-standard for communication between blockchains. IBC is a protocol that allows for the transfer of arbitrary data between
-blockchains. This means that users can send data (like tokens) from one blockchain to another without third-party trust
-assumptions. This is a huge step forward for the blockchain industry, as it allows for the creation of a network of
-blockchains that can independently communicate with each other.
+The Interchain, also known as the Internet of Blockchains, is a network of interconnected blockchains that interact through a shared protocol. This interaction is enabled by the Inter-Blockchain Communication (IBC) protocol, a communication standard akin to the TCP used amongst networked computers. IBC permits the transmission of any data variety between blockchains, allowing users to send data, such as tokens or messages, from one blockchain to another without relying on third-party trust. This innovation is a major breakthrough for the blockchain industry as it enables the formation of a blockchain network with independent communication capabilities, allowing for virtually infinite scale.
 
 ```admonish info
 If you're interested in a visual representation of the interchain, check
@@ -24,7 +19,7 @@ out <a href="https://mapofzones.com/home?columnKey=ibcVolume&period=24h" target=
 
 Developers quickly started developing applications with IBC after its release. But they quickly ran into a major
 problem. **IBC is not developer friendly.** It's a low-level protocol that requires extensive knowledge about its inner
-workings. These problems were quickly recognized by the CosmWasm community. In response DAO-DAO
+workings. These problems were quickly recognized by the CosmWasm community. In response, DAO-DAO
 built <a href="https://github.com/DA0-DA0/polytone" target="_blank">`Polytone`</a>, an Interchain Account (ICA) solution for CosmWasm
 smart-contracts. This was a great step forward for interchain CosmWasm development, but it introduced its own
 complexities and knowledge requirements.
