@@ -30,6 +30,10 @@ mod test_common {
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),
+                verifier: None,
+                min_name_length: 3,
+                max_name_length: 128,
+                base_price: 10u128.into(),
             },
         )
     }

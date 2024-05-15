@@ -33,6 +33,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         String::from("first_account"),
         None,
         None,
+        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         Some(namespace_to_claim.to_string()),
@@ -56,6 +57,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
             base_asset: None,
             install_modules: vec![],
             account_id: None,
+            bs_profile: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),

@@ -1,14 +1,16 @@
 use std::path::PathBuf;
 
 use abstract_std::{
-    account_factory::ExecuteMsgFns as _, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY,
-    VERSION_CONTROL,
+    account_factory::ExecuteMsgFns as _, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY,
+    PROFILE, PROFILE_MARKETPLACE, PROXY, VERSION_CONTROL,
 };
+use bs_profile::Metadata;
 use cw_orch::prelude::*;
 
 use crate::{
     get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
-    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
+    AccountFactory, AnsHost, Manager, ModuleFactory, Profile, ProfileMarketplace, Proxy,
+    VersionControl,
 };
 
 use rust_embed::RustEmbed;
@@ -35,6 +37,9 @@ pub struct Abstract<Chain: CwEnv> {
     pub module_factory: ModuleFactory<Chain>,
     pub ibc: AbstractIbc<Chain>,
     pub(crate) account: AbstractAccount<Chain>,
+    // bitsong profile contracts
+    pub bs721_profile: Profile<Chain, Metadata>,
+    pub profile_marketplace: ProfileMarketplace<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
@@ -49,6 +54,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
         let manager = Manager::new(MANAGER, chain.clone());
         let proxy = Proxy::new(PROXY, chain.clone());
+        let bs721_profile: Profile<Chain, Metadata> = Profile::new(PROFILE, chain.clone());
+        let profile_marketplace = ProfileMarketplace::new(PROFILE_MARKETPLACE, chain.clone());
 
         let mut account = AbstractAccount { manager, proxy };
         let ibc_infra = AbstractIbc::new(&chain);
@@ -59,6 +66,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         module_factory.upload()?;
         account.upload()?;
         ibc_infra.upload()?;
+        bs721_profile.upload()?;
+        profile_marketplace.upload()?;
 
         let deployment = Abstract {
             ans_host,
@@ -67,6 +76,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             module_factory,
             account,
             ibc: ibc_infra,
+            profile_marketplace,
+            bs721_profile,
         };
 
         Ok(deployment)
@@ -165,8 +176,14 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
 impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
-        let (ans_host, account_factory, version_control, module_factory) =
-            get_native_contracts(chain.clone());
+        let (
+            ans_host,
+            account_factory,
+            version_control,
+            module_factory,
+            bs721_profile,
+            profile_marketplace,
+        ) = get_native_contracts(chain.clone());
         let (ibc_client, ibc_host) = get_ibc_contracts(chain.clone());
         let manager = Manager::new(MANAGER, chain.clone());
         let proxy = Proxy::new(PROXY, chain);
@@ -180,6 +197,8 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 client: ibc_client,
                 host: ibc_host,
             },
+            profile_marketplace,
+            bs721_profile,
         }
     }
 
@@ -206,6 +225,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 #[cfg(not(feature = "integration"))]
                 security_disabled: Some(false),
                 namespace_registration_fee: None,
+                // profile_registration_fee: None,
             },
             Some(&admin),
             None,
@@ -227,6 +247,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
                 module_factory_address: self.module_factory.address()?.into_string(),
+                verifier: None,
+                min_name_length: 3,
+                max_name_length: 128,
+                base_price: 10u128.into(),
             },
             Some(&admin),
             None,

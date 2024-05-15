@@ -7,6 +7,7 @@ use abstract_std::objects::module_version::assert_contract_upgrade;
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
+use cw_utils::maybe_addr;
 use semver::Version;
 
 use crate::{commands, error::AccountFactoryError, queries, state::*};
@@ -25,18 +26,46 @@ pub fn instantiate(
     _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> AccountFactoryResult {
+
+    let InstantiateMsg {
+        admin,
+        version_control_address,
+        ans_host_address,
+        module_factory_address,
+        verifier,
+        min_name_length,
+        max_name_length,
+        base_price,
+    } = msg;
+    
     let config = Config {
-        version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
-        module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
-        ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
+        version_control_contract: deps.api.addr_validate(&version_control_address)?,
+        module_factory_address: deps.api.addr_validate(&module_factory_address)?,
+        ans_host_contract: deps.api.addr_validate(&ans_host_address)?,
         ibc_host: None,
     };
 
-    cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
+    // profile sudo params
+    let params = SudoParams {
+        min_name_length,
+        max_name_length,
+        base_price,
+        max_record_count: 10,
+    };
 
+    let api = deps.api;
+    SUDO_PARAMS.save(deps.storage, &params)?;
+    IS_PROFILE_SETUP.save(deps.storage, &false)?;
+    
+    cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
+    
     CONFIG.save(deps.storage, &config)?;
     // Set up the admin
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(&msg.admin))?;
+    cw_ownable::initialize_owner(deps.storage, api, Some(&admin))?;
+    
+    // set verifier last. TODO: move into module registry
+    VERIFIER.set(deps, maybe_addr(api, verifier)?)?;
+
     Ok(AccountFactoryResponse::action("instantiate"))
 }
 
@@ -70,6 +99,7 @@ pub fn execute(
             namespace,
             base_asset,
             install_modules,
+            bs_profile,
         } => commands::execute_create_account(
             deps,
             env,
@@ -82,10 +112,25 @@ pub fn execute(
             base_asset,
             install_modules,
             account_id,
+            bs_profile,
         ),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(AccountFactoryResponse, deps, env, info, action)
         }
+        ExecuteMsg::SetupProfileInfra {
+            profile_code_id,
+            marketplace_code_id,
+            profile_addr,
+            marketplace_addr,
+        } => commands::execute_setup_profile_infra(
+            deps,
+            env,
+            info,
+            marketplace_code_id,
+            marketplace_addr,
+            profile_code_id,
+            profile_addr,
+        ),
     }
 }
 

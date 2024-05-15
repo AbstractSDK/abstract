@@ -22,6 +22,7 @@ export = []
 [dependencies]
 cosmwasm-std = { workspace = true }
 cw-storage-plus = { workspace = true }
+cw-utils  = { workspace = true }
 cw2 = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
@@ -31,6 +32,10 @@ abstract-std = { workspace = true }
 abstract-macros = { workspace = true }
 cw-ownable = { workspace = true }
 cosmwasm-schema = "2.0.2"
+
+bs721-base = { workspace = true, features = ["library"] }
+bs721-profile = { workspace = true}
+bs-profile = { workspace = true}
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

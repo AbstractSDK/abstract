@@ -1,0 +1,50 @@
+[package]
+name        = "profile-marketplace"
+authors     = ["Shane Vitarana <s@noreply.publicawesome.com>"]
+description = "Stargaze Name Marketplace Smart Contract"
+license     = "BUSL-1.1"
+version     = { workspace = true }
+edition     = { workspace = true }
+homepage    = { workspace = true }
+repository  = { workspace = true }
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+cosmwasm-schema  = { workspace = true }
+abstract-std     = { workspace = true }
+abstract-sdk     = { workspace = true }
+# abstract-testing = { workspace = true }
+cosmwasm-std     = { workspace = true }
+cw-storage-plus  = { workspace = true }
+cw-storage-macro = { workspace = true }
+cw-utils         = { workspace = true }
+cw2              = { workspace = true }
+cw721            = { workspace = true }
+cw721-base       = { workspace = true, features = ["library"] }
+schemars         = { workspace = true }
+semver           = { workspace = true }
+serde            = { workspace = true }
+bs-std           = { workspace = true }
+bs-profile           = { workspace = true }
+bs-controllers           = { workspace = true }
+thiserror        = { workspace = true }
+
+[dev-dependencies]
+cw-multi-test = { workspace = true }
+bs721-profile    = { workspace = true, features = ["library"] }

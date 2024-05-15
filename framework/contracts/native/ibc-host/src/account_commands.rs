@@ -60,6 +60,7 @@ pub fn receive_register(
             base_asset,
             install_modules,
             namespace,
+            bs_profile: None,
         },
         vec![],
     )?;

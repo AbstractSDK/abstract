@@ -1,0 +1,28 @@
+[package]
+name = "bs-profile"
+authors = ["Shane Vitarana <s@noreply.publicawesome.com>",]
+description = "Rust definition of name service metadata, used by Bitsong Names"
+version     = { workspace = true }
+edition     = { workspace = true }
+homepage    = { workspace = true }
+repository  = { workspace = true }
+license     = { workspace = true }
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+cosmwasm-schema = { workspace = true }
+bs-std = { workspace = true }
+cw-controllers  = { workspace = true }
+cosmwasm-std = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true }

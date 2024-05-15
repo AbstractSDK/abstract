@@ -44,6 +44,10 @@ version-control = { version = "0.22.1", package = "abstract-version-control", pa
 proxy = { version = "0.22.1", package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false }
 manager = { version = "0.22.1", package = "abstract-manager", path = "../../contracts/account/manager", default-features = false }
 
+bs-profile          = { workspace = true }
+profile-marketplace = { package = "profile-marketplace", path = "../../contracts/native/profile-marketplace", default-features = false, version = "0.22.0" }
+profile = { package = "bs721-profile", path = "../../contracts/account/bs721-profile", default-features = false, version = "0.22.0" }
+
 [build-dependencies]
 serde_json = "1.0.79"
 

@@ -532,6 +532,7 @@ fn subaccount_adapter_ownership() -> AResult {
         None,
         None,
         None,
+        None,
         &[],
     )?;
 

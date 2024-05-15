@@ -23,6 +23,14 @@ use abstract_std::{
     },
     AbstractError,
 };
+use abstract_std::{
+    objects::salt::generate_instantiate_salt2,
+    profile_marketplace::InstantiateMsg as ProfileMarketplaceInstantiateMsg,
+};
+use bs721::CollectionInfo;
+use bs721_base::{InstantiateMsg as Bs721InstantiateMsg, MintMsg};
+use bs_profile::Metadata;
+
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
     Env, MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
@@ -50,6 +58,7 @@ pub fn execute_create_account(
     base_asset: Option<AssetEntry>,
     install_modules: Vec<ModuleInstallConfig>,
     account_id: Option<AccountId>,
+    bs_profile: Option<String>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
     let abstract_registry = VersionControlContract::new(config.version_control_contract.clone());
@@ -226,8 +235,10 @@ pub fn execute_create_account(
     // - The account is registered.
     // - The proxy is instantiated.
     // - The manager instantiated and proxy is registered on the manager.
+    // - The bitsong profile is instantiated, owner set to proxy_human_addr
+    // - The bitsong profile ask is set in name marketplace
     // (this last step triggers the installation of the modules.)
-    Ok(AccountFactoryResponse::new(
+    let res = AccountFactoryResponse::new(
         "create_account",
         [
             vec![
@@ -265,7 +276,7 @@ pub fn execute_create_account(
                 owner: governance.into(),
                 version_control_address: config.version_control_contract.into_string(),
                 module_factory_address: config.module_factory_address.into_string(),
-                proxy_addr: account_base.proxy.into_string(),
+                proxy_addr: account_base.proxy.to_string(),
                 name,
                 description,
                 link,
@@ -274,9 +285,21 @@ pub fn execute_create_account(
             salt,
         },
         CREATE_ACCOUNT_MANAGER_MSG_ID,
-    )))
-}
+    ));
 
+    // If a bitsong profile is being created,
+    if let Some(profile) = bs_profile {
+        // check if setup yet
+        if !IS_PROFILE_SETUP.load(deps.storage)? {
+            return Err(AccountFactoryError::NotSetup {});
+        }
+
+        let msgs = internal_claim_profile(deps, account_base.proxy.into_string(), profile)?;
+        return Ok(res.add_submessages(msgs));
+    }
+
+    Ok(res)
+}
 // Generate new local account id
 fn generate_new_local_account_id(
     deps: Deps,
@@ -378,4 +401,224 @@ pub fn execute_update_config(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(AccountFactoryResponse::action("update_config"))
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn execute_setup_profile_infra(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    marketplace_code_id: Option<u64>,
+    marketplace_addr: Option<String>,
+    profile_code_id: Option<u64>,
+    profile_addr: Option<String>,
+) -> AccountFactoryResult {
+    // check if setup already
+    if IS_PROFILE_SETUP.load(deps.storage)? {
+        return Err(AccountFactoryError::AlreadySetup {});
+    }
+
+    // save contracts if provided
+    if let Some(marketplace) = marketplace_addr.clone() {
+        PROFILE_MARKETPLACE.save(deps.storage, &deps.api.addr_validate(&marketplace)?)?;
+    }
+    if let Some(profile_addr) = profile_addr.clone() {
+        PROFILE_COLLECTION.save(deps.storage, &deps.api.addr_validate(&profile_addr)?)?;
+    }
+
+    IS_PROFILE_SETUP.save(deps.storage, &true)?;
+
+    let res = AccountFactoryResponse::new(
+        "setup_profile_infra",
+        [vec![("creator", info.sender.to_string())]].concat(),
+    );
+
+    if ![profile_code_id, marketplace_code_id].is_empty() {
+        if let Some(_addr) = profile_addr.clone() {
+            return Ok(res);
+        }
+        if let Some(_addr) = marketplace_addr.clone() {
+            return Ok(res);
+        }
+        // instantiate profile contracts
+        let contracts = instantiate_profile_contracts(
+            deps,
+            env,
+            info,
+            marketplace_code_id.unwrap(),
+            profile_code_id.unwrap(),
+        )?;
+        return Ok(res.add_submessages(contracts));
+    }
+
+    // save profile contracts to state
+    Ok(res)
+}
+
+/// Creates the profile collection and marketplace given the code-id's
+fn instantiate_profile_contracts(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    market_code_id: u64,
+    profile_code_id: u64,
+) -> AccountFactoryResult<Vec<SubMsg>> {
+    // stable value for predictable address
+    let marketplace_checksum = deps.querier.query_wasm_code_info(market_code_id)?.checksum;
+    let collection_checksum = deps.querier.query_wasm_code_info(market_code_id)?.checksum;
+    let salt1 = generate_instantiate_salt2(&marketplace_checksum);
+    let salt2 = generate_instantiate_salt2(&collection_checksum);
+
+    // determine marketplace contract addr
+    let marketplace_addr = match instantiate2_address(
+        &marketplace_checksum,
+        &deps.api.addr_canonicalize(env.contract.address.as_str())?,
+        salt1.as_slice(),
+    ) {
+        Ok(addr) => addr,
+        Err(err) => return Err(AccountFactoryError::from(err)),
+    };
+    // determine collection contract addr
+    let collection_addr = match instantiate2_address(
+        &collection_checksum,
+        &deps.api.addr_canonicalize(env.contract.address.as_str())?,
+        salt2.as_slice(),
+    ) {
+        Ok(addr) => addr,
+        Err(err) => return Err(AccountFactoryError::from(err)),
+    };
+    let marketplace_addr_human = deps.api.addr_humanize(&marketplace_addr)?;
+    let collection_addr_human = deps.api.addr_humanize(&collection_addr)?;
+
+    // define msg for collection instantiate2
+    let profile_collection_init = Bs721InstantiateMsg {
+        name: "Profile Tokens".to_string(),
+        symbol: "PROFILE".to_string(),
+        minter: env.contract.address.to_string(),
+        collection_info: CollectionInfo {
+            creator: info.sender.to_string(),
+            description: "Bitsong Profiles".to_string(),
+            image: "ipfs://example.com".to_string(),
+            external_link: None,
+            explicit_content: None,
+            start_trading_time: Some(
+                env.block
+                    .time
+                    .plus_seconds(TRADING_START_TIME_OFFSET_IN_SECONDS),
+            ),
+            royalty_info: None,
+        },
+        uri: None,
+    };
+    // define msg for marketplace instantiate2
+    let profile_marketplace_init = ProfileMarketplaceInstantiateMsg {
+        trading_fee_bps: 0u64,
+        min_price: 100000000u128.into(),
+        ask_interval: 10u64,
+        factory: env.contract.address,
+        collection: collection_addr_human.clone(),
+    };
+
+    // create marketplace instantiate msg
+    let profile_marketplace = WasmMsg::Instantiate2 {
+        code_id: market_code_id,
+        msg: to_json_binary(&profile_marketplace_init)?,
+        funds: info.funds.clone(),
+        admin: Some(info.sender.to_string()),
+        label: "Profile Marketplace".to_string(),
+        salt: salt1.clone(),
+    };
+    // create collection instantiate msg
+    let profile_collection = WasmMsg::Instantiate2 {
+        code_id: profile_code_id,
+        msg: to_json_binary(&profile_collection_init)?,
+        funds: info.funds.clone(),
+        admin: Some(info.sender.to_string()),
+        label: "Profile Collection".to_string(),
+        salt: salt2.clone(),
+    };
+
+    let marketplace_submsg =
+        SubMsg::<Empty>::reply_on_success(profile_marketplace, INIT_COLLECTION_REPLY_ID);
+    let collection_submsg =
+        SubMsg::<Empty>::reply_on_success(profile_collection, INIT_COLLECTION_REPLY_ID);
+
+    // setup internal state
+    PROFILE_MARKETPLACE.save(deps.storage, &marketplace_addr_human)?;
+    PROFILE_COLLECTION.save(deps.storage, &collection_addr_human)?;
+    IS_PROFILE_SETUP.save(deps.storage, &true)?;
+
+    Ok(vec![collection_submsg, marketplace_submsg])
+}
+
+fn internal_claim_profile(
+    deps: DepsMut,
+    proxy: String,
+    bs_profile: String,
+) -> Result<Vec<SubMsg>, AccountFactoryError> {
+    // validate bitsong profile with same rules as Internet Domain Names
+    let params = SUDO_PARAMS.load(deps.storage)?;
+    validate_bitsong_profile(&bs_profile, params.min_name_length, params.max_name_length)?;
+
+    let collection = PROFILE_COLLECTION.load(deps.storage)?;
+    let _marketplace = PROFILE_MARKETPLACE.load(deps.storage)?;
+
+    let mint_msg = bs721_base::ExecuteMsg::<Metadata, Empty>::Mint(MintMsg {
+        token_id: bs_profile.to_string(),
+        owner: proxy.clone(),
+        token_uri: None,
+        extension: Metadata::default(),
+        seller_fee_bps: None,
+        payment_addr: None,
+    });
+    let mint_msg_exec: SubMsg = SubMsg::new(WasmMsg::Execute {
+        contract_addr: collection.to_string(),
+        msg: to_json_binary(&mint_msg)?,
+        funds: vec![],
+    });
+
+    // let ask_msg = BsProfileMarketplaceExecuteMsg::SetAsk {
+    //     token_id: bs_profile.to_string(),
+    //     seller: proxy,
+    // };
+    // let list_msg_exec: SubMsg = SubMsg::new(WasmMsg::Execute {
+    //     contract_addr: marketplace.to_string(),
+    //     msg: to_json_binary(&ask_msg)?,
+    //     funds: vec![],
+    // });
+
+    Ok(vec![
+        mint_msg_exec,
+        // list_msg_exec
+    ])
+}
+
+// This follows the same rules as Internet domain names
+fn validate_bitsong_profile(name: &str, min: u32, max: u32) -> Result<(), AccountFactoryError> {
+    let len = name.len() as u32;
+    if len < min {
+        return Err(AccountFactoryError::NameTooShort {});
+    } else if len >= max {
+        return Err(AccountFactoryError::NameTooLong {});
+    }
+
+    name.find(invalid_char)
+        .map_or(Ok(()), |_| Err(AccountFactoryError::InvalidName {}))?;
+
+    if name.starts_with('-') || name.ends_with('-') {
+        Err(AccountFactoryError::InvalidName {})
+    } else {
+        Ok(())
+    }?;
+
+    if len > 4 && name[2..4].contains("--") {
+        return Err(AccountFactoryError::InvalidName {});
+    }
+
+    Ok(())
+}
+
+fn invalid_char(c: char) -> bool {
+    let is_valid = c.is_ascii_digit() || c.is_ascii_lowercase() || (c == '-');
+    !is_valid
 }

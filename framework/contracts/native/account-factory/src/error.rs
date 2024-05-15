@@ -63,4 +63,22 @@ pub enum AccountFactoryError {
         predicted: AccountId,
         actual: AccountId,
     },
+
+    #[error("NotSetup")]
+    NotSetup {},
+    
+    #[error("AlreadyBeingSetup")]
+    AlreadyBeingSetup {},
+
+    #[error("AlreadySetup")]
+    AlreadySetup {},
+
+    #[error("Invalid Bitsong name")]
+    InvalidName {},
+
+    #[error("Name too short")]
+    NameTooShort {},
+
+    #[error("Name too long")]
+    NameTooLong {},
 }

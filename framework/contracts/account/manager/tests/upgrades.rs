@@ -402,6 +402,7 @@ fn create_account_with_installed_module() -> AResult {
             base_asset: None,
             install_modules: vec![],
             account_id: None,
+            bs_profile: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -442,6 +443,7 @@ fn create_account_with_installed_module() -> AResult {
                     ),
                 ],
                 account_id: None,
+                bs_profile: None,
             },
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
@@ -505,6 +507,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
             base_asset: None,
             install_modules: vec![],
             account_id: None,
+            bs_profile: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -594,6 +597,7 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
                     ),
                 ],
                 account_id: None,
+                bs_profile: None,
             },
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
@@ -651,6 +655,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
             base_asset: None,
             install_modules: vec![],
             account_id: None,
+            bs_profile: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -729,6 +734,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
                 ),
             ],
             account_id: None,
+            bs_profile: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -768,6 +774,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
             base_asset: None,
             install_modules: vec![],
             account_id: None,
+            bs_profile: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -880,6 +887,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                     ),
                 ],
                 account_id: None,
+                bs_profile: None,
             },
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),

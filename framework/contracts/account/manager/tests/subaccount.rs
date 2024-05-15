@@ -23,6 +23,7 @@ fn creating_on_subaccount_should_succeed() -> AResult {
         None,
         None,
         None,
+        None,
         &[],
     )?;
     let sub_accounts = account.manager.sub_account_ids(None, None)?;
@@ -46,6 +47,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,
@@ -79,6 +81,7 @@ fn proxy_updating_on_subaccount_should_succeed() -> AResult {
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,
@@ -119,6 +122,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
         None,
         None,
         None,
+        None,
         &[],
     )?;
 
@@ -129,6 +133,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
     account_contracts.0.create_sub_account(
         vec![],
         "My subsubaccount".to_string(),
+        None,
         None,
         None,
         None,
@@ -162,6 +167,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,
@@ -222,6 +228,7 @@ fn sub_account_move_ownership() -> AResult {
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,
@@ -304,6 +311,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         None,
         None,
         None,
+        None,
         &[],
     )?;
     let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
@@ -314,6 +322,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     new_account.manager.create_sub_account(
         vec![],
         "My second subaccount".to_string(),
+        None,
         None,
         None,
         None,
@@ -381,6 +390,7 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,
@@ -498,6 +508,7 @@ fn top_level_owner() -> AResult {
         None,
         None,
         None,
+        None,
         &[],
     )?;
     let response = account.manager.sub_account_ids(None, None)?;
@@ -519,6 +530,7 @@ fn cant_renounce_with_sub_accounts() -> AResult {
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,
@@ -548,6 +560,7 @@ fn can_renounce_sub_accounts() -> AResult {
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,

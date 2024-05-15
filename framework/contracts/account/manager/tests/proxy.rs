@@ -373,6 +373,7 @@ fn renounce_cleans_namespace() -> AResult {
             base_asset: None,
             install_modules: vec![],
             account_id: None,
+            bs_profile: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),

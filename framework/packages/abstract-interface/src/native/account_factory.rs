@@ -20,6 +20,7 @@ pub struct AccountDetails {
     pub base_asset: Option<AssetEntry>,
     pub install_modules: Vec<ModuleInstallConfig>,
     pub account_id: Option<u32>,
+    pub bs_profile: Option<String>,
 }
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -62,6 +63,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             base_asset,
             install_modules,
             account_id,
+            bs_profile,
         } = account_details;
 
         let result = self.execute(
@@ -74,6 +76,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 namespace,
                 base_asset,
                 install_modules,
+                bs_profile,
             },
             funds,
         )?;

@@ -1,0 +1,47 @@
+[package]
+name = "bs721-profile"
+authors = []
+description = "Stargaze Names Collection Contract"
+version = { workspace = true }
+edition = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "artifacts/*",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+cosmwasm-schema = { workspace = true }
+cosmwasm-std    = { workspace = true }
+cw-controllers  = { workspace = true }
+cw-storage-plus = { workspace = true }
+cw-utils        = { workspace = true }
+cw-orch         = { workspace = true }
+cw2             = { workspace = true }
+schemars        = { workspace = true }
+serde           = { workspace = true }
+semver          = { workspace = true }
+
+bs721           = { workspace = true }
+bs-profile      = { workspace = true }
+thiserror       = { workspace = true }
+abstract-sdk    = { workspace = true }
+abstract-std    = { workspace = true }
+cw721           = { workspace = true }
+bs721-base      = { workspace = true, features = ["library"] }
+cw721-base      = { workspace = true, features = ["library"] }
+subtle-encoding = { version = "0.5.1", features = ["bech32-preview"] }

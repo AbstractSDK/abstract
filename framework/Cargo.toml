@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "packages/abstract-*",
+  "packages/bitsong-*",
   "packages/standards/*",
   "contracts/native/*",
   "contracts/account/*",
@@ -35,6 +36,7 @@ cosmwasm-std = { version = "1.5.0", features = ["cosmwasm_1_2"] }
 cosmwasm-schema = { version = "1.2" }
 cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
+cw-storage-macro = "1.2.0"
 cw-storage-plus = "1.2.0"
 cw2 = { version = "1.0" }
 cw20 = { version = "1.0" }
@@ -93,10 +95,24 @@ abstract-staking-standard = { path = "packages/standards/staking" }
 
 abstract-integration-tests = { path = "packages/abstract-integration-tests" }
 
+# Bitsong Dependencies
+cw721             = "0.18.0"
+cw721-base        = "0.18.0"
+profile-marketplace = { path = "contracts/native/profile-marketplace" }
+bs721-profile     = { package = "bs721-profile", path = "contracts/account/bs721-profile" }
+bs-profile        = { version = "0.22.1", path = "packages/bitsong-profile" }
+
+bs721-base        = { git = "https://github.com/permissionlessweb/bs-nfts", rev = "ae87b40073fc50e4499b5cd2a0e48e2331689246" }
+bs721             = { git = "https://github.com/permissionlessweb/bs-nfts", rev = "ae87b40073fc50e4499b5cd2a0e48e2331689246"}
+bs-controllers    = { git = "https://github.com/permissionlessweb/bs-nfts", rev = "ae87b40073fc50e4499b5cd2a0e48e2331689246"}
+bs-std            = { git = "https://github.com/permissionlessweb/bs-nfts", rev = "ae87b40073fc50e4499b5cd2a0e48e2331689246"}
+
+
 ## Testing
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
+cw-multi-test    = "0.16.0"
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

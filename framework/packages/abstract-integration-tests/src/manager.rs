@@ -70,6 +70,7 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
             base_asset: None,
             install_modules: vec![],
             account_id: None,
+            bs_profile: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -100,6 +101,7 @@ pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult 
             ),
         ],
         String::from("sub_account"),
+        None,
         None,
         None,
         Some(String::from("account_description")),
@@ -163,6 +165,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
             base_asset: None,
             install_modules: vec![],
             account_id: None,
+            bs_profile: None,
         },
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -242,6 +245,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
                 link: None,
                 namespace: None,
                 base_asset: None,
+
                 install_modules: vec![
                     ModuleInstallConfig::new(
                         ModuleInfo::from_id(
@@ -274,6 +278,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
                     ),
                 ],
                 account_id: None,
+                bs_profile: None,
             },
             GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
@@ -485,6 +490,7 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
     account.manager.create_sub_account(
         vec![],
         "My subaccount".to_string(),
+        None,
         None,
         None,
         None,

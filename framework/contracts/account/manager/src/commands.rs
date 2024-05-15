@@ -268,6 +268,7 @@ pub fn create_sub_account(
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
     account_id: Option<u32>,
+    bs_profile: Option<String>,
 ) -> ManagerResult {
     // only owner can create a subaccount
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
@@ -285,6 +286,7 @@ pub fn create_sub_account(
         namespace,
         install_modules,
         account_id: account_id.map(AccountId::local),
+        bs_profile: bs_profile,
     };
 
     let account_factory_addr = query_module(

@@ -26,6 +26,7 @@ cosmwasm-std = { workspace = true }
 cw-asset = { workspace = true }
 cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
+cw-utils = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
 protobuf = { workspace = true }
@@ -33,6 +34,14 @@ semver = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 cw-ownable = { workspace = true }
+
+# bitsong profile dependencies
+bs721-base      = { workspace = true, features = ["library"] }
+bs721  = { workspace = true }
+bs721-profile    = { workspace = true }
+bs-profile = { workspace = true }
+profile-marketplace = { workspace = true }
+
 
 [dev-dependencies]
 abstract-interface = { workspace = true }

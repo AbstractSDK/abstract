@@ -17,6 +17,7 @@ use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
 mod manager;
 mod proxy;
+mod profile;
 
 use std::collections::HashSet;
 
@@ -25,7 +26,7 @@ use cw_orch::prelude::*;
 use serde::Serialize;
 use speculoos::prelude::*;
 
-pub use self::{manager::*, proxy::*};
+pub use self::{manager::*, proxy::*, profile::*};
 use crate::{get_account_contracts, VersionControl};
 
 #[derive(Clone)]
@@ -209,6 +210,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             base_asset,
             install_modules,
             account_id,
+            bs_profile,
         } = account_details;
 
         let result = self.manager.execute(
@@ -220,6 +222,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
                 namespace,
                 install_modules,
                 account_id,
+                bs_profile,
             },
             funds,
         )?;
