@@ -200,7 +200,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                             update_ibc_status_internal(deps, ibc_enabled)?;
 
                         response = response
-                            .add_abstract_attributes(attributes)
+                            .add_abstract_attributes(std::iter::once(attributes))
                             .add_message(proxy_msg);
                     } else {
                         return Err(ManagerError::NoUpdates {});

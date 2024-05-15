@@ -96,18 +96,15 @@ pub fn install_modules(
 
     let config = CONFIG.load(deps.storage)?;
 
-    let response = if !modules.is_empty() {
-        let (install_msgs, install_attributes) = install_modules_internal(
-            deps.branch(),
-            modules,
-            config.module_factory_address,
-            config.version_control_address,
-            msg_info.funds.clone(), // We forward all the funds to the module_factory address for them to use in the install
-        )?;
-        ManagerResponse::new("install_modules", install_attributes).add_submessages(install_msgs)
-    } else {
-        ManagerResponse::action("install_modules")
-    };
+    let (install_msgs, install_attributes) = install_modules_internal(
+        deps.branch(),
+        modules,
+        config.module_factory_address,
+        config.version_control_address,
+        msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
+    )?;
+    let response =
+        ManagerResponse::new("install_modules", install_attributes).add_submessages(install_msgs);
 
     Ok(response)
 }
@@ -125,12 +122,12 @@ pub(crate) fn install_modules_internal(
     let maybe_ibc_client_position = modules.iter().position(|r| r.module.id() == IBC_CLIENT);
     let (mut msgs, mut attributes) = if let Some(position) = maybe_ibc_client_position {
         modules.remove(position);
-        let (proxy_msg, attr) = update_ibc_status_internal(deps.branch(), true)?;
-        let attributes = attr.into_iter().map(Attribute::from).collect();
+        let (proxy_msg, attribute) = update_ibc_status_internal(deps.branch(), true)?;
+        let proxy_msg = SubMsg::new(proxy_msg);
         if modules.is_empty() {
-            return Ok((vec![SubMsg::new(proxy_msg)], attributes));
+            return Ok((vec![proxy_msg], vec![attribute]));
         }
-        (vec![SubMsg::new(proxy_msg)], attributes)
+        (vec![proxy_msg], vec![attribute])
     } else {
         (vec![], vec![])
     };
@@ -162,7 +159,6 @@ pub(crate) fn install_modules_internal(
         {
             return Err(ManagerError::ModuleAlreadyInstalled(module.info.id()));
         }
-
         installed_modules.push(module.info.id_with_version());
 
         let init_msg_salt = match &module.reference {
@@ -922,12 +918,12 @@ pub fn update_suspension_status(
 pub fn update_ibc_status_internal(
     deps: DepsMut,
     ibc_enabled: bool,
-) -> ManagerResult<(CosmosMsg, Vec<(&str, String)>)> {
+) -> ManagerResult<(CosmosMsg, Attribute)> {
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
 
     let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
 
-    let proxy_msg = if ibc_enabled {
+    let proxy_callback_msg = if ibc_enabled {
         // we have an IBC client so can't add more
         if maybe_client.is_some() {
             return Err(ManagerError::ModuleAlreadyInstalled(IBC_CLIENT.to_string()));
@@ -937,11 +933,14 @@ pub fn update_ibc_status_internal(
     } else {
         match maybe_client {
             Some(ibc_client) => uninstall_ibc_client(deps, proxy, ibc_client)?,
-            None => return Err(ManagerError::ModuleNotFound(IBC_CLIENT.to_string()))?,
+            None => return Err(ManagerError::ModuleNotFound(IBC_CLIENT.to_string())),
         }
     };
 
-    Ok((proxy_msg, vec![("ibc_enabled", ibc_enabled.to_string())]))
+    Ok((
+        proxy_callback_msg,
+        Attribute::new("ibc_enabled", ibc_enabled.to_string()),
+    ))
 }
 
 pub fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
