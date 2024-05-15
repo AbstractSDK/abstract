@@ -96,16 +96,18 @@ pub fn install_modules(
 
     let config = CONFIG.load(deps.storage)?;
 
-    let (register_on_proxy, install_msg, install_attribute) = install_modules_internal(
-        deps.branch(),
-        modules,
-        config.module_factory_address,
-        config.version_control_address,
-        msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
-    )?;
-    let response = ManagerResponse::new("install_modules", std::iter::once(install_attribute))
-        .add_message(register_on_proxy)
-        .add_submessage(install_msg);
+    let response = if !modules.is_empty() {
+        let (install_msgs, install_attributes) = install_modules_internal(
+            deps.branch(),
+            modules,
+            config.module_factory_address,
+            config.version_control_address,
+            msg_info.funds.clone(), // We forward all the funds to the module_factory address for them to use in the install
+        )?;
+        ManagerResponse::new("install_modules", install_attributes).add_submessages(install_msgs)
+    } else {
+        ManagerResponse::action("install_modules")
+    };
 
     Ok(response)
 }
@@ -114,11 +116,25 @@ pub fn install_modules(
 /// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
 pub(crate) fn install_modules_internal(
     mut deps: DepsMut,
-    modules: Vec<ModuleInstallConfig>,
+    mut modules: Vec<ModuleInstallConfig>,
     module_factory_address: Addr,
     version_control_address: Addr,
     funds: Vec<Coin>,
-) -> ManagerResult<(CosmosMsg, SubMsg, Attribute)> {
+) -> ManagerResult<(Vec<SubMsg>, Vec<Attribute>)> {
+    // If the IBC Client module is included inside Modules, we pop it and enable the ibc status
+    let maybe_ibc_client_position = modules.iter().position(|r| r.module.id() == IBC_CLIENT);
+    let (mut msgs, mut attributes) = if let Some(position) = maybe_ibc_client_position {
+        modules.remove(position);
+        let (proxy_msg, attr) = update_ibc_status_internal(deps.branch(), true)?;
+        let attributes = attr.into_iter().map(Attribute::from).collect();
+        if modules.is_empty() {
+            return Ok((vec![SubMsg::new(proxy_msg)], attributes));
+        }
+        (vec![SubMsg::new(proxy_msg)], attributes)
+    } else {
+        (vec![], vec![])
+    };
+
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
@@ -146,6 +162,7 @@ pub(crate) fn install_modules_internal(
         {
             return Err(ManagerError::ModuleAlreadyInstalled(module.info.id()));
         }
+
         installed_modules.push(module.info.id_with_version());
 
         let init_msg_salt = match &module.reference {
@@ -173,8 +190,7 @@ pub(crate) fn install_modules_internal(
 
                 Some(init_msg.unwrap())
             }
-            // TODO: do we want to support installing any other type of module here?
-            _ => unreachable!(),
+            _ => return Err(ManagerError::ModuleNotInstallable(module.info.to_string())),
         };
         manager_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
     }
@@ -197,11 +213,12 @@ pub(crate) fn install_modules_internal(
         },
         funds,
     )?;
-    Ok((
-        add_to_proxy,
-        SubMsg::reply_on_success(msg, REGISTER_MODULES_DEPENDENCIES),
-        Attribute::new("installed_modules", format!("{installed_modules:?}")),
-    ))
+
+    msgs.push(SubMsg::new(add_to_proxy));
+    msgs.push(SubMsg::reply_on_success(msg, REGISTER_MODULES_DEPENDENCIES));
+    attributes.push(("installed_modules", format!("{installed_modules:?}")).into());
+
+    Ok((msgs, attributes))
 }
 
 /// Adds the modules dependencies
@@ -902,19 +919,15 @@ pub fn update_suspension_status(
     Ok(response.add_abstract_attributes(vec![("is_suspended", is_suspended.to_string())]))
 }
 
-pub fn update_ibc_status(
+pub fn update_ibc_status_internal(
     deps: DepsMut,
-    msg_info: MessageInfo,
     ibc_enabled: bool,
-    response: Response,
-) -> ManagerResult {
-    // only owner can update IBC status
-    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
+) -> ManagerResult<(CosmosMsg, Vec<(&str, String)>)> {
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
 
     let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
 
-    let proxy_callback_msg = if ibc_enabled {
+    let proxy_msg = if ibc_enabled {
         // we have an IBC client so can't add more
         if maybe_client.is_some() {
             return Err(ManagerError::ModuleAlreadyInstalled(IBC_CLIENT.to_string()));
@@ -924,13 +937,11 @@ pub fn update_ibc_status(
     } else {
         match maybe_client {
             Some(ibc_client) => uninstall_ibc_client(deps, proxy, ibc_client)?,
-            None => return Err(ManagerError::ModuleNotFound(IBC_CLIENT.to_string())),
+            None => return Err(ManagerError::ModuleNotFound(IBC_CLIENT.to_string()))?,
         }
     };
 
-    Ok(response
-        .add_abstract_attributes(vec![("ibc_enabled", ibc_enabled.to_string())])
-        .add_message(proxy_callback_msg))
+    Ok((proxy_msg, vec![("ibc_enabled", ibc_enabled.to_string())]))
 }
 
 pub fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
@@ -1111,7 +1122,7 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
 /// This function should return `Ok` when called by:
 /// - The owner of the contract (i.e. account).
 /// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
-fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
+pub fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
     let ownership_test = cw_ownable::assert_owner(deps.storage, sender);
 
     // If the sender is the owner, the admin test is passed

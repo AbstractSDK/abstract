@@ -1,14 +1,17 @@
-use abstract_sdk::std::{
-    manager::{
-        state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
-        CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+use abstract_sdk::{
+    cw_helpers::AbstractAttributes,
+    std::{
+        manager::{
+            state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
+            CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+        },
+        objects::{
+            module_version::assert_contract_upgrade,
+            validation::{validate_description, validate_link, validate_name},
+        },
+        proxy::state::ACCOUNT_ID,
+        MANAGER,
     },
-    objects::{
-        module_version::assert_contract_upgrade,
-        validation::{validate_description, validate_link, validate_name},
-    },
-    proxy::state::ACCOUNT_ID,
-    MANAGER,
 };
 use abstract_std::{
     manager::{
@@ -107,7 +110,7 @@ pub fn instantiate(
 
     if !msg.install_modules.is_empty() {
         // Install modules
-        let (add_to_proxy, install_msg, install_attribute) = install_modules_internal(
+        let (install_msgs, install_attributes) = install_modules_internal(
             deps.branch(),
             msg.install_modules,
             config.module_factory_address,
@@ -115,9 +118,8 @@ pub fn instantiate(
             info.funds,
         )?;
         response = response
-            .add_message(add_to_proxy)
-            .add_submessage(install_msg)
-            .add_attribute(install_attribute.key, install_attribute.value);
+            .add_submessages(install_msgs)
+            .add_abstract_attributes(install_attributes)
     }
 
     // Register on manager if it's sub-account
@@ -191,8 +193,15 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 } => {
                     let mut response: Response = ManagerResponse::action("update_settings");
 
+                    // only owner can update IBC status
+                    assert_admin_right(deps.as_ref(), &info.sender)?;
                     if let Some(ibc_enabled) = new_status {
-                        response = update_ibc_status(deps, info, ibc_enabled, response)?;
+                        let (proxy_msg, attributes) =
+                            update_ibc_status_internal(deps, ibc_enabled)?;
+
+                        response = response
+                            .add_abstract_attributes(attributes)
+                            .add_message(proxy_msg);
                     } else {
                         return Err(ManagerError::NoUpdates {});
                     }
