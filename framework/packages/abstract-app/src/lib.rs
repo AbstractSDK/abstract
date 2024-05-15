@@ -16,8 +16,7 @@ pub type AppResult<C = cosmwasm_std::Empty> = Result<cosmwasm_std::Response<C>, 
 pub use abstract_std as std;
 // re-export objects specifically
 pub use abstract_sdk as sdk;
-
-pub use crate::std::objects;
+pub use std::objects;
 pub mod traits {
     pub use abstract_sdk::{features::*, prelude::*};
 }

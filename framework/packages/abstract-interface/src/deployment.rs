@@ -4,6 +4,7 @@ use abstract_std::{
     account_factory::ExecuteMsgFns as _, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY,
     PROFILE, PROFILE_MARKETPLACE, PROXY, VERSION_CONTROL,
 };
+use bs721::{CollectionInfo, RoyaltyInfoResponse};
 use bs_profile::Metadata;
 use cw_orch::prelude::*;
 
@@ -69,6 +70,24 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         bs721_profile.upload()?;
         profile_marketplace.upload()?;
 
+        let res1 = ans_host.upload()?;
+        let res2 = version_control.upload()?;
+        let res3 = account_factory.upload()?;
+        let res4 = module_factory.upload()?;
+        let res5 = account.upload()?;
+        let res6 = ibc_infra.upload()?;
+        let res7 = profile_marketplace.upload()?;
+        let res8 = bs721_profile.upload()?;
+        println!("ANS Host upload result: {:?}", res1);
+        println!("Version Control upload result: {:?}", res2);
+        println!("ANS Host upload result: {:?}", res3);
+        println!("Account Factory upload result: {:?}", res3);
+        println!("Module Factory upload result: {:?}", res4);
+        println!("Account  upload result: {:?}", res5);
+        println!("Profile  upload result: {:?}", res6);
+        println!("Marketplace  upload result: {:?}", res7);
+        println!("Bs721Profile  upload result: {:?}", res8);
+
         let deployment = Abstract {
             ans_host,
             account_factory,
@@ -124,6 +143,16 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             )
             .unwrap();
 
+        deployment
+            .account_factory
+            .setup_profile_infra(
+                Some(deployment.profile_marketplace.address()?.to_string()),
+                None,
+                Some(deployment.bs721_profile.address()?.to_string()),
+                None,
+            )
+            .unwrap();
+
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
         use abstract_std::objects::gov_type::GovernanceDetails;
@@ -146,6 +175,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             Box::new(&mut self.account.proxy),
             Box::new(&mut self.ibc.client),
             Box::new(&mut self.ibc.host),
+            Box::new(&mut self.bs721_profile),
+            Box::new(&mut self.profile_marketplace),
         ]
     }
 
@@ -259,6 +290,41 @@ impl<Chain: CwEnv> Abstract<Chain> {
         // We also instantiate ibc contracts
         self.ibc.instantiate(self, &admin)?;
         self.ibc.register(&self.version_control)?;
+
+        self.bs721_profile.instantiate(
+            &abstract_std::profile::InstantiateMsg {
+                verifier: None,
+                base_init_msg: bs721_base::InstantiateMsg {
+                    name: "test".to_string(),
+                    symbol: "TEST".to_string(),
+                    uri: None,
+                    minter: self.account_factory.address()?.to_string(),
+                    collection_info: CollectionInfo::<RoyaltyInfoResponse> {
+                        creator: admin.to_string(),
+                        description: "test description".to_string(),
+                        image: "https://www.testimageurl.com".to_string(),
+                        external_link: Some("https://www.beautiful.network".to_string()),
+                        explicit_content: None,
+                        start_trading_time: None,
+                        royalty_info: None,
+                    },
+                },
+            },
+            Some(&admin),
+            None,
+        )?;
+
+        self.profile_marketplace.instantiate(
+            &abstract_std::profile_marketplace::InstantiateMsg {
+                trading_fee_bps: 25,
+                min_price: 100u128.into(),
+                ask_interval: 100,
+                factory: self.account_factory.address()?,
+                collection: self.bs721_profile.address()?,
+            },
+            Some(&admin),
+            None,
+        )?;
 
         Ok(())
     }

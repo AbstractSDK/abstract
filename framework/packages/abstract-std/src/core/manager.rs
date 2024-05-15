@@ -216,6 +216,8 @@ pub enum ExecuteMsg {
         ///
         /// When provided: Signals the expected local Account Id. The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
         account_id: Option<u32>,
+        // 
+        bs_profile: Option<String>,
     },
     /// Update info
     UpdateInfo {

@@ -1,10 +1,17 @@
 use super::AccountId;
 
-use cosmwasm_std::Binary;
+use cosmwasm_std::{Binary, HexBinary};
 
 pub const SALT_POSTFIX: &[u8] = b"abstract";
 /// Generate salt helper
 pub fn generate_instantiate_salt(account_id: &AccountId) -> Binary {
+    let account_id_hash = <sha2::Sha256 as sha2::Digest>::digest(account_id.to_string());
+    let mut hash = account_id_hash.to_vec();
+    hash.extend(SALT_POSTFIX);
+    Binary(hash.to_vec())
+}
+
+pub fn generate_instantiate_salt2(account_id: &HexBinary) -> Binary {
     let account_id_hash = <sha2::Sha256 as sha2::Digest>::digest(account_id.to_string());
     let mut hash = account_id_hash.to_vec();
     hash.extend(SALT_POSTFIX);

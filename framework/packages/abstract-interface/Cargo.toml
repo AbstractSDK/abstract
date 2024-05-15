@@ -45,6 +45,8 @@ proxy = { version = "0.22.1", package = "abstract-proxy", path = "../../contract
 manager = { version = "0.22.1", package = "abstract-manager", path = "../../contracts/account/manager", default-features = false }
 
 bs-profile          = { workspace = true }
+bs721-base          = { workspace = true, features = ["library"] }
+bs721               = { workspace = true }
 profile-marketplace = { package = "profile-marketplace", path = "../../contracts/native/profile-marketplace", default-features = false, version = "0.22.0" }
 profile = { package = "bs721-profile", path = "../../contracts/account/bs721-profile", default-features = false, version = "0.22.0" }
 

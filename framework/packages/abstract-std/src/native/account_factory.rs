@@ -8,7 +8,9 @@
 //! Call [`ExecuteMsg::CreateAccount`] on this contract along with a [`crate::objects::gov_type`] and name you'd like to display on your Account.
 //!
 pub mod state {
+    use bs_profile::common::SECONDS_PER_YEAR;
     use cosmwasm_std::Addr;
+    use cw_controllers::Admin;
     use cw_storage_plus::Item;
     use serde::{Deserialize, Serialize};
 
@@ -19,6 +21,8 @@ pub mod state {
         },
         version_control::AccountBase,
     };
+
+    use super::SudoParams;
 
     /// Account Factory configuration
     #[cosmwasm_schema::cw_serde]
@@ -41,10 +45,22 @@ pub mod state {
     pub const CONFIG: Item<Config> = Item::new("cfg");
     pub const CONTEXT: Item<Context> = Item::new("contxt");
     pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> = Item::new("acseq");
+
+    pub const SUDO_PARAMS: Item<SudoParams> = Item::new("params");
+    pub const VERIFIER: Admin = Admin::new("verifier");
+    pub const IS_PROFILE_SETUP: Item<bool> = Item::new("is-setup");
+    /// TODO: remove this and store in registered modules
+    pub const PROFILE_MARKETPLACE: Item<Addr> = Item::new("profile-marketplace");
+    pub const PROFILE_COLLECTION: Item<Addr> = Item::new("profile-collection");
+
+    pub const TRADING_START_TIME_OFFSET_IN_SECONDS: u64 = 2 * SECONDS_PER_YEAR;
+    pub const INIT_COLLECTION_REPLY_ID: u64 = 420;
+
+    // pub const IS_SETUP: Item<bool> = Item::new("is_setup");
 }
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Uint128};
 
 use crate::{
     manager::ModuleInstallConfig,
@@ -66,6 +82,14 @@ pub struct InstantiateMsg {
     pub ans_host_address: String,
     /// AnsHosts of module factory. Used for instantiating manager.
     pub module_factory_address: String,
+    /// Profile Sudo Config
+    /// Oracle for verifying text records
+    pub verifier: Option<String>,
+    /// Profiles marketplace code id
+    pub min_name_length: u32,
+    pub max_name_length: u32,
+    /// bps for profiles
+    pub base_price: Uint128,
 }
 
 /// Account Factory execute messages
@@ -109,6 +133,19 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
         // Provide list of module to install after account creation
         install_modules: Vec<ModuleInstallConfig>,
+
+        bs_profile: Option<String>,
+    },
+    #[cfg_attr(feature = "interface", payable)]
+    SetupProfileInfra {
+        // profile collection code id
+        profile_code_id: Option<u64>,
+        // marketplace code id
+        marketplace_code_id: Option<u64>,
+        // optional profile collection contract. bypasses instantiation if provided
+        profile_addr: Option<String>,
+        // optional marketplace contract. bypasses instantiation
+        marketplace_addr: Option<String>,
     },
 }
 
@@ -146,3 +183,16 @@ pub struct SequenceResponse {
 /// Account Factory migrate messages
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
+
+#[cosmwasm_schema::cw_serde]
+pub struct SudoParams {
+    pub max_record_count: u32,
+    pub min_name_length: u32,
+    pub max_name_length: u32,
+    pub base_price: Uint128,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum SudoMsg {
+    UpdateParams { max_record_count: u32 },
+}

@@ -5,3 +5,4 @@ pub mod ibc_client;
 pub mod ibc_host;
 pub mod module_factory;
 pub mod version_control;
+pub mod profile_marketplace;

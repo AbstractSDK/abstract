@@ -85,6 +85,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     fetch_if_namespace_claimed: bool,
     install_on_sub_account: bool,
     expected_local_account_id: Option<u32>,
+    bs_profile: Option<String>,
 }
 
 /// Creation funds
@@ -110,6 +111,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             fetch_if_namespace_claimed: true,
             install_on_sub_account: true,
             expected_local_account_id: None,
+            bs_profile: None,
         }
     }
 
@@ -316,6 +318,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             base_asset: self.base_asset.clone(),
             install_modules,
             account_id: self.expected_local_account_id,
+            bs_profile: self.bs_profile.clone(),
         };
         let abstract_account = if let Some(owner_account) = self.owner_account {
             owner_account
@@ -703,6 +706,7 @@ impl<Chain: CwEnv> Account<Chain> {
         let sub_account_response = self.abstr_account.manager.create_sub_account(
             modules,
             "Sub Account".to_owned(),
+            None,
             None,
             None,
             None,
