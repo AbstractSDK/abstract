@@ -61,8 +61,7 @@ abstract-std = { version = "0.22.1" }
 
 abstract-adapter-utils = { version = "0.22.1" }
 abstract-dex-standard = { version = "0.22.1" }
-# abstract-money-market-standard = { version = "0.22.1" }
-abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
+abstract-money-market-standard = { version = "0.22.1" }
 abstract-staking-standard = { version = "0.22.1" }
 
 # TODO: REMOVE As soon as new dex-standard published

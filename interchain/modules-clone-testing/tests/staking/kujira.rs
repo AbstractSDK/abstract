@@ -38,8 +38,8 @@ pub struct KujiraStake {
 }
 
 impl KujiraStake {
-    fn name() -> String {
-        "kujira".to_string()
+    fn dex_name() -> String {
+        "fin".to_string()
     }
 
     fn new(chain: CloneTesting) -> anyhow::Result<Self> {
@@ -54,7 +54,7 @@ impl KujiraStake {
             liquidity: BOW_MM_ADDR.to_owned(),
         };
         let pool_metadata = PoolMetadata {
-            dex: Self::name(),
+            dex: Self::dex_name(),
             pool_type: PoolType::ConstantProduct,
             assets: vec![AssetEntry::new(ans_asset_a), AssetEntry::new(ans_asset_b)],
         };
@@ -63,10 +63,10 @@ impl KujiraStake {
         abstr_deployment.name_service().update_contract_addresses(
             vec![(
                 UncheckedContractEntry {
-                    protocol: Self::name(),
+                    protocol: "bow".to_owned(),
                     contract: format!(
                         "staking/{dex}/{asset_a},{asset_b}",
-                        dex = Self::name(),
+                        dex = Self::dex_name(),
                         asset_a = &ans_asset_a,
                         asset_b = &ans_asset_b,
                     ),
@@ -84,11 +84,11 @@ impl KujiraStake {
             vec![],
         )?;
         // Add lp asset
-        let lp_token = LpToken::new(Self::name(), vec![ans_asset_a, ans_asset_b]);
+        let lp_token = LpToken::new(Self::dex_name(), vec![ans_asset_a, ans_asset_b]);
         // Add dex
         abstr_deployment
             .name_service()
-            .update_dexes(vec![Self::name()], vec![])?;
+            .update_dexes(vec![Self::dex_name()], vec![])?;
         // Add pool
         abstr_deployment
             .name_service()
@@ -107,7 +107,7 @@ impl KujiraStake {
 
 impl MockStaking for KujiraStake {
     fn name(&self) -> String {
-        "kujira".to_owned()
+        "bow".to_owned()
     }
 
     fn stake_token(&self) -> (String, AssetInfoUnchecked) {
@@ -176,7 +176,7 @@ impl MockStaking for KujiraStake {
 fn setup() -> anyhow::Result<StakingTester<CloneTesting, KujiraStake>> {
     let chain_info = HARPOON_4;
     let sender = Addr::unchecked(SENDER);
-    std::env::set_var("RUST_LOG", "debug");
+    // std::env::set_var("RUST_LOG", "debug");
     let abstr_deployment = load_abstr(chain_info, sender)?;
     let chain = abstr_deployment.environment();
     let kujira_stake = KujiraStake::new(chain)?;

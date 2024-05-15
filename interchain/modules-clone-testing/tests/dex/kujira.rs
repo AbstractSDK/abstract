@@ -38,7 +38,7 @@ pub struct KujiraDex {
 
 impl MockDex for KujiraDex {
     fn name(&self) -> String {
-        "kujira".to_owned()
+        "fin".to_owned()
     }
 
     fn asset_a(&self) -> (String, cw_asset::AssetInfoUnchecked) {
@@ -65,7 +65,7 @@ impl MockDex for KujiraDex {
         abstr_deployment.name_service().update_contract_addresses(
             vec![(
                 UncheckedContractEntry {
-                    protocol: self.name(),
+                    protocol: "bow".to_owned(),
                     contract: format!(
                         "staking/{dex}/{asset_a},{asset_b}",
                         dex = self.name(),

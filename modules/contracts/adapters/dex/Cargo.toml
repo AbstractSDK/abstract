@@ -41,7 +41,7 @@ wynd = [
 ]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
 astroport = ["abstract-astroport-adapter/full_integration"]
-bow = ["abstract-kujira-adapter/full_integration"]
+fin = ["abstract-kujira-adapter/full_integration"]
 terraswap = ["dep:terraswap", "dep:cw20"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
 
@@ -64,7 +64,7 @@ builds = [
     "osmosis",
   ] },
   { name = "kujira", features = [
-    "bow",
+    "fin",
   ] },
   { name = "injective", features = [
     "astroport",

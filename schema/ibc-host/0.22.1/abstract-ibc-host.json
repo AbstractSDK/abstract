@@ -148,7 +148,7 @@
                 "$ref": "#/definitions/HostAction"
               },
               "proxy_address": {
-                "description": "The address of the calling account id. This is used purely for the send-all-back method. We include it in all messages one-the-less to simpify the users life",
+                "description": "The address of the calling account id. This is used purely for the send-all-back method. We include it in all messages none-the-less to simplify the users life",
                 "type": "string"
               }
             },

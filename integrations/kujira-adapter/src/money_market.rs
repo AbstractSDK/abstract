@@ -1,13 +1,15 @@
-use crate::{AVAILABLE_CHAINS, KUJIRA};
+use crate::AVAILABLE_CHAINS;
 use abstract_money_market_standard::Identify;
+
+pub const GHOST: &str = "ghost";
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
-pub struct Kujira {}
+pub struct Ghost {}
 
-impl Identify for Kujira {
+impl Identify for Ghost {
     fn name(&self) -> &'static str {
-        KUJIRA
+        GHOST
     }
     fn is_available_on(&self, chain_name: &str) -> bool {
         AVAILABLE_CHAINS.contains(&chain_name)
@@ -37,7 +39,7 @@ use ::{
 use self::types::{exchange_rate_type_url, QueryExchangeRateRequest};
 
 #[cfg(feature = "full_integration")]
-impl MoneyMarketCommand for Kujira {
+impl MoneyMarketCommand for Ghost {
     fn deposit(
         &self,
         _deps: Deps,
@@ -318,7 +320,7 @@ impl MoneyMarketCommand for Kujira {
 }
 
 #[cfg(feature = "full_integration")]
-impl Kujira {
+impl Ghost {
     fn vault_address(
         &self,
         querier: &QuerierWrapper,
