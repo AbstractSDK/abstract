@@ -63,7 +63,7 @@ impl KujiraStake {
         abstr_deployment.name_service().update_contract_addresses(
             vec![(
                 UncheckedContractEntry {
-                    protocol: Self::dex_name(),
+                    protocol: "bow".to_owned(),
                     contract: format!(
                         "staking/{dex}/{asset_a},{asset_b}",
                         dex = Self::dex_name(),
@@ -176,7 +176,7 @@ impl MockStaking for KujiraStake {
 fn setup() -> anyhow::Result<StakingTester<CloneTesting, KujiraStake>> {
     let chain_info = HARPOON_4;
     let sender = Addr::unchecked(SENDER);
-    std::env::set_var("RUST_LOG", "debug");
+    // std::env::set_var("RUST_LOG", "debug");
     let abstr_deployment = load_abstr(chain_info, sender)?;
     let chain = abstr_deployment.environment();
     let kujira_stake = KujiraStake::new(chain)?;
