@@ -106,8 +106,9 @@ pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
 }
 
 /// Returns the remote-host and polytone proxy addresses (useful for registering the proxy on the host)
-pub fn host(deps: Deps, host_chain: String) -> IbcClientResult<HostResponse> {
-    let host_chain = ChainName::from_str(&host_chain)?;
+pub fn host(deps: Deps, host_chain: ChainName) -> IbcClientResult<HostResponse> {
+    host_chain.verify()?;
+
     let ibc_counterpart = IBC_INFRA.load(deps.storage, &host_chain)?;
     let remote_host = ibc_counterpart.remote_abstract_host;
     let remote_polytone_proxy = ibc_counterpart.remote_proxy;

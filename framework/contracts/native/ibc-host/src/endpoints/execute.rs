@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use abstract_sdk::{feature_objects::VersionControlContract, std::ibc_host::ExecuteMsg};
 use abstract_std::{
     ibc_host::state::{CHAIN_PROXIES, CONFIG, REVERSE_CHAIN_PROXIES},
@@ -92,12 +90,12 @@ fn update_config(
 fn register_chain_proxy(
     deps: DepsMut,
     info: MessageInfo,
-    chain: String,
+    chain: ChainName,
     proxy: String,
 ) -> HostResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
-    let chain = ChainName::from_str(&chain)?;
+    chain.verify()?;
 
     // We validate the proxy address, because this is the Polytone counterpart on the local chain
     let proxy = deps.api.addr_validate(&proxy)?;
@@ -111,10 +109,10 @@ fn register_chain_proxy(
     Ok(HostResponse::action("register_chain_client"))
 }
 
-fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: String) -> HostResult {
+fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: ChainName) -> HostResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
-    let chain = ChainName::from_str(&chain)?;
+    chain.verify()?;
 
     if let Some(proxy) = CHAIN_PROXIES.may_load(deps.storage, &chain)? {
         REVERSE_CHAIN_PROXIES.remove(deps.storage, &proxy);

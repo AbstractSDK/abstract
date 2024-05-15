@@ -19,8 +19,8 @@ pub enum AppExecuteMsg {
     PingPong {
         /// How many pings pongs in and out should be done
         pongs: u32,
-        /// Remote chain
-        remote_chain: ChainName,
+        /// Host chain
+        host_chain: ChainName,
     },
 }
 
@@ -29,8 +29,6 @@ pub enum AppExecuteMsg {
 #[derive(QueryResponses, cw_orch::QueryFns)]
 #[impl_into(QueryMsg)]
 pub enum AppQueryMsg {
-    #[returns(ConfigResponse)]
-    Config {},
     #[returns(PongsResponse)]
     Pongs {},
 }
@@ -42,9 +40,6 @@ pub struct PingPongIbcMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AppMigrateMsg {}
-
-#[cosmwasm_schema::cw_serde]
-pub struct ConfigResponse {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct PongsResponse {

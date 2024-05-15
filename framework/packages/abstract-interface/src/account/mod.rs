@@ -11,7 +11,9 @@
 //! - uninstall module
 //! - upgrade module
 
-use abstract_std::{manager::ModuleInstallConfig, ABSTRACT_EVENT_TYPE};
+use abstract_std::{
+    manager::ModuleInstallConfig, objects::chain_name::ChainName, ABSTRACT_EVENT_TYPE,
+};
 
 use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
@@ -191,7 +193,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     pub fn register_remote_account(
         &self,
-        host_chain: &str,
+        host_chain: ChainName,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         self.manager.register_remote_account(host_chain)

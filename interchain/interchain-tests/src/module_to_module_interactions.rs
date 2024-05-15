@@ -1,8 +1,8 @@
 pub use abstract_std::app;
 use abstract_std::{
     ibc::{CallbackInfo, CallbackResult, ModuleIbcMsg},
-    ibc_client::{self},
-    objects::module::ModuleInfo,
+    ibc_client,
+    objects::{chain_name::ChainName, module::ModuleInfo},
     IBC_CLIENT,
 };
 use cosmwasm_schema::{cw_serde, QueryResponses};
@@ -27,11 +27,11 @@ pub enum MockExecMsg {
     DoSomething {},
     DoSomethingAdmin {},
     DoSomethingIbc {
-        remote_chain: String,
+        remote_chain: ChainName,
         target_module: ModuleInfo,
     },
     QuerySomethingIbc {
-        remote_chain: String,
+        remote_chain: ChainName,
         address: String,
     },
 }
@@ -323,7 +323,7 @@ pub mod test {
         let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
         ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+        let remote_name = ChainName::from_chain_id(STARGAZE);
 
         let (origin_account, _remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -386,7 +386,7 @@ pub mod test {
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
         ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+        let remote_name = ChainName::from_chain_id(STARGAZE);
 
         let (origin_account, _remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -462,7 +462,7 @@ pub mod test {
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
         ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+        let remote_name = ChainName::from_chain_id(STARGAZE);
 
         let (origin_account, remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -497,7 +497,7 @@ pub mod test {
         app_remote.deploy(TEST_VERSION_REMOTE.parse()?, DeployStrategy::Try)?;
 
         let remote_install_response = origin_account.manager.execute_on_remote(
-            &remote_name,
+            remote_name.clone(),
             manager::ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id_latest(TEST_MODULE_ID_REMOTE)?,
@@ -557,7 +557,7 @@ pub mod test {
         let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
         ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+        let remote_name = ChainName::from_chain_id(STARGAZE);
         let remote = mock_interchain.chain(STARGAZE)?;
         let remote_address =
             remote.addr_make_with_balance("remote-test", coins(REMOTE_AMOUNT, REMOTE_DENOM))?;
@@ -606,7 +606,7 @@ pub mod test {
                 ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
             ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
-            let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+            let remote_name = ChainName::from_chain_id(STARGAZE);
 
             let (origin_account, remote_account_id) =
                 create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -641,7 +641,7 @@ pub mod test {
             app_remote.deploy(TEST_VERSION_REMOTE.parse()?, DeployStrategy::Try)?;
 
             let remote_install_response = origin_account.manager.execute_on_remote(
-                &remote_name,
+                remote_name.clone(),
                 manager::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(
                         ModuleInfo::from_id_latest(TEST_MODULE_ID_REMOTE)?,

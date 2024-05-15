@@ -24,4 +24,8 @@ abstract-app = { workspace = true }
 cw-orch = { workspace = true }
 
 [dev-dependencies]
+ping-pong = { path = "." }
 abstract-client = { workspace = true }
+# TODO: move tests to interchain 
+abstract-interchain-tests = { path = "../../../../interchain/interchain-tests" }
+abstract-cw-orch-polytone = "2.0.0"

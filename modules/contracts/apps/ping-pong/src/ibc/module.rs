@@ -1,9 +1,9 @@
 use abstract_app::{
     objects::module::ModuleInfo,
     sdk::{AbstractResponse, IbcInterface},
-    std::{ibc::ModuleIbcMsg, ibc_client},
+    std::ibc::ModuleIbcMsg,
 };
-use cosmwasm_std::{from_json, to_json_binary, wasm_execute, DepsMut, Env, Response};
+use cosmwasm_std::{from_json, DepsMut, Env, Response};
 
 use crate::{
     contract::{App, AppResult},
@@ -17,23 +17,18 @@ pub fn receive_module_ibc(
     app: App,
     msg: ModuleIbcMsg,
 ) -> AppResult<Response> {
-    let ping_msg: PingPongIbcMsg = from_json(&msg.msg)?;
+    let mut ping_msg: PingPongIbcMsg = from_json(&msg.msg)?;
 
     CURRENT_PONGS.save(deps.storage, &ping_msg.pongs)?;
     if ping_msg.pongs > 0 {
         let current_module_info = ModuleInfo::from_id(app.module_id(), app.version().into())?;
-        let msg = ibc_client::ExecuteMsg::ModuleIbcAction {
-            host_chain: msg.client_chain.to_string(),
-            target_module: current_module_info,
-            msg: to_json_binary(&PingPongIbcMsg {
-                pongs: ping_msg.pongs - 1,
-            })?,
-            callback_info: None,
-        };
-        let ibc_client_addr = app.ibc_client(deps.as_ref()).module_address()?;
-        let ibc_msg = wasm_execute(ibc_client_addr, &msg, vec![])?;
-        Ok(app.response("ping_back").add_message(ibc_msg))
+        let ibc_client = app.ibc_client(deps.as_ref());
+        ping_msg.pongs -= 1;
+        let ibc_action =
+            ibc_client.module_ibc_action(msg.client_chain, current_module_info, &ping_msg, None)?;
+        Ok(app.response("ping_back").add_message(ibc_action))
     } else {
+        // Done ping-ponging
         Ok(app.response("ping_ponged"))
     }
 }

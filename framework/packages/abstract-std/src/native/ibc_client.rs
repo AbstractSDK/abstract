@@ -78,13 +78,13 @@ pub enum ExecuteMsg {
     // This allows for monitoring which chain are connected to the contract remotely
     RegisterInfrastructure {
         /// Chain to register the infrastructure for ("juno", "osmosis", etc.)
-        chain: String,
+        chain: ChainName,
         /// Polytone note (locally deployed)
         note: String,
         /// Address of the abstract host deployed on the remote chain
         host: String,
     },
-    /// Changes the config
+    /// Owner method: Update the config on IBC client
     UpdateConfig {
         ans_host: Option<String>,
         version_control: Option<String>,
@@ -93,41 +93,53 @@ pub enum ExecuteMsg {
     /// Will attempt to forward the specified funds to the corresponding
     /// address on the remote chain.
     SendFunds {
-        host_chain: String,
+        /// host chain to be executed on
+        /// Example: "osmosis"
+        host_chain: ChainName,
         funds: Vec<Coin>,
     },
     /// Register an Account on a remote chain over IBC
     /// This action creates a proxy for them on the remote chain.
     Register {
-        host_chain: String,
+        /// host chain to be executed on
+        /// Example: "osmosis"
+        host_chain: ChainName,
         base_asset: Option<AssetEntry>,
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     },
     ModuleIbcAction {
-        // TODO: Should it be ChainName?
-        host_chain: String,
+        /// host chain to be executed on
+        /// Example: "osmosis"
+        host_chain: ChainName,
+        /// Module of this account on host chain
         target_module: ModuleInfo,
+        /// Json-encoded IbcMsg to the target module
         msg: Binary,
+        /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback_info: Option<CallbackInfo>,
     },
     IbcQuery {
-        host_chain: String,
+        /// host chain to be executed on
+        /// Example: "osmosis"
+        host_chain: ChainName,
+        /// Cosmos Query request
         query: QueryRequest<Empty>,
+        /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback_info: CallbackInfo,
     },
     RemoteAction {
-        // host chain to be executed on
-        // Example: "osmosis"
-        host_chain: String,
-        // execute the custom host function
+        /// host chain to be executed on
+        /// Example: "osmosis"
+        host_chain: ChainName,
+        /// execute the custom host function
         action: HostAction,
     },
     RemoveHost {
         host_chain: String,
     },
     /// Callback from the Polytone implementation
-    /// This is NOT ONLY triggered when a contract execution is successful
+    /// This is triggered regardless of the execution result
     Callback(CallbackMessage),
 }
 
@@ -244,7 +256,7 @@ pub enum QueryMsg {
     /// Returns the host information associated with a specific chain-name (e.g. osmosis, juno)
     /// Returns [`HostResponse`]
     #[returns(HostResponse)]
-    Host { chain_name: String },
+    Host { chain_name: ChainName },
 
     // Shows all open channels (incl. remote info)
     /// Returns [`ListAccountsResponse`]

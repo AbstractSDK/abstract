@@ -102,17 +102,19 @@ fn connect(
     // We install the ibc client on the account. If it fails, it's ok (for instance if we're already updated)
     let _ = account.set_ibc_status(true);
 
-    let tx_response = account.create_ibc_account(
-        ChainName::from_chain_id(dst_chain.chain_id).to_string(),
-        None,
-        None,
-        vec![],
-    )?;
+    // TODO: Fix devx for creating ibc accounts
 
-    // We make sure the IBC execution is done when creating the account
-    interchain
-        .wait_ibc(src_chain.chain_id, tx_response)
-        .unwrap();
+    // let tx_response = account.create_ibc_account(
+    //     ChainName::from_chain_id(dst_chain.chain_id),
+    //     None,
+    //     None,
+    //     vec![],
+    // )?;
+
+    // // We make sure the IBC execution is done when creating the account
+    // interchain
+    //     .wait_ibc(src_chain.chain_id, tx_response)
+    //     .unwrap();
 
     Ok(())
 }

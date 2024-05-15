@@ -32,3 +32,10 @@ const APP: App = App::new(APP_ID, APP_VERSION, None)
 abstract_app::export_endpoints!(APP, App);
 
 abstract_app::cw_orch_interface!(APP, App, AppInterface);
+
+#[cfg(not(target_arch = "wasm32"))]
+impl<Chain: cw_orch::environment::CwEnv> abstract_app::abstract_interface::DependencyCreation
+    for crate::AppInterface<Chain>
+{
+    type DependenciesConfig = cosmwasm_std::Empty;
+}

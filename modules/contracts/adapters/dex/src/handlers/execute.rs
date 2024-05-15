@@ -45,7 +45,7 @@ pub fn execute_handler(
             dex: dex_name,
             action,
         } => {
-            let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
+            let (local_dex_name, is_over_ibc) = is_over_ibc(&env, &dex_name)?;
             // We resolve the Action to a RawAction to get the actual addresses, ids and denoms
             let whole_dex_action = WholeDexAction(local_dex_name.clone(), action);
             let ans = adapter.name_service(deps.as_ref());
@@ -63,7 +63,7 @@ pub fn execute_handler(
             dex: dex_name,
             action,
         } => {
-            let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
+            let (local_dex_name, is_over_ibc) = is_over_ibc(&env, &dex_name)?;
 
             // if exchange is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
@@ -150,7 +150,7 @@ fn handle_ibc_request(
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
-    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
+    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins)?;
     // construct the action to be called on the host
     let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
         manager_msgs: vec![abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
@@ -178,7 +178,7 @@ fn handle_ibc_request(
             })?),
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain, host_action)?;
 
     // call both messages on the proxy
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))

@@ -18,6 +18,7 @@ abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-interface = { workspace = true }
 abstract-scripts = { path = "../scripts" }
+abstract-client = { workspace = true }
 
 tokio = { workspace = true }
 log = "0.4.14"
@@ -33,3 +34,5 @@ cw-controllers = { workspace = true }
 cw-storage-plus.workspace = true
 thiserror.workspace = true
 base64 = "0.22.1"
+
+ping-pong = { path = "../../modules/contracts/apps/ping-pong" }

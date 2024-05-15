@@ -27,7 +27,7 @@ pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<C
     // We register the polytone note with it because they are linked
     // This triggers an IBC message that is used to get back the proxy address
     let proxy_tx_result = abstr.ibc.client.register_infrastructure(
-        chain2_name.to_string(),
+        chain2_name.clone(),
         dest.ibc.host.address()?.to_string(),
         polytone_src.note.address()?.to_string(),
     )?;
@@ -35,12 +35,11 @@ pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<C
     interchain.wait_ibc(&chain1_id, proxy_tx_result).unwrap();
 
     // Finally, we get the proxy address and register the proxy with the ibc host for the dest chain
-    let proxy_address = abstr.ibc.client.host(chain2_name.to_string())?;
+    let proxy_address = abstr.ibc.client.host(chain2_name)?;
 
-    dest.ibc.host.register_chain_proxy(
-        chain1_name.to_string(),
-        proxy_address.remote_polytone_proxy.unwrap(),
-    )?;
+    dest.ibc
+        .host
+        .register_chain_proxy(chain1_name, proxy_address.remote_polytone_proxy.unwrap())?;
 
     dest.account_factory.update_config(
         None,
@@ -98,7 +97,7 @@ pub fn verify_abstract_ibc(
     let host = src_abstract
         .ibc
         .client
-        .host(ChainName::from_chain_id(dst_chain.chain_id).into_string())?;
+        .host(ChainName::from_chain_id(dst_chain.chain_id))?;
 
     // We verify the host matches dst chain host for this original chain
     if host.remote_polytone_proxy.is_none() {

@@ -69,9 +69,9 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<Box<dyn DexCommand>, DexEr
 }
 
 /// Given a FULL provider nam (e.g. juno>wyndex), returns whether the request is local or over IBC
-pub fn is_over_ibc(env: Env, platform_name: &str) -> Result<(String, bool), DexError> {
+pub fn is_over_ibc(env: &Env, platform_name: &str) -> Result<(String, bool), DexError> {
     let (chain_name, local_platform_name) = decompose_platform_name(platform_name);
-    if chain_name.is_some() && !is_current_chain(env.clone(), &chain_name.clone().unwrap()) {
+    if chain_name.is_some() && !is_current_chain(env, &chain_name.clone().unwrap()) {
         Ok((local_platform_name, true))
     } else {
         let platform_id = identify_exchange(&local_platform_name)?;

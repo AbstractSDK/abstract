@@ -70,11 +70,12 @@ pub fn execute_register_infrastructure(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     host: String,
     note: String,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
+
     // auth check
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
@@ -177,10 +178,10 @@ pub fn execute_send_packet(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     action: HostAction,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
 
     let cfg = CONFIG.load(deps.storage)?;
 
@@ -221,12 +222,13 @@ pub fn execute_send_module_to_module_packet(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     target_module: ModuleInfo,
     msg: Binary,
     callback_info: Option<CallbackInfo>,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
+
     let cfg = CONFIG.load(deps.storage)?;
 
     // Query the sender module information
@@ -306,11 +308,11 @@ pub fn execute_send_query(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     query: QueryRequest<Empty>,
     callback_info: CallbackInfo,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
 
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
@@ -341,12 +343,12 @@ pub fn execute_register_account(
     deps: DepsMut,
     info: MessageInfo,
     env: Env,
-    host_chain: String,
+    host_chain: ChainName,
     base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
     let cfg = CONFIG.load(deps.storage)?;
 
     // Verify that the sender is a proxy contract
@@ -389,10 +391,11 @@ pub fn execute_send_funds(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     funds: Vec<Coin>,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
+
     let cfg = CONFIG.load(deps.storage)?;
     let ans = cfg.ans_host;
     // Verify that the sender is a proxy contract
