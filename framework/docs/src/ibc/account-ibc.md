@@ -2,18 +2,23 @@
 
 ## Introduction
 
-Interchain Abstract Accounts (ICAAs) are Abstract's approach to providing chain-agnostic smart-contract wallets, aka Accounts. It allows users to create an Account on
-one chain and use it on any other chain that supports Abstract. This is achieved by using a combination of
-the <a href="https://ibcprotocol.org/" target="_blank">Inter-Blockchain Communication (IBC) protocol</a> and
-the [Abstract Accounts](../3_framework/3_architecture.md).
+[Abstract Accounts](../3_framework/3_architecture.md) have the capability to control Accounts on any chain supporting Abstract over
+the <a href="https://ibcprotocol.org/" target="_blank">Inter-Blockchain Communication (IBC) protocol</a> through
+Interchain Abstract Accounts (ICAAs). ICAAs allow for any Abstract Account to control Accounts, contracts, and liquidity on any chain,
+offering a chain-abstracted experience users and developers in the Interchain ecosystem.
 
-ICAA allow users to interact with any smart-contract on any chain using their local account. This mechanism relies on a set of Abstract smart-contracts that will dispatch locally executed messages to remote chains.
+Designed with versatility in mind, ICAAs are able to execute messages locally and remotely, supporting both single- and multi-hop executions.
+
+```admonish info
+If you'd rather watch a video, an overview of Interchain Abstract Accounts can be found [here](https://www.youtube.com/watch?v=MrpndbPSBmI).
+```
 
 ## Integrating with Interchain Abstract Accounts
 
-### Enabling IBC on the account
+### Enabling IBC on the Account
 
-Abstract Accounts can be connected to IBC very easily. The first step for an account to be able to access IBC features is to enable IBC support on the account. This is simply a setting that can be enabled on the `manager` of the account:
+The first step to enable IBC features on an Account is to update the settings and set the `ibc_enabled` flag to true.
+This setting can be updated by calling the `manager` of the Account:
 
 ```rust
 pub enum ManagerExecuteMsg{
@@ -24,7 +29,7 @@ pub enum ManagerExecuteMsg{
 
 ### (Optional) Create an account on the remote chain
 
-After the initialization step, the account is ready to send messages across IBC. However, if you wish, you can customize the remote account metadata before sending any messages. This is done by sending the following message on the [`manager`](https://docs.rs/abstract-std/latest/abstract_std/manager/index.html) contract:
+After the initialization step, the account is ready to send messages across IBC. However, if you wish, you can customize the remote account metadata before sending any messages. The following message is executed on the [`manager`](https://docs.rs/abstract-std/latest/abstract_std/manager/index.html) contract:
 <pre>
  <code class="language-rust">pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a> {
     ExecOnModule{
@@ -50,21 +55,25 @@ After the initialization step, the account is ready to send messages across IBC.
 </code>
 </pre>
 
+```admonish info
 Remember that this step is optional as accounts are created automatically when sending the first message across IBC.
+```
 
-### Account Id structure
+### Account ID structure
 
-The created Interchain Abstract Account will have the same account sequence but will have a different trace. Let's take an example. A account on `Juno` with account sequence `42` wants to create accounts on `Osmosis` and `Stargaze`.
+The remote Interchain Abstract Account will have the same account sequence but will have a different trace. Let's take an example. A account on `Neutron` with account sequence `42` wants to create accounts on `Osmosis` and `Stargaze`.
 
-- Their account sequence on `Juno` is `local-42`.
-- Their account sequence on `Osmosis` is `juno-42`.
-- Their account sequence on `Stargaze` is `juno-42` as well!
+- Their account ID on `Neutron` is `local-42`.
+- Their account ID on `Osmosis` is `neutron-42`.
+- Their account ID on `Stargaze` is `neutron-42` as well!
 
-Remote accounts can create other remote accounts. So traces can be chained. For instance, the `juno-42` account on `Osmosis` can create an account on `Stargaze` which will have the sequence `juno>osmosis-42`.
+Remote accounts can create other remote accounts, and their traces will be chained. For instance, the `neutron-42` account on `Osmosis` can create an account on `Stargaze` which will have the ID `osmosis>neutron-42`.
+This gives the ability to trace ICAAs back to their origin chain.
+
 
 ### Sending messages on remote accounts
 
-With or without a pre-existing remote account, Abstract Accounts are able to send messages on remote accounts. The `manager_msgs` will be executed in order on the remote account's `manager`.
+With or without a pre-existing remote Account, Abstract Accounts are able to send messages on remote Accounts. The `manager_msgs` will be executed in order on the remote account's `manager`.
 
 <pre>
  <code class="language-rust">pub enum <a href="https://docs.rs/abstract-std/latest/abstract_std/manager/enum.ExecuteMsg.html" target="blank">ManagerExecuteMsg</a> {
@@ -93,15 +102,18 @@ With or without a pre-existing remote account, Abstract Accounts are able to sen
 </code>
 </pre>
 
-Note that the two instances of the `ManagerExecuteMsg` enum are the exact same type. It allows you to send multi-hop IBC messages. However, as Abstract's infrastructure is completely linked and doesn't have a home-chain (yet), multi-hop transactions (of these kind) are not really something you would use often.
+Note that the two instances of the `ManagerExecuteMsg` enum are the exact same type. This allows you to send multi-hop IBC messages. However, multi-hop transactions (of these kind) are not really something you would use often, unless you're using another chain as a routing chain.
 
 ## Specification of Interchain Abstract Accounts
 
-This standard document specifies packet data structure, state machine handling logic, and encoding details for the transfer of messages and creation of Abstract accounts over an IBC channel between a client and a host on separate chains. The state machine logic presented allows for safe multi-chain account creation and execution.
+The following specification specifies packet data structure, state machine handling logic, and encoding details for the transfer of messages and creation of Abstract accounts over an IBC
+channel between a client and a host on separate chains. The state machine logic presented allows for safe multi-chain account creation and execution.
 
 ### Motivation
 
-Users of a set of chains connected over the IBC protocol might wish to interact with smart-contracts and dapps present on another chain than their origin, while not having to onboard the remote chain, create a new wallet or transfer the necessary funds to this other chain. This application-layer standard describes a protocol for interacting with a remote chain and creating Abstract Account on chains connected with IBC which preserves asset ownership, limits the impact of Byzantine faults, and requires no additional permissioning.
+Users of a set of chains connected over the IBC protocol might wish to interact with smart-contracts and dapps present on another chain than their origin, while not having to onboard the remote chain, create a new wallet or transfer the necessary funds to this other chain.
+This application-layer standard describes a protocol for interacting with a remote chain and creating Abstract Account on chains connected with IBC which preserves asset ownership,
+limits the impact of Byzantine faults, and requires no additional permissioning.
 
 ### Definitions
 
@@ -130,32 +142,32 @@ flowchart LR
     end
 
 
-    subgraph Juno[Juno Chain]
-        subgraph Juno-Polytone[Polytone]
-            Juno-Voice -.-> Juno-Proxy
+    subgraph Neutron[Neutron Chain]
+        subgraph Neutron-Polytone[Polytone]
+            Neutron-Voice -.-> Neutron-Proxy
         end
-        Juno-Proxy --> Juno-Host
-        Juno-Host -.-> Juno-Abstract-Account
+        Neutron-Proxy --> Neutron-Host
+        Neutron-Host -.-> Neutron-Abstract-Account
     end
 
-    Osmosis-Note ==IBC==> Juno-Voice
+    Osmosis-Note ==IBC==> Neutron-Voice
 ```
 
-You see that an Abstract Interchain connection is uni-directionnal. You need 2 connections to be able to interact bi-directionnally with Abstract. Up until today however, only a local account can act on a distant account and not the other way around. Here is an examples using `AccountId` between `juno` and `osmosis`:
+You see that an Abstract Interchain connection is uni-directional. You need 2 connections to be able to interact bi-directionnally with Abstract. Up until today however, only a local account can act on a distant account and not the other way around. Here is an examples using `AccountId` between `neutron` and `osmosis`:
 
-- `local-42` on `juno` **CAN** control `juno-42` on `osmosis` via IBC
-- `juno-42` on `osmosis` **CAN'T** control `local-42` on `juno`
+- `local-42` on `neutron` **CAN** control `neutron-42` on `osmosis` via IBC
+- `neutron-42` on `osmosis` **CAN'T** control `local-42` on `neutron`
 
 ##### Account creation
 
-Interchain Abstract accounts are actually plain Abstract Accounts controlled by the ibc-host. The ibc-host is the admin of the account and routes any packet sent by a remote account on the corresponding local account. When creating an abstract account, it is simply registered by the `ibc-host` using the [`account-factory`](../5_platform/3_account_factory.md) just like any other account.
+Interchain Abstract Accounts are traditional Abstract Accounts controlled by the ibc-host. The ibc-host is the admin of the account and routes any packet sent by a remote account on the corresponding local account. When creating an abstract account, it is simply registered by the `ibc-host` using the [`account-factory`](../5_platform/3_account_factory.md) just like any other account.
 
 When an action is triggered by a remote account, the `ibc-host` does the following verifications:
 
 - If an local account already exists on-chain for the remote account, it just dispatches the message to the account `manager`
-- If no account exists, it creates one with default metadata and THEN dispactes the messages to this new account `manager`.
+- If no account exists, it creates one with default metadata and THEN dispatches the messages to this new account `manager`.
 
-The account creation process is therefore not mandatory when interacting with Interchain Abstract Accounts. This is why when you create an Abstract Account, you directly have an account on every connected chains!
+The Account creation process is therefore not mandatory when interacting with Interchain Abstract Accounts. This is why when you create an Abstract Account, you automatically have an account on every connected chains!
 
 #### Data Structures
 
@@ -198,9 +210,10 @@ Abstract only uses Polytone Callbacks when:
 
 #### Cross chain trace
 
-Because accounts created across chains using the IAA protocol are controlled by an account located on a remote chain, the account that is calling the action needs to be related to the account on the remote chain. This is done through the <a href="https://docs.rs/abstract-std/latest/abstract_std/objects/account/struct.AccountId.html" target="blank">AccountId</a> struct. The IBC-host module leverages the `AccountId::trace` field of this struct. An account is wether `AccountTrace::Local` or `AccountTrace::Remote`. When a PacketMsg is sent across an IBC channel, the account id is transformed on the receiving chain in the following manner:
+Because accounts created across chains using the IAA protocol are controlled by an account located on a remote chain, the account that is calling the action needs to be related to the account on the remote chain.
+This is done through the <a href="https://docs.rs/abstract-std/latest/abstract_std/objects/account/struct.AccountId.html" target="blank">AccountId</a> struct. The IBC-host module leverages the `AccountId::trace` field of this struct. An account is wether `AccountTrace::Local` or `AccountTrace::Remote`. When a PacketMsg is sent across an IBC channel, the account id is transformed on the receiving chain in the following manner:
 
 - If it was `AccountTrace::Local` before transfer, it turns into an `AccountTrace::Remote` account with one chain in the associated vector being the chain calling the `PacketMsg` (`PacketMsg::client_chain`)
-- If it was `AccountTrace::Remote` before transfer, it stays remote and the `client_chain` field is added to the associated vector.
+- If it was `AccountTrace::Remote` before transfer, it stays remote and the `client_chain` field is pushed to the associated vector.
 
 This allows full traceability of the account creations and calls.

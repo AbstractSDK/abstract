@@ -2,14 +2,13 @@
 
 ## Introduction
 
-[Interchain Abstract Accounts](./account-ibc.md) allow for
-executing actions on behalf of an Account on another chain. However, this mechanism doesn't allow modules installed on these accounts to communicate securely. To clarify this statement, imagine an Abstract module "X" on a blockchain. This module wants to send a message to another module "Y" on a remote chain. The module on the remote chain wants to ensure that the message was sent by module X.
+[Interchain Abstract Accounts](./account-ibc.md) allow for executing actions on behalf of an Account on another chain. However, this mechanism doesn't allow modules installed on these Accounts to communicate securely by default. To clarify this statement, imagine an Abstract module "X" on a chain. This module wants to send a message to another module "Y" on a remote chain. The module on the remote chain wants to ensure that the message was sent by module X.
 
 In order to do so, the developer could attempt to send his message through the user's Account using the Account IBC infrastructure. However, using this method it is impossible for module Y to verify that the content of the message was indeed sent by the origin module X. Executing actions through the Account is great for permissionless actions (like depositing assets into a protocol) but is unsuited for permissioned entry-points. So what now?
 
 ## Secure Interchain Module Communication
 
-In order to allow modules to securely send messages to other modules across IBC, Abstract developed Interchain Module Communication (IMC). IMC allows developers to send messages from a module directly to another module on a different blockchain. The module that receives the IBC message can then access the source module details. This way ICM allows interoperable permissioned actions between all Abstract modules.
+To allow modules to send messages securely to other modules across IBC, we have developed an Interchain Module Communication (IMC) protocol. IMC allows developers to send messages from a module directly to another module on a different chain. The module that receives the IBC message can then access the source module details. This way ICM allows interoperable permissioned actions between all Abstract modules.
 
 Let's see how to create a contract with ICM capabilities.
 
@@ -56,9 +55,9 @@ The `msg` variable contains the msg constructed by the module on the source chai
 
 - `client_chain` is the name of the chain from which the call originates
 - `source_module` describes the caller modules on the remote chains
-- `msg` is the exact `Binary` data that was sent by the calling module on the client chain. How this data is used is up to the receiving module. As per cosmwasm conventions, we advise using `from_json` and `to_json_binary` for serialization and deserialization of this field into the expected type.
+- `msg` is the exact `Binary` data that was sent by the calling module on the client chain. How this data is used is up to the receiving module. As per CosmWasm conventions, we advise using `from_json` and `to_json_binary` for serialization and deserialization of this field into the expected type.
 
-The most important thing to never forget here is access control. Similarly to the `MessageInfo` struct usually used in smart contracts or in other execution endpoints, the `source_module` variable can be used to permission some entry-points inside your module ibc interactions. A good practice is to verify the namespace or the module-id directly present inside the `source_module` variable. For example, the following code will return an error if the source module doesn't have the same namespace as the receiving module. That way, you make sure that no other module than what was published within your own namespace is able to send module ibc messages to your app:
+The most important thing to never forget here is access control. Similarly to the `MessageInfo` struct usually used in smart contracts or in other execution endpoints, the `source_module` variable can be used to permission some entry-points inside your module ibc interactions. A good practice is to verify the namespace and / or the module-id directly present inside the `source_module` variable. For example, the following code will return an error if the source module doesn't have the same namespace as the receiving module. That way, you make sure that no other module than what was published within your own namespace is able to send module ibc messages to your app:
 
 ```rust
 cosmwasm_std::ensure_eq!(
