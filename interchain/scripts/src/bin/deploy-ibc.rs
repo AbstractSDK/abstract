@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 use abstract_interface::{Abstract, AbstractIbc};
+use abstract_scripts::ROLLKIT_TESTNET;
 use cw_orch::{
     daemon::networks::{neutron::NEUTRON_NETWORK, ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1},
     environment::ChainKind,
@@ -7,18 +8,10 @@ use cw_orch::{
     tokio::runtime::{Handle, Runtime},
 };
 
-/// <https://github.com/cosmos/chain-registry/blob/master/neutron/chain.json>
-pub const NEUTRON_1: ChainInfo = ChainInfo {
-    kind: ChainKind::Mainnet,
-    chain_id: "neutron-1",
-    gas_denom: "untrn",
-    gas_price: 0.075,
-    grpc_urls: &["http://grpc-kralum.neutron-1.neutron.org:80"],
-    network_info: NEUTRON_NETWORK,
-    lcd_url: Some("https://rest-kralum.neutron-1.neutron.org"),
-    fcd_url: None,
-};
+pub const NETWORK: ChainInfo = ROLLKIT_TESTNET;
 
+/// Script to deploy the IBC modules on a chain.
+/// Currently deployed by abstract, so only used on chains where IBC is not present.
 fn main() -> cw_orch::anyhow::Result<()> {
     dotenv::dotenv()?;
     env_logger::init();
@@ -28,7 +21,7 @@ fn main() -> cw_orch::anyhow::Result<()> {
         // get_daemon(JUNO_1, runtime.handle(), None)?,
         // get_daemon(PHOENIX_1, runtime.handle(), None)?,
         // get_daemon(ARCHWAY_1, runtime.handle(), None)?,
-        get_daemon(NEUTRON_1, runtime.handle(), None)?,
+        get_daemon(NETWORK, runtime.handle(), None)?,
         // get_daemon(
         //     OSMOSIS_1,
         //     runtime.handle(),
@@ -55,8 +48,7 @@ fn get_daemon(
     }
     Ok(builder.build()?)
 }
-
-fn deploy_host_and_client<Chain: CwEnv>(chain: Chain) -> cw_orch::anyhow::Result<()> {
+pub fn deploy_host_and_client<Chain: CwEnv>(chain: Chain) -> cw_orch::anyhow::Result<()> {
     let abs = Abstract::load_from(chain.clone())?;
     let ibc_infra = AbstractIbc::new(&chain);
     ibc_infra.upload()?;

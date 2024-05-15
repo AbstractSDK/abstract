@@ -1,0 +1,2155 @@
+{
+  "contract_name": "abstract-ans-host",
+  "contract_version": "0.22.1",
+  "idl_version": "1.0.0",
+  "instantiate": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "InstantiateMsg",
+    "description": "AnsHost Instantiate msg",
+    "type": "object",
+    "required": [
+      "admin"
+    ],
+    "properties": {
+      "admin": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false
+  },
+  "execute": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ExecuteMsg",
+    "description": "AnsHost Execute msg",
+    "oneOf": [
+      {
+        "description": "Updates the contract addressbook",
+        "type": "object",
+        "required": [
+          "update_contract_addresses"
+        ],
+        "properties": {
+          "update_contract_addresses": {
+            "type": "object",
+            "required": [
+              "to_add",
+              "to_remove"
+            ],
+            "properties": {
+              "to_add": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/UncheckedContractEntry"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "to_remove": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/UncheckedContractEntry"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Updates the Asset addressbook",
+        "type": "object",
+        "required": [
+          "update_asset_addresses"
+        ],
+        "properties": {
+          "update_asset_addresses": {
+            "type": "object",
+            "required": [
+              "to_add",
+              "to_remove"
+            ],
+            "properties": {
+              "to_add": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/AssetInfoBase_for_String"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "to_remove": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Updates the Asset addressbook",
+        "type": "object",
+        "required": [
+          "update_channels"
+        ],
+        "properties": {
+          "update_channels": {
+            "type": "object",
+            "required": [
+              "to_add",
+              "to_remove"
+            ],
+            "properties": {
+              "to_add": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/UncheckedChannelEntry"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "to_remove": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/UncheckedChannelEntry"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Registers a dex",
+        "type": "object",
+        "required": [
+          "update_dexes"
+        ],
+        "properties": {
+          "update_dexes": {
+            "type": "object",
+            "required": [
+              "to_add",
+              "to_remove"
+            ],
+            "properties": {
+              "to_add": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "to_remove": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Update the pools",
+        "type": "object",
+        "required": [
+          "update_pools"
+        ],
+        "properties": {
+          "update_pools": {
+            "type": "object",
+            "required": [
+              "to_add",
+              "to_remove"
+            ],
+            "properties": {
+              "to_add": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/PoolAddressBase_for_String"
+                    },
+                    {
+                      "$ref": "#/definitions/PoolMetadata"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "to_remove": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/UniquePoolId"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Update the contract's ownership. The `action` to be provided can be either to propose transferring ownership to an account, accept a pending ownership transfer, or renounce the ownership permanently.",
+        "type": "object",
+        "required": [
+          "update_ownership"
+        ],
+        "properties": {
+          "update_ownership": {
+            "$ref": "#/definitions/Action"
+          }
+        },
+        "additionalProperties": false
+      }
+    ],
+    "definitions": {
+      "Action": {
+        "description": "Actions that can be taken to alter the contract's ownership",
+        "oneOf": [
+          {
+            "description": "Propose to transfer the contract's ownership to another account, optionally with an expiry time.\n\nCan only be called by the contract's current owner.\n\nAny existing pending ownership transfer is overwritten.",
+            "type": "object",
+            "required": [
+              "transfer_ownership"
+            ],
+            "properties": {
+              "transfer_ownership": {
+                "type": "object",
+                "required": [
+                  "new_owner"
+                ],
+                "properties": {
+                  "expiry": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Expiration"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "new_owner": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Accept the pending ownership transfer.\n\nCan only be called by the pending owner.",
+            "type": "string",
+            "enum": [
+              "accept_ownership"
+            ]
+          },
+          {
+            "description": "Give up the contract's ownership and the possibility of appointing a new owner.\n\nCan only be invoked by the contract's current owner.\n\nAny existing pending ownership transfer is canceled.",
+            "type": "string",
+            "enum": [
+              "renounce_ownership"
+            ]
+          }
+        ]
+      },
+      "AssetEntry": {
+        "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+        "type": "string"
+      },
+      "AssetInfoBase_for_String": {
+        "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "native"
+            ],
+            "properties": {
+              "native": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "cw20"
+            ],
+            "properties": {
+              "cw20": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Expiration": {
+        "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+        "oneOf": [
+          {
+            "description": "AtHeight will expire when `env.block.height` >= height",
+            "type": "object",
+            "required": [
+              "at_height"
+            ],
+            "properties": {
+              "at_height": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "AtTime will expire when `env.block.time` >= time",
+            "type": "object",
+            "required": [
+              "at_time"
+            ],
+            "properties": {
+              "at_time": {
+                "$ref": "#/definitions/Timestamp"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Never will never expire. Used to express the empty variant",
+            "type": "object",
+            "required": [
+              "never"
+            ],
+            "properties": {
+              "never": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "PoolAddressBase_for_String": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "separate_addresses"
+            ],
+            "properties": {
+              "separate_addresses": {
+                "type": "object",
+                "required": [
+                  "liquidity",
+                  "swap"
+                ],
+                "properties": {
+                  "liquidity": {
+                    "type": "string"
+                  },
+                  "swap": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "contract"
+            ],
+            "properties": {
+              "contract": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "PoolMetadata": {
+        "type": "object",
+        "required": [
+          "assets",
+          "dex",
+          "pool_type"
+        ],
+        "properties": {
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/AssetEntry"
+            }
+          },
+          "dex": {
+            "type": "string"
+          },
+          "pool_type": {
+            "$ref": "#/definitions/PoolType"
+          }
+        }
+      },
+      "PoolType": {
+        "type": "string",
+        "enum": [
+          "ConstantProduct",
+          "Stable",
+          "Weighted",
+          "LiquidityBootstrap",
+          "ConcentratedLiquidity"
+        ]
+      },
+      "Timestamp": {
+        "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Uint64"
+          }
+        ]
+      },
+      "Uint64": {
+        "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+        "type": "string"
+      },
+      "UncheckedChannelEntry": {
+        "description": "Key to get the Address of a connected_chain",
+        "type": "object",
+        "required": [
+          "connected_chain",
+          "protocol"
+        ],
+        "properties": {
+          "connected_chain": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          }
+        }
+      },
+      "UncheckedContractEntry": {
+        "description": "Key to get the Address of a contract",
+        "type": "object",
+        "required": [
+          "contract",
+          "protocol"
+        ],
+        "properties": {
+          "contract": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          }
+        }
+      },
+      "UniquePoolId": {
+        "type": "integer",
+        "format": "uint64",
+        "minimum": 0.0
+      }
+    }
+  },
+  "query": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "QueryMsg",
+    "description": "AnsHost smart-query",
+    "oneOf": [
+      {
+        "description": "Query the config Returns [`ConfigResponse`]",
+        "type": "object",
+        "required": [
+          "config"
+        ],
+        "properties": {
+          "config": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Queries assets based on name returns [`AssetsResponse`]",
+        "type": "object",
+        "required": [
+          "assets"
+        ],
+        "properties": {
+          "assets": {
+            "type": "object",
+            "required": [
+              "names"
+            ],
+            "properties": {
+              "names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Page over assets returns [`AssetListResponse`]",
+        "type": "object",
+        "required": [
+          "asset_list"
+        ],
+        "properties": {
+          "asset_list": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/AssetFilter"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "start_after": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Queries assets based on address returns [`AssetInfosResponse`]",
+        "type": "object",
+        "required": [
+          "asset_infos"
+        ],
+        "properties": {
+          "asset_infos": {
+            "type": "object",
+            "required": [
+              "infos"
+            ],
+            "properties": {
+              "infos": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/AssetInfoBase_for_String"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Page over asset infos returns [`AssetInfoListResponse`]",
+        "type": "object",
+        "required": [
+          "asset_info_list"
+        ],
+        "properties": {
+          "asset_info_list": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/AssetInfoFilter"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "start_after": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/AssetInfoBase_for_String"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Queries contracts based on name returns [`ContractsResponse`]",
+        "type": "object",
+        "required": [
+          "contracts"
+        ],
+        "properties": {
+          "contracts": {
+            "type": "object",
+            "required": [
+              "entries"
+            ],
+            "properties": {
+              "entries": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ContractEntry"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Page over contracts returns [`ContractListResponse`]",
+        "type": "object",
+        "required": [
+          "contract_list"
+        ],
+        "properties": {
+          "contract_list": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/ContractFilter"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "start_after": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/ContractEntry"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Queries contracts based on name returns [`ChannelsResponse`]",
+        "type": "object",
+        "required": [
+          "channels"
+        ],
+        "properties": {
+          "channels": {
+            "type": "object",
+            "required": [
+              "entries"
+            ],
+            "properties": {
+              "entries": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ChannelEntry"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Page over contracts returns [`ChannelListResponse`]",
+        "type": "object",
+        "required": [
+          "channel_list"
+        ],
+        "properties": {
+          "channel_list": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/ChannelFilter"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "start_after": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/ChannelEntry"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Retrieve the registered dexes returns [`RegisteredDexesResponse`]",
+        "type": "object",
+        "required": [
+          "registered_dexes"
+        ],
+        "properties": {
+          "registered_dexes": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Retrieve the pools with the specified keys returns [`PoolsResponse`] TODO: this may need to take a start_after and limit for the return",
+        "type": "object",
+        "required": [
+          "pools"
+        ],
+        "properties": {
+          "pools": {
+            "type": "object",
+            "required": [
+              "pairings"
+            ],
+            "properties": {
+              "pairings": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/DexAssetPairing_for_AssetEntry"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Retrieve the (optionally-filtered) list of pools. returns [`PoolAddressListResponse`]",
+        "type": "object",
+        "required": [
+          "pool_list"
+        ],
+        "properties": {
+          "pool_list": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/AssetPairingFilter"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "start_after": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/DexAssetPairing_for_AssetEntry"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Get the pool metadatas for given pool ids returns [`PoolMetadatasResponse`]",
+        "type": "object",
+        "required": [
+          "pool_metadatas"
+        ],
+        "properties": {
+          "pool_metadatas": {
+            "type": "object",
+            "required": [
+              "ids"
+            ],
+            "properties": {
+              "ids": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/UniquePoolId"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Retrieve the (optionally-filtered) list of pool metadatas returns [`PoolMetadataListResponse`]",
+        "type": "object",
+        "required": [
+          "pool_metadata_list"
+        ],
+        "properties": {
+          "pool_metadata_list": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/PoolMetadataFilter"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "start_after": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/UniquePoolId"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Query the contract's ownership information",
+        "type": "object",
+        "required": [
+          "ownership"
+        ],
+        "properties": {
+          "ownership": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    ],
+    "definitions": {
+      "AssetEntry": {
+        "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+        "type": "string"
+      },
+      "AssetFilter": {
+        "description": "UNUSED - stub for future use",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "AssetInfoBase_for_String": {
+        "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "native"
+            ],
+            "properties": {
+              "native": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "cw20"
+            ],
+            "properties": {
+              "cw20": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "AssetInfoFilter": {
+        "description": "UNUSED - stub for future use",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "AssetPairingFilter": {
+        "type": "object",
+        "properties": {
+          "asset_pair": {
+            "description": "Filter by asset pair",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": [
+              {
+                "$ref": "#/definitions/AssetEntry"
+              },
+              {
+                "$ref": "#/definitions/AssetEntry"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          },
+          "dex": {
+            "description": "Filter by dex",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChainName": {
+        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+        "type": "string"
+      },
+      "ChannelEntry": {
+        "description": "Key to get the Address of a connected_chain Use [`UncheckedChannelEntry`] to construct this type.",
+        "type": "object",
+        "required": [
+          "connected_chain",
+          "protocol"
+        ],
+        "properties": {
+          "connected_chain": {
+            "$ref": "#/definitions/ChainName"
+          },
+          "protocol": {
+            "type": "string"
+          }
+        }
+      },
+      "ChannelFilter": {
+        "description": "UNUSED - stub for future use",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "ContractEntry": {
+        "description": "Key to get the Address of a contract Use [`UncheckedContractEntry`] to construct this type.",
+        "type": "object",
+        "required": [
+          "contract",
+          "protocol"
+        ],
+        "properties": {
+          "contract": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          }
+        }
+      },
+      "ContractFilter": {
+        "description": "UNUSED - stub for future use",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "DexAssetPairing_for_AssetEntry": {
+        "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
+        "type": "array",
+        "items": [
+          {
+            "$ref": "#/definitions/AssetEntry"
+          },
+          {
+            "$ref": "#/definitions/AssetEntry"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "maxItems": 3,
+        "minItems": 3
+      },
+      "PoolMetadataFilter": {
+        "description": "Filter on the pool metadatas",
+        "type": "object",
+        "properties": {
+          "pool_type": {
+            "description": "Filter by pool type",
+            "anyOf": [
+              {
+                "$ref": "#/definitions/PoolType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PoolType": {
+        "type": "string",
+        "enum": [
+          "ConstantProduct",
+          "Stable",
+          "Weighted",
+          "LiquidityBootstrap",
+          "ConcentratedLiquidity"
+        ]
+      },
+      "UniquePoolId": {
+        "type": "integer",
+        "format": "uint64",
+        "minimum": 0.0
+      }
+    }
+  },
+  "migrate": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MigrateMsg",
+    "type": "object",
+    "additionalProperties": false
+  },
+  "sudo": null,
+  "responses": {
+    "asset_info_list": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AssetInfoListResponse",
+      "type": "object",
+      "required": [
+        "infos"
+      ],
+      "properties": {
+        "infos": {
+          "description": "Assets (assetinfo, name)",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_Addr"
+              },
+              {
+                "$ref": "#/definitions/AssetEntry"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
+        },
+        "AssetInfoBase_for_Addr": {
+          "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw20"
+              ],
+              "properties": {
+                "cw20": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    "asset_infos": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AssetInfosResponse",
+      "type": "object",
+      "required": [
+        "infos"
+      ],
+      "properties": {
+        "infos": {
+          "description": "Assets (assetinfo, name)",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_Addr"
+              },
+              {
+                "$ref": "#/definitions/AssetEntry"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
+        },
+        "AssetInfoBase_for_Addr": {
+          "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw20"
+              ],
+              "properties": {
+                "cw20": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    "asset_list": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AssetListResponse",
+      "description": "Query response",
+      "type": "object",
+      "required": [
+        "assets"
+      ],
+      "properties": {
+        "assets": {
+          "description": "Assets (name, assetinfo)",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/AssetEntry"
+              },
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_Addr"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
+        },
+        "AssetInfoBase_for_Addr": {
+          "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw20"
+              ],
+              "properties": {
+                "cw20": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    "assets": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AssetsResponse",
+      "description": "Query response",
+      "type": "object",
+      "required": [
+        "assets"
+      ],
+      "properties": {
+        "assets": {
+          "description": "Assets (name, assetinfo)",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/AssetEntry"
+              },
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_Addr"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
+        },
+        "AssetInfoBase_for_Addr": {
+          "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw20"
+              ],
+              "properties": {
+                "cw20": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    "channel_list": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChannelListResponse",
+      "type": "object",
+      "required": [
+        "channels"
+      ],
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/ChannelEntry"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "ChainName": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
+        },
+        "ChannelEntry": {
+          "description": "Key to get the Address of a connected_chain Use [`UncheckedChannelEntry`] to construct this type.",
+          "type": "object",
+          "required": [
+            "connected_chain",
+            "protocol"
+          ],
+          "properties": {
+            "connected_chain": {
+              "$ref": "#/definitions/ChainName"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "channels": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChannelsResponse",
+      "type": "object",
+      "required": [
+        "channels"
+      ],
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/ChannelEntry"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "ChainName": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
+        },
+        "ChannelEntry": {
+          "description": "Key to get the Address of a connected_chain Use [`UncheckedChannelEntry`] to construct this type.",
+          "type": "object",
+          "required": [
+            "connected_chain",
+            "protocol"
+          ],
+          "properties": {
+            "connected_chain": {
+              "$ref": "#/definitions/ChainName"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "config": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ConfigResponse",
+      "type": "object",
+      "required": [
+        "next_unique_pool_id"
+      ],
+      "properties": {
+        "next_unique_pool_id": {
+          "$ref": "#/definitions/UniquePoolId"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "UniquePoolId": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "contract_list": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContractListResponse",
+      "type": "object",
+      "required": [
+        "contracts"
+      ],
+      "properties": {
+        "contracts": {
+          "description": "Contracts (name, address)",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/ContractEntry"
+              },
+              {
+                "$ref": "#/definitions/Addr"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "ContractEntry": {
+          "description": "Key to get the Address of a contract Use [`UncheckedContractEntry`] to construct this type.",
+          "type": "object",
+          "required": [
+            "contract",
+            "protocol"
+          ],
+          "properties": {
+            "contract": {
+              "type": "string"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "contracts": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContractsResponse",
+      "type": "object",
+      "required": [
+        "contracts"
+      ],
+      "properties": {
+        "contracts": {
+          "description": "Contracts (name, address)",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/ContractEntry"
+              },
+              {
+                "$ref": "#/definitions/Addr"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "ContractEntry": {
+          "description": "Key to get the Address of a contract Use [`UncheckedContractEntry`] to construct this type.",
+          "type": "object",
+          "required": [
+            "contract",
+            "protocol"
+          ],
+          "properties": {
+            "contract": {
+              "type": "string"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "ownership": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Ownership_for_String",
+      "description": "The contract's ownership info",
+      "type": "object",
+      "properties": {
+        "owner": {
+          "description": "The contract's current owner. `None` if the ownership has been renounced.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pending_expiry": {
+          "description": "The deadline for the pending owner to accept the ownership. `None` if there isn't a pending ownership transfer, or if a transfer exists and it doesn't have a deadline.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Expiration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_owner": {
+          "description": "The account who has been proposed to take over the ownership. `None` if there isn't a pending ownership transfer.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "pool_list": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PoolAddressListResponse",
+      "type": "object",
+      "required": [
+        "pools"
+      ],
+      "properties": {
+        "pools": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/DexAssetPairing_for_AssetEntry"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/PoolReference"
+                }
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
+        },
+        "DexAssetPairing_for_AssetEntry": {
+          "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "PoolAddressBase_for_Addr": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "separate_addresses"
+              ],
+              "properties": {
+                "separate_addresses": {
+                  "type": "object",
+                  "required": [
+                    "liquidity",
+                    "swap"
+                  ],
+                  "properties": {
+                    "liquidity": {
+                      "$ref": "#/definitions/Addr"
+                    },
+                    "swap": {
+                      "$ref": "#/definitions/Addr"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "contract"
+              ],
+              "properties": {
+                "contract": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "id"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "PoolReference": {
+          "type": "object",
+          "required": [
+            "pool_address",
+            "unique_id"
+          ],
+          "properties": {
+            "pool_address": {
+              "$ref": "#/definitions/PoolAddressBase_for_Addr"
+            },
+            "unique_id": {
+              "$ref": "#/definitions/UniquePoolId"
+            }
+          },
+          "additionalProperties": false
+        },
+        "UniquePoolId": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "pool_metadata_list": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PoolMetadataListResponse",
+      "type": "object",
+      "required": [
+        "metadatas"
+      ],
+      "properties": {
+        "metadatas": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/UniquePoolId"
+              },
+              {
+                "$ref": "#/definitions/PoolMetadata"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
+        },
+        "PoolMetadata": {
+          "type": "object",
+          "required": [
+            "assets",
+            "dex",
+            "pool_type"
+          ],
+          "properties": {
+            "assets": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AssetEntry"
+              }
+            },
+            "dex": {
+              "type": "string"
+            },
+            "pool_type": {
+              "$ref": "#/definitions/PoolType"
+            }
+          }
+        },
+        "PoolType": {
+          "type": "string",
+          "enum": [
+            "ConstantProduct",
+            "Stable",
+            "Weighted",
+            "LiquidityBootstrap",
+            "ConcentratedLiquidity"
+          ]
+        },
+        "UniquePoolId": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "pool_metadatas": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PoolMetadatasResponse",
+      "type": "object",
+      "required": [
+        "metadatas"
+      ],
+      "properties": {
+        "metadatas": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/UniquePoolId"
+              },
+              {
+                "$ref": "#/definitions/PoolMetadata"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
+        },
+        "PoolMetadata": {
+          "type": "object",
+          "required": [
+            "assets",
+            "dex",
+            "pool_type"
+          ],
+          "properties": {
+            "assets": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AssetEntry"
+              }
+            },
+            "dex": {
+              "type": "string"
+            },
+            "pool_type": {
+              "$ref": "#/definitions/PoolType"
+            }
+          }
+        },
+        "PoolType": {
+          "type": "string",
+          "enum": [
+            "ConstantProduct",
+            "Stable",
+            "Weighted",
+            "LiquidityBootstrap",
+            "ConcentratedLiquidity"
+          ]
+        },
+        "UniquePoolId": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "pools": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PoolsResponse",
+      "type": "object",
+      "required": [
+        "pools"
+      ],
+      "properties": {
+        "pools": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/DexAssetPairing_for_AssetEntry"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/PoolReference"
+                }
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
+        },
+        "DexAssetPairing_for_AssetEntry": {
+          "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "$ref": "#/definitions/AssetEntry"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "maxItems": 3,
+          "minItems": 3
+        },
+        "PoolAddressBase_for_Addr": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "separate_addresses"
+              ],
+              "properties": {
+                "separate_addresses": {
+                  "type": "object",
+                  "required": [
+                    "liquidity",
+                    "swap"
+                  ],
+                  "properties": {
+                    "liquidity": {
+                      "$ref": "#/definitions/Addr"
+                    },
+                    "swap": {
+                      "$ref": "#/definitions/Addr"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "contract"
+              ],
+              "properties": {
+                "contract": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "id"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "PoolReference": {
+          "type": "object",
+          "required": [
+            "pool_address",
+            "unique_id"
+          ],
+          "properties": {
+            "pool_address": {
+              "$ref": "#/definitions/PoolAddressBase_for_Addr"
+            },
+            "unique_id": {
+              "$ref": "#/definitions/UniquePoolId"
+            }
+          },
+          "additionalProperties": false
+        },
+        "UniquePoolId": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "registered_dexes": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "RegisteredDexesResponse",
+      "type": "object",
+      "required": [
+        "dexes"
+      ],
+      "properties": {
+        "dexes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

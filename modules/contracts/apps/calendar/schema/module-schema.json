@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.2.0",
+  "contract_version": "0.3.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -295,7 +295,7 @@
     "description": "App query messages",
     "oneOf": [
       {
-        "description": "Returns the config.",
+        "description": "Returns the config. Returns [`ConfigResponse`]",
         "type": "object",
         "required": [
           "config"
@@ -309,7 +309,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Returns the meetings for a given day.",
+        "description": "Returns the meetings for a given day. Returns [`MeetingsResponse`]",
         "type": "object",
         "required": [
           "meetings"
@@ -341,8 +341,8 @@
   "migrate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MigrateMsg",
-    "type": "string",
-    "enum": []
+    "type": "object",
+    "additionalProperties": false
   },
   "sudo": null,
   "responses": {

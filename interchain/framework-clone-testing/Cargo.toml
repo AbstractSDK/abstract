@@ -17,10 +17,12 @@ abstract-std = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-client = { workspace = true }
-abstract-interface = { workspace = true }
+abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-integration-tests = { path = "../../framework/packages/abstract-integration-tests" }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }
 env_logger = "0.10.0"
 lazy_static = "1.4.0"
+
+cw2 = { workspace = true }

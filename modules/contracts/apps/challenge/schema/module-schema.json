@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.3.0",
+  "contract_version": "0.4.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -686,7 +686,7 @@
     "description": "Challenge query messages",
     "oneOf": [
       {
-        "description": "Get challenge info, will return null if there was no challenge by Id",
+        "description": "Get challenge info, will return null if there was no challenge by Id Returns [`ChallengeResponse`]",
         "type": "object",
         "required": [
           "challenge"
@@ -711,7 +711,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get list of challenges",
+        "description": "Get list of challenges Returns [`ChallengesResponse`]",
         "type": "object",
         "required": [
           "challenges"
@@ -745,7 +745,7 @@
         "additionalProperties": false
       },
       {
-        "description": "List of friends by Id",
+        "description": "List of friends by Id Returns [`FriendsResponse`]",
         "type": "object",
         "required": [
           "friends"
@@ -770,7 +770,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get vote of friend",
+        "description": "Get vote of friend Returns [`VoteResponse`]",
         "type": "object",
         "required": [
           "vote"
@@ -809,7 +809,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get votes of challenge",
+        "description": "Get votes of challenge Returns [`VotesResponse`]",
         "type": "object",
         "required": [
           "votes"
@@ -863,7 +863,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Get results of previous votes for this challenge",
+        "description": "Get results of previous votes for this challenge Returns [`ProposalsResponse`]",
         "type": "object",
         "required": [
           "proposals"

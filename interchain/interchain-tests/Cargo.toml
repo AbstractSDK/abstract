@@ -32,4 +32,4 @@ cosmwasm-schema.workspace = true
 cw-controllers = { workspace = true }
 cw-storage-plus.workspace = true
 thiserror.workspace = true
-base64 = "0.22.0"
+base64 = "0.22.1"

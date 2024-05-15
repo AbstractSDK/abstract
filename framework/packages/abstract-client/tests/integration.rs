@@ -1300,3 +1300,45 @@ fn instantiate2_raw_addr() -> anyhow::Result<()> {
     assert_eq!(account.proxy()?, proxy_addr);
     Ok(())
 }
+
+#[test]
+fn install_same_app_on_different_accounts() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let app_publisher: Publisher<MockBech32> = client
+        .publisher_builder(Namespace::new(TEST_NAMESPACE)?)
+        .build()?;
+
+    app_publisher.publish_app::<MockAppI<MockBech32>>()?;
+
+    let account1 = client
+        .account_builder()
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .build()?;
+
+    let account2 = client
+        .account_builder()
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .build()?;
+
+    let account3 = client
+        .account_builder()
+        .sub_account(&account1)
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .build()?;
+
+    let mock_app1 = account1.application::<MockAppI<MockBech32>>()?;
+    let mock_app2 = account2.application::<MockAppI<MockBech32>>()?;
+    let mock_app3 = account3.application::<MockAppI<MockBech32>>()?;
+
+    let mock_app1 = &*mock_app1;
+    let mock_app2 = &*mock_app2;
+    let mock_app3 = &*mock_app3;
+
+    assert_ne!(mock_app1.id(), mock_app2.id());
+    assert_ne!(mock_app1.id(), mock_app3.id());
+    assert_ne!(mock_app2.id(), mock_app3.id());
+
+    Ok(())
+}
