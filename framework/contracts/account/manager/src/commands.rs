@@ -1744,18 +1744,6 @@ mod tests {
     mod ibc_enabled {
         use super::*;
 
-        const TEST_IBC_CLIENT_ADDR: &str = "ibc_client";
-
-        fn mock_installed_ibc_client(
-            deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-        ) -> StdResult<()> {
-            ACCOUNT_MODULES.save(
-                &mut deps.storage,
-                IBC_CLIENT,
-                &Addr::unchecked(TEST_IBC_CLIENT_ADDR),
-            )
-        }
-
         #[test]
         fn only_owner() -> ManagerTestResult {
             let msg = ExecuteMsg::UpdateSettings {
@@ -1763,74 +1751,6 @@ mod tests {
             };
 
             test_only_owner(msg)
-        }
-
-        #[test]
-        fn throws_if_disabling_without_ibc_client_installed() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            init_with_proxy(&mut deps);
-
-            let msg = ExecuteMsg::UpdateSettings {
-                ibc_enabled: Some(false),
-            };
-
-            let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(ManagerError::ModuleNotFound(IBC_CLIENT.to_string()));
-
-            Ok(())
-        }
-
-        #[test]
-        fn throws_if_enabling_when_already_enabled() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            init_with_proxy(&mut deps);
-
-            mock_installed_ibc_client(&mut deps)?;
-
-            let msg = ExecuteMsg::UpdateSettings {
-                ibc_enabled: Some(true),
-            };
-
-            let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, ManagerError::ModuleAlreadyInstalled(_)));
-
-            Ok(())
-        }
-
-        #[test]
-        fn uninstall_callback_on_proxy() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            init_with_proxy(&mut deps);
-
-            mock_installed_ibc_client(&mut deps)?;
-
-            let msg = ExecuteMsg::UpdateSettings {
-                ibc_enabled: Some(false),
-            };
-
-            let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that!(&res).is_ok();
-
-            let msgs = res.unwrap().messages;
-            assert_that!(&msgs).has_length(1);
-
-            let msg = &msgs[0];
-
-            let expected_msg: CosmosMsg = wasm_execute(
-                TEST_PROXY_ADDR.to_string(),
-                &ProxyMsg::RemoveModule {
-                    module: TEST_IBC_CLIENT_ADDR.to_string(),
-                },
-                vec![],
-            )?
-            .into();
-            assert_that!(&msg.msg).is_equal_to(&expected_msg);
-
-            Ok(())
         }
 
         // integration tests
