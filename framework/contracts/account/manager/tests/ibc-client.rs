@@ -1,20 +1,8 @@
-use abstract_integration_tests::{create_default_account, mock_modules, AResult};
-use abstract_interface::{
-    Abstract, AbstractAccount, Manager, ManagerExecFns, ManagerQueryFns, VCExecFns,
-};
-use abstract_manager::error::ManagerError;
-use abstract_std::{
-    manager::{
-        ExecuteMsg as ManagerMsg, ModuleAddressesResponse, ModuleInstallConfig,
-        QueryMsg as ManagerQuery,
-    },
-    objects::{account::TEST_ACCOUNT_ID, module::ModuleInfo},
-    IBC_CLIENT,
-};
-use abstract_testing::prelude::TEST_NAMESPACE;
+use abstract_integration_tests::{create_default_account, AResult};
+use abstract_interface::{Abstract, AbstractAccount, Manager, ManagerExecFns, ManagerQueryFns};
+use abstract_std::IBC_CLIENT;
 use anyhow::bail;
-use cw_orch::{prelude::*, take_storage_snapshot};
-use mock_modules::{adapter_1, deploy_modules, V1};
+use cw_orch::prelude::*;
 use speculoos::{assert_that, result::ResultAssertions};
 
 pub fn ibc_client_installed<Chain: CwEnv>(manager: &Manager<Chain>) -> AResult {
