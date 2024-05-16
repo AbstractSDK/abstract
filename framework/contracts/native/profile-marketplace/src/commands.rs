@@ -44,19 +44,19 @@ pub fn execute_set_ask(
         return Err(ContractError::UnauthorizedMinter {});
     }
 
-    let collection = PROFILE_COLLECTION.load(deps.storage)?;
+    // let collection = PROFILE_COLLECTION.load(deps.storage)?;
 
-    // check if collection is approved to transfer on behalf of the seller
-    let ops = Cw721Contract::<Empty, Empty>(collection, PhantomData, PhantomData).all_operators(
-        &deps.querier,
-        seller.to_string(),
-        false,
-        None,
-        None,
-    )?;
-    if ops.is_empty() {
-        return Err(ContractError::NotApproved {});
-    }
+    // // check if collection is approved to transfer on behalf of the seller
+    // let ops = Cw721Contract::<Empty, Empty>(collection, PhantomData, PhantomData).all_operators(
+    //     &deps.querier,
+    //     seller.to_string(),
+    //     false,
+    //     None,
+    //     None,
+    // )?;
+    // if ops.is_empty() {
+    //     return Err(ContractError::NotApproved {});
+    // }
 
     let renewal_time = env.block.time.plus_seconds(SECONDS_PER_YEAR);
 
