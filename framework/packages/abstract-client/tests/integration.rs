@@ -1345,26 +1345,16 @@ fn install_same_app_on_different_accounts() -> anyhow::Result<()> {
 }
 
 #[test]
-// TODO: App, Adapter, What are we installing here xd?
 fn install_ibc_client_on_creation() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain).build()?;
 
-    let account1 = client
-        .account_builder()
-        // TODO: App, Adapter, What are we installing here xd?
-        .install_app::<IbcClient<MockBech32>>(&cosmwasm_std::Empty {})?
-        .build()?;
-
-    let ibc_module_addr = account1.module_addresses(vec![IBC_CLIENT.to_owned()])?;
-    assert_eq!(ibc_module_addr.modules[0].0, IBC_CLIENT);
-
-    let account2 = client
+    let account = client
         .account_builder()
         .install_adapter::<IbcClient<MockBech32>>()?
         .build()?;
 
-    let ibc_module_addr = account2.module_addresses(vec![IBC_CLIENT.to_owned()])?;
+    let ibc_module_addr = account.module_addresses(vec![IBC_CLIENT.to_owned()])?;
     assert_eq!(ibc_module_addr.modules[0].0, IBC_CLIENT);
     Ok(())
 }
