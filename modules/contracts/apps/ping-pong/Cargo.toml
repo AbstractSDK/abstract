@@ -22,6 +22,7 @@ schemars = { workspace = true }
 cw-asset = { workspace = true }
 abstract-app = { workspace = true }
 cw-orch = { workspace = true }
+abstract-ibc-client = { version = "0.22.1", default-features = false, path = "../../../../framework/contracts/native/ibc-client" }
 
 [dev-dependencies]
 ping-pong = { path = "." }
