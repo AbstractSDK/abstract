@@ -29,7 +29,7 @@ use abstract_std::{
 };
 use bs721::CollectionInfo;
 use bs721_base::{InstantiateMsg as Bs721InstantiateMsg, MintMsg};
-use bs_profile::Metadata;
+use bs_profile::{market::BsProfileMarketplaceExecuteMsg, Metadata};
 
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
@@ -561,7 +561,7 @@ fn internal_claim_profile(
     validate_bitsong_profile(&bs_profile, params.min_name_length, params.max_name_length)?;
 
     let collection = PROFILE_COLLECTION.load(deps.storage)?;
-    let _marketplace = PROFILE_MARKETPLACE.load(deps.storage)?;
+    let marketplace = PROFILE_MARKETPLACE.load(deps.storage)?;
 
     let mint_msg = bs721_base::ExecuteMsg::<Metadata, Empty>::Mint(MintMsg {
         token_id: bs_profile.to_string(),
@@ -577,19 +577,20 @@ fn internal_claim_profile(
         funds: vec![],
     });
 
-    // let ask_msg = BsProfileMarketplaceExecuteMsg::SetAsk {
-    //     token_id: bs_profile.to_string(),
-    //     seller: proxy,
-    // };
-    // let list_msg_exec: SubMsg = SubMsg::new(WasmMsg::Execute {
-    //     contract_addr: marketplace.to_string(),
-    //     msg: to_json_binary(&ask_msg)?,
-    //     funds: vec![],
-    // });
+
+    let ask_msg = BsProfileMarketplaceExecuteMsg::SetAsk {
+        token_id: bs_profile.to_string(),
+        seller: proxy,
+    };
+    let list_msg_exec: SubMsg = SubMsg::new(WasmMsg::Execute {
+        contract_addr: marketplace.to_string(),
+        msg: to_json_binary(&ask_msg)?,
+        funds: vec![],
+    });
 
     Ok(vec![
         mint_msg_exec,
-        // list_msg_exec
+        list_msg_exec
     ])
 }
 

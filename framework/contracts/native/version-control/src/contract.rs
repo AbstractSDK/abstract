@@ -1,13 +1,14 @@
 use abstract_macros::abstract_response;
 use abstract_sdk::{execute_update_ownership, query_ownership};
+use abstract_std::objects::namespace::Namespace;
 pub(crate) use abstract_std::objects::namespace::ABSTRACT_NAMESPACE;
-use abstract_std::{
-    objects::namespace::Namespace,
-    version_control::{state::NAMESPACES_INFO, Config},
-};
+
 use abstract_std::{
     objects::ABSTRACT_ACCOUNT_ID,
-    version_control::{state::CONFIG, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg},
+    version_control::{
+        state::{CONFIG, NAMESPACES_INFO},
+        Config, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
+    },
     VERSION_CONTROL,
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
