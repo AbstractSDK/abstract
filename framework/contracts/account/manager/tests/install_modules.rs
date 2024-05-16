@@ -1,5 +1,7 @@
 use abstract_integration_tests::{create_default_account, mock_modules, AResult};
-use abstract_interface::{Abstract, AbstractAccount, Manager, ManagerExecFns, ManagerQueryFns, VCExecFns};
+use abstract_interface::{
+    Abstract, AbstractAccount, Manager, ManagerExecFns, ManagerQueryFns, VCExecFns,
+};
 use abstract_manager::error::ManagerError;
 use abstract_std::{
     manager::{
