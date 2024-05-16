@@ -110,7 +110,7 @@ pub fn instantiate(
 
     if !msg.install_modules.is_empty() {
         // Install modules
-        let (install_msgs, install_attributes) = install_modules_internal(
+        let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
             msg.install_modules,
             config.module_factory_address,
@@ -119,7 +119,7 @@ pub fn instantiate(
         )?;
         response = response
             .add_submessages(install_msgs)
-            .add_abstract_attributes(install_attributes)
+            .add_attribute(install_attribute.key, install_attribute.value);
     }
 
     // Register on manager if it's sub-account
@@ -195,13 +195,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 
                     // only owner can update IBC status
                     assert_admin_right(deps.as_ref(), &info.sender)?;
+
                     if let Some(ibc_enabled) = new_status {
-                        let (proxy_msg, attributes) =
-                            update_ibc_status_internal(deps, ibc_enabled)?;
+                        let (proxy_msg, attributes) = _update_ibc_status(deps, ibc_enabled)?;
 
                         response = response
                             .add_abstract_attributes(std::iter::once(attributes))
-                            .add_message(proxy_msg);
+                            .add_submessages(proxy_msg);
                     } else {
                         return Err(ManagerError::NoUpdates {});
                     }
