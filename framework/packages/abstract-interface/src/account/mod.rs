@@ -198,6 +198,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     {
         self.manager.register_remote_account(host_chain)
     }
+
     pub fn create_sub_account(
         &self,
         account_details: AccountDetails,

@@ -31,6 +31,7 @@ use abstract_std::{
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
+        chain_name::ChainName,
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
@@ -78,7 +79,7 @@ pub struct AccountBuilder<'a, Chain: CwEnv> {
     base_asset: Option<AssetEntry>,
     // TODO: Decide if we want to abstract this as well.
     ownership: Option<GovernanceDetails<String>>,
-    owner_account: Option<&'a Account<Chain>>,
+    owner_account: Option<OwnerAccount<'a, Chain>>,
     install_modules: Vec<ModuleInstallConfig>,
     funds: AccountCreationFunds,
     fetch_if_namespace_claimed: bool,
@@ -91,6 +92,12 @@ enum AccountCreationFunds {
     #[allow(clippy::type_complexity)]
     Auto(Box<dyn Fn(&[Coin]) -> bool>),
     Coins(Coins),
+}
+
+/// Owner of created account
+enum OwnerAccount<'a, Chain: CwEnv> {
+    CurrentChain(&'a Account<Chain>),
+    RemoteChain(&'a Account<Chain>),
 }
 
 impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
@@ -159,8 +166,18 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Create sub-account instead
+    /// And set install_on_sub_account to false to prevent installing on sub account of the sub account
     pub fn sub_account(&mut self, owner_account: &'a Account<Chain>) -> &mut Self {
-        self.owner_account = Some(owner_account);
+        self.owner_account = Some(OwnerAccount::CurrentChain(owner_account));
+        self.install_on_sub_account = false;
+        self
+    }
+
+    /// Create remote-account instead
+    /// And set install_on_sub_account to false to prevent installing on sub account of the remote account
+    pub fn remote_account(&mut self, owner_account: &'a Account<Chain>) -> &mut Self {
+        self.owner_account = Some(OwnerAccount::RemoteChain(owner_account));
+        self.install_on_sub_account = false;
         self
     }
 
@@ -316,18 +333,42 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             install_modules,
             account_id: self.expected_local_account_id,
         };
-        let abstract_account = if let Some(owner_account) = self.owner_account {
-            owner_account
-                .abstr_account
-                .create_sub_account(account_details, Some(&funds))?
-        } else {
-            self.abstr.account_factory.create_new_account(
+        let abstract_account = match self.owner_account {
+            None => self.abstr.account_factory.create_new_account(
                 account_details,
                 ownership,
                 Some(&funds),
-            )?
+            )?,
+            Some(OwnerAccount::CurrentChain(owner_account)) => owner_account
+                .abstr_account
+                .create_sub_account(account_details, Some(&funds))?,
+            Some(OwnerAccount::RemoteChain(_)) => {
+                return Err(AbstractClientError::RemoteAccountOnBuild {})
+            }
         };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
+    }
+
+    /// Builds the [`Account`].
+    pub fn build_remote(&self) -> AbstractClientResult<Chain::Response> {
+        let chain = self.abstr.version_control.get_chain();
+        let name = self
+            .name
+            .clone()
+            .unwrap_or_else(|| String::from("Default Abstract Account"));
+
+        // Validate everything before sending tx
+        verifiers::validate_name(&name)?;
+        verifiers::validate_description(self.description.as_deref())?;
+        verifiers::validate_link(self.link.as_deref())?;
+
+        let Some(OwnerAccount::RemoteChain(owner_account)) = self.owner_account else {
+            return Err(AbstractClientError::LocalAccountOnBuildRemote {});
+        };
+        let env = chain.env_info();
+        Ok(owner_account
+            .abstr_account
+            .register_remote_account(ChainName::from_string(env.chain_name)?)?)
     }
 }
 
