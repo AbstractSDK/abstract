@@ -30,7 +30,7 @@ testing = ["dep:abstract-client", "dep:cw20"]
 # Supported Moneymarkets
 mars = ["abstract-mars-adapter/full_integration"]
 cavern = ["abstract-cavern-adapter/full_integration"]
-kujira = ["abstract-kujira-adapter/full_integration"]
+ghost = ["abstract-kujira-adapter/full_integration"]
 
 osmosis-test = ["cw-orch/osmosis-test-tube"]
 
@@ -44,7 +44,7 @@ builds = [
     "cavern",
   ] },
   { name = "kujira", features = [
-    "kujira",
+    "ghost",
   ] },
 ]
 
@@ -89,7 +89,7 @@ wyndex-bundle = { workspace = true }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 money-market = { path = ".", features = [
   "mars",
-  "kujira",
+  "ghost",
 ], package = "abstract-money-market-adapter" }
 
 abstract-wyndex-adapter = { workspace = true, features = ["local"] }

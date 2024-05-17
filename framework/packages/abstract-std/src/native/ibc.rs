@@ -13,6 +13,7 @@ use crate::{
 /// CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client
 /// A callback can only be sent to itself
 #[cosmwasm_schema::cw_serde]
+// ANCHOR: callback-info
 pub struct CallbackInfo {
     /// Used to identify the callback that is sent (acts like the reply ID)
     pub id: String,
@@ -20,9 +21,11 @@ pub struct CallbackInfo {
     /// This is usually used to provide information to the ibc callback function for context
     pub msg: Option<Binary>,
 }
+// ANCHOR_END: callback-info
 
 /// IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg
 #[cosmwasm_schema::cw_serde]
+// ANCHOR: response-msg
 pub struct IbcResponseMsg {
     /// The ID chosen by the caller in the `callback_info.id`
     pub id: String,
@@ -31,6 +34,7 @@ pub struct IbcResponseMsg {
     pub msg: Option<Binary>,
     pub result: CallbackResult,
 }
+// ANCHOR_END: response-msg
 
 impl IbcResponseMsg {
     /// serializes the message

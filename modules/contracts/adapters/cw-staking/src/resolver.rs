@@ -20,8 +20,8 @@ pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStak
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         }
-        abstract_kujira_adapter::KUJIRA => {
-            Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
+        abstract_kujira_adapter::staking::BOW => {
+            Ok(Box::<abstract_kujira_adapter::staking::Bow>::default())
         }
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::staking::Astrovault>::default())
@@ -48,8 +48,8 @@ pub(crate) fn resolve_local_provider(
             Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         }
         #[cfg(feature = "bow")]
-        abstract_kujira_adapter::KUJIRA => {
-            Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
+        abstract_kujira_adapter::staking::BOW => {
+            Ok(Box::<abstract_kujira_adapter::staking::Bow>::default())
         }
         #[cfg(feature = "astrovault")]
         abstract_astrovault_adapter::ASTROVAULT => {

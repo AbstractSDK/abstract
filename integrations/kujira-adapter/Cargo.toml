@@ -3,7 +3,7 @@ name = "abstract-kujira-adapter"
 version = "0.3.0"
 authors = ["Abstract Money <contact@abstract.money>"]
 edition = "2021"
-description = "Abstract Staking implementation for Kujira"
+description = "Abstract Adapters implementation for Kujira"
 license = "MIT OR Apache-2.0"
 
 [features]

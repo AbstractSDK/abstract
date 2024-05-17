@@ -108,6 +108,7 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     },
+    // ANCHOR: module-ibc-action
     ModuleIbcAction {
         /// host chain to be executed on
         /// Example: "osmosis"
@@ -119,6 +120,7 @@ pub enum ExecuteMsg {
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback_info: Option<CallbackInfo>,
     },
+    // ANCHOR_END: module-ibc-action
     IbcQuery {
         /// host chain to be executed on
         /// Example: "osmosis"

@@ -65,6 +65,7 @@ pub struct InstantiateMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
+// ANCHOR: ibc-host-action
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
 pub enum InternalAction {
@@ -97,6 +98,7 @@ pub enum HostAction {
     /// Some helpers that allow calling dispatch messages faster (for actions that are called regularly)
     Helpers(HelperAction),
 }
+// ANCHOR_END: ibc-host-action
 
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
@@ -118,15 +120,17 @@ pub enum ExecuteMsg {
     RemoveChainProxy {
         chain: ChainName,
     },
+    // ANCHOR: ibc-host-execute
     /// Allows for remote execution from the Polytone implementation
     #[fn_name("ibc_execute")]
     Execute {
         account_id: AccountId,
         /// The address of the calling account id. This is used purely for the send-all-back method.
-        /// We include it in all messages one-the-less to simpify the users life
+        /// We include it in all messages none-the-less to simplify the users life
         proxy_address: String,
         action: HostAction,
     },
+    // ANCHOR_END: ibc-host-execute
     /// Allows for remote execution from the Polytone implementation on a local module
     ModuleExecute {
         source_module: InstalledModuleIdentification,
