@@ -120,10 +120,11 @@ pub fn host(deps: Deps, host_chain: ChainName) -> IbcClientResult<HostResponse> 
 
 pub fn account(
     deps: Deps,
-    host_chain: String,
+    host_chain: ChainName,
     account_id: AccountId,
 ) -> IbcClientResult<AccountResponse> {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
+
     let remote_proxy_addr = ACCOUNTS.load(
         deps.storage,
         (account_id.trace(), account_id.seq(), &host_chain),

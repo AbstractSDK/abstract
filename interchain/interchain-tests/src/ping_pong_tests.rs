@@ -3,9 +3,11 @@
 use abstract_app::objects::namespace::Namespace;
 use abstract_app::objects::AccountId;
 
-use abstract_client::Application;
 use abstract_client::{AbstractClient, Environment};
+use abstract_client::{Application, RemoteAccount};
 
+use abstract_interface::IbcClient;
+use abstract_std::ibc_client::QueryMsgFns;
 use abstract_std::objects::chain_name::ChainName;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
@@ -15,19 +17,20 @@ use crate::setup::mock_test::logger_test_init;
 use crate::setup::{ibc_abstract_setup, ibc_connect_polytone_and_abstract};
 use crate::{JUNO, STARGAZE};
 use ping_pong::contract::APP_ID;
-use ping_pong::msg::{AppInstantiateMsg, PongsResponse};
+use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, PongsResponse};
 use ping_pong::{AppExecuteMsgFns, AppInterface, AppQueryMsgFns};
 
-struct PingPong<Env: IbcQueryHandler> {
+struct PingPong<Env: IbcQueryHandler, IbcEnv: InterchainEnv<Env>> {
+    interchain: IbcEnv,
     abs_juno: AbstractClient<Env>,
     abs_stargaze: AbstractClient<Env>,
-    app1: Application<Env, AppInterface<Env>>,
-    app2: Application<Env, AppInterface<Env>>,
+    app: Application<Env, AppInterface<Env>>,
+    remote_account: RemoteAccount<Env>,
 }
 
-impl PingPong<MockBech32> {
+impl PingPong<MockBech32, MockBech32InterchainEnv> {
     /// Set up the test environment with two Accounts that has the App installed
-    fn setup() -> anyhow::Result<PingPong<MockBech32>> {
+    fn setup() -> anyhow::Result<PingPong<MockBech32, MockBech32InterchainEnv>> {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
@@ -47,45 +50,33 @@ impl PingPong<MockBech32> {
         // Publish and install on both chains
         let publisher_juno = abs_juno.publisher_builder(namespace.clone()).build()?;
         publisher_juno.publish_app::<AppInterface<_>>()?;
-        // TODO: https://github.com/AbstractSDK/abstract/pull/346
-        // let app1 = publisher
-        //     .account()
-        //     .install_app_with_dependencies::<AppInterface<_>>(
-        //         &AppInstantiateMsg {},
-        //         Empty {},
-        //         &[],
-        //     )?;
-        let account = abs_juno
-            .account_builder()
-            .sub_account(&publisher_juno.account())
-            .build()?;
-        account.set_ibc_status(true)?;
-        let app1 = account.install_app::<AppInterface<_>>(&AppInstantiateMsg {}, &[])?;
+        let app = publisher_juno
+            .account()
+            .install_app_with_dependencies::<AppInterface<_>>(
+                &AppInstantiateMsg {},
+                Empty {},
+                &[],
+            )?;
 
         let publisher_stargaze = abs_stargaze.publisher_builder(namespace).build()?;
         publisher_stargaze.publish_app::<AppInterface<_>>()?;
-        // let app2 = publisher
-        //     .account()
-        //     .install_app_with_dependencies::<AppInterface<_>>(
-        //         &AppInstantiateMsg {},
-        //         Empty {},
-        //         &[],
-        //     )?;
+
         publisher_juno.account().set_ibc_status(true)?;
-        let account_response = abs_stargaze
+        let (remote_account, account_response) = abs_stargaze
             .account_builder()
             .remote_account(&publisher_juno.account())
             .build_remote()?;
         mock_interchain.wait_ibc(JUNO, account_response)?;
-        todo!();
-        // account.set_ibc_status(true)?;
-        let app2 = account.install_app::<AppInterface<_>>(&AppInstantiateMsg {}, &[])?;
+        let app2_response =
+            remote_account.install_app::<AppInterface<Daemon>>(&AppInstantiateMsg {})?;
+        mock_interchain.wait_ibc(JUNO, app2_response)?;
 
         Ok(PingPong {
+            interchain: mock_interchain,
             abs_juno,
             abs_stargaze,
-            app1,
-            app2,
+            app,
+            remote_account,
         })
     }
 }
@@ -95,13 +86,20 @@ fn successful_install() -> anyhow::Result<()> {
     logger_test_init();
     // Create a sender and mock env
     let env = PingPong::setup()?;
-    let app1 = env.app1;
-    let app2 = env.app2;
+    let app1 = env.app;
+
+    let mock_stargaze = env.abs_stargaze.environment();
 
     let pongs = app1.pongs()?;
     assert_eq!(pongs, PongsResponse { pongs: 0 });
 
-    let pongs = app2.pongs()?;
+    let module_addrs = env
+        .remote_account
+        .module_addresses(vec![APP_ID.to_owned()])?;
+    let pongs: PongsResponse = mock_stargaze.query(
+        &ping_pong::msg::QueryMsg::from(AppQueryMsg::Pongs {}),
+        &module_addrs.modules[0].1,
+    )?;
     assert_eq!(pongs, PongsResponse { pongs: 0 });
     Ok(())
 }
@@ -110,11 +108,15 @@ fn successful_install() -> anyhow::Result<()> {
 fn successful_ping_pong() -> anyhow::Result<()> {
     logger_test_init();
     let env = PingPong::setup()?;
-    let app1 = env.app1;
-    let app2 = env.app2;
+    let app1 = env.app;
 
-    let r = app1.ping_pong(ChainName::from_chain_id(STARGAZE), 5)?;
+    let pp = app1.ping_pong(ChainName::from_chain_id(STARGAZE), 1000)?;
 
-    dbg!(r);
+    let pongs = dbg!(app1.pongs()?);
+    env.interchain.wait_ibc(JUNO, pp)?;
+    let pongs = dbg!(app1.pongs()?);
+    let pongs = dbg!(app1.pongs()?);
+    let pongs = dbg!(app1.pongs()?);
+
     Ok(())
 }

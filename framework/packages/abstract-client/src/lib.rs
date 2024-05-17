@@ -2,6 +2,8 @@
 #![doc = include_str!("../README.md")]
 
 pub(crate) mod account;
+pub(crate) mod remote_account;
+
 mod application;
 pub mod builder;
 mod client;
@@ -23,4 +25,5 @@ pub use client::AbstractClient;
 pub use error::AbstractClientError;
 pub use infrastructure::Environment;
 pub use publisher::{Publisher, PublisherBuilder};
+pub use remote_account::RemoteAccount;
 pub use source::AccountSource;

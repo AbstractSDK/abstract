@@ -148,7 +148,7 @@ mod test {
                 .ibc
                 .client
                 .query(&abstract_std::ibc_client::QueryMsg::Account {
-                    chain: ChainName::from_chain_id(STARGAZE).to_string(),
+                    chain_name: ChainName::from_chain_id(STARGAZE),
                     account_id: AccountId::new(1, AccountTrace::Local)?,
                 })?;
 

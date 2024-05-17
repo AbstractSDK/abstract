@@ -40,14 +40,16 @@ use abstract_std::{
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
-    PROXY,
+    IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
+use cw_asset::AssetInfo;
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
     client::AbstractClientResult,
     infrastructure::{Environment, Infrastructure},
+    remote_account::RemoteAccount,
     AbstractClientError, Application,
 };
 
@@ -349,8 +351,10 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         Ok(Account::new(abstract_account, self.install_on_sub_account))
     }
 
-    /// Builds the [`Account`].
-    pub fn build_remote(&self) -> AbstractClientResult<Chain::Response> {
+    /// Builds the [`RemoteAccount`].
+    /// Before using it you are supposed to use `wait_ibc()` on Response.
+    /// For more information see: https://orchestrator.abstract.money/interchain/integrations/daemon.html?#analysis-usage
+    pub fn build_remote(&self) -> AbstractClientResult<(RemoteAccount<Chain>, Chain::Response)> {
         let chain = self.abstr.version_control.get_chain();
         let name = self
             .name
@@ -366,9 +370,55 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             return Err(AbstractClientError::LocalAccountOnBuildRemote {});
         };
         let env = chain.env_info();
-        Ok(owner_account
+
+        let mut install_modules = self.install_modules.clone();
+        // We add the IBC Client by default in the modules installed on the remote account
+        if !install_modules.iter().any(|m| m.module.id() == IBC_CLIENT) {
+            install_modules.push(ModuleInstallConfig::new(
+                ModuleInfo::from_id_latest(IBC_CLIENT)?,
+                None,
+            ));
+        }
+
+        let account_details = AccountDetails {
+            name,
+            description: self.description.clone(),
+            link: self.link.clone(),
+            namespace: self.namespace.as_ref().map(ToString::to_string),
+            base_asset: self.base_asset.clone(),
+            install_modules,
+            account_id: self.expected_local_account_id,
+        };
+        let host_chain = ChainName::from_string(env.chain_name)?;
+
+        let response = owner_account
             .abstr_account
-            .register_remote_account(ChainName::from_string(env.chain_name)?)?)
+            .create_remote_account(account_details, host_chain)?;
+
+        let remote_abstract = Abstract::load_from(chain.clone())?;
+
+        let remote_account_id = {
+            let mut id = owner_account.id()?;
+            let chain_name = ChainName::from_string(
+                owner_account
+                    .abstr_account
+                    .manager
+                    .get_chain()
+                    .env_info()
+                    .chain_name,
+            )?;
+            id.push_host(chain_name);
+            id
+        };
+
+        Ok((
+            RemoteAccount::new(
+                owner_account.abstr_account.clone(),
+                remote_account_id,
+                remote_abstract,
+            ),
+            response,
+        ))
     }
 }
 
@@ -429,6 +479,14 @@ impl<Chain: CwEnv> Account<Chain> {
     pub fn install_on_sub_account(&self) -> bool {
         self.install_on_sub_account
     }
+
+    // TODO:
+    // pub fn deposit(
+    //     &self,
+    //     assets: Vec<AssetInfo>,
+    // ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+    // We try to batch it so if one of the deposits fail - we just fail tx
+    // }
 
     /// Query account balance of a given denom
     // TODO: Asset balance?
@@ -842,6 +900,8 @@ impl<Chain: CwEnv> Display for Account<Chain> {
 
 impl<Chain: CwEnv> Debug for Account<Chain> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.abstr_account)
+        <Self as Display>::fmt(self, f)
+        // TODO:
+        // write!(f, "{:?}", self.abstr_account)
     }
 }

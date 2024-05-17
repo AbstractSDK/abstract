@@ -118,9 +118,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespo
         QueryMsg::Ownership {} => to_json_binary(&cw_ownable::get_ownership(deps.storage)?),
         QueryMsg::Config {} => to_json_binary(&queries::config(deps)?),
         QueryMsg::Host { chain_name } => to_json_binary(&queries::host(deps, chain_name)?),
-        QueryMsg::Account { chain, account_id } => {
-            to_json_binary(&queries::account(deps, chain, account_id)?)
-        }
+        QueryMsg::Account {
+            chain_name,
+            account_id,
+        } => to_json_binary(&queries::account(deps, chain_name, account_id)?),
         QueryMsg::ListAccounts { start, limit } => {
             to_json_binary(&queries::list_accounts(deps, start, limit)?)
         }
@@ -1298,7 +1299,7 @@ mod tests {
                 deps.as_ref(),
                 mock_env(),
                 QueryMsg::Account {
-                    chain: chain_name.to_string(),
+                    chain_name: chain_name.clone(),
                     account_id: TEST_ACCOUNT_ID,
                 },
             )?)?;

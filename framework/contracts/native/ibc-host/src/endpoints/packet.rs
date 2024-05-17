@@ -19,7 +19,7 @@ use crate::{
 };
 
 pub fn client_to_host_account_id(remote_chain: ChainName, mut account_id: AccountId) -> AccountId {
-    account_id.client_to_host(remote_chain);
+    account_id.push_host(remote_chain);
     account_id
 }
 

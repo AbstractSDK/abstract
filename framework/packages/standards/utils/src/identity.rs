@@ -22,7 +22,7 @@ pub fn decompose_platform_name(platform_name: &str) -> (Option<String>, String) 
     }
 }
 
-fn get_chain_name<'a>(env: &'a Env) -> &'a str {
+fn get_chain_name(env: &Env) -> &str {
     env.block.chain_id.rsplitn(2, '-').last().unwrap()
 }
 

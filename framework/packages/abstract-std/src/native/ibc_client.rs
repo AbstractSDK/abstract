@@ -272,7 +272,7 @@ pub enum QueryMsg {
     /// Returns [`AccountResponse`]
     #[returns(AccountResponse)]
     Account {
-        chain: String,
+        chain_name: ChainName,
         account_id: AccountId,
     },
     // get the hosts
