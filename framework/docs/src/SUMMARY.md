@@ -23,6 +23,7 @@
     - [Version Control](./5_platform/2_version_control.md)
     - [Account Factory](./5_platform/3_account_factory.md)
     - [Module Factory](./5_platform/5_module_factory.md)
+    - [Module Flows](./5_platform/8_modules.md)
 
 - [Tools and Libraries](1_products/index.md)
   - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)
