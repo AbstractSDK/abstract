@@ -42,6 +42,8 @@
 /// Result type for Abstract objects
 pub type AbstractResult<T> = Result<T, error::AbstractError>;
 
+pub const ABSTRACT_STD_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 pub mod base;
 
 pub use registry::*;
