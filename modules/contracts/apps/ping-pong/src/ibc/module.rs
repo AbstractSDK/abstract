@@ -18,7 +18,6 @@ pub fn receive_module_ibc(
     msg: ModuleIbcMsg,
 ) -> AppResult<Response> {
     let mut ping_msg: PingPongIbcMsg = from_json(&msg.msg)?;
-    dbg!(&ping_msg);
 
     CURRENT_PONGS.save(deps.storage, &ping_msg.pongs)?;
     if ping_msg.pongs > 0 {
@@ -27,7 +26,10 @@ pub fn receive_module_ibc(
         ping_msg.pongs -= 1;
         let ibc_action =
             ibc_client.module_ibc_action(msg.client_chain, current_module_info, &ping_msg, None)?;
-        Ok(app.response("ping_back").add_message(ibc_action))
+        Ok(app
+            .response("ping_back")
+            .add_attribute("pongs_left", ping_msg.pongs.to_string())
+            .add_message(ibc_action))
     } else {
         // Done ping-ponging
         Ok(app.response("ping_ponged"))

@@ -10,6 +10,7 @@ use abstract_interface::{IbcClient, VCQueryFns};
 use abstract_std::ibc_client::QueryMsgFns;
 use abstract_std::objects::account::AccountTrace;
 use abstract_std::objects::chain_name::ChainName;
+use cw_orch::interchain::types::IbcPacketOutcome;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
 use cw_orch_polytone::Polytone;
@@ -109,7 +110,7 @@ fn successful_install() -> anyhow::Result<()> {
 
 #[test]
 fn successful_ping_pong() -> anyhow::Result<()> {
-    std::env::set_var("RUST_LOG", "debug");
+    // std::env::set_var("RUST_LOG", "debug");
     logger_test_init();
 
     let env = PingPong::setup()?;
@@ -124,12 +125,50 @@ fn successful_ping_pong() -> anyhow::Result<()> {
             AccountTrace::Remote(vec![ChainName::from_chain_id(JUNO)]),
         )?)?;
 
-    let pp = app1.ping_pong(ChainName::from_chain_id(STARGAZE), 1)?;
+    let pp = app1.ping_pong(ChainName::from_chain_id(STARGAZE), 3)?;
+    let pongs = app1.pongs()?;
+    assert_eq!(pongs.pongs, 3);
 
-    // let pongs = dbg!(app1.pongs())?;
-    env.interchain.wait_ibc(JUNO, pp)?.into_result()?;
+    let ibc_wait_response = env.interchain.wait_ibc(JUNO, pp)?;
+    // let mut pongs_left_events = ibc_wait_response
+    //     .tx_id
+    //     .response
+    //     .events
+    //     .clone()
+    //     .into_iter()
+    //     .map(|ev| {
+    //         ev.attributes
+    //             .into_iter()
+    //             .filter(|attr| attr.key == "pongs_left")
+    //             .collect::<Vec<_>>()
+    //     })
+    //     .flatten()
+    //     .collect::<Vec<_>>();
+    dbg!(&ibc_wait_response.tx_id.response);
+    let r = ibc_wait_response
+        .packets
+        .iter()
+        .map(|ibc_analysis| {
+            let r = ibc_analysis.send_tx.clone().unwrap();
+            let b = ibc_analysis.outcome.clone();
+            match b {
+                IbcPacketOutcome::Success {
+                    receive_tx,
+                    ack_tx,
+                    ack,
+                } => {
+                    dbg!(receive_tx.tx_id.response, ack_tx.tx_id.response);
+                }
+                IbcPacketOutcome::Timeout { timeout_tx } => todo!(),
+            }
+            r.response
+        })
+        .collect::<Vec<_>>();
+    dbg!(r);
+    ibc_wait_response.into_result()?;
 
-    // let pongs = dbg!(app1.pongs())?;
+    let pongs = app1.pongs()?;
+    assert_eq!(pongs.pongs, 0);
 
     Ok(())
 }

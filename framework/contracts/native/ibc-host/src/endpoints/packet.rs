@@ -7,7 +7,8 @@ use abstract_std::{
         HelperAction, HostAction, InternalAction,
     },
     objects::{
-        chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
+        account::AccountTrace, chain_name::ChainName, module::ModuleInfo,
+        module_reference::ModuleReference, AccountId,
     },
 };
 use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
@@ -17,11 +18,6 @@ use crate::{
     contract::HostResult,
     HostError,
 };
-
-pub fn client_to_host_account_id(remote_chain: ChainName, mut account_id: AccountId) -> AccountId {
-    account_id.push_host(remote_chain);
-    account_id
-}
 
 /// Handle actions that are passed to the IBC host contract
 /// This function is not permissioned and access control needs to be handled outside of it
@@ -35,7 +31,11 @@ pub fn handle_host_action(
     host_action: HostAction,
 ) -> HostResult {
     // Push the client chain to the account trace
-    let account_id = client_to_host_account_id(client_chain.clone(), received_account_id.clone());
+    let account_id = {
+        let mut account_id = received_account_id.clone();
+        account_id.push_host(client_chain.clone());
+        account_id
+    };
 
     // get the local account information
     match host_action {
@@ -115,9 +115,36 @@ pub fn handle_host_action(
     .map_err(Into::into)
 }
 
+/// We need to figure what trace module is implying here
+/// In case it sent message back we should be able to determine it
+pub fn client_to_host_module_account_id(
+    env: &Env,
+    remote_chain: ChainName,
+    mut account_id: AccountId,
+) -> AccountId {
+    let account_trace = account_id.trace_mut();
+    match account_trace {
+        AccountTrace::Local => account_trace.push_chain(remote_chain),
+        AccountTrace::Remote(trace) => {
+            let current_chain_name = ChainName::from_chain_id(&env.block.chain_id);
+            // If current chain_name == last trace in account_id it means we got response back from remote chain
+            if current_chain_name.eq(trace.last().unwrap()) {
+                trace.pop();
+                if trace.is_empty() {
+                    *account_trace = AccountTrace::Local;
+                }
+            } else {
+                trace.push(remote_chain);
+            }
+        }
+    };
+    account_id
+}
+
 /// Handle actions that are passed to the IBC host contract and originate from a registered module
 pub fn handle_host_module_action(
     deps: DepsMut,
+    env: Env,
     client_chain: ChainName,
     source_module: InstalledModuleIdentification,
     target_module: ModuleInfo,
@@ -129,7 +156,7 @@ pub fn handle_host_module_action(
         module_info: target_module,
         account_id: source_module
             .account_id
-            .map(|a| client_to_host_account_id(client_chain.clone(), a)),
+            .map(|a| client_to_host_module_account_id(&env, client_chain.clone(), a)),
     };
 
     let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
