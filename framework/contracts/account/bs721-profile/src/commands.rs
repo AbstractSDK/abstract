@@ -532,7 +532,7 @@ pub fn query_profile_marketplace(deps: Deps) -> StdResult<Addr> {
 }
 
 pub fn query_name(deps: Deps, mut address: String) -> StdResult<String> {
-    if !address.starts_with("stars") {
+    if !address.starts_with("bitsong") {
         address = transcode(&address)?;
     }
 

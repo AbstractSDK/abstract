@@ -560,6 +560,7 @@ fn internal_claim_profile(
     let params = SUDO_PARAMS.load(deps.storage)?;
     validate_bitsong_profile(&bs_profile, params.min_name_length, params.max_name_length)?;
 
+    // TODO: move to Version Control 
     let collection = PROFILE_COLLECTION.load(deps.storage)?;
     let marketplace = PROFILE_MARKETPLACE.load(deps.storage)?;
 

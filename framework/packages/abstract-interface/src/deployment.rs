@@ -355,6 +355,14 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 self.ibc.host.as_instance(),
                 ibc_host::contract::CONTRACT_VERSION.to_string(),
             ),
+            (
+                self.bs721_profile.as_instance(),
+                bs721_base::CONTRACT_VERSION.to_string(),
+            ),
+            (
+                self.profile_marketplace.as_instance(),
+                profile_marketplace::contract::CONTRACT_VERSION.to_string(),
+            )
         ]
     }
 }
