@@ -30,6 +30,10 @@ pub fn handle_account_address_query(
     deps: Deps,
     account_id: AccountId,
 ) -> StdResult<AccountBaseResponse> {
+    let addrs = ACCOUNT_ADDRESSES
+        .range(deps.storage, None, None, Order::Descending)
+        .collect::<StdResult<Vec<_>>>()?;
+    dbg!(addrs);
     let account_address = ACCOUNT_ADDRESSES.load(deps.storage, &account_id);
     match account_address {
         Err(_) => Err(StdError::generic_err(

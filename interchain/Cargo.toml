@@ -60,7 +60,8 @@ polytone = { package = "abstract-polytone", version = "1.0.5" }
 polytone-note = { package = "abstract-polytone-note", version = "2.0.0" }
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "2.0.0" }
 
-cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.22.0" }
+# cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.22.0" }
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", branch = "update/better-ack-handling" }
 cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.22.0" }
 cw-orch-clone-testing = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", tag = "v0.22.0" }
 # Keep these as path, creates cirular dependency otherwise

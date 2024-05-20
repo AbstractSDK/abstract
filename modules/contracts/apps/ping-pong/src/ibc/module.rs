@@ -18,6 +18,7 @@ pub fn receive_module_ibc(
     msg: ModuleIbcMsg,
 ) -> AppResult<Response> {
     let mut ping_msg: PingPongIbcMsg = from_json(&msg.msg)?;
+    dbg!(&ping_msg);
 
     CURRENT_PONGS.save(deps.storage, &ping_msg.pongs)?;
     if ping_msg.pongs > 0 {

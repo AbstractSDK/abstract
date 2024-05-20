@@ -203,4 +203,13 @@ mod test {
     fn local_non_alphanumeric_fails() {
         ChainName::from_str("a_aoeuoau").unwrap_err();
     }
+
+    #[test]
+    fn from_chain_id() {
+        let normal_chain_name = ChainName::from_chain_id("juno-1");
+        assert_eq!(normal_chain_name, ChainName::_from_str("juno"));
+
+        let postfixless_chain_name = ChainName::from_chain_id("juno");
+        assert_eq!(postfixless_chain_name, ChainName::_from_str("juno"));
+    }
 }

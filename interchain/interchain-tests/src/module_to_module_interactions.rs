@@ -353,25 +353,30 @@ pub mod test {
             "Module {} does not have a stored module reference",
             target_module_info
         );
-        match &ibc_result.packets[0].outcome {
-            cw_orch::interchain::types::IbcPacketOutcome::Timeout { .. } => {
-                panic!("Expected a failed ack not a timeout !")
-            }
-            cw_orch::interchain::types::IbcPacketOutcome::Success { ack, .. } => match ack {
-                cw_orch::interchain::types::IbcPacketAckDecode::Error(e) => {
-                    assert!(e.contains(&expected_error_outcome));
-                }
-                cw_orch::interchain::types::IbcPacketAckDecode::Success(_) => {
-                    panic!("Expected a error ack")
-                }
-                cw_orch::interchain::types::IbcPacketAckDecode::NotParsed(original_ack) => {
-                    let error_str =
-                        String::from_utf8_lossy(&general_purpose::STANDARD.decode(original_ack)?)
-                            .to_string();
-                    assert!(error_str.contains(&expected_error_outcome));
-                }
-            },
-        }
+        assert!(ibc_result
+            .into_result()
+            .unwrap_err()
+            .to_string()
+            .contains(&expected_error_outcome));
+        // match &ibc_result.packets[0].outcome {
+        //     cw_orch::interchain::types::IbcPacketOutcome::Timeout { .. } => {
+        //         panic!("Expected a failed ack not a timeout !")
+        //     }
+        //     cw_orch::interchain::types::IbcPacketOutcome::Success { ack, .. } => match ack {
+        //         cw_orch::interchain::types::IbcPacketAckDecode::Error(e) => {
+        //             assert!(e.contains(&expected_error_outcome));
+        //         }
+        //         cw_orch::interchain::types::IbcPacketAckDecode::Success(_) => {
+        //             panic!("Expected a error ack")
+        //         }
+        //         cw_orch::interchain::types::IbcPacketAckDecode::NotParsed(original_ack) => {
+        //             let error_str =
+        //                 String::from_utf8_lossy(&general_purpose::STANDARD.decode(original_ack)?)
+        //                     .to_string();
+        //             assert!(error_str.contains(&expected_error_outcome));
+        //         }
+        //     },
+        // }
 
         Ok(())
     }
@@ -429,25 +434,31 @@ pub mod test {
 
         let expected_error_outcome =
             format!("App {} not installed on Account", target_module_info,);
-        match &ibc_result.packets[0].outcome {
-            cw_orch::interchain::types::IbcPacketOutcome::Timeout { .. } => {
-                panic!("Expected a failed ack not a timeout !")
-            }
-            cw_orch::interchain::types::IbcPacketOutcome::Success { ack, .. } => match ack {
-                cw_orch::interchain::types::IbcPacketAckDecode::Error(e) => {
-                    assert!(e.contains(&expected_error_outcome));
-                }
-                cw_orch::interchain::types::IbcPacketAckDecode::Success(_) => {
-                    panic!("Expected a error ack")
-                }
-                cw_orch::interchain::types::IbcPacketAckDecode::NotParsed(original_ack) => {
-                    let error_str =
-                        String::from_utf8_lossy(&general_purpose::STANDARD.decode(original_ack)?)
-                            .to_string();
-                    assert!(error_str.contains(&expected_error_outcome));
-                }
-            },
-        }
+
+        assert!(ibc_result
+            .into_result()
+            .unwrap_err()
+            .to_string()
+            .contains(&expected_error_outcome));
+        // match &ibc_result.packets[0].outcome {
+        //     cw_orch::interchain::types::IbcPacketOutcome::Timeout { .. } => {
+        //         panic!("Expected a failed ack not a timeout !")
+        //     }
+        //     cw_orch::interchain::types::IbcPacketOutcome::Success { ack, .. } => match ack {
+        //         cw_orch::interchain::types::IbcPacketAckDecode::Error(e) => {
+        //             assert!(e.contains(&expected_error_outcome));
+        //         }
+        //         cw_orch::interchain::types::IbcPacketAckDecode::Success(_) => {
+        //             panic!("Expected a error ack")
+        //         }
+        //         cw_orch::interchain::types::IbcPacketAckDecode::NotParsed(original_ack) => {
+        //             let error_str =
+        //                 String::from_utf8_lossy(&general_purpose::STANDARD.decode(original_ack)?)
+        //                     .to_string();
+        //             assert!(error_str.contains(&expected_error_outcome));
+        //         }
+        //     },
+        // }
 
         Ok(())
     }

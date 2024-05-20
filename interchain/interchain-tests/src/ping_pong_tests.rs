@@ -6,8 +6,9 @@ use abstract_app::objects::AccountId;
 use abstract_client::{AbstractClient, Environment};
 use abstract_client::{Application, RemoteAccount};
 
-use abstract_interface::IbcClient;
+use abstract_interface::{IbcClient, VCQueryFns};
 use abstract_std::ibc_client::QueryMsgFns;
+use abstract_std::objects::account::AccountTrace;
 use abstract_std::objects::chain_name::ChainName;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
@@ -45,6 +46,7 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
         Polytone::deploy_on(mock_stargaze, None)?;
 
         ibc_connect_polytone_and_abstract(&mock_interchain, JUNO, STARGAZE)?;
+        ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
         let namespace = Namespace::from_id(APP_ID)?;
         // Publish and install on both chains
@@ -64,12 +66,12 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
         publisher_juno.account().set_ibc_status(true)?;
         let (remote_account, account_response) = abs_stargaze
             .account_builder()
-            .remote_account(&publisher_juno.account())
+            .remote_account(&app.account())
+            .install_app::<AppInterface<Daemon>>(&AppInstantiateMsg {})?
             .build_remote()?;
-        mock_interchain.wait_ibc(JUNO, account_response)?;
-        let app2_response =
-            remote_account.install_app::<AppInterface<Daemon>>(&AppInstantiateMsg {})?;
-        mock_interchain.wait_ibc(JUNO, app2_response)?;
+        mock_interchain
+            .wait_ibc(JUNO, account_response)?
+            .into_result()?;
 
         Ok(PingPong {
             interchain: mock_interchain,
@@ -84,6 +86,7 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     logger_test_init();
+
     // Create a sender and mock env
     let env = PingPong::setup()?;
     let app1 = env.app;
@@ -106,17 +109,27 @@ fn successful_install() -> anyhow::Result<()> {
 
 #[test]
 fn successful_ping_pong() -> anyhow::Result<()> {
+    std::env::set_var("RUST_LOG", "debug");
     logger_test_init();
+
     let env = PingPong::setup()?;
     let app1 = env.app;
 
-    let pp = app1.ping_pong(ChainName::from_chain_id(STARGAZE), 1000)?;
+    // Ensure account created
+    let _ensure_created = env
+        .abs_stargaze
+        .version_control()
+        .account_base(AccountId::new(
+            1,
+            AccountTrace::Remote(vec![ChainName::from_chain_id(JUNO)]),
+        )?)?;
 
-    let pongs = dbg!(app1.pongs()?);
-    env.interchain.wait_ibc(JUNO, pp)?;
-    let pongs = dbg!(app1.pongs()?);
-    let pongs = dbg!(app1.pongs()?);
-    let pongs = dbg!(app1.pongs()?);
+    let pp = app1.ping_pong(ChainName::from_chain_id(STARGAZE), 1)?;
+
+    // let pongs = dbg!(app1.pongs())?;
+    env.interchain.wait_ibc(JUNO, pp)?.into_result()?;
+
+    // let pongs = dbg!(app1.pongs())?;
 
     Ok(())
 }
