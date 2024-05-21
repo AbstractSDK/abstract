@@ -6,6 +6,8 @@ Abstract allows you to add other smart contracts as dependencies to your module.
 
 Your module's configured dependencies are asserted on-chain when your module is instantiated. This way Abstract ensures that all dependencies are met before your module is installed, preventing API mis-matches and other issues.
 
+We'll cover how to declare your dependencies and then how to ensure you have them installed them before you try to install your own module.
+
 ## Declaring Dependencies
 
 Declaring a dependency is a two-step process:
@@ -51,6 +53,32 @@ If your module needs some modules to be enabled, it can add those as a dependenc
 Under the hood the ID of the dependency module will be resolved on the Manager contract, returning the address of that module. The address is then used to call or query the dependency.
 
 You can also query dependencies using the same trait or by performing a raw-query provided by the SDK. -->
+
+## Dependency Installation
+
+Before you can install your own module you must install all your module's dependencies. To do this we provide a `DependencyCreation` trait that you should implement for your module. The goal of the trait is to enable you to configure which dependencies should be installed and with which parameters.
+
+Here's an example using our dollar-cost-average app that depends on CronCat and our DEX adapter.
+
+```rust
+{{#include ../../../../modules/contracts/apps/dca/src/contract.rs:deps_creation}}
+```
+
+Neither dependencies require any configuration on instantiation so the `DependenciesConfig` can be `Empty`.
+
+The `dependency_install_configs` function should return all the `ModuleInstallConfig`s that are required to install the dependencies for your application. In this example the configs are comprised of:
+
+1. Any dependencies that might be required by the CronCat App.
+2. The CronCat App itself.
+3. The DEX Adapter.
+
+With these specified, our `abstract-client` crate can install all your modules and their dependencies when you install your app, like so:
+
+```rust
+{{ #include ../../../packages/abstract-client/tests/integration.rs:account }}
+```
+
+The next section goes deeper into the `abstract-client` and how you can use it create accounts, publish modules and install your modules!
 
 ## Module Dependency Assertion
 

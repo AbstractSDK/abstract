@@ -39,39 +39,41 @@ abstract_app::export_endpoints!(DCA_APP, DCAApp);
 abstract_app::cw_orch_interface!(DCA_APP, DCAApp, DCA);
 
 #[cfg(not(target_arch = "wasm32"))]
-use abstract_app::std::{manager::ModuleInstallConfig, objects::module::ModuleInfo};
-#[cfg(not(target_arch = "wasm32"))]
-use croncat_app::contract::interface::Croncat;
-#[cfg(not(target_arch = "wasm32"))]
-impl<Chain: cw_orch::environment::CwEnv> abstract_app::abstract_interface::DependencyCreation
-    for crate::DCA<Chain>
-{
-    type DependenciesConfig = cosmwasm_std::Empty;
+mod deps {
+    use abstract_app::{
+        abstract_interface::{AbstractInterfaceError, DependencyCreation, InstallConfig},
+        std::manager::ModuleInstallConfig,
+    };
+    use abstract_dex_adapter::interface::DexAdapter;
+    use cosmwasm_std::Empty;
+    use croncat_app::Croncat;
+    use cw_orch::environment::CwEnv;
 
-    fn dependency_install_configs(
-        _configuration: Self::DependenciesConfig,
-    ) -> Result<Vec<ModuleInstallConfig>, abstract_app::abstract_interface::AbstractInterfaceError>
-    {
-        let croncat_dependency_install_configs: Vec<ModuleInstallConfig> =
-            <Croncat<Chain> as abstract_app::abstract_interface::DependencyCreation>::dependency_install_configs(
-                cosmwasm_std::Empty {},
-            )?;
-        let adapter_install_config = ModuleInstallConfig::new(
-            ModuleInfo::from_id(
-                abstract_dex_adapter::DEX_ADAPTER_ID,
-                abstract_dex_adapter::contract::CONTRACT_VERSION.into(),
-            )?,
-            None,
-        );
-        let croncat_install_config =
-            <Croncat<Chain> as abstract_app::abstract_interface::InstallConfig>::install_config(
+    use crate::DCA;
+
+    // ANCHOR: deps_creation
+    impl<Chain: CwEnv> DependencyCreation for DCA<Chain> {
+        // No external dependency data required for installing this app's deps.
+        type DependenciesConfig = Empty;
+
+        fn dependency_install_configs(
+            _configuration: Self::DependenciesConfig,
+        ) -> Result<Vec<ModuleInstallConfig>, AbstractInterfaceError> {
+            let mut dependency_configs = vec![];
+
+            // Get any install configs that might be required by CronCat App.
+            dependency_configs.extend(Croncat::<Chain>::dependency_install_configs(Empty {})?);
+
+            // Get the CronCat App install config
+            dependency_configs.push(Croncat::<Chain>::install_config(
                 &croncat_app::msg::AppInstantiateMsg {},
-            )?;
+            )?);
 
-        Ok([
-            croncat_dependency_install_configs,
-            vec![croncat_install_config, adapter_install_config],
-        ]
-        .concat())
+            // Create the adapter install config
+            dependency_configs.push(DexAdapter::<Chain>::install_config(&Empty {})?);
+
+            Ok(dependency_configs)
+        }
     }
+    // ANCHOR_END: deps_creation
 }
