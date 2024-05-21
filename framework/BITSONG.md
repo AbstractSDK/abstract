@@ -66,7 +66,7 @@ sh scripts/create_deployment.sh
 ## Option 2: Abstract Client 
 The Abstract Client provides us will a full integration deployment script, run with cargo. To deploy to bitsong:
 ```sh 
-
+# todo!()
 ```
 
 
