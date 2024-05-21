@@ -237,8 +237,11 @@ pub fn execute_send_module_to_module_packet(
 
     // We need additional information depending on the module type
     let source_module = match module_info.reference {
+        // For now Abstract doesn't use IBC communication for its native and account modules.
+        // That could change in the future
         ModuleReference::AccountBase(_) => return Err(IbcClientError::Unauthorized {}),
         ModuleReference::Native(_) => return Err(IbcClientError::Unauthorized {}),
+        // Standalone are not supported right now because it's not possible to query the account id from a standalone contract in general
         ModuleReference::Standalone(_) => return Err(IbcClientError::Unauthorized {}),
         ModuleReference::Adapter(_) => InstalledModuleIdentification {
             module_info: module_info.info,
