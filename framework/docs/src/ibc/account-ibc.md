@@ -9,6 +9,23 @@ offering a chain-abstracted experience users and developers in the Interchain ec
 
 Designed with versatility in mind, ICAAs are able to execute messages locally and remotely, supporting both single- and multi-hop executions.
 
+```mermaid
+flowchart
+    subgraph Account IBC
+        direction LR
+        subgraph Chain B
+        A4[Account]
+        end
+
+        subgraph Chain A
+        direction TB
+        User2[fa:fa-user User] -- owns --> A3["Account"]
+        A4[Account]
+        end
+        A3 -.IBC.-> A4
+    end
+```
+
 ```admonish info
 If you'd rather watch a video, an overview of Interchain Abstract Accounts can be found [here](https://www.youtube.com/watch?v=MrpndbPSBmI).
 ```
