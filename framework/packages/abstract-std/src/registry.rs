@@ -13,9 +13,8 @@ pub const PROXY: &str = "abstract:proxy";
 pub const ANS_HOST: &str = "abstract:ans-host";
 pub const IBC_CLIENT: &str = "abstract:ibc-client";
 pub const IBC_HOST: &str = "abstract:ibc-host";
-
-pub const PROFILE: &str = "bitsong:profile";
-pub const PROFILE_MARKETPLACE: &str = "bitsong:profile-marketplace";
+pub const PROFILE: &str = "abstract:profile";
+pub const PROFILE_MARKETPLACE: &str = "abstract:profile-marketplace";
 
 /// IBC protocols
 pub const ICS20: &str = "ics-20";

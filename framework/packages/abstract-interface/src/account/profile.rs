@@ -1,20 +1,10 @@
-use abstract_std::{objects::AccountId, profile::*, PROFILE};
+use abstract_std::{profile::*, PROFILE};
 use bs_profile::Metadata;
-use bs_profile::{TextRecord, NFT};
-use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{to_json_binary, Addr, QuerierWrapper, QueryRequest, StdResult, WasmQuery};
 use cw_orch::{interface, prelude::*};
 
-// abstract interface 
+// abstract interface
 #[interface(InstantiateMsg, ExecuteMsg<T>, QueryMsg, MigrateMsg)]
 pub struct Profile<Chain, T>;
-
-impl<Chain: CwEnv> Profile<Chain, Metadata> {
-    pub(crate) fn new_from_id(account_id: &AccountId, chain: Chain) -> Self {
-        let profile_id = format!("{PROFILE}-{account_id}");
-        Self::new(profile_id, chain)
-    }
-}
 
 impl<Chain: CwEnv> Uploadable for Profile<Chain, Metadata> {
     #[cfg(feature = "integration")]
@@ -30,46 +20,7 @@ impl<Chain: CwEnv> Uploadable for Profile<Chain, Metadata> {
     }
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
-            .find_wasm_path("proxy")
+            .find_wasm_path("bs721_profile")
             .unwrap()
     }
 }
-
-// impl<Chain: CwEnv> Proxy<Chain> {
-// pub  fn set_vault_assets(&self, path: &str) -> Result<(), crate::AbstractBootError> {
-//     let file = File::open(path).expect(&format!("file should be present at {}", path));
-//     let json: serde_json::Value = from_reader(file)?;
-//     let maybe_assets = json.get(self.instance().deployment.network.chain.chain_id.clone());
-//     match maybe_assets {
-//         Some(assets_value) => {
-//             let to_add: Vec<UncheckedProxyAsset> =
-//                 serde_json::from_value(assets_value.clone())?;
-//             let mut i = 0;
-//             while i != to_add.len() - 1 {
-//                 let chunk = to_add.get(i..min(i + 10, to_add.len() - 1)).unwrap();
-//                 i += chunk.len();
-//                 self.0
-//                     .execute(
-//                         &ExecuteMsg::UpdateAssets {
-//                             to_add: chunk.to_vec(),
-//                             to_remove: vec![],
-//                         },
-//                         &vec![],
-//                     )
-//                     ?;
-//             }
-
-//             return Ok(());
-//         }
-//         None => return Err(CwOrchError::StdErr("network not found".into())),
-//     }
-// }
-
-// pub  fn fund_os(&self, coin: Coin) -> Result<(), crate::AbstractBootError> {
-//     self.instance()
-//         .sender
-//         .bank_send(self.instance().name, vec![coin])
-//         ?;
-//     Ok(())
-// }
-// }

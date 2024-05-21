@@ -11,10 +11,13 @@ proxy_code_id=
 manager_code_id=
 
 admin_key=""
+bidder_key=""
 admin_addr=""
+bidder_addr=""
 binary=
 gas_price="0.05uthiolx"
 tx_flags="--from=$admin_key --gas auto --gas-adjustment 2 --gas-prices=$gas_price -y -o json"
+tx_flags_2="--from=$bidder_key --gas auto --gas-adjustment 2 --gas-prices=$gas_price -y -o json"
 
 
 # ANS
@@ -132,10 +135,53 @@ echo 'waiting for tx to process'
 sleep 6;
 
 ## Create Account 
- $binary tx wasm e $account_factory_addr '{"create_account": {"governance":{"Monarchy":{"monarch":"'$admin_addr'"}},"name":"first-os","install_modules":[],"bs_profile":"the-monk-on-iron-mountain"}}'$tx_flags
+admin_tx=$($binary tx wasm e $account_factory_addr '{"create_account": {"governance":{"Monarchy":{"monarch":"'$admin_addr'"}},"name":"first-os","install_modules":[],"bs_profile":"the-monk-on-iron-mountain"}}'$tx_flags)
+bidder_tx=$($binary tx wasm e $account_factory_addr '{"create_account": {"governance":{"Monarchy":{"monarch":"'$bidder_addr'"}},"name":"first-os","install_modules":[],"bs_profile":"the-monk-on-iron-mountain"}}'$tx_flags_2 --amount 1000000uthiolx)
+sleep 6;
+admin_account_tx=$(echo "$admin_tx" | jq -r '.txhash')
+bidder_account_tx=$(echo "$bidder_tx" | jq -r '.txhash')
+
+admin_query=$(terpd q tx $admin_account_tx -o json)
+bidder_query=$(terpd q tx $bidder_account_tx -o json)
+
+admin_manager_addr=$(echo "$admin_account_tx" | jq -r '.logs[].events[] | select(.type == "instantiate" and (.attributes[] | select(.key == "code_id").value == "'$manager_code_id'")) | .attributes[] | select(.key == "_contract_address") | .value')
+admin_proxy_addr=$(echo "$admin_account_tx" | jq -r '.logs[].events[] | select(.type == "instantiate" and (.attributes[] | select(.key == "code_id").value == "'$proxy_code_id'")) | .attributes[] | select(.key == "_contract_address") | .value')
+bidder_manager_addr=$(echo "$bidder_account_tx" | jq -r '.logs[].events[] | select(.type == "instantiate" and (.attributes[] | select(.key == "code_id").value == "'$manager_code_id'")) | .attributes[] | select(.key == "_contract_address") | .value')
+bidder_proxy_addr=$(echo "$bidder_account_tx" | jq -r '.logs[].events[] | select(.type == "instantiate" and (.attributes[] | select(.key == "code_id").value == "'$proxy_code_id'")) | .attributes[] | select(.key == "_contract_address") | .value')
 
 ## Query Profile Collection 
 $binary q wasm contract-state smart $bs721_profile_addr '{"all_tokens":{}}'
+$binary q wasm contract-state smart $bs721_profile_addr '{"all_tokens":{}}'
+
+
+# Bid Marketplace
+echo 'bid on marketplace'
+$binary tx wasm e $bs721_marketplace_addr  '{"set_bid":{"token_id":"the-monk-on-iron-mountain"}}' $tx_flags_2 --amount 101uthiolx 
+echo 'waiting for tx to process'
+sleep 6;
 
 ## Query Marketplace 
+echo 'query ask'
 $binary q wasm contract-state smart $bs721_marketplace_addr '{"ask":{"token_id":"the-monk-on-iron-mountain"}}'
+echo 'query bid'
+$binary q wasm contract-state smart $bs721_marketplace_addr '{"bid":{"token_id":"the-monk-on-iron-mountain"}}'
+
+# Accept Bid 
+echo 'accept bid'
+$binary tx wasm e $bs721_marketplace_addr  '{"execute_accept_bid":{"token_id":"the-monk-on-iron-mountain", "bidder":"'$bidder_addr'"}}' $tx_flags
+echo 'waiting for tx to process'
+sleep 6;
+
+# Query Marketplace Again
+echo 'assert new owner'
+$binary q wasm contract-state smart $bs721_profile_addr '{"name":{"address":"'$bidder_addr'"}}'
+$binary q wasm contract-state smart $bs721_marketplace_addr '{"ask":{"token_id":"the-monk-on-iron-mountain"}}'
+
+# Call Functions Through Smart Contract Account
+echo 'use account contracts to call msg burning tokens'
+$binary q bank balances $admin_proxy_addr
+burn_msg_binary='{"module_action": {"msgs": [{"Bank": {"Burn": {"amount": {"amount": 100,"denom": "uthiolx"}}}}]}}' 
+$binary tx wasm e $admin_manager_addr '{"exec_on_module":{"module_id":"","exec_msg":'$burn_msg_binary'}}' $tx_flags
+
+# Query Proxy balance
+$binary q bank balances $admin_proxy_addr

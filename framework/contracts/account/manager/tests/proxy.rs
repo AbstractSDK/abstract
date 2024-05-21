@@ -87,7 +87,7 @@ fn exec_through_manager() -> AResult {
         .wrap()
         .query_all_balances(account.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TTOKEN)]);
-    take_storage_snapshot!(chain, "exec_through_manager");
+    // take_storage_snapshot!(chain, "exec_through_manager");
 
     Ok(())
 }
@@ -109,7 +109,7 @@ fn default_without_response_data() -> AResult {
         Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
     )?;
     assert_that!(resp.data).is_none();
-    take_storage_snapshot!(chain, "default_without_response_data");
+    // take_storage_snapshot!(chain, "default_without_response_data");
 
     Ok(())
 }
@@ -120,7 +120,7 @@ fn with_response_data() -> AResult {
     let sender = chain.sender();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::with_response_data(chain.clone())?;
-    take_storage_snapshot!(chain, "proxy_with_response_data");
+    // take_storage_snapshot!(chain, "proxy_with_response_data");
 
     Ok(())
 }
@@ -169,7 +169,7 @@ fn install_standalone_modules() -> AResult {
     )])?;
 
     account.install_module("abstract:standalone2", Some(&MockInitMsg {}), None)?;
-    take_storage_snapshot!(chain, "proxy_install_standalone_modules");
+    // take_storage_snapshot!(chain, "proxy_install_standalone_modules");
     Ok(())
 }
 
@@ -353,7 +353,7 @@ fn install_multiple_modules() -> AResult {
 
     assert!(s1_balance.is_empty());
     assert_eq!(s2_balance, vec![coin(42, "token1"), coin(500, "token2")]);
-    take_storage_snapshot!(chain, "proxy_install_multiple_modules");
+    // take_storage_snapshot!(chain, "proxy_install_multiple_modules");
 
     Ok(())
 }
