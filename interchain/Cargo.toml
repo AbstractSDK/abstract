@@ -99,6 +99,8 @@ abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", path = "../../polytone/packages/cw-orch-polytone" }
+polytone-note = { package = "abstract-polytone-note", path = "../../polytone/contracts/main/note" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

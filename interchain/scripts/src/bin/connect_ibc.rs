@@ -1,7 +1,7 @@
 use abstract_interface::Abstract;
 use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
 use abstract_scripts::{NEUTRON_1, ROLLKIT_TESTNET};
-use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMO_5, PHOENIX_1};
+use cw_orch::daemon::networks::{ARCHWAY_1, HARPOON_4, JUNO_1, OSMO_5, PHOENIX_1, PION_1};
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
 use cw_orch_polytone::Polytone;
@@ -14,12 +14,8 @@ fn main() -> cw_orch::anyhow::Result<()> {
     env_logger::init();
 
     let chains = vec![
-        (ROLLKIT_TESTNET, None),
-        (OSMO_5, None),
-        (JUNO_1, None),
-        (PHOENIX_1, None),
-        (ARCHWAY_1, None),
-        (NEUTRON_1, None),
+        (PION_1, None),
+        (HARPOON_4, None),
         // (OSMOSIS_1, Some(std::env::var("OSMOSIS_MNEMONIC")?)),
     ];
     let runtime = Runtime::new()?;
