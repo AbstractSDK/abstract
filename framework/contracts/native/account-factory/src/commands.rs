@@ -209,6 +209,7 @@ pub fn execute_create_account(
             account_id: proxy_message.account_id.clone(),
             account_base: context.account_base,
             namespace: namespace.clone(),
+            // todo: bs_profile.clone(),
         })?,
     });
 
