@@ -161,19 +161,17 @@ impl<Chain: MutCwEnv, Moneymarket: MockMoneyMarket> MoneyMarketTester<Chain, Mon
         )?;
 
         assert!(user_deposit_value.amount > Uint128::from(DEPOSIT_VALUE) * Decimal::percent(99));
-        let withdraw_fee = user_deposit_value.amount * FEE;
+        let withdraw_value = user_deposit_value.amount / Uint128::new(2);
+        let withdraw_fee = withdraw_value * FEE;
         self.execute(
             &account.proxy()?,
             MoneyMarketAnsAction::Withdraw {
-                lent_asset: AnsAsset::new(
-                    AssetEntry::new(&ans_lending_asset),
-                    user_deposit_value.amount,
-                ),
+                lent_asset: AnsAsset::new(AssetEntry::new(&ans_lending_asset), withdraw_value),
             },
         )?;
 
         let current_balance = self.query_proxy_balance(&account.proxy()?, &asset_info_lending)?;
-        assert!(current_balance + withdraw_fee > user_deposit_value.amount * Decimal::percent(99));
+        assert!(current_balance + withdraw_fee > withdraw_value * Decimal::percent(99));
 
         Ok(account)
     }
