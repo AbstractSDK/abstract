@@ -11,7 +11,9 @@
 //! - uninstall module
 //! - upgrade module
 
-use abstract_std::{manager::ModuleInstallConfig, ABSTRACT_EVENT_TYPE};
+use abstract_std::{
+    manager::ModuleInstallConfig, version_control::ExecuteMsgFns, ABSTRACT_EVENT_TYPE,
+};
 
 use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
@@ -281,6 +283,17 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         };
 
         Ok(migrated)
+    }
+
+    pub fn claim_namespace(
+        &self,
+        namespace: impl Into<String>,
+    ) -> Result<Chain::Response, AbstractInterfaceError> {
+        let abstr = Abstract::load_from(self.manager.get_chain().clone())?;
+        abstr
+            .version_control
+            .claim_namespace(self.id()?, namespace.into())
+            .map_err(Into::into)
     }
 }
 
