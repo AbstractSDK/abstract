@@ -5,7 +5,7 @@ use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
-pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of the account";
+pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of an account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
 
 pub fn set_env() {

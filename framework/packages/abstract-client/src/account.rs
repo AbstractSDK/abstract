@@ -910,6 +910,14 @@ impl<Chain: CwEnv> Account<Chain> {
             Err(AbstractClientError::ModuleNotInstalled {})
         }
     }
+
+    /// Claim a namespace for an existing account
+    pub fn claim_namespace(
+        &self,
+        namespace: impl Into<String>,
+    ) -> Result<Chain::Response, AbstractInterfaceError> {
+        self.abstr_account.claim_namespace(namespace)
+    }
 }
 
 impl<Chain: MutCwEnv> Account<Chain> {
@@ -941,5 +949,41 @@ impl<Chain: CwEnv> Debug for Account<Chain> {
         <Self as Display>::fmt(self, f)
         // TODO:
         // write!(f, "{:?}", self.abstr_account)
+    }
+}
+
+#[cfg(test)]
+pub mod test {
+    use abstract_interface::{Abstract, VCQueryFns};
+    use abstract_std::objects::namespace::Namespace;
+    use cw_orch::{contract::Deploy, mock::MockBech32};
+
+    use crate::AbstractClient;
+
+    #[test]
+    fn namespace_after_creation() -> cw_orch::anyhow::Result<()> {
+        let mock = MockBech32::new("mock");
+        let abstr = AbstractClient::builder(mock.clone()).build()?;
+
+        let my_namespace = "my-namespace";
+        let new_account = abstr.account_builder().build()?;
+        new_account.claim_namespace(my_namespace)?;
+
+        // Verify the namespace exists
+        let abstr = Abstract::load_from(mock.clone())?;
+        let namespace_response = abstr
+            .version_control
+            .namespace(Namespace::new(my_namespace)?)?;
+
+        match namespace_response {
+            abstract_std::version_control::NamespaceResponse::Claimed(c) => {
+                assert_eq!(c.account_id, new_account.id()?)
+            }
+            abstract_std::version_control::NamespaceResponse::Unclaimed {} => {
+                panic!("Expected claimed namespace")
+            }
+        }
+
+        Ok(())
     }
 }
