@@ -218,7 +218,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         self.manager.execute_on_module(
             abstract_std::PROXY,
-            &abstract_std::proxy::ExecuteMsg::IbcAction {
+            abstract_std::proxy::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
                     base_asset,
