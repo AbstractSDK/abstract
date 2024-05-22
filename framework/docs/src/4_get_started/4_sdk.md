@@ -1,4 +1,4 @@
-# SDK
+# Account SDK
 
 [![](https://docs.rs/abstract-sdk/badge.svg)](https://docs.rs/abstract-sdk) [![](https://img.shields.io/crates/v/abstract-sdk)](https://crates.io/crates/abstract-sdk)
 
@@ -75,27 +75,6 @@ For more information about traits, supertraits and blanket implementations, chec
   Implementations</a>
 ```
 
-## Features
-
-Features are the lowest-level traits that are contained within the SDK and they don't have any (custom) trait bounds. They generally act as data accessor traits. I.e. if a struct implements a feature it means that it has some way to get the
-information required by that feature.
-
-Here's an example of such a feature:
-
-```rust
-{{ #include ../../../packages/abstract-sdk/src/base/features/abstract_name_service.rs:ans }}
-```
-
-Any structure that implements this trait has access to the `AnsHost` struct, which is a wrapper around an `Addr`. Because that structure now has the address of that contract, it can resolve ANS entries.
-
-Now instead of letting you implement these traits yourself, we've already gone ahead and implemented them for the `App` and `Adapter` structs.
-
-So when you're building your application, the module struct already has the features and data required to do abstract operations (😉). With this in place we can start creating more advanced functionality.
-
-```admonish info
-Other structs that implement a feature without being module bases are called *Feature Objects*.
-```
-
 ## Usage
 
 Add `abstract-sdk` to your `Cargo.toml` by running:
@@ -124,6 +103,27 @@ These APIs can then be used by any contract that implements its required traits,
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:usage }}
+```
+
+## Features
+
+Features are the lowest-level traits that are contained within the SDK and they don't have any (custom) trait bounds. They generally act as data accessor traits. I.e. if a struct implements a feature it means that it has some way to get the
+information required by that feature.
+
+Here's an example of such a feature:
+
+```rust
+{{ #include ../../../packages/abstract-sdk/src/base/features/abstract_name_service.rs:ans }}
+```
+
+Any structure that implements this trait has access to the `AnsHost` struct, which is a wrapper around an `Addr`. Because that structure now has the address of that contract, it can resolve ANS entries.
+
+Now instead of letting you implement these traits yourself, we've already gone ahead and implemented them for the `App` and `Adapter` structs.
+
+So when you're building your application, the module struct already has the features and data required to do abstract operations (😉). With this in place we can start creating more advanced functionality.
+
+```admonish info
+Other structs that implement a feature without being module bases are called *Feature Objects*.
 ```
 
 ## Appendix
