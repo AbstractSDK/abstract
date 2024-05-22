@@ -68,6 +68,11 @@ impl<
     pub fn module<T: RegisteredModule + From<Contract<Chain>>>(&self) -> AbstractClientResult<T> {
         self.remote_account.module()
     }
+
+    /// Address of the module
+    pub fn address(&self) -> AbstractClientResult<Addr> {
+        self.module.address().map_err(Into::into)
+    }
 }
 
 impl<Chain: CwEnv, M: ContractInstance<Chain>> RemoteApplication<Chain, M> {

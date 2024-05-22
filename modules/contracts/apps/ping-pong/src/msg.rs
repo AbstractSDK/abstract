@@ -22,6 +22,8 @@ pub enum AppExecuteMsg {
         /// Host chain
         host_chain: ChainName,
     },
+    /// Rematch ping pong if host chain ping ponged us
+    Rematch { host_chain: ChainName }, // TODO: Rematch{} Ibc query remote chain and if last match was us we pingpong again
 }
 
 /// App query messages
@@ -34,7 +36,6 @@ pub enum AppQueryMsg {
     /// Returns last ping pong that was initiated through this smart contract
     #[returns(PreviousPingPongResponse)]
     PreviousPingPong {},
-    // TODO: Rematch{} Ibc query remote chain and if last match was us we pingpong again
 }
 
 #[cosmwasm_schema::cw_serde]

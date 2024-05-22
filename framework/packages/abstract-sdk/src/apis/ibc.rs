@@ -14,7 +14,9 @@ use abstract_std::{
     proxy::ExecuteMsg,
     IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
+use cosmwasm_std::{
+    to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, Empty, QueryRequest,
+};
 use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
@@ -201,6 +203,26 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(msg.into())
     }
 
+    /// Send query from this module to the host chain
+    pub fn ibc_query(
+        &self,
+        host_chain: ChainName,
+        query_msg: impl Into<QueryRequest<Empty>>,
+        callback_info: CallbackInfo,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::IbcQuery {
+                host_chain,
+                query: query_msg.into(),
+                callback_info,
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
     /// Call a [`HostAction`] on the host of the provided `host_chain`.
     pub fn host_action(
         &self,
@@ -231,6 +253,22 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             vec![],
         )?
         .into())
+    }
+
+    /// Address of the remote proxy
+    /// Note: only works if account is local
+    pub fn remote_proxy(&self, host_chain: &ChainName) -> AbstractSdkResult<Option<String>> {
+        let account_id = self.base.account_id(self.deps)?;
+        let ibc_client_addr = self.module_address()?;
+
+        let (trace, sequence) = account_id.decompose();
+        ibc_client::state::ACCOUNTS
+            .query(
+                &self.deps.querier,
+                ibc_client_addr,
+                (&trace, sequence, host_chain),
+            )
+            .map_err(Into::into)
     }
 }
 

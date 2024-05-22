@@ -67,6 +67,7 @@ impl IbcResponseMsg {
 pub enum CallbackResult {
     Query {
         query: QueryRequest<Empty>,
+        // TODO: we allow only 1 query per tx, but return array here
         result: Result<Vec<Binary>, ErrorResponse>,
     },
 

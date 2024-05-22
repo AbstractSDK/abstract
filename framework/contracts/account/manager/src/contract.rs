@@ -1,17 +1,14 @@
-use abstract_sdk::{
-    cw_helpers::AbstractAttributes,
-    std::{
-        manager::{
-            state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
-            CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-        },
-        objects::{
-            module_version::assert_contract_upgrade,
-            validation::{validate_description, validate_link, validate_name},
-        },
-        proxy::state::ACCOUNT_ID,
-        MANAGER,
+use abstract_sdk::std::{
+    manager::{
+        state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
+        CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
+    objects::{
+        module_version::assert_contract_upgrade,
+        validation::{validate_description, validate_link, validate_name},
+    },
+    proxy::state::ACCOUNT_ID,
+    MANAGER,
 };
 use abstract_std::{
     manager::{
