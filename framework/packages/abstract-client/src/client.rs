@@ -124,7 +124,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     /// Abstract Ibc Client contract API
     ///
-    /// The Abstract Ibc Client contract is TODO:
+    /// The Abstract Ibc Client contract allows users to create and use Interchain Abstract Accounts
     pub fn ibc_client(&self) -> &IbcClient<Chain> {
         &self.abstr.ibc.client
     }
