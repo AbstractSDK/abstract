@@ -17,6 +17,7 @@ cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }
 semver = { workspace = true }
+cw-semver = { workspace = true }
 schemars = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
@@ -43,7 +44,6 @@ ans-host = { version = "0.22.1", package = "abstract-ans-host", path = "../../co
 version-control = { version = "0.22.1", package = "abstract-version-control", path = "../../contracts/native/version-control", default-features = false }
 proxy = { version = "0.22.1", package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false }
 manager = { version = "0.22.1", package = "abstract-manager", path = "../../contracts/account/manager", default-features = false }
-cw-semver.workspace = true
 
 [build-dependencies]
 serde_json = "1.0.79"

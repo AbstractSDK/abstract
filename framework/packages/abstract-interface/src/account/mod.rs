@@ -14,7 +14,7 @@
 use abstract_std::{
     manager::ModuleInstallConfig,
     objects::module::{ModuleInfo, ModuleStatus, ModuleVersion},
-    version_control::{ModuleFilter, QueryMsgFns},
+    version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
     ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
 use cosmwasm_std::{from_json, to_json_binary};
@@ -402,6 +402,17 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         )])?;
 
         Ok(())
+    }
+
+    pub fn claim_namespace(
+        &self,
+        namespace: impl Into<String>,
+    ) -> Result<Chain::Response, AbstractInterfaceError> {
+        let abstr = Abstract::load_from(self.manager.get_chain().clone())?;
+        abstr
+            .version_control
+            .claim_namespace(self.id()?, namespace.into())
+            .map_err(Into::into)
     }
 }
 
