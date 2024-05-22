@@ -4,7 +4,7 @@ version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
 description = "Helpers for Abstract contracts"
-license = { workspace = true }
+license = "MIT"
 readme = "README.md"
 repository = "https://github.com/AbstractSDK/abstract/tree/main/packages/abstract-sdk"
 resolver = "2"
