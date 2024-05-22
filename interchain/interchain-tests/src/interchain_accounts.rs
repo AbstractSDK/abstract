@@ -2,14 +2,12 @@ use std::str::FromStr;
 
 use abstract_std::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
-use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns,
-};
+use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ManagerQueryFns};
 use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
-pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of the account";
+pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of an account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
 
 pub fn set_env() {
@@ -52,7 +50,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
     )?;
 
     // We need to enable ibc on the account.
-    origin_account.manager.update_settings(Some(true))?;
+    origin_account.manager.set_ibc_status(true)?;
 
     // Now we send a message to the client saying that we want to create an account on the
     // destination chain
@@ -72,14 +70,14 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::{
         setup::{ibc_abstract_setup, mock_test::logger_test_init},
         JUNO, OSMOSIS, STARGAZE,
     };
 
-    use super::*;
+    use abstract_interface::{AccountFactoryExecFns, ManagerExecFns};
 
-    use abstract_interface::AccountFactoryExecFns;
     use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
     use abstract_std::{
         ans_host::ExecuteMsgFns as AnsExecuteMsgFns,
@@ -247,7 +245,7 @@ mod test {
             )?;
 
         // We need to enable ibc on the account.
-        origin_account.manager.update_settings(Some(true))?;
+        origin_account.manager.set_ibc_status(true)?;
 
         // Now we send a message to the client saying that we want to create an account on the
         // destination chain
@@ -256,15 +254,16 @@ mod test {
 
         mock_interchain.wait_ibc(JUNO, register_tx)?;
 
-        // Enable ibc on STARGAZE from JUNO.
-        let enable_ibc_tx = origin_account.manager.execute_on_remote(
-            &ChainName::from_chain_id(STARGAZE).to_string(),
-            ManagerExecuteMsg::UpdateSettings {
-                ibc_enabled: Some(true),
-            },
-        )?;
+        // TODO remove
+        // // Enable ibc on STARGAZE from JUNO.
+        // let enable_ibc_tx = origin_account.manager.execute_on_remote(
+        //     &ChainName::from_chain_id(STARGAZE).to_string(),
+        //     ManagerExecuteMsg::UpdateSettings {
+        //         ibc_enabled: Some(true),
+        //     },
+        // )?;
 
-        mock_interchain.wait_ibc(JUNO, enable_ibc_tx)?;
+        // mock_interchain.wait_ibc(JUNO, enable_ibc_tx)?;
 
         // Create account from JUNO on OSMOSIS by going through STARGAZE
         let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
