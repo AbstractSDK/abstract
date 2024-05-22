@@ -74,8 +74,8 @@ pub struct MigrateMsg {}
 pub enum ExecuteMsg {
     /// Update the ownership.
     UpdateOwnership(cw_ownable::Action),
-    // Registers the polytone note on the local chain as well as the host on the remote chain to send messages through
-    // This allows for monitoring which chain are connected to the contract remotely
+    /// Owner method: Registers the polytone note on the local chain as well as the host on the remote chain to send messages through
+    /// This allows for monitoring which chain are connected to the contract remotely
     RegisterInfrastructure {
         /// Chain to register the infrastructure for ("juno", "osmosis", etc.)
         chain: ChainName,
@@ -98,6 +98,7 @@ pub enum ExecuteMsg {
         host_chain: ChainName,
         funds: Vec<Coin>,
     },
+    /// Only callable by Account proxy
     /// Register an Account on a remote chain over IBC
     /// This action creates a proxy for them on the remote chain.
     Register {
@@ -108,6 +109,7 @@ pub enum ExecuteMsg {
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     },
+    /// Only callable by Account Module
     // ANCHOR: module-ibc-action
     ModuleIbcAction {
         /// host chain to be executed on
@@ -120,6 +122,7 @@ pub enum ExecuteMsg {
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback_info: Option<CallbackInfo>,
     },
+    /// Only callable by Account Module
     // ANCHOR_END: module-ibc-action
     IbcQuery {
         /// host chain to be executed on
@@ -130,6 +133,9 @@ pub enum ExecuteMsg {
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback_info: CallbackInfo,
     },
+    /// Only callable by Account Proxy
+    /// Action on remote ibc host
+    /// Which currently only support manager messages
     RemoteAction {
         /// host chain to be executed on
         /// Example: "osmosis"
@@ -137,9 +143,8 @@ pub enum ExecuteMsg {
         /// execute the custom host function
         action: HostAction,
     },
-    RemoveHost {
-        host_chain: String,
-    },
+    /// Owner method: Remove connection for remote chain
+    RemoveHost { host_chain: ChainName },
     /// Callback from the Polytone implementation
     /// This is triggered regardless of the execution result
     Callback(CallbackMessage),
@@ -260,7 +265,7 @@ pub enum QueryMsg {
     #[returns(HostResponse)]
     Host { chain_name: ChainName },
 
-    // Shows all open channels (incl. remote info)
+    /// Get list of remote accounts
     /// Returns [`ListAccountsResponse`]
     #[returns(ListAccountsResponse)]
     ListAccounts {
@@ -268,29 +273,31 @@ pub enum QueryMsg {
         limit: Option<u32>,
     },
 
-    // Get channel info for one chain
+    /// Get remote proxy address for one chain
     /// Returns [`AccountResponse`]
     #[returns(AccountResponse)]
+    #[fn_name("remote_account")]
     Account {
         chain_name: ChainName,
         account_id: AccountId,
     },
-    // get the hosts
+
+    /// Get the hosts
     /// Returns [`ListRemoteHostsResponse`]
     #[returns(ListRemoteHostsResponse)]
     ListRemoteHosts {},
 
-    // get the IBC execution proxies
+    /// Get the IBC execution proxies
     /// Returns [`ListRemoteProxiesResponse`]
     #[returns(ListRemoteProxiesResponse)]
     ListRemoteProxies {},
 
-    // get the IBC execution proxies based on the account id passed
+    /// Get the IBC execution proxies based on the account id passed
     /// Returns [`ListRemoteProxiesResponse`]
     #[returns(ListRemoteProxiesResponse)]
     ListRemoteProxiesByAccountId { account_id: AccountId },
 
-    // get the IBC counterparts connected to this abstract client
+    /// Get the IBC counterparts connected to this abstract ibc client
     /// Returns [`ListIbcInfrastructureResponse`]
     #[returns(ListIbcInfrastructureResponse)]
     ListIbcInfrastructures {},
@@ -330,7 +337,7 @@ pub struct HostResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {
-    pub remote_proxy_addr: String,
+    pub remote_proxy_addr: Option<String>,
 }
 
 #[cosmwasm_schema::cw_serde]

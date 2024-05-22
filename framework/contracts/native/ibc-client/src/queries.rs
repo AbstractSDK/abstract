@@ -125,7 +125,7 @@ pub fn account(
 ) -> IbcClientResult<AccountResponse> {
     host_chain.verify()?;
 
-    let remote_proxy_addr = ACCOUNTS.load(
+    let remote_proxy_addr = ACCOUNTS.may_load(
         deps.storage,
         (account_id.trace(), account_id.seq(), &host_chain),
     )?;

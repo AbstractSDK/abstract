@@ -1,7 +1,11 @@
 //! # Represents Abstract Client Errors
 
 use abstract_interface::AbstractInterfaceError;
-use abstract_std::{objects::validation::ValidationError, AbstractError};
+use abstract_std::{
+    objects::{chain_name::ChainName, validation::ValidationError, AccountId},
+    AbstractError,
+};
+use cosmwasm_std::Addr;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -43,4 +47,11 @@ pub enum AbstractClientError {
 
     #[error("Use build for non-remote accounts")]
     LocalAccountOnBuildRemote {},
+
+    #[error("Remote account of {account_id} not found on {chain} in {ibc_client_addr}")]
+    RemoteAccountNotFound {
+        account_id: AccountId,
+        chain: ChainName,
+        ibc_client_addr: Addr,
+    },
 }

@@ -1,3 +1,4 @@
+use abstract_app::objects::module::ModuleInfo;
 use abstract_app::sdk::AbstractSdkError;
 use abstract_app::std::AbstractError;
 use abstract_app::AppError as AbstractAppError;
@@ -25,4 +26,7 @@ pub enum AppError {
 
     #[error("{0}")]
     DappError(#[from] AbstractAppError),
+
+    #[error("Caller module is not a ping pong: {source_module}")]
+    NotPingPong { source_module: ModuleInfo },
 }

@@ -2,8 +2,6 @@
 #![doc = include_str!("../README.md")]
 
 pub(crate) mod account;
-pub(crate) mod remote_account;
-
 mod application;
 pub mod builder;
 mod client;
@@ -12,6 +10,8 @@ pub(crate) mod infrastructure;
 #[cfg(feature = "test-utils")]
 mod mut_client;
 mod publisher;
+pub(crate) mod remote_account;
+mod remote_application;
 pub(crate) mod source;
 
 // Re-export common used types
@@ -26,4 +26,5 @@ pub use error::AbstractClientError;
 pub use infrastructure::Environment;
 pub use publisher::{Publisher, PublisherBuilder};
 pub use remote_account::RemoteAccount;
+pub use remote_application::RemoteApplication;
 pub use source::AccountSource;

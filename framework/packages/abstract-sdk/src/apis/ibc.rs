@@ -179,7 +179,6 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         )
     }
 
-    // TODO: it's confusing in pair with host_actions
     /// Send module action from this module to the target module
     pub fn module_ibc_action<M: Serialize>(
         &self,

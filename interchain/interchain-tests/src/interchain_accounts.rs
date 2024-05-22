@@ -154,7 +154,7 @@ mod test {
 
         assert_eq!(
             AccountResponse {
-                remote_proxy_addr: remote_abstract_account.proxy.address()?.to_string(),
+                remote_proxy_addr: Some(remote_abstract_account.proxy.address()?.to_string()),
             },
             account_response
         );

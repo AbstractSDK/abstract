@@ -29,8 +29,8 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, RegisteredModule,
-    VersionControl,
+    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, IbcClient, ManagerQueryFns,
+    RegisteredModule, VersionControl,
 };
 use abstract_std::objects::{
     module::{ModuleInfo, ModuleVersion},
@@ -120,6 +120,13 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// ```
     pub fn name_service(&self) -> &AnsHost<Chain> {
         &self.abstr.ans_host
+    }
+
+    /// Abstract Ibc Client contract API
+    ///
+    /// The Abstract Ibc Client contract is TODO:
+    pub fn ibc_client(&self) -> &IbcClient<Chain> {
+        &self.abstr.ibc.client
     }
 
     /// Return current block info see [`BlockInfo`].

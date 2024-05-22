@@ -70,9 +70,9 @@ impl AccountId {
         !self.is_local()
     }
 
-    /// Push the host chain to the account trace
-    pub fn push_host(&mut self, host_chain: ChainName) {
-        self.trace_mut().push_chain(host_chain)
+    /// Push the chain to the account trace
+    pub fn push_chain(&mut self, chain: ChainName) {
+        self.trace_mut().push_chain(chain)
     }
 
     pub fn decompose(self) -> (AccountTrace, AccountSequence) {

@@ -919,7 +919,7 @@ mod tests {
         #[test]
         fn only_admin() -> IbcClientTestResult {
             test_only_admin(ExecuteMsg::RemoveHost {
-                host_chain: "host-chain".into(),
+                host_chain: "host-chain".parse().unwrap(),
             })
         }
 
@@ -939,7 +939,7 @@ mod tests {
             )?;
 
             let msg = ExecuteMsg::RemoveHost {
-                host_chain: TEST_CHAIN.into(),
+                host_chain: TEST_CHAIN.parse().unwrap(),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg)?;
@@ -956,7 +956,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::RemoveHost {
-                host_chain: TEST_CHAIN.into(),
+                host_chain: TEST_CHAIN.parse().unwrap(),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg)?;
@@ -1306,7 +1306,7 @@ mod tests {
 
             assert_eq!(
                 AccountResponse {
-                    remote_proxy_addr: remote_proxy.clone()
+                    remote_proxy_addr: Some(remote_proxy.clone())
                 },
                 account_response
             );

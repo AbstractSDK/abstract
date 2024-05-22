@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
     features::AccountIdentification,
@@ -119,9 +117,10 @@ pub fn execute_register_infrastructure(
 pub fn execute_remove_host(
     deps: DepsMut,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
+
     // auth check
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 

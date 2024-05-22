@@ -31,6 +31,10 @@ pub enum AppExecuteMsg {
 pub enum AppQueryMsg {
     #[returns(PongsResponse)]
     Pongs {},
+    /// Returns last ping pong that was initiated through this smart contract
+    #[returns(PreviousPingPongResponse)]
+    PreviousPingPong {},
+    // TODO: Rematch{} Ibc query remote chain and if last match was us we pingpong again
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -44,4 +48,10 @@ pub struct AppMigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct PongsResponse {
     pub pongs: u32,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct PreviousPingPongResponse {
+    pub pongs: Option<u32>,
+    pub host_chain: Option<ChainName>,
 }

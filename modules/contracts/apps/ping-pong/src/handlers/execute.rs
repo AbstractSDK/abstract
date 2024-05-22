@@ -1,13 +1,15 @@
 use abstract_app::objects::chain_name::ChainName;
 use abstract_app::objects::module::ModuleInfo;
 use abstract_app::sdk::IbcInterface;
+use abstract_app::std::ibc::CallbackInfo;
 use abstract_app::traits::AbstractResponse;
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
 use crate::contract::{App, AppResult};
 
+use crate::ibc::PING_CALLBACK;
 use crate::msg::{AppExecuteMsg, PingPongIbcMsg};
-use crate::state::CURRENT_PONGS;
+use crate::state::{CURRENT_PONGS, PREVIOUS_PING_PONG};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -30,6 +32,7 @@ fn ping_pong(
     host_chain: ChainName,
     app: App,
 ) -> AppResult {
+    PREVIOUS_PING_PONG.save(deps.storage, &(pongs, host_chain.clone()))?;
     CURRENT_PONGS.save(deps.storage, &pongs)?;
 
     let current_module_info = ModuleInfo::from_id(app.module_id(), app.version().into())?;
@@ -38,8 +41,11 @@ fn ping_pong(
         host_chain,
         current_module_info,
         &PingPongIbcMsg { pongs },
-        None,
+        Some(CallbackInfo::new(PING_CALLBACK.to_owned(), None)),
     )?;
 
-    Ok(app.response("ping_pong").add_message(ibc_action))
+    Ok(app
+        .response("ping_pong")
+        .add_attribute("pongs_left", pongs.to_string())
+        .add_message(ibc_action))
 }

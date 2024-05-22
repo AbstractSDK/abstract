@@ -23,9 +23,11 @@ use std::fmt::{Debug, Display};
 
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    IbcClient, InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule,
+    VCQueryFns,
 };
 use abstract_std::{
+    ibc_client::QueryMsgFns,
     manager::{
         state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
@@ -43,7 +45,6 @@ use abstract_std::{
     IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
-use cw_asset::AssetInfo;
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
@@ -352,8 +353,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Builds the [`RemoteAccount`].
-    /// Before using it you are supposed to use `wait_ibc()` on Response.
-    /// For more information see: https://orchestrator.abstract.money/interchain/integrations/daemon.html?#analysis-usage
+    /// Before using it you are supposed to wait Response.
+    /// For example: https://orchestrator.abstract.money/interchain/integrations/daemon.html?#analysis-usage
     pub fn build_remote(&self) -> AbstractClientResult<(RemoteAccount<Chain>, Chain::Response)> {
         let chain = self.abstr.version_control.get_chain();
         let name = self
@@ -395,8 +396,6 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             .abstr_account
             .create_remote_account(account_details, host_chain)?;
 
-        let remote_abstract = Abstract::load_from(chain.clone())?;
-
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name = ChainName::from_string(
@@ -407,7 +406,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
                     .env_info()
                     .chain_name,
             )?;
-            id.push_host(chain_name);
+            id.push_chain(chain_name);
             id
         };
 
@@ -415,7 +414,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             RemoteAccount::new(
                 owner_account.abstr_account.clone(),
                 remote_account_id,
-                remote_abstract,
+                chain.clone(),
             ),
             response,
         ))
@@ -425,7 +424,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 /// Represents an existing Abstract account.
 ///
 /// Get this struct from [`AbstractClient::account_from_namespace`](crate::AbstractClient)
-/// or create a new account with the [`AccountBuilder`].
+/// or create a new account with the [`AccountBuilder`](crate::AbstractClient::account_builder).
 #[derive(Clone)]
 pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
@@ -485,7 +484,7 @@ impl<Chain: CwEnv> Account<Chain> {
     //     &self,
     //     assets: Vec<AssetInfo>,
     // ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
-    // We try to batch it so if one of the deposits fail - we just fail tx
+    // We need to try to batch it so if one of the deposits fail - we just fail tx
     // }
 
     /// Query account balance of a given denom
@@ -706,6 +705,45 @@ impl<Chain: CwEnv> Account<Chain> {
             }));
         }
         Ok(sub_accounts)
+    }
+
+    /// Get remote Account of this account
+    pub fn remote_account(
+        &self,
+        remote_chain: Chain,
+    ) -> AbstractClientResult<RemoteAccount<Chain>> {
+        // Make sure ibc client installed on account
+        let ibc_client = self.application::<IbcClient<Chain>>()?;
+        let remote_chain_name = ChainName::from_string(remote_chain.env_info().chain_name)?;
+        let account_id = self.id()?;
+
+        // Check it exists first
+        let remote_account_response =
+            ibc_client.remote_account(account_id.clone(), remote_chain_name.clone())?;
+        if remote_account_response.remote_proxy_addr.is_none() {
+            return Err(AbstractClientError::RemoteAccountNotFound {
+                account_id,
+                chain: remote_chain_name,
+                ibc_client_addr: ibc_client.address()?,
+            });
+        }
+
+        // Now structure remote account
+        let owner_account = self.abstr_account.clone();
+
+        let remote_account_id = {
+            let mut id = owner_account.id()?;
+            let chain_name =
+                ChainName::from_string(owner_account.manager.get_chain().env_info().chain_name)?;
+            id.push_chain(chain_name);
+            id
+        };
+
+        Ok(RemoteAccount::new(
+            owner_account,
+            remote_account_id,
+            remote_chain,
+        ))
     }
 
     /// Address of the proxy

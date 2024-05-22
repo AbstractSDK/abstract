@@ -6,22 +6,21 @@ use abstract_app::objects::AccountId;
 use abstract_client::{AbstractClient, Environment};
 use abstract_client::{Application, RemoteAccount};
 
-use abstract_interface::{IbcClient, VCQueryFns};
-use abstract_std::ibc_client::QueryMsgFns;
+use abstract_interface::VCQueryFns;
 use abstract_std::objects::account::AccountTrace;
 use abstract_std::objects::chain_name::ChainName;
-use cw_orch::interchain::types::IbcPacketOutcome;
-// Use prelude to get all the necessary imports
+use cosmwasm_std::Attribute;
 use cw_orch::{anyhow, prelude::*};
 use cw_orch_polytone::Polytone;
 
+use crate::setup::ibc_connect_polytone_and_abstract;
 use crate::setup::mock_test::logger_test_init;
-use crate::setup::{ibc_abstract_setup, ibc_connect_polytone_and_abstract};
 use crate::{JUNO, STARGAZE};
 use ping_pong::contract::APP_ID;
-use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, PongsResponse};
+use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, PongsResponse, PreviousPingPongResponse};
 use ping_pong::{AppExecuteMsgFns, AppInterface, AppQueryMsgFns};
 
+#[allow(unused)]
 struct PingPong<Env: IbcQueryHandler, IbcEnv: InterchainEnv<Env>> {
     interchain: IbcEnv,
     abs_juno: AbstractClient<Env>,
@@ -105,16 +104,22 @@ fn successful_install() -> anyhow::Result<()> {
         &module_addrs.modules[0].1,
     )?;
     assert_eq!(pongs, PongsResponse { pongs: 0 });
+
+    let app2 = env.remote_account.application::<AppInterface<_>>()?;
+
+    let pongs: PongsResponse =
+        app2.query(&ping_pong::msg::QueryMsg::from(AppQueryMsg::Pongs {}))?;
+
+    assert_eq!(pongs, PongsResponse { pongs: 0 });
     Ok(())
 }
 
 #[test]
 fn successful_ping_pong() -> anyhow::Result<()> {
-    // std::env::set_var("RUST_LOG", "debug");
     logger_test_init();
 
     let env = PingPong::setup()?;
-    let app1 = env.app;
+    let app = env.app;
 
     // Ensure account created
     let _ensure_created = env
@@ -125,50 +130,137 @@ fn successful_ping_pong() -> anyhow::Result<()> {
             AccountTrace::Remote(vec![ChainName::from_chain_id(JUNO)]),
         )?)?;
 
-    let pp = app1.ping_pong(ChainName::from_chain_id(STARGAZE), 3)?;
-    let pongs = app1.pongs()?;
-    assert_eq!(pongs.pongs, 3);
+    let pp = app.ping_pong(ChainName::from_chain_id(STARGAZE), 4)?;
+    let pongs = app.pongs()?;
+    assert_eq!(pongs.pongs, 4);
 
     let ibc_wait_response = env.interchain.wait_ibc(JUNO, pp)?;
-    // let mut pongs_left_events = ibc_wait_response
-    //     .tx_id
-    //     .response
-    //     .events
-    //     .clone()
-    //     .into_iter()
-    //     .map(|ev| {
-    //         ev.attributes
-    //             .into_iter()
-    //             .filter(|attr| attr.key == "pongs_left")
-    //             .collect::<Vec<_>>()
-    //     })
-    //     .flatten()
-    //     .collect::<Vec<_>>();
-    dbg!(&ibc_wait_response.tx_id.response);
-    let r = ibc_wait_response
-        .packets
-        .iter()
-        .map(|ibc_analysis| {
-            let r = ibc_analysis.send_tx.clone().unwrap();
-            let b = ibc_analysis.outcome.clone();
-            match b {
-                IbcPacketOutcome::Success {
-                    receive_tx,
-                    ack_tx,
-                    ack,
-                } => {
-                    dbg!(receive_tx.tx_id.response, ack_tx.tx_id.response);
-                }
-                IbcPacketOutcome::Timeout { timeout_tx } => todo!(),
-            }
-            r.response
-        })
-        .collect::<Vec<_>>();
-    dbg!(r);
     ibc_wait_response.into_result()?;
 
-    let pongs = app1.pongs()?;
+    let pongs_left_events = ibc_wait_response
+        .events()
+        .into_iter()
+        .map(|ev| {
+            ev.attributes
+                .into_iter()
+                .filter(|attr| attr.key == "pongs_left")
+                .collect::<Vec<_>>()
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+    assert_eq!(
+        pongs_left_events,
+        vec![
+            Attribute::new("pongs_left", "4"),
+            Attribute::new("pongs_left", "3"),
+            Attribute::new("pongs_left", "2"),
+            Attribute::new("pongs_left", "1")
+        ]
+    );
+
+    let ping_ponged = ibc_wait_response.events().into_iter().find_map(|ev| {
+        ev.attributes
+            .iter()
+            .find(|attr| attr.value == "ping_ponged")
+            .cloned()
+    });
+    assert!(ping_ponged.is_some());
+
+    let pongs = app.pongs()?;
     assert_eq!(pongs.pongs, 0);
+    let previous_ping_pong = app.previous_ping_pong()?;
+    assert_eq!(
+        previous_ping_pong,
+        PreviousPingPongResponse {
+            pongs: Some(4),
+            host_chain: Some(ChainName::from_chain_id(STARGAZE))
+        }
+    );
+
+    let remote_app = env.remote_account.application::<AppInterface<_>>()?;
+
+    let pongs: PongsResponse = remote_app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
+    assert_eq!(pongs.pongs, 0);
+    let previous_ping_pong: PreviousPingPongResponse =
+        remote_app.query(&ping_pong::msg::AppQueryMsg::PreviousPingPong {}.into())?;
+    assert_eq!(
+        previous_ping_pong,
+        PreviousPingPongResponse {
+            pongs: None,
+            host_chain: None
+        }
+    );
+
+    Ok(())
+}
+
+#[test]
+fn successful_remote_ping_pong() -> anyhow::Result<()> {
+    logger_test_init();
+
+    let env = PingPong::setup()?;
+    let app = env.remote_account.application::<AppInterface<_>>()?;
+
+    // Ensure account created
+    let _ensure_created = env
+        .abs_stargaze
+        .version_control()
+        .account_base(AccountId::new(
+            1,
+            AccountTrace::Remote(vec![ChainName::from_chain_id(JUNO)]),
+        )?)?;
+
+    let pp = app.execute(
+        &ping_pong::msg::AppExecuteMsg::PingPong {
+            host_chain: ChainName::from_chain_id(JUNO),
+            pongs: 4,
+        }
+        .into(),
+    )?;
+
+    let ibc_wait_response = env.interchain.wait_ibc(JUNO, pp)?;
+    ibc_wait_response.into_result()?;
+
+    let pongs_left_events = ibc_wait_response
+        .events()
+        .into_iter()
+        .map(|ev| {
+            ev.attributes
+                .into_iter()
+                .filter(|attr| attr.key == "pongs_left")
+                .collect::<Vec<_>>()
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+    assert_eq!(
+        pongs_left_events,
+        vec![
+            Attribute::new("pongs_left", "4"),
+            Attribute::new("pongs_left", "3"),
+            Attribute::new("pongs_left", "2"),
+            Attribute::new("pongs_left", "1")
+        ]
+    );
+
+    let ping_ponged = ibc_wait_response.events().into_iter().find_map(|ev| {
+        ev.attributes
+            .iter()
+            .find(|attr| attr.value == "ping_ponged")
+            .cloned()
+    });
+    assert!(ping_ponged.is_some());
+
+    let pongs: PongsResponse = app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
+    assert_eq!(pongs.pongs, 0);
+    let previous_ping_pong: PreviousPingPongResponse =
+        app.query(&ping_pong::msg::AppQueryMsg::PreviousPingPong {}.into())?;
+    assert_eq!(
+        previous_ping_pong,
+        PreviousPingPongResponse {
+            pongs: Some(4),
+            host_chain: Some(ChainName::from_chain_id(JUNO))
+        }
+    );
 
     Ok(())
 }

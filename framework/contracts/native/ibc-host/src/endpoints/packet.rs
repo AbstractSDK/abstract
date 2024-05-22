@@ -33,7 +33,7 @@ pub fn handle_host_action(
     // Push the client chain to the account trace
     let account_id = {
         let mut account_id = received_account_id.clone();
-        account_id.push_host(client_chain.clone());
+        account_id.push_chain(client_chain.clone());
         account_id
     };
 

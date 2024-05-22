@@ -1,3 +1,4 @@
+use crate::ibc::{ping_callback, PING_CALLBACK};
 use crate::msg::AppMigrateMsg;
 use crate::{
     error::AppError,
@@ -32,7 +33,8 @@ const APP: App = App::new(APP_ID, APP_VERSION, None)
         IBC_CLIENT,
         &[abstract_ibc_client::contract::CONTRACT_VERSION],
     )])
-    .with_module_ibc(crate::ibc::receive_module_ibc);
+    .with_module_ibc(crate::ibc::receive_module_ibc)
+    .with_ibc_callbacks(&[(PING_CALLBACK, ping_callback)]);
 
 // Export handlers
 #[cfg(feature = "export")]
