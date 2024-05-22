@@ -1,4 +1,4 @@
-use abstract_std::AbstractError;
+use abstract_std::{objects::module::ModuleInfo, AbstractError};
 use cosmwasm_std::StdError;
 use cw_orch::prelude::CwOrchError;
 use thiserror::Error;
@@ -23,6 +23,15 @@ pub enum AbstractInterfaceError {
 
     #[error("Abstract is not deployed on this chain")]
     NotDeployed {},
+
+    #[error("Module Not Found {0}")]
+    ModuleNotFound(String),
+
+    #[error("No need to update {0}")]
+    NotUpdated(String),
+
+    #[error(transparent)]
+    Semver(#[from] cw_semver::Error),
 }
 
 impl AbstractInterfaceError {

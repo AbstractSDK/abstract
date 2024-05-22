@@ -19,7 +19,8 @@ pub fn setup(
     chain: ChainInfo,
     sender: Addr,
 ) -> anyhow::Result<(Abstract<CloneTesting>, CloneTesting)> {
-    let _ = env_logger::builder().is_test(true).try_init();
+    // let _ = env_logger::builder().is_test(true).try_init();
+    let _ = env_logger::builder().try_init();
     // Run migration tests against Juno mainnet
     // We set the state file to be able to clone test
     std::env::set_var("STATE_FILE", "../scripts/state.json");
