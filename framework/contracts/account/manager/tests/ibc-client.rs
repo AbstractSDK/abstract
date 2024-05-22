@@ -1,5 +1,5 @@
 use abstract_integration_tests::{create_default_account, AResult};
-use abstract_interface::{Abstract, AbstractAccount, Manager, ManagerExecFns, ManagerQueryFns};
+use abstract_interface::{Abstract, AbstractAccount, Manager, ManagerQueryFns};
 use abstract_std::IBC_CLIENT;
 use anyhow::bail;
 use cw_orch::prelude::*;
@@ -22,8 +22,8 @@ fn throws_if_enabling_when_already_enabled() -> AResult {
 
     let AbstractAccount { manager, proxy: _ } = &account;
 
-    manager.update_settings(Some(true))?;
-    let res = manager.update_settings(Some(true));
+    manager.set_ibc_status(true)?;
+    let res = manager.set_ibc_status(true);
 
     assert_that!(&res).is_err();
 
@@ -39,7 +39,7 @@ fn throws_if_disabling_without_ibc_client_installed() -> AResult {
 
     let AbstractAccount { manager, proxy: _ } = &account;
 
-    let res = manager.update_settings(Some(false));
+    let res = manager.set_ibc_status(false);
 
     assert_that!(&res).is_err();
 
@@ -56,9 +56,9 @@ fn can_update_ibc_settings() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
 
     ibc_client_installed(manager).unwrap_err();
-    manager.update_settings(Some(true))?;
+    manager.set_ibc_status(true)?;
     ibc_client_installed(manager)?;
-    manager.update_settings(Some(false))?;
+    manager.set_ibc_status(false)?;
     ibc_client_installed(manager).unwrap_err();
 
     Ok(())

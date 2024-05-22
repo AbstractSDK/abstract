@@ -26,7 +26,7 @@ use abstract_std::{
     },
     proxy::{state::ACCOUNT_ID, ExecuteMsg as ProxyMsg},
     version_control::ModuleResponse,
-    IBC_CLIENT, MANAGER, PROXY,
+    MANAGER, PROXY,
 };
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
@@ -913,37 +913,6 @@ pub fn update_suspension_status(
     Ok(response.add_abstract_attributes(vec![("is_suspended", is_suspended.to_string())]))
 }
 
-pub fn _update_ibc_status(
-    deps: DepsMut,
-    ibc_enabled: bool,
-) -> ManagerResult<(Vec<SubMsg>, Attribute)> {
-    let config = CONFIG.load(deps.storage)?;
-
-    let proxy_callback_msgs = if ibc_enabled {
-        let (install_msgs, _install_attributes) = _install_modules(
-            deps,
-            vec![ModuleInstallConfig::new(
-                ModuleInfo::from_id_latest(IBC_CLIENT)?,
-                None,
-            )],
-            config.module_factory_address,
-            config.version_control_address,
-            vec![],
-        )?;
-
-        install_msgs
-    } else {
-        let (_uninstall_response, msg) = _uninstall_module(deps, IBC_CLIENT.to_string())?;
-
-        vec![SubMsg::new(msg)]
-    };
-
-    Ok((
-        proxy_callback_msgs,
-        Attribute::new("ibc_enabled", ibc_enabled.to_string()),
-    ))
-}
-
 /// Query Version Control for the [`Module`] given the provided [`ContractVersion`]
 fn query_module(
     deps: Deps,
@@ -1739,21 +1708,6 @@ mod tests {
 
             Ok(())
         }
-    }
-
-    mod ibc_enabled {
-        use super::*;
-
-        #[test]
-        fn only_owner() -> ManagerTestResult {
-            let msg = ExecuteMsg::UpdateSettings {
-                ibc_enabled: Some(true),
-            };
-
-            test_only_owner(msg)
-        }
-
-        // integration tests
     }
 
     mod handle_callback {

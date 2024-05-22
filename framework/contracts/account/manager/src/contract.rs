@@ -188,26 +188,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     description,
                     link,
                 } => update_info(deps, info, name, description, link),
-                ExecuteMsg::UpdateSettings {
-                    ibc_enabled: new_status,
-                } => {
-                    let mut response: Response = ManagerResponse::action("update_settings");
-
-                    // only owner can update IBC status
-                    assert_admin_right(deps.as_ref(), &info.sender)?;
-
-                    if let Some(ibc_enabled) = new_status {
-                        let (proxy_msg, attributes) = _update_ibc_status(deps, ibc_enabled)?;
-
-                        response = response
-                            .add_abstract_attributes(std::iter::once(attributes))
-                            .add_submessages(proxy_msg);
-                    } else {
-                        return Err(ManagerError::NoUpdates {});
-                    }
-
-                    Ok(response)
-                }
                 ExecuteMsg::UpdateSubAccount(action) => {
                     handle_sub_account_action(deps, info, action)
                 }
