@@ -139,11 +139,11 @@ impl<Chain: CwEnv> VersionControl<Chain> {
 
     /// Approve any abstract-namespaced pending modules.
     pub fn approve_any_abstract_modules(&self) -> Result<(), crate::AbstractInterfaceError> {
-        self.approve_any_module_for_namespace(Namespace::unchecked(ABSTRACT_NAMESPACE))
+        self.approve_all_modules_for_namespace(Namespace::unchecked(ABSTRACT_NAMESPACE))
     }
 
     /// Approve any "namespace" pending modules.
-    pub fn approve_any_module_for_namespace(
+    pub fn approve_all_modules_for_namespace(
         &self,
         namespace: Namespace,
     ) -> Result<(), crate::AbstractInterfaceError> {
