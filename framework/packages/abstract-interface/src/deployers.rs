@@ -80,7 +80,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
     + Sized
 {
     /// Deploys the adapter. If the adapter is already deployed, it will return an error.
-    /// Use `maybe_deploy` if you want to deploy the adapter only if it is not already deployed.
+    /// Use `DeployStrategy::Try` if you want to deploy the adapter only if it is not already deployed.
     fn deploy(
         &self,
         version: Version,
@@ -116,20 +116,20 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
             DeployStrategy::Force => {}
         }
 
-        if self.upload_if_needed()?.is_some() {
-            let init_msg = abstract_std::adapter::InstantiateMsg {
-                module: custom_init_msg,
-                base: abstract_std::adapter::BaseInstantiateMsg {
-                    ans_host_address: abstr.ans_host.address()?.into(),
-                    version_control_address: abstr.version_control.address()?.into(),
-                },
-            };
-            self.instantiate(&init_msg, None, None)?;
+        self.upload_if_needed()?;
+        let init_msg = abstract_std::adapter::InstantiateMsg {
+            module: custom_init_msg,
+            base: abstract_std::adapter::BaseInstantiateMsg {
+                ans_host_address: abstr.ans_host.address()?.into(),
+                version_control_address: abstr.version_control.address()?.into(),
+            },
+        };
+        self.instantiate(&init_msg, None, None)?;
 
-            abstr
-                .version_control
-                .register_adapters(vec![(self.as_instance(), version.to_string())])?;
-        }
+        abstr
+            .version_control
+            .register_adapters(vec![(self.as_instance(), version.to_string())])?;
+
         Ok(())
     }
 }
@@ -137,7 +137,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
 /// Trait for deploying APPs
 pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
     /// Deploys the app. If the app is already deployed, it will return an error.
-    /// Use `maybe_deploy` if you want to deploy the app only if it is not already deployed.
+    /// Use `DeployStrategy::Try` if you want to deploy the app only if it is not already deployed.
     fn deploy(
         &self,
         version: Version,
@@ -172,11 +172,10 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
             DeployStrategy::Force => {}
         }
 
-        if self.upload_if_needed()?.is_some() {
-            abstr
-                .version_control
-                .register_apps(vec![(self.as_instance(), version.to_string())])?;
-        }
+        self.upload_if_needed()?;
+        abstr
+            .version_control
+            .register_apps(vec![(self.as_instance(), version.to_string())])?;
 
         Ok(())
     }
