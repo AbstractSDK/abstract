@@ -3,7 +3,7 @@ use abstract_std::{
     objects::{
         module::{Module, ModuleInfo, ModuleStatus, ModuleVersion},
         module_reference::ModuleReference,
-        namespace::ABSTRACT_NAMESPACE,
+        namespace::{Namespace, ABSTRACT_NAMESPACE},
         AccountId,
     },
     version_control::*,
@@ -139,9 +139,17 @@ impl<Chain: CwEnv> VersionControl<Chain> {
 
     /// Approve any abstract-namespaced pending modules.
     pub fn approve_any_abstract_modules(&self) -> Result<(), crate::AbstractInterfaceError> {
-        let proposed_abstract_modules = self.module_list(
+        self.approve_all_modules_for_namespace(Namespace::unchecked(ABSTRACT_NAMESPACE))
+    }
+
+    /// Approve any "namespace" pending modules.
+    pub fn approve_all_modules_for_namespace(
+        &self,
+        namespace: Namespace,
+    ) -> Result<(), crate::AbstractInterfaceError> {
+        let proposed_namespace_modules = self.module_list(
             Some(ModuleFilter {
-                namespace: Some(ABSTRACT_NAMESPACE.to_string()),
+                namespace: Some(namespace.to_string()),
                 status: Some(ModuleStatus::Pending),
                 ..Default::default()
             }),
@@ -149,12 +157,12 @@ impl<Chain: CwEnv> VersionControl<Chain> {
             None,
         )?;
 
-        if proposed_abstract_modules.modules.is_empty() {
+        if proposed_namespace_modules.modules.is_empty() {
             return Ok(());
         }
 
         self.approve_or_reject_modules(
-            proposed_abstract_modules
+            proposed_namespace_modules
                 .modules
                 .into_iter()
                 .map(|m| m.module.info)
