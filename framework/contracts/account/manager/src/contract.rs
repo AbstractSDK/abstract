@@ -39,7 +39,7 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, MANAGER, version)?;
+    // assert_contract_upgrade(deps.storage, MANAGER, version)?;
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
     Ok(ManagerResponse::action("migrate"))
 }
