@@ -549,7 +549,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Set IBC status on an Account.
     pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<()> {
-        self.abstr_account.manager.set_ibc_status(enabled)?;
+        self.abstr_account.manager.update_settings(Some(enabled))?;
 
         Ok(())
     }

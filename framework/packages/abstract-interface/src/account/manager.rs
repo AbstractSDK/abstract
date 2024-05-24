@@ -217,16 +217,6 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(result)
     }
 
-    pub fn set_ibc_status(&self, enabled: bool) -> Result<(), crate::AbstractInterfaceError> {
-        if enabled {
-            self.install_module::<Empty>(IBC_CLIENT, None, None)?;
-        } else {
-            self.uninstall_module(IBC_CLIENT.to_string())?;
-        }
-
-        Ok(())
-    }
-
     pub fn execute_on_remote(
         &self,
         host_chain: &str,
