@@ -8,7 +8,7 @@ use abstract_std::{
         module::{ModuleInfo, ModuleVersion},
         AccountId,
     },
-    MANAGER, PROXY,
+    IBC_CLIENT, MANAGER, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Binary, Empty};
 use cw_orch::{interface, prelude::*};
@@ -204,7 +204,10 @@ impl<Chain: CwEnv> Manager<Chain> {
                     host_chain: host_chain.into(),
                     base_asset: None,
                     namespace: None,
-                    install_modules: vec![],
+                    install_modules: vec![ModuleInstallConfig::new(
+                        ModuleInfo::from_id_latest(IBC_CLIENT)?,
+                        None,
+                    )],
                 },
             })?,
             PROXY.to_string(),
@@ -212,6 +215,16 @@ impl<Chain: CwEnv> Manager<Chain> {
         )?;
 
         Ok(result)
+    }
+
+    pub fn set_ibc_status(&self, enabled: bool) -> Result<(), crate::AbstractInterfaceError> {
+        if enabled {
+            self.install_module::<Empty>(IBC_CLIENT, None, None)?;
+        } else {
+            self.uninstall_module(IBC_CLIENT.to_string())?;
+        }
+
+        Ok(())
     }
 
     pub fn execute_on_remote(
