@@ -43,7 +43,8 @@ use cosmwasm_std::{BlockInfo, Uint128};
 use cw_orch::prelude::*;
 
 use crate::{
-    account::{Account, AccountBuilder},
+    account::Account,
+    account_builder::{AccountBuilder, NewAcc},
     source::AccountSource,
     AbstractClientError, Environment, PublisherBuilder,
 };
@@ -143,7 +144,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     }
 
     /// Builder for creating a new Abstract [`Account`].
-    pub fn account_builder(&self) -> AccountBuilder<Chain> {
+    pub fn account_builder(&self) -> AccountBuilder<Chain, NewAcc> {
         AccountBuilder::new(&self.abstr)
     }
 

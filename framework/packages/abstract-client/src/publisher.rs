@@ -11,7 +11,8 @@ use cw_orch::{
 use serde::Serialize;
 
 use crate::{
-    account::{Account, AccountBuilder},
+    account::Account,
+    account_builder::{AccountBuilder, NewAcc},
     client::AbstractClientResult,
     Environment,
 };
@@ -38,12 +39,12 @@ use crate::{
 /// # Ok::<(), AbstractClientError>(())
 /// ```
 pub struct PublisherBuilder<'a, Chain: CwEnv> {
-    account_builder: AccountBuilder<'a, Chain>,
+    account_builder: AccountBuilder<'a, Chain, NewAcc>,
 }
 
 impl<'a, Chain: CwEnv> PublisherBuilder<'a, Chain> {
     pub(crate) fn new(
-        mut account_builder: AccountBuilder<'a, Chain>,
+        mut account_builder: AccountBuilder<'a, Chain, NewAcc>,
         namespace: Namespace,
     ) -> Self {
         account_builder.namespace(namespace);

@@ -2,6 +2,7 @@
 #![doc = include_str!("../README.md")]
 
 pub(crate) mod account;
+mod account_builder;
 mod application;
 pub mod builder;
 mod client;
@@ -18,7 +19,8 @@ pub(crate) mod source;
 pub use abstract_std::objects::{gov_type::GovernanceDetails, namespace::Namespace};
 // Re-export `ClientResolve` trait
 pub use abstract_interface::ClientResolve;
-pub use account::{Account, AccountBuilder};
+pub use account::Account;
+pub use account_builder::AccountBuilder;
 pub use application::Application;
 pub use builder::AbstractClientBuilder;
 pub use client::AbstractClient;

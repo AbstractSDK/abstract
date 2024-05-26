@@ -76,12 +76,12 @@ pub enum CallbackResult {
         result: Result<ExecutionResponse, String>,
     },
 
-    /// An error occured that could not be recovered from. The only
+    /// An error occurred that could not be recovered from. The only
     /// known way that this can occur is message handling running out
     /// of gas, in which case the error will be `codespace: sdk, code:
     /// 11`.
     ///
-    /// This error is not named becuase it could also occur due to a
+    /// This error is not named because it could also occur due to a
     /// panic or unhandled error during message processing. We don't
     /// expect this to happen and have carefully written the code to
     /// avoid it.
