@@ -1,16 +1,13 @@
 use abstract_interface::ManagerExecFns;
 use abstract_interface::{Abstract, AbstractAccount};
-use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
-use abstract_scripts::{NEUTRON_1, ROLLKIT_TESTNET};
 use abstract_std::ibc_host::HostAction;
 use abstract_std::objects::chain_name::ChainName;
 use abstract_std::objects::AccountId;
 use abstract_std::{ibc_client, proxy, PROXY};
 use cosmwasm_std::to_json_binary;
-use cw_orch::daemon::networks::{ARCHWAY_1, HARPOON_4, JUNO_1, OSMO_5, PHOENIX_1, PION_1};
+use cw_orch::daemon::networks::{HARPOON_4, PION_1};
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
-use cw_orch_polytone::Polytone;
 use tokio::runtime::Runtime;
 
 /// Connect IBC between two chains.
@@ -64,7 +61,6 @@ fn ibc_test(
     let dst_daemon = get_daemon(dst_chain.clone(), handle, dst_mnemonic, None)?;
 
     let src_abstract = Abstract::load_from(src_daemon.clone())?;
-    let dst_abstract = Abstract::load_from(dst_daemon.clone())?;
 
     let interchain = DaemonInterchainEnv::from_daemons(
         handle,
