@@ -42,7 +42,7 @@ use abstract_std::{
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
-    IBC_CLIENT, PROXY,
+    PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
@@ -646,7 +646,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Set IBC status on an Account.
     pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<()> {
-        self.abstr_account.manager.set_ibc_status(enabled)?;
+        self.abstr_account.manager.update_settings(Some(enabled))?;
 
         Ok(())
     }

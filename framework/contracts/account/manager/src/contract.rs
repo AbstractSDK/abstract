@@ -107,7 +107,7 @@ pub fn instantiate(
 
     if !msg.install_modules.is_empty() {
         // Install modules
-        let (install_msgs, install_attribute) = _install_modules(
+        let (add_to_proxy, install_msg, install_attribute) = install_modules_internal(
             deps.branch(),
             msg.install_modules,
             config.module_factory_address,
@@ -115,7 +115,8 @@ pub fn instantiate(
             info.funds,
         )?;
         response = response
-            .add_submessages(install_msgs)
+            .add_message(add_to_proxy)
+            .add_submessage(install_msg)
             .add_attribute(install_attribute.key, install_attribute.value);
     }
 
@@ -185,6 +186,20 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     description,
                     link,
                 } => update_info(deps, info, name, description, link),
+
+                ExecuteMsg::UpdateSettings {
+                    ibc_enabled: new_status,
+                } => {
+                    let mut response: Response = ManagerResponse::action("update_settings");
+
+                    if let Some(ibc_enabled) = new_status {
+                        response = update_ibc_status(deps, info, ibc_enabled, response)?;
+                    } else {
+                        return Err(ManagerError::NoUpdates {});
+                    }
+
+                    Ok(response)
+                }
                 ExecuteMsg::UpdateSubAccount(action) => {
                     handle_sub_account_action(deps, info, action)
                 }
