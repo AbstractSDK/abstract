@@ -23,8 +23,8 @@ pub fn proxy_config(
     let msg = match response.result {
         CallbackResult::Query { query: _, result } => {
             let res_bin = result.unwrap().pop().unwrap();
-            let proxy::ConfigResponse { modules } = from_json(res_bin)?;
-            let remote_ping_pong_addr = modules[1].clone();
+            let proxy::ConfigResponse { mut modules } = from_json(res_bin)?;
+            let remote_ping_pong_addr = modules.pop().unwrap();
             let ibc_client = app.ibc_client(deps.as_ref());
             ibc_client.ibc_query(
                 from_json(response.msg.clone().unwrap())?,
