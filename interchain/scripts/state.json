@@ -191,6 +191,39 @@
         "abstract:proxy": "neutron1gmstk5g6vmwq6qge9lmcgsxpuug4f0lal3xvkpflp9sz84efl95seghdxq",
         "abstract:version-control": "neutron1wn5v9m6hnctgh5exdrf0y95dlwwk70jc8je06ct94wul8l9melgsqgnges"
       }
+    },
+    "pion-1": {
+      "code_ids": {
+        "abstract:account-factory": 4832,
+        "abstract:ans-host": 4835,
+        "abstract:challenge": 4845,
+        "abstract:cw-staking": 4840,
+        "abstract:dca": 4844,
+        "abstract:dex": 4841,
+        "abstract:etf": 4843,
+        "abstract:ibc-client": 4838,
+        "abstract:ibc-host": 4839,
+        "abstract:manager": 4876,
+        "abstract:module-factory": 4833,
+        "abstract:money-market": 4842,
+        "abstract:proxy": 4837,
+        "abstract:version-control": 4834
+      },
+      "default": {
+        "abstract:account-factory": "neutron120t0zkewul37gfuurtlvf8j7a5ekp8eq48xjf4s54z5c7mve0mxsk3zuyu",
+        "abstract:ans-host": "neutron1sgd4tr9yu3uekg46sgagyjy3hapephadtet8n6rqj63mpmx006rsduzw2l",
+        "abstract:cw-staking": "neutron19436rptg7mp7cjznr9ulw9fc5fjgnszm929ue0h2r8ssm9nfmdxs5hsnv6",
+        "abstract:dex": "neutron1vwfanzccg2fw2nf37zl5m25puc5rc5e79pfs7vzqq76q7hqu4mdqkuwa4a",
+        "abstract:ibc-client": "neutron15tavpuugwc55z844puwhq9drj97vhqfcrga27dmf56ydert62vqs2m96eu",
+        "abstract:ibc-host": "neutron1f7g2gqhcqres95cm697vyc8hruhu0gagp7a7kdk749y624n5qc7qltfk2c",
+        "abstract:manager-local-0": "neutron18fsar2rzktpp28q08kh7sh3akg4g4ege4d557qp53yjqj2mh7auss72cyj",
+        "abstract:manager-local-1": "neutron1s35mdz9vf88uhmd9a04f2ty2fcwjeusv460ckhqnm72a7s5yrpesquc6qx",
+        "abstract:module-factory": "neutron1fhkdmnc0wrwrplvkkpwtzw8gfl9t3vvym0x5xx2wmqgt9leg9rysxgya68",
+        "abstract:money-market": "neutron1gwaee5rm0nu5yxj6cwlj4609cnv9ds9ayu47rrwcys2sfvyg8uzs7v4a9a",
+        "abstract:proxy-local-0": "neutron1f063dx40qn6aea390tevv2wm2yv82hflzhlg0wnpxl0v833sr86smng9ju",
+        "abstract:proxy-local-1": "neutron1gjp9gcgxph5p8ape0n8a9j3xdskwygysccmamkn2nc6y0eeeheqql4kydc",
+        "abstract:version-control": "neutron1755jsh082jknddseg7t95dfahsa28mahkwhlgvx9rqyth6dqeu6sv7duxf"
+      }
     }
   },
   "osmosis": {
