@@ -29,7 +29,7 @@ use abstract_interface::{
 use abstract_std::{
     ibc_client::QueryMsgFns,
     manager::{
-        state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
+        self, state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
@@ -372,14 +372,15 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         };
         let env = chain.env_info();
 
-        let mut install_modules = self.install_modules.clone();
+        let install_modules = self.install_modules.clone();
+        // TODO: after #362 merged
         // We add the IBC Client by default in the modules installed on the remote account
-        if !install_modules.iter().any(|m| m.module.id() == IBC_CLIENT) {
-            install_modules.push(ModuleInstallConfig::new(
-                ModuleInfo::from_id_latest(IBC_CLIENT)?,
-                None,
-            ));
-        }
+        // if !install_modules.iter().any(|m| m.module.id() == IBC_CLIENT) {
+        //     install_modules.push(ModuleInstallConfig::new(
+        //         ModuleInfo::from_id_latest(IBC_CLIENT)?,
+        //         None,
+        //     ));
+        // }
 
         let account_details = AccountDetails {
             name,
@@ -604,10 +605,7 @@ impl<Chain: CwEnv> Account<Chain> {
             match &governance {
                 GovernanceDetails::SubAccount { manager, .. } => {
                     governance = environment
-                        .query::<_, InfoResponse>(
-                            &abstract_std::manager::QueryMsg::Info {},
-                            manager,
-                        )
+                        .query::<_, InfoResponse>(&manager::QueryMsg::Info {}, manager)
                         .map_err(|err| err.into())?
                         .info
                         .governance_details;
@@ -629,18 +627,25 @@ impl<Chain: CwEnv> Account<Chain> {
         funds: &[Coin],
     ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
+        self.execute_on_manager(
+            &manager::ExecuteMsg::ExecOnModule {
+                module_id: PROXY.to_owned(),
+                exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction { msgs })
+                    .map_err(AbstractInterfaceError::from)?,
+            },
+            funds,
+        )
+    }
+
+    /// Executes a [`manager::ExecuteMsg`] on the manager of the account.
+    pub fn execute_on_manager(
+        &self,
+        execute_msg: &manager::ExecuteMsg,
+        funds: &[Coin],
+    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
         self.abstr_account
             .manager
-            .execute(
-                &abstract_std::manager::ExecuteMsg::ExecOnModule {
-                    module_id: PROXY.to_owned(),
-                    exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
-                        msgs,
-                    })
-                    .map_err(AbstractInterfaceError::from)?,
-                },
-                Some(funds),
-            )
+            .execute(execute_msg, Some(funds))
             .map_err(Into::into)
     }
 

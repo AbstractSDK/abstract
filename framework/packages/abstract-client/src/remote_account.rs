@@ -60,7 +60,7 @@ impl<Chain: CwEnv> RemoteAccount<Chain> {
 
     /// ChainName of the remote chain
     pub fn host_chain(&self) -> ChainName {
-        ChainName::from_string(self.remote_chain().env_info().chain_name).unwrap()
+        ChainName::from_chain_id(&self.remote_chain().env_info().chain_id)
     }
 
     // TODO:
@@ -235,17 +235,22 @@ impl<Chain: CwEnv> RemoteAccount<Chain> {
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
     ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
+        self.execute_on_manager(vec![manager::ExecuteMsg::ExecOnModule {
+            module_id: PROXY.to_owned(),
+            exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction { msgs })
+                .map_err(AbstractInterfaceError::from)?,
+        }])
+    }
+
+    /// Executes a list of [manager::ExecuteMsg] on the manager of the account.
+    /// Note that execution will be done through source chain
+    pub fn execute_on_manager(
+        &self,
+        manager_msgs: Vec<manager::ExecuteMsg>,
+    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
         self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
             host_chain: self.host_chain(),
-            action: ibc_host::HostAction::Dispatch {
-                manager_msgs: vec![manager::ExecuteMsg::ExecOnModule {
-                    module_id: PROXY.to_owned(),
-                    exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
-                        msgs,
-                    })
-                    .map_err(AbstractInterfaceError::from)?,
-                }],
-            },
+            action: ibc_host::HostAction::Dispatch { manager_msgs },
         })
     }
 
