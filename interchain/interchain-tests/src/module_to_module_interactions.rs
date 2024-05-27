@@ -8,7 +8,7 @@ use abstract_std::{
 use cosmwasm_schema::{cw_serde, QueryResponses};
 pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{
-    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Response, StdError,
+    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Binary, Coin, Response, StdError,
 };
 use cw_controllers::AdminError;
 use cw_storage_plus::Item;
@@ -34,6 +34,10 @@ pub enum MockExecMsg {
         remote_chain: String,
         address: String,
     },
+    QueryModuleIbc {
+        remote_chain: String,
+        target_module: ModuleInfo,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -49,6 +53,12 @@ pub enum MockQueryMsg {
 
     #[returns(ReceivedIbcModuleStatus)]
     GetReceivedIbcModuleStatus {},
+
+    #[returns(String)]
+    Foo {},
+
+    #[returns(String)]
+    GetReceivedModuleIbcQueryCallbackStatus {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -122,6 +132,10 @@ pub const MODULE_IBC_RECEIVED: Item<ModuleInfo> = Item::new("module_ibc_received
 // Easy way to see if an ibc-callback was actually received.
 pub const IBC_CALLBACK_QUERY_RECEIVED: Item<Vec<Coin>> = Item::new("ibc_callback_query_received");
 
+// Easy way to see if an ibc-query was actually performed.
+pub const IBC_CALLBACK_MODULE_QUERY_RECEIVED: Item<Binary> =
+    Item::new("ibc_callback_module_query_received");
+
 pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContract {
     MockAppContract::new(id, version, None)
         .with_instantiate(|deps, _, _, _, _| {
@@ -148,6 +162,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                             id: "c_id".to_string(),
                             msg: None,
                         }),
+                        is_query: None,
                     },
                     vec![],
                 )?;
@@ -177,6 +192,29 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
 
                 Ok(Response::new().add_message(msg))
             }
+            MockExecMsg::QueryModuleIbc {
+                remote_chain,
+                target_module,
+            } => {
+                let ibc_client_addr = app.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
+                // We send an IBC Client module message
+                let msg = wasm_execute(
+                    ibc_client_addr,
+                    &ibc_client::ExecuteMsg::ModuleIbcAction {
+                        host_chain: remote_chain,
+                        target_module,
+                        msg: to_json_binary(&QueryMsg::from(MockQueryMsg::Foo {})).unwrap(),
+                        callback_info: Some(CallbackInfo {
+                            id: "mod_query_id".to_string(),
+                            msg: None,
+                        }),
+                        is_query: Some(true),
+                    },
+                    vec![],
+                )?;
+
+                Ok(Response::new().add_message(msg))
+            }
             _ => Ok(Response::new().set_data("mock_exec".as_bytes())),
         })
         .with_query(|deps, _, _, msg| match msg {
@@ -198,6 +236,10 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                 })
                 .map_err(Into::into)
             }
+            MockQueryMsg::Foo {} => to_json_binary("bar").map_err(Into::into),
+            MockQueryMsg::GetReceivedModuleIbcQueryCallbackStatus {} => {
+                Ok(IBC_CALLBACK_MODULE_QUERY_RECEIVED.load(deps.storage)?)
+            }
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
@@ -216,6 +258,12 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     Ok(Response::new().add_attribute("mock_callback_query", "executed"))
                 }
                 _ => panic!("Expected query result"),
+            }),
+            ("mod_query_id", |deps, _, _, _, msg| {
+                IBC_CALLBACK_MODULE_QUERY_RECEIVED
+                    .save(deps.storage, &msg.module_query_response()?)?;
+
+                Ok(Response::new())
             }),
         ])
         .with_replies(&[(1u64, |_, _, _, msg| {
@@ -529,7 +577,8 @@ pub mod test {
         // The user on origin chain triggers a module-to-module interaction
         let target_module_info =
             ModuleInfo::from_id(TEST_MODULE_ID_REMOTE, TEST_VERSION_REMOTE.into())?;
-        let ibc_action_result = app.do_something_ibc(remote_name, target_module_info.clone())?;
+        let ibc_action_result =
+            app.do_something_ibc(remote_name.clone(), target_module_info.clone())?;
 
         assert_remote_module_call_status(&remote_account_app, None)?;
         assert_callback_status(&app, false)?;
@@ -542,6 +591,13 @@ pub mod test {
         )?;
         assert_callback_status(&app, true)?;
 
+        // Module to module query
+
+        let ibc_action_result = app.query_module_ibc(remote_name, target_module_info)?;
+        mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
+
+        let status = app.get_received_module_ibc_query_callback_status()?;
+        assert_eq!("bar", status);
         Ok(())
     }
 
@@ -685,6 +741,7 @@ pub mod test {
                     })
                     .unwrap(),
                     target_module_info,
+                    None,
                     None,
                 )
                 .unwrap_err();

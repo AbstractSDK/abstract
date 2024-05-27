@@ -8,6 +8,7 @@ edition = { workspace = true }
 
 [dependencies]
 cosmwasm-std = { workspace = true }
+cw-utils = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-proto = { workspace = true }
 

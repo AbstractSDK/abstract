@@ -225,6 +225,7 @@ pub fn execute_send_module_to_module_packet(
     target_module: ModuleInfo,
     msg: Binary,
     callback_info: Option<CallbackInfo>,
+    is_query: bool,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
     let cfg = CONFIG.load(deps.storage)?;
@@ -288,6 +289,7 @@ pub fn execute_send_module_to_module_packet(
                     msg,
                     source_module,
                     target_module,
+                    is_query,
                 },
                 vec![],
             )?

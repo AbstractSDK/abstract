@@ -55,6 +55,31 @@ impl IbcResponseMsg {
         )?
         .into())
     }
+
+    /// Get module to module query response
+    /// We set data field to query response if module-to-module message was query instead
+    pub fn module_query_response(self) -> StdResult<Binary> {
+        if let CallbackResult::Execute {
+            initiator_msg: _,
+            result,
+        } = self.result
+        {
+            let mut execution_response = result.map_err(StdError::generic_err)?;
+            if execution_response.result.len() == 1 {
+                if let Some(data) = execution_response.result.pop().unwrap().data {
+                    if let Ok(execute_response) = cw_utils::parse_execute_response_data(&data) {
+                        if let Some(query_response) = execute_response.data {
+                            return Ok(query_response);
+                        }
+                    }
+                }
+            }
+        }
+        // Fall into this error if anything fails in the way
+        Err(StdError::generic_err(
+            "Failed to parse module to module query response",
+        ))
+    }
 }
 
 #[cosmwasm_schema::cw_serde]

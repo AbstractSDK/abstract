@@ -110,6 +110,9 @@ pub enum ExecuteMsg {
         target_module: ModuleInfo,
         msg: Binary,
         callback_info: Option<CallbackInfo>,
+        /// Set this field in case message is query, defaults to `false`
+        /// Don't forget to set callback_info to catch response
+        is_query: Option<bool>,
     },
     // ANCHOR_END: module-ibc-action
     IbcQuery {

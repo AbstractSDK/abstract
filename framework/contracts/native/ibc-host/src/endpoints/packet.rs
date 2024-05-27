@@ -10,7 +10,10 @@ use abstract_std::{
         chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
     },
 };
-use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
+use cosmwasm_std::{
+    to_json_vec, wasm_execute, Binary, ContractResult, DepsMut, Empty, Env, QueryRequest, Response,
+    StdError, SystemResult, WasmQuery,
+};
 
 use crate::{
     account_commands::{self, receive_dispatch, receive_register, receive_send_all_back},
@@ -124,6 +127,7 @@ pub fn handle_host_module_action(
     source_module: InstalledModuleIdentification,
     target_module: ModuleInfo,
     msg: Binary,
+    is_query: bool,
 ) -> HostResult {
     // We resolve the target module
     let vc = CONFIG.load(deps.storage)?.version_control;
@@ -145,18 +149,36 @@ pub fn handle_host_module_action(
         _ => {}
     }
 
-    // We pass the message on to the module
-    let msg = wasm_execute(
-        target_module_resolved.address,
-        &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
-            client_chain,
-            source_module: source_module.module_info,
+    let response = Response::new().add_attribute("action", "module-ibc-call");
+    if is_query {
+        // We query module and set data to the response that can be parsed later
+        let query = QueryRequest::<Empty>::from(WasmQuery::Smart {
+            contract_addr: target_module_resolved.address.into_string(),
             msg,
-        }),
-        vec![],
-    )?;
+        });
+        let bin = match deps.querier.raw_query(&to_json_vec(&query)?) {
+            SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
+                "Querier system error: {system_err}"
+            ))),
+            SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::generic_err(
+                format!("Querier contract error: {contract_err}"),
+            )),
+            SystemResult::Ok(ContractResult::Ok(value)) => Ok(value),
+        }?;
 
-    Ok(Response::new()
-        .add_attribute("action", "module-ibc-call")
-        .add_message(msg))
+        Ok(response.set_data(bin))
+    } else {
+        // We pass the message on to the module
+        let msg = wasm_execute(
+            target_module_resolved.address,
+            &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
+                client_chain,
+                source_module: source_module.module_info,
+                msg,
+            }),
+            vec![],
+        )?;
+
+        Ok(response.add_message(msg))
+    }
 }

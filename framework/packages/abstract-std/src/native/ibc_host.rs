@@ -136,6 +136,7 @@ pub enum ExecuteMsg {
         source_module: InstalledModuleIdentification,
         target_module: ModuleInfo,
         msg: Binary,
+        is_query: bool,
     },
 }
 
