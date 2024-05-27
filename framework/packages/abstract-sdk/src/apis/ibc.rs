@@ -255,7 +255,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     }
 
     /// Address of the remote proxy
-    /// Note: only works if account is local
+    /// Note: only Accounts that are remote to *this* chain are queryable
     pub fn remote_proxy_addr(&self, host_chain: &String) -> AbstractSdkResult<Option<String>> {
         let account_id = self.base.account_id(self.deps)?;
         let ibc_client_addr = self.module_address()?;
@@ -331,7 +331,7 @@ mod test {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
                 msg: IbcClientMsg::SendFunds {
-                    host_chain: TEST_HOST_CHAIN.to_string(),
+                    host_chain: TEST_HOST_CHAIN.into(),
                     funds: expected_funds,
                 },
             })
