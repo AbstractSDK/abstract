@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, QuerierWrapper};
+use cosmwasm_std::{Addr, QuerierWrapper, Uint128};
 use thiserror::Error;
 
 use super::{
@@ -253,6 +253,20 @@ impl VersionControlContract {
             })?;
         Ok(config.namespace_registration_fee)
     }
+    // /// Get profile registration fee
+    // #[function_name::named]
+    // pub fn profile_bps(
+    //     &self,
+    //     querier: &QuerierWrapper,
+    // ) -> VersionControlResult<Option<Uint128>> {
+    //     let config = PROFILE_CONFIG
+    //         .query(querier, self.address.clone())
+    //         .map_err(|error| VersionControlError::QueryFailed {
+    //             method_name: function_name!().to_owned(),
+    //             error,
+    //         })?;
+    //     Ok(config.profile_bps)
+    // }
 
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(

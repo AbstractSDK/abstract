@@ -21,7 +21,9 @@ pub struct Config {
 pub mod state {
     use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
 
-    use super::{AccountBase, Config, ModuleConfiguration, ModuleDefaultConfiguration};
+    use super::{
+        AccountBase, Config, ModuleConfiguration, ModuleDefaultConfiguration,
+    };
     use crate::objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
         namespace::Namespace,
@@ -44,6 +46,8 @@ pub mod state {
         Map::new("dcfg");
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<&AccountId, AccountBase> = Map::new("accs");
+    /// Profile contracts setup check
+    pub const IS_PROFILE_SETUP: Item<bool> = Item::new("is-setup");
 
     /// Sub indexes for namespaces.
     // TODO: move to a two maps, we don't need multiindex for accountid
@@ -69,7 +73,7 @@ pub mod state {
 }
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Storage};
+use cosmwasm_std::{Addr, Coin, Storage, Uint128};
 use cw_clearable::Clearable;
 
 use self::state::{MODULE_CONFIG, MODULE_DEFAULT_CONFIG};

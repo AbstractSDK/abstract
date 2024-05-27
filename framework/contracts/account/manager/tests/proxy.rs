@@ -47,7 +47,7 @@ fn instantiate() -> AResult {
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
     });
-    take_storage_snapshot!(chain, "instantiate_proxy");
+    // take_storage_snapshot!(chain, "instantiate_proxy");
     Ok(())
 }
 

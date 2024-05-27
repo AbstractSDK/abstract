@@ -140,18 +140,33 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 Some(deployment.ibc.host.address().unwrap().to_string()),
                 None,
                 None,
+                None,
+                None,
+                Some(deployment.bs721_profile.address().unwrap().to_string()),
+                Some(
+                    deployment
+                        .profile_marketplace
+                        .address()
+                        .unwrap()
+                        .to_string(),
+                ),
+                None,
+                None,
             )
             .unwrap();
 
-        deployment
-            .account_factory
-            .setup_profile_infra(
-                Some(deployment.profile_marketplace.address()?.to_string()),
-                None,
-                Some(deployment.bs721_profile.address()?.to_string()),
-                None,
-            )
-            .unwrap();
+        // println!("Profile Collection Contract: {:?}", deployment.bs721_profile.address()?.to_string());
+        // println!("Profile Marketplace Contract: {:?}", deployment.profile_marketplace.address()?.to_string());
+
+        // deployment
+        //     .account_factory
+        //     .setup_profile_infra(
+        //         Some(deployment.profile_marketplace.address()?.to_string()),
+        //         None,
+        //         Some(deployment.bs721_profile.address()?.to_string()),
+        //         None,
+        //     )
+        //     .unwrap();
 
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
@@ -256,7 +271,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 #[cfg(not(feature = "integration"))]
                 security_disabled: Some(false),
                 namespace_registration_fee: None,
-                // profile_registration_fee: None,
             },
             Some(&admin),
             None,
@@ -278,20 +292,27 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
                 module_factory_address: self.module_factory.address()?.into_string(),
+                profile_collection_address: None,
+                profile_marketplace_address: None,
+                max_record_count: None,
+                max_profile_length: None,
+                min_profile_length: None,
                 verifier: None,
-                min_name_length: 3,
-                max_name_length: 128,
-                base_price: 10u128.into(),
+                profile_bps: None,
             },
             Some(&admin),
             None,
         )?;
+        println!(
+            "Account Factory Contract: {:?}",
+            self.account_factory.address()?.to_string()
+        );
 
         // We also instantiate ibc contracts
         self.ibc.instantiate(self, &admin)?;
         self.ibc.register(&self.version_control)?;
 
-        self.bs721_profile.instantiate(
+        let i_msg = self.bs721_profile.instantiate(
             &abstract_std::profile::InstantiateMsg {
                 verifier: None,
                 base_init_msg: bs721_base::InstantiateMsg {
@@ -313,6 +334,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
             Some(&admin),
             None,
         )?;
+        println!("Profile Collection Contract: {:?}", i_msg.events());
 
         self.profile_marketplace.instantiate(
             &abstract_std::profile_marketplace::InstantiateMsg {
@@ -325,6 +347,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
             Some(&admin),
             None,
         )?;
+        println!(
+            "Marketplace: {:?}",
+            self.profile_marketplace.address()?.to_string()
+        );
 
         Ok(())
     }

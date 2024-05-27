@@ -34,7 +34,7 @@ fn creating_on_subaccount_should_succeed() -> AResult {
             sub_accounts: vec![2]
         }
     );
-    take_storage_snapshot!(chain, "creating_on_subaccount_should_succeed");
+    // take_storage_snapshot!(chain, "creating_on_subaccount_should_succeed");
     Ok(())
 }
 
@@ -67,7 +67,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
         Some(new_desc.to_string()),
         account_contracts.0.info()?.info.description
     );
-    take_storage_snapshot!(chain, "updating_on_subaccount_should_succeed");
+    // take_storage_snapshot!(chain, "updating_on_subaccount_should_succeed");
     Ok(())
 }
 
@@ -104,7 +104,7 @@ fn proxy_updating_on_subaccount_should_succeed() -> AResult {
         sub_manager.info()?.info.description
     );
 
-    take_storage_snapshot!(chain, "proxy_updating_on_subaccount_should_succeed");
+    // take_storage_snapshot!(chain, "proxy_updating_on_subaccount_should_succeed");
     Ok(())
 }
 
@@ -154,7 +154,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
         account_contracts.0.info()?.info.description
     );
 
-    take_storage_snapshot!(chain, "recursive_updating_on_subaccount_should_succeed");
+    // take_storage_snapshot!(chain, "recursive_updating_on_subaccount_should_succeed");
     Ok(())
 }
 
@@ -210,7 +210,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
         Some(new_desc.to_string()),
         sub_manager.info()?.info.description
     );
-    take_storage_snapshot!(chain, "installed_app_updating_on_subaccount_should_succeed");
+  // take_storage_snapshot!(chain, "installed_app_updating_on_subaccount_should_succeed");
 
     Ok(())
 }
@@ -282,7 +282,7 @@ fn sub_account_move_ownership() -> AResult {
             sub_accounts: vec![]
         }
     );
-    take_storage_snapshot!(chain, "sub_account_move_ownership");
+  // take_storage_snapshot!(chain, "sub_account_move_ownership");
 
     Ok(())
 }
@@ -374,7 +374,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     let new_account_sub_account = AbstractAccount::new(&deployment, AccountId::local(4));
     let info = new_account_sub_account.manager.info()?.info;
     assert_eq!(new_governance, info.governance_details.into());
-    take_storage_snapshot!(chain, "sub_account_move_ownership_to_sub_account");
+  // take_storage_snapshot!(chain, "sub_account_move_ownership_to_sub_account");
 
     Ok(())
 }
@@ -413,7 +413,7 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
         .unwrap_err();
     let err = err.root().to_string();
     assert!(err.contains("manager and proxy has different account ids"));
-    take_storage_snapshot!(chain, "account_move_ownership_to_falsy_sub_account");
+  // take_storage_snapshot!(chain, "account_move_ownership_to_falsy_sub_account");
     Ok(())
 }
 

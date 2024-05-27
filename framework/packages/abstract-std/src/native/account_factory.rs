@@ -9,7 +9,7 @@
 //!
 pub mod state {
     use bs_profile::common::SECONDS_PER_YEAR;
-    use cosmwasm_std::Addr;
+    use cosmwasm_std::{Addr, Uint128};
     use cw_controllers::Admin;
     use cw_storage_plus::Item;
     use serde::{Deserialize, Serialize};
@@ -22,8 +22,6 @@ pub mod state {
         version_control::AccountBase,
     };
 
-    use super::SudoParams;
-
     /// Account Factory configuration
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
@@ -31,6 +29,17 @@ pub mod state {
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
         pub ibc_host: Option<Addr>,
+    }
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct ProfileConfig {
+        pub marketplace_addr: Option<Addr>,
+        pub collection_addr: Option<Addr>,
+        pub min_profile_length: u32,
+        pub max_profile_length: u32,
+        pub max_record_count: u32,
+        pub profile_bps: Uint128,
+        pub verifier: Option<String>,
     }
 
     /// Account Factory context for post-[`crate::manager`] [`crate::proxy`] creation
@@ -43,10 +52,10 @@ pub mod state {
     }
 
     pub const CONFIG: Item<Config> = Item::new("cfg");
+    pub const PROFILE_CONFIG: Item<ProfileConfig> = Item::new("profile-cfg");
     pub const CONTEXT: Item<Context> = Item::new("contxt");
     pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> = Item::new("acseq");
 
-    pub const SUDO_PARAMS: Item<SudoParams> = Item::new("params");
     pub const VERIFIER: Admin = Admin::new("verifier");
     pub const IS_PROFILE_SETUP: Item<bool> = Item::new("is-setup");
     /// TODO: remove this and store in registered modules
@@ -60,7 +69,7 @@ pub mod state {
 }
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Uint128};
+use cosmwasm_std::{Addr, Coin, Uint128};
 
 use crate::{
     manager::ModuleInstallConfig,
@@ -82,14 +91,13 @@ pub struct InstantiateMsg {
     pub ans_host_address: String,
     /// AnsHosts of module factory. Used for instantiating manager.
     pub module_factory_address: String,
-    /// Profile Sudo Config
-    /// Oracle for verifying text records
+    pub profile_collection_address: Option<Addr>,
+    pub profile_marketplace_address: Option<Addr>,
+    pub max_record_count: Option<u32>,
+    pub max_profile_length: Option<u32>,
+    pub min_profile_length: Option<u32>,
     pub verifier: Option<String>,
-    /// Profiles marketplace code id
-    pub min_name_length: u32,
-    pub max_name_length: u32,
-    /// bps for profiles
-    pub base_price: Uint128,
+    pub profile_bps: Option<Uint128>,
 }
 
 /// Account Factory execute messages
@@ -107,6 +115,12 @@ pub enum ExecuteMsg {
         module_factory_address: Option<String>,
         // New ibc host contract
         ibc_host: Option<String>,
+        profile_marketplace_address: Option<String>,
+        profile_collection_address: Option<String>,
+        verifier: Option<String>,
+        profile_bps: Option<Uint128>,
+        min_profile_length: Option<u32>,
+        max_profile_length: Option<u32>,
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
@@ -138,14 +152,10 @@ pub enum ExecuteMsg {
     },
     #[cfg_attr(feature = "interface", payable)]
     SetupProfileInfra {
-        // profile collection code id
-        profile_code_id: Option<u64>,
-        // marketplace code id
-        marketplace_code_id: Option<u64>,
-        // optional profile collection contract. bypasses instantiation if provided
-        profile_addr: Option<String>,
-        // optional marketplace contract. bypasses instantiation
-        marketplace_addr: Option<String>,
+        /// profile collection code id
+        profile_code_id: u64,
+        /// marketplace code id
+        marketplace_code_id: u64,
     },
 }
 
@@ -183,14 +193,6 @@ pub struct SequenceResponse {
 /// Account Factory migrate messages
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
-
-#[cosmwasm_schema::cw_serde]
-pub struct SudoParams {
-    pub max_record_count: u32,
-    pub min_name_length: u32,
-    pub max_name_length: u32,
-    pub base_price: Uint128,
-}
 
 #[cosmwasm_schema::cw_serde]
 pub enum SudoMsg {

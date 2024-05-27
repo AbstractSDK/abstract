@@ -33,6 +33,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             Some(admin),
             None,
         )?;
+        println!("IBC Client Contract: {:?}", self.client.address()?.to_string());
 
         self.host.instantiate(
             &abstract_std::ibc_host::InstantiateMsg {
@@ -43,6 +44,7 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
             Some(admin),
             None,
         )?;
+        println!("IBC Host Contract: {:?}", self.host.address()?.to_string());
         Ok(())
     }
 

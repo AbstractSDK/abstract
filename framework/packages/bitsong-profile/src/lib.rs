@@ -98,7 +98,7 @@ pub enum BsProfileExecuteMsg {
 #[derive(QueryResponses)]
 pub enum BsProfileQueryMsg {
     /// `address` can be any Bech32 encoded address. It will be
-    /// converted to a stars address for internal mapping.
+    /// converted to a bitsong address for internal mapping.
     #[returns(String)]
     Name { address: String },
     #[returns(Addr)]

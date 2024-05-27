@@ -101,7 +101,7 @@ pub fn execute_mint(
     info: MessageInfo,
     msg: Bs721ExecuteMsg<Metadata, Empty>,
 ) -> Result<Response, ContractError> {
-    let minter = Bs721NameContract::default().minter(deps.as_ref())?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let (token_id, owner, _token_uri, extension, _seller_fee_bps, _payment_addr) = match msg {
         Bs721ExecuteMsg::Mint(MintMsg {
@@ -121,10 +121,6 @@ pub fn execute_mint(
         ),
         _ => return Err(ContractError::NotImplemented {}),
     };
-
-    if info.sender != minter.minter {
-        return Err(ContractError::Base(Unauthorized {}));
-    }
 
     // create the token
     let token = TokenInfo {
@@ -588,7 +584,7 @@ pub fn transcode(address: &str) -> StdResult<String> {
     let (_, data) =
         bech32::decode(address).map_err(|_| StdError::generic_err("Invalid bech32 address"))?;
 
-    Ok(bech32::encode("stars", data))
+    Ok(bech32::encode("bitsong", data))
 }
 
 fn validate_address(deps: Deps, sender: &Addr, addr: Addr) -> Result<Addr, ContractError> {

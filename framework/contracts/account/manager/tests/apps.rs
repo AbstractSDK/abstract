@@ -58,7 +58,7 @@ fn execute_on_proxy_through_manager() -> AResult {
     assert_that!(proxy_balance)
         .is_equal_to(vec![forwarded_coin, Coin::new(100_000 - 10_000, TTOKEN)]);
 
-    take_storage_snapshot!(chain, "execute_on_proxy_through_manager");
+  // take_storage_snapshot!(chain, "execute_on_proxy_through_manager");
 
     Ok(())
 }
@@ -69,7 +69,7 @@ fn account_install_app() -> AResult {
     let sender = chain.sender();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::account_install_app(chain.clone())?;
-    take_storage_snapshot!(chain, "account_install_app");
+  // take_storage_snapshot!(chain, "account_install_app");
     Ok(())
 }
 

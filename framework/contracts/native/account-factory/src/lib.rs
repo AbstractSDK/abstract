@@ -11,8 +11,7 @@ mod test_common {
     use abstract_std::account_factory::InstantiateMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
-        testing::{mock_env, mock_info},
-        DepsMut,
+        testing::{mock_env, mock_info}, DepsMut
     };
 
     use crate::{contract, contract::AccountFactoryResult};
@@ -30,10 +29,13 @@ mod test_common {
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),
+                profile_collection_address: None,
+                profile_marketplace_address: None,
                 verifier: None,
-                min_name_length: 3,
-                max_name_length: 128,
-                base_price: 10u128.into(),
+                profile_bps: Some(10u128.into()),
+                max_record_count: None,
+                min_profile_length: None,
+                max_profile_length: None,
             },
         )
     }

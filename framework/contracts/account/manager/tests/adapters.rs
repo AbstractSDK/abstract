@@ -58,7 +58,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     assert_that!(authorized)
         .is_equal_to(adapter::AuthorizedAddressesResponse { addresses: vec![] });
 
-    take_storage_snapshot!(chain, "install_one_adapter");
+    // take_storage_snapshot!(chain, "install_one_adapter");
 
     Ok(())
 }
@@ -98,7 +98,7 @@ fn installing_one_adapter_with_fee_should_succeed() -> AResult {
     abstract_integration_tests::manager::installing_one_adapter_with_fee_should_succeed(
         chain.clone(),
     )?;
-    take_storage_snapshot!(chain, "install_one_adapter_with_fee");
+    // take_storage_snapshot!(chain, "install_one_adapter_with_fee");
     Ok(())
 }
 
@@ -204,7 +204,7 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
     account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
-    take_storage_snapshot!(chain, "reinstalling_adapter_should_be_allowed");
+  // take_storage_snapshot!(chain, "reinstalling_adapter_should_be_allowed");
 
     Ok(())
 }
@@ -278,7 +278,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     assert_ne!(old_adapter_addr, adapter2.address()?);
 
     assert_that!(modules[1].address).is_equal_to(adapter2.as_instance().address()?);
-    take_storage_snapshot!(chain, "reinstalling_new_version_should_install_latest");
+    // take_storage_snapshot!(chain, "reinstalling_new_version_should_install_latest");
 
     Ok(())
 }
@@ -370,7 +370,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let modules = account.expect_modules(vec![v1_adapter_addr.to_string()])?;
     let installed_module: ManagerModuleInfo = modules[1].clone();
     assert_that!(installed_module.id).is_equal_to(adapter1.id());
-    take_storage_snapshot!(chain, "installing_specific_version_should_install_expected");
+    // take_storage_snapshot!(chain, "installing_specific_version_should_install_expected");
 
     Ok(())
 }
@@ -395,7 +395,7 @@ fn account_install_adapter() -> AResult {
         .unwrap()
         .address;
     assert_that!(adapter_addr).is_equal_to(module_addr);
-    take_storage_snapshot!(chain, "account_install_adapter");
+    // take_storage_snapshot!(chain, "account_install_adapter");
     Ok(())
 }
 

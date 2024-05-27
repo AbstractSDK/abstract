@@ -6,6 +6,7 @@ use abstract_std::{
 use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_asset::AssetError;
 use cw_controllers::AdminError;
+use cw_utils::PaymentError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -15,6 +16,9 @@ pub enum AccountFactoryError {
 
     #[error("{0}")]
     Abstract(#[from] AbstractError),
+    
+    #[error("{0}")]
+    PaymentError(#[from] PaymentError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),
@@ -81,4 +85,7 @@ pub enum AccountFactoryError {
 
     #[error("Name too long")]
     NameTooLong {},
+
+    #[error("Incorrect payment. Got: {got}, expected {expected}")]
+    IncorrectPayment { got: u128, expected: u128 },
 }
