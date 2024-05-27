@@ -280,7 +280,7 @@ mod test {
 
     use super::*;
     use crate::mock_module::*;
-    const TEST_HOST_CHAIN: &str = "host_chain";
+    const TEST_HOST_CHAIN: &str = "hostchain";
 
     /// Tests that a host_action can be built with no callback
     #[test]
