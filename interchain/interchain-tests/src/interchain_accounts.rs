@@ -256,7 +256,7 @@ mod test {
 
         // Enable ibc on STARGAZE from JUNO.
         let enable_ibc_tx = origin_account.manager.execute_on_remote(
-            &ChainName::from_chain_id(STARGAZE).to_string(),
+            ChainName::from_chain_id(STARGAZE),
             ManagerExecuteMsg::UpdateSettings {
                 ibc_enabled: Some(true),
             },
