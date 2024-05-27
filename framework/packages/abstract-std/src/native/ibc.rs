@@ -57,7 +57,7 @@ impl IbcResponseMsg {
     }
 
     /// Get module to module query response
-    /// We set data field to query response if module-to-module message was query instead
+    /// We set data field to query response if module-to-module message action was query instead
     pub fn module_query_response(self) -> StdResult<Binary> {
         if let CallbackResult::Execute {
             initiator_msg: _,
