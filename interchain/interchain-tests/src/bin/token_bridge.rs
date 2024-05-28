@@ -14,6 +14,10 @@ use cw_orch::prelude::{queriers::Ibc, *};
 use cw_orch_proto::tokenfactory::{
     create_denom, create_transfer_channel, get_denom, mint, transfer_tokens,
 };
+use cw_orch_starship::Starship;
+
+use cw_orch_interchain_core::env::InterchainEnv;
+use cw_orch_interchain_daemon::ChannelCreator;
 use ibc_relayer_types::core::ics24_host::identifier::PortId;
 
 pub fn token_bridge() -> AnyResult<()> {
@@ -56,6 +60,8 @@ pub fn token_bridge() -> AnyResult<()> {
         None,
         None,
     )
+    .unwrap()
+    .into_result()
     .unwrap();
 
     // Get the denom from the trace on the receiving chain
@@ -91,6 +97,8 @@ pub fn token_bridge() -> AnyResult<()> {
         None,
         None,
     )
+    .unwrap()
+    .into_result()
     .unwrap();
 
     let balance = stargaze

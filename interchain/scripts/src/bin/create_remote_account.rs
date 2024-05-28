@@ -12,6 +12,8 @@ use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
 use cw_orch::environment::ChainKind;
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
+use cw_orch_interchain_core::env::InterchainEnv;
+use cw_orch_interchain_daemon::{ChannelCreationValidator, DaemonInterchainEnv};
 use tokio::runtime::Runtime;
 
 fn main() -> cw_orch::anyhow::Result<()> {
@@ -110,9 +112,6 @@ fn connect(
     )?;
 
     // We make sure the IBC execution is done when creating the account
-    interchain
-        .wait_ibc(src_chain.chain_id, tx_response)
-        .unwrap();
-
+    interchain.check_ibc(src_chain.chain_id, tx_response)?;
     Ok(())
 }

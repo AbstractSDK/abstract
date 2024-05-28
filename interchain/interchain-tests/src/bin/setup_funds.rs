@@ -13,7 +13,10 @@ use abstract_std::{ans_host::ExecuteMsgFns, objects::UncheckedChannelEntry, ICS2
 use anyhow::Result as AnyResult;
 use cosmwasm_std::coins;
 use cw_orch::prelude::*;
+use cw_orch_interchain_core::env::InterchainEnv;
+use cw_orch_interchain_daemon::ChannelCreator;
 use cw_orch_proto::tokenfactory::{create_denom, create_transfer_channel, get_denom, mint};
+use cw_orch_starship::Starship;
 
 pub fn test_send_funds() -> AnyResult<()> {
     env_logger::init();
@@ -94,7 +97,7 @@ pub fn test_send_funds() -> AnyResult<()> {
         },
     )?;
 
-    interchain.wait_ibc(STARGAZE, send_funds_tx)?;
+    interchain.check_ibc(STARGAZE, send_funds_tx)?;
 
     // Verify the funds have been received
     let remote_account_config = abstr_juno

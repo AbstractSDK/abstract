@@ -3,8 +3,8 @@ use abstract_std::ibc_client::{ExecuteMsgFns as _, QueryMsgFns as _};
 use abstract_std::ibc_host::{ExecuteMsgFns, QueryMsgFns};
 use abstract_std::objects::chain_name::ChainName;
 use anyhow::anyhow;
-use cw_orch::interchain::InterchainError;
 use cw_orch::prelude::*;
+use cw_orch_interchain_core::{IbcQueryHandler, InterchainEnv, InterchainError};
 use cw_orch_polytone::Polytone;
 use polytone_note::msg::QueryMsgFns as _;
 use tokio::runtime::Handle;
@@ -32,7 +32,7 @@ pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<C
         polytone_src.note.address()?.to_string(),
     )?;
     // We make sure the IBC execution is done so that the proxy address is saved inside the Abstract contract
-    interchain.wait_ibc(&chain1_id, proxy_tx_result).unwrap();
+    interchain.check_ibc(&chain1_id, proxy_tx_result)?;
 
     // Finally, we get the proxy address and register the proxy with the ibc host for the dest chain
     let proxy_address = abstr.ibc.client.host(chain2_name.to_string())?;
