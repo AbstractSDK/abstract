@@ -2,7 +2,7 @@ use abstract_interface::Abstract;
 use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
 use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
-use cw_orch_interchain_core::{IbcQueryHandler, InterchainEnv};
+use cw_orch_interchain::prelude::*;
 use cw_orch_polytone::Polytone;
 use polytone::handshake::POLYTONE_VERSION;
 
@@ -60,10 +60,10 @@ pub mod mock_test {
     use abstract_std::{
         ibc_client::QueryMsgFns, ibc_host::QueryMsgFns as _, objects::chain_name::ChainName,
     };
-    use cw_orch_interchain_mock::MockBech32InterchainEnv;
 
     use super::*;
     use crate::{JUNO, STARGAZE};
+    use cw_orch_interchain::prelude::*;
 
     /// This allows env_logger to start properly for tests
     /// The logs will be printed only if the test fails !

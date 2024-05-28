@@ -16,7 +16,7 @@ cw2 = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
-cw-orch-interchain-core = { workspace = true }
+cw-orch-interchain = { workspace = true }
 cw-orch-clone-testing = { workspace = true }
 cw-orch-polytone = { workspace = true }
 abstract-std = { workspace = true }
@@ -48,4 +48,3 @@ abstract-cw-staking = { workspace = true }
 abstract-money-market-adapter = { workspace = true }
 abstract-client = { workspace = true }
 polytone-note = { workspace = true }
-cw-orch-interchain-daemon = { workspace = true }

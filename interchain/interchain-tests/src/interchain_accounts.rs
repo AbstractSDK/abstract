@@ -7,8 +7,8 @@ use abstract_interface::{
 };
 use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
-use cw_orch_interchain_core::{IbcQueryHandler, InterchainEnv};
 
+use cw_orch_interchain::prelude::*;
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
 pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of an account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
@@ -102,7 +102,7 @@ mod test {
     use ibc_relayer_types::core::ics24_host::identifier::PortId;
     use polytone::handshake::POLYTONE_VERSION;
 
-    use cw_orch_interchain_mock::MockBech32InterchainEnv;
+    use cw_orch_interchain::prelude::*;
     #[test]
     fn ibc_account_action() -> AnyResult<()> {
         logger_test_init();

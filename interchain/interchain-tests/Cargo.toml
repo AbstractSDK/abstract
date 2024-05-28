@@ -9,12 +9,8 @@ edition = { workspace = true }
 [dependencies]
 cosmwasm-std = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch-interchain = { workspace = true, features = ["daemon"] }
 cw-orch-proto = { workspace = true }
-cw-orch-interchain-core = { workspace = true }
-cw-orch-interchain-mock = { workspace = true }
-cw-orch-interchain-daemon = { workspace = true }
-
-cw-orch-starship = { workspace = true }
 
 abstract-std = { workspace = true }
 abstract-app = { workspace = true, features = ["test-utils"] }

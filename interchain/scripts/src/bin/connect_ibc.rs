@@ -4,7 +4,8 @@ use abstract_scripts::{NEUTRON_1, ROLLKIT_TESTNET};
 use cw_orch::daemon::networks::{ARCHWAY_1, HARPOON_4, JUNO_1, OSMO_5, PHOENIX_1, PION_1};
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
-use cw_orch_interchain_daemon::{ChannelCreationValidator, DaemonInterchainEnv};
+
+use cw_orch_interchain::prelude::*;
 use cw_orch_polytone::Polytone;
 use tokio::runtime::Runtime;
 

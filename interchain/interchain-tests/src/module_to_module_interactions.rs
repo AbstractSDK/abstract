@@ -310,8 +310,7 @@ pub mod test {
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary};
     use cw_orch::prelude::*;
-    use cw_orch_interchain_core::{types::IbcPacketOutcome, InterchainEnv};
-    use cw_orch_interchain_mock::MockBech32InterchainEnv;
+    use cw_orch_interchain::{prelude::*, types::IbcPacketOutcome};
 
     #[test]
     fn target_module_must_exist() -> AnyResult<()> {

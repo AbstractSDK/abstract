@@ -12,8 +12,7 @@ use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
 use cw_orch::environment::ChainKind;
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
-use cw_orch_interchain_core::env::InterchainEnv;
-use cw_orch_interchain_daemon::{ChannelCreationValidator, DaemonInterchainEnv};
+use cw_orch_interchain::prelude::*;
 use tokio::runtime::Runtime;
 
 fn main() -> cw_orch::anyhow::Result<()> {

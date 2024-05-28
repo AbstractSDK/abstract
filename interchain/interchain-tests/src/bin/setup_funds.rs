@@ -13,10 +13,8 @@ use abstract_std::{ans_host::ExecuteMsgFns, objects::UncheckedChannelEntry, ICS2
 use anyhow::Result as AnyResult;
 use cosmwasm_std::coins;
 use cw_orch::prelude::*;
-use cw_orch_interchain_core::env::InterchainEnv;
-use cw_orch_interchain_daemon::ChannelCreator;
+use cw_orch_interchain::prelude::*;
 use cw_orch_proto::tokenfactory::{create_denom, create_transfer_channel, get_denom, mint};
-use cw_orch_starship::Starship;
 
 pub fn test_send_funds() -> AnyResult<()> {
     env_logger::init();
