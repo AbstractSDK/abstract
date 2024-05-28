@@ -18,7 +18,7 @@ use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
-    features::{AccountIdentification, Dependencies, ModuleIdentification},
+    features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult, ModuleRegistryInterface,
 };
 
@@ -46,7 +46,7 @@ pub trait IbcInterface:
 }
 
 impl<T> IbcInterface for T where
-    T: AccountIdentification + ModuleRegistryInterface + ModuleIdentification + Dependencies
+    T: AccountIdentification + ModuleRegistryInterface + ModuleIdentification
 {
 }
 
@@ -91,6 +91,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         self.base
             .module_registry(self.deps)?
             // TODO: Update when client versions are fixed.
+            // Use Dependencies trait bound
             .query_module(ModuleInfo::from_id_latest(IBC_CLIENT)?)?
             .reference
             .unwrap_native()
