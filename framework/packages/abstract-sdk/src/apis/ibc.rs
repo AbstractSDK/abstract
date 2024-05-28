@@ -19,11 +19,13 @@ use serde::Serialize;
 use super::{AbstractApi, ApiIdentification};
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
-    AbstractSdkResult, ModuleInterface,
+    AbstractSdkResult, ModuleRegistryInterface,
 };
 
 /// Interact with other chains over IBC.
-pub trait IbcInterface: AccountIdentification + ModuleInterface + ModuleIdentification {
+pub trait IbcInterface:
+    AccountIdentification + ModuleRegistryInterface + ModuleIdentification
+{
     /**
         API for interacting with the Abstract IBC client.
 
@@ -43,7 +45,10 @@ pub trait IbcInterface: AccountIdentification + ModuleInterface + ModuleIdentifi
     }
 }
 
-impl<T> IbcInterface for T where T: AccountIdentification + ModuleInterface + ModuleIdentification {}
+impl<T> IbcInterface for T where
+    T: AccountIdentification + ModuleRegistryInterface + ModuleIdentification
+{
+}
 
 impl<'a, T: IbcInterface> AbstractApi<T> for IbcClient<'a, T> {
     fn base(&self) -> &T {
@@ -83,7 +88,12 @@ pub struct IbcClient<'a, T: IbcInterface> {
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Get address of this module
     pub fn module_address(&self) -> AbstractSdkResult<Addr> {
-        self.base.modules(self.deps).module_address(IBC_CLIENT)
+        self.base
+            .module_registry(self.deps)?
+            .query_module(ModuleInfo::from_id_latest(IBC_CLIENT)?)?
+            .reference
+            .unwrap_native()
+            .map_err(Into::into)
     }
 
     /// Registers the ibc client to be able to use IBC capabilities
