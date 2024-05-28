@@ -90,6 +90,8 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     pub fn module_address(&self) -> AbstractSdkResult<Addr> {
         self.base
             .module_registry(self.deps)?
+            // TODO: Update when client versions are fixed.
+            // Use Dependencies trait bound
             .query_module(ModuleInfo::from_id_latest(IBC_CLIENT)?)?
             .reference
             .unwrap_native()
