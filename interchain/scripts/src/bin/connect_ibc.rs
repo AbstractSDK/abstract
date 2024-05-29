@@ -1,10 +1,9 @@
 use abstract_interface::Abstract;
-use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
-use abstract_scripts::{NEUTRON_1, ROLLKIT_TESTNET};
-use cw_orch::daemon::networks::{ARCHWAY_1, HARPOON_4, JUNO_1, OSMO_5, PHOENIX_1, PION_1};
+use cw_orch::daemon::networks::{HARPOON_4, PION_1};
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
 
+use abstract_interface::connection::abstract_ibc_connection_with;
 use cw_orch_interchain::prelude::*;
 use cw_orch_polytone::Polytone;
 use tokio::runtime::Runtime;
