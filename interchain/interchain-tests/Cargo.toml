@@ -5,7 +5,6 @@ edition = { workspace = true }
 
 [lib]
 
-
 [dependencies]
 cosmwasm-std = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
@@ -18,7 +17,6 @@ abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-interface = { workspace = true }
-abstract-scripts = { path = "../scripts" }
 
 tokio = { workspace = true }
 log = "0.4.14"

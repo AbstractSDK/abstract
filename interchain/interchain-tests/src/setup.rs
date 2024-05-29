@@ -1,5 +1,5 @@
+use abstract_interface::connection::abstract_ibc_connection_with;
 use abstract_interface::Abstract;
-use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
 use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
 use cw_orch_interchain::prelude::*;
@@ -63,7 +63,6 @@ pub mod mock_test {
 
     use super::*;
     use crate::{JUNO, STARGAZE};
-    use cw_orch_interchain::prelude::*;
 
     /// This allows env_logger to start properly for tests
     /// The logs will be printed only if the test fails !

@@ -7,8 +7,8 @@ use abstract_interface::{
 };
 use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
-
 use cw_orch_interchain::prelude::*;
+
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
 pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of an account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
@@ -81,7 +81,6 @@ mod test {
     use super::*;
 
     use abstract_interface::AccountFactoryExecFns;
-    use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
     use abstract_std::{
         ans_host::ExecuteMsgFns as AnsExecuteMsgFns,
         ibc_client::AccountResponse,
@@ -95,6 +94,7 @@ mod test {
         ICS20, PROXY,
     };
 
+    use abstract_interface::connection::abstract_ibc_connection_with;
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary, wasm_execute, Uint128};
     use cw_orch::mock::cw_multi_test::AppResponse;
@@ -102,7 +102,6 @@ mod test {
     use ibc_relayer_types::core::ics24_host::identifier::PortId;
     use polytone::handshake::POLYTONE_VERSION;
 
-    use cw_orch_interchain::prelude::*;
     #[test]
     fn ibc_account_action() -> AnyResult<()> {
         logger_test_init();
