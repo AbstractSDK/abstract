@@ -1,103 +1,114 @@
 #!/bin/sh
-vc_code_id=
-ans_code_id=
-account_factory_code_id=
-module_factory_code_id=
-bs721_profile_code_id=
-bs721_marketplace_code_id=
-ibc_client_code_id=
-ibc_host_code_id=
-proxy_code_id=
-manager_code_id=
+account_factory_code_id=1
+ans_code_id=2
+ibc_client_code_id=3
+ibc_host_code_id=4
+manager_code_id=5
+module_factory_code_id=6
+proxy_code_id=7
+vc_code_id=8
+bs721_profile_code_id=9
+bs721_marketplace_code_id=10
 
 admin_key=""
 bidder_key=""
 admin_addr=""
 bidder_addr=""
 binary=
-gas_price="0.05uthiolx"
-tx_flags="--from=$admin_key --gas auto --gas-adjustment 2 --gas-prices=$gas_price -y -o json"
-tx_flags_2="--from=$bidder_key --gas auto --gas-adjustment 2 --gas-prices=$gas_price -y -o json"
+chain_id=
+gas_price=""
+tx_flags="--from=$admin_key  --chain-id $chain_id --gas auto --gas-adjustment 2 --gas-prices=$gas_price -y -o json"
+tx_flags_2="--from=$bidder_key --chain-id $chain_id --gas auto --gas-adjustment 2 --gas-prices=$gas_price -y -o json"
 
 
 # ANS
+echo 'Creating ANS'
 ans_i=$($binary tx wasm i $ans_code_id '{"admin": "'$admin_addr'"}'  --label="ans_host" --admin $admin_addr  $tx_flags)
 ans_hash=$(echo "$ans_i" | jq -r '.txhash');
 echo 'waiting for tx to process'
 sleep 6;
-ans_tx=$(terpd q tx $ans_hash -o json)
+ans_tx=$($binary q tx $ans_hash -o json)
 ans_addr=$(echo "$ans_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
 echo "ans_addr: $ans_addr"
 
 # Version Control
+echo 'Creating Version Control'
 vc_i=$($binary tx wasm i $vc_code_id '{"admin": "'$admin_addr'", "security_disabled": false}'  --label="abstract_version_control" --admin $admin_addr  $tx_flags)
 vc_hash=$(echo "$vc_i" | jq -r '.txhash')
 echo 'waiting for tx to process'
 sleep 6;
-vc_tx=$(terpd q tx $vc_hash -o json)
+vc_tx=$($binary q tx $vc_hash -o json)
 vc_addr=$(echo "$vc_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
 echo "vc_addr: $vc_addr"
 
 # Module Factory
+echo 'Creating Module Factory'
 mf_i=$($binary tx wasm i $module_factory_code_id '{"admin": "'$admin_addr'","version_control_address":"'$vc_addr'","ans_host_address":"'$ans_addr'"}' $tx_flags --label="abstract_module_factory" --admin $admin_addr)
 mf_hash=$(echo "$mf_i" | jq -r '.txhash')
 echo 'waiting for tx to process'
 sleep 6;
-mf_tx=$(terpd q tx $mf_hash -o json)
+mf_tx=$($binary q tx $mf_hash -o json)
 module_factory_addr=$(echo "$mf_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
 echo "module_factory_addr: $module_factory_addr"
 
 # Account Factory
-af_i=$($binary tx wasm i $account_factory_code_id '{"admin": "'$admin_addr'", "version_control_address":"'$vc_addr'","ans_host_address":"'$ans_addr'", "module_factory_address":"'$module_factory_addr'","min_name_length": 3, "max_name_length":128, "base_price": "10"}'  --label="abstract_account_factory" --admin $admin_addr  $tx_flags)
+echo 'Creating Account Factory'
+af_i=$($binary tx wasm i $account_factory_code_id '{"admin": "'$admin_addr'", "version_control_address":"'$vc_addr'","ans_host_address":"'$ans_addr'", "module_factory_address":"'$module_factory_addr'","min_profile_length": 3, "max_profile_length":128, "profile_bps": "10"}'  --label="abstract_account_factory" --admin $admin_addr  $tx_flags)
 af_hash=$(echo "$af_i" | jq -r '.txhash')
 echo 'waiting for tx to process'
 sleep 6;
-af_tx=$(terpd q tx $af_hash -o json)
+af_tx=$($binary q tx $af_hash -o json)
 account_factory_addr=$(echo "$af_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
 echo "account_factory_addr: $account_factory_addr"
 
-# Bs Profile
-bs_profile_i=$($binary tx wasm i $bs721_profile_code_id '{"base_init_msg": {"name":"test","symbol":"TEST", "minter":"'$account_factory_addr'", "collection_info":{"creator":"'$admin_addr'","description":"test description","image":"https://www.testimageurl.com", "external_link":"https://www.beautiful.network"}}}' $tx_flags --label="bs721_profile" --admin $admin_addr )
-bs_profile_hash=$(echo "$bs_profile_i" | jq -r '.txhash')
-echo 'waiting for tx to process'
-sleep 6;
-bs_tx=$(terpd q tx $bs_profile_hash -o json)
-bs721_profile_addr=$(echo "$bs_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
-echo "bs721_profile_addr: $bs721_profile_addr"
+# # Bs Profile
+# echo 'Creating Bs Profile'
+# bs_profile_i=$($binary tx wasm i $bs721_profile_code_id '{"base_init_msg": {"name":"test","symbol":"TEST", "minter":"'$account_factory_addr'", "collection_info":{"creator":"'$admin_addr'","description":"test description","image":"https://www.testimageurl.com", "external_link":"https://www.beautiful.network"}}}' $tx_flags --label="bs721_profile" --admin $admin_addr )
+# bs_profile_hash=$(echo "$bs_profile_i" | jq -r '.txhash')
+# echo 'waiting for tx to process'
+# sleep 6;
+# bs_tx=$($binary q tx $bs_profile_hash -o json)
+# bs721_profile_addr=$(echo "$bs_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
+# echo "bs721_profile_addr: $bs721_profile_addr"
 
-# Marketplace 
-marketplace_i=$($binary tx wasm i $bs721_marketplace_code_id '{"trading_fee_bps":25,"min_price": "100", "ask_interval": 100, "factory":"'$account_factory_addr'","collection":"'$bs721_profile_addr'"}' --label="profile marketplace" --admin $admin_addr  $tx_flags)
-marketplace_hash=$(echo "$marketplace_i" | jq -r '.txhash')
-echo 'waiting for tx to process'
-sleep 6;
-m_tx=$(terpd q tx $marketplace_hash -o json)
-bs721_marketplace_addr=$(echo "$m_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
-echo "bs721_marketplace_addr: $bs721_marketplace_addr"
+# # Marketplace 
+# echo 'Creating Marketplace'
+# marketplace_i=$($binary tx wasm i $bs721_marketplace_code_id '{"trading_fee_bps":25,"min_price": "100", "ask_interval": 100, "factory":"'$account_factory_addr'","collection":"'$bs721_profile_addr'"}' --label="profile marketplace" --admin $admin_addr  $tx_flags)
+# marketplace_hash=$(echo "$marketplace_i" | jq -r '.txhash')
+# echo 'waiting for tx to process'
+# sleep 6;
+# m_tx=$($binary q tx $marketplace_hash -o json)
+# bs721_marketplace_addr=$(echo "$m_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
+# echo "bs721_marketplace_addr: $bs721_marketplace_addr"
 
 # IBC Client
-ibc_client_i=$($binary tx wasm i $ibc_client_code_id '{"ans_host_address":"'$ans_addr'","version_control_address":"'$vc_addr'"}' --admin $admin_addr  $tx_flags --label="ibc_client" $tx_flags)
+echo 'Creating IBC Client'
+ibc_client_i=$($binary tx wasm i $ibc_client_code_id '{"ans_host_address":"'$ans_addr'","version_control_address":"'$vc_addr'"}' --admin $admin_addr  $tx_flags --label="ibc_client")
 ibc_client_hash=$(echo "$ibc_client_i" | jq -r '.txhash')
 echo 'waiting for tx to process'
 sleep 6;
-ibc_c_tx=$(terpd q tx $ibc_client_hash -o json)
-ibc_client_addr=$(echo "$m_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
+ibc_c_tx=$($binary q tx $ibc_client_hash -o json)
+ibc_client_addr=$(echo "$ibc_c_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
 echo "ibc_client_addr: $ibc_client_addr"
 
 # IBC Host
-ibc_host_i=$($binary tx wasm i $ibc_host_code_id '{"ans_host_address":"'$ans_addr'","account_factory_address":"'$account_factory_addr'","version_control_address":"'$vc_addr'"}' --admin $admin_addr  $tx_flags --label="ibc_host" $tx_flags)
+echo 'Creating IBC Host'
+ibc_host_i=$($binary tx wasm i $ibc_host_code_id '{"ans_host_address":"'$ans_addr'","account_factory_address":"'$account_factory_addr'","version_control_address":"'$vc_addr'"}' --admin $admin_addr  $tx_flags --label="ibc_host")
 ibc_host_hash=$(echo "$ibc_host_i" | jq -r '.txhash')
 echo 'waiting for tx to process'
 sleep 6;
-ibc_h_tx=$(terpd q tx $ibc_host_hash -o json)
-ibc_host_addr=$(echo "$m_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
+ibc_h_tx=$($binary q tx $ibc_host_hash -o json)
+ibc_host_addr=$(echo "$ibc_h_tx" | jq -r '.logs[].events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
 echo "ibc_host_addr: $ibc_host_addr"
 
 # Update VC config
+echo 'Updating VC Config'
 $binary tx wasm e $vc_addr '{"update_config":{"account_factory_address":"'$account_factory_addr'"}}' $tx_flags
 echo 'waiting for tx to process'
 sleep 6;
 
 # Propose Modules to VC
+echo 'Proposing Modules to VC'
 MSG=$(cat <<EOF
 {
     "propose_modules": {"modules": [
@@ -108,9 +119,7 @@ MSG=$(cat <<EOF
         [{"name": "account-factory","namespace": "abstract","version": {"version": "0.22.1"}},{"native": "$account_factory_addr"}],
         [{"name": "module-factory","namespace": "abstract", "version": {"version": "0.22.1"}},{"native": "$module_factory_addr"}],
         [{"name": "ibc-client","namespace": "abstract","version": {"version": "0.22.1"}},{"native": "$ibc_client_addr"}],
-        [{"name": "ibc-host","namespace": "abstract","version": {"version": "0.22.1"}},{"native": "$ibc_host_addr"}],
-        [{"name": "bs721-profile","namespace": "abstract","version": {"version": "0.22.1"}},{"native": "$bs721_profile_addr"}],
-        [{"name": "profile-marketplace","namespace": "abstract","version": {"version": "0.22.1"}},{"native": "$bs721_marketplace_addr"}]
+        [{"name": "ibc-host","namespace": "abstract","version": {"version": "0.22.1"}},{"native": "$ibc_host_addr"}]
     ]}
 }
 EOF
@@ -120,68 +129,103 @@ $binary tx wasm e $vc_addr "$MSG" $tx_flags
 echo 'waiting for tx to process'
 sleep 6;
 # Approve Modules to VC
-$binary tx wasm e $vc_addr '{"approve_or_reject_modules": {"approves": [{"name": "manager","namespace": "abstract","version": {"version": "0.22.1"}},{"name": "proxy","namespace": "abstract","version": {"version": "0.22.1"}},{"name": "ans-host","namespace": "abstract","version": {"version": "0.22.1"}},{"name": "version-control","namespace": "abstract","version": {"version": "0.22.1"}},{"name": "account-factory","namespace": "abstract","version": {"version": "0.22.1"}},{"name": "module-factory","namespace": "abstract","version": {"version": "0.22.1"}},{"name": "ibc-client","namespace": "abstract","version": {"version": "0.22.1"}},{"name": "ibc-host","namespace": "abstract","version": {"version": "0.22.1"}},{"name": "bs721-profile","namespace": "abstract","version": {"version": "0.22.1"}},{"name": "profile-marketplace","namespace": "abstract","version": {"version": "0.22.1"}}],"rejects": []}}' $tx_flags
+echo 'Approve Modules to VC'
+MSG2=$(cat <<EOF
+{"approve_or_reject_modules": {
+    "approves": [
+        {"name": "manager","namespace": "abstract","version": {"version": "0.22.1"}},
+        {"name": "proxy","namespace": "abstract","version": {"version": "0.22.1"}},
+        {"name": "ans-host","namespace": "abstract","version": {"version": "0.22.1"}},
+        {"name": "version-control","namespace": "abstract","version": {"version": "0.22.1"}},
+        {"name": "account-factory","namespace": "abstract","version": {"version": "0.22.1"}},
+        {"name": "module-factory","namespace": "abstract","version": {"version": "0.22.1"}},
+        {"name": "ibc-client","namespace": "abstract","version": {"version": "0.22.1"}},
+        {"name": "ibc-host","namespace": "abstract","version": {"version": "0.22.1"}}
+    ],
+    "rejects": []
+    }
+}
+EOF
+)
+$binary tx wasm e $vc_addr "$MSG2" $tx_flags
 echo 'waiting for tx to process'
 sleep 6;
 
 # Update Account Factory Config 
+echo 'Update Account Factory'
 $binary tx wasm e $account_factory_addr '{"update_config":{"ibc_host":"'$ibc_host_addr'"}}' $tx_flags
 echo 'waiting for tx to process'
 sleep 6;
 
 # Setup Profile Infra on Account Factory
-$binary tx wasm e $account_factory_addr '{"setup_profile_infra":{"marketplace_addr":"'$bs721_marketplace_addr'","profile_addr":"'$bs721_profile_addr'"}}' $tx_flags 
+echo 'Setup Profile Infra on Account Factory'
+$binary tx wasm e $account_factory_addr '{"setup_profile_infra":{"marketplace_code_id":'$bs721_marketplace_code_id',"profile_code_id":'$bs721_profile_code_id'}}' $tx_flags 
 echo 'waiting for tx to process'
 sleep 6;
 
 ## Create Account 
-admin_tx=$($binary tx wasm e $account_factory_addr '{"create_account": {"governance":{"Monarchy":{"monarch":"'$admin_addr'"}},"name":"first-os","install_modules":[],"bs_profile":"the-monk-on-iron-mountain"}}'$tx_flags)
-bidder_tx=$($binary tx wasm e $account_factory_addr '{"create_account": {"governance":{"Monarchy":{"monarch":"'$bidder_addr'"}},"name":"first-os","install_modules":[],"bs_profile":"the-monk-on-iron-mountain"}}'$tx_flags_2 --amount 1000000uthiolx)
+echo 'Create Account 1'
+admin_tx=$($binary tx wasm e $account_factory_addr '{"create_account": {"governance":{"Monarchy":{"monarch":"'$admin_addr'"}},"name":"first-os","install_modules":[],"bs_profile":"the-monk-on-iron-mountain"}}' $tx_flags)
+echo 'waiting for tx to process'
 sleep 6;
 admin_account_tx=$(echo "$admin_tx" | jq -r '.txhash')
+echo $admin_account_tx
+admin_query=$($binary q tx $admin_account_tx -o json)
+admin_manager_addr=$(echo "$admin_query" | jq -r '.logs[].events[] | select(.type == "wasm-abstract") | .attributes[] | select(.key == "manager_address") | .value')
+admin_proxy_addr=$(echo "$admin_query" | jq -r '.logs[].events[] | select(.type == "wasm-abstract") | .attributes[] | select(.key == "proxy_address") | .value')
+echo 'admin_manager_addr: '$admin_manager_addr''
+echo 'admin_proxy_addr: '$admin_proxy_addr''
+
+echo 'Creating Account 2'
+bidder_tx=$($binary tx wasm e $account_factory_addr '{"create_account": {"governance":{"Monarchy":{"monarch":"'$bidder_addr'"}},"name":"first-os","install_modules":[],"bs_profile":"the-monk-on-iron-mountain2"}}' $tx_flags_2 --amount 10000000ubtsg)
+echo 'waiting for tx to process'
+sleep 6;
 bidder_account_tx=$(echo "$bidder_tx" | jq -r '.txhash')
-
-admin_query=$(terpd q tx $admin_account_tx -o json)
-bidder_query=$(terpd q tx $bidder_account_tx -o json)
-
-admin_manager_addr=$(echo "$admin_account_tx" | jq -r '.logs[].events[] | select(.type == "instantiate" and (.attributes[] | select(.key == "code_id").value == "'$manager_code_id'")) | .attributes[] | select(.key == "_contract_address") | .value')
-admin_proxy_addr=$(echo "$admin_account_tx" | jq -r '.logs[].events[] | select(.type == "instantiate" and (.attributes[] | select(.key == "code_id").value == "'$proxy_code_id'")) | .attributes[] | select(.key == "_contract_address") | .value')
-bidder_manager_addr=$(echo "$bidder_account_tx" | jq -r '.logs[].events[] | select(.type == "instantiate" and (.attributes[] | select(.key == "code_id").value == "'$manager_code_id'")) | .attributes[] | select(.key == "_contract_address") | .value')
-bidder_proxy_addr=$(echo "$bidder_account_tx" | jq -r '.logs[].events[] | select(.type == "instantiate" and (.attributes[] | select(.key == "code_id").value == "'$proxy_code_id'")) | .attributes[] | select(.key == "_contract_address") | .value')
+bidder_query=$($binary q tx $bidder_account_tx -o json)
+bidder_manager_addr=$(echo "$bidder_query" | jq -r '.logs[].events[] | select(.type == "wasm-abstract") | .attributes[] | select(.key == "manager_address") | .value')
+bidder_proxy_addr=$(echo "$bidder_query" | jq -r '.logs[].events[] | select(.type == "wasm-abstract") | .attributes[] | select(.key == "proxy_address") | .value')
+echo 'bidder_manager_addr: '$bidder_manager_addr''
+echo 'bidder_proxy_addr: '$bidder_proxy_addr''
 
 ## Query Profile Collection 
-$binary q wasm contract-state smart $bs721_profile_addr '{"all_tokens":{}}'
-$binary q wasm contract-state smart $bs721_profile_addr '{"all_tokens":{}}'
+# echo 'Query Profile Collection'
+# $binary q wasm contract-state smart $bs721_profile_addr '{"all_tokens":{}}'
+# $binary q wasm contract-state smart $bs721_profile_addr '{"all_tokens":{}}'
 
 
 # Bid Marketplace
-echo 'bid on marketplace'
-$binary tx wasm e $bs721_marketplace_addr  '{"set_bid":{"token_id":"the-monk-on-iron-mountain"}}' $tx_flags_2 --amount 101uthiolx 
-echo 'waiting for tx to process'
-sleep 6;
+# echo 'bid on marketplace'
+# $binary tx wasm e $bs721_marketplace_addr  '{"set_bid":{"token_id":"the-monk-on-iron-mountain"}}' $tx_flags_2 --amount 101ubtsg
+# echo 'waiting for tx to process'
+# sleep 6;
 
 ## Query Marketplace 
-echo 'query ask'
-$binary q wasm contract-state smart $bs721_marketplace_addr '{"ask":{"token_id":"the-monk-on-iron-mountain"}}'
-echo 'query bid'
-$binary q wasm contract-state smart $bs721_marketplace_addr '{"bid":{"token_id":"the-monk-on-iron-mountain"}}'
+# echo 'query ask'
+# $binary q wasm contract-state smart $bs721_marketplace_addr '{"ask":{"token_id":"the-monk-on-iron-mountain"}}'
+# echo 'query bid'
+# $binary q wasm contract-state smart $bs721_marketplace_addr '{"bid":{"token_id":"the-monk-on-iron-mountain"}}'
 
 # Accept Bid 
-echo 'accept bid'
-$binary tx wasm e $bs721_marketplace_addr  '{"execute_accept_bid":{"token_id":"the-monk-on-iron-mountain", "bidder":"'$bidder_addr'"}}' $tx_flags
-echo 'waiting for tx to process'
-sleep 6;
+# echo 'accept bid'
+# $binary tx wasm e $bs721_marketplace_addr  '{"accept_bid":{"token_id":"the-monk-on-iron-mountain", "bidder":"'$bidder_addr'"}}' $tx_flags
+# echo 'waiting for tx to process'
+# sleep 6;
 
 # Query Marketplace Again
-echo 'assert new owner'
-$binary q wasm contract-state smart $bs721_profile_addr '{"name":{"address":"'$bidder_addr'"}}'
-$binary q wasm contract-state smart $bs721_marketplace_addr '{"ask":{"token_id":"the-monk-on-iron-mountain"}}'
+# echo 'assert new owner'
+# $binary q wasm contract-state smart $bs721_profile_addr '{"name":{"address":"'$bidder_addr'"}}'
+# $binary q wasm contract-state smart $bs721_marketplace_addr '{"ask":{"token_id":"the-monk-on-iron-mountain"}}'
 
 # Call Functions Through Smart Contract Account
 echo 'use account contracts to call msg burning tokens'
-$binary q bank balances $admin_proxy_addr
-burn_msg_binary='{"module_action": {"msgs": [{"Bank": {"Burn": {"amount": {"amount": 100,"denom": "uthiolx"}}}}]}}' 
-$binary tx wasm e $admin_manager_addr '{"exec_on_module":{"module_id":"","exec_msg":'$burn_msg_binary'}}' $tx_flags
+$binary q bank balances $bidder_proxy_addr
+burn_msg_binary='{"module_action":{"msgs":[{"bank":{"burn":{"amount":[{"amount":"100","denom":"ubtsg"}]}}}]}}' 
+burn_binary=$(echo $burn_msg_binary | jq -c . | base64)
 
+burn_msg_tx=$($binary tx wasm e $bidder_manager_addr '{"exec_on_module":{"module_id":"abstract:proxy","exec_msg":"'$burn_binary'"}}' $tx_flags_2)
+burn_tx=$(echo "$burn_msg_tx" | jq -r '.txhash')
+
+echo $burn_tx
 # Query Proxy balance
-$binary q bank balances $admin_proxy_addr
+sleep 6;
+$binary q bank balances $bidder_proxy_addr

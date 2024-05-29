@@ -29,8 +29,6 @@ mod test_common {
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),
-                profile_collection_address: None,
-                profile_marketplace_address: None,
                 verifier: None,
                 profile_bps: Some(10u128.into()),
                 max_record_count: None,

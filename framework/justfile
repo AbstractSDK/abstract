@@ -39,7 +39,7 @@ watch-test:
   cargo watch -x "nextest run"
 
 wasm:
-  ./build_release.sh
+  ./scripts/build_release.sh
 
 wasm-module module:
   RUSTFLAGS='-C link-arg=-s' cargo wasm --package {{module}}

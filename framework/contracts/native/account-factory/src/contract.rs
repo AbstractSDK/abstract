@@ -30,8 +30,6 @@ pub fn instantiate(
         version_control_address,
         ans_host_address,
         module_factory_address,
-        profile_collection_address,
-        profile_marketplace_address,
         max_profile_length,
         min_profile_length,
         verifier,
@@ -39,35 +37,29 @@ pub fn instantiate(
         max_record_count,
     } = msg;
 
+    let api = deps.api;
+    cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
+    cw_ownable::initialize_owner(deps.storage, api, Some(&admin))?;
+
     let config = Config {
         version_control_contract: deps.api.addr_validate(&version_control_address)?,
         module_factory_address: deps.api.addr_validate(&module_factory_address)?,
         ans_host_contract: deps.api.addr_validate(&ans_host_address)?,
         ibc_host: None,
     };
-
-    let api = deps.api;
-
-    cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
-    // profile minter config
     let profile_config = ProfileConfig {
-        marketplace_addr: profile_marketplace_address.clone(),
-        collection_addr: profile_collection_address.clone(),
+        marketplace_addr: None,
+        collection_addr: None,
         min_profile_length: min_profile_length.unwrap_or(3u32),
         max_profile_length: max_profile_length.unwrap_or(128u32),
         max_record_count: max_record_count.unwrap_or(10u32),
         profile_bps: profile_bps.unwrap_or(Uint128::zero()),
         verifier,
     };
-    PROFILE_CONFIG.save(deps.storage, &profile_config)?;
-    // true if marketplace & collection are provided
-    IS_PROFILE_SETUP.save(
-        deps.storage,
-        &(profile_marketplace_address.is_some() && profile_collection_address.is_some()),
-    )?;
+
     CONFIG.save(deps.storage, &config)?;
-    // Set up the admin
-    cw_ownable::initialize_owner(deps.storage, api, Some(&admin))?;
+    IS_PROFILE_SETUP.save(deps.storage, &false)?;
+    PROFILE_CONFIG.save(deps.storage, &profile_config)?;
     Ok(AccountFactoryResponse::action("instantiate"))
 }
 
@@ -85,8 +77,6 @@ pub fn execute(
             module_factory_address,
             ibc_host,
             profile_bps,
-            profile_marketplace_address,
-            profile_collection_address,
             verifier,
             min_profile_length,
             max_profile_length,
@@ -98,8 +88,6 @@ pub fn execute(
             module_factory_address,
             ibc_host,
             profile_bps,
-            profile_collection_address,
-            profile_marketplace_address,
             verifier,
             min_profile_length,
             max_profile_length,
@@ -152,6 +140,10 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
             id: commands::CREATE_ACCOUNT_MANAGER_MSG_ID,
             result,
         } => commands::validate_instantiated_account(deps, result),
+        Reply {
+            id: state::INIT_PROFIE_COLLECTION_REPLY_ID,
+            result,
+        } => commands::validate_profile_contracts(deps, result),
         _ => Err(AccountFactoryError::UnexpectedReply {}),
     }
 }
@@ -222,8 +214,6 @@ mod tests {
                 version_control_contract: None,
                 module_factory_address: None,
                 ibc_host: None,
-                profile_marketplace_address: None,
-                profile_collection_address: None,
                 verifier: None,
                 profile_bps: None,
                 min_profile_length: None,
@@ -246,8 +236,6 @@ mod tests {
                 version_control_contract: None,
                 module_factory_address: None,
                 ibc_host: None,
-                profile_marketplace_address: None,
-                profile_collection_address: None,
                 verifier: None,
                 profile_bps: None,
                 min_profile_length: None,
@@ -279,8 +267,6 @@ mod tests {
                 version_control_contract: Some(new_version_control.to_string()),
                 module_factory_address: None,
                 ibc_host: None,
-                profile_marketplace_address: None,
-                profile_collection_address: None,
                 verifier: None,
                 profile_bps: None,
                 min_profile_length: None,
@@ -312,8 +298,6 @@ mod tests {
                 version_control_contract: None,
                 module_factory_address: Some(new_module_factory.to_string()),
                 ibc_host: None,
-                profile_marketplace_address: None,
-                profile_collection_address: None,
                 verifier: None,
                 profile_bps: None,
                 min_profile_length: None,
@@ -347,8 +331,6 @@ mod tests {
                 version_control_contract: Some(new_version_control.to_string()),
                 module_factory_address: Some(new_module_factory.to_string()),
                 ibc_host: None,
-                profile_marketplace_address: None,
-                profile_collection_address: None,
                 verifier: None,
                 profile_bps: None,
                 min_profile_length: None,
@@ -374,20 +356,19 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let new_marketplace = "new_marketplace";
-            let new_collection = "new_collection";
+            let max_profile_length = Some(64);
+            let min_profile_length = Some(20);
+            let profile_bps = Some(Uint128::new(12345u128));
 
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host_contract: None,
                 version_control_contract: None,
                 module_factory_address: None,
                 ibc_host: None,
-                profile_marketplace_address: Some(new_marketplace.to_string()),
-                profile_collection_address: Some(new_collection.to_string()),
                 verifier: None,
-                profile_bps: None,
-                min_profile_length: None,
-                max_profile_length: None,
+                profile_bps,
+                min_profile_length,
+                max_profile_length,
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -395,11 +376,13 @@ mod tests {
 
             let profile_config = PROFILE_CONFIG.load(&deps.storage)?;
 
-            let actual_market = profile_config.marketplace_addr.unwrap();
-            let actual_collection = profile_config.collection_addr.unwrap();
+            let actual_max = profile_config.max_profile_length;
+            let actual_min = profile_config.min_profile_length;
+            let actual_bps = profile_config.profile_bps;
 
-            assert_that!(&actual_market).is_equal_to(Addr::unchecked(new_marketplace));
-            assert_that!(&actual_collection).is_equal_to(Addr::unchecked(new_collection));
+            assert_that!(&actual_max).is_equal_to(max_profile_length.unwrap());
+            assert_that!(&actual_min).is_equal_to(min_profile_length.unwrap());
+            assert_that!(&actual_bps).is_equal_to(profile_bps.unwrap());
 
             Ok(())
         }

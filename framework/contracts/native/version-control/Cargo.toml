@@ -31,7 +31,7 @@ abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
 abstract-macros = { workspace = true }
 cw-ownable = { workspace = true }
-cosmwasm-schema = "2.0.2"
+cosmwasm-schema = { workspace = true }
 
 bs721-base = { workspace = true, features = ["library"] }
 bs721-profile = { workspace = true}

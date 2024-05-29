@@ -142,31 +142,18 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
                 None,
                 None,
                 None,
-                Some(deployment.bs721_profile.address().unwrap().to_string()),
-                Some(
-                    deployment
-                        .profile_marketplace
-                        .address()
-                        .unwrap()
-                        .to_string(),
-                ),
                 None,
                 None,
             )
             .unwrap();
 
-        // println!("Profile Collection Contract: {:?}", deployment.bs721_profile.address()?.to_string());
-        // println!("Profile Marketplace Contract: {:?}", deployment.profile_marketplace.address()?.to_string());
-
-        // deployment
-        //     .account_factory
-        //     .setup_profile_infra(
-        //         Some(deployment.profile_marketplace.address()?.to_string()),
-        //         None,
-        //         Some(deployment.bs721_profile.address()?.to_string()),
-        //         None,
-        //     )
-        //     .unwrap();
+        deployment
+            .account_factory
+            .setup_profile_infra(
+                deployment.profile_marketplace.code_id()?,
+                deployment.bs721_profile.code_id()?,
+            )
+            .unwrap();
 
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
@@ -292,8 +279,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
                 module_factory_address: self.module_factory.address()?.into_string(),
-                profile_collection_address: None,
-                profile_marketplace_address: None,
                 max_record_count: None,
                 max_profile_length: None,
                 min_profile_length: None,
@@ -312,45 +297,45 @@ impl<Chain: CwEnv> Abstract<Chain> {
         self.ibc.instantiate(self, &admin)?;
         self.ibc.register(&self.version_control)?;
 
-        let i_msg = self.bs721_profile.instantiate(
-            &abstract_std::profile::InstantiateMsg {
-                verifier: None,
-                base_init_msg: bs721_base::InstantiateMsg {
-                    name: "test".to_string(),
-                    symbol: "TEST".to_string(),
-                    uri: None,
-                    minter: self.account_factory.address()?.to_string(),
-                    collection_info: CollectionInfo::<RoyaltyInfoResponse> {
-                        creator: admin.to_string(),
-                        description: "test description".to_string(),
-                        image: "https://www.testimageurl.com".to_string(),
-                        external_link: Some("https://www.beautiful.network".to_string()),
-                        explicit_content: None,
-                        start_trading_time: None,
-                        royalty_info: None,
-                    },
-                },
-            },
-            Some(&admin),
-            None,
-        )?;
-        println!("Profile Collection Contract: {:?}", i_msg.events());
+        // let i_msg = self.bs721_profile.instantiate(
+        //     &abstract_std::profile::InstantiateMsg {
+        //         verifier: None,
+        //         base_init_msg: bs721_base::InstantiateMsg {
+        //             name: "test".to_string(),
+        //             symbol: "TEST".to_string(),
+        //             uri: None,
+        //             minter: self.account_factory.address()?.to_string(),
+        //             collection_info: CollectionInfo::<RoyaltyInfoResponse> {
+        //                 creator: admin.to_string(),
+        //                 description: "test description".to_string(),
+        //                 image: "https://www.testimageurl.com".to_string(),
+        //                 external_link: Some("https://www.beautiful.network".to_string()),
+        //                 explicit_content: None,
+        //                 start_trading_time: None,
+        //                 royalty_info: None,
+        //             },
+        //         },
+        //     },
+        //     Some(&admin),
+        //     None,
+        // )?;
+        // println!("Profile Collection Contract: {:?}", i_msg.events());
 
-        self.profile_marketplace.instantiate(
-            &abstract_std::profile_marketplace::InstantiateMsg {
-                trading_fee_bps: 25,
-                min_price: 100u128.into(),
-                ask_interval: 100,
-                factory: self.account_factory.address()?,
-                collection: self.bs721_profile.address()?,
-            },
-            Some(&admin),
-            None,
-        )?;
-        println!(
-            "Marketplace: {:?}",
-            self.profile_marketplace.address()?.to_string()
-        );
+        // self.profile_marketplace.instantiate(
+        //     &abstract_std::profile_marketplace::InstantiateMsg {
+        //         trading_fee_bps: 25,
+        //         min_price: 100u128.into(),
+        //         ask_interval: 100,
+        //         factory: self.account_factory.address()?,
+        //         collection: self.bs721_profile.address()?,
+        //     },
+        //     Some(&admin),
+        //     None,
+        // )?;
+        // println!(
+        //     "Marketplace: {:?}",
+        //     self.profile_marketplace.address()?.to_string()
+        // );
 
         Ok(())
     }

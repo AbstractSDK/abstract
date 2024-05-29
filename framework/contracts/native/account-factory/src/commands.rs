@@ -29,9 +29,10 @@ use abstract_std::{
 };
 use bs721::CollectionInfo;
 use bs721_base::{InstantiateMsg as Bs721InstantiateMsg, MintMsg};
-
+use bs721_profile::InstantiateMsg as Bs721ProfileInitMsg;
 use bs_profile::{market::BsProfileMarketplaceExecuteMsg, Metadata};
 use bs_std::NATIVE_DENOM;
+
 use cosmwasm_std::{
     coin, ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut,
     Empty, Env, MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, Uint128, WasmMsg,
@@ -132,7 +133,6 @@ pub fn execute_create_account(
     } else {
         vec![]
     };
-
     // Remove all funds used to install the module and account fee to pass rest to the proxy contract
     let mut funds_to_proxy = Coins::try_from(info.funds.clone()).unwrap();
     for sent_coin in funds_for_install
@@ -146,32 +146,29 @@ pub fn execute_create_account(
                 funds_for_install, info.funds
             ))
         })?;
+    }
 
-        // determines & removes all funds for profile fee
-        if bs_profile.is_some() {
-            let name_len = bs_profile.clone().unwrap().len();
-            let profile_fee: Uint128 = (match name_len {
-                0..=2 => {
-                    return Err(AccountFactoryError::NameTooShort {});
-                }
-                3 => profile_config.profile_bps.u128() * 100,
-                4 => profile_config.profile_bps.u128() * 10,
-                _ => profile_config.profile_bps.u128(),
-            })
-            .into();
-
-            if !profile_fee.is_zero() {
-                let native = funds_to_proxy.amount_of(NATIVE_DENOM);
-                funds_to_proxy
-                    .sub(coin(native.into(), NATIVE_DENOM))
-                    .map_err(|_| {
-                        AbstractError::Fee(format!(
-                            "Invalid profile fee payment sent. Expected {:?}, sent {:?}",
-                            funds_for_install, info.funds
-                        ))
-                    })?;
+    if bs_profile.is_some() {
+        let name_len = bs_profile.clone().unwrap().len();
+        let profile_fee: Uint128 = (match name_len {
+            0..=2 => {
+                return Err(AccountFactoryError::NameTooShort {});
             }
-        }
+            3 => profile_config.profile_bps.u128() * 100,
+            4 => profile_config.profile_bps.u128() * 10,
+            _ => profile_config.profile_bps.u128(),
+        })
+        .into();
+
+        funds_to_proxy
+            .sub(coin(profile_fee.into(), NATIVE_DENOM))
+            .map_err(|_| {
+                AbstractError::Fee(format!(
+                    "Invalid profile fee payment sent. Expected {:?}, sent {:?}",
+                    coin(profile_fee.into(), NATIVE_DENOM),
+                    coin(funds_to_proxy.amount_of(NATIVE_DENOM).into(), NATIVE_DENOM)
+                ))
+            })?;
     }
 
     let salt = generate_instantiate_salt(&account_id);
@@ -318,10 +315,9 @@ pub fn execute_create_account(
     // If a bitsong profile is being created,
     if let Some(profile) = bs_profile {
         // check if setup yet
-        // if !IS_PROFILE_SETUP.load(deps.storage)? {
-        //     return Err(AccountFactoryError::NotSetup {});
-        // }
-
+        if !IS_PROFILE_SETUP.load(deps.storage)? {
+            return Err(AccountFactoryError::NotSetup {});
+        }
         let msgs = internal_claim_profile(deps, account_base.proxy.into_string(), profile)?;
         return Ok(res.add_submessages(msgs));
     }
@@ -354,6 +350,14 @@ fn query_module(
     )?;
 
     Ok(modules.swap_remove(0).module)
+}
+
+pub fn validate_profile_contracts(_deps: DepsMut, _result: SubMsgResult) -> AccountFactoryResult {
+    // TODO: pass context to parse profile contract results
+    Ok(AccountFactoryResponse::new(
+        "create_profile_contracts",
+        vec![("test", "test")],
+    ))
 }
 
 /// Validates instantiated manager and proxy modules
@@ -403,8 +407,6 @@ pub fn execute_update_config(
     module_factory_address: Option<String>,
     ibc_host: Option<String>,
     profile_bps: Option<Uint128>,
-    profile_collection_address: Option<String>,
-    profile_marketplace_address: Option<String>,
     verifier: Option<String>,
     min_profile_length: Option<u32>,
     max_profile_length: Option<u32>,
@@ -437,20 +439,7 @@ pub fn execute_update_config(
         // validate address format
         profile_config.profile_bps = base_price;
     }
-    if let Some(profile_marketplace) = profile_marketplace_address {
-        profile_config.marketplace_addr = Some(deps.api.addr_validate(&profile_marketplace)?);
 
-        if profile_config.collection_addr.is_some() {
-            IS_PROFILE_SETUP.save(deps.storage, &true)?;
-        }
-    }
-    if let Some(profile_collection) = profile_collection_address {
-        profile_config.collection_addr = Some(deps.api.addr_validate(&profile_collection)?);
-
-        if profile_config.marketplace_addr.is_some() {
-            IS_PROFILE_SETUP.save(deps.storage, &true)?;
-        }
-    }
     if let Some(verifier) = verifier {
         profile_config.verifier = Some(verifier);
     }
@@ -458,7 +447,7 @@ pub fn execute_update_config(
         profile_config.min_profile_length = min_length;
     }
     if let Some(max_length) = max_profile_length {
-        profile_config.min_profile_length = max_length;
+        profile_config.max_profile_length = max_length;
     }
 
     PROFILE_CONFIG.save(deps.storage, &profile_config)?;
@@ -479,12 +468,12 @@ pub fn execute_setup_profile_infra(
     if IS_PROFILE_SETUP.load(deps.storage)? {
         return Err(AccountFactoryError::AlreadySetup {});
     }
-    // only owner can call this 
+    // only owner can call this
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let res = AccountFactoryResponse::new(
         "setup_profile_infra",
-        [vec![("creator", info.sender.to_string())]].concat(),
+        [vec![("creator", env.contract.address.to_string())]].concat(),
     );
 
     // instantiate profile contracts
@@ -507,7 +496,7 @@ fn instantiate_profile_contracts(
 
     // stable value for predictable address
     let marketplace_checksum = deps.querier.query_wasm_code_info(market_code_id)?.checksum;
-    let collection_checksum = deps.querier.query_wasm_code_info(market_code_id)?.checksum;
+    let collection_checksum = deps.querier.query_wasm_code_info(profile_code_id)?.checksum;
     let salt1 = generate_instantiate_salt2(&marketplace_checksum);
     let salt2 = generate_instantiate_salt2(&collection_checksum);
 
@@ -533,31 +522,34 @@ fn instantiate_profile_contracts(
     let collection_addr_human = deps.api.addr_humanize(&collection_addr)?;
 
     // define msg for collection instantiate2
-    let profile_collection_init = Bs721InstantiateMsg {
-        name: "Profile Tokens".to_string(),
-        symbol: "PROFILE".to_string(),
-        minter: env.contract.address.to_string(),
-        collection_info: CollectionInfo {
-            creator: env.contract.address.to_string(),
-            description: "Bitsong Profiles".to_string(),
-            image: "ipfs://example.com".to_string(),
-            external_link: None,
-            explicit_content: None,
-            start_trading_time: Some(
-                env.block
-                    .time
-                    .plus_seconds(TRADING_START_TIME_OFFSET_IN_SECONDS),
-            ),
-            royalty_info: None,
+    let profile_collection_init = Bs721ProfileInitMsg {
+        verifier: None,
+        base_init_msg: Bs721InstantiateMsg {
+            name: "Profile Tokens".to_string(),
+            symbol: "PROFILE".to_string(),
+            minter: env.contract.address.to_string(),
+            collection_info: CollectionInfo {
+                creator: env.contract.address.to_string(),
+                description: "Bitsong Profiles".to_string(),
+                image: "ipfs://example.com".to_string(),
+                external_link: None,
+                explicit_content: None,
+                start_trading_time: Some(
+                    env.block
+                        .time
+                        .plus_seconds(TRADING_START_TIME_OFFSET_IN_SECONDS),
+                ),
+                royalty_info: None,
+            },
+            uri: None,
         },
-        uri: None,
     };
     // define msg for marketplace instantiate2
     let profile_marketplace_init = ProfileMarketplaceInstantiateMsg {
         trading_fee_bps: 0u64,
         min_price: 100000000u128.into(),
         ask_interval: 10u64,
-        factory: env.contract.address,
+        factory: env.contract.address.clone(),
         collection: collection_addr_human.clone(),
     };
 
@@ -566,7 +558,7 @@ fn instantiate_profile_contracts(
         code_id: market_code_id,
         msg: to_json_binary(&profile_marketplace_init)?,
         funds: info.funds.clone(),
-        admin: Some(info.sender.to_string()),
+        admin: Some(env.contract.address.to_string()),
         label: "Profile Marketplace".to_string(),
         salt: salt1.clone(),
     };
@@ -580,15 +572,17 @@ fn instantiate_profile_contracts(
         salt: salt2.clone(),
     };
 
-    let marketplace_submsg =
-        SubMsg::<Empty>::reply_on_success(profile_marketplace, INIT_COLLECTION_REPLY_ID);
-    let collection_submsg =
-        SubMsg::<Empty>::reply_on_success(profile_collection, INIT_COLLECTION_REPLY_ID);
+    let mut profile_config = PROFILE_CONFIG.load(deps.storage)?;
 
-    // setup internal state
-    PROFILE_MARKETPLACE.save(deps.storage, &marketplace_addr_human)?;
-    PROFILE_COLLECTION.save(deps.storage, &collection_addr_human)?;
-    IS_PROFILE_SETUP.save(deps.storage, &true)?;
+    profile_config.marketplace_addr = Some(marketplace_addr_human.to_string());
+    profile_config.collection_addr = Some(collection_addr_human.to_string());
+
+    PROFILE_CONFIG.save(deps.storage, &profile_config)?;
+
+    let marketplace_submsg =
+        SubMsg::<Empty>::reply_on_success(profile_marketplace, INIT_PROFIE_COLLECTION_REPLY_ID);
+    let collection_submsg =
+        SubMsg::<Empty>::reply_on_success(profile_collection, INIT_PROFIE_COLLECTION_REPLY_ID);
 
     Ok(vec![collection_submsg, marketplace_submsg])
 }
@@ -606,7 +600,10 @@ fn internal_claim_profile(
         params.max_profile_length,
     )?;
 
-    if params.collection_addr.is_some() && params.marketplace_addr.is_some() {
+    if IS_PROFILE_SETUP.load(deps.storage)? == true {
+        let marketplace = params.marketplace_addr.unwrap();
+        let collection = params.collection_addr.unwrap();
+
         let mint_msg = bs721_base::ExecuteMsg::<Metadata, Empty>::Mint(MintMsg {
             token_id: bs_profile.to_string(),
             owner: proxy.clone(),
@@ -616,7 +613,7 @@ fn internal_claim_profile(
             payment_addr: None,
         });
         let mint_msg_exec: SubMsg = SubMsg::new(WasmMsg::Execute {
-            contract_addr: params.collection_addr.unwrap().to_string(),
+            contract_addr: collection.to_string(),
             msg: to_json_binary(&mint_msg)?,
             funds: vec![],
         });
@@ -626,15 +623,14 @@ fn internal_claim_profile(
             seller: proxy,
         };
         let list_msg_exec: SubMsg = SubMsg::new(WasmMsg::Execute {
-            contract_addr: params.marketplace_addr.unwrap().to_string(),
+            contract_addr: marketplace.to_string(),
             msg: to_json_binary(&ask_msg)?,
             funds: vec![],
         });
 
         return Ok(vec![mint_msg_exec, list_msg_exec]);
-    } else {
-        return Err(AccountFactoryError::NotSetup {});
     }
+    Err(AccountFactoryError::NotSetup {})
 }
 
 // This follows the same rules as Internet domain names

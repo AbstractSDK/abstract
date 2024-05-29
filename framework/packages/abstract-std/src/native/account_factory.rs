@@ -33,8 +33,8 @@ pub mod state {
 
     #[cosmwasm_schema::cw_serde]
     pub struct ProfileConfig {
-        pub marketplace_addr: Option<Addr>,
-        pub collection_addr: Option<Addr>,
+        pub marketplace_addr: Option<String>,
+        pub collection_addr: Option<String>,
         pub min_profile_length: u32,
         pub max_profile_length: u32,
         pub max_record_count: u32,
@@ -63,13 +63,14 @@ pub mod state {
     pub const PROFILE_COLLECTION: Item<Addr> = Item::new("profile-collection");
 
     pub const TRADING_START_TIME_OFFSET_IN_SECONDS: u64 = 2 * SECONDS_PER_YEAR;
-    pub const INIT_COLLECTION_REPLY_ID: u64 = 420;
+    pub const INIT_PROFIE_COLLECTION_REPLY_ID: u64 = 420;
+    pub const INIT_PROFIE_MARKETPLACE_REPLY_ID: u64 = 710;
 
     // pub const IS_SETUP: Item<bool> = Item::new("is_setup");
 }
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Uint128};
+use cosmwasm_std::{Addr, Uint128};
 
 use crate::{
     manager::ModuleInstallConfig,
@@ -91,8 +92,6 @@ pub struct InstantiateMsg {
     pub ans_host_address: String,
     /// AnsHosts of module factory. Used for instantiating manager.
     pub module_factory_address: String,
-    pub profile_collection_address: Option<Addr>,
-    pub profile_marketplace_address: Option<Addr>,
     pub max_record_count: Option<u32>,
     pub max_profile_length: Option<u32>,
     pub min_profile_length: Option<u32>,
@@ -115,8 +114,6 @@ pub enum ExecuteMsg {
         module_factory_address: Option<String>,
         // New ibc host contract
         ibc_host: Option<String>,
-        profile_marketplace_address: Option<String>,
-        profile_collection_address: Option<String>,
         verifier: Option<String>,
         profile_bps: Option<Uint128>,
         min_profile_length: Option<u32>,
