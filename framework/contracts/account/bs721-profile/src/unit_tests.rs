@@ -314,7 +314,7 @@ fn mint_and_update() {
 #[test]
 fn query_names() {
     let deps = mock_deps();
-    let address = "stars1y54exmx84cqtasvjnskf9f63djuuj68p2th570".to_string();
+    let address = "bitsong1y54exmx84cqtasvjnskf9f63djuuj68pj7jph3".to_string();
     let err = query_name(deps.as_ref(), address.clone()).unwrap_err();
     assert_eq!(
         err.to_string(),
@@ -328,5 +328,5 @@ fn query_names() {
 #[test]
 fn test_transcode() {
     let res = transcode("cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47");
-    assert_eq!(res.unwrap(), "stars1y54exmx84cqtasvjnskf9f63djuuj68p2th570");
+    assert_eq!(res.unwrap(), "bitsong1y54exmx84cqtasvjnskf9f63djuuj68pj7jph3");
 }

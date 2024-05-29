@@ -19,11 +19,11 @@ use bs721_base::{ExecuteMsg as Bs721ExecuteMsg, MintMsg, QueryMsg as Bs721QueryM
 use bs_profile::{Metadata, TextRecord, NFT};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, Empty};
-use cw721::{
+use bs721::{
     AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, Expiration,
     NftInfoResponse, NumTokensResponse, OperatorsResponse, OwnerOfResponse, TokensResponse,
 };
-use cw721_base::MinterResponse;
+use bs721_base::MinterResponse;
 
 #[allow(unused_imports)]
 use crate::{};

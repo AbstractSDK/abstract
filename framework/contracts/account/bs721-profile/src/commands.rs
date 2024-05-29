@@ -9,7 +9,7 @@ use cosmwasm_std::{
     MessageInfo, Response, StdError, StdResult, WasmMsg,
 };
 
-use cw721_base::MinterResponse;
+use bs721_base::MinterResponse;
 use cw_utils::nonpayable;
 
 use bs721_base::{
@@ -600,7 +600,7 @@ fn validate_address(deps: Deps, sender: &Addr, addr: Addr) -> Result<Addr, Contr
         let collection_info: MinterResponse = deps
             .querier
             .query_wasm_smart(&addr, &bs721_base::msg::QueryMsg::<Empty>::Minter {})?;
-        if collection_info.minter == Some(sender.to_string()) {
+        if collection_info.minter == sender.to_string() {
             return Ok(addr);
         }
     }

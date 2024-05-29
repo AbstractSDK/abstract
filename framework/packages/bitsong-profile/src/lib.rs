@@ -120,13 +120,13 @@ mod test {
     #[test]
     fn encode_nft() {
         let nft = NFT {
-            collection: Addr::unchecked("stars1y54exmx84cqtasvjnskf9f63djuuj68p2th570"),
+            collection: Addr::unchecked("bitsong1abc123"),
             token_id: "1".to_string(),
         };
         let json = nft.into_json_string();
         assert_eq!(
             json,
-            r#"{"collection":"stars1y54exmx84cqtasvjnskf9f63djuuj68p2th570","token_id":"1"}"#
+            r#"{"collection":"bitsong1abc123","token_id":"1"}"#
         );
     }
 
@@ -159,7 +159,7 @@ mod test {
     #[test]
     fn encode_metadata() {
         let image_nft = Some(NFT {
-            collection: Addr::unchecked("stars1y54exmx84cqtasvjnskf9f63djuuj68p2th570"),
+            collection: Addr::unchecked("bitsong1y54exmx84cqtasvjnskf9f63djuuj68pj7jph3"),
             token_id: "1".to_string(),
         });
         let record_1 = TextRecord::new("twitter", "shan3v");
@@ -171,7 +171,7 @@ mod test {
         let json = metadata.into_json_string();
         assert_eq!(
             json,
-            r#"{"image_nft":{"collection":"stars1y54exmx84cqtasvjnskf9f63djuuj68p2th570","token_id":"1"},"records":[{"name":"twitter","value":"shan3v","verified":null},{"name":"discord","value":"shan3v","verified":true}]}"#,
+            r#"{"image_nft":{"collection":"bitsong1y54exmx84cqtasvjnskf9f63djuuj68pj7jph3","token_id":"1"},"records":[{"name":"twitter","value":"shan3v","verified":null},{"name":"discord","value":"shan3v","verified":true}]}"#,
         );
     }
 }

@@ -38,8 +38,8 @@ cw-ownable = { workspace = true }
 # bitsong profile dependencies
 bs-std = { workspace = true } 
 bs721-base      = { workspace = true, features = ["library"] }
+bs721-profile    = { workspace = true, features = ["library"] }
 bs721  = { workspace = true }
-bs721-profile    = { workspace = true }
 bs-profile = { workspace = true }
 profile-marketplace = { workspace = true }
 
