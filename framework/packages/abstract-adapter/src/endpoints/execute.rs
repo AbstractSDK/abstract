@@ -132,7 +132,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                 if requested_core.manager == sender {
                     // If the caller is the manager of the indicated proxy_address, it's authorized to do the operation
                     // This covers the case where the proxy field of the request is indicated where it doesn't need to be
-                    requested_core
+                    Some(requested_core)
                 } else {
                     // If not, we load the authorized addresses for the given proxy address.
                     let authorized = self
@@ -145,7 +145,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                     {
                         // If the sender is an authorized address,
                         // or top level account return the account_base.
-                        requested_core
+                        Some(requested_core)
                     } else {
                         // If not, we error, this call is not permitted
                         return Err(unauthorized_sender().into());
@@ -154,9 +154,10 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             }
             None => account_registry
                 .assert_manager(sender)
-                .map_err(|_| unauthorized_sender())?,
+                .map_err(|_| unauthorized_sender())
+                .ok(),
         };
-        self.target_account = Some(account_base);
+        self.target_account = account_base;
         self.execute_handler()?(deps, env, info, self, request.request)
     }
 
