@@ -15,10 +15,8 @@ pub fn ibc_connect_abstract<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     let remote_chain = interchain.chain(remote_chain_id).unwrap();
 
     // Deploying abstract and the IBC abstract logic
-    let abstr_origin =
-        Abstract::load_from(origin_chain.clone())?;
-    let abstr_remote =
-        Abstract::load_from(remote_chain.clone())?;
+    let abstr_origin = Abstract::load_from(origin_chain.clone())?;
+    let abstr_remote = Abstract::load_from(remote_chain.clone())?;
 
     // Deploying polytone on both chains
     Polytone::deploy_on(origin_chain.clone(), None)?;
