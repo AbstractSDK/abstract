@@ -16,7 +16,10 @@ pub use crate::api::MoneyMarketInterface;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
-    use abstract_adapter::{abstract_interface::{AdapterDeployer, RegisteredModule}, traits::ModuleIdentification as _};
+    use abstract_adapter::{
+        abstract_interface::{AdapterDeployer, RegisteredModule},
+        traits::ModuleIdentification as _,
+    };
     use abstract_money_market_standard::msg::{
         ExecuteMsg, InstantiateMsg, MoneyMarketInstantiateMsg, QueryMsg,
     };

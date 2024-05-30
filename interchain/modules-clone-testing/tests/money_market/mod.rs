@@ -1,3 +1,3 @@
 mod cavern;
-mod mars;
 mod ghost;
+mod mars;
