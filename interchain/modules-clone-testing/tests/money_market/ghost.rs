@@ -1,10 +1,21 @@
 use abstract_app::objects::UncheckedContractEntry;
-use abstract_client::Environment;
+use abstract_client::{Environment, Namespace};
 use abstract_modules_interchain_tests::common::load_abstr;
-use abstract_money_market_adapter::tester::{MockMoneyMarket, MoneyMarketTester, DEPOSIT_VALUE};
-use cosmwasm_std::Addr;
-use cw_orch::daemon::networks::HARPOON_4;
+use abstract_money_market_adapter::{
+    interface::MoneyMarketAdapter,
+    msg::MoneyMarketInstantiateMsg,
+    tester::{MockMoneyMarket, MoneyMarketTester, DEPOSIT_VALUE},
+    MONEY_MARKET_ADAPTER_ID,
+};
+use cosmwasm_std::{Addr, Empty};
+use cosmwasm_std::{Api, Decimal};
+use cw_orch::prelude::ContractInstance;
+use cw_orch::{
+    contract::interface_traits::{CwOrchMigrate, CwOrchUpload},
+    daemon::networks::HARPOON_4,
+};
 use cw_orch_clone_testing::CloneTesting;
+
 pub struct KujiraMoneyMarket {
     pub chain: CloneTesting,
     pub lending_asset: (String, String),
@@ -28,7 +39,7 @@ borrow
  */
 
 pub const HARPOON_VAULT_ADDRESS: &str =
-    "kujira1yqh4gfa75jh2q82e9ada98l9qz7xf0xvwa399cl52a4vrv3kxzvstrjuy0";
+    "kujira18txj8dep8n9cfgmhgshut05d9t4vjdphcd3dwl32vu4898w9uxnslaflur";
 
 pub const HARPOON_MARKET_ADDRESS: &str =
     "kujira193dzcmy7lwuj4eda3zpwwt9ejal00xva0vawcvhgsyyp5cfh6jyq66wfrf";
@@ -58,7 +69,6 @@ impl MockMoneyMarket for KujiraMoneyMarket {
     }
 
     fn setup(&self) -> Vec<(UncheckedContractEntry, String)> {
-
         vec![
             (
                 UncheckedContractEntry {
@@ -83,14 +93,26 @@ fn setup() -> cw_orch::anyhow::Result<MoneyMarketTester<CloneTesting, KujiraMone
     let sender = Addr::unchecked(SENDER);
     let abstr_deployment = load_abstr(chain_info, sender)?;
     let chain = abstr_deployment.environment();
-    let lending_asset = (
-        "kujira>kuji".to_owned(),
-        "ukuji".to_owned(),
-    );
+    let lending_asset = ("kujira>kuji".to_owned(), "ukuji".to_owned());
     let collateral_asset = (
         "kujira>usk".to_owned(),
-        "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk".to_owned(),
+        "factory/kujira1r85reqy6h0lu02vyz0hnzhv5whsns55gdt4w0d7ft87utzk7u0wqr4ssll/uusk".to_owned(),
     );
+
+    let publisher = abstr_deployment
+        .publisher_builder(Namespace::new("abstract")?)
+        .build()?;
+
+    publisher.publish_adapter::<_, MoneyMarketAdapter<_>>(MoneyMarketInstantiateMsg {
+        fee: Decimal::permille(2),
+        recipient_account: 0,
+    })?;
+
+    // // Update the ghost contract
+    // let adapter = MoneyMarketAdapter::new(MONEY_MARKET_ADAPTER_ID, chain.clone());
+    // adapter.upload()?;
+    // adapter.migrate(&Empty {}, adapter.code_id()?)?;
+
     MoneyMarketTester::new(
         abstr_deployment,
         KujiraMoneyMarket {
