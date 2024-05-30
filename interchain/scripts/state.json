@@ -141,7 +141,7 @@
         "abstract:ibc-host": 3393,
         "abstract:manager": 3390,
         "abstract:module-factory": 3387,
-        "abstract:money-market": 3396,
+        "abstract:money-market": 3534,
         "abstract:proxy": 3391,
         "abstract:version-control": 3388
       },
@@ -154,7 +154,7 @@
         "abstract:ibc-host": "kujira1qr694hsvp5xk744dj4kulvw64lu9ce3fpq32la56cewqgsshu0hswa8vcc",
         "abstract:manager": "kujira15pycld6cw6wuzl5ny349uvuv95ulehwgdqm43xt3s7vwj86nqr6sc7wlkq",
         "abstract:module-factory": "kujira1e0ut55qwzq2pdq0a2gsr6vua38u436dqpxnpxqa5nhxna3smlu6qddmla8",
-        "abstract:money-market": "kujira1ferr3qw7x79znjvsa4hrpl6alwfsuqspyqa9dp688zvxth4p0qpqm6xvdq",
+        "abstract:money-market": "kujira17gddcsyqke2nd0ce6eadrw8zrl64gxyxqt4em9yf82jvwe8wa2nsyf6ts9",
         "abstract:proxy": "kujira1q060eew952esm98300k09nmp83g06rrwymzwkgq67ky6x302wnyqqu3hpa",
         "abstract:version-control": "kujira1yapmxjmj9fpaqa6vmkq2mlang4jqa8fymzj34erzfkwu90gevl2q66lmnu"
       }

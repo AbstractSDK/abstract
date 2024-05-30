@@ -99,20 +99,6 @@ fn setup() -> cw_orch::anyhow::Result<MoneyMarketTester<CloneTesting, KujiraMone
         "factory/kujira1r85reqy6h0lu02vyz0hnzhv5whsns55gdt4w0d7ft87utzk7u0wqr4ssll/uusk".to_owned(),
     );
 
-    let publisher = abstr_deployment
-        .publisher_builder(Namespace::new("abstract")?)
-        .build()?;
-
-    publisher.publish_adapter::<_, MoneyMarketAdapter<_>>(MoneyMarketInstantiateMsg {
-        fee: Decimal::permille(2),
-        recipient_account: 0,
-    })?;
-
-    // // Update the ghost contract
-    // let adapter = MoneyMarketAdapter::new(MONEY_MARKET_ADAPTER_ID, chain.clone());
-    // adapter.upload()?;
-    // adapter.migrate(&Empty {}, adapter.code_id()?)?;
-
     MoneyMarketTester::new(
         abstr_deployment,
         KujiraMoneyMarket {
