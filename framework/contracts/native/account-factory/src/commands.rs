@@ -30,7 +30,7 @@ use abstract_std::{
 use bs721::CollectionInfo;
 use bs721_base::{InstantiateMsg as Bs721InstantiateMsg, MintMsg};
 use bs721_profile::InstantiateMsg as Bs721ProfileInitMsg;
-use bs_profile::{market::BsProfileMarketplaceExecuteMsg, Metadata};
+use bs_profile::{Metadata, TextRecord};
 use bs_std::NATIVE_DENOM;
 
 use cosmwasm_std::{
@@ -212,7 +212,7 @@ pub fn execute_create_account(
     };
     // save context for after-init check
     let context = Context {
-        account_id,
+        account_id: account_id.clone(),
         account_base: account_base.clone(),
         manager_module,
         proxy_module,
@@ -232,7 +232,7 @@ pub fn execute_create_account(
         funds: funds_for_namespace_fee,
         msg: to_json_binary(&VCExecuteMsg::AddAccount {
             account_id: proxy_message.account_id.clone(),
-            account_base: context.account_base,
+            account_base: context.account_base.clone(),
             namespace: namespace.clone(),
         })?,
     });
@@ -294,7 +294,7 @@ pub fn execute_create_account(
         WasmMsg::Instantiate2 {
             code_id: manager_code_id,
             funds: funds_for_install,
-            admin: Some(account_base.manager.into_string()),
+            admin: Some(account_base.manager.clone().into_string()),
             label: format!("Manager of Account: {}", proxy_message.account_id),
             msg: to_json_binary(&ManagerInstantiateMsg {
                 account_id: proxy_message.account_id,
@@ -306,6 +306,7 @@ pub fn execute_create_account(
                 description,
                 link,
                 install_modules,
+                marketplace_address: profile_config.marketplace_addr,
             })?,
             salt,
         },
@@ -318,7 +319,7 @@ pub fn execute_create_account(
         if !IS_PROFILE_SETUP.load(deps.storage)? {
             return Err(AccountFactoryError::NotSetup {});
         }
-        let msgs = internal_claim_profile(deps, account_base.proxy.into_string(), profile)?;
+        let msgs = internal_claim_profile(deps, account_id, account_base, profile)?;
         return Ok(res.add_submessages(msgs));
     }
 
@@ -354,9 +355,13 @@ fn query_module(
 
 pub fn validate_profile_contracts(_deps: DepsMut, _result: SubMsgResult) -> AccountFactoryResult {
     // TODO: pass context to parse profile contract results
+
     Ok(AccountFactoryResponse::new(
         "create_profile_contracts",
-        vec![("test", "test")],
+        vec![
+            ("profile_collection", "test"),
+            ("profile_marketplace", "test"),
+        ],
     ))
 }
 
@@ -464,12 +469,12 @@ pub fn execute_setup_profile_infra(
     marketplace_code_id: u64,
     profile_code_id: u64,
 ) -> AccountFactoryResult {
+    // only owner can call this
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
     // check if setup already
     if IS_PROFILE_SETUP.load(deps.storage)? {
         return Err(AccountFactoryError::AlreadySetup {});
     }
-    // only owner can call this
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let res = AccountFactoryResponse::new(
         "setup_profile_infra",
@@ -492,7 +497,7 @@ fn instantiate_profile_contracts(
     market_code_id: u64,
     profile_code_id: u64,
 ) -> AccountFactoryResult<Vec<SubMsg>> {
-    // query
+    let config = CONFIG.load(deps.storage)?;
 
     // stable value for predictable address
     let marketplace_checksum = deps.querier.query_wasm_code_info(market_code_id)?.checksum;
@@ -525,7 +530,7 @@ fn instantiate_profile_contracts(
     let profile_collection_init = Bs721ProfileInitMsg {
         verifier: None,
         base_init_msg: Bs721InstantiateMsg {
-            name: "Profile Tokens".to_string(),
+            name: "profile_tokens".to_string(),
             symbol: "PROFILE".to_string(),
             minter: env.contract.address.to_string(),
             collection_info: CollectionInfo {
@@ -543,6 +548,7 @@ fn instantiate_profile_contracts(
             },
             uri: None,
         },
+        marketplace: marketplace_addr_human.clone(), // vc_addr: todo!(),
     };
     // define msg for marketplace instantiate2
     let profile_marketplace_init = ProfileMarketplaceInstantiateMsg {
@@ -551,6 +557,7 @@ fn instantiate_profile_contracts(
         ask_interval: 10u64,
         factory: env.contract.address.clone(),
         collection: collection_addr_human.clone(),
+        version_control: config.version_control_contract,
     };
 
     // create marketplace instantiate msg
@@ -589,7 +596,8 @@ fn instantiate_profile_contracts(
 
 fn internal_claim_profile(
     deps: DepsMut,
-    proxy: String,
+    account_id: AccountId,
+    account_base: AccountBase,
     bs_profile: String,
 ) -> Result<Vec<SubMsg>, AccountFactoryError> {
     // validate bitsong profile with same rules as Internet Domain Names
@@ -606,9 +614,12 @@ fn internal_claim_profile(
 
         let mint_msg = bs721_base::ExecuteMsg::<Metadata, Empty>::Mint(MintMsg {
             token_id: bs_profile.to_string(),
-            owner: proxy.clone(),
+            owner: account_base.proxy.to_string(),
             token_uri: None,
-            extension: Metadata::default(),
+            extension: Metadata {
+                image_nft: None,
+                records: vec![TextRecord::new("bitsong-profile", bs_profile.clone())],
+            },
             seller_fee_bps: None,
             payment_addr: None,
         });
@@ -618,9 +629,10 @@ fn internal_claim_profile(
             funds: vec![],
         });
 
-        let ask_msg = BsProfileMarketplaceExecuteMsg::SetAsk {
+        let ask_msg = abstract_std::profile_marketplace::ExecuteMsg::SetAsk {
             token_id: bs_profile.to_string(),
-            seller: proxy,
+            seller: account_base.proxy.to_string(),
+            account_id,
         };
         let list_msg_exec: SubMsg = SubMsg::new(WasmMsg::Execute {
             contract_addr: marketplace.to_string(),

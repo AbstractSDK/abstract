@@ -23,7 +23,7 @@ pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResu
         .set_balance(&sender, vec![namespace_fee.clone(), profile_fee.clone()])
         .unwrap();
     version_control.update_config(None, Some(Clearable::Set(namespace_fee.clone())), None)?;
-
+    // Update profile creation fee
     factory.update_config(
         None,
         None,

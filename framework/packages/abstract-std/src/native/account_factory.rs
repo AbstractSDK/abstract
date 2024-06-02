@@ -31,6 +31,7 @@ pub mod state {
         pub ibc_host: Option<Addr>,
     }
 
+    /// Tokenized Profile Configuration
     #[cosmwasm_schema::cw_serde]
     pub struct ProfileConfig {
         pub marketplace_addr: Option<String>,
@@ -41,7 +42,6 @@ pub mod state {
         pub profile_bps: Uint128,
         pub verifier: Option<String>,
     }
-
     /// Account Factory context for post-[`crate::manager`] [`crate::proxy`] creation
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
@@ -71,6 +71,7 @@ pub mod state {
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Uint128};
+use state::ProfileConfig;
 
 use crate::{
     manager::ModuleInstallConfig,
@@ -164,6 +165,8 @@ pub enum QueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
+    #[returns(ProfileConfig)]
+    ProfileConfig {},
 }
 
 /// Account Factory config response

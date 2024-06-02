@@ -47,6 +47,8 @@ pub enum ManagerError {
 
     #[error("Registering module fails because caller is not module factory")]
     CallerNotModuleFactory {},
+    #[error("Bid fails because caller is not account factory")]
+    CallerNotMarketplace {},
 
     #[error("A migrate msg is required when when migrating this module")]
     MsgRequired {},

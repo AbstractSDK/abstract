@@ -2,20 +2,24 @@ use std::marker::PhantomData;
 
 use crate::error::ContractError;
 use crate::hooks::{prepare_ask_hook, prepare_bid_hook, prepare_sale_hook};
+use abstract_std::objects::gov_type::GovernanceDetails;
+use abstract_std::objects::AccountId;
 use abstract_std::profile_marketplace::state::{
-    ask_key, asks, bid_key, bids, increment_asks, Ask, AskKey, Bid, BidKey, SudoParams, TokenId, ASK_COUNT, ASK_HOOKS, BID_HOOKS, PROFILE_COLLECTION, PROFILE_MINTER, RENEWAL_QUEUE, SALE_HOOKS, SUDO_PARAMS
+    ask_key, asks, bid_key, bids, increment_asks, Ask, AskKey, Bid, BidKey, SudoParams, TokenId,
+    ASK_COUNT, ASK_HOOKS, BID_HOOKS, PROFILE_COLLECTION, PROFILE_MINTER, RENEWAL_QUEUE, SALE_HOOKS,
+    SUDO_PARAMS, VERSION_CONTROL,
 };
-use abstract_std::profile_marketplace::{
-    ConfigResponse, HookAction, SudoMsg,
-};
+use abstract_std::profile_marketplace::{ConfigResponse, HookAction, SudoMsg};
+use abstract_std::version_control::AccountBaseResponse;
+use abstract_std::{manager, version_control};
 use bs_profile::common::{charge_fees, SECONDS_PER_YEAR};
 use bs_std::NATIVE_DENOM;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    coin, coins, to_json_binary, Addr, BankMsg, Decimal, Deps, DepsMut,
-    Empty, Env, Event, MessageInfo, Order, Response, StdError, StdResult, Storage, SubMsg,
-    Timestamp, Uint128, WasmMsg,
+    coin, coins, to_json_binary, Addr, BankMsg, Decimal, Deps, DepsMut, Empty, Env, Event,
+    MessageInfo, Order, Response, StdError, StdResult, Storage, SubMsg, Timestamp, Uint128,
+    WasmMsg,
 };
 
 use cw721::{Cw721ExecuteMsg, OwnerOfResponse};
@@ -29,8 +33,6 @@ use abstract_std::profile_marketplace::{BidOffset, Bidder};
 const DEFAULT_QUERY_LIMIT: u32 = 10;
 const MAX_QUERY_LIMIT: u32 = 100;
 
-
-
 /// A seller may set an Ask on their NFT to list it on Marketplace
 pub fn execute_set_ask(
     deps: DepsMut,
@@ -38,6 +40,7 @@ pub fn execute_set_ask(
     info: MessageInfo,
     token_id: &str,
     seller: Addr,
+    account_id: AccountId,
 ) -> Result<Response, ContractError> {
     let minter = PROFILE_MINTER.load(deps.storage)?;
     if info.sender != minter {
@@ -66,6 +69,8 @@ pub fn execute_set_ask(
         seller: seller.clone(),
         renewal_time,
         renewal_fund: Uint128::zero(),
+        account_id: account_id.clone(),
+        gov: None,
     };
     store_ask(deps.storage, &ask)?;
 
@@ -163,6 +168,8 @@ pub fn execute_set_bid(
     env: Env,
     info: MessageInfo,
     token_id: &str,
+    new_gov: GovernanceDetails<String>,
+    account_id: AccountId,
 ) -> Result<Response, ContractError> {
     let params = SUDO_PARAMS.load(deps.storage)?;
 
@@ -187,17 +194,27 @@ pub fn execute_set_bid(
         res = res.add_message(refund_bidder)
     }
 
-    let bid = Bid::new(token_id, bidder.clone(), bid_price, env.block.time);
+    let bid = Bid::new(
+        token_id,
+        bidder.clone(),
+        bid_price,
+        env.block.time,
+        new_gov,
+        account_id.clone(),
+    );
     store_bid(deps.storage, &bid)?;
 
-    let hook = prepare_bid_hook(deps.as_ref(), &bid, HookAction::Create)?;
+    let hook = prepare_bid_hook(deps.as_ref(), &bid.clone(), HookAction::Create)?;
 
     let event = Event::new("set-bid")
         .add_attribute("token_id", token_id)
         .add_attribute("bidder", bidder)
         .add_attribute("bid_price", bid_price.to_string());
 
-    Ok(res.add_event(event).add_submessages(hook))
+    Ok(res
+        .add_event(event)
+        // .add_message(execute)
+        .add_submessages(hook))
 }
 
 /// Removes a bid made by the bidder. Bidders can only remove their own bids
@@ -252,6 +269,8 @@ pub fn execute_accept_bid(
     let ask = asks().load(deps.storage, ask_key)?;
     let bid = bids().load(deps.storage, bid_key.clone())?;
 
+    let new_gov = bid.gov.clone();
+
     // Check if token is approved for transfer
     Cw721Contract::<Empty, Empty>(collection, PhantomData, PhantomData).approval(
         &deps.querier,
@@ -298,15 +317,33 @@ pub fn execute_accept_bid(
         seller: bidder.clone(),
         renewal_time,
         renewal_fund: Uint128::zero(),
+        account_id: ask.account_id,
+        gov: Some(new_gov.clone()),
     };
     store_ask(deps.storage, &ask)?;
+
+    // transfer ownership
+    let account_base: AccountBaseResponse = deps.querier.query_wasm_smart(
+        &VERSION_CONTROL.load(deps.storage)?,
+        &version_control::QueryMsg::AccountBase {
+            account_id: ask.account_id,
+        },
+    )?;
+    let msg: manager::ExecuteMsg = manager::ExecuteMsg::MarketplaceCallback {
+        owner: new_gov.clone(),
+    };
+    let execute = WasmMsg::Execute {
+        contract_addr: account_base.account_base.manager.to_string(),
+        msg: to_json_binary(&msg)?,
+        funds: vec![],
+    };
 
     let event = Event::new("accept-bid")
         .add_attribute("token_id", token_id)
         .add_attribute("bidder", bidder)
         .add_attribute("price", bid.amount.to_string());
 
-    Ok(res.add_event(event))
+    Ok(res.add_event(event).add_message(execute))
 }
 
 pub fn execute_fund_renewal(

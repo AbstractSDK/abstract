@@ -1,5 +1,7 @@
 use crate::commands::{query_asks_by_seller, query_bids_by_bidder};
 use crate::contract::{execute, instantiate};
+use abstract_std::objects::gov_type::GovernanceDetails;
+use abstract_std::objects::AccountId;
 #[cfg(test)]
 use abstract_std::profile_marketplace::{state::*, *};
 use bs_std::NATIVE_DENOM;
@@ -26,6 +28,8 @@ fn ask_indexed_map() {
         seller: seller.clone(),
         renewal_time: env.block.time,
         renewal_fund: Uint128::zero(),
+        account_id: AccountId::local(1),
+        gov: None,
     };
     let key = ask_key(TOKEN_ID);
     let res = asks().save(deps.as_mut().storage, key.clone(), &ask);
@@ -37,6 +41,8 @@ fn ask_indexed_map() {
         seller: seller.clone(),
         renewal_time: env.block.time,
         renewal_fund: Uint128::zero(),
+        account_id: AccountId::local(1),
+        gov: None,
     };
     let key2 = ask_key(TOKEN_ID_NEXT);
     let res = asks().save(deps.as_mut().storage, key2, &ask2);
@@ -60,6 +66,10 @@ fn bid_indexed_map() {
         bidder: bidder.clone(),
         amount: Uint128::from(500u128),
         created_time: Timestamp::from_seconds(6),
+        gov: GovernanceDetails::Monarchy {
+            monarch: bidder.to_string(),
+        },
+        account_id: AccountId::local(1)
     };
     let key = bid_key(TOKEN_ID, &bidder);
     let res = bids().save(deps.as_mut().storage, key.clone(), &bid);
@@ -70,6 +80,8 @@ fn bid_indexed_map() {
         bidder: bidder.clone(),
         amount: Uint128::from(500u128),
         created_time: Timestamp::from_seconds(6),
+        gov: GovernanceDetails::Renounced {},
+        account_id: AccountId::local(1),
     };
     let key2 = bid_key(TOKEN_ID_NEXT, &bidder);
     let res = bids().save(deps.as_mut().storage, key2, &bid2);
@@ -89,7 +101,8 @@ fn setup_contract(deps: DepsMut) {
         min_price: Uint128::from(5u128),
         ask_interval: 60,
         factory: Addr::unchecked("factory".to_string()),
-        collection:  Addr::unchecked("profile_collection".to_string()),
+        collection: Addr::unchecked("profile_collection".to_string()),
+        version_control:  Addr::unchecked("version_control".to_string()),
     };
     let info = mock_info(CREATOR, &[]);
     let res = instantiate(deps, mock_env(), info, msg).unwrap();
@@ -106,6 +119,7 @@ fn proper_initialization() {
         ask_interval: 60,
         factory: Addr::unchecked("factory".to_string()),
         collection: Addr::unchecked("profile_collection".to_string()),
+        version_control:  Addr::unchecked("version_control".to_string()),
     };
     let info = mock_info("creator", &coins(1000, NATIVE_DENOM));
 
@@ -124,7 +138,8 @@ fn bad_fees_initialization() {
         min_price: Uint128::from(5u128),
         ask_interval: 60,
         factory: Addr::unchecked("factory".to_string()),
-        collection:  Addr::unchecked("profile_collection".to_string()),
+        collection: Addr::unchecked("profile_collection".to_string()),
+        version_control:  Addr::unchecked("version_control".to_string()),
     };
     let info = mock_info("creator", &coins(1000, NATIVE_DENOM));
     let res = instantiate(deps.as_mut(), mock_env(), info, msg);
@@ -141,6 +156,10 @@ fn try_set_bid() {
     // Bidder calls SetBid before an Ask is set, fails
     let set_bid_msg = ExecuteMsg::SetBid {
         token_id: TOKEN_ID.to_string(),
+        new_gov: GovernanceDetails::Monarchy {
+            monarch: "bidder".to_string(),
+        },
+        account_id: AccountId::local(1),
     };
     let res = execute(deps.as_mut(), mock_env(), bidder, set_bid_msg);
     assert!(res.is_err());
@@ -154,6 +173,7 @@ fn try_set_ask() {
     let set_ask = ExecuteMsg::SetAsk {
         token_id: TOKEN_ID.to_string(),
         seller: CREATOR.to_string(),
+        account_id: AccountId::local(1),
     };
 
     // Reject if not called by the media owner

@@ -25,6 +25,7 @@ cosmwasm-schema = { workspace = true }
 cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
+cw721 = { workspace = true }
 cw20 = { workspace = true }
 cw-asset = { workspace = true }
 schemars = { workspace = true }

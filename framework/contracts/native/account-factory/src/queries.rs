@@ -16,3 +16,8 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
     Ok(resp)
 }
+pub fn query_profile_config(deps: Deps) -> StdResult<ProfileConfig> {
+    let state: ProfileConfig = PROFILE_CONFIG.load(deps.storage)?;
+
+    Ok(state)
+}

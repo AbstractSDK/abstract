@@ -2,9 +2,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
 pub mod common;
-pub mod market;
 pub mod minter;
-
 
 pub type TokenId = String;
 
@@ -59,7 +57,6 @@ impl Metadata {
         String::from_utf8(cosmwasm_std::to_json_vec(&self).unwrap_or_default()).unwrap_or_default()
     }
 }
-
 
 #[cosmwasm_schema::cw_serde]
 pub enum BsProfileExecuteMsg {
@@ -124,10 +121,7 @@ mod test {
             token_id: "1".to_string(),
         };
         let json = nft.into_json_string();
-        assert_eq!(
-            json,
-            r#"{"collection":"bitsong1abc123","token_id":"1"}"#
-        );
+        assert_eq!(json, r#"{"collection":"bitsong1abc123","token_id":"1"}"#);
     }
 
     #[test]

@@ -1,12 +1,17 @@
-use abstract_integration_tests::{create_default_account, AResult};
+use abstract_integration_tests::{
+    create_default_account, create_default_account_with_profile, AResult,
+};
 use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_std::{
     manager::SubAccountIdsResponse,
     objects::{gov_type::GovernanceDetails, AccountId},
+    profile,
+    profile_marketplace::{self, state::Bid},
     PROXY,
 };
-use cosmwasm_std::{to_json_binary, wasm_execute};
+use cosmwasm_std::{coin, to_json_binary, wasm_execute, CosmosMsg};
+use cw721::OwnerOfResponse;
 use cw_orch::prelude::*;
 
 #[test]
@@ -210,7 +215,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
         Some(new_desc.to_string()),
         sub_manager.info()?.info.description
     );
-  // take_storage_snapshot!(chain, "installed_app_updating_on_subaccount_should_succeed");
+    // take_storage_snapshot!(chain, "installed_app_updating_on_subaccount_should_succeed");
 
     Ok(())
 }
@@ -221,6 +226,7 @@ fn sub_account_move_ownership() -> AResult {
     let sender = chain.sender();
     let new_owner = chain.addr_make("new_owner");
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
     let account = create_default_account(&deployment.account_factory)?;
     // Store manager address, it will be used for querying
     let manager_addr = account.manager.address()?;
@@ -282,7 +288,7 @@ fn sub_account_move_ownership() -> AResult {
             sub_accounts: vec![]
         }
     );
-  // take_storage_snapshot!(chain, "sub_account_move_ownership");
+    // take_storage_snapshot!(chain, "sub_account_move_ownership");
 
     Ok(())
 }
@@ -374,7 +380,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     let new_account_sub_account = AbstractAccount::new(&deployment, AccountId::local(4));
     let info = new_account_sub_account.manager.info()?.info;
     assert_eq!(new_governance, info.governance_details.into());
-  // take_storage_snapshot!(chain, "sub_account_move_ownership_to_sub_account");
+    // take_storage_snapshot!(chain, "sub_account_move_ownership_to_sub_account");
 
     Ok(())
 }
@@ -413,7 +419,7 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
         .unwrap_err();
     let err = err.root().to_string();
     assert!(err.contains("manager and proxy has different account ids"));
-  // take_storage_snapshot!(chain, "account_move_ownership_to_falsy_sub_account");
+    // take_storage_snapshot!(chain, "account_move_ownership_to_falsy_sub_account");
     Ok(())
 }
 
@@ -598,5 +604,125 @@ fn can_renounce_sub_accounts() -> AResult {
         sub_account_info.info.governance_details,
         GovernanceDetails::Renounced {}
     );
+    Ok(())
+}
+
+#[test]
+fn bid_workflow() -> AResult {
+    let mut chain = MockBech32::new("mock");
+    let bs_profile = String::from("the-monk-on-iron-mountain");
+    let sender = chain.sender();
+    let new_owner = chain.addr_make("new_owner");
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account =
+        create_default_account_with_profile(bs_profile.clone(), &deployment.account_factory)?;
+    let proxy = account.proxy.clone().address()?;
+
+    chain.set_balance(&new_owner, vec![coin(200000000u128, "ubtsg".to_string())])?;
+    chain.set_balance(&sender, vec![coin(1000000000u128, "ubtsg".to_string())])?;
+    chain.set_balance(
+        &account.proxy.address()?,
+        vec![coin(1000000000u128, "ubtsg".to_string())],
+    )?;
+
+    println!("current_owner:{sender:?}");
+    println!("new_owner:{new_owner:?}");
+    println!("account_proxy {proxy:?}");
+
+    let assoc_addr: OwnerOfResponse = deployment
+        .bs721_profile
+        .query(&profile::QueryMsg::OwnerOf {
+            token_id: bs_profile.clone(),
+            include_expired: None,
+        })
+        .unwrap();
+    println!("associated address: {assoc_addr:?}");
+
+    // confirm proxy is owner
+    assert_eq!(assoc_addr.owner, proxy);
+    // set bid on profile as new_owner
+    chain.call_as(&new_owner).execute(
+        &profile_marketplace::ExecuteMsg::SetBid {
+            token_id: bs_profile.clone(),
+            new_gov: GovernanceDetails::Monarchy {
+                monarch: new_owner.to_string(),
+            },
+            account_id: AccountId::local(1),
+        },
+        &[coin(100000000u128, "ubtsg")],
+        &deployment.profile_marketplace.address()?,
+    )?;
+    // confirm bid is present
+    let res: Vec<Bid> = deployment
+        .profile_marketplace
+        .query(&profile_marketplace::QueryMsg::Bids {
+            token_id: bs_profile.clone(),
+            start_after: None,
+            limit: None,
+        })
+        .unwrap();
+    assert!(!res.is_empty());
+
+    let res = account.manager.ownership()?;
+    println!("{res:?}");
+
+    account.manager.exec_on_module(
+        cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
+            msgs: vec![CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
+                contract_addr: deployment.bs721_profile.address()?.to_string(),
+                msg: to_json_binary(&abstract_std::profile::ExecuteMsg::<Empty>::Approve {
+                    spender: deployment.profile_marketplace.address()?.to_string(),
+                    token_id: bs_profile.clone(),
+                    expires: None,
+                })?,
+                funds: vec![],
+            })],
+        })?,
+        PROXY.to_string(),
+        &[],
+    )?;
+
+    let proxy_balance = chain
+        .app
+        .borrow()
+        .wrap()
+        .query_all_balances(account.proxy.address()?)?;
+
+    let marketplace_balance = chain
+        .app
+        .borrow()
+        .wrap()
+        .query_all_balances(deployment.profile_marketplace.address()?)?;
+    println!("proxy balance: {proxy_balance:?}");
+    println!("marketplace balance: {marketplace_balance:?}");
+
+    account.manager.exec_on_module(
+        cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
+            msgs: vec![CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
+                contract_addr: deployment.profile_marketplace.address()?.to_string(),
+                msg: to_json_binary(&profile_marketplace::ExecuteMsg::AcceptBid {
+                    token_id: bs_profile.clone(),
+                    bidder: new_owner.into_string(),
+                })?,
+                funds: vec![],
+            })],
+        })?,
+        PROXY.to_string(),
+        &[],
+    )?;
+
+    let res = account.manager.ownership()?;
+
+    let assoc_addr: OwnerOfResponse = deployment
+        .bs721_profile
+        .query(&profile::QueryMsg::OwnerOf {
+            token_id: bs_profile.clone(),
+            include_expired: None,
+        })
+        .unwrap();
+
+    println!("{res:?}");
+    println!("associated address: {assoc_addr:?}");
+
     Ok(())
 }

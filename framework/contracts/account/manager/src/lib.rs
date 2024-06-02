@@ -36,6 +36,7 @@ mod test_common {
                 description: None,
                 link: None,
                 install_modules: vec![],
+                marketplace_address: Some(TEST_PROFILE_MARKETPLACE.to_string()),
             },
         )
     }

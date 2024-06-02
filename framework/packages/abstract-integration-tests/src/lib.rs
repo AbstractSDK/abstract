@@ -30,6 +30,21 @@ pub fn create_default_account<T: CwEnv>(
     Ok(account)
 }
 
+pub fn create_default_account_with_profile<T: CwEnv>(
+    bs_profile: String,
+    factory: &AccountFactory<T>,
+) -> anyhow::Result<AbstractAccount<T>> {
+    let sender = factory.as_instance().get_chain().sender();
+
+    let account = factory.create_default_account_with_profile(
+        bs_profile,
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+    )?;
+    Ok(account)
+}
+
 pub fn install_module_version<T: CwEnv>(
     manager: &Manager<T>,
     module: &str,

@@ -2,33 +2,34 @@ pub use crate::error::ContractError;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 
+pub mod commands;
 pub mod contract;
 mod error;
 mod helpers;
 pub mod sudo;
-pub mod commands;
 
 pub use helpers::NameCollectionContract;
 
 #[cfg(test)]
 pub mod unit_tests;
 
-use bs721_base::InstantiateMsg as Bs721InstantiateMsg;
-use bs721_base::msg::CollectionInfoResponse;
-use bs721_base::{ExecuteMsg as Bs721ExecuteMsg, MintMsg, QueryMsg as Bs721QueryMsg};
-use bs_profile::{Metadata, TextRecord, NFT};
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Empty};
 use bs721::{
     AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, Expiration,
     NftInfoResponse, NumTokensResponse, OperatorsResponse, OwnerOfResponse, TokensResponse,
 };
+use bs721_base::msg::CollectionInfoResponse;
+use bs721_base::InstantiateMsg as Bs721InstantiateMsg;
 use bs721_base::MinterResponse;
+use bs721_base::{ExecuteMsg as Bs721ExecuteMsg, MintMsg, QueryMsg as Bs721QueryMsg};
+use bs_profile::{Metadata, TextRecord, NFT};
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Addr, Binary, Empty};
 
 #[allow(unused_imports)]
 use crate::{};
 
 pub mod state {
+    use abstract_std::version_control::AccountBase;
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
@@ -41,12 +42,16 @@ pub mod state {
     pub const REVERSE_MAP: Map<&TokenUri, TokenId> = Map::new("rm");
     pub const VERIFIER: Admin = Admin::new("verifier");
     pub const SUDO_PARAMS: Item<SudoParams> = Item::new("params");
-    pub const NAME_MARKETPLACE: Item<Addr> = Item::new("name-marketplace");
+    pub const PROFILE_MARKETPLACE: Item<Addr> = Item::new("profile-marketplace");
+    pub const VERSION_CONTROL: Item<String> = Item::new("version-control");
+    pub const ACCOUNT_BASE: Map<&String, AccountBase> = Map::new("acount-base");
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub verifier: Option<String>,
+    pub marketplace: Addr,
+    // pub vc_addr: String,
     pub base_init_msg: Bs721InstantiateMsg,
 }
 
@@ -191,6 +196,9 @@ pub enum QueryMsg {
     /// Returns the text records for a name
     #[returns(Vec<TextRecord>)]
     TextRecords { name: String },
+    /// Returns the text records for a name
+    #[returns(String)]
+    CurrentManager { name: String },
     /// Returns if Twitter is verified for a name
     #[returns(bool)]
     IsTwitterVerified { name: String },

@@ -1,5 +1,5 @@
 use crate::{
-    state::{SUDO_PARAMS, VERIFIER},
+    state::{PROFILE_MARKETPLACE, SUDO_PARAMS, VERIFIER},
     InstantiateMsg, SudoParams,
 };
 use abstract_std::PROFILE;
@@ -39,6 +39,7 @@ pub fn instantiate(
 
     let api = deps.api;
     VERIFIER.set(deps.branch(), maybe_addr(api, msg.verifier)?)?;
+    PROFILE_MARKETPLACE.save(deps.storage, &msg.marketplace)?;
 
     let res =
         Bs721NameContract::default().instantiate(deps, env.clone(), info, msg.base_init_msg)?;
@@ -128,18 +129,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         _ => Bs721NameContract::default().query(deps, env, msg.into()),
     }
 }
-
-/// This just stores the result for future query
-// #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-// pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractError> {
-//     match &msg {
-//         Reply {
-//             id: RESPONSE_REPLY_ID,
-//             result: SubMsgResult::Ok(_),
-//         } => reply::forward_response_data(msg),
-//         _ => Err(ContractError::UnexpectedReply {}),
-//     }
-// }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: Empty) -> Result<Response, ContractError> {

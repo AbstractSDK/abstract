@@ -97,4 +97,19 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             None,
         )
     }
+    pub fn create_default_account_with_profile(
+        &self,
+        bs_profile: String,
+        governance_details: GovernanceDetails<String>,
+    ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
+        self.create_new_account(
+            AccountDetails {
+                name: "Default Abstract Account".into(),
+                bs_profile: Some(bs_profile),
+                ..Default::default()
+            },
+            governance_details,
+            None,
+        )
+    }
 }

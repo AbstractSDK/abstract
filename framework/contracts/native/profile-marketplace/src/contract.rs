@@ -9,6 +9,7 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use semver::Version;
+use state::VERSION_CONTROL;
 
 use crate::{commands::*, ContractError};
 
@@ -37,6 +38,7 @@ pub fn instantiate(
     
     PROFILE_MINTER.save(deps.storage, &msg.factory)?;
     PROFILE_COLLECTION.save(deps.storage, &msg.collection)?;
+    VERSION_CONTROL.save(deps.storage, &msg.version_control)?;
 
     Ok(Response::new()
         .add_attribute("action", "instantiate")
@@ -54,14 +56,14 @@ pub fn execute(
     let api = deps.api;
 
     match msg {
-        ExecuteMsg::SetAsk { token_id, seller } => {
-            execute_set_ask(deps, env, info, &token_id, api.addr_validate(&seller)?)
+        ExecuteMsg::SetAsk { token_id, seller, account_id } => {
+            execute_set_ask(deps, env, info, &token_id, api.addr_validate(&seller)?, account_id)
         }
         ExecuteMsg::RemoveAsk { token_id } => execute_remove_ask(deps, info, &token_id),
         ExecuteMsg::UpdateAsk { token_id, seller } => {
             execute_update_ask(deps, info, &token_id, api.addr_validate(&seller)?)
         }
-        ExecuteMsg::SetBid { token_id } => execute_set_bid(deps, env, info, &token_id),
+        ExecuteMsg::SetBid {token_id, new_gov,account_id } => execute_set_bid(deps, env, info, &token_id, new_gov,account_id),
         ExecuteMsg::RemoveBid { token_id } => execute_remove_bid(deps, env, info, &token_id),
         ExecuteMsg::AcceptBid { token_id, bidder } => {
             execute_accept_bid(deps, env, info, &token_id, api.addr_validate(&bidder)?)

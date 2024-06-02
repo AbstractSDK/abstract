@@ -34,6 +34,7 @@ pub mod state {
     pub struct Config {
         pub version_control_address: Addr,
         pub module_factory_address: Addr,
+        pub marketplace_address: Option<Addr>,
     }
 
     /// Abstract Account details.
@@ -122,6 +123,7 @@ pub struct InstantiateMsg {
     pub proxy_addr: String,
     pub version_control_address: String,
     pub module_factory_address: String,
+    pub marketplace_address: Option<String>,
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
@@ -238,6 +240,8 @@ pub enum ExecuteMsg {
     UpdateSubAccount(UpdateSubAccountAction),
     /// Callback endpoint
     Callback(CallbackMsg),
+    // Profile Marketplace Callback for token transfers
+    MarketplaceCallback {owner: GovernanceDetails<String> }
 }
 
 /// Manager query messages

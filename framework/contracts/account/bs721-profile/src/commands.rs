@@ -1,6 +1,7 @@
 use crate::error::ContractError;
+use crate::state::PROFILE_MARKETPLACE;
 use crate::{
-    state::{NAME_MARKETPLACE, REVERSE_MAP, SUDO_PARAMS, VERIFIER},
+    state::{REVERSE_MAP, SUDO_PARAMS, VERIFIER},
     SudoParams,
 };
 use bs721_base::msg::MintMsg;
@@ -18,7 +19,7 @@ use bs721_base::{
     ExecuteMsg as Bs721ExecuteMsg,
 };
 use bs_profile::{
-    common::MAX_TEXT_LENGTH, market::BsProfileMarketplaceExecuteMsg, Metadata, TextRecord, NFT,
+    common::MAX_TEXT_LENGTH, Metadata, TextRecord, NFT,
 };
 
 use subtle_encoding::bech32;
@@ -82,7 +83,8 @@ pub fn execute_associate_address(
             None => Err(ContractError::NameNotFound {}),
         })?;
 
-    // 6. save new reverse map entry
+    // 6. update new manager in token metadata
+    // 7. save new reverse map entry
     token_uri.map(|addr| REVERSE_MAP.save(deps.storage, &addr, &name));
 
     let mut event = Event::new("associate-address")
@@ -127,7 +129,7 @@ pub fn execute_mint(
         owner: deps.api.addr_validate(&owner)?,
         approvals: vec![],
         token_uri: None,
-        extension: extension,
+        extension: extension.clone(),
         seller_fee_bps: None,
         payment_addr: None,
     };
@@ -184,12 +186,12 @@ fn update_ask_on_marketplace(
     token_id: &str,
     recipient: Addr,
 ) -> Result<WasmMsg, ContractError> {
-    let msg = BsProfileMarketplaceExecuteMsg::UpdateAsk {
+    let msg = abstract_std::profile_marketplace::ExecuteMsg::UpdateAsk {
         token_id: token_id.to_string(),
         seller: recipient.to_string(),
     };
     let update_ask_msg = WasmMsg::Execute {
-        contract_addr: NAME_MARKETPLACE.load(deps.storage)?.to_string(),
+        contract_addr: PROFILE_MARKETPLACE.load(deps.storage)?.to_string(),
         funds: vec![],
         msg: to_json_binary(&msg)?,
     };
@@ -483,7 +485,7 @@ pub fn execute_set_profile_marketplace(
         return Err(ContractError::Base(Unauthorized {}));
     }
 
-    NAME_MARKETPLACE.save(deps.storage, &deps.api.addr_validate(&address)?)?;
+    PROFILE_MARKETPLACE.save(deps.storage, &deps.api.addr_validate(&address)?)?;
 
     let event = Event::new("set-name-marketplace")
         .add_attribute("sender", info.sender)
@@ -524,7 +526,7 @@ fn validate_record(record: &TextRecord) -> Result<(), ContractError> {
 }
 
 pub fn query_profile_marketplace(deps: Deps) -> StdResult<Addr> {
-    NAME_MARKETPLACE.load(deps.storage)
+    PROFILE_MARKETPLACE.load(deps.storage)
 }
 
 pub fn query_name(deps: Deps, mut address: String) -> StdResult<String> {

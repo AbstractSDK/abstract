@@ -88,4 +88,7 @@ pub enum AccountFactoryError {
 
     #[error("Incorrect payment. Got: {got}, expected {expected}")]
     IncorrectPayment { got: u128, expected: u128 },
+
+    #[error("BidderNotInAccount")]
+    BidderNotInAccount {},
 }

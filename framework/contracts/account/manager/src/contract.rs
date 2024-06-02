@@ -59,11 +59,18 @@ pub fn instantiate(
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
 
     // Save config
-    let config = Config {
+    let mut config = Config {
         version_control_address: version_control_address.clone(),
         module_factory_address: module_factory_address.clone(),
+        marketplace_address: None,
     };
-    CONFIG.save(deps.storage, &config)?;
+    if let Some(marketplace) = msg.marketplace_address {
+        let marketplace_addr = deps.api.addr_validate(&marketplace)?;
+        config.marketplace_address = Some(marketplace_addr);
+        CONFIG.save(deps.storage, &config)?;
+    } else {
+        CONFIG.save(deps.storage, &config)?;
+    }
 
     // Verify info
     validate_description(msg.description.as_deref())?;
@@ -204,6 +211,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::UpdateSubAccount(action) => {
                     handle_sub_account_action(deps, info, action)
                 }
+                ExecuteMsg::MarketplaceCallback { owner } => custom_update_governance(
+                    deps,
+                    env,
+                    info.clone(),
+                    &mut info.sender.clone(),
+                    owner,
+                ),
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 // Used to claim or renounce an ownership change.
                 ExecuteMsg::UpdateOwnership(action) => {

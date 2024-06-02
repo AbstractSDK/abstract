@@ -416,7 +416,12 @@ pub fn propose_owner(
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
-    assert_admin_right(deps.as_ref(), &info.sender)?;
+    let config = CONFIG.load(deps.storage)?;
+    if let Some(marketplace) = config.marketplace_address {
+        if info.sender.clone() != marketplace {
+            assert_admin_right(deps.as_ref(), &info.sender)?;
+        }
+    }
     // In case it's a top level owner we need to pass current owner into update_ownership method
     let owner = cw_ownable::get_ownership(deps.storage)?
         .owner
@@ -456,6 +461,7 @@ pub fn propose_owner(
 
 /// Update governance of this account after claim
 pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResult<Vec<CosmosMsg>> {
+    let config = CONFIG.load(deps.storage)?;
     let mut msgs = vec![];
     let mut acc_info = INFO.load(deps.storage)?;
     let mut account_id = None;
@@ -501,14 +507,123 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
         // This line is **VERY** important
         // It ensures that only the top-level owner of the proposed owner account can claim the ownership over this account.
         // This makes it impossible for others to assign their own accounts to be owned by other users' accounts. (if using is binary)
-        if top_level_owner == *sender {
-            *sender = proxy.clone();
+        if config.marketplace_address.is_some() {
+            if *sender != config.marketplace_address.unwrap() {
+                if top_level_owner == *sender {
+                    *sender = proxy.clone();
+                }
+            }
+        } else {
+            if top_level_owner == *sender {
+                *sender = proxy.clone();
+            }
         }
     }
     // Update governance of this account
     acc_info.governance_details = pending_governance;
     INFO.save(deps.storage, &acc_info)?;
     Ok(msgs)
+}
+
+/// Update governance of this account after claim
+pub(crate) fn custom_update_governance(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    sender: &mut Addr,
+    new_gov: GovernanceDetails<String>,
+) -> ManagerResult {
+    println!("custom_update_governance");
+    let config = CONFIG.load(deps.storage)?;
+    let mut msgs: Vec<WasmMsg> = vec![];
+    let mut acc_info = INFO.load(deps.storage)?;
+    let mut account_id = None;
+    let verified_gov = new_gov.clone().verify(deps.as_ref(), config.version_control_address)?;
+
+    println!("verified_gov: {verified_gov:?}");
+
+    // assert only profile marketplace calls this
+    if let Some(marketplace) = config.marketplace_address.clone() {
+        if *sender != marketplace {
+            assert_admin_right(deps.as_ref(), &sender.clone())?;
+        }
+    }
+
+    // Clear state for previous manager if it was sub-account
+    if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
+        let id = ACCOUNT_ID.load(deps.storage)?;
+        // For optimizing the gas we save it, in case new owner is sub-account as well
+        account_id = Some(id.clone());
+        let unregister_message = wasm_execute(
+            manager,
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
+                id: id.seq(),
+            }),
+            vec![],
+        )?;
+        msgs.push(unregister_message.into());
+    }
+
+    // Update state for new manager if owner will be the sub-account
+    if let GovernanceDetails::SubAccount { manager, proxy } = &verified_gov {
+        let id = if let Some(id) = account_id {
+            id
+        } else {
+            ACCOUNT_ID.load(deps.storage)? 
+        };
+        let register_message = wasm_execute(
+            manager,
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+                id: id.seq(),
+            }),
+            vec![],
+        )?;
+        msgs.push(register_message.into());
+
+        // If called by top-level owner, update the sender to let cw-ownable think it was called by the owning-account's proxy.
+        let top_level_owner = query_top_level_owner(&deps.querier, manager.clone())?;
+
+        // This line is **VERY** important
+        // It ensures that only the top-level owner of the proposed owner account can claim the ownership over this account.
+        // This makes it impossible for others to assign their own accounts to be owned by other users' accounts. (if using is binary)
+        if *sender != config.marketplace_address.unwrap() {
+            if top_level_owner == *sender {
+                *sender = proxy.clone();
+            }
+        }
+    }
+    // Update governance of this account
+    acc_info.governance_details = verified_gov.clone();
+    INFO.save(deps.storage, &acc_info)?;
+
+    let new_owner  = match new_gov {
+        GovernanceDetails::Monarchy { monarch } => monarch,
+        GovernanceDetails::SubAccount { manager, proxy } => manager,
+        GovernanceDetails::External { governance_address, .. } => governance_address,
+        GovernanceDetails::Renounced {} => todo!(),
+        _ => todo!(),
+    };
+
+    // let ownership = cw_ownable::update_ownership(
+    //     deps,
+    //     &env.block,
+    //     &sender,
+    //     cw_ownable::Action::TransferOwnership {
+    //         new_owner,
+    //         expiry: None,
+    //     },
+    // )?;
+
+    let result: ManagerResult = abstract_sdk::execute_update_ownership!(
+        ManagerResponse,
+        deps,
+        env,
+        info,
+        cw_ownable::Action::AcceptOwnership.into()
+    );
+
+    println!("finished");
+    Ok(result?.add_messages(msgs))
 }
 
 /// Renounce ownership of this account \

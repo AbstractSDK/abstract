@@ -1,8 +1,9 @@
 use std::path::PathBuf;
 
 use abstract_std::{
-    account_factory::ExecuteMsgFns as _, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY,
-    PROFILE, PROFILE_MARKETPLACE, PROXY, VERSION_CONTROL,
+    account_factory::{ExecuteMsgFns as _, QueryMsgFns},
+    profile, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROFILE, PROFILE_MARKETPLACE,
+    PROXY, VERSION_CONTROL,
 };
 use bs721::{CollectionInfo, RoyaltyInfoResponse};
 use bs_profile::Metadata;
@@ -155,6 +156,15 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             )
             .unwrap();
 
+        let profile_config = deployment.account_factory.profile_config()?;
+
+        deployment
+            .bs721_profile
+            .set_address(&Addr::unchecked(profile_config.collection_addr.unwrap()));
+        deployment
+            .profile_marketplace
+            .set_address(&Addr::unchecked(profile_config.marketplace_addr.unwrap()));
+
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
         use abstract_std::objects::gov_type::GovernanceDetails;
@@ -296,46 +306,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
         // We also instantiate ibc contracts
         self.ibc.instantiate(self, &admin)?;
         self.ibc.register(&self.version_control)?;
-
-        // let i_msg = self.bs721_profile.instantiate(
-        //     &abstract_std::profile::InstantiateMsg {
-        //         verifier: None,
-        //         base_init_msg: bs721_base::InstantiateMsg {
-        //             name: "test".to_string(),
-        //             symbol: "TEST".to_string(),
-        //             uri: None,
-        //             minter: self.account_factory.address()?.to_string(),
-        //             collection_info: CollectionInfo::<RoyaltyInfoResponse> {
-        //                 creator: admin.to_string(),
-        //                 description: "test description".to_string(),
-        //                 image: "https://www.testimageurl.com".to_string(),
-        //                 external_link: Some("https://www.beautiful.network".to_string()),
-        //                 explicit_content: None,
-        //                 start_trading_time: None,
-        //                 royalty_info: None,
-        //             },
-        //         },
-        //     },
-        //     Some(&admin),
-        //     None,
-        // )?;
-        // println!("Profile Collection Contract: {:?}", i_msg.events());
-
-        // self.profile_marketplace.instantiate(
-        //     &abstract_std::profile_marketplace::InstantiateMsg {
-        //         trading_fee_bps: 25,
-        //         min_price: 100u128.into(),
-        //         ask_interval: 100,
-        //         factory: self.account_factory.address()?,
-        //         collection: self.bs721_profile.address()?,
-        //     },
-        //     Some(&admin),
-        //     None,
-        // )?;
-        // println!(
-        //     "Marketplace: {:?}",
-        //     self.profile_marketplace.address()?.to_string()
-        // );
 
         Ok(())
     }

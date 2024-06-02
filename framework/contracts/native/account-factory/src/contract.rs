@@ -9,7 +9,12 @@ use cosmwasm_std::{
 };
 use semver::Version;
 
-use crate::{commands, error::AccountFactoryError, queries, state::*};
+use crate::{
+    commands::{self},
+    error::AccountFactoryError,
+    queries,
+    state::*,
+};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -152,6 +157,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_json_binary(&queries::query_config(deps)?),
+        QueryMsg::ProfileConfig {} => to_json_binary(&queries::query_profile_config(deps)?),
         QueryMsg::Ownership {} => query_ownership!(deps),
     }
 }

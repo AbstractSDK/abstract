@@ -10,6 +10,8 @@ pub mod state {
     use cw_storage_macro::index_list;
     use cw_storage_plus::{IndexedMap, Item, Map, MultiIndex, UniqueIndex};
 
+    use crate::objects::{gov_type::GovernanceDetails, AccountId};
+
     // bps fee can not exceed 100%
     pub const MAX_FEE_BPS: u64 = 10000;
 
@@ -31,6 +33,7 @@ pub mod state {
 
     pub const PROFILE_MINTER: Item<Addr> = Item::new("profile-minter");
     pub const PROFILE_COLLECTION: Item<Addr> = Item::new("profile-collection");
+    pub const VERSION_CONTROL: Item<Addr> = Item::new("version-control");
 
     /// (renewal_time (in seconds), id) -> [token_id]
     pub const RENEWAL_QUEUE: Map<(u64, u64), TokenId> = Map::new("rq");
@@ -69,6 +72,8 @@ pub mod state {
         pub seller: Addr,
         pub renewal_time: Timestamp,
         pub renewal_fund: Uint128,
+        pub account_id: AccountId,
+        pub gov: Option<GovernanceDetails<String>>,
     }
 
     /// Primary key for asks: token_id
@@ -115,15 +120,26 @@ pub mod state {
         pub bidder: Addr,
         pub amount: Uint128,
         pub created_time: Timestamp,
+        pub gov: GovernanceDetails<String>,
+        pub account_id: AccountId,
     }
 
     impl Bid {
-        pub fn new(token_id: &str, bidder: Addr, amount: Uint128, created_time: Timestamp) -> Self {
+        pub fn new(
+            token_id: &str,
+            bidder: Addr,
+            amount: Uint128,
+            created_time: Timestamp,
+            gov: GovernanceDetails<String>,
+            account_id: AccountId,
+        ) -> Self {
             Bid {
                 token_id: token_id.to_string(),
                 bidder,
                 amount,
                 created_time,
+                gov,
+                account_id,
             }
         }
     }
@@ -165,6 +181,8 @@ pub mod state {
     }
 }
 
+use crate::objects::{gov_type::GovernanceDetails, AccountId};
+
 use self::state::{Ask, Bid, Id, SudoParams, TokenId};
 use bs_controllers::HooksResponse;
 use cosmwasm_schema::QueryResponses;
@@ -183,13 +201,15 @@ pub struct InstantiateMsg {
     pub factory: Addr,
     /// Account Profile contract address
     pub collection: Addr,
+    /// Version Control contract address
+    pub version_control: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// List name NFT on the marketplace by creating a new ask.
     /// Only the account factory can call this.
-    SetAsk { token_id: TokenId, seller: String },
+    SetAsk { token_id: TokenId, seller: String, account_id: AccountId },
     /// Remove profile on the marketplace.
     /// Only the profile collection can call this (i.e: when burned).
     RemoveAsk { token_id: TokenId },
@@ -197,7 +217,11 @@ pub enum ExecuteMsg {
     /// Only the name collection can call this
     UpdateAsk { token_id: TokenId, seller: String },
     /// Place a bid on an existing ask
-    SetBid { token_id: TokenId },
+    SetBid {
+        token_id: TokenId,
+        new_gov: GovernanceDetails<String>,
+        account_id: AccountId,
+    },
     /// Remove an existing bid from an ask
     RemoveBid { token_id: TokenId },
     /// Accept a bid on an existing ask

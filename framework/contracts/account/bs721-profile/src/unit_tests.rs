@@ -1,4 +1,5 @@
 use crate::{InstantiateMsg, SudoParams};
+use abstract_std::PROFILE_MARKETPLACE;
 use bs721::CollectionInfo;
 use bs721_base::MintMsg;
 use bs721_base::{ContractError::Unauthorized, InstantiateMsg as Bs721InstantiateMsg};
@@ -84,6 +85,7 @@ fn init_msg() -> InstantiateMsg {
     InstantiateMsg {
         verifier: None,
         base_init_msg,
+        marketplace: Addr::unchecked(PROFILE_MARKETPLACE),
     }
 }
 
@@ -328,5 +330,8 @@ fn query_names() {
 #[test]
 fn test_transcode() {
     let res = transcode("cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47");
-    assert_eq!(res.unwrap(), "bitsong1y54exmx84cqtasvjnskf9f63djuuj68pj7jph3");
+    assert_eq!(
+        res.unwrap(),
+        "bitsong1y54exmx84cqtasvjnskf9f63djuuj68pj7jph3"
+    );
 }
