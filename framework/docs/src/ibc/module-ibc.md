@@ -8,9 +8,24 @@ In order to do so, the developer could attempt to send his message through the u
 
 ## Secure Interchain Module Communication
 
-To allow modules to send messages securely to other modules across IBC, we have developed an Interchain Module Communication (IMC) protocol. IMC allows developers to send messages from a module directly to another module on a different chain. The module that receives the IBC message can then access the source module details. This way ICM allows interoperable permissioned actions between all Abstract modules.
+To allow modules to send messages securely to other modules across IBC, we have developed an Interchain Module Communication (IMC) protocol. IMC allows developers to send messages from a module directly to another module on a different chain. The module that receives the IBC message can then access the source module details. This way IMC allows interoperable permissioned actions between all Abstract modules.
 
-Let's see how to create a contract with ICM capabilities.
+```mermaid
+flowchart
+    subgraph Module IBC
+        direction TB
+        subgraph Chain A
+        Mod1[Module] ==> A1[Account]
+        end
+
+        subgraph Chain B
+        Mod2[Module] ==> A2[Account]
+        end
+        Mod1 <-.IBC.-> Mod2
+    end
+```
+
+Let's see how to create a contract with IMC capabilities.
 
 ### Sending a message
 

@@ -74,8 +74,8 @@ pub struct MigrateMsg {}
 pub enum ExecuteMsg {
     /// Update the ownership.
     UpdateOwnership(cw_ownable::Action),
-    // Registers the polytone note on the local chain as well as the host on the remote chain to send messages through
-    // This allows for monitoring which chain are connected to the contract remotely
+    /// Owner method: Registers the polytone note on the local chain as well as the host on the remote chain to send messages through
+    /// This allows for monitoring which chain are connected to the contract remotely
     RegisterInfrastructure {
         /// Chain to register the infrastructure for ("juno", "osmosis", etc.)
         chain: String,
@@ -84,7 +84,7 @@ pub enum ExecuteMsg {
         /// Address of the abstract host deployed on the remote chain
         host: String,
     },
-    /// Changes the config
+    /// Owner method: Update the config on IBC client
     UpdateConfig {
         ans_host: Option<String>,
         version_control: Option<String>,
@@ -93,40 +93,63 @@ pub enum ExecuteMsg {
     /// Will attempt to forward the specified funds to the corresponding
     /// address on the remote chain.
     SendFunds {
+        /// host chain to be executed on
+        /// Example: "osmosis"
         host_chain: String,
         funds: Vec<Coin>,
     },
+    /// Only callable by Account proxy
     /// Register an Account on a remote chain over IBC
     /// This action creates a proxy for them on the remote chain.
     Register {
+        /// host chain to be executed on
+        /// Example: "osmosis"
         host_chain: String,
         base_asset: Option<AssetEntry>,
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
     },
+
+    /// Only callable by Account Module
+    // ANCHOR: module-ibc-action
+
     ModuleIbcAction {
+        /// host chain to be executed on
+        /// Example: "osmosis"
         host_chain: String,
+        /// Module of this account on host chain
         target_module: ModuleInfo,
+        /// Json-encoded IbcMsg to the target module
         msg: Binary,
+        /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback_info: Option<CallbackInfo>,
     },
+
+    /// Only callable by Account Module
+    // ANCHOR_END: module-ibc-action
     IbcQuery {
+        /// host chain to be executed on
+        /// Example: "osmosis"
         host_chain: String,
+        /// Cosmos Query request
         query: QueryRequest<Empty>,
+        /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback_info: CallbackInfo,
     },
+    /// Only callable by Account Proxy
+    /// Action on remote ibc host
+    /// Which currently only support manager messages
     RemoteAction {
-        // host chain to be executed on
-        // Example: "osmosis"
+        /// host chain to be executed on
+        /// Example: "osmosis"
         host_chain: String,
-        // execute the custom host function
+        /// execute the custom host function
         action: HostAction,
     },
-    RemoveHost {
-        host_chain: String,
-    },
+    /// Owner method: Remove connection for remote chain
+    RemoveHost { host_chain: String },
     /// Callback from the Polytone implementation
-    /// This is NOT ONLY triggered when a contract execution is successful
+    /// This is triggered regardless of the execution result
     Callback(CallbackMessage),
 }
 
@@ -245,7 +268,7 @@ pub enum QueryMsg {
     #[returns(HostResponse)]
     Host { chain_name: String },
 
-    // Shows all open channels (incl. remote info)
+    /// Get list of remote accounts
     /// Returns [`ListAccountsResponse`]
     #[returns(ListAccountsResponse)]
     ListAccounts {
@@ -253,29 +276,30 @@ pub enum QueryMsg {
         limit: Option<u32>,
     },
 
-    // Get channel info for one chain
+    /// Get remote proxy address for one chain
     /// Returns [`AccountResponse`]
     #[returns(AccountResponse)]
     Account {
         chain: String,
         account_id: AccountId,
     },
-    // get the hosts
+
+    /// Get the hosts
     /// Returns [`ListRemoteHostsResponse`]
     #[returns(ListRemoteHostsResponse)]
     ListRemoteHosts {},
 
-    // get the IBC execution proxies
+    /// Get the IBC execution proxies
     /// Returns [`ListRemoteProxiesResponse`]
     #[returns(ListRemoteProxiesResponse)]
     ListRemoteProxies {},
 
-    // get the IBC execution proxies based on the account id passed
+    /// Get the IBC execution proxies based on the account id passed
     /// Returns [`ListRemoteProxiesResponse`]
     #[returns(ListRemoteProxiesResponse)]
     ListRemoteProxiesByAccountId { account_id: AccountId },
 
-    // get the IBC counterparts connected to this abstract client
+    /// Get the IBC counterparts connected to this abstract ibc client
     /// Returns [`ListIbcInfrastructureResponse`]
     #[returns(ListIbcInfrastructureResponse)]
     ListIbcInfrastructures {},

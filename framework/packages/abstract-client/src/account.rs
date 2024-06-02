@@ -40,7 +40,7 @@ use abstract_std::{
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
-    IBC_CLIENT, PROXY,
+    PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
@@ -563,16 +563,8 @@ impl<Chain: CwEnv> Account<Chain> {
         host_chain: impl Into<String>,
         base_asset: Option<AssetEntry>,
         namespace: Option<String>,
-        mut install_modules: Vec<ModuleInstallConfig>,
+        install_modules: Vec<ModuleInstallConfig>,
     ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
-        // We add the IBC Client by default in the modules installed on the remote account
-        if !install_modules.iter().any(|m| m.module.id() == IBC_CLIENT) {
-            install_modules.push(ModuleInstallConfig::new(
-                ModuleInfo::from_id_latest(IBC_CLIENT)?,
-                None,
-            ));
-        }
-
         self.abstr_account
             .manager
             .execute(
@@ -814,6 +806,14 @@ impl<Chain: CwEnv> Account<Chain> {
             Err(AbstractClientError::ModuleNotInstalled {})
         }
     }
+
+    /// Claim a namespace for an existing account
+    pub fn claim_namespace(
+        &self,
+        namespace: impl Into<String>,
+    ) -> Result<Chain::Response, AbstractInterfaceError> {
+        self.abstr_account.claim_namespace(namespace)
+    }
 }
 
 impl<Chain: MutCwEnv> Account<Chain> {
@@ -843,5 +843,41 @@ impl<Chain: CwEnv> Display for Account<Chain> {
 impl<Chain: CwEnv> Debug for Account<Chain> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.abstr_account)
+    }
+}
+
+#[cfg(test)]
+pub mod test {
+    use abstract_interface::{Abstract, VCQueryFns};
+    use abstract_std::objects::namespace::Namespace;
+    use cw_orch::{contract::Deploy, mock::MockBech32};
+
+    use crate::AbstractClient;
+
+    #[test]
+    fn namespace_after_creation() -> cw_orch::anyhow::Result<()> {
+        let mock = MockBech32::new("mock");
+        let abstr = AbstractClient::builder(mock.clone()).build()?;
+
+        let my_namespace = "my-namespace";
+        let new_account = abstr.account_builder().build()?;
+        new_account.claim_namespace(my_namespace)?;
+
+        // Verify the namespace exists
+        let abstr = Abstract::load_from(mock.clone())?;
+        let namespace_response = abstr
+            .version_control
+            .namespace(Namespace::new(my_namespace)?)?;
+
+        match namespace_response {
+            abstract_std::version_control::NamespaceResponse::Claimed(c) => {
+                assert_eq!(c.account_id, new_account.id()?)
+            }
+            abstract_std::version_control::NamespaceResponse::Unclaimed {} => {
+                panic!("Expected claimed namespace")
+            }
+        }
+
+        Ok(())
     }
 }

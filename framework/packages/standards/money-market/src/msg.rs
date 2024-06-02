@@ -89,7 +89,7 @@ pub enum MoneyMarketQueryMsg {
 
     /// Query using raw asset denoms and addresses
     /// Deposited funds for lending
-    #[returns(Uint128)]
+    #[returns(UserDepositResponse)]
     RawUserDeposit {
         /// User that has deposited some funds
         user: String,
@@ -100,7 +100,7 @@ pub enum MoneyMarketQueryMsg {
         /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
-    #[returns(Uint128)]
+    #[returns(UserCollateralResponse)]
     /// Deposited Collateral funds
     RawUserCollateral {
         /// User that has deposited some collateral
@@ -114,7 +114,7 @@ pub enum MoneyMarketQueryMsg {
         /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
-    #[returns(Uint128)]
+    #[returns(UserBorrowResponse)]
     /// Borrowed funds
     RawUserBorrow {
         /// User that has borrowed some funds
@@ -128,7 +128,7 @@ pub enum MoneyMarketQueryMsg {
         /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
-    #[returns(Decimal)]
+    #[returns(UserCurrentLTVResponse)]
     /// Current Loan-to-Value ratio
     /// Represents the borrow usage for a specific user
     /// Allows to know how much asset are currently borrowed
@@ -144,7 +144,7 @@ pub enum MoneyMarketQueryMsg {
         /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
-    #[returns(Decimal)]
+    #[returns(UserMaxLTVResponse)]
     /// Maximum Loan to Value ratio for a user
     /// Allows to know how much assets can to be borrowed
     RawMaxLTV {
@@ -159,7 +159,7 @@ pub enum MoneyMarketQueryMsg {
         /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
-    #[returns(Decimal)]
+    #[returns(PriceResponse)]
     /// Price of an asset compared to another asset
     /// The returned decimal corresponds to
     /// How much quote assets can be bought with 1 base asset
@@ -172,7 +172,7 @@ pub enum MoneyMarketQueryMsg {
         money_market: MoneyMarketName,
     },
 
-    #[returns(Uint128)]
+    #[returns(UserDepositResponse)]
     /// Query using ans assets
     /// Deposited funds for lending
     AnsUserDeposit {
@@ -183,7 +183,7 @@ pub enum MoneyMarketQueryMsg {
         /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
-    #[returns(Uint128)]
+    #[returns(UserCollateralResponse)]
     /// Deposited Collateral funds
     AnsUserCollateral {
         /// User that has deposited some collateral
@@ -195,7 +195,7 @@ pub enum MoneyMarketQueryMsg {
         /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
-    #[returns(Uint128)]
+    #[returns(UserBorrowResponse)]
     /// Borrowed funds
     AnsUserBorrow {
         /// User that has borrowed some funds
@@ -207,7 +207,7 @@ pub enum MoneyMarketQueryMsg {
         /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
-    #[returns(Decimal)]
+    #[returns(UserCurrentLTVResponse)]
     /// Current Loan-to-Value ratio
     /// Represents the borrow usage for a specific user
     /// Allows to know how much asset are currently borrowed
@@ -221,7 +221,7 @@ pub enum MoneyMarketQueryMsg {
         /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
-    #[returns(Decimal)]
+    #[returns(UserMaxLTVResponse)]
     /// Maximum Loan to Value ratio for a user
     /// Allows to know how much assets can to be borrowed
     AnsMaxLTV {
@@ -234,7 +234,7 @@ pub enum MoneyMarketQueryMsg {
         /// Name of the MoneyMarket to interact with
         money_market: MoneyMarketName,
     },
-    #[returns(Decimal)]
+    #[returns(PriceResponse)]
     /// Price of an asset compared to another asset
     /// The returned decimal corresponds to
     /// How much quote assets can be bought with 1 base asset

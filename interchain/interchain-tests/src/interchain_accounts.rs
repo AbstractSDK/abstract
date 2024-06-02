@@ -9,7 +9,7 @@ use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
-pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of the account";
+pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of an account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
 
 pub fn set_env() {
@@ -357,12 +357,6 @@ mod test {
                 }
             }
         );
-        // We make sure the ibc client is installed on the remote account
-        let installed_remote_modules = remote_abstract_account.manager.module_infos(None, None)?;
-        assert!(installed_remote_modules
-            .module_infos
-            .iter()
-            .any(|m| m.id == IBC_CLIENT));
 
         // We try to execute a message from the proxy contract (account creation for instance)
 

@@ -21,6 +21,12 @@ pub struct CallbackInfo {
     pub msg: Option<Binary>,
 }
 
+impl CallbackInfo {
+    pub fn new(id: impl Into<String>, msg: Option<Binary>) -> Self {
+        Self { id: id.into(), msg }
+    }
+}
+
 /// IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg
 #[cosmwasm_schema::cw_serde]
 pub struct IbcResponseMsg {
@@ -57,6 +63,7 @@ impl IbcResponseMsg {
 pub enum CallbackResult {
     Query {
         query: QueryRequest<Empty>,
+        // TODO: we allow only 1 query per tx, but return array here
         result: Result<Vec<Binary>, ErrorResponse>,
     },
 
@@ -105,8 +112,11 @@ impl CallbackResult {
 // ANCHOR: module_ibc_msg
 #[cw_serde]
 pub struct ModuleIbcMsg {
+    /// Remote chain identification
     pub client_chain: ChainName,
+    /// Information about the module that called ibc action on this module
     pub source_module: ModuleInfo,
+    /// The message sent by the module
     pub msg: Binary,
 }
 // ANCHOR_END: module_ibc_msg
