@@ -1,8 +1,6 @@
 use crate::{Abstract, AbstractInterfaceError, IbcClient, IbcHost, VersionControl};
 use abstract_std::{IBC_CLIENT, IBC_HOST};
 use cw_orch::prelude::*;
-use cw_orch_interchain::prelude::*;
-use cw_orch_interchain::InterchainError;
 pub struct AbstractIbc<Chain: CwEnv> {
     pub client: IbcClient<Chain>,
     pub host: IbcHost<Chain>,
@@ -63,9 +61,12 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
     }
 }
 
+#[cfg(feature="interchain")]
 // Helpers to create connection with another chain
 pub mod connection {
     use super::*;
+    use cw_orch_interchain::prelude::*;
+    use cw_orch_interchain::InterchainError;
     use abstract_std::account_factory::ExecuteMsgFns;
     use abstract_std::ibc_client::ExecuteMsgFns as _;
     use abstract_std::ibc_client::QueryMsgFns;
