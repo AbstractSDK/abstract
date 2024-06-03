@@ -61,17 +61,17 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
     }
 }
 
-#[cfg(feature="interchain")]
+#[cfg(feature = "interchain")]
 // Helpers to create connection with another chain
 pub mod connection {
     use super::*;
-    use cw_orch_interchain::prelude::*;
-    use cw_orch_interchain::InterchainError;
     use abstract_std::account_factory::ExecuteMsgFns;
     use abstract_std::ibc_client::ExecuteMsgFns as _;
     use abstract_std::ibc_client::QueryMsgFns;
     use abstract_std::ibc_host::ExecuteMsgFns as _;
     use abstract_std::objects::chain_name::ChainName;
+    use cw_orch_interchain::prelude::*;
+    use cw_orch_interchain::InterchainError;
     use cw_orch_polytone::Polytone;
     /// This is used for creating a testing connection between two Abstract connections using an existing polytone connection
     ///
