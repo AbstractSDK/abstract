@@ -617,6 +617,7 @@ fn bid_workflow() -> AResult {
     let account =
         create_default_account_with_profile(bs_profile.clone(), &deployment.account_factory)?;
     let proxy = account.proxy.clone().address()?;
+    let marketplace = deployment.profile_marketplace.address()?;
 
     chain.set_balance(&new_owner, vec![coin(200000000u128, "ubtsg".to_string())])?;
     chain.set_balance(&sender, vec![coin(1000000000u128, "ubtsg".to_string())])?;
@@ -628,6 +629,7 @@ fn bid_workflow() -> AResult {
     println!("current_owner:{sender:?}");
     println!("new_owner:{new_owner:?}");
     println!("account_proxy {proxy:?}");
+    println!("marketplace {marketplace:?}");
 
     let assoc_addr: OwnerOfResponse = deployment
         .bs721_profile
@@ -662,9 +664,6 @@ fn bid_workflow() -> AResult {
         })
         .unwrap();
     assert!(!res.is_empty());
-
-    let res = account.manager.ownership()?;
-    println!("{res:?}");
 
     account.manager.exec_on_module(
         cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
@@ -720,9 +719,10 @@ fn bid_workflow() -> AResult {
             include_expired: None,
         })
         .unwrap();
+    // assert the account is now in escrow and held by marketplace
+    assert_eq!(res.owner.unwrap(), marketplace.to_string());
 
-    println!("{res:?}");
-    println!("associated address: {assoc_addr:?}");
+    println!("Profile Token Ownership: {assoc_addr:?}");
 
     Ok(())
 }

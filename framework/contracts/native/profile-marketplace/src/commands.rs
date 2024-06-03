@@ -3,14 +3,15 @@ use std::marker::PhantomData;
 use crate::error::ContractError;
 use crate::hooks::{prepare_ask_hook, prepare_bid_hook, prepare_sale_hook};
 use abstract_std::objects::gov_type::GovernanceDetails;
+use abstract_std::objects::module_reference::ModuleReference;
 use abstract_std::objects::AccountId;
 use abstract_std::profile_marketplace::state::{
     ask_key, asks, bid_key, bids, increment_asks, Ask, AskKey, Bid, BidKey, SudoParams, TokenId,
-    ASK_COUNT, ASK_HOOKS, BID_HOOKS, PROFILE_COLLECTION, PROFILE_MINTER, RENEWAL_QUEUE, SALE_HOOKS,
-    SUDO_PARAMS, VERSION_CONTROL,
+    ASK_COUNT, ASK_HOOKS, BID_HOOKS, OWNERSHIP_CONTEXT, PROFILE_COLLECTION, PROFILE_MINTER,
+    RENEWAL_QUEUE, SALE_HOOKS, SUDO_PARAMS, VERSION_CONTROL,
 };
 use abstract_std::profile_marketplace::{ConfigResponse, HookAction, SudoMsg};
-use abstract_std::version_control::AccountBaseResponse;
+use abstract_std::version_control::{AccountBase, AccountBaseResponse};
 use abstract_std::{manager, version_control};
 use bs_profile::common::{charge_fees, SECONDS_PER_YEAR};
 use bs_std::NATIVE_DENOM;
@@ -18,13 +19,13 @@ use bs_std::NATIVE_DENOM;
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     coin, coins, to_json_binary, Addr, BankMsg, Decimal, Deps, DepsMut, Empty, Env, Event,
-    MessageInfo, Order, Response, StdError, StdResult, Storage, SubMsg, Timestamp, Uint128,
-    WasmMsg,
+    MessageInfo, Order, Response, StdError, StdResult, Storage, SubMsg, SubMsgResult, Timestamp,
+    Uint128, WasmMsg,
 };
 
 use cw721::{Cw721ExecuteMsg, OwnerOfResponse};
 use cw721_base::helpers::Cw721Contract;
-use cw_storage_plus::Bound;
+use cw_storage_plus::{Bound, Item};
 use cw_utils::{must_pay, nonpayable};
 
 use abstract_std::profile_marketplace::state::MAX_FEE_BPS;
@@ -32,6 +33,10 @@ use abstract_std::profile_marketplace::{BidOffset, Bidder};
 // Query limits
 const DEFAULT_QUERY_LIMIT: u32 = 10;
 const MAX_QUERY_LIMIT: u32 = 100;
+pub const PROPOSE_BIDDER_A: u64 = 1;
+pub const ACCEPT_BIDDER_A: u64 = 2;
+pub const PROPOSE_BIDDER_B: u64 = 3;
+pub const ACCEPT_BIDDER_B: u64 = 4;
 
 /// A seller may set an Ask on their NFT to list it on Marketplace
 pub fn execute_set_ask(
@@ -323,27 +328,35 @@ pub fn execute_accept_bid(
     store_ask(deps.storage, &ask)?;
 
     // transfer ownership
-    let account_base: AccountBaseResponse = deps.querier.query_wasm_smart(
+    let base_res: AccountBaseResponse = deps.querier.query_wasm_smart(
         &VERSION_CONTROL.load(deps.storage)?,
         &version_control::QueryMsg::AccountBase {
             account_id: ask.account_id,
         },
     )?;
-    let msg: manager::ExecuteMsg = manager::ExecuteMsg::MarketplaceCallback {
-        owner: new_gov.clone(),
-    };
-    let execute = WasmMsg::Execute {
-        contract_addr: account_base.account_base.manager.to_string(),
-        msg: to_json_binary(&msg)?,
-        funds: vec![],
-    };
+
+    PROFILE_OWNERSHIP_CONTEXT.save(
+        deps.storage,
+        &vec![(
+            new_gov.clone(),
+            base_res.account_base.manager.clone(),
+            bidder.clone(),
+        )],
+    )?;
+    // propose new owner for account
+    propose_accepted_bidder_a(
+        deps.as_ref(),
+        env.clone(),
+        base_res.account_base.clone(),
+        &mut res,
+    )?;
 
     let event = Event::new("accept-bid")
         .add_attribute("token_id", token_id)
         .add_attribute("bidder", bidder)
         .add_attribute("price", bid.amount.to_string());
 
-    Ok(res.add_event(event).add_message(execute))
+    Ok(res.add_event(event))
 }
 
 pub fn execute_fund_renewal(
@@ -869,4 +882,168 @@ pub fn sudo_remove_bid_hook(deps: DepsMut, hook: Addr) -> Result<Response, Contr
 
     let event = Event::new("remove-bid-hook").add_attribute("hook", hook);
     Ok(Response::new().add_event(event))
+}
+
+pub(crate) const PROFILE_OWNERSHIP_CONTEXT: Item<Vec<(GovernanceDetails<String>, Addr, Addr)>> =
+    Item::new("powcontext");
+
+/// Propose the marketplace as owner for escrow of account
+fn propose_accepted_bidder_a(
+    deps: Deps,
+    env: Env,
+    account_base: AccountBase,
+    res: &mut Response,
+) -> StdResult<()> {
+    // propose owner as marketplace for escrow purposes
+    let msg: manager::ExecuteMsg = manager::ExecuteMsg::ProposeOwner {
+        owner: GovernanceDetails::Monarchy {
+            monarch: env.contract.address.into_string(),
+        },
+    };
+    let propose_owner_msg = WasmMsg::Execute {
+        contract_addr: account_base.manager.to_string(),
+        msg: to_json_binary(&msg)?,
+        funds: vec![],
+    };
+
+    res.messages.push(SubMsg::reply_on_success(
+        propose_owner_msg,
+        PROPOSE_BIDDER_A,
+    ));
+    Ok(())
+}
+
+pub(crate) fn propose_accepted_bidder_a_response(
+    env: Env,
+    deps: DepsMut,
+    result: SubMsgResult,
+) -> Result<Response, ContractError> {
+    println!("Propose New Owner A Response",);
+    let new_gov = PROFILE_OWNERSHIP_CONTEXT.load(deps.storage)?;
+    let mut res = Response::new();
+
+    for (details, manager_addr, new_owner) in &new_gov {
+        match details {
+            GovernanceDetails::Monarchy { monarch } => {
+                println!("Governance Details A: {}", monarch.to_string());
+            }
+            GovernanceDetails::SubAccount { manager, proxy } => {}
+            GovernanceDetails::Renounced {} | _ => (),
+        };
+
+        // transfer ownership
+        let msg: manager::ExecuteMsg = manager::ExecuteMsg::MarketplaceEntryPoint {
+            owner: details.clone(),
+        };
+        let transfer_ownership = WasmMsg::Execute {
+            contract_addr: manager_addr.to_string(),
+            msg: to_json_binary(&msg)?,
+            funds: vec![],
+        };
+
+        OWNERSHIP_CONTEXT.save(
+            deps.storage,
+            (env.contract.address.to_string(), manager_addr.to_string()),
+            details,
+        )?;
+        println!("Saved Details to OWNERSHIP_CONTEXT");
+
+        res.messages.push(SubMsg::reply_on_success(
+            transfer_ownership,
+            ACCEPT_BIDDER_A,
+        ));
+
+        // for event in &result.clone().unwrap().events {
+        //     for attribute in &event.attributes {
+        //         println!(
+        //             "Attribute key: {}, value: {}",
+        //             attribute.key, attribute.value
+        //         );
+        //     }
+        // }
+    }
+
+    Ok(res)
+}
+
+pub(crate) fn accept_bidder_a_response(
+    deps: DepsMut,
+    result: SubMsgResult,
+) -> Result<Response, ContractError> {
+    println!("Accept New Owner A Response",);
+    let mut owner = String::default();
+    let mut manager_addr = String::default();
+    let mut res = Response::new();
+
+    for event in &result.clone().unwrap().events {
+        for attribute in &event.attributes {
+            if attribute.key == "owner" {
+                owner = attribute.value.clone(); // Assuming attribute.value is a string
+            }
+            if attribute.key == "_contract_address" {
+                manager_addr = attribute.value.clone(); // Assuming attribute.value is a string
+            }
+        }
+    }
+    // load new gov to propose
+    let new_gov = OWNERSHIP_CONTEXT.load(deps.storage, (owner, manager_addr.clone()))?;
+
+    match new_gov.clone() {
+        GovernanceDetails::Monarchy { monarch } => {
+            println!("Accepted Gov To Propose A: {}", monarch.to_string());
+        }
+        GovernanceDetails::SubAccount { manager, proxy } => {}
+        GovernanceDetails::Renounced {} | _ => (),
+    };
+
+    // propose new owner
+    propose_accepted_bidder_b(manager_addr, new_gov, &mut res)?;
+
+    Ok(res)
+}
+
+/// Propose the accepted bidder
+fn propose_accepted_bidder_b(
+    manager: String,
+    new_gov: GovernanceDetails<String>,
+    res: &mut Response,
+) -> StdResult<()> {
+    println!("Propose Accepted Bidder B",);
+    // propose owner
+    let msg: manager::ExecuteMsg = manager::ExecuteMsg::ProposeOwner { owner: new_gov.clone() };
+
+    match new_gov.clone() {
+        GovernanceDetails::Monarchy { monarch } => {
+            println!("Gov To Propose B: {}", monarch.to_string());
+        }
+        GovernanceDetails::SubAccount { manager, proxy } => {}
+        GovernanceDetails::Renounced {} | _ => (),
+    };
+
+    let propose_owner_msg = WasmMsg::Execute {
+        contract_addr: manager.to_string(),
+        msg: to_json_binary(&msg)?,
+        funds: vec![],
+    };
+
+    // res.messages.push(SubMsg::reply_on_success(
+    //     propose_owner_msg,
+    //     PROPOSE_BIDDER_B,
+    // ));
+
+    Ok(())
+}
+
+pub(crate) fn propose_accepted_bidder_b_response(
+    deps: DepsMut,
+    result: SubMsgResult,
+) -> Result<Response, ContractError> {
+    Ok(Response::new())
+}
+
+pub(crate) fn accept_bidder_b_response(
+    deps: DepsMut,
+    _result: SubMsgResult,
+) -> Result<Response, ContractError> {
+    Ok(Response::new())
 }

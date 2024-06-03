@@ -67,4 +67,7 @@ pub enum ContractError {
 
     #[error("InvalidContractVersion")]
     InvalidContractVersion {},
+
+    #[error("Contract got an unexpected Reply")]
+    UnexpectedReply(),
 }

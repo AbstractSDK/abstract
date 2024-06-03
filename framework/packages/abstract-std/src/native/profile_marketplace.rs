@@ -37,6 +37,8 @@ pub mod state {
 
     /// (renewal_time (in seconds), id) -> [token_id]
     pub const RENEWAL_QUEUE: Map<(u64, u64), TokenId> = Map::new("rq");
+    /// (new_owner, manager_addr) -> [governance_details]
+    pub const OWNERSHIP_CONTEXT: Map<(String, String), GovernanceDetails<String>> = Map::new("oc");
 
     pub const ASK_COUNT: Item<u64> = Item::new("ask-count");
 

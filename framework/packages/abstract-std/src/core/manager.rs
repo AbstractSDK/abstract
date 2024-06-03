@@ -241,7 +241,7 @@ pub enum ExecuteMsg {
     /// Callback endpoint
     Callback(CallbackMsg),
     // Profile Marketplace Callback for token transfers
-    MarketplaceCallback {owner: GovernanceDetails<String> }
+    MarketplaceEntryPoint {owner: GovernanceDetails<String> }
 }
 
 /// Manager query messages

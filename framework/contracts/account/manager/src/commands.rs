@@ -526,14 +526,14 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
 }
 
 /// Update governance of this account after claim
-pub(crate) fn custom_update_governance(
+pub(crate) fn execute_marketplace_entrypoint(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
     sender: &mut Addr,
     new_gov: GovernanceDetails<String>,
 ) -> ManagerResult {
-    println!("custom_update_governance");
+    println!("execute_marketplace_entrypoint");
     let config = CONFIG.load(deps.storage)?;
     let mut msgs: Vec<WasmMsg> = vec![];
     let mut acc_info = INFO.load(deps.storage)?;
@@ -595,24 +595,6 @@ pub(crate) fn custom_update_governance(
     // Update governance of this account
     acc_info.governance_details = verified_gov.clone();
     INFO.save(deps.storage, &acc_info)?;
-
-    let new_owner  = match new_gov {
-        GovernanceDetails::Monarchy { monarch } => monarch,
-        GovernanceDetails::SubAccount { manager, proxy } => manager,
-        GovernanceDetails::External { governance_address, .. } => governance_address,
-        GovernanceDetails::Renounced {} => todo!(),
-        _ => todo!(),
-    };
-
-    // let ownership = cw_ownable::update_ownership(
-    //     deps,
-    //     &env.block,
-    //     &sender,
-    //     cw_ownable::Action::TransferOwnership {
-    //         new_owner,
-    //         expiry: None,
-    //     },
-    // )?;
 
     let result: ManagerResult = abstract_sdk::execute_update_ownership!(
         ManagerResponse,

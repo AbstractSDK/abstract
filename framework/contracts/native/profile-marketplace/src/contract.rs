@@ -1,17 +1,21 @@
 use abstract_sdk::std::{profile_marketplace::*, PROFILE_MARKETPLACE};
 
 use abstract_std::profile_marketplace::state::{
-    SudoParams, ASK_HOOKS, BID_HOOKS, MAX_FEE_BPS, PROFILE_COLLECTION, PROFILE_MINTER, SALE_HOOKS, SUDO_PARAMS
+    SudoParams, ASK_HOOKS, BID_HOOKS, MAX_FEE_BPS, PROFILE_COLLECTION, PROFILE_MINTER, SALE_HOOKS,
+    SUDO_PARAMS,
 };
 use cosmwasm_std::{
-    to_json_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+    to_json_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
     StdResult, Uint128,
 };
 use cw2::set_contract_version;
 use semver::Version;
 use state::VERSION_CONTROL;
 
-use crate::{commands::*, ContractError};
+use crate::{
+    commands::{self, *},
+    ContractError,
+};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -35,7 +39,7 @@ pub fn instantiate(
 
     SUDO_PARAMS.save(deps.storage, &params)?;
     // Saves the profile minter & collection to internal state
-    
+
     PROFILE_MINTER.save(deps.storage, &msg.factory)?;
     PROFILE_COLLECTION.save(deps.storage, &msg.collection)?;
     VERSION_CONTROL.save(deps.storage, &msg.version_control)?;
@@ -56,14 +60,27 @@ pub fn execute(
     let api = deps.api;
 
     match msg {
-        ExecuteMsg::SetAsk { token_id, seller, account_id } => {
-            execute_set_ask(deps, env, info, &token_id, api.addr_validate(&seller)?, account_id)
-        }
+        ExecuteMsg::SetAsk {
+            token_id,
+            seller,
+            account_id,
+        } => execute_set_ask(
+            deps,
+            env,
+            info,
+            &token_id,
+            api.addr_validate(&seller)?,
+            account_id,
+        ),
         ExecuteMsg::RemoveAsk { token_id } => execute_remove_ask(deps, info, &token_id),
         ExecuteMsg::UpdateAsk { token_id, seller } => {
             execute_update_ask(deps, info, &token_id, api.addr_validate(&seller)?)
         }
-        ExecuteMsg::SetBid {token_id, new_gov,account_id } => execute_set_bid(deps, env, info, &token_id, new_gov,account_id),
+        ExecuteMsg::SetBid {
+            token_id,
+            new_gov,
+            account_id,
+        } => execute_set_bid(deps, env, info, &token_id, new_gov, account_id),
         ExecuteMsg::RemoveBid { token_id } => execute_remove_bid(deps, env, info, &token_id),
         ExecuteMsg::AcceptBid { token_id, bidder } => {
             execute_accept_bid(deps, env, info, &token_id, api.addr_validate(&bidder)?)
@@ -140,6 +157,19 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::SaleHooks {} => to_json_binary(&SALE_HOOKS.query_hooks(deps)?),
         QueryMsg::RenewalQueue { time } => to_json_binary(&query_renewal_queue(deps, time)?),
         QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+    }
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> Result<Response, ContractError> {
+    match msg.id {
+        commands::PROPOSE_BIDDER_A => {
+            commands::propose_accepted_bidder_a_response(env, deps, msg.result)
+        }
+        commands::ACCEPT_BIDDER_A => commands::accept_bidder_a_response(deps, msg.result),
+        commands::PROPOSE_BIDDER_B => commands::propose_accepted_bidder_b_response(deps, msg.result),
+        commands::ACCEPT_BIDDER_B => commands::accept_bidder_b_response(deps, msg.result),
+        _ => Err(ContractError::UnexpectedReply {}),
     }
 }
 

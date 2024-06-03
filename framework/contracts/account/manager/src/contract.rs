@@ -211,7 +211,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::UpdateSubAccount(action) => {
                     handle_sub_account_action(deps, info, action)
                 }
-                ExecuteMsg::MarketplaceCallback { owner } => custom_update_governance(
+                ExecuteMsg::MarketplaceEntryPoint { owner } => execute_marketplace_entrypoint(
                     deps,
                     env,
                     info.clone(),

@@ -68,10 +68,8 @@ Below describes the modifications made to the contracts.
 ![account](./images/create-account.png)
 There is now an optional string value `bs_profile` provided when creating an account or even a sub account. A profile token is sent to the account proxy address when minted, and are in full control of each account owner. The profile token name must be compatible with the same rules as Internet Domain Names. If there are fees required, they are validated during this contract call, and then a new profile nft is minted if the profile name as the token-id does not already exist. The proxy address is set as the owner for the marketplace contract.
 
-<!-- ### Selling Ownership 
-- Account ownership is handled by the manager contract
-- Bids on profile tokens are made in marketplace contract
-- When profile token is transferred, the new owner gets updated as the owner of the manager contract for the account which held the profile token.  -->
+### Selling Ownership of an Account 
+If an owner of an account that has a profile wishes to sell ownership of their account, they may do so by accepting any bids that exists in the marketplace contract. Once a bid is accepted, the marketplace is updated as the owner of the account, to which the bidder can claim ownership of the account.
 
 
 ### Sending Messages as an Account

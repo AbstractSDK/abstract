@@ -1,4 +1,3 @@
-
 use abstract_std::profile_marketplace::*;
 use cw_orch::{interface, prelude::*};
 
@@ -13,7 +12,8 @@ impl<Chain: CwEnv> Uploadable for ProfileMarketplace<Chain> {
                 ::profile_marketplace::contract::instantiate,
                 ::profile_marketplace::contract::query,
             )
-            .with_migrate(::profile_marketplace::contract::migrate),
+            .with_migrate(::profile_marketplace::contract::migrate)
+            .with_reply(::profile_marketplace::contract::reply),
         )
     }
     fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
