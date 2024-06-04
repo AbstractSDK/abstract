@@ -5,8 +5,8 @@ use abstract_sdk::{
 };
 use abstract_std::{
     app::AppState,
-    objects::{dependency::StaticDependency, nested_admin::NestedAdmin},
-    AbstractError,
+    objects::{dependency::StaticDependency, module::ModuleInfo, nested_admin::NestedAdmin},
+    AbstractError, AbstractResult,
 };
 use cosmwasm_std::{Empty, StdResult, Storage};
 use cw_storage_plus::Item;
@@ -90,6 +90,10 @@ impl<
 
     pub fn version(&self) -> &str {
         self.contract.info().1
+    }
+
+    pub fn module_info(&self) -> AbstractResult<ModuleInfo> {
+        ModuleInfo::from_id(self.module_id(), self.version().into())
     }
 
     pub fn load_state(&self, store: &dyn Storage) -> StdResult<AppState> {

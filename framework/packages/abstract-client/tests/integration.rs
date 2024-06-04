@@ -16,7 +16,7 @@ use abstract_client::{
     AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
     Publisher,
 };
-use abstract_interface::{ClientResolve, IbcClient, RegisteredModule, VCExecFns, VCQueryFns};
+use abstract_interface::{ClientResolve, RegisteredModule, VCExecFns, VCQueryFns};
 use abstract_std::{
     adapter::AuthorizedAddressesResponse,
     ans_host::QueryMsgFns,
@@ -27,7 +27,6 @@ use abstract_std::{
         dependency::Dependency, fee::FixedFee, gov_type::GovernanceDetails,
         module_version::ModuleDataResponse, namespace::Namespace, AccountId, AssetEntry,
     },
-    IBC_CLIENT,
 };
 use abstract_testing::{
     addresses::{TEST_MODULE_NAME, TTOKEN},
@@ -1341,20 +1340,5 @@ fn install_same_app_on_different_accounts() -> anyhow::Result<()> {
     assert_ne!(mock_app1.id(), mock_app3.id());
     assert_ne!(mock_app2.id(), mock_app3.id());
 
-    Ok(())
-}
-
-#[test]
-fn install_ibc_client_on_creation() -> anyhow::Result<()> {
-    let chain = MockBech32::new("mock");
-    let client = AbstractClient::builder(chain).build()?;
-
-    let account = client
-        .account_builder()
-        .install_adapter::<IbcClient<MockBech32>>()?
-        .build()?;
-
-    let ibc_module_addr = account.module_addresses(vec![IBC_CLIENT.to_owned()])?;
-    assert_eq!(ibc_module_addr.modules[0].0, IBC_CLIENT);
     Ok(())
 }

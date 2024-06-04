@@ -1483,13 +1483,28 @@
       ],
       "properties": {
         "client_chain": {
-          "$ref": "#/definitions/ChainName"
+          "description": "Remote chain identification",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ChainName"
+            }
+          ]
         },
         "msg": {
-          "$ref": "#/definitions/Binary"
+          "description": "The message sent by the module",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Binary"
+            }
+          ]
         },
         "source_module": {
-          "$ref": "#/definitions/ModuleInfo"
+          "description": "Information about the module that called ibc action on this module",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ModuleInfo"
+            }
+          ]
         }
       },
       "additionalProperties": false
