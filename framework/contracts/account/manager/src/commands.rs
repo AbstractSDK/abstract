@@ -34,6 +34,7 @@ use cosmwasm_std::{
     SubMsgResult, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
+use cw721::OwnerOfResponse;
 use cw_ownable::OwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
@@ -1152,6 +1153,9 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
                 Err(ownership_error)
             }
         }
+        GovernanceDetails::NFT { collection_addr, token_id } => {
+            verify_nft_ownership(deps,sender.clone(), collection_addr,token_id)
+        }
         // MAX_ADMIN_RECURSION levels deep still sub account
         GovernanceDetails::SubAccount { .. } => {
             Err(ManagerError::Std(StdError::generic_err(format!(
@@ -1171,6 +1175,28 @@ pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> 
             .ok_or(StdError::generic_err(result.unwrap_err()))
     })?;
     Ok(Response::new())
+}
+
+pub(crate) fn verify_nft_ownership(
+    deps: Deps,
+    sender: Addr,
+    addr: Addr,
+    id: String,
+) -> ManagerResult<()> {
+    // get owner of token_id from collection
+    let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
+        &addr,
+        &cw721::Cw721QueryMsg::OwnerOf {
+            token_id: id,
+            include_expired: None,
+        },
+    )?;
+    // verify owner
+    if sender.to_string() == owner.owner {
+        return Ok(());
+    } else {
+        return Err(ManagerError::Ownership(OwnershipError::NotOwner));
+    }
 }
 
 #[cfg(test)]

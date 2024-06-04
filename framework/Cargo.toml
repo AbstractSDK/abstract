@@ -39,6 +39,7 @@ cw-storage-plus = "1.2.0"
 cw2 = { version = "1.0" }
 cw20 = { version = "1.0" }
 cw20-base = { version = "1.0", features = ["library"] }
+cw721 = "0.18.0"
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }

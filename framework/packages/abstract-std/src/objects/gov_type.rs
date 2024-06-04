@@ -1,6 +1,7 @@
 //! # Governance structure object
 
 use cosmwasm_std::{Addr, Deps};
+use cw721::OwnerOfResponse;
 use cw_address_like::AddressLike;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -37,6 +38,10 @@ pub enum GovernanceDetails<T: AddressLike> {
     /// Renounced account
     /// This account no longer has an owner and cannot be used.
     Renounced {},
+    NFT {
+        collection_addr: T,
+        token_id: String,
+    },
 }
 
 impl GovernanceDetails<String> {
@@ -117,6 +122,30 @@ impl GovernanceDetails<String> {
                 })
             }
             GovernanceDetails::Renounced {} => Ok(GovernanceDetails::Renounced {}),
+            GovernanceDetails::NFT {
+                collection_addr,
+                token_id,
+            } => {
+                // get owner of token_id from collection
+                let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
+                    &collection_addr,
+                    &cw721::Cw721QueryMsg::OwnerOf {
+                        token_id: token_id.clone(),
+                        include_expired: None,
+                    },
+                )?;
+                // verify owner
+                // if *sender == owner.owner {
+                //     Ok(())
+                // } else {
+                //     Err(ownership_error)
+                // }
+
+                Ok(GovernanceDetails::NFT {
+                    collection_addr: deps.api.addr_validate(&collection_addr.to_string())?,
+                    token_id,
+                })
+            }
         }
     }
 }
@@ -131,6 +160,10 @@ impl GovernanceDetails<Addr> {
                 governance_address, ..
             } => Some(governance_address.clone()),
             GovernanceDetails::Renounced {} => None,
+            GovernanceDetails::NFT {
+                collection_addr,
+                token_id,
+            } => todo!(),
         }
     }
 }
@@ -153,6 +186,13 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
                 governance_type,
             },
             GovernanceDetails::Renounced {} => GovernanceDetails::Renounced {},
+            GovernanceDetails::NFT {
+                collection_addr,
+                token_id,
+            } => GovernanceDetails::NFT {
+                collection_addr: collection_addr.to_string(),
+                token_id,
+            },
         }
     }
 }
@@ -166,6 +206,7 @@ impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
                 governance_type, ..
             } => governance_type.to_owned(),
             GovernanceDetails::Renounced {} => "renounced".to_string(),
+            GovernanceDetails::NFT { .. } => todo!(),
         };
         write!(f, "{}", str)
     }

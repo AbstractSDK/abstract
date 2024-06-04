@@ -27,6 +27,8 @@ use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
     Env, MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
 };
+use cw721::OwnerOfResponse;
+use cw_ownable::OwnershipError;
 
 use crate::{
     contract::{AccountFactoryResponse, AccountFactoryResult},
@@ -66,6 +68,18 @@ pub fn execute_create_account(
                 manager: manager.into()
             }
         )
+    }
+    if let GovernanceDetails::NFT {
+        collection_addr,
+        token_id,
+    } = &governance
+    {
+        verify_nft_ownership(
+            deps.as_ref(),
+            info.sender.clone(),
+            collection_addr.clone(),
+            token_id.to_string(),
+        )?
     }
     // If an account_id is provided, assert the caller is the ibc host and return the account_id.
     // Else get the next account id and set the origin to local.
@@ -378,4 +392,26 @@ pub fn execute_update_config(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(AccountFactoryResponse::action("update_config"))
+}
+
+pub(crate) fn verify_nft_ownership(
+    deps: Deps,
+    sender: Addr,
+    addr: Addr,
+    id: String,
+) -> AccountFactoryResult<()> {
+    // get owner of token_id from collection
+    let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
+        &addr,
+        &cw721::Cw721QueryMsg::OwnerOf {
+            token_id: id,
+            include_expired: None,
+        },
+    )?;
+    // verify owner
+    if sender.to_string() == owner.owner {
+        return Ok(());
+    } else {
+        return Err(AccountFactoryError::Ownership(OwnershipError::NotOwner));
+    }
 }
