@@ -72,7 +72,7 @@ pub fn instantiate(
 
     let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
     let owner = governance_details
-        .owner_address()
+        .owner_address(Some(deps.as_ref()))
         .ok_or(ManagerError::InitRenounced {})?;
 
     let account_info = AccountInfo {

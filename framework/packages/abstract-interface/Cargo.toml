@@ -21,6 +21,7 @@ schemars = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
+cw721-base = { workspace = true }
 cw-asset = { workspace = true }
 cw-address-like = { workspace = true }
 abstract-std = { workspace = true }

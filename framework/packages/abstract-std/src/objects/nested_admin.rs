@@ -130,7 +130,7 @@ pub fn query_top_level_owner<Q: CustomQuery>(
     // Get top level account owner address
     current.and_then(|info| {
         info.governance_details
-            .owner_address()
+            .owner_address(None)
             .ok_or(StdError::generic_err("Top level account got renounced"))
     })
 }

@@ -521,7 +521,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
         // Get top level account owner address
         governance
-            .owner_address()
+            .owner_address(None)
             .ok_or(AbstractClientError::RenouncedAccount {})
     }
 

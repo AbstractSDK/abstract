@@ -152,7 +152,7 @@ impl GovernanceDetails<String> {
 
 impl GovernanceDetails<Addr> {
     /// Get the owner address from the governance details
-    pub fn owner_address(&self) -> Option<Addr> {
+    pub fn owner_address(&self, deps: Option<Deps>) -> Option<Addr> {
         match self {
             GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
             GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
@@ -163,7 +163,23 @@ impl GovernanceDetails<Addr> {
             GovernanceDetails::NFT {
                 collection_addr,
                 token_id,
-            } => todo!(),
+            } => {
+                if let Some(api) = deps {
+                    let res: OwnerOfResponse = api
+                        .querier
+                        .query_wasm_smart(
+                            collection_addr,
+                            &cw721::Cw721QueryMsg::OwnerOf {
+                                token_id: token_id.to_string(),
+                                include_expired: None,
+                            },
+                        )
+                        .unwrap();
+                    return Some(Addr::unchecked(&res.owner));
+                } else {
+                    return None;
+                }
+            }
         }
     }
 }
@@ -206,7 +222,7 @@ impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
                 governance_type, ..
             } => governance_type.to_owned(),
             GovernanceDetails::Renounced {} => "renounced".to_string(),
-            GovernanceDetails::NFT { .. } => todo!(),
+            GovernanceDetails::NFT { .. } => "nft-account".to_string(),
         };
         write!(f, "{}", str)
     }

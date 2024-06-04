@@ -424,7 +424,7 @@ pub fn propose_owner(
     let config = CONFIG.load(deps.storage)?;
     let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address)?;
     let new_owner_addr = verified_gov
-        .owner_address()
+        .owner_address(None)
         .ok_or(ManagerError::ProposeRenounced {})?;
 
     // Check that there are changes
@@ -1341,7 +1341,7 @@ mod tests {
             let actual_info = INFO.load(deps.as_ref().storage)?;
             assert_that!(&actual_info
                 .governance_details
-                .owner_address()
+                .owner_address(None)
                 .unwrap()
                 .to_string())
             .is_equal_to("owner".to_string());
@@ -1352,7 +1352,7 @@ mod tests {
             let actual_info = INFO.load(deps.as_ref().storage)?;
             assert_that!(&actual_info
                 .governance_details
-                .owner_address()
+                .owner_address(None)
                 .unwrap()
                 .to_string())
             .is_equal_to("new_gov".to_string());
