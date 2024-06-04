@@ -28,7 +28,6 @@ cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
-cw721 = { workspace = true }
 protobuf = { workspace = true }
 semver = { workspace = true }
 serde = { workspace = true }
@@ -37,6 +36,7 @@ cw-ownable = { workspace = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true }
+cw721 = "0.18.0"
 cw-orch = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }

@@ -21,7 +21,6 @@ schemars = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
-cw721-base = { workspace = true }
 cw-asset = { workspace = true }
 cw-address-like = { workspace = true }
 abstract-std = { workspace = true }
@@ -52,3 +51,4 @@ serde_json = "1.0.79"
 dotenv = "0.15.0"
 env_logger = "0.11.3"
 cw-orch = { workspace = true, features = ["daemon"] }
+cw721-base = "0.18.0"
