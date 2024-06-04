@@ -49,6 +49,7 @@ pub mod adapter;
 pub mod app;
 pub mod objects;
 pub mod registry;
+pub mod standalone;
 
 mod error;
 pub use error::AbstractError;

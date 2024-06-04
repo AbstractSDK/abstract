@@ -5,7 +5,7 @@ use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
 /// Trait for a contract's IBC callback ExecuteMsg variant.
 pub trait IbcCallbackEndpoint: Handler {
     /// Queries the IBC Client address.
-    fn ibc_client(&self, deps: Deps) -> Result<Addr, Self::Error>;
+    fn ibc_client_addr(&self, deps: Deps) -> Result<Addr, Self::Error>;
 
     /// Handler for the `ExecuteMsg::IbcCallback()` variant.
     fn ibc_callback(
@@ -15,7 +15,7 @@ pub trait IbcCallbackEndpoint: Handler {
         info: MessageInfo,
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::Error> {
-        let ibc_client = self.ibc_client(deps.as_ref())?;
+        let ibc_client = self.ibc_client_addr(deps.as_ref())?;
 
         if info.sender.ne(&ibc_client) {
             return Err(AbstractSdkError::CallbackNotCalledByIbcClient {

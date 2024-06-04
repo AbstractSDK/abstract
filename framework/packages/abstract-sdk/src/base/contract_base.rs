@@ -6,9 +6,11 @@ use cw_storage_plus::Item;
 use super::handler::Handler;
 use crate::{std::objects::dependency::StaticDependency, AbstractSdkError, AbstractSdkResult};
 
+/// ID of the module.
 pub type ModuleId = &'static str;
 /// Version of the contract in str format.
 pub type VersionString = &'static str;
+/// Metadata of the module in str format.
 pub type ModuleMetadata = Option<&'static str>;
 
 // ANCHOR: init
