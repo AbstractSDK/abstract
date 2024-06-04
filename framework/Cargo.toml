@@ -85,7 +85,6 @@ abstract-std = { version = "0.22.1", path = "packages/abstract-std" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
 abstract-macros = { version = "0.22.1", path = "packages/abstract-macros" }
-abstract-ica = { version = "0.22.1", path = "packages/abstract-ica" }
 
 abstract-adapter-utils = { version = "0.22.1", path = "packages/standards/utils" }
 abstract-dex-standard = { path = "packages/standards/dex" }

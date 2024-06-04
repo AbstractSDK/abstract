@@ -230,6 +230,8 @@ pub enum ExecuteMsg {
     ProposeOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
     UpdateStatus { is_suspended: Option<bool> },
+    /// Update settings for the Account, including IBC enabled, etc.
+    UpdateSettings { ibc_enabled: Option<bool> },
     /// Actions called by internal or external sub-accounts
     UpdateSubAccount(UpdateSubAccountAction),
     /// Callback endpoint

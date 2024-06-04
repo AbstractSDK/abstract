@@ -70,6 +70,11 @@ impl AccountId {
         !self.is_local()
     }
 
+    /// Push the chain to the account trace
+    pub fn push_chain(&mut self, chain: ChainName) {
+        self.trace_mut().push_chain(chain)
+    }
+
     pub fn decompose(self) -> (AccountTrace, AccountSequence) {
         (self.trace, self.seq)
     }
