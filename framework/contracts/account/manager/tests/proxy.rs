@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_integration_tests::*;
 use abstract_interface::*;
@@ -16,8 +18,13 @@ use abstract_std::{
     PROXY,
 };
 use abstract_testing::prelude::*;
-use cosmwasm_std::{coin, testing::MOCK_CONTRACT_ADDR, wasm_execute, CosmosMsg};
-use cw_orch::prelude::*;
+use anyhow::Error;
+use cosmwasm_std::{coin, testing::MOCK_CONTRACT_ADDR, wasm_execute, CosmosMsg, Uint128};
+use cw_orch::{
+    mock::{cw_multi_test::MockApiBech32, MockBase},
+    prelude::*,
+};
+use cw_storage_plus::PrimaryKey;
 use speculoos::prelude::*;
 
 #[test]
@@ -407,10 +414,93 @@ fn renounce_cleans_namespace() -> AResult {
 }
 
 #[test]
-fn test_nft_as_governance() -> AResult {
+fn test_nft_as_governance() -> Result<(), Error> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
+    let bad_sender = chain.addr_make_with_balance("test", vec![])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let (_code_id, test_nft_collection) = deploy_nft_contracts(chain.clone(), sender.clone())?;
+
+    let gov = GovernanceDetails::NFT {
+        collection_addr: test_nft_collection.clone(),
+        token_id: String::from("1"),
+    };
+
+    let res = deployment.account_factory.create_account(
+        gov,
+        vec![],
+        "test-nft-governance-account-1".to_string(),
+        None,
+        None,
+        None,
+        None,
+        None,
+        &vec![],
+    )?;
+
+    let mut manager = String::default();
+    let mut proxy = String::default();
+
+    // get contract id
+    for event in &res.events {
+        if event.ty == "wasm-abstract" {
+            for attribute in &event.attributes {
+                if attribute.key.to_lowercase() == "manager_address" {
+                    manager = attribute.value.to_string();
+                }
+                if attribute.key.to_lowercase() == "proxy_address" {
+                    proxy = attribute.value.to_string();
+                }
+            }
+        }
+    }
+    println!("{:?},{:?}", manager, proxy);
+
+    let start_amnt = 100_000;
+    let burn_amnt = 10_000u128;
+    let start_balance = vec![Coin::new(start_amnt, TTOKEN)];
+    let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TTOKEN)];
+
+    chain.set_balance(&Addr::unchecked(proxy.clone()), start_balance.clone())?;
+    let msg = abstract_std::proxy::ExecuteMsg::ModuleAction {
+        msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
+            amount: burn_amount,
+        })],
+    };
+
+    chain.execute(
+        &abstract_std::manager::ExecuteMsg::ExecOnModule {
+            module_id: PROXY.to_string(),
+            exec_msg: to_json_binary(&msg)?,
+        },
+        &[],
+        &Addr::unchecked(manager.clone()),
+    )?;
+    // confirm msg was sent normally
+    let res = chain.query_balance(&Addr::unchecked(proxy.clone()), TTOKEN)?;
+    assert_eq!(
+        res,
+        Uint128::from(start_amnt).checked_sub(burn_amnt.into())?
+    );
+
+    // confirm only token holder can send msg
+    let res = chain.call_as(&bad_sender).execute(
+        &abstract_std::manager::ExecuteMsg::ExecOnModule {
+            module_id: PROXY.to_string(),
+            exec_msg: to_json_binary(&msg)?,
+        },
+        &[],
+        &Addr::unchecked(manager),
+    );
+    assert_that!(&res.is_err());
+
+    Ok(())
+}
+
+fn deploy_nft_contracts(
+    mut chain: MockBase<MockApiBech32>,
+    sender: Addr,
+) -> Result<(u64, String), Error> {
     let mut test_nft_collection = String::default();
     let token_id = String::from("1");
 
@@ -442,7 +532,7 @@ fn test_nft_as_governance() -> AResult {
         }
     }
     println!("test_nft_collection: {:?}", test_nft_collection);
-    // mint
+    // mint nft
     chain.execute(
         &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Mint {
             token_id: token_id.clone(),
@@ -453,15 +543,5 @@ fn test_nft_as_governance() -> AResult {
         &[],
         &Addr::unchecked(test_nft_collection.clone()),
     )?;
-
-    let account = AbstractAccount::new(&deployment, AccountId::local(0));
-
-    let gov =  GovernanceDetails::NFT {
-        collection_addr: test_nft_collection.clone(),
-        token_id,
-    };
-    let name =  "test-nft-governance-account-1".to_string();
-
-    deployment.account_factory.create_account(gov, vec![], name, None,None,None,None,None,&vec![])?;
-    Ok(())
+    Ok((cw721_id, test_nft_collection))
 }
