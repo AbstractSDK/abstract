@@ -185,6 +185,6 @@ fn cant_reinstall_app_after_uninstall() -> AResult {
         panic!("Expected error");
     };
     let manager_err: ManagerError = err.downcast().unwrap();
-    assert_eq!(manager_err, ManagerError::AppReinstall {});
+    assert_eq!(manager_err, ManagerError::ProhibitedReinstall {});
     Ok(())
 }
