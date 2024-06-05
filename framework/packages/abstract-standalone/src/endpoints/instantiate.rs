@@ -49,18 +49,14 @@ mod test {
         deps.querier = standalone_base_mock_querier().build();
 
         let msg = MockInitMsg {
-            ans_host_address: TEST_ANS_HOST.to_string(),
-            version_control_address: TEST_VERSION_CONTROL.to_string(),
+            base: standalone::BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.to_string(),
+                version_control_address: TEST_VERSION_CONTROL.to_string(),
+            },
         };
 
         BASIC_MOCK_STANDALONE
-            .instantiate(
-                deps.as_mut(),
-                standalone::BaseInstantiateMsg {
-                    ans_host_address: msg.ans_host_address,
-                    version_control_address: msg.version_control_address,
-                },
-            )
+            .instantiate(deps.as_mut(), msg.base)
             .unwrap();
     }
 }

@@ -1,7 +1,8 @@
 mod endpoints;
 pub mod features;
-#[cfg(feature = "schema")]
 pub mod state;
+// TODO: ? #[cfg(feature = "schema")]
+// pub mod schema;
 
 pub use crate::state::StandaloneContract;
 
@@ -36,15 +37,13 @@ pub mod mock {
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockInitMsg {
-        pub ans_host_address: String,
-        pub version_control_address: String,
+        pub base: standalone::BaseInstantiateMsg,
     }
 
     #[cosmwasm_schema::cw_serde]
     #[derive(cw_orch::ExecuteFns)]
     pub enum MockExecMsg {
         DoSomething {},
-        DoSomethingAdmin {},
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -52,9 +51,6 @@ pub mod mock {
     pub enum MockQueryMsg {
         #[returns(MockQueryResponse)]
         GetSomething {},
-
-        #[returns(ReceivedIbcCallbackStatus)]
-        GetReceivedIbcCallbackStatus {},
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -122,13 +118,7 @@ pub mod mock {
         _info: MessageInfo,
         msg: MockInitMsg,
     ) -> Result<Response, MockError> {
-        BASIC_MOCK_STANDALONE.instantiate(
-            deps,
-            standalone::BaseInstantiateMsg {
-                ans_host_address: msg.ans_host_address,
-                version_control_address: msg.version_control_address,
-            },
-        )?;
+        BASIC_MOCK_STANDALONE.instantiate(deps, msg.base)?;
         Ok(BASIC_MOCK_STANDALONE.response("instantiate"))
     }
 
@@ -145,8 +135,10 @@ pub mod mock {
     }
 
     #[cosmwasm_std::entry_point]
-    pub fn query(_deps: Deps, _env: Env, _msg: MockQueryMsg) -> StdResult<Binary> {
-        to_json_binary(&MockQueryResponse {})
+    pub fn query(_deps: Deps, _env: Env, msg: MockQueryMsg) -> StdResult<Binary> {
+        match msg {
+            MockQueryMsg::GetSomething {} => to_json_binary(&MockQueryResponse {}),
+        }
     }
 
     #[cosmwasm_std::entry_point]
@@ -164,18 +156,14 @@ pub mod mock {
         deps.querier = standalone_base_mock_querier().build();
 
         let msg = MockInitMsg {
-            ans_host_address: TEST_ANS_HOST.to_string(),
-            version_control_address: TEST_VERSION_CONTROL.to_string(),
+            base: standalone::BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.to_string(),
+                version_control_address: TEST_VERSION_CONTROL.to_string(),
+            },
         };
 
         BASIC_MOCK_STANDALONE
-            .instantiate(
-                deps.as_mut(),
-                standalone::BaseInstantiateMsg {
-                    ans_host_address: msg.ans_host_address,
-                    version_control_address: msg.version_control_address,
-                },
-            )
+            .instantiate(deps.as_mut(), msg.base)
             .unwrap();
 
         deps
@@ -184,7 +172,7 @@ pub mod mock {
     #[cw_orch::interface(MockInitMsg, MockExecMsg, MockQueryMsg, MockMigrateMsg)]
     pub struct MockStandaloneI<Chain>;
 
-    impl<T: cw_orch::prelude::CwEnv> abstract_interface::AppDeployer<T> for MockStandaloneI<T> {}
+    impl<T: cw_orch::prelude::CwEnv> abstract_interface::StandaloneDeployer<T> for MockStandaloneI<T> {}
 
     impl<T: cw_orch::prelude::CwEnv> Uploadable for MockStandaloneI<T> {
         fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
@@ -196,134 +184,103 @@ pub mod mock {
     }
 
     #[macro_export]
-    macro_rules! gen_app_mock {
-    ($name:ident,$id:expr, $version:expr, $deps:expr) => {
-        use $crate::std::app;
-        use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
-        use ::cw_orch::prelude::*;
-        use $crate::sdk::base::Handler;
-        use $crate::sdk::features::AccountIdentification;
-        use $crate::sdk::{Execution, TransferInterface};
+    macro_rules! gen_standalone_mock {
+        ($name:ident,$id:expr, $version:expr) => {
+            use ::cw_orch::prelude::*;
+            use $crate::mock::{
+                MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg,
+            };
+            use $crate::sdk::base::Handler;
+            use $crate::sdk::features::AccountIdentification;
+            use $crate::sdk::{Execution, TransferInterface};
+            use $crate::std::app;
+            use $crate::traits::AbstractResponse;
 
+            const MOCK_APP_WITH_DEP: $crate::mock::MockStandaloneContract =
+                $crate::mock::MockStandaloneContract::new($id, $version, None);
 
-        type Exec = app::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
-        type Query = app::QueryMsg<MockQueryMsg>;
-        type Init = app::InstantiateMsg<MockInitMsg>;
-        type Migrate = app::MigrateMsg<MockMigrateMsg>;
-        const MOCK_APP_WITH_DEP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
-        .with_dependencies($deps)
-        .with_execute(|deps, _env, info, module, msg| {
-            match msg {
-                MockExecMsg::DoSomethingAdmin{} => {
-                    module.admin.assert_admin(deps.as_ref(), &info.sender)?;
-                },
-                _ => {},
+            fn mock_instantiate(
+                deps: ::cosmwasm_std::DepsMut,
+                env: ::cosmwasm_std::Env,
+                info: ::cosmwasm_std::MessageInfo,
+                msg: $crate::mock::MockInitMsg,
+            ) -> Result<::cosmwasm_std::Response, $crate::mock::MockError> {
+                MOCK_APP_WITH_DEP.instantiate(deps, msg.base)?;
+                Ok(MOCK_APP_WITH_DEP
+                    .response("instantiate")
+                    .set_data("mock_init".as_bytes()))
             }
-            Ok(::cosmwasm_std::Response::new().set_data("mock_exec".as_bytes()))
-        })
-        .with_instantiate(|deps, _env, info, module, msg| {
-            let mut response = ::cosmwasm_std::Response::new().set_data("mock_init".as_bytes());
-            // See test `create_sub_account_with_installed_module` where this will be triggered.
-            if module.info().0 == "tester:mock-app1" {
-                println!("checking address of adapter1");
-                let manager = module.admin.get(deps.as_ref())?.unwrap();
-                // Check if the adapter has access to its dependency during instantiation.
-                let adapter1_addr = $crate::std::manager::state::ACCOUNT_MODULES.query(&deps.querier,manager, "tester:mock-adapter1")?;
-                // We have address!
-                ::cosmwasm_std::ensure!(
-                    adapter1_addr.is_some(),
-                    ::cosmwasm_std::StdError::generic_err("no address")
-                );
-                println!("adapter_addr: {adapter1_addr:?}");
-                // See test `install_app_with_proxy_action` where this transfer will happen.
-                let proxy_addr = module.proxy_address(deps.as_ref())?;
-                let balance = deps.querier.query_balance(proxy_addr, "TEST")?;
-                if !balance.amount.is_zero() {
-                println!("sending amount from proxy: {balance:?}");
-                    let action = module
-                        .bank(deps.as_ref())
-                        .transfer::<::cosmwasm_std::Coin>(
-                            vec![balance.into()],
-                            &adapter1_addr.unwrap(),
-                        )?;
-                    let msg = module.executor(deps.as_ref()).execute(vec![action])?;
-                    println!("message: {msg:?}");
-                    response = response.add_message(msg);
+
+            /// Execute entrypoint
+            fn mock_execute(
+                deps: ::cosmwasm_std::DepsMut,
+                env: ::cosmwasm_std::Env,
+                info: ::cosmwasm_std::MessageInfo,
+                msg: $crate::mock::MockExecMsg,
+            ) -> Result<::cosmwasm_std::Response, $crate::mock::MockError> {
+                match msg {
+                    MockExecMsg::DoSomething {} => {}
                 }
-                Ok(response)}
-            else {
-                Ok(response)}
-            });
-
-        fn mock_instantiate(
-            deps: ::cosmwasm_std::DepsMut,
-            env: ::cosmwasm_std::Env,
-            info: ::cosmwasm_std::MessageInfo,
-            msg: <::abstract_app::mock::MockAppContract as $crate::sdk::base::InstantiateEndpoint>::InstantiateMsg,
-        ) -> Result<::cosmwasm_std::Response, <::abstract_app::mock::MockAppContract as $crate::sdk::base::Handler>::Error> {
-            use $crate::sdk::base::InstantiateEndpoint;
-            MOCK_APP_WITH_DEP.instantiate(deps, env, info, msg)
-        }
-
-        /// Execute entrypoint
-        fn mock_execute(
-            deps: ::cosmwasm_std::DepsMut,
-            env: ::cosmwasm_std::Env,
-            info: ::cosmwasm_std::MessageInfo,
-            msg: <::abstract_app::mock::MockAppContract as $crate::sdk::base::ExecuteEndpoint>::ExecuteMsg,
-        ) -> Result<::cosmwasm_std::Response, <::abstract_app::mock::MockAppContract as $crate::sdk::base::Handler>::Error> {
-            use $crate::sdk::base::ExecuteEndpoint;
-            MOCK_APP_WITH_DEP.execute(deps, env, info, msg)
-        }
-
-        /// Query entrypoint
-        fn mock_query(
-            deps: ::cosmwasm_std::Deps,
-            env: ::cosmwasm_std::Env,
-            msg: <::abstract_app::mock::MockAppContract as $crate::sdk::base::QueryEndpoint>::QueryMsg,
-        ) -> Result<::cosmwasm_std::Binary, <::abstract_app::mock::MockAppContract as $crate::sdk::base::Handler>::Error> {
-            use $crate::sdk::base::QueryEndpoint;
-            MOCK_APP_WITH_DEP.query(deps, env, msg)
-        }
-
-        fn mock_migrate(
-            deps: ::cosmwasm_std::DepsMut,
-            env: ::cosmwasm_std::Env,
-            msg: <::abstract_app::mock::MockAppContract as $crate::sdk::base::MigrateEndpoint>::MigrateMsg,
-        ) -> Result<::cosmwasm_std::Response, <::abstract_app::mock::MockAppContract as $crate::sdk::base::Handler>::Error> {
-            use $crate::sdk::base::MigrateEndpoint;
-            MOCK_APP_WITH_DEP.migrate(deps, env, msg)
-        }
-
-        #[cw_orch::interface(Init, Exec, Query, Migrate)]
-        pub struct $name;
-
-        impl<T: cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<T> for $name <T> {}
-
-        impl<T: cw_orch::prelude::CwEnv> Uploadable for $name<T> {
-            fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
-                Box::new(ContractWrapper::<
-                    Exec,
-                    _,
-                    _,
-                    _,
-                    _,
-                    _,
-                >::new_with_empty(
-                    self::mock_execute,
-                    self::mock_instantiate,
-                    self::mock_query,
-                ).with_migrate(self::mock_migrate))
+                Ok(MOCK_APP_WITH_DEP
+                    .response("instantiate")
+                    .set_data("mock_exec".as_bytes()))
             }
-        }
 
-        impl<Chain: ::cw_orch::environment::CwEnv> $name <Chain> {
-            pub fn new_test(chain: Chain) -> Self {
-                Self(
-                    cw_orch::contract::Contract::new($id,chain),
-                )
+            /// Query entrypoint
+            fn mock_query(
+                deps: ::cosmwasm_std::Deps,
+                env: ::cosmwasm_std::Env,
+                msg: $crate::mock::MockQueryMsg,
+            ) -> Result<::cosmwasm_std::Binary, ::cosmwasm_std::StdError> {
+                match msg {
+                    MockQueryMsg::GetSomething {} => {
+                        ::cosmwasm_std::to_json_binary(&$crate::mock::MockQueryResponse {})
+                    }
+                }
             }
-        }
-    };
-}
+
+            fn mock_migrate(
+                deps: ::cosmwasm_std::DepsMut,
+                env: ::cosmwasm_std::Env,
+                msg: $crate::mock::MockMigrateMsg,
+            ) -> Result<::cosmwasm_std::Response, $crate::mock::MockError> {
+                MOCK_APP_WITH_DEP.migrate(deps)?;
+                Ok(MOCK_APP_WITH_DEP
+                    .response("migrate")
+                    .set_data("mock_migrate".as_bytes()))
+            }
+
+            #[cw_orch::interface(
+                $crate::mock::MockInitMsg,
+                $crate::mock::MockExecMsg,
+                $crate::mock::MockQueryMsg,
+                $crate::mock::MockMigrateMsg
+            )]
+            pub struct $name;
+
+            impl<T: cw_orch::prelude::CwEnv> ::abstract_interface::StandaloneDeployer<T>
+                for $name<T>
+            {
+            }
+
+            impl<T: cw_orch::prelude::CwEnv> Uploadable for $name<T> {
+                fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+                    Box::new(
+                        ContractWrapper::<_, _, _, _, _, _>::new_with_empty(
+                            self::mock_execute,
+                            self::mock_instantiate,
+                            self::mock_query,
+                        )
+                        .with_migrate(self::mock_migrate),
+                    )
+                }
+            }
+
+            impl<Chain: ::cw_orch::environment::CwEnv> $name<Chain> {
+                pub fn new_test(chain: Chain) -> Self {
+                    Self(cw_orch::contract::Contract::new($id, chain))
+                }
+            }
+        };
+    }
 }

@@ -166,7 +166,7 @@ pub(crate) fn install_modules_internal(
                     deps.querier
                         .query_wasm_contract_info(module_address.to_string())
                         .is_err(),
-                    ManagerError::AppReinstall {}
+                    ManagerError::ProhibitedReinstall {}
                 );
                 to_add.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), Some(module_address)));

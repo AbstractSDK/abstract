@@ -27,7 +27,7 @@ mod test {
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
     use abstract_std::version_control::AccountBase;
     use abstract_testing::{
-        addresses::TEST_WITH_DEP_MODULE_ID,
+        addresses::TEST_MODULE_ID,
         mock_querier,
         prelude::{TEST_ACCOUNT_ID, TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY, TEST_VERSION_CONTROL},
     };
@@ -91,7 +91,7 @@ mod test {
     fn test_module_id() -> AppTestResult {
         let module_id = BASIC_MOCK_STANDALONE.module_id();
 
-        assert_that!(module_id).is_equal_to(TEST_WITH_DEP_MODULE_ID);
+        assert_that!(module_id).is_equal_to(TEST_MODULE_ID);
 
         Ok(())
     }
