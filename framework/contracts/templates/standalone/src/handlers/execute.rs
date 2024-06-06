@@ -1,14 +1,12 @@
 use crate::{
     contract::{MyStandalone, MyStandaloneResult},
     msg::MyStandaloneExecuteMsg,
-    state::{ADMIN, CONFIG, COUNT},
+    state::{CONFIG, COUNT},
     MY_STANDALONE, MY_STANDALONE_ID,
 };
 
 use abstract_standalone::{
-    objects::module::ModuleInfo,
-    sdk::{AbstractSdkError, IbcInterface, ModuleRegistryInterface},
-    std::IBC_CLIENT,
+    sdk::{AbstractSdkError, IbcInterface},
     traits::AbstractResponse,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
@@ -38,17 +36,22 @@ pub fn execute(
                 .into());
             };
             // Parse callbacks here!
-            match msg.id {
-                _ => Ok(MY_STANDALONE.response("todo")),
+            match msg.id.as_str() {
+                "test" => Ok(MY_STANDALONE.response("test_ibc").set_data(b"test")),
+                _ => todo!(),
             }
         }
-        MyStandaloneExecuteMsg::ModuleIbc(_) => todo!(),
+        MyStandaloneExecuteMsg::ModuleIbc(_msg) => {
+            todo!()
+        }
     }
 }
 
 /// Update the configuration of the app
 fn update_config(deps: DepsMut, info: MessageInfo, standalone: MyStandalone) -> MyStandaloneResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    MY_STANDALONE
+        .admin
+        .assert_admin(deps.as_ref(), &info.sender)?;
     let mut _config = CONFIG.load(deps.storage)?;
 
     Ok(standalone.response("update_config"))
@@ -66,7 +69,9 @@ fn reset(
     count: i32,
     standalone: MyStandalone,
 ) -> MyStandaloneResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    MY_STANDALONE
+        .admin
+        .assert_admin(deps.as_ref(), &info.sender)?;
     COUNT.save(deps.storage, &count)?;
 
     Ok(standalone.response("reset"))

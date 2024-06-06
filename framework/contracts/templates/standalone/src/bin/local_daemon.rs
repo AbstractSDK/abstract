@@ -10,7 +10,7 @@
 use my_standalone::MY_STANDALONE_ID;
 
 use abstract_client::{AbstractClient, Publisher};
-use abstract_standalone::{objects::namespace::Namespace, std::standalone};
+use abstract_standalone::objects::namespace::Namespace;
 use cw_orch::{anyhow, prelude::*, tokio::runtime::Runtime};
 use my_standalone::{msg::MyStandaloneInstantiateMsg, MyStandaloneInterface};
 
@@ -54,11 +54,7 @@ fn main() -> anyhow::Result<()> {
     // Installs the app on the Account
     let app = account.install_app::<MyStandaloneInterface<_>>(
         &MyStandaloneInstantiateMsg {
-            admin: daemon.sender().to_string(),
-            base: standalone::BaseInstantiateMsg {
-                ans_host_address: abstract_client.name_service().addr_str()?,
-                version_control_address: abstract_client.version_control().addr_str()?,
-            },
+            base: None,
             count: 0,
         },
         &[],

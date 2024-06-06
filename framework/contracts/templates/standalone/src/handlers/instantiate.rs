@@ -1,7 +1,7 @@
 use crate::{
     contract::MyStandaloneResult,
     msg::MyStandaloneInstantiateMsg,
-    state::{Config, ADMIN, CONFIG, COUNT},
+    state::{Config, CONFIG, COUNT},
     MY_STANDALONE,
 };
 
@@ -20,10 +20,10 @@ pub fn instantiate(
     COUNT.save(deps.storage, &msg.count)?;
 
     // Init standalone as module
-    MY_STANDALONE.instantiate(deps.branch(), msg.base)?;
+    MY_STANDALONE.instantiate(
+        deps.branch(),
+        msg.base.expect("Module factory should fill this"),
+    )?;
 
-    // Set admin
-    let admin_manager = deps.api.addr_validate(&msg.admin)?;
-    ADMIN.set(deps, Some(admin_manager))?;
     Ok(MY_STANDALONE.response("init"))
 }

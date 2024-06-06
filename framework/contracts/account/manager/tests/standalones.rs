@@ -5,7 +5,6 @@ use abstract_standalone::{
     gen_standalone_mock,
     mock::{MockExecMsgFns, MockQueryMsgFns, MockQueryResponse},
 };
-use abstract_std::standalone::BaseInstantiateMsg;
 use abstract_testing::prelude::*;
 use cosmwasm_std::Binary;
 use cw_orch::prelude::*;
@@ -29,10 +28,8 @@ fn account_install_standalone() -> AResult {
     account.install_standalone(
         &standalone,
         &MockInitMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: deployment.ans_host.addr_str()?,
-                version_control_address: deployment.version_control.addr_str()?,
-            },
+            base: None,
+            random_field: "LMAO".to_owned(),
         },
         None,
     )?;
@@ -60,10 +57,8 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     account.install_standalone(
         &standalone,
         &MockInitMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: deployment.ans_host.addr_str()?,
-                version_control_address: deployment.version_control.addr_str()?,
-            },
+            base: None,
+            random_field: "foo".to_owned(),
         },
         None,
     )?;
@@ -73,10 +68,8 @@ fn cant_reinstall_standalone_after_uninstall() -> AResult {
     let Err(AbstractInterfaceError::Orch(err)) = account.install_standalone(
         &standalone,
         &MockInitMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: deployment.ans_host.addr_str()?,
-                version_control_address: deployment.version_control.addr_str()?,
-            },
+            base: None,
+            random_field: "foo".to_owned(),
         },
         None,
     ) else {

@@ -7,9 +7,9 @@ use cosmwasm_schema::QueryResponses;
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct MyStandaloneInstantiateMsg {
+    // This field will get auto-filled by module factory
+    pub base: Option<standalone::BaseInstantiateMsg>,
     pub count: i32,
-    pub base: standalone::BaseInstantiateMsg,
-    pub admin: String,
 }
 
 /// App execute messages
