@@ -4,27 +4,28 @@
 //!
 //! ## Description
 //! TODO:
-use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
+use crate::{
+    objects::{ans_host::AnsHost, version_control::VersionControlContract},
+    version_control::AccountBase,
+};
 
 use cosmwasm_std::Addr;
 #[allow(unused_imports)]
 use cw_controllers::AdminResponse;
-/// Used by Module Factory to instantiate Standalone
+/// Used to instantiate Standalone
+/// Instantiate message for your standalone should include field `base: Option<BaseInstantiateMsg>`
+/// Note that base will get filled by Module Factory
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
     pub ans_host_address: String,
     pub version_control_address: String,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct AppConfigResponse {
-    pub ans_host_address: Addr,
-    pub manager_address: Addr,
+    pub account_base: AccountBase,
 }
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[cosmwasm_schema::cw_serde]
 pub struct StandaloneState {
+    pub proxy_address: Addr,
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
     /// Used to verify requests

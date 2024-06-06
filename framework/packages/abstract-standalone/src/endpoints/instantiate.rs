@@ -1,19 +1,23 @@
-use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
+use abstract_sdk::{
+    feature_objects::{AnsHost, VersionControlContract},
+    AbstractSdkResult,
+};
 use abstract_std::{
     objects::module_version::set_module_data,
     standalone::{BaseInstantiateMsg, StandaloneState},
 };
-use cosmwasm_std::{DepsMut, StdResult};
+use cosmwasm_std::DepsMut;
 use cw2::set_contract_version;
 
 use crate::state::StandaloneContract;
 
 impl StandaloneContract {
     /// Call this method on instantiating of the standalone
-    pub fn instantiate(&self, deps: DepsMut, msg: BaseInstantiateMsg) -> StdResult<()> {
+    pub fn instantiate(&self, deps: DepsMut, msg: BaseInstantiateMsg) -> AbstractSdkResult<()> {
         let BaseInstantiateMsg {
             ans_host_address,
             version_control_address,
+            account_base,
         } = msg;
 
         let ans_host = AnsHost {
@@ -25,6 +29,7 @@ impl StandaloneContract {
 
         // Base state
         let state = StandaloneState {
+            proxy_address: account_base.proxy,
             ans_host,
             version_control,
         };
@@ -32,6 +37,7 @@ impl StandaloneContract {
         set_module_data(deps.storage, name, version, &[], metadata)?;
         set_contract_version(deps.storage, name, version)?;
         self.base_state.save(deps.storage, &state)?;
+        self.admin.set(deps, Some(account_base.manager))?;
         Ok(())
     }
 }
@@ -39,8 +45,12 @@ impl StandaloneContract {
 #[cfg(test)]
 mod test {
     use crate::mock::*;
-    use abstract_std::standalone;
-    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use abstract_std::{standalone, version_control::AccountBase};
+    use abstract_testing::{
+        addresses::{TEST_MANAGER, TEST_PROXY},
+        prelude::*,
+    };
+    use cosmwasm_std::Addr;
 
     #[test]
     fn test_instantiate() {
@@ -48,15 +58,17 @@ mod test {
 
         deps.querier = standalone_base_mock_querier().build();
 
-        let msg = MockInitMsg {
-            base: standalone::BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
+        let msg_base = standalone::BaseInstantiateMsg {
+            account_base: AccountBase {
+                manager: Addr::unchecked(TEST_MANAGER),
+                proxy: Addr::unchecked(TEST_PROXY),
             },
+            ans_host_address: TEST_ANS_HOST.to_string(),
+            version_control_address: TEST_VERSION_CONTROL.to_string(),
         };
 
         BASIC_MOCK_STANDALONE
-            .instantiate(deps.as_mut(), msg.base)
+            .instantiate(deps.as_mut(), msg_base)
             .unwrap();
     }
 }

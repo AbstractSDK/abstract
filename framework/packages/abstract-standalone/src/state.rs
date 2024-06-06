@@ -1,14 +1,19 @@
 use abstract_sdk::{
     base::{ModuleId, ModuleMetadata, VersionString},
     features::ModuleIdentification,
-    namespaces::BASE_STATE,
+    namespaces::{ADMIN_NAMESPACE, BASE_STATE},
 };
-use abstract_std::{objects::module::ModuleInfo, standalone::StandaloneState, AbstractResult};
+use abstract_std::{
+    objects::{module::ModuleInfo, nested_admin::NestedAdmin},
+    standalone::StandaloneState,
+    AbstractResult,
+};
 use cosmwasm_std::{StdResult, Storage};
 use cw_storage_plus::Item;
 
 /// The state variables for our AppContract.
 pub struct StandaloneContract {
+    pub admin: NestedAdmin<'static>,
     pub(crate) base_state: Item<'static, StandaloneState>,
     /// Static info about the contract, used for migration
     pub(crate) info: (ModuleId, VersionString, ModuleMetadata),
@@ -28,6 +33,7 @@ impl StandaloneContract {
         metadata: Option<&'static str>,
     ) -> Self {
         Self {
+            admin: NestedAdmin::new(ADMIN_NAMESPACE),
             base_state: Item::new(BASE_STATE),
             info: (name, version, metadata),
         }
