@@ -16,7 +16,6 @@ pub mod traits {
     pub use abstract_sdk::{features::*, prelude::*};
 }
 
-mod interface;
 pub use abstract_interface;
 #[cfg(feature = "test-utils")]
 pub use abstract_testing;
