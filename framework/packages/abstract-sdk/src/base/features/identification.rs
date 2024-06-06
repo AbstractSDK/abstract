@@ -1,8 +1,9 @@
+use abstract_std::proxy;
 use abstract_std::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
     version_control::AccountBase,
 };
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::{wasm_execute, Addr, CosmosMsg, Deps};
 use cw_storage_plus::Item;
 
 use crate::std::objects::AccountId;
@@ -34,6 +35,21 @@ pub trait AccountIdentification: Sized {
     fn account_id(&self, deps: Deps) -> AbstractSdkResult<AccountId> {
         ACCOUNT_ID
             .query(&deps.querier, self.proxy_address(deps)?)
+            .map_err(Into::into)
+    }
+}
+
+/// Trait for modules that allowed to execute on proxy
+pub trait AccountExecutor: AccountIdentification {
+    /// Execute proxy method on proxy contract
+    fn execute_on_proxy(
+        &self,
+        deps: Deps,
+        msg: &proxy::ExecuteMsg,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let proxy_address = self.proxy_address(deps)?;
+        wasm_execute(proxy_address, msg, vec![])
+            .map(Into::into)
             .map_err(Into::into)
     }
 }

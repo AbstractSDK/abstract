@@ -18,12 +18,14 @@ use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
-    features::{AccountIdentification, ModuleIdentification},
+    features::{AccountExecutor, AccountIdentification, ModuleIdentification},
     AbstractSdkResult, ModuleRegistryInterface,
 };
 
 /// Interact with other chains over IBC.
-pub trait IbcInterface: ModuleRegistryInterface + ModuleIdentification {
+pub trait IbcInterface:
+    AccountIdentification + ModuleRegistryInterface + ModuleIdentification
+{
     /**
         API for interacting with the Abstract IBC client.
 
@@ -43,7 +45,10 @@ pub trait IbcInterface: ModuleRegistryInterface + ModuleIdentification {
     }
 }
 
-impl<T> IbcInterface for T where T: ModuleRegistryInterface + ModuleIdentification {}
+impl<T> IbcInterface for T where
+    T: AccountIdentification + ModuleRegistryInterface + ModuleIdentification
+{
+}
 
 impl<'a, T: IbcInterface> AbstractApi<T> for IbcClient<'a, T> {
     fn base(&self) -> &T {
@@ -80,7 +85,79 @@ pub struct IbcClient<'a, T: IbcInterface> {
     deps: Deps<'a>,
 }
 
-impl<'a, T: IbcInterface + AccountIdentification> IbcClient<'a, T> {
+impl<'a, T: IbcInterface> IbcClient<'a, T> {
+    /// Get address of this module
+    pub fn module_address(&self) -> AbstractSdkResult<Addr> {
+        self.base
+            .module_registry(self.deps)?
+            // TODO: Update when client versions are fixed.
+            // Use Dependencies trait bound
+            .query_module(ModuleInfo::from_id_latest(IBC_CLIENT)?)?
+            .reference
+            .unwrap_native()
+            .map_err(Into::into)
+    }
+
+    /// Send module action from this module to the target module
+    pub fn module_ibc_action<M: Serialize>(
+        &self,
+        host_chain: String,
+        target_module: ModuleInfo,
+        exec_msg: &M,
+        callback_info: Option<CallbackInfo>,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::ModuleIbcAction {
+                host_chain,
+                target_module,
+                msg: to_json_binary(exec_msg)?,
+                callback_info,
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
+    /// Send query from this module to the host chain
+    pub fn ibc_query(
+        &self,
+        host_chain: String,
+        query_msg: impl Into<QueryRequest<Empty>>,
+        callback_info: CallbackInfo,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::IbcQuery {
+                host_chain,
+                query: query_msg.into(),
+                callback_info,
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
+    /// Address of the remote proxy
+    /// Note: only Accounts that are remote to *this* chain are queryable
+    pub fn remote_proxy_addr(&self, host_chain: &str) -> AbstractSdkResult<Option<String>> {
+        let account_id = self.base.account_id(self.deps)?;
+        let ibc_client_addr = self.module_address()?;
+
+        let (trace, sequence) = account_id.decompose();
+        ibc_client::state::ACCOUNTS
+            .query(
+                &self.deps.querier,
+                ibc_client_addr,
+                (&trace, sequence, &host_chain.parse()?),
+            )
+            .map_err(Into::into)
+    }
+}
+
+impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     /// Registers the ibc client to be able to use IBC capabilities
     pub fn register_ibc_client(&self) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
@@ -149,22 +226,6 @@ impl<'a, T: IbcInterface + AccountIdentification> IbcClient<'a, T> {
         .into())
     }
 
-    /// Address of the remote proxy
-    /// Note: only Accounts that are remote to *this* chain are queryable
-    pub fn remote_proxy_addr(&self, host_chain: &str) -> AbstractSdkResult<Option<String>> {
-        let account_id = self.base.account_id(self.deps)?;
-        let ibc_client_addr = self.module_address()?;
-
-        let (trace, sequence) = account_id.decompose();
-        ibc_client::state::ACCOUNTS
-            .query(
-                &self.deps.querier,
-                ibc_client_addr,
-                (&trace, sequence, &host_chain.parse()?),
-            )
-            .map_err(Into::into)
-    }
-
     /// A simple helper to install an app on an account
     pub fn install_remote_app<M: Serialize>(
         &self,
@@ -219,62 +280,6 @@ impl<'a, T: IbcInterface + AccountIdentification> IbcClient<'a, T> {
                 }],
             },
         )
-    }
-}
-
-impl<'a, T: IbcInterface> IbcClient<'a, T> {
-    /// Get address of this module
-    pub fn module_address(&self) -> AbstractSdkResult<Addr> {
-        self.base
-            .module_registry(self.deps)?
-            // TODO: Update when client versions are fixed.
-            // Use Dependencies trait bound
-            .query_module(ModuleInfo::from_id_latest(IBC_CLIENT)?)?
-            .reference
-            .unwrap_native()
-            .map_err(Into::into)
-    }
-
-    /// Send module action from this module to the target module
-    pub fn module_ibc_action<M: Serialize>(
-        &self,
-        host_chain: String,
-        target_module: ModuleInfo,
-        exec_msg: &M,
-        callback_info: Option<CallbackInfo>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        let ibc_client_addr = self.module_address()?;
-        let msg = wasm_execute(
-            ibc_client_addr,
-            &ibc_client::ExecuteMsg::ModuleIbcAction {
-                host_chain,
-                target_module,
-                msg: to_json_binary(exec_msg)?,
-                callback_info,
-            },
-            vec![],
-        )?;
-        Ok(msg.into())
-    }
-
-    /// Send query from this module to the host chain
-    pub fn ibc_query(
-        &self,
-        host_chain: String,
-        query_msg: impl Into<QueryRequest<Empty>>,
-        callback_info: CallbackInfo,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        let ibc_client_addr = self.module_address()?;
-        let msg = wasm_execute(
-            ibc_client_addr,
-            &ibc_client::ExecuteMsg::IbcQuery {
-                host_chain,
-                query: query_msg.into(),
-                callback_info,
-            },
-            vec![],
-        )?;
-        Ok(msg.into())
     }
 }
 

@@ -13,12 +13,12 @@ use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
 use super::stargate::feegrant::{BasicOrPeriodicAllowance, MsgAllowance};
 use crate::{
     apis::stargate::feegrant::{AllowedMsgAllowance, BasicAllowance, PeriodicAllowance},
-    features::AccountIdentification,
+    features::AccountExecutor,
     AbstractSdkResult,
 };
 
 /// An interface to the CosmosSDK FeeGrant module which allows for granting fee expenditure rights.
-pub trait GrantInterface: AccountIdentification {
+pub trait GrantInterface: AccountExecutor {
     /// API for accessing the Cosmos SDK FeeGrant module.
     /// The **granter** is the address of the user granting an allowance of their funds.
     /// By default, it is the proxy address of the Account.
@@ -42,7 +42,7 @@ pub trait GrantInterface: AccountIdentification {
     }
 }
 
-impl<T> GrantInterface for T where T: AccountIdentification {}
+impl<T> GrantInterface for T where T: AccountExecutor {}
 
 /// This struct provides methods to grant fee allowances and interact with the feegrant module.
 ///
