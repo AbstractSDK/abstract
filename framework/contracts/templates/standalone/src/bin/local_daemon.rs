@@ -54,6 +54,7 @@ fn main() -> anyhow::Result<()> {
     // Installs the app on the Account
     let app = account.install_app::<MyStandaloneInterface<_>>(
         &MyStandaloneInstantiateMsg {
+            admin: daemon.sender().to_string(),
             base: standalone::BaseInstantiateMsg {
                 ans_host_address: abstract_client.name_service().addr_str()?,
                 version_control_address: abstract_client.version_control().addr_str()?,

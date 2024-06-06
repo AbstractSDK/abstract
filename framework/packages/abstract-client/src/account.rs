@@ -433,6 +433,21 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
+    /// Install an standalone on the account.
+    /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account. (default)
+    pub fn install_standalone<M: InstallConfig + From<Contract<Chain>>>(
+        &self,
+        configuration: &M::InitMsg,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let modules = vec![M::install_config(configuration)?];
+
+        match self.install_on_sub_account {
+            true => self.install_module_sub_internal(modules, funds),
+            false => self.install_module_current_internal(modules, funds),
+        }
+    }
+
     /// Install an adapter on current account.
     pub fn install_adapter<M: InstallConfig<InitMsg = Empty> + From<Contract<Chain>>>(
         &self,

@@ -9,6 +9,7 @@ use cosmwasm_schema::QueryResponses;
 pub struct MyStandaloneInstantiateMsg {
     pub count: i32,
     pub base: standalone::BaseInstantiateMsg,
+    pub admin: String,
 }
 
 /// App execute messages
@@ -23,6 +24,7 @@ pub enum MyStandaloneExecuteMsg {
         /// Count value after reset
         count: i32,
     },
+    // Hooks below are Abstract-specific
     /// IbcReceive to process IBC callbacks
     /// In order to trust this, the apps and adapters verify this comes from the ibc-client contract.
     IbcCallback(IbcResponseMsg),
