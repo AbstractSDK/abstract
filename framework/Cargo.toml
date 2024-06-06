@@ -4,6 +4,7 @@ members = [
   "packages/standards/*",
   "contracts/native/*",
   "contracts/account/*",
+  "scripts/cw-orch"
 ]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
@@ -39,6 +40,13 @@ cw-storage-plus = "1.2.0"
 cw2 = { version = "1.0" }
 cw20 = { version = "1.0" }
 cw20-base = { version = "1.0", features = ["library"] }
+
+cw721-base = { version = "0.18.0", features = ["library"] }
+cw721 = "0.18.0"
+bs721-base        = { git = "https://github.com/permissionlessweb/bs-nfts", rev = "ae87b40073fc50e4499b5cd2a0e48e2331689246" }
+bs721             = { git = "https://github.com/permissionlessweb/bs-nfts", rev = "ae87b40073fc50e4499b5cd2a0e48e2331689246"}
+bs-controllers    = { git = "https://github.com/permissionlessweb/bs-nfts", rev = "ae87b40073fc50e4499b5cd2a0e48e2331689246"}
+bs-std            = { git = "https://github.com/permissionlessweb/bs-nfts", rev = "ae87b40073fc50e4499b5cd2a0e48e2331689246"}
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }

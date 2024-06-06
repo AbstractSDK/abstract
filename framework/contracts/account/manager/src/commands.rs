@@ -34,7 +34,7 @@ use cosmwasm_std::{
     SubMsgResult, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
-use cw721::OwnerOfResponse;
+use cw721::{Cw721QueryMsg, OwnerOfResponse};
 use cw_ownable::OwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
@@ -1186,7 +1186,7 @@ pub(crate) fn verify_nft_ownership(
     // get owner of token_id from collection
     let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
         &addr,
-        &cw721::Cw721QueryMsg::OwnerOf {
+        &Cw721QueryMsg::OwnerOf {
             token_id: id,
             include_expired: None,
         },

@@ -454,7 +454,7 @@ fn test_nft_as_governance() -> Result<(), Error> {
             }
         }
     }
-    println!("{:?},{:?}", manager, proxy);
+    println!("manager: {:?},proxy:{:?}", manager, proxy);
 
     let start_amnt = 100_000;
     let burn_amnt = 10_000u128;
