@@ -36,7 +36,7 @@ struct MockStandaloneMsg {
     extra: HashMap<String, Value>,
 }
 
-// We need this to distinguish between have `"base": null` and missing field
+// We need this to distinguish between `"base": null` and missing field
 // https://github.com/serde-rs/serde/issues/984#issuecomment-314143738
 // Any value that is present is considered Some value, including null.
 fn deserialize_some<'de, T, D>(deserializer: D) -> Result<Option<T>, D::Error>
