@@ -1,82 +1,132 @@
-use crate::{error::MyStandaloneError, MY_STANDALONE_ID, STANDALONE_VERSION};
+use abstract_standalone::sdk::{AbstractResponse, AbstractSdkError, IbcInterface};
+use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, StdResult};
 
-use abstract_standalone::StandaloneContract;
-use cosmwasm_std::Response;
+use crate::{
+    msg::{
+        ConfigResponse, CountResponse, MyStandaloneExecuteMsg, MyStandaloneInstantiateMsg,
+        MyStandaloneMigrateMsg, MyStandaloneQueryMsg,
+    },
+    state::{Config, CONFIG, COUNT},
+    MyStandalone, MyStandaloneResult, MY_STANDALONE, MY_STANDALONE_ID,
+};
 
-/// The type of the result returned by your standalone's entry points.
-pub type MyStandaloneResult<T = Response> = Result<T, MyStandaloneError>;
+const INSTANTIATE_REPLY_ID: u64 = 0;
 
-/// The type of the standalone that is used to build your contract object and access the Abstract SDK features.
-pub type MyStandalone = StandaloneContract;
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn instantiate(
+    mut deps: DepsMut,
+    env: Env,
+    _info: MessageInfo,
+    msg: MyStandaloneInstantiateMsg,
+) -> MyStandaloneResult {
+    let config: Config = Config {};
+    CONFIG.save(deps.storage, &config)?;
+    COUNT.save(deps.storage, &msg.count)?;
 
-pub const MY_STANDALONE: MyStandalone =
-    MyStandalone::new(MY_STANDALONE_ID, STANDALONE_VERSION, None);
+    // Init standalone as module
+    let is_migratable = true;
+    MY_STANDALONE.instantiate(deps.branch(), &env, msg.base, is_migratable)?;
 
-#[cfg(not(target_arch = "wasm32"))]
-pub mod interface {
-    use cw_orch::contract::{interface_traits::InstantiableContract, Contract};
-    use cw_orch::prelude::*;
+    Ok(MY_STANDALONE.response("init"))
+}
 
-    use crate::{msg::*, MY_STANDALONE};
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn execute(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    msg: MyStandaloneExecuteMsg,
+) -> MyStandaloneResult {
+    let standalone = MY_STANDALONE;
+    match msg {
+        MyStandaloneExecuteMsg::UpdateConfig {} => update_config(deps, info, standalone),
+        MyStandaloneExecuteMsg::Increment {} => increment(deps, standalone),
+        MyStandaloneExecuteMsg::Reset { count } => reset(deps, info, count, standalone),
+        MyStandaloneExecuteMsg::IbcCallback(msg) => {
+            let ibc_client = MY_STANDALONE.ibc_client(deps.as_ref());
 
-    #[cw_orch::interface(
-        MyStandaloneInstantiateMsg,
-        MyStandaloneExecuteMsg,
-        MyStandaloneQueryMsg,
-        MyStandaloneMigrateMsg
-    )]
-    pub struct MyStandaloneInterface;
-
-    impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
-        for MyStandaloneInterface<Chain>
-    {
-        type DependenciesConfig = cosmwasm_std::Empty;
-    }
-
-    impl<Chain: cw_orch::environment::CwEnv> abstract_interface::RegisteredModule
-        for MyStandaloneInterface<Chain>
-    {
-        type InitMsg = <MyStandaloneInterface<Chain> as InstantiableContract>::InstantiateMsg;
-
-        fn module_id<'a>() -> &'a str {
-            MY_STANDALONE.module_id()
+            let ibc_client_addr = ibc_client.module_address()?;
+            if info.sender.ne(&ibc_client_addr) {
+                return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
+                    caller: info.sender,
+                    client_addr: ibc_client_addr,
+                    module: MY_STANDALONE_ID.to_owned(),
+                }
+                .into());
+            };
+            // Parse callbacks here!
+            match msg.id.as_str() {
+                "test" => Ok(MY_STANDALONE.response("test_ibc").set_data(b"test")),
+                _ => todo!(),
+            }
         }
-
-        fn module_version<'a>() -> &'a str {
-            MY_STANDALONE.version()
-        }
-    }
-
-    impl<Chain: cw_orch::environment::CwEnv> From<Contract<Chain>> for MyStandaloneInterface<Chain> {
-        fn from(value: Contract<Chain>) -> Self {
-            MyStandaloneInterface(value)
-        }
-    }
-
-    impl<Chain: cw_orch::environment::CwEnv> Uploadable for MyStandaloneInterface<Chain> {
-        fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
-            let wasm_name = env!("CARGO_CRATE_NAME").replace('-', "_");
-            cw_orch::prelude::ArtifactsDir::auto(Some(env!("CARGO_MANIFEST_DIR").to_string()))
-                .find_wasm_path(&wasm_name)
-                .unwrap()
-        }
-
-        fn wrapper() -> Box<dyn MockContract<Empty, Empty>> {
-            use crate::handlers;
-
-            Box::new(
-                ContractWrapper::new_with_empty(
-                    handlers::execute,
-                    handlers::instantiate,
-                    handlers::query,
-                )
-                .with_migrate(handlers::migrate),
-            )
+        MyStandaloneExecuteMsg::ModuleIbc(_msg) => {
+            todo!()
         }
     }
+}
 
-    impl<Chain: cw_orch::environment::CwEnv> abstract_interface::StandaloneDeployer<Chain>
-        for MyStandaloneInterface<Chain>
-    {
+/// Update the configuration of the standalone
+fn update_config(deps: DepsMut, info: MessageInfo, standalone: MyStandalone) -> MyStandaloneResult {
+    MY_STANDALONE
+        .admin
+        .assert_admin(deps.as_ref(), &info.sender)?;
+    let mut _config = CONFIG.load(deps.storage)?;
+
+    Ok(standalone.response("update_config"))
+}
+
+fn increment(deps: DepsMut, standalone: MyStandalone) -> MyStandaloneResult {
+    COUNT.update(deps.storage, |count| MyStandaloneResult::Ok(count + 1))?;
+
+    Ok(standalone.response("increment"))
+}
+
+fn reset(
+    deps: DepsMut,
+    info: MessageInfo,
+    count: i32,
+    standalone: MyStandalone,
+) -> MyStandaloneResult {
+    MY_STANDALONE
+        .admin
+        .assert_admin(deps.as_ref(), &info.sender)?;
+    COUNT.save(deps.storage, &count)?;
+
+    Ok(standalone.response("reset"))
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn query(deps: Deps, _env: Env, msg: MyStandaloneQueryMsg) -> StdResult<Binary> {
+    let _standalone = &MY_STANDALONE;
+    match msg {
+        MyStandaloneQueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+        MyStandaloneQueryMsg::Count {} => to_json_binary(&query_count(deps)?),
     }
+}
+
+fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
+    let _config = CONFIG.load(deps.storage)?;
+    Ok(ConfigResponse {})
+}
+
+fn query_count(deps: Deps) -> StdResult<CountResponse> {
+    let count = COUNT.load(deps.storage)?;
+    Ok(CountResponse { count })
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> MyStandaloneResult {
+    match msg.id {
+        self::INSTANTIATE_REPLY_ID => Ok(crate::MY_STANDALONE.response("instantiate_reply")),
+        _ => todo!(),
+    }
+}
+
+/// Handle the standalone migrate msg
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MyStandaloneMigrateMsg) -> MyStandaloneResult {
+    // The Abstract Standalone object does version checking and
+    MY_STANDALONE.migrate(deps)?;
+    Ok(MY_STANDALONE.response("migrate"))
 }

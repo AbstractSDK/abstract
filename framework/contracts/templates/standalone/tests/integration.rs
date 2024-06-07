@@ -1,11 +1,10 @@
 use cw_controllers::AdminError;
 use my_standalone::{
-    contract::interface::MyStandaloneInterface,
     msg::{
         ConfigResponse, CountResponse, MyStandaloneExecuteMsgFns, MyStandaloneInstantiateMsg,
         MyStandaloneQueryMsgFns,
     },
-    MyStandaloneError, MY_NAMESPACE,
+    MyStandaloneError, MyStandaloneInterface, MY_NAMESPACE,
 };
 
 use abstract_client::{AbstractClient, Application, Environment};
