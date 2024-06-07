@@ -254,17 +254,6 @@ mod test {
 
         mock_interchain.wait_ibc(JUNO, register_tx)?;
 
-        // TODO remove
-        // // Enable ibc on STARGAZE from JUNO.
-        // let enable_ibc_tx = origin_account.manager.execute_on_remote(
-        //     &ChainName::from_chain_id(STARGAZE).to_string(),
-        //     ManagerExecuteMsg::UpdateSettings {
-        //         ibc_enabled: Some(true),
-        //     },
-        // )?;
-
-        // mock_interchain.wait_ibc(JUNO, enable_ibc_tx)?;
-
         // Create account from JUNO on OSMOSIS by going through STARGAZE
         let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
             &ChainName::from_chain_id(STARGAZE).to_string(),
