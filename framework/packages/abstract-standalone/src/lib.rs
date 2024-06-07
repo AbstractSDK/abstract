@@ -1,8 +1,6 @@
 mod endpoints;
 pub mod features;
 pub mod state;
-// TODO: ? #[cfg(feature = "schema")]
-// pub mod schema;
 
 pub use crate::state::StandaloneContract;
 

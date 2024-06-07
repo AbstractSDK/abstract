@@ -3,7 +3,7 @@
 //! `abstract_std::standalone` implements shared functionality that's useful for creating new Abstract standalone modules.
 //!
 //! ## Description
-//! TODO:
+//! An Abstract standalone contract is a contract that is controlled by abstract account, but cannot perform actions on a [proxy](crate::proxy) contract.
 use crate::{
     objects::{ans_host::AnsHost, version_control::VersionControlContract},
     version_control::AccountBase,
