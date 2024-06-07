@@ -30,7 +30,7 @@ impl AccountIdentification for StandaloneContract {
 
 impl Dependencies for StandaloneContract {
     fn dependencies(&self) -> &[abstract_std::objects::dependency::StaticDependency] {
-        &self.dependencies
+        self.dependencies
     }
 }
 
