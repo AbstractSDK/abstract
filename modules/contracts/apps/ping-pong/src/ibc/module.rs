@@ -18,10 +18,10 @@ pub fn receive_module_ibc(
     app: App,
     msg: ModuleIbcMsg,
 ) -> AppResult<Response> {
-    let current_module_info = app.module_info()?;
+    let this_module_info = app.module_info()?;
     ensure_eq!(
         msg.source_module,
-        current_module_info,
+        this_module_info,
         AppError::NotPingPong {
             source_module: msg.source_module.clone()
         }
@@ -34,7 +34,7 @@ pub fn receive_module_ibc(
         let ibc_client = app.ibc_client(deps.as_ref());
         let ibc_action = ibc_client.module_ibc_action(
             msg.client_chain,
-            current_module_info,
+            this_module_info,
             &ping_msg,
             Some(CallbackInfo::new(PING_CALLBACK.to_owned(), None)),
         )?;
