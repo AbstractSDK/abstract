@@ -51,10 +51,10 @@ let deposit_msg = money_market.deposit(deposit_asset);
 
 The Money Market adapter provides easy ways of interacting with Money Markets. However, some errors can appear without the adapter catching them:
 
-- The money market can have deposit limits enabled which may be crossed when using this adapter.
-- The money market may not have liquidity available to borrow funds.
-- The money market may not have liquidity available to withdraw deposited funds from
-- The user may not be able to withdraw collateral because they are borrowing too much funds.
+- The lending market can have deposit limits enabled which may be crossed when using this adapter.
+- The lending market may not have liquidity available to borrow funds.
+- The lending market may not have liquidity available to withdraw deposited funds from
+- The user may not be able to withdraw collateral because they are borrowing too many funds.
 
 All those errors and more have to be handled directly by the developers integrating this adapter.
 
