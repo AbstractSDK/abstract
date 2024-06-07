@@ -1,6 +1,6 @@
 pub use abstract_std::app;
 use abstract_std::{
-    ibc::{CallbackInfo, CallbackResult, ModuleIbcMsg},
+    ibc::{CallbackInfo, CallbackResult},
     ibc_client::{self},
     objects::module::ModuleInfo,
     IBC_CLIENT,
@@ -8,7 +8,7 @@ use abstract_std::{
 use cosmwasm_schema::{cw_serde, QueryResponses};
 pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{
-    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Response, StdError,
+    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Empty, Response, StdError,
 };
 use cw_controllers::AdminError;
 use cw_storage_plus::Item;
@@ -145,8 +145,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                         })
                         .unwrap(),
                         callback_info: Some(CallbackInfo {
-                            id: "c_id".to_string(),
-                            msg: None,
+                            payload: to_json_binary(&Empty {})?,
                         }),
                     },
                     vec![],
@@ -165,8 +164,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     &ibc_client::ExecuteMsg::IbcQuery {
                         host_chain: remote_chain,
                         callback_info: CallbackInfo {
-                            id: "query_id".to_string(),
-                            msg: None,
+                            payload: to_json_binary(&Empty {})?,
                         },
                         query: cosmwasm_std::QueryRequest::Bank(
                             cosmwasm_std::BankQuery::AllBalances { address },
@@ -201,31 +199,28 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[
-            ("c_id", |deps, _, _, _, _| {
+        .with_ibc_callback(|deps, _, _, _, _, result| match result {
+            CallbackResult::Query { query: _, result } => {
+                let result = result.unwrap()[0].clone();
+                let deser: AllBalanceResponse = from_json(result)?;
+                IBC_CALLBACK_QUERY_RECEIVED
+                    .save(deps.storage, &deser.amount)
+                    .unwrap();
+                Ok(Response::new().add_attribute("mock_callback_query", "executed"))
+            }
+            CallbackResult::Execute { .. } => {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().add_attribute("mock_callback", "executed"))
-            }),
-            ("query_id", |deps, _, _, _, msg| match msg.result {
-                CallbackResult::Query { query: _, result } => {
-                    let result = result.unwrap()[0].clone();
-                    let deser: AllBalanceResponse = from_json(result)?;
-                    IBC_CALLBACK_QUERY_RECEIVED
-                        .save(deps.storage, &deser.amount)
-                        .unwrap();
-                    Ok(Response::new().add_attribute("mock_callback_query", "executed"))
-                }
-                _ => panic!("Expected query result"),
-            }),
-        ])
+            }
+            CallbackResult::FatalError(_) => todo!(),
+        })
         .with_replies(&[(1u64, |_, _, _, msg| {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())))
-        .with_module_ibc(|deps, _, _, msg| {
-            let ModuleIbcMsg { source_module, .. } = msg;
+        .with_module_ibc(|deps, _, _, src_module_info, _| {
             // We save the module info status
-            MODULE_IBC_RECEIVED.save(deps.storage, &source_module)?;
+            MODULE_IBC_RECEIVED.save(deps.storage, &src_module_info.module)?;
             Ok(Response::new().add_attribute("mock_module_ibc", "executed"))
         })
 }

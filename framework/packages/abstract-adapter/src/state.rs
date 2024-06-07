@@ -147,11 +147,8 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
-        mut self,
-        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
-    ) -> Self {
-        self.contract = self.contract.with_ibc_callbacks(callbacks);
+    pub const fn with_ibc_callback(mut self, callback: IbcCallbackHandlerFn<Self, Error>) -> Self {
+        self.contract = self.contract.with_ibc_callback(callback);
         self
     }
 
@@ -194,9 +191,9 @@ mod tests {
             .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _| {
+            .with_ibc_callback(|_, _, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
-            })])
+            })
             .with_replies(&[(1u64, |_, _, _, msg| {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })]);

@@ -93,14 +93,12 @@ pub fn receive_action_callback(
             initiator_msg,
         } => {
             let callback = IbcResponseMsg {
-                id: callback_info.id.clone(),
-                msg: callback_info.msg,
+                payload: callback_info.payload,
                 result: CallbackResult::from_execute(callback.result, initiator_msg)?,
             };
             Ok(IbcClientResponse::action("module_action_ibc_callback")
                 .add_message(callback.into_cosmos_msg(sender_address)?)
-                .add_attribute("chain", host_chain.to_string())
-                .add_attribute("callback_id", callback_info.id))
+                .add_attribute("chain", host_chain.to_string()))
         }
         IbcClientCallback::ModuleRemoteQuery {
             sender_address,
@@ -108,14 +106,12 @@ pub fn receive_action_callback(
             query,
         } => {
             let callback = IbcResponseMsg {
-                id: callback_info.id.clone(),
-                msg: callback_info.msg,
+                payload: callback_info.payload,
                 result: CallbackResult::from_query(callback.result, query)?,
             };
             Ok(IbcClientResponse::action("module_query_ibc_callback")
                 .add_message(callback.into_cosmos_msg(sender_address)?)
-                .add_attribute("chain", host_chain.to_string())
-                .add_attribute("callback_id", callback_info.id))
+                .add_attribute("chain", host_chain.to_string()))
         }
     }
 }

@@ -15,17 +15,15 @@ use crate::{
 #[cosmwasm_schema::cw_serde]
 // ANCHOR: callback-info
 pub struct CallbackInfo {
-    /// Used to identify the callback that is sent (acts like the reply ID)
-    pub id: String,
     /// Used to add information to the callback.
     /// This is usually used to provide information to the ibc callback function for context
-    pub msg: Option<Binary>,
+    pub payload: Binary,
 }
 // ANCHOR_END: callback-info
 
 impl CallbackInfo {
-    pub fn new(id: impl Into<String>, msg: Option<Binary>) -> Self {
-        Self { id: id.into(), msg }
+    pub fn new(payload: Binary) -> Self {
+        Self { payload }
     }
 }
 
@@ -33,11 +31,8 @@ impl CallbackInfo {
 #[cosmwasm_schema::cw_serde]
 // ANCHOR: response-msg
 pub struct IbcResponseMsg {
-    /// The ID chosen by the caller in the `callback_info.id`
-    pub id: String,
     /// The msg sent with the callback request.
-    /// This is usually used to provide information to the ibc callback function for context
-    pub msg: Option<Binary>,
+    pub payload: Binary,
     pub result: CallbackResult,
 }
 // ANCHOR_END: response-msg
@@ -113,14 +108,20 @@ impl CallbackResult {
     }
 }
 
-// ANCHOR: module_ibc_msg
 #[cw_serde]
 pub struct ModuleIbcMsg {
-    /// Remote chain identification
-    pub client_chain: ChainName,
-    /// Information about the module that called ibc action on this module
-    pub source_module: ModuleInfo,
+    /// Sender Module Identification
+    pub src_module_info: ModuleIbcInfo,
     /// The message sent by the module
     pub msg: Binary,
+}
+
+// ANCHOR: module_ibc_msg
+#[cw_serde]
+pub struct ModuleIbcInfo {
+    /// Remote chain identification
+    pub chain: ChainName,
+    /// Information about the module that called ibc action on this module
+    pub module: ModuleInfo,
 }
 // ANCHOR_END: module_ibc_msg
