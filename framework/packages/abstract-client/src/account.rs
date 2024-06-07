@@ -202,6 +202,19 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
         Ok(self)
     }
 
+    /// Install an standalone with dependencies on current account.
+    pub fn install_standalone_with_dependencies<M: DependencyCreation + InstallConfig>(
+        &mut self,
+        module_configuration: &M::InitMsg,
+        dependencies_config: M::DependenciesConfig,
+    ) -> AbstractClientResult<&mut Self> {
+        let deps_install_config = M::dependency_install_configs(dependencies_config)?;
+        self.install_modules.extend(deps_install_config);
+        self.install_modules
+            .push(M::install_config(module_configuration)?);
+        Ok(self)
+    }
+
     /// Enables automatically paying for module instantiations and namespace registration.
     /// The provided function will be called with the required funds. If the function returns `false`,
     /// the account creation will fail.
@@ -466,6 +479,28 @@ impl<Chain: CwEnv> Account<Chain> {
     ///
     /// The returned [`Application`] is a wrapper around the sub-account and simplifies interaction with the App module.
     pub fn install_app_with_dependencies<
+        M: DependencyCreation + InstallConfig + From<Contract<Chain>>,
+    >(
+        &self,
+        module_configuration: &M::InitMsg,
+        dependencies_config: M::DependenciesConfig,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let mut install_configs: Vec<ModuleInstallConfig> =
+            M::dependency_install_configs(dependencies_config)?;
+        install_configs.push(M::install_config(module_configuration)?);
+
+        match self.install_on_sub_account {
+            true => self.install_module_sub_internal(install_configs, funds),
+            false => self.install_module_current_internal(install_configs, funds),
+        }
+    }
+
+    /// Creates a new sub-account on the current account and
+    /// installs an Standalone module and its dependencies with the provided dependencies config. \
+    ///
+    /// The returned [`Application`] is a wrapper around the sub-account and simplifies interaction with the Standalone module.
+    pub fn install_standalone_with_dependencies<
         M: DependencyCreation + InstallConfig + From<Contract<Chain>>,
     >(
         &self,

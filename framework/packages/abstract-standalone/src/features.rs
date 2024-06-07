@@ -1,6 +1,6 @@
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps};
@@ -25,6 +25,12 @@ impl AbstractRegistryAccess for StandaloneContract {
 impl AccountIdentification for StandaloneContract {
     fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.base_state.load(deps.storage)?.proxy_address)
+    }
+}
+
+impl Dependencies for StandaloneContract {
+    fn dependencies(&self) -> &[abstract_std::objects::dependency::StaticDependency] {
+        &self.dependencies
     }
 }
 
