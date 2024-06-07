@@ -4,7 +4,7 @@ use abstract_standalone::std::{
 };
 use cosmwasm_schema::QueryResponses;
 
-/// App instantiate message
+/// Standalone instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct MyStandaloneInstantiateMsg {
     // This field will get auto-filled by module factory
@@ -12,7 +12,7 @@ pub struct MyStandaloneInstantiateMsg {
     pub count: i32,
 }
 
-/// App execute messages
+/// Standalone execute messages
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
 pub enum MyStandaloneExecuteMsg {
@@ -37,7 +37,7 @@ pub enum MyStandaloneExecuteMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct MyStandaloneMigrateMsg {}
 
-/// App query messages
+/// Standalone query messages
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum MyStandaloneQueryMsg {

@@ -47,7 +47,7 @@ pub fn execute(
     }
 }
 
-/// Update the configuration of the app
+/// Update the configuration of the standalone
 fn update_config(deps: DepsMut, info: MessageInfo, standalone: MyStandalone) -> MyStandaloneResult {
     MY_STANDALONE
         .admin

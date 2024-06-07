@@ -34,7 +34,7 @@ impl StandaloneContract {
             version_control,
         };
         let (name, version, metadata) = self.info;
-        set_module_data(deps.storage, name, version, &[], metadata)?;
+        set_module_data(deps.storage, name, version, self.dependencies, metadata)?;
         set_contract_version(deps.storage, name, version)?;
         self.base_state.save(deps.storage, &state)?;
         self.admin.set(deps, Some(account_base.manager))?;

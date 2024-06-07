@@ -3,10 +3,10 @@ use crate::{error::MyStandaloneError, MY_STANDALONE_ID, STANDALONE_VERSION};
 use abstract_standalone::StandaloneContract;
 use cosmwasm_std::Response;
 
-/// The type of the result returned by your app's entry points.
+/// The type of the result returned by your standalone's entry points.
 pub type MyStandaloneResult<T = Response> = Result<T, MyStandaloneError>;
 
-/// The type of the app that is used to build your app and access the Abstract SDK features.
+/// The type of the standalone that is used to build your contract object and access the Abstract SDK features.
 pub type MyStandalone = StandaloneContract;
 
 pub const MY_STANDALONE: MyStandalone =

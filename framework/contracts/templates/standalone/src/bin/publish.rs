@@ -25,13 +25,15 @@ fn publish(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network)
             .build()?;
 
-        let app_namespace = Namespace::from_id(MY_STANDALONE_ID)?;
+        let standalone_namespace = Namespace::from_id(MY_STANDALONE_ID)?;
 
         // Create an [`AbstractClient`]
         let abstract_client: AbstractClient<Daemon> = AbstractClient::new(chain.clone())?;
 
         // Get the [`Publisher`] that owns the namespace, otherwise create a new one and claim the namespace
-        let publisher: Publisher<_> = abstract_client.publisher_builder(app_namespace).build()?;
+        let publisher: Publisher<_> = abstract_client
+            .publisher_builder(standalone_namespace)
+            .build()?;
 
         if publisher.account().owner()? != chain.sender() {
             panic!("The current sender can not publish to this namespace. Please use the wallet that owns the Account that owns the Namespace.")

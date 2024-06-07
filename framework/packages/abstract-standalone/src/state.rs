@@ -4,19 +4,21 @@ use abstract_sdk::{
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
 };
 use abstract_std::{
-    objects::{module::ModuleInfo, nested_admin::NestedAdmin},
+    objects::{dependency::StaticDependency, module::ModuleInfo, nested_admin::NestedAdmin},
     standalone::StandaloneState,
     AbstractResult,
 };
 use cosmwasm_std::{StdResult, Storage};
 use cw_storage_plus::Item;
 
-/// The state variables for our AppContract.
+/// The state variables for our StandaloneContract.
 pub struct StandaloneContract {
     pub admin: NestedAdmin<'static>,
     pub(crate) base_state: Item<'static, StandaloneState>,
     /// Static info about the contract, used for migration
     pub(crate) info: (ModuleId, VersionString, ModuleMetadata),
+    /// Modules that this contract depends on.
+    pub(crate) dependencies: &'static [StaticDependency],
 }
 
 impl ModuleIdentification for StandaloneContract {
@@ -36,6 +38,7 @@ impl StandaloneContract {
             admin: NestedAdmin::new(ADMIN_NAMESPACE),
             base_state: Item::new(BASE_STATE),
             info: (name, version, metadata),
+            dependencies: &[],
         }
     }
 
@@ -49,6 +52,12 @@ impl StandaloneContract {
 
     pub fn module_info(&self) -> AbstractResult<ModuleInfo> {
         ModuleInfo::from_id(self.module_id(), self.version().into())
+    }
+
+    /// add dependencies to the contract
+    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
+        self.dependencies = dependencies;
+        self
     }
 
     pub fn load_state(&self, store: &dyn Storage) -> StdResult<StandaloneState> {

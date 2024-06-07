@@ -30,7 +30,7 @@ pub mod mock {
     use cw_orch::prelude::*;
     use cw_storage_plus::Item;
 
-    pub type AppTestResult = Result<(), MockError>;
+    pub type StandaloneTestResult = Result<(), MockError>;
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockInitMsg {
@@ -193,7 +193,7 @@ pub mod mock {
             use $crate::sdk::base::Handler;
             use $crate::sdk::features::AccountIdentification;
             use $crate::sdk::{Execution, TransferInterface};
-            use $crate::std::app;
+            use $crate::std::standalone;
             use $crate::traits::AbstractResponse;
 
             const MOCK_APP_WITH_DEP: $crate::mock::MockStandaloneContract =

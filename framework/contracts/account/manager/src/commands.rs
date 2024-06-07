@@ -225,6 +225,16 @@ pub(crate) fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> Man
                 let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
                 versioning::set_as_dependent(deps.storage, id, dependencies)?;
             }
+            Module {
+                reference: ModuleReference::Standalone(_),
+                info,
+            } => {
+                let id = info.id();
+                // assert version requirements
+                let dependencies =
+                    versioning::assert_install_requirements_standalone(deps.as_ref(), &id)?;
+                versioning::set_as_dependent(deps.storage, id, dependencies)?;
+            }
             _ => (),
         };
     }

@@ -1,4 +1,4 @@
-//! Deploys Abstract and the App module to a local Junod instance. See how to spin up a local chain here: <https://docs.junonetwork.io/developer-guides/junod-local-dev-setup>
+//! Deploys Abstract and the Standalone module to a local Junod instance. See how to spin up a local chain here: <https://docs.junonetwork.io/developer-guides/junod-local-dev-setup>
 //! You can also start a juno container by running `just juno-local`.
 //!
 //! Ensure the local juno is running before executing this script.
@@ -6,7 +6,7 @@
 //!
 //! # Run
 //!
-//! `RUST_LOG=info cargo run --bin --features="daemon-bin" local_daemon --package my-app`
+//! `RUST_LOG=info cargo run --bin --features="daemon-bin" local_daemon --package my-standalone`
 use my_standalone::MY_STANDALONE_ID;
 
 use abstract_client::{AbstractClient, Publisher};
@@ -29,7 +29,7 @@ fn main() -> anyhow::Result<()> {
         .build()
         .unwrap();
 
-    let app_namespace = Namespace::from_id(MY_STANDALONE_ID)?;
+    let standalone_namespace = Namespace::from_id(MY_STANDALONE_ID)?;
 
     // Create an [`AbstractClient`]
     // Note: AbstractClient Builder used because Abstract is not yet deployed on the chain
@@ -38,21 +38,23 @@ fn main() -> anyhow::Result<()> {
 
     // Get the [`Publisher`] that owns the namespace.
     // If there isn't one, it creates an Account and claims the namespace.
-    let publisher: Publisher<_> = abstract_client.publisher_builder(app_namespace).build()?;
+    let publisher: Publisher<_> = abstract_client
+        .publisher_builder(standalone_namespace)
+        .build()?;
 
     // Ensure the current sender owns the namespace
     if publisher.account().owner()? != daemon.sender() {
         panic!("The current sender can not publish to this namespace. Please use the wallet that owns the Account that owns the Namespace.")
     }
 
-    // Publish the App to the Abstract Platform
+    // Publish the Standalone to the Abstract Platform
     publisher.publish_standalone::<MyStandaloneInterface<Daemon>>()?;
 
     // Install the Standalone on a new account
 
     let account = abstract_client.account_builder().build()?;
-    // Installs the app on the Account
-    let app = account.install_app::<MyStandaloneInterface<_>>(
+    // Installs the standalone on the Account
+    let standalone = account.install_standalone::<MyStandaloneInterface<_>>(
         &MyStandaloneInstantiateMsg {
             base: None,
             count: 0,
@@ -60,17 +62,17 @@ fn main() -> anyhow::Result<()> {
         &[],
     )?;
 
-    // Import app's endpoint function traits for easy interactions.
+    // Import standalone's endpoint function traits for easy interactions.
     use my_standalone::msg::{MyStandaloneExecuteMsgFns, MyStandaloneQueryMsgFns};
-    assert_eq!(app.count()?.count, 0);
-    // Execute the App
-    app.increment()?;
+    assert_eq!(standalone.count()?.count, 0);
+    // Execute the Standalone
+    standalone.increment()?;
 
-    // Query the App again
-    assert_eq!(app.count()?.count, 1);
+    // Query the Standalone again
+    assert_eq!(standalone.count()?.count, 1);
 
-    // Note: the App is installed on a sub-account of the main account!
-    assert_ne!(account.id()?, app.account().id()?);
+    // Note: the Standalone is installed on a sub-account of the main account!
+    assert_ne!(account.id()?, standalone.account().id()?);
 
     Ok(())
 }

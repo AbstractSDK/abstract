@@ -44,7 +44,7 @@ mod test {
     use crate::mock::*;
 
     #[test]
-    fn test_ans_host() -> AppTestResult {
+    fn test_ans_host() -> StandaloneTestResult {
         let deps = mock_init();
 
         let ans_host = BASIC_MOCK_STANDALONE.ans_host(deps.as_ref())?;
@@ -54,7 +54,7 @@ mod test {
     }
 
     #[test]
-    fn test_abstract_registry() -> AppTestResult {
+    fn test_abstract_registry() -> StandaloneTestResult {
         let deps = mock_init();
 
         let abstract_registry = BASIC_MOCK_STANDALONE.abstract_registry(deps.as_ref())?;
@@ -64,7 +64,7 @@ mod test {
     }
 
     #[test]
-    fn test_traits_generated() -> AppTestResult {
+    fn test_traits_generated() -> StandaloneTestResult {
         let mut deps = mock_init();
         deps.querier = mock_querier();
         let test_account_base = AccountBase {
@@ -94,7 +94,7 @@ mod test {
     }
 
     #[test]
-    fn test_module_id() -> AppTestResult {
+    fn test_module_id() -> StandaloneTestResult {
         let module_id = BASIC_MOCK_STANDALONE.module_id();
 
         assert_that!(module_id).is_equal_to(TEST_MODULE_ID);

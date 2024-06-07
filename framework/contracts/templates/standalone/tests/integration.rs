@@ -16,11 +16,11 @@ use cw_orch::{anyhow, prelude::*};
 
 struct TestEnv<Env: CwEnv> {
     abs: AbstractClient<Env>,
-    app: Application<Env, MyStandaloneInterface<Env>>,
+    standalone: Application<Env, MyStandaloneInterface<Env>>,
 }
 
 impl TestEnv<MockBech32> {
-    /// Set up the test environment with an Account that has the App installed
+    /// Set up the test environment with an Account that has the Standalone installed
     fn setup() -> anyhow::Result<TestEnv<MockBech32>> {
         // Create a sender and mock env
         let mock = MockBech32::new("mock");
@@ -29,14 +29,14 @@ impl TestEnv<MockBech32> {
 
         // You can set up Abstract with a builder.
         let abs_client = AbstractClient::builder(mock).build()?;
-        // The app supports setting balances for addresses and configuring ANS.
+        // The standalone supports setting balances for addresses and configuring ANS.
         abs_client.set_balance(sender.clone(), &coins(123, "ucosm"))?;
 
-        // Publish the app
+        // Publish the standalone
         let publisher = abs_client.publisher_builder(namespace).build()?;
         publisher.publish_standalone::<MyStandaloneInterface<_>>()?;
 
-        let app = publisher
+        let standalone = publisher
             .account()
             .install_standalone::<MyStandaloneInterface<_>>(
                 &MyStandaloneInstantiateMsg {
@@ -48,7 +48,7 @@ impl TestEnv<MockBech32> {
 
         Ok(TestEnv {
             abs: abs_client,
-            app,
+            standalone,
         })
     }
 }
@@ -56,9 +56,9 @@ impl TestEnv<MockBech32> {
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     let env = TestEnv::setup()?;
-    let app = env.app;
+    let standalone = env.standalone;
 
-    let config = app.config()?;
+    let config = standalone.config()?;
     assert_eq!(config, ConfigResponse {});
     Ok(())
 }
@@ -66,10 +66,10 @@ fn successful_install() -> anyhow::Result<()> {
 #[test]
 fn successful_increment() -> anyhow::Result<()> {
     let env = TestEnv::setup()?;
-    let app = env.app;
+    let standalone = env.standalone;
 
-    app.increment()?;
-    let count: CountResponse = app.count()?;
+    standalone.increment()?;
+    let count: CountResponse = standalone.count()?;
     assert_eq!(count.count, 1);
     Ok(())
 }
@@ -77,10 +77,10 @@ fn successful_increment() -> anyhow::Result<()> {
 #[test]
 fn successful_reset() -> anyhow::Result<()> {
     let env = TestEnv::setup()?;
-    let app = env.app;
+    let standalone = env.standalone;
 
-    app.reset(42)?;
-    let count: CountResponse = app.count()?;
+    standalone.reset(42)?;
+    let count: CountResponse = standalone.count()?;
     assert_eq!(count.count, 42);
     Ok(())
 }
@@ -88,10 +88,10 @@ fn successful_reset() -> anyhow::Result<()> {
 #[test]
 fn update_config() -> anyhow::Result<()> {
     let env = TestEnv::setup()?;
-    let app = env.app;
+    let standalone = env.standalone;
 
-    app.update_config()?;
-    let config = app.config()?;
+    standalone.update_config()?;
+    let config = standalone.config()?;
     let expected_response = my_standalone::msg::ConfigResponse {};
     assert_eq!(config, expected_response);
     Ok(())
@@ -100,7 +100,7 @@ fn update_config() -> anyhow::Result<()> {
 #[test]
 fn balance_added() -> anyhow::Result<()> {
     let env = TestEnv::setup()?;
-    let account = env.app.account();
+    let account = env.standalone.account();
 
     // You can add balance to your account in test environment
     let add_balance = coins(100, "ucosm");
@@ -111,8 +111,8 @@ fn balance_added() -> anyhow::Result<()> {
 
     // Or set balance to any other address using cw_orch
     let mock_env = env.abs.environment();
-    mock_env.add_balance(&env.app.address()?, add_balance.clone())?;
-    let balances = mock_env.query_all_balances(&env.app.address()?)?;
+    mock_env.add_balance(&env.standalone.address()?, add_balance.clone())?;
+    let balances = mock_env.query_all_balances(&env.standalone.address()?)?;
 
     assert_eq!(balances, add_balance);
     Ok(())
@@ -121,9 +121,9 @@ fn balance_added() -> anyhow::Result<()> {
 #[test]
 fn failed_reset() -> anyhow::Result<()> {
     let env = TestEnv::setup()?;
-    let app = env.app;
+    let standalone = env.standalone;
 
-    let err: MyStandaloneError = app
+    let err: MyStandaloneError = standalone
         .call_as(&Addr::unchecked("NotAdmin"))
         .reset(9)
         .unwrap_err()
