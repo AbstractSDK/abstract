@@ -16,10 +16,6 @@ exclude = ["contract.wasm", "hash.txt"]
 crate-type = ["cdylib", "rlib"]
 
 [[bin]]
-name = "schema"
-required-features = ["schema"]
-
-[[bin]]
 name = "publish"
 required-features = ["daemon-bin"]
 
@@ -37,7 +33,6 @@ daemon-bin = [
     "dep:dotenv",
     "dep:env_logger",
 ]
-schema = ["abstract-standalone/schema"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -60,3 +55,8 @@ clap = { workspace = true, optional = true, features = ["derive"] }
 abstract-client = { path = "../../../packages/abstract-client", optional = true }
 dotenv = { version = "0.15.0", optional = true }
 env_logger = { version = "0.10.0", optional = true }
+
+[dev-dependencies]
+my-standalone = { path = "." }
+abstract-client = { path = "../../../packages/abstract-client" }
+abstract-standalone = { workspace = true, features = ["test-utils"] }

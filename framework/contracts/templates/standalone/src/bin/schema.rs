@@ -12,7 +12,6 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
-    #[cfg(feature = "schema")]
     write_api! {
         name: "schema",
         instantiate: MyStandaloneInstantiateMsg,
