@@ -19,7 +19,7 @@ pub fn assert_install_requirements_standalone(
     deps: Deps,
     module_id: &str,
 ) -> ManagerResult<Vec<Dependency>> {
-    // For standalone dependencies are optional
+    // For standalones dependencies in state are optional
     let module_dependencies = load_module_dependencies(deps, module_id).unwrap_or_default();
     assert_dependency_requirements(deps, &module_dependencies, module_id)?;
     Ok(module_dependencies)
