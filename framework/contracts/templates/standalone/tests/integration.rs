@@ -9,7 +9,7 @@ use my_standalone::{
 };
 
 use abstract_client::{AbstractClient, Application, Environment};
-use abstract_standalone::objects::namespace::Namespace;
+use abstract_standalone::{objects::namespace::Namespace, std::standalone};
 use cosmwasm_std::coins;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, prelude::*};
@@ -40,7 +40,10 @@ impl TestEnv<MockBech32> {
             .account()
             .install_standalone::<MyStandaloneInterface<_>>(
                 &MyStandaloneInstantiateMsg {
-                    base: None,
+                    base: standalone::BaseInstantiateMsg {
+                        ans_host_address: abs_client.name_service().addr_str()?,
+                        version_control_address: abs_client.version_control().addr_str()?,
+                    },
                     count: 0,
                 },
                 &[],

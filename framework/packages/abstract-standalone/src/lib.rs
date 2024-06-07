@@ -20,7 +20,7 @@ pub use abstract_testing;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
-    use abstract_std::{standalone, version_control::AccountBase};
+    use abstract_std::standalone;
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{
@@ -34,7 +34,7 @@ pub mod mock {
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockInitMsg {
-        pub base: Option<standalone::BaseInstantiateMsg>,
+        pub base: standalone::BaseInstantiateMsg,
         pub random_field: String,
     }
 
@@ -71,12 +71,13 @@ pub mod mock {
     #[cw_orch::interface(MockInitMsg, MockExecMsg, MockQueryMsg, MockMigrateMsg)]
     pub struct MockStandaloneWithDepI;
 
-    use abstract_sdk::{AbstractResponse, AbstractSdkError};
+    use abstract_sdk::{
+        feature_objects::{AnsHost, VersionControlContract},
+        AbstractResponse, AbstractSdkError,
+    };
     use abstract_testing::{
-        addresses::{TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY, TEST_VERSION_CONTROL},
-        prelude::{
-            MockDeps, MockQuerierBuilder, TEST_MODULE_FACTORY, TEST_MODULE_ID, TEST_VERSION,
-        },
+        addresses::{TEST_ANS_HOST, TEST_PROXY, TEST_VERSION_CONTROL},
+        prelude::*,
     };
     use thiserror::Error;
 
@@ -112,11 +113,11 @@ pub mod mock {
     #[cosmwasm_std::entry_point]
     pub fn instantiate(
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         _info: MessageInfo,
         msg: MockInitMsg,
     ) -> Result<Response, MockError> {
-        BASIC_MOCK_STANDALONE.instantiate(deps, msg.base.unwrap(), true)?;
+        BASIC_MOCK_STANDALONE.instantiate(deps, &env, msg.base, true)?;
         Ok(BASIC_MOCK_STANDALONE.response("instantiate"))
     }
 
@@ -153,17 +154,19 @@ pub mod mock {
 
         deps.querier = standalone_base_mock_querier().build();
 
-        let msg_base = standalone::BaseInstantiateMsg {
-            account_base: AccountBase {
-                manager: Addr::unchecked(TEST_MANAGER),
-                proxy: Addr::unchecked(TEST_PROXY),
-            },
-            ans_host_address: TEST_ANS_HOST.to_string(),
-            version_control_address: TEST_VERSION_CONTROL.to_string(),
-        };
-
         BASIC_MOCK_STANDALONE
-            .instantiate(deps.as_mut(), msg_base, true)
+            .base_state
+            .save(
+                &mut deps.storage,
+                &standalone::StandaloneState {
+                    proxy_address: Addr::unchecked(TEST_PROXY),
+                    ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
+                    version_control: VersionControlContract::new(Addr::unchecked(
+                        TEST_VERSION_CONTROL,
+                    )),
+                    is_migratable: true,
+                },
+            )
             .unwrap();
 
         deps
@@ -205,7 +208,7 @@ pub mod mock {
                 info: ::cosmwasm_std::MessageInfo,
                 msg: $crate::mock::MockInitMsg,
             ) -> Result<::cosmwasm_std::Response, $crate::mock::MockError> {
-                MOCK_APP_WITH_DEP.instantiate(deps, msg.base.unwrap(), true)?;
+                MOCK_APP_WITH_DEP.instantiate(deps, &env, msg.base, true)?;
                 Ok(MOCK_APP_WITH_DEP
                     .response("instantiate")
                     .set_data("mock_init".as_bytes()))

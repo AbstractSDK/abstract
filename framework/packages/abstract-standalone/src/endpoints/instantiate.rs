@@ -5,8 +5,9 @@ use abstract_sdk::{
 use abstract_std::{
     objects::module_version::set_module_data,
     standalone::{BaseInstantiateMsg, StandaloneState},
+    AbstractError,
 };
-use cosmwasm_std::DepsMut;
+use cosmwasm_std::{Addr, DepsMut, Env};
 use cw2::set_contract_version;
 
 use crate::state::StandaloneContract;
@@ -16,21 +17,30 @@ impl StandaloneContract {
     pub fn instantiate(
         &self,
         deps: DepsMut,
+        env: &Env,
         msg: BaseInstantiateMsg,
         is_migratable: bool,
     ) -> AbstractSdkResult<()> {
         let BaseInstantiateMsg {
             ans_host_address,
             version_control_address,
-            account_base,
         } = msg;
-
         let ans_host = AnsHost {
             address: deps.api.addr_validate(&ans_host_address)?,
         };
         let version_control = VersionControlContract {
             address: deps.api.addr_validate(&version_control_address)?,
         };
+
+        let contract_info = deps
+            .querier
+            .query_wasm_contract_info(&env.contract.address)?;
+        let account_base = version_control
+            .assert_manager(
+                &Addr::unchecked(contract_info.admin.expect("module-factory set this")),
+                &deps.querier,
+            )
+            .map_err(AbstractError::from)?;
 
         // Base state
         let state = StandaloneState {
@@ -45,36 +55,5 @@ impl StandaloneContract {
         self.base_state.save(deps.storage, &state)?;
         self.admin.set(deps, Some(account_base.manager))?;
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::mock::*;
-    use abstract_std::{standalone, version_control::AccountBase};
-    use abstract_testing::{
-        addresses::{TEST_MANAGER, TEST_PROXY},
-        prelude::*,
-    };
-    use cosmwasm_std::Addr;
-
-    #[test]
-    fn test_instantiate() {
-        let mut deps = mock_dependencies();
-
-        deps.querier = standalone_base_mock_querier().build();
-
-        let msg_base = standalone::BaseInstantiateMsg {
-            account_base: AccountBase {
-                manager: Addr::unchecked(TEST_MANAGER),
-                proxy: Addr::unchecked(TEST_PROXY),
-            },
-            ans_host_address: TEST_ANS_HOST.to_string(),
-            version_control_address: TEST_VERSION_CONTROL.to_string(),
-        };
-
-        BASIC_MOCK_STANDALONE
-            .instantiate(deps.as_mut(), msg_base, true)
-            .unwrap();
     }
 }

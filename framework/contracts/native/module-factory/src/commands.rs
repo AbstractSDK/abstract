@@ -1,5 +1,3 @@
-use ::std::collections::HashMap;
-
 use abstract_sdk::{
     std::{
         module_factory::FactoryModuleInstallConfig,
@@ -10,7 +8,7 @@ use abstract_sdk::{
     },
     *,
 };
-use abstract_std::{objects::module, standalone};
+use abstract_std::objects::module;
 use cosmwasm_std::{
     from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
     DepsMut, Env, MessageInfo, StdResult, WasmMsg,
@@ -22,30 +20,6 @@ use crate::{
     error::ModuleFactoryError,
     state::*,
 };
-
-#[derive(cosmwasm_schema::serde::Serialize, cosmwasm_schema::serde::Deserialize)]
-#[serde(crate = "::cosmwasm_schema::serde")]
-struct MockStandaloneMsg {
-    // Fill base for contract
-    #[serde(default, deserialize_with = "deserialize_some")]
-    base: Option<Option<standalone::BaseInstantiateMsg>>,
-
-    // Forward other fields
-    // https://serde.rs/attr-flatten.html#capture-additional-fields
-    #[serde(flatten)]
-    extra: HashMap<String, Value>,
-}
-
-// We need this to distinguish between `"base": null` and missing field
-// https://github.com/serde-rs/serde/issues/984#issuecomment-314143738
-// Any value that is present is considered Some value, including null.
-fn deserialize_some<'de, T, D>(deserializer: D) -> Result<Option<T>, D::Error>
-where
-    T: cosmwasm_schema::serde::Deserialize<'de>,
-    D: cosmwasm_schema::serde::Deserializer<'de>,
-{
-    cosmwasm_schema::serde::Deserialize::deserialize(deserializer).map(Some)
-}
 
 /// Function that starts the creation of the Modules
 pub fn execute_create_modules(
@@ -152,27 +126,12 @@ pub fn execute_create_modules(
                 modules_to_register.push(addr.clone());
             }
             ModuleReference::Standalone(code_id) => {
-                let init_msg = owner_init_msg.unwrap();
-                let mut standalone_init_msg: MockStandaloneMsg = from_json(&init_msg)?;
-                let init_msg_binary = if standalone_init_msg.base.is_some() {
-                    // Fill standalone base message if structure correct
-                    let standalone_base_msg = abstract_std::standalone::BaseInstantiateMsg {
-                        ans_host_address: config.ans_host_address.to_string(),
-                        version_control_address: version_control.address.to_string(),
-                        account_base: account_base.clone(),
-                    };
-                    standalone_init_msg.base = Some(Some(standalone_base_msg));
-                    to_json_binary(&standalone_init_msg)?
-                } else {
-                    init_msg
-                };
-
                 let (addr, init_msg) = instantiate2_contract(
                     deps.as_ref(),
                     canonical_contract_addr.clone(),
                     block_height,
                     *code_id,
-                    init_msg_binary,
+                    owner_init_msg.unwrap(),
                     salt.clone(),
                     Some(account_base.manager.clone()),
                     new_module_init_funds,

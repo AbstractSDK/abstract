@@ -11,7 +11,7 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo};
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
     mut deps: DepsMut,
-    _env: Env,
+    env: Env,
     _info: MessageInfo,
     msg: MyStandaloneInstantiateMsg,
 ) -> MyStandaloneResult {
@@ -21,11 +21,7 @@ pub fn instantiate(
 
     // Init standalone as module
     let is_migratable = true;
-    MY_STANDALONE.instantiate(
-        deps.branch(),
-        msg.base.expect("Module factory should fill this"),
-        is_migratable,
-    )?;
+    MY_STANDALONE.instantiate(deps.branch(), &env, msg.base, is_migratable)?;
 
     Ok(MY_STANDALONE.response("init"))
 }
