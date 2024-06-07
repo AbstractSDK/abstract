@@ -130,6 +130,7 @@ impl AccountTrace {
             }
         }
     }
+
     /// push a chain name to the account's path
     pub fn push_chain(&mut self, chain_name: ChainName) {
         match &self {

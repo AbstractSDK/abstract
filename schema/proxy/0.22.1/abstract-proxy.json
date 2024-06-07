@@ -1021,6 +1021,7 @@
             "additionalProperties": false
           },
           {
+            "description": "Owner method: Registers the polytone note on the local chain as well as the host on the remote chain to send messages through This allows for monitoring which chain are connected to the contract remotely",
             "type": "object",
             "required": [
               "register_infrastructure"
@@ -1053,7 +1054,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Changes the config",
+            "description": "Owner method: Update the config on IBC client",
             "type": "object",
             "required": [
               "update_config"
@@ -1101,6 +1102,7 @@
                     }
                   },
                   "host_chain": {
+                    "description": "host chain to be executed on Example: \"osmosis\"",
                     "type": "string"
                   }
                 },
@@ -1110,7 +1112,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Register an Account on a remote chain over IBC This action creates a proxy for them on the remote chain.",
+            "description": "Only callable by Account proxy Register an Account on a remote chain over IBC This action creates a proxy for them on the remote chain.",
             "type": "object",
             "required": [
               "register"
@@ -1134,6 +1136,7 @@
                     ]
                   },
                   "host_chain": {
+                    "description": "host chain to be executed on Example: \"osmosis\"",
                     "type": "string"
                   },
                   "install_modules": {
@@ -1155,6 +1158,7 @@
             "additionalProperties": false
           },
           {
+            "description": "Only callable by Account Module",
             "type": "object",
             "required": [
               "module_ibc_action"
@@ -1169,6 +1173,7 @@
                 ],
                 "properties": {
                   "callback_info": {
+                    "description": "Callback info to identify the callback that is sent (acts similar to the reply ID)",
                     "anyOf": [
                       {
                         "$ref": "#/definitions/CallbackInfo"
@@ -1179,13 +1184,24 @@
                     ]
                   },
                   "host_chain": {
+                    "description": "host chain to be executed on Example: \"osmosis\"",
                     "type": "string"
                   },
                   "msg": {
-                    "$ref": "#/definitions/Binary"
+                    "description": "Json-encoded IbcMsg to the target module",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/Binary"
+                      }
+                    ]
                   },
                   "target_module": {
-                    "$ref": "#/definitions/ModuleInfo"
+                    "description": "Module of this account on host chain",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/ModuleInfo"
+                      }
+                    ]
                   }
                 },
                 "additionalProperties": false
@@ -1194,6 +1210,7 @@
             "additionalProperties": false
           },
           {
+            "description": "Only callable by Account Module",
             "type": "object",
             "required": [
               "ibc_query"
@@ -1208,13 +1225,24 @@
                 ],
                 "properties": {
                   "callback_info": {
-                    "$ref": "#/definitions/CallbackInfo"
+                    "description": "Callback info to identify the callback that is sent (acts similar to the reply ID)",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/CallbackInfo"
+                      }
+                    ]
                   },
                   "host_chain": {
+                    "description": "host chain to be executed on Example: \"osmosis\"",
                     "type": "string"
                   },
                   "query": {
-                    "$ref": "#/definitions/QueryRequest_for_Empty"
+                    "description": "Cosmos Query request",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/QueryRequest_for_Empty"
+                      }
+                    ]
                   }
                 },
                 "additionalProperties": false
@@ -1223,6 +1251,7 @@
             "additionalProperties": false
           },
           {
+            "description": "Only callable by Account Proxy Action on remote ibc host Which currently only support manager messages",
             "type": "object",
             "required": [
               "remote_action"
@@ -1236,9 +1265,15 @@
                 ],
                 "properties": {
                   "action": {
-                    "$ref": "#/definitions/HostAction"
+                    "description": "execute the custom host function",
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/HostAction"
+                      }
+                    ]
                   },
                   "host_chain": {
+                    "description": "host chain to be executed on Example: \"osmosis\"",
                     "type": "string"
                   }
                 },
@@ -1248,6 +1283,7 @@
             "additionalProperties": false
           },
           {
+            "description": "Owner method: Remove connection for remote chain",
             "type": "object",
             "required": [
               "remove_host"
@@ -1269,7 +1305,7 @@
             "additionalProperties": false
           },
           {
-            "description": "Callback from the Polytone implementation This is NOT ONLY triggered when a contract execution is successful",
+            "description": "Callback from the Polytone implementation This is triggered regardless of the execution result",
             "type": "object",
             "required": [
               "callback"
@@ -1547,6 +1583,28 @@
                 "type": "object",
                 "properties": {
                   "is_suspended": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Update settings for the Account, including IBC enabled, etc.",
+            "type": "object",
+            "required": [
+              "update_settings"
+            ],
+            "properties": {
+              "update_settings": {
+                "type": "object",
+                "properties": {
+                  "ibc_enabled": {
                     "type": [
                       "boolean",
                       "null"
