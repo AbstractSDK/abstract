@@ -1342,3 +1342,24 @@ fn install_same_app_on_different_accounts() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn instantiate2_random_seq() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let next_seq = client.random_account_id()?;
+    let account_id = AccountId::local(next_seq);
+
+    let proxy_addr = client.module_instantiate2_address_raw(
+        &account_id,
+        ModuleInfo::from_id_latest(abstract_std::PROXY)?,
+    )?;
+    let account = client
+        .account_builder()
+        .expected_account_id(next_seq)
+        .build()?;
+
+    assert_eq!(account.proxy()?, proxy_addr);
+    Ok(())
+}
