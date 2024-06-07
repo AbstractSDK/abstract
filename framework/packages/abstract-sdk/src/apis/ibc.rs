@@ -3,6 +3,7 @@
 //!
 
 use abstract_std::{
+    base,
     ibc::CallbackInfo,
     ibc_client::{self, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
@@ -206,6 +207,30 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                 target_module,
                 msg: to_json_binary(exec_msg)?,
                 callback_info,
+                is_query: Some(false),
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
+    /// Send module query from this module to the target module
+    pub fn module_ibc_query<M: Serialize>(
+        &self,
+        host_chain: String,
+        target_module: ModuleInfo,
+        query_msg: &base::QueryMsg<M>,
+        callback_info: Option<CallbackInfo>,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::ModuleIbcAction {
+                host_chain,
+                target_module,
+                msg: to_json_binary(query_msg)?,
+                callback_info,
+                is_query: Some(true),
             },
             vec![],
         )?;

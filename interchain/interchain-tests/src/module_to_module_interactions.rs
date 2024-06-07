@@ -85,7 +85,7 @@ pub struct MockReceiveMsg;
 #[cosmwasm_schema::cw_serde]
 pub struct MockSudoMsg;
 
-use abstract_sdk::{AbstractSdkError, ModuleInterface};
+use abstract_sdk::{AbstractSdkError, IbcInterface, ModuleInterface};
 use thiserror::Error;
 
 use abstract_app::{AppContract, AppError};
@@ -196,21 +196,17 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                 remote_chain,
                 target_module,
             } => {
-                let ibc_client_addr = app.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
-                // We send an IBC Client module message
-                let msg = wasm_execute(
-                    ibc_client_addr,
-                    &ibc_client::ExecuteMsg::ModuleIbcAction {
-                        host_chain: remote_chain,
-                        target_module,
-                        msg: to_json_binary(&QueryMsg::from(MockQueryMsg::Foo {})).unwrap(),
-                        callback_info: Some(CallbackInfo {
-                            id: "mod_query_id".to_string(),
-                            msg: None,
-                        }),
-                        is_query: Some(true),
-                    },
-                    vec![],
+                let ibc_client = app.ibc_client(deps.as_ref());
+                let ibc_client_addr = ibc_client.module_address()?;
+
+                let msg = ibc_client.module_ibc_query(
+                    remote_chain,
+                    target_module,
+                    &QueryMsg::from(MockQueryMsg::Foo {}),
+                    Some(CallbackInfo {
+                        id: "mod_query_id".to_string(),
+                        msg: None,
+                    }),
                 )?;
 
                 Ok(Response::new().add_message(msg))
