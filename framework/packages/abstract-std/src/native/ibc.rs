@@ -62,8 +62,7 @@ impl IbcResponseMsg {
 pub enum CallbackResult {
     Query {
         query: QueryRequest<Empty>,
-        // TODO: we allow only 1 query per tx, but return array here
-        result: Result<Vec<Binary>, ErrorResponse>,
+        result: Result<Binary, ErrorResponse>,
     },
 
     Execute {
@@ -86,7 +85,10 @@ pub enum CallbackResult {
 impl CallbackResult {
     pub fn from_query(callback: Callback, query: QueryRequest<Empty>) -> Result<Self, StdError> {
         match callback {
-            Callback::Query(q) => Ok(Self::Query { query, result: q }),
+            Callback::Query(q) => Ok(Self::Query {
+                query,
+                result: q.map(|r| r[0].clone()),
+            }),
             Callback::Execute(_) => Err(StdError::generic_err(
                 "Expected a query result, got an execute result",
             )),

@@ -201,7 +201,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
         .with_ibc_callback(|deps, _, _, _, _, result| match result {
             CallbackResult::Query { query: _, result } => {
-                let result = result.unwrap()[0].clone();
+                let result = result.unwrap().clone();
                 let deser: AllBalanceResponse = from_json(result)?;
                 IBC_CALLBACK_QUERY_RECEIVED
                     .save(deps.storage, &deser.amount)
