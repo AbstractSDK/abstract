@@ -1072,28 +1072,6 @@
             "additionalProperties": false
           },
           {
-            "description": "Update settings for the Account, including IBC enabled, etc.",
-            "type": "object",
-            "required": [
-              "update_settings"
-            ],
-            "properties": {
-              "update_settings": {
-                "type": "object",
-                "properties": {
-                  "ibc_enabled": {
-                    "type": [
-                      "boolean",
-                      "null"
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
             "description": "Actions called by internal or external sub-accounts",
             "type": "object",
             "required": [
