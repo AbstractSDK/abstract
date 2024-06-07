@@ -197,7 +197,6 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                 target_module,
             } => {
                 let ibc_client = app.ibc_client(deps.as_ref());
-                let ibc_client_addr = ibc_client.module_address()?;
 
                 let msg = ibc_client.module_ibc_query(
                     remote_chain,

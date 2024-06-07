@@ -215,11 +215,12 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     }
 
     /// Send module query from this module to the target module
-    pub fn module_ibc_query<M: Serialize>(
+    /// Use [`abstract_std::ibc::IbcResponseMsg::module_query_response`] to parse response
+    pub fn module_ibc_query<B: Serialize, M: Serialize>(
         &self,
         host_chain: String,
         target_module: ModuleInfo,
-        query_msg: &base::QueryMsg<M>,
+        query_msg: &base::QueryMsg<B, M>,
         callback_info: Option<CallbackInfo>,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;

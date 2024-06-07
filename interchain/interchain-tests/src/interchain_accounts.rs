@@ -91,7 +91,7 @@ mod test {
             state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg, InfoResponse,
         },
         objects::{gov_type::GovernanceDetails, UncheckedChannelEntry},
-        IBC_CLIENT, ICS20, PROXY,
+        ICS20, PROXY,
     };
 
     use anyhow::Result as AnyResult;
