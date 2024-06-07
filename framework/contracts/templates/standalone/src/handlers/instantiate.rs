@@ -20,9 +20,11 @@ pub fn instantiate(
     COUNT.save(deps.storage, &msg.count)?;
 
     // Init standalone as module
+    let is_migratable = true;
     MY_STANDALONE.instantiate(
         deps.branch(),
         msg.base.expect("Module factory should fill this"),
+        is_migratable,
     )?;
 
     Ok(MY_STANDALONE.response("init"))

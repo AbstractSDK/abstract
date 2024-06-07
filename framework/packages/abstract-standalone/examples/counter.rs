@@ -73,7 +73,7 @@ mod handlers {
         _info: MessageInfo,
         msg: CounterInitMsg,
     ) -> Result<Response, CounterError> {
-        COUNTER_APP.instantiate(deps, msg.base)?;
+        COUNTER_APP.instantiate(deps, msg.base, true)?;
         Ok(COUNTER_APP.response("instantiate"))
     }
 }

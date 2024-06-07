@@ -13,7 +13,12 @@ use crate::state::StandaloneContract;
 
 impl StandaloneContract {
     /// Call this method on instantiating of the standalone
-    pub fn instantiate(&self, deps: DepsMut, msg: BaseInstantiateMsg) -> AbstractSdkResult<()> {
+    pub fn instantiate(
+        &self,
+        deps: DepsMut,
+        msg: BaseInstantiateMsg,
+        is_migratable: bool,
+    ) -> AbstractSdkResult<()> {
         let BaseInstantiateMsg {
             ans_host_address,
             version_control_address,
@@ -32,6 +37,7 @@ impl StandaloneContract {
             proxy_address: account_base.proxy,
             ans_host,
             version_control,
+            is_migratable,
         };
         let (name, version, metadata) = self.info;
         set_module_data(deps.storage, name, version, self.dependencies, metadata)?;
@@ -68,7 +74,7 @@ mod test {
         };
 
         BASIC_MOCK_STANDALONE
-            .instantiate(deps.as_mut(), msg_base)
+            .instantiate(deps.as_mut(), msg_base, true)
             .unwrap();
     }
 }

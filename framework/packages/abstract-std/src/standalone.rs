@@ -30,4 +30,6 @@ pub struct StandaloneState {
     pub ans_host: AnsHost,
     /// Used to verify requests
     pub version_control: VersionControlContract,
+    /// Used to determine if this standalone is migratable
+    pub is_migratable: bool,
 }
