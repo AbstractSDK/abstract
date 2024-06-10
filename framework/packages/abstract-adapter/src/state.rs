@@ -1,3 +1,4 @@
+use abstract_sdk::features::ModuleIdentification;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -7,7 +8,11 @@ use abstract_sdk::{
     std::version_control::AccountBase,
     AbstractSdkError,
 };
-use abstract_std::{adapter::AdapterState, objects::dependency::StaticDependency, AbstractError};
+use abstract_std::{
+    adapter::AdapterState,
+    objects::{dependency::StaticDependency, module::ModuleInfo},
+    AbstractError, AbstractResult,
+};
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 
@@ -71,6 +76,10 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
     pub fn version(&self) -> &'static str {
         self.contract.info().1
+    }
+
+    pub fn module_info(&self) -> AbstractResult<ModuleInfo> {
+        ModuleInfo::from_id(self.module_id(), self.version().into())
     }
 
     pub fn state(&self, store: &dyn Storage) -> StdResult<AdapterState> {
