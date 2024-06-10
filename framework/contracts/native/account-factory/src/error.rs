@@ -55,6 +55,6 @@ pub enum AccountFactoryError {
     #[error("The caller ({caller}) is not the owner account's manager ({manager}). Only manager can create sub-accounts for its account.", )]
     SubAccountCreatorNotManager { caller: String, manager: String },
 
-    #[error("Predictable local account id can't be lower than 2147483648")]
+    #[error("Predictable local account id sequence can't be lower than 2147483648")]
     PredictableAccountIdFailed {},
 }

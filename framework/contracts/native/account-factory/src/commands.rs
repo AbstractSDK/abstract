@@ -71,7 +71,7 @@ pub fn execute_create_account(
     // Else get the next account id and set the origin to local.
     let account_id = match account_id {
         Some(account_id) if account_id.is_local() => {
-            // Predictable account Id have to be >= 2147483648
+            // Predictable Account Id Sequence have to be >= 2147483648
             if account_id.seq() < 2147483648 {
                 return Err(AccountFactoryError::PredictableAccountIdFailed {});
             } else {
