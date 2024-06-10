@@ -8,7 +8,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     app::AppState,
-    ibc::CallbackInfo,
+    ibc::{CallbackInfo, ModuleQuery},
     ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback, InstalledModuleIdentification,
@@ -23,8 +23,8 @@ use abstract_std::{
     ICS20,
 };
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg,
-    MessageInfo, QueryRequest, Storage,
+    to_json_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo,
+    QueryRequest, Storage,
 };
 use cw_storage_plus::Item;
 use polytone::callbacks::CallbackRequest;
@@ -223,9 +223,8 @@ pub fn execute_send_module_to_module_packet(
     info: MessageInfo,
     host_chain: String,
     target_module: ModuleInfo,
-    msg: Binary,
+    msg: ibc_host::ModuleActionMsg,
     callback_info: Option<CallbackInfo>,
-    is_query: bool,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
     let cfg = CONFIG.load(deps.storage)?;
@@ -265,14 +264,32 @@ pub fn execute_send_module_to_module_packet(
     // We send a message to the target module on the remote chain
     // Send this message via the Polytone implementation
 
-    let callback_request = callback_info.map(|c| CallbackRequest {
-        receiver: env.contract.address.to_string(),
-        msg: to_json_binary(&IbcClientCallback::ModuleRemoteAction {
-            sender_address: info.sender.to_string(),
-            callback_info: c,
-            initiator_msg: msg.clone(),
-        })
-        .unwrap(),
+    let callback_request = callback_info.map(|c| {
+        let msg = match msg.clone() {
+            ibc_host::ModuleActionMsg::Execute(msg) => {
+                to_json_binary(&IbcClientCallback::ModuleRemoteAction {
+                    sender_address: info.sender.to_string(),
+                    callback_info: c,
+                    initiator_msg: msg,
+                })
+                .unwrap()
+            }
+            ibc_host::ModuleActionMsg::Query(msg) => {
+                to_json_binary(&IbcClientCallback::ModuleRemoteQuery {
+                    sender_address: info.sender.to_string(),
+                    callback_info: c,
+                    query: QueryRequest::Custom(ModuleQuery {
+                        target_module: target_module.clone(),
+                        msg,
+                    }),
+                })
+                .unwrap()
+            }
+        };
+        CallbackRequest {
+            receiver: env.contract.address.to_string(),
+            msg,
+        }
     });
     let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
     let note_contract = ibc_infra.polytone_note;
@@ -285,11 +302,10 @@ pub fn execute_send_module_to_module_packet(
             msgs: vec![wasm_execute(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
-                &ibc_host::ExecuteMsg::ModuleExecute {
+                &ibc_host::ExecuteMsg::ModuleAction {
                     msg,
                     source_module,
                     target_module,
-                    is_query,
                 },
                 vec![],
             )?
@@ -309,20 +325,51 @@ pub fn execute_send_query(
     env: Env,
     info: MessageInfo,
     host_chain: String,
-    query: QueryRequest<Empty>,
+    query: QueryRequest<ModuleQuery>,
     callback_info: CallbackInfo,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
-
+    let ibc_client_callback = IbcClientCallback::ModuleRemoteQuery {
+        callback_info,
+        sender_address: info.sender.to_string(),
+        query,
+    };
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_json_binary(&IbcClientCallback::ModuleRemoteQuery {
-            callback_info,
-            sender_address: info.sender.to_string(),
-            query: query.clone(),
-        })
-        .unwrap(),
+        msg: to_json_binary(&ibc_client_callback).unwrap(),
     };
+    // Deconstruct back Callback to avoid unnecessary clones as callback_info and query could be huge
+    let IbcClientCallback::ModuleRemoteQuery {
+        callback_info,
+        query,
+        ..
+    } = ibc_client_callback
+    else {
+        unreachable!()
+    };
+
+    // Convert it to polytone(empty) query or send module to module query action if custom
+    let query: QueryRequest<Empty> = match query {
+        QueryRequest::Custom(ModuleQuery { target_module, msg }) => {
+            return execute_send_module_to_module_packet(
+                deps,
+                env,
+                info,
+                host_chain,
+                target_module,
+                ibc_host::ModuleActionMsg::Query(msg),
+                Some(callback_info),
+            )
+        }
+        QueryRequest::Bank(query) => QueryRequest::Bank(query),
+        QueryRequest::Staking(query) => QueryRequest::Staking(query),
+        QueryRequest::Distribution(query) => QueryRequest::Distribution(query),
+        QueryRequest::Stargate { path, data } => QueryRequest::Stargate { path, data },
+        QueryRequest::Ibc(query) => QueryRequest::Ibc(query),
+        QueryRequest::Wasm(query) => QueryRequest::Wasm(query),
+        _ => unimplemented!("Not implemented type of query"),
+    };
+
+    let host_chain = ChainName::from_str(&host_chain)?;
 
     let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
     let note_contract = ibc_infra.polytone_note;

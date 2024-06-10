@@ -162,7 +162,6 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                             id: "c_id".to_string(),
                             msg: None,
                         }),
-                        is_query: None,
                     },
                     vec![],
                 )?;
@@ -202,10 +201,10 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     remote_chain,
                     target_module,
                     &QueryMsg::from(MockQueryMsg::Foo {}),
-                    Some(CallbackInfo {
+                    CallbackInfo {
                         id: "mod_query_id".to_string(),
                         msg: None,
-                    }),
+                    },
                 )?;
 
                 Ok(Response::new().add_message(msg))
@@ -736,7 +735,6 @@ pub mod test {
                     })
                     .unwrap(),
                     target_module_info,
-                    None,
                     None,
                 )
                 .unwrap_err();

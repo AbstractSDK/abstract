@@ -44,21 +44,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
             Ok(HostResponse::action("update_ownership"))
         }
-        ExecuteMsg::ModuleExecute {
+        ExecuteMsg::ModuleAction {
             msg,
             source_module,
             target_module,
-            is_query,
         } => {
             let client_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
-            handle_host_module_action(
-                deps,
-                client_chain,
-                source_module,
-                target_module,
-                msg,
-                is_query,
-            )
+            handle_host_module_action(deps, client_chain, source_module, target_module, msg)
         }
     }
 }

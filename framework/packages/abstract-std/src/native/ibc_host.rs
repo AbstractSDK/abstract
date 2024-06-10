@@ -131,13 +131,21 @@ pub enum ExecuteMsg {
         action: HostAction,
     },
     // ANCHOR_END: ibc-host-execute
-    /// Allows for remote execution from the Polytone implementation on a local module
-    ModuleExecute {
+    /// Allows for remote execution or request from the Polytone implementation on a local module
+    ModuleAction {
         source_module: InstalledModuleIdentification,
         target_module: ModuleInfo,
-        msg: Binary,
-        is_query: bool,
+        msg: ModuleActionMsg,
     },
+}
+
+/// Module to module action message
+#[cosmwasm_schema::cw_serde]
+pub enum ModuleActionMsg {
+    /// Execution message parsable into [`crate::base::ExecuteMsg::ModuleIbc`] of the target module
+    Execute(Binary),
+    /// Smart wasm query message to the target module
+    Query(Binary),
 }
 
 /// Query Host message

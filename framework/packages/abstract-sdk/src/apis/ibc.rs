@@ -4,7 +4,7 @@
 
 use abstract_std::{
     base,
-    ibc::CallbackInfo,
+    ibc::{CallbackInfo, ModuleQuery},
     ibc_client::{self, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
@@ -12,9 +12,7 @@ use abstract_std::{
     proxy::ExecuteMsg,
     IBC_CLIENT,
 };
-use cosmwasm_std::{
-    to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, Empty, QueryRequest,
-};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, QueryRequest};
 use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
@@ -207,7 +205,6 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                 target_module,
                 msg: to_json_binary(exec_msg)?,
                 callback_info,
-                is_query: Some(false),
             },
             vec![],
         )?;
@@ -221,17 +218,18 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         host_chain: String,
         target_module: ModuleInfo,
         query_msg: &base::QueryMsg<B, M>,
-        callback_info: Option<CallbackInfo>,
+        callback_info: CallbackInfo,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;
         let msg = wasm_execute(
             ibc_client_addr,
-            &ibc_client::ExecuteMsg::ModuleIbcAction {
+            &ibc_client::ExecuteMsg::IbcQuery {
                 host_chain,
-                target_module,
-                msg: to_json_binary(query_msg)?,
+                query: QueryRequest::Custom(ModuleQuery {
+                    target_module,
+                    msg: to_json_binary(query_msg)?,
+                }),
                 callback_info,
-                is_query: Some(true),
             },
             vec![],
         )?;
@@ -242,7 +240,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     pub fn ibc_query(
         &self,
         host_chain: String,
-        query_msg: impl Into<QueryRequest<Empty>>,
+        query_msg: impl Into<QueryRequest<ModuleQuery>>,
         callback_info: CallbackInfo,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;

@@ -91,7 +91,7 @@ impl IbcResponseMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum CallbackResult {
     Query {
-        query: QueryRequest<Empty>,
+        query: QueryRequest<ModuleQuery>,
         // TODO: we allow only 1 query per tx, but return array here
         result: Result<Vec<Binary>, ErrorResponse>,
     },
@@ -114,7 +114,10 @@ pub enum CallbackResult {
 }
 
 impl CallbackResult {
-    pub fn from_query(callback: Callback, query: QueryRequest<Empty>) -> Result<Self, StdError> {
+    pub fn from_query(
+        callback: Callback,
+        query: QueryRequest<ModuleQuery>,
+    ) -> Result<Self, StdError> {
         match callback {
             Callback::Query(q) => Ok(Self::Query { query, result: q }),
             Callback::Execute(_) => Err(StdError::generic_err(
@@ -149,3 +152,13 @@ pub struct ModuleIbcMsg {
     pub msg: Binary,
 }
 // ANCHOR_END: module_ibc_msg
+
+// ANCHOR: module_ibc_query
+#[cw_serde]
+pub struct ModuleQuery {
+    /// Information about the module that gets queried through ibc
+    pub target_module: ModuleInfo,
+    /// The WasmQuery::Smart request to the module
+    pub msg: Binary,
+}
+// ANCHOR_END: module_ibc_query

@@ -2,6 +2,7 @@ use abstract_macros::abstract_response;
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_std::{
     ibc_client::{state::*, *},
+    ibc_host,
     objects::{
         ans_host::AnsHost,
         module_version::{assert_cw_contract_upgrade, migrate_module_data, set_module_data},
@@ -95,16 +96,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             target_module,
             msg,
             callback_info,
-            is_query,
         } => commands::execute_send_module_to_module_packet(
             deps,
             env,
             info,
             host_chain,
             target_module,
-            msg,
+            ibc_host::ModuleActionMsg::Execute(msg),
             callback_info,
-            is_query.unwrap_or_default(),
         ),
         ExecuteMsg::IbcQuery {
             host_chain,
