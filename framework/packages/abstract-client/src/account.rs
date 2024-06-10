@@ -40,7 +40,7 @@ use abstract_std::{
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
-    PROXY,
+    IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
@@ -234,7 +234,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Assign expected local account_id on creation.
-    /// The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
+    /// It's designed to be used in pair with [`crate::AbstractClient::random_account_id`].
+    /// The tx will error if this account id already claimed or it's less than 2147483648. Useful for instantiate2 address prediction.
     pub fn expected_account_id(&mut self, local_account_id: u32) -> &mut Self {
         self.expected_local_account_id = Some(local_account_id);
         self
@@ -549,7 +550,7 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Set IBC status on an Account.
     pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<()> {
-        self.abstr_account.manager.update_settings(Some(enabled))?;
+        self.abstr_account.manager.set_ibc_status(enabled)?;
 
         Ok(())
     }
@@ -560,8 +561,16 @@ impl<Chain: CwEnv> Account<Chain> {
         host_chain: impl Into<String>,
         base_asset: Option<AssetEntry>,
         namespace: Option<String>,
-        install_modules: Vec<ModuleInstallConfig>,
+        mut install_modules: Vec<ModuleInstallConfig>,
     ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+        // We add the IBC Client by default in the modules installed on the remote account
+        if !install_modules.iter().any(|m| m.module.id() == IBC_CLIENT) {
+            install_modules.push(ModuleInstallConfig::new(
+                ModuleInfo::from_id_latest(IBC_CLIENT)?,
+                None,
+            ));
+        }
+
         self.abstr_account
             .manager
             .execute(

@@ -1,6 +1,6 @@
 [package]
 name = "abstract-std"
-version = { workspace = true }
+version = "0.22.2"
 authors = { workspace = true }
 edition = { workspace = true }
 description = "Abstract contract interfaces and storage layouts"

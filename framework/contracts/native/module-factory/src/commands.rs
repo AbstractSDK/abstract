@@ -1,4 +1,5 @@
 use abstract_sdk::{
+    std::IBC_CLIENT,
     std::{
         module_factory::FactoryModuleInstallConfig,
         objects::{
@@ -140,6 +141,13 @@ pub fn execute_create_modules(
                 let module_address = deps.api.addr_humanize(&addr)?;
                 modules_to_register.push(module_address);
                 module_instantiate_messages.push(init_msg);
+            }
+            ModuleReference::Native(native_address) => {
+                if new_module.info.id() == IBC_CLIENT {
+                    modules_to_register.push(native_address.clone());
+                    continue;
+                }
+                return Err(ModuleFactoryError::ModuleNotInstallable {});
             }
             _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
         };

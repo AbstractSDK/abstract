@@ -497,6 +497,7 @@ fn test_nft_as_governance() -> Result<(), Error> {
     Ok(())
 }
 
+#[test]
 fn deploy_nft_contracts(
     mut chain: MockBase<MockApiBech32>,
     sender: Addr,
@@ -544,4 +545,46 @@ fn deploy_nft_contracts(
         &Addr::unchecked(test_nft_collection.clone()),
     )?;
     Ok((cw721_id, test_nft_collection))
+}
+
+fn can_take_any_last_two_billion_accounts() -> AResult {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    deployment.account_factory.create_new_account(
+        AccountDetails {
+            name: "foo".to_string(),
+            description: None,
+            link: None,
+            namespace: Some("bar".to_owned()),
+            base_asset: None,
+            install_modules: vec![],
+            account_id: Some(2147483648),
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+
+    let already_exists = deployment.account_factory.create_new_account(
+        AccountDetails {
+            name: "foo".to_string(),
+            description: None,
+            link: None,
+            namespace: Some("bar".to_owned()),
+            base_asset: None,
+            install_modules: vec![],
+            // same id
+            account_id: Some(2147483648),
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    );
+
+    assert!(already_exists.is_err());
+    Ok(())
 }
