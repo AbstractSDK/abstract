@@ -131,7 +131,7 @@ pub enum ExecuteMsg {
         action: HostAction,
     },
     // ANCHOR_END: ibc-host-execute
-    /// Allows for remote execution or request from the Polytone implementation on a local module
+    /// Performs an execution or query on a local module
     ModuleAction {
         source_module: InstalledModuleIdentification,
         target_module: ModuleInfo,

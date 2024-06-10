@@ -214,7 +214,8 @@ pub enum ExecuteMsg {
         install_modules: Vec<ModuleInstallConfig>,
         /// If `None`, will create a new local account without asserting account-id.
         ///
-        /// When provided: Signals the expected local Account Id. The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
+        /// When provided sequence in 0..2147483648 range: The tx will error
+        /// When provided sequence in 2147483648..u32::MAX range: Signals use of unclaimed Account Id in this range. The tx will error if this account-id already claimed. Useful for instantiate2 address prediction.
         account_id: Option<u32>,
     },
     /// Update info
@@ -230,8 +231,6 @@ pub enum ExecuteMsg {
     ProposeOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
     UpdateStatus { is_suspended: Option<bool> },
-    /// Update settings for the Account, including IBC enabled, etc.
-    UpdateSettings { ibc_enabled: Option<bool> },
     /// Actions called by internal or external sub-accounts
     UpdateSubAccount(UpdateSubAccountAction),
     /// Callback endpoint

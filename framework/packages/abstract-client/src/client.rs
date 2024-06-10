@@ -29,7 +29,7 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, RegisteredModule,
+    Abstract, AbstractAccount, AnsHost, ManagerQueryFns, RegisteredModule, VCQueryFns,
     VersionControl,
 };
 use abstract_std::objects::{
@@ -41,6 +41,7 @@ use abstract_std::objects::{
 };
 use cosmwasm_std::{BlockInfo, Uint128};
 use cw_orch::prelude::*;
+use rand::Rng;
 
 use crate::{
     account::{Account, AccountBuilder},
@@ -283,10 +284,21 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(last_account.map(|(_, account)| account))
     }
 
-    /// Get next local account id sequence
-    pub fn next_local_account_id(&self) -> AbstractClientResult<u32> {
-        let sequence = self.abstr.account_factory.config()?.local_account_sequence;
-        Ok(sequence)
+    /// Get random local account id sequence(unclaimed) in 2147483648..u32::MAX range
+    pub fn random_account_id(&self) -> AbstractClientResult<u32> {
+        let mut rng = rand::thread_rng();
+        loop {
+            let random_sequence = rng.gen_range(2147483648..u32::MAX);
+            let potential_account_id = AccountId::local(random_sequence);
+            if self
+                .abstr
+                .version_control
+                .account_base(potential_account_id)
+                .is_err()
+            {
+                return Ok(random_sequence);
+            };
+        }
     }
 
     /// Get address of instantiate2 module
