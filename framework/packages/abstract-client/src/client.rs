@@ -29,8 +29,8 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, RegisteredModule,
-    VCQueryFns, VersionControl,
+    Abstract, AbstractAccount, AnsHost, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    VersionControl,
 };
 use abstract_std::objects::{
     module::{ModuleInfo, ModuleVersion},
@@ -282,12 +282,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             }
         }
         Ok(last_account.map(|(_, account)| account))
-    }
-
-    /// Get next local account id sequence
-    pub fn next_local_account_id(&self) -> AbstractClientResult<u32> {
-        let sequence = self.abstr.account_factory.config()?.local_account_sequence;
-        Ok(sequence)
     }
 
     /// Get random local account id sequence(unclaimed) in 2147483648..u32::MAX range

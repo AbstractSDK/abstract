@@ -234,7 +234,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Assign expected local account_id on creation.
-    /// The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
+    /// It's designed to be used in pair with [`crate::AbstractClient::random_account_id`].
+    /// The tx will error if this account id already claimed or it's less than 2147483648. Useful for instantiate2 address prediction.
     pub fn expected_account_id(&mut self, local_account_id: u32) -> &mut Self {
         self.expected_local_account_id = Some(local_account_id);
         self
