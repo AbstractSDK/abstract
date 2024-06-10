@@ -88,7 +88,7 @@ mod test {
             state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg, InfoResponse,
         },
         objects::{gov_type::GovernanceDetails, UncheckedChannelEntry},
-        ICS20, PROXY,
+        IBC_CLIENT, ICS20, PROXY,
     };
 
     use abstract_interface::connection::abstract_ibc_connection_with;
