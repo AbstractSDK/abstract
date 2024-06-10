@@ -1,8 +1,6 @@
 use abstract_std::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
-use abstract_interface::{
-    Abstract, AbstractAccount, AccountDetails, ManagerExecFns, ManagerQueryFns,
-};
+use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ManagerQueryFns};
 use anyhow::Result as AnyResult;
 use cw_orch::prelude::*;
 
@@ -50,7 +48,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
     )?;
 
     // We need to enable ibc on the account.
-    origin_account.manager.update_settings(Some(true))?;
+    origin_account.manager.set_ibc_status(true)?;
 
     // Now we send a message to the client saying that we want to create an account on the
     // destination chain
@@ -70,14 +68,14 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::{
         setup::{ibc_abstract_setup, mock_test::logger_test_init},
         JUNO, OSMOSIS, STARGAZE,
     };
 
-    use super::*;
+    use abstract_interface::{AccountFactoryExecFns, ManagerExecFns};
 
-    use abstract_interface::AccountFactoryExecFns;
     use abstract_scripts::abstract_ibc::abstract_ibc_connection_with;
     use abstract_std::{
         ans_host::ExecuteMsgFns as AnsExecuteMsgFns,
@@ -245,7 +243,7 @@ mod test {
             )?;
 
         // We need to enable ibc on the account.
-        origin_account.manager.update_settings(Some(true))?;
+        origin_account.manager.set_ibc_status(true)?;
 
         // Now we send a message to the client saying that we want to create an account on the
         // destination chain
@@ -355,6 +353,12 @@ mod test {
                 }
             }
         );
+        // We make sure the ibc client is installed on the remote account
+        let installed_remote_modules = remote_abstract_account.manager.module_infos(None, None)?;
+        assert!(installed_remote_modules
+            .module_infos
+            .iter()
+            .any(|m| m.id == IBC_CLIENT));
 
         // We try to execute a message from the proxy contract (account creation for instance)
 

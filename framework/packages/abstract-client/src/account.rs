@@ -27,7 +27,7 @@ use abstract_interface::{
     VCQueryFns,
 };
 use abstract_std::{
-    ibc_client::QueryMsgFns,
+    ibc_client::{self, QueryMsgFns},
     manager::{
         self, state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
@@ -42,7 +42,7 @@ use abstract_std::{
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
-    PROXY,
+    IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
@@ -651,9 +651,45 @@ impl<Chain: CwEnv> Account<Chain> {
 
     /// Set IBC status on an Account.
     pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<()> {
-        self.abstr_account.manager.update_settings(Some(enabled))?;
+        self.abstr_account.manager.set_ibc_status(enabled)?;
 
         Ok(())
+    }
+
+    /// Executes an ibc action on the proxy of the account
+    pub fn create_ibc_account(
+        &self,
+        host_chain: ChainName,
+        base_asset: Option<AssetEntry>,
+        namespace: Option<String>,
+        mut install_modules: Vec<ModuleInstallConfig>,
+    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+        // We add the IBC Client by default in the modules installed on the remote account
+        if !install_modules.iter().any(|m| m.module.id() == IBC_CLIENT) {
+            install_modules.push(ModuleInstallConfig::new(
+                ModuleInfo::from_id_latest(IBC_CLIENT)?,
+                None,
+            ));
+        }
+
+        self.abstr_account
+            .manager
+            .execute(
+                &abstract_std::manager::ExecuteMsg::ExecOnModule {
+                    module_id: PROXY.to_owned(),
+                    exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
+                        msg: ibc_client::ExecuteMsg::Register {
+                            host_chain,
+                            base_asset,
+                            namespace,
+                            install_modules,
+                        },
+                    })
+                    .map_err(AbstractInterfaceError::from)?,
+                },
+                None,
+            )
+            .map_err(Into::into)
     }
 
     /// Module infos of installed modules on account
