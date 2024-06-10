@@ -68,17 +68,15 @@ impl IbcResponseMsg {
     pub fn module_query_response(self) -> StdResult<Binary> {
         if let CallbackResult::Query {
             query: QueryRequest::Custom(_),
-            result,
+            result: Ok(mut result),
         } = self.result
         {
-            if let Ok(mut result) = result {
-                if result.len() == 1 {
-                    if let Ok(execute_response) =
-                        cw_utils::parse_execute_response_data(&result.pop().unwrap())
-                    {
-                        if let Some(query_response) = execute_response.data {
-                            return Ok(query_response);
-                        }
+            if result.len() == 1 {
+                if let Ok(execute_response) =
+                    cw_utils::parse_execute_response_data(&result.pop().unwrap())
+                {
+                    if let Some(query_response) = execute_response.data {
+                        return Ok(query_response);
                     }
                 }
             }
