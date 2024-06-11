@@ -60,10 +60,9 @@ fn exec_through_manager() -> AResult {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
-    // mint coins to proxy address
+    // Mint coins to proxy address
     chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
 
-    // burn coins from proxy
     let proxy_balance = chain
         .bank_querier()
         .balance(account.proxy.address()?, None)?;
@@ -72,6 +71,7 @@ fn exec_through_manager() -> AResult {
 
     let burn_amount = vec![Coin::new(10_000, TTOKEN)];
 
+    // Burn coins from proxy
     account.manager.exec_on_module(
         cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
@@ -82,6 +82,7 @@ fn exec_through_manager() -> AResult {
         &[],
     )?;
 
+    // Assert balance has decreased
     let proxy_balance = chain
         .bank_querier()
         .balance(account.proxy.address()?, None)?;
