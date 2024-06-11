@@ -51,10 +51,12 @@ fn instantiate() -> AResult {
     Ok(())
 }
 
+/// ANCHOR: mock_integration_test
 #[test]
 fn exec_through_manager() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
+    // This testing environments allows you to use simple deploy contraptions:
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
@@ -63,13 +65,12 @@ fn exec_through_manager() -> AResult {
 
     // burn coins from proxy
     let proxy_balance = chain
-        .app
-        .borrow()
-        .wrap()
-        .query_all_balances(account.proxy.address()?)?;
+        .bank_querier()
+        .balance(account.proxy.address()?, None)?;
+
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000, TTOKEN)]);
 
-    let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TTOKEN)];
+    let burn_amount = vec![Coin::new(10_000, TTOKEN)];
 
     account.manager.exec_on_module(
         cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
@@ -82,15 +83,14 @@ fn exec_through_manager() -> AResult {
     )?;
 
     let proxy_balance = chain
-        .app
-        .borrow()
-        .wrap()
-        .query_all_balances(account.proxy.address()?)?;
+        .bank_querier()
+        .balance(account.proxy.address()?, None)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TTOKEN)]);
     take_storage_snapshot!(chain, "exec_through_manager");
 
     Ok(())
 }
+/// ANCHOR_END: mock_integration_test
 
 #[test]
 fn default_without_response_data() -> AResult {
