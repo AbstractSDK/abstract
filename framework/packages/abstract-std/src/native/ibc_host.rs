@@ -131,11 +131,11 @@ pub enum ExecuteMsg {
         action: HostAction,
     },
     // ANCHOR_END: ibc-host-execute
-    /// Performs an execution or query on a local module
-    ModuleAction {
+    /// Performs an execution on a local module
+    ModuleExecute {
         source_module: InstalledModuleIdentification,
         target_module: ModuleInfo,
-        msg: ModuleActionMsg,
+        msg: Binary,
     },
 }
 
@@ -170,6 +170,14 @@ pub enum QueryMsg {
     /// Returns [`ClientProxyResponse`].
     #[returns(ClientProxyResponse)]
     ClientProxy { chain: String },
+    /// Performs an query on a local module
+    #[returns(Binary)]
+    ModuleQuery {
+        chain: String,
+        source_module: InstalledModuleIdentification,
+        target_module: ModuleInfo,
+        msg: Binary,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]

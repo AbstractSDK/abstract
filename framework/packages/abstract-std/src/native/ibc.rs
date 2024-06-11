@@ -1,7 +1,6 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Binary, CosmosMsg, Empty, QueryRequest, StdError, StdResult,
-    Uint64,
 };
 use polytone::callbacks::{Callback, ErrorResponse, ExecutionResponse};
 use schemars::JsonSchema;
@@ -63,28 +62,19 @@ impl IbcResponseMsg {
         .into())
     }
 
-    /// Get module to module query response
-    /// We set data field to query response if module-to-module message action was query instead
-    pub fn module_query_response(self) -> StdResult<Binary> {
+    /// Get module to module query responses
+    pub fn module_query_responses(self) -> StdResult<Vec<Binary>> {
         if let CallbackResult::Query {
             query: QueryRequest::Custom(_),
-            result: Ok(mut result),
+            result: Ok(result),
         } = self.result
         {
-            if result.len() == 1 {
-                if let Ok(execute_response) =
-                    cw_utils::parse_execute_response_data(&result.pop().unwrap())
-                {
-                    if let Some(query_response) = execute_response.data {
-                        return Ok(query_response);
-                    }
-                }
-            }
+            Ok(result)
+        } else {
+            Err(StdError::generic_err(
+                "Failed to parse module to module query response",
+            ))
         }
-        // Fall into this error if anything fails in the way
-        Err(StdError::generic_err(
-            "Failed to parse module to module query response",
-        ))
     }
 }
 
@@ -118,35 +108,12 @@ impl CallbackResult {
         callback: Callback,
         query: QueryRequest<ModuleQuery>,
     ) -> Result<Self, StdError> {
-        let is_custom = matches!(query, QueryRequest::Custom(_));
-        if is_custom {
-            // If it's custom we need to decode first execute response(execution made by ibc-host) and forward it to the contract
-            match callback {
-                Callback::Query(_) => Err(StdError::generic_err(
-                    "Expected an execution result, got a query result",
-                )),
-                Callback::Execute(e) => {
-                    // Slightly help decoding it
-                    let result = e
-                        .map_err(|error| ErrorResponse {
-                            message_index: Uint64::zero(),
-                            error,
-                        })
-                        .map(|exec_responses|
-                        // If it succeeded we know it's module to module query(or ABS-436: queries)
-                        exec_responses.result.into_iter().map(|sub_msg_response|sub_msg_response.data.unwrap()).collect());
-                    Ok(Self::Query { query, result })
-                }
-                Callback::FatalError(e) => Ok(Self::FatalError(e)),
-            }
-        } else {
-            match callback {
-                Callback::Query(q) => Ok(Self::Query { query, result: q }),
-                Callback::Execute(_) => Err(StdError::generic_err(
-                    "Expected a query result, got an execute result",
-                )),
-                Callback::FatalError(e) => Ok(Self::FatalError(e)),
-            }
+        match callback {
+            Callback::Query(q) => Ok(Self::Query { query, result: q }),
+            Callback::Execute(_) => Err(StdError::generic_err(
+                "Expected a query result, got an execute result",
+            )),
+            Callback::FatalError(e) => Ok(Self::FatalError(e)),
         }
     }
 

@@ -255,7 +255,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             }),
             ("mod_query_id", |deps, _, _, _, msg| {
                 IBC_CALLBACK_MODULE_QUERY_RECEIVED
-                    .save(deps.storage, &msg.module_query_response()?)?;
+                    .save(deps.storage, &msg.module_query_responses()?[0])?;
 
                 Ok(Response::new())
             }),

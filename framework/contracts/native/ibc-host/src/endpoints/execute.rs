@@ -7,7 +7,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
-use super::packet::{handle_host_action, handle_host_module_action};
+use super::packet::{handle_host_action, handle_host_module_execution};
 use crate::{
     contract::{HostResponse, HostResult},
     HostError,
@@ -44,13 +44,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             cw_ownable::update_ownership(deps, &env.block, &info.sender, action)?;
             Ok(HostResponse::action("update_ownership"))
         }
-        ExecuteMsg::ModuleAction {
+        ExecuteMsg::ModuleExecute {
             msg,
             source_module,
             target_module,
         } => {
             let client_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
-            handle_host_module_action(deps, client_chain, source_module, target_module, msg)
+            handle_host_module_execution(deps, client_chain, source_module, target_module, msg)
         }
     }
 }

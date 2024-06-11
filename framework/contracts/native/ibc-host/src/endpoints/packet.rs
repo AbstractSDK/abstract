@@ -4,15 +4,15 @@ use abstract_std::{
     ibc_client::InstalledModuleIdentification,
     ibc_host::{
         state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
-        HelperAction, HostAction, InternalAction, ModuleActionMsg,
+        HelperAction, HostAction, InternalAction,
     },
     objects::{
         chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
     },
 };
 use cosmwasm_std::{
-    to_json_vec, wasm_execute, ContractResult, DepsMut, Empty, Env, QueryRequest, Response,
-    StdError, SystemResult, WasmQuery,
+    to_json_vec, wasm_execute, Binary, ContractResult, Deps, DepsMut, Empty, Env, QueryRequest,
+    Response, StdError, SystemResult, WasmQuery,
 };
 
 use crate::{
@@ -121,12 +121,12 @@ pub fn handle_host_action(
 }
 
 /// Handle actions that are passed to the IBC host contract and originate from a registered module
-pub fn handle_host_module_action(
+pub fn handle_host_module_execution(
     deps: DepsMut,
     client_chain: ChainName,
     source_module: InstalledModuleIdentification,
     target_module: ModuleInfo,
-    msg: ModuleActionMsg,
+    msg: Binary,
 ) -> HostResult {
     // We resolve the target module
     let vc = CONFIG.load(deps.storage)?.version_control;
@@ -149,38 +149,60 @@ pub fn handle_host_module_action(
     }
 
     let response = Response::new().add_attribute("action", "module-ibc-call");
-    match msg {
-        ModuleActionMsg::Execute(msg) => {
-            // We pass the message on to the module
-            let msg = wasm_execute(
-                target_module_resolved.address,
-                &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
-                    client_chain,
-                    source_module: source_module.module_info,
-                    msg,
-                }),
-                vec![],
-            )?;
+    // We pass the message on to the module
+    let msg = wasm_execute(
+        target_module_resolved.address,
+        &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
+            client_chain,
+            source_module: source_module.module_info,
+            msg,
+        }),
+        vec![],
+    )?;
 
-            Ok(response.add_message(msg))
-        }
-        ModuleActionMsg::Query(msg) => {
-            // We query module and set data to the response that can be parsed later
-            let query = QueryRequest::<Empty>::from(WasmQuery::Smart {
-                contract_addr: target_module_resolved.address.into_string(),
-                msg,
-            });
-            let bin = match deps.querier.raw_query(&to_json_vec(&query)?) {
-                SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
-                    "Querier system error: {system_err}"
-                ))),
-                SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::generic_err(
-                    format!("Querier contract error: {contract_err}"),
-                )),
-                SystemResult::Ok(ContractResult::Ok(value)) => Ok(value),
-            }?;
+    Ok(response.add_message(msg))
+}
 
-            Ok(response.set_data(bin))
+/// Handle actions that are passed to the IBC host contract and originate from a registered module
+pub fn handle_host_module_query(
+    deps: Deps,
+    client_chain: ChainName,
+    source_module: InstalledModuleIdentification,
+    target_module: ModuleInfo,
+    msg: Binary,
+) -> HostResult<Binary> {
+    // We resolve the target module
+    let vc = CONFIG.load(deps.storage)?.version_control;
+    let target_module = InstalledModuleIdentification {
+        module_info: target_module,
+        account_id: source_module
+            .account_id
+            .map(|a| client_to_host_account_id(client_chain.clone(), a)),
+    };
+
+    let target_module_resolved = target_module.addr(deps, vc)?;
+
+    match target_module_resolved.reference {
+        ModuleReference::AccountBase(_) | ModuleReference::Native(_) => {
+            return Err(HostError::WrongModuleAction(
+                "Can't send module-to-module query to an account or a native module".to_string(),
+            ))
         }
+        _ => {}
     }
+
+    let query = QueryRequest::<Empty>::from(WasmQuery::Smart {
+        contract_addr: target_module_resolved.address.into_string(),
+        msg,
+    });
+    let bin = match deps.querier.raw_query(&to_json_vec(&query)?) {
+        SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
+            "Querier system error: {system_err}"
+        ))),
+        SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::generic_err(format!(
+            "Querier contract error: {contract_err}"
+        ))),
+        SystemResult::Ok(ContractResult::Ok(value)) => Ok(value),
+    }?;
+    Ok(bin)
 }

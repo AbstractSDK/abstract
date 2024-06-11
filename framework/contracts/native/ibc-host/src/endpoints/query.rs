@@ -13,6 +13,8 @@ use cw_storage_plus::Bound;
 
 use crate::{contract::HostResult, HostError};
 
+use super::packet;
+
 pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> HostResult<Binary> {
     match query {
         QueryMsg::Config {} => to_json_binary(&config(deps)?),
@@ -21,6 +23,20 @@ pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> HostResult<Binary> {
         }
         QueryMsg::ClientProxy { chain } => to_json_binary(&associated_client(deps, chain)?),
         QueryMsg::Ownership {} => to_json_binary(&cw_ownable::get_ownership(deps.storage)?),
+        QueryMsg::ModuleQuery {
+            chain,
+            source_module,
+            target_module,
+            msg,
+        } => {
+            return packet::handle_host_module_query(
+                deps,
+                ChainName::from_str(&chain)?,
+                source_module,
+                target_module,
+                msg,
+            );
+        }
     }
     .map_err(Into::into)
 }
