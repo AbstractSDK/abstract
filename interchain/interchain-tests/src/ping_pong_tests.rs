@@ -6,13 +6,12 @@ use abstract_app::objects::AccountId;
 use abstract_client::{AbstractClient, Environment};
 use abstract_client::{Application, RemoteAccount};
 
-use abstract_interface::{RegisteredModule, VCQueryFns};
-use abstract_std::manager;
+use abstract_interface::VCQueryFns;
 use abstract_std::objects::account::AccountTrace;
 use abstract_std::objects::chain_name::ChainName;
-use abstract_std::objects::module::ModuleInfo;
 use cosmwasm_std::Attribute;
 use cw_orch::{anyhow, prelude::*};
+use cw_orch_interchain::prelude::*;
 use cw_orch_polytone::Polytone;
 
 use crate::setup::ibc_connect_polytone_and_abstract;
@@ -54,59 +53,25 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
         // Publish and install on both chains
         let publisher_juno = abs_juno.publisher_builder(namespace.clone()).build()?;
         publisher_juno.publish_app::<AppInterface<_>>()?;
-        // let app = publisher_juno
-        //     .account()
-        //     .install_app_with_dependencies::<AppInterface<_>>(
-        //         &AppInstantiateMsg {},
-        //         Empty {},
-        //         &[],
-        //     )?;
-        // TODO: remove after #362
-        let app_account = abs_juno
-            .account_builder()
-            .sub_account(&publisher_juno.account())
-            .build()?;
-        app_account.set_ibc_status(true)?;
-        let app = app_account.install_app_with_dependencies::<AppInterface<_>>(
-            &AppInstantiateMsg {},
-            Empty {},
-            &[],
-        )?;
+        let app = publisher_juno
+            .account()
+            .install_app_with_dependencies::<AppInterface<_>>(
+                &AppInstantiateMsg {},
+                Empty {},
+                &[],
+            )?;
 
         let publisher_stargaze = abs_stargaze.publisher_builder(namespace).build()?;
         publisher_stargaze.publish_app::<AppInterface<_>>()?;
 
         publisher_juno.account().set_ibc_status(true)?;
-        // let (remote_account, account_response) = abs_stargaze
-        //     .account_builder()
-        //     .remote_account(&app.account())
-        //     .install_app::<AppInterface<Daemon>>(&AppInstantiateMsg {})?
-        //     .build_remote()?;
         let (remote_account, account_response) = abs_stargaze
             .account_builder()
             .remote_account(&app.account())
+            .install_app_with_dependencies::<AppInterface<Daemon>>(&AppInstantiateMsg {}, Empty {})?
             .build_remote()?;
         mock_interchain
             .wait_ibc(JUNO, account_response)?
-            .into_result()?;
-        let install_ibc_client_response = remote_account.execute_on_manager(vec![
-            manager::ExecuteMsg::UpdateSettings {
-                ibc_enabled: Some(true),
-            },
-            manager::ExecuteMsg::InstallModules {
-                modules: vec![manager::ModuleInstallConfig::new(
-                    ModuleInfo::from_id(
-                        APP_ID,
-                        abstract_std::objects::module::ModuleVersion::Version(
-                            ping_pong::contract::APP_VERSION.to_owned(),
-                        ),
-                    )?,
-                    Some(cosmwasm_std::to_json_binary(&AppInstantiateMsg {})?),
-                )],
-            },
-        ])?;
-        mock_interchain
-            .wait_ibc(JUNO, install_ibc_client_response)?
             .into_result()?;
 
         Ok(PingPong {

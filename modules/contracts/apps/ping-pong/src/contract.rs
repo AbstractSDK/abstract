@@ -61,15 +61,12 @@ impl<Chain: cw_orch::environment::CwEnv> abstract_app::abstract_interface::Depen
         _configuration: Self::DependenciesConfig,
     ) -> Result<Vec<ModuleInstallConfig>, abstract_app::abstract_interface::AbstractInterfaceError>
     {
-        Ok(vec![
-        // TODO: #362
-        //     ModuleInstallConfig::new(
-        //     abstract_app::objects::module::ModuleInfo::from_id(
-        //         IBC_CLIENT,
-        //         abstract_ibc_client::contract::CONTRACT_VERSION.into(),
-        //     )?,
-        //     None,
-        // )
-        ])
+        Ok(vec![ModuleInstallConfig::new(
+            abstract_app::objects::module::ModuleInfo::from_id(
+                IBC_CLIENT,
+                abstract_ibc_client::contract::CONTRACT_VERSION.into(),
+            )?,
+            None,
+        )])
     }
 }
