@@ -173,9 +173,7 @@ pub enum QueryMsg {
     /// Performs an query on a local module
     #[returns(Binary)]
     ModuleQuery {
-        chain: String,
-        source_module: InstalledModuleIdentification,
-        target_module: ModuleInfo,
+        target_module: InstalledModuleIdentification,
         msg: Binary,
     },
 }

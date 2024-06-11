@@ -1,8 +1,8 @@
 pub use abstract_std::app;
 use abstract_std::{
     ibc::{CallbackInfo, CallbackResult, ModuleIbcMsg},
-    ibc_client::{self},
-    objects::module::ModuleInfo,
+    ibc_client::{self, InstalledModuleIdentification},
+    objects::{chain_name::ChainName, module::ModuleInfo},
     IBC_CLIENT,
 };
 use cosmwasm_schema::{cw_serde, QueryResponses};
@@ -142,7 +142,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
             Ok(Response::new().set_data("mock_init".as_bytes()))
         })
-        .with_execute(|deps, _env, _, app, msg| match msg {
+        .with_execute(|deps, env, _, app, msg| match msg {
             MockExecMsg::DoSomethingIbc {
                 remote_chain,
                 target_module,
@@ -195,11 +195,16 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                 remote_chain,
                 target_module,
             } => {
+                use abstract_sdk::features::AccountIdentification;
                 let ibc_client = app.ibc_client(deps.as_ref());
-
+                let mut account = app.account_id(deps.as_ref())?;
+                account.push_chain(ChainName::new(&env));
                 let msg = ibc_client.module_ibc_query(
                     remote_chain,
-                    target_module,
+                    InstalledModuleIdentification {
+                        module_info: target_module,
+                        account_id: Some(account),
+                    },
                     &QueryMsg::from(MockQueryMsg::Foo {}),
                     CallbackInfo {
                         id: "mod_query_id".to_string(),

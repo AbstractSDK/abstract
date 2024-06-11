@@ -166,30 +166,13 @@ pub fn handle_host_module_execution(
 /// Handle actions that are passed to the IBC host contract and originate from a registered module
 pub fn handle_host_module_query(
     deps: Deps,
-    client_chain: ChainName,
-    source_module: InstalledModuleIdentification,
-    target_module: ModuleInfo,
+    target_module: InstalledModuleIdentification,
     msg: Binary,
 ) -> HostResult<Binary> {
     // We resolve the target module
     let vc = CONFIG.load(deps.storage)?.version_control;
-    let target_module = InstalledModuleIdentification {
-        module_info: target_module,
-        account_id: source_module
-            .account_id
-            .map(|a| client_to_host_account_id(client_chain.clone(), a)),
-    };
 
     let target_module_resolved = target_module.addr(deps, vc)?;
-
-    match target_module_resolved.reference {
-        ModuleReference::AccountBase(_) | ModuleReference::Native(_) => {
-            return Err(HostError::WrongModuleAction(
-                "Can't send module-to-module query to an account or a native module".to_string(),
-            ))
-        }
-        _ => {}
-    }
 
     let query = QueryRequest::<Empty>::from(WasmQuery::Smart {
         contract_addr: target_module_resolved.address.into_string(),

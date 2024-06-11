@@ -7,6 +7,7 @@ use schemars::JsonSchema;
 
 use crate::{
     base::ExecuteMsg,
+    ibc_client,
     objects::{chain_name::ChainName, module::ModuleInfo},
 };
 
@@ -147,7 +148,7 @@ pub struct ModuleIbcMsg {
 #[cw_serde]
 pub struct ModuleQuery {
     /// Information about the module that gets queried through ibc
-    pub target_module: ModuleInfo,
+    pub target_module: ibc_client::InstalledModuleIdentification,
     /// The WasmQuery::Smart request to the module
     pub msg: Binary,
 }

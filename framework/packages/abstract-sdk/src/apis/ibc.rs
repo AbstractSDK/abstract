@@ -5,7 +5,7 @@
 use abstract_std::{
     base,
     ibc::{CallbackInfo, ModuleQuery},
-    ibc_client::{self, ExecuteMsg as IbcClientMsg},
+    ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
     objects::module::{ModuleInfo, ModuleVersion},
@@ -216,7 +216,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     pub fn module_ibc_query<B: Serialize, M: Serialize>(
         &self,
         host_chain: String,
-        target_module: ModuleInfo,
+        target_module: InstalledModuleIdentification,
         query_msg: &base::QueryMsg<B, M>,
         callback_info: CallbackInfo,
     ) -> AbstractSdkResult<CosmosMsg> {
