@@ -61,8 +61,8 @@ impl IbcResponseMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum CallbackResult {
     Query {
-        query: QueryRequest<Empty>,
-        result: Result<Binary, ErrorResponse>,
+        queries: Vec<QueryRequest<Empty>>,
+        results: Result<Vec<Binary>, ErrorResponse>,
     },
 
     Execute {
@@ -83,11 +83,14 @@ pub enum CallbackResult {
 }
 
 impl CallbackResult {
-    pub fn from_query(callback: Callback, query: QueryRequest<Empty>) -> Result<Self, StdError> {
+    pub fn from_query(
+        callback: Callback,
+        queries: Vec<QueryRequest<Empty>>,
+    ) -> Result<Self, StdError> {
         match callback {
             Callback::Query(q) => Ok(Self::Query {
-                query,
-                result: q.map(|r| r[0].clone()),
+                queries,
+                results: q,
             }),
             Callback::Execute(_) => Err(StdError::generic_err(
                 "Expected a query result, got an execute result",

@@ -307,7 +307,7 @@ pub fn execute_send_query(
     env: Env,
     info: MessageInfo,
     host_chain: String,
-    query: QueryRequest<Empty>,
+    queries: Vec<QueryRequest<Empty>>,
     callback_info: CallbackInfo,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
@@ -317,7 +317,7 @@ pub fn execute_send_query(
         msg: to_json_binary(&IbcClientCallback::ModuleRemoteQuery {
             callback_info,
             sender_address: info.sender.to_string(),
-            query: query.clone(),
+            queries: queries.clone(),
         })
         .unwrap(),
     };
@@ -327,7 +327,7 @@ pub fn execute_send_query(
     let note_message = wasm_execute(
         note_contract.to_string(),
         &polytone_note::msg::ExecuteMsg::Query {
-            msgs: vec![query],
+            msgs: queries,
             callback: callback_request,
             timeout_seconds: PACKET_LIFETIME.into(),
         },

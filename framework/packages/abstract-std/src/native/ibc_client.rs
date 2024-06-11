@@ -128,8 +128,8 @@ pub enum ExecuteMsg {
         /// host chain to be executed on
         /// Example: "osmosis"
         host_chain: String,
-        /// Cosmos Query request
-        query: QueryRequest<Empty>,
+        /// Cosmos Query requests
+        queries: Vec<QueryRequest<Empty>>,
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback_info: CallbackInfo,
     },
@@ -161,7 +161,7 @@ pub enum IbcClientCallback {
     ModuleRemoteQuery {
         sender_address: String,
         callback_info: CallbackInfo,
-        query: QueryRequest<Empty>,
+        queries: Vec<QueryRequest<Empty>>,
     },
     CreateAccount {
         account_id: AccountId,

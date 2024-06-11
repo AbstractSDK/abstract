@@ -103,11 +103,11 @@ pub fn receive_action_callback(
         IbcClientCallback::ModuleRemoteQuery {
             sender_address,
             callback_info,
-            query,
+            queries,
         } => {
             let callback = IbcResponseMsg {
                 payload: callback_info.payload,
-                result: CallbackResult::from_query(callback.result, query)?,
+                result: CallbackResult::from_query(callback.result, queries)?,
             };
             Ok(IbcClientResponse::action("module_query_ibc_callback")
                 .add_message(callback.into_cosmos_msg(sender_address)?)
