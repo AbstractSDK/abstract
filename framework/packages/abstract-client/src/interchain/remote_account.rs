@@ -34,27 +34,11 @@ use crate::{
 };
 
 /// A builder for creating [`RemoteAccounts`](RemoteAccount).
-/// Get the builder from the [`AbstractClient::account_builder`](crate::AbstractClient)
+/// Get the builder from the [`AbstractClient::Account`](crate::Account)
 /// and create the account with the `build` method.
-///
-/// ```
-/// # use cw_orch::prelude::*;
-/// # use abstract_client::{AbstractClientError, Environment};
-/// # let chain = MockBech32::new("mock");
-/// # let abstr_client = abstract_client::AbstractClient::builder(chain).build().unwrap();
-/// # let chain = abstr_client.environment();
-/// use abstract_client::{AbstractClient, Account};
-///
-/// let client = AbstractClient::new(chain)?;
-/// let account: Account<MockBech32> = client.account_builder()
-///     .name("alice")
-///     // other account configuration
-///     .build()?;
-/// # Ok::<(), AbstractClientError>(())
-/// ```
 pub struct RemoteAccountBuilder<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> {
     pub(crate) ibc_env: &'a IBC,
-    pub(crate) abstr: Abstract<Chain>,
+    pub(crate) remote_abstr: &'a AbstractClient<Chain>,
     namespace: Option<Namespace>,
     base_asset: Option<AssetEntry>,
     owner_account: &'a Account<Chain>,
@@ -68,7 +52,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
     pub fn remote_account_builder<IBC: InterchainEnv<Chain>>(
         &'a self,
         interchain_env: &'a IBC,
-        remote_abstract: AbstractClient<Chain>,
+        remote_abstract: &'a AbstractClient<Chain>,
     ) -> RemoteAccountBuilder<'a, Chain, IBC> {
         RemoteAccountBuilder::new(self, interchain_env, remote_abstract)
     }
@@ -119,13 +103,11 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
     pub(crate) fn new(
         owner_account: &'a Account<Chain>,
         ibc_env: &'a IBC,
-        remote_abstract: AbstractClient<Chain>,
+        remote_abstr: &'a AbstractClient<Chain>,
     ) -> Self {
-        let env = owner_account.environment();
-        let abstr = Abstract::load_from(env).expect("Unable to load abstract of account");
         Self {
             ibc_env,
-            abstr,
+            remote_abstr,
             namespace: None,
             base_asset: None,
             owner_account,
@@ -179,8 +161,8 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
     /// Builds the [`RemoteAccount`].
     /// Before using it you are supposed to wait Response.
     /// For example: https://orchestrator.abstract.money/interchain/integrations/daemon.html?#analysis-usage
-    pub fn build(&self) -> AbstractClientResult<(RemoteAccount<Chain, IBC>, Chain::Response)> {
-        let chain = self.abstr.version_control.get_chain();
+    pub fn build(&self) -> AbstractClientResult<RemoteAccount<Chain, IBC>> {
+        let chain = self.remote_abstr.environment();
 
         let owner_account = self.owner_account;
         let env = chain.env_info();
@@ -205,6 +187,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
         let response = owner_account
             .abstr_account
             .create_remote_account(account_details, host_chain)?;
+        self.ibc_env.check_ibc(&env.chain_id, response)?;
 
         let remote_account_id = {
             let mut id = owner_account.id()?;
@@ -220,14 +203,11 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
             id
         };
 
-        Ok((
-            RemoteAccount::new(
-                owner_account.abstr_account.clone(),
-                remote_account_id,
-                chain.clone(),
-                self.ibc_env,
-            ),
-            response,
+        Ok(RemoteAccount::new(
+            owner_account.abstr_account.clone(),
+            remote_account_id,
+            chain,
+            self.ibc_env,
         ))
     }
 }

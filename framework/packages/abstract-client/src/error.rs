@@ -48,4 +48,8 @@ pub enum AbstractClientError {
         chain: ChainName,
         ibc_client_addr: Addr,
     },
+
+    #[cfg(feature = "interchain")]
+    #[error("{0}")]
+    InterchainError(#[from] cw_orch_interchain::InterchainError),
 }
