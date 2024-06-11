@@ -26,7 +26,7 @@ The `Mock` struct provides a simulation of the CosmWasm environment, enabling te
 **Example**
 
 ```rust,ignore
-{{ #include ../../../contracts/account/manager/tests/proxy.rs:mock_integration_test}}
+{{ #include ../../../packages/abstract-client/tests/integration.rs:mock_integration_test}}
 ```
 
 **Details**

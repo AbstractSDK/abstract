@@ -51,7 +51,6 @@ fn instantiate() -> AResult {
     Ok(())
 }
 
-/// ANCHOR: mock_integration_test
 #[test]
 fn exec_through_manager() -> AResult {
     let chain = MockBech32::new("mock");
@@ -91,7 +90,6 @@ fn exec_through_manager() -> AResult {
 
     Ok(())
 }
-/// ANCHOR_END: mock_integration_test
 
 #[test]
 fn default_without_response_data() -> AResult {
