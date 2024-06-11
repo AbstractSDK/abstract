@@ -322,51 +322,10 @@ pub fn execute_send_query(
         msg: to_json_binary(&ibc_client_callback).unwrap(),
     };
 
-    // Convert it to polytone(empty) query or send module to module query action if custom
+    // Convert it to polytone(empty) query
     let query: QueryRequest<Empty> = match query {
         QueryRequest::Custom(ModuleQuery { target_module, msg }) => {
-            let cfg = CONFIG.load(deps.storage)?;
-            let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
-            let remote_ibc_host = ibc_infra.remote_abstract_host;
-            // Query the sender module information
-            let module_info = cfg
-                .version_control
-                .module_registry(deps.as_ref())?
-                .module_info(info.sender.clone())?;
-
-            // We need additional information depending on the module type
-            let source_module = match module_info.reference {
-                ModuleReference::AccountBase(_) => return Err(IbcClientError::Unauthorized {}),
-                ModuleReference::Native(_) => return Err(IbcClientError::Unauthorized {}),
-                ModuleReference::Adapter(_) => InstalledModuleIdentification {
-                    module_info: module_info.info,
-                    account_id: None,
-                },
-                ModuleReference::App(_) | ModuleReference::Standalone(_) => {
-                    // We verify the associated account id
-                    let proxy_addr = Item::<AppState>::new(BASE_STATE)
-                        .query(&deps.querier, info.sender.clone())?
-                        .proxy_address;
-                    let account_id = cfg.version_control.account_id(&proxy_addr, &deps.querier)?;
-
-                    InstalledModuleIdentification {
-                        module_info: module_info.info,
-                        account_id: Some(account_id),
-                    }
-                }
-                _ => unimplemented!(
-                    "This module type didn't exist when implementing module-to-module interactions"
-                ),
-            };
-            QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: remote_ibc_host,
-                msg: to_json_binary(&ibc_host::QueryMsg::ModuleQuery {
-                    chain: ChainName::new(&env).to_string(),
-                    source_module,
-                    target_module,
-                    msg,
-                })?,
-            })
+            convert_custom_query(deps.as_ref(), &host_chain, info, env, target_module, msg)?
         }
         QueryRequest::Bank(query) => QueryRequest::Bank(query),
         QueryRequest::Staking(query) => QueryRequest::Staking(query),
@@ -390,6 +349,55 @@ pub fn execute_send_query(
     )?;
 
     Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
+}
+
+fn convert_custom_query(
+    deps: Deps,
+    host_chain: &ChainName,
+    info: MessageInfo,
+    env: Env,
+    target_module: ModuleInfo,
+    msg: Binary,
+) -> Result<QueryRequest<Empty>, IbcClientError> {
+    let cfg = CONFIG.load(deps.storage)?;
+    let ibc_infra = IBC_INFRA.load(deps.storage, host_chain)?;
+    let remote_ibc_host = ibc_infra.remote_abstract_host;
+    let module_info = cfg
+        .version_control
+        .module_registry(deps)?
+        .module_info(info.sender.clone())?;
+    let source_module = match module_info.reference {
+        ModuleReference::AccountBase(_) => return Err(IbcClientError::Unauthorized {}),
+        ModuleReference::Native(_) => return Err(IbcClientError::Unauthorized {}),
+        ModuleReference::Adapter(_) => InstalledModuleIdentification {
+            module_info: module_info.info,
+            account_id: None,
+        },
+        ModuleReference::App(_) | ModuleReference::Standalone(_) => {
+            // We verify the associated account id
+            let proxy_addr = Item::<AppState>::new(BASE_STATE)
+                .query(&deps.querier, info.sender.clone())?
+                .proxy_address;
+            let account_id = cfg.version_control.account_id(&proxy_addr, &deps.querier)?;
+
+            InstalledModuleIdentification {
+                module_info: module_info.info,
+                account_id: Some(account_id),
+            }
+        }
+        _ => unimplemented!(
+            "This module type didn't exist when implementing module-to-module interactions"
+        ),
+    };
+    Ok(QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: remote_ibc_host,
+        msg: to_json_binary(&ibc_host::QueryMsg::ModuleQuery {
+            chain: ChainName::new(&env).to_string(),
+            source_module,
+            target_module,
+            msg,
+        })?,
+    }))
 }
 /// Registers an Abstract Account on a remote chain.
 pub fn execute_register_account(
