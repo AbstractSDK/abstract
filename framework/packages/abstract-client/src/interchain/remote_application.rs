@@ -8,6 +8,7 @@ use abstract_interface::{AbstractInterfaceError, RegisteredModule};
 use abstract_std::{adapter, ibc_client, ibc_host, manager};
 use cosmwasm_std::to_json_binary;
 use cw_orch::{contract::Contract, prelude::*};
+use cw_orch_interchain::{IbcQueryHandler, InterchainEnv};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{client::AbstractClientResult, remote_account::RemoteAccount};
@@ -15,18 +16,23 @@ use crate::{client::AbstractClientResult, remote_account::RemoteAccount};
 /// An application represents a module installed on a (sub)-[`Account`].
 ///
 /// It derefs to the module itself, so you can call its methods directly from the application struct.
-pub struct RemoteApplication<T: CwEnv, M> {
-    remote_account: RemoteAccount<T>,
+pub struct RemoteApplication<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M> {
+    remote_account: &'a RemoteAccount<'a, Chain, IBC>,
     module: M,
 }
 
 impl<
-        Chain: CwEnv,
+        'a,
+        Chain: IbcQueryHandler,
+        IBC: InterchainEnv<Chain>,
         M: RegisteredModule + ExecutableContract + QueryableContract + ContractInstance<Chain>,
-    > RemoteApplication<Chain, M>
+    > RemoteApplication<'a, Chain, IBC, M>
 {
     /// Get module interface installed on provided account
-    pub(crate) fn new(account: RemoteAccount<Chain>, module: M) -> AbstractClientResult<Self> {
+    pub(crate) fn new(
+        account: &'a RemoteAccount<'a, Chain, IBC>,
+        module: M,
+    ) -> AbstractClientResult<Self> {
         // Sanity check: the module must be installed on the account
         account.module_addresses(vec![M::module_id().to_string()])?;
         Ok(Self {
@@ -36,7 +42,7 @@ impl<
     }
 
     /// Sub-account on which application is installed
-    pub fn account(&self) -> &RemoteAccount<Chain> {
+    pub fn account(&self) -> &RemoteAccount<Chain, IBC> {
         &self.remote_account
     }
 
@@ -75,7 +81,9 @@ impl<
     }
 }
 
-impl<Chain: CwEnv, M: ContractInstance<Chain>> RemoteApplication<Chain, M> {
+impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<Chain>>
+    RemoteApplication<'a, Chain, IBC, M>
+{
     /// Authorize this application on installed adapters. Accepts Module Id's of adapters
     pub fn authorize_on_adapters(&self, adapter_ids: &[&str]) -> AbstractClientResult<()> {
         let mut manager_msgs = vec![];

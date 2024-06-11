@@ -42,12 +42,6 @@ pub enum AbstractClientError {
     #[error("Account creation auto_fund assertion failed with required funds: {0:?}")]
     AutoFundsAssertFailed(Vec<cosmwasm_std::Coin>),
 
-    #[error("Use build_remote for remote accounts")]
-    RemoteAccountOnBuild {},
-
-    #[error("Use build for non-remote accounts")]
-    LocalAccountOnBuildRemote {},
-
     #[error("Remote account of {account_id} not found on {chain} in {ibc_client_addr}")]
     RemoteAccountNotFound {
         account_id: AccountId,

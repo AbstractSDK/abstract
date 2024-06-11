@@ -16,7 +16,7 @@ readme = "README.md"
 [features]
 default = ["test-utils"]
 test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
-interchain = ["dep:cw-orch-interchain"]
+interchain = ["dep:cw-orch-interchain", "abstract-interface/interchain"]
 
 [dependencies]
 abstract-interface = { version = "0.22.1", path = "../abstract-interface" }
