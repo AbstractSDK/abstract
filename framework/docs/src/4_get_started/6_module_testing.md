@@ -25,6 +25,12 @@ The `Mock` struct provides a simulation of the CosmWasm environment, enabling te
 
 **Example**
 
+```rust,ignore
+{{ #include ../../../packages/abstract-client/tests/integration.rs:mock_integration_test}}
+```
+
+**Details**
+
 The `Mock` encapsulates:
 
 - A default sender for transactions.

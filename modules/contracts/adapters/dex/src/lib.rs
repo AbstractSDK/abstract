@@ -12,7 +12,7 @@ pub use abstract_dex_standard::DEX_ADAPTER_ID;
 // Export interface for use in SDK modules
 pub use crate::api::DexInterface;
 
-#[cfg(any(feature = "juno", feature = "osmosis"))]
+#[cfg(any(feature = "wynd", feature = "osmosis"))]
 pub mod host_exchange {
     pub use abstract_osmosis_adapter::dex::Osmosis;
 }

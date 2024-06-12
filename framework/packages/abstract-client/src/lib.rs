@@ -10,8 +10,6 @@ pub(crate) mod infrastructure;
 #[cfg(feature = "test-utils")]
 mod mut_client;
 mod publisher;
-pub(crate) mod remote_account;
-mod remote_application;
 pub(crate) mod source;
 
 // Re-export common used types
@@ -25,6 +23,15 @@ pub use client::AbstractClient;
 pub use error::AbstractClientError;
 pub use infrastructure::Environment;
 pub use publisher::{Publisher, PublisherBuilder};
-pub use remote_account::RemoteAccount;
-pub use remote_application::RemoteApplication;
 pub use source::AccountSource;
+
+// Interchain stuff
+#[cfg(feature = "interchain")]
+mod interchain {
+    pub(crate) mod remote_account;
+    mod remote_application;
+    pub use remote_account::RemoteAccount;
+    pub use remote_application::RemoteApplication;
+}
+#[cfg(feature = "interchain")]
+pub use interchain::*;
