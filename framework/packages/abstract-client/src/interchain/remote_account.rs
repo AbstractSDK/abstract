@@ -161,11 +161,12 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
     /// Builds the [`RemoteAccount`].
     /// Before using it you are supposed to wait Response.
     /// For example: https://orchestrator.abstract.money/interchain/integrations/daemon.html?#analysis-usage
-    pub fn build(&self) -> AbstractClientResult<RemoteAccount<Chain, IBC>> {
-        let chain = self.remote_abstr.environment();
+    pub fn build(self) -> AbstractClientResult<RemoteAccount<'a, Chain, IBC>> {
+        let remote_chain = self.remote_abstr.environment();
+        let remote_env_info = remote_chain.env_info();
 
         let owner_account = self.owner_account;
-        let env = chain.env_info();
+        let env_info = owner_account.environment().env_info();
 
         let mut install_modules = self.install_modules.clone();
         // We add the IBC Client by default in the modules installed on the remote account
@@ -182,12 +183,12 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
             install_modules,
             ..Default::default()
         };
-        let host_chain = ChainName::from_string(env.chain_name)?;
+        let host_chain = ChainName::from_string(remote_env_info.chain_name)?;
 
         let response = owner_account
             .abstr_account
             .create_remote_account(account_details, host_chain)?;
-        self.ibc_env.check_ibc(&env.chain_id, response)?;
+        self.ibc_env.check_ibc(&env_info.chain_id, response)?;
 
         let remote_account_id = {
             let mut id = owner_account.id()?;
@@ -206,7 +207,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
         Ok(RemoteAccount::new(
             owner_account.abstr_account.clone(),
             remote_account_id,
-            chain,
+            remote_chain,
             self.ibc_env,
         ))
     }

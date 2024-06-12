@@ -355,6 +355,28 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .map_err(Into::into)?;
         Ok(Addr::unchecked(addr))
     }
+
+    #[cfg(feature = "interchain")]
+    /// Connect this abstract client to the remote abstract client
+    /// It assumes that [`cw_orch_polytone::Polytone`] is deployed
+    pub fn ibc_connection_with(
+        &self,
+        remote_abstr: &AbstractClient<Chain>,
+        ibc: &impl cw_orch_interchain::InterchainEnv<Chain>,
+    ) -> AbstractClientResult<()>
+    where
+        Chain: cw_orch_interchain::IbcQueryHandler,
+    {
+        // Assuming polytone deployed
+        let polytone_src = cw_orch_polytone::Polytone::new(self.environment());
+        abstract_interface::connection::abstract_ibc_connection_with(
+            &self.abstr,
+            ibc,
+            &remote_abstr.abstr,
+            &polytone_src,
+        )?;
+        Ok(())
+    }
 }
 
 pub(crate) fn is_local_manager(id: &str) -> AbstractClientResult<Option<AccountId>> {
