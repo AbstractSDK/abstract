@@ -47,8 +47,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             source_module,
             target_module,
         } => {
-            let scr_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
-            handle_module_execute(deps, env, scr_chain, source_module, target_module, msg)
+            let src_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
+            handle_module_execute(deps, env, src_chain, source_module, target_module, msg)
         }
     }
 }
