@@ -3,7 +3,7 @@ use abstract_adapter::sdk::{
     ModuleRegistryInterface,
 };
 use abstract_adapter::std::{
-    ibc::CallbackInfo,
+    ibc::Callback,
     objects::{
         account::AccountTrace,
         ans_host::AnsHost,
@@ -13,10 +13,7 @@ use abstract_adapter::std::{
     },
 };
 use abstract_dex_standard::{
-    ans_action::WholeDexAction,
-    msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID},
-    raw_action::DexRawAction,
-    DexError, DEX_ADAPTER_ID,
+    ans_action::WholeDexAction, msg::ExecuteMsg, raw_action::DexRawAction, DexError, DEX_ADAPTER_ID,
 };
 use cosmwasm_std::{
     ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
@@ -170,12 +167,11 @@ fn handle_ibc_request(
     let _callback = if maybe_contract_info.is_err() {
         None
     } else {
-        Some(CallbackInfo {
-            id: IBC_DEX_PROVIDER_ID.into(),
-            msg: Some(to_json_binary(&DexExecuteMsg::RawAction {
+        Some(Callback {
+            msg: to_json_binary(&DexExecuteMsg::RawAction {
                 dex: dex_name.clone(),
                 action: action.clone(),
-            })?),
+            })?,
         })
     };
     let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action)?;

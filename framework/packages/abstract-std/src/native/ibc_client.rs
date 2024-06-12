@@ -4,7 +4,7 @@ use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
 use crate::{
-    ibc::CallbackInfo,
+    ibc::Callback,
     ibc_host::HostAction,
     manager::{self, ModuleInstallConfig},
     objects::{
@@ -120,7 +120,7 @@ pub enum ExecuteMsg {
         /// Json-encoded IbcMsg to the target module
         msg: Binary,
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
-        callback_info: Option<CallbackInfo>,
+        callback: Option<Callback>,
     },
     /// Only callable by Account Module
     // ANCHOR_END: module-ibc-action
@@ -128,10 +128,10 @@ pub enum ExecuteMsg {
         /// host chain to be executed on
         /// Example: "osmosis"
         host_chain: String,
-        /// Cosmos Query request
-        query: QueryRequest<Empty>,
+        /// Cosmos Query requests
+        queries: Vec<QueryRequest<Empty>>,
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
-        callback_info: CallbackInfo,
+        callback: Callback,
     },
     /// Only callable by Account Proxy
     /// Action on remote ibc host
@@ -155,13 +155,13 @@ pub enum ExecuteMsg {
 pub enum IbcClientCallback {
     ModuleRemoteAction {
         sender_address: String,
-        callback_info: CallbackInfo,
+        callback: Callback,
         initiator_msg: Binary,
     },
     ModuleRemoteQuery {
         sender_address: String,
-        callback_info: CallbackInfo,
-        query: QueryRequest<Empty>,
+        callback: Callback,
+        queries: Vec<QueryRequest<Empty>>,
     },
     CreateAccount {
         account_id: AccountId,
@@ -353,21 +353,19 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::app::ExecuteMsg;
-    use crate::ibc::{CallbackResult, IbcResponseMsg};
+    use crate::ibc::{Callback, IbcResponseMsg, IbcResult};
 
     // ... (other test functions)
 
     #[test]
     fn test_response_msg_to_callback_msg() {
         let receiver = "receiver".to_string();
-        let callback_id = "15".to_string();
         let callback_msg = to_json_binary("15").unwrap();
 
-        let result = CallbackResult::FatalError("ibc execution error".to_string());
+        let result = IbcResult::FatalError("ibc execution error".to_string());
 
         let response_msg = IbcResponseMsg {
-            id: callback_id,
-            msg: Some(callback_msg),
+            callback: Callback::new(callback_msg),
             result,
         };
 
