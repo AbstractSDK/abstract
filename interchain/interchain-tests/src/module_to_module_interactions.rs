@@ -1,6 +1,6 @@
 pub use abstract_std::app;
 use abstract_std::{
-    ibc::{CallbackInfo, CallbackResult},
+    ibc::{Callback, CallbackResult},
     ibc_client::{self},
     objects::module::ModuleInfo,
     IBC_CLIENT,
@@ -144,7 +144,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                             ibc_msg: "module_to_module:msg".to_string(),
                         })
                         .unwrap(),
-                        callback_info: Some(CallbackInfo {
+                        callback: Some(Callback {
                             payload: to_json_binary(&Empty {})?,
                         }),
                     },
@@ -163,7 +163,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     ibc_client_addr,
                     &ibc_client::ExecuteMsg::IbcQuery {
                         host_chain: remote_chain,
-                        callback_info: CallbackInfo {
+                        callback: Callback {
                             payload: to_json_binary(&Empty {})?,
                         },
                         queries: vec![cosmwasm_std::QueryRequest::Bank(

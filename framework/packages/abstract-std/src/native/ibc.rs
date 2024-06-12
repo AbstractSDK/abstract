@@ -2,7 +2,7 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Binary, CosmosMsg, Empty, QueryRequest, StdError, StdResult,
 };
-use polytone::callbacks::{Callback, ErrorResponse, ExecutionResponse};
+use polytone::callbacks::{Callback as PolytoneCallback, ErrorResponse, ExecutionResponse};
 use schemars::JsonSchema;
 
 use crate::{
@@ -10,18 +10,18 @@ use crate::{
     objects::{chain_name::ChainName, module::ModuleInfo},
 };
 
-/// CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client
+/// Callback from modules, that is turned into an IbcResponseMsg by the ibc client
 /// A callback can only be sent to itself
 #[cosmwasm_schema::cw_serde]
 // ANCHOR: callback-info
-pub struct CallbackInfo {
+pub struct Callback {
     /// Used to add information to the callback.
     /// This is usually used to provide information to the ibc callback function for context
     pub payload: Binary,
 }
 // ANCHOR_END: callback-info
 
-impl CallbackInfo {
+impl Callback {
     pub fn new(payload: Binary) -> Self {
         Self { payload }
     }
@@ -84,31 +84,34 @@ pub enum CallbackResult {
 
 impl CallbackResult {
     pub fn from_query(
-        callback: Callback,
+        callback: PolytoneCallback,
         queries: Vec<QueryRequest<Empty>>,
     ) -> Result<Self, StdError> {
         match callback {
-            Callback::Query(q) => Ok(Self::Query {
+            PolytoneCallback::Query(q) => Ok(Self::Query {
                 queries,
                 results: q,
             }),
-            Callback::Execute(_) => Err(StdError::generic_err(
+            PolytoneCallback::Execute(_) => Err(StdError::generic_err(
                 "Expected a query result, got an execute result",
             )),
-            Callback::FatalError(e) => Ok(Self::FatalError(e)),
+            PolytoneCallback::FatalError(e) => Ok(Self::FatalError(e)),
         }
     }
 
-    pub fn from_execute(callback: Callback, initiator_msg: Binary) -> Result<Self, StdError> {
+    pub fn from_execute(
+        callback: PolytoneCallback,
+        initiator_msg: Binary,
+    ) -> Result<Self, StdError> {
         match callback {
-            Callback::Query(_) => Err(StdError::generic_err(
+            PolytoneCallback::Query(_) => Err(StdError::generic_err(
                 "Expected an execution result, got a query result",
             )),
-            Callback::Execute(e) => Ok(Self::Execute {
+            PolytoneCallback::Execute(e) => Ok(Self::Execute {
                 initiator_msg,
                 result: e,
             }),
-            Callback::FatalError(e) => Ok(Self::FatalError(e)),
+            PolytoneCallback::FatalError(e) => Ok(Self::FatalError(e)),
         }
     }
 }

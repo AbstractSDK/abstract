@@ -8,7 +8,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     app::AppState,
-    ibc::CallbackInfo,
+    ibc::Callback,
     ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback, InstalledModuleIdentification,
@@ -224,7 +224,7 @@ pub fn execute_send_module_to_module_packet(
     host_chain: String,
     target_module: ModuleInfo,
     msg: Binary,
-    callback_info: Option<CallbackInfo>,
+    callback: Option<Callback>,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
     let cfg = CONFIG.load(deps.storage)?;
@@ -264,11 +264,11 @@ pub fn execute_send_module_to_module_packet(
     // We send a message to the target module on the remote chain
     // Send this message via the Polytone implementation
 
-    let callback_request = callback_info.map(|c| CallbackRequest {
+    let callback_request = callback.map(|c| CallbackRequest {
         receiver: env.contract.address.to_string(),
         msg: to_json_binary(&IbcClientCallback::ModuleRemoteAction {
             sender_address: info.sender.to_string(),
-            callback_info: c,
+            callback: c,
             initiator_msg: msg.clone(),
         })
         .unwrap(),
@@ -308,14 +308,14 @@ pub fn execute_send_query(
     info: MessageInfo,
     host_chain: String,
     queries: Vec<QueryRequest<Empty>>,
-    callback_info: CallbackInfo,
+    callback: Callback,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
 
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
         msg: to_json_binary(&IbcClientCallback::ModuleRemoteQuery {
-            callback_info,
+            callback,
             sender_address: info.sender.to_string(),
             queries: queries.clone(),
         })

@@ -4,7 +4,7 @@ use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
 use crate::{
-    ibc::CallbackInfo,
+    ibc::Callback,
     ibc_host::HostAction,
     manager::{self, ModuleInstallConfig},
     objects::{
@@ -120,7 +120,7 @@ pub enum ExecuteMsg {
         /// Json-encoded IbcMsg to the target module
         msg: Binary,
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
-        callback_info: Option<CallbackInfo>,
+        callback: Option<Callback>,
     },
     /// Only callable by Account Module
     // ANCHOR_END: module-ibc-action
@@ -131,7 +131,7 @@ pub enum ExecuteMsg {
         /// Cosmos Query requests
         queries: Vec<QueryRequest<Empty>>,
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
-        callback_info: CallbackInfo,
+        callback: Callback,
     },
     /// Only callable by Account Proxy
     /// Action on remote ibc host
@@ -155,12 +155,12 @@ pub enum ExecuteMsg {
 pub enum IbcClientCallback {
     ModuleRemoteAction {
         sender_address: String,
-        callback_info: CallbackInfo,
+        callback: Callback,
         initiator_msg: Binary,
     },
     ModuleRemoteQuery {
         sender_address: String,
-        callback_info: CallbackInfo,
+        callback: Callback,
         queries: Vec<QueryRequest<Empty>>,
     },
     CreateAccount {

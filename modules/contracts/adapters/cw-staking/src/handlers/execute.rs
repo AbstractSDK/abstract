@@ -3,7 +3,7 @@ use abstract_adapter::sdk::{
     features::{AbstractNameService, AbstractResponse, AccountIdentification},
     IbcInterface, Resolve,
 };
-use abstract_adapter::std::ibc::CallbackInfo;
+use abstract_adapter::std::ibc::Callback;
 use abstract_adapter::std::objects::chain_name::ChainName;
 use abstract_staking_standard::msg::{ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg};
 use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo};
@@ -95,7 +95,7 @@ fn handle_ibc_request(
     let _callback = if maybe_contract_info.is_err() {
         None
     } else {
-        Some(CallbackInfo {
+        Some(Callback {
             payload: to_json_binary(&StakingExecuteMsg {
                 provider: provider_name.clone(),
                 action: action.clone(),

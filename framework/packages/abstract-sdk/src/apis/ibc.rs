@@ -3,7 +3,7 @@
 //!
 
 use abstract_std::{
-    ibc::CallbackInfo,
+    ibc::Callback,
     ibc_client::{self, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
@@ -196,7 +196,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         host_chain: String,
         target_module: ModuleInfo,
         exec_msg: &M,
-        callback_info: Option<CallbackInfo>,
+        callback: Option<Callback>,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;
         let msg = wasm_execute(
@@ -205,7 +205,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                 host_chain,
                 target_module,
                 msg: to_json_binary(exec_msg)?,
-                callback_info,
+                callback,
             },
             vec![],
         )?;
@@ -217,7 +217,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         &self,
         host_chain: String,
         query: QueryRequest<Empty>,
-        callback_info: CallbackInfo,
+        callback: Callback,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;
         let msg = wasm_execute(
@@ -225,7 +225,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             &ibc_client::ExecuteMsg::IbcQuery {
                 host_chain,
                 queries: vec![query],
-                callback_info,
+                callback,
             },
             vec![],
         )?;
@@ -237,7 +237,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         &self,
         host_chain: String,
         queries: Vec<QueryRequest<Empty>>,
-        callback_info: CallbackInfo,
+        callback: Callback,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;
         let msg = wasm_execute(
@@ -245,7 +245,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             &ibc_client::ExecuteMsg::IbcQuery {
                 host_chain,
                 queries,
-                callback_info,
+                callback,
             },
             vec![],
         )?;

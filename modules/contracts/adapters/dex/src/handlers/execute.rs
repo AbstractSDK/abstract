@@ -3,7 +3,7 @@ use abstract_adapter::sdk::{
     ModuleRegistryInterface,
 };
 use abstract_adapter::std::{
-    ibc::CallbackInfo,
+    ibc::Callback,
     objects::{
         account::AccountTrace,
         ans_host::AnsHost,
@@ -167,7 +167,7 @@ fn handle_ibc_request(
     let _callback = if maybe_contract_info.is_err() {
         None
     } else {
-        Some(CallbackInfo {
+        Some(Callback {
             payload: to_json_binary(&DexExecuteMsg::RawAction {
                 dex: dex_name.clone(),
                 action: action.clone(),

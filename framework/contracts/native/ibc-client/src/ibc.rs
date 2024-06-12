@@ -7,7 +7,7 @@ use abstract_std::{
     objects::chain_name::ChainName,
 };
 use cosmwasm_std::{from_json, Attribute, DepsMut, Env, MessageInfo};
-use polytone::callbacks::{Callback, CallbackMessage};
+use polytone::callbacks::{Callback as PolytoneCallback, CallbackMessage};
 
 use crate::{
     contract::{IbcClientResponse, IbcClientResult},
@@ -19,7 +19,7 @@ pub fn receive_action_callback(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    callback: CallbackMessage,
+    polytone_callback: CallbackMessage,
 ) -> IbcClientResult {
     // 1. First we verify the callback is well formed and sent by the right contract
 
@@ -29,18 +29,18 @@ pub fn receive_action_callback(
         .ok_or(IbcClientError::Unauthorized {})?;
 
     // only this account can call actions and have a polytone callback
-    if callback.initiator != env.contract.address {
+    if polytone_callback.initiator != env.contract.address {
         return Err(IbcClientError::Unauthorized {});
     }
 
     // 2. From here on, we can trust the message that we are receiving
 
-    let callback_msg: IbcClientCallback = from_json(&callback.initiator_msg)?;
+    let callback_msg: IbcClientCallback = from_json(&polytone_callback.initiator_msg)?;
 
     match callback_msg {
         IbcClientCallback::WhoAmI {} => {
             // This response is used to store the Counterparty proxy address (this is used to whitelist the address on the host side)
-            if let Callback::Execute(Ok(response)) = &callback.result {
+            if let PolytoneCallback::Execute(Ok(response)) = &polytone_callback.result {
                 IBC_INFRA.update(deps.storage, &host_chain, |c| match c {
                     None => Err(IbcClientError::UnregisteredChain(host_chain.to_string())),
                     Some(mut counterpart) => {
@@ -49,14 +49,14 @@ pub fn receive_action_callback(
                     }
                 })?;
             } else {
-                return Err(IbcClientError::IbcFailed(callback));
+                return Err(IbcClientError::IbcFailed(polytone_callback));
             }
             Ok(IbcClientResponse::action("register_remote_proxy")
                 .add_attribute("chain", host_chain.to_string()))
         }
         IbcClientCallback::CreateAccount { account_id } => {
             // We need to get the address of the remote proxy from the account creation response
-            if let Callback::Execute(Ok(response)) = &callback.result {
+            if let PolytoneCallback::Execute(Ok(response)) = &polytone_callback.result {
                 let account_creation_result = response.result[0].clone();
 
                 let wasm_abstract_attributes: Vec<Attribute> = account_creation_result
@@ -69,7 +69,7 @@ pub fn receive_action_callback(
                 let remote_proxy_address = &wasm_abstract_attributes
                     .iter()
                     .find(|e| e.key == "proxy_address")
-                    .ok_or(IbcClientError::IbcFailed(callback))?
+                    .ok_or(IbcClientError::IbcFailed(polytone_callback))?
                     .value;
 
                 // We need to store the account address in the IBC client for interactions that may need it locally
@@ -79,7 +79,7 @@ pub fn receive_action_callback(
                     remote_proxy_address,
                 )?;
             } else {
-                return Err(IbcClientError::IbcFailed(callback));
+                return Err(IbcClientError::IbcFailed(polytone_callback));
             }
             Ok(
                 IbcClientResponse::action("acknowledge_remote_account_registration")
@@ -88,13 +88,13 @@ pub fn receive_action_callback(
             )
         }
         IbcClientCallback::ModuleRemoteAction {
-            callback_info,
+            callback,
             sender_address,
             initiator_msg,
         } => {
             let callback = IbcResponseMsg {
-                payload: callback_info.payload,
-                result: CallbackResult::from_execute(callback.result, initiator_msg)?,
+                payload: callback.payload,
+                result: CallbackResult::from_execute(polytone_callback.result, initiator_msg)?,
             };
             Ok(IbcClientResponse::action("module_action_ibc_callback")
                 .add_message(callback.into_cosmos_msg(sender_address)?)
@@ -102,12 +102,12 @@ pub fn receive_action_callback(
         }
         IbcClientCallback::ModuleRemoteQuery {
             sender_address,
-            callback_info,
+            callback,
             queries,
         } => {
             let callback = IbcResponseMsg {
-                payload: callback_info.payload,
-                result: CallbackResult::from_query(callback.result, queries)?,
+                payload: callback.payload,
+                result: CallbackResult::from_query(polytone_callback.result, queries)?,
             };
             Ok(IbcClientResponse::action("module_query_ibc_callback")
                 .add_message(callback.into_cosmos_msg(sender_address)?)

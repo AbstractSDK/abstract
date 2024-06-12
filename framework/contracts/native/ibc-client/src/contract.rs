@@ -94,7 +94,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             host_chain,
             target_module,
             msg,
-            callback_info,
+            callback,
         } => commands::execute_send_module_to_module_packet(
             deps,
             env,
@@ -102,13 +102,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             host_chain,
             target_module,
             msg,
-            callback_info,
+            callback,
         ),
         ExecuteMsg::IbcQuery {
             host_chain,
             queries,
-            callback_info,
-        } => commands::execute_send_query(deps, env, info, host_chain, queries, callback_info),
+            callback,
+        } => commands::execute_send_query(deps, env, info, host_chain, queries, callback),
     }
 }
 
