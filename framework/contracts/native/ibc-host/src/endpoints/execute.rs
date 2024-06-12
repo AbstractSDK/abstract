@@ -50,7 +50,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             target_module,
         } => {
             let src_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
-            handle_host_module_action(deps, src_chain, source_module, target_module, msg)
+            handle_host_module_execution(deps, src_chain, source_module, target_module, msg)
         }
     }
 }

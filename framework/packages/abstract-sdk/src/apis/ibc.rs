@@ -219,18 +219,18 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         host_chain: String,
         target_module: InstalledModuleIdentification,
         query_msg: &base::QueryMsg<B, M>,
-        callback_info: CallbackInfo,
+        callback: Callback,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;
         let msg = wasm_execute(
             ibc_client_addr,
             &ibc_client::ExecuteMsg::IbcQuery {
                 host_chain,
-                query: QueryRequest::Custom(ModuleQuery {
+                queries: vec![QueryRequest::Custom(ModuleQuery {
                     target_module,
                     msg: to_json_binary(query_msg)?,
-                }),
-                callback_info,
+                })],
+                callback,
             },
             vec![],
         )?;
@@ -249,7 +249,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             ibc_client_addr,
             &ibc_client::ExecuteMsg::IbcQuery {
                 host_chain,
-                queries: vec![query],
+                queries: vec![query.into()],
                 callback,
             },
             vec![],

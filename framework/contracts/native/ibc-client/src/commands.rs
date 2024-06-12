@@ -322,11 +322,11 @@ pub fn execute_send_query(
 
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_json_binary(&ibc_client_callback).unwrap(),
+        msg: to_json_binary(&callback_msg).unwrap(),
     };
 
     // Convert custom query type to executable queries
-    let queries: Vec<QueryRequest<Empty>> = queries.into_iter().map(|q| map_query(&ibc_infra.host, q)).collect();
+    let queries: Vec<QueryRequest<Empty>> = queries.into_iter().map(|q| map_query(&ibc_infra.remote_abstract_host, q)).collect();
 
     let note_contract = ibc_infra.polytone_note;
     let note_message = wasm_execute(
@@ -450,7 +450,7 @@ fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>)-> QueryRequest<Em
         QueryRequest::Custom(ModuleQuery { target_module, msg }) => {
             QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: ibc_host.into(),
-                msg: to_json_binary(&ibc_host::QueryMsg::ModuleQuery { target_module, msg })?,
+                msg: to_json_binary(&ibc_host::QueryMsg::ModuleQuery { target_module, msg }).unwrap(),
             })
         }
         QueryRequest::Bank(query) => QueryRequest::Bank(query),
