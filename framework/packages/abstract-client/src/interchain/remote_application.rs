@@ -8,7 +8,7 @@ use abstract_interface::{AbstractInterfaceError, RegisteredModule};
 use abstract_std::{adapter, ibc_client, ibc_host, manager};
 use cosmwasm_std::to_json_binary;
 use cw_orch::{contract::Contract, prelude::*};
-use cw_orch_interchain::{IbcQueryHandler, InterchainEnv};
+use cw_orch_interchain::{types::IbcTxAnalysis, IbcQueryHandler, InterchainEnv};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{client::AbstractClientResult, remote_account::RemoteAccount};
@@ -45,7 +45,7 @@ impl<
     }
 
     /// Execute message on application
-    pub fn execute(&self, execute: &M::ExecuteMsg) -> AbstractClientResult<()> {
+    pub fn execute(&self, execute: &M::ExecuteMsg) -> AbstractClientResult<IbcTxAnalysis<Chain>> {
         self.remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain(),
@@ -100,7 +100,8 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<
             })
         }
 
-        self.remote_account
+        let _ = self
+            .remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain(),
                 action: ibc_host::HostAction::Dispatch { manager_msgs },
