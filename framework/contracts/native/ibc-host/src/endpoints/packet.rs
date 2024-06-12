@@ -11,7 +11,10 @@ use abstract_std::{
         module_reference::ModuleReference, AccountId,
     },
 };
-use cosmwasm_std::{wasm_execute, Binary, DepsMut, Empty, Env, Response};
+use cosmwasm_std::{
+    to_json_vec, wasm_execute, Binary, ContractResult, Deps, DepsMut, Empty, Env, QueryRequest,
+    Response, StdError, SystemResult, WasmQuery,
+};
 
 use crate::{
     account_commands::{self, receive_dispatch, receive_register, receive_send_all_back},
@@ -147,6 +150,7 @@ pub fn handle_module_execute(
         _ => {}
     }
 
+    let response = Response::new().add_attribute("action", "module-ibc-call");
     // We pass the message on to the module
     let msg = wasm_execute(
         target_module_resolved.address,
@@ -160,9 +164,34 @@ pub fn handle_module_execute(
         vec![],
     )?;
 
-    Ok(Response::new()
-        .add_attribute("action", "module-ibc-call")
-        .add_message(msg))
+    Ok(response.add_message(msg))
+}
+
+/// Handle actions that are passed to the IBC host contract and originate from a registered module
+pub fn handle_host_module_query(
+    deps: Deps,
+    target_module: InstalledModuleIdentification,
+    msg: Binary,
+) -> HostResult<Binary> {
+    // We resolve the target module
+    let vc = CONFIG.load(deps.storage)?.version_control;
+
+    let target_module_resolved = target_module.addr(deps, vc)?;
+
+    let query = QueryRequest::<Empty>::from(WasmQuery::Smart {
+        contract_addr: target_module_resolved.address.into_string(),
+        msg,
+    });
+    let bin = match deps.querier.raw_query(&to_json_vec(&query)?) {
+        SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
+            "Querier system error: {system_err}"
+        ))),
+        SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::generic_err(format!(
+            "Querier contract error: {contract_err}"
+        ))),
+        SystemResult::Ok(ContractResult::Ok(value)) => Ok(value),
+    }?;
+    Ok(bin)
 }
 
 /// We need to figure what trace module is implying here
