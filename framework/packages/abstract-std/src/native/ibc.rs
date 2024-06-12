@@ -17,13 +17,13 @@ use crate::{
 pub struct Callback {
     /// Used to add information to the callback.
     /// This is usually used to provide information to the ibc callback function for context
-    pub payload: Binary,
+    pub msg: Binary,
 }
 // ANCHOR_END: callback-info
 
 impl Callback {
-    pub fn new(payload: Binary) -> Self {
-        Self { payload }
+    pub fn new(msg: Binary) -> Self {
+        Self { msg }
     }
 }
 
@@ -32,8 +32,8 @@ impl Callback {
 // ANCHOR: response-msg
 pub struct IbcResponseMsg {
     /// The msg sent with the callback request.
-    pub payload: Binary,
-    pub result: CallbackResult,
+    pub callback: Callback,
+    pub result: IbcResult,
 }
 // ANCHOR_END: response-msg
 
@@ -59,7 +59,7 @@ impl IbcResponseMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum CallbackResult {
+pub enum IbcResult {
     Query {
         queries: Vec<QueryRequest<Empty>>,
         results: Result<Vec<Binary>, ErrorResponse>,
@@ -82,7 +82,7 @@ pub enum CallbackResult {
     FatalError(String),
 }
 
-impl CallbackResult {
+impl IbcResult {
     pub fn from_query(
         callback: PolytoneCallback,
         queries: Vec<QueryRequest<Empty>>,

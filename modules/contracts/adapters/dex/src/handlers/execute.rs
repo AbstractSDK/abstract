@@ -168,7 +168,7 @@ fn handle_ibc_request(
         None
     } else {
         Some(Callback {
-            payload: to_json_binary(&DexExecuteMsg::RawAction {
+            msg: to_json_binary(&DexExecuteMsg::RawAction {
                 dex: dex_name.clone(),
                 action: action.clone(),
             })?,

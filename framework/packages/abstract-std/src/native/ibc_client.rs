@@ -353,7 +353,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::app::ExecuteMsg;
-    use crate::ibc::{CallbackResult, IbcResponseMsg};
+    use crate::ibc::{Callback, IbcResponseMsg, IbcResult};
 
     // ... (other test functions)
 
@@ -362,10 +362,10 @@ mod tests {
         let receiver = "receiver".to_string();
         let callback_msg = to_json_binary("15").unwrap();
 
-        let result = CallbackResult::FatalError("ibc execution error".to_string());
+        let result = IbcResult::FatalError("ibc execution error".to_string());
 
         let response_msg = IbcResponseMsg {
-            payload: callback_msg,
+            callback: Callback::new(callback_msg),
             result,
         };
 

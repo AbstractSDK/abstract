@@ -1,5 +1,5 @@
 use abstract_std::{
-    ibc::{CallbackResult, IbcResponseMsg},
+    ibc::{IbcResponseMsg, IbcResult},
     ibc_client::{
         state::{ACCOUNTS, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
@@ -92,12 +92,12 @@ pub fn receive_action_callback(
             sender_address,
             initiator_msg,
         } => {
-            let callback = IbcResponseMsg {
-                payload: callback.payload,
-                result: CallbackResult::from_execute(polytone_callback.result, initiator_msg)?,
+            let resp_msg = IbcResponseMsg {
+                callback,
+                result: IbcResult::from_execute(polytone_callback.result, initiator_msg)?,
             };
             Ok(IbcClientResponse::action("module_action_ibc_callback")
-                .add_message(callback.into_cosmos_msg(sender_address)?)
+                .add_message(resp_msg.into_cosmos_msg(sender_address)?)
                 .add_attribute("chain", host_chain.to_string()))
         }
         IbcClientCallback::ModuleRemoteQuery {
@@ -105,12 +105,12 @@ pub fn receive_action_callback(
             callback,
             queries,
         } => {
-            let callback = IbcResponseMsg {
-                payload: callback.payload,
-                result: CallbackResult::from_query(polytone_callback.result, queries)?,
+            let reps_msg = IbcResponseMsg {
+                callback,
+                result: IbcResult::from_query(polytone_callback.result, queries)?,
             };
             Ok(IbcClientResponse::action("module_query_ibc_callback")
-                .add_message(callback.into_cosmos_msg(sender_address)?)
+                .add_message(reps_msg.into_cosmos_msg(sender_address)?)
                 .add_attribute("chain", host_chain.to_string()))
         }
     }

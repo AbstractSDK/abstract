@@ -96,7 +96,7 @@ fn handle_ibc_request(
         None
     } else {
         Some(Callback {
-            payload: to_json_binary(&StakingExecuteMsg {
+            msg: to_json_binary(&StakingExecuteMsg {
                 provider: provider_name.clone(),
                 action: action.clone(),
             })?,

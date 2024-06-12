@@ -145,7 +145,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                         })
                         .unwrap(),
                         callback: Some(Callback {
-                            payload: to_json_binary(&Empty {})?,
+                            msg: to_json_binary(&Empty {})?,
                         }),
                     },
                     vec![],
@@ -164,7 +164,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     &ibc_client::ExecuteMsg::IbcQuery {
                         host_chain: remote_chain,
                         callback: Callback {
-                            payload: to_json_binary(&Empty {})?,
+                            msg: to_json_binary(&Empty {})?,
                         },
                         queries: vec![cosmwasm_std::QueryRequest::Bank(
                             cosmwasm_std::BankQuery::AllBalances { address },
