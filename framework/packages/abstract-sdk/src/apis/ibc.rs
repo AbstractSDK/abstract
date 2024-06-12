@@ -219,7 +219,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     pub fn ibc_query(
         &self,
         host_chain: ChainName,
-        query_msg: impl Into<QueryRequest<Empty>>,
+        query: impl Into<QueryRequest<Empty>>,
         callback: Callback,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;
@@ -227,7 +227,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             ibc_client_addr,
             &ibc_client::ExecuteMsg::IbcQuery {
                 host_chain,
-                queries: vec![query],
+                queries: vec![query.into()],
                 callback,
             },
             vec![],
@@ -238,7 +238,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Send queries from this module to the host chain
     pub fn ibc_queries(
         &self,
-        host_chain: String,
+        host_chain: ChainName,
         queries: Vec<QueryRequest<Empty>>,
         callback: Callback,
     ) -> AbstractSdkResult<CosmosMsg> {

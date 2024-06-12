@@ -5,7 +5,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
-use super::packet::{handle_host_action, handle_host_module_action};
+use super::packet::{handle_host_action, handle_module_execute};
 use crate::{
     contract::{HostResponse, HostResult},
     HostError,
@@ -48,7 +48,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             target_module,
         } => {
             let scr_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
-            handle_host_module_action(deps, env, scr_chain, source_module, target_module, msg)
+            handle_module_execute(deps, env, scr_chain, source_module, target_module, msg)
         }
     }
 }

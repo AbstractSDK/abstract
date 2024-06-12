@@ -115,34 +115,8 @@ pub fn handle_host_action(
     .map_err(Into::into)
 }
 
-/// We need to figure what trace module is implying here
-/// In case it sent message back we should be able to determine it
-pub fn client_to_host_module_account_id(
-    env: &Env,
-    remote_chain: ChainName,
-    mut account_id: AccountId,
-) -> AccountId {
-    let account_trace = account_id.trace_mut();
-    match account_trace {
-        AccountTrace::Local => account_trace.push_chain(remote_chain),
-        AccountTrace::Remote(trace) => {
-            let current_chain_name = ChainName::from_chain_id(&env.block.chain_id);
-            // If current chain_name == last trace in account_id it means we got response back from remote chain
-            if current_chain_name.eq(trace.last().unwrap()) {
-                trace.pop();
-                if trace.is_empty() {
-                    *account_trace = AccountTrace::Local;
-                }
-            } else {
-                trace.push(remote_chain);
-            }
-        }
-    };
-    account_id
-}
-
 /// Handle actions that are passed to the IBC host contract and originate from a registered module
-pub fn handle_host_module_action(
+pub fn handle_module_execute(
     deps: DepsMut,
     env: Env,
     src_chain: ChainName,
@@ -152,8 +126,11 @@ pub fn handle_host_module_action(
 ) -> HostResult {
     // We resolve the target module
     let vc = CONFIG.load(deps.storage)?.version_control;
+
     let target_module = InstalledModuleIdentification {
         module_info: target_module,
+        // Account can only call modules that are installed on its ICAA.
+        // If the calling module is account-specific then we map the calling account-id to the destination.
         account_id: source_module
             .account_id
             .map(|a| client_to_host_module_account_id(&env, src_chain.clone(), a)),
@@ -186,4 +163,30 @@ pub fn handle_host_module_action(
     Ok(Response::new()
         .add_attribute("action", "module-ibc-call")
         .add_message(msg))
+}
+
+/// We need to figure what trace module is implying here
+/// In case it sent message back we should be able to determine it
+pub fn client_to_host_module_account_id(
+    env: &Env,
+    remote_chain: ChainName,
+    mut account_id: AccountId,
+) -> AccountId {
+    let account_trace = account_id.trace_mut();
+    match account_trace {
+        AccountTrace::Local => account_trace.push_chain(remote_chain),
+        AccountTrace::Remote(trace) => {
+            let current_chain_name = ChainName::from_chain_id(&env.block.chain_id);
+            // If current chain_name == last trace in account_id it means we got response back from remote chain
+            if current_chain_name.eq(trace.last().unwrap()) {
+                trace.pop();
+                if trace.is_empty() {
+                    *account_trace = AccountTrace::Local;
+                }
+            } else {
+                trace.push(remote_chain);
+            }
+        }
+    };
+    account_id
 }
