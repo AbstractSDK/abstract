@@ -308,30 +308,52 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     /// Install an application on remote account.
-    pub fn install_app<M: InstallConfig>(
+    pub fn install_app<
+        M: RegisteredModule
+            + From<Contract<Chain>>
+            + ExecutableContract
+            + QueryableContract
+            + ContractInstance<Chain>
+            + InstallConfig,
+    >(
         &self,
         configuration: &M::InitMsg,
-    ) -> AbstractClientResult<Chain::Response> {
+    ) -> AbstractClientResult<RemoteApplication<Chain, IBC, M>> {
         let modules = vec![M::install_config(configuration)?];
 
         self.install_module_remote_internal(modules)
     }
 
     /// Install an adapter on remote account.
-    pub fn install_adapter<M: InstallConfig<InitMsg = Empty>>(
+    pub fn install_adapter<
+        M: RegisteredModule
+            + From<Contract<Chain>>
+            + ExecutableContract
+            + QueryableContract
+            + ContractInstance<Chain>
+            + InstallConfig<InitMsg = Empty>,
+    >(
         &self,
-    ) -> AbstractClientResult<Chain::Response> {
+    ) -> AbstractClientResult<RemoteApplication<Chain, IBC, M>> {
         let modules = vec![M::install_config(&cosmwasm_std::Empty {})?];
 
         self.install_module_remote_internal(modules)
     }
 
     /// Installs an App module and its dependencies with the provided dependencies config.
-    pub fn install_app_with_dependencies<M: DependencyCreation + InstallConfig>(
+    pub fn install_app_with_dependencies<
+        M: RegisteredModule
+            + From<Contract<Chain>>
+            + ExecutableContract
+            + QueryableContract
+            + ContractInstance<Chain>
+            + DependencyCreation
+            + InstallConfig,
+    >(
         &self,
         module_configuration: &M::InitMsg,
         dependencies_config: M::DependenciesConfig,
-    ) -> AbstractClientResult<Chain::Response> {
+    ) -> AbstractClientResult<RemoteApplication<Chain, IBC, M>> {
         let mut install_configs: Vec<ModuleInstallConfig> =
             M::dependency_install_configs(dependencies_config)?;
         install_configs.push(M::install_config(module_configuration)?);
@@ -343,7 +365,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     ///
     /// Migrates manager and proxy contracts to their respective new versions.
     /// Note that execution will be done through source chain
-    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<Chain::Response> {
+    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<()> {
         let modules = vec![
             (
                 ModuleInfo::from_id(abstract_std::registry::MANAGER, version.clone())?,
@@ -413,7 +435,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub fn execute(
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
-    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+    ) -> AbstractClientResult<()> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
         self.execute_on_manager(vec![manager::ExecuteMsg::ExecOnModule {
             module_id: PROXY.to_owned(),
@@ -427,7 +449,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub fn execute_on_manager(
         &self,
         manager_msgs: Vec<manager::ExecuteMsg>,
-    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+    ) -> AbstractClientResult<()> {
         self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
             host_chain: self.host_chain(),
             action: ibc_host::HostAction::Dispatch { manager_msgs },
@@ -483,24 +505,33 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             + QueryableContract
             + ContractInstance<Chain>,
     >(
-        &self,
-    ) -> AbstractClientResult<RemoteApplication<Chain, IBC, M>> {
+        &'a self,
+    ) -> AbstractClientResult<RemoteApplication<'a, Chain, IBC, M>> {
         let module = self.module()?;
 
         RemoteApplication::new(self, module)
     }
 
     /// Install module on remote account
-    fn install_module_remote_internal(
-        &self,
+    fn install_module_remote_internal<
+        M: RegisteredModule
+            + From<Contract<Chain>>
+            + ExecutableContract
+            + QueryableContract
+            + ContractInstance<Chain>,
+    >(
+        &'a self,
         modules: Vec<ModuleInstallConfig>,
-    ) -> AbstractClientResult<Chain::Response> {
+    ) -> AbstractClientResult<RemoteApplication<'a, Chain, IBC, M>> {
         self.ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
             host_chain: self.host_chain(),
             action: ibc_host::HostAction::Dispatch {
                 manager_msgs: vec![manager::ExecuteMsg::InstallModules { modules }],
             },
-        })
+        })?;
+
+        let module = self.module()?;
+        RemoteApplication::new(self, module)
     }
 
     pub(crate) fn remote_abstract(&self) -> AbstractClientResult<Abstract<Chain>> {
@@ -510,12 +541,15 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     pub(crate) fn ibc_client_execute(
         &self,
         exec_msg: ibc_client::ExecuteMsg,
-    ) -> AbstractClientResult<Chain::Response> {
+    ) -> AbstractClientResult<()> {
         let msg = proxy::ExecuteMsg::IbcAction { msg: exec_msg };
 
-        self.abstr_owner_account
+        let tx_response = self
+            .abstr_owner_account
             .manager
-            .execute_on_module(PROXY, msg)
+            .execute_on_module(PROXY, msg)?;
+        self.ibc_env
+            .check_ibc(&self.origin_chain().chain_id(), tx_response)
             .map_err(Into::into)
     }
 

@@ -46,9 +46,9 @@ impl<
         &self.remote_account
     }
 
-    /// Execute message on remote account
+    /// Execute message on remote application
     /// Note that execution will be done through source chain
-    pub fn execute(&self, execute: &M::ExecuteMsg) -> AbstractClientResult<Chain::Response> {
+    pub fn execute(&self, execute: &M::ExecuteMsg) -> AbstractClientResult<()> {
         self.remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain(),
