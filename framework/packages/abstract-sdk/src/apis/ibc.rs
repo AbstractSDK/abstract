@@ -8,10 +8,7 @@ use abstract_std::{
     ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
-    objects::{
-        chain_name::ChainName,
-        module::{ModuleInfo, ModuleVersion},
-    },
+    objects::{chain_name::ChainName, module::ModuleInfo},
     proxy::ExecuteMsg,
     IBC_CLIENT,
 };

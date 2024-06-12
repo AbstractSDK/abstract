@@ -1,9 +1,8 @@
-use abstract_std::proxy;
 use abstract_std::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
     version_control::AccountBase,
 };
-use cosmwasm_std::{wasm_execute, Addr, CosmosMsg, Deps};
+use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
 
 use crate::std::objects::AccountId;

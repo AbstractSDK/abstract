@@ -1,8 +1,8 @@
 mod abstract_name_service;
 mod abstract_registry_access;
 mod dependencies;
-mod identification;
 mod executor;
+mod identification;
 mod module_identification;
 
 pub use abstract_name_service::{AbstractNameService, AbstractNameServiceClient};
