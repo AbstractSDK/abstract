@@ -116,18 +116,19 @@ impl IbcResult {
         }
     }
 
-    /// Get module to module query responses
+    /// Get query result
     pub fn get_query_result(&self, index: usize) -> StdResult<(QueryRequest<ModuleQuery>, Binary)> {
-        if let IbcResult::Query {
-            queries,
-            results: Ok(result),
-        } = &self
-        {
-            Ok((queries[index].clone(), result[index].clone()))
-        } else {
-            Err(StdError::generic_err(
-                "Failed to parse module to module query response",
-            ))
+        match &self {
+            IbcResult::Query { queries, results } => {
+                let results = results
+                    .as_ref()
+                    .map_err(|err| StdError::generic_err(err.error.clone()))?;
+                Ok((queries[index].clone(), results[index].clone()))
+            }
+            IbcResult::Execute { .. } => Err(StdError::generic_err(
+                "Expected Query, got Execute IbcResult",
+            )),
+            IbcResult::FatalError(err) => Err(StdError::generic_err(err.to_owned())),
         }
     }
 }
