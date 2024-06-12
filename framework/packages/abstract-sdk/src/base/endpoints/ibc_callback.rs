@@ -32,6 +32,6 @@ pub trait IbcCallbackEndpoint: Handler {
                     self.module_id().to_string(),
                 ))?;
 
-        ibc_callback_handler(deps, env, info, self, msg.payload, msg.result)
+        ibc_callback_handler(deps, env, info, self, msg.callback, msg.result)
     }
 }

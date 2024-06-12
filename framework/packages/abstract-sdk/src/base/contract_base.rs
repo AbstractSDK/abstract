@@ -1,4 +1,4 @@
-use abstract_std::ibc::{CallbackResult, ModuleIbcInfo};
+use abstract_std::ibc::{Callback, IbcResult, ModuleIbcInfo};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
@@ -32,7 +32,7 @@ pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
 // ANCHOR: ibc
 /// Function signature for an IBC callback handler.
 pub type IbcCallbackHandlerFn<Module, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, Binary, CallbackResult) -> Result<Response, Error>;
+    fn(DepsMut, Env, MessageInfo, Module, Callback, IbcResult) -> Result<Response, Error>;
 // ANCHOR_END: ibc
 
 // ANCHOR: module_ibc
