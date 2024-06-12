@@ -139,15 +139,6 @@ pub enum ExecuteMsg {
     },
 }
 
-/// Module to module action message
-#[cosmwasm_schema::cw_serde]
-pub enum ModuleActionMsg {
-    /// Execution message parsable into [`crate::base::ExecuteMsg::ModuleIbc`] of the target module
-    Execute(Binary),
-    /// Smart wasm query message to the target module
-    Query(Binary),
-}
-
 /// Query Host message
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
