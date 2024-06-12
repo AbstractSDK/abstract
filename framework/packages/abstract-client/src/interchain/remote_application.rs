@@ -43,7 +43,7 @@ impl<
 
     /// Sub-account on which application is installed
     pub fn account(&self) -> &RemoteAccount<Chain, IBC> {
-        &self.remote_account
+        self.remote_account
     }
 
     /// Execute message on remote application
