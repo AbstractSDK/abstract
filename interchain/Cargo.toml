@@ -73,7 +73,9 @@ abstract-std = { version = "0.22.1", path = "../framework/packages/abstract-std"
 abstract-app = { version = "0.22.1", path = "../framework/packages/abstract-app" }
 abstract-adapter = { version = "0.22.1", path = "../framework/packages/abstract-adapter" }
 abstract-testing = { version = "0.22.1", path = "../framework/packages/abstract-testing" }
-abstract-client = { version = "0.22.1", path = "../framework/packages/abstract-client" }
+abstract-client = { version = "0.22.1", path = "../framework/packages/abstract-client", features = [
+  "interchain",
+] }
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat" }
 challenge-app = { path = "../modules/contracts/apps/challenge" }

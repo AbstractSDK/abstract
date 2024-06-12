@@ -22,20 +22,18 @@ use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, PongsResponse, PreviousPing
 use ping_pong::{AppExecuteMsgFns, AppInterface, AppQueryMsgFns};
 
 #[allow(unused)]
-struct PingPong<Env: IbcQueryHandler, IbcEnv: InterchainEnv<Env>> {
-    interchain: IbcEnv,
+struct PingPong<'a, Env: IbcQueryHandler, IbcEnv: InterchainEnv<Env>> {
     abs_juno: AbstractClient<Env>,
     abs_stargaze: AbstractClient<Env>,
     app: Application<Env, AppInterface<Env>>,
-    remote_account: RemoteAccount<Env>,
+    remote_account: RemoteAccount<'a, Env, IbcEnv>,
 }
 
-impl PingPong<MockBech32, MockBech32InterchainEnv> {
+impl<'a> PingPong<'a, MockBech32, MockBech32InterchainEnv> {
     /// Set up the test environment with two Accounts that has the App installed
-    fn setup() -> anyhow::Result<PingPong<MockBech32, MockBech32InterchainEnv>> {
-        let mock_interchain =
-            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
-
+    fn setup(
+        mock_interchain: &'a MockBech32InterchainEnv,
+    ) -> anyhow::Result<PingPong<'a, MockBech32, MockBech32InterchainEnv>> {
         let mock_juno = mock_interchain.chain(JUNO).unwrap();
         let mock_stargaze = mock_interchain.chain(STARGAZE).unwrap();
 
@@ -46,8 +44,8 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
         Polytone::deploy_on(mock_juno, None)?;
         Polytone::deploy_on(mock_stargaze, None)?;
 
-        ibc_connect_polytone_and_abstract(&mock_interchain, JUNO, STARGAZE)?;
-        ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
+        ibc_connect_polytone_and_abstract(mock_interchain, JUNO, STARGAZE)?;
+        ibc_connect_polytone_and_abstract(mock_interchain, STARGAZE, JUNO)?;
 
         let namespace = Namespace::from_id(APP_ID)?;
         // Publish and install on both chains
@@ -65,17 +63,13 @@ impl PingPong<MockBech32, MockBech32InterchainEnv> {
         publisher_stargaze.publish_app::<AppInterface<_>>()?;
 
         publisher_juno.account().set_ibc_status(true)?;
-        let (remote_account, account_response) = abs_stargaze
-            .account_builder()
-            .remote_account(&app.account())
+        let remote_account = app
+            .account()
+            .remote_account_builder(mock_interchain, &abs_stargaze)
             .install_app_with_dependencies::<AppInterface<Daemon>>(&AppInstantiateMsg {}, Empty {})?
-            .build_remote()?;
-        mock_interchain
-            .wait_ibc(JUNO, account_response)?
-            .into_result()?;
+            .build()?;
 
         Ok(PingPong {
-            interchain: mock_interchain,
             abs_juno,
             abs_stargaze,
             app,
@@ -89,7 +83,9 @@ fn successful_install() -> anyhow::Result<()> {
     logger_test_init();
 
     // Create a sender and mock env
-    let env = PingPong::setup()?;
+    let mock_interchain =
+        MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+    let env = PingPong::setup(&mock_interchain)?;
     let app1 = env.app;
 
     let mock_stargaze = env.abs_stargaze.environment();
@@ -119,7 +115,10 @@ fn successful_install() -> anyhow::Result<()> {
 fn successful_ping_pong() -> anyhow::Result<()> {
     logger_test_init();
 
-    let env = PingPong::setup()?;
+    // Create a sender and mock env
+    let mock_interchain =
+        MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+    let env = PingPong::setup(&mock_interchain)?;
     let app = env.app;
 
     // Ensure account created
@@ -135,7 +134,7 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     let pongs = app.pongs()?;
     assert_eq!(pongs.pongs, 4);
 
-    let ibc_wait_response = env.interchain.wait_ibc(JUNO, pp)?;
+    let ibc_wait_response = mock_interchain.wait_ibc(JUNO, pp)?;
     ibc_wait_response.into_result()?;
 
     let pongs_left_events = ibc_wait_response
@@ -199,48 +198,19 @@ fn successful_ping_pong() -> anyhow::Result<()> {
 fn successful_remote_ping_pong() -> anyhow::Result<()> {
     logger_test_init();
 
-    let env = PingPong::setup()?;
+    // Create a sender and mock env
+    let mock_interchain =
+        MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+    let env = PingPong::setup(&mock_interchain)?;
     let app = env.remote_account.application::<AppInterface<_>>()?;
 
-    let pp = app.execute(
+    app.execute(
         &ping_pong::msg::AppExecuteMsg::PingPong {
             host_chain: ChainName::from_chain_id(JUNO),
             pongs: 4,
         }
         .into(),
     )?;
-
-    let ibc_wait_response = env.interchain.wait_ibc(JUNO, pp)?;
-    ibc_wait_response.into_result()?;
-
-    let pongs_left_events = ibc_wait_response
-        .events()
-        .into_iter()
-        .map(|ev| {
-            ev.attributes
-                .into_iter()
-                .filter(|attr| attr.key == "pongs_left")
-                .collect::<Vec<_>>()
-        })
-        .flatten()
-        .collect::<Vec<_>>();
-    assert_eq!(
-        pongs_left_events,
-        vec![
-            Attribute::new("pongs_left", "4"),
-            Attribute::new("pongs_left", "3"),
-            Attribute::new("pongs_left", "2"),
-            Attribute::new("pongs_left", "1")
-        ]
-    );
-
-    let ping_ponged = ibc_wait_response.events().into_iter().find_map(|ev| {
-        ev.attributes
-            .iter()
-            .find(|attr| attr.value == "ping_ponged")
-            .cloned()
-    });
-    assert!(ping_ponged.is_some());
 
     let pongs: PongsResponse = app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
     assert_eq!(pongs.pongs, 0);
@@ -261,11 +231,14 @@ fn successful_remote_ping_pong() -> anyhow::Result<()> {
 fn rematch() -> anyhow::Result<()> {
     logger_test_init();
 
-    let env = PingPong::setup()?;
+    // Create a sender and mock env
+    let mock_interchain =
+        MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+    let env = PingPong::setup(&mock_interchain)?;
     let app = env.app;
     let remote_app = env.remote_account.application::<AppInterface<_>>()?;
 
-    let pp = remote_app.execute(
+    remote_app.execute(
         &ping_pong::msg::AppExecuteMsg::PingPong {
             host_chain: ChainName::from_chain_id(JUNO),
             pongs: 4,
@@ -273,10 +246,8 @@ fn rematch() -> anyhow::Result<()> {
         .into(),
     )?;
 
-    env.interchain.wait_ibc(JUNO, pp)?.into_result()?;
-
     let rematch = app.rematch(ChainName::from_chain_id(STARGAZE))?;
-    let ibc_wait_response = env.interchain.wait_ibc(JUNO, rematch)?;
+    let ibc_wait_response = mock_interchain.wait_ibc(JUNO, rematch)?;
     ibc_wait_response.into_result()?;
 
     let pongs_left_events = ibc_wait_response
