@@ -38,10 +38,10 @@ use crate::{
 /// and create the account with the `build` method.
 pub struct RemoteAccountBuilder<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> {
     pub(crate) ibc_env: &'a IBC,
-    pub(crate) remote_abstr: &'a AbstractClient<Chain>,
+    pub(crate) remote_chain: Chain,
     namespace: Option<Namespace>,
     base_asset: Option<AssetEntry>,
-    owner_account: &'a Account<Chain>,
+    owner_account: Account<Chain>,
     install_modules: Vec<ModuleInstallConfig>,
     // TODO: how we want to manage funds ibc-wise?
     // funds: AccountCreationFunds,
@@ -50,11 +50,11 @@ pub struct RemoteAccountBuilder<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<C
 impl<'a, Chain: IbcQueryHandler> Account<Chain> {
     /// Builder for creating a new Abstract [`RemoteAccount`].
     pub fn remote_account_builder<IBC: InterchainEnv<Chain>>(
-        &'a self,
+        &self,
         interchain_env: &'a IBC,
-        remote_abstract: &'a AbstractClient<Chain>,
+        remote_abstract: &AbstractClient<Chain>,
     ) -> RemoteAccountBuilder<'a, Chain, IBC> {
-        RemoteAccountBuilder::new(self, interchain_env, remote_abstract)
+        RemoteAccountBuilder::new(self.clone(), interchain_env, remote_abstract.environment())
     }
 
     /// Get [`RemoteAccount`] of this account
@@ -101,13 +101,13 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
 
 impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder<'a, Chain, IBC> {
     pub(crate) fn new(
-        owner_account: &'a Account<Chain>,
+        owner_account: Account<Chain>,
         ibc_env: &'a IBC,
-        remote_abstr: &'a AbstractClient<Chain>,
+        remote_chain: Chain,
     ) -> Self {
         Self {
             ibc_env,
-            remote_abstr,
+            remote_chain,
             namespace: None,
             base_asset: None,
             owner_account,
@@ -147,10 +147,10 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
 
     /// Install an application with dependencies on current account.
     pub fn install_app_with_dependencies<M: DependencyCreation + InstallConfig>(
-        &mut self,
+        mut self,
         module_configuration: &M::InitMsg,
         dependencies_config: M::DependenciesConfig,
-    ) -> AbstractClientResult<&mut Self> {
+    ) -> AbstractClientResult<Self> {
         let deps_install_config = M::dependency_install_configs(dependencies_config)?;
         self.install_modules.extend(deps_install_config);
         self.install_modules
@@ -162,7 +162,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
     /// Before using it you are supposed to wait Response.
     /// For example: https://orchestrator.abstract.money/interchain/integrations/daemon.html?#analysis-usage
     pub fn build(self) -> AbstractClientResult<RemoteAccount<'a, Chain, IBC>> {
-        let remote_chain = self.remote_abstr.environment();
+        let remote_chain = self.remote_chain;
         let remote_env_info = remote_chain.env_info();
 
         let owner_account = self.owner_account;
@@ -205,7 +205,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
         };
 
         Ok(RemoteAccount::new(
-            owner_account.abstr_account.clone(),
+            owner_account.abstr_account,
             remote_account_id,
             remote_chain,
             self.ibc_env,
