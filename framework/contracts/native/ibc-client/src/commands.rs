@@ -6,7 +6,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     app::AppState,
-    ibc::CallbackInfo,
+    ibc::Callback,
     ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback, InstalledModuleIdentification,
@@ -224,7 +224,7 @@ pub fn execute_send_module_to_module_packet(
     host_chain: ChainName,
     target_module: ModuleInfo,
     msg: Binary,
-    callback_info: Option<CallbackInfo>,
+    callback: Option<Callback>,
 ) -> IbcClientResult {
     host_chain.verify()?;
 
@@ -265,11 +265,11 @@ pub fn execute_send_module_to_module_packet(
     // We send a message to the target module on the remote chain
     // Send this message via the Polytone implementation
 
-    let callback_request = callback_info.map(|c| CallbackRequest {
+    let callback_request = callback.map(|c| CallbackRequest {
         receiver: env.contract.address.to_string(),
         msg: to_json_binary(&IbcClientCallback::ModuleRemoteAction {
             sender_address: info.sender.to_string(),
-            callback_info: c,
+            callback: c,
             initiator_msg: msg.clone(),
         })
         .unwrap(),
@@ -308,17 +308,17 @@ pub fn execute_send_query(
     env: Env,
     info: MessageInfo,
     host_chain: ChainName,
-    query: QueryRequest<Empty>,
-    callback_info: CallbackInfo,
+    queries: Vec<QueryRequest<Empty>>,
+    callback: Callback,
 ) -> IbcClientResult {
     host_chain.verify()?;
 
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
         msg: to_json_binary(&IbcClientCallback::ModuleRemoteQuery {
-            callback_info,
+            callback,
             sender_address: info.sender.to_string(),
-            query: query.clone(),
+            queries: queries.clone(),
         })
         .unwrap(),
     };
@@ -328,7 +328,7 @@ pub fn execute_send_query(
     let note_message = wasm_execute(
         note_contract.to_string(),
         &polytone_note::msg::ExecuteMsg::Query {
-            msgs: vec![query],
+            msgs: queries,
             callback: callback_request,
             timeout_seconds: PACKET_LIFETIME.into(),
         },

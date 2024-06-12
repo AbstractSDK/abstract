@@ -3,7 +3,7 @@
 //!
 
 use abstract_std::{
-    ibc::CallbackInfo,
+    ibc::Callback,
     ibc_client::{self, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
@@ -199,7 +199,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         host_chain: ChainName,
         target_module: ModuleInfo,
         exec_msg: &M,
-        callback_info: Option<CallbackInfo>,
+        callback: Option<Callback>,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;
         let msg = wasm_execute(
@@ -208,7 +208,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                 host_chain,
                 target_module,
                 msg: to_json_binary(exec_msg)?,
-                callback_info,
+                callback,
             },
             vec![],
         )?;
@@ -220,15 +220,35 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         &self,
         host_chain: ChainName,
         query_msg: impl Into<QueryRequest<Empty>>,
-        callback_info: CallbackInfo,
+        callback: Callback,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;
         let msg = wasm_execute(
             ibc_client_addr,
             &ibc_client::ExecuteMsg::IbcQuery {
                 host_chain,
-                query: query_msg.into(),
-                callback_info,
+                queries: vec![query],
+                callback,
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
+    /// Send queries from this module to the host chain
+    pub fn ibc_queries(
+        &self,
+        host_chain: String,
+        queries: Vec<QueryRequest<Empty>>,
+        callback: Callback,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::IbcQuery {
+                host_chain,
+                queries,
+                callback,
             },
             vec![],
         )?;
