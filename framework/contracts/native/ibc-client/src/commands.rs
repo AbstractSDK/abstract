@@ -313,13 +313,12 @@ pub fn execute_send_query(
     let host_chain = ChainName::from_str(&host_chain)?;
     let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
 
-    let callback_msg = to_json_binary(&IbcClientCallback::ModuleRemoteQuery {
+    let callback_msg = &IbcClientCallback::ModuleRemoteQuery {
         callback,
         sender_address: info.sender.to_string(),
         // We send un-mapped queries here to enable easily mapping to them.
         queries: queries.clone(),
-    })
-    .unwrap();
+    };
 
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),

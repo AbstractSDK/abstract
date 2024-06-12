@@ -1,6 +1,6 @@
 pub use abstract_std::app;
 use abstract_std::{
-    ibc::{Callback, IbcResult, ModuleIbcMsg},
+    ibc::{Callback, IbcResult},
     ibc_client::{self, InstalledModuleIdentification},
     objects::{chain_name::ChainName, module::ModuleInfo},
     IBC_CLIENT,
@@ -61,6 +61,13 @@ pub enum MockQueryMsg {
     GetReceivedModuleIbcQueryCallbackStatus {},
 }
 
+#[cw_serde]
+pub enum MockCallbackMsg {
+    BalanceQuery,
+    ModuleQuery,
+    ModuleExecute,
+}
+
 #[cosmwasm_schema::cw_serde]
 pub struct ReceivedIbcCallbackStatus {
     pub received: bool,
@@ -73,7 +80,7 @@ pub struct ReceivedIbcQueryCallbackStatus {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ReceivedIbcModuleStatus {
-    pub received: ModuleInfo,
+    pub received: Option<ModuleInfo>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -133,13 +140,15 @@ pub const MODULE_IBC_RECEIVED: Item<ModuleInfo> = Item::new("module_ibc_received
 pub const IBC_CALLBACK_QUERY_RECEIVED: Item<Vec<Coin>> = Item::new("ibc_callback_query_received");
 
 // Easy way to see if an ibc-query was actually performed.
-pub const IBC_CALLBACK_MODULE_QUERY_RECEIVED: Item<Binary> =
+pub const IBC_CALLBACK_MODULE_QUERY_RECEIVED: Item<String> =
     Item::new("ibc_callback_module_query_received");
 
 pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContract {
     MockAppContract::new(id, version, None)
         .with_instantiate(|deps, _, _, _, _| {
             IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
+            IBC_CALLBACK_QUERY_RECEIVED.save(deps.storage, &vec![])?;
+            IBC_CALLBACK_MODULE_QUERY_RECEIVED.save(deps.storage, &String::new())?;
             Ok(Response::new().set_data("mock_init".as_bytes()))
         })
         .with_execute(|deps, env, _, app, msg| match msg {
@@ -159,7 +168,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                         })
                         .unwrap(),
                         callback: Some(Callback {
-                            msg: to_json_binary(&Empty {})?,
+                            msg: to_json_binary(&MockCallbackMsg::ModuleExecute)?,
                         }),
                     },
                     vec![],
@@ -178,7 +187,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     &ibc_client::ExecuteMsg::IbcQuery {
                         host_chain: remote_chain,
                         callback: Callback {
-                            msg: to_json_binary(&Empty {})?,
+                            msg: to_json_binary(&MockCallbackMsg::BalanceQuery)?,
                         },
                         queries: vec![cosmwasm_std::QueryRequest::Bank(
                             cosmwasm_std::BankQuery::AllBalances { address },
@@ -204,9 +213,8 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                         account_id: Some(account),
                     },
                     &QueryMsg::from(MockQueryMsg::Foo {}),
-                    CallbackInfo {
-                        id: "mod_query_id".to_string(),
-                        msg: None,
+                    Callback {
+                        msg: to_json_binary(&MockCallbackMsg::ModuleQuery)?,
                     },
                 )?;
 
@@ -223,7 +231,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             }
             MockQueryMsg::GetReceivedIbcModuleStatus {} => {
                 to_json_binary(&ReceivedIbcModuleStatus {
-                    received: MODULE_IBC_RECEIVED.load(deps.storage)?,
+                    received: MODULE_IBC_RECEIVED.may_load(deps.storage)?,
                 })
                 .map_err(Into::into)
             }
@@ -235,45 +243,39 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             }
             MockQueryMsg::Foo {} => to_json_binary("bar").map_err(Into::into),
             MockQueryMsg::GetReceivedModuleIbcQueryCallbackStatus {} => {
-                Ok(IBC_CALLBACK_MODULE_QUERY_RECEIVED.load(deps.storage)?)
+                Ok(to_json_binary(&IBC_CALLBACK_MODULE_QUERY_RECEIVED.load(deps.storage)?).unwrap())
             }
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callback(|deps, _, _, _, _, result| match result {
+        .with_ibc_callback(|deps, _, _, _, callback, result| { eprintln!("{:?}", result); match &result {
             IbcResult::Query {
                 queries: _,
                 results,
             } => {
-                let result = results.unwrap()[0].clone();
-                let deser: AllBalanceResponse = from_json(result)?;
-                IBC_CALLBACK_QUERY_RECEIVED
-                    .save(deps.storage, &deser.amount)
-                    .unwrap();
+                match from_json(callback.msg)? {
+                    MockCallbackMsg::BalanceQuery => {
+                        let result = results.clone().unwrap()[0].clone();
+                        let deser: AllBalanceResponse = from_json(result)?;
+                        IBC_CALLBACK_QUERY_RECEIVED
+                            .save(deps.storage, &deser.amount)
+                            .unwrap();
+                    }
+                    MockCallbackMsg::ModuleQuery => {
+                        IBC_CALLBACK_MODULE_QUERY_RECEIVED
+                    .save(deps.storage, &from_json(&result.get_query_result(0)?.1).unwrap())?;
+                    }
+                    _ => unreachable!(),
+                }
+                
                 Ok(Response::new().add_attribute("mock_callback_query", "executed"))
             }
             IbcResult::Execute { .. } => {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().add_attribute("mock_callback", "executed"))
-            }),
-            ("query_id", |deps, _, _, _, msg| match msg.result {
-                CallbackResult::Query { query: _, result } => {
-                    let result = result.unwrap()[0].clone();
-                    let deser: AllBalanceResponse = from_json(result)?;
-                    IBC_CALLBACK_QUERY_RECEIVED
-                        .save(deps.storage, &deser.amount)
-                        .unwrap();
-                    Ok(Response::new().add_attribute("mock_callback_query", "executed"))
-                }
-                _ => panic!("Expected query result"),
-            }),
-            ("mod_query_id", |deps, _, _, _, msg| {
-                IBC_CALLBACK_MODULE_QUERY_RECEIVED
-                    .save(deps.storage, &msg.module_query_responses()?[0])?;
-
-                Ok(Response::new())
-            }),
-        ])
+            }
+            _ => unreachable!(),
+        }})
         .with_replies(&[(1u64, |_, _, _, msg| {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
@@ -312,8 +314,7 @@ pub mod test {
     ) -> AnyResult<()> {
         let source_module = app
             .get_received_ibc_module_status()
-            .map(|s| s.received)
-            .ok();
+            .map(|s| s.received)?;
 
         assert_eq!(source_module, source_module_expected);
         Ok(())
@@ -578,8 +579,8 @@ pub mod test {
         // Module to module query
 
         let ibc_action_result = app.query_module_ibc(remote_name, target_module_info)?;
-        mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
-
+        mock_interchain.check_ibc(JUNO, ibc_action_result)?;
+        
         let status = app.get_received_module_ibc_query_callback_status()?;
         assert_eq!("bar", status);
         Ok(())
@@ -587,6 +588,7 @@ pub mod test {
 
     pub const REMOTE_AMOUNT: u128 = 5674309;
     pub const REMOTE_DENOM: &str = "remote_denom";
+
     #[test]
     fn queries() -> AnyResult<()> {
         logger_test_init();

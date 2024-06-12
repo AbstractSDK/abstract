@@ -57,21 +57,6 @@ impl IbcResponseMsg {
         )?
         .into())
     }
-
-    /// Get module to module query responses
-    pub fn get_query_result(&self, index: usize) -> StdResult<(QueryRequest<ModuleQuery>, Binary)> {
-        if let IbcResult::Query {
-            queries,
-            results: Ok(result),
-        } = &self.result
-        {
-            Ok((queries[index].clone(), result[index].clone()))
-        } else {
-            Err(StdError::generic_err(
-                "Failed to parse module to module query response",
-            ))
-        }
-    }
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -128,6 +113,21 @@ impl IbcResult {
                 result: e,
             }),
             PolytoneCallback::FatalError(e) => Ok(Self::FatalError(e)),
+        }
+    }
+
+    /// Get module to module query responses
+    pub fn get_query_result(&self, index: usize) -> StdResult<(QueryRequest<ModuleQuery>, Binary)> {
+        if let IbcResult::Query {
+            queries,
+            results: Ok(result),
+        } = &self
+        {
+            Ok((queries[index].clone(), result[index].clone()))
+        } else {
+            Err(StdError::generic_err(
+                "Failed to parse module to module query response",
+            ))
         }
     }
 }
