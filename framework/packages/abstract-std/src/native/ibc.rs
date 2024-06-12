@@ -7,6 +7,7 @@ use schemars::JsonSchema;
 
 use crate::{
     base::ExecuteMsg,
+    ibc_client,
     objects::{chain_name::ChainName, module::ModuleInfo},
 };
 
@@ -61,7 +62,7 @@ impl IbcResponseMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum IbcResult {
     Query {
-        queries: Vec<QueryRequest<Empty>>,
+        queries: Vec<QueryRequest<ModuleQuery>>,
         results: Result<Vec<Binary>, ErrorResponse>,
     },
 
@@ -85,7 +86,7 @@ pub enum IbcResult {
 impl IbcResult {
     pub fn from_query(
         callback: PolytoneCallback,
-        queries: Vec<QueryRequest<Empty>>,
+        queries: Vec<QueryRequest<ModuleQuery>>,
     ) -> Result<Self, StdError> {
         match callback {
             PolytoneCallback::Query(q) => Ok(Self::Query {
@@ -114,6 +115,22 @@ impl IbcResult {
             PolytoneCallback::FatalError(e) => Ok(Self::FatalError(e)),
         }
     }
+
+    /// Get query result
+    pub fn get_query_result(&self, index: usize) -> StdResult<(QueryRequest<ModuleQuery>, Binary)> {
+        match &self {
+            IbcResult::Query { queries, results } => {
+                let results = results
+                    .as_ref()
+                    .map_err(|err| StdError::generic_err(err.error.clone()))?;
+                Ok((queries[index].clone(), results[index].clone()))
+            }
+            IbcResult::Execute { .. } => Err(StdError::generic_err(
+                "Expected Query, got Execute IbcResult",
+            )),
+            IbcResult::FatalError(err) => Err(StdError::generic_err(err.to_owned())),
+        }
+    }
 }
 
 #[cw_serde]
@@ -133,3 +150,13 @@ pub struct ModuleIbcInfo {
     pub module: ModuleInfo,
 }
 // ANCHOR_END: module_ibc_msg
+
+// ANCHOR: module_ibc_query
+#[cw_serde]
+pub struct ModuleQuery {
+    /// Information about the module that gets queried through ibc
+    pub target_module: ibc_client::InstalledModuleIdentification,
+    /// The WasmQuery::Smart request to the module
+    pub msg: Binary,
+}
+// ANCHOR_END: module_ibc_query

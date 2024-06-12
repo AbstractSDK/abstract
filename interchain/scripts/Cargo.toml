@@ -46,5 +46,5 @@ dca-app = { workspace = true }
 abstract-dex-adapter = { workspace = true }
 abstract-cw-staking = { workspace = true }
 abstract-money-market-adapter = { workspace = true }
-abstract-client = { workspace = true }
+abstract-client = { workspace = true, features = ["interchain"] }
 polytone-note = { workspace = true }

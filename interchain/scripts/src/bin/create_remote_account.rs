@@ -87,10 +87,11 @@ fn connect(
 
     let interchain = DaemonInterchainEnv::from_daemons(
         handle,
-        vec![src_daemon.clone(), dst_daemon],
+        vec![src_daemon.clone(), dst_daemon.clone()],
         &ChannelCreationValidator,
     );
     let client = AbstractClient::new(src_daemon)?;
+    let remote_client = AbstractClient::new(dst_daemon)?;
     let account = client
         .account_builder()
         .namespace(Namespace::new("abstract")?)
@@ -103,14 +104,9 @@ fn connect(
     // We install the ibc client on the account. If it fails, it's ok (for instance if we're already updated)
     let _ = account.set_ibc_status(true);
 
-    let tx_response = account.create_ibc_account(
-        ChainName::from_chain_id(dst_chain.chain_id).to_string(),
-        None,
-        None,
-        vec![],
-    )?;
-
-    // We make sure the IBC execution is done when creating the account
-    interchain.check_ibc(src_chain.chain_id, tx_response)?;
+    // We create remote account
+    let _ = account
+        .remote_account_builder(&interchain, &remote_client)
+        .build()?;
     Ok(())
 }

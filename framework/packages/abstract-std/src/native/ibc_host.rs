@@ -113,12 +113,12 @@ pub enum ExecuteMsg {
     /// Register the Polytone proxy for a specific chain.
     /// proxy should be a local address (will be validated)
     RegisterChainProxy {
-        chain: String,
+        chain: ChainName,
         proxy: String,
     },
     /// Remove the Polytone proxy for a specific chain.
     RemoveChainProxy {
-        chain: String,
+        chain: ChainName,
     },
     // ANCHOR: ibc-host-execute
     /// Allows for remote execution from the Polytone implementation
@@ -131,7 +131,7 @@ pub enum ExecuteMsg {
         action: HostAction,
     },
     // ANCHOR_END: ibc-host-execute
-    /// Allows for remote execution from the Polytone implementation on a local module
+    /// Performs an execution on a local module
     ModuleExecute {
         source_module: InstalledModuleIdentification,
         target_module: ModuleInfo,
@@ -161,6 +161,12 @@ pub enum QueryMsg {
     /// Returns [`ClientProxyResponse`].
     #[returns(ClientProxyResponse)]
     ClientProxy { chain: String },
+    /// Performs an query on a local module
+    #[returns(Binary)]
+    ModuleQuery {
+        target_module: InstalledModuleIdentification,
+        msg: Binary,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -89,7 +89,7 @@ pub fn test_send_funds() -> AnyResult<()> {
         PROXY,
         abstract_std::proxy::ExecuteMsg::IbcAction {
             msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
-                host_chain: "juno".into(),
+                host_chain: "juno".parse().unwrap(),
                 funds: coins(test_amount, get_denom(&stargaze, token_subdenom.as_str())),
             },
         },

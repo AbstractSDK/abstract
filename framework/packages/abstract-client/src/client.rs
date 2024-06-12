@@ -29,7 +29,7 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AnsHost, ManagerQueryFns, RegisteredModule, VCQueryFns,
+    Abstract, AbstractAccount, AnsHost, IbcClient, ManagerQueryFns, RegisteredModule, VCQueryFns,
     VersionControl,
 };
 use abstract_std::objects::{
@@ -121,6 +121,13 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// ```
     pub fn name_service(&self) -> &AnsHost<Chain> {
         &self.abstr.ans_host
+    }
+
+    /// Abstract Ibc Client contract API
+    ///
+    /// The Abstract Ibc Client contract allows users to create and use Interchain Abstract Accounts
+    pub fn ibc_client(&self) -> &IbcClient<Chain> {
+        &self.abstr.ibc.client
     }
 
     /// Return current block info see [`BlockInfo`].
@@ -347,6 +354,28 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .instantiate2_addr(code_id, creator, salt)
             .map_err(Into::into)?;
         Ok(Addr::unchecked(addr))
+    }
+
+    #[cfg(feature = "interchain")]
+    /// Connect this abstract client to the remote abstract client
+    /// It assumes that [`cw_orch_polytone::Polytone`] is deployed
+    pub fn ibc_connection_with(
+        &self,
+        remote_abstr: &AbstractClient<Chain>,
+        ibc: &impl cw_orch_interchain::InterchainEnv<Chain>,
+    ) -> AbstractClientResult<()>
+    where
+        Chain: cw_orch_interchain::IbcQueryHandler,
+    {
+        // Assuming polytone deployed
+        let polytone_src = cw_orch_polytone::Polytone::new(self.environment());
+        abstract_interface::connection::abstract_ibc_connection_with(
+            &self.abstr,
+            ibc,
+            &remote_abstr.abstr,
+            &polytone_src,
+        )?;
+        Ok(())
     }
 }
 

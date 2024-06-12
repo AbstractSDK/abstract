@@ -12,7 +12,8 @@
 //! - upgrade module
 
 use abstract_std::{
-    manager::ModuleInstallConfig, version_control::ExecuteMsgFns, ABSTRACT_EVENT_TYPE,
+    manager::ModuleInstallConfig, objects::chain_name::ChainName, version_control::ExecuteMsgFns,
+    ABSTRACT_EVENT_TYPE,
 };
 
 use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
@@ -204,11 +205,42 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     pub fn register_remote_account(
         &self,
-        host_chain: &str,
+        host_chain: ChainName,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         self.manager.register_remote_account(host_chain)
     }
+
+    pub fn create_remote_account(
+        &self,
+        account_details: AccountDetails,
+        host_chain: ChainName,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let AccountDetails {
+            namespace,
+            base_asset,
+            install_modules,
+            // Unused fields
+            name: _,
+            description: _,
+            link: _,
+            account_id: _,
+        } = account_details;
+
+        self.manager.execute_on_module(
+            abstract_std::PROXY,
+            abstract_std::proxy::ExecuteMsg::IbcAction {
+                msg: abstract_std::ibc_client::ExecuteMsg::Register {
+                    host_chain,
+                    base_asset,
+                    namespace,
+                    install_modules,
+                },
+            },
+        )
+    }
+
     pub fn create_sub_account(
         &self,
         account_details: AccountDetails,
