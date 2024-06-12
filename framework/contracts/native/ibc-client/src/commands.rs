@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
     features::AccountIdentification,
@@ -70,11 +68,12 @@ pub fn execute_register_infrastructure(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     host: String,
     note: String,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
+
     // auth check
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
@@ -118,9 +117,10 @@ pub fn execute_register_infrastructure(
 pub fn execute_remove_host(
     deps: DepsMut,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
+
     // auth check
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
@@ -177,10 +177,10 @@ pub fn execute_send_packet(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     action: HostAction,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
 
     let cfg = CONFIG.load(deps.storage)?;
 
@@ -221,12 +221,13 @@ pub fn execute_send_module_to_module_packet(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     target_module: ModuleInfo,
     msg: Binary,
     callback: Option<Callback>,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
+
     let cfg = CONFIG.load(deps.storage)?;
 
     // Query the sender module information
@@ -306,11 +307,11 @@ pub fn execute_send_query(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     queries: Vec<QueryRequest<ModuleQuery>>,
     callback: Callback,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
     let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
 
     let callback_msg = &IbcClientCallback::ModuleRemoteQuery {
@@ -350,12 +351,12 @@ pub fn execute_register_account(
     deps: DepsMut,
     info: MessageInfo,
     env: Env,
-    host_chain: String,
+    host_chain: ChainName,
     base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
     let cfg = CONFIG.load(deps.storage)?;
 
     // Verify that the sender is a proxy contract
@@ -398,10 +399,11 @@ pub fn execute_send_funds(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     funds: Vec<Coin>,
 ) -> IbcClientResult {
-    let host_chain = ChainName::from_str(&host_chain)?;
+    host_chain.verify()?;
+
     let cfg = CONFIG.load(deps.storage)?;
     let ans = cfg.ans_host;
     // Verify that the sender is a proxy contract

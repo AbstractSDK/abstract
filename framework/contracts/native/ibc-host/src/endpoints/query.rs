@@ -95,7 +95,7 @@ mod test {
             mock_env(),
             info,
             abstract_std::ibc_host::ExecuteMsg::RegisterChainProxy {
-                chain: "juno".into(),
+                chain: "juno".parse().unwrap(),
                 proxy: "juno-proxy".to_string(),
             },
         )

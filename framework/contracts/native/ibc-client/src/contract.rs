@@ -118,9 +118,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespo
         QueryMsg::Ownership {} => to_json_binary(&cw_ownable::get_ownership(deps.storage)?),
         QueryMsg::Config {} => to_json_binary(&queries::config(deps)?),
         QueryMsg::Host { chain_name } => to_json_binary(&queries::host(deps, chain_name)?),
-        QueryMsg::Account { chain, account_id } => {
-            to_json_binary(&queries::account(deps, chain, account_id)?)
-        }
+        QueryMsg::Account {
+            chain_name,
+            account_id,
+        } => to_json_binary(&queries::account(deps, chain_name, account_id)?),
         QueryMsg::ListAccounts { start, limit } => {
             to_json_binary(&queries::list_accounts(deps, start, limit)?)
         }
@@ -331,7 +332,7 @@ mod tests {
         #[test]
         fn only_admin() -> IbcClientResult<()> {
             test_only_admin(ExecuteMsg::RegisterInfrastructure {
-                chain: String::from("host-chain"),
+                chain: "host-chain".parse().unwrap(),
                 note: String::from("note"),
                 host: String::from("host"),
             })
@@ -353,7 +354,7 @@ mod tests {
             )?;
 
             let msg = ExecuteMsg::RegisterInfrastructure {
-                chain: String::from(TEST_CHAIN),
+                chain: TEST_CHAIN.parse().unwrap(),
                 note: String::from("note"),
                 host: String::from("test_remote_host"),
             };
@@ -376,7 +377,7 @@ mod tests {
             let host = String::from("test_remote_host");
 
             let msg = ExecuteMsg::RegisterInfrastructure {
-                chain: chain_name.to_string(),
+                chain: chain_name.clone(),
                 note: note.clone(),
                 host: host.clone(),
             };
@@ -422,7 +423,7 @@ mod tests {
                 deps.as_ref(),
                 mock_env(),
                 QueryMsg::Host {
-                    chain_name: chain_name.to_string(),
+                    chain_name: chain_name.clone(),
                 },
             )?)?;
             assert_eq!(
@@ -484,7 +485,7 @@ mod tests {
             let chain_name = ChainName::from_str(TEST_CHAIN)?;
 
             let msg = ExecuteMsg::RemoteAction {
-                host_chain: chain_name.to_string(),
+                host_chain: chain_name,
                 action: HostAction::Dispatch {
                     manager_msgs: vec![manager::ExecuteMsg::UpdateInfo {
                         name: None,
@@ -514,7 +515,7 @@ mod tests {
             let chain_name = ChainName::from_str(TEST_CHAIN)?;
 
             let msg = ExecuteMsg::RemoteAction {
-                host_chain: chain_name.to_string(),
+                host_chain: chain_name,
                 action: HostAction::Internal(InternalAction::Register {
                     name: String::from("name"),
                     description: None,
@@ -562,7 +563,7 @@ mod tests {
             };
 
             let msg = ExecuteMsg::RemoteAction {
-                host_chain: chain_name.to_string(),
+                host_chain: chain_name,
                 action: action.clone(),
             };
 
@@ -616,7 +617,7 @@ mod tests {
             let chain_name = ChainName::from_str(TEST_CHAIN)?;
 
             let msg = ExecuteMsg::SendFunds {
-                host_chain: chain_name.to_string(),
+                host_chain: chain_name,
                 funds: coins(1, "denom"),
             };
 
@@ -655,7 +656,7 @@ mod tests {
             let funds: Vec<Coin> = coins(1, "denom");
 
             let msg = ExecuteMsg::SendFunds {
-                host_chain: chain_name.to_string(),
+                host_chain: chain_name,
                 funds: funds.clone(),
             };
 
@@ -708,7 +709,7 @@ mod tests {
             let chain_name = ChainName::from_str(TEST_CHAIN)?;
 
             let msg = ExecuteMsg::Register {
-                host_chain: chain_name.to_string(),
+                host_chain: chain_name,
                 base_asset: None,
                 namespace: None,
                 install_modules: vec![],
@@ -765,7 +766,7 @@ mod tests {
             )?;
 
             let msg = ExecuteMsg::Register {
-                host_chain: chain_name.to_string(),
+                host_chain: chain_name,
                 base_asset: None,
                 namespace: None,
                 install_modules: vec![],
@@ -918,7 +919,7 @@ mod tests {
         #[test]
         fn only_admin() -> IbcClientTestResult {
             test_only_admin(ExecuteMsg::RemoveHost {
-                host_chain: "host-chain".into(),
+                host_chain: "host-chain".parse().unwrap(),
             })
         }
 
@@ -938,7 +939,7 @@ mod tests {
             )?;
 
             let msg = ExecuteMsg::RemoveHost {
-                host_chain: TEST_CHAIN.into(),
+                host_chain: TEST_CHAIN.parse().unwrap(),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg)?;
@@ -955,7 +956,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::RemoveHost {
-                host_chain: TEST_CHAIN.into(),
+                host_chain: TEST_CHAIN.parse().unwrap(),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg)?;
@@ -1298,14 +1299,14 @@ mod tests {
                 deps.as_ref(),
                 mock_env(),
                 QueryMsg::Account {
-                    chain: chain_name.to_string(),
+                    chain_name: chain_name.clone(),
                     account_id: TEST_ACCOUNT_ID,
                 },
             )?)?;
 
             assert_eq!(
                 AccountResponse {
-                    remote_proxy_addr: remote_proxy.clone()
+                    remote_proxy_addr: Some(remote_proxy.clone())
                 },
                 account_response
             );

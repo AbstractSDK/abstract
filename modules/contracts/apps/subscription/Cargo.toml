@@ -37,7 +37,6 @@ semver = { workspace = true }
 abstract-app = { workspace = true }
 cw-orch = { workspace = true }
 
-
 cw-address-like = { workspace = true }
 
 [dev-dependencies]
