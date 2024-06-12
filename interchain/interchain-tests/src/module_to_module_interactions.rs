@@ -22,7 +22,6 @@ pub struct MockInitMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-#[impl_into(ExecuteMsg)]
 pub enum MockExecMsg {
     DoSomething {},
     DoSomethingAdmin {},
@@ -37,9 +36,7 @@ pub enum MockExecMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[derive(cw_orch::QueryFns)]
-#[impl_into(QueryMsg)]
-#[derive(QueryResponses)]
+#[derive(cw_orch::QueryFns, QueryResponses)]
 pub enum MockQueryMsg {
     #[returns(ReceivedIbcCallbackStatus)]
     GetReceivedIbcCallbackStatus {},

@@ -30,25 +30,23 @@ mod osmosis_test {
     };
     use cosmwasm_std::{coin, coins, from_json, to_json_binary, Addr, Empty, Uint128};
     use cw_asset::AssetInfoBase;
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::shim::{Duration, Timestamp};
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::{
-        MsgAddToGauge, MsgCreateGauge, QueryLockableDurationsRequest
-    };
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::lockup::{
-        LockQueryType, QueryCondition,
-    };
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::poolincentives::v1beta1::QueryGaugeIdsRequest;
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::{Module, OsmosisTestApp};
-    use cw_orch::{
-        interface,
-        osmosis_test_tube::osmosis_test_tube::{
-            osmosis_std::types::osmosis::lockup::{
-                AccountLockedCoinsRequest, AccountLockedCoinsResponse,
+    use cw_orch_osmosis_test_tube::osmosis_test_tube::{
+        osmosis_std::{
+            shim::{Duration, Timestamp},
+            types::osmosis::{
+                incentives::{MsgAddToGauge, MsgCreateGauge, QueryLockableDurationsRequest},
+                lockup::{
+                    AccountLockedCoinsRequest, AccountLockedCoinsResponse, LockQueryType,
+                    QueryCondition,
+                },
+                poolincentives::v1beta1::QueryGaugeIdsRequest,
             },
-            Runner,
         },
-        prelude::*,
+        Module, OsmosisTestApp, Runner,
     };
+    use cw_orch_osmosis_test_tube::OsmosisTestTube;
+
+    use cw_orch::{interface, prelude::*};
     use speculoos::prelude::*;
 
     const OSMOSIS: &str = "osmosis";
@@ -493,7 +491,7 @@ mod osmosis_test {
             MsgAddToGauge {
                 owner: chain.sender().to_string(),
                 gauge_id: gauge_id_for_refill,
-                rewards: vec![cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::cosmos::base::v1beta1::Coin {
+                rewards: vec![cw_orch_osmosis_test_tube::osmosis_test_tube::osmosis_std::types::cosmos::base::v1beta1::Coin {
                     denom: ASSET_1.to_owned(),
                     amount: "100000000".to_owned(),
                 }],
@@ -538,7 +536,7 @@ mod osmosis_test {
                     duration: Some(lockable_durations.lockable_durations[0].clone()),
                     timestamp: None,
                 }),
-                coins: vec![cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::cosmos::base::v1beta1::Coin {
+                coins: vec![cw_orch_osmosis_test_tube::osmosis_test_tube::osmosis_std::types::cosmos::base::v1beta1::Coin {
                     denom: ASSET_1.to_owned(),
                     amount: "100000000".to_owned(),
                 }],
@@ -608,18 +606,18 @@ mod osmosis_test {
         .collect());
 
         let bin = to_json_binary(&value).unwrap();
-        let gauge_by_id_response = from_json::<cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::GaugeByIdResponse>(bin);
+        let gauge_by_id_response = from_json::<cw_orch_osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::GaugeByIdResponse>(bin);
         assert!(gauge_by_id_response.is_err());
     }
 }
 
 #[allow(unused)]
 pub mod incentives {
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::{
+    use cw_orch_osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::incentives::{
         GaugeByIdRequest, GaugeByIdResponse, MsgAddToGauge, MsgAddToGaugeResponse, MsgCreateGauge,
         MsgCreateGaugeResponse, QueryLockableDurationsRequest, QueryLockableDurationsResponse,
     };
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::{fn_execute, fn_query, Module, Runner};
+    use cw_orch_osmosis_test_tube::osmosis_test_tube::{fn_execute, fn_query, Module, Runner};
 
     pub struct Incentives<'a, R: Runner<'a>> {
         runner: &'a R,
@@ -655,7 +653,7 @@ pub mod incentives {
 
 #[allow(unused)]
 pub mod poolincentives {
-    use cw_orch::osmosis_test_tube::osmosis_test_tube::{
+    use cw_orch_osmosis_test_tube::osmosis_test_tube::{
         fn_execute, fn_query,
         osmosis_std::types::osmosis::poolincentives::v1beta1::{
             QueryGaugeIdsRequest, QueryGaugeIdsResponse,

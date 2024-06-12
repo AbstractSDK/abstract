@@ -105,7 +105,6 @@ pub enum DexExecuteMsg {
 /// Query messages for the dex adapter
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
-#[impl_into(QueryMsg)]
 pub enum DexQueryMsg {
     /// Simulate a swap between two assets
     /// Returns [`SimulateSwapResponse`]

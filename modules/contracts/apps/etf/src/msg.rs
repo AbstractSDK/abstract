@@ -64,10 +64,9 @@ pub struct EtfInstantiateMsg {
 /// Execute Msg
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-#[impl_into(ExecuteMsg)]
 pub enum EtfExecuteMsg {
     /// Deposit asset into the ETF
-    #[payable]
+    #[cw_orch(payable)]
     Deposit {
         /// Asset to deposit
         asset: AssetUnchecked,
@@ -82,7 +81,6 @@ pub enum EtfExecuteMsg {
 /// Query Msg
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
-#[impl_into(QueryMsg)]
 pub enum EtfQueryMsg {
     // Add dapp-specific queries here
     /// Returns [`StateResponse`]

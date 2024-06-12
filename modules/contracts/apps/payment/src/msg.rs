@@ -28,9 +28,8 @@ pub struct AppInstantiateMsg {
 /// PaymentApp execute messages
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-#[impl_into(ExecuteMsg)]
 pub enum AppExecuteMsg {
-    #[payable]
+    #[cw_orch(payable)]
     Tip {},
     UpdateConfig {
         desired_asset: Option<Clearable<AssetEntry>>,
@@ -41,7 +40,6 @@ pub enum AppExecuteMsg {
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
-#[impl_into(QueryMsg)]
 pub enum AppQueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]

@@ -60,7 +60,7 @@ fn account_creation() -> anyhow::Result<()> {
     abstr_origin
         .ibc
         .host
-        .register_chain_proxy(chain.into(), sender.to_string())?;
+        .register_chain_proxy(chain, sender.to_string())?;
 
     // Verify chain proxy via query
     let client_proxy_response: ClientProxyResponse =
@@ -115,7 +115,7 @@ fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
         .ibc
         .host
         .call_as(&chain.addr_make("user"))
-        .register_chain_proxy(chain_name.into(), sender.to_string())
+        .register_chain_proxy(chain_name, sender.to_string())
         .unwrap_err();
 
     assert_eq!(
@@ -142,7 +142,7 @@ fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
         .ibc
         .host
         .call_as(&chain.addr_make("user"))
-        .remove_chain_proxy(chain_name.into())
+        .remove_chain_proxy(chain_name)
         .unwrap_err();
 
     assert_eq!(
@@ -184,7 +184,7 @@ fn account_creation_full() -> anyhow::Result<()> {
     abstr_origin
         .ibc
         .host
-        .register_chain_proxy(chain_name.into(), sender.to_string())?;
+        .register_chain_proxy(chain_name, sender.to_string())?;
 
     // Add asset to set base_asset
     abstr_origin.ans_host.update_asset_addresses(
@@ -256,7 +256,7 @@ fn account_action() -> anyhow::Result<()> {
     abstr_origin
         .ibc
         .host
-        .register_chain_proxy(chain.into(), sender.to_string())?;
+        .register_chain_proxy(chain, sender.to_string())?;
 
     // We create the account
     let proxy_addr = mock.addr_make("proxy_address");
@@ -327,7 +327,7 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
     abstr
         .ibc
         .host
-        .register_chain_proxy(chain.into(), admin.to_string())?;
+        .register_chain_proxy(chain, admin.to_string())?;
 
     // We call the action
     let account_action_response = abstr
@@ -381,7 +381,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     abstr
         .ibc
         .host
-        .register_chain_proxy(chain.into(), polytone_proxy.to_string())?;
+        .register_chain_proxy(chain, polytone_proxy.to_string())?;
 
     // Add the juno token ics20 channel.
     abstr.ans_host.update_channels(
