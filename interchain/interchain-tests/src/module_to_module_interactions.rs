@@ -1,6 +1,6 @@
 pub use abstract_std::app;
 use abstract_std::{
-    ibc::{Callback, CallbackResult},
+    ibc::{Callback, IbcResult},
     ibc_client::{self},
     objects::module::ModuleInfo,
     IBC_CLIENT,
@@ -200,7 +200,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
         .with_ibc_callback(|deps, _, _, _, _, result| match result {
-            CallbackResult::Query {
+            IbcResult::Query {
                 queries: _,
                 results,
             } => {
@@ -211,11 +211,11 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     .unwrap();
                 Ok(Response::new().add_attribute("mock_callback_query", "executed"))
             }
-            CallbackResult::Execute { .. } => {
+            IbcResult::Execute { .. } => {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().add_attribute("mock_callback", "executed"))
             }
-            CallbackResult::FatalError(_) => todo!(),
+            IbcResult::FatalError(_) => todo!(),
         })
         .with_replies(&[(1u64, |_, _, _, msg| {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
