@@ -535,6 +535,24 @@
         "type": "string"
       },
       "Callback": {
+        "description": "Callback from modules, that is turned into an IbcResponseMsg by the ibc client A callback can only be sent to itself",
+        "type": "object",
+        "required": [
+          "msg"
+        ],
+        "properties": {
+          "msg": {
+            "description": "Used to add information to the callback. This is usually used to provide information to the ibc callback function for context",
+            "allOf": [
+              {
+                "$ref": "#/definitions/Binary"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Callback2": {
         "oneOf": [
           {
             "description": "Result of executing the requested query, or an error.\n\nresult[i] corresponds to the i'th query and contains the base64 encoded query response.",
@@ -577,31 +595,6 @@
           }
         ]
       },
-      "CallbackInfo": {
-        "description": "CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client A callback can only be sent to itself",
-        "type": "object",
-        "required": [
-          "id"
-        ],
-        "properties": {
-          "id": {
-            "description": "Used to identify the callback that is sent (acts like the reply ID)",
-            "type": "string"
-          },
-          "msg": {
-            "description": "Used to add information to the callback. This is usually used to provide information to the ibc callback function for context",
-            "anyOf": [
-              {
-                "$ref": "#/definitions/Binary"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
       "CallbackMessage": {
         "description": "Executed on the callback receiver upon message completion. When being executed, the message will be tagged with \"callback\":\n\n```json {\"callback\": { \"initiator\": ..., \"initiator_msg\": ..., \"result\": ..., }} ```",
         "type": "object",
@@ -631,7 +624,7 @@
             "description": "Data from the host chain.",
             "allOf": [
               {
-                "$ref": "#/definitions/Callback"
+                "$ref": "#/definitions/Callback2"
               }
             ]
           }
@@ -1172,11 +1165,11 @@
                   "target_module"
                 ],
                 "properties": {
-                  "callback_info": {
+                  "callback": {
                     "description": "Callback info to identify the callback that is sent (acts similar to the reply ID)",
                     "anyOf": [
                       {
-                        "$ref": "#/definitions/CallbackInfo"
+                        "$ref": "#/definitions/Callback"
                       },
                       {
                         "type": "null"
@@ -1219,16 +1212,16 @@
               "ibc_query": {
                 "type": "object",
                 "required": [
-                  "callback_info",
+                  "callback",
                   "host_chain",
-                  "query"
+                  "queries"
                 ],
                 "properties": {
-                  "callback_info": {
+                  "callback": {
                     "description": "Callback info to identify the callback that is sent (acts similar to the reply ID)",
                     "allOf": [
                       {
-                        "$ref": "#/definitions/CallbackInfo"
+                        "$ref": "#/definitions/Callback"
                       }
                     ]
                   },
@@ -1236,13 +1229,12 @@
                     "description": "host chain to be executed on Example: \"osmosis\"",
                     "type": "string"
                   },
-                  "query": {
-                    "description": "Cosmos Query request",
-                    "allOf": [
-                      {
-                        "$ref": "#/definitions/QueryRequest_for_Empty"
-                      }
-                    ]
+                  "queries": {
+                    "description": "Cosmos Query requests",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/QueryRequest_for_Empty"
+                    }
                   }
                 },
                 "additionalProperties": false

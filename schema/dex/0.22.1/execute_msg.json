@@ -362,72 +362,23 @@
       "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
       "type": "string"
     },
-    "CallbackResult": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "query"
-          ],
-          "properties": {
-            "query": {
-              "type": "object",
-              "required": [
-                "query",
-                "result"
-              ],
-              "properties": {
-                "query": {
-                  "$ref": "#/definitions/QueryRequest_for_Empty"
-                },
-                "result": {
-                  "$ref": "#/definitions/Result_of_Array_of_Binary_or_ErrorResponse"
-                }
-              },
-              "additionalProperties": false
+    "Callback": {
+      "description": "Callback from modules, that is turned into an IbcResponseMsg by the ibc client A callback can only be sent to itself",
+      "type": "object",
+      "required": [
+        "msg"
+      ],
+      "properties": {
+        "msg": {
+          "description": "Used to add information to the callback. This is usually used to provide information to the ibc callback function for context",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Binary"
             }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "execute"
-          ],
-          "properties": {
-            "execute": {
-              "type": "object",
-              "required": [
-                "initiator_msg",
-                "result"
-              ],
-              "properties": {
-                "initiator_msg": {
-                  "$ref": "#/definitions/Binary"
-                },
-                "result": {
-                  "$ref": "#/definitions/Result_of_ExecutionResponse_or_String"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "An error occured that could not be recovered from. The only known way that this can occur is message handling running out of gas, in which case the error will be `codespace: sdk, code: 11`.\n\nThis error is not named becuase it could also occur due to a panic or unhandled error during message processing. We don't expect this to happen and have carefully written the code to avoid it.",
-          "type": "object",
-          "required": [
-            "fatal_error"
-          ],
-          "properties": {
-            "fatal_error": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
+          ]
         }
-      ]
+      },
+      "additionalProperties": false
     },
     "ChainName": {
       "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
@@ -1132,40 +1083,102 @@
       "description": "IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg",
       "type": "object",
       "required": [
-        "id",
+        "callback",
         "result"
       ],
       "properties": {
-        "id": {
-          "description": "The ID chosen by the caller in the `callback_info.id`",
-          "type": "string"
-        },
-        "msg": {
-          "description": "The msg sent with the callback request. This is usually used to provide information to the ibc callback function for context",
-          "anyOf": [
+        "callback": {
+          "description": "The msg sent with the callback request.",
+          "allOf": [
             {
-              "$ref": "#/definitions/Binary"
-            },
-            {
-              "type": "null"
+              "$ref": "#/definitions/Callback"
             }
           ]
         },
         "result": {
-          "$ref": "#/definitions/CallbackResult"
+          "$ref": "#/definitions/IbcResult"
         }
       },
       "additionalProperties": false
     },
-    "ModuleIbcMsg": {
+    "IbcResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "query"
+          ],
+          "properties": {
+            "query": {
+              "type": "object",
+              "required": [
+                "queries",
+                "results"
+              ],
+              "properties": {
+                "queries": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/QueryRequest_for_Empty"
+                  }
+                },
+                "results": {
+                  "$ref": "#/definitions/Result_of_Array_of_Binary_or_ErrorResponse"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "execute"
+          ],
+          "properties": {
+            "execute": {
+              "type": "object",
+              "required": [
+                "initiator_msg",
+                "result"
+              ],
+              "properties": {
+                "initiator_msg": {
+                  "$ref": "#/definitions/Binary"
+                },
+                "result": {
+                  "$ref": "#/definitions/Result_of_ExecutionResponse_or_String"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "An error occured that could not be recovered from. The only known way that this can occur is message handling running out of gas, in which case the error will be `codespace: sdk, code: 11`.\n\nThis error is not named becuase it could also occur due to a panic or unhandled error during message processing. We don't expect this to happen and have carefully written the code to avoid it.",
+          "type": "object",
+          "required": [
+            "fatal_error"
+          ],
+          "properties": {
+            "fatal_error": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ModuleIbcInfo": {
       "type": "object",
       "required": [
-        "client_chain",
-        "msg",
-        "source_module"
+        "chain",
+        "module"
       ],
       "properties": {
-        "client_chain": {
+        "chain": {
           "description": "Remote chain identification",
           "allOf": [
             {
@@ -1173,6 +1186,24 @@
             }
           ]
         },
+        "module": {
+          "description": "Information about the module that called ibc action on this module",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ModuleInfo"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ModuleIbcMsg": {
+      "type": "object",
+      "required": [
+        "msg",
+        "src_module_info"
+      ],
+      "properties": {
         "msg": {
           "description": "The message sent by the module",
           "allOf": [
@@ -1181,11 +1212,11 @@
             }
           ]
         },
-        "source_module": {
-          "description": "Information about the module that called ibc action on this module",
+        "src_module_info": {
+          "description": "Sender Module Identification",
           "allOf": [
             {
-              "$ref": "#/definitions/ModuleInfo"
+              "$ref": "#/definitions/ModuleIbcInfo"
             }
           ]
         }
