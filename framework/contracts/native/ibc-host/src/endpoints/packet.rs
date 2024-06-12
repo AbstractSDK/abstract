@@ -1,6 +1,6 @@
 use abstract_std::{
     base::ExecuteMsg as MiddlewareExecMsg,
-    ibc::ModuleIbcMsg,
+    ibc::{ModuleIbcInfo, ModuleIbcMsg},
     ibc_client::InstalledModuleIdentification,
     ibc_host::{
         state::{ActionAfterCreationCache, CONFIG, TEMP_ACTION_AFTER_CREATION},
@@ -123,7 +123,7 @@ pub fn handle_host_action(
 /// Handle actions that are passed to the IBC host contract and originate from a registered module
 pub fn handle_host_module_execution(
     deps: DepsMut,
-    client_chain: ChainName,
+    src_chain: ChainName,
     source_module: InstalledModuleIdentification,
     target_module: ModuleInfo,
     msg: Binary,
@@ -134,7 +134,7 @@ pub fn handle_host_module_execution(
         module_info: target_module,
         account_id: source_module
             .account_id
-            .map(|a| client_to_host_account_id(client_chain.clone(), a)),
+            .map(|a| client_to_host_account_id(src_chain.clone(), a)),
     };
 
     let target_module_resolved = target_module.addr(deps.as_ref(), vc)?;
@@ -153,8 +153,10 @@ pub fn handle_host_module_execution(
     let msg = wasm_execute(
         target_module_resolved.address,
         &MiddlewareExecMsg::ModuleIbc::<Empty, Empty>(ModuleIbcMsg {
-            client_chain,
-            source_module: source_module.module_info,
+            src_module_info: ModuleIbcInfo {
+                chain: src_chain,
+                module: source_module.module_info,
+            },
             msg,
         }),
         vec![],

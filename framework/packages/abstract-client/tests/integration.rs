@@ -716,6 +716,7 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
     Ok(())
 }
 
+/// ANCHOR: mock_integration_test
 #[test]
 fn can_execute_on_proxy() -> anyhow::Result<()> {
     let denom = "denom";
@@ -739,6 +740,7 @@ fn can_execute_on_proxy() -> anyhow::Result<()> {
     assert_eq!(amount, client.query_balance(&user, denom)?.into());
     Ok(())
 }
+/// ANCHOR_END: mock_integration_test
 
 #[test]
 fn resolve_works() -> anyhow::Result<()> {

@@ -8,7 +8,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     app::AppState,
-    ibc::{CallbackInfo, ModuleQuery},
+    ibc::{Callback, ModuleQuery},
     ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback, InstalledModuleIdentification,
@@ -224,7 +224,7 @@ pub fn execute_send_module_to_module_packet(
     host_chain: String,
     target_module: ModuleInfo,
     msg: Binary,
-    callback_info: Option<CallbackInfo>,
+    callback: Option<Callback>,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
     let cfg = CONFIG.load(deps.storage)?;
@@ -264,11 +264,11 @@ pub fn execute_send_module_to_module_packet(
     // We send a message to the target module on the remote chain
     // Send this message via the Polytone implementation
 
-    let callback_request = callback_info.map(|c| CallbackRequest {
+    let callback_request = callback.map(|c| CallbackRequest {
         receiver: env.contract.address.to_string(),
         msg: to_json_binary(&IbcClientCallback::ModuleRemoteAction {
             sender_address: info.sender.to_string(),
-            callback_info: c,
+            callback: c,
             initiator_msg: msg.clone(),
         })
         .unwrap(),
@@ -307,48 +307,32 @@ pub fn execute_send_query(
     env: Env,
     info: MessageInfo,
     host_chain: String,
-    query: QueryRequest<ModuleQuery>,
-    callback_info: CallbackInfo,
+    queries: Vec<QueryRequest<ModuleQuery>>,
+    callback: Callback,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
+    let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
 
-    let ibc_client_callback = IbcClientCallback::ModuleRemoteQuery {
-        callback_info,
+    let callback_msg = to_json_binary(&IbcClientCallback::ModuleRemoteQuery {
+        callback,
         sender_address: info.sender.to_string(),
-        query: query.clone(),
-    };
+        // We send un-mapped queries here to enable easily mapping to them.
+        queries: queries.clone(),
+    }).unwrap();
+
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
         msg: to_json_binary(&ibc_client_callback).unwrap(),
     };
 
-    // Convert it to polytone(empty) query
-    let query: QueryRequest<Empty> = match query {
-        QueryRequest::Custom(ModuleQuery { target_module, msg }) => {
-            let deps = deps.as_ref();
-            let host_chain = &host_chain;
-            let ibc_infra = IBC_INFRA.load(deps.storage, host_chain)?;
-            let remote_ibc_host = ibc_infra.remote_abstract_host;
-            QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: remote_ibc_host,
-                msg: to_json_binary(&ibc_host::QueryMsg::ModuleQuery { target_module, msg })?,
-            })
-        }
-        QueryRequest::Bank(query) => QueryRequest::Bank(query),
-        QueryRequest::Staking(query) => QueryRequest::Staking(query),
-        QueryRequest::Distribution(query) => QueryRequest::Distribution(query),
-        QueryRequest::Stargate { path, data } => QueryRequest::Stargate { path, data },
-        QueryRequest::Ibc(query) => QueryRequest::Ibc(query),
-        QueryRequest::Wasm(query) => QueryRequest::Wasm(query),
-        _ => unimplemented!("Not implemented type of query"),
-    };
+    // Convert custom query type to executable queries
+    let queries: Vec<QueryRequest<Empty>> = queries.into_iter().map(|q| map_query(&ibc_infra.host, q)).collect();
 
-    let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
     let note_contract = ibc_infra.polytone_note;
     let note_message = wasm_execute(
         note_contract.to_string(),
         &polytone_note::msg::ExecuteMsg::Query {
-            msgs: vec![query],
+            msgs: queries,
             callback: callback_request,
             timeout_seconds: PACKET_LIFETIME.into(),
         },
@@ -459,4 +443,22 @@ pub fn execute_send_funds(
 
 fn clear_accounts(store: &mut dyn Storage) {
     ACCOUNTS.clear(store);
+}
+// Map a ModuleQuery to a regular query.
+fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>)-> QueryRequest<Empty> {
+    match query {
+        QueryRequest::Custom(ModuleQuery { target_module, msg }) => {
+            QueryRequest::Wasm(WasmQuery::Smart {
+                contract_addr: ibc_host.into(),
+                msg: to_json_binary(&ibc_host::QueryMsg::ModuleQuery { target_module, msg })?,
+            })
+        }
+        QueryRequest::Bank(query) => QueryRequest::Bank(query),
+        QueryRequest::Staking(query) => QueryRequest::Staking(query),
+        QueryRequest::Distribution(query) => QueryRequest::Distribution(query),
+        QueryRequest::Stargate { path, data } => QueryRequest::Stargate { path, data },
+        QueryRequest::Ibc(query) => QueryRequest::Ibc(query),
+        QueryRequest::Wasm(query) => QueryRequest::Wasm(query),
+        _ => unimplemented!("Not implemented type of query"),
+    }
 }

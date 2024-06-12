@@ -1,6 +1,6 @@
 pub use abstract_std::app;
 use abstract_std::{
-    ibc::{CallbackInfo, CallbackResult, ModuleIbcMsg},
+    ibc::{Callback, IbcResult, ModuleIbcMsg},
     ibc_client::{self, InstalledModuleIdentification},
     objects::{chain_name::ChainName, module::ModuleInfo},
     IBC_CLIENT,
@@ -158,9 +158,8 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                             ibc_msg: "module_to_module:msg".to_string(),
                         })
                         .unwrap(),
-                        callback_info: Some(CallbackInfo {
-                            id: "c_id".to_string(),
-                            msg: None,
+                        callback: Some(Callback {
+                            msg: to_json_binary(&Empty {})?,
                         }),
                     },
                     vec![],
@@ -178,13 +177,12 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     ibc_client_addr,
                     &ibc_client::ExecuteMsg::IbcQuery {
                         host_chain: remote_chain,
-                        callback_info: CallbackInfo {
-                            id: "query_id".to_string(),
-                            msg: None,
+                        callback: Callback {
+                            msg: to_json_binary(&Empty {})?,
                         },
-                        query: cosmwasm_std::QueryRequest::Bank(
+                        queries: vec![cosmwasm_std::QueryRequest::Bank(
                             cosmwasm_std::BankQuery::AllBalances { address },
-                        ),
+                        )],
                     },
                     vec![],
                 )?;
@@ -242,8 +240,19 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[
-            ("c_id", |deps, _, _, _, _| {
+        .with_ibc_callback(|deps, _, _, _, _, result| match result {
+            IbcResult::Query {
+                queries: _,
+                results,
+            } => {
+                let result = results.unwrap()[0].clone();
+                let deser: AllBalanceResponse = from_json(result)?;
+                IBC_CALLBACK_QUERY_RECEIVED
+                    .save(deps.storage, &deser.amount)
+                    .unwrap();
+                Ok(Response::new().add_attribute("mock_callback_query", "executed"))
+            }
+            IbcResult::Execute { .. } => {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().add_attribute("mock_callback", "executed"))
             }),
@@ -269,10 +278,9 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())))
-        .with_module_ibc(|deps, _, _, msg| {
-            let ModuleIbcMsg { source_module, .. } = msg;
+        .with_module_ibc(|deps, _, _, src_module_info, _| {
             // We save the module info status
-            MODULE_IBC_RECEIVED.save(deps.storage, &source_module)?;
+            MODULE_IBC_RECEIVED.save(deps.storage, &src_module_info.module)?;
             Ok(Response::new().add_attribute("mock_module_ibc", "executed"))
         })
 }
