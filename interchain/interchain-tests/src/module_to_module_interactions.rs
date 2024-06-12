@@ -1,6 +1,6 @@
 pub use abstract_std::app;
 use abstract_std::{
-    ibc::{CallbackInfo, CallbackResult, ModuleIbcMsg},
+    ibc::{Callback, IbcResult},
     ibc_client::{self},
     objects::module::ModuleInfo,
     IBC_CLIENT,
@@ -8,7 +8,7 @@ use abstract_std::{
 use cosmwasm_schema::{cw_serde, QueryResponses};
 pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{
-    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Response, StdError,
+    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Empty, Response, StdError,
 };
 use cw_controllers::AdminError;
 use cw_storage_plus::Item;
@@ -144,9 +144,8 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                             ibc_msg: "module_to_module:msg".to_string(),
                         })
                         .unwrap(),
-                        callback_info: Some(CallbackInfo {
-                            id: "c_id".to_string(),
-                            msg: None,
+                        callback: Some(Callback {
+                            msg: to_json_binary(&Empty {})?,
                         }),
                     },
                     vec![],
@@ -164,13 +163,12 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     ibc_client_addr,
                     &ibc_client::ExecuteMsg::IbcQuery {
                         host_chain: remote_chain,
-                        callback_info: CallbackInfo {
-                            id: "query_id".to_string(),
-                            msg: None,
+                        callback: Callback {
+                            msg: to_json_binary(&Empty {})?,
                         },
-                        query: cosmwasm_std::QueryRequest::Bank(
+                        queries: vec![cosmwasm_std::QueryRequest::Bank(
                             cosmwasm_std::BankQuery::AllBalances { address },
-                        ),
+                        )],
                     },
                     vec![],
                 )?;
@@ -201,31 +199,31 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[
-            ("c_id", |deps, _, _, _, _| {
+        .with_ibc_callback(|deps, _, _, _, _, result| match result {
+            IbcResult::Query {
+                queries: _,
+                results,
+            } => {
+                let result = results.unwrap()[0].clone();
+                let deser: AllBalanceResponse = from_json(result)?;
+                IBC_CALLBACK_QUERY_RECEIVED
+                    .save(deps.storage, &deser.amount)
+                    .unwrap();
+                Ok(Response::new().add_attribute("mock_callback_query", "executed"))
+            }
+            IbcResult::Execute { .. } => {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().add_attribute("mock_callback", "executed"))
-            }),
-            ("query_id", |deps, _, _, _, msg| match msg.result {
-                CallbackResult::Query { query: _, result } => {
-                    let result = result.unwrap()[0].clone();
-                    let deser: AllBalanceResponse = from_json(result)?;
-                    IBC_CALLBACK_QUERY_RECEIVED
-                        .save(deps.storage, &deser.amount)
-                        .unwrap();
-                    Ok(Response::new().add_attribute("mock_callback_query", "executed"))
-                }
-                _ => panic!("Expected query result"),
-            }),
-        ])
+            }
+            IbcResult::FatalError(_) => todo!(),
+        })
         .with_replies(&[(1u64, |_, _, _, msg| {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())))
-        .with_module_ibc(|deps, _, _, msg| {
-            let ModuleIbcMsg { source_module, .. } = msg;
+        .with_module_ibc(|deps, _, _, src_module_info, _| {
             // We save the module info status
-            MODULE_IBC_RECEIVED.save(deps.storage, &source_module)?;
+            MODULE_IBC_RECEIVED.save(deps.storage, &src_module_info.module)?;
             Ok(Response::new().add_attribute("mock_module_ibc", "executed"))
         })
 }
@@ -308,10 +306,9 @@ pub mod test {
     use abstract_std::manager::{self, ModuleInstallConfig};
     use abstract_testing::addresses::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION};
     use anyhow::Result as AnyResult;
-    use base64::{engine::general_purpose, Engine};
     use cosmwasm_std::{coins, to_json_binary};
-    use cw_orch::interchain::MockBech32InterchainEnv;
     use cw_orch::prelude::*;
+    use cw_orch_interchain::{prelude::*, types::IbcPacketOutcome};
 
     #[test]
     fn target_module_must_exist() -> AnyResult<()> {
@@ -354,23 +351,12 @@ pub mod test {
             target_module_info
         );
         match &ibc_result.packets[0].outcome {
-            cw_orch::interchain::types::IbcPacketOutcome::Timeout { .. } => {
+            IbcPacketOutcome::Timeout { .. } => {
                 panic!("Expected a failed ack not a timeout !")
             }
-            cw_orch::interchain::types::IbcPacketOutcome::Success { ack, .. } => match ack {
-                cw_orch::interchain::types::IbcPacketAckDecode::Error(e) => {
-                    assert!(e.contains(&expected_error_outcome));
-                }
-                cw_orch::interchain::types::IbcPacketAckDecode::Success(_) => {
-                    panic!("Expected a error ack")
-                }
-                cw_orch::interchain::types::IbcPacketAckDecode::NotParsed(original_ack) => {
-                    let error_str =
-                        String::from_utf8_lossy(&general_purpose::STANDARD.decode(original_ack)?)
-                            .to_string();
-                    assert!(error_str.contains(&expected_error_outcome));
-                }
-            },
+            IbcPacketOutcome::Success { ack, .. } => assert!(String::from_utf8_lossy(ack)
+                .to_string()
+                .contains(&expected_error_outcome)),
         }
 
         Ok(())
@@ -430,23 +416,12 @@ pub mod test {
         let expected_error_outcome =
             format!("App {} not installed on Account", target_module_info,);
         match &ibc_result.packets[0].outcome {
-            cw_orch::interchain::types::IbcPacketOutcome::Timeout { .. } => {
+            IbcPacketOutcome::Timeout { .. } => {
                 panic!("Expected a failed ack not a timeout !")
             }
-            cw_orch::interchain::types::IbcPacketOutcome::Success { ack, .. } => match ack {
-                cw_orch::interchain::types::IbcPacketAckDecode::Error(e) => {
-                    assert!(e.contains(&expected_error_outcome));
-                }
-                cw_orch::interchain::types::IbcPacketAckDecode::Success(_) => {
-                    panic!("Expected a error ack")
-                }
-                cw_orch::interchain::types::IbcPacketAckDecode::NotParsed(original_ack) => {
-                    let error_str =
-                        String::from_utf8_lossy(&general_purpose::STANDARD.decode(original_ack)?)
-                            .to_string();
-                    assert!(error_str.contains(&expected_error_outcome));
-                }
-            },
+            IbcPacketOutcome::Success { ack, .. } => assert!(String::from_utf8_lossy(ack)
+                .to_string()
+                .contains(&expected_error_outcome)),
         }
 
         Ok(())
@@ -506,7 +481,7 @@ pub mod test {
             },
         )?;
 
-        mock_interchain.wait_ibc(JUNO, remote_install_response)?;
+        mock_interchain.check_ibc(JUNO, remote_install_response)?;
 
         // We get the object for handling the actual module on the remote account
         let remote_manager = abstr_remote
@@ -534,7 +509,7 @@ pub mod test {
         assert_remote_module_call_status(&remote_account_app, None)?;
         assert_callback_status(&app, false)?;
 
-        mock_interchain.wait_ibc(JUNO, ibc_action_result)?;
+        mock_interchain.check_ibc(JUNO, ibc_action_result)?;
 
         assert_remote_module_call_status(
             &remote_account_app,
@@ -582,7 +557,7 @@ pub mod test {
         let query_response = app.query_something_ibc(remote_address.to_string(), remote_name)?;
 
         assert_query_callback_status(&app, coins(REMOTE_AMOUNT, REMOTE_DENOM)).unwrap_err();
-        mock_interchain.wait_ibc(JUNO, query_response)?;
+        mock_interchain.check_ibc(JUNO, query_response)?;
         assert_query_callback_status(&app, coins(REMOTE_AMOUNT, REMOTE_DENOM))?;
 
         Ok(())
@@ -650,7 +625,7 @@ pub mod test {
                 },
             )?;
 
-            mock_interchain.wait_ibc(JUNO, remote_install_response)?;
+            mock_interchain.check_ibc(JUNO, remote_install_response)?;
 
             // We get the object for handling the actual module on the remote account
             let remote_manager = abstr_remote

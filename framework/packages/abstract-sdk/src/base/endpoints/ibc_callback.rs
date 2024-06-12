@@ -1,3 +1,4 @@
+use crate::base::features::ModuleIdentification;
 use crate::{base::Handler, AbstractSdkError};
 use abstract_std::ibc::IbcResponseMsg;
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
@@ -25,10 +26,12 @@ pub trait IbcCallbackEndpoint: Handler {
             }
             .into());
         };
-        let maybe_handler = self.maybe_ibc_callback_handler(&msg.id);
-        maybe_handler.map_or_else(
-            || Ok(Response::new()),
-            |handler| handler(deps, env, info, self, msg),
-        )
+        let ibc_callback_handler =
+            self.maybe_ibc_callback_handler()
+                .ok_or(AbstractSdkError::NoModuleIbcHandler(
+                    self.module_id().to_string(),
+                ))?;
+
+        ibc_callback_handler(deps, env, info, self, msg.callback, msg.result)
     }
 }

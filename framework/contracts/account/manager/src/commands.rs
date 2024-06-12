@@ -26,7 +26,7 @@ use abstract_std::{
     },
     proxy::{state::ACCOUNT_ID, ExecuteMsg as ProxyMsg},
     version_control::ModuleResponse,
-    IBC_CLIENT, MANAGER, PROXY,
+    MANAGER, PROXY,
 };
 use cosmwasm_std::{
     ensure, from_json, to_json_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg,
@@ -96,7 +96,7 @@ pub fn install_modules(
 
     let config = CONFIG.load(deps.storage)?;
 
-    let (register_on_proxy, install_msg, install_attribute) = install_modules_internal(
+    let (install_msgs, install_attribute) = _install_modules(
         deps.branch(),
         modules,
         config.module_factory_address,
@@ -104,21 +104,20 @@ pub fn install_modules(
         msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
     )?;
     let response = ManagerResponse::new("install_modules", std::iter::once(install_attribute))
-        .add_message(register_on_proxy)
-        .add_submessage(install_msg);
+        .add_submessages(install_msgs);
 
     Ok(response)
 }
 
 /// Generate message and attribute for installing module
 /// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
-pub(crate) fn install_modules_internal(
+pub(crate) fn _install_modules(
     mut deps: DepsMut,
     modules: Vec<ModuleInstallConfig>,
     module_factory_address: Addr,
     version_control_address: Addr,
     funds: Vec<Coin>,
-) -> ManagerResult<(CosmosMsg, SubMsg, Attribute)> {
+) -> ManagerResult<(Vec<SubMsg>, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
     let mut manager_modules = Vec::with_capacity(modules.len());
     let account_id = ACCOUNT_ID.load(deps.storage)?;
@@ -149,7 +148,7 @@ pub(crate) fn install_modules_internal(
         installed_modules.push(module.info.id_with_version());
 
         let init_msg_salt = match &module.reference {
-            ModuleReference::Adapter(module_address) => {
+            ModuleReference::Adapter(module_address) | ModuleReference::Native(module_address) => {
                 to_add.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), None));
                 None
@@ -173,8 +172,7 @@ pub(crate) fn install_modules_internal(
 
                 Some(init_msg.unwrap())
             }
-            // TODO: do we want to support installing any other type of module here?
-            _ => unreachable!(),
+            _ => return Err(ManagerError::ModuleNotInstallable(module.info.to_string())),
         };
         manager_modules.push(FactoryModuleInstallConfig::new(module.info, init_msg_salt));
     }
@@ -189,7 +187,7 @@ pub(crate) fn install_modules_internal(
     // Update module addrs
     update_module_addresses(deps.branch(), Some(to_add), None)?;
 
-    let msg = wasm_execute(
+    let install_modules_msg = wasm_execute(
         module_factory_address,
         &ModuleFactoryMsg::InstallModules {
             modules: manager_modules,
@@ -197,9 +195,12 @@ pub(crate) fn install_modules_internal(
         },
         funds,
     )?;
+
     Ok((
-        add_to_proxy,
-        SubMsg::reply_on_success(msg, REGISTER_MODULES_DEPENDENCIES),
+        vec![
+            SubMsg::new(add_to_proxy),
+            SubMsg::reply_on_success(install_modules_msg, REGISTER_MODULES_DEPENDENCIES),
+        ],
         Attribute::new("installed_modules", format!("{installed_modules:?}")),
     ))
 }
@@ -386,6 +387,16 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     // only owner can uninstall modules
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
+    let (response, msg) = _uninstall_module(deps, module_id)?;
+
+    Ok(response.add_message(msg))
+}
+
+/// Marked as internal because no access control is done here
+pub(crate) fn _uninstall_module(
+    deps: DepsMut,
+    module_id: String,
+) -> ManagerResult<(Response, CosmosMsg)> {
     validation::validate_not_proxy(&module_id)?;
 
     // module can only be uninstalled if there are no dependencies on it
@@ -410,10 +421,10 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
         remove_module_from_proxy(proxy.into_string(), module_addr.into_string())?;
     ACCOUNT_MODULES.remove(deps.storage, &module_id);
 
-    Ok(
-        ManagerResponse::new("uninstall_module", vec![("module", module_id)])
-            .add_message(remove_from_proxy_msg),
-    )
+    Ok((
+        ManagerResponse::new("uninstall_module", vec![("module", module_id)]),
+        remove_from_proxy_msg,
+    ))
 }
 
 /// Proposes a new owner for the account.
@@ -912,58 +923,6 @@ pub fn update_suspension_status(
     Ok(response.add_abstract_attributes(vec![("is_suspended", is_suspended.to_string())]))
 }
 
-pub fn update_ibc_status(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    ibc_enabled: bool,
-    response: Response,
-) -> ManagerResult {
-    // only owner can update IBC status
-    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
-    let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
-
-    let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
-
-    let proxy_callback_msg = if ibc_enabled {
-        // we have an IBC client so can't add more
-        if maybe_client.is_some() {
-            return Err(ManagerError::ModuleAlreadyInstalled(IBC_CLIENT.to_string()));
-        }
-
-        install_ibc_client(deps, proxy)?
-    } else {
-        match maybe_client {
-            Some(ibc_client) => uninstall_ibc_client(deps, proxy, ibc_client)?,
-            None => return Err(ManagerError::ModuleNotFound(IBC_CLIENT.to_string())),
-        }
-    };
-
-    Ok(response
-        .add_abstract_attributes(vec![("ibc_enabled", ibc_enabled.to_string())])
-        .add_message(proxy_callback_msg))
-}
-
-pub fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
-    // retrieve the latest version
-    let ibc_client_module =
-        query_module(deps.as_ref(), ModuleInfo::from_id_latest(IBC_CLIENT)?, None)?;
-
-    let ibc_client_addr = ibc_client_module.module.reference.unwrap_native()?;
-
-    ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
-
-    Ok(add_modules_to_proxy(
-        proxy.into_string(),
-        vec![ibc_client_addr.to_string()],
-    )?)
-}
-
-fn uninstall_ibc_client(deps: DepsMut, proxy: Addr, ibc_client: Addr) -> StdResult<CosmosMsg> {
-    ACCOUNT_MODULES.remove(deps.storage, IBC_CLIENT);
-
-    remove_module_from_proxy(proxy.into_string(), ibc_client.into_string())
-}
-
 /// Query Version Control for the [`Module`] given the provided [`ContractVersion`]
 fn query_module(
     deps: Deps,
@@ -1121,7 +1080,7 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
 /// This function should return `Ok` when called by:
 /// - The owner of the contract (i.e. account).
 /// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
-fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
+pub fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
     let ownership_test = cw_ownable::assert_owner(deps.storage, sender);
 
     // If the sender is the owner, the admin test is passed
@@ -1759,101 +1718,6 @@ mod tests {
 
             Ok(())
         }
-    }
-
-    mod ibc_enabled {
-        use super::*;
-
-        const TEST_IBC_CLIENT_ADDR: &str = "ibc_client";
-
-        fn mock_installed_ibc_client(
-            deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
-        ) -> StdResult<()> {
-            ACCOUNT_MODULES.save(
-                &mut deps.storage,
-                IBC_CLIENT,
-                &Addr::unchecked(TEST_IBC_CLIENT_ADDR),
-            )
-        }
-
-        #[test]
-        fn only_owner() -> ManagerTestResult {
-            let msg = ExecuteMsg::UpdateSettings {
-                ibc_enabled: Some(true),
-            };
-
-            test_only_owner(msg)
-        }
-
-        #[test]
-        fn throws_if_disabling_without_ibc_client_installed() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            init_with_proxy(&mut deps);
-
-            let msg = ExecuteMsg::UpdateSettings {
-                ibc_enabled: Some(false),
-            };
-
-            let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(ManagerError::ModuleNotFound(IBC_CLIENT.to_string()));
-
-            Ok(())
-        }
-
-        #[test]
-        fn throws_if_enabling_when_already_enabled() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            init_with_proxy(&mut deps);
-
-            mock_installed_ibc_client(&mut deps)?;
-
-            let msg = ExecuteMsg::UpdateSettings {
-                ibc_enabled: Some(true),
-            };
-
-            let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that!(&res)
-                .is_err()
-                .matches(|e| matches!(e, ManagerError::ModuleAlreadyInstalled(_)));
-
-            Ok(())
-        }
-
-        #[test]
-        fn uninstall_callback_on_proxy() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            init_with_proxy(&mut deps);
-
-            mock_installed_ibc_client(&mut deps)?;
-
-            let msg = ExecuteMsg::UpdateSettings {
-                ibc_enabled: Some(false),
-            };
-
-            let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that!(&res).is_ok();
-
-            let msgs = res.unwrap().messages;
-            assert_that!(&msgs).has_length(1);
-
-            let msg = &msgs[0];
-
-            let expected_msg: CosmosMsg = wasm_execute(
-                TEST_PROXY_ADDR.to_string(),
-                &ProxyMsg::RemoveModule {
-                    module: TEST_IBC_CLIENT_ADDR.to_string(),
-                },
-                vec![],
-            )?
-            .into();
-            assert_that!(&msg.msg).is_equal_to(&expected_msg);
-
-            Ok(())
-        }
-
-        // integration tests
     }
 
     mod handle_callback {

@@ -10,7 +10,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use abstract_interchain_tests::{JUNO, STARGAZE};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, Uint128};
-use cw_orch::prelude::{queriers::Ibc, *};
+use cw_orch::prelude::queriers::Ibc;
+use cw_orch::prelude::*;
+use cw_orch_interchain::prelude::*;
 use cw_orch_proto::tokenfactory::{
     create_denom, create_transfer_channel, get_denom, mint, transfer_tokens,
 };
@@ -56,6 +58,8 @@ pub fn token_bridge() -> AnyResult<()> {
         None,
         None,
     )
+    .unwrap()
+    .into_result()
     .unwrap();
 
     // Get the denom from the trace on the receiving chain
@@ -91,6 +95,8 @@ pub fn token_bridge() -> AnyResult<()> {
         None,
         None,
     )
+    .unwrap()
+    .into_result()
     .unwrap();
 
     let balance = stargaze

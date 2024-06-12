@@ -66,6 +66,9 @@ pub enum ManagerError {
     #[error("The provided module {0} was not found")]
     ModuleNotFound(String),
 
+    #[error("The provided module {0} can't be installed on an Abstract account")]
+    ModuleNotInstallable(String),
+
     #[error("Module {module_id} with version {version} does not fit requirement {comp}, post_migration: {post_migration}")]
     VersionRequirementNotMet {
         module_id: String,

@@ -942,7 +942,7 @@
                 ],
                 "properties": {
                   "account_id": {
-                    "description": "If `None`, will create a new local account without asserting account-id.\n\nWhen provided: Signals the expected local Account Id. The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.",
+                    "description": "If `None`, will create a new local account without asserting account-id.\n\nWhen provided sequence in 0..2147483648 range: The tx will error When provided sequence in 2147483648..u32::MAX range: Signals use of unclaimed Account Id in this range. The tx will error if this account-id already claimed. Useful for instantiate2 address prediction.",
                     "type": [
                       "integer",
                       "null"
@@ -1060,28 +1060,6 @@
                 "type": "object",
                 "properties": {
                   "is_suspended": {
-                    "type": [
-                      "boolean",
-                      "null"
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Update settings for the Account, including IBC enabled, etc.",
-            "type": "object",
-            "required": [
-              "update_settings"
-            ],
-            "properties": {
-              "update_settings": {
-                "type": "object",
-                "properties": {
-                  "ibc_enabled": {
                     "type": [
                       "boolean",
                       "null"
