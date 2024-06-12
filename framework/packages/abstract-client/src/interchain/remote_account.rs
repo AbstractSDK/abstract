@@ -117,30 +117,30 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
 
     /// Unique namespace for the account
     /// Setting this will claim the namespace for the account on construction.
-    pub fn namespace(&mut self, namespace: Namespace) -> &mut Self {
+    pub fn namespace(mut self, namespace: Namespace) -> Self {
         self.namespace = Some(namespace);
         self
     }
 
     /// Base Asset for the account
-    pub fn base_asset(&mut self, base_asset: AssetEntry) -> &mut Self {
+    pub fn base_asset(mut self, base_asset: AssetEntry) -> Self {
         self.base_asset = Some(base_asset);
         self
     }
 
     /// Install an adapter on current account.
     pub fn install_adapter<M: InstallConfig<InitMsg = Empty>>(
-        &mut self,
-    ) -> AbstractClientResult<&mut Self> {
+        mut self,
+    ) -> AbstractClientResult<Self> {
         self.install_modules.push(M::install_config(&Empty {})?);
         Ok(self)
     }
 
     /// Install an application on current account.
     pub fn install_app<M: InstallConfig>(
-        &mut self,
+        mut self,
         configuration: &M::InitMsg,
-    ) -> AbstractClientResult<&mut Self> {
+    ) -> AbstractClientResult<Self> {
         self.install_modules.push(M::install_config(configuration)?);
         Ok(self)
     }
