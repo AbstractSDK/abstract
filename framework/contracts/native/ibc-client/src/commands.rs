@@ -461,10 +461,12 @@ fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<E
         }
         QueryRequest::Bank(query) => QueryRequest::Bank(query),
         QueryRequest::Staking(query) => QueryRequest::Staking(query),
-        QueryRequest::Distribution(query) => QueryRequest::Distribution(query),
         QueryRequest::Stargate { path, data } => QueryRequest::Stargate { path, data },
         QueryRequest::Ibc(query) => QueryRequest::Ibc(query),
         QueryRequest::Wasm(query) => QueryRequest::Wasm(query),
+        // Distribution flag not enabled on polytone, so should not be accepted. 
+        // https://github.com/DA0-DA0/polytone/blob/f70440a35f12f97a9018849ca7e6d241a53582ce/Cargo.toml#L30
+        // QueryRequest::Distribution(query) => QueryRequest::Distribution(query),
         _ => unimplemented!("Not implemented type of query"),
     }
 }
