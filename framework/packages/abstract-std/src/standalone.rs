@@ -7,11 +7,10 @@
 use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 
 use cosmwasm_std::Addr;
-#[allow(unused_imports)]
-use cw_controllers::AdminResponse;
+
 /// Used to instantiate Standalone
 #[cosmwasm_schema::cw_serde]
-pub struct BaseInstantiateMsg {
+pub struct StandaloneInstantiateMsg {
     pub ans_host_address: String,
     pub version_control_address: String,
 }

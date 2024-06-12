@@ -8,7 +8,7 @@ use cosmwasm_schema::QueryResponses;
 #[cosmwasm_schema::cw_serde]
 pub struct MyStandaloneInstantiateMsg {
     // This field will get auto-filled by module factory
-    pub base: standalone::BaseInstantiateMsg,
+    pub base: standalone::StandaloneInstantiateMsg,
     pub count: i32,
 }
 

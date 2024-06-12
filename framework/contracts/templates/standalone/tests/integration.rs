@@ -39,7 +39,7 @@ impl TestEnv<MockBech32> {
             .account()
             .install_standalone::<MyStandaloneInterface<_>>(
                 &MyStandaloneInstantiateMsg {
-                    base: standalone::BaseInstantiateMsg {
+                    base: standalone::StandaloneInstantiateMsg {
                         ans_host_address: abs_client.name_service().addr_str()?,
                         version_control_address: abs_client.version_control().addr_str()?,
                     },

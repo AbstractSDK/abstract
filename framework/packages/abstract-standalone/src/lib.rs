@@ -34,7 +34,7 @@ pub mod mock {
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockInitMsg {
-        pub base: standalone::BaseInstantiateMsg,
+        pub base: standalone::StandaloneInstantiateMsg,
         pub random_field: String,
     }
 

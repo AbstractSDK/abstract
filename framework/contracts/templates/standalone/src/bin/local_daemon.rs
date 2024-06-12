@@ -56,7 +56,7 @@ fn main() -> anyhow::Result<()> {
     // Installs the standalone on the Account
     let standalone = account.install_standalone::<MyStandaloneInterface<_>>(
         &MyStandaloneInstantiateMsg {
-            base: standalone::BaseInstantiateMsg {
+            base: standalone::StandaloneInstantiateMsg {
                 ans_host_address: abstract_client.name_service().addr_str()?,
                 version_control_address: abstract_client.version_control().addr_str()?,
             },

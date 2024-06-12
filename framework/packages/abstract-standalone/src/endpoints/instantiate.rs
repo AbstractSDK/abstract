@@ -4,7 +4,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     objects::module_version::set_module_data,
-    standalone::{BaseInstantiateMsg, StandaloneState},
+    standalone::{StandaloneInstantiateMsg, StandaloneState},
     AbstractError,
 };
 use cosmwasm_std::{Addr, DepsMut, Env};
@@ -18,10 +18,10 @@ impl StandaloneContract {
         &self,
         deps: DepsMut,
         env: &Env,
-        msg: BaseInstantiateMsg,
+        msg: StandaloneInstantiateMsg,
         is_migratable: bool,
     ) -> AbstractSdkResult<()> {
-        let BaseInstantiateMsg {
+        let StandaloneInstantiateMsg {
             ans_host_address,
             version_control_address,
         } = msg;

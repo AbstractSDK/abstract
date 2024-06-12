@@ -6,7 +6,7 @@ pub type CounterResult<T = Response> = Result<T, CounterError>;
 
 #[cosmwasm_schema::cw_serde]
 pub struct CounterInitMsg {
-    pub base: standalone::BaseInstantiateMsg,
+    pub base: standalone::StandaloneInstantiateMsg,
 }
 
 #[cosmwasm_schema::cw_serde]
