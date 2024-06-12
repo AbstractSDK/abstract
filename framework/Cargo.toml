@@ -57,9 +57,18 @@ cw-orch = { version = "0.22.0" }
 cw-orch-interchain = { version = "0.1.0" }
 tokio = { version = "1.4", features = ["full"] }
 
-polytone = { package = "abstract-polytone", version = "1.0.5" }
-polytone-note = { package = "abstract-polytone-note", version = "1.0.5" }
-cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "2.0.0" }
+# polytone = { package = "abstract-polytone", version = "1.0.5" }
+# polytone-note = { package = "abstract-polytone-note", version = "1.0.5" }
+# cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "2.0.0" }
+
+# polytone = { package = "abstract-polytone", git = "https://github.com/abstractsdk/polytone", branch = "update/better-api" }
+# polytone-note = { package = "abstract-polytone-note", git = "https://github.com/abstractsdk/polytone", branch = "update/better-api" }
+# cw-orch-polytone = { package = "abstract-cw-orch-polytone", git = "https://github.com/abstractsdk/polytone", branch = "update/better-api" }
+
+
+polytone = { package = "abstract-polytone", path = "../../polytone/packages/polytone" }
+polytone-note = { package = "abstract-polytone-note", path = "../../polytone/contracts/main/note" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", path = "../../polytone/packages/cw-orch-polytone" }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
