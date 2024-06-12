@@ -1,10 +1,10 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Coin, Deps, Empty, QueryRequest, StdError};
+use cosmwasm_std::{Addr, Binary, Coin, Deps, QueryRequest, StdError};
 use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
 use crate::{
-    ibc::Callback,
+    ibc::{Callback, ModuleQuery},
     ibc_host::HostAction,
     manager::{self, ModuleInstallConfig},
     objects::{
@@ -129,7 +129,7 @@ pub enum ExecuteMsg {
         /// Example: "osmosis"
         host_chain: String,
         /// Cosmos Query requests
-        queries: Vec<QueryRequest<Empty>>,
+        queries: Vec<QueryRequest<ModuleQuery>>,
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
         callback: Callback,
     },
@@ -161,7 +161,7 @@ pub enum IbcClientCallback {
     ModuleRemoteQuery {
         sender_address: String,
         callback: Callback,
-        queries: Vec<QueryRequest<Empty>>,
+        queries: Vec<QueryRequest<ModuleQuery>>,
     },
     CreateAccount {
         account_id: AccountId,

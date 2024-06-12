@@ -8,7 +8,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     app::AppState,
-    ibc::Callback,
+    ibc::{Callback, ModuleQuery},
     ibc_client::{
         state::{IbcInfrastructure, ACCOUNTS, CONFIG, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback, InstalledModuleIdentification,
@@ -24,7 +24,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{
     to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg,
-    MessageInfo, QueryRequest, Storage,
+    MessageInfo, QueryRequest, Storage, WasmQuery,
 };
 use cw_storage_plus::Item;
 use polytone::callbacks::CallbackRequest;
@@ -307,22 +307,30 @@ pub fn execute_send_query(
     env: Env,
     info: MessageInfo,
     host_chain: String,
-    queries: Vec<QueryRequest<Empty>>,
+    queries: Vec<QueryRequest<ModuleQuery>>,
     callback: Callback,
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
+    let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
+
+    let callback_msg = &IbcClientCallback::ModuleRemoteQuery {
+        callback,
+        sender_address: info.sender.to_string(),
+        // We send un-mapped queries here to enable easily mapping to them.
+        queries: queries.clone(),
+    };
 
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_json_binary(&IbcClientCallback::ModuleRemoteQuery {
-            callback,
-            sender_address: info.sender.to_string(),
-            queries: queries.clone(),
-        })
-        .unwrap(),
+        msg: to_json_binary(&callback_msg).unwrap(),
     };
 
-    let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
+    // Convert custom query type to executable queries
+    let queries: Vec<QueryRequest<Empty>> = queries
+        .into_iter()
+        .map(|q| map_query(&ibc_infra.remote_abstract_host, q))
+        .collect();
+
     let note_contract = ibc_infra.polytone_note;
     let note_message = wasm_execute(
         note_contract.to_string(),
@@ -336,6 +344,7 @@ pub fn execute_send_query(
 
     Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
 }
+
 /// Registers an Abstract Account on a remote chain.
 pub fn execute_register_account(
     deps: DepsMut,
@@ -437,4 +446,23 @@ pub fn execute_send_funds(
 
 fn clear_accounts(store: &mut dyn Storage) {
     ACCOUNTS.clear(store);
+}
+// Map a ModuleQuery to a regular query.
+fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<Empty> {
+    match query {
+        QueryRequest::Custom(ModuleQuery { target_module, msg }) => {
+            QueryRequest::Wasm(WasmQuery::Smart {
+                contract_addr: ibc_host.into(),
+                msg: to_json_binary(&ibc_host::QueryMsg::ModuleQuery { target_module, msg })
+                    .unwrap(),
+            })
+        }
+        QueryRequest::Bank(query) => QueryRequest::Bank(query),
+        QueryRequest::Staking(query) => QueryRequest::Staking(query),
+        QueryRequest::Distribution(query) => QueryRequest::Distribution(query),
+        QueryRequest::Stargate { path, data } => QueryRequest::Stargate { path, data },
+        QueryRequest::Ibc(query) => QueryRequest::Ibc(query),
+        QueryRequest::Wasm(query) => QueryRequest::Wasm(query),
+        _ => unimplemented!("Not implemented type of query"),
+    }
 }
