@@ -242,40 +242,46 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                 .map_err(Into::into)
             }
             MockQueryMsg::Foo {} => to_json_binary("bar").map_err(Into::into),
-            MockQueryMsg::GetReceivedModuleIbcQueryCallbackStatus {} => {
-                Ok(to_json_binary(&IBC_CALLBACK_MODULE_QUERY_RECEIVED.load(deps.storage)?).unwrap())
-            }
+            MockQueryMsg::GetReceivedModuleIbcQueryCallbackStatus {} => Ok(to_json_binary(
+                &IBC_CALLBACK_MODULE_QUERY_RECEIVED.load(deps.storage)?,
+            )
+            .unwrap()),
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callback(|deps, _, _, _, callback, result| { eprintln!("{:?}", result); match &result {
-            IbcResult::Query {
-                queries: _,
-                results,
-            } => {
-                match from_json(callback.msg)? {
-                    MockCallbackMsg::BalanceQuery => {
-                        let result = results.clone().unwrap()[0].clone();
-                        let deser: AllBalanceResponse = from_json(result)?;
-                        IBC_CALLBACK_QUERY_RECEIVED
-                            .save(deps.storage, &deser.amount)
-                            .unwrap();
+        .with_ibc_callback(|deps, _, _, _, callback, result| {
+            eprintln!("{:?}", result);
+            match &result {
+                IbcResult::Query {
+                    queries: _,
+                    results,
+                } => {
+                    match from_json(callback.msg)? {
+                        MockCallbackMsg::BalanceQuery => {
+                            let result = results.clone().unwrap()[0].clone();
+                            let deser: AllBalanceResponse = from_json(result)?;
+                            IBC_CALLBACK_QUERY_RECEIVED
+                                .save(deps.storage, &deser.amount)
+                                .unwrap();
+                        }
+                        MockCallbackMsg::ModuleQuery => {
+                            IBC_CALLBACK_MODULE_QUERY_RECEIVED.save(
+                                deps.storage,
+                                &from_json(&result.get_query_result(0)?.1).unwrap(),
+                            )?;
+                        }
+                        _ => unreachable!(),
                     }
-                    MockCallbackMsg::ModuleQuery => {
-                        IBC_CALLBACK_MODULE_QUERY_RECEIVED
-                    .save(deps.storage, &from_json(&result.get_query_result(0)?.1).unwrap())?;
-                    }
-                    _ => unreachable!(),
+
+                    Ok(Response::new().add_attribute("mock_callback_query", "executed"))
                 }
-                
-                Ok(Response::new().add_attribute("mock_callback_query", "executed"))
+                IbcResult::Execute { .. } => {
+                    IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
+                    Ok(Response::new().add_attribute("mock_callback", "executed"))
+                }
+                _ => unreachable!(),
             }
-            IbcResult::Execute { .. } => {
-                IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
-                Ok(Response::new().add_attribute("mock_callback", "executed"))
-            }
-            _ => unreachable!(),
-        }})
+        })
         .with_replies(&[(1u64, |_, _, _, msg| {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
@@ -312,9 +318,7 @@ pub mod test {
         app: &MockAppRemoteI<MockBech32>,
         source_module_expected: Option<ModuleInfo>,
     ) -> AnyResult<()> {
-        let source_module = app
-            .get_received_ibc_module_status()
-            .map(|s| s.received)?;
+        let source_module = app.get_received_ibc_module_status().map(|s| s.received)?;
 
         assert_eq!(source_module, source_module_expected);
         Ok(())
@@ -580,7 +584,7 @@ pub mod test {
 
         let ibc_action_result = app.query_module_ibc(remote_name, target_module_info)?;
         mock_interchain.check_ibc(JUNO, ibc_action_result)?;
-        
+
         let status = app.get_received_module_ibc_query_callback_status()?;
         assert_eq!("bar", status);
         Ok(())
