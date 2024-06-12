@@ -311,6 +311,7 @@ pub fn execute_send_query(
     queries: Vec<QueryRequest<ModuleQuery>>,
     callback: Callback,
 ) -> IbcClientResult {
+    host_chain.verify()?;
     let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
 
     let callback_msg = &IbcClientCallback::ModuleRemoteQuery {

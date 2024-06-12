@@ -195,7 +195,6 @@ pub fn handle_host_module_query(
 }
 
 /// We need to figure what trace module is implying here
-/// In case it sent message back we should be able to determine it
 pub fn client_to_host_module_account_id(
     env: &Env,
     remote_chain: ChainName,
