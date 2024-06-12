@@ -318,7 +318,8 @@ pub fn execute_send_query(
         sender_address: info.sender.to_string(),
         // We send un-mapped queries here to enable easily mapping to them.
         queries: queries.clone(),
-    }).unwrap();
+    })
+    .unwrap();
 
     let callback_request = CallbackRequest {
         receiver: env.contract.address.to_string(),
@@ -326,7 +327,10 @@ pub fn execute_send_query(
     };
 
     // Convert custom query type to executable queries
-    let queries: Vec<QueryRequest<Empty>> = queries.into_iter().map(|q| map_query(&ibc_infra.remote_abstract_host, q)).collect();
+    let queries: Vec<QueryRequest<Empty>> = queries
+        .into_iter()
+        .map(|q| map_query(&ibc_infra.remote_abstract_host, q))
+        .collect();
 
     let note_contract = ibc_infra.polytone_note;
     let note_message = wasm_execute(
@@ -445,12 +449,13 @@ fn clear_accounts(store: &mut dyn Storage) {
     ACCOUNTS.clear(store);
 }
 // Map a ModuleQuery to a regular query.
-fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>)-> QueryRequest<Empty> {
+fn map_query(ibc_host: &str, query: QueryRequest<ModuleQuery>) -> QueryRequest<Empty> {
     match query {
         QueryRequest::Custom(ModuleQuery { target_module, msg }) => {
             QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: ibc_host.into(),
-                msg: to_json_binary(&ibc_host::QueryMsg::ModuleQuery { target_module, msg }).unwrap(),
+                msg: to_json_binary(&ibc_host::QueryMsg::ModuleQuery { target_module, msg })
+                    .unwrap(),
             })
         }
         QueryRequest::Bank(query) => QueryRequest::Bank(query),

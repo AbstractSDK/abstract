@@ -4,9 +4,9 @@
 
 use abstract_std::{
     base,
-    ibc::{ModuleQuery},
-    ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc::Callback,
+    ibc::ModuleQuery,
+    ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
     objects::module::{ModuleInfo, ModuleVersion},
