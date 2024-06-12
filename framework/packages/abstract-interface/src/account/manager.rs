@@ -218,14 +218,17 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(result)
     }
 
-    pub fn set_ibc_status(&self, enabled: bool) -> Result<(), crate::AbstractInterfaceError> {
-        if enabled {
-            self.install_module::<Empty>(IBC_CLIENT, None, None)?;
+    pub fn set_ibc_status(
+        &self,
+        enabled: bool,
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
+        let response = if enabled {
+            self.install_module::<Empty>(IBC_CLIENT, None, None)?
         } else {
-            self.uninstall_module(IBC_CLIENT.to_string())?;
-        }
+            self.uninstall_module(IBC_CLIENT.to_string())?
+        };
 
-        Ok(())
+        Ok(response)
     }
 
     pub fn execute_on_remote(

@@ -13,9 +13,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{client::AbstractClientResult, remote_account::RemoteAccount};
 
-/// An application represents a module installed on a (sub)-[`Account`].
-///
-/// It derefs to the module itself, so you can call its methods directly from the application struct.
+/// An application represents a module installed on a [`RemoteAccount`].
 pub struct RemoteApplication<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M> {
     remote_account: &'a RemoteAccount<'a, Chain, IBC>,
     module: M,
@@ -28,7 +26,7 @@ impl<
         M: RegisteredModule + ExecutableContract + QueryableContract + ContractInstance<Chain>,
     > RemoteApplication<'a, Chain, IBC, M>
 {
-    /// Get module interface installed on provided account
+    /// Get module interface installed on provided remote account
     pub(crate) fn new(
         account: &'a RemoteAccount<'a, Chain, IBC>,
         module: M,
@@ -41,13 +39,12 @@ impl<
         })
     }
 
-    /// Sub-account on which application is installed
+    /// remote-account on which application is installed
     pub fn account(&self) -> &RemoteAccount<Chain, IBC> {
         self.remote_account
     }
 
-    /// Execute message on remote application
-    /// Note that execution will be done through source chain
+    /// Execute message on application
     pub fn execute(&self, execute: &M::ExecuteMsg) -> AbstractClientResult<()> {
         self.remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
@@ -61,7 +58,7 @@ impl<
             })
     }
 
-    /// Queries request on remote account
+    /// Queries request on  application
     pub fn query<G: DeserializeOwned + Serialize + Debug>(
         &self,
         query: &M::QueryMsg,

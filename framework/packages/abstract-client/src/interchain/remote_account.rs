@@ -247,7 +247,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         self.remote_account_id.clone()
     }
 
-    /// ChainName of the remote chain
+    /// ChainName of the host chain
     pub fn host_chain(&self) -> ChainName {
         ChainName::from_chain_id(&self.remote_chain().env_info().chain_id)
     }
@@ -260,7 +260,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         self.abstr_owner_account.manager.get_chain().clone()
     }
 
-    /// Get proxy address of the remote account
+    /// Get proxy address of the account
     pub fn proxy(&self) -> AbstractClientResult<Addr> {
         let base_response = self
             .remote_abstract()?
@@ -269,7 +269,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         Ok(base_response.account_base.proxy)
     }
 
-    /// Get manager address of the remote account
+    /// Get manager address of the account
     pub fn manager(&self) -> AbstractClientResult<Addr> {
         let base_response = self
             .remote_abstract()?
@@ -308,7 +308,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         Ok(info_response.info)
     }
 
-    /// Install an application on remote account.
+    /// Install an application on account.
     pub fn install_app<
         M: RegisteredModule
             + From<Contract<Chain>>
@@ -325,7 +325,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         self.install_module_remote_internal(modules)
     }
 
-    /// Install an adapter on remote account.
+    /// Install an adapter on account.
     pub fn install_adapter<
         M: RegisteredModule
             + From<Contract<Chain>>
@@ -432,7 +432,6 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     /// Executes a [`CosmosMsg`] on the proxy of the account.
-    /// Note that execution will be done through source chain
     pub fn execute(
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
@@ -446,7 +445,6 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     /// Executes a list of [manager::ExecuteMsg] on the manager of the account.
-    /// Note that execution will be done through source chain
     pub fn execute_on_manager(
         &self,
         manager_msgs: Vec<manager::ExecuteMsg>,
@@ -497,8 +495,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             .map_err(Into::into)
     }
 
-    /// Retrieve installed application on remote account
-    /// This can't retrieve sub-account installed applications.
+    /// Retrieve installed application on account
     pub fn application<
         M: RegisteredModule
             + From<Contract<Chain>>
@@ -513,7 +510,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         RemoteApplication::new(self, module)
     }
 
-    /// Install module on remote account
+    /// Install module on account
     fn install_module_remote_internal<
         M: RegisteredModule
             + From<Contract<Chain>>
