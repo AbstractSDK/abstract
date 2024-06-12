@@ -122,7 +122,7 @@ pub enum ExecuteMsg {
     },
     // ANCHOR: ibc-host-execute
     /// Allows for remote execution from the Polytone implementation
-    #[fn_name("ibc_execute")]
+    #[cw_orch(fn_name("ibc_execute"))]
     Execute {
         account_id: AccountId,
         /// The address of the calling account id. This is used purely for the send-all-back method.

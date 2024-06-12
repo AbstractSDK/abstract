@@ -40,7 +40,7 @@ cw-ownable = { version = "0.5" }
 cw-address-like = { version = "1.0" }
 cw-asset = { version = "3.0" }
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.22.1" }
+cw-orch = { version = "0.23.0" }
 
 anyhow = "1.0"
 

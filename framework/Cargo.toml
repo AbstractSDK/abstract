@@ -53,8 +53,8 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.22.0" }
-cw-orch-interchain = { version = "0.1.0" }
+cw-orch = { version = "0.23.0" }
+cw-orch-interchain = { version = "0.2.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 # polytone = { package = "abstract-polytone", version = "1.0.5" }
