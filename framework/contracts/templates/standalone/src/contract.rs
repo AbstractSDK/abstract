@@ -54,10 +54,10 @@ pub fn execute(
                 }
                 .into());
             };
-            // Parse callbacks here!
-            match msg.callback {
-                _bin => Ok(MY_STANDALONE.response("test_ibc").set_data(b"test")),
-            }
+            // Parse msg.callback here!
+            Ok(MY_STANDALONE
+                .response("test_ibc")
+                .set_data(msg.callback.msg))
         }
         MyStandaloneExecuteMsg::ModuleIbc(_msg) => {
             todo!()
