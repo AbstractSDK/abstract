@@ -973,7 +973,7 @@
                 "queries": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/QueryRequest_for_Empty"
+                    "$ref": "#/definitions/QueryRequest_for_ModuleQuery"
                   }
                 },
                 "results": {
@@ -1024,6 +1024,29 @@
           "additionalProperties": false
         }
       ]
+    },
+    "InstalledModuleIdentification": {
+      "description": "This is used for identifying calling modules For adapters, we don't need the account id because it's independent of an account For apps and standalone, the account id is used to identify the calling module",
+      "type": "object",
+      "required": [
+        "module_info"
+      ],
+      "properties": {
+        "account_id": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AccountId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "module_info": {
+          "$ref": "#/definitions/ModuleInfo"
+        }
+      },
+      "additionalProperties": false
     },
     "ModuleIbcInfo": {
       "type": "object",
@@ -1109,6 +1132,32 @@
       },
       "additionalProperties": false
     },
+    "ModuleQuery": {
+      "type": "object",
+      "required": [
+        "msg",
+        "target_module"
+      ],
+      "properties": {
+        "msg": {
+          "description": "The WasmQuery::Smart request to the module",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Binary"
+            }
+          ]
+        },
+        "target_module": {
+          "description": "Information about the module that gets queried through ibc",
+          "allOf": [
+            {
+              "$ref": "#/definitions/InstalledModuleIdentification"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "ModuleVersion": {
       "oneOf": [
         {
@@ -1163,7 +1212,7 @@
         }
       }
     },
-    "QueryRequest_for_Empty": {
+    "QueryRequest_for_ModuleQuery": {
       "oneOf": [
         {
           "type": "object",
@@ -1184,7 +1233,7 @@
           ],
           "properties": {
             "custom": {
-              "$ref": "#/definitions/Empty"
+              "$ref": "#/definitions/ModuleQuery"
             }
           },
           "additionalProperties": false

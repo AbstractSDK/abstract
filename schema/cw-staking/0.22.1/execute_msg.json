@@ -70,6 +70,57 @@
     }
   ],
   "definitions": {
+    "AccountId": {
+      "description": "Unique identifier for an account. On each chain this is unique.",
+      "type": "object",
+      "required": [
+        "seq",
+        "trace"
+      ],
+      "properties": {
+        "seq": {
+          "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "trace": {
+          "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AccountTrace"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "AccountTrace": {
+      "description": "The identifier of chain that triggered the account creation",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "local"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "remote"
+          ],
+          "properties": {
+            "remote": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ChainName"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "AdapterBaseMsg": {
       "description": "Configuration message for the adapter",
       "oneOf": [
@@ -628,7 +679,7 @@
                 "queries": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/QueryRequest_for_Empty"
+                    "$ref": "#/definitions/QueryRequest_for_ModuleQuery"
                   }
                 },
                 "results": {
@@ -679,6 +730,29 @@
           "additionalProperties": false
         }
       ]
+    },
+    "InstalledModuleIdentification": {
+      "description": "This is used for identifying calling modules For adapters, we don't need the account id because it's independent of an account For apps and standalone, the account id is used to identify the calling module",
+      "type": "object",
+      "required": [
+        "module_info"
+      ],
+      "properties": {
+        "account_id": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AccountId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "module_info": {
+          "$ref": "#/definitions/ModuleInfo"
+        }
+      },
+      "additionalProperties": false
     },
     "ModuleIbcInfo": {
       "type": "object",
@@ -764,6 +838,32 @@
       },
       "additionalProperties": false
     },
+    "ModuleQuery": {
+      "type": "object",
+      "required": [
+        "msg",
+        "target_module"
+      ],
+      "properties": {
+        "msg": {
+          "description": "The WasmQuery::Smart request to the module",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Binary"
+            }
+          ]
+        },
+        "target_module": {
+          "description": "Information about the module that gets queried through ibc",
+          "allOf": [
+            {
+              "$ref": "#/definitions/InstalledModuleIdentification"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "ModuleVersion": {
       "oneOf": [
         {
@@ -818,7 +918,7 @@
         }
       }
     },
-    "QueryRequest_for_Empty": {
+    "QueryRequest_for_ModuleQuery": {
       "oneOf": [
         {
           "type": "object",
@@ -839,7 +939,7 @@
           ],
           "properties": {
             "custom": {
-              "$ref": "#/definitions/Empty"
+              "$ref": "#/definitions/ModuleQuery"
             }
           },
           "additionalProperties": false
