@@ -1,14 +1,14 @@
 pub use abstract_std::app;
 use abstract_std::{
-    ibc::{CallbackInfo, CallbackResult, ModuleIbcMsg},
-    ibc_client::{self},
-    objects::module::ModuleInfo,
+    ibc::{Callback, IbcResult},
+    ibc_client::{self, InstalledModuleIdentification},
+    objects::{chain_name::ChainName, module::ModuleInfo},
     IBC_CLIENT,
 };
 use cosmwasm_schema::{cw_serde, QueryResponses};
 pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{
-    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Response, StdError,
+    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Binary, Coin, Response, StdError,
 };
 use cw_controllers::AdminError;
 use cw_storage_plus::Item;
@@ -26,12 +26,16 @@ pub enum MockExecMsg {
     DoSomething {},
     DoSomethingAdmin {},
     DoSomethingIbc {
-        remote_chain: String,
+        remote_chain: ChainName,
         target_module: ModuleInfo,
     },
     QuerySomethingIbc {
-        remote_chain: String,
+        remote_chain: ChainName,
         address: String,
+    },
+    QueryModuleIbc {
+        remote_chain: ChainName,
+        target_module: ModuleInfo,
     },
 }
 
@@ -46,6 +50,19 @@ pub enum MockQueryMsg {
 
     #[returns(ReceivedIbcModuleStatus)]
     GetReceivedIbcModuleStatus {},
+
+    #[returns(String)]
+    Foo {},
+
+    #[returns(String)]
+    GetReceivedModuleIbcQueryCallbackStatus {},
+}
+
+#[cw_serde]
+pub enum MockCallbackMsg {
+    BalanceQuery,
+    ModuleQuery,
+    ModuleExecute,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -60,7 +77,7 @@ pub struct ReceivedIbcQueryCallbackStatus {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ReceivedIbcModuleStatus {
-    pub received: ModuleInfo,
+    pub received: Option<ModuleInfo>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -72,7 +89,7 @@ pub struct MockReceiveMsg;
 #[cosmwasm_schema::cw_serde]
 pub struct MockSudoMsg;
 
-use abstract_sdk::{AbstractSdkError, ModuleInterface};
+use abstract_sdk::{AbstractSdkError, IbcInterface, ModuleInterface};
 use thiserror::Error;
 
 use abstract_app::{AppContract, AppError};
@@ -119,13 +136,19 @@ pub const MODULE_IBC_RECEIVED: Item<ModuleInfo> = Item::new("module_ibc_received
 // Easy way to see if an ibc-callback was actually received.
 pub const IBC_CALLBACK_QUERY_RECEIVED: Item<Vec<Coin>> = Item::new("ibc_callback_query_received");
 
+// Easy way to see if an ibc-query was actually performed.
+pub const IBC_CALLBACK_MODULE_QUERY_RECEIVED: Item<String> =
+    Item::new("ibc_callback_module_query_received");
+
 pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContract {
     MockAppContract::new(id, version, None)
         .with_instantiate(|deps, _, _, _, _| {
             IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
+            IBC_CALLBACK_QUERY_RECEIVED.save(deps.storage, &vec![])?;
+            IBC_CALLBACK_MODULE_QUERY_RECEIVED.save(deps.storage, &String::new())?;
             Ok(Response::new().set_data("mock_init".as_bytes()))
         })
-        .with_execute(|deps, _env, _, app, msg| match msg {
+        .with_execute(|deps, env, _, app, msg| match msg {
             MockExecMsg::DoSomethingIbc {
                 remote_chain,
                 target_module,
@@ -141,9 +164,8 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                             ibc_msg: "module_to_module:msg".to_string(),
                         })
                         .unwrap(),
-                        callback_info: Some(CallbackInfo {
-                            id: "c_id".to_string(),
-                            msg: None,
+                        callback: Some(Callback {
+                            msg: to_json_binary(&MockCallbackMsg::ModuleExecute)?,
                         }),
                     },
                     vec![],
@@ -161,15 +183,36 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                     ibc_client_addr,
                     &ibc_client::ExecuteMsg::IbcQuery {
                         host_chain: remote_chain,
-                        callback_info: CallbackInfo {
-                            id: "query_id".to_string(),
-                            msg: None,
+                        callback: Callback {
+                            msg: to_json_binary(&MockCallbackMsg::BalanceQuery)?,
                         },
-                        query: cosmwasm_std::QueryRequest::Bank(
+                        queries: vec![cosmwasm_std::QueryRequest::Bank(
                             cosmwasm_std::BankQuery::AllBalances { address },
-                        ),
+                        )],
                     },
                     vec![],
+                )?;
+
+                Ok(Response::new().add_message(msg))
+            }
+            MockExecMsg::QueryModuleIbc {
+                remote_chain,
+                target_module,
+            } => {
+                use abstract_sdk::features::AccountIdentification;
+                let ibc_client = app.ibc_client(deps.as_ref());
+                let mut account = app.account_id(deps.as_ref())?;
+                account.push_chain(ChainName::new(&env));
+                let msg = ibc_client.module_ibc_query(
+                    remote_chain,
+                    InstalledModuleIdentification {
+                        module_info: target_module,
+                        account_id: Some(account),
+                    },
+                    &QueryMsg::from(MockQueryMsg::Foo {}),
+                    Callback {
+                        msg: to_json_binary(&MockCallbackMsg::ModuleQuery)?,
+                    },
                 )?;
 
                 Ok(Response::new().add_message(msg))
@@ -185,7 +228,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             }
             MockQueryMsg::GetReceivedIbcModuleStatus {} => {
                 to_json_binary(&ReceivedIbcModuleStatus {
-                    received: MODULE_IBC_RECEIVED.load(deps.storage)?,
+                    received: MODULE_IBC_RECEIVED.may_load(deps.storage)?,
                 })
                 .map_err(Into::into)
             }
@@ -195,34 +238,54 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                 })
                 .map_err(Into::into)
             }
+            MockQueryMsg::Foo {} => to_json_binary("bar").map_err(Into::into),
+            MockQueryMsg::GetReceivedModuleIbcQueryCallbackStatus {} => Ok(to_json_binary(
+                &IBC_CALLBACK_MODULE_QUERY_RECEIVED.load(deps.storage)?,
+            )
+            .unwrap()),
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callbacks(&[
-            ("c_id", |deps, _, _, _, _| {
-                IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
-                Ok(Response::new().add_attribute("mock_callback", "executed"))
-            }),
-            ("query_id", |deps, _, _, _, msg| match msg.result {
-                CallbackResult::Query { query: _, result } => {
-                    let result = result.unwrap()[0].clone();
-                    let deser: AllBalanceResponse = from_json(result)?;
-                    IBC_CALLBACK_QUERY_RECEIVED
-                        .save(deps.storage, &deser.amount)
-                        .unwrap();
+        .with_ibc_callback(|deps, _, _, _, callback, result| {
+            eprintln!("{:?}", result);
+            match &result {
+                IbcResult::Query {
+                    queries: _,
+                    results,
+                } => {
+                    match from_json(callback.msg)? {
+                        MockCallbackMsg::BalanceQuery => {
+                            let result = results.clone().unwrap()[0].clone();
+                            let deser: AllBalanceResponse = from_json(result)?;
+                            IBC_CALLBACK_QUERY_RECEIVED
+                                .save(deps.storage, &deser.amount)
+                                .unwrap();
+                        }
+                        MockCallbackMsg::ModuleQuery => {
+                            IBC_CALLBACK_MODULE_QUERY_RECEIVED.save(
+                                deps.storage,
+                                &from_json(&result.get_query_result(0)?.1).unwrap(),
+                            )?;
+                        }
+                        _ => unreachable!(),
+                    }
+
                     Ok(Response::new().add_attribute("mock_callback_query", "executed"))
                 }
-                _ => panic!("Expected query result"),
-            }),
-        ])
+                IbcResult::Execute { .. } => {
+                    IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
+                    Ok(Response::new().add_attribute("mock_callback", "executed"))
+                }
+                _ => unreachable!(),
+            }
+        })
         .with_replies(&[(1u64, |_, _, _, msg| {
             Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
         })])
         .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())))
-        .with_module_ibc(|deps, _, _, msg| {
-            let ModuleIbcMsg { source_module, .. } = msg;
+        .with_module_ibc(|deps, _, _, src_module_info, _| {
             // We save the module info status
-            MODULE_IBC_RECEIVED.save(deps.storage, &source_module)?;
+            MODULE_IBC_RECEIVED.save(deps.storage, &src_module_info.module)?;
             Ok(Response::new().add_attribute("mock_module_ibc", "executed"))
         })
 }
@@ -252,10 +315,7 @@ pub mod test {
         app: &MockAppRemoteI<MockBech32>,
         source_module_expected: Option<ModuleInfo>,
     ) -> AnyResult<()> {
-        let source_module = app
-            .get_received_ibc_module_status()
-            .map(|s| s.received)
-            .ok();
+        let source_module = app.get_received_ibc_module_status().map(|s| s.received)?;
 
         assert_eq!(source_module, source_module_expected);
         Ok(())
@@ -319,7 +379,7 @@ pub mod test {
         let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
         ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+        let remote_name = ChainName::from_chain_id(STARGAZE);
 
         let (origin_account, _remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -371,7 +431,7 @@ pub mod test {
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
         ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+        let remote_name = ChainName::from_chain_id(STARGAZE);
 
         let (origin_account, _remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -436,7 +496,7 @@ pub mod test {
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
         ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+        let remote_name = ChainName::from_chain_id(STARGAZE);
 
         let (origin_account, remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -471,7 +531,7 @@ pub mod test {
         app_remote.deploy(TEST_VERSION_REMOTE.parse()?, DeployStrategy::Try)?;
 
         let remote_install_response = origin_account.manager.execute_on_remote(
-            &remote_name,
+            remote_name.clone(),
             manager::ExecuteMsg::InstallModules {
                 modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id_latest(TEST_MODULE_ID_REMOTE)?,
@@ -503,10 +563,20 @@ pub mod test {
         // The user on origin chain triggers a module-to-module interaction
         let target_module_info =
             ModuleInfo::from_id(TEST_MODULE_ID_REMOTE, TEST_VERSION_REMOTE.into())?;
-        let ibc_action_result = app.do_something_ibc(remote_name, target_module_info.clone())?;
+        let ibc_action_result =
+            app.do_something_ibc(remote_name.clone(), target_module_info.clone())?;
 
-        assert_remote_module_call_status(&remote_account_app, None)?;
-        assert_callback_status(&app, false)?;
+        let source_module = app.get_received_ibc_module_status().map(|s| s.received)?;
+
+        assert_eq!(source_module, None);
+
+        let get_received_ibc_callback_status_res: ReceivedIbcCallbackStatus =
+            app.get_received_ibc_callback_status()?;
+
+        assert_eq!(
+            ReceivedIbcCallbackStatus { received: false },
+            get_received_ibc_callback_status_res
+        );
 
         mock_interchain.check_ibc(JUNO, ibc_action_result)?;
 
@@ -516,11 +586,19 @@ pub mod test {
         )?;
         assert_callback_status(&app, true)?;
 
+        // Module to module query
+
+        let ibc_action_result = app.query_module_ibc(remote_name, target_module_info)?;
+        mock_interchain.check_ibc(JUNO, ibc_action_result)?;
+
+        let status = app.get_received_module_ibc_query_callback_status()?;
+        assert_eq!("bar", status);
         Ok(())
     }
 
     pub const REMOTE_AMOUNT: u128 = 5674309;
     pub const REMOTE_DENOM: &str = "remote_denom";
+
     #[test]
     fn queries() -> AnyResult<()> {
         logger_test_init();
@@ -531,7 +609,7 @@ pub mod test {
         let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
         ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+        let remote_name = ChainName::from_chain_id(STARGAZE);
         let remote = mock_interchain.chain(STARGAZE)?;
         let remote_address =
             remote.addr_make_with_balance("remote-test", coins(REMOTE_AMOUNT, REMOTE_DENOM))?;
@@ -555,9 +633,25 @@ pub mod test {
 
         let query_response = app.query_something_ibc(remote_address.to_string(), remote_name)?;
 
-        assert_query_callback_status(&app, coins(REMOTE_AMOUNT, REMOTE_DENOM)).unwrap_err();
+        let get_received_ibc_query_callback_status_res: ReceivedIbcQueryCallbackStatus =
+            app.get_received_ibc_query_callback_status().unwrap();
+
+        assert_eq!(
+            ReceivedIbcQueryCallbackStatus { balance: vec![] },
+            get_received_ibc_query_callback_status_res
+        );
+
         mock_interchain.check_ibc(JUNO, query_response)?;
-        assert_query_callback_status(&app, coins(REMOTE_AMOUNT, REMOTE_DENOM))?;
+
+        let get_received_ibc_query_callback_status_res: ReceivedIbcQueryCallbackStatus =
+            app.get_received_ibc_query_callback_status().unwrap();
+
+        assert_eq!(
+            ReceivedIbcQueryCallbackStatus {
+                balance: coins(REMOTE_AMOUNT, REMOTE_DENOM)
+            },
+            get_received_ibc_query_callback_status_res
+        );
 
         Ok(())
     }
@@ -580,7 +674,7 @@ pub mod test {
                 ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
             ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
-            let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
+            let remote_name = ChainName::from_chain_id(STARGAZE);
 
             let (origin_account, remote_account_id) =
                 create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -615,7 +709,7 @@ pub mod test {
             app_remote.deploy(TEST_VERSION_REMOTE.parse()?, DeployStrategy::Try)?;
 
             let remote_install_response = origin_account.manager.execute_on_remote(
-                &remote_name,
+                remote_name.clone(),
                 manager::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(
                         ModuleInfo::from_id_latest(TEST_MODULE_ID_REMOTE)?,

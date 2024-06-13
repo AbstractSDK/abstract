@@ -408,7 +408,7 @@ mod test {
 
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
-                    host_chain: "juno".into(),
+                    host_chain: "juno".parse().unwrap(),
                     base_asset: None,
                     namespace: None,
                     install_modules: vec![],
@@ -436,7 +436,7 @@ mod test {
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: "ibc_client_addr".into(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
-                        host_chain: "juno".into(),
+                        host_chain: "juno".parse().unwrap(),
                         base_asset: None,
                         namespace: None,
                         install_modules: vec![],
@@ -464,7 +464,7 @@ mod test {
             let funds = coins(10, "denom");
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
-                    host_chain: "juno".to_owned(),
+                    host_chain: "juno".parse().unwrap(),
                     funds: funds.clone(),
                 },
             };
@@ -490,7 +490,7 @@ mod test {
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: "ibc_client_addr".into(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::SendFunds {
-                        host_chain: "juno".into(),
+                        host_chain: "juno".parse().unwrap(),
                         funds: funds.clone(),
                     })
                     .unwrap(),
