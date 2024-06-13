@@ -340,7 +340,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         // We query all the module versions above the current one
         let abstr = Abstract::load_from(chain.clone())?;
-        let all_next_manager_versions = abstr
+        let all_next_module_versions = abstr
             .version_control
             .module_list(
                 Some(ModuleFilter {
@@ -365,7 +365,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         // 2. If there is none, we want to update the furthest compatible version
 
         // Find out the lowest next major version
-        let non_compatible_versions = all_next_manager_versions
+        let non_compatible_versions = all_next_module_versions
             .iter()
             .filter(|version| !are_versions_compatible(version, &current_module_version))
             .collect::<Vec<_>>();
@@ -384,7 +384,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
                 .clone()
         } else {
             // Case 2
-            let possible_version = all_next_manager_versions
+            let possible_version = all_next_module_versions
                 .into_iter()
                 .filter(|version| version != &current_module_version)
                 .max();
