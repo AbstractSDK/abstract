@@ -1,19 +1,18 @@
 {
   "contract_name": "abstract-version-control",
-  "contract_version": "0.18.0",
+  "contract_version": "0.23.0-beta.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "InstantiateMsg",
     "description": "Version Control Instantiate Msg",
     "type": "object",
+    "required": [
+      "admin"
+    ],
     "properties": {
-      "allow_direct_module_registration_and_updates": {
-        "description": "allows users to directly register modules without going through approval Also allows them to change the module reference of an existing module SHOULD ONLY BE `true` FOR TESTING",
-        "type": [
-          "boolean",
-          "null"
-        ]
+      "admin": {
+        "type": "string"
       },
       "namespace_registration_fee": {
         "anyOf": [
@@ -23,6 +22,13 @@
           {
             "type": "null"
           }
+        ]
+      },
+      "security_disabled": {
+        "description": "allows users to directly register modules without going through approval Also allows them to change the module reference of an existing module Also allows to claim namespaces permisionlessly SHOULD ONLY BE `true` FOR TESTING",
+        "type": [
+          "boolean",
+          "null"
         ]
       }
     },
@@ -134,54 +140,28 @@
         "additionalProperties": false
       },
       {
-        "description": "Sets the monetization configuration for a module. The version doesn't matter here, but we keep it for compatibility purposes Only callable by namespace admin",
+        "description": "Sets the metadata configuration for a module. Only callable by namespace admin",
         "type": "object",
         "required": [
-          "set_module_monetization"
+          "update_module_configuration"
         ],
         "properties": {
-          "set_module_monetization": {
+          "update_module_configuration": {
             "type": "object",
             "required": [
               "module_name",
-              "monetization",
-              "namespace"
+              "namespace",
+              "update_module"
             ],
             "properties": {
               "module_name": {
                 "type": "string"
               },
-              "monetization": {
-                "$ref": "#/definitions/Monetization"
-              },
               "namespace": {
                 "$ref": "#/definitions/Namespace"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Sets the metadata configuration for a module. Only callable by namespace admin Using Version::Latest in the [`module`] variable sets the default metadata for the module",
-        "type": "object",
-        "required": [
-          "set_module_metadata"
-        ],
-        "properties": {
-          "set_module_metadata": {
-            "type": "object",
-            "required": [
-              "metadata",
-              "module"
-            ],
-            "properties": {
-              "metadata": {
-                "type": "string"
               },
-              "module": {
-                "$ref": "#/definitions/ModuleInfo"
+              "update_module": {
+                "$ref": "#/definitions/UpdateModule"
               }
             },
             "additionalProperties": false
@@ -236,9 +216,7 @@
             ],
             "properties": {
               "account_id": {
-                "type": "integer",
-                "format": "uint32",
-                "minimum": 0.0
+                "$ref": "#/definitions/AccountId"
               },
               "namespace": {
                 "type": "string"
@@ -275,7 +253,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Register a new Account to the deployed Accounts. Only Factory can call this",
+        "description": "Register a new Account to the deployed Accounts. Claims namespace if provided. Only Factory can call this",
         "type": "object",
         "required": [
           "add_account"
@@ -292,9 +270,13 @@
                 "$ref": "#/definitions/AccountBase"
               },
               "account_id": {
-                "type": "integer",
-                "format": "uint32",
-                "minimum": 0.0
+                "$ref": "#/definitions/AccountId"
+              },
+              "namespace": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
             "additionalProperties": false
@@ -303,7 +285,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Updates configuration of the VC contract. Available Config : 1. Whether the contract allows direct module registration 2. the number of namespaces an Account can claim",
+        "description": "Updates configuration of the VC contract",
         "type": "object",
         "required": [
           "update_config"
@@ -312,43 +294,30 @@
           "update_config": {
             "type": "object",
             "properties": {
-              "allow_direct_module_registration_and_updates": {
+              "account_factory_address": {
+                "description": "Address of the account factory",
                 "type": [
-                  "boolean",
+                  "string",
                   "null"
                 ]
               },
               "namespace_registration_fee": {
+                "description": "The fee charged when registering a namespace",
                 "anyOf": [
                   {
-                    "$ref": "#/definitions/Coin"
+                    "$ref": "#/definitions/Clearable_for_Coin"
                   },
                   {
                     "type": "null"
                   }
                 ]
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      {
-        "description": "Sets a new Factory",
-        "type": "object",
-        "required": [
-          "set_factory"
-        ],
-        "properties": {
-          "set_factory": {
-            "type": "object",
-            "required": [
-              "new_factory"
-            ],
-            "properties": {
-              "new_factory": {
-                "type": "string"
+              },
+              "security_disabled": {
+                "description": "Whether the contract allows direct module registration",
+                "type": [
+                  "boolean",
+                  "null"
+                ]
               }
             },
             "additionalProperties": false
@@ -387,6 +356,57 @@
           }
         },
         "additionalProperties": false
+      },
+      "AccountId": {
+        "description": "Unique identifier for an account. On each chain this is unique.",
+        "type": "object",
+        "required": [
+          "seq",
+          "trace"
+        ],
+        "properties": {
+          "seq": {
+            "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          },
+          "trace": {
+            "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+            "allOf": [
+              {
+                "$ref": "#/definitions/AccountTrace"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "AccountTrace": {
+        "description": "The identifier of chain that triggered the account creation",
+        "oneOf": [
+          {
+            "type": "string",
+            "enum": [
+              "local"
+            ]
+          },
+          {
+            "type": "object",
+            "required": [
+              "remote"
+            ],
+            "properties": {
+              "remote": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ChainName"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
       },
       "Action": {
         "description": "Actions that can be taken to alter the contract's ownership",
@@ -442,6 +462,35 @@
       "Addr": {
         "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
         "type": "string"
+      },
+      "ChainName": {
+        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+        "type": "string"
+      },
+      "Clearable_for_Coin": {
+        "description": "A type representing a value that can either be cleared or set with a value of type `C`. ``` use cosmwasm_std::{StdResult, Response, DepsMut}; use cw_storage_plus::Item; use cw_clearable::Clearable;\n\nconst FOO: Item<Option<u32>> = Item::new(\"foo\");\n\npub fn update_config(deps: DepsMut, foo: Option<Clearable<u32>>) -> StdResult<Response>{ if let Some(foo) = foo { FOO.save(deps.storage, &foo.into()); } Ok(Response::new()) } ```",
+        "oneOf": [
+          {
+            "description": "Clear the current state.",
+            "type": "string",
+            "enum": [
+              "clear"
+            ]
+          },
+          {
+            "description": "Set state with a value of type `C`.",
+            "type": "object",
+            "required": [
+              "set"
+            ],
+            "properties": {
+              "set": {
+                "$ref": "#/definitions/Coin"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
       },
       "Coin": {
         "type": "object",
@@ -694,6 +743,83 @@
       "Uint64": {
         "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
         "type": "string"
+      },
+      "UpdateModule": {
+        "oneOf": [
+          {
+            "description": "Updates the default metadata for the module",
+            "type": "object",
+            "required": [
+              "default"
+            ],
+            "properties": {
+              "default": {
+                "type": "object",
+                "required": [
+                  "metadata"
+                ],
+                "properties": {
+                  "metadata": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Update configuration for specified version",
+            "type": "object",
+            "required": [
+              "versioned"
+            ],
+            "properties": {
+              "versioned": {
+                "type": "object",
+                "required": [
+                  "version"
+                ],
+                "properties": {
+                  "instantiation_funds": {
+                    "description": "Update the init_funds for this version",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "$ref": "#/definitions/Coin"
+                    }
+                  },
+                  "metadata": {
+                    "description": "Update the metadata for this version",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "monetization": {
+                    "description": "Update the monetization for this version",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Monetization"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "version": {
+                    "description": "Module version",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
       }
     }
   },
@@ -716,9 +842,7 @@
             ],
             "properties": {
               "account_id": {
-                "type": "integer",
-                "format": "uint32",
-                "minimum": 0.0
+                "$ref": "#/definitions/AccountId"
               }
             },
             "additionalProperties": false
@@ -767,9 +891,7 @@
               "accounts": {
                 "type": "array",
                 "items": {
-                  "type": "integer",
-                  "format": "uint32",
-                  "minimum": 0.0
+                  "$ref": "#/definitions/AccountId"
                 }
               }
             },
@@ -904,6 +1026,61 @@
       }
     ],
     "definitions": {
+      "AccountId": {
+        "description": "Unique identifier for an account. On each chain this is unique.",
+        "type": "object",
+        "required": [
+          "seq",
+          "trace"
+        ],
+        "properties": {
+          "seq": {
+            "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          },
+          "trace": {
+            "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+            "allOf": [
+              {
+                "$ref": "#/definitions/AccountTrace"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "AccountTrace": {
+        "description": "The identifier of chain that triggered the account creation",
+        "oneOf": [
+          {
+            "type": "string",
+            "enum": [
+              "local"
+            ]
+          },
+          {
+            "type": "object",
+            "required": [
+              "remote"
+            ],
+            "properties": {
+              "remote": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ChainName"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "ChainName": {
+        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+        "type": "string"
+      },
       "ModuleFilter": {
         "description": "A ModuleFilter that mirrors the [`ModuleInfo`] struct.",
         "type": "object",
@@ -978,21 +1155,21 @@
             "description": "Modules in use",
             "type": "string",
             "enum": [
-              "r_e_g_i_s_t_e_r_e_d"
+              "registered"
             ]
           },
           {
             "description": "Pending modules",
             "type": "string",
             "enum": [
-              "p_e_n_d_i_n_g"
+              "pending"
             ]
           },
           {
             "description": "Yanked modules",
             "type": "string",
             "enum": [
-              "y_a_n_k_e_d"
+              "yanked"
             ]
           }
         ]
@@ -1075,17 +1252,56 @@
       "title": "ConfigResponse",
       "type": "object",
       "required": [
-        "factory"
+        "security_disabled"
       ],
       "properties": {
-        "factory": {
-          "$ref": "#/definitions/Addr"
+        "account_factory_address": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "namespace_registration_fee": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Coin"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "security_disabled": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
       "definitions": {
         "Addr": {
           "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Coin": {
+          "type": "object",
+          "required": [
+            "amount",
+            "denom"
+          ],
+          "properties": {
+            "amount": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "denom": {
+              "type": "string"
+            }
+          }
+        },
+        "Uint128": {
+          "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
           "type": "string"
         }
       }
@@ -1163,12 +1379,21 @@
         "ModuleConfiguration": {
           "type": "object",
           "required": [
-            "metadata",
+            "instantiation_funds",
             "monetization"
           ],
           "properties": {
+            "instantiation_funds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Coin"
+              }
+            },
             "metadata": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "monetization": {
               "$ref": "#/definitions/Monetization"
@@ -1427,12 +1652,21 @@
         "ModuleConfiguration": {
           "type": "object",
           "required": [
-            "metadata",
+            "instantiation_funds",
             "monetization"
           ],
           "properties": {
+            "instantiation_funds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Coin"
+              }
+            },
             "metadata": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "monetization": {
               "$ref": "#/definitions/Monetization"
@@ -1621,22 +1855,33 @@
     "namespace": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "NamespaceResponse",
-      "type": "object",
-      "required": [
-        "account_base",
-        "account_id"
-      ],
-      "properties": {
-        "account_base": {
-          "$ref": "#/definitions/AccountBase"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "claimed"
+          ],
+          "properties": {
+            "claimed": {
+              "$ref": "#/definitions/NamespaceInfo"
+            }
+          },
+          "additionalProperties": false
         },
-        "account_id": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0.0
+        {
+          "type": "object",
+          "required": [
+            "unclaimed"
+          ],
+          "properties": {
+            "unclaimed": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
-      },
-      "additionalProperties": false,
+      ],
       "definitions": {
         "AccountBase": {
           "description": "Contains the minimal Abstract Account contract addresses.",
@@ -1655,9 +1900,80 @@
           },
           "additionalProperties": false
         },
+        "AccountId": {
+          "description": "Unique identifier for an account. On each chain this is unique.",
+          "type": "object",
+          "required": [
+            "seq",
+            "trace"
+          ],
+          "properties": {
+            "seq": {
+              "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "trace": {
+              "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AccountTrace"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "AccountTrace": {
+          "description": "The identifier of chain that triggered the account creation",
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "local"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "remote"
+              ],
+              "properties": {
+                "remote": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ChainName"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
         "Addr": {
           "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
           "type": "string"
+        },
+        "ChainName": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
+        },
+        "NamespaceInfo": {
+          "type": "object",
+          "required": [
+            "account_base",
+            "account_id"
+          ],
+          "properties": {
+            "account_base": {
+              "$ref": "#/definitions/AccountBase"
+            },
+            "account_id": {
+              "$ref": "#/definitions/AccountId"
+            }
+          },
+          "additionalProperties": false
         }
       }
     },
@@ -1678,9 +1994,7 @@
                 "$ref": "#/definitions/Namespace"
               },
               {
-                "type": "integer",
-                "format": "uint32",
-                "minimum": 0.0
+                "$ref": "#/definitions/AccountId"
               }
             ],
             "maxItems": 2,
@@ -1690,6 +2004,61 @@
       },
       "additionalProperties": false,
       "definitions": {
+        "AccountId": {
+          "description": "Unique identifier for an account. On each chain this is unique.",
+          "type": "object",
+          "required": [
+            "seq",
+            "trace"
+          ],
+          "properties": {
+            "seq": {
+              "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "trace": {
+              "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AccountTrace"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "AccountTrace": {
+          "description": "The identifier of chain that triggered the account creation",
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "local"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "remote"
+              ],
+              "properties": {
+                "remote": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ChainName"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "ChainName": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
+        },
         "Namespace": {
           "description": "Represents an Abstract namespace for modules",
           "type": "string"
@@ -1713,9 +2082,7 @@
                 "$ref": "#/definitions/Namespace"
               },
               {
-                "type": "integer",
-                "format": "uint32",
-                "minimum": 0.0
+                "$ref": "#/definitions/AccountId"
               }
             ],
             "maxItems": 2,
@@ -1725,6 +2092,61 @@
       },
       "additionalProperties": false,
       "definitions": {
+        "AccountId": {
+          "description": "Unique identifier for an account. On each chain this is unique.",
+          "type": "object",
+          "required": [
+            "seq",
+            "trace"
+          ],
+          "properties": {
+            "seq": {
+              "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "trace": {
+              "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AccountTrace"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "AccountTrace": {
+          "description": "The identifier of chain that triggered the account creation",
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "local"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "remote"
+              ],
+              "properties": {
+                "remote": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ChainName"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "ChainName": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
+        },
         "Namespace": {
           "description": "Represents an Abstract namespace for modules",
           "type": "string"
