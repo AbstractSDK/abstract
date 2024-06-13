@@ -79,9 +79,6 @@ pub enum AbstractError {
         from: Version,
         to: Version,
     },
-
-    #[error("Migration is not enabled on contract")]
-    NotMigratable { contract: String },
 }
 
 impl From<SemverError> for AbstractError {

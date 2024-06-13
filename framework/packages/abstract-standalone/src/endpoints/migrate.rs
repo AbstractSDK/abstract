@@ -1,7 +1,8 @@
 use abstract_std::{
     objects::module_version::{assert_contract_upgrade, set_module_data},
-    AbstractError, AbstractResult,
+    AbstractResult,
 };
+use cosmwasm_std::StdError;
 use cw2::set_contract_version;
 
 use crate::StandaloneContract;
@@ -11,9 +12,7 @@ impl StandaloneContract {
     pub fn migrate(&self, deps: cosmwasm_std::DepsMut) -> AbstractResult<()> {
         let base_state = self.base_state.load(deps.storage)?;
         if !base_state.is_migratable {
-            return Err(AbstractError::NotMigratable {
-                contract: self.info.0.to_owned(),
-            });
+            return Err(StdError::generic_err("Migration is not enabled on contract").into());
         }
 
         let (name, version_string, metadata) = self.info;
