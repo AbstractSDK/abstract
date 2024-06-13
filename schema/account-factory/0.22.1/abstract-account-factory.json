@@ -94,7 +94,7 @@
             ],
             "properties": {
               "account_id": {
-                "description": "Indicates the AccountId for the new account.\n\nIf `None`, will create a new local account without asserting account-id.\n\nWhen [`AccountTrace::Local`]: Signals the expected Account Id. The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction. \\ When [`AccountTrace::Remote`]: Account id on the remote chain.",
+                "description": "Indicates the AccountId for the new account.\n\nIf `None`, will create a new local account without asserting account-id.\n\nWhen [`AccountTrace::Local`] when sequence in 0..2147483648 range: The tx will error \\ When [`AccountTrace::Local`] when sequence in 2147483648..u32::MAX range: Signals use of unclaimed Account Id in this range. The tx will error if this account-id already claimed. Useful for instantiate2 address prediction. \\ When [`AccountTrace::Remote`]: Account id on the remote chain.",
                 "anyOf": [
                   {
                     "$ref": "#/definitions/AccountId"
