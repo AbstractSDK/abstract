@@ -186,7 +186,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
 
     /// Address of the remote proxy
     /// Note: only Accounts that are remote to *this* chain are queryable
-    pub fn remote_proxy_addr(&self, host_chain: &str) -> AbstractSdkResult<Option<String>> {
+    pub fn remote_proxy_addr(&self, host_chain: &ChainName) -> AbstractSdkResult<Option<String>> {
         let account_id = self.base.account_id(self.deps)?;
         let ibc_client_addr = self.module_address()?;
 
@@ -195,7 +195,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             .query(
                 &self.deps.querier,
                 ibc_client_addr,
-                (&trace, sequence, &host_chain.parse()?),
+                (&trace, sequence, host_chain),
             )
             .map_err(Into::into)
     }

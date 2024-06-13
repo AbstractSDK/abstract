@@ -25,7 +25,7 @@ pub const MY_STANDALONE: MyStandalone =
 
 // cw-orch related interface
 #[cfg(not(target_arch = "wasm32"))]
-pub mod interface;
+mod interface;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use interface::MyStandaloneInterface;
