@@ -67,7 +67,7 @@ fn main() -> anyhow::Result<()> {
 
     // Import standalone's endpoint function traits for easy interactions.
     use my_standalone::msg::{MyStandaloneExecuteMsgFns, MyStandaloneQueryMsgFns};
-    
+
     assert_eq!(standalone.count()?.count, 0);
     // Execute the Standalone
     standalone.increment()?;
