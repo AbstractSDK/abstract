@@ -1,6 +1,6 @@
 //! # Governance structure object
 
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::{Addr, Deps, QuerierWrapper};
 use cw721::OwnerOfResponse;
 use cw_address_like::AddressLike;
 use schemars::JsonSchema;
@@ -152,7 +152,7 @@ impl GovernanceDetails<String> {
 
 impl GovernanceDetails<Addr> {
     /// Get the owner address from the governance details
-    pub fn owner_address(&self, deps: Option<Deps>) -> Option<Addr> {
+    pub fn owner_address(&self, api: &QuerierWrapper) -> Option<Addr> {
         match self {
             GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
             GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
