@@ -33,6 +33,6 @@ pub trait ModuleIbcEndpoint: Handler {
                 .ok_or(AbstractSdkError::NoModuleIbcHandler(
                     self.module_id().to_string(),
                 ))?;
-        handler(deps, env, self, msg)
+        handler(deps, env, self, msg.src_module_info, msg.msg)
     }
 }

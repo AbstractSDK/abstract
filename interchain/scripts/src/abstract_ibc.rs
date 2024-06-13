@@ -54,7 +54,7 @@ pub fn verify_abstract_ibc(
     let host = src_abstract
         .ibc
         .client
-        .host(ChainName::from_chain_id(dst_chain.chain_id).into_string())?;
+        .host(ChainName::from_chain_id(dst_chain.chain_id))?;
 
     // We verify the host matches dst chain host for this original chain
     if host.remote_polytone_proxy.is_none() {

@@ -32,8 +32,7 @@ pub fn execute_handler(
             money_market: money_market_name,
             action,
         } => {
-            let (local_money_market_name, is_over_ibc) =
-                is_over_ibc(env.clone(), &money_market_name)?;
+            let (local_money_market_name, is_over_ibc) = is_over_ibc(&env, &money_market_name)?;
             // We resolve the Action to a RawAction to get the actual addresses, ids and denoms
             let whole_money_market_action = MoneyMarketActionResolveWrapper(
                 platform_resolver::resolve_money_market(&local_money_market_name)?,
@@ -62,8 +61,7 @@ pub fn execute_handler(
             money_market: money_market_name,
             action,
         } => {
-            let (local_money_market_name, is_over_ibc) =
-                is_over_ibc(env.clone(), &money_market_name)?;
+            let (local_money_market_name, is_over_ibc) = is_over_ibc(&env, &money_market_name)?;
 
             // if money_market is on an app-chain, execute the action on the app-chain
             if is_over_ibc {

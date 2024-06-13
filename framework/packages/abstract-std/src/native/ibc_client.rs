@@ -1,10 +1,10 @@
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Coin, Deps, Empty, QueryRequest, StdError};
+use cosmwasm_std::{Addr, Binary, Coin, Deps, QueryRequest, StdError};
 use polytone::callbacks::CallbackMessage;
 
 use self::state::IbcInfrastructure;
 use crate::{
-    ibc::CallbackInfo,
+    ibc::{Callback, ModuleQuery},
     ibc_host::HostAction,
     manager::{self, ModuleInstallConfig},
     objects::{
@@ -78,7 +78,7 @@ pub enum ExecuteMsg {
     /// This allows for monitoring which chain are connected to the contract remotely
     RegisterInfrastructure {
         /// Chain to register the infrastructure for ("juno", "osmosis", etc.)
-        chain: String,
+        chain: ChainName,
         /// Polytone note (locally deployed)
         note: String,
         /// Address of the abstract host deployed on the remote chain
@@ -95,7 +95,7 @@ pub enum ExecuteMsg {
     SendFunds {
         /// host chain to be executed on
         /// Example: "osmosis"
-        host_chain: String,
+        host_chain: ChainName,
         funds: Vec<Coin>,
     },
     /// Only callable by Account proxy
@@ -104,7 +104,7 @@ pub enum ExecuteMsg {
     Register {
         /// host chain to be executed on
         /// Example: "osmosis"
-        host_chain: String,
+        host_chain: ChainName,
         base_asset: Option<AssetEntry>,
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
@@ -114,24 +114,24 @@ pub enum ExecuteMsg {
     ModuleIbcAction {
         /// host chain to be executed on
         /// Example: "osmosis"
-        host_chain: String,
+        host_chain: ChainName,
         /// Module of this account on host chain
         target_module: ModuleInfo,
         /// Json-encoded IbcMsg to the target module
         msg: Binary,
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
-        callback_info: Option<CallbackInfo>,
+        callback: Option<Callback>,
     },
     /// Only callable by Account Module
     // ANCHOR_END: module-ibc-action
     IbcQuery {
         /// host chain to be executed on
         /// Example: "osmosis"
-        host_chain: String,
-        /// Cosmos Query request
-        query: QueryRequest<Empty>,
+        host_chain: ChainName,
+        /// Cosmos Query requests
+        queries: Vec<QueryRequest<ModuleQuery>>,
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
-        callback_info: CallbackInfo,
+        callback: Callback,
     },
     /// Only callable by Account Proxy
     /// Action on remote ibc host
@@ -139,12 +139,12 @@ pub enum ExecuteMsg {
     RemoteAction {
         /// host chain to be executed on
         /// Example: "osmosis"
-        host_chain: String,
+        host_chain: ChainName,
         /// execute the custom host function
         action: HostAction,
     },
     /// Owner method: Remove connection for remote chain
-    RemoveHost { host_chain: String },
+    RemoveHost { host_chain: ChainName },
     /// Callback from the Polytone implementation
     /// This is triggered regardless of the execution result
     Callback(CallbackMessage),
@@ -155,13 +155,13 @@ pub enum ExecuteMsg {
 pub enum IbcClientCallback {
     ModuleRemoteAction {
         sender_address: String,
-        callback_info: CallbackInfo,
+        callback: Callback,
         initiator_msg: Binary,
     },
     ModuleRemoteQuery {
         sender_address: String,
-        callback_info: CallbackInfo,
-        query: QueryRequest<Empty>,
+        callback: Callback,
+        queries: Vec<QueryRequest<ModuleQuery>>,
     },
     CreateAccount {
         account_id: AccountId,
@@ -263,7 +263,7 @@ pub enum QueryMsg {
     /// Returns the host information associated with a specific chain-name (e.g. osmosis, juno)
     /// Returns [`HostResponse`]
     #[returns(HostResponse)]
-    Host { chain_name: String },
+    Host { chain_name: ChainName },
 
     /// Get list of remote accounts
     /// Returns [`ListAccountsResponse`]
@@ -276,8 +276,9 @@ pub enum QueryMsg {
     /// Get remote proxy address for one chain
     /// Returns [`AccountResponse`]
     #[returns(AccountResponse)]
+    #[cw_orch(fn_name("remote_account"))]
     Account {
-        chain: String,
+        chain_name: ChainName,
         account_id: AccountId,
     },
 
@@ -336,7 +337,7 @@ pub struct HostResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {
-    pub remote_proxy_addr: String,
+    pub remote_proxy_addr: Option<String>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -353,21 +354,19 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::app::ExecuteMsg;
-    use crate::ibc::{CallbackResult, IbcResponseMsg};
+    use crate::ibc::{Callback, IbcResponseMsg, IbcResult};
 
     // ... (other test functions)
 
     #[test]
     fn test_response_msg_to_callback_msg() {
         let receiver = "receiver".to_string();
-        let callback_id = "15".to_string();
         let callback_msg = to_json_binary("15").unwrap();
 
-        let result = CallbackResult::FatalError("ibc execution error".to_string());
+        let result = IbcResult::FatalError("ibc execution error".to_string());
 
         let response_msg = IbcResponseMsg {
-            id: callback_id,
-            msg: Some(callback_msg),
+            callback: Callback::new(callback_msg),
             result,
         };
 

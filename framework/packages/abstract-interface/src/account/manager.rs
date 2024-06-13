@@ -5,6 +5,7 @@ use abstract_std::{
     manager::*,
     module_factory::SimulateInstallModulesResponse,
     objects::{
+        chain_name::ChainName,
         module::{ModuleInfo, ModuleVersion},
         AccountId,
     },
@@ -195,13 +196,13 @@ impl<Chain: CwEnv> Manager<Chain> {
     /// Helper to create remote accounts
     pub fn register_remote_account(
         &self,
-        host_chain: &str,
+        host_chain: ChainName,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let result = self.exec_on_module(
             to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
-                    host_chain: host_chain.into(),
+                    host_chain,
                     base_asset: None,
                     namespace: None,
                     install_modules: vec![ModuleInstallConfig::new(
@@ -217,25 +218,28 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(result)
     }
 
-    pub fn set_ibc_status(&self, enabled: bool) -> Result<(), crate::AbstractInterfaceError> {
-        if enabled {
-            self.install_module::<Empty>(IBC_CLIENT, None, None)?;
+    pub fn set_ibc_status(
+        &self,
+        enabled: bool,
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
+        let response = if enabled {
+            self.install_module::<Empty>(IBC_CLIENT, None, None)?
         } else {
-            self.uninstall_module(IBC_CLIENT.to_string())?;
-        }
+            self.uninstall_module(IBC_CLIENT.to_string())?
+        };
 
-        Ok(())
+        Ok(response)
     }
 
     pub fn execute_on_remote(
         &self,
-        host_chain: &str,
+        host_chain: ChainName,
         msg: ExecuteMsg,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
-                host_chain: host_chain.into(),
+                host_chain,
                 action: HostAction::Dispatch {
                     manager_msgs: vec![msg],
                 },
@@ -247,14 +251,14 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn execute_on_remote_module(
         &self,
-        host_chain: &str,
+        host_chain: ChainName,
         module_id: &str,
         msg: Binary,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
-                host_chain: host_chain.into(),
+                host_chain,
                 action: HostAction::Dispatch {
                     manager_msgs: vec![ExecuteMsg::ExecOnModule {
                         module_id: module_id.to_string(),
@@ -269,12 +273,12 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn send_all_funds_back(
         &self,
-        host_chain: &str,
+        host_chain: ChainName,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {
             msg: abstract_std::ibc_client::ExecuteMsg::RemoteAction {
-                host_chain: host_chain.into(),
+                host_chain,
                 action: HostAction::Helpers(HelperAction::SendAllBack),
             },
         };

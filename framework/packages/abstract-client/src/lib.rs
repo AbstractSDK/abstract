@@ -24,3 +24,14 @@ pub use error::AbstractClientError;
 pub use infrastructure::Environment;
 pub use publisher::{Publisher, PublisherBuilder};
 pub use source::AccountSource;
+
+// Interchain stuff
+#[cfg(feature = "interchain")]
+mod interchain {
+    pub(crate) mod remote_account;
+    mod remote_application;
+    pub use remote_account::RemoteAccount;
+    pub use remote_application::RemoteApplication;
+}
+#[cfg(feature = "interchain")]
+pub use interchain::*;
