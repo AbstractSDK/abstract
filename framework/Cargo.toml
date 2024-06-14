@@ -4,6 +4,7 @@ members = [
   "packages/standards/*",
   "contracts/native/*",
   "contracts/account/*",
+  "contracts/templates/*",
 ]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
@@ -65,6 +66,7 @@ cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "2.0.0" }
 
 abstract-adapter = { path = "packages/abstract-adapter" }
 abstract-app = { path = "packages/abstract-app" }
+abstract-standalone = { path = "packages/abstract-standalone" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required

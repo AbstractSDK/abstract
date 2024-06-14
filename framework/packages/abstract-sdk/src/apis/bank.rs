@@ -10,7 +10,7 @@ use super::{AbstractApi, ApiIdentification};
 use crate::{
     ans_resolve::Resolve,
     cw_helpers::ApiQuery,
-    features::{AbstractNameService, AccountIdentification, ModuleIdentification},
+    features::{AbstractNameService, AccountExecutor, AccountIdentification, ModuleIdentification},
     AbstractSdkError, AbstractSdkResult, AccountAction,
 };
 
@@ -95,6 +95,22 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         Ok(Asset::new(resolved_info, balance))
     }
 
+    /// Move funds from the contract into the Account.
+    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
+        let recipient = self.base.proxy_address(self.deps)?;
+        let transferable_funds = funds
+            .into_iter()
+            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .collect::<AbstractSdkResult<Vec<Asset>>>()?;
+        transferable_funds
+            .iter()
+            .map(|asset| asset.transfer_msg(recipient.clone()))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(Into::into)
+    }
+}
+
+impl<'a, T: TransferInterface + AccountExecutor> Bank<'a, T> {
     /// Transfer the provided funds from the Account to the recipient.
     /// ```
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
@@ -150,20 +166,6 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(AccountAction::from_vec(msgs))
-    }
-
-    /// Move funds from the contract into the Account.
-    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
-        let recipient = self.base.proxy_address(self.deps)?;
-        let transferable_funds = funds
-            .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps))
-            .collect::<AbstractSdkResult<Vec<Asset>>>()?;
-        transferable_funds
-            .iter()
-            .map(|asset| asset.transfer_msg(recipient.clone()))
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(Into::into)
     }
 
     /// Withdraw funds from the Account to this contract.
