@@ -2,7 +2,7 @@ pub use abstract_std::app;
 use abstract_std::{
     ibc::{Callback, IbcResult},
     ibc_client::{self, InstalledModuleIdentification},
-    objects::{chain_name::ChainName, module::ModuleInfo},
+    objects::{chain_name::ChainName, dependency::StaticDependency, module::ModuleInfo},
     IBC_CLIENT,
 };
 use cosmwasm_schema::{cw_serde, QueryResponses};
@@ -288,6 +288,10 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             MODULE_IBC_RECEIVED.save(deps.storage, &src_module_info.module)?;
             Ok(Response::new().add_attribute("mock_module_ibc", "executed"))
         })
+        .with_dependencies(&[StaticDependency::new(
+            IBC_CLIENT,
+            &[abstract_std::registry::ABSTRACT_VERSION],
+        )])
 }
 
 pub mod origin_app {
