@@ -5,19 +5,15 @@ use crate::{
 
 use abstract_app::{
     sdk::AbstractResponse,
-    std::ibc::{CallbackResult, IbcResponseMsg},
+    std::ibc::{Callback, IbcResult},
 };
 use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 
-pub fn ping_callback(
-    deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
-    app: App,
-    response: IbcResponseMsg,
-) -> AppResult {
-    let is_error = match response.result {
-        CallbackResult::Execute {
+use super::PingPongCallbacks;
+
+pub fn ping_callback(deps: DepsMut, app: App, result: IbcResult) -> AppResult {
+    let is_error = match result {
+        IbcResult::Execute {
             initiator_msg,
             result,
         } => {
@@ -28,9 +24,9 @@ pub fn ping_callback(
             }
             result.is_err()
         }
-        CallbackResult::FatalError(_) => true,
+        IbcResult::FatalError(_) => true,
         // It was execute, can't be query
-        CallbackResult::Query { .. } => unreachable!(),
+        IbcResult::Query { .. } => unreachable!(),
     };
 
     if is_error {
@@ -41,5 +37,19 @@ pub fn ping_callback(
             .add_attribute("pongs_left", "0"))
     } else {
         Ok(app.response("ping_callback"))
+    }
+}
+
+pub fn ibc_callback(
+    deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    app: App,
+    callback: Callback,
+    result: IbcResult,
+) -> AppResult {
+    match from_json(&callback.msg)? {
+        PingPongCallbacks::Ping => ping_callback(deps, app, result),
+        _ => unreachable!(),
     }
 }

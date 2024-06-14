@@ -1,5 +1,5 @@
 use crate::ibc::{
-    ping_callback, proxy_config, rematch_ping_pong, PING_CALLBACK, QUERY_PROXY_CONFIG_CALLBACK,
+    self, proxy_config, rematch_ping_pong, PING_CALLBACK, QUERY_PROXY_CONFIG_CALLBACK,
     REMOTE_PREVIOUS_PING_PONG_CALLBACK,
 };
 use crate::msg::AppMigrateMsg;
@@ -36,12 +36,8 @@ const APP: App = App::new(APP_ID, APP_VERSION, None)
         IBC_CLIENT,
         &[abstract_ibc_client::contract::CONTRACT_VERSION],
     )])
-    .with_module_ibc(crate::ibc::receive_module_ibc)
-    .with_ibc_callbacks(&[
-        (PING_CALLBACK, ping_callback),
-        (QUERY_PROXY_CONFIG_CALLBACK, proxy_config),
-        (REMOTE_PREVIOUS_PING_PONG_CALLBACK, rematch_ping_pong),
-    ]);
+    .with_module_ibc(ibc::receive_module_ibc)
+    .with_ibc_callback(ibc::ibc_callback);
 
 // Export handlers
 #[cfg(feature = "export")]
