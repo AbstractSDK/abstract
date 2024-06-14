@@ -17,12 +17,13 @@ use abstract_std::{
         chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
         AssetEntry, ChannelEntry,
     },
+    proxy,
     version_control::AccountBase,
     ICS20,
 };
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg,
-    MessageInfo, QueryRequest, Storage, WasmQuery,
+    ensure, to_json_binary, wasm_execute, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env,
+    IbcMsg, MessageInfo, QueryRequest, Storage, WasmQuery,
 };
 use cw_storage_plus::Item;
 use polytone::callbacks::CallbackRequest;
@@ -251,6 +252,14 @@ pub fn execute_send_module_to_module_packet(
                 .query(&deps.querier, info.sender.clone())?
                 .proxy_address;
             let account_id = cfg.version_control.account_id(&proxy_addr, &deps.querier)?;
+            // Check that ibc_client is installed on account
+            let proxy_state = proxy::state::STATE.query(&deps.querier, proxy_addr)?;
+            ensure!(
+                proxy_state.modules.contains(&env.contract.address),
+                IbcClientError::IbcClientNotInstalled {
+                    account_id: account_id.clone()
+                }
+            );
 
             InstalledModuleIdentification {
                 module_info: module_info.info,
