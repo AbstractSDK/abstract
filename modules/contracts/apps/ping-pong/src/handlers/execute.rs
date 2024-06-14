@@ -11,8 +11,8 @@ use crate::contract::{App, AppResult};
 
 use crate::error::AppError;
 use crate::ibc;
-use crate::msg::{AppQueryMsg, PingOrPong};
 use crate::msg::{AppExecuteMsg, PingPongIbcMsg};
+use crate::msg::{AppQueryMsg, PingOrPong};
 use crate::state::PREVIOUS_PING_PONG;
 
 pub fn execute_handler(
@@ -42,7 +42,9 @@ pub(crate) fn _ping_pong(deps: DepsMut, host_chain: ChainName, app: App) -> AppR
         host_chain,
         current_module_info,
         // Start by playing a Ping
-        &PingPongIbcMsg { hand: PingOrPong::Ping },
+        &PingPongIbcMsg {
+            hand: PingOrPong::Ping,
+        },
         None,
     )?;
 

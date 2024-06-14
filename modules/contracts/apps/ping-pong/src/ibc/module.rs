@@ -24,7 +24,10 @@ pub fn receive_module_ibc(
     );
     let mut ping_msg: PingPongIbcMsg = from_json(msg)?;
 
-    ensure!(matches!(ping_msg.hand, PingOrPong::Ping), AppError::FirstPlayMustBePing {});
+    ensure!(
+        matches!(ping_msg.hand, PingOrPong::Ping),
+        AppError::FirstPlayMustBePing {}
+    );
 
     // Respond with Pong in Ack
 
