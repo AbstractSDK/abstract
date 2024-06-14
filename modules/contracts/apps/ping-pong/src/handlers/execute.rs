@@ -11,7 +11,7 @@ use crate::contract::{App, AppResult};
 
 use crate::error::AppError;
 use crate::ibc;
-use crate::msg::AppQueryMsg;
+use crate::msg::{AppQueryMsg, PingOrPong};
 use crate::msg::{AppExecuteMsg, PingPongIbcMsg};
 use crate::state::PREVIOUS_PING_PONG;
 
@@ -41,13 +41,14 @@ pub(crate) fn _ping_pong(deps: DepsMut, host_chain: ChainName, app: App) -> AppR
     let ibc_action = ibc_client.module_ibc_action(
         host_chain,
         current_module_info,
-        &PingPongIbcMsg { pongs },
+        // Start by playing a Ping
+        &PingPongIbcMsg { hand: PingOrPong::Ping },
         None,
     )?;
 
     Ok(app
         .response("ping_pong")
-        .add_attribute("pongs_left", pongs.to_string())
+        .add_attribute("play_hand", "ping")
         .add_message(ibc_action))
 }
 

@@ -1,11 +1,10 @@
 use abstract_app::{sdk::AbstractResponse, std::ibc::ModuleIbcInfo};
-use cosmwasm_std::{ensure_eq, from_json, Binary, DepsMut, Env, Response};
+use cosmwasm_std::{ensure, ensure_eq, from_json, Binary, DepsMut, Env, Response};
 
 use crate::{
     contract::{App, AppResult},
     error::AppError,
-    msg::PingPongIbcMsg,
-    state::CURRENT_PONGS,
+    msg::{PingOrPong, PingPongIbcMsg},
 };
 
 pub fn receive_module_ibc(
@@ -24,6 +23,10 @@ pub fn receive_module_ibc(
         }
     );
     let mut ping_msg: PingPongIbcMsg = from_json(msg)?;
+
+    ensure!(matches!(ping_msg.hand, PingOrPong::Ping), AppError::FirstPlayMustBePing {});
+
+    // Respond with Pong in Ack
 
     ping_msg.pongs -= 1;
     if ping_msg.pongs > 0 {

@@ -35,4 +35,7 @@ pub enum AppError {
 
     #[error("Match not found for rematch")]
     NothingToRematch {},
+
+    #[error("First play must be a Ping")]
+    FirstPlayMustBePing {},
 }
