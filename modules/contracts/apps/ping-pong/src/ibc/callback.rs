@@ -21,7 +21,7 @@ pub fn ibc_callback(
     callback: Callback,
     result: IbcResult,
 ) -> AppResult {
-    match from_json(&callback.msg)? {
+    match from_json(callback.msg)? {
         PingPongIbcCallbacks::Rematch { rematch_chain } => {
             rematch_callback(deps, env, app, result, rematch_chain)
         }

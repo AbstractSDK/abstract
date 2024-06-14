@@ -23,7 +23,7 @@ pub fn receive_module_ibc(
             source_module: source_module.module.clone()
         }
     );
-    let mut ping_msg: PingPongIbcMsg = from_json(&msg)?;
+    let mut ping_msg: PingPongIbcMsg = from_json(msg)?;
 
     ping_msg.pongs -= 1;
     if ping_msg.pongs > 0 {
