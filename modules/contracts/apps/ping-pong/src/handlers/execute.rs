@@ -13,7 +13,7 @@ use crate::error::AppError;
 use crate::ibc;
 use crate::msg::AppQueryMsg;
 use crate::msg::{AppExecuteMsg, PingPongIbcMsg};
-use crate::state::{PREVIOUS_PING_PONG};
+use crate::state::PREVIOUS_PING_PONG;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -36,7 +36,6 @@ fn ping_pong(deps: DepsMut, host_chain: ChainName, app: App) -> AppResult {
 }
 
 pub(crate) fn _ping_pong(deps: DepsMut, host_chain: ChainName, app: App) -> AppResult {
-
     let current_module_info = app.module_info()?;
     let ibc_client = app.ibc_client(deps.as_ref());
     let ibc_action = ibc_client.module_ibc_action(

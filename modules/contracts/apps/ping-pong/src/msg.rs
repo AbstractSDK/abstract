@@ -39,7 +39,7 @@ pub enum AppQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum PingOrPong{
+pub enum PingOrPong {
     Ping,
     Pong,
 }

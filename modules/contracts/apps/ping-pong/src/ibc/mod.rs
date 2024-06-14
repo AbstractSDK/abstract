@@ -7,6 +7,6 @@ pub use module::receive_module_ibc;
 
 #[cosmwasm_schema::cw_serde]
 pub enum PingPongIbcCallback {
-    // Callback 
+    // Callback
     RematchQuery { rematch_chain: ChainName },
 }
