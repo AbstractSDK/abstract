@@ -8,14 +8,12 @@ use abstract_interface::{AbstractInterfaceError, RegisteredModule};
 use abstract_std::{adapter, ibc_client, ibc_host, manager};
 use cosmwasm_std::to_json_binary;
 use cw_orch::{contract::Contract, prelude::*};
-use cw_orch_interchain::{IbcQueryHandler, InterchainEnv};
+use cw_orch_interchain::{types::IbcTxAnalysis, IbcQueryHandler, InterchainEnv};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{client::AbstractClientResult, remote_account::RemoteAccount};
 
-/// An application represents a module installed on a (sub)-[`Account`].
-///
-/// It derefs to the module itself, so you can call its methods directly from the application struct.
+/// An application represents a module installed on a [`RemoteAccount`].
 pub struct RemoteApplication<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M> {
     remote_account: &'a RemoteAccount<'a, Chain, IBC>,
     module: M,
@@ -28,7 +26,7 @@ impl<
         M: RegisteredModule + ExecutableContract + QueryableContract + ContractInstance<Chain>,
     > RemoteApplication<'a, Chain, IBC, M>
 {
-    /// Get module interface installed on provided account
+    /// Get module interface installed on provided remote account
     pub(crate) fn new(
         account: &'a RemoteAccount<'a, Chain, IBC>,
         module: M,
@@ -41,14 +39,13 @@ impl<
         })
     }
 
-    /// Sub-account on which application is installed
+    /// remote-account on which application is installed
     pub fn account(&self) -> &RemoteAccount<Chain, IBC> {
         self.remote_account
     }
 
-    /// Execute message on remote application
-    /// Note that execution will be done through source chain
-    pub fn execute(&self, execute: &M::ExecuteMsg) -> AbstractClientResult<()> {
+    /// Execute message on application
+    pub fn execute(&self, execute: &M::ExecuteMsg) -> AbstractClientResult<IbcTxAnalysis<Chain>> {
         self.remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain(),
@@ -61,7 +58,7 @@ impl<
             })
     }
 
-    /// Queries request on remote account
+    /// Queries request on  application
     pub fn query<G: DeserializeOwned + Serialize + Debug>(
         &self,
         query: &M::QueryMsg,
@@ -103,7 +100,8 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<
             })
         }
 
-        self.remote_account
+        let _ = self
+            .remote_account
             .ibc_client_execute(ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: self.remote_account.host_chain(),
                 action: ibc_host::HostAction::Dispatch { manager_msgs },

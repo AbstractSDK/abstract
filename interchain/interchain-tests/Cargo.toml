@@ -10,6 +10,7 @@ description = "Interchain testing library for the Abstract SDK. This is used pri
 [dependencies]
 cosmwasm-std = { workspace = true }
 cw2 = { workspace = true }
+cw-utils = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 cw-orch-interchain = { workspace = true, features = ["daemon"] }
 cw-orch-proto = { workspace = true }

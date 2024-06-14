@@ -472,24 +472,26 @@ impl<Chain: CwEnv> Account<Chain> {
     /// Upgrades the account to the latest version
     ///
     /// Migrates manager and proxy contracts to their respective new versions.
-    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<()> {
-        self.abstr_account.manager.upgrade(vec![
-            (
-                ModuleInfo::from_id(abstract_std::registry::MANAGER, version.clone())?,
-                Some(
-                    to_json_binary(&abstract_std::manager::MigrateMsg {})
-                        .map_err(Into::<CwOrchError>::into)?,
+    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<Chain::Response> {
+        self.abstr_account
+            .manager
+            .upgrade(vec![
+                (
+                    ModuleInfo::from_id(abstract_std::registry::MANAGER, version.clone())?,
+                    Some(
+                        to_json_binary(&abstract_std::manager::MigrateMsg {})
+                            .map_err(Into::<CwOrchError>::into)?,
+                    ),
                 ),
-            ),
-            (
-                ModuleInfo::from_id(abstract_std::registry::PROXY, version)?,
-                Some(
-                    to_json_binary(&abstract_std::proxy::MigrateMsg {})
-                        .map_err(Into::<CwOrchError>::into)?,
+                (
+                    ModuleInfo::from_id(abstract_std::registry::PROXY, version)?,
+                    Some(
+                        to_json_binary(&abstract_std::proxy::MigrateMsg {})
+                            .map_err(Into::<CwOrchError>::into)?,
+                    ),
                 ),
-            ),
-        ])?;
-        Ok(())
+            ])
+            .map_err(Into::into)
     }
 
     /// Returns owner of the account
@@ -528,7 +530,7 @@ impl<Chain: CwEnv> Account<Chain> {
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
         funds: &[Coin],
-    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+    ) -> AbstractClientResult<Chain::Response> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
         self.execute_on_manager(
             &manager::ExecuteMsg::ExecOnModule {
@@ -545,7 +547,7 @@ impl<Chain: CwEnv> Account<Chain> {
         &self,
         execute_msg: &manager::ExecuteMsg,
         funds: &[Coin],
-    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+    ) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .manager
             .execute(execute_msg, Some(funds))
@@ -553,10 +555,11 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Set IBC status on an Account.
-    pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<()> {
-        self.abstr_account.manager.set_ibc_status(enabled)?;
-
-        Ok(())
+    pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<Chain::Response> {
+        self.abstr_account
+            .manager
+            .set_ibc_status(enabled)
+            .map_err(Into::into)
     }
 
     /// Module infos of installed modules on account
@@ -701,9 +704,7 @@ impl<Chain: CwEnv> Account<Chain> {
         Application::new(Account::new(sub_account, false), app)
     }
 
-    fn parse_account_creation_response(
-        response: <Chain as TxHandler>::Response,
-    ) -> ParsedAccountCreationResponse {
+    fn parse_account_creation_response(response: Chain::Response) -> ParsedAccountCreationResponse {
         let wasm_abstract_attributes: Vec<Attribute> = response
             .events()
             .into_iter()
@@ -739,7 +740,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    fn parse_modules_installing_response(response: <Chain as TxHandler>::Response) -> Addr {
+    fn parse_modules_installing_response(response: Chain::Response) -> Addr {
         let wasm_abstract_attributes: Vec<Attribute> = response
             .events()
             .into_iter()

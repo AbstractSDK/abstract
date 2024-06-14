@@ -164,17 +164,9 @@ where
         Ok(handler)
     }
     /// Get an ibc callback handler if it exists.
-    fn maybe_ibc_callback_handler(
-        &self,
-        id: &str,
-    ) -> Option<IbcCallbackHandlerFn<Self, Self::Error>> {
+    fn maybe_ibc_callback_handler(&self) -> Option<IbcCallbackHandlerFn<Self, Self::Error>> {
         let contract = self.contract();
-        for ibc_callback_handler in contract.ibc_callback_handlers {
-            if ibc_callback_handler.0 == id {
-                return Some(ibc_callback_handler.1);
-            }
-        }
-        None
+        contract.ibc_callback_handler
     }
     /// Get an IBC module call handler if it exists.
     fn maybe_module_ibc_handler(&self) -> Option<ModuleIbcHandlerFn<Self, Self::Error>> {

@@ -3,8 +3,10 @@
 //!
 
 use abstract_std::{
-    ibc::CallbackInfo,
-    ibc_client::{self, ExecuteMsg as IbcClientMsg},
+    base,
+    ibc::Callback,
+    ibc::ModuleQuery,
+    ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
     objects::{
@@ -14,9 +16,7 @@ use abstract_std::{
     proxy::ExecuteMsg,
     IBC_CLIENT,
 };
-use cosmwasm_std::{
-    to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, Empty, QueryRequest,
-};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, QueryRequest};
 use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
@@ -199,7 +199,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         host_chain: ChainName,
         target_module: ModuleInfo,
         exec_msg: &M,
-        callback_info: Option<CallbackInfo>,
+        callback: Option<Callback>,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;
         let msg = wasm_execute(
@@ -208,7 +208,32 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                 host_chain,
                 target_module,
                 msg: to_json_binary(exec_msg)?,
-                callback_info,
+                callback,
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
+    /// Send module query from this module to the target module
+    /// Use [`abstract_std::ibc::IbcResponseMsg::module_query_response`] to parse response
+    pub fn module_ibc_query<B: Serialize, M: Serialize>(
+        &self,
+        host_chain: ChainName,
+        target_module: InstalledModuleIdentification,
+        query_msg: &base::QueryMsg<B, M>,
+        callback: Callback,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::IbcQuery {
+                host_chain,
+                queries: vec![QueryRequest::Custom(ModuleQuery {
+                    target_module,
+                    msg: to_json_binary(query_msg)?,
+                })],
+                callback,
             },
             vec![],
         )?;
@@ -219,16 +244,36 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     pub fn ibc_query(
         &self,
         host_chain: ChainName,
-        query_msg: impl Into<QueryRequest<Empty>>,
-        callback_info: CallbackInfo,
+        query: impl Into<QueryRequest<ModuleQuery>>,
+        callback: Callback,
     ) -> AbstractSdkResult<CosmosMsg> {
         let ibc_client_addr = self.module_address()?;
         let msg = wasm_execute(
             ibc_client_addr,
             &ibc_client::ExecuteMsg::IbcQuery {
                 host_chain,
-                query: query_msg.into(),
-                callback_info,
+                queries: vec![query.into()],
+                callback,
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
+    /// Send queries from this module to the host chain
+    pub fn ibc_queries(
+        &self,
+        host_chain: ChainName,
+        queries: Vec<QueryRequest<ModuleQuery>>,
+        callback: Callback,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::IbcQuery {
+                host_chain,
+                queries,
+                callback,
             },
             vec![],
         )?;
