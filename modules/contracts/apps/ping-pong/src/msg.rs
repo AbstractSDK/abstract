@@ -1,5 +1,6 @@
 use abstract_app::objects::{chain_name::ChainName, AccountId};
 use cosmwasm_schema::QueryResponses;
+use either::Either;
 
 use crate::contract::App;
 
@@ -16,8 +17,6 @@ pub struct AppInstantiateMsg {}
 pub enum AppExecuteMsg {
     /// PingPong between this module on other chain
     PingPong {
-        /// How many pings pongs in and out should be done
-        pongs: u32,
         /// Host chain
         host_chain: ChainName,
     },
@@ -40,8 +39,14 @@ pub enum AppQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+pub enum PingOrPong{
+    Ping,
+    Pong,
+}
+
+#[cosmwasm_schema::cw_serde]
 pub struct PingPongIbcMsg {
-    pub pongs: u32,
+    pub hand: PingOrPong,
 }
 
 #[cosmwasm_schema::cw_serde]

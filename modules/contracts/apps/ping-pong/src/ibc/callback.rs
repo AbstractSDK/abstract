@@ -11,7 +11,7 @@ use abstract_app::{
 };
 use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 
-use super::PingPongIbcCallbacks;
+use super::PingPongIbcCallback;
 
 pub fn ibc_callback(
     deps: DepsMut,
@@ -22,7 +22,7 @@ pub fn ibc_callback(
     result: IbcResult,
 ) -> AppResult {
     match from_json(callback.msg)? {
-        PingPongIbcCallbacks::Rematch { rematch_chain } => {
+        PingPongIbcCallback::Rematch { rematch_chain } => {
             rematch_callback(deps, env, app, result, rematch_chain)
         }
     }
