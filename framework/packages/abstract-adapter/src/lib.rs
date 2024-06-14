@@ -75,9 +75,7 @@ pub mod mock {
     pub struct MockExecMsg {}
 
     #[cosmwasm_schema::cw_serde]
-    #[derive(cw_orch::QueryFns)]
-    #[impl_into(QueryMsg)]
-    #[derive(cosmwasm_schema::QueryResponses)]
+    #[derive(cw_orch::QueryFns, cosmwasm_schema::QueryResponses)]
     pub enum MockQueryMsg {
         #[returns(ReceivedIbcCallbackStatus)]
         GetReceivedIbcCallbackStatus {},

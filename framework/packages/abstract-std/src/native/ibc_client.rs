@@ -276,7 +276,7 @@ pub enum QueryMsg {
     /// Get remote proxy address for one chain
     /// Returns [`AccountResponse`]
     #[returns(AccountResponse)]
-    #[fn_name("remote_account")]
+    #[cw_orch(fn_name("remote_account"))]
     Account {
         chain_name: ChainName,
         account_id: AccountId,

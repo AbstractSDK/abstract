@@ -31,8 +31,8 @@ pub async fn assert_wallet_balance(mut chains: Vec<ChainInfoOwned>) -> Vec<Chain
             .await
             .unwrap();
 
-        let gas_denom = chain.state.as_ref().chain_data.gas_denom.clone();
-        let gas_price = chain.state.as_ref().chain_data.gas_price;
+        let gas_denom = chain.state.chain_data.gas_denom.clone();
+        let gas_price = chain.state.chain_data.gas_price;
         let fee = (GAS_TO_DEPLOY as f64 * gas_price) as u128;
         let bank = queriers::Bank::new_async(chain.channel());
         let balance = bank
@@ -50,7 +50,7 @@ pub async fn assert_wallet_balance(mut chains: Vec<ChainInfoOwned>) -> Vec<Chain
             fee,
             gas_denom
         );
-        if fee > balance.amount.parse().unwrap() {
+        if fee > balance.amount.u128() {
             panic!("Not enough funds on chain {} to deploy the contract. Needed: {}{} but only have: {}{}", chain_info.chain_id, fee, gas_denom, balance.amount, gas_denom);
         }
         // check if we have enough funds
