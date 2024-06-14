@@ -8,11 +8,11 @@ use cosmos_sdk_proto::{
 };
 use cosmwasm_std::{to_json_binary, Addr, Coin, CosmosMsg};
 
-use crate::{features::AccountIdentification, AbstractSdkResult, AccountAction};
+use crate::{features::AccountExecutor, AbstractSdkResult, AccountAction};
 
 /// Interact with the Cosmos SDK Distribution module.
 /// Requires `Stargate` feature.
-pub trait DistributionInterface: AccountIdentification {
+pub trait DistributionInterface: AccountExecutor {
     /**
         API for accessing the Cosmos SDK distribution module.
 
@@ -31,7 +31,7 @@ pub trait DistributionInterface: AccountIdentification {
     }
 }
 
-impl<T> DistributionInterface for T where T: AccountIdentification {}
+impl<T> DistributionInterface for T where T: AccountExecutor {}
 
 /**
     API for accessing the Cosmos SDK distribution module.

@@ -179,13 +179,13 @@ impl ModuleInstallConfig {
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Forward execution message to module
-    #[payable]
+    #[cw_orch(payable)]
     ExecOnModule { module_id: String, exec_msg: Binary },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(Binary),
     /// Install module using module factory, callable by Owner
-    #[payable]
+    #[cw_orch(payable)]
     InstallModules {
         // Module information and Instantiate message to instantiate the contract
         modules: Vec<ModuleInstallConfig>,
@@ -198,7 +198,7 @@ pub enum ExecuteMsg {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
     /// Creates a sub-account on the account
-    #[payable]
+    #[cw_orch(payable)]
     CreateSubAccount {
         // Name of the sub-account
         name: String,

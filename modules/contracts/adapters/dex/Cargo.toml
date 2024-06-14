@@ -45,7 +45,7 @@ fin = ["abstract-kujira-adapter/full_integration"]
 terraswap = ["dep:terraswap", "dep:cw20"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
 
-osmosis-test = ["cw-orch/osmosis-test-tube"]
+osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 
 # Builds
 [package.metadata.optimizer]
@@ -87,6 +87,7 @@ cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 abstract-adapter = { workspace = true }
 cw-orch = { workspace = true }
+cw-orch-osmosis-test-tube = { workspace = true, optional = true }
 
 # Local
 abstract-dex-standard = { workspace = true }

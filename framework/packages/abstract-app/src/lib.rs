@@ -51,16 +51,13 @@ pub mod mock {
 
     #[cosmwasm_schema::cw_serde]
     #[derive(cw_orch::ExecuteFns)]
-    #[impl_into(ExecuteMsg)]
     pub enum MockExecMsg {
         DoSomething {},
         DoSomethingAdmin {},
     }
 
     #[cosmwasm_schema::cw_serde]
-    #[derive(cw_orch::QueryFns)]
-    #[impl_into(QueryMsg)]
-    #[derive(QueryResponses)]
+    #[derive(cw_orch::QueryFns, QueryResponses)]
     pub enum MockQueryMsg {
         #[returns(MockQueryResponse)]
         GetSomething {},

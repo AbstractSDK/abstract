@@ -622,7 +622,7 @@ fn update_dca() -> anyhow::Result<()> {
 
     let task_hash_before_update = apps
         .cron_cat_app
-        .task_info(apps.dca_app.addr_str()?, DCAId(1).into())?
+        .task_info(apps.dca_app.addr_str()?, DCAId(1))?
         .task
         .unwrap()
         .task_hash;
@@ -654,7 +654,7 @@ fn update_dca() -> anyhow::Result<()> {
 
     let task_hash_after_update = apps
         .cron_cat_app
-        .task_info(apps.dca_app.addr_str()?, DCAId(1).into())?
+        .task_info(apps.dca_app.addr_str()?, DCAId(1))?
         .task
         .unwrap()
         .task_hash;
@@ -689,7 +689,7 @@ fn update_dca() -> anyhow::Result<()> {
 
     let task_hash_after_second_update = apps
         .cron_cat_app
-        .task_info(apps.dca_app.addr_str()?, DCAId(1).into())?
+        .task_info(apps.dca_app.addr_str()?, DCAId(1))?
         .task
         .unwrap()
         .task_hash;
