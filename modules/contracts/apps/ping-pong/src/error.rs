@@ -29,4 +29,10 @@ pub enum AppError {
 
     #[error("Caller module is not a ping pong: {source_module}")]
     NotPingPong { source_module: ModuleInfo },
+
+    #[error("Can't start ping pong with zero pongs")]
+    ZeroPongs {},
+
+    #[error("Match not found for rematch")]
+    NothingToRematch {},
 }

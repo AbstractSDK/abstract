@@ -204,13 +204,45 @@ fn successful_remote_ping_pong() -> anyhow::Result<()> {
     let env = PingPong::setup(&mock_interchain)?;
     let app = env.remote_account.application::<AppInterface<_>>()?;
 
-    app.execute(
+    let remote_ping_pong_response = app.execute(
         &ping_pong::msg::AppExecuteMsg::PingPong {
             host_chain: ChainName::from_chain_id(JUNO),
             pongs: 4,
         }
         .into(),
     )?;
+
+    let pongs_left_events = remote_ping_pong_response
+        .events()
+        .into_iter()
+        .map(|ev| {
+            ev.attributes
+                .into_iter()
+                .filter(|attr| attr.key == "pongs_left")
+                .collect::<Vec<_>>()
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+    assert_eq!(
+        pongs_left_events,
+        vec![
+            Attribute::new("pongs_left", "4"),
+            Attribute::new("pongs_left", "3"),
+            Attribute::new("pongs_left", "2"),
+            Attribute::new("pongs_left", "1")
+        ]
+    );
+
+    let ping_ponged = remote_ping_pong_response
+        .events()
+        .into_iter()
+        .find_map(|ev| {
+            ev.attributes
+                .iter()
+                .find(|attr| attr.value == "ping_ponged")
+                .cloned()
+        });
+    assert!(ping_ponged.is_some());
 
     let pongs: PongsResponse = app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
     assert_eq!(pongs.pongs, 0);
@@ -246,7 +278,7 @@ fn rematch() -> anyhow::Result<()> {
         .into(),
     )?;
 
-    let rematch = app.rematch(ChainName::from_chain_id(STARGAZE))?;
+    let rematch = app.rematch(env.remote_account.id(), ChainName::from_chain_id(STARGAZE))?;
     let ibc_wait_response = mock_interchain.wait_ibc(JUNO, rematch)?;
     ibc_wait_response.into_result()?;
 

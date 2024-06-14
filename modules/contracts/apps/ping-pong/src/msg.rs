@@ -1,4 +1,4 @@
-use abstract_app::objects::chain_name::ChainName;
+use abstract_app::objects::{chain_name::ChainName, AccountId};
 use cosmwasm_schema::QueryResponses;
 
 use crate::contract::App;
@@ -23,7 +23,10 @@ pub enum AppExecuteMsg {
         host_chain: ChainName,
     },
     /// Rematch ping pong if host chain ping ponged us
-    Rematch { host_chain: ChainName }, // TODO: Rematch{} Ibc query remote chain and if last match was us we pingpong again
+    Rematch {
+        host_chain: ChainName,
+        account_id: AccountId,
+    },
 }
 
 /// App query messages

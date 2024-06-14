@@ -1,7 +1,4 @@
-use crate::ibc::{
-    self, proxy_config, rematch_ping_pong, PING_CALLBACK, QUERY_PROXY_CONFIG_CALLBACK,
-    REMOTE_PREVIOUS_PING_PONG_CALLBACK,
-};
+use crate::ibc;
 use crate::msg::AppMigrateMsg;
 use crate::{
     error::AppError,

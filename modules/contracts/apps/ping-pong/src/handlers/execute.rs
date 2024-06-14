@@ -1,41 +1,49 @@
 use abstract_app::objects::chain_name::ChainName;
 use abstract_app::objects::module::ModuleInfo;
+use abstract_app::objects::AccountId;
 use abstract_app::sdk::IbcInterface;
-use abstract_app::std::ibc::CallbackInfo;
-use abstract_app::std::proxy;
+use abstract_app::std::ibc::Callback;
+use abstract_app::std::ibc_client::InstalledModuleIdentification;
 use abstract_app::traits::AbstractResponse;
-use cosmwasm_std::{to_json_binary, DepsMut, Env, MessageInfo, StdError, WasmQuery};
+use cosmwasm_std::{ensure, to_json_binary, DepsMut, Env, MessageInfo};
 
 use crate::contract::{App, AppResult};
 
-use crate::ibc::{PING_CALLBACK, QUERY_PROXY_CONFIG_CALLBACK};
+use crate::error::AppError;
+use crate::ibc;
+use crate::msg::AppQueryMsg;
 use crate::msg::{AppExecuteMsg, PingPongIbcMsg};
 use crate::state::{CURRENT_PONGS, PREVIOUS_PING_PONG};
 
 pub fn execute_handler(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     app: App,
     msg: AppExecuteMsg,
 ) -> AppResult {
     match msg {
-        AppExecuteMsg::PingPong { pongs, host_chain } => {
-            ping_pong(deps, info, pongs, host_chain, app)
-        }
-        AppExecuteMsg::Rematch { host_chain } => rematch(deps, info, host_chain, app),
+        AppExecuteMsg::PingPong { pongs, host_chain } => ping_pong(deps, pongs, host_chain, app),
+        AppExecuteMsg::Rematch {
+            host_chain,
+            account_id,
+        } => rematch(deps, host_chain, account_id, app),
     }
 }
 
-fn ping_pong(
-    deps: DepsMut,
-    _info: MessageInfo,
-    pongs: u32,
-    host_chain: ChainName,
-    app: App,
-) -> AppResult {
+fn ping_pong(deps: DepsMut, pongs: u32, host_chain: ChainName, app: App) -> AppResult {
+    ensure!(pongs > 0, AppError::ZeroPongs {});
     PREVIOUS_PING_PONG.save(deps.storage, &(pongs, host_chain.clone()))?;
-    CURRENT_PONGS.save(deps.storage, &pongs)?;
+    _ping_pong(deps, pongs, host_chain, app)
+}
+
+pub(crate) fn _ping_pong(deps: DepsMut, pongs: u32, host_chain: ChainName, app: App) -> AppResult {
+    if pongs == 1 {
+        // If we have 1 pong it means we send last pong, let's assume it succeeded
+        CURRENT_PONGS.save(deps.storage, &0)?;
+    } else {
+        CURRENT_PONGS.save(deps.storage, &pongs)?;
+    }
 
     let current_module_info = ModuleInfo::from_id(app.module_id(), app.version().into())?;
     let ibc_client = app.ibc_client(deps.as_ref());
@@ -43,7 +51,7 @@ fn ping_pong(
         host_chain,
         current_module_info,
         &PingPongIbcMsg { pongs },
-        Some(CallbackInfo::new(PING_CALLBACK.to_owned(), None)),
+        None,
     )?;
 
     Ok(app
@@ -52,23 +60,20 @@ fn ping_pong(
         .add_message(ibc_action))
 }
 
-fn rematch(deps: DepsMut, _info: MessageInfo, host_chain: ChainName, app: App) -> AppResult {
+fn rematch(deps: DepsMut, host_chain: ChainName, account_id: AccountId, app: App) -> AppResult {
     let ibc_client = app.ibc_client(deps.as_ref());
-    let remote_proxy_addr = ibc_client
-        .remote_proxy(&host_chain)?
-        .ok_or(StdError::generic_err("remote proxy not found"))?;
 
-    let ibc_query = ibc_client.ibc_query(
+    let module_query = ibc_client.module_ibc_query(
         host_chain.clone(),
-        WasmQuery::Smart {
-            contract_addr: remote_proxy_addr,
-            msg: to_json_binary(&proxy::QueryMsg::Config {})?,
+        InstalledModuleIdentification {
+            module_info: app.module_info()?,
+            account_id: Some(account_id),
         },
-        CallbackInfo::new(
-            QUERY_PROXY_CONFIG_CALLBACK.to_owned(),
-            Some(to_json_binary(&host_chain)?),
-        ),
+        &crate::msg::QueryMsg::from(AppQueryMsg::PreviousPingPong {}),
+        Callback::new(to_json_binary(&ibc::PingPongIbcCallbacks::Rematch {
+            rematch_chain: host_chain,
+        })?),
     )?;
 
-    Ok(app.response("rematch").add_message(ibc_query))
+    Ok(app.response("rematch").add_message(module_query))
 }

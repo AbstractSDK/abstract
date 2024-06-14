@@ -1,55 +1,47 @@
 use crate::{
     contract::{App, AppResult},
-    state::CURRENT_PONGS,
+    error::AppError,
+    msg::PreviousPingPongResponse,
+    state::PREVIOUS_PING_PONG,
 };
 
 use abstract_app::{
-    sdk::AbstractResponse,
+    objects::chain_name::ChainName,
     std::ibc::{Callback, IbcResult},
 };
 use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 
-use super::PingPongCallbacks;
-
-pub fn ping_callback(deps: DepsMut, app: App, result: IbcResult) -> AppResult {
-    let is_error = match result {
-        IbcResult::Execute {
-            initiator_msg,
-            result,
-        } => {
-            // Need to clean state in case we sent last pong
-            let ibc_pong_msg: crate::msg::PingPongIbcMsg = from_json(initiator_msg)?;
-            if ibc_pong_msg.pongs == 1 {
-                CURRENT_PONGS.save(deps.storage, &0)?;
-            }
-            result.is_err()
-        }
-        IbcResult::FatalError(_) => true,
-        // It was execute, can't be query
-        IbcResult::Query { .. } => unreachable!(),
-    };
-
-    if is_error {
-        // Need to clean state if tx failed
-        CURRENT_PONGS.save(deps.storage, &0)?;
-        Ok(app
-            .response("ping_pong_failed")
-            .add_attribute("pongs_left", "0"))
-    } else {
-        Ok(app.response("ping_callback"))
-    }
-}
+use super::PingPongIbcCallbacks;
 
 pub fn ibc_callback(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     _info: MessageInfo,
     app: App,
     callback: Callback,
     result: IbcResult,
 ) -> AppResult {
     match from_json(&callback.msg)? {
-        PingPongCallbacks::Ping => ping_callback(deps, app, result),
-        _ => unreachable!(),
+        PingPongIbcCallbacks::Rematch { rematch_chain } => {
+            rematch_callback(deps, env, app, result, rematch_chain)
+        }
+    }
+}
+
+pub fn rematch_callback(
+    deps: DepsMut,
+    env: Env,
+    app: App,
+    result: IbcResult,
+    rematch_chain: ChainName,
+) -> AppResult {
+    let (_, result) = result.get_query_result(0)?;
+    let PreviousPingPongResponse { pongs, host_chain } = from_json(result)?;
+    if host_chain.map_or(false, |host| host == ChainName::new(&env)) {
+        let pongs = pongs.unwrap();
+        PREVIOUS_PING_PONG.save(deps.storage, &(pongs, rematch_chain.clone()))?;
+        crate::handlers::execute::_ping_pong(deps, pongs, rematch_chain, app)
+    } else {
+        Err(AppError::NothingToRematch {})
     }
 }
