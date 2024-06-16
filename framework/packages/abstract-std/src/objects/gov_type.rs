@@ -164,21 +164,16 @@ impl GovernanceDetails<Addr> {
                 collection_addr,
                 token_id,
             } => {
-                if let Some(api) = deps {
-                    let res: OwnerOfResponse = api
-                        .querier
-                        .query_wasm_smart(
-                            collection_addr,
-                            &cw721::Cw721QueryMsg::OwnerOf {
-                                token_id: token_id.to_string(),
-                                include_expired: None,
-                            },
-                        )
-                        .unwrap();
-                    return Some(Addr::unchecked(&res.owner));
-                } else {
-                    return None;
-                }
+                let res: OwnerOfResponse = api
+                    .query_wasm_smart(
+                        collection_addr,
+                        &cw721::Cw721QueryMsg::OwnerOf {
+                            token_id: token_id.to_string(),
+                            include_expired: None,
+                        },
+                    )
+                    .unwrap();
+                return Some(Addr::unchecked(&res.owner));
             }
         }
     }

@@ -25,8 +25,6 @@ cw2 = { workspace = true }
 cw-asset = { workspace = true }
 cw-address-like = { workspace = true }
 abstract-std = { workspace = true }
-bs721 = { workspace = true }
-bs721-base = { workspace = true }
 
 cw-orch = { workspace = true }
 cw-orch-interchain = { workspace = true, optional=true }
