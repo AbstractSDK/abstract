@@ -89,7 +89,6 @@ mod test {
         IBC_CLIENT, ICS20, PROXY,
     };
 
-    use abstract_interface::connection::abstract_ibc_connection_with;
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary, wasm_execute, Uint128};
     use cw_orch::mock::cw_multi_test::AppResponse;
@@ -202,18 +201,8 @@ mod test {
         )?;
 
         // Create the connection between client and host
-        abstract_ibc_connection_with(
-            &abstr_origin,
-            &mock_interchain,
-            &abstr_intermediate_remote,
-            &polytone_1,
-        )?;
-        abstract_ibc_connection_with(
-            &abstr_intermediate_remote,
-            &mock_interchain,
-            &abstr_destination_remote,
-            &polytone_2,
-        )?;
+        abstr_origin.connect(&abstr_intermediate_remote, &mock_interchain)?;
+        abstr_intermediate_remote.connect(&abstr_destination_remote, &mock_interchain)?;
 
         // END SETUP
 

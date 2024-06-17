@@ -3,7 +3,6 @@ use cw_orch::daemon::networks::{HARPOON_4, PION_1};
 use cw_orch::prelude::*;
 use cw_orch::tokio::runtime::Handle;
 
-use abstract_interface::connection::abstract_ibc_connection_with;
 use cw_orch_interchain::prelude::*;
 use cw_orch_polytone::Polytone;
 use tokio::runtime::Runtime;
@@ -68,15 +67,12 @@ fn connect(
         Some(get_deployment_id(&src_chain, &dst_chain)),
     )?;
 
-    let src_polytone = Polytone::load_from(src_polytone_daemon)?;
-
     let interchain = DaemonInterchainEnv::from_daemons(
         handle,
         vec![src_daemon, dst_daemon],
         &ChannelCreationValidator,
     );
-
-    abstract_ibc_connection_with(&src_abstract, &interchain, &dst_abstract, &src_polytone)?;
+    src_abstract.connect(&dst_abstract, &interchain)?;
 
     Ok(())
 }
