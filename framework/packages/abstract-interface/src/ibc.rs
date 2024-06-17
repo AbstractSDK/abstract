@@ -83,11 +83,10 @@ pub mod connection {
     ) -> Result<(), AbstractInterfaceError> {
         // First we register client and host respectively
         let chain1_id = abstr.ibc.client.get_chain().chain_id();
-        let chain1_name =
-            ChainName::from_string(abstr.ibc.client.get_chain().env_info().chain_name)?;
+        let chain1_name = ChainName::from_chain_id(&chain1_id);
 
-        let chain2_name =
-            ChainName::from_string(dest.ibc.client.get_chain().env_info().chain_name)?;
+        let chain2_id = dest.ibc.client.get_chain().chain_id();
+        let chain2_name = ChainName::from_chain_id(&chain2_id);
 
         // First, we register the host with the client.
         // We register the polytone note with it because they are linked
