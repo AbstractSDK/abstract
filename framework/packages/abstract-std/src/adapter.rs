@@ -126,7 +126,6 @@ pub enum AdapterBaseMsg {
 /// Query adapter message
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
-#[impl_into(QueryMsg<ModuleMsg>)]
 pub enum BaseQueryMsg {
     /// Returns [`AdapterConfigResponse`].
     #[returns(AdapterConfigResponse)]

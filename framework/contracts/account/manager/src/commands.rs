@@ -165,7 +165,7 @@ pub(crate) fn _install_modules(
                     deps.querier
                         .query_wasm_contract_info(module_address.to_string())
                         .is_err(),
-                    ManagerError::AppReinstall {}
+                    ManagerError::ProhibitedReinstall {}
                 );
                 to_add.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), Some(module_address)));
@@ -224,6 +224,16 @@ pub(crate) fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> Man
                 let id = info.id();
                 // assert version requirements
                 let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
+                versioning::set_as_dependent(deps.storage, id, dependencies)?;
+            }
+            Module {
+                reference: ModuleReference::Standalone(_),
+                info,
+            } => {
+                let id = info.id();
+                // assert version requirements
+                let dependencies =
+                    versioning::assert_install_requirements_standalone(deps.as_ref(), &id)?;
                 versioning::set_as_dependent(deps.storage, id, dependencies)?;
             }
             _ => (),
