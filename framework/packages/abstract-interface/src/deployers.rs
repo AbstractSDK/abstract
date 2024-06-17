@@ -181,3 +181,51 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
         Ok(())
     }
 }
+
+/// Trait for deploying Standalones
+pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
+    /// Deploys the app. If the app is already deployed, it will return an error.
+    /// Use `maybe_deploy` if you want to deploy the app only if it is not already deployed.
+    fn deploy(
+        &self,
+        version: Version,
+        strategy: DeployStrategy,
+    ) -> Result<(), crate::AbstractInterfaceError> {
+        // retrieve the deployment
+        let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
+
+        // check for existing version
+        let version_check = || {
+            abstr
+                .version_control
+                .get_standalone_code(&self.id(), ModuleVersion::from(version.to_string()))
+        };
+
+        match strategy {
+            DeployStrategy::Error => {
+                if version_check().is_ok() {
+                    return Err(StdErr(format!(
+                        "Standalone {} already exists with version {}",
+                        self.id(),
+                        version
+                    ))
+                    .into());
+                }
+            }
+            DeployStrategy::Try => {
+                if version_check().is_ok() {
+                    return Ok(());
+                }
+            }
+            DeployStrategy::Force => {}
+        }
+
+        if self.upload_if_needed()?.is_some() {
+            abstr
+                .version_control
+                .register_standalones(vec![(self.as_instance(), version.to_string())])?;
+        }
+
+        Ok(())
+    }
+}

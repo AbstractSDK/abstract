@@ -8,8 +8,8 @@ use cosmwasm_std::{Addr, Deps};
 
 use crate::{
     features::{
-        AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies,
-        ModuleIdentification,
+        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
+        Dependencies, ModuleIdentification,
     },
     std::objects::module::ModuleId,
     AbstractSdkResult,
@@ -21,6 +21,8 @@ impl AccountIdentification for MockModule {
         Ok(Addr::unchecked(TEST_PROXY))
     }
 }
+
+impl AccountExecutor for MockModule {}
 
 impl ModuleIdentification for MockModule {
     fn module_id(&self) -> &'static str {

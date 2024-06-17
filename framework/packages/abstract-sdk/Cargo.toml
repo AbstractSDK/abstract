@@ -1,6 +1,6 @@
 [package]
 name = "abstract-sdk"
-version = { workspace = true }
+version = "0.22.2"
 authors = { workspace = true }
 edition = { workspace = true }
 description = "Helpers for Abstract contracts"

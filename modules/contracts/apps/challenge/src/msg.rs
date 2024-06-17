@@ -30,7 +30,6 @@ pub struct ChallengeInstantiateMsg {
 /// Challenge execute messages
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-#[impl_into(ExecuteMsg)]
 pub enum ChallengeExecuteMsg {
     /// Update challenge config
     UpdateConfig {
@@ -85,7 +84,6 @@ pub enum ChallengeExecuteMsg {
 /// Challenge query messages
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
-#[impl_into(QueryMsg)]
 pub enum ChallengeQueryMsg {
     /// Get challenge info, will return null if there was no challenge by Id
     /// Returns [`ChallengeResponse`]

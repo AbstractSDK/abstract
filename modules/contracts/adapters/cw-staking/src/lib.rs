@@ -10,7 +10,7 @@ pub mod msg {
 
 pub use abstract_staking_standard::{CwStakingCommand, CW_STAKING_ADAPTER_ID};
 
-#[cfg(any(feature = "juno", feature = "osmosis"))]
+#[cfg(any(feature = "wynd", feature = "osmosis"))]
 pub mod host_staking {
     pub use abstract_osmosis_adapter::staking::Osmosis;
 }

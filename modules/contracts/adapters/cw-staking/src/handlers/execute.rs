@@ -3,11 +3,9 @@ use abstract_adapter::sdk::{
     features::{AbstractNameService, AbstractResponse, AccountIdentification},
     IbcInterface, Resolve,
 };
-use abstract_adapter::std::ibc::CallbackInfo;
+use abstract_adapter::std::ibc::Callback;
 use abstract_adapter::std::objects::chain_name::ChainName;
-use abstract_staking_standard::msg::{
-    ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
-};
+use abstract_staking_standard::msg::{ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg};
 use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo};
 
 use crate::{
@@ -30,7 +28,7 @@ pub fn execute_handler(
         action,
     } = msg;
     // if provider is on an app-chain, execute the action on the app-chain
-    let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider_name)?;
+    let (local_provider_name, is_over_ibc) = is_over_ibc(&env, &provider_name)?;
     if is_over_ibc {
         handle_ibc_request(&deps, info, &adapter, local_provider_name, &action)
     } else {
@@ -76,7 +74,7 @@ fn handle_ibc_request(
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
-    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
+    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins)?;
     // construct the action to be called on the host
     // construct the action to be called on the host
     let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
@@ -97,15 +95,14 @@ fn handle_ibc_request(
     let _callback = if maybe_contract_info.is_err() {
         None
     } else {
-        Some(CallbackInfo {
-            id: IBC_STAKING_PROVIDER_ID.into(),
-            msg: Some(to_json_binary(&StakingExecuteMsg {
+        Some(Callback {
+            msg: to_json_binary(&StakingExecuteMsg {
                 provider: provider_name.clone(),
                 action: action.clone(),
-            })?),
+            })?,
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain, host_action)?;
 
     Ok(adapter
         .custom_response("handle_ibc_request", vec![("provider", provider_name)])

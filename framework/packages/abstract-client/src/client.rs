@@ -29,7 +29,7 @@
 //! ```
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AccountFactoryQueryFns, AnsHost, ManagerQueryFns, RegisteredModule,
+    Abstract, AbstractAccount, AnsHost, IbcClient, ManagerQueryFns, RegisteredModule, VCQueryFns,
     VersionControl,
 };
 use abstract_std::objects::{
@@ -41,6 +41,7 @@ use abstract_std::objects::{
 };
 use cosmwasm_std::{BlockInfo, Uint128};
 use cw_orch::prelude::*;
+use rand::Rng;
 
 use crate::{
     account::{Account, AccountBuilder},
@@ -120,6 +121,13 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// ```
     pub fn name_service(&self) -> &AnsHost<Chain> {
         &self.abstr.ans_host
+    }
+
+    /// Abstract Ibc Client contract API
+    ///
+    /// The Abstract Ibc Client contract allows users to create and use Interchain Abstract Accounts
+    pub fn ibc_client(&self) -> &IbcClient<Chain> {
+        &self.abstr.ibc.client
     }
 
     /// Return current block info see [`BlockInfo`].
@@ -283,10 +291,21 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Ok(last_account.map(|(_, account)| account))
     }
 
-    /// Get next local account id sequence
-    pub fn next_local_account_id(&self) -> AbstractClientResult<u32> {
-        let sequence = self.abstr.account_factory.config()?.local_account_sequence;
-        Ok(sequence)
+    /// Get random local account id sequence(unclaimed) in 2147483648..u32::MAX range
+    pub fn random_account_id(&self) -> AbstractClientResult<u32> {
+        let mut rng = rand::thread_rng();
+        loop {
+            let random_sequence = rng.gen_range(2147483648..u32::MAX);
+            let potential_account_id = AccountId::local(random_sequence);
+            if self
+                .abstr
+                .version_control
+                .account_base(potential_account_id)
+                .is_err()
+            {
+                return Ok(random_sequence);
+            };
+        }
     }
 
     /// Get address of instantiate2 module
@@ -335,6 +354,28 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
             .instantiate2_addr(code_id, creator, salt)
             .map_err(Into::into)?;
         Ok(Addr::unchecked(addr))
+    }
+
+    #[cfg(feature = "interchain")]
+    /// Connect this abstract client to the remote abstract client
+    /// It assumes that [`cw_orch_polytone::Polytone`] is deployed
+    pub fn ibc_connection_with(
+        &self,
+        remote_abstr: &AbstractClient<Chain>,
+        ibc: &impl cw_orch_interchain::InterchainEnv<Chain>,
+    ) -> AbstractClientResult<()>
+    where
+        Chain: cw_orch_interchain::IbcQueryHandler,
+    {
+        // Assuming polytone deployed
+        let polytone_src = cw_orch_polytone::Polytone::new(self.environment());
+        abstract_interface::connection::abstract_ibc_connection_with(
+            &self.abstr,
+            ibc,
+            &remote_abstr.abstr,
+            &polytone_src,
+        )?;
+        Ok(())
     }
 }
 

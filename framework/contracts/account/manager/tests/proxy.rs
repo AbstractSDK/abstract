@@ -55,22 +55,22 @@ fn instantiate() -> AResult {
 fn exec_through_manager() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
+    // This testing environments allows you to use simple deploy contraptions:
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
-    // mint coins to proxy address
+    // Mint coins to proxy address
     chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
 
-    // burn coins from proxy
     let proxy_balance = chain
-        .app
-        .borrow()
-        .wrap()
-        .query_all_balances(account.proxy.address()?)?;
+        .bank_querier()
+        .balance(account.proxy.address()?, None)?;
+
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000, TTOKEN)]);
 
-    let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TTOKEN)];
+    let burn_amount = vec![Coin::new(10_000, TTOKEN)];
 
+    // Burn coins from proxy
     account.manager.exec_on_module(
         cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
@@ -81,11 +81,10 @@ fn exec_through_manager() -> AResult {
         &[],
     )?;
 
+    // Assert balance has decreased
     let proxy_balance = chain
-        .app
-        .borrow()
-        .wrap()
-        .query_all_balances(account.proxy.address()?)?;
+        .bank_querier()
+        .balance(account.proxy.address()?, None)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TTOKEN)]);
     take_storage_snapshot!(chain, "exec_through_manager");
 
@@ -403,5 +402,48 @@ fn renounce_cleans_namespace() -> AResult {
 
     let account_owner = account.manager.ownership()?;
     assert!(account_owner.owner.is_none());
+    Ok(())
+}
+
+#[test]
+fn can_take_any_last_two_billion_accounts() -> AResult {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    deployment.account_factory.create_new_account(
+        AccountDetails {
+            name: "foo".to_string(),
+            description: None,
+            link: None,
+            namespace: Some("bar".to_owned()),
+            base_asset: None,
+            install_modules: vec![],
+            account_id: Some(2147483648),
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+
+    let already_exists = deployment.account_factory.create_new_account(
+        AccountDetails {
+            name: "foo".to_string(),
+            description: None,
+            link: None,
+            namespace: Some("bar".to_owned()),
+            base_asset: None,
+            install_modules: vec![],
+            // same id
+            account_id: Some(2147483648),
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    );
+
+    assert!(already_exists.is_err());
     Ok(())
 }

@@ -86,7 +86,7 @@ pub enum ExecuteMsg {
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
-    #[payable]
+    #[cw_orch(payable)]
     CreateAccount {
         // Governance details
         governance: GovernanceDetails<String>,
@@ -102,7 +102,8 @@ pub enum ExecuteMsg {
         ///
         /// If `None`, will create a new local account without asserting account-id.
         ///
-        /// When [`AccountTrace::Local`]: Signals the expected Account Id. The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction. \
+        /// When [`AccountTrace::Local`] when sequence in 0..2147483648 range: The tx will error \
+        /// When [`AccountTrace::Local`] when sequence in 2147483648..u32::MAX range: Signals use of unclaimed Account Id in this range. The tx will error if this account-id already claimed. Useful for instantiate2 address prediction. \
         /// When [`AccountTrace::Remote`]: Account id on the remote chain.
         account_id: Option<AccountId>,
         // optionally specify a namespace for the account

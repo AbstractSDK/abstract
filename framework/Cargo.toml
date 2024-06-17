@@ -4,6 +4,7 @@ members = [
   "packages/standards/*",
   "contracts/native/*",
   "contracts/account/*",
+  "contracts/templates/*",
 ]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
@@ -53,16 +54,19 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.22.0" }
+cw-orch = { version = "0.23.0" }
+cw-orch-interchain = { version = "0.2.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 polytone = { package = "abstract-polytone", version = "1.0.5" }
 polytone-note = { package = "abstract-polytone-note", version = "1.0.5" }
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "2.0.0" }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
 abstract-adapter = { path = "packages/abstract-adapter" }
 abstract-app = { path = "packages/abstract-app" }
+abstract-standalone = { path = "packages/abstract-standalone" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required

@@ -16,7 +16,7 @@ use abstract_client::{
     AbstractClient, AbstractClientError, Account, AccountSource, Application, Environment,
     Publisher,
 };
-use abstract_interface::{ClientResolve, RegisteredModule, VCExecFns, VCQueryFns};
+use abstract_interface::{ClientResolve, IbcClient, RegisteredModule, VCExecFns, VCQueryFns};
 use abstract_std::{
     adapter::AuthorizedAddressesResponse,
     ans_host::QueryMsgFns,
@@ -27,6 +27,7 @@ use abstract_std::{
         dependency::Dependency, fee::FixedFee, gov_type::GovernanceDetails,
         module_version::ModuleDataResponse, namespace::Namespace, AccountId, AssetEntry,
     },
+    IBC_CLIENT,
 };
 use abstract_testing::{
     addresses::{TEST_MODULE_NAME, TTOKEN},
@@ -715,6 +716,7 @@ fn cannot_get_nonexisting_module_dependency() -> anyhow::Result<()> {
     Ok(())
 }
 
+/// ANCHOR: mock_integration_test
 #[test]
 fn can_execute_on_proxy() -> anyhow::Result<()> {
     let denom = "denom";
@@ -738,6 +740,7 @@ fn can_execute_on_proxy() -> anyhow::Result<()> {
     assert_eq!(amount, client.query_balance(&user, denom)?.into());
     Ok(())
 }
+/// ANCHOR_END: mock_integration_test
 
 #[test]
 fn resolve_works() -> anyhow::Result<()> {
@@ -1202,7 +1205,7 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     let client = AbstractClient::builder(chain).build()?;
 
     // Check it fails on wrong account_id
-    let next_id = client.next_local_account_id()?;
+    let next_id = client.random_account_id()?;
     let err = client
         .account_builder()
         .expected_account_id(10)
@@ -1215,10 +1218,7 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     let err: account_factory::error::AccountFactoryError = err.downcast().unwrap();
     assert_eq!(
         err,
-        account_factory::error::AccountFactoryError::ExpectedAccountIdFailed {
-            predicted: AccountId::local(10),
-            actual: AccountId::local(next_id)
-        }
+        account_factory::error::AccountFactoryError::PredictableAccountIdFailed {}
     );
 
     // Can create if right id
@@ -1228,7 +1228,7 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
         .build()?;
 
     // Check it fails on wrong account_id for sub-accounts
-    let next_id = client.next_local_account_id()?;
+    let next_id = client.random_account_id()?;
     let err = client
         .account_builder()
         .sub_account(&account)
@@ -1242,10 +1242,7 @@ fn create_account_with_expected_account_id() -> anyhow::Result<()> {
     let err: account_factory::error::AccountFactoryError = err.downcast().unwrap();
     assert_eq!(
         err,
-        account_factory::error::AccountFactoryError::ExpectedAccountIdFailed {
-            predicted: AccountId::local(0),
-            actual: AccountId::local(next_id)
-        }
+        account_factory::error::AccountFactoryError::PredictableAccountIdFailed {}
     );
 
     // Can create sub-account if right id
@@ -1270,11 +1267,16 @@ fn instantiate2_addr() -> anyhow::Result<()> {
 
     publisher.publish_app::<MockAppI<MockBech32>>()?;
 
-    let account_id = AccountId::local(client.next_local_account_id()?);
+    let account_id = AccountId::local(client.random_account_id()?);
     let expected_addr = client.module_instantiate2_address::<MockAppI<MockBech32>>(&account_id)?;
 
-    let application: Application<MockBech32, MockAppI<MockBech32>> =
-        publisher.account().install_app(&MockInitMsg {}, &[])?;
+    let sub_account = client
+        .account_builder()
+        .sub_account(publisher.account())
+        .expected_account_id(account_id.seq())
+        .install_app::<MockAppI<MockBech32>>(&MockInitMsg {})?
+        .build()?;
+    let application = sub_account.application::<MockAppI<_>>()?;
 
     assert_eq!(application.address()?, expected_addr);
     Ok(())
@@ -1285,7 +1287,7 @@ fn instantiate2_raw_addr() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
     let client = AbstractClient::builder(chain).build()?;
 
-    let next_seq = client.next_local_account_id()?;
+    let next_seq = client.random_account_id()?;
     let account_id = AccountId::local(next_seq);
 
     let proxy_addr = client.module_instantiate2_address_raw(
@@ -1340,5 +1342,40 @@ fn install_same_app_on_different_accounts() -> anyhow::Result<()> {
     assert_ne!(mock_app1.id(), mock_app3.id());
     assert_ne!(mock_app2.id(), mock_app3.id());
 
+    Ok(())
+}
+
+#[test]
+fn instantiate2_random_seq() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let next_seq = client.random_account_id()?;
+    let account_id = AccountId::local(next_seq);
+
+    let proxy_addr = client.module_instantiate2_address_raw(
+        &account_id,
+        ModuleInfo::from_id_latest(abstract_std::PROXY)?,
+    )?;
+    let account = client
+        .account_builder()
+        .expected_account_id(next_seq)
+        .build()?;
+
+    assert_eq!(account.proxy()?, proxy_addr);
+    Ok(())
+}
+
+#[test]
+fn install_ibc_client_on_creation() -> anyhow::Result<()> {
+    let chain = MockBech32::new("mock");
+    let client = AbstractClient::builder(chain).build()?;
+
+    let account = client
+        .account_builder()
+        .install_adapter::<IbcClient<MockBech32>>()?
+        .build()?;
+    let ibc_module_addr = account.module_addresses(vec![IBC_CLIENT.to_owned()])?;
+    assert_eq!(ibc_module_addr.modules[0].0, IBC_CLIENT);
     Ok(())
 }

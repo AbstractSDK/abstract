@@ -13,7 +13,10 @@
 
 use abstract_std::{
     manager::ModuleInstallConfig,
-    objects::module::{ModuleInfo, ModuleStatus, ModuleVersion},
+    objects::{
+        chain_name::ChainName,
+        module::{ModuleInfo, ModuleStatus, ModuleVersion},
+    },
     version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
     ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
@@ -183,6 +186,17 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         self.install_module_parse_addr(app, Some(&custom_init_msg), funds)
     }
 
+    /// Installs an standalone from an standalone object
+    pub fn install_standalone<CustomInitMsg: Serialize, T: ContractInstance<Chain>>(
+        &self,
+        standalone: &T,
+        custom_init_msg: &CustomInitMsg,
+        funds: Option<&[Coin]>,
+    ) -> Result<Addr, crate::AbstractInterfaceError> {
+        // retrieve the deployment
+        self.install_module_parse_addr(standalone, Some(&custom_init_msg), funds)
+    }
+
     fn install_module_parse_addr<InitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
         module: &T,
@@ -199,11 +213,42 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     pub fn register_remote_account(
         &self,
-        host_chain: &str,
+        host_chain: ChainName,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         self.manager.register_remote_account(host_chain)
     }
+
+    pub fn create_remote_account(
+        &self,
+        account_details: AccountDetails,
+        host_chain: ChainName,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let AccountDetails {
+            namespace,
+            base_asset,
+            install_modules,
+            // Unused fields
+            name: _,
+            description: _,
+            link: _,
+            account_id: _,
+        } = account_details;
+
+        self.manager.execute_on_module(
+            abstract_std::PROXY,
+            abstract_std::proxy::ExecuteMsg::IbcAction {
+                msg: abstract_std::ibc_client::ExecuteMsg::Register {
+                    host_chain,
+                    base_asset,
+                    namespace,
+                    install_modules,
+                },
+            },
+        )
+    }
+
     pub fn create_sub_account(
         &self,
         account_details: AccountDetails,
