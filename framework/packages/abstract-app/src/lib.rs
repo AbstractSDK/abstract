@@ -191,11 +191,15 @@ pub mod mock {
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
         ) -> Result<Vec<ModuleInstallConfig>, abstract_interface::AbstractInterfaceError> {
-            let install_config = ModuleInstallConfig::new(
+            let test_module = ModuleInstallConfig::new(
                 ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?,
                 Some(to_json_binary(&MockInitMsg {})?),
             );
-            Ok(vec![install_config])
+            let ibc_client = ModuleInstallConfig::new(
+                ModuleInfo::from_id(IBC_CLIENT, abstract_std::registry::ABSTRACT_VERSION.into())?,
+                None,
+            );
+            Ok(vec![test_module, ibc_client])
         }
     }
 
