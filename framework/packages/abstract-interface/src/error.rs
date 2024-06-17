@@ -11,7 +11,7 @@ pub enum AbstractInterfaceError {
     #[error(transparent)]
     Orch(#[from] CwOrchError),
 
-    #[cfg(feature="interchain")]
+    #[cfg(feature = "interchain")]
     #[error(transparent)]
     OrchInterchain(#[from] cw_orch_interchain::InterchainError),
 
