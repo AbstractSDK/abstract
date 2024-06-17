@@ -178,6 +178,17 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         self.install_module_parse_addr(app, Some(&custom_init_msg), funds)
     }
 
+    /// Installs an standalone from an standalone object
+    pub fn install_standalone<CustomInitMsg: Serialize, T: ContractInstance<Chain>>(
+        &self,
+        standalone: &T,
+        custom_init_msg: &CustomInitMsg,
+        funds: Option<&[Coin]>,
+    ) -> Result<Addr, crate::AbstractInterfaceError> {
+        // retrieve the deployment
+        self.install_module_parse_addr(standalone, Some(&custom_init_msg), funds)
+    }
+
     fn install_module_parse_addr<InitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
         module: &T,

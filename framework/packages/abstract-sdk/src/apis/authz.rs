@@ -29,9 +29,9 @@ use super::stargate::{
     gov::vote_to_option,
 };
 
-use crate::{features::AccountIdentification, AbstractSdkResult};
+use crate::{features::AccountExecutor, AbstractSdkResult};
 /// An interface to the CosmosSDK AuthZ module which allows for granting authorizations to perform actions on behalf of one account to other accounts.
-pub trait AuthZInterface: AccountIdentification {
+pub trait AuthZInterface: AccountExecutor {
     /// API for accessing the Cosmos SDK AuthZ module.
     /// The **granter** is the address of the user **granting** an authorization to perform an action on their behalf.
     /// By default, it is the proxy address of the Account.
@@ -55,7 +55,7 @@ pub trait AuthZInterface: AccountIdentification {
     }
 }
 
-impl<T> AuthZInterface for T where T: AccountIdentification {}
+impl<T> AuthZInterface for T where T: AccountExecutor {}
 
 /// This struct provides methods to grant message authorizations and interact with the authz module.
 ///

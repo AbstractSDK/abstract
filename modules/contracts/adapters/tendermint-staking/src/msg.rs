@@ -15,7 +15,6 @@ impl adapter::AdapterQueryMsg for TendermintStakingQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-#[impl_into(ExecuteMsg)]
 pub enum TendermintStakingExecuteMsg {
     Delegate {
         /// Validator address
@@ -50,5 +49,4 @@ pub enum TendermintStakingExecuteMsg {
 /// Staking queries are available on [`cosmwasm_std::QuerierWrapper`] through [`cosmwasm_std::Deps`].
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
-#[impl_into(QueryMsg)]
 pub enum TendermintStakingQueryMsg {}

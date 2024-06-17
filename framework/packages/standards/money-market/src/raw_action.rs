@@ -24,7 +24,7 @@ pub enum MoneyMarketRawRequest {
         /// Asset to deposit
         collateral_asset: AssetBase<String>,
     },
-    /// Deposit Collateral to borrow against
+    /// Withdraw Collateral to borrow against
     WithdrawCollateral {
         /// Asset that identifies the market you want to withdraw from
         borrowable_asset: AssetInfoBase<String>,

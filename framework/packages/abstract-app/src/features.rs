@@ -1,6 +1,8 @@
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
+    features::{
+        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
+    },
     AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps};
@@ -56,6 +58,27 @@ impl<
     fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.base_state.load(deps.storage)?.proxy_address)
     }
+}
+
+impl<
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    > AccountExecutor
+    for AppContract<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
+{
 }
 
 impl<

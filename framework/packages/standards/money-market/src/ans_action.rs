@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Possible actions to perform on a Money Market
-/// This is an example using raw assets
+/// The following actions use the Abstarct Name Service
 #[cosmwasm_schema::cw_serde]
 pub enum MoneyMarketAnsAction {
     /// Deposit funds for lending.
@@ -30,7 +30,7 @@ pub enum MoneyMarketAnsAction {
         /// Asset to deposit
         collateral_asset: AnsAsset,
     },
-    /// Deposit Collateral to borrow against
+    /// Withdraw Collateral to borrow against
     WithdrawCollateral {
         /// Asset that identifies the market you want to withdraw from
         borrowable_asset: AssetEntry,

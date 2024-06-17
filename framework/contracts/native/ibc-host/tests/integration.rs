@@ -60,7 +60,7 @@ fn account_creation() -> anyhow::Result<()> {
     abstr_origin
         .ibc
         .host
-        .register_chain_proxy(chain.parse().unwrap(), sender.to_string())?;
+        .register_chain_proxy(chain.parse()?, sender.to_string())?;
 
     // Verify chain proxy via query
     let client_proxy_response: ClientProxyResponse =

@@ -4,15 +4,11 @@
 
 use abstract_std::{
     base,
-    ibc::Callback,
-    ibc::ModuleQuery,
+    ibc::{Callback, ModuleQuery},
     ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
-    objects::{
-        chain_name::ChainName,
-        module::{ModuleInfo, ModuleVersion},
-    },
+    objects::{chain_name::ChainName, module::ModuleInfo},
     proxy::ExecuteMsg,
     IBC_CLIENT,
 };
@@ -21,7 +17,7 @@ use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
-    features::{AccountIdentification, ModuleIdentification},
+    features::{AccountExecutor, AccountIdentification, ModuleIdentification},
     AbstractSdkResult, ModuleRegistryInterface,
 };
 
@@ -99,98 +95,6 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             .reference
             .unwrap_native()
             .map_err(Into::into)
-    }
-
-    /// Registers the ibc client to be able to use IBC capabilities
-    pub fn register_ibc_client(&self) -> AbstractSdkResult<CosmosMsg> {
-        Ok(wasm_execute(
-            self.base.manager_address(self.deps)?,
-            &abstract_std::manager::ExecuteMsg::InstallModules {
-                modules: vec![ModuleInstallConfig::new(
-                    ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
-                    None,
-                )],
-            },
-            vec![],
-        )?
-        .into())
-    }
-
-    /// A simple helper to create and register a remote account
-    pub fn create_remote_account(
-        &self,
-        // The chain on which you want to create an account
-        host_chain: ChainName,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::IbcAction {
-                msg: abstract_std::ibc_client::ExecuteMsg::Register {
-                    host_chain,
-                    base_asset: None,
-                    namespace: None,
-                    install_modules: vec![],
-                },
-            },
-            vec![],
-        )?
-        .into())
-    }
-
-    /// A simple helper to install an app on an account
-    pub fn install_remote_app<M: Serialize>(
-        &self,
-        // The chain on which you want to install an app
-        host_chain: ChainName,
-        module: ModuleInfo,
-        init_msg: &M,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.host_action(
-            host_chain,
-            HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::InstallModules {
-                    modules: vec![ModuleInstallConfig::new(
-                        module,
-                        Some(to_json_binary(&init_msg)?),
-                    )],
-                }],
-            },
-        )
-    }
-
-    /// A simple helper install a remote api Module providing only the chain name
-    pub fn install_remote_api<M: Serialize>(
-        &self,
-        // The chain on which you want to install an api
-        host_chain: ChainName,
-        module: ModuleInfo,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.host_action(
-            host_chain,
-            HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::InstallModules {
-                    modules: vec![ModuleInstallConfig::new(module, None)],
-                }],
-            },
-        )
-    }
-
-    /// A simple helper to execute on a module
-    pub fn execute_on_module<M: Serialize>(
-        &self,
-        host_chain: ChainName,
-        module_id: String,
-        exec_msg: &M,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.host_action(
-            host_chain,
-            HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ExecOnModule {
-                    module_id,
-                    exec_msg: to_json_binary(exec_msg)?,
-                }],
-            },
-        )
     }
 
     /// Send module action from this module to the target module
@@ -280,6 +184,45 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         Ok(msg.into())
     }
 
+    /// Address of the remote proxy
+    /// Note: only Accounts that are remote to *this* chain are queryable
+    pub fn remote_proxy_addr(&self, host_chain: &ChainName) -> AbstractSdkResult<Option<String>> {
+        let account_id = self.base.account_id(self.deps)?;
+        let ibc_client_addr = self.module_address()?;
+
+        let (trace, sequence) = account_id.decompose();
+        ibc_client::state::ACCOUNTS
+            .query(
+                &self.deps.querier,
+                ibc_client_addr,
+                (&trace, sequence, host_chain),
+            )
+            .map_err(Into::into)
+    }
+}
+
+impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
+    /// A simple helper to create and register a remote account
+    pub fn create_remote_account(
+        &self,
+        // The chain on which you want to create an account
+        host_chain: ChainName,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        Ok(wasm_execute(
+            self.base.proxy_address(self.deps)?.to_string(),
+            &ExecuteMsg::IbcAction {
+                msg: abstract_std::ibc_client::ExecuteMsg::Register {
+                    host_chain,
+                    base_asset: None,
+                    namespace: None,
+                    install_modules: vec![],
+                },
+            },
+            vec![],
+        )?
+        .into())
+    }
+
     /// Call a [`HostAction`] on the host of the provided `host_chain`.
     pub fn host_action(
         &self,
@@ -310,6 +253,64 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
             vec![],
         )?
         .into())
+    }
+
+    /// A simple helper to install an app on an account
+    pub fn install_remote_app<M: Serialize>(
+        &self,
+        // The chain on which you want to install an app
+        host_chain: ChainName,
+        module: ModuleInfo,
+        init_msg: &M,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        self.host_action(
+            host_chain,
+            HostAction::Dispatch {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::InstallModules {
+                    modules: vec![ModuleInstallConfig::new(
+                        module,
+                        Some(to_json_binary(&init_msg)?),
+                    )],
+                }],
+            },
+        )
+    }
+
+    /// A simple helper install a remote api Module providing only the chain name
+    pub fn install_remote_api<M: Serialize>(
+        &self,
+        // The chain on which you want to install an api
+        host_chain: ChainName,
+        module: ModuleInfo,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        self.host_action(
+            host_chain,
+            HostAction::Dispatch {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::InstallModules {
+                    modules: vec![ModuleInstallConfig::new(module, None)],
+                }],
+            },
+        )
+    }
+
+    /// A simple helper to execute on a module
+    /// Executes the message as the Manager of the remote account
+    /// I.e. can be used to execute admin actions on remote modules.
+    pub fn execute_on_module<M: Serialize>(
+        &self,
+        host_chain: ChainName,
+        module_id: String,
+        exec_msg: &M,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        self.host_action(
+            host_chain,
+            HostAction::Dispatch {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ExecOnModule {
+                    module_id,
+                    exec_msg: to_json_binary(exec_msg)?,
+                }],
+            },
+        )
     }
 
     /// Address of the remote proxy
