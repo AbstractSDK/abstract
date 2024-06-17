@@ -1,5 +1,9 @@
 [workspace]
-members = ["contracts/apps/*", "contracts/adapters/*"]
+members = [
+  "contracts/apps/*",
+  "contracts/adapters/*",
+  "contracts/standalones/*",
+]
 
 resolver = "2"
 
@@ -54,6 +58,7 @@ tokio = { version = "1.4", features = ["full"] }
 abstract-interface = { version = "0.22.1" }
 abstract-adapter = { version = "0.22.1" }
 abstract-app = { version = "0.22.1" }
+abstract-standalone = { version = "0.22.0" }
 abstract-testing = { version = "0.22.1" }
 abstract-macros = { version = "0.22.1" }
 abstract-client = { version = "0.22.1" }
@@ -91,6 +96,7 @@ anyhow = "1"
 [patch.crates-io]
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
+abstract-standalone = { path = "../framework/packages/abstract-standalone" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
