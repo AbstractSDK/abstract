@@ -367,14 +367,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     where
         Chain: cw_orch_interchain::IbcQueryHandler,
     {
-        // Assuming polytone deployed
-        let polytone_src = cw_orch_polytone::Polytone::new(self.environment());
-        abstract_interface::connection::abstract_ibc_connection_with(
-            &self.abstr,
-            ibc,
-            &remote_abstr.abstr,
-            &polytone_src,
-        )?;
+        self.abstr.connect(&remote_abstr.abstr, ibc)?;
+
         Ok(())
     }
 }

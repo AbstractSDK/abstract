@@ -21,8 +21,8 @@ fn create_remote_account() -> anyhow::Result<()> {
     let osmo_abstr = AbstractClient::builder(mock_osmo.clone()).build()?;
 
     // Deploying polytone on both chains
-    let polytone_juno = Polytone::deploy_on(mock_juno, None)?;
-    let polytone_osmo = Polytone::deploy_on(mock_osmo, None)?;
+    let polytone_juno = Polytone::deploy_on(mock_juno, Empty {})?;
+    let polytone_osmo = Polytone::deploy_on(mock_osmo, Empty {})?;
 
     // Creating a connection between 2 polytone deployments
     mock_interchain.create_contract_channel(
