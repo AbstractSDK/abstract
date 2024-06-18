@@ -125,34 +125,17 @@ impl GovernanceDetails<String> {
             GovernanceDetails::NFT {
                 collection_addr,
                 token_id,
-            } => {
-                // get owner of token_id from collection
-                let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
-                    &collection_addr,
-                    &cw721::Cw721QueryMsg::OwnerOf {
-                        token_id: token_id.clone(),
-                        include_expired: None,
-                    },
-                )?;
-                // verify owner
-                // if *sender == owner.owner {
-                //     Ok(())
-                // } else {
-                //     Err(ownership_error)
-                // }
-
-                Ok(GovernanceDetails::NFT {
-                    collection_addr: deps.api.addr_validate(&collection_addr.to_string())?,
-                    token_id,
-                })
-            }
+            } => Ok(GovernanceDetails::NFT {
+                collection_addr: deps.api.addr_validate(&collection_addr.to_string())?,
+                token_id,
+            }),
         }
     }
 }
 
 impl GovernanceDetails<Addr> {
     /// Get the owner address from the governance details
-    pub fn owner_address(&self, api: Option<QuerierWrapper>) -> Option<Addr> {
+    pub fn owner_address(&self, querier: &QuerierWrapper) -> Option<Addr> {
         match self {
             GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
             GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
@@ -164,20 +147,16 @@ impl GovernanceDetails<Addr> {
                 collection_addr,
                 token_id,
             } => {
-                if let Some(api) = api {
-                    let res: OwnerOfResponse = api
-                        .query_wasm_smart(
-                            collection_addr,
-                            &cw721::Cw721QueryMsg::OwnerOf {
-                                token_id: token_id.to_string(),
-                                include_expired: None,
-                            },
-                        )
-                        .unwrap();
-                    return Some(Addr::unchecked(&res.owner));
-                } else {
-                    return None;
-                }
+                let res: OwnerOfResponse = querier
+                    .query_wasm_smart(
+                        collection_addr,
+                        &cw721::Cw721QueryMsg::OwnerOf {
+                            token_id: token_id.to_string(),
+                            include_expired: None,
+                        },
+                    )
+                    .unwrap();
+                Some(Addr::unchecked(res.owner))
             }
         }
     }
