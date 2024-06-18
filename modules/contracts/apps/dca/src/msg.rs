@@ -54,7 +54,6 @@ pub struct AppInstantiateMsg {
 /// App execute messages
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-#[impl_into(ExecuteMsg)]
 pub enum DCAExecuteMsg {
     /// Used to update config of DCA App
     UpdateConfig {
@@ -111,7 +110,6 @@ pub enum DCAExecuteMsg {
 /// DCA query messages
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
-#[impl_into(QueryMsg)]
 pub enum DCAQueryMsg {
     /// Get config of the DCA app
     /// Returns [`ConfigResponse`]

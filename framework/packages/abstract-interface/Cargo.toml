@@ -27,12 +27,12 @@ cw-address-like = { workspace = true }
 abstract-std = { workspace = true }
 
 cw-orch = { workspace = true }
-cw-orch-interchain = { workspace = true, optional=true }
+cw-orch-interchain = { workspace = true, optional = true }
 log = "0.4.14"
 serde_json = "1.0.79"
 speculoos = { workspace = true }
 polytone = { workspace = true }
-cw-orch-polytone = { workspace = true, optional=true  }
+cw-orch-polytone = { workspace = true, optional = true }
 
 # Embed state.json in binary in release mode
 rust-embed = { version = "8.3.0", features = ["include-exclude"] }

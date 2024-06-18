@@ -86,7 +86,7 @@ pub enum ExecuteMsg {
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
-    #[payable]
+    #[cw_orch(payable)]
     CreateAccount {
         // Governance details
         governance: GovernanceDetails<String>,

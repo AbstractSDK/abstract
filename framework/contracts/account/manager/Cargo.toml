@@ -54,6 +54,7 @@ speculoos = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-standalone = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }
 abstract-integration-tests = { workspace = true }
