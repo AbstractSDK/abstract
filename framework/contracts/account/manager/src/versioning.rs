@@ -1,6 +1,9 @@
 use abstract_std::{
     manager::state::{ACCOUNT_MODULES, DEPENDENTS},
-    objects::{dependency::Dependency, module_version::MODULE},
+    objects::{
+        dependency::Dependency,
+        module_version::{ModuleData, MODULE},
+    },
 };
 use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
 use cw_semver::{Comparator, Version};
@@ -138,10 +141,15 @@ pub fn assert_dependency_requirements(
     Ok(())
 }
 
-pub fn load_module_dependencies(deps: Deps, module_id: &str) -> ManagerResult<Vec<Dependency>> {
+pub fn load_module_data(deps: Deps, module_id: &str) -> ManagerResult<ModuleData> {
     let querier = &deps.querier;
     let module_addr = ACCOUNT_MODULES.load(deps.storage, module_id)?;
     let module_data = MODULE.query(querier, module_addr)?;
+    Ok(module_data)
+}
+
+pub fn load_module_dependencies(deps: Deps, module_id: &str) -> ManagerResult<Vec<Dependency>> {
+    let module_data = load_module_data(deps, module_id)?;
     Ok(module_data.dependencies)
 }
 

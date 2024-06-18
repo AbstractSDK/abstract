@@ -1,5 +1,5 @@
 use abstract_macros::abstract_response;
-use abstract_sdk::cw_helpers::AbstractAttributes;
+use abstract_sdk::{cw_helpers::AbstractAttributes, ModuleRegistryInterface};
 use abstract_std::{
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
@@ -134,7 +134,8 @@ pub(crate) fn _install_modules(
         .map_err(|error| ManagerError::QueryModulesFailed { error })?;
 
     let mut install_context = Vec::with_capacity(modules.len());
-    let mut to_add = Vec::with_capacity(modules.len());
+    let mut add_to_proxy = Vec::with_capacity(modules.len());
+    let mut add_to_manager = Vec::with_capacity(modules.len());
 
     let salt: Binary = generate_instantiate_salt(&account_id);
     for (ModuleResponse { module, .. }, init_msg) in modules.into_iter().zip(init_msgs) {
@@ -149,7 +150,10 @@ pub(crate) fn _install_modules(
 
         let init_msg_salt = match &module.reference {
             ModuleReference::Adapter(module_address) | ModuleReference::Native(module_address) => {
-                to_add.push((module.info.id(), module_address.to_string()));
+                if module.proxy_whitelisted() {
+                    add_to_proxy.push(module_address.to_string());
+                }
+                add_to_manager.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), None));
                 None
             }
@@ -167,7 +171,10 @@ pub(crate) fn _install_modules(
                         .is_err(),
                     ManagerError::ProhibitedReinstall {}
                 );
-                to_add.push((module.info.id(), module_address.to_string()));
+                if module.proxy_whitelisted() {
+                    add_to_proxy.push(module_address.to_string());
+                }
+                add_to_manager.push((module.info.id(), module_address.to_string()));
                 install_context.push((module.clone(), Some(module_address)));
 
                 Some(init_msg.unwrap())
@@ -179,28 +186,35 @@ pub(crate) fn _install_modules(
 
     INSTALL_MODULES_CONTEXT.save(deps.storage, &install_context)?;
 
+    let mut messages = vec![];
+
     // Add modules to proxy
-    let (_, add_modules): (Vec<_>, Vec<_>) = to_add.iter().cloned().unzip();
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
-    let add_to_proxy = add_modules_to_proxy(proxy_addr.into_string(), add_modules)?;
+    if !add_to_proxy.is_empty() {
+        messages.push(SubMsg::new(add_modules_to_proxy(
+            proxy_addr.into_string(),
+            add_to_proxy,
+        )?));
+    };
 
     // Update module addrs
-    update_module_addresses(deps.branch(), Some(to_add), None)?;
+    update_module_addresses(deps.branch(), Some(add_to_manager), None)?;
 
-    let install_modules_msg = wasm_execute(
-        module_factory_address,
-        &ModuleFactoryMsg::InstallModules {
-            modules: manager_modules,
-            salt,
-        },
-        funds,
-    )?;
+    // Install modules message
+    messages.push(SubMsg::reply_on_success(
+        wasm_execute(
+            module_factory_address,
+            &ModuleFactoryMsg::InstallModules {
+                modules: manager_modules,
+                salt,
+            },
+            funds,
+        )?,
+        REGISTER_MODULES_DEPENDENCIES,
+    ));
 
     Ok((
-        vec![
-            SubMsg::new(add_to_proxy),
-            SubMsg::reply_on_success(install_modules_msg, REGISTER_MODULES_DEPENDENCIES),
-        ],
+        messages,
         Attribute::new("installed_modules", format!("{installed_modules:?}")),
     ))
 }
@@ -387,16 +401,11 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     // only owner can uninstall modules
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
-    let (response, msg) = _uninstall_module(deps, module_id)?;
-
-    Ok(response.add_message(msg))
+    _uninstall_module(deps, module_id)
 }
 
 /// Marked as internal because no access control is done here
-pub(crate) fn _uninstall_module(
-    deps: DepsMut,
-    module_id: String,
-) -> ManagerResult<(Response, CosmosMsg)> {
+pub(crate) fn _uninstall_module(deps: DepsMut, module_id: String) -> ManagerResult {
     validation::validate_not_proxy(&module_id)?;
 
     // module can only be uninstalled if there are no dependencies on it
@@ -412,19 +421,31 @@ pub(crate) fn _uninstall_module(
     }
 
     // Remove module as dependant from its dependencies.
-    let module_dependencies = versioning::load_module_dependencies(deps.as_ref(), &module_id)?;
+    let module_data = versioning::load_module_data(deps.as_ref(), &module_id)?;
+    let module_dependencies = module_data.dependencies;
     versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
-    let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
-    let module_addr = load_module_addr(deps.storage, &module_id)?;
-    let remove_from_proxy_msg =
-        remove_module_from_proxy(proxy.into_string(), module_addr.into_string())?;
+    // Remove for proxy if needed
+    let config = CONFIG.load(deps.storage)?;
+    let vc = VersionControlContract::new(config.version_control_address);
+
+    let module = vc.query_module(
+        ModuleInfo::from_id(&module_data.module, module_data.version.into())?,
+        &deps.querier,
+    )?;
+
+    let mut response = ManagerResponse::new("uninstall_module", vec![("module", &module_id)]);
+    // Remove module from proxy whitelist if it supposed to be removed
+    if module.proxy_whitelisted() {
+        let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
+        let module_addr = load_module_addr(deps.storage, &module_id)?;
+        let remove_from_proxy_msg =
+            remove_module_from_proxy(proxy.into_string(), module_addr.into_string())?;
+        response = response.add_message(remove_from_proxy_msg);
+    }
     ACCOUNT_MODULES.remove(deps.storage, &module_id);
 
-    Ok((
-        ManagerResponse::new("uninstall_module", vec![("module", module_id)]),
-        remove_from_proxy_msg,
-    ))
+    Ok(response)
 }
 
 /// Proposes a new owner for the account.
