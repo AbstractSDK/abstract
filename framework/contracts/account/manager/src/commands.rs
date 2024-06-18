@@ -445,7 +445,7 @@ pub fn propose_owner(
     let config = CONFIG.load(deps.storage)?;
     let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address)?;
     let new_owner_addr = verified_gov
-        .owner_address(Some(deps.querier))
+        .owner_address(&deps.querier)
         .ok_or(ManagerError::ProposeRenounced {})?;
 
     // Check that there are changes
@@ -1154,17 +1154,17 @@ pub(crate) fn verify_nft_ownership(
 ) -> ManagerResult<()> {
     // get owner of token_id from collection
     let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
-        &addr,
+        addr,
         &Cw721QueryMsg::OwnerOf {
             token_id: id,
             include_expired: None,
         },
     )?;
     // verify owner
-    if sender.to_string() == owner.owner {
-        return Ok(());
+    if sender == owner.owner {
+        Ok(())
     } else {
-        return Err(ManagerError::Ownership(OwnershipError::NotOwner));
+        Err(ManagerError::Ownership(OwnershipError::NotOwner))
     }
 }
 
@@ -1231,8 +1231,8 @@ mod tests {
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     mod set_owner_and_gov_type {
-        use cosmwasm_std::QuerierWrapper;
         use super::*;
+        use cosmwasm_std::QuerierWrapper;
 
         #[test]
         fn only_owner() -> ManagerTestResult {
@@ -1312,7 +1312,7 @@ mod tests {
             let actual_info = INFO.load(deps.as_ref().storage)?;
             assert_that!(&actual_info
                 .governance_details
-                .owner_address(Some(querier.clone()))
+                .owner_address(&querier)
                 .unwrap()
                 .to_string())
             .is_equal_to("owner".to_string());
@@ -1323,7 +1323,7 @@ mod tests {
             let actual_info = INFO.load(deps.as_ref().storage)?;
             assert_that!(&actual_info
                 .governance_details
-                .owner_address(None)
+                .owner_address(&deps.as_ref().querier)
                 .unwrap()
                 .to_string())
             .is_equal_to("new_gov".to_string());

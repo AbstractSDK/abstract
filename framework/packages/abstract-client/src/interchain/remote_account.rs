@@ -16,22 +16,19 @@ use abstract_std::{
     },
     objects::{
         chain_name::ChainName,
-        gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
-        nested_admin::MAX_ADMIN_RECURSION,
         AccountId, AssetEntry,
     },
     proxy, IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, CosmosMsg, Uint128};
-use cw721::OwnerOfResponse;
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 use cw_orch_interchain::{types::IbcTxAnalysis, IbcQueryHandler, InterchainEnv};
 
 use crate::{
-    client::AbstractClientResult, AbstractClient, AbstractClientError, Account, Environment,
-    RemoteApplication,
+    account::get_nested_governance_owner, client::AbstractClientResult, AbstractClient,
+    AbstractClientError, Account, Environment, RemoteApplication,
 };
 
 /// A builder for creating [`RemoteAccounts`](RemoteAccount).
@@ -404,7 +401,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
-        let mut governance = self
+        let governance = self
             .abstr_owner_account
             .manager
             .info()?
@@ -412,40 +409,8 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
             .governance_details;
 
         let environment = self.origin_chain();
-        // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-        for _ in 0..MAX_ADMIN_RECURSION {
-            match &governance {
-                GovernanceDetails::SubAccount { manager, .. } => {
-                    governance = environment
-                        .query::<_, InfoResponse>(&manager::QueryMsg::Info {}, manager)
-                        .map_err(|err| err.into())?
-                        .info
-                        .governance_details;
-                }
-                GovernanceDetails::NFT {
-                    collection_addr,
-                    token_id,
-                } => {
-                    let owner = environment
-                        .query::<_, OwnerOfResponse>(
-                            &cw721::Cw721QueryMsg::OwnerOf {
-                                token_id: token_id.to_string(),
-                                include_expired: None,
-                            },
-                            collection_addr,
-                        )
-                        .map_err(|err| err.into())?
-                        .owner;
-                    return Ok(Addr::unchecked(owner));
-                }
-                _ => break,
-            }
-        }
 
-        // Get top level account owner address
-        governance
-            .owner_address(None)
-            .ok_or(AbstractClientError::RenouncedAccount {})
+        get_nested_governance_owner(governance, environment)
     }
 
     /// Executes a [`CosmosMsg`] on the proxy of the account.

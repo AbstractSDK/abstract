@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    attr, Addr, CustomQuery, Deps, DepsMut, Empty, MessageInfo, QuerierWrapper, Response, StdError,
+    attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, QuerierWrapper, Response, StdError,
     StdResult,
 };
 use cw_controllers::{Admin, AdminError, AdminResponse};
@@ -130,7 +130,7 @@ pub fn query_top_level_owner<Q: CustomQuery>(
     // Get top level account owner address
     current.and_then(|info| {
         info.governance_details
-            .owner_address(Some(querier.into_empty()))
+            .owner_address(&querier.into_empty())
             .ok_or(StdError::generic_err("Top level account got renounced"))
     })
 }
