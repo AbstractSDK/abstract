@@ -427,7 +427,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
 
         // Get top level account owner address
         governance
-            .owner_address()
+            .owner_address(None)
             .ok_or(AbstractClientError::RenouncedAccount {})
     }
 

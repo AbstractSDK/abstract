@@ -152,7 +152,7 @@ impl GovernanceDetails<String> {
 
 impl GovernanceDetails<Addr> {
     /// Get the owner address from the governance details
-    pub fn owner_address(&self, api: &QuerierWrapper) -> Option<Addr> {
+    pub fn owner_address(&self, api: Option<QuerierWrapper>) -> Option<Addr> {
         match self {
             GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
             GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
@@ -164,16 +164,20 @@ impl GovernanceDetails<Addr> {
                 collection_addr,
                 token_id,
             } => {
-                let res: OwnerOfResponse = api
-                    .query_wasm_smart(
-                        collection_addr,
-                        &cw721::Cw721QueryMsg::OwnerOf {
-                            token_id: token_id.to_string(),
-                            include_expired: None,
-                        },
-                    )
-                    .unwrap();
-                return Some(Addr::unchecked(&res.owner));
+                if let Some(api) = api {
+                    let res: OwnerOfResponse = api
+                        .query_wasm_smart(
+                            collection_addr,
+                            &cw721::Cw721QueryMsg::OwnerOf {
+                                token_id: token_id.to_string(),
+                                include_expired: None,
+                            },
+                        )
+                        .unwrap();
+                    return Some(Addr::unchecked(&res.owner));
+                } else {
+                    return None;
+                }
             }
         }
     }

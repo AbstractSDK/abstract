@@ -445,7 +445,7 @@ pub fn propose_owner(
     let config = CONFIG.load(deps.storage)?;
     let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address)?;
     let new_owner_addr = verified_gov
-        .owner_address(&deps.querier)
+        .owner_address(Some(deps.querier))
         .ok_or(ManagerError::ProposeRenounced {})?;
 
     // Check that there are changes

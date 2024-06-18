@@ -19,7 +19,7 @@
 //! assert_eq!(alice_account.owner()?, client.sender());
 //! # Ok::<(), AbstractClientError>(())
 //! ```
-use std::fmt::{Debug, Display};
+use std::{fmt::{Debug, Display}, ops::Add};
 
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
@@ -42,6 +42,7 @@ use abstract_std::{
     PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
+use cw721::OwnerOfResponse;
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
@@ -565,13 +566,30 @@ impl<Chain: CwEnv> Account<Chain> {
                         .info
                         .governance_details;
                 }
+                GovernanceDetails::NFT {
+                    collection_addr,
+                    token_id,
+                } => {
+                    let owner = environment
+                        .query::<_, OwnerOfResponse>(
+                            &cw721::Cw721QueryMsg::OwnerOf {
+                                token_id: token_id.to_string(),
+                                include_expired: None,
+                            },
+                            collection_addr,
+                        )
+                        .map_err(|err| err.into())?
+                        .owner;
+                    
+                    return Ok(Addr::unchecked(owner));
+                }
                 _ => break,
             }
         }
 
         // Get top level account owner address
         governance
-            .owner_address(environment.querier()?)
+            .owner_address(None)
             .ok_or(AbstractClientError::RenouncedAccount {})
     }
 

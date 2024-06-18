@@ -420,11 +420,12 @@ fn test_nft_as_governance() -> Result<(), Error> {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let (_code_id, test_nft_collection) = deploy_nft_contracts(chain.clone(), sender.clone())?;
 
+    // define nft gov details
     let gov = GovernanceDetails::NFT {
-        collection_addr: test_nft_collection.clone(),
+        collection_addr: test_nft_collection.to_string(),
         token_id: String::from("1"),
     };
-
+    // create nft account
     let res = deployment.account_factory.create_account(
         gov,
         vec![],
@@ -458,10 +459,15 @@ fn test_nft_as_governance() -> Result<(), Error> {
     let start_amnt = 100_000;
     let burn_amnt = 10_000u128;
     let start_balance = vec![Coin::new(start_amnt, TTOKEN)];
-    let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TTOKEN)];
+    let burn_amount: Vec<Coin> = vec![Coin::new(burn_amnt.clone(), TTOKEN)];
 
+    let first_burn = Uint128::from(start_amnt).checked_sub(burn_amnt.into())?;
+
+    // fund nft account
     chain.set_balance(&Addr::unchecked(proxy.clone()), start_balance.clone())?;
-    let msg = abstract_std::proxy::ExecuteMsg::ModuleAction {
+
+    // test sending msg as nft account by burning tokens from proxy
+    let burn_msg = abstract_std::proxy::ExecuteMsg::ModuleAction {
         msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
             amount: burn_amount,
         })],
@@ -470,33 +476,50 @@ fn test_nft_as_governance() -> Result<(), Error> {
     chain.execute(
         &abstract_std::manager::ExecuteMsg::ExecOnModule {
             module_id: PROXY.to_string(),
-            exec_msg: to_json_binary(&msg)?,
+            exec_msg: to_json_binary(&burn_msg)?,
         },
         &[],
         &Addr::unchecked(manager.clone()),
     )?;
-    // confirm msg was sent normally
-    let res = chain.query_balance(&Addr::unchecked(proxy.clone()), TTOKEN)?;
-    assert_eq!(
-        res,
-        Uint128::from(start_amnt).checked_sub(burn_amnt.into())?
-    );
+    // confirm tokens were burnt
+    let balance = chain.query_balance(&Addr::unchecked(proxy.clone()), TTOKEN)?;
+
+    assert_eq!(balance.clone(), first_burn.clone());
 
     // confirm only token holder can send msg
     let res = chain.call_as(&bad_sender).execute(
         &abstract_std::manager::ExecuteMsg::ExecOnModule {
             module_id: PROXY.to_string(),
-            exec_msg: to_json_binary(&msg)?,
+            exec_msg: to_json_binary(&burn_msg)?,
+        },
+        &[],
+        &Addr::unchecked(manager.clone()),
+    );
+    assert!(&res.is_err());
+
+    // verify good transfer of nft
+    chain.execute(
+        &cw721::Cw721ExecuteMsg::TransferNft {
+            recipient: bad_sender.to_string(),
+            token_id: String::from("1"),
+        },
+        &[],
+        &Addr::unchecked(test_nft_collection.clone()),
+    )?;
+
+    chain.call_as(&bad_sender).execute(
+        &abstract_std::manager::ExecuteMsg::ExecOnModule {
+            module_id: PROXY.to_string(),
+            exec_msg: to_json_binary(&burn_msg)?,
         },
         &[],
         &Addr::unchecked(manager),
-    );
-    assert_that!(&res.is_err());
-
+    )?;
+    let balance = chain.query_balance(&Addr::unchecked(proxy.clone()), TTOKEN)?;
+    assert_eq!(balance, first_burn.checked_sub(burn_amnt.into())?);
     Ok(())
 }
 
-#[test]
 fn deploy_nft_contracts(
     mut chain: MockBase<MockApiBech32>,
     sender: Addr,
