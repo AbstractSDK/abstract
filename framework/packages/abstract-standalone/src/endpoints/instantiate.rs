@@ -5,9 +5,8 @@ use abstract_sdk::{
 use abstract_std::{
     objects::module_version::set_module_data,
     standalone::{StandaloneInstantiateMsg, StandaloneState},
-    AbstractError,
 };
-use cosmwasm_std::{Addr, DepsMut, Env};
+use cosmwasm_std::{DepsMut, Env, MessageInfo};
 use cw2::set_contract_version;
 
 use crate::state::StandaloneContract;
@@ -18,6 +17,7 @@ impl StandaloneContract {
         &self,
         deps: DepsMut,
         env: &Env,
+        info: MessageInfo,
         msg: StandaloneInstantiateMsg,
         is_migratable: bool,
     ) -> AbstractSdkResult<()> {
@@ -31,16 +31,8 @@ impl StandaloneContract {
         let version_control = VersionControlContract {
             address: deps.api.addr_validate(&version_control_address)?,
         };
-
-        let contract_info = deps
-            .querier
-            .query_wasm_contract_info(&env.contract.address)?;
-        let account_base = version_control
-            .assert_manager(
-                &Addr::unchecked(contract_info.admin.expect("module-factory set this")),
-                &deps.querier,
-            )
-            .map_err(AbstractError::from)?;
+        let account_base =
+            abstract_std::module_factory::state::CURRENT_BASE.query(&deps.querier, info.sender)?;
 
         // Base state
         let state = StandaloneState {
