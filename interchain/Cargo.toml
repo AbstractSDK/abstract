@@ -103,6 +103,12 @@ abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
+# For multi sender
+cw-orch = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "nicolas/orc-126-daemon-should-become-a-wrapper-around-sender-types" }
+cw-orch-core = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "nicolas/orc-126-daemon-should-become-a-wrapper-around-sender-types" }
+cw-orch-daemon = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "nicolas/orc-126-daemon-should-become-a-wrapper-around-sender-types" }
+
+
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
