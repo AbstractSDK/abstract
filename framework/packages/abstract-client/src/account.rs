@@ -19,7 +19,10 @@
 //! assert_eq!(alice_account.owner()?, client.sender());
 //! # Ok::<(), AbstractClientError>(())
 //! ```
-use std::{fmt::{Debug, Display}, ops::Add};
+use std::{
+    fmt::{Debug, Display},
+    ops::Add,
+};
 
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
@@ -39,7 +42,7 @@ use abstract_std::{
         AccountId, AssetEntry,
     },
     version_control::NamespaceResponse,
-    PROXY,
+    PROXY, VERSION_CONTROL,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw721::OwnerOfResponse;
@@ -580,7 +583,6 @@ impl<Chain: CwEnv> Account<Chain> {
                         )
                         .map_err(|err| err.into())?
                         .owner;
-                    
                     return Ok(Addr::unchecked(owner));
                 }
                 _ => break,

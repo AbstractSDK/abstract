@@ -25,6 +25,7 @@ use abstract_std::{
     proxy, IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, CosmosMsg, Uint128};
+use cw721::OwnerOfResponse;
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 use cw_orch_interchain::{types::IbcTxAnalysis, IbcQueryHandler, InterchainEnv};
 
@@ -420,6 +421,22 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
                         .map_err(|err| err.into())?
                         .info
                         .governance_details;
+                }
+                GovernanceDetails::NFT {
+                    collection_addr,
+                    token_id,
+                } => {
+                    let owner = environment
+                        .query::<_, OwnerOfResponse>(
+                            &cw721::Cw721QueryMsg::OwnerOf {
+                                token_id: token_id.to_string(),
+                                include_expired: None,
+                            },
+                            collection_addr,
+                        )
+                        .map_err(|err| err.into())?
+                        .owner;
+                    return Ok(Addr::unchecked(owner));
                 }
                 _ => break,
             }

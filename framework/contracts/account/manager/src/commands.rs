@@ -1231,6 +1231,7 @@ mod tests {
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     mod set_owner_and_gov_type {
+        use cosmwasm_std::QuerierWrapper;
         use super::*;
 
         #[test]
@@ -1307,10 +1308,11 @@ mod tests {
 
             execute_as_owner(deps.as_mut(), msg)?;
 
+            let querier = QuerierWrapper::new(&deps.querier);
             let actual_info = INFO.load(deps.as_ref().storage)?;
             assert_that!(&actual_info
                 .governance_details
-                .owner_address(None)
+                .owner_address(Some(querier.clone()))
                 .unwrap()
                 .to_string())
             .is_equal_to("owner".to_string());
