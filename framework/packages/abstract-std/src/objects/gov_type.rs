@@ -217,7 +217,7 @@ impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
                 governance_type, ..
             } => governance_type.to_owned(),
             GovernanceDetails::Renounced {} => "renounced".to_string(),
-            GovernanceDetails::NFT { .. } => "nft-account".to_string(),
+            GovernanceDetails::NFT { .. } => "nft".to_string(),
         };
         write!(f, "{}", str)
     }
