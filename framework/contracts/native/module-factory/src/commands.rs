@@ -58,6 +58,8 @@ pub fn execute_create_modules(
     // Attributes logging
     let mut module_ids: Vec<String> = Vec::with_capacity(modules_responses.len());
 
+    let mut at_least_one_standalone = false;
+
     let canonical_contract_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
     for (owner_init_msg, module_response) in
         init_msgs.into_iter().zip(modules_responses.into_iter())
@@ -127,6 +129,7 @@ pub fn execute_create_modules(
                 modules_to_register.push(addr.clone());
             }
             ModuleReference::Standalone(code_id) => {
+                at_least_one_standalone = true;
                 let (addr, init_msg) = instantiate2_contract(
                     deps.as_ref(),
                     canonical_contract_addr.clone(),
@@ -151,6 +154,13 @@ pub fn execute_create_modules(
             }
             _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
         };
+    }
+
+    // If we have at least one standalone installed have to save this to state as \
+    // Standalone need to figure out what account is that and \
+    // Contract Info query does not work during instantiation on self contract, because contract does not exist yet \
+    if at_least_one_standalone {
+        CURRENT_BASE.save(deps.storage, &account_base)?;
     }
 
     let sum_of_monetization = sum_of_monetization.into_vec();

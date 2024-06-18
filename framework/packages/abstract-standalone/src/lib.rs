@@ -114,10 +114,10 @@ pub mod mock {
     pub fn instantiate(
         deps: DepsMut,
         env: Env,
-        _info: MessageInfo,
+        info: MessageInfo,
         msg: MockInitMsg,
     ) -> Result<Response, MockError> {
-        BASIC_MOCK_STANDALONE.instantiate(deps, &env, msg.base, true)?;
+        BASIC_MOCK_STANDALONE.instantiate(deps, &env, info, msg.base, true)?;
         Ok(BASIC_MOCK_STANDALONE.response("instantiate"))
     }
 
@@ -208,7 +208,7 @@ pub mod mock {
                 info: ::cosmwasm_std::MessageInfo,
                 msg: $crate::mock::MockInitMsg,
             ) -> Result<::cosmwasm_std::Response, $crate::mock::MockError> {
-                MOCK_APP_WITH_DEP.instantiate(deps, &env, msg.base, true)?;
+                MOCK_APP_WITH_DEP.instantiate(deps, &env, info, msg.base, true)?;
                 Ok(MOCK_APP_WITH_DEP
                     .response("instantiate")
                     .set_data("mock_init".as_bytes()))

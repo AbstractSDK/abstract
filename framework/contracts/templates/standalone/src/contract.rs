@@ -16,7 +16,7 @@ const INSTANTIATE_REPLY_ID: u64 = 0;
 pub fn instantiate(
     mut deps: DepsMut,
     env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     msg: MyStandaloneInstantiateMsg,
 ) -> MyStandaloneResult {
     let config: Config = Config {};
@@ -25,7 +25,7 @@ pub fn instantiate(
 
     // Init standalone as module
     let is_migratable = true;
-    MY_STANDALONE.instantiate(deps.branch(), &env, msg.base, is_migratable)?;
+    MY_STANDALONE.instantiate(deps.branch(), &env, info, msg.base, is_migratable)?;
 
     Ok(MY_STANDALONE.response("init"))
 }
