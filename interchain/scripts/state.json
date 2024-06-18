@@ -357,26 +357,26 @@
   "xion": {
     "xion-testnet-1": {
       "code_ids": {
-        "abstract:account-factory": 695,
-        "abstract:ans-host": 698,
-        "abstract:ibc-client": 701,
-        "abstract:ibc-host": 702,
-        "abstract:manager": 699,
-        "abstract:module-factory": 696,
-        "abstract:proxy": 700,
-        "abstract:version-control": 697
+        "abstract:account-factory": 744,
+        "abstract:ans-host": 742,
+        "abstract:ibc-client": 748,
+        "abstract:ibc-host": 749,
+        "abstract:manager": 746,
+        "abstract:module-factory": 745,
+        "abstract:proxy": 747,
+        "abstract:version-control": 743
       },
       "default": {
-        "abstract:account-factory": "xion146fns53rghyn7yclpw6krnzdarwh423t8pq9ye4jlvegrf7d2kzsrwvp2x",
-        "abstract:ans-host": "xion10u37xtvas9r2as903v2kzrl4sep6703hhwtymrl7d50pz2y56puqw38h0a",
-        "abstract:ibc-client": "xion1w86t834cmx65hye20gdjxrawlw3vlvx9au2492tg38uaa5tymndq9jhvpa",
-        "abstract:ibc-host": "xion1daye4l7h203rfa25mwrrfyll3yakyh8lasg8ydazeq8hccfdvy7q59cqkq",
-        "abstract:manager-local-0": "xion19fdmakwqnnppzw70g3l74avqkefmpmheqk7qdlhphwuzqg5x5djq4mfazq",
-        "abstract:manager-local-1": "xion1n23h4ddw0sdw6vgk0chn22yg23vvsddnxsnmrypg0y2vqtfn3v3smzgwxz",
-        "abstract:module-factory": "xion1xhv3zgqzqtjaglj2pcym9y2fu699gmmxpdn5yge2nkan8v4c5m6suq8h6f",
-        "abstract:proxy-local-0": "xion1krjga6c20rywynqmxel3944ej4khuqpy6gpdl0p5wc32gx0a4zhsa0q7rr",
-        "abstract:proxy-local-1": "xion1y95de639vqqs9sesy6pz087ukle0wpxx3dx8ul2px64uhus57egq79n2jy",
-        "abstract:version-control": "xion1m7k3n4y9895w0c474zt88jx03wj5655jhmqp5lz30lcgenuv6fpstlg9gd"
+        "abstract:account-factory": "xion1462rpd4mtacl5mqdzq5ey7lz3h7u24acvsyhdl3vljqsr8xss57sna7qwh",
+        "abstract:ans-host": "xion1a5j6243v3jjjfc7c3x8tqexauz8wtu3nxug5uv2ygg3nlsw9kwks9ujz7y",
+        "abstract:ibc-client": "xion1jtsrag6d7hdl9rhp8j8q6ey5sa9ccl7my3nddn7m3frpcvtgflyqrw09n8",
+        "abstract:ibc-host": "xion1tx2zjcwvy6hvcyc569kfq2jlk6z0pt2a5r8fpw4g0fhwfhcq990snjcgsu",
+        "abstract:manager-local-0": "xion15uqccje390az7e32vdkc3pu8clafae0mljmgndw7h9q59tfrs30qq4tc9n",
+        "abstract:manager-local-1": "xion1yl759h3q8x5jv0vmtckuts6jsfphetfclw44mplhppkmqmm6pqmqxz5l2q",
+        "abstract:module-factory": "xion1k2h0hwjuk0hnjwf6tay2773aey5cv8a0dxa9ud4z2dxdafhkzs6qkhwre7",
+        "abstract:proxy-local-0": "xion19j4zh6kkzgx34qgrswhfy099dwk0mechhdwcfkacept5rv2uhf6qp3ca99",
+        "abstract:proxy-local-1": "xion1y3cz63x22d8r4kpr9qkw5herdmpvgn603mspd0ggrzt044kjlcnsydwa5q",
+        "abstract:version-control": "xion1m4mwcqkv6gnjv8unjrpfcf2m4q930fznfnw76xfwdsrvpvn2e8vsts34f6"
       }
     }
   }
