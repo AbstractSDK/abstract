@@ -18,7 +18,7 @@ use crate::setup::ibc_connect_polytone_and_abstract;
 use crate::setup::mock_test::logger_test_init;
 use crate::{JUNO, STARGAZE};
 use ping_pong::contract::APP_ID;
-use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, WinsResponse, PreviousPingPongResponse};
+use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, PreviousPingPongResponse, WinsResponse};
 use ping_pong::{AppExecuteMsgFns, AppInterface, AppQueryMsgFns};
 
 #[allow(unused)]
@@ -104,8 +104,7 @@ fn successful_install() -> anyhow::Result<()> {
 
     let app2 = env.remote_account.application::<AppInterface<_>>()?;
 
-    let pongs: WinsResponse =
-        app2.query(&ping_pong::msg::QueryMsg::from(AppQueryMsg::Pongs {}))?;
+    let pongs: WinsResponse = app2.query(&ping_pong::msg::QueryMsg::from(AppQueryMsg::Pongs {}))?;
 
     assert_eq!(pongs, WinsResponse { wins: 0 });
     Ok(())
