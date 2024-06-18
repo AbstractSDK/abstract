@@ -53,30 +53,30 @@ fn main() -> anyhow::Result<()> {
     // Install the Standalone on a new account
 
     let account = abstract_client.account_builder().build()?;
-    // Installs the standalone on the Account
-    let standalone = account.install_standalone::<MyStandaloneInterface<_>>(
-        &MyStandaloneInstantiateMsg {
-            base: standalone::StandaloneInstantiateMsg {
-                ans_host_address: abstract_client.name_service().addr_str()?,
-                version_control_address: abstract_client.version_control().addr_str()?,
-            },
-            count: 0,
-        },
-        &[],
-    )?;
+    // // Installs the standalone on the Account
+    // let standalone = account.install_standalone::<MyStandaloneInterface<_>>(
+    //     &MyStandaloneInstantiateMsg {
+    //         base: standalone::StandaloneInstantiateMsg {
+    //             ans_host_address: abstract_client.name_service().addr_str()?,
+    //             version_control_address: abstract_client.version_control().addr_str()?,
+    //         },
+    //         count: 0,
+    //     },
+    //     &[],
+    // )?;
 
-    // Import standalone's endpoint function traits for easy interactions.
-    use my_standalone::msg::{MyStandaloneExecuteMsgFns, MyStandaloneQueryMsgFns};
+    // // Import standalone's endpoint function traits for easy interactions.
+    // use my_standalone::msg::{MyStandaloneExecuteMsgFns, MyStandaloneQueryMsgFns};
 
-    assert_eq!(standalone.count()?.count, 0);
-    // Execute the Standalone
-    standalone.increment()?;
+    // assert_eq!(standalone.count()?.count, 0);
+    // // Execute the Standalone
+    // standalone.increment()?;
 
-    // Query the Standalone again
-    assert_eq!(standalone.count()?.count, 1);
+    // // Query the Standalone again
+    // assert_eq!(standalone.count()?.count, 1);
 
-    // Note: the Standalone is installed on a sub-account of the main account!
-    assert_ne!(account.id()?, standalone.account().id()?);
+    // // Note: the Standalone is installed on a sub-account of the main account!
+    // assert_ne!(account.id()?, standalone.account().id()?);
 
     Ok(())
 }

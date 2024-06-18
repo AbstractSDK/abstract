@@ -28,4 +28,4 @@ pub const MY_STANDALONE: MyStandalone =
 mod interface;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use interface::MyStandaloneInterface;
+pub use interface::{ica_controller, MyStandaloneInterface};
