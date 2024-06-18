@@ -1,15 +1,11 @@
-use crate::ibc;
-use crate::msg::AppMigrateMsg;
+use abstract_app::{objects::dependency::StaticDependency, std::IBC_CLIENT, AppContract};
+use cosmwasm_std::Response;
+
 use crate::{
     error::AppError,
-    handlers,
-    msg::{AppExecuteMsg, AppInstantiateMsg, AppQueryMsg},
+    handlers, ibc,
+    msg::{AppExecuteMsg, AppInstantiateMsg, AppMigrateMsg, AppQueryMsg},
 };
-use abstract_app::objects::dependency::StaticDependency;
-use abstract_app::std::IBC_CLIENT;
-use abstract_app::AppContract;
-
-use cosmwasm_std::Response;
 
 /// The version of your app
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");

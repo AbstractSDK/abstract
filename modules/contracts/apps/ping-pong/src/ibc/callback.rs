@@ -1,10 +1,3 @@
-use crate::{
-    contract::{App, AppResult},
-    handlers::execute::ping_pong,
-    msg::BlockHeightResponse,
-    state::WINS,
-};
-
 use abstract_app::{
     objects::chain_name::ChainName,
     sdk::AbstractResponse,
@@ -15,7 +8,12 @@ use abstract_app::{
 };
 use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 
-use crate::msg::PingPongCallbackMsg;
+use crate::{
+    contract::{App, AppResult},
+    handlers::execute::ping_pong,
+    msg::{BlockHeightResponse, PingPongCallbackMsg},
+    state::WINS,
+};
 
 pub fn ibc_callback(
     deps: DepsMut,

@@ -1,8 +1,10 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use crate::contract::{App, AppResult};
-use crate::msg::AppInstantiateMsg;
-use crate::state::WINS;
+use crate::{
+    contract::{App, AppResult},
+    msg::AppInstantiateMsg,
+    state::WINS,
+};
 
 pub fn instantiate_handler(
     deps: DepsMut,

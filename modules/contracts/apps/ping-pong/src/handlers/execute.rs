@@ -1,16 +1,15 @@
-use abstract_app::objects::chain_name::ChainName;
-
-use abstract_app::sdk::IbcInterface;
-use abstract_app::std::ibc::Callback;
-use abstract_app::std::ibc_client::InstalledModuleIdentification;
-use abstract_app::traits::AbstractResponse;
-use abstract_app::traits::AccountIdentification;
+use abstract_app::{
+    objects::chain_name::ChainName,
+    sdk::IbcInterface,
+    std::{ibc::Callback, ibc_client::InstalledModuleIdentification},
+    traits::{AbstractResponse, AccountIdentification},
+};
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
-use crate::contract::{App, AppResult};
-
-use crate::msg::{AppExecuteMsg, PingPongCallbackMsg, PingPongIbcMsg};
-use crate::msg::{AppQueryMsg, PingOrPong};
+use crate::{
+    contract::{App, AppResult},
+    msg::{AppExecuteMsg, AppQueryMsg, PingOrPong, PingPongCallbackMsg, PingPongIbcMsg},
+};
 
 pub fn execute_handler(
     deps: DepsMut,

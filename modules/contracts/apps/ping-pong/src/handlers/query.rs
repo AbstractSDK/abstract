@@ -1,7 +1,10 @@
-use crate::contract::{App, AppResult};
-use crate::msg::{AppQueryMsg, BlockHeightResponse, WinsResponse};
-use crate::state::WINS;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
+
+use crate::{
+    contract::{App, AppResult},
+    msg::{AppQueryMsg, BlockHeightResponse, WinsResponse},
+    state::WINS,
+};
 
 pub fn query_handler(deps: Deps, env: Env, _app: &App, msg: AppQueryMsg) -> AppResult<Binary> {
     match msg {
