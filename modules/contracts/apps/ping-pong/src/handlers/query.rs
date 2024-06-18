@@ -1,23 +1,23 @@
 use crate::contract::{App, AppResult};
-use crate::msg::{AppQueryMsg, PongsResponse, PreviousPingPongResponse};
-use crate::state::{CURRENT_PONGS, PREVIOUS_PING_PONG};
+use crate::msg::{AppQueryMsg, BlockHeightResponse, WinsResponse};
+use crate::state::WINS;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
 
-pub fn query_handler(deps: Deps, _env: Env, _app: &App, msg: AppQueryMsg) -> AppResult<Binary> {
+pub fn query_handler(deps: Deps, env: Env, _app: &App, msg: AppQueryMsg) -> AppResult<Binary> {
     match msg {
-        AppQueryMsg::Pongs {} => to_json_binary(&query_pongs(deps)?),
-        AppQueryMsg::PreviousPingPong {} => to_json_binary(&query_previous_ping_pongs(deps)?),
+        AppQueryMsg::Wins {} => to_json_binary(&query_wins(deps)?),
+        AppQueryMsg::BlockHeight {} => to_json_binary(&query_block_height(env)?),
     }
     .map_err(Into::into)
 }
 
-fn query_pongs(deps: Deps) -> StdResult<PongsResponse> {
-    let pongs = CURRENT_PONGS.load(deps.storage)?;
-    Ok(PongsResponse { pongs })
+fn query_wins(deps: Deps) -> StdResult<WinsResponse> {
+    let wins = WINS.load(deps.storage)?;
+    Ok(WinsResponse { wins })
 }
 
-fn query_previous_ping_pongs(deps: Deps) -> StdResult<PreviousPingPongResponse> {
-    let (pongs, host_chain) = PREVIOUS_PING_PONG.may_load(deps.storage)?.unzip();
-
-    Ok(PreviousPingPongResponse { pongs, host_chain })
+fn query_block_height(env: Env) -> StdResult<BlockHeightResponse> {
+    Ok(BlockHeightResponse {
+        height: env.block.height,
+    })
 }

@@ -1,17 +1,21 @@
 use crate::{
     contract::{App, AppResult},
-    error::AppError,
-    msg::PreviousPingPongResponse,
-    state::PREVIOUS_PING_PONG,
+    handlers::execute::ping_pong,
+    msg::BlockHeightResponse,
+    state::WINS,
 };
 
 use abstract_app::{
     objects::chain_name::ChainName,
-    std::ibc::{Callback, IbcResult},
+    sdk::AbstractResponse,
+    std::{
+        ibc::{Callback, IbcResult},
+        ABSTRACT_EVENT_TYPE,
+    },
 };
 use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 
-use super::PingPongIbcCallback;
+use crate::msg::PingPongCallbackMsg;
 
 pub fn ibc_callback(
     deps: DepsMut,
@@ -22,26 +26,51 @@ pub fn ibc_callback(
     result: IbcResult,
 ) -> AppResult {
     match from_json(callback.msg)? {
-        PingPongIbcCallback::Rematch { rematch_chain } => {
-            rematch_callback(deps, env, app, result, rematch_chain)
+        PingPongCallbackMsg::Pinged { opponent_chain } => {
+            // TODO: use response data here in the future
+            let exec_events = result.get_execute_events()?;
+            let pong = exec_events.into_iter().find(|e| {
+                e.ty == ABSTRACT_EVENT_TYPE
+                    && e.attributes
+                        .iter()
+                        .any(|a| a.key == "play" && a.value == "pong")
+            });
+            if pong.is_some() {
+                // if block is even, return pong
+                let is_even = env.block.height % 2 == 0;
+                if is_even {
+                    // We play ping again
+                    return ping_pong(deps, opponent_chain, app);
+                }
+                Ok(app.response("pong_response"))
+            } else {
+                // We won
+                WINS.update(deps.storage, |w| AppResult::Ok(w + 1))?;
+                Ok(app.response("won"))
+            }
+        }
+        PingPongCallbackMsg::QueryBlockHeight { opponent_chain } => {
+            play_if_win(deps, app, result, opponent_chain)
         }
     }
 }
 
-pub fn rematch_callback(
+/// Play against the opponent if the block height is uneven (meaning we should win).
+///
+/// **Note**: The block height of the opponent chain changes all the time so we can't actually predict that we will win! This is just for demo purposes.
+pub fn play_if_win(
     deps: DepsMut,
-    env: Env,
     app: App,
     result: IbcResult,
-    rematch_chain: ChainName,
+    opponent_chain: ChainName,
 ) -> AppResult {
     let (_, result) = result.get_query_result(0)?;
-    let PreviousPingPongResponse { pongs, host_chain } = from_json(result)?;
-    if host_chain.map_or(false, |host| host == ChainName::new(&env)) {
-        let pongs = pongs.unwrap();
-        PREVIOUS_PING_PONG.save(deps.storage, &(pongs, rematch_chain.clone()))?;
-        crate::handlers::execute::_ping_pong(deps, pongs, rematch_chain, app)
+    let BlockHeightResponse { height } = from_json(result)?;
+
+    // If uneven we play
+    if height % 2 == 1 {
+        ping_pong(deps, opponent_chain, app)
     } else {
-        Err(AppError::NothingToRematch {})
+        Ok(app.response("dont_play"))
     }
 }

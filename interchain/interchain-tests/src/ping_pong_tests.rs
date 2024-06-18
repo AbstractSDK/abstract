@@ -18,7 +18,7 @@ use crate::setup::ibc_connect_polytone_and_abstract;
 use crate::setup::mock_test::logger_test_init;
 use crate::{JUNO, STARGAZE};
 use ping_pong::contract::APP_ID;
-use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, PongsResponse, PreviousPingPongResponse};
+use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, WinsResponse, PreviousPingPongResponse};
 use ping_pong::{AppExecuteMsgFns, AppInterface, AppQueryMsgFns};
 
 #[allow(unused)]
@@ -91,23 +91,23 @@ fn successful_install() -> anyhow::Result<()> {
     let mock_stargaze = env.abs_stargaze.environment();
 
     let pongs = app1.pongs()?;
-    assert_eq!(pongs, PongsResponse { pongs: 0 });
+    assert_eq!(pongs, WinsResponse { wins: 0 });
 
     let module_addrs = env
         .remote_account
         .module_addresses(vec![APP_ID.to_owned()])?;
-    let pongs: PongsResponse = mock_stargaze.query(
+    let pongs: WinsResponse = mock_stargaze.query(
         &ping_pong::msg::QueryMsg::from(AppQueryMsg::Pongs {}),
         &module_addrs.modules[0].1,
     )?;
-    assert_eq!(pongs, PongsResponse { pongs: 0 });
+    assert_eq!(pongs, WinsResponse { wins: 0 });
 
     let app2 = env.remote_account.application::<AppInterface<_>>()?;
 
-    let pongs: PongsResponse =
+    let pongs: WinsResponse =
         app2.query(&ping_pong::msg::QueryMsg::from(AppQueryMsg::Pongs {}))?;
 
-    assert_eq!(pongs, PongsResponse { pongs: 0 });
+    assert_eq!(pongs, WinsResponse { wins: 0 });
     Ok(())
 }
 
@@ -132,7 +132,7 @@ fn successful_ping_pong() -> anyhow::Result<()> {
 
     let pp = app.ping_pong(ChainName::from_chain_id(STARGAZE), 4)?;
     let pongs = app.pongs()?;
-    assert_eq!(pongs.pongs, 4);
+    assert_eq!(pongs.wins, 4);
 
     let ibc_wait_response = mock_interchain.wait_ibc(JUNO, pp)?;
     ibc_wait_response.into_result()?;
@@ -167,7 +167,7 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     assert!(ping_ponged.is_some());
 
     let pongs = app.pongs()?;
-    assert_eq!(pongs.pongs, 0);
+    assert_eq!(pongs.wins, 0);
     let previous_ping_pong = app.previous_ping_pong()?;
     assert_eq!(
         previous_ping_pong,
@@ -179,8 +179,8 @@ fn successful_ping_pong() -> anyhow::Result<()> {
 
     let remote_app = env.remote_account.application::<AppInterface<_>>()?;
 
-    let pongs: PongsResponse = remote_app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
-    assert_eq!(pongs.pongs, 0);
+    let pongs: WinsResponse = remote_app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
+    assert_eq!(pongs.wins, 0);
     let previous_ping_pong: PreviousPingPongResponse =
         remote_app.query(&ping_pong::msg::AppQueryMsg::PreviousPingPong {}.into())?;
     assert_eq!(
@@ -206,7 +206,7 @@ fn successful_remote_ping_pong() -> anyhow::Result<()> {
 
     let remote_ping_pong_response = app.execute(
         &ping_pong::msg::AppExecuteMsg::PingPong {
-            host_chain: ChainName::from_chain_id(JUNO),
+            opponent_chain: ChainName::from_chain_id(JUNO),
             pongs: 4,
         }
         .into(),
@@ -244,8 +244,8 @@ fn successful_remote_ping_pong() -> anyhow::Result<()> {
         });
     assert!(ping_ponged.is_some());
 
-    let pongs: PongsResponse = app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
-    assert_eq!(pongs.pongs, 0);
+    let pongs: WinsResponse = app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
+    assert_eq!(pongs.wins, 0);
     let previous_ping_pong: PreviousPingPongResponse =
         app.query(&ping_pong::msg::AppQueryMsg::PreviousPingPong {}.into())?;
     assert_eq!(
@@ -272,7 +272,7 @@ fn rematch() -> anyhow::Result<()> {
 
     remote_app.execute(
         &ping_pong::msg::AppExecuteMsg::PingPong {
-            host_chain: ChainName::from_chain_id(JUNO),
+            opponent_chain: ChainName::from_chain_id(JUNO),
             pongs: 4,
         }
         .into(),
@@ -312,7 +312,7 @@ fn rematch() -> anyhow::Result<()> {
     assert!(ping_ponged.is_some());
 
     let pongs = app.pongs()?;
-    assert_eq!(pongs.pongs, 0);
+    assert_eq!(pongs.wins, 0);
     let previous_ping_pong = app.previous_ping_pong()?;
     assert_eq!(
         previous_ping_pong,
@@ -323,8 +323,8 @@ fn rematch() -> anyhow::Result<()> {
     );
 
     // Remote
-    let pongs: PongsResponse = remote_app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
-    assert_eq!(pongs.pongs, 0);
+    let pongs: WinsResponse = remote_app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
+    assert_eq!(pongs.wins, 0);
     let previous_ping_pong: PreviousPingPongResponse =
         remote_app.query(&ping_pong::msg::AppQueryMsg::PreviousPingPong {}.into())?;
     assert_eq!(

@@ -8,8 +8,8 @@ use crate::{
 };
 
 pub fn receive_module_ibc(
-    deps: DepsMut,
-    _env: Env,
+    _deps: DepsMut,
+    env: Env,
     app: App,
     source_module: ModuleIbcInfo,
     msg: Binary,
@@ -22,21 +22,22 @@ pub fn receive_module_ibc(
             source_module: source_module.module.clone()
         }
     );
-    let mut ping_msg: PingPongIbcMsg = from_json(msg)?;
+    let ping_msg: PingPongIbcMsg = from_json(msg)?;
 
     ensure!(
         matches!(ping_msg.hand, PingOrPong::Ping),
         AppError::FirstPlayMustBePing {}
     );
 
-    // Respond with Pong in Ack
+    // Respond with Pong in Ack if
+    let mut resp = app.response("ping_ponged");
 
-    ping_msg.pongs -= 1;
-    if ping_msg.pongs > 0 {
-        crate::handlers::execute::_ping_pong(deps, ping_msg.pongs, source_module.chain, app)
-    } else {
-        // Done ping-ponging
-        CURRENT_PONGS.save(deps.storage, &ping_msg.pongs)?;
-        Ok(app.response("ping_ponged"))
+    // if block is even, return pong
+    let is_even = env.block.height % 2 == 0;
+    if is_even {
+        // TODO: return `PingOrPong::Pong` in response.data instead of event.
+        resp = resp.add_attribute("play_hand", "pong");
     }
+
+    Ok(resp)
 }

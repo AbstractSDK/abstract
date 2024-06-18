@@ -2,7 +2,7 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::contract::{App, AppResult};
 use crate::msg::AppInstantiateMsg;
-use crate::state::CURRENT_PONGS;
+use crate::state::WINS;
 
 pub fn instantiate_handler(
     deps: DepsMut,
@@ -11,7 +11,7 @@ pub fn instantiate_handler(
     _app: App,
     _msg: AppInstantiateMsg,
 ) -> AppResult {
-    CURRENT_PONGS.save(deps.storage, &0)?;
+    WINS.save(deps.storage, &0)?;
 
     Ok(Response::new())
 }

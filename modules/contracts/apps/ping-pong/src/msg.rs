@@ -1,6 +1,5 @@
-use abstract_app::objects::{chain_name::ChainName, AccountId};
+use abstract_app::objects::chain_name::ChainName;
 use cosmwasm_schema::QueryResponses;
-use either::Either;
 
 use crate::contract::App;
 
@@ -15,27 +14,22 @@ pub struct AppInstantiateMsg {}
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
 pub enum AppExecuteMsg {
-    /// PingPong between this module on other chain
-    PingPong {
-        /// Host chain
-        host_chain: ChainName,
-    },
-    /// Rematch ping pong if host chain ping ponged us
-    Rematch {
-        host_chain: ChainName,
-        account_id: AccountId,
-    },
+    /// Play ping pong between this module and its counterpart on another chain.
+    PingPong { opponent_chain: ChainName },
+    /// Same as PingPong but first queries the state of the opponent chain.
+    /// If the opponent chain should lose (block height not even), it will try to play.
+    QueryAndMaybePingPong { opponent_chain: ChainName },
 }
 
 /// App query messages
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum AppQueryMsg {
-    #[returns(PongsResponse)]
-    Pongs {},
+    #[returns(WinsResponse)]
+    Wins {},
     /// Returns last ping pong that was initiated through this smart contract
-    #[returns(PreviousPingPongResponse)]
-    PreviousPingPong {},
+    #[returns(BlockHeightResponse)]
+    BlockHeight {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -50,11 +44,22 @@ pub struct PingPongIbcMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+pub enum PingPongCallbackMsg {
+    Pinged { opponent_chain: ChainName },
+    QueryBlockHeight { opponent_chain: ChainName },
+}
+
+#[cosmwasm_schema::cw_serde]
 pub struct AppMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
-pub struct PongsResponse {
-    pub pongs: u32,
+pub struct WinsResponse {
+    pub wins: u32,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct BlockHeightResponse {
+    pub height: u64,
 }
 
 #[cosmwasm_schema::cw_serde]

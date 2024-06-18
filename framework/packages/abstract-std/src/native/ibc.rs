@@ -1,9 +1,11 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, Binary, CosmosMsg, Empty, QueryRequest, StdError, StdResult,
+    to_json_binary, wasm_execute, Binary, CosmosMsg, Empty, Event, QueryRequest, StdError,
+    StdResult,
 };
 use polytone::callbacks::{Callback as PolytoneCallback, ErrorResponse, ExecutionResponse};
 use schemars::JsonSchema;
+use serde::Serialize;
 
 use crate::{
     base::ExecuteMsg,
@@ -23,8 +25,10 @@ pub struct Callback {
 // ANCHOR_END: callback-info
 
 impl Callback {
-    pub fn new(msg: Binary) -> Self {
-        Self { msg }
+    pub fn new<T: Serialize>(msg: &T) -> StdResult<Self> {
+        Ok(Self {
+            msg: to_json_binary(msg)?,
+        })
     }
 }
 
@@ -126,7 +130,28 @@ impl IbcResult {
                 Ok((queries[index].clone(), results[index].clone()))
             }
             IbcResult::Execute { .. } => Err(StdError::generic_err(
-                "Expected Query, got Execute IbcResult",
+                "expected query, got execute ibc result",
+            )),
+            IbcResult::FatalError(err) => Err(StdError::generic_err(err.to_owned())),
+        }
+    }
+
+    /// Get execute result
+    pub fn get_execute_events(&self) -> StdResult<Vec<Event>> {
+        match &self {
+            IbcResult::Execute { result, .. } => {
+                let result = result
+                    .as_ref()
+                    .map_err(|err| StdError::generic_err(err.clone()))?;
+                // result should always be size 1 (proxy -> ibc-host --multiple-msgs-> module)
+                let res = result
+                    .result
+                    .get(0)
+                    .expect("execution response without submsg");
+                Ok(res.events.clone())
+            }
+            IbcResult::Query { .. } => Err(StdError::generic_err(
+                "expected execute, got query ibc result",
             )),
             IbcResult::FatalError(err) => Err(StdError::generic_err(err.to_owned())),
         }

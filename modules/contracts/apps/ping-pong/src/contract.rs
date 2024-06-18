@@ -4,7 +4,6 @@ use crate::{
     error::AppError,
     handlers,
     msg::{AppExecuteMsg, AppInstantiateMsg, AppQueryMsg},
-    replies::{self, INSTANTIATE_REPLY_ID},
 };
 use abstract_app::objects::dependency::StaticDependency;
 use abstract_app::std::IBC_CLIENT;
@@ -27,8 +26,6 @@ const APP: App = App::new(APP_ID, APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
-    .with_migrate(handlers::migrate_handler)
-    .with_replies(&[(INSTANTIATE_REPLY_ID, replies::instantiate_reply)])
     .with_dependencies(&[StaticDependency::new(
         IBC_CLIENT,
         &[abstract_ibc_client::contract::CONTRACT_VERSION],
