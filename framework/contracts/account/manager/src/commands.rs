@@ -1,5 +1,5 @@
 use abstract_macros::abstract_response;
-use abstract_sdk::{cw_helpers::AbstractAttributes, ModuleRegistryInterface};
+use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_std::{
     adapter::{
         AdapterBaseMsg, AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg,
