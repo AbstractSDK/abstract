@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_integration_tests::*;
 use abstract_interface::*;
@@ -19,12 +17,11 @@ use abstract_std::{
 };
 use abstract_testing::prelude::*;
 use anyhow::Error;
-use cosmwasm_std::{coin, testing::MOCK_CONTRACT_ADDR, wasm_execute, CosmosMsg, Uint128};
+use cosmwasm_std::{coin, CosmosMsg, Uint128};
 use cw_orch::{
     mock::{cw_multi_test::MockApiBech32, MockBase},
     prelude::*,
 };
-use cw_storage_plus::PrimaryKey;
 use speculoos::prelude::*;
 
 #[test]
@@ -454,7 +451,7 @@ fn test_nft_as_governance() -> Result<(), Error> {
             }
         }
     }
-    println!("manager: {:?},proxy:{:?}", manager, proxy);
+    println!("manager:{:?}, proxy:{:?}", manager, proxy);
 
     let start_amnt = 100_000;
     let burn_amnt = 10_000u128;

@@ -3,6 +3,7 @@
 use cosmwasm_std::{Addr, Deps, QuerierWrapper};
 use cw721::OwnerOfResponse;
 use cw_address_like::AddressLike;
+use cw_ownable::OwnershipError;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -206,6 +207,28 @@ impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
     }
 }
 
+pub fn verify_nft_ownership(
+    deps: Deps,
+    sender: Addr,
+    addr: Addr,
+    id: String,
+) -> Result<(), AbstractError> {
+    // get owner of token_id from collection
+    let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
+        &addr,
+        &cw721::Cw721QueryMsg::OwnerOf {
+            token_id: id,
+            include_expired: None,
+        },
+    )?;
+    // verify owner
+    if sender.to_string() == owner.owner {
+        return Ok(());
+    } else {
+        return Err(AbstractError::Ownership(OwnershipError::NotOwner));
+    }
+}
+
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::mock_dependencies;
@@ -260,5 +283,13 @@ mod test {
             governance_type: "gov_type".to_string(),
         };
         assert_that!(gov.verify(deps.as_ref(), mock_version_control)).is_err();
+        
+        // good nft 
+        let gov  = GovernanceDetails::NFT {
+            collection_addr: "collection_addr".to_string(),
+            token_id: "1".to_string(),
+        };
+        let mock_version_control = Addr::unchecked("mock_version_control");
+        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
     }
 }
