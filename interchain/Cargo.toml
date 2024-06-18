@@ -106,6 +106,7 @@ abstract-money-market-standard = { path = "../framework/packages/standards/money
 # For multi sender
 cw-orch = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "nicolas/orc-126-daemon-should-become-a-wrapper-around-sender-types" }
 cw-orch-core = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "nicolas/orc-126-daemon-should-become-a-wrapper-around-sender-types" }
+cw-orch-traits = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "nicolas/orc-126-daemon-should-become-a-wrapper-around-sender-types" }
 cw-orch-daemon = { git = "https://github.com/abstractsdk/cw-orchestrator", branch = "nicolas/orc-126-daemon-should-become-a-wrapper-around-sender-types" }
 
 
