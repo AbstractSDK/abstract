@@ -94,7 +94,11 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
         let version_check = || {
             abstr
                 .version_control
-                .get_adapter_addr(&self.id(), ModuleVersion::from(version.to_string()))
+                .registered_or_pending_module(
+                    ModuleInfo::from_id(&self.id(), ModuleVersion::from(version.to_string()))
+                        .unwrap(),
+                )
+                .and_then(|module| module.reference.unwrap_adapter().map_err(Into::into))
         };
 
         match strategy {
@@ -150,7 +154,11 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
         let version_check = || {
             abstr
                 .version_control
-                .get_app_code(&self.id(), ModuleVersion::from(version.to_string()))
+                .registered_or_pending_module(
+                    ModuleInfo::from_id(&self.id(), ModuleVersion::from(version.to_string()))
+                        .unwrap(),
+                )
+                .and_then(|module| module.reference.unwrap_app().map_err(Into::into))
         };
 
         match strategy {
@@ -197,7 +205,11 @@ pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstanc
         let version_check = || {
             abstr
                 .version_control
-                .get_standalone_code(&self.id(), ModuleVersion::from(version.to_string()))
+                .registered_or_pending_module(
+                    ModuleInfo::from_id(&self.id(), ModuleVersion::from(version.to_string()))
+                        .unwrap(),
+                )
+                .and_then(|module| module.reference.unwrap_standalone().map_err(Into::into))
         };
 
         match strategy {
@@ -219,11 +231,10 @@ pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstanc
             DeployStrategy::Force => {}
         }
 
-        if self.upload_if_needed()?.is_some() {
-            abstr
-                .version_control
-                .register_standalones(vec![(self.as_instance(), version.to_string())])?;
-        }
+        self.upload_if_needed()?;
+        abstr
+            .version_control
+            .register_standalones(vec![(self.as_instance(), version.to_string())])?;
 
         Ok(())
     }

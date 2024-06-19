@@ -283,13 +283,8 @@ fn deploy_strategy_deployed() -> AResult {
 
     let app = MockApp::new_test(chain.clone());
 
-    // deploy and propose
-    let module_info = ModuleInfo::from_id(APP_ID, ModuleVersion::Version(APP_VERSION.to_owned()))?;
+    // deploy (not approved)
     app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
-    deployment
-        .version_control
-        .approve_or_reject_modules(vec![module_info.clone()], vec![])?;
-    assert!(deployment.version_control.module(module_info).is_ok());
 
     // Deploy try
     let try_res = app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try);
