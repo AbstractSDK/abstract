@@ -63,9 +63,9 @@ expression: all_storage
   - - "\u0000{5}config"
     - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"ans_host_address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - contract_info
+    - "{\"contract\":\"abstract:module-factory\",\"version\":\"0.23.0-beta.0\"}"
   - - cur_manager
     - "{\"manager\":\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\",\"proxy\":\"mock1xsemjm2xzx8nfaj50rt2dn04g24yarrr3mf6uwhqtc4ampff9nsqrc867x\"}"
-    - "{\"contract\":\"abstract:module-factory\",\"version\":\"0.23.0-beta.0\"}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:proxy-local-0":
