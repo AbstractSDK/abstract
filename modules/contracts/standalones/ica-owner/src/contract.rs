@@ -174,12 +174,20 @@ pub fn query(deps: Deps, _env: Env, msg: MyStandaloneQueryMsg) -> StdResult<Bina
     match msg {
         MyStandaloneQueryMsg::Config {} => to_json_binary(&query_config(deps)?),
         MyStandaloneQueryMsg::ICACount {} => to_json_binary(&query_ica_count(deps)?),
+        MyStandaloneQueryMsg::IcaContractState { ica_id } => {
+            to_json_binary(&ica_state(deps, ica_id)?)
+        }
     }
 }
 
 fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let _config = CONFIG.load(deps.storage)?;
     Ok(ConfigResponse {})
+}
+
+/// Returns the saved ICA state for the given ICA ID.
+pub fn ica_state(deps: Deps, ica_id: u64) -> StdResult<IcaContractState> {
+    ICA_STATES.load(deps.storage, ica_id)
 }
 
 fn query_ica_count(deps: Deps) -> StdResult<ICACountResponse> {

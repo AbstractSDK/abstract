@@ -40,6 +40,9 @@ pub struct MyStandaloneMigrateMsg {}
 pub enum MyStandaloneQueryMsg {
     #[returns(ConfigResponse)]
     Config {},
+    /// IcaState returns the ICA state for the given ICA ID.
+    #[returns(crate::state::IcaContractState)]
+    IcaContractState { ica_id: u64 },
     #[returns(ICACountResponse)]
     ICACount {},
 }

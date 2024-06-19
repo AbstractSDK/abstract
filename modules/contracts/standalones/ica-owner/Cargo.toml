@@ -65,5 +65,5 @@ cw-ica-controller = { version = "0.5.0", features = ["export"] }
 my-standalone = { path = "." }
 abstract-client = { workspace = true }
 abstract-standalone = { workspace = true, features = ["test-utils"] }
-cw-orch-interchain = { workspace = true }
+cw-orch-interchain = { workspace = true, features = ["daemon"] }
 cw-orch-starship = { version = "0.3.1" }

@@ -17,7 +17,7 @@ chains:
       faucet: 8001
 
 relayers:
-  - name: osmosis-juno
+  - name: osmo-juno
     type: hermes
     replicas: 1
     chains:
