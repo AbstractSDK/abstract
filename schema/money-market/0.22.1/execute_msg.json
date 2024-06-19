@@ -913,7 +913,7 @@
       ]
     },
     "MoneyMarketAnsAction": {
-      "description": "Possible actions to perform on a Money Market This is an example using raw assets",
+      "description": "Possible actions to perform on a Money Market The following actions use the Abstarct Name Service",
       "oneOf": [
         {
           "description": "Deposit funds for lending.",
@@ -1006,7 +1006,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Deposit Collateral to borrow against",
+          "description": "Withdraw Collateral to borrow against",
           "type": "object",
           "required": [
             "withdraw_collateral"
@@ -1337,7 +1337,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Deposit Collateral to borrow against",
+          "description": "Withdraw Collateral to borrow against",
           "type": "object",
           "required": [
             "withdraw_collateral"

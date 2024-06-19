@@ -71,7 +71,6 @@ pub mod connection {
     use abstract_std::ibc_host::ExecuteMsgFns as _;
     use abstract_std::objects::chain_name::ChainName;
     use cw_orch_interchain::prelude::*;
-    use cw_orch_interchain::InterchainError;
     use cw_orch_polytone::Polytone;
     /// This is used for creating a testing connection between two Abstract connections using an existing polytone connection
     ///
@@ -81,7 +80,7 @@ pub mod connection {
         interchain: &IBC,
         dest: &Abstract<Chain>,
         polytone_src: &Polytone<Chain>,
-    ) -> Result<(), InterchainError> {
+    ) -> Result<(), AbstractInterfaceError> {
         // First we register client and host respectively
         let chain1_id = abstr.ibc.client.get_chain().chain_id();
         let chain1_name = ChainName::from_chain_id(&chain1_id);
