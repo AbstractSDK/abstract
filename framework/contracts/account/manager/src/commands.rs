@@ -150,7 +150,7 @@ pub(crate) fn _install_modules(
 
         let init_msg_salt = match &module.reference {
             ModuleReference::Adapter(module_address) | ModuleReference::Native(module_address) => {
-                if module.proxy_whitelisted() {
+                if module.should_be_whitelisted() {
                     add_to_proxy.push(module_address.to_string());
                 }
                 add_to_manager.push((module.info.id(), module_address.to_string()));
@@ -171,7 +171,7 @@ pub(crate) fn _install_modules(
                         .is_err(),
                     ManagerError::ProhibitedReinstall {}
                 );
-                if module.proxy_whitelisted() {
+                if module.should_be_whitelisted() {
                     add_to_proxy.push(module_address.to_string());
                 }
                 add_to_manager.push((module.info.id(), module_address.to_string()));
@@ -436,7 +436,7 @@ pub(crate) fn _uninstall_module(deps: DepsMut, module_id: String) -> ManagerResu
 
     let mut response = ManagerResponse::new("uninstall_module", vec![("module", &module_id)]);
     // Remove module from proxy whitelist if it supposed to be removed
-    if module.proxy_whitelisted() {
+    if module.should_be_whitelisted() {
         let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
         let module_addr = load_module_addr(deps.storage, &module_id)?;
         let remove_from_proxy_msg =

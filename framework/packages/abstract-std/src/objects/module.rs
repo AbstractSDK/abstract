@@ -9,7 +9,7 @@ use super::module_reference::ModuleReference;
 use crate::{
     error::AbstractError,
     objects::{fee::FixedFee, module_version::MODULE, namespace::Namespace},
-    AbstractResult, IBC_CLIENT,
+    AbstractResult,
 };
 
 /// ID of the module
@@ -335,12 +335,10 @@ impl From<(ModuleInfo, ModuleReference)> for Module {
 
 impl Module {
     // Helper to know if this module supposed to be whitelisted on proxy contract
-    pub fn proxy_whitelisted(&self) -> bool {
+    pub fn should_be_whitelisted(&self) -> bool {
         match &self.reference {
-            // Standalone not supposed to be whitelisted on proxy
-            ModuleReference::Standalone(_) => false,
-            // IBC Client not supposed to be whitelisted on proxy
-            ModuleReference::Native(_) => self.info.id() != IBC_CLIENT,
+            // Standalone or Native(for example IBC Client) contracts not supposed to be whitelisted on proxy
+            ModuleReference::Standalone(_) | ModuleReference::Native(_) => false,
             _ => true,
         }
     }
