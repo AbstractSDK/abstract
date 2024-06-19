@@ -141,6 +141,9 @@ pub const IBC_CALLBACK_MODULE_QUERY_RECEIVED: Item<String> =
     Item::new("ibc_callback_module_query_received");
 
 pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContract {
+    const IBC_CLIENT_DEP: StaticDependency =
+        StaticDependency::new(IBC_CLIENT, &[abstract_std::registry::ABSTRACT_VERSION]);
+
     MockAppContract::new(id, version, None)
         .with_instantiate(|deps, _, _, _, _| {
             IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
@@ -288,10 +291,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             MODULE_IBC_RECEIVED.save(deps.storage, &src_module_info.module)?;
             Ok(Response::new().add_attribute("mock_module_ibc", "executed"))
         })
-        .with_dependencies(&[StaticDependency::new(
-            IBC_CLIENT,
-            &[abstract_std::registry::ABSTRACT_VERSION],
-        )])
+        .with_dependencies(&[IBC_CLIENT_DEP])
 }
 
 pub mod origin_app {

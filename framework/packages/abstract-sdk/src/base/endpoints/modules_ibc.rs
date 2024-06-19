@@ -1,8 +1,7 @@
 use crate::features::ModuleIdentification;
 use crate::{base::Handler, AbstractSdkError};
 use abstract_std::ibc::ModuleIbcMsg;
-use abstract_std::IBC_CLIENT;
-use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdError};
+use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
 
 /// Trait for a contract to call itself on an IBC counterpart.
 pub trait ModuleIbcEndpoint: Handler {
@@ -17,19 +16,6 @@ pub trait ModuleIbcEndpoint: Handler {
         info: MessageInfo,
         msg: ModuleIbcMsg,
     ) -> Result<Response, Self::Error> {
-        // Make sure module have ibc_client as dependency
-        if !self
-            .dependencies()
-            .iter()
-            .any(|static_dep| static_dep.id == IBC_CLIENT)
-        {
-            return Err(AbstractSdkError::Std(StdError::generic_err(format!(
-                "Ibc Client is not dependency of {}",
-                self.module_id()
-            )))
-            .into());
-        }
-
         // Only an IBC host can call this endpoint
         let ibc_host = self.ibc_host(deps.as_ref())?;
         if info.sender.ne(&ibc_host) {
