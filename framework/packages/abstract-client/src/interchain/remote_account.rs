@@ -63,7 +63,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
     ) -> AbstractClientResult<RemoteAccount<Chain, IBC>> {
         // Make sure ibc client installed on account
         let ibc_client = self.application::<IbcClient<Chain>>()?;
-        let remote_chain_name = ChainName::from_string(remote_chain.env_info().chain_name)?;
+        let remote_chain_name = ChainName::from_chain_id(&remote_chain.chain_id());
         let account_id = self.id()?;
 
         // Check it exists first
@@ -83,7 +83,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name =
-                ChainName::from_string(owner_account.manager.get_chain().env_info().chain_name)?;
+                ChainName::from_chain_id(&owner_account.manager.get_chain().chain_id());
             id.push_chain(chain_name);
             id
         };
@@ -181,7 +181,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
             install_modules,
             ..Default::default()
         };
-        let host_chain = ChainName::from_string(remote_env_info.chain_name)?;
+        let host_chain = ChainName::from_chain_id(&remote_env_info.chain_id);
 
         let response = owner_account
             .abstr_account
@@ -190,14 +190,9 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
 
         let remote_account_id = {
             let mut id = owner_account.id()?;
-            let chain_name = ChainName::from_string(
-                owner_account
-                    .abstr_account
-                    .manager
-                    .get_chain()
-                    .env_info()
-                    .chain_name,
-            )?;
+            let chain_name = ChainName::from_chain_id(
+                &owner_account.abstr_account.manager.get_chain().chain_id(),
+            );
             id.push_chain(chain_name);
             id
         };

@@ -17,7 +17,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.22.1"
+version = "0.23.0-beta.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -67,13 +67,13 @@ cw-orch-proto = { version = "0.3.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { version = "0.22.1", path = "../framework/packages/abstract-interface" }
-abstract-sdk = { version = "0.22.1", path = "../framework/packages/abstract-sdk" }
-abstract-std = { version = "0.22.1", path = "../framework/packages/abstract-std" }
-abstract-app = { version = "0.22.1", path = "../framework/packages/abstract-app" }
-abstract-adapter = { version = "0.22.1", path = "../framework/packages/abstract-adapter" }
-abstract-testing = { version = "0.22.1", path = "../framework/packages/abstract-testing" }
-abstract-client = { version = "0.22.1", path = "../framework/packages/abstract-client" }
+abstract-interface = { version = "0.23.0-beta.0", path = "../framework/packages/abstract-interface" }
+abstract-sdk = { version = "0.23.0-beta.0", path = "../framework/packages/abstract-sdk" }
+abstract-std = { version = "0.23.0-beta.0", path = "../framework/packages/abstract-std" }
+abstract-app = { version = "0.23.0-beta.0", path = "../framework/packages/abstract-app" }
+abstract-adapter = { version = "0.23.0-beta.0", path = "../framework/packages/abstract-adapter" }
+abstract-testing = { version = "0.23.0-beta.0", path = "../framework/packages/abstract-testing" }
+abstract-client = { version = "0.23.0-beta.0", path = "../framework/packages/abstract-client" }
 # Modules
 croncat-app = { path = "../modules/contracts/apps/croncat" }
 challenge-app = { path = "../modules/contracts/apps/challenge" }
@@ -101,6 +101,7 @@ abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
+abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
