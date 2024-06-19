@@ -87,28 +87,27 @@ fn prepare_state_for_both_chains() {
 #[test]
 fn test_install() -> anyhow::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
-    std::env::set_var("STATE_FILE", "starship-state.json");
+    // Make sure we don't corrupt actual state
+    std::env::set_var(
+        cw_orch::daemon::env::STATE_FILE_ENV_NAME,
+        "starship-state.json",
+    );
     env_logger::init();
     prepare_state_for_both_chains();
     let runtime = &cw_orch::daemon::RUNTIME;
 
     let starship = Starship::new(runtime.handle(), None)?;
-    let juno = starship.daemon("juno-1")?.clone();
-    let osmosis = starship.daemon("osmosis-1")?.clone();
-    let daemon_interchain = cw_orch_interchain::DaemonInterchainEnv::from_daemons(
-        runtime.handle(),
-        vec![juno.clone(), osmosis.clone()],
-        &starship,
-    );
-    // let bal = juno.balance(juno.sender(), None)?;
-    runtime.block_on(starship.client().create_channel(
+    let daemon_interchain = starship.interchain_env();
+    daemon_interchain.create_channel(
         "juno-1",
         "osmosis-1",
-        "a",
-        "b",
-        "gg",
+        &"transfer".parse().unwrap(),
+        &"transfer".parse().unwrap(),
+        "cw-ica-v2",
         Some(cosmwasm_std::IbcOrder::Unordered),
-    ))?;
+    )?;
+    let juno = daemon_interchain.chain("juno-1")?;
+    let osmosis = daemon_interchain.chain("osmosis-1")?;
 
     let ibc_path = runtime.block_on(async {
         starship
