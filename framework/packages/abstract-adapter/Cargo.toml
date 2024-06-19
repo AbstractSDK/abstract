@@ -1,6 +1,6 @@
 [package]
 name = "abstract-adapter"
-version = "0.22.2"
+version = "0.23.0-beta.0"
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -28,9 +28,9 @@ abstract-std = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 # Keep this as a version and update when publishing new versions
-abstract-interface = { path = "../../packages/abstract-interface", version = "0.22.1" }
-abstract-ibc-client = { version = "0.22.1", path = "../../contracts/native/ibc-client", default-features = false }
-abstract-ibc-host = { version = "0.22.1", path = "../../contracts/native/ibc-host", default-features = false }
+abstract-interface = { path = "../../packages/abstract-interface", version = "0.23.0-beta.0" }
+abstract-ibc-client = { version = "0.23.0-beta.0", path = "../../contracts/native/ibc-client", default-features = false }
+abstract-ibc-host = { version = "0.23.0-beta.0", path = "../../contracts/native/ibc-host", default-features = false }
 
 [dev-dependencies]
 speculoos = { workspace = true }

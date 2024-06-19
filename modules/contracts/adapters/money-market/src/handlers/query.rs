@@ -53,7 +53,7 @@ pub fn query_handler(
                     money_market,
                     action,
                 } => {
-                    let (local_money_market_name, is_over_ibc) = is_over_ibc(env, &money_market)?;
+                    let (local_money_market_name, is_over_ibc) = is_over_ibc(&env, &money_market)?;
                     // if exchange is on an app-chain, execute the action on the app-chain
                     if is_over_ibc {
                         return Err(MoneyMarketError::IbcMsgQuery);
@@ -79,7 +79,7 @@ pub fn query_handler(
         _ => {
             let money_market = msg.money_market()?;
 
-            let (local_money_market_name, is_over_ibc) = is_over_ibc(env.clone(), money_market)?;
+            let (local_money_market_name, is_over_ibc) = is_over_ibc(&env, money_market)?;
 
             // if money_market is on an app-chain, execute the action on the app-chain
             if is_over_ibc {

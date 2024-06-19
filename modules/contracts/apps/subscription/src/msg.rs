@@ -64,9 +64,8 @@ pub struct SubscriptionInstantiateMsg {
 /// App execution messages
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-#[impl_into(ExecuteMsg)]
 pub enum SubscriptionExecuteMsg {
-    #[payable]
+    #[cw_orch(payable)]
     /// Subscriber payment
     Pay {
         /// Address of new subscriber
@@ -101,7 +100,6 @@ pub enum SubscriptionExecuteMsg {
 /// Subscriptions query messages
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
-#[impl_into(QueryMsg)]
 pub enum SubscriptionQueryMsg {
     /// Get state of subscriptions and contributors
     /// Returns [`StateResponse`]

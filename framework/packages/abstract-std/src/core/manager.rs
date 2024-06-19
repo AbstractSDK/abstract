@@ -179,13 +179,13 @@ impl ModuleInstallConfig {
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
     /// Forward execution message to module
-    #[payable]
+    #[cw_orch(payable)]
     ExecOnModule { module_id: String, exec_msg: Binary },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(Binary),
     /// Install module using module factory, callable by Owner
-    #[payable]
+    #[cw_orch(payable)]
     InstallModules {
         // Module information and Instantiate message to instantiate the contract
         modules: Vec<ModuleInstallConfig>,
@@ -198,7 +198,7 @@ pub enum ExecuteMsg {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
     /// Creates a sub-account on the account
-    #[payable]
+    #[cw_orch(payable)]
     CreateSubAccount {
         // Name of the sub-account
         name: String,
@@ -214,7 +214,8 @@ pub enum ExecuteMsg {
         install_modules: Vec<ModuleInstallConfig>,
         /// If `None`, will create a new local account without asserting account-id.
         ///
-        /// When provided: Signals the expected local Account Id. The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
+        /// When provided sequence in 0..2147483648 range: The tx will error
+        /// When provided sequence in 2147483648..u32::MAX range: Signals use of unclaimed Account Id in this range. The tx will error if this account-id already claimed. Useful for instantiate2 address prediction.
         account_id: Option<u32>,
     },
     /// Update info
@@ -230,8 +231,6 @@ pub enum ExecuteMsg {
     ProposeOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
     UpdateStatus { is_suspended: Option<bool> },
-    /// Update settings for the Account, including IBC enabled, etc.
-    UpdateSettings { ibc_enabled: Option<bool> },
     /// Actions called by internal or external sub-accounts
     UpdateSubAccount(UpdateSubAccountAction),
     /// Callback endpoint

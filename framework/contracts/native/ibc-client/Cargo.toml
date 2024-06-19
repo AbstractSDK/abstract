@@ -16,7 +16,7 @@ default = ["export"]
 export = []
 
 [dependencies]
-cosmwasm-std = { workspace = true, features = ["ibc3", "stargate"] }
+cosmwasm-std = { workspace = true, features = ["ibc3", "staking"] }
 cw-storage-plus = { workspace = true }
 cw-ownable = { workspace = true }
 cw-utils = { workspace = true }

@@ -22,6 +22,7 @@ use abstract_osmosis_adapter::OSMOSIS;
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coin, coins, Decimal, Uint128};
 use cw_orch::prelude::*;
+use cw_orch_osmosis_test_tube::OsmosisTestTube;
 
 pub fn create_default_account<Chain: CwEnv>(
     factory: &AccountFactory<Chain>,

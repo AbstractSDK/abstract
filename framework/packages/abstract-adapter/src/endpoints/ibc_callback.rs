@@ -11,7 +11,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     IbcCallbackEndpoint
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
-    fn ibc_client(&self, deps: Deps) -> Result<Addr, Self::Error> {
+    fn ibc_client_addr(&self, deps: Deps) -> Result<Addr, Self::Error> {
         let vc_query_result = self
             .abstract_registry(deps)?
             .query_module(

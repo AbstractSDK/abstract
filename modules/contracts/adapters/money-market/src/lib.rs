@@ -16,12 +16,41 @@ pub use crate::api::MoneyMarketInterface;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
-    use cw_orch::prelude::*;
+    use abstract_adapter::{
+        abstract_interface::{AdapterDeployer, RegisteredModule},
+        traits::ModuleIdentification as _,
+    };
+    use abstract_money_market_standard::msg::{
+        ExecuteMsg, InstantiateMsg, MoneyMarketInstantiateMsg, QueryMsg,
+    };
 
-    pub use crate::contract::interface::MoneyMarketAdapter;
+    use cw_orch::{build::BuildPostfix, contract::Contract, prelude::*};
 
-    impl<Chain: CwEnv> MoneyMarketAdapter<Chain> {
-        // TODO
+    use crate::contract::MONEY_MARKET_ADAPTER;
+
+    #[cw_orch::interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+    pub struct MoneyMarketAdapter<Chain>;
+
+    // Implement deployer trait
+    impl<Chain: CwEnv> AdapterDeployer<Chain, MoneyMarketInstantiateMsg> for MoneyMarketAdapter<Chain> {}
+
+    impl<Chain: CwEnv> Uploadable for MoneyMarketAdapter<Chain> {
+        #[cfg(feature = "export")]
+        fn wrapper() -> <Mock as TxHandler>::ContractSource {
+            Box::new(ContractWrapper::new_with_empty(
+                crate::contract::execute,
+                crate::contract::instantiate,
+                crate::contract::query,
+            ))
+        }
+        fn wasm(chain: &ChainInfoOwned) -> WasmPath {
+            artifacts_dir_from_workspace!()
+                .find_wasm_path_with_build_postfix(
+                    "abstract_money_market_adapter",
+                    BuildPostfix::ChainName(chain),
+                )
+                .unwrap()
+        }
     }
 
     impl<Chain: cw_orch::environment::CwEnv>
@@ -36,6 +65,24 @@ pub mod interface {
             abstract_adapter::abstract_interface::AbstractInterfaceError,
         > {
             Ok(vec![])
+        }
+    }
+
+    impl<Chain: CwEnv> RegisteredModule for MoneyMarketAdapter<Chain> {
+        type InitMsg = Empty;
+
+        fn module_id<'a>() -> &'a str {
+            MONEY_MARKET_ADAPTER.module_id()
+        }
+
+        fn module_version<'a>() -> &'a str {
+            MONEY_MARKET_ADAPTER.version()
+        }
+    }
+
+    impl<Chain: CwEnv> From<Contract<Chain>> for MoneyMarketAdapter<Chain> {
+        fn from(contract: Contract<Chain>) -> Self {
+            Self(contract)
         }
     }
 }

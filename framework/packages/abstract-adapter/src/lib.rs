@@ -75,9 +75,7 @@ pub mod mock {
     pub struct MockExecMsg {}
 
     #[cosmwasm_schema::cw_serde]
-    #[derive(cw_orch::QueryFns)]
-    #[impl_into(QueryMsg)]
-    #[derive(cosmwasm_schema::QueryResponses)]
+    #[derive(cw_orch::QueryFns, cosmwasm_schema::QueryResponses)]
     pub enum MockQueryMsg {
         #[returns(ReceivedIbcCallbackStatus)]
         GetReceivedIbcCallbackStatus {},
@@ -131,10 +129,10 @@ pub mod mock {
             })
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |deps, _, _, _, _| {
+            .with_ibc_callback(|deps, _, _, _, _, _| {
                 IBC_CALLBACK_RECEIVED.save(deps.storage, &true).unwrap();
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
-            })])
+            })
             .with_replies(&[(1u64, |_, _, _, msg| {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })]);

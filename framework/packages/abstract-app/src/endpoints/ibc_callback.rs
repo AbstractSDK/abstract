@@ -23,7 +23,7 @@ impl<
         SudoMsg,
     >
 {
-    fn ibc_client(&self, deps: cosmwasm_std::Deps) -> Result<Addr, Self::Error> {
+    fn ibc_client_addr(&self, deps: cosmwasm_std::Deps) -> Result<Addr, Self::Error> {
         let ibc_client = self.modules(deps).module_address(IBC_CLIENT)?;
         Ok(ibc_client)
     }

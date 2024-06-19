@@ -20,7 +20,6 @@ pub struct AppInstantiateMsg {}
 /// Croncat execute messages
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
-#[impl_into(ExecuteMsg)]
 pub enum AppExecuteMsg {
     /// Update config
     /// currently this method is just placeholder
@@ -57,7 +56,6 @@ pub enum AppExecuteMsg {
 /// Croncat Query Messages
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
-#[impl_into(QueryMsg)]
 pub enum AppQueryMsg {
     /// Get config
     /// Returns [`ConfigResponse`]
