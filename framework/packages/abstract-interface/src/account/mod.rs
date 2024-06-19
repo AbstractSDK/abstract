@@ -22,7 +22,7 @@ use abstract_std::{
 };
 use cosmwasm_std::{from_json, to_json_binary};
 use cw2::{ContractVersion, CONTRACT};
-use cw_semver::Version;
+use cw_semver::{Version, VersionReq};
 
 use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
@@ -341,14 +341,14 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         // We upgrade the manager to the latest version through all the versions
         loop {
-            if self.upgrade_next_module_version(MANAGER).is_err() {
+            if self.upgrade_next_module_version(MANAGER)?.is_none() {
                 break;
             }
             one_migration_was_successful = true;
         }
 
         loop {
-            if self.upgrade_next_module_version(PROXY).is_err() {
+            if self.upgrade_next_module_version(PROXY)?.is_none() {
                 break;
             }
             one_migration_was_successful = true;
@@ -363,7 +363,12 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         Ok(())
     }
 
-    fn upgrade_next_module_version(&self, module_id: &str) -> Result<(), AbstractInterfaceError> {
+    /// Attempt to upgrade a module to its next version.
+    /// Will return `Ok(None)` if the module is on its latest version already.
+    fn upgrade_next_module_version(
+        &self,
+        module_id: &str,
+    ) -> Result<Option<Chain::Response>, AbstractInterfaceError> {
         let chain = self.manager.get_chain().clone();
 
         // We start by getting the current module version
@@ -406,24 +411,30 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             .collect::<Vec<_>>();
 
         // Two cases now.
-        // 1. If there exists a higher non-compatible version, we want to update to the next major version
-        // 2. If there is none, we want to update the furthest compatible version
+        // 1. If there exists a higher non-compatible version, we want to update to the next breaking version
+        // 2. If there are only compatible versions we want to update the highest compatible version
+
+        // Set current version as version requirement (`^x.y.z`)
+        let requirement = VersionReq::parse(current_module_version.to_string().as_str())?;
 
         // Find out the lowest next major version
         let non_compatible_versions = all_next_module_versions
             .iter()
-            .filter(|version| !are_versions_compatible(version, &current_module_version))
+            .filter(|version| !requirement.matches(version))
             .collect::<Vec<_>>();
 
-        let min_non_compatible_version = non_compatible_versions.iter().min().cloned();
+        let maybe_min_non_compatible_version = non_compatible_versions.iter().min().cloned();
 
-        let selected_version = if let Some(min_non_compatible_version) = min_non_compatible_version
+        let selected_version = if let Some(min_non_compatible_version) =
+            maybe_min_non_compatible_version
         {
             // Case 1
             // There is a next breaking version, we want to get the highest minor version associated with it
+            let requirement = VersionReq::parse(min_non_compatible_version.to_string().as_str())?;
+
             non_compatible_versions
                 .into_iter()
-                .filter(|version| are_versions_compatible(version, min_non_compatible_version))
+                .filter(|version| requirement.matches(version))
                 .max()
                 .unwrap()
                 .clone()
@@ -434,19 +445,23 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
                 .filter(|version| version != &current_module_version)
                 .max();
 
-            possible_version.ok_or(AbstractInterfaceError::NotUpdated(module.to_string()))?
+            // No version upgrade required
+            if possible_version.is_none() {
+                return Ok(None);
+            }
+            possible_version.unwrap()
         };
 
         // Actual upgrade to the next version
-        self.manager.upgrade(vec![(
+        Some(self.manager.upgrade(vec![(
             ModuleInfo::from_id(
                 module_id,
                 ModuleVersion::Version(selected_version.to_string()),
             )?,
             Some(to_json_binary(&Empty {})?),
-        )])?;
-
-        Ok(())
+        )]))
+        .transpose()
+        .map_err(Into::into)
     }
 
     pub fn claim_namespace(
@@ -475,16 +490,5 @@ impl<Chain: CwEnv> std::fmt::Display for AbstractAccount<Chain> {
                 .addr_str()
                 .or_else(|_| Result::<_, CwOrchError>::Ok(String::from("unknown"))),
         )
-    }
-}
-
-fn are_versions_compatible(v1: &Version, v2: &Version) -> bool {
-    if v1.major == 0 && v2.major == 0 {
-        // For major version 0, compatibility can be more strict; typically, versions are considered
-        // compatible if they have the same minor version
-        v1.minor == v2.minor
-    } else {
-        // For major version >= 1, versions are compatible if they have the same major version
-        v1.major == v2.major
     }
 }
