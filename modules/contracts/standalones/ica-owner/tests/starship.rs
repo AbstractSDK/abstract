@@ -11,10 +11,7 @@ use my_standalone::{
 };
 
 use abstract_client::{AbstractClient, Application, Environment};
-use abstract_standalone::{
-    objects::namespace::Namespace,
-    std::{osmosis, standalone},
-};
+use abstract_standalone::{objects::namespace::Namespace, std::standalone};
 use cosmwasm_std::coins;
 // Use prelude to get all the necessary imports
 use cw_orch::{
@@ -100,25 +97,25 @@ fn test_install() -> anyhow::Result<()> {
     let daemon_interchain = starship.interchain_env();
     daemon_interchain.create_channel(
         "juno-1",
-        "osmosis-1",
+        "stargaze-1",
         &"transfer".parse().unwrap(),
         &"transfer".parse().unwrap(),
         "cw-ica-v2",
         Some(cosmwasm_std::IbcOrder::Unordered),
     )?;
     let juno = daemon_interchain.chain("juno-1")?;
-    let osmosis = daemon_interchain.chain("osmosis-1")?;
+    let stargaze = daemon_interchain.chain("stargaze-1")?;
 
     let ibc_path = runtime.block_on(async {
         starship
             .client()
             .registry()
             .await
-            .ibc_path("juno-1", "osmosis-1")
+            .ibc_path("juno-1", "stargaze-1")
             .await
     })?;
 
-    let test_env = TestEnv::setup(juno.clone(), osmosis.clone())?;
+    let test_env = TestEnv::setup(juno.clone(), stargaze.clone())?;
     let dst_account = test_env.abs_dst.account_builder().build()?;
     let dst_proxy = dst_account.proxy()?;
 
@@ -139,7 +136,7 @@ fn test_install() -> anyhow::Result<()> {
     let ica_addr = state.ica_state.unwrap().ica_addr;
 
     let amount = coins(100, "uosmo");
-    runtime.block_on(osmosis.wallet().bank_send(&ica_addr, amount.clone()))?;
+    runtime.block_on(stargaze.wallet().bank_send(&ica_addr, amount.clone()))?;
     let _ = daemon_interchain.check_ibc(
         "juno-1",
         test_env.standalone.send_action(
@@ -150,18 +147,7 @@ fn test_install() -> anyhow::Result<()> {
             }),
         )?,
     );
-    let dst_proxy_balance = osmosis.balance(dst_proxy, None)?;
+    let dst_proxy_balance = stargaze.balance(dst_proxy, None)?;
     assert_eq!(dst_proxy_balance, amount);
     Ok(())
 }
-
-// #[test]
-// fn test_mock_install() -> anyhow::Result<()> {
-//     let mock_interchain =
-//         MockBech32InterchainEnv::new(vec![("juno-1", "juno"), ("osmosis-1", "osmo")]);
-//     let juno = mock_interchain.chain("juno-1")?;
-//     let osmosis = mock_interchain.chain("osmosis-1")?;
-
-//     let test_env = TestEnv::setup(juno.clone(), osmosis.clone())?;
-//     Ok(())
-// }

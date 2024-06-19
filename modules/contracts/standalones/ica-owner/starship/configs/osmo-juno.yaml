@@ -1,6 +1,6 @@
 chains:
-  - id: osmosis-1
-    name: osmosis
+  - id: stargaze-1
+    name: stargaze
     numValidators: 1
     ports:
       rest: 1313
@@ -21,7 +21,7 @@ relayers:
     type: hermes
     replicas: 1
     chains:
-      - osmosis-1
+      - stargaze-1
       - juno-1
 
 explorer:

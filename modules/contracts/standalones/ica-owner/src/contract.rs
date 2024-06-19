@@ -60,7 +60,9 @@ pub fn execute(
         MyStandaloneExecuteMsg::ReceiveIcaCallback(callback_msg) => {
             ica_callback(deps, info, standalone, callback_msg)
         }
-        MyStandaloneExecuteMsg::SendAction { ica_id, msg } => todo!(),
+        MyStandaloneExecuteMsg::SendAction { ica_id, msg } => {
+            send_action(deps, info, standalone, ica_id, msg)
+        }
     }
 }
 
