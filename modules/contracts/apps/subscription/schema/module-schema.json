@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.22.0",
+  "contract_version": "0.22.1",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -516,7 +516,7 @@
                   "null"
                 ],
                 "format": "uint64",
-                "minimum": 0.0
+                "minimum": 0
               },
               "start_after": {
                 "description": "Start after subscriber address",
@@ -814,7 +814,7 @@
               "description": "amount of active subscribers",
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false

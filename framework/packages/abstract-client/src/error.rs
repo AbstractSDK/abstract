@@ -1,11 +1,7 @@
 //! # Represents Abstract Client Errors
 
 use abstract_interface::AbstractInterfaceError;
-use abstract_std::{
-    objects::{chain_name::ChainName, validation::ValidationError, AccountId},
-    AbstractError,
-};
-use cosmwasm_std::Addr;
+use abstract_std::{objects::validation::ValidationError, AbstractError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -45,9 +41,9 @@ pub enum AbstractClientError {
     #[cfg(feature = "interchain")]
     #[error("Remote account of {account_id} not found on {chain} in {ibc_client_addr}")]
     RemoteAccountNotFound {
-        account_id: AccountId,
-        chain: ChainName,
-        ibc_client_addr: Addr,
+        account_id: abstract_std::objects::AccountId,
+        chain: abstract_std::objects::chain_name::ChainName,
+        ibc_client_addr: cosmwasm_std::Addr,
     },
 
     #[cfg(feature = "interchain")]
