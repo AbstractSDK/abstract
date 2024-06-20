@@ -144,7 +144,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
     match msg {
         ExecuteMsg::UpdateStatus {
             is_suspended: suspension_status,
-        } => update_account_status(deps, info, suspension_status),
+        } => update_account_status(deps, env, info, suspension_status),
         msg => {
             // Block actions if user is not subscribed
             let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
@@ -154,17 +154,17 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 
             match msg {
                 ExecuteMsg::UpdateInternalConfig(config) => {
-                    update_internal_config(deps, info, config)
+                    update_internal_config(deps, env, info, config)
                 }
                 ExecuteMsg::ProposeOwner { owner } => propose_owner(deps, env, info, owner),
-                ExecuteMsg::InstallModules { modules } => install_modules(deps, info, modules),
+                ExecuteMsg::InstallModules { modules } => install_modules(deps, env, info, modules),
                 ExecuteMsg::UninstallModule { module_id } => {
-                    uninstall_module(deps, info, module_id)
+                    uninstall_module(deps, env, info, module_id)
                 }
                 ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg,
-                } => exec_on_module(deps, info, module_id, exec_msg),
+                } => exec_on_module(deps, env, info, module_id, exec_msg),
                 ExecuteMsg::CreateSubAccount {
                     name,
                     description,
@@ -190,7 +190,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     name,
                     description,
                     link,
-                } => update_info(deps, info, name, description, link),
+                } => update_info(deps, env, info, name, description, link),
                 ExecuteMsg::UpdateSubAccount(action) => {
                     handle_sub_account_action(deps, info, action)
                 }
