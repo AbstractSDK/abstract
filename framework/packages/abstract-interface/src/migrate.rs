@@ -1,9 +1,11 @@
 use crate::{Abstract, AbstractIbc};
 use abstract_std::version_control::QueryMsgFns;
-use abstract_std::PROXY;
 use abstract_std::{
     account_factory, ans_host, ibc_client, ibc_host, module_factory, objects::module::ModuleInfo,
     version_control, MANAGER,
+};
+use abstract_std::{
+    ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MODULE_FACTORY, PROXY, VERSION_CONTROL,
 };
 use cosmwasm_std::from_json;
 use cw2::{ContractVersion, CONTRACT};
@@ -133,6 +135,101 @@ impl<T: CwEnv> Abstract<T> {
         self.version_control.approve_any_abstract_modules()?;
 
         Ok(has_migrated)
+    }
+
+    /// Update native modules in version control  
+    pub fn update_natives_in_version_control(&self) -> Result<(), crate::AbstractInterfaceError> {
+        let mut natives = vec![];
+
+        let modules = self
+            .version_control
+            .modules(vec![
+                ModuleInfo::from_id_latest(ACCOUNT_FACTORY)?,
+                ModuleInfo::from_id_latest(MODULE_FACTORY)?,
+                ModuleInfo::from_id_latest(VERSION_CONTROL)?,
+                ModuleInfo::from_id_latest(ANS_HOST)?,
+                ModuleInfo::from_id_latest(MANAGER)?,
+                ModuleInfo::from_id_latest(PROXY)?,
+                ModuleInfo::from_id_latest(IBC_CLIENT)?,
+                ModuleInfo::from_id_latest(IBC_HOST)?,
+            ])?
+            .modules;
+
+        let account_factory_module = modules[0].module.clone();
+        let module_factory_module = modules[1].module.clone();
+        let version_control_module = modules[2].module.clone();
+        let ans_host_module = modules[3].module.clone();
+        let manager_module = modules[4].module.clone();
+        let proxy_module = modules[5].module.clone();
+        let ibc_client_module = modules[6].module.clone();
+        let ibc_host_module = modules[7].module.clone();
+
+        if ::account_factory::contract::CONTRACT_VERSION
+            != account_factory_module.info.version.to_string()
+        {
+            natives.push((
+                self.account_factory.as_instance(),
+                ::account_factory::contract::CONTRACT_VERSION.to_string(),
+            ));
+        }
+
+        if ::module_factory::contract::CONTRACT_VERSION
+            != module_factory_module.info.version.to_string()
+        {
+            natives.push((
+                self.module_factory.as_instance(),
+                ::module_factory::contract::CONTRACT_VERSION.to_string(),
+            ));
+        }
+
+        if ::version_control::contract::CONTRACT_VERSION
+            != version_control_module.info.version.to_string()
+        {
+            natives.push((
+                self.version_control.as_instance(),
+                ::version_control::contract::CONTRACT_VERSION.to_string(),
+            ));
+        }
+
+        if ::ans_host::contract::CONTRACT_VERSION != ans_host_module.info.version.to_string() {
+            natives.push((
+                self.ans_host.as_instance(),
+                ::ans_host::contract::CONTRACT_VERSION.to_string(),
+            ));
+        }
+
+        if ::manager::contract::CONTRACT_VERSION != manager_module.info.version.to_string() {
+            natives.push((
+                self.account.manager.as_instance(),
+                ::manager::contract::CONTRACT_VERSION.to_string(),
+            ));
+        }
+
+        if ::proxy::contract::CONTRACT_VERSION != proxy_module.info.version.to_string() {
+            natives.push((
+                self.account.proxy.as_instance(),
+                ::proxy::contract::CONTRACT_VERSION.to_string(),
+            ));
+        }
+
+        if ::ibc_client::contract::CONTRACT_VERSION != ibc_client_module.info.version.to_string() {
+            natives.push((
+                self.ibc.client.as_instance(),
+                ::ibc_client::contract::CONTRACT_VERSION.to_string(),
+            ));
+        }
+
+        if ::ibc_host::contract::CONTRACT_VERSION != ibc_host_module.info.version.to_string() {
+            natives.push((
+                self.ibc.host.as_instance(),
+                ::ibc_host::contract::CONTRACT_VERSION.to_string(),
+            ));
+        }
+
+        self.version_control.register_natives(natives)?;
+        self.version_control.approve_any_abstract_modules()?;
+
+        Ok(())
     }
 }
 
