@@ -34,27 +34,50 @@ impl<'a> NestedAdmin<'a> {
 
     pub fn is_admin<Q: CustomQuery>(&self, deps: Deps<Q>, caller: &Addr) -> StdResult<bool> {
         match self.0.get(deps)? {
-            Some(owner) => {
-                // Initial check if directly called by the owner
-                if caller == owner {
-                    Ok(true)
-                } else {
-                    // Check if top level owner address is equal to the caller
-                    Ok(query_top_level_owner(&deps.querier, owner)
-                        .map(|owner| owner == caller)
-                        .unwrap_or(false))
-                }
-            }
+            Some(admin) => Self::is_admin_custom(&deps.querier, caller, admin),
             None => Ok(false),
         }
     }
 
+    /// Compares the provided admin to the caller.
+    /// Can be used when other ownership structure than `cw-controller::Admin` is used.
+    pub fn is_admin_custom<Q: CustomQuery>(
+        querier: &QuerierWrapper<Q>,
+        caller: &Addr,
+        admin: Addr,
+    ) -> StdResult<bool> {
+        // Initial check if directly called by the admin
+        if caller == admin {
+            Ok(true)
+        } else {
+            // Check if top level owner address is equal to the caller
+            Ok(query_top_level_owner(querier, admin)
+                .map(|admin| admin == caller)
+                .unwrap_or(false))
+        }
+    }
+
+    /// Assert the caller is the admin of this nested ownership structures
     pub fn assert_admin<Q: CustomQuery>(
         &self,
         deps: Deps<Q>,
         caller: &Addr,
     ) -> Result<(), AdminError> {
         if !self.is_admin(deps, caller)? {
+            Err(AdminError::NotAdmin {})
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Assert the caller is the admin of this nested ownership structures
+    /// Either directly or indirectly
+    pub fn assert_admin_custom<Q: CustomQuery>(
+        querier: &QuerierWrapper<Q>,
+        caller: &Addr,
+        admin: Addr,
+    ) -> Result<(), AdminError> {
+        if !Self::is_admin_custom(querier, caller, admin)? {
             Err(AdminError::NotAdmin {})
         } else {
             Ok(())

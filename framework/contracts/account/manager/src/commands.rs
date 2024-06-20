@@ -15,10 +15,10 @@ use abstract_std::{
     module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
     objects::{
         dependency::Dependency,
-        gov_type::{verify_nft_ownership, GovernanceDetails},
+        gov_type::GovernanceDetails,
         module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
-        nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION},
+        nested_admin::{query_top_level_owner, NestedAdmin},
         salt::generate_instantiate_salt,
         validation::{validate_description, validate_link, validate_name},
         version_control::VersionControlContract,
@@ -92,7 +92,7 @@ pub fn install_modules(
     modules: Vec<ModuleInstallConfig>,
 ) -> ManagerResult {
     // only owner can call this method
-    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
+    assert_is_admin(deps.as_ref(), &msg_info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
@@ -251,7 +251,7 @@ pub fn exec_on_module(
     exec_msg: Binary,
 ) -> ManagerResult {
     // only owner can forward messages to modules
-    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
+    assert_is_admin(deps.as_ref(), &msg_info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
@@ -281,7 +281,7 @@ pub fn create_sub_account(
     account_id: Option<u32>,
 ) -> ManagerResult {
     // only owner can create a subaccount
-    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
+    assert_is_admin(deps.as_ref(), &msg_info.sender)?;
 
     let create_account_msg = &abstract_std::account_factory::ExecuteMsg::CreateAccount {
         // proxy of this manager will be the account owner
@@ -385,7 +385,7 @@ fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, M
 /// Uninstall the module with the ID [`module_id`]
 pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
     // only owner can uninstall modules
-    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
+    assert_is_admin(deps.as_ref(), &msg_info.sender)?;
 
     let (response, msg) = _uninstall_module(deps, module_id)?;
 
@@ -435,7 +435,7 @@ pub fn propose_owner(
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
-    assert_admin_right(deps.as_ref(), &info.sender)?;
+    assert_is_admin(deps.as_ref(), &info.sender)?;
     // In case it's a top level owner we need to pass current owner into update_ownership method
     let owner = cw_ownable::get_ownership(deps.storage)?
         .owner
@@ -611,7 +611,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
-    assert_admin_right(deps.as_ref(), &info.sender)?;
+    assert_is_admin(deps.as_ref(), &info.sender)?;
     ensure!(!modules.is_empty(), ManagerError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];
@@ -894,7 +894,7 @@ pub fn update_info(
     description: Option<String>,
     link: Option<String>,
 ) -> ManagerResult {
-    assert_admin_right(deps.as_ref(), &info.sender)?;
+    assert_is_admin(deps.as_ref(), &info.sender)?;
     let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
         validate_name(&name)?;
@@ -916,7 +916,7 @@ pub fn update_suspension_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update suspension status
-    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
+    assert_is_admin(deps.as_ref(), &msg_info.sender)?;
 
     SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
 
@@ -1072,7 +1072,7 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
         }
     };
 
-    assert_admin_right(deps.as_ref(), &info.sender)?;
+    assert_is_admin(deps.as_ref(), &info.sender)?;
     update_module_addresses(deps, add, remove)
 }
 
@@ -1080,60 +1080,13 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
 /// This function should return `Ok` when called by:
 /// - The owner of the contract (i.e. account).
 /// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
-pub fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
-    let ownership_test = cw_ownable::assert_owner(deps.storage, sender);
-
-    // If the sender is the owner, the admin test is passed
-    let mut ownership_error: ManagerError = match ownership_test {
-        Ok(()) => return Ok(()),
-        Err(err) => err.into(),
-    };
-
-    // In case it fails we get the account info and check if the current(this) account is a sub-account.
-    let mut current: AccountInfo = INFO.load(deps.storage)?;
-    // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-    for _ in 0..MAX_ADMIN_RECURSION {
-        match current.governance_details {
-            // As long as the accounts are sub-accounts, we check the owner of the parent account
-            GovernanceDetails::SubAccount { manager, .. } => {
-                current = INFO
-                    .query(&deps.querier, manager)
-                    .map_err(|_| ManagerError::SubAccountAdminVerification)?;
-
-                // Change error type if it was sub-account
-                ownership_error = ManagerError::SubAccountAdminVerification;
-            }
-            _ => break,
-        }
-    }
-
-    match current.governance_details {
-        GovernanceDetails::Monarchy { monarch: owner }
-        | GovernanceDetails::External {
-            governance_address: owner,
-            ..
-        } => {
-            // If the owner of the top-level account is the sender, the admin test is passed.
-            // This gives the top-level owner the ability to manage all sub-accounts.
-            if *sender == owner {
-                Ok(())
-            } else {
-                Err(ownership_error)
-            }
-        }
-        GovernanceDetails::NFT { collection_addr, token_id } => {
-            verify_nft_ownership(deps,sender.clone(), collection_addr,token_id)?;
-            Ok(())
-        }
-        // MAX_ADMIN_RECURSION levels deep still sub account
-        GovernanceDetails::SubAccount { .. } => {
-            Err(ManagerError::Std(StdError::generic_err(format!(
-                "Admin recursion error, too much recursion, maximum allowed sub-account admin recursion : {}",
-                MAX_ADMIN_RECURSION
-            ))))
-        }
-        _ => Err(ownership_error),
-    }
+fn assert_is_admin(deps: Deps,env: &Env, sender: &Addr) -> ManagerResult<()> {
+    let owner = cw_ownable::get_ownership(deps.storage)?
+        .owner
+        // if no owner, set current contract as "owner".
+        // this enables NFT ownership and will still error on Renounced ownership
+        .unwrap_or(env.contract.address);
+    NestedAdmin::assert_admin_custom(&deps.querier, &sender, owner).map_err(Into::into)
 }
 
 pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> ManagerResult {
@@ -1199,7 +1152,7 @@ mod tests {
         let res = execute_as(deps.as_mut(), "not_owner", msg);
         assert_that!(&res)
             .is_err()
-            .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner));
+            .is_equal_to(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
 
         Ok(())
     }
@@ -1424,7 +1377,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), "not_account_factory", msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
 
             Ok(())
         }
@@ -1449,7 +1402,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), "not_owner", msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner));
+                .is_equal_to(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
 
             Ok(())
         }
@@ -1833,6 +1786,7 @@ mod tests {
 
     mod update_internal_config {
         use abstract_std::manager::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
+        use cw_controllers::AdminError;
 
         use super::*;
 
@@ -1854,7 +1808,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
 
             let factory_res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
             assert_that!(&factory_res).is_err();

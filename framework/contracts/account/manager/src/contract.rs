@@ -19,8 +19,8 @@ use abstract_std::{
     PROXY,
 };
 use cosmwasm_std::{
-    ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
-    StdResult,
+    ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
+    StdError, StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
@@ -71,9 +71,15 @@ pub fn instantiate(
     validate_name(&msg.name)?;
 
     let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
-    let owner = governance_details
-        .owner_address(&deps.querier)
-        .ok_or(ManagerError::InitRenounced {})?;
+    
+    let owner: Option<Addr> = match governance_details {
+        // If NFT-owned we don't save an owner because it is determined by the NFT ownership.
+        GovernanceDetails::NFT { .. } => None,
+        gov => Some(
+            gov.owner_address(&deps.querier)
+                .ok_or(ManagerError::InitRenounced {})?,
+        ),
+    };
 
     let account_info = AccountInfo {
         name: msg.name,
@@ -94,14 +100,14 @@ pub fn instantiate(
     )?;
 
     // Set owner
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner.as_str()))?;
+    cw_ownable::initialize_owner(deps.storage, deps.api, owner.map(|addr| addr.as_str()))?;
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
     let mut response = ManagerResponse::new(
         "instantiate",
         vec![
             ("account_id".to_owned(), msg.account_id.to_string()),
-            ("owner".to_owned(), owner.to_string()),
+            ("owner".to_owned(), governance_details.to_string()),
         ],
     );
 
