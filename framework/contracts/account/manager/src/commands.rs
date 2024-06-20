@@ -1080,7 +1080,7 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
 /// This function should return `Ok` when called by:
 /// - The owner of the contract (i.e. account).
 /// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
-fn assert_is_admin(deps: Deps,env: &Env, sender: &Addr) -> ManagerResult<()> {
+fn assert_is_admin(deps: Deps, env: &Env, sender: &Addr) -> ManagerResult<()> {
     let owner = cw_ownable::get_ownership(deps.storage)?
         .owner
         // if no owner, set current contract as "owner".

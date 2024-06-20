@@ -71,7 +71,7 @@ pub fn instantiate(
     validate_name(&msg.name)?;
 
     let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
-    
+
     let owner: Option<Addr> = match governance_details {
         // If NFT-owned we don't save an owner because it is determined by the NFT ownership.
         GovernanceDetails::NFT { .. } => None,

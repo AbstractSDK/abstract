@@ -76,7 +76,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let mut deployment = Self::store_on(chain.clone())?;
 
         // ########### Instantiate ##############
-        deployment.instantiate(&chain, data)?;
+        deployment.instantiate(data)?;
 
         // Set Factory
         deployment.version_control.execute(
@@ -182,11 +182,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         }
     }
 
-    pub fn instantiate(
-        &mut self,
-        chain: &Chain,
-        admin: String,
-    ) -> Result<(), AbstractInterfaceError> {
+    pub fn instantiate(&mut self, admin: String) -> Result<(), AbstractInterfaceError> {
         let admin = Addr::unchecked(admin);
 
         self.ans_host.instantiate(
