@@ -25,7 +25,6 @@ fn find_old_account() -> anyhow::Result<(CloneTesting, u32, String)> {
             // Create the account helper
             let account = AbstractAccount::new(&abstr_deployment, AccountId::local(account_id));
             if let Some(owner) = account.manager.ownership()?.owner {
-                // We print the versions of Manager and Proxy for debugging if there an error
                 let proxy_version = Version::parse(
                     &account
                         .manager
