@@ -19,10 +19,7 @@
 //! assert_eq!(alice_account.owner()?, client.sender());
 //! # Ok::<(), AbstractClientError>(())
 //! ```
-use std::{
-    fmt::{Debug, Display},
-    ops::Add,
-};
+use std::fmt::{Debug, Display};
 
 use abstract_interface::{
     Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,

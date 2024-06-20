@@ -17,12 +17,64 @@ use abstract_std::{
 };
 use abstract_testing::prelude::*;
 use anyhow::Error;
-use cosmwasm_std::{coin, CosmosMsg, Uint128};
+use cosmwasm_std::{coin, ensure, CosmosMsg, Uint128};
+use cw721::OwnerOfResponse;
 use cw_orch::{
     mock::{cw_multi_test::MockApiBech32, MockBase},
     prelude::*,
 };
 use speculoos::prelude::*;
+
+/// Deploys and mints an NFT to *sender*.
+fn deploy_and_mint_nft(
+    chain: MockBase<MockApiBech32>,
+    sender: Addr,
+) -> Result<(String, String), Error> {
+    let token_id = String::from("1");
+
+    let cw721_contract = Box::new(ContractWrapper::new(
+        cw721_base::entry::execute,
+        cw721_base::entry::instantiate,
+        cw721_base::entry::query,
+    ));
+    let cw721_id = chain.app.borrow_mut().store_code(cw721_contract);
+
+    // instantiate mock collection
+    let res = chain.instantiate(
+        cw721_id,
+        &cw721_base::InstantiateMsg {
+            name: "testcollection".to_string(),
+            symbol: "TEST".to_string(),
+            minter: sender.to_string(),
+        },
+        Some("test-account-nft-collection"),
+        Some(&sender),
+        &vec![],
+    )?;
+
+    let mut nft_addr = String::default();
+    // get contract id
+    for event in &res.events {
+        for attribute in &event.attributes {
+            if attribute.key.to_lowercase() == "_contract_address" {
+                nft_addr = attribute.value.to_string();
+            }
+        }
+    }
+
+    // mint nft
+    chain.execute(
+        &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Mint {
+            token_id: token_id.clone(),
+            owner: sender.to_string(),
+            token_uri: None,
+            extension: None,
+        },
+        &[],
+        &Addr::unchecked(nft_addr.clone()),
+    )?;
+    Ok((token_id, nft_addr))
+}
 
 #[test]
 fn instantiate() -> AResult {
@@ -410,48 +462,32 @@ fn renounce_cleans_namespace() -> AResult {
 }
 
 #[test]
-fn test_nft_as_governance() -> Result<(), Error> {
+fn nft_owner_success() -> Result<(), Error> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
-    let bad_sender = chain.addr_make_with_balance("test", vec![])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let (_code_id, test_nft_collection) = deploy_nft_contracts(chain.clone(), sender.clone())?;
+    let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
-    // define nft gov details
     let gov = GovernanceDetails::NFT {
-        collection_addr: test_nft_collection.to_string(),
-        token_id: String::from("1"),
+        collection_addr: nft_addr.clone(),
+        // token minted to sender
+        token_id: token_id.clone(),
     };
-    // create nft account
-    let res = deployment.account_factory.create_account(
+
+    // create nft-owned account
+    let account = deployment.account_factory.create_new_account(
+        AccountDetails {
+            name: "foo".to_string(),
+            description: None,
+            link: None,
+            namespace: None,
+            base_asset: None,
+            install_modules: vec![],
+            account_id: None,
+        },
         gov,
-        vec![],
-        "test-nft-governance-account-1".to_string(),
         None,
-        None,
-        None,
-        None,
-        None,
-        &vec![],
     )?;
-
-    let mut manager = String::default();
-    let mut proxy = String::default();
-
-    // get contract id
-    for event in &res.events {
-        if event.ty == "wasm-abstract" {
-            for attribute in &event.attributes {
-                if attribute.key.to_lowercase() == "manager_address" {
-                    manager = attribute.value.to_string();
-                }
-                if attribute.key.to_lowercase() == "proxy_address" {
-                    proxy = attribute.value.to_string();
-                }
-            }
-        }
-    }
-    println!("manager:{:?}, proxy:{:?}", manager, proxy);
 
     let start_amnt = 100_000;
     let burn_amnt = 10_000u128;
@@ -461,7 +497,7 @@ fn test_nft_as_governance() -> Result<(), Error> {
     let first_burn = Uint128::from(start_amnt).checked_sub(burn_amnt.into())?;
 
     // fund nft account
-    chain.set_balance(&Addr::unchecked(proxy.clone()), start_balance.clone())?;
+    chain.set_balance(&account.proxy.address()?, start_balance.clone())?;
 
     // test sending msg as nft account by burning tokens from proxy
     let burn_msg = abstract_std::proxy::ExecuteMsg::ModuleAction {
@@ -470,102 +506,63 @@ fn test_nft_as_governance() -> Result<(), Error> {
         })],
     };
 
-    chain.execute(
-        &abstract_std::manager::ExecuteMsg::ExecOnModule {
-            module_id: PROXY.to_string(),
-            exec_msg: to_json_binary(&burn_msg)?,
-        },
-        &[],
-        &Addr::unchecked(manager.clone()),
-    )?;
+    // confirm sender (who owns this NFT) can execute on the account through the manager
+    account.manager.execute_on_module(PROXY, &burn_msg)?;
+
     // confirm tokens were burnt
-    let balance = chain.query_balance(&Addr::unchecked(proxy.clone()), TTOKEN)?;
+    let balance = chain.query_balance(&account.proxy.address()?, TTOKEN)?;
 
     assert_eq!(balance.clone(), first_burn.clone());
 
     // confirm only token holder can send msg
-    let res = chain.call_as(&bad_sender).execute(
-        &abstract_std::manager::ExecuteMsg::ExecOnModule {
-            module_id: PROXY.to_string(),
-            exec_msg: to_json_binary(&burn_msg)?,
-        },
-        &[],
-        &Addr::unchecked(manager.clone()),
-    );
+    let not_nft_holder = chain.addr_make_with_balance("test", vec![])?;
+
+    let res = account
+        .manager
+        .call_as(&not_nft_holder)
+        .execute_on_module(PROXY, &burn_msg);
+
     assert!(&res.is_err());
 
-    // verify good transfer of nft
+    // Now transfer the NFT
+    let new_nft_owner = not_nft_holder;
+
     chain.execute(
         &cw721::Cw721ExecuteMsg::TransferNft {
-            recipient: bad_sender.to_string(),
-            token_id: String::from("1"),
+            recipient: new_nft_owner.to_string(),
+            token_id: token_id.clone(),
         },
         &[],
-        &Addr::unchecked(test_nft_collection.clone()),
+        &Addr::unchecked(nft_addr.clone()),
     )?;
 
-    chain.call_as(&bad_sender).execute(
-        &abstract_std::manager::ExecuteMsg::ExecOnModule {
-            module_id: PROXY.to_string(),
-            exec_msg: to_json_binary(&burn_msg)?,
+    // ensure NFT was transferred
+    let resp: OwnerOfResponse = chain.wasm_querier().smart_query(
+        nft_addr,
+        &cw721::Cw721QueryMsg::OwnerOf {
+            token_id: token_id.clone(),
+            include_expired: None,
         },
-        &[],
-        &Addr::unchecked(manager),
     )?;
-    let balance = chain.query_balance(&Addr::unchecked(proxy.clone()), TTOKEN)?;
+    assert_eq!(resp.owner, new_nft_owner);
+
+    // try to call as the old owner (default sender)
+    let res = account.manager.execute_on_module(PROXY, &burn_msg);
+    assert!(&res.is_err());
+
+    // Now try with new NFT owner
+    account
+        .manager
+        .call_as(&new_nft_owner)
+        .execute_on_module(PROXY, burn_msg)?;
+
+    let balance = chain.query_balance(&account.proxy.address()?, TTOKEN)?;
     assert_eq!(balance, first_burn.checked_sub(burn_amnt.into())?);
+
     Ok(())
 }
 
-fn deploy_nft_contracts(
-    mut chain: MockBase<MockApiBech32>,
-    sender: Addr,
-) -> Result<(u64, String), Error> {
-    let mut test_nft_collection = String::default();
-    let token_id = String::from("1");
-
-    let cw721_contract = Box::new(ContractWrapper::new(
-        cw721_base::entry::execute,
-        cw721_base::entry::instantiate,
-        cw721_base::entry::query,
-    ));
-    let cw721_id = chain.app.borrow_mut().store_code(cw721_contract);
-
-    // instantiate mock collection
-    let res = chain.instantiate(
-        cw721_id,
-        &cw721_base::InstantiateMsg {
-            name: "testcollection".to_string(),
-            symbol: "TEST".to_string(),
-            minter: sender.to_string(),
-        },
-        Some("test-account-nft-collection"),
-        Some(&sender),
-        &vec![],
-    )?;
-    // get contract id
-    for event in &res.events {
-        for attribute in &event.attributes {
-            if attribute.key.to_lowercase() == "_contract_address" {
-                test_nft_collection = attribute.value.to_string();
-            }
-        }
-    }
-    println!("test_nft_collection: {:?}", test_nft_collection);
-    // mint nft
-    chain.execute(
-        &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Mint {
-            token_id: token_id.clone(),
-            owner: sender.to_string(),
-            token_uri: None,
-            extension: None,
-        },
-        &[],
-        &Addr::unchecked(test_nft_collection.clone()),
-    )?;
-    Ok((cw721_id, test_nft_collection))
-}
-
+#[test]
 fn can_take_any_last_two_billion_accounts() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
