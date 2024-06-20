@@ -148,10 +148,10 @@ impl<T: CwEnv> Abstract<T> {
                 ModuleInfo::from_id_latest(MODULE_FACTORY)?,
                 ModuleInfo::from_id_latest(VERSION_CONTROL)?,
                 ModuleInfo::from_id_latest(ANS_HOST)?,
-                ModuleInfo::from_id_latest(MANAGER)?,
-                ModuleInfo::from_id_latest(PROXY)?,
                 ModuleInfo::from_id_latest(IBC_CLIENT)?,
                 ModuleInfo::from_id_latest(IBC_HOST)?,
+                // ModuleInfo::from_id_latest(MANAGER)?,
+                // ModuleInfo::from_id_latest(PROXY)?,
             ])?
             .modules;
 
@@ -159,10 +159,32 @@ impl<T: CwEnv> Abstract<T> {
         let module_factory_module = modules[1].module.clone();
         let version_control_module = modules[2].module.clone();
         let ans_host_module = modules[3].module.clone();
-        let manager_module = modules[4].module.clone();
-        let proxy_module = modules[5].module.clone();
-        let ibc_client_module = modules[6].module.clone();
-        let ibc_host_module = modules[7].module.clone();
+        let ibc_client_module = modules[4].module.clone();
+        let ibc_host_module = modules[5].module.clone();
+        // let manager_module = modules[6].module.clone();
+        // let proxy_module = modules[7].module.clone();
+
+        let account_factory_cw2_v = contract_version(&self.account_factory)?.version;
+        let module_factory_cw2_v = contract_version(&self.module_factory)?.version;
+        let version_control_cw2_v = contract_version(&self.version_control)?.version;
+        let ans_host_cw2_v = contract_version(&self.ans_host)?.version;
+        let ibc_client_cw2_v = contract_version(&self.ibc.client)?.version;
+        let ibc_host_cw2_v = contract_version(&self.ibc.host)?.version;
+        // We might not have accounts
+        // let manager_cw2_v = contract_version(&self.account.manager)?.version;
+        // let proxy_cw2_v = contract_version(&self.account.proxy)?.version;
+
+        let versions = vec![
+            account_factory_cw2_v,
+            module_factory_cw2_v,
+            version_control_cw2_v,
+            ans_host_cw2_v,
+            ibc_client_cw2_v,
+            ibc_host_cw2_v,
+            // manager_cw2_v,
+            // proxy_cw2_v,
+        ];
+        panic!("{versions:?}");
 
         if ::account_factory::contract::CONTRACT_VERSION
             != account_factory_module.info.version.to_string()
@@ -198,20 +220,6 @@ impl<T: CwEnv> Abstract<T> {
             ));
         }
 
-        if ::manager::contract::CONTRACT_VERSION != manager_module.info.version.to_string() {
-            natives.push((
-                self.account.manager.as_instance(),
-                ::manager::contract::CONTRACT_VERSION.to_string(),
-            ));
-        }
-
-        if ::proxy::contract::CONTRACT_VERSION != proxy_module.info.version.to_string() {
-            natives.push((
-                self.account.proxy.as_instance(),
-                ::proxy::contract::CONTRACT_VERSION.to_string(),
-            ));
-        }
-
         if ::ibc_client::contract::CONTRACT_VERSION != ibc_client_module.info.version.to_string() {
             natives.push((
                 self.ibc.client.as_instance(),
@@ -225,6 +233,20 @@ impl<T: CwEnv> Abstract<T> {
                 ::ibc_host::contract::CONTRACT_VERSION.to_string(),
             ));
         }
+
+        // if ::manager::contract::CONTRACT_VERSION != manager_module.info.version.to_string() {
+        //     natives.push((
+        //         self.account.manager.as_instance(),
+        //         ::manager::contract::CONTRACT_VERSION.to_string(),
+        //     ));
+        // }
+
+        // if ::proxy::contract::CONTRACT_VERSION != proxy_module.info.version.to_string() {
+        //     natives.push((
+        //         self.account.proxy.as_instance(),
+        //         ::proxy::contract::CONTRACT_VERSION.to_string(),
+        //     ));
+        // }
 
         self.version_control.register_natives(natives)?;
         self.version_control.approve_any_abstract_modules()?;
