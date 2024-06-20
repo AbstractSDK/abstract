@@ -26,7 +26,7 @@ semver = { workspace = true, features = ["serde"] }
 cw-asset = { workspace = true }
 cw-address-like = { workspace = true }
 cw2 = { workspace = true }
-cw721 = { workspace = true }
+cw721 = "0.18.0"
 cw20 = { workspace = true }
 cw-orch = { workspace = true }
 cw-ownable = { workspace = true }
@@ -43,4 +43,3 @@ rstest = { workspace = true }
 anyhow = { workspace = true }
 abstract-testing = { path = "../abstract-testing" }
 cw20-base = { workspace = true }
-cw721 = { workspace = true }

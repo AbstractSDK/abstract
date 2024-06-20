@@ -41,7 +41,7 @@ cw-asset = { workspace = true, optional = true }
 cw-plus-interface = { package = "abstract-cw-plus-interface", version = "2.0.0", optional = true }
 cw20 = { package = "abstract-cw20", version = "2.0.0", optional = true }
 cw20-base = { package = "abstract-cw20-base", version = "2.0.0", optional = true }
-cw721.workspace = true
+cw721 = "0.18"
 
 # For random account seq
 rand = { version = "0.8.5" }

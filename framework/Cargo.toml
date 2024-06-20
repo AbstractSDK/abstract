@@ -5,7 +5,6 @@ members = [
   "contracts/native/*",
   "contracts/account/*",
   "contracts/templates/*",
-
 ]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
@@ -41,9 +40,6 @@ cw-storage-plus = "1.2.0"
 cw2 = { version = "1.0" }
 cw20 = { version = "1.0" }
 cw20-base = { version = "1.0", features = ["library"] }
-
-cw721 = "0.18.0"
-cw721-base = { version = "0.18.0", features = ["library"] }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
