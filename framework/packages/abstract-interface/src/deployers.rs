@@ -91,7 +91,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
         let abstr = Abstract::load_from(self.get_chain().to_owned())?;
 
         // check for existing version, if not force strategy
-        let version_check = || {
+        let vc_has_module = || {
             abstr
                 .version_control
                 .registered_or_pending_module(
@@ -103,7 +103,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
 
         match strategy {
             DeployStrategy::Error => {
-                if version_check().is_ok() {
+                if vc_has_module().is_ok() {
                     return Err(StdErr(format!(
                         "Adapter {} already exists with version {}",
                         self.id(),
@@ -113,7 +113,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
                 }
             }
             DeployStrategy::Try => {
-                if version_check().is_ok() {
+                if vc_has_module().is_ok() {
                     return Ok(());
                 }
             }
@@ -151,7 +151,7 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
         let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
 
         // check for existing version
-        let version_check = || {
+        let vc_has_module = || {
             abstr
                 .version_control
                 .registered_or_pending_module(
@@ -163,7 +163,7 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
 
         match strategy {
             DeployStrategy::Error => {
-                if version_check().is_ok() {
+                if vc_has_module().is_ok() {
                     return Err(StdErr(format!(
                         "App {} already exists with version {}",
                         self.id(),
@@ -173,7 +173,7 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
                 }
             }
             DeployStrategy::Try => {
-                if version_check().is_ok() {
+                if vc_has_module().is_ok() {
                     return Ok(());
                 }
             }
@@ -202,7 +202,7 @@ pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstanc
         let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
 
         // check for existing version
-        let version_check = || {
+        let vc_has_module = || {
             abstr
                 .version_control
                 .registered_or_pending_module(
@@ -214,7 +214,7 @@ pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstanc
 
         match strategy {
             DeployStrategy::Error => {
-                if version_check().is_ok() {
+                if vc_has_module().is_ok() {
                     return Err(StdErr(format!(
                         "Standalone {} already exists with version {}",
                         self.id(),
@@ -224,7 +224,7 @@ pub trait StandaloneDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstanc
                 }
             }
             DeployStrategy::Try => {
-                if version_check().is_ok() {
+                if vc_has_module().is_ok() {
                     return Ok(());
                 }
             }
