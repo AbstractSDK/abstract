@@ -359,8 +359,8 @@
       "code_ids": {
         "abstract:account-factory": 751,
         "abstract:ans-host": 698,
-        "abstract:ibc-client": 752,
-        "abstract:ibc-host": 753,
+        "abstract:ibc-client": 701,
+        "abstract:ibc-host": 702,
         "abstract:manager": 699,
         "abstract:module-factory": 696,
         "abstract:proxy": 700,
@@ -369,8 +369,8 @@
       "default": {
         "abstract:account-factory": "xion146fns53rghyn7yclpw6krnzdarwh423t8pq9ye4jlvegrf7d2kzsrwvp2x",
         "abstract:ans-host": "xion10u37xtvas9r2as903v2kzrl4sep6703hhwtymrl7d50pz2y56puqw38h0a",
-        "abstract:ibc-client": "xion1u7293pcaqa7hslw2y8ngvl09xd6pxxn0prlldmzkq4hqx2jnnmdq4lgegn",
-        "abstract:ibc-host": "xion1pkka5l6gvcef78990sdd2c9waww9h6au3cqk8j3aeq4rp6qly3nqe5ulky",
+        "abstract:ibc-client": "xion1w86t834cmx65hye20gdjxrawlw3vlvx9au2492tg38uaa5tymndq9jhvpa",
+        "abstract:ibc-host": "xion1daye4l7h203rfa25mwrrfyll3yakyh8lasg8ydazeq8hccfdvy7q59cqkq",
         "abstract:manager-local-0": "xion19fdmakwqnnppzw70g3l74avqkefmpmheqk7qdlhphwuzqg5x5djq4mfazq",
         "abstract:manager-local-1": "xion1n23h4ddw0sdw6vgk0chn22yg23vvsddnxsnmrypg0y2vqtfn3v3smzgwxz",
         "abstract:module-factory": "xion1xhv3zgqzqtjaglj2pcym9y2fu699gmmxpdn5yge2nkan8v4c5m6suq8h6f",
