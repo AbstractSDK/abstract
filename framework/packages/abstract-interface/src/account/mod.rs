@@ -336,7 +336,9 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         Ok(migrated)
     }
 
-    pub fn upgrade(&self) -> Result<(), AbstractInterfaceError> {
+    /// Attempts to upgrade the Account
+    /// returns `true` if any migrations were performed.
+    pub fn upgrade(&self) -> Result<bool, AbstractInterfaceError> {
         let mut one_migration_was_successful = false;
 
         // We upgrade the manager to the latest version through all the versions
@@ -354,13 +356,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             one_migration_was_successful = true;
         }
 
-        if !one_migration_was_successful {
-            return Err(AbstractInterfaceError::NotUpdated(
-                "abstract:account".to_string(),
-            ));
-        }
-
-        Ok(())
+        Ok(one_migration_was_successful)
     }
 
     /// Attempt to upgrade a module to its next version.
