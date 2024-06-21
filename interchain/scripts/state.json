@@ -357,7 +357,7 @@
   "xion": {
     "xion-testnet-1": {
       "code_ids": {
-        "abstract:account-factory": 695,
+        "abstract:account-factory": 751,
         "abstract:ans-host": 698,
         "abstract:ibc-client": 701,
         "abstract:ibc-host": 702,
