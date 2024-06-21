@@ -64,11 +64,13 @@ expression: all_storage
     - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"ans_host_address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - contract_info
     - "{\"contract\":\"abstract:module-factory\",\"version\":\"0.23.0-beta.0\"}"
+  - - cur_manager
+    - "{\"manager\":\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\",\"proxy\":\"mock1xsemjm2xzx8nfaj50rt2dn04g24yarrr3mf6uwhqtc4ampff9nsqrc867x\"}"
   - - ownership
     - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:proxy-local-0":
   - - "\u0000{5}state"
-    - "{\"modules\":[\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\",\"mock140yszardgjx5keqq59krnuwt2h7sxzpwdzevm0v904gws2rp562sejmztn\",\"mock169wfeuug4rpczvhzkayh53apewph6n5fkuf5j597n9a43krex9sq8mkset\"]}"
+    - "{\"modules\":[\"mock1lqyzwgew5stjyj9mqf04f98d87yy0chklx25dvq58w4855v4lflqy7ppar\"]}"
   - - "\u0000{6}ans_host"
     - "{\"address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"
   - - acc_id

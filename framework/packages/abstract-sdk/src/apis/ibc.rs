@@ -10,7 +10,7 @@ use abstract_std::{
     manager::ModuleInstallConfig,
     objects::{chain_name::ChainName, module::ModuleInfo},
     proxy::ExecuteMsg,
-    IBC_CLIENT,
+    ABSTRACT_VERSION, IBC_CLIENT,
 };
 use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, QueryRequest};
 use serde::Serialize;
@@ -18,12 +18,12 @@ use serde::Serialize;
 use super::{AbstractApi, ApiIdentification};
 use crate::{
     features::{AccountExecutor, AccountIdentification, ModuleIdentification},
-    AbstractSdkResult, ModuleRegistryInterface,
+    AbstractSdkResult, ModuleInterface, ModuleRegistryInterface,
 };
 
 /// Interact with other chains over IBC.
 pub trait IbcInterface:
-    AccountIdentification + ModuleRegistryInterface + ModuleIdentification
+    AccountIdentification + ModuleRegistryInterface + ModuleIdentification + ModuleInterface
 {
     /**
         API for interacting with the Abstract IBC client.
@@ -45,7 +45,7 @@ pub trait IbcInterface:
 }
 
 impl<T> IbcInterface for T where
-    T: AccountIdentification + ModuleRegistryInterface + ModuleIdentification
+    T: AccountIdentification + ModuleRegistryInterface + ModuleIdentification + ModuleInterface
 {
 }
 
@@ -87,11 +87,11 @@ pub struct IbcClient<'a, T: IbcInterface> {
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Get address of this module
     pub fn module_address(&self) -> AbstractSdkResult<Addr> {
+        let modules = self.base.modules(self.deps);
+        modules.assert_module_dependency(IBC_CLIENT)?;
         self.base
             .module_registry(self.deps)?
-            // TODO: Update when client versions are fixed.
-            // Use Dependencies trait bound
-            .query_module(ModuleInfo::from_id_latest(IBC_CLIENT)?)?
+            .query_module(ModuleInfo::from_id(IBC_CLIENT, ABSTRACT_VERSION.into())?)?
             .reference
             .unwrap_native()
             .map_err(Into::into)
@@ -187,8 +187,8 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Address of the remote proxy
     /// Note: only Accounts that are remote to *this* chain are queryable
     pub fn remote_proxy_addr(&self, host_chain: &ChainName) -> AbstractSdkResult<Option<String>> {
-        let account_id = self.base.account_id(self.deps)?;
         let ibc_client_addr = self.module_address()?;
+        let account_id = self.base.account_id(self.deps)?;
 
         let (trace, sequence) = account_id.decompose();
         ibc_client::state::ACCOUNTS
