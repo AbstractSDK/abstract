@@ -108,6 +108,11 @@ abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-client = { path = "../framework/packages/abstract-client" }
+cw-orch-starship = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "fix/starship-logs" }
+cw-orch-daemon = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "fix/starship-logs" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "fix/starship-logs" }
+cw-orch-core = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "fix/starship-logs" }
+cw-orch-interchain = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "fix/starship-logs" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

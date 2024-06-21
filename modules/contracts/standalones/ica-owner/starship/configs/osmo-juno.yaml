@@ -23,6 +23,9 @@ relayers:
     chains:
       - stargaze-1
       - juno-1
+    config:
+      event_source:
+        mode: "pull" # default is "push"
 
 explorer:
   enabled: true

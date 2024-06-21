@@ -161,7 +161,7 @@ pub fn send_action(
 
     let ica_controller_msg = cw_ica_controller::types::msg::ExecuteMsg::SendCosmosMsgs {
         messages: vec![msg],
-        packet_memo: None,
+        packet_memo: Some("aloha".to_string()),
         timeout_seconds: None,
     };
 
@@ -183,8 +183,10 @@ pub fn query(deps: Deps, _env: Env, msg: MyStandaloneQueryMsg) -> StdResult<Bina
 }
 
 fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
-    let _config = CONFIG.load(deps.storage)?;
-    Ok(ConfigResponse {})
+    let config = CONFIG.load(deps.storage)?;
+    Ok(ConfigResponse {
+        ica_controller_code_id: config.ica_controller_code_id,
+    })
 }
 
 /// Returns the saved ICA state for the given ICA ID.

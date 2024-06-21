@@ -48,7 +48,10 @@ pub enum MyStandaloneQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ConfigResponse {}
+pub struct ConfigResponse {
+    /// The code ID of the cw-ica-controller contract.
+    pub ica_controller_code_id: u64,
+}
 
 #[cosmwasm_schema::cw_serde]
 pub struct ICACountResponse {
