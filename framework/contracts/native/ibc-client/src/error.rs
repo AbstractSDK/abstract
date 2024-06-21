@@ -1,6 +1,6 @@
 use abstract_sdk::AbstractSdkError;
 use abstract_std::{
-    objects::{ans_host::AnsHostError, version_control::VersionControlError},
+    objects::{ans_host::AnsHostError, version_control::VersionControlError, AccountId},
     AbstractError,
 };
 use cosmwasm_std::StdError;
@@ -53,4 +53,7 @@ pub enum IbcClientError {
 
     #[error("Chain or host address already registered.")]
     HostAddressExists {},
+
+    #[error("IBC Client is not installed on {account_id}")]
+    IbcClientNotInstalled { account_id: AccountId },
 }

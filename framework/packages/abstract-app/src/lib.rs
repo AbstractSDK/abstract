@@ -34,6 +34,7 @@ pub mod mock {
     use abstract_std::{
         manager::ModuleInstallConfig,
         objects::{dependency::StaticDependency, module::ModuleInfo},
+        IBC_CLIENT,
     };
     use cosmwasm_schema::QueryResponses;
     pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
@@ -156,7 +157,10 @@ pub mod mock {
 
                 Ok(Response::new().add_attribute("mock_callback", "executed"))
             })
-            .with_dependencies(&[StaticDependency::new(TEST_MODULE_ID, &[TEST_VERSION])])
+            .with_dependencies(&[
+                StaticDependency::new(TEST_MODULE_ID, &[TEST_VERSION]),
+                StaticDependency::new(IBC_CLIENT, &[abstract_std::registry::ABSTRACT_VERSION]),
+            ])
             .with_replies(&[(1u64, |_, _, _, msg| {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })])
@@ -187,11 +191,15 @@ pub mod mock {
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
         ) -> Result<Vec<ModuleInstallConfig>, abstract_interface::AbstractInterfaceError> {
-            let install_config = ModuleInstallConfig::new(
+            let test_module = ModuleInstallConfig::new(
                 ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?,
                 Some(to_json_binary(&MockInitMsg {})?),
             );
-            Ok(vec![install_config])
+            let ibc_client = ModuleInstallConfig::new(
+                ModuleInfo::from_id(IBC_CLIENT, abstract_std::registry::ABSTRACT_VERSION.into())?,
+                None,
+            );
+            Ok(vec![test_module, ibc_client])
         }
     }
 

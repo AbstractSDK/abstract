@@ -69,12 +69,12 @@
           "hour": {
             "type": "integer",
             "format": "uint32",
-            "minimum": 0.0
+            "minimum": 0
           },
           "minute": {
             "type": "integer",
             "format": "uint32",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         "additionalProperties": false
@@ -152,7 +152,7 @@
                 "description": "The index of the meeting to be slashed.",
                 "type": "integer",
                 "format": "uint32",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -187,13 +187,13 @@
                 "description": "The index of the meeting to be slashed.",
                 "type": "integer",
                 "format": "uint32",
-                "minimum": 0.0
+                "minimum": 0
               },
               "minutes_late": {
                 "description": "The number of minutes the requester was late by resulting in a prorated slash.",
                 "type": "integer",
                 "format": "uint32",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -227,7 +227,7 @@
                 "description": "The index of the meeting whose stake should be returned.",
                 "type": "integer",
                 "format": "uint32",
-                "minimum": 0.0
+                "minimum": 0
               }
             },
             "additionalProperties": false
@@ -384,12 +384,12 @@
             "hour": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             },
             "minute": {
               "type": "integer",
               "format": "uint32",
-              "minimum": 0.0
+              "minimum": 0
             }
           },
           "additionalProperties": false
