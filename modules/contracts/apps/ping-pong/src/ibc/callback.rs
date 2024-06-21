@@ -12,7 +12,7 @@ use crate::{
     contract::{App, AppResult},
     handlers::execute::ping_pong,
     msg::{BlockHeightResponse, PingPongCallbackMsg},
-    state::WINS,
+    state::{LOSSES, WINS},
 };
 
 pub fn ibc_callback(
@@ -27,22 +27,24 @@ pub fn ibc_callback(
         PingPongCallbackMsg::Pinged { opponent_chain } => {
             // TODO: use response data here in the future
             let exec_events = result.get_execute_events()?;
+
             let pong = exec_events.into_iter().find(|e| {
-                e.ty == ABSTRACT_EVENT_TYPE
+                e.ty == "wasm"
                     && e.attributes
                         .iter()
                         .any(|a| a.key == "play" && a.value == "pong")
             });
             if pong.is_some() {
-                // if block is even, return pong
+                // if block is even, return ping
                 let is_even = env.block.height % 2 == 0;
                 if is_even {
                     // We play ping again
                     return ping_pong(deps, opponent_chain, app);
                 }
-                Ok(app.response("pong_response"))
+                // we lost
+                LOSSES.update(deps.storage, |l| AppResult::Ok(l + 1))?;
+                Ok(app.response("lost"))
             } else {
-                // We won
                 WINS.update(deps.storage, |w| AppResult::Ok(w + 1))?;
                 Ok(app.response("won"))
             }

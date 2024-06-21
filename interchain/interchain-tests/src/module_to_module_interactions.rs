@@ -332,19 +332,6 @@ pub mod test {
         Ok(())
     }
 
-    fn assert_query_callback_status(
-        app: &MockAppOriginI<MockBech32>,
-        balance: Vec<Coin>,
-    ) -> AnyResult<()> {
-        let get_received_ibc_query_callback_status_res: ReceivedIbcQueryCallbackStatus =
-            app.get_received_ibc_query_callback_status()?;
-
-        assert_eq!(
-            ReceivedIbcQueryCallbackStatus { balance },
-            get_received_ibc_query_callback_status_res
-        );
-        Ok(())
-    }
     use crate::{
         interchain_accounts::create_test_remote_account,
         module_to_module_interactions::{
@@ -540,7 +527,9 @@ pub mod test {
             },
         )?;
 
-        mock_interchain.check_ibc(JUNO, remote_install_response)?;
+        mock_interchain
+            .check_ibc(JUNO, remote_install_response)?
+            .into_result()?;
 
         // We get the object for handling the actual module on the remote account
         let remote_manager = abstr_remote
@@ -578,7 +567,9 @@ pub mod test {
             get_received_ibc_callback_status_res
         );
 
-        mock_interchain.check_ibc(JUNO, ibc_action_result)?;
+        mock_interchain
+            .check_ibc(JUNO, ibc_action_result)?
+            .into_result()?;
 
         assert_remote_module_call_status(
             &remote_account_app,
@@ -589,7 +580,9 @@ pub mod test {
         // Module to module query
 
         let ibc_action_result = app.query_module_ibc(remote_name, target_module_info)?;
-        mock_interchain.check_ibc(JUNO, ibc_action_result)?;
+        mock_interchain
+            .check_ibc(JUNO, ibc_action_result)?
+            .into_result()?;
 
         let status = app.get_received_module_ibc_query_callback_status()?;
         assert_eq!("bar", status);
@@ -641,7 +634,9 @@ pub mod test {
             get_received_ibc_query_callback_status_res
         );
 
-        mock_interchain.check_ibc(JUNO, query_response)?;
+        mock_interchain
+            .check_ibc(JUNO, query_response)?
+            .into_result()?;
 
         let get_received_ibc_query_callback_status_res: ReceivedIbcQueryCallbackStatus =
             app.get_received_ibc_query_callback_status().unwrap();
@@ -718,7 +713,9 @@ pub mod test {
                 },
             )?;
 
-            mock_interchain.check_ibc(JUNO, remote_install_response)?;
+            mock_interchain
+                .check_ibc(JUNO, remote_install_response)?
+                .into_result()?;
 
             // We get the object for handling the actual module on the remote account
             let remote_manager = abstr_remote

@@ -3,7 +3,7 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use crate::{
     contract::{App, AppResult},
     msg::AppInstantiateMsg,
-    state::WINS,
+    state::{LOSSES, WINS},
 };
 
 pub fn instantiate_handler(
@@ -14,6 +14,7 @@ pub fn instantiate_handler(
     _msg: AppInstantiateMsg,
 ) -> AppResult {
     WINS.save(deps.storage, &0)?;
+    LOSSES.save(deps.storage, &0)?;
 
     Ok(Response::new())
 }

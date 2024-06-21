@@ -5,10 +5,11 @@ use crate::{
     contract::{App, AppResult},
     error::AppError,
     msg::{PingOrPong, PingPongIbcMsg},
+    state::LOSSES,
 };
 
 pub fn receive_module_ibc(
-    _deps: DepsMut,
+    deps: DepsMut,
     env: Env,
     app: App,
     source_module: ModuleIbcInfo,
@@ -36,8 +37,10 @@ pub fn receive_module_ibc(
     let is_even = env.block.height % 2 == 0;
     if is_even {
         // TODO: return `PingOrPong::Pong` in response.data instead of event.
-        resp = resp.add_attribute("play_hand", "pong");
+        resp = resp.add_attribute("play", "pong");
+    } else {
+        // else we lost
+        LOSSES.update(deps.storage, |l| AppResult::Ok(l + 1))?;
     }
-
     Ok(resp)
 }

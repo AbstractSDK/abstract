@@ -55,6 +55,7 @@ pub struct AppMigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct WinsResponse {
     pub wins: u32,
+    pub losses: u32,
 }
 
 #[cosmwasm_schema::cw_serde]
