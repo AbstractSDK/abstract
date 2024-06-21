@@ -1,10 +1,7 @@
 use abstract_app::{
     objects::chain_name::ChainName,
     sdk::AbstractResponse,
-    std::{
-        ibc::{Callback, IbcResult},
-        ABSTRACT_EVENT_TYPE,
-    },
+    std::ibc::{Callback, IbcResult},
 };
 use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
 

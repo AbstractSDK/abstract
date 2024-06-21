@@ -8,7 +8,7 @@ use abstract_std::{
 use cosmwasm_schema::{cw_serde, QueryResponses};
 pub use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{
-    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Binary, Coin, Response, StdError,
+    from_json, to_json_binary, wasm_execute, AllBalanceResponse, Coin, Response, StdError,
 };
 use cw_controllers::AdminError;
 use cw_storage_plus::Item;

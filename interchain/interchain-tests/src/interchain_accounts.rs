@@ -254,7 +254,9 @@ mod test {
         let register_tx =
             origin_account.register_remote_account(ChainName::from_chain_id(STARGAZE))?;
 
-        mock_interchain.check_ibc(JUNO, register_tx)?.into_result()?;
+        mock_interchain
+            .check_ibc(JUNO, register_tx)?
+            .into_result()?;
 
         // Create account from JUNO on OSMOSIS by going through STARGAZE
         let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
