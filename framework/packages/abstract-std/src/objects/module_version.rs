@@ -119,7 +119,7 @@ pub fn assert_contract_upgrade(
     let no_skips = match (major_diff, minor_diff) {
         // 1) major upgrade - minor should stay the same (1.0.0 -> 2.0.0)
         // 2) major upgrade - minor sub overflowed (0.1.0 -> 1.0.0)
-        (Some(1), _) if to_version.minor == 0 => true,
+        (Some(1), _) => true,
         // minor upgrade - major should stay the same (1.0.0 -> 1.1.0)
         (Some(0), Some(1)) => true,
         // patch upgrade - minor and major stays the same (1.0.0 -> 1.0.1)

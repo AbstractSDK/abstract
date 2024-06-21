@@ -69,11 +69,11 @@ mod handlers {
     #[allow(unused)]
     pub fn instantiate(
         deps: DepsMut,
-        env: Env,
-        _info: MessageInfo,
+        _env: Env,
+        info: MessageInfo,
         msg: CounterInitMsg,
     ) -> Result<Response, CounterError> {
-        COUNTER_APP.instantiate(deps, &env, msg.base, true)?;
+        COUNTER_APP.instantiate(deps, info, msg.base, true)?;
         Ok(COUNTER_APP.response("instantiate"))
     }
 }
