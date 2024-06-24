@@ -49,6 +49,10 @@ pub enum IbcClientExecuteMsg{
 - `msg` is the message that will be executed on the remote module. We explain in the section about [receiving a message](#receiving-a-message) how this message is used by the targeted module.
 - `callback_info` is used to ask for a callback once the packet has been received and acknowledged. We explain more about this behavior in the [acks and callbacks section](#acknowledgements-and-callbacks)
 
+```admonish warning
+When sending an IBC message, the call on the remote chain might fail. If you want to revert state based on that failure, you **HAVE** to use a `Callback`. If you don't register a callback and the remote call fails, local state will **NOT** be reverted.
+```
+
 ### Receiving a message
 
 In order for a module to receive a message coming from a remote Module, it needs to implement the [`module-ibc`](../4_get_started/3_module_builder.md#module-ibc) endpoint. The function signature for this endpoint is:
