@@ -363,9 +363,7 @@ pub mod test {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        // We just verified all steps pass
-        let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        abstr_origin.connect(&abstr_remote, &mock_interchain)?;
+        let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE);
 
@@ -415,9 +413,7 @@ pub mod test {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        abstr_origin.connect(&abstr_remote, &mock_interchain)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE);
 
@@ -480,9 +476,7 @@ pub mod test {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        abstr_origin.connect(&abstr_remote, &mock_interchain)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE);
 
@@ -593,9 +587,7 @@ pub mod test {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        // We just verified all steps pass
-        let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        abstr_origin.connect(&abstr_remote, &mock_interchain)?;
+        let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE);
         let remote = mock_interchain.chain(STARGAZE)?;
@@ -657,10 +649,8 @@ pub mod test {
             let mock_interchain =
                 MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-            // We just verified all steps pass
             let (abstr_origin, abstr_remote) =
                 ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-            abstr_origin.connect(&abstr_remote, &mock_interchain)?;
 
             let remote_name = ChainName::from_chain_id(STARGAZE);
 
