@@ -249,7 +249,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callback(|deps, _, _, _, callback, result| {
+        .with_ibc_callback(|deps, _, _, callback, result| {
             eprintln!("{:?}", result);
             match &result {
                 IbcResult::Query {
