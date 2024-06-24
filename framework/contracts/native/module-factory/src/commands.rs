@@ -156,9 +156,9 @@ pub fn execute_create_modules(
         };
     }
 
-    // If we have at least one standalone installed have to save this to state as \
-    // Standalone need to figure out what account is that and \
-    // Contract Info query does not work during instantiation on self contract, because contract does not exist yet \
+    // If we have at least one standalone installed, then have to save this to state as \
+    // Standalone may need this information for AccountIdentification \
+    // Contract Info query does not work during instantiation on self contract, because contract does not exist yet.
     if at_least_one_standalone {
         CURRENT_BASE.save(deps.storage, &account_base)?;
     }

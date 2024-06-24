@@ -21,6 +21,8 @@ pub mod state {
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const MODULE_INIT_BINARIES: Map<&ModuleInfo, Binary> = Map::new("module_init_binaries");
+    /// Base of account on which modules getting installed right now
+    /// It's set only if one of the modules is standalone
     pub const CURRENT_BASE: Item<AccountBase> = Item::new("cur_manager");
 }
 

@@ -6,17 +6,18 @@ use abstract_std::{
     objects::module_version::set_module_data,
     standalone::{StandaloneInstantiateMsg, StandaloneState},
 };
-use cosmwasm_std::{DepsMut, Env, MessageInfo};
+use cosmwasm_std::{DepsMut, MessageInfo};
 use cw2::set_contract_version;
 
 use crate::state::StandaloneContract;
 
 impl StandaloneContract {
-    /// Call this method on instantiating of the standalone
+    /// Instantiates the `Standalone` state for this contract.
+    ///
+    /// **Note:** This contract can only be instantiated by the abstract module factory.
     pub fn instantiate(
         &self,
         deps: DepsMut,
-        env: &Env,
         info: MessageInfo,
         msg: StandaloneInstantiateMsg,
         is_migratable: bool,

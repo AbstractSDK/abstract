@@ -14,6 +14,8 @@ pub const ANS_HOST: &str = "abstract:ans-host";
 pub const IBC_CLIENT: &str = "abstract:ibc-client";
 pub const IBC_HOST: &str = "abstract:ibc-host";
 
+pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// IBC protocols
 pub const ICS20: &str = "ics-20";
 
