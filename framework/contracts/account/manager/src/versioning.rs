@@ -1,15 +1,29 @@
 use abstract_std::{
     manager::state::{ACCOUNT_MODULES, DEPENDENTS},
-    objects::{dependency::Dependency, module_version::MODULE},
+    objects::{
+        dependency::Dependency,
+        module_version::{ModuleData, MODULE},
+    },
 };
 use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
 use cw_semver::{Comparator, Version};
 
 use crate::{commands::MIGRATE_CONTEXT, contract::ManagerResult, error::ManagerError};
 
-/// Assert the dependencies that this app relies on are installed.
+/// Assert the dependencies that this app or adapter relies on are installed.
 pub fn assert_install_requirements(deps: Deps, module_id: &str) -> ManagerResult<Vec<Dependency>> {
     let module_dependencies = load_module_dependencies(deps, module_id)?;
+    assert_dependency_requirements(deps, &module_dependencies, module_id)?;
+    Ok(module_dependencies)
+}
+
+/// Assert the dependencies that this standalone relies on are installed.
+pub fn assert_install_requirements_standalone(
+    deps: Deps,
+    module_id: &str,
+) -> ManagerResult<Vec<Dependency>> {
+    // For standalones dependencies in state are optional
+    let module_dependencies = load_module_dependencies(deps, module_id).unwrap_or_default();
     assert_dependency_requirements(deps, &module_dependencies, module_id)?;
     Ok(module_dependencies)
 }
@@ -127,10 +141,15 @@ pub fn assert_dependency_requirements(
     Ok(())
 }
 
-pub fn load_module_dependencies(deps: Deps, module_id: &str) -> ManagerResult<Vec<Dependency>> {
+pub fn load_module_data(deps: Deps, module_id: &str) -> ManagerResult<ModuleData> {
     let querier = &deps.querier;
     let module_addr = ACCOUNT_MODULES.load(deps.storage, module_id)?;
     let module_data = MODULE.query(querier, module_addr)?;
+    Ok(module_data)
+}
+
+pub fn load_module_dependencies(deps: Deps, module_id: &str) -> ManagerResult<Vec<Dependency>> {
+    let module_data = load_module_data(deps, module_id)?;
     Ok(module_data.dependencies)
 }
 

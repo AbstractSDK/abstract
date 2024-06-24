@@ -4,16 +4,16 @@
 
 use abstract_macros::with_abstract_event;
 use abstract_std::proxy::ExecuteMsg;
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
+use cosmwasm_std::{CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
-    features::{AccountIdentification, ModuleIdentification},
+    features::{AccountExecutor, ModuleIdentification},
     AbstractSdkResult, AccountAction,
 };
 
 /// Execute an `AccountAction` on the Account.
-pub trait Execution: AccountIdentification + ModuleIdentification {
+pub trait Execution: AccountExecutor + ModuleIdentification {
     /**
         API for executing [`AccountAction`]s on the Account.
         Group your actions together in a single execute call if possible.
@@ -36,7 +36,7 @@ pub trait Execution: AccountIdentification + ModuleIdentification {
     }
 }
 
-impl<T> Execution for T where T: AccountIdentification + ModuleIdentification {}
+impl<T> Execution for T where T: AccountExecutor + ModuleIdentification {}
 
 impl<'a, T: Execution> AbstractApi<T> for Executor<'a, T> {
     fn base(&self) -> &T {
@@ -79,12 +79,9 @@ pub struct Executor<'a, T: Execution> {
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute a single message on the `ModuleActionWithData` endpoint.
     fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
-        let msg = wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::ModuleActionWithData { msg },
-            vec![],
-        )?
-        .into();
+        let msg = self
+            .base
+            .execute_on_proxy(self.deps, &ExecuteMsg::ModuleActionWithData { msg })?;
         Ok(ExecutorMsg(msg))
     }
 
@@ -92,12 +89,9 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     pub fn execute(&self, actions: Vec<AccountAction>) -> AbstractSdkResult<ExecutorMsg> {
         let msgs = actions.into_iter().flat_map(|a| a.messages()).collect();
-        let msg: CosmosMsg = wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::ModuleAction { msgs },
-            vec![],
-        )?
-        .into();
+        let msg = self
+            .base
+            .execute_on_proxy(self.deps, &ExecuteMsg::ModuleAction { msgs })?;
         Ok(ExecutorMsg(msg))
     }
 

@@ -71,7 +71,6 @@ pub mod connection {
     use abstract_std::ibc_host::ExecuteMsgFns as _;
     use abstract_std::objects::chain_name::ChainName;
     use cw_orch_interchain::prelude::*;
-    use cw_orch_interchain::InterchainError;
     use cw_orch_polytone::interchain::PolytoneConnection;
 
     impl<Chain: IbcQueryHandler> Abstract<Chain> {
@@ -84,7 +83,7 @@ pub mod connection {
             &self,
             dst_abstr: &Abstract<Chain>,
             interchain: &IBC,
-        ) -> Result<(), InterchainError> {
+        ) -> Result<(), AbstractInterfaceError> {
             abstract_ibc_one_way_connection_with(self, dst_abstr, interchain)?;
             abstract_ibc_one_way_connection_with(dst_abstr, self, interchain)?;
             Ok(())
@@ -98,7 +97,7 @@ pub mod connection {
         abstr: &Abstract<Chain>,
         dest: &Abstract<Chain>,
         interchain: &IBC,
-    ) -> Result<(), InterchainError> {
+    ) -> Result<(), AbstractInterfaceError> {
         // First we register client and host respectively
         let chain1_id = abstr.ibc.client.get_chain().chain_id();
         let chain1_name = ChainName::from_chain_id(&chain1_id);

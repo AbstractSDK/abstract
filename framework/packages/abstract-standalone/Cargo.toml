@@ -1,0 +1,40 @@
+[package]
+name = "abstract-standalone"
+version = "0.22.0"
+edition = { workspace = true }
+license = { workspace = true }
+description = "base standalone contract implementation"
+resolver = "2"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+test-utils = ["dep:abstract-testing", "abstract-sdk/test-utils"]
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-storage-plus = { workspace = true }
+serde = { workspace = true }
+semver = { workspace = true }
+schemars = { workspace = true }
+cw-controllers = { workspace = true }
+thiserror = { workspace = true }
+cw2 = { workspace = true }
+cw-asset = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-std = { workspace = true }
+
+# Interface
+cw-orch = { workspace = true }
+abstract-interface = { workspace = true }
+
+# Testing
+abstract-testing = { workspace = true, optional = true }
+
+[dev-dependencies]
+cosmwasm-schema = { workspace = true }
+speculoos = { workspace = true }
+abstract-standalone = { path = ".", features = ["test-utils"] }
+abstract-integration-tests = { workspace = true }

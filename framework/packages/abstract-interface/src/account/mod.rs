@@ -12,9 +12,17 @@
 //! - upgrade module
 
 use abstract_std::{
-    manager::ModuleInstallConfig, objects::chain_name::ChainName, version_control::ExecuteMsgFns,
-    ABSTRACT_EVENT_TYPE,
+    manager::ModuleInstallConfig,
+    objects::{
+        chain_name::ChainName,
+        module::{ModuleInfo, ModuleStatus, ModuleVersion},
+    },
+    version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
+    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
+use cosmwasm_std::{from_json, to_json_binary};
+use cw2::{ContractVersion, CONTRACT};
+use cw_semver::{Version, VersionReq};
 
 use crate::{Abstract, AbstractInterfaceError, AccountDetails, AdapterDeployer};
 
@@ -178,6 +186,17 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         self.install_module_parse_addr(app, Some(&custom_init_msg), funds)
     }
 
+    /// Installs an standalone from an standalone object
+    pub fn install_standalone<CustomInitMsg: Serialize, T: ContractInstance<Chain>>(
+        &self,
+        standalone: &T,
+        custom_init_msg: &CustomInitMsg,
+        funds: Option<&[Coin]>,
+    ) -> Result<Addr, crate::AbstractInterfaceError> {
+        // retrieve the deployment
+        self.install_module_parse_addr(standalone, Some(&custom_init_msg), funds)
+    }
+
     fn install_module_parse_addr<InitMsg: Serialize, T: ContractInstance<Chain>>(
         &self,
         module: &T,
@@ -315,6 +334,130 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         };
 
         Ok(migrated)
+    }
+
+    /// Attempts to upgrade the Account
+    /// returns `true` if any migrations were performed.
+    pub fn upgrade(&self) -> Result<bool, AbstractInterfaceError> {
+        let mut one_migration_was_successful = false;
+
+        // We upgrade the manager to the latest version through all the versions
+        loop {
+            if self.upgrade_next_module_version(MANAGER)?.is_none() {
+                break;
+            }
+            one_migration_was_successful = true;
+        }
+
+        loop {
+            if self.upgrade_next_module_version(PROXY)?.is_none() {
+                break;
+            }
+            one_migration_was_successful = true;
+        }
+
+        Ok(one_migration_was_successful)
+    }
+
+    /// Attempt to upgrade a module to its next version.
+    /// Will return `Ok(None)` if the module is on its latest version already.
+    fn upgrade_next_module_version(
+        &self,
+        module_id: &str,
+    ) -> Result<Option<Chain::Response>, AbstractInterfaceError> {
+        let chain = self.manager.get_chain().clone();
+
+        // We start by getting the current module version
+        let current_cw2_module_version: ContractVersion = if module_id == MANAGER {
+            let current_manager_version = chain
+                .wasm_querier()
+                .raw_query(self.manager.address()?, CONTRACT.as_slice().to_vec())
+                .unwrap();
+            from_json(current_manager_version)?
+        } else {
+            self.manager
+                .module_versions(vec![module_id.to_string()])?
+                .versions[0]
+                .clone()
+        };
+        let current_module_version = Version::parse(&current_cw2_module_version.version)?;
+
+        let module = ModuleInfo::from_id(module_id, current_module_version.to_string().into())?;
+
+        // We query all the module versions above the current one
+        let abstr = Abstract::load_from(chain.clone())?;
+        let all_next_module_versions = abstr
+            .version_control
+            .module_list(
+                Some(ModuleFilter {
+                    namespace: Some(module.namespace.to_string()),
+                    name: Some(module.name.clone()),
+                    version: None,
+                    status: Some(ModuleStatus::Registered),
+                }),
+                None,
+                Some(module.clone()),
+            )?
+            .modules
+            .into_iter()
+            .map(|module| {
+                let version: Version = module.module.info.version.clone().try_into().unwrap();
+                version
+            })
+            .collect::<Vec<_>>();
+
+        // Two cases now.
+        // 1. If there exists a higher non-compatible version, we want to update to the next breaking version
+        // 2. If there are only compatible versions we want to update the highest compatible version
+
+        // Set current version as version requirement (`^x.y.z`)
+        let requirement = VersionReq::parse(current_module_version.to_string().as_str())?;
+
+        // Find out the lowest next major version
+        let non_compatible_versions = all_next_module_versions
+            .iter()
+            .filter(|version| !requirement.matches(version))
+            .collect::<Vec<_>>();
+
+        let maybe_min_non_compatible_version = non_compatible_versions.iter().min().cloned();
+
+        let selected_version = if let Some(min_non_compatible_version) =
+            maybe_min_non_compatible_version
+        {
+            // Case 1
+            // There is a next breaking version, we want to get the highest minor version associated with it
+            let requirement = VersionReq::parse(min_non_compatible_version.to_string().as_str())?;
+
+            non_compatible_versions
+                .into_iter()
+                .filter(|version| requirement.matches(version))
+                .max()
+                .unwrap()
+                .clone()
+        } else {
+            // Case 2
+            let possible_version = all_next_module_versions
+                .into_iter()
+                .filter(|version| version != &current_module_version)
+                .max();
+
+            // No version upgrade required
+            if possible_version.is_none() {
+                return Ok(None);
+            }
+            possible_version.unwrap()
+        };
+
+        // Actual upgrade to the next version
+        Some(self.manager.upgrade(vec![(
+            ModuleInfo::from_id(
+                module_id,
+                ModuleVersion::Version(selected_version.to_string()),
+            )?,
+            Some(to_json_binary(&Empty {})?),
+        )]))
+        .transpose()
+        .map_err(Into::into)
     }
 
     pub fn claim_namespace(
