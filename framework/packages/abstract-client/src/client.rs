@@ -358,7 +358,8 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     #[cfg(feature = "interchain")]
     /// Connect this abstract client to the remote abstract client
-    /// It assumes that [`cw_orch_polytone::Polytone`] is deployed
+    /// If [`cw_orch_polytone::Polytone`] is deployed between 2 chains, it will NOT redeploy it (good for actual chains)
+    /// If Polytone is not deployed, deploys it between the 2 chains (good for integration testing)
     pub fn ibc_connection_with(
         &self,
         remote_abstr: &AbstractClient<Chain>,
