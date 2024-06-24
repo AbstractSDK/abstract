@@ -6,9 +6,9 @@ use abstract_app::objects::AccountId;
 use abstract_client::{AbstractClient, Environment};
 use abstract_client::{Application, RemoteAccount};
 
-use abstract_interface::VCQueryFns;
 use abstract_app::std::objects::account::AccountTrace;
 use abstract_app::std::objects::chain_name::ChainName;
+use abstract_interface::VCQueryFns;
 
 use cw_orch::{anyhow, prelude::*};
 use cw_orch_interchain::prelude::*;
