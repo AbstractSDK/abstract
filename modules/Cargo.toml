@@ -59,6 +59,7 @@ tokio = { version = "1.4", features = ["full"] }
 abstract-interface = { version = "0.23.0-beta.0" }
 abstract-adapter = { version = "0.23.0-beta.0" }
 abstract-app = { version = "0.23.0-beta.0" }
+abstract-standalone = { version = "0.23.0-beta.0" }
 abstract-testing = { version = "0.23.0-beta.0" }
 abstract-macros = { version = "0.23.0-beta.0" }
 abstract-client = { version = "0.23.0-beta.0" }
