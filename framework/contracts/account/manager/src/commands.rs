@@ -15,7 +15,7 @@ use abstract_std::{
     module_factory::{ExecuteMsg as ModuleFactoryMsg, FactoryModuleInstallConfig},
     objects::{
         dependency::Dependency,
-        gov_type::GovernanceDetails,
+        gov_type::{verify_nft_ownership, GovernanceDetails},
         module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
         nested_admin::{query_top_level_owner, MAX_ADMIN_RECURSION},
@@ -465,7 +465,7 @@ pub fn propose_owner(
     let config = CONFIG.load(deps.storage)?;
     let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address)?;
     let new_owner_addr = verified_gov
-        .owner_address()
+        .owner_address(&deps.querier)
         .ok_or(ManagerError::ProposeRenounced {})?;
 
     // Check that there are changes
@@ -1142,6 +1142,10 @@ pub fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
                 Err(ownership_error)
             }
         }
+        GovernanceDetails::NFT { collection_addr, token_id } => {
+            verify_nft_ownership(deps,sender.clone(), collection_addr,token_id)?;
+            Ok(())
+        }
         // MAX_ADMIN_RECURSION levels deep still sub account
         GovernanceDetails::SubAccount { .. } => {
             Err(ManagerError::Std(StdError::generic_err(format!(
@@ -1227,6 +1231,7 @@ mod tests {
 
     mod set_owner_and_gov_type {
         use super::*;
+        use cosmwasm_std::QuerierWrapper;
 
         #[test]
         fn only_owner() -> ManagerTestResult {
@@ -1302,10 +1307,11 @@ mod tests {
 
             execute_as_owner(deps.as_mut(), msg)?;
 
+            let querier = QuerierWrapper::new(&deps.querier);
             let actual_info = INFO.load(deps.as_ref().storage)?;
             assert_that!(&actual_info
                 .governance_details
-                .owner_address()
+                .owner_address(&querier)
                 .unwrap()
                 .to_string())
             .is_equal_to("owner".to_string());
@@ -1316,7 +1322,7 @@ mod tests {
             let actual_info = INFO.load(deps.as_ref().storage)?;
             assert_that!(&actual_info
                 .governance_details
-                .owner_address()
+                .owner_address(&deps.as_ref().querier)
                 .unwrap()
                 .to_string())
             .is_equal_to("new_gov".to_string());

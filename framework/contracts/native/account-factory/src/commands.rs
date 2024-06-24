@@ -18,7 +18,7 @@ use abstract_std::{
     manager::ModuleInstallConfig,
     module_factory::SimulateInstallModulesResponse,
     objects::{
-        account::AccountTrace, module::assert_module_data_validity,
+        account::AccountTrace, gov_type::verify_nft_ownership, module::assert_module_data_validity,
         salt::generate_instantiate_salt, AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
     },
     AbstractError,
@@ -66,6 +66,18 @@ pub fn execute_create_account(
                 manager: manager.into()
             }
         )
+    }
+    if let GovernanceDetails::NFT {
+        collection_addr,
+        token_id,
+    } = &governance
+    {
+        verify_nft_ownership(
+            deps.as_ref(),
+            info.sender.clone(),
+            collection_addr.clone(),
+            token_id.to_string(),
+        )?
     }
     // If an account_id is provided, assert the caller is the ibc host and return the account_id.
     // Else get the next account id and set the origin to local.

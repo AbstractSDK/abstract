@@ -1,7 +1,9 @@
 //! # Governance structure object
 
-use cosmwasm_std::{Addr, Deps};
+use cosmwasm_std::{Addr, Deps, QuerierWrapper};
+use cw721::OwnerOfResponse;
 use cw_address_like::AddressLike;
+use cw_ownable::OwnershipError;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -37,6 +39,10 @@ pub enum GovernanceDetails<T: AddressLike> {
     /// Renounced account
     /// This account no longer has an owner and cannot be used.
     Renounced {},
+    NFT {
+        collection_addr: T,
+        token_id: String,
+    },
 }
 
 impl GovernanceDetails<String> {
@@ -117,13 +123,20 @@ impl GovernanceDetails<String> {
                 })
             }
             GovernanceDetails::Renounced {} => Ok(GovernanceDetails::Renounced {}),
+            GovernanceDetails::NFT {
+                collection_addr,
+                token_id,
+            } => Ok(GovernanceDetails::NFT {
+                collection_addr: deps.api.addr_validate(&collection_addr.to_string())?,
+                token_id,
+            }),
         }
     }
 }
 
 impl GovernanceDetails<Addr> {
     /// Get the owner address from the governance details
-    pub fn owner_address(&self) -> Option<Addr> {
+    pub fn owner_address(&self, querier: &QuerierWrapper) -> Option<Addr> {
         match self {
             GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
             GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
@@ -131,6 +144,21 @@ impl GovernanceDetails<Addr> {
                 governance_address, ..
             } => Some(governance_address.clone()),
             GovernanceDetails::Renounced {} => None,
+            GovernanceDetails::NFT {
+                collection_addr,
+                token_id,
+            } => {
+                let res: OwnerOfResponse = querier
+                    .query_wasm_smart(
+                        collection_addr,
+                        &cw721::Cw721QueryMsg::OwnerOf {
+                            token_id: token_id.to_string(),
+                            include_expired: None,
+                        },
+                    )
+                    .unwrap();
+                Some(Addr::unchecked(res.owner))
+            }
         }
     }
 }
@@ -153,6 +181,13 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
                 governance_type,
             },
             GovernanceDetails::Renounced {} => GovernanceDetails::Renounced {},
+            GovernanceDetails::NFT {
+                collection_addr,
+                token_id,
+            } => GovernanceDetails::NFT {
+                collection_addr: collection_addr.to_string(),
+                token_id,
+            },
         }
     }
 }
@@ -166,8 +201,31 @@ impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
                 governance_type, ..
             } => governance_type.to_owned(),
             GovernanceDetails::Renounced {} => "renounced".to_string(),
+            GovernanceDetails::NFT { .. } => "nft".to_string(),
         };
         write!(f, "{}", str)
+    }
+}
+
+pub fn verify_nft_ownership(
+    deps: Deps,
+    sender: Addr,
+    addr: Addr,
+    id: String,
+) -> Result<(), AbstractError> {
+    // get owner of token_id from collection
+    let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
+        &addr,
+        &cw721::Cw721QueryMsg::OwnerOf {
+            token_id: id,
+            include_expired: None,
+        },
+    )?;
+    // verify owner
+    if sender.to_string() == owner.owner {
+        return Ok(());
+    } else {
+        return Err(AbstractError::Ownership(OwnershipError::NotOwner));
     }
 }
 
@@ -225,5 +283,13 @@ mod test {
             governance_type: "gov_type".to_string(),
         };
         assert_that!(gov.verify(deps.as_ref(), mock_version_control)).is_err();
+        
+        // good nft 
+        let gov  = GovernanceDetails::NFT {
+            collection_addr: "collection_addr".to_string(),
+            token_id: "1".to_string(),
+        };
+        let mock_version_control = Addr::unchecked("mock_version_control");
+        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
     }
 }

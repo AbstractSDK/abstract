@@ -1,15 +1,14 @@
 use std::path::PathBuf;
 
+use crate::{
+    get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
+    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
+};
 use abstract_std::{
     account_factory::ExecuteMsgFns as _, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
 use cw_orch::prelude::*;
-
-use crate::{
-    get_ibc_contracts, get_native_contracts, AbstractAccount, AbstractIbc, AbstractInterfaceError,
-    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
-};
 
 use rust_embed::RustEmbed;
 
@@ -185,7 +184,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
 
     pub fn instantiate(
         &mut self,
-        _chain: &Chain,
+        chain: &Chain,
         admin: String,
     ) -> Result<(), AbstractInterfaceError> {
         let admin = Addr::unchecked(admin);

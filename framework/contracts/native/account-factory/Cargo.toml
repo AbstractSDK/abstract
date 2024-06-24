@@ -33,6 +33,7 @@ semver = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 cw-ownable = { workspace = true }
+cw721 = { workspace = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true }
