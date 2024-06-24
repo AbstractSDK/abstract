@@ -7,7 +7,7 @@ description = "Abstract deployment helpers with cw-orchestrator"
 repository = "https://github.com/AbstractSDK/abstract"
 
 [features]
-default = ["integration", "interchain"]
+default = ["integration"]
 daemon = ["cw-orch/daemon"]
 integration = []
 interchain = ["dep:cw-orch-interchain", "dep:cw-orch-polytone"]
