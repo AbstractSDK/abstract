@@ -1,4 +1,4 @@
-use abstract_standalone::sdk::{AbstractResponse, AbstractSdkError, IbcInterface};
+use abstract_standalone::sdk::AbstractResponse;
 use cosmwasm_std::{
     to_json_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, StdResult,
 };
@@ -19,7 +19,7 @@ use crate::{
     state::{
         Config, IcaContractState, IcaState, CONFIG, CONTRACT_ADDR_TO_ICA_ID, ICA_COUNT, ICA_STATES,
     },
-    MyStandalone, MyStandaloneResult, MY_STANDALONE, MY_STANDALONE_ID,
+    MyStandalone, MyStandaloneResult, MY_STANDALONE,
 };
 
 const INSTANTIATE_REPLY_ID: u64 = 0;

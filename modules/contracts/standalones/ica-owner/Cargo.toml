@@ -19,10 +19,6 @@ crate-type = ["cdylib", "rlib"]
 name = "publish"
 required-features = ["daemon-bin"]
 
-[[bin]]
-name = "local_daemon"
-required-features = ["daemon-bin"]
-
 [features]
 default = ["export"]
 export = []

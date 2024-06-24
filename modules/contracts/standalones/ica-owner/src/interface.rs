@@ -80,7 +80,7 @@ pub mod ica_controller {
             // https://github.com/srdtrk/cw-ica-controller/releases/download/v0.5.0/cw_ica_controller.wasm
             let wasm_name = "cw_ica_controller.wasm";
             cw_orch::prelude::ArtifactsDir::new("resources/")
-                .find_wasm_path(&wasm_name)
+                .find_wasm_path(wasm_name)
                 .unwrap()
         }
 
