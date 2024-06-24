@@ -1,5 +1,6 @@
-use std::{io::Write, time::Duration};
-
+use abstract_client::{AbstractClient, Application};
+use abstract_standalone::{objects::namespace::Namespace, std::standalone};
+use cosmwasm_std::coins;
 use cw_ica_controller::types::msg::options::ChannelOpenInitOptions;
 use cw_orch_starship::Starship;
 use my_standalone::{
@@ -7,20 +8,12 @@ use my_standalone::{
     msg::{MyStandaloneExecuteMsgFns, MyStandaloneInstantiateMsg, MyStandaloneQueryMsgFns},
     MyStandaloneInterface, MY_NAMESPACE,
 };
-
-use abstract_client::{AbstractClient, Application};
-use abstract_standalone::{objects::namespace::Namespace, std::standalone};
-use cosmwasm_std::coins;
+use std::time::Duration;
 // Use prelude to get all the necessary imports
-use cw_orch::{
-    anyhow,
-    daemon::{json_lock::JsonLockedState, DaemonState},
-    prelude::*,
-    tokio::runtime::Runtime,
-};
+use cw_orch::{anyhow, daemon::RUNTIME, prelude::*};
 use cw_orch_interchain::prelude::*;
-use networks::{JUNO_1, OSMOSIS_1};
 
+#[allow(unused)]
 struct TestEnv<Env: CwEnv> {
     abs_src: AbstractClient<Env>,
     abs_dst: AbstractClient<Env>,
@@ -104,21 +97,8 @@ impl<Env: CwEnv> TestEnv<Env> {
     }
 }
 
-// See https://github.com/AbstractSDK/cw-orchestrator/pull/424
-fn prepare_state_for_both_chains() {
-    let state_file = DaemonState::state_file_path().unwrap();
-    let mut json_locked_state = JsonLockedState::new(&state_file);
-
-    json_locked_state.prepare(&JUNO_1.chain_id, &JUNO_1.network_info.chain_name, "default");
-    json_locked_state.prepare(
-        &OSMOSIS_1.chain_id,
-        &OSMOSIS_1.network_info.chain_name,
-        "default",
-    );
-}
-
 #[test]
-fn test_install() -> anyhow::Result<()> {
+fn test_bank_send() -> anyhow::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     // Make sure we don't corrupt actual state
     // Don't forget to remove this file if it's fresh starship
@@ -126,25 +106,26 @@ fn test_install() -> anyhow::Result<()> {
         cw_orch::daemon::env::STATE_FILE_ENV_NAME,
         "starship-state.json",
     );
-    env_logger::init();
-    prepare_state_for_both_chains();
-    let runtime = Runtime::new().unwrap();
+    // Some txs don't succeed with default gas_buffer
+    std::env::set_var(cw_orch::daemon::env::GAS_BUFFER_ENV_NAME, "1.8");
 
-    let starship = Starship::new(runtime.handle(), None)?;
+    env_logger::init();
+
+    let starship = Starship::new(RUNTIME.handle(), None)?;
     let daemon_interchain = starship.interchain_env();
     let juno = daemon_interchain.chain("juno-1")?;
-    let stargaze = daemon_interchain.chain("stargaze-1")?;
+    let osmosis = daemon_interchain.chain("osmosis-1")?;
 
-    let ibc_path = runtime.block_on(async {
+    let ibc_path = RUNTIME.block_on(async {
         starship
             .client()
             .registry()
             .await
-            .ibc_path("juno-1", "stargaze-1")
+            .ibc_path("juno-1", "osmosis-1")
             .await
     })?;
 
-    let test_env = TestEnv::setup(juno.clone(), stargaze.clone())?;
+    let test_env = TestEnv::setup(juno.clone(), osmosis.clone())?;
     let dst_account = test_env.abs_dst.account_builder().build()?;
     let dst_proxy = dst_account.proxy()?;
 
@@ -162,59 +143,29 @@ fn test_install() -> anyhow::Result<()> {
         )?,
     )?;
 
-    // Waiting for channel to open
-    {
-        std::thread::sleep(Duration::from_secs(30));
-        // let mut stdout_lock = std::io::stdout().lock();
-        // writeln!(
-        //     stdout_lock,
-        //     "Waiting for channel to open, use this command to open it:"
-        // )
-        // .unwrap();
-        // // kubectl exec -it hermes-osmo-juno-0 -- hermes tx chan-open-try --src-chain juno-1 --dst-chain stargaze-1 --dst-connection connection-0 --dst-port icahost --src-port wasm.juno1dxc3x3x8terrgls077h0hwqgsnec6fyqwtfak8mtg0shultqevdqsdvhcf --src-channel channel-5
-        // writeln!(stdout_lock, "kubectl exec -it hermes-osmo-juno-0 -- hermes tx chan-open-try --src-chain juno-1 --dst-chain stargaze-1 --dst-connection connection-0 --dst-port icahost --src-port wasm.{ica_controller_addr} --src-channel channel-5").unwrap();
-        // let mut line = String::new();
-        // std::io::stdin().read_line(&mut line)?;
-    }
+    // Waiting for channel to open, cw-orch not capable of waiting channel open
+    std::thread::sleep(Duration::from_secs(15));
 
-    let last_ica_account = dbg!(test_env.standalone.ica_count()?.count) - 1;
-    let state = dbg!(test_env.standalone.ica_contract_state(last_ica_account)?);
-    test_env.ica_controller.set_address(&state.contract_addr);
-    let ica_state: cw_ica_controller::types::state::ContractState = test_env
-        .ica_controller
-        .query(&cw_ica_controller::types::msg::QueryMsg::GetContractState {})?;
-    let ica_channel_state: cw_ica_controller::types::state::ChannelState = test_env
-        .ica_controller
-        .query(&cw_ica_controller::types::msg::QueryMsg::GetChannel {})?;
-    dbg!(ica_state, ica_channel_state);
-
+    let last_ica_account = test_env.standalone.ica_count()?.count - 1;
+    let state = test_env.standalone.ica_contract_state(last_ica_account)?;
     let ica_addr = state.ica_state.unwrap().ica_addr;
 
-    let amount = coins(10_000, "ustars");
-    runtime.block_on(stargaze.wallet().bank_send(&ica_addr, amount.clone()))?;
+    // Send 10_000 uosmo from ICA to the
+    let amount = coins(10_000, "uosmo");
+    RUNTIME.block_on(osmosis.wallet().bank_send(&ica_addr, amount.clone()))?;
 
-    test_env.standalone.send_action(
-        last_ica_account,
-        cosmwasm_std::CosmosMsg::Bank(cosmwasm_std::BankMsg::Send {
-            to_address: dst_proxy.to_string(),
-            amount: coins(100, "ustars"),
-        }),
+    let _ = daemon_interchain.check_ibc(
+        "juno-1",
+        test_env.standalone.send_action(
+            last_ica_account,
+            cosmwasm_std::CosmosMsg::Bank(cosmwasm_std::BankMsg::Send {
+                to_address: dst_proxy.to_string(),
+                amount: amount.clone(),
+            }),
+        )?,
     )?;
-    {
-        std::thread::sleep(Duration::from_secs(30));
-        // let mut stdout_lock = std::io::stdout().lock();
-        // writeln!(
-        //     stdout_lock,
-        //     "Waiting for execution to go through IBC to open, use this commands to receive packet:"
-        // )
-        // .unwrap();
-        // // kubectl exec -it hermes-osmo-juno-0 -- hermes tx chan-open-try --src-chain juno-1 --dst-chain stargaze-1 --dst-connection connection-0 --dst-port icahost --src-port wasm.juno1dxc3x3x8terrgls077h0hwqgsnec6fyqwtfak8mtg0shultqevdqsdvhcf --src-channel channel-5
-        // writeln!(stdout_lock, "kubectl exec -it hermes-osmo-juno-0 -- hermes tx packet-recv --dst-chain stargaze-1 --src-chain juno-1 --src-port wasm.{ica_controller_addr} --src-channel channel-5").unwrap();
-        // writeln!(stdout_lock, "kubectl exec -it hermes-osmo-juno-0 -- hermes tx packet-ack --dst-chain juno-1 --src-chain stargaze-1 --src-port icahost --src-channel channel-1").unwrap();
-        // let mut line = String::new();
-        // std::io::stdin().read_line(&mut line)?;
-    }
-    let dst_proxy_balance = stargaze.balance(dst_proxy, None)?;
-    assert_eq!(dst_proxy_balance, coins(100, "ustars"));
+
+    let dst_proxy_balance = osmosis.balance(dst_proxy, None)?;
+    assert_eq!(dst_proxy_balance, amount);
     Ok(())
 }
