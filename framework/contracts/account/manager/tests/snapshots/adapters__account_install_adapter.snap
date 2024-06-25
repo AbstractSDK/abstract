@@ -6,7 +6,7 @@ expression: all_storage
   - - acseq
     - "2"
   - - cfg
-    - "{\"version_control_contract\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"ans_host_contract\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\",\"module_factory_address\":\"mock1wkwy0xh89ksdgj9hr347dyd2dw7zesmtrue6kfzyml4vdtz6e5wsldye53\",\"ibc_host\":\"mock14ejqjyq8um4p3xfqj74yld5waqljf88fz25yxnma0cngspxe3les6xzvf5\"}"
+    - "{\"version_control_contract\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"ans_host_contract\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\",\"module_factory_address\":\"mock1wkwy0xh89ksdgj9hr347dyd2dw7zesmtrue6kfzyml4vdtz6e5wsldye53\"}"
   - - contract_info
     - "{\"contract\":\"abstract:account-factory\",\"version\":\"0.23.0-beta.0\"}"
   - - ownership
