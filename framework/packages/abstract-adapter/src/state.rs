@@ -191,7 +191,7 @@ mod tests {
             .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callback(|_, _, _, _, _, _| {
+            .with_ibc_callback(|_, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })
             .with_replies(&[(1u64, |_, _, _, msg| {
