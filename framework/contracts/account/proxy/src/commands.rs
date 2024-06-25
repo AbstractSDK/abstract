@@ -3,7 +3,6 @@ use abstract_sdk::std::{
     proxy::state::{ADMIN, STATE},
     IBC_CLIENT,
 };
-use abstract_std::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
 use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg};
 
 use crate::{
@@ -393,7 +392,6 @@ mod test {
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain: "juno".parse().unwrap(),
-                    base_asset: None,
                     namespace: None,
                     install_modules: vec![],
                 },
@@ -421,7 +419,6 @@ mod test {
                     contract_addr: "ibc_client_addr".into(),
                     msg: to_json_binary(&abstract_std::ibc_client::ExecuteMsg::Register {
                         host_chain: "juno".parse().unwrap(),
-                        base_asset: None,
                         namespace: None,
                         install_modules: vec![],
                     })

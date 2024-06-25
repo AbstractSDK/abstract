@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 
-use abstract_core::{
+use abstract_sdk::feature_objects::AnsHost;
+use abstract_std::{
     objects::{
         price_source::{AssetConversion, ExternalPriceSource, PriceSource, UncheckedPriceSource},
         AssetEntry,
     },
     AbstractError, AbstractResult,
 };
-use abstract_sdk::feature_objects::AnsHost;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Deps, DepsMut, Order, StdError, Uint128};
 use cw_asset::{Asset, AssetInfo};
@@ -59,12 +59,6 @@ impl<'a> Default for Oracle<'a> {
     fn default() -> Self {
         // Empty user - admin
         Self::new("")
-    }
-}
-
-impl Default for Oracle<'_> {
-    fn default() -> Self {
-        Oracle::new()
     }
 }
 
@@ -330,7 +324,7 @@ impl<'a> Oracle<'a> {
     /// 2. For each asset query it's balance, get the conversion ratios associated with that asset and load its cached values.
     /// 3. Using the conversion ratio convert the balance and cached values and save the resulting values in the cache for that lower complexity asset.
     /// 4. Repeat until the base asset is reached. (complexity = 0)
-    pub fn account_value(&mut self, deps: Deps) -> AbstractResult<TokensValueResponse> {
+    pub fn account_value(&mut self, deps: Deps) -> AbstractResult<TotalValue> {
         // fist check that a base asset is registered
         let _ = self.base_asset(deps)?;
 
@@ -588,8 +582,10 @@ impl std::ops::Add for AssetValue {
 /// Total value
 #[cw_serde]
 pub struct TotalValue {
-    /// The total value in base denom or USD in case of external
+    /// The total value in base denom
     pub total_value: Uint128,
+    /// The total value in virtual denom
+    pub virtual_total_value: Uint128,
     /// Vec of asset information and their value in the base asset denomination
     pub breakdown: Vec<(AssetInfo, Uint128)>,
 }
@@ -598,19 +594,11 @@ pub struct TotalValue {
 mod tests {
     use super::*;
 
-<<<<<<<< HEAD:modules/contracts/adapters/oracle/src/state.rs
-    use abstract_core::objects::DexAssetPairing;
-    use abstract_testing::{prelude::*, MockAnsHost};
-    use cosmwasm_std::{coin, testing::*, Addr, Decimal, StdResult};
-    use speculoos::prelude::*;
-
-========
     use abstract_testing::prelude::*;
     use cosmwasm_std::{coin, testing::*, Decimal};
     use speculoos::prelude::*;
 
     use crate::objects::DexAssetPairing;
->>>>>>>> origin/main:framework/packages/abstract-std/src/objects/oracle.rs
     type AResult = anyhow::Result<()>;
 
     pub fn get_ans() -> AnsHost {
@@ -709,7 +697,7 @@ mod tests {
         // add base asset
         oracle.update_assets(deps.as_mut(), &ans, vec![base_asset()], vec![])?;
 
-        let value = oracle.account_value(deps.as_ref(), &Addr::unchecked(MOCK_CONTRACT_ADDR))?;
+        let value = oracle.account_value(deps.as_ref())?;
         assert_that!(value.total_value.amount.u128()).is_equal_to(1000u128);
 
         let base_asset = oracle.base_asset(deps.as_ref())?;
@@ -729,8 +717,7 @@ mod tests {
         deps.querier = mock_ans.to_querier();
         let mut oracle = Oracle::new("");
 
-        let value_result =
-            oracle.account_value(deps.as_ref(), &Addr::unchecked(MOCK_CONTRACT_ADDR));
+        let value_result = oracle.account_value(deps.as_ref());
 
         assert!(value_result.is_err());
         Ok(())
@@ -791,7 +778,7 @@ mod tests {
             vec![],
         )?;
 
-        let value = oracle.account_value(deps.as_ref(), &Addr::unchecked(MOCK_CONTRACT_ADDR))?;
+        let value = oracle.account_value(deps.as_ref())?;
         assert_that!(value.total_value.amount.u128()).is_equal_to(500u128);
 
         // give the account some base asset
@@ -799,7 +786,7 @@ mod tests {
             .update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, USD), coin(1000, EUR)]);
 
         // assert that the value increases with 1000
-        let value = oracle.account_value(deps.as_ref(), &Addr::unchecked(MOCK_CONTRACT_ADDR))?;
+        let value = oracle.account_value(deps.as_ref())?;
         assert_that!(value.total_value.amount.u128()).is_equal_to(1500u128);
 
         // get the one-asset value of the base asset

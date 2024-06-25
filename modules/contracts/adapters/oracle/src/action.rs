@@ -1,9 +1,9 @@
 #![warn(missing_docs)]
 //! # Oracle Adapter Action Definition
 //!
-use abstract_core::objects::AssetEntry;
+use abstract_std::objects::AssetEntry;
 // TODO: Do we need this object inside abstract_core?
-use abstract_core::objects::price_source::UncheckedPriceSource;
+use abstract_std::objects::price_source::UncheckedPriceSource;
 
 use crate::state::OraclePriceSource;
 

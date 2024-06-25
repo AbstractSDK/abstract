@@ -203,7 +203,6 @@ impl<Chain: CwEnv> Manager<Chain> {
             to_json_binary(&abstract_std::proxy::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::Register {
                     host_chain,
-                    base_asset: None,
                     namespace: None,
                     install_modules: vec![ModuleInstallConfig::new(
                         ModuleInfo::from_id_latest(IBC_CLIENT)?,

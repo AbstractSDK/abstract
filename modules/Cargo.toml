@@ -1,7 +1,7 @@
 [workspace]
 members = ["contracts/apps/*", "contracts/adapters/*"]
 # TODO: fix etf
-exclude = ["contracts/apps/etf"]
+# exclude = ["contracts/apps/etf"]
 
 resolver = "2"
 
@@ -53,6 +53,8 @@ tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
+abstract-std = { version = "0.23.0-beta.0" }
+abstract-sdk = { version = "0.23.0-beta.0" }
 abstract-interface = { version = "0.23.0-beta.0" }
 abstract-adapter = { version = "0.23.0-beta.0" }
 abstract-app = { version = "0.23.0-beta.0" }

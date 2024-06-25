@@ -66,7 +66,7 @@ cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 
 abstract-interface = { workspace = true, optional = true }
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true }
 cw-orch = { workspace = true, optional = true }
@@ -97,6 +97,6 @@ oracle = { path = ".", features = [
   "interface",
 ], package = "abstract-oracle-adapter" }
 
-cw20 = { workspace = true, features = ["interface"] }
-cw20-base = { workspace = true, features = ["interface"] }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
 cw-utils = { workspace = true }

@@ -367,7 +367,6 @@ pub fn execute_register_account(
     info: MessageInfo,
     env: Env,
     host_chain: ChainName,
-    base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
 ) -> IbcClientResult {

@@ -19,19 +19,11 @@ use abstract_std::{
     module_factory::SimulateInstallModulesResponse,
     objects::{
         account::AccountTrace, module::assert_module_data_validity,
-        salt::generate_instantiate_salt, AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
-    },
-    AbstractError,
-};
-use abstract_std::{
-    manager::ModuleInstallConfig,
-    module_factory::SimulateInstallModulesResponse,
-    objects::{
-        account::AccountTrace, module::assert_module_data_validity,
         salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
     },
     AbstractError,
 };
+
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
     Env, MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
@@ -219,9 +211,6 @@ pub fn execute_create_account(
     }
     if let Some(namespace) = namespace {
         metadata_attributes.push(("namespace", namespace))
-    }
-    if let Some(base_asset) = base_asset {
-        metadata_attributes.push(("base_asset", base_asset.to_string()))
     }
 
     // The execution order here is important.

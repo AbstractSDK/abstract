@@ -4,8 +4,8 @@ use abstract_sdk::{
     std::{
         objects::account::ACCOUNT_ID,
         proxy::{
-            state::{State, ADMIN, ANS_HOST, STATE},
-            AssetConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+            state::{State, ADMIN, STATE},
+            ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
         },
         PROXY,
     },

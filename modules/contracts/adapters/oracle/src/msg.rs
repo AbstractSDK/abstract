@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 //! # Oracle Adapter API
 // re-export response types
-use abstract_core::{
+use abstract_std::{
     adapter,
     objects::{
         price_source::{PriceSource, UncheckedPriceSource},
@@ -13,6 +13,7 @@ use cosmwasm_std::Uint128;
 use cw_asset::{Asset, AssetInfo};
 
 pub use crate::action::OracleAction;
+use crate::state::{OraclePriceSource, TotalValue};
 
 /// The name of the oracle to trade on.
 pub type ProviderName = String;
@@ -27,6 +28,17 @@ pub type QueryMsg = adapter::QueryMsg<OracleQueryMsg>;
 impl adapter::AdapterExecuteMsg for OracleExecuteMsg {}
 impl adapter::AdapterQueryMsg for OracleQueryMsg {}
 
+/// Oracle Execute msg
+#[cosmwasm_schema::cw_serde]
+pub enum OracleExecuteMsg {
+    /// Admin action to perform on the Oracle adapter
+    /// This can be done only by oracle admin(abstract namespace owner) and saved state will be used for default values during queries
+    Admin(OracleAction),
+    /// Action to perform on the Oracle adapter
+    Account(OracleAction),
+    // TODO: update provider_addrs
+}
+
 /// Instantiation message for oracle adapter
 #[cosmwasm_schema::cw_serde]
 pub struct OracleInstantiateMsg {
@@ -36,6 +48,7 @@ pub struct OracleInstantiateMsg {
     pub providers: Vec<(ProviderName, String)>,
 }
 
+/// Address of the abstract account's proxy or address of any account
 #[cosmwasm_schema::cw_serde]
 pub enum ProxyOrAddr {
     /// Address of the proxy account
@@ -106,6 +119,7 @@ pub struct OracleConfig {
 }
 
 /// Response from TokensValue
+/// TODO:
 #[cosmwasm_schema::cw_serde]
 pub struct TokensValueResponse {
     /// Tokens value relative to base denom
@@ -134,3 +148,20 @@ pub struct AssetPriceSourcesResponse {
 pub struct AssetIdentifiersResponse {
     pub identifiers: Vec<AssetEntry>,
 }
+
+#[cosmwasm_schema::cw_serde]
+pub struct AccountValue {
+    /// the total value of this account in the base denomination
+    pub total_value: Asset,
+    /// Vec of asset information and their value in the base asset denomination
+    pub breakdown: Vec<(AssetInfo, Uint128)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum DenomOrVirtual<T> {
+    Asset(T),
+    VirtualAsset(String),
+}
+
+pub type AssetEntryOrVirtual = DenomOrVirtual<AssetEntry>;
+pub type AssetInfoOrVirtual = DenomOrVirtual<AssetInfo>;

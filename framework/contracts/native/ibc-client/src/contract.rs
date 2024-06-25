@@ -707,7 +707,6 @@ mod tests {
 
             let msg = ExecuteMsg::Register {
                 host_chain: chain_name,
-                base_asset: None,
                 namespace: None,
                 install_modules: vec![],
             };
@@ -764,7 +763,6 @@ mod tests {
 
             let msg = ExecuteMsg::Register {
                 host_chain: chain_name,
-                base_asset: None,
                 namespace: None,
                 install_modules: vec![],
             };

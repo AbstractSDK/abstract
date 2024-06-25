@@ -1,6 +1,6 @@
 use abstract_adapter::AdapterError;
-use abstract_core::{objects::ans_host::AnsHostError, AbstractError};
 use abstract_sdk::AbstractSdkError;
+use abstract_std::{objects::ans_host::AnsHostError, AbstractError};
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
 use thiserror::Error;
@@ -34,6 +34,6 @@ pub enum OracleError {
     #[error("{0} is not local Oracle to this network.")]
     ForeignOracle(String),
 
-    #[error("No Address for {} oracle provider")]
+    #[error("No Address for {0} oracle provider")]
     NoAddressForProvider(String),
 }
