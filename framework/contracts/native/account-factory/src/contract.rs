@@ -3,11 +3,9 @@ use abstract_sdk::{
     execute_update_ownership, query_ownership,
     std::{account_factory::*, ACCOUNT_FACTORY},
 };
-use abstract_std::objects::module_version::assert_contract_upgrade;
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
-use semver::Version;
 
 use crate::{commands, error::AccountFactoryError, queries, state::*};
 
@@ -104,16 +102,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Config {} => to_json_binary(&queries::query_config(deps)?),
         QueryMsg::Ownership {} => query_ownership!(deps),
     }
-}
-
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResult {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
-
-    assert_contract_upgrade(deps.storage, ACCOUNT_FACTORY, version)?;
-    cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
-
-    Ok(AccountFactoryResponse::action("migrate"))
 }
 
 #[cfg(test)]
@@ -352,10 +340,10 @@ mod tests {
     }
 
     mod migrate {
-        use abstract_std::AbstractError;
-
         use super::*;
-        use crate::contract;
+
+        use abstract_std::AbstractError;
+        use semver::Version;
 
         #[test]
         fn disallow_same_version() -> AccountFactoryResult<()> {
@@ -364,7 +352,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res)
                 .is_err()
@@ -389,7 +377,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res)
                 .is_err()
@@ -413,7 +401,7 @@ mod tests {
             let old_name = "old:contract";
             cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res)
                 .is_err()
@@ -441,7 +429,7 @@ mod tests {
             .to_string();
             cw2::set_contract_version(deps.as_mut().storage, ACCOUNT_FACTORY, small_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
             assert_that!(res.messages).has_length(0);
 
             assert_that!(cw2::get_contract_version(&deps.storage)?.version)
