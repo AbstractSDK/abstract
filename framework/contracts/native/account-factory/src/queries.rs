@@ -11,7 +11,6 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         ans_host_contract: state.ans_host_contract,
         module_factory_address: state.module_factory_address,
         local_account_sequence: LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0),
-        ibc_host: state.ibc_host,
     };
 
     Ok(resp)

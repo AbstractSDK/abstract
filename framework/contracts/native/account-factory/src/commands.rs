@@ -21,7 +21,7 @@ use abstract_std::{
         account::AccountTrace, module::assert_module_data_validity,
         salt::generate_instantiate_salt, AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
     },
-    AbstractError,
+    AbstractError, IBC_HOST,
 };
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
@@ -82,13 +82,18 @@ pub fn execute_create_account(
         }
         Some(account_id) => {
             // if the non-local account_id is provided, assert that the caller is the ibc host
-            let ibc_host = config
-                .ibc_host
-                .ok_or(AccountFactoryError::IbcHostNotSet {})?;
+            let cw2_caller_info = cw2::query_contract_info(&deps.querier, info.sender.clone())?;
+            let ibc_host_addr = abstract_registry
+                .query_module_reference_raw(
+                    &ModuleInfo::from_id(IBC_HOST, cw2_caller_info.version.into())?,
+                    &deps.querier,
+                )?
+                .unwrap_native()?;
+
             ensure_eq!(
                 info.sender,
-                ibc_host,
-                AccountFactoryError::SenderNotIbcHost(info.sender.into(), ibc_host.into())
+                ibc_host_addr,
+                AccountFactoryError::SenderNotIbcHost(info.sender.into(), ibc_host_addr.into())
             );
             // then assert that the account trace is remote and properly formatted
             account_id.trace().verify_remote()?;
@@ -347,7 +352,6 @@ pub fn execute_update_config(
     ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
-    ibc_host: Option<String>,
 ) -> AccountFactoryResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
@@ -366,11 +370,6 @@ pub fn execute_update_config(
     if let Some(module_factory_address) = module_factory_address {
         // validate address format
         config.module_factory_address = deps.api.addr_validate(&module_factory_address)?;
-    }
-
-    if let Some(ibc_host) = ibc_host {
-        // validate address format
-        config.ibc_host = Some(deps.api.addr_validate(&ibc_host)?);
     }
     CONFIG.save(deps.storage, &config)?;
 
