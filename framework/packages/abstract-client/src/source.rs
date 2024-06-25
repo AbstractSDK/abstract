@@ -1,4 +1,4 @@
-use abstract_core::objects::{namespace::Namespace, AccountId};
+use abstract_std::objects::{namespace::Namespace, AccountId};
 use cosmwasm_std::Addr;
 
 /// Represents the a route to fetch an account from.

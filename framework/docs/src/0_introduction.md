@@ -5,13 +5,19 @@
 
 Welcome to the Abstract Documentation!
 
+**Abstract is an account-based smart-contract development and distribution platform. Our platform and tooling allow developers to build and scale their applications in a chain-agnostic manner.**
+
 This first part of our documentation aims to provide you with the conceptual knowledge you need to understand the Abstract framework. The second part is a step-by-step guide on how to use the Abstract SDK to build your decentralized application.
+
+```admonish info
+Want a TL;DR? Read a [high-level overview on the Abstract Platform](https://medium.com/abstract-money/a-high-level-overview-of-abstract-moneys-interchain-app-platform-d30813c7a1b4).
+```
 
 ```admonish info
 Prefer to watch? Check out our [video library](./video_and_content/videos.md)!
 ```
 
-## Who is Abstract For ?
+## Who is Abstract For?
 
 The Abstract SDK is designed for organizations and individual developers who want to build composable distributed applications in a fast, secure, and cost-effective manner.
 

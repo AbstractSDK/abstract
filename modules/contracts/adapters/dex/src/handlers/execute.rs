@@ -1,5 +1,9 @@
-use abstract_core::{
-    ibc::CallbackInfo,
+use abstract_adapter::sdk::{
+    features::AbstractNameService, AccountVerification, Execution, IbcInterface,
+    ModuleRegistryInterface,
+};
+use abstract_adapter::std::{
+    ibc::Callback,
     objects::{
         account::AccountTrace,
         ans_host::AnsHost,
@@ -9,14 +13,7 @@ use abstract_core::{
     },
 };
 use abstract_dex_standard::{
-    ans_action::WholeDexAction,
-    msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID},
-    raw_action::DexRawAction,
-    DexError, DEX_ADAPTER_ID,
-};
-use abstract_sdk::{
-    features::AbstractNameService, AccountVerification, Execution, IbcInterface,
-    ModuleRegistryInterface,
+    ans_action::WholeDexAction, msg::ExecuteMsg, raw_action::DexRawAction, DexError, DEX_ADAPTER_ID,
 };
 use cosmwasm_std::{
     ensure_eq, to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
@@ -31,7 +28,7 @@ use crate::{
     state::DEX_FEES,
 };
 
-use abstract_sdk::features::AccountIdentification;
+use abstract_adapter::sdk::features::AccountIdentification;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -45,7 +42,7 @@ pub fn execute_handler(
             dex: dex_name,
             action,
         } => {
-            let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
+            let (local_dex_name, is_over_ibc) = is_over_ibc(&env, &dex_name)?;
             // We resolve the Action to a RawAction to get the actual addresses, ids and denoms
             let whole_dex_action = WholeDexAction(local_dex_name.clone(), action);
             let ans = adapter.name_service(deps.as_ref());
@@ -63,7 +60,7 @@ pub fn execute_handler(
             dex: dex_name,
             action,
         } => {
-            let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
+            let (local_dex_name, is_over_ibc) = is_over_ibc(&env, &dex_name)?;
 
             // if exchange is on an app-chain, execute the action on the app-chain
             if is_over_ibc {
@@ -150,10 +147,10 @@ fn handle_ibc_request(
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
-    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
+    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins)?;
     // construct the action to be called on the host
-    let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
-        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+    let host_action = abstract_adapter::std::ibc_host::HostAction::Dispatch {
+        manager_msgs: vec![abstract_adapter::std::manager::ExecuteMsg::ExecOnModule {
             module_id: DEX_ADAPTER_ID.to_string(),
             exec_msg: to_json_binary::<ExecuteMsg>(
                 &DexExecuteMsg::RawAction {
@@ -162,24 +159,22 @@ fn handle_ibc_request(
                 }
                 .into(),
             )?,
-        },
+        }],
     };
 
     // If the calling entity is a contract, we provide a callback on successful swap
     let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());
-    let callback = if maybe_contract_info.is_err() {
+    let _callback = if maybe_contract_info.is_err() {
         None
     } else {
-        Some(CallbackInfo {
-            id: IBC_DEX_PROVIDER_ID.into(),
-            msg: Some(to_json_binary(&DexExecuteMsg::RawAction {
+        Some(Callback {
+            msg: to_json_binary(&DexExecuteMsg::RawAction {
                 dex: dex_name.clone(),
                 action: action.clone(),
-            })?),
-            receiver: info.sender.into_string(),
+            })?,
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action, callback)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain, host_action)?;
 
     // call both messages on the proxy
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))

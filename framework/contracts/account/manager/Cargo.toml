@@ -31,7 +31,7 @@ schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 semver = { workspace = true }
 cw-semver = { workspace = true }
 abstract-macros = { workspace = true }
@@ -52,6 +52,7 @@ speculoos = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-app = { workspace = true, features = ["test-utils"] }
+abstract-standalone = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }
 abstract-integration-tests = { workspace = true }

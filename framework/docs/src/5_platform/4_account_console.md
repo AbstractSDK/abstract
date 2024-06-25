@@ -1,19 +1,23 @@
 # Account Console
 
 ```admonish warning
-The Account Console is in beta. Please report any issues you encounter on our Discord.
+The [Account Console](https://console.abstract.money) is in beta. Please report any issues you encounter on our Discord.
 ```
 
-The Account Console is a web-based interface that allows you to interact with your Abstract Accounts. It is a powerful
-tool containing all the features you need not only to manage your accounts but also help you develop your application,
-including:
+The [Account Console](https://console.abstract.money) is a web-based developer tool that allows you to inspect and interact with your Abstract Accounts.
+
+It also allows you to easily view the abstract-specific infrastructure details like the [Abstract Name Service](./1_ans.md) or the [Version Control](2_version_control.md).
+
+The Account Console allows you to:
 
 - **Account Management**: Create, update, and delete accounts.
 - **Module Management**: Install, update, and delete modules.
 - **Name Service**: Register and manage human-readable names for your accounts.
-- **Dev Tools**: Contract message builder given the json schema, tools for contract interactions, signing transactions,
-  add assets to your ANS and deployment configurations.
-- **Delegations**: Delegate your voting power to a validator of your choice.
+- **Dev Tools**: Visual contract message builder, contract explorer, and more.
+
+```admonish info
+Note that using the Console is not required to develop on Abstract. All the features available in the console can be accessed programmatically using the [Abstract Client crate](../4_get_started/5_abstract_client.md). Using the Abstract Client crate is recommended for production use cases.
+```
 
 ![](../resources/account_console/accounts.webp)
 
@@ -52,3 +56,6 @@ You can easily claim your namespace by going to your Account on our website and 
 the account page. You will be asked to pay a small fee to claim your namespace. This fee is used to prevent namespace
 squatting and to help us maintain the Abstract ecosystem.
 
+```admonish info
+Please be aware that you need access to claim namespace on mainnet. Reach out to us on [discord](https://discord.com/invite/uch3Tq3aym).
+```

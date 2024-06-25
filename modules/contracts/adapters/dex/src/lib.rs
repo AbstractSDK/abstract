@@ -12,7 +12,7 @@ pub use abstract_dex_standard::DEX_ADAPTER_ID;
 // Export interface for use in SDK modules
 pub use crate::api::DexInterface;
 
-#[cfg(any(feature = "juno", feature = "osmosis"))]
+#[cfg(any(feature = "wynd", feature = "osmosis"))]
 pub mod host_exchange {
     pub use abstract_osmosis_adapter::dex::Osmosis;
 }
@@ -20,19 +20,18 @@ pub mod host_exchange {
 #[cfg(feature = "testing")]
 pub mod dex_tester;
 
-#[cfg(feature = "interface")]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod interface {
     use crate::{contract::DEX_ADAPTER, msg::*};
-    use abstract_core::{
+    use abstract_adapter::abstract_interface::{AbstractAccount, AbstractInterfaceError};
+    use abstract_adapter::abstract_interface::{AdapterDeployer, RegisteredModule};
+    use abstract_adapter::sdk::features::ModuleIdentification;
+    use abstract_adapter::std::{
         adapter,
         objects::{pool_id::PoolAddressBase, AnsAsset, AssetEntry},
     };
-    use abstract_dex_standard::ans_action::DexAnsAction;
-    use abstract_dex_standard::raw_action::DexRawAction;
-    use abstract_interface::{AbstractAccount, AbstractInterfaceError};
-    use abstract_interface::{AdapterDeployer, RegisteredModule};
-    use abstract_sdk::features::ModuleIdentification;
-    use cosmwasm_std::{Decimal, Empty};
+
+    use cosmwasm_std::Decimal;
     use cw_asset::{AssetBase, AssetInfoBase};
     use cw_orch::{build::BuildPostfix, interface};
     use cw_orch::{contract::Contract, prelude::*};
@@ -44,18 +43,19 @@ pub mod interface {
     impl<Chain: CwEnv> AdapterDeployer<Chain, DexInstantiateMsg> for DexAdapter<Chain> {}
 
     impl<Chain: CwEnv> Uploadable for DexAdapter<Chain> {
-        fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+        #[cfg(feature = "export")]
+        fn wrapper() -> <Mock as TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 crate::contract::execute,
                 crate::contract::instantiate,
                 crate::contract::query,
             ))
         }
-        fn wasm(&self) -> WasmPath {
+        fn wasm(chain: &ChainInfoOwned) -> WasmPath {
             artifacts_dir_from_workspace!()
                 .find_wasm_path_with_build_postfix(
                     "abstract_dex_adapter",
-                    BuildPostfix::<Chain>::ChainName(self.get_chain()),
+                    BuildPostfix::ChainName(chain),
                 )
                 .unwrap()
         }
@@ -188,16 +188,16 @@ pub mod interface {
         }
     }
 
-    impl<Chain: cw_orch::environment::CwEnv> abstract_interface::DependencyCreation
-        for DexAdapter<Chain>
+    impl<Chain: cw_orch::environment::CwEnv>
+        abstract_adapter::abstract_interface::DependencyCreation for DexAdapter<Chain>
     {
         type DependenciesConfig = cosmwasm_std::Empty;
 
         fn dependency_install_configs(
             _configuration: Self::DependenciesConfig,
         ) -> Result<
-            Vec<abstract_core::manager::ModuleInstallConfig>,
-            abstract_interface::AbstractInterfaceError,
+            Vec<abstract_adapter::std::manager::ModuleInstallConfig>,
+            abstract_adapter::abstract_interface::AbstractInterfaceError,
         > {
             Ok(vec![])
         }

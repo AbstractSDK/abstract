@@ -1,6 +1,8 @@
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
+    features::{
+        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
+    },
     AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps, StdError};
@@ -40,13 +42,19 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     fn account_base(
         &self,
         _deps: Deps,
-    ) -> AbstractSdkResult<abstract_sdk::core::version_control::AccountBase> {
+    ) -> AbstractSdkResult<abstract_sdk::std::version_control::AccountBase> {
         if let Some(target) = &self.target_account {
             Ok(target.clone())
         } else {
             Err(StdError::generic_err("No Account base specified.").into())
         }
     }
+}
+
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AccountExecutor
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+{
 }
 
 /// Get the version control contract
@@ -60,11 +68,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 }
 #[cfg(test)]
 mod tests {
-    use abstract_core::{
+    use abstract_sdk::base::ExecuteEndpoint;
+    use abstract_std::{
         adapter::{AdapterRequestMsg, ExecuteMsg},
         version_control::AccountBase,
     };
-    use abstract_sdk::base::ExecuteEndpoint;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},

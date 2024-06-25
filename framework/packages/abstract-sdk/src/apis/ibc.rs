@@ -2,26 +2,29 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
-use abstract_core::{
-    ibc::CallbackInfo,
-    ibc_client::ExecuteMsg as IbcClientMsg,
+use abstract_std::{
+    base,
+    ibc::{Callback, ModuleQuery},
+    ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
-    objects::module::{ModuleInfo, ModuleVersion},
+    objects::{chain_name::ChainName, module::ModuleInfo},
     proxy::ExecuteMsg,
-    IBC_CLIENT,
+    ABSTRACT_VERSION, IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, wasm_execute, Coin, CosmosMsg, Deps};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, QueryRequest};
 use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
-    features::{AccountIdentification, ModuleIdentification},
-    AbstractSdkResult, ModuleInterface,
+    features::{AccountExecutor, AccountIdentification, ModuleIdentification},
+    AbstractSdkResult, ModuleInterface, ModuleRegistryInterface,
 };
 
 /// Interact with other chains over IBC.
-pub trait IbcInterface: AccountIdentification + ModuleInterface + ModuleIdentification {
+pub trait IbcInterface:
+    AccountIdentification + ModuleRegistryInterface + ModuleIdentification + ModuleInterface
+{
     /**
         API for interacting with the Abstract IBC client.
 
@@ -41,7 +44,10 @@ pub trait IbcInterface: AccountIdentification + ModuleInterface + ModuleIdentifi
     }
 }
 
-impl<T> IbcInterface for T where T: AccountIdentification + ModuleInterface + ModuleIdentification {}
+impl<T> IbcInterface for T where
+    T: AccountIdentification + ModuleRegistryInterface + ModuleIdentification + ModuleInterface
+{
+}
 
 impl<'a, T: IbcInterface> AbstractApi<T> for IbcClient<'a, T> {
     fn base(&self) -> &T {
@@ -79,34 +85,170 @@ pub struct IbcClient<'a, T: IbcInterface> {
 }
 
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
-    /// Registers the ibc client to be able to use IBC capabilities
-    pub fn register_ibc_client(&self) -> AbstractSdkResult<CosmosMsg> {
+    /// Get address of this module
+    pub fn module_address(&self) -> AbstractSdkResult<Addr> {
+        let modules = self.base.modules(self.deps);
+        modules.assert_module_dependency(IBC_CLIENT)?;
+        self.base
+            .module_registry(self.deps)?
+            .query_module(ModuleInfo::from_id(IBC_CLIENT, ABSTRACT_VERSION.into())?)?
+            .reference
+            .unwrap_native()
+            .map_err(Into::into)
+    }
+
+    /// Send module action from this module to the target module
+    pub fn module_ibc_action<M: Serialize>(
+        &self,
+        host_chain: ChainName,
+        target_module: ModuleInfo,
+        exec_msg: &M,
+        callback: Option<Callback>,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::ModuleIbcAction {
+                host_chain,
+                target_module,
+                msg: to_json_binary(exec_msg)?,
+                callback,
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
+    /// Send module query from this module to the target module
+    /// Use [`abstract_std::ibc::IbcResponseMsg::module_query_response`] to parse response
+    pub fn module_ibc_query<B: Serialize, M: Serialize>(
+        &self,
+        host_chain: ChainName,
+        target_module: InstalledModuleIdentification,
+        query_msg: &base::QueryMsg<B, M>,
+        callback: Callback,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::IbcQuery {
+                host_chain,
+                queries: vec![QueryRequest::Custom(ModuleQuery {
+                    target_module,
+                    msg: to_json_binary(query_msg)?,
+                })],
+                callback,
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
+    /// Send query from this module to the host chain
+    pub fn ibc_query(
+        &self,
+        host_chain: ChainName,
+        query: impl Into<QueryRequest<ModuleQuery>>,
+        callback: Callback,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::IbcQuery {
+                host_chain,
+                queries: vec![query.into()],
+                callback,
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
+    /// Send queries from this module to the host chain
+    pub fn ibc_queries(
+        &self,
+        host_chain: ChainName,
+        queries: Vec<QueryRequest<ModuleQuery>>,
+        callback: Callback,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let ibc_client_addr = self.module_address()?;
+        let msg = wasm_execute(
+            ibc_client_addr,
+            &ibc_client::ExecuteMsg::IbcQuery {
+                host_chain,
+                queries,
+                callback,
+            },
+            vec![],
+        )?;
+        Ok(msg.into())
+    }
+
+    /// Address of the remote proxy
+    /// Note: only Accounts that are remote to *this* chain are queryable
+    pub fn remote_proxy_addr(&self, host_chain: &ChainName) -> AbstractSdkResult<Option<String>> {
+        let ibc_client_addr = self.module_address()?;
+        let account_id = self.base.account_id(self.deps)?;
+
+        let (trace, sequence) = account_id.decompose();
+        ibc_client::state::ACCOUNTS
+            .query(
+                &self.deps.querier,
+                ibc_client_addr,
+                (&trace, sequence, host_chain),
+            )
+            .map_err(Into::into)
+    }
+}
+
+impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
+    /// A simple helper to create and register a remote account
+    pub fn create_remote_account(
+        &self,
+        // The chain on which you want to create an account
+        host_chain: ChainName,
+    ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
-            self.base.manager_address(self.deps)?,
-            &abstract_core::manager::ExecuteMsg::InstallModules {
-                modules: vec![ModuleInstallConfig::new(
-                    ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
-                    None,
-                )],
+            self.base.proxy_address(self.deps)?.to_string(),
+            &ExecuteMsg::IbcAction {
+                msg: abstract_std::ibc_client::ExecuteMsg::Register {
+                    host_chain,
+                    base_asset: None,
+                    namespace: None,
+                    install_modules: vec![],
+                },
             },
             vec![],
         )?
         .into())
     }
 
-    /// A simple helper to create and register a remote account
-    pub fn create_remote_account(
+    /// Call a [`HostAction`] on the host of the provided `host_chain`.
+    pub fn host_action(
         &self,
-        host_chain: String, // The chain on which you want to create an account
+        host_chain: ChainName,
+        action: HostAction,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
-                    host_chain,
-                    namespace: None,
-                    install_modules: vec![],
-                }],
+                msg: IbcClientMsg::RemoteAction { host_chain, action },
+            },
+            vec![],
+        )?
+        .into())
+    }
+
+    /// IbcClient the provided coins from the Account to its proxy on the `receiving_chain`.
+    pub fn ics20_transfer(
+        &self,
+        host_chain: ChainName,
+        funds: Vec<Coin>,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        Ok(wasm_execute(
+            self.base.proxy_address(self.deps)?.to_string(),
+            &ExecuteMsg::IbcAction {
+                msg: IbcClientMsg::SendFunds { host_chain, funds },
             },
             vec![],
         )?
@@ -116,96 +258,75 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// A simple helper to install an app on an account
     pub fn install_remote_app<M: Serialize>(
         &self,
-        host_chain: String, // The chain on which you want to create an account,
+        // The chain on which you want to install an app
+        host_chain: ChainName,
         module: ModuleInfo,
         init_msg: &M,
     ) -> AbstractSdkResult<CosmosMsg> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(
                         module,
                         Some(to_json_binary(&init_msg)?),
                     )],
-                },
+                }],
             },
-            None,
         )
     }
 
     /// A simple helper install a remote api Module providing only the chain name
     pub fn install_remote_api<M: Serialize>(
         &self,
-        host_chain: String, // The chain on which you want to create an account,
+        // The chain on which you want to install an api
+        host_chain: ChainName,
         module: ModuleInfo,
     ) -> AbstractSdkResult<CosmosMsg> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::InstallModules {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::InstallModules {
                     modules: vec![ModuleInstallConfig::new(module, None)],
-                },
+                }],
             },
-            None,
         )
     }
 
     /// A simple helper to execute on a module
+    /// Executes the message as the Manager of the remote account
+    /// I.e. can be used to execute admin actions on remote modules.
     pub fn execute_on_module<M: Serialize>(
         &self,
-        host_chain: String, // The chain on which you want to create an account,
+        host_chain: ChainName,
         module_id: String,
         exec_msg: &M,
     ) -> AbstractSdkResult<CosmosMsg> {
         self.host_action(
             host_chain,
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg: to_json_binary(exec_msg)?,
-                },
+                }],
             },
-            None,
         )
     }
-    /// Call a [`HostAction`] on the host of the provided `host_chain`.
-    pub fn host_action(
-        &self,
-        host_chain: String,
-        action: HostAction,
-        callback: Option<CallbackInfo>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::RemoteAction {
-                    host_chain,
-                    action,
-                    callback_info: callback,
-                }],
-            },
-            vec![],
-        )?
-        .into())
-    }
-    /// IbcClient the provided coins from the Account to its proxy on the `receiving_chain`.
-    pub fn ics20_transfer(
-        &self,
-        receiving_chain: String,
-        funds: Vec<Coin>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::SendFunds {
-                    host_chain: receiving_chain,
-                    funds,
-                }],
-            },
-            vec![],
-        )?
-        .into())
+
+    /// Address of the remote proxy
+    /// Note: only works if account is local
+    pub fn remote_proxy(&self, host_chain: &ChainName) -> AbstractSdkResult<Option<String>> {
+        let account_id = self.base.account_id(self.deps)?;
+        let ibc_client_addr = self.module_address()?;
+
+        let (trace, sequence) = account_id.decompose();
+        ibc_client::state::ACCOUNTS
+            .query(
+                &self.deps.querier,
+                ibc_client_addr,
+                (&trace, sequence, host_chain),
+            )
+            .map_err(Into::into)
     }
 }
 
@@ -217,7 +338,7 @@ mod test {
 
     use super::*;
     use crate::mock_module::*;
-    const TEST_HOST_CHAIN: &str = "host_chain";
+    const TEST_HOST_CHAIN: &str = "hostchain";
 
     /// Tests that a host_action can be built with no callback
     #[test]
@@ -226,78 +347,31 @@ mod test {
         let stub = MockModule::new();
         let client = stub.ibc_client(deps.as_ref());
         let msg = client.host_action(
-            TEST_HOST_CHAIN.into(),
+            TEST_HOST_CHAIN.parse().unwrap(),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateStatus {
                     is_suspended: None,
-                },
+                }],
             },
-            None,
         );
         assert_that!(msg).is_ok();
 
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::RemoteAction {
-                    host_chain: TEST_HOST_CHAIN.into(),
+                msg: IbcClientMsg::RemoteAction {
+                    host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     action: HostAction::Dispatch {
-                        manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                        manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateStatus {
                             is_suspended: None,
-                        },
+                        }],
                     },
-                    callback_info: None,
-                }],
+                },
             })
             .unwrap(),
             funds: vec![],
         });
         assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
-    }
-
-    /// Tests that a host_action can be built with a callback with more retries
-    #[test]
-    fn test_host_action_with_callback() {
-        let deps = mock_dependencies();
-        let stub = MockModule::new();
-        let client = stub.ibc_client(deps.as_ref());
-
-        let expected_callback = CallbackInfo {
-            receiver: "callback_receiver".to_string(),
-            id: "callback_id".to_string(),
-            msg: None,
-        };
-
-        let actual = client.host_action(
-            TEST_HOST_CHAIN.into(),
-            HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
-                    is_suspended: None,
-                },
-            },
-            Some(expected_callback.clone()),
-        );
-
-        assert_that!(actual).is_ok();
-
-        let expected = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: TEST_PROXY.to_string(),
-            msg: to_json_binary(&ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::RemoteAction {
-                    host_chain: TEST_HOST_CHAIN.into(),
-                    action: HostAction::Dispatch {
-                        manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
-                            is_suspended: None,
-                        },
-                    },
-                    callback_info: Some(expected_callback),
-                }],
-            })
-            .unwrap(),
-            funds: vec![],
-        });
-
-        assert_that!(actual.unwrap()).is_equal_to::<CosmosMsg>(expected);
     }
 
     /// Tests that the ics_20 transfer can be built and that the funds are passed into the sendFunds message not the execute message
@@ -309,16 +383,16 @@ mod test {
 
         let expected_funds = coins(100, "denom");
 
-        let msg = client.ics20_transfer(TEST_HOST_CHAIN.into(), expected_funds.clone());
+        let msg = client.ics20_transfer(TEST_HOST_CHAIN.parse().unwrap(), expected_funds.clone());
         assert_that!(msg).is_ok();
 
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_json_binary(&ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::SendFunds {
-                    host_chain: TEST_HOST_CHAIN.into(),
+                msg: IbcClientMsg::SendFunds {
+                    host_chain: TEST_HOST_CHAIN.parse().unwrap(),
                     funds: expected_funds,
-                }],
+                },
             })
             .unwrap(),
             // ensure empty

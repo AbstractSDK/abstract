@@ -31,7 +31,7 @@ thiserror = { workspace = true }
 semver = { workspace = true }
 protobuf = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-macros = { workspace = true }
 cw-asset = { workspace = true }
 cw-ownable = { workspace = true }
@@ -43,6 +43,8 @@ cw-orch = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }
 abstract-testing = { workspace = true }
+abstract-integration-tests = { workspace = true }
+
 
 [profile.release]
 rpath = false

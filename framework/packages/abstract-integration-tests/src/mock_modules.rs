@@ -4,8 +4,8 @@ use abstract_adapter::{
     AdapterContract,
 };
 use abstract_app::{gen_app_mock, mock::MockError as AppMockError, AppContract};
-use abstract_core::objects::dependency::StaticDependency;
 use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy};
+use abstract_std::objects::dependency::StaticDependency;
 use cw_orch::prelude::*;
 
 pub type MockAdapterContract = AdapterContract<AdapterMockError, Empty, Empty, Empty, Empty, Empty>;
@@ -165,7 +165,7 @@ pub mod gen_mock {
             pub struct $name;
 
             impl<T: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::Uploadable for $name<T> {
-                fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+                fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
                     Box::new(ContractWrapper::<MockMsg, _, _, _, _, _>::new_with_empty(
                         self::mock_execute,
                         self::mock_instantiate,

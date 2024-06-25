@@ -6,7 +6,7 @@ exclude = ["contracts/apps/etf"]
 resolver = "2"
 
 [workspace.package]
-version = "0.21.1"
+version = "0.22.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -20,18 +20,19 @@ license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
 [workspace.dependencies]
+
+
 cosmwasm-std = { version = "1.5" }
 cosmwasm-schema = { version = "1.2" }
 cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "1.2.0"
 cw2 = { version = "1.0" }
-cw-plus-interface = { package = "abstract-cw-plus-interface", version = "1.3.0" }
+cw-plus-interface = { package = "abstract-cw-plus-interface", version = "2.0.0" }
 cw20-base = { package = "abstract-cw20-base", features = [
   "library",
-], version = "1.3.0" }
-cw20 = { package = "abstract-cw20", version = "1.3.0" }
-
+], version = "2.0.0" }
+cw20 = { package = "abstract-cw20", version = "2.0.0" }
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
 cw-address-like = { version = "1.0" }
@@ -41,27 +42,28 @@ serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.50" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
+
 chrono = { version = "0.4.31", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.20.1" }
+cw-orch = { version = "0.23.0" }
+cw-orch-osmosis-test-tube = { version = "0.1.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.21.0" }
-abstract-adapter = { version = "0.21.0" }
-abstract-app = { version = "0.21.0" }
-abstract-sdk = { version = "0.21.0" }
-abstract-testing = { version = "0.21.0" }
-abstract-core = { version = "0.21.0" }
-abstract-macros = { version = "0.21.0" }
-abstract-client = { version = "0.21.0" }
+abstract-interface = { version = "0.23.0-beta.0" }
+abstract-adapter = { version = "0.23.0-beta.0" }
+abstract-app = { version = "0.23.0-beta.0" }
+abstract-testing = { version = "0.23.0-beta.0" }
+abstract-macros = { version = "0.23.0-beta.0" }
+abstract-client = { version = "0.23.0-beta.0" }
 
-abstract-adapter-utils = { version = "0.21.0" }
-abstract-dex-standard = { version = "0.21.0" }
-abstract-staking-standard = { version = "0.21.0" }
+abstract-adapter-utils = { version = "0.23.0-beta.0" }
+abstract-dex-standard = { version = "0.23.0-beta.0" }
+abstract-staking-standard = { version = "0.23.0-beta.0" }
+abstract-money-market-standard = { version = "0.23.0-beta.0" }
 abstract-oracle-standard = { version = "0.1.0" }
 
 # Integrations
@@ -69,19 +71,19 @@ abstract-wyndex-adapter = { path = "../integrations/wyndex-adapter", default-fea
 abstract-osmosis-adapter = { path = "../integrations/osmosis-adapter", default-features = false }
 abstract-astroport-adapter = { path = "../integrations/astroport-adapter", default-features = false }
 abstract-kujira-adapter = { path = "../integrations/kujira-adapter", default-features = false }
+abstract-mars-adapter = { path = "../integrations/mars-adapter", default-features = false }
+abstract-cavern-adapter = { path = "../integrations/cavern-adapter", default-features = false }
 abstract-astrovault-adapter = { path = "../integrations/astrovault-adapter", default-features = false }
 
 wyndex-bundle = { path = "../integrations/bundles/wyndex" }
 
-## Modules
-croncat-app = { path = "./contracts/apps/croncat" }
-challenge-app = { path = "./contracts/apps/challenge" }
-# TODO: fix etf 
-# etf-app = { path = "./contracts/apps/etf" }
-dca-app = { path = "./contracts/apps/dca" }
-abstract-cw-staking = { path = "./contracts/adapters/cw-staking" }
-abstract-dex-adapter = { path = "./contracts/adapters/dex" }
 
+croncat-app = { path = "./contracts/apps/croncat", default-features = false }
+challenge-app = { path = "./contracts/apps/challenge", default-features = false }
+etf-app = { path = "./contracts/apps/etf", default-features = false }
+dca-app = { path = "./contracts/apps/dca", default-features = false }
+abstract-cw-staking = { path = "./contracts/adapters/cw-staking", default-features = false }
+abstract-dex-adapter = { path = "./contracts/adapters/dex", default-features = false }
 ## Testing
 rstest = "0.17.0"
 speculoos = "0.11.0"
@@ -94,14 +96,14 @@ abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
 abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
-abstract-core = { path = "../framework/packages/abstract-core" }
+abstract-std = { path = "../framework/packages/abstract-std" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
 abstract-dex-standard = { path = "../framework/packages/standards/dex" }
+abstract-money-market-standard = { path = "../framework/packages/standards/money-market" }
 abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 abstract-oracle-standard = { path = "../framework/packages/standards/oracle" }
 abstract-client = { path = "../framework/packages/abstract-client" }
-
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

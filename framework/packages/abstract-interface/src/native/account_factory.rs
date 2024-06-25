@@ -1,7 +1,7 @@
-pub use abstract_core::account_factory::{
+pub use abstract_std::account_factory::{
     ExecuteMsgFns as AccountFactoryExecFns, QueryMsgFns as AccountFactoryQueryFns,
 };
-use abstract_core::{
+use abstract_std::{
     account_factory::*,
     manager::ModuleInstallConfig,
     objects::{gov_type::GovernanceDetails, AccountId},
@@ -10,7 +10,7 @@ use cw_orch::{interface, prelude::*};
 
 use crate::AbstractAccount;
 
-/// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
+/// A helper struct that contains fields from [`abstract_std::manager::state::AccountInfo`]
 #[derive(Default)]
 pub struct AccountDetails {
     pub name: String,
@@ -26,7 +26,7 @@ pub struct AccountFactory<Chain>;
 
 impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+    fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
                 ::account_factory::contract::execute,
@@ -38,7 +38,7 @@ impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
         )
     }
 
-    fn wasm(&self) -> WasmPath {
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path("account_factory")
             .unwrap()

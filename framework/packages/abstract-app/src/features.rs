@@ -1,6 +1,8 @@
 use abstract_sdk::{
     feature_objects::{AnsHost, VersionControlContract},
-    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
+    features::{
+        AbstractNameService, AbstractRegistryAccess, AccountExecutor, AccountIdentification,
+    },
     AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps};
@@ -66,6 +68,27 @@ impl<
         CustomMigrateMsg,
         ReceiveMsg,
         SudoMsg,
+    > AccountExecutor
+    for AppContract<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
+{
+}
+
+impl<
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
     > AbstractRegistryAccess
     for AppContract<
         Error,
@@ -84,8 +107,8 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use abstract_core::version_control::AccountBase;
     use abstract_sdk::{AccountVerification, ModuleRegistryInterface};
+    use abstract_std::version_control::AccountBase;
     use abstract_testing::{
         addresses::TEST_WITH_DEP_MODULE_ID,
         mock_querier,

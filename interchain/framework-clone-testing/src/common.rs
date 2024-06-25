@@ -1,7 +1,5 @@
 use abstract_interface::Abstract;
-use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
-use cw_orch::{contract::Deploy, daemon::ChainInfo};
 use cw_orch_clone_testing::CloneTesting;
 
 /// Returns a shared tokio runtime for all tests

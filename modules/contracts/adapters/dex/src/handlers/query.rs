@@ -1,4 +1,5 @@
-use abstract_core::objects::{AssetEntry, DexAssetPairing, PoolAddress};
+use abstract_adapter::sdk::features::AbstractNameService;
+use abstract_adapter::std::objects::{AssetEntry, DexAssetPairing, PoolAddress};
 use abstract_dex_standard::{
     ans_action::{pool_address, WholeDexAction},
     msg::{
@@ -6,7 +7,6 @@ use abstract_dex_standard::{
     },
     DexError,
 };
-use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 
 use crate::{
@@ -55,7 +55,7 @@ pub fn query_handler(
             }
             match message {
                 DexExecuteMsg::RawAction { dex, action } => {
-                    let (local_dex_name, is_over_ibc) = is_over_ibc(env, &dex)?;
+                    let (local_dex_name, is_over_ibc) = is_over_ibc(&env, &dex)?;
                     // if exchange is on an app-chain, execute the action on the app-chain
                     if is_over_ibc {
                         return Err(DexError::IbcMsgQuery);

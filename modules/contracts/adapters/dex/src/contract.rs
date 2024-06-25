@@ -1,4 +1,4 @@
-use abstract_adapter::{export_endpoints, AdapterContract};
+use abstract_adapter::AdapterContract;
 use abstract_dex_standard::{
     msg::{DexExecuteMsg, DexInstantiateMsg, DexQueryMsg},
     DexError,
@@ -17,5 +17,7 @@ pub const DEX_ADAPTER: DexAdapter = DexAdapter::new(DEX_ADAPTER_ID, CONTRACT_VER
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler);
 
+#[cfg(feature = "export")]
+use abstract_adapter::export_endpoints;
 #[cfg(feature = "export")]
 export_endpoints!(DEX_ADAPTER, DexAdapter);

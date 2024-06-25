@@ -1,4 +1,4 @@
-use abstract_core::{ans_host::QueryMsgFns as _, objects::ABSTRACT_ACCOUNT_ID};
+use abstract_adapter::std::{ans_host::QueryMsgFns as _, objects::ABSTRACT_ACCOUNT_ID};
 use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_dex_standard::{msg::DexFeesResponse, DexError};
 use abstract_interface::{AbstractInterfaceError, AdapterDeployer, DeployStrategy};
@@ -9,7 +9,7 @@ mod common;
 use abstract_dex_adapter::interface::DexAdapter;
 use abstract_interface::{Abstract, AbstractAccount};
 use common::create_default_account;
-use cosmwasm_std::{coin, Decimal, Empty};
+use cosmwasm_std::{coin, Decimal};
 use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
@@ -158,14 +158,15 @@ fn authorized_update_fee() -> anyhow::Result<()> {
     let (_, _, dex_adapter, _, abstr) = setup_mock()?;
     let account0 = AbstractAccount::new(&abstr, ABSTRACT_ACCOUNT_ID);
 
-    let update_fee_msg =
-        abstract_dex_standard::msg::ExecuteMsg::Module(abstract_core::adapter::AdapterRequestMsg {
+    let update_fee_msg = abstract_dex_standard::msg::ExecuteMsg::Module(
+        abstract_adapter::std::adapter::AdapterRequestMsg {
             proxy_address: Some(account0.proxy.addr_str()?),
             request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
                 swap_fee: Some(Decimal::percent(5)),
                 recipient_account: None,
             },
-        });
+        },
+    );
 
     dex_adapter.execute(&update_fee_msg, None)?;
 
@@ -180,14 +181,15 @@ fn authorized_update_fee() -> anyhow::Result<()> {
 fn unauthorized_update_fee() -> anyhow::Result<()> {
     let (_, _, _, account, _) = setup_mock()?;
 
-    let update_fee_msg =
-        abstract_dex_standard::msg::ExecuteMsg::Module(abstract_core::adapter::AdapterRequestMsg {
+    let update_fee_msg = abstract_dex_standard::msg::ExecuteMsg::Module(
+        abstract_adapter::std::adapter::AdapterRequestMsg {
             proxy_address: None,
             request: abstract_dex_standard::msg::DexExecuteMsg::UpdateFee {
                 swap_fee: Some(Decimal::percent(5)),
                 recipient_account: None,
             },
-        });
+        },
+    );
 
     let err = account
         .manager

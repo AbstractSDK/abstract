@@ -1,6 +1,6 @@
 [package]
 name = "dca-app"
-version = "0.3.0"
+version = "0.4.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
@@ -28,13 +28,7 @@ default = ["export"]
 export = []
 # enable node-backed tests (ensure Docker is running)
 # run with `cargo test --jobs 1 --features node-tests`
-node-tests = ["interface"]
-interface = [
-  "export",
-  "dep:abstract-interface",
-  "dep:cw-orch",
-  "abstract-app/interface-macro",
-]
+node-tests = []
 schema = ["abstract-app/schema"]
 
 [dependencies]
@@ -46,22 +40,18 @@ thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
 
-abstract-core = { workspace = true }
 abstract-app = { workspace = true }
-abstract-sdk = { workspace = true }
 
 # Dependencies for interface
-abstract-interface = { workspace = true, optional = true }
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true }
 croncat-app = { workspace = true, default-features = false }
 abstract-dex-adapter = { workspace = true, default-features = false }
 
 [dev-dependencies]
-dca-app = { path = ".", features = ["interface"] }
+dca-app = { path = "." }
 abstract-interface = { workspace = true, features = ["daemon"] }
-abstract-testing = { workspace = true }
 abstract-client = { workspace = true }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
+abstract-app = { workspace = true, features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"
@@ -82,12 +72,8 @@ croncat-integration-testing = { version = "1.1.1" }
 
 
 wyndex-bundle = { workspace = true }
-abstract-dex-adapter = { workspace = true, features = [
-  "interface",
-  "wynd",
-  "testing",
-] }
-croncat-app = { workspace = true, features = ["interface"] }
+abstract-dex-adapter = { workspace = true, features = ["wynd", "testing"] }
+croncat-app = { workspace = true }
 
 # Testing cw20
 cw20-base = "0.16.0"

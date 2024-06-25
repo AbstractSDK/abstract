@@ -2,18 +2,18 @@
 //! The executor provides function for executing commands on the Account.
 //!
 
-use abstract_core::proxy::ExecuteMsg;
 use abstract_macros::with_abstract_event;
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
+use abstract_std::proxy::ExecuteMsg;
+use cosmwasm_std::{CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 use super::{AbstractApi, ApiIdentification};
 use crate::{
-    features::{AccountIdentification, ModuleIdentification},
+    features::{AccountExecutor, ModuleIdentification},
     AbstractSdkResult, AccountAction,
 };
 
 /// Execute an `AccountAction` on the Account.
-pub trait Execution: AccountIdentification + ModuleIdentification {
+pub trait Execution: AccountExecutor + ModuleIdentification {
     /**
         API for executing [`AccountAction`]s on the Account.
         Group your actions together in a single execute call if possible.
@@ -36,7 +36,7 @@ pub trait Execution: AccountIdentification + ModuleIdentification {
     }
 }
 
-impl<T> Execution for T where T: AccountIdentification + ModuleIdentification {}
+impl<T> Execution for T where T: AccountExecutor + ModuleIdentification {}
 
 impl<'a, T: Execution> AbstractApi<T> for Executor<'a, T> {
     fn base(&self) -> &T {
@@ -79,12 +79,9 @@ pub struct Executor<'a, T: Execution> {
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute a single message on the `ModuleActionWithData` endpoint.
     fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
-        let msg = wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::ModuleActionWithData { msg },
-            vec![],
-        )?
-        .into();
+        let msg = self
+            .base
+            .execute_on_proxy(self.deps, &ExecuteMsg::ModuleActionWithData { msg })?;
         Ok(ExecutorMsg(msg))
     }
 
@@ -92,12 +89,9 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     pub fn execute(&self, actions: Vec<AccountAction>) -> AbstractSdkResult<ExecutorMsg> {
         let msgs = actions.into_iter().flat_map(|a| a.messages()).collect();
-        let msg: CosmosMsg = wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::ModuleAction { msgs },
-            vec![],
-        )?
-        .into();
+        let msg = self
+            .base
+            .execute_on_proxy(self.deps, &ExecuteMsg::ModuleAction { msgs })?;
         Ok(ExecutorMsg(msg))
     }
 
@@ -167,7 +161,7 @@ impl From<ExecutorMsg> for CosmosMsg {
 
 #[cfg(test)]
 mod test {
-    use abstract_core::proxy::ExecuteMsg;
+    use abstract_std::proxy::ExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
@@ -187,8 +181,6 @@ mod test {
     }
 
     mod execute {
-        use cosmwasm_std::to_json_binary;
-
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided
@@ -314,8 +306,6 @@ mod test {
     }
 
     mod execute_with_response {
-        use cosmwasm_std::coins;
-
         use super::*;
 
         /// Tests that no error is thrown with empty messages provided

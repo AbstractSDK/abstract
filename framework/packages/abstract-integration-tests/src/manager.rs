@@ -1,12 +1,13 @@
-use abstract_adapter::mock::MockExecMsg;
+use abstract_adapter::mock::{MockExecMsg, MockReceiveMsg};
 use abstract_app::mock::MockInitMsg;
-use abstract_core::{
+use abstract_interface::*;
+use abstract_manager::error::ManagerError;
+use abstract_std::{
     adapter::{AdapterBaseMsg, AdapterRequestMsg},
     app,
     manager::{ModuleInstallConfig, ModuleVersionsResponse},
     module_factory::SimulateInstallModulesResponse,
     objects::{
-        account::TEST_ACCOUNT_ID,
         fee::FixedFee,
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion, Monetization},
@@ -17,8 +18,6 @@ use abstract_core::{
     version_control::UpdateModule,
     PROXY,
 };
-use abstract_interface::*;
-use abstract_manager::error::ManagerError;
 use abstract_testing::prelude::*;
 use cosmwasm_std::{coin, coins, wasm_execute, Uint128};
 use cw2::ContractVersion;
@@ -27,9 +26,7 @@ use speculoos::prelude::*;
 
 use crate::{
     add_mock_adapter_install_fee, create_default_account, init_mock_adapter, install_adapter,
-    install_adapter_with_funds, install_module_version,
-    mock_modules::{standalone_cw2, *},
-    AResult,
+    install_adapter_with_funds, install_module_version, mock_modules::*, AResult,
 };
 
 pub mod mock_app {
@@ -349,14 +346,14 @@ pub fn update_adapter_with_authorized_addrs<T: CwEnv>(chain: T, authorizee: Addr
             module: Empty {},
         },
     )?;
-    use abstract_core::manager::QueryMsgFns as _;
+    use abstract_std::manager::QueryMsgFns as _;
 
     let adapter_v2 = manager.module_addresses(vec![adapter_1::MOCK_ADAPTER_ID.into()])?;
     // assert that the address actually changed
     assert_that!(adapter_v2.modules[0].1).is_not_equal_to(Addr::unchecked(adapter1.clone()));
 
     let adapter = adapter_1::MockAdapterI1V2::new_test(chain);
-    use abstract_core::adapter::BaseQueryMsgFns as _;
+    use abstract_std::adapter::BaseQueryMsgFns as _;
     let authorized = adapter.authorized_addresses(proxy.addr_str()?)?;
     assert_that!(authorized.addresses).contains(authorizee);
 
@@ -432,8 +429,8 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
 
     let manager_address = account.manager.address()?;
     staking_adapter.call_as(&manager_address).execute(
-        &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Base(
-            abstract_core::adapter::BaseExecuteMsg {
+        &abstract_std::adapter::ExecuteMsg::<MockExecMsg, MockReceiveMsg>::Base(
+            abstract_std::adapter::BaseExecuteMsg {
                 proxy_address: None,
                 msg: AdapterBaseMsg::UpdateAuthorizedAddresses {
                     to_add: vec![account.proxy.addr_str()?],
@@ -454,11 +451,11 @@ pub fn with_response_data<T: MutCwEnv<Sender = Addr>>(mut chain: T) -> AResult {
         .expect("test module installed");
     // proxy should be final executor because of the reply
     let resp = account.manager.exec_on_module(
-        cosmwasm_std::to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleActionWithData {
+        cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleActionWithData {
             // execute a message on the adapter, which sets some data in its response
             msg: wasm_execute(
                 adapter_addr.address,
-                &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Module(
+                &abstract_std::adapter::ExecuteMsg::<MockExecMsg, Empty>::Module(
                     AdapterRequestMsg {
                         proxy_address: Some(account.proxy.addr_str()?),
                         request: MockExecMsg {},
@@ -511,7 +508,7 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
         .call_as(&sub_manager_addr)
         .module_action(vec![wasm_execute(
             new_account_manager,
-            &abstract_core::manager::ExecuteMsg::UpdateOwnership(
+            &abstract_std::manager::ExecuteMsg::UpdateOwnership(
                 cw_ownable::Action::AcceptOwnership,
             ),
             vec![],

@@ -1,12 +1,4 @@
-use abstract_core::{
-    manager::{
-        state::{ACCOUNT_MODULES, PENDING_GOVERNANCE},
-        UpdateSubAccountAction,
-    },
-    objects::gov_type::GovernanceDetails,
-    PROXY,
-};
-use abstract_sdk::core::{
+use abstract_sdk::std::{
     manager::{
         state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -17,6 +9,14 @@ use abstract_sdk::core::{
     },
     proxy::state::ACCOUNT_ID,
     MANAGER,
+};
+use abstract_std::{
+    manager::{
+        state::{ACCOUNT_MODULES, PENDING_GOVERNANCE},
+        UpdateSubAccountAction,
+    },
+    objects::gov_type::GovernanceDetails,
+    PROXY,
 };
 use cosmwasm_std::{
     ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
@@ -107,7 +107,7 @@ pub fn instantiate(
 
     if !msg.install_modules.is_empty() {
         // Install modules
-        let (add_to_proxy, install_msg, install_attribute) = install_modules_internal(
+        let (install_msgs, install_attribute) = _install_modules(
             deps.branch(),
             msg.install_modules,
             config.module_factory_address,
@@ -115,8 +115,7 @@ pub fn instantiate(
             info.funds,
         )?;
         response = response
-            .add_message(add_to_proxy)
-            .add_submessage(install_msg)
+            .add_submessages(install_msgs)
             .add_attribute(install_attribute.key, install_attribute.value);
     }
 
@@ -184,19 +183,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     description,
                     link,
                 } => update_info(deps, info, name, description, link),
-                ExecuteMsg::UpdateSettings {
-                    ibc_enabled: new_status,
-                } => {
-                    let mut response: Response = ManagerResponse::action("update_settings");
-
-                    if let Some(ibc_enabled) = new_status {
-                        response = update_ibc_status(deps, info, ibc_enabled, response)?;
-                    } else {
-                        return Err(ManagerError::NoUpdates {});
-                    }
-
-                    Ok(response)
-                }
                 ExecuteMsg::UpdateSubAccount(action) => {
                     handle_sub_account_action(deps, info, action)
                 }
@@ -296,7 +282,7 @@ mod tests {
     use crate::{contract, test_common::mock_init};
 
     mod migrate {
-        use abstract_core::AbstractError;
+        use abstract_std::AbstractError;
         use cw2::get_contract_version;
 
         use super::*;

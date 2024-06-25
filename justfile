@@ -1,4 +1,4 @@
-workspaces := "./framework ./modules ./app-template ./interchain"
+workspaces := "./framework ./modules ./interchain"
 
 # Pull a specific repo from its main remote
 pull repo:
@@ -46,6 +46,8 @@ schema:
   sh scripts/framework-schema.sh
   set +e
 
+# Requires you to have the schema repo cloned in the same directory as the contract repo
+# https://github.com/AbstractSDK/schemas
 copy-schema: 
   #!/usr/bin/env bash
   set -e

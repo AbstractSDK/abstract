@@ -1,5 +1,5 @@
 #![allow(unused)]
-use abstract_core::{app as msg, objects::module::ModuleId};
+use abstract_std::{app as msg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -69,7 +69,7 @@ pub struct Apps<'a, T: AppInterface> {
 
 impl<'a, T: AppInterface> Apps<'a, T> {
     /// Construct an app request message.
-    pub fn request<M: Serialize>(
+    pub fn execute<M: Serialize>(
         &self,
         app_id: ModuleId,
         message: impl Into<msg::ExecuteMsg<M, Empty>>,
@@ -79,18 +79,6 @@ impl<'a, T: AppInterface> Apps<'a, T> {
         let app_msg: msg::ExecuteMsg<M, Empty> = message.into();
         let app_address = modules.module_address(app_id)?;
         Ok(wasm_execute(app_address, &app_msg, vec![])?.into())
-    }
-
-    /// Construct an app configuation message
-    pub fn configure(
-        &self,
-        app_id: ModuleId,
-        message: msg::BaseExecuteMsg,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        let base_msg: msg::ExecuteMsg<Empty, Empty> = message.into();
-        let modules = self.base.modules(self.deps);
-        let app_address = modules.module_address(app_id)?;
-        Ok(wasm_execute(app_address, &base_msg, vec![])?.into())
     }
 
     /// Smart query an app
@@ -134,14 +122,14 @@ mod tests {
 
     mod app_request {
         use super::*;
-        use crate::{core::app, mock_module::MockModuleExecuteMsg};
+        use crate::{mock_module::MockModuleExecuteMsg, std::app};
 
         #[test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.apps(deps);
-                    mods.request(FAKE_MODULE_ID, MockModuleExecuteMsg {})
+                    mods.execute(FAKE_MODULE_ID, MockModuleExecuteMsg {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -155,7 +143,7 @@ mod tests {
 
             let mods = app.apps(deps.as_ref());
 
-            let res = mods.request(TEST_MODULE_ID, MockModuleExecuteMsg {});
+            let res = mods.execute(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
             let expected_msg: app::ExecuteMsg<_, Empty> =
                 app::ExecuteMsg::Module(MockModuleExecuteMsg {});
@@ -163,59 +151,6 @@ mod tests {
             assert_that!(res)
                 .is_ok()
                 .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: TEST_MODULE_ADDRESS.into(),
-                    msg: to_json_binary(&expected_msg).unwrap(),
-                    funds: vec![],
-                }));
-        }
-    }
-
-    mod app_configure {
-        use super::*;
-        use crate::core::app;
-
-        #[test]
-        fn should_return_err_if_not_dependency() {
-            fail_when_not_dependency_test(
-                |app, deps| {
-                    let mods = app.apps(deps);
-                    mods.configure(
-                        FAKE_MODULE_ID,
-                        app::BaseExecuteMsg::UpdateConfig {
-                            ans_host_address: None,
-                            version_control_address: None,
-                        },
-                    )
-                },
-                FAKE_MODULE_ID,
-            );
-        }
-
-        #[test]
-        fn expected_configure_msg() {
-            let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::mock_querier();
-            let app = MockModule::new();
-
-            let mods = app.apps(deps.as_ref());
-
-            let res = mods.configure(
-                TEST_MODULE_ID,
-                app::BaseExecuteMsg::UpdateConfig {
-                    ans_host_address: Some("new_ans_addr".to_string()),
-                    version_control_address: Some("new_vc_addr".to_string()),
-                },
-            );
-
-            let expected_msg: app::ExecuteMsg<Empty, Empty> =
-                app::ExecuteMsg::Base(app::BaseExecuteMsg::UpdateConfig {
-                    ans_host_address: Some("new_ans_addr".to_string()),
-                    version_control_address: Some("new_vc_addr".to_string()),
-                });
-
-            assert_that!(res)
-                .is_ok()
-                .is_equal_to::<CosmosMsg>(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_json_binary(&expected_msg).unwrap(),
                     funds: vec![],

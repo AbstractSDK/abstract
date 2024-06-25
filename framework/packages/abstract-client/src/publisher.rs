@@ -2,8 +2,10 @@
 //!
 //! [`Publisher`] is an Account with helpers for publishing and maintaining Abstract Applications and Adapters
 
-use abstract_core::objects::{gov_type::GovernanceDetails, namespace::Namespace};
-use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule};
+use abstract_interface::{
+    AdapterDeployer, AppDeployer, DeployStrategy, RegisteredModule, StandaloneDeployer,
+};
+use abstract_std::objects::{gov_type::GovernanceDetails, namespace::Namespace, AssetEntry};
 use cw_orch::{
     contract::Contract,
     prelude::{ContractInstance, CwEnv},
@@ -106,6 +108,21 @@ impl<Chain: CwEnv> Publisher<Chain> {
     /// Publish an Abstract App
     pub fn publish_app<
         M: ContractInstance<Chain> + RegisteredModule + From<Contract<Chain>> + AppDeployer<Chain>,
+    >(
+        &self,
+    ) -> AbstractClientResult<()> {
+        let contract = Contract::new(M::module_id().to_owned(), self.account.environment());
+        let app: M = contract.into();
+        app.deploy(M::module_version().parse()?, DeployStrategy::Try)
+            .map_err(Into::into)
+    }
+
+    /// Publish an Abstract Standalone
+    pub fn publish_standalone<
+        M: ContractInstance<Chain>
+            + RegisteredModule
+            + From<Contract<Chain>>
+            + StandaloneDeployer<Chain>,
     >(
         &self,
     ) -> AbstractClientResult<()> {

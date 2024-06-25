@@ -1,20 +1,24 @@
 use crate::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
-use abstract_client::{AbstractClient, Environment};
-use abstract_core::{
+use abstract_adapter::abstract_interface::{AdapterDeployer, DeployStrategy, VCExecFns};
+use abstract_adapter::std::{
     adapter,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         AnsAsset, AssetEntry,
     },
 };
-use abstract_interface::{AdapterDeployer, DeployStrategy, VCExecFns};
+use abstract_client::{AbstractClient, Environment};
 use abstract_staking_standard::msg::{
     RewardTokensResponse, StakeResponse, StakingAction, StakingExecuteMsg, StakingInfoResponse,
     StakingQueryMsg, StakingTarget,
 };
 use cosmwasm_std::Uint128;
 use cw_asset::AssetInfoUnchecked;
-use cw_orch::{anyhow, environment::MutCwEnv, prelude::*};
+use cw_orch::{environment::MutCwEnv, prelude::*};
+
+// TODO: beta clippy trips here, try again later
+#[allow(unused_imports)]
+use cw_orch::anyhow;
 
 pub trait MockStaking {
     /// Name of the staking provider
@@ -82,8 +86,6 @@ impl<Chain: MutCwEnv, StakingProvider: MockStaking> StakingTester<Chain, Staking
         let stake_value = 1_000_000_000u128;
 
         self.provider.mint_lp(&proxy_addr, stake_value)?;
-
-        // TODO: unbonding period
 
         // stake 1_000_000_000
         self.staking_adapter.execute(

@@ -62,6 +62,12 @@ impl<'a> Default for Oracle<'a> {
     }
 }
 
+impl Default for Oracle<'_> {
+    fn default() -> Self {
+        Oracle::new()
+    }
+}
+
 impl<'a> Oracle<'a> {
     /// Get Oracle object
     pub const fn new(user: &'a str) -> Self {
@@ -592,11 +598,19 @@ pub struct TotalValue {
 mod tests {
     use super::*;
 
+<<<<<<<< HEAD:modules/contracts/adapters/oracle/src/state.rs
     use abstract_core::objects::DexAssetPairing;
     use abstract_testing::{prelude::*, MockAnsHost};
     use cosmwasm_std::{coin, testing::*, Addr, Decimal, StdResult};
     use speculoos::prelude::*;
 
+========
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{coin, testing::*, Decimal};
+    use speculoos::prelude::*;
+
+    use crate::objects::DexAssetPairing;
+>>>>>>>> origin/main:framework/packages/abstract-std/src/objects/oracle.rs
     type AResult = anyhow::Result<()>;
 
     pub fn get_ans() -> AnsHost {

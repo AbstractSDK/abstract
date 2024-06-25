@@ -1,4 +1,4 @@
-use abstract_sdk::core::PROXY;
+use abstract_sdk::std::PROXY;
 
 use crate::error::ManagerError;
 

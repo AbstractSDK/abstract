@@ -1,6 +1,9 @@
-use abstract_core::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
-use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
+use abstract_sdk::{
+    base::{ModuleIbcEndpoint, ReceiveEndpoint},
+    features::AbstractResponse,
+};
+use abstract_std::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -13,7 +16,7 @@ impl<
         Error: From<cosmwasm_std::StdError>
             + From<AppError>
             + From<abstract_sdk::AbstractSdkError>
-            + From<abstract_core::AbstractError>
+            + From<abstract_std::AbstractError>
             + 'static,
         CustomInitMsg,
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
@@ -48,8 +51,7 @@ impl<
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
             ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
-            #[allow(unreachable_patterns)]
-            _ => Err(StdError::generic_err("Unsupported App execute message variant").into()),
+            ExecuteMsg::ModuleIbc(msg) => self.module_ibc(deps, env, info, msg),
         }
     }
 }
@@ -118,18 +120,14 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use abstract_core::app::BaseExecuteMsg;
-    use abstract_sdk::base::ExecuteEndpoint;
-    use abstract_testing::prelude::*;
-    use cosmwasm_std::{
-        testing::{mock_env, mock_info},
-        Addr, DepsMut, Response,
-    };
-    use cw_controllers::AdminError;
-    use speculoos::prelude::*;
-
     use super::ExecuteMsg as SuperExecuteMsg;
     use crate::{mock::*, AppError};
+    use abstract_sdk::base::ExecuteEndpoint;
+    use abstract_std::app::BaseExecuteMsg;
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{Addr, DepsMut, Response};
+    use cw_controllers::AdminError;
+    use speculoos::prelude::*;
 
     type AppExecuteMsg = SuperExecuteMsg<MockExecMsg, MockReceiveMsg>;
 

@@ -1,4 +1,4 @@
-use abstract_core::AbstractError;
+use abstract_std::AbstractError;
 use cosmwasm_std::StdError;
 use cw_orch::prelude::CwOrchError;
 use thiserror::Error;
@@ -10,6 +10,10 @@ pub enum AbstractInterfaceError {
 
     #[error(transparent)]
     Orch(#[from] CwOrchError),
+
+    #[cfg(feature = "interchain")]
+    #[error(transparent)]
+    OrchInterchain(#[from] cw_orch_interchain::InterchainError),
 
     #[error("JSON Conversion Error: {0}")]
     SerdeJson(#[from] ::serde_json::Error),
@@ -23,6 +27,15 @@ pub enum AbstractInterfaceError {
 
     #[error("Abstract is not deployed on this chain")]
     NotDeployed {},
+
+    #[error("Module Not Found {0}")]
+    ModuleNotFound(String),
+
+    #[error("No need to update {0}")]
+    NotUpdated(String),
+
+    #[error(transparent)]
+    Semver(#[from] cw_semver::Error),
 }
 
 impl AbstractInterfaceError {

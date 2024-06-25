@@ -1,7 +1,7 @@
 //! # Represents Abstract Client Errors
 
-use abstract_core::{objects::validation::ValidationError, AbstractError};
 use abstract_interface::AbstractInterfaceError;
+use abstract_std::{objects::validation::ValidationError, AbstractError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -37,4 +37,16 @@ pub enum AbstractClientError {
 
     #[error("Account creation auto_fund assertion failed with required funds: {0:?}")]
     AutoFundsAssertFailed(Vec<cosmwasm_std::Coin>),
+
+    #[cfg(feature = "interchain")]
+    #[error("Remote account of {account_id} not found on {chain} in {ibc_client_addr}")]
+    RemoteAccountNotFound {
+        account_id: abstract_std::objects::AccountId,
+        chain: abstract_std::objects::chain_name::ChainName,
+        ibc_client_addr: cosmwasm_std::Addr,
+    },
+
+    #[cfg(feature = "interchain")]
+    #[error("{0}")]
+    InterchainError(#[from] cw_orch_interchain::InterchainError),
 }

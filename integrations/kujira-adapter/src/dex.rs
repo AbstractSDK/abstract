@@ -1,14 +1,16 @@
 use abstract_dex_standard::Identify;
 
-use crate::{AVAILABLE_CHAINS, KUJIRA};
+use crate::AVAILABLE_CHAINS;
+
+pub const FIN: &str = "fin";
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
-pub struct Kujira {}
+pub struct Fin {}
 
-impl Identify for Kujira {
+impl Identify for Fin {
     fn name(&self) -> &'static str {
-        KUJIRA
+        FIN
     }
     fn is_available_on(&self, chain_name: &str) -> bool {
         AVAILABLE_CHAINS.contains(&chain_name)
@@ -20,7 +22,7 @@ use ::{
     abstract_dex_standard::{
         coins_in_assets, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
-    abstract_sdk::core::objects::PoolAddress,
+    abstract_sdk::std::objects::PoolAddress,
     cosmwasm_std::{
         wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult,
         Uint128,
@@ -36,7 +38,7 @@ use ::{
 };
 
 #[cfg(feature = "full_integration")]
-impl DexCommand for Kujira {
+impl DexCommand for Fin {
     fn swap(
         &self,
         _deps: Deps,
@@ -318,7 +320,7 @@ mod tests {
     use std::{assert_eq, str::FromStr};
 
     use abstract_dex_standard::tests::{expect_eq, DexCommandTester};
-    use abstract_sdk::core::objects::PoolAddress;
+    use abstract_sdk::std::objects::PoolAddress;
     use cosmwasm_schema::serde::Deserialize;
     use cosmwasm_std::{
         coin, coins, from_json, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, WasmMsg,
@@ -327,10 +329,10 @@ mod tests {
     use cw_orch::daemon::networks::HARPOON_4;
     use kujira::{bow, fin};
 
-    use super::{decimal2decimal256, Kujira};
+    use super::{decimal2decimal256, Fin};
 
     fn create_setup() -> DexCommandTester {
-        DexCommandTester::new(HARPOON_4.into(), Kujira {})
+        DexCommandTester::new(HARPOON_4.into(), Fin {})
     }
 
     const POOL_CONTRACT: &str = "kujira19kxd9sqk09zlzqfykk7tzyf70hl009hkekufq8q0ud90ejtqvvxs8xg5cq";

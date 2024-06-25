@@ -28,7 +28,7 @@
 //!                         name: ETF.into(),
 //!                         version: None,
 //!                     },
-//!                     kind: crate::core::modules::ModuleKind::External,
+//!                     kind: crate::std::modules::ModuleKind::External,
 //!                 },
 //!                 init_msg: Some(to_json_binary(&etf_init_msg).unwrap()),
 //!        };
@@ -63,11 +63,10 @@ pub struct EtfInstantiateMsg {
 
 /// Execute Msg
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
+#[derive(cw_orch::ExecuteFns)]
 pub enum EtfExecuteMsg {
     /// Deposit asset into the ETF
-    #[cfg_attr(feature = "interface", payable)]
+    #[cw_orch(payable)]
     Deposit {
         /// Asset to deposit
         asset: AssetUnchecked,
@@ -81,9 +80,7 @@ pub enum EtfExecuteMsg {
 
 /// Query Msg
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
-#[derive(QueryResponses)]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum EtfQueryMsg {
     // Add dapp-specific queries here
     /// Returns [`StateResponse`]

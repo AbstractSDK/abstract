@@ -1,12 +1,14 @@
-use abstract_sdk::core::objects::LpToken;
+use abstract_sdk::std::objects::LpToken;
 use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
-use crate::{AVAILABLE_CHAINS, KUJIRA};
+use crate::AVAILABLE_CHAINS;
+
+pub const BOW: &str = "bow";
 
 // TODO: use optional values here?
 #[derive(Clone, Debug, Default)]
-pub struct Kujira {
+pub struct Bow {
     pub tokens: Vec<KujiraTokenContext>,
 }
 
@@ -17,9 +19,9 @@ pub struct KujiraTokenContext {
     pub staking_contract_address: Addr,
 }
 
-impl Identify for Kujira {
+impl Identify for Bow {
     fn name(&self) -> &'static str {
-        KUJIRA
+        BOW
     }
     fn is_available_on(&self, chain_name: &str) -> bool {
         AVAILABLE_CHAINS.contains(&chain_name)
@@ -29,8 +31,8 @@ impl Identify for Kujira {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
-        core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
+        std::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         Resolve,
     },
     abstract_staking_standard::msg::{
@@ -43,7 +45,7 @@ use ::{
 };
 
 #[cfg(feature = "full_integration")]
-impl CwStakingCommand for Kujira {
+impl CwStakingCommand for Bow {
     fn fetch_data(
         &mut self,
         deps: Deps,
@@ -260,8 +262,8 @@ impl CwStakingCommand for Kujira {
 }
 
 #[cfg(feature = "full_integration")]
-impl abstract_sdk::features::ModuleIdentification for Kujira {
-    fn module_id(&self) -> abstract_sdk::core::objects::module::ModuleId<'static> {
+impl abstract_sdk::features::ModuleIdentification for Bow {
+    fn module_id(&self) -> abstract_sdk::std::objects::module::ModuleId<'static> {
         abstract_staking_standard::CW_STAKING_ADAPTER_ID
     }
 }

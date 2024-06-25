@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use abstract_core::{
+use abstract_std::{
     ibc_client::{
         state::{Config, ACCOUNTS, CONFIG, IBC_INFRA},
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
@@ -34,7 +34,7 @@ pub fn list_accounts(
 
     let accounts: Vec<(
         AccountId,
-        abstract_core::objects::chain_name::ChainName,
+        abstract_std::objects::chain_name::ChainName,
         String,
     )> = cw_paginate::paginate_map(
         &ACCOUNTS,
@@ -54,18 +54,16 @@ pub fn list_proxies_by_account_id(
     deps: Deps,
     account_id: AccountId,
 ) -> IbcClientResult<ListRemoteProxiesResponse> {
-    let proxies: Vec<(
-        abstract_core::objects::chain_name::ChainName,
-        Option<String>,
-    )> = cw_paginate::paginate_map_prefix(
-        &ACCOUNTS,
-        deps.storage,
-        (account_id.trace(), account_id.seq()),
-        // Not using pagination as there are not a lot of chains.
-        None,
-        None,
-        |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
-    )?;
+    let proxies: Vec<(abstract_std::objects::chain_name::ChainName, Option<String>)> =
+        cw_paginate::paginate_map_prefix(
+            &ACCOUNTS,
+            deps.storage,
+            (account_id.trace(), account_id.seq()),
+            // Not using pagination as there are not a lot of chains.
+            None,
+            None,
+            |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
+        )?;
 
     Ok(ListRemoteProxiesResponse { proxies })
 }
@@ -108,8 +106,9 @@ pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
 }
 
 /// Returns the remote-host and polytone proxy addresses (useful for registering the proxy on the host)
-pub fn host(deps: Deps, host_chain: String) -> IbcClientResult<HostResponse> {
-    let host_chain = ChainName::from_str(&host_chain)?;
+pub fn host(deps: Deps, host_chain: ChainName) -> IbcClientResult<HostResponse> {
+    host_chain.verify()?;
+
     let ibc_counterpart = IBC_INFRA.load(deps.storage, &host_chain)?;
     let remote_host = ibc_counterpart.remote_abstract_host;
     let remote_polytone_proxy = ibc_counterpart.remote_proxy;
@@ -121,11 +120,12 @@ pub fn host(deps: Deps, host_chain: String) -> IbcClientResult<HostResponse> {
 
 pub fn account(
     deps: Deps,
-    host_chain: String,
+    host_chain: ChainName,
     account_id: AccountId,
 ) -> IbcClientResult<AccountResponse> {
-    let host_chain = ChainName::from_str(&host_chain)?;
-    let remote_proxy_addr = ACCOUNTS.load(
+    host_chain.verify()?;
+
+    let remote_proxy_addr = ACCOUNTS.may_load(
         deps.storage,
         (account_id.trace(), account_id.seq(), &host_chain),
     )?;

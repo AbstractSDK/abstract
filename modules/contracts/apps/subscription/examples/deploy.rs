@@ -1,10 +1,9 @@
-use abstract_interface::*;
+use abstract_app::abstract_interface::*;
 use abstract_subscription::contract::{interface::SubscriptionInterface, SUBSCRIPTION_ID};
 use clap::Parser;
 use cw_orch::{
     anyhow,
-    daemon::ChainInfo,
-    prelude::{networks::parse_network, DaemonBuilder},
+    prelude::{networks::parse_network, *},
     tokio::runtime::Runtime,
 };
 use dotenv::dotenv;

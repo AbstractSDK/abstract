@@ -1,5 +1,8 @@
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
-use abstract_core::{
+use abstract_integration_tests::*;
+use abstract_interface::*;
+use abstract_manager::{contract::CONTRACT_VERSION, error::ManagerError};
+use abstract_std::{
     manager::{InfoResponse, ManagerModuleInfo, ModuleInstallConfig, ModuleVersionsResponse},
     objects::{
         fee::FixedFee,
@@ -12,11 +15,8 @@ use abstract_core::{
     version_control::{NamespaceResponse, UpdateModule},
     PROXY,
 };
-use abstract_integration_tests::{create_default_account, mock_modules, AResult, *};
-use abstract_interface::*;
-use abstract_manager::{contract::CONTRACT_VERSION, error::ManagerError};
 use abstract_testing::prelude::*;
-use cosmwasm_std::{coin, to_json_binary, Coin, CosmosMsg};
+use cosmwasm_std::{coin, CosmosMsg};
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
@@ -41,7 +41,7 @@ fn instantiate() -> AResult {
     });
 
     // assert manager config
-    assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
+    assert_that!(account.manager.config()?).is_equal_to(abstract_std::manager::ConfigResponse {
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         account_id: TEST_ACCOUNT_ID,
@@ -55,24 +55,24 @@ fn instantiate() -> AResult {
 fn exec_through_manager() -> AResult {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
+    // This testing environments allows you to use simple deploy contraptions:
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
-    // mint coins to proxy address
+    // Mint coins to proxy address
     chain.set_balance(&account.proxy.address()?, vec![Coin::new(100_000, TTOKEN)])?;
 
-    // burn coins from proxy
     let proxy_balance = chain
-        .app
-        .borrow()
-        .wrap()
-        .query_all_balances(account.proxy.address()?)?;
+        .bank_querier()
+        .balance(account.proxy.address()?, None)?;
+
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000, TTOKEN)]);
 
-    let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TTOKEN)];
+    let burn_amount = vec![Coin::new(10_000, TTOKEN)];
 
+    // Burn coins from proxy
     account.manager.exec_on_module(
-        cosmwasm_std::to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+        cosmwasm_std::to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
             })],
@@ -81,11 +81,10 @@ fn exec_through_manager() -> AResult {
         &[],
     )?;
 
+    // Assert balance has decreased
     let proxy_balance = chain
-        .app
-        .borrow()
-        .wrap()
-        .query_all_balances(account.proxy.address()?)?;
+        .bank_querier()
+        .balance(account.proxy.address()?, None)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TTOKEN)]);
     take_storage_snapshot!(chain, "exec_through_manager");
 
@@ -106,7 +105,7 @@ fn default_without_response_data() -> AResult {
 
     let resp = account.manager.execute_on_module(
         TEST_MODULE_ID,
-        Into::<abstract_core::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
+        Into::<abstract_std::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg {}),
     )?;
     assert_that!(resp.data).is_none();
     take_storage_snapshot!(chain, "default_without_response_data");
@@ -205,7 +204,7 @@ fn install_standalone_versions_not_met() -> AResult {
         let err: ManagerError = err.downcast()?;
         assert_eq!(
             err,
-            ManagerError::Abstract(abstract_core::AbstractError::UnequalModuleData {
+            ManagerError::Abstract(abstract_std::AbstractError::UnequalModuleData {
                 cw2: mock_modules::V1.to_owned(),
                 module: mock_modules::V2.to_owned(),
             })
@@ -402,5 +401,48 @@ fn renounce_cleans_namespace() -> AResult {
 
     let account_owner = account.manager.ownership()?;
     assert!(account_owner.owner.is_none());
+    Ok(())
+}
+
+#[test]
+fn can_take_any_last_two_billion_accounts() -> AResult {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    deployment.account_factory.create_new_account(
+        AccountDetails {
+            name: "foo".to_string(),
+            description: None,
+            link: None,
+            namespace: Some("bar".to_owned()),
+            base_asset: None,
+            install_modules: vec![],
+            account_id: Some(2147483648),
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+
+    let already_exists = deployment.account_factory.create_new_account(
+        AccountDetails {
+            name: "foo".to_string(),
+            description: None,
+            link: None,
+            namespace: Some("bar".to_owned()),
+            base_asset: None,
+            install_modules: vec![],
+            // same id
+            account_id: Some(2147483648),
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    );
+
+    assert!(already_exists.is_err());
     Ok(())
 }

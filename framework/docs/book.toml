@@ -13,7 +13,7 @@ create-missing = false
 
 [preprocessor.admonish]
 command = "mdbook-admonish"
-assets_version = "2.0.1"    # do not edit: managed by `mdbook-admonish install`
+assets_version = "3.0.2" # do not edit: managed by `mdbook-admonish install`
 
 [preprocessor.mermaid]
 command = "mdbook-mermaid"
@@ -32,7 +32,3 @@ edit-url-template = "https://github.com/AbstractSDK/abstract/edit/main/framework
 fold.enable = true
 no-section-label = true
 # [output.linkcheck]
-
-[output.html.search]
-enable = true            # enables the search feature
-copy-js = false           # include Javascript code for search

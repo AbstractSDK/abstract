@@ -29,13 +29,14 @@ jobs:
 
       - name: Setup | Rust
         id: rustup
-        uses: ATiltedTree/setup-rust@v1
-        with:
-          rust-version: stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Setup | Just
         id: just
         uses: extractions/setup-just@v1
+
+      - name: Install static-sitemap-cli
+        run: npm install static-sitemap-cli
 
       - name: Install dependencies 🔧
         working-directory: ./framework
@@ -43,6 +44,11 @@ jobs:
       - name: Build 🏗️
         working-directory: ./framework
         run: just docs-build
+
+      - name: Generate sitemap
+        run: |
+          cd framework/docs/book
+          npx sscli --no-clean --base https://docs.abstract.money
 
       - name: Upload artifact
         if: ${{ github.event_name != 'pull_request' }}

@@ -21,10 +21,13 @@
 //! ```
 use std::fmt::{Debug, Display};
 
-use abstract_core::{
-    ibc_client,
+use abstract_interface::{
+    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
+    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
+};
+use abstract_std::{
     manager::{
-        state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
+        self, state::AccountInfo, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse,
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
@@ -38,11 +41,7 @@ use abstract_core::{
     version_control::NamespaceResponse,
     PROXY,
 };
-use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, DependencyCreation,
-    InstallConfig, MFactoryQueryFns, ManagerExecFns, ManagerQueryFns, RegisteredModule, VCQueryFns,
-};
-use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
@@ -152,8 +151,10 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Create sub-account instead
+    /// And set install_on_sub_account to false to prevent installing on sub account of the sub account
     pub fn sub_account(&mut self, owner_account: &'a Account<Chain>) -> &mut Self {
         self.owner_account = Some(owner_account);
+        self.install_on_sub_account = false;
         self
     }
 
@@ -183,6 +184,19 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 
     /// Install an application with dependencies on current account.
     pub fn install_app_with_dependencies<M: DependencyCreation + InstallConfig>(
+        &mut self,
+        module_configuration: &M::InitMsg,
+        dependencies_config: M::DependenciesConfig,
+    ) -> AbstractClientResult<&mut Self> {
+        let deps_install_config = M::dependency_install_configs(dependencies_config)?;
+        self.install_modules.extend(deps_install_config);
+        self.install_modules
+            .push(M::install_config(module_configuration)?);
+        Ok(self)
+    }
+
+    /// Install an standalone with dependencies on current account.
+    pub fn install_standalone_with_dependencies<M: DependencyCreation + InstallConfig>(
         &mut self,
         module_configuration: &M::InitMsg,
         dependencies_config: M::DependenciesConfig,
@@ -226,7 +240,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
     }
 
     /// Assign expected local account_id on creation.
-    /// The tx will error if this does not match the account-id at runtime. Useful for instantiate2 address prediction.
+    /// It's designed to be used in pair with [`crate::AbstractClient::random_account_id`].
+    /// The tx will error if this account id already claimed or it's less than 2147483648. Useful for instantiate2 address prediction.
     pub fn expected_account_id(&mut self, local_account_id: u32) -> &mut Self {
         self.expected_local_account_id = Some(local_account_id);
         self
@@ -308,16 +323,15 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             install_modules,
             account_id: self.expected_local_account_id,
         };
-        let abstract_account = if let Some(owner_account) = self.owner_account {
-            owner_account
-                .abstr_account
-                .create_sub_account(account_details, Some(&funds))?
-        } else {
-            self.abstr.account_factory.create_new_account(
+        let abstract_account = match self.owner_account {
+            None => self.abstr.account_factory.create_new_account(
                 account_details,
                 ownership,
                 Some(&funds),
-            )?
+            )?,
+            Some(owner_account) => owner_account
+                .abstr_account
+                .create_sub_account(account_details, Some(&funds))?,
         };
         Ok(Account::new(abstract_account, self.install_on_sub_account))
     }
@@ -326,7 +340,7 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
 /// Represents an existing Abstract account.
 ///
 /// Get this struct from [`AbstractClient::account_from_namespace`](crate::AbstractClient)
-/// or create a new account with the [`AccountBuilder`].
+/// or create a new account with the [`AccountBuilder`](crate::AbstractClient::account_builder).
 #[derive(Clone)]
 pub struct Account<Chain: CwEnv> {
     pub(crate) abstr_account: AbstractAccount<Chain>,
@@ -424,6 +438,21 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
+    /// Install an standalone on the account.
+    /// if `install_on_sub_account` is `true`, the application will be installed on new a sub-account. (default)
+    pub fn install_standalone<M: InstallConfig + From<Contract<Chain>>>(
+        &self,
+        configuration: &M::InitMsg,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let modules = vec![M::install_config(configuration)?];
+
+        match self.install_on_sub_account {
+            true => self.install_module_sub_internal(modules, funds),
+            false => self.install_module_current_internal(modules, funds),
+        }
+    }
+
     /// Install an adapter on current account.
     pub fn install_adapter<M: InstallConfig<InitMsg = Empty> + From<Contract<Chain>>>(
         &self,
@@ -459,27 +488,51 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
+    /// Creates a new sub-account on the current account and
+    /// installs an Standalone module and its dependencies with the provided dependencies config. \
+    ///
+    /// The returned [`Application`] is a wrapper around the sub-account and simplifies interaction with the Standalone module.
+    pub fn install_standalone_with_dependencies<
+        M: DependencyCreation + InstallConfig + From<Contract<Chain>>,
+    >(
+        &self,
+        module_configuration: &M::InitMsg,
+        dependencies_config: M::DependenciesConfig,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Application<Chain, M>> {
+        let mut install_configs: Vec<ModuleInstallConfig> =
+            M::dependency_install_configs(dependencies_config)?;
+        install_configs.push(M::install_config(module_configuration)?);
+
+        match self.install_on_sub_account {
+            true => self.install_module_sub_internal(install_configs, funds),
+            false => self.install_module_current_internal(install_configs, funds),
+        }
+    }
+
     /// Upgrades the account to the latest version
     ///
     /// Migrates manager and proxy contracts to their respective new versions.
-    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<()> {
-        self.abstr_account.manager.upgrade(vec![
-            (
-                ModuleInfo::from_id(abstract_core::registry::MANAGER, version.clone())?,
-                Some(
-                    to_json_binary(&abstract_core::manager::MigrateMsg {})
-                        .map_err(Into::<CwOrchError>::into)?,
+    pub fn upgrade(&self, version: ModuleVersion) -> AbstractClientResult<Chain::Response> {
+        self.abstr_account
+            .manager
+            .upgrade(vec![
+                (
+                    ModuleInfo::from_id(abstract_std::registry::MANAGER, version.clone())?,
+                    Some(
+                        to_json_binary(&abstract_std::manager::MigrateMsg {})
+                            .map_err(Into::<CwOrchError>::into)?,
+                    ),
                 ),
-            ),
-            (
-                ModuleInfo::from_id(abstract_core::registry::PROXY, version)?,
-                Some(
-                    to_json_binary(&abstract_core::proxy::MigrateMsg {})
-                        .map_err(Into::<CwOrchError>::into)?,
+                (
+                    ModuleInfo::from_id(abstract_std::registry::PROXY, version)?,
+                    Some(
+                        to_json_binary(&abstract_std::proxy::MigrateMsg {})
+                            .map_err(Into::<CwOrchError>::into)?,
+                    ),
                 ),
-            ),
-        ])?;
-        Ok(())
+            ])
+            .map_err(Into::into)
     }
 
     /// Returns owner of the account
@@ -498,10 +551,7 @@ impl<Chain: CwEnv> Account<Chain> {
             match &governance {
                 GovernanceDetails::SubAccount { manager, .. } => {
                     governance = environment
-                        .query::<_, InfoResponse>(
-                            &abstract_core::manager::QueryMsg::Info {},
-                            manager,
-                        )
+                        .query::<_, InfoResponse>(&manager::QueryMsg::Info {}, manager)
                         .map_err(|err| err.into())?
                         .info
                         .governance_details;
@@ -521,53 +571,35 @@ impl<Chain: CwEnv> Account<Chain> {
         &self,
         execute_msgs: impl IntoIterator<Item = impl Into<CosmosMsg>>,
         funds: &[Coin],
-    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+    ) -> AbstractClientResult<Chain::Response> {
         let msgs = execute_msgs.into_iter().map(Into::into).collect();
+        self.execute_on_manager(
+            &manager::ExecuteMsg::ExecOnModule {
+                module_id: PROXY.to_owned(),
+                exec_msg: to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction { msgs })
+                    .map_err(AbstractInterfaceError::from)?,
+            },
+            funds,
+        )
+    }
+
+    /// Executes a [`manager::ExecuteMsg`] on the manager of the account.
+    pub fn execute_on_manager(
+        &self,
+        execute_msg: &manager::ExecuteMsg,
+        funds: &[Coin],
+    ) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .manager
-            .execute(
-                &abstract_core::manager::ExecuteMsg::ExecOnModule {
-                    module_id: PROXY.to_owned(),
-                    exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
-                        msgs,
-                    })
-                    .map_err(AbstractInterfaceError::from)?,
-                },
-                Some(funds),
-            )
+            .execute(execute_msg, Some(funds))
             .map_err(Into::into)
     }
 
     /// Set IBC status on an Account.
-    pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<()> {
-        self.abstr_account.manager.update_settings(Some(enabled))?;
-
-        Ok(())
-    }
-
-    /// Executes an ibc action on the proxy of the account
-    pub fn create_ibc_account(
-        &self,
-        host_chain: impl Into<String>,
-        namespace: Option<String>,
-        install_modules: Vec<ModuleInstallConfig>,
-    ) -> AbstractClientResult<<Chain as TxHandler>::Response> {
+    pub fn set_ibc_status(&self, enabled: bool) -> AbstractClientResult<Chain::Response> {
         self.abstr_account
             .manager
-            .execute(
-                &abstract_core::manager::ExecuteMsg::ExecOnModule {
-                    module_id: PROXY.to_owned(),
-                    exec_msg: to_json_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
-                        msgs: vec![ibc_client::ExecuteMsg::Register {
-                            host_chain: host_chain.into(),
-                            namespace,
-                            install_modules,
-                        }],
-                    })
-                    .map_err(AbstractInterfaceError::from)?,
-                },
-                None,
-            )
+            .set_ibc_status(enabled)
             .map_err(Into::into)
     }
 
@@ -660,8 +692,11 @@ impl<Chain: CwEnv> Account<Chain> {
             .install_modules(modules, Some(funds))?;
 
         let module_addr = Self::parse_modules_installing_response(install_module_response);
-        let contract = Contract::new(M::module_id().to_owned(), self.environment())
-            .with_address(Some(&module_addr));
+        let contract = Contract::new(
+            M::installed_module_contract_id(&self.id()?),
+            self.environment(),
+        );
+        contract.set_address(&module_addr);
 
         let adapter: M = contract.into();
 
@@ -696,19 +731,20 @@ impl<Chain: CwEnv> Account<Chain> {
             AccountId::local(parsed_account_creation_response.sub_account_id),
         );
 
-        let contract =
-            Contract::new(M::module_id().to_owned(), self.environment()).with_address(Some(
-                &Addr::unchecked(parsed_account_creation_response.module_address),
-            ));
+        let contract = Contract::new(
+            M::installed_module_contract_id(&sub_account.id()?),
+            self.environment(),
+        );
+        contract.set_address(&Addr::unchecked(
+            parsed_account_creation_response.module_address,
+        ));
 
         let app: M = contract.into();
 
         Application::new(Account::new(sub_account, false), app)
     }
 
-    fn parse_account_creation_response(
-        response: <Chain as TxHandler>::Response,
-    ) -> ParsedAccountCreationResponse {
+    fn parse_account_creation_response(response: Chain::Response) -> ParsedAccountCreationResponse {
         let wasm_abstract_attributes: Vec<Attribute> = response
             .events()
             .into_iter()
@@ -744,7 +780,7 @@ impl<Chain: CwEnv> Account<Chain> {
         }
     }
 
-    fn parse_modules_installing_response(response: <Chain as TxHandler>::Response) -> Addr {
+    fn parse_modules_installing_response(response: Chain::Response) -> Addr {
         let wasm_abstract_attributes: Vec<Attribute> = response
             .events()
             .into_iter()
@@ -772,16 +808,25 @@ impl<Chain: CwEnv> Account<Chain> {
         &self,
     ) -> AbstractClientResult<T> {
         let module_id = T::module_id();
+        let account_module_id = T::installed_module_contract_id(&self.id()?);
         let maybe_module_addr = self.module_addresses(vec![module_id.to_string()])?.modules;
 
         if !maybe_module_addr.is_empty() {
-            let contract = Contract::new(module_id.to_owned(), self.environment())
-                .with_address(Some(&maybe_module_addr[0].1));
+            let contract = Contract::new(account_module_id, self.environment());
+            contract.set_address(&maybe_module_addr[0].1);
             let module: T = contract.into();
             Ok(module)
         } else {
             Err(AbstractClientError::ModuleNotInstalled {})
         }
+    }
+
+    /// Claim a namespace for an existing account
+    pub fn claim_namespace(
+        &self,
+        namespace: impl Into<String>,
+    ) -> Result<Chain::Response, AbstractInterfaceError> {
+        self.abstr_account.claim_namespace(namespace)
     }
 }
 
@@ -811,6 +856,44 @@ impl<Chain: CwEnv> Display for Account<Chain> {
 
 impl<Chain: CwEnv> Debug for Account<Chain> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.abstr_account)
+        <Self as Display>::fmt(self, f)
+        // TODO:
+        // write!(f, "{:?}", self.abstr_account)
+    }
+}
+
+#[cfg(test)]
+pub mod test {
+    use abstract_interface::{Abstract, VCQueryFns};
+    use abstract_std::objects::namespace::Namespace;
+    use cw_orch::{contract::Deploy, mock::MockBech32};
+
+    use crate::AbstractClient;
+
+    #[test]
+    fn namespace_after_creation() -> cw_orch::anyhow::Result<()> {
+        let mock = MockBech32::new("mock");
+        let abstr = AbstractClient::builder(mock.clone()).build()?;
+
+        let my_namespace = "my-namespace";
+        let new_account = abstr.account_builder().build()?;
+        new_account.claim_namespace(my_namespace)?;
+
+        // Verify the namespace exists
+        let abstr = Abstract::load_from(mock.clone())?;
+        let namespace_response = abstr
+            .version_control
+            .namespace(Namespace::new(my_namespace)?)?;
+
+        match namespace_response {
+            abstract_std::version_control::NamespaceResponse::Claimed(c) => {
+                assert_eq!(c.account_id, new_account.id()?)
+            }
+            abstract_std::version_control::NamespaceResponse::Unclaimed {} => {
+                panic!("Expected claimed namespace")
+            }
+        }
+
+        Ok(())
     }
 }

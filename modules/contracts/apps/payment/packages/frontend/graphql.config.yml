@@ -1,8 +1,0 @@
-schema: __generated__/schema.graphql
-extensions:
-  endpoints:
-    Default GraphQL Endpoint:
-      url: https://abstract-subgraph-0-17.fly.dev
-      headers:
-        user-agent: JS GraphQL
-      introspect: true

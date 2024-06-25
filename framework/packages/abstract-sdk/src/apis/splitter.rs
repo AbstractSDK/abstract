@@ -1,20 +1,23 @@
 #![allow(unused)]
-use abstract_core::objects::AnsAsset;
+use abstract_std::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
 
 use super::{AbstractApi, ApiIdentification};
-use crate::{features::ModuleIdentification, AbstractSdkResult, AccountAction, TransferInterface};
+use crate::{
+    features::{AccountExecutor, ModuleIdentification},
+    AbstractSdkResult, AccountAction, TransferInterface,
+};
 // ANCHOR: splitter
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
-pub trait SplitterInterface: TransferInterface + ModuleIdentification {
+pub trait SplitterInterface: TransferInterface + AccountExecutor + ModuleIdentification {
     fn splitter<'a>(&'a self, deps: Deps<'a>) -> Splitter<Self> {
         Splitter { base: self, deps }
     }
 }
 
 // Implement for every object that can transfer funds
-impl<T> SplitterInterface for T where T: TransferInterface + ModuleIdentification {}
+impl<T> SplitterInterface for T where T: TransferInterface + AccountExecutor + ModuleIdentification {}
 
 impl<'a, T: SplitterInterface> AbstractApi<T> for Splitter<'a, T> {
     fn base(&self) -> &T {
@@ -70,7 +73,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 
 #[cfg(test)]
 mod test {
-    use abstract_core::objects::AnsAsset;
+    use abstract_std::objects::AnsAsset;
     use cosmwasm_std::{testing::mock_dependencies, Addr, CosmosMsg, Response, StdError, Uint128};
 
     use crate::{

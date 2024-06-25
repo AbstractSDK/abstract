@@ -51,7 +51,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns the admin.",
+          "description": "Returns the admin. Returns [`AdminResponse`]",
           "type": "object",
           "required": [
             "base_admin"
@@ -65,7 +65,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns module data",
+          "description": "Returns module data Returns [`ModuleDataResponse`]",
           "type": "object",
           "required": [
             "module_data"
@@ -79,7 +79,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns top level owner",
+          "description": "Returns top level owner Returns [`TopLevelOwnerResponse`]",
           "type": "object",
           "required": [
             "top_level_owner"
@@ -98,7 +98,7 @@
       "description": "Challenge query messages",
       "oneOf": [
         {
-          "description": "Get challenge info, will return null if there was no challenge by Id",
+          "description": "Get challenge info, will return null if there was no challenge by Id Returns [`ChallengeResponse`]",
           "type": "object",
           "required": [
             "challenge"
@@ -123,7 +123,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get list of challenges",
+          "description": "Get list of challenges Returns [`ChallengesResponse`]",
           "type": "object",
           "required": [
             "challenges"
@@ -157,7 +157,7 @@
           "additionalProperties": false
         },
         {
-          "description": "List of friends by Id",
+          "description": "List of friends by Id Returns [`FriendsResponse`]",
           "type": "object",
           "required": [
             "friends"
@@ -182,7 +182,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get vote of friend",
+          "description": "Get vote of friend Returns [`VoteResponse`]",
           "type": "object",
           "required": [
             "vote"
@@ -221,7 +221,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get votes of challenge",
+          "description": "Get votes of challenge Returns [`VotesResponse`]",
           "type": "object",
           "required": [
             "votes"
@@ -275,7 +275,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Get results of previous votes for this challenge",
+          "description": "Get results of previous votes for this challenge Returns [`ProposalsResponse`]",
           "type": "object",
           "required": [
             "proposals"

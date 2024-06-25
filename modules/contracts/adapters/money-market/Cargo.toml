@@ -1,0 +1,100 @@
+[package]
+name = "abstract-money-market-adapter"
+description = "The MoneyMarket adapter is an Abstract adapter for interacting with usual MoneyMarket commands. It provides a common interface for all MoneyMarkets"
+
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+
+exclude = ["contract.wasm", "hash.txt"]
+resolver = "2"
+
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[example]]
+name = "deploy"
+
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
+[features]
+default = ["export"]
+export = []
+schema = ["abstract-adapter/schema"]
+testing = ["dep:abstract-client", "dep:cw20"]
+
+# Supported Moneymarkets
+mars = ["abstract-mars-adapter/full_integration"]
+cavern = ["abstract-cavern-adapter/full_integration"]
+ghost = ["abstract-kujira-adapter/full_integration"]
+
+osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
+
+# Builds
+[package.metadata.optimizer]
+builds = [
+  { name = "osmosis", features = [
+    "mars",
+  ] },
+  { name = "terra2", features = [
+    "cavern",
+  ] },
+  { name = "kujira", features = [
+    "ghost",
+  ] },
+]
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+schemars = { workspace = true }
+cw20 = { workspace = true, optional = true }
+thiserror = { workspace = true }
+cw-asset = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-storage-plus = { workspace = true }
+
+abstract-adapter = { workspace = true }
+cw-orch = { workspace = true }
+cw-orch-osmosis-test-tube = { workspace = true, optional = true }
+
+# Local
+abstract-money-market-standard = { workspace = true }
+abstract-adapter-utils = { workspace = true }
+
+# Kujira #
+abstract-kujira-adapter = { workspace = true }
+
+# Cavern #
+abstract-cavern-adapter = { workspace = true }
+
+# Mars #
+abstract-mars-adapter = { workspace = true }
+
+# Testing #
+abstract-client = { workspace = true, optional = true }
+
+[dev-dependencies]
+abstract-interface = { workspace = true, features = ["daemon"] }
+tokio = { workspace = true }
+semver = { workspace = true }
+anyhow = { workspace = true }
+speculoos = { workspace = true }
+dotenv = "0.15.0"
+env_logger = "0.10.0"
+clap = { workspace = true }
+wyndex-bundle = { workspace = true }
+abstract-adapter = { workspace = true, features = ["test-utils"] }
+money-market = { path = ".", features = [
+  "mars",
+  "ghost",
+], package = "abstract-money-market-adapter" }
+
+abstract-wyndex-adapter = { workspace = true, features = ["local"] }
+
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
+cw-utils = { workspace = true }

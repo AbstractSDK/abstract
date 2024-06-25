@@ -1,5 +1,5 @@
-use abstract_core::objects::{AnsAsset, AssetEntry, DexName};
-use abstract_sdk::cw_helpers::Clearable;
+use abstract_app::sdk::cw_helpers::Clearable;
+use abstract_app::std::objects::{AnsAsset, AssetEntry, DexName};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
@@ -27,10 +27,9 @@ pub struct AppInstantiateMsg {
 
 /// PaymentApp execute messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
+#[derive(cw_orch::ExecuteFns)]
 pub enum AppExecuteMsg {
-    #[cfg_attr(feature = "interface", payable)]
+    #[cw_orch(payable)]
     Tip {},
     UpdateConfig {
         desired_asset: Option<Clearable<AssetEntry>>,
@@ -40,9 +39,7 @@ pub enum AppExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
-#[derive(QueryResponses)]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum AppQueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
@@ -67,7 +64,7 @@ pub enum AppQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum AppMigrateMsg {}
+pub struct AppMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct Cw20TipMsg {}

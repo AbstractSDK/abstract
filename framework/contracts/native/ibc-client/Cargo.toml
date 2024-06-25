@@ -16,14 +16,14 @@ default = ["export"]
 export = []
 
 [dependencies]
-cosmwasm-std = { workspace = true, features = ["ibc3", "stargate"] }
+cosmwasm-std = { workspace = true, features = ["ibc3", "staking"] }
 cw-storage-plus = { workspace = true }
 cw-ownable = { workspace = true }
 cw-utils = { workspace = true }
 cw2 = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
 cw-semver = { workspace = true }

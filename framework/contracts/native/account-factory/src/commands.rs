@@ -1,14 +1,6 @@
-use abstract_core::{
-    manager::ModuleInstallConfig,
-    module_factory::SimulateInstallModulesResponse,
-    objects::{
-        account::AccountTrace, module::assert_module_data_validity,
-        salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
-    },
-    AbstractError,
-};
 use abstract_sdk::{
-    core::{
+    feature_objects::VersionControlContract,
+    std::{
         manager::InstantiateMsg as ManagerInstantiateMsg,
         objects::{
             gov_type::GovernanceDetails,
@@ -21,7 +13,24 @@ use abstract_sdk::{
         },
         AbstractResult, MANAGER, PROXY,
     },
-    feature_objects::VersionControlContract,
+};
+use abstract_std::{
+    manager::ModuleInstallConfig,
+    module_factory::SimulateInstallModulesResponse,
+    objects::{
+        account::AccountTrace, module::assert_module_data_validity,
+        salt::generate_instantiate_salt, AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
+    },
+    AbstractError,
+};
+use abstract_std::{
+    manager::ModuleInstallConfig,
+    module_factory::SimulateInstallModulesResponse,
+    objects::{
+        account::AccountTrace, module::assert_module_data_validity,
+        salt::generate_instantiate_salt, AccountId, ABSTRACT_ACCOUNT_ID,
+    },
+    AbstractError,
 };
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
@@ -70,17 +79,14 @@ pub fn execute_create_account(
     // Else get the next account id and set the origin to local.
     let account_id = match account_id {
         Some(account_id) if account_id.is_local() => {
-            // if the local account_id is provided, assert that the next account_id matches to predicted
-            let generated_account_id = generate_new_local_account_id(deps.as_ref(), &info)?;
-            ensure_eq!(
-                generated_account_id,
-                account_id,
-                AccountFactoryError::ExpectedAccountIdFailed {
-                    predicted: account_id,
-                    actual: generated_account_id
-                }
-            );
-            generated_account_id
+            // Predictable Account Id Sequence have to be >= 2147483648
+            if account_id.seq() < 2147483648 {
+                return Err(AccountFactoryError::PredictableAccountIdFailed {});
+            } else {
+                // for 2147483648..u32::MAX we allow to select any account id
+                // Note that it can fail if it's already taken
+                account_id
+            }
         }
         Some(account_id) => {
             // if the non-local account_id is provided, assert that the caller is the ibc host
@@ -107,7 +113,7 @@ pub fn execute_create_account(
 
     let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
         config.module_factory_address.to_string(),
-        &abstract_core::module_factory::QueryMsg::SimulateInstallModules {
+        &abstract_std::module_factory::QueryMsg::SimulateInstallModules {
             modules: install_modules.iter().map(|m| m.module.clone()).collect(),
         },
     )?;
@@ -196,9 +202,27 @@ pub fn execute_create_account(
         msg: to_json_binary(&VCExecuteMsg::AddAccount {
             account_id: proxy_message.account_id.clone(),
             account_base: context.account_base,
-            namespace,
+            namespace: namespace.clone(),
         })?,
     });
+
+    // Add attributes relating the metadata to the account creation event
+    let mut metadata_attributes: Vec<(&str, String)> = vec![
+        ("governance", governance.to_string()),
+        ("name", name.clone()),
+    ];
+    if let Some(description) = &description {
+        metadata_attributes.push(("description", description.clone()))
+    }
+    if let Some(link) = &link {
+        metadata_attributes.push(("link", link.clone()))
+    }
+    if let Some(namespace) = namespace {
+        metadata_attributes.push(("namespace", namespace))
+    }
+    if let Some(base_asset) = base_asset {
+        metadata_attributes.push(("base_asset", base_asset.to_string()))
+    }
 
     // The execution order here is important.
     // Installing modules on the manager account requires that:
@@ -208,13 +232,17 @@ pub fn execute_create_account(
     // (this last step triggers the installation of the modules.)
     Ok(AccountFactoryResponse::new(
         "create_account",
-        vec![
-            (
-                "account_sequence",
-                &proxy_message.account_id.seq().to_string(),
-            ),
-            ("trace", &proxy_message.account_id.trace().to_string()),
-        ],
+        [
+            vec![
+                (
+                    "account_sequence",
+                    proxy_message.account_id.seq().to_string(),
+                ),
+                ("trace", proxy_message.account_id.trace().to_string()),
+            ],
+            metadata_attributes,
+        ]
+        .concat(),
     )
     // So first register account on version control
     .add_message(add_account_to_version_control_msg)

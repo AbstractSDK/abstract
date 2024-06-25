@@ -1,4 +1,4 @@
-use abstract_sdk::core::proxy::{state::STATE, ConfigResponse};
+use abstract_sdk::std::proxy::{state::STATE, ConfigResponse};
 use cosmwasm_std::{Addr, Deps, StdResult};
 
 /// Returns the whitelisted modules
@@ -16,7 +16,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 #[cfg(test)]
 mod test {
-    use abstract_core::proxy::{ExecuteMsg, InstantiateMsg};
+    use abstract_std::proxy::{ExecuteMsg, InstantiateMsg};
     use abstract_testing::{prelude::*, MockAnsHost};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage},
@@ -59,7 +59,7 @@ mod test {
             query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_core::proxy::QueryMsg::Config {},
+                abstract_std::proxy::QueryMsg::Config {},
             )
             .unwrap(),
         )

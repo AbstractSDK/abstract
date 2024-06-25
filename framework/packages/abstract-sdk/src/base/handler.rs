@@ -1,10 +1,10 @@
-use abstract_core::objects::dependency::StaticDependency;
+use abstract_std::objects::dependency::StaticDependency;
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;
 
 use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
+    MigrateHandlerFn, ModuleIbcHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
 };
 use crate::{
     base::{
@@ -164,17 +164,14 @@ where
         Ok(handler)
     }
     /// Get an ibc callback handler if it exists.
-    fn maybe_ibc_callback_handler(
-        &self,
-        id: &str,
-    ) -> Option<IbcCallbackHandlerFn<Self, Self::Error>> {
+    fn maybe_ibc_callback_handler(&self) -> Option<IbcCallbackHandlerFn<Self, Self::Error>> {
         let contract = self.contract();
-        for ibc_callback_handler in contract.ibc_callback_handlers {
-            if ibc_callback_handler.0 == id {
-                return Some(ibc_callback_handler.1);
-            }
-        }
-        None
+        contract.ibc_callback_handler
+    }
+    /// Get an IBC module call handler if it exists.
+    fn maybe_module_ibc_handler(&self) -> Option<ModuleIbcHandlerFn<Self, Self::Error>> {
+        let contract = self.contract();
+        contract.module_ibc_handler
     }
     /// Get a reply handler if it exists.
     fn maybe_reply_handler(&self, id: u64) -> Option<ReplyHandlerFn<Self, Self::Error>> {

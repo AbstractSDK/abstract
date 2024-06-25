@@ -1,6 +1,6 @@
 [package]
 name = "croncat-app"
-version = "0.2.0"
+version = "0.4.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
@@ -36,12 +36,6 @@ required-features = ["schema"]
 [features]
 default = ["export"]
 export = []
-interface = [
-  "export",
-  "dep:abstract-interface",
-  "dep:cw-orch",
-  "abstract-app/interface-macro",
-]
 schema = ["abstract-app/schema"]
 
 [dependencies]
@@ -52,17 +46,15 @@ cw20 = { version = "0.16.0" }
 
 cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
+cw-utils = { workspace = true }
 thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
 
-abstract-core = { workspace = true }
 abstract-app = { workspace = true }
-abstract-sdk = { workspace = true }
 
 # Dependencies for interface
-abstract-interface = { workspace = true, optional = true }
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true }
 
 # Croncat dependencies
 croncat-sdk-factory = { version = "1.0.4" }
@@ -74,10 +66,9 @@ croncat-factory = { version = "1.0.4", features = ["library"] }
 croncat-manager = { version = "1.0.4", features = ["library"] }
 
 [dev-dependencies]
-croncat-app = { path = ".", features = ["interface"] }
+croncat-app = { path = "." }
 abstract-interface = { workspace = true, features = ["daemon"] }
-abstract-testing = { workspace = true }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
+abstract-app = { workspace = true, features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"

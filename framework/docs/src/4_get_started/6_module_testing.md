@@ -7,6 +7,53 @@ before they are allowed on our platform.
 This section of the documentation outlines the different testing methods. Each method is accompanied by an Abstract
 helper. These helpers assist you in setting up your testing environment.
 
+## Integration Testing
+
+Integration testing your contract with Abstract involves deploying your contract and any of its dependencies to a mock environment where Abstract is deployed. To make this as easy as possible we've created a `abstract-client` package that you can use to deploy Abstract and any of your modules to a mock environment. We will cover this client in the next section.
+
+But first we need to cover some basics.
+
+### Cw-orchestrator `Mock` environment
+
+Most of our Abstract tests use cw-orchestrator's `Mock` struct that is backed by a `cw-multi-test::App` which you might be familiar with.
+
+The `Mock` struct provides a simulation of the CosmWasm environment, enabling testing of contract functionalities.
+
+```admonish info
+`cw-orchestrator` is a CosmWasm scripting tool that we developed to improve the speed at which we can test and deploy our applications. We recommend reading the [cw-orchestrator documentation](../1_products/1_cw_orchestrator.md) if you are not yet familiar with it.
+```
+
+**Example**
+
+```rust,ignore
+{{ #include ../../../packages/abstract-client/tests/integration.rs:mock_integration_test}}
+```
+
+**Details**
+
+The `Mock` encapsulates:
+
+- A default sender for transactions.
+- A state to map contract_id to its details.
+- An emulation of the CosmWasm backend with app.
+
+In this example, we use a setup function to initialize our test environment. The setup function is utilized to:
+
+- Initialize the contract you want to test within the mock environment, the counter contract in this case.
+- Upload and instantiate the contract.
+- Retrieve essential details like code_id and contract address for further interactions.
+
+This provides you with a streamlined approach to test and validate smart contract operations in a controlled setting.
+
+## Local Daemon Testing
+
+Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [local_daemon](https://github.com/AbstractSDK/app-template/blob/main/examples/local_daemon.rs) example, which uses a locally running juno daemon to
+deploy to. At this point you can also test your front-end with the contracts.
+
+```admonish info
+Testing your application on a local daemon is difficult if it depends on other protocols, and those protocols don't make use of cw-orchestrator as there is no easy way to deploy them to the local daemon.
+```
+
 ## Unit-testing
 
 The lowest level of testing is *unit testing*. Unit tests allow you to easily test complex, self-contained logic. Because unit tests should be self-contained, any queries made to other contracts need to be mocked. These mocks act as "query catchers", allowing you to specify a response for a specific query.
@@ -68,122 +115,3 @@ The `MockQuerierBuilder` also provides a `with_items` and `with_maps` function. 
 The easiest and best way to start using the querier is to use
 the `AbstractMockQuerierBuilder::mocked_account_querier_builder()` method. This method sets up a mock querier with an
 initial Abstract Account.
-
-## Integration Testing
-
-Integration testing your contract with Abstract involves deploying your contract and any of its dependencies to a mock environment where Abstract is deployed. To make this as easy as possible we've created a `abstract-client` package that you can use to deploy Abstract and any of your modules to a mock environment. We will cover this client in the next section.
-
-But first we need to cover some basics.
-
-### Cw-orchestrator `Mock` environment
-
-Most of our Abstract tests use cw-orchestrator's `Mock` struct that is backed by a `cw-multi-test::App` which you might be familiar with.
-
-The `Mock` struct provides a simulation of the CosmWasm environment, enabling testing of contract functionalities.
-
-```admonish info
-`cw-orchestrator` is a CosmWasm scripting tool that we developed to improve the speed at which we can test and deploy our applications. We recommend reading the [cw-orchestrator documentation](../1_products/1_cw_orchestrator.md) if you are not yet familiar with it.
-```
-
-## Local Daemon Testing
-
-Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [local_daemon](https://github.com/AbstractSDK/app-template/blob/main/examples/local_daemon.rs) example, which uses a locally running juno daemon to
-deploy to. At this point you can also test your front-end with the contracts.
-
-```admonish info
-Testing your application on a local daemon is difficult if it depends on other protocols, and those protocols don't make use of cw-orchestrator as there is no easy way to deploy them to the local daemon.
-```
-
-<!-- 
-**Example**
-
-The `Mock` encapsulates:
-
-- A default sender for transactions.
-- A state to map contract_id to its details.
-- An emulation of the CosmWasm backend with app.
-
-In this example, we use a setup function to initialize our test environment. The setup function is utilized to:
-
-- Initialize the contract you want to test within the mock environment, the counter contract in this case.
-- Upload and instantiate the contract.
-- Retrieve essential details like code_id and contract address for further interactions.
-
-This provides you with a streamlined approach to test and validate smart contract operations in a controlled setting.
-
-```rust
-/// Instantiate the contract in any CosmWasm environment
-fn setup<Chain: CwEnv>(chain: Chain) -> CounterContract<Chain> {
-    // Construct the counter interface
-    let contract = CounterContract::new(CONTRACT_NAME, chain.clone());
-    let admin = Addr::unchecked(ADMIN);
-
-    // Upload the contract
-    let upload_resp = contract.upload().unwrap();
-
-    // Get the code-id from the response.
-    let code_id = upload_resp.uploaded_code_id().unwrap();
-    // or get it from the interface.
-    assert_eq!(code_id, contract.code_id().unwrap());
-
-    // Instantiate the contract
-    let msg = InstantiateMsg { count: 1i32 };
-    let init_resp = contract.instantiate(&msg, Some(&admin), None).unwrap();
-
-    // Get the address from the response
-    let contract_addr = init_resp.instantiated_contract_address().unwrap();
-    // or get it from the interface.
-    assert_eq!(contract_addr, contract.address().unwrap());
-
-    // Return the interface
-    contract
-}
-
-#[test]
-fn count() {
-    // Create a sender
-    let sender = Addr::unchecked(ADMIN);
-    // Create a user
-    let user = Addr::unchecked(USER);
-    // Create the mock
-    let mock = Mock::new(&sender);
-
-    // Set up the contract
-    let contract = setup(mock.clone());
-
-    // Increment the count of the contract
-    contract
-        // Set the caller to user
-        .call_as(&user)
-        // Call the increment function (auto-generated function provided by CounterExecuteMsgFns)
-        .increment()
-        .unwrap();
-
-    // Get the count.
-    use counter_contract::CounterQueryMsgFns;
-    let count1 = contract.get_count().unwrap();
-
-    // or query it manually
-    let count2: GetCountResponse = contract.query(&QueryMsg::GetCount {}).unwrap();
-
-    assert_eq!(count1, count2);
-
-    // Check the count
-    assert_eq!(count1.count, 2);
-    // Reset
-    use counter_contract::CounterExecuteMsgFns;
-    contract.reset(0).unwrap();
-
-    let count = contract.get_count().unwrap();
-    assert_eq!(count.count, 0);
-
-    // Check negative case
-    let exec_res = contract.call_as(&user).reset(0);
-
-    let expected_err = ContractError::Unauthorized {};
-    assert_eq!(
-        exec_res.unwrap_err().downcast::<ContractError>().unwrap(),
-        expected_err
-    );
-}
-``` -->

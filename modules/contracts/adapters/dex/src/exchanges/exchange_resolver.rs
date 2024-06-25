@@ -24,8 +24,8 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
         }
-        abstract_kujira_adapter::KUJIRA => {
-            Ok(Box::<abstract_kujira_adapter::dex::Kujira>::default())
+        abstract_kujira_adapter::dex::FIN => {
+            Ok(Box::<abstract_kujira_adapter::dex::Fin>::default())
         }
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::dex::Astrovault>::default())
@@ -56,9 +56,9 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<Box<dyn DexCommand>, DexEr
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
         }
-        #[cfg(feature = "bow")]
-        abstract_kujira_adapter::KUJIRA => {
-            Ok(Box::<abstract_kujira_adapter::dex::Kujira>::default())
+        #[cfg(feature = "fin")]
+        abstract_kujira_adapter::dex::FIN => {
+            Ok(Box::<abstract_kujira_adapter::dex::Fin>::default())
         }
         #[cfg(feature = "astrovault")]
         abstract_astrovault_adapter::ASTROVAULT => {
@@ -68,10 +68,10 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<Box<dyn DexCommand>, DexEr
     }
 }
 
-/// Given a FULL provider name (e.g. juno>wyndex), returns whether the request is local or over IBC
-pub fn is_over_ibc(env: Env, platform_name: &str) -> Result<(String, bool), DexError> {
+/// Given a FULL provider nam (e.g. juno>wyndex), returns whether the request is local or over IBC
+pub fn is_over_ibc(env: &Env, platform_name: &str) -> Result<(String, bool), DexError> {
     let (chain_name, local_platform_name) = decompose_platform_name(platform_name);
-    if chain_name.is_some() && !is_current_chain(env.clone(), &chain_name.clone().unwrap()) {
+    if chain_name.is_some() && !is_current_chain(env, &chain_name.clone().unwrap()) {
         Ok((local_platform_name, true))
     } else {
         let platform_id = identify_exchange(&local_platform_name)?;

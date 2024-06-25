@@ -1,11 +1,13 @@
+use crate::base::features::ModuleIdentification;
 use crate::{base::Handler, AbstractSdkError};
-use abstract_core::ibc::IbcResponseMsg;
-use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
+use abstract_std::ibc::IbcResponseMsg;
+use abstract_std::IBC_CLIENT;
+use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
 /// Trait for a contract's IBC callback ExecuteMsg variant.
 pub trait IbcCallbackEndpoint: Handler {
     /// Queries the IBC Client address.
-    fn ibc_client(&self, deps: Deps) -> Result<Addr, Self::Error>;
+    fn ibc_client_addr(&self, deps: Deps) -> Result<Addr, Self::Error>;
 
     /// Handler for the `ExecuteMsg::IbcCallback()` variant.
     fn ibc_callback(
@@ -15,7 +17,20 @@ pub trait IbcCallbackEndpoint: Handler {
         info: MessageInfo,
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::Error> {
-        let ibc_client = self.ibc_client(deps.as_ref())?;
+        // Make sure module have ibc_client as dependency
+        if !self
+            .dependencies()
+            .iter()
+            .any(|static_dep| static_dep.id == IBC_CLIENT)
+        {
+            return Err(AbstractSdkError::Std(StdError::generic_err(format!(
+                "Ibc Client is not dependency of {}",
+                self.module_id()
+            )))
+            .into());
+        }
+
+        let ibc_client = self.ibc_client_addr(deps.as_ref())?;
 
         if info.sender.ne(&ibc_client) {
             return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
@@ -25,15 +40,12 @@ pub trait IbcCallbackEndpoint: Handler {
             }
             .into());
         };
-        let IbcResponseMsg {
-            id,
-            msg: callback_msg,
-            result,
-        } = msg;
-        let maybe_handler = self.maybe_ibc_callback_handler(&id);
-        maybe_handler.map_or_else(
-            || Ok(Response::new()),
-            |handler| handler(deps, env, info, self, id, callback_msg, result),
-        )
+        let ibc_callback_handler =
+            self.maybe_ibc_callback_handler()
+                .ok_or(AbstractSdkError::NoModuleIbcHandler(
+                    self.module_id().to_string(),
+                ))?;
+
+        ibc_callback_handler(deps, env, self, msg.callback, msg.result)
     }
 }

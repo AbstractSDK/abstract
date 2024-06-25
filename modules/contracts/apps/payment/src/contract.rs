@@ -1,5 +1,5 @@
+use abstract_app::std::objects::dependency::StaticDependency;
 use abstract_app::AppContract;
-use abstract_core::objects::dependency::StaticDependency;
 use cosmwasm_std::Response;
 
 use crate::{
@@ -43,5 +43,4 @@ const APP: PaymentApp = PaymentApp::new(APP_ID, APP_VERSION, None)
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(APP, PaymentApp);
 
-#[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(APP, PaymentApp, PaymentAppInterface);

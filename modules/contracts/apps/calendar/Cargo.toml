@@ -1,6 +1,6 @@
 [package]
 name = "calendar-app"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
@@ -20,21 +20,15 @@ required-features = ["schema"]
 
 [[example]]
 name = "deploy"
-required-features = ["interface"]
 
 [features]
 default = ["export"]
 export = []
 # enable node-backed tests (ensure Docker is running)
 # run with `cargo test --jobs 1 --features node-tests`
-node-tests = ["interface"]
-interface = [
-  "export",
-  "dep:abstract-interface",
-  "dep:cw-orch",
-  "abstract-app/interface-macro",
-]
+node-tests = []
 schema = ["abstract-app/schema"]
+testing = ["abstract-app/test-utils"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -45,23 +39,18 @@ thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
 
-abstract-core = { workspace = true }
 abstract-app = { workspace = true }
-abstract-sdk = { workspace = true }
 
 chrono = { version = "0.4.31", default_features = false }
 cw-utils = "1.0.1"
 
 # Dependencies for interface
-abstract-interface = { workspace = true, optional = true }
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true }
 
 [dev-dependencies]
-calendar-app = { path = ".", features = ["interface"] }
+calendar-app = { path = ".", features = ["testing"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
-abstract-testing = { workspace = true }
 abstract-client = { workspace = true, features = ["test-utils"] }
-abstract-sdk = { workspace = true }
 speculoos = { workspace = true }
 semver = { workspace = true }
 dotenv = "0.15.0"

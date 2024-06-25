@@ -1,11 +1,11 @@
-use abstract_core::{
+use abstract_integration_tests::{create_default_account, AResult};
+use abstract_interface::*;
+use abstract_manager::error::ManagerError;
+use abstract_std::{
     manager::SubAccountIdsResponse,
     objects::{gov_type::GovernanceDetails, AccountId},
     PROXY,
 };
-use abstract_integration_tests::{create_default_account, AResult};
-use abstract_interface::*;
-use abstract_manager::error::ManagerError;
 use cosmwasm_std::{to_json_binary, wasm_execute};
 use cw_orch::prelude::*;
 
@@ -185,7 +185,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
         .call_as(&mock_app)
         .module_action(vec![wasm_execute(
             sub_manager.addr_str()?,
-            &abstract_core::manager::ExecuteMsg::UpdateInfo {
+            &abstract_std::manager::ExecuteMsg::UpdateInfo {
                 name: None,
                 description: Some(new_desc.to_owned()),
                 link: None,
@@ -240,7 +240,7 @@ fn sub_account_move_ownership() -> AResult {
 
     // Make sure it's not updated until claimed
     let sub_accounts: SubAccountIdsResponse = chain.query(
-        &abstract_core::manager::QueryMsg::SubAccountIds {
+        &abstract_std::manager::QueryMsg::SubAccountIds {
             start_after: None,
             limit: None,
         },
@@ -255,7 +255,7 @@ fn sub_account_move_ownership() -> AResult {
 
     // Claim ownership
     sub_account.manager.call_as(&new_owner).execute(
-        &abstract_core::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership),
+        &abstract_std::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership),
         None,
     )?;
     let account = AbstractAccount::new(&deployment, AccountId::local(1));
@@ -338,7 +338,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         .call_as(&mock_module)
         .module_action(vec![wasm_execute(
             new_account_sub_account_manager,
-            &abstract_core::manager::ExecuteMsg::UpdateOwnership(
+            &abstract_std::manager::ExecuteMsg::UpdateOwnership(
                 cw_ownable::Action::AcceptOwnership,
             ),
             vec![],
@@ -424,9 +424,9 @@ fn account_updated_to_subaccount() -> AResult {
 
     // account1 accepting account2 as a sub-account
     let accept_msg =
-        abstract_core::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+        abstract_std::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
     account.manager.exec_on_module(
-        to_json_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+        to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![wasm_execute(manager2_addr, &accept_msg, vec![])?.into()],
         })?,
         PROXY.to_owned(),

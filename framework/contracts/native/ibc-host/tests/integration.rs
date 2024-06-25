@@ -1,15 +1,15 @@
 use abstract_adapter::mock::MockInitMsg;
-use abstract_core::{
+use abstract_ibc_host::HostError;
+use abstract_interface::{
+    Abstract, AdapterDeployer, DeployStrategy, ExecuteMsgFns as InterfaceExecuteMsgFns,
+};
+use abstract_std::{
     ibc_host::{
         ClientProxyResponse, ConfigResponse, ExecuteMsgFns, HostAction, InternalAction, QueryMsgFns,
     },
     manager::ModuleInstallConfig,
     objects::{gov_type::GovernanceDetails, module::ModuleInfo, AccountId, UncheckedChannelEntry},
     ACCOUNT_FACTORY, ICS20, MANAGER, PROXY,
-};
-use abstract_ibc_host::HostError;
-use abstract_interface::{
-    Abstract, AdapterDeployer, DeployStrategy, ExecuteMsgFns as InterfaceExecuteMsgFns,
 };
 use cosmwasm_std::Event;
 use cw_orch::prelude::*;
@@ -57,7 +57,7 @@ fn account_creation() -> anyhow::Result<()> {
     abstr_origin
         .ibc
         .host
-        .register_chain_proxy(chain.into(), sender.to_string())?;
+        .register_chain_proxy(chain.parse()?, sender.to_string())?;
 
     // Verify chain proxy via query
     let client_proxy_response: ClientProxyResponse =
@@ -111,7 +111,7 @@ fn cannot_register_proxy_as_non_owner() -> anyhow::Result<()> {
         .ibc
         .host
         .call_as(&chain.addr_make("user"))
-        .register_chain_proxy(chain_name.into(), sender.to_string())
+        .register_chain_proxy(chain_name.parse().unwrap(), sender.to_string())
         .unwrap_err();
 
     assert_eq!(
@@ -138,7 +138,7 @@ fn cannot_remove_proxy_as_non_owner() -> anyhow::Result<()> {
         .ibc
         .host
         .call_as(&chain.addr_make("user"))
-        .remove_chain_proxy(chain_name.into())
+        .remove_chain_proxy(chain_name.parse().unwrap())
         .unwrap_err();
 
     assert_eq!(
@@ -180,7 +180,7 @@ fn account_creation_full() -> anyhow::Result<()> {
     abstr_origin
         .ibc
         .host
-        .register_chain_proxy(chain_name.into(), sender.to_string())?;
+        .register_chain_proxy(chain_name.parse().unwrap(), sender.to_string())?;
 
     // Add asset to set base_asset
     abstr_origin.ans_host.update_asset_addresses(
@@ -251,7 +251,7 @@ fn account_action() -> anyhow::Result<()> {
     abstr_origin
         .ibc
         .host
-        .register_chain_proxy(chain.into(), sender.to_string())?;
+        .register_chain_proxy(chain.parse().unwrap(), sender.to_string())?;
 
     // We create the account
     let proxy_addr = mock.addr_make("proxy_address");
@@ -278,11 +278,11 @@ fn account_action() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::ProposeOwner {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ProposeOwner {
                     owner: GovernanceDetails::Monarchy {
                         monarch: mock.addr_make("new_owner").to_string(),
                     },
-                },
+                }],
             },
             proxy_addr.to_string(),
         )
@@ -321,7 +321,7 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
     abstr
         .ibc
         .host
-        .register_chain_proxy(chain.into(), admin.to_string())?;
+        .register_chain_proxy(chain.parse().unwrap(), admin.to_string())?;
 
     // We call the action
     let account_action_response = abstr
@@ -330,11 +330,11 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msg: abstract_core::manager::ExecuteMsg::ProposeOwner {
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ProposeOwner {
                     owner: GovernanceDetails::Monarchy {
                         monarch: mock.addr_make("new_owner").to_string(),
                     },
-                },
+                }],
             },
             mock.addr_make("proxy_address").to_string(),
         )
@@ -375,7 +375,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     abstr
         .ibc
         .host
-        .register_chain_proxy(chain.into(), polytone_proxy.to_string())?;
+        .register_chain_proxy(chain.parse().unwrap(), polytone_proxy.to_string())?;
 
     // Add the juno token ics20 channel.
     abstr.ans_host.update_channels(
@@ -406,7 +406,7 @@ fn execute_send_all_back_action() -> anyhow::Result<()> {
     // We call the action and verify that it completes without issues.
     let account_action_response = abstr.ibc.host.call_as(&polytone_proxy).ibc_execute(
         AccountId::local(account_sequence),
-        HostAction::Helpers(abstract_core::ibc_host::HelperAction::SendAllBack {}),
+        HostAction::Helpers(abstract_std::ibc_host::HelperAction::SendAllBack {}),
         proxy_addr.to_string(),
     )?;
 

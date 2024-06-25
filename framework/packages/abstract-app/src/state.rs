@@ -1,17 +1,15 @@
-use abstract_core::{
-    objects::{dependency::StaticDependency, nested_admin::NestedAdmin},
-    AbstractError,
-};
 use abstract_sdk::{
-    base::SudoHandlerFn,
-    feature_objects::{AnsHost, VersionControlContract},
+    base::{ModuleIbcHandlerFn, SudoHandlerFn},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
 };
-use cosmwasm_std::{Addr, Empty, StdResult, Storage};
+use abstract_std::{
+    app::AppState,
+    objects::{dependency::StaticDependency, module::ModuleInfo, nested_admin::NestedAdmin},
+    AbstractError, AbstractResult,
+};
+use cosmwasm_std::{Empty, StdResult, Storage};
 use cw_storage_plus::Item;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::{
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -34,17 +32,6 @@ impl<T> ContractError for T where
         + From<AbstractError>
         + 'static
 {
-}
-
-/// The BaseState contains the main addresses needed for sending and verifying messages
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct AppState {
-    /// Proxy contract address for relaying transactions
-    pub proxy_address: Addr,
-    /// AnsHost contract struct (address)
-    pub ans_host: AnsHost,
-    /// Used to verify requests
-    pub version_control: VersionControlContract,
 }
 
 /// The state variables for our AppContract.
@@ -103,6 +90,10 @@ impl<
 
     pub fn version(&self) -> &str {
         self.contract.info().1
+    }
+
+    pub fn module_info(&self) -> AbstractResult<ModuleInfo> {
+        ModuleInfo::from_id(self.module_id(), self.version().into())
     }
 
     pub fn load_state(&self, store: &dyn Storage) -> StdResult<AppState> {
@@ -169,11 +160,17 @@ impl<
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
+    pub const fn with_ibc_callback(mut self, callback: IbcCallbackHandlerFn<Self, Error>) -> Self {
+        self.contract = self.contract.with_ibc_callback(callback);
+        self
+    }
+
+    /// add Module IBC to contract
+    pub const fn with_module_ibc(
         mut self,
-        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
+        module_handler: ModuleIbcHandlerFn<Self, Error>,
     ) -> Self {
-        self.contract = self.contract.with_ibc_callbacks(callbacks);
+        self.contract = self.contract.with_module_ibc(module_handler);
         self
     }
 }
@@ -193,9 +190,9 @@ mod tests {
             .with_query(|_, _, _, _| cosmwasm_std::to_json_binary("mock_query").map_err(Into::into))
             .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
             .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _, _| {
+            .with_ibc_callback(|_, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
-            })])
+            })
             .with_replies(&[(1u64, |_, _, _, msg| {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })])

@@ -1,15 +1,14 @@
-pub use abstract_core::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
-use abstract_core::{
+pub use abstract_std::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
+use abstract_std::{
     objects::{
         module::{Module, ModuleInfo, ModuleStatus, ModuleVersion},
         module_reference::ModuleReference,
-        namespace::ABSTRACT_NAMESPACE,
+        namespace::{Namespace, ABSTRACT_NAMESPACE},
         AccountId,
     },
     version_control::*,
     VERSION_CONTROL,
 };
-use cosmwasm_std::Addr;
 use cw_orch::{contract::Contract, interface, prelude::*};
 
 use crate::AbstractAccount;
@@ -21,17 +20,17 @@ pub struct VersionControl<Chain>;
 
 impl<Chain: CwEnv> Uploadable for VersionControl<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+    fn wrapper() -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
                 ::version_control::contract::execute,
                 ::version_control::contract::instantiate,
                 ::version_control::contract::query,
             )
-            .with_migrate(::version_control::contract::migrate),
+            .with_migrate(::version_control::migrate::migrate),
         )
     }
-    fn wasm(&self) -> WasmPath {
+    fn wasm(_chain: &ChainInfoOwned) -> WasmPath {
         artifacts_dir_from_workspace!()
             .find_wasm_path("version_control")
             .unwrap()
@@ -40,7 +39,9 @@ impl<Chain: CwEnv> Uploadable for VersionControl<Chain> {
 
 impl<Chain: CwEnv> VersionControl<Chain> {
     pub fn load(chain: Chain, address: &Addr) -> Self {
-        Self(cw_orch::contract::Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
+        let contract = cw_orch::contract::Contract::new(VERSION_CONTROL, chain);
+        contract.set_address(address);
+        Self(contract)
     }
 
     /// Query a single module
@@ -48,6 +49,46 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         let ModulesResponse { mut modules } = self.modules(vec![info])?;
 
         Ok(modules.swap_remove(0).module)
+    }
+
+    /// Query a single module registered or pending
+    pub fn registered_or_pending_module(
+        &self,
+        info: ModuleInfo,
+    ) -> Result<Module, crate::AbstractInterfaceError> {
+        let mut module_list_response = self.module_list(
+            Some(ModuleFilter {
+                namespace: Some(info.namespace.to_string()),
+                name: Some(info.name.clone()),
+                version: Some(info.version.to_string()),
+                status: Some(ModuleStatus::Registered),
+            }),
+            None,
+            None,
+        )?;
+
+        if !module_list_response.modules.is_empty() {
+            // Return if it's registered module else it's pending or neither registered or pending
+            Ok(module_list_response.modules.swap_remove(0).module)
+        } else {
+            let mut module_list_response = self.module_list(
+                Some(ModuleFilter {
+                    namespace: Some(info.namespace.to_string()),
+                    name: Some(info.name),
+                    version: Some(info.version.to_string()),
+                    status: Some(ModuleStatus::Pending),
+                }),
+                None,
+                None,
+            )?;
+            if !module_list_response.modules.is_empty() {
+                Ok(module_list_response.modules.swap_remove(0).module)
+            } else {
+                Err(crate::AbstractInterfaceError::Std(
+                    cosmwasm_std::StdError::generic_err("Module not found"),
+                ))
+            }
+        }
     }
 
     pub fn register_base(
@@ -138,9 +179,17 @@ impl<Chain: CwEnv> VersionControl<Chain> {
 
     /// Approve any abstract-namespaced pending modules.
     pub fn approve_any_abstract_modules(&self) -> Result<(), crate::AbstractInterfaceError> {
-        let proposed_abstract_modules = self.module_list(
+        self.approve_all_modules_for_namespace(Namespace::unchecked(ABSTRACT_NAMESPACE))
+    }
+
+    /// Approve any "namespace" pending modules.
+    pub fn approve_all_modules_for_namespace(
+        &self,
+        namespace: Namespace,
+    ) -> Result<(), crate::AbstractInterfaceError> {
+        let proposed_namespace_modules = self.module_list(
             Some(ModuleFilter {
-                namespace: Some(ABSTRACT_NAMESPACE.to_string()),
+                namespace: Some(namespace.to_string()),
                 status: Some(ModuleStatus::Pending),
                 ..Default::default()
             }),
@@ -148,12 +197,12 @@ impl<Chain: CwEnv> VersionControl<Chain> {
             None,
         )?;
 
-        if proposed_abstract_modules.modules.is_empty() {
+        if proposed_namespace_modules.modules.is_empty() {
             return Ok(());
         }
 
         self.approve_or_reject_modules(
-            proposed_abstract_modules
+            proposed_namespace_modules
                 .modules
                 .into_iter()
                 .map(|m| m.module.info)
@@ -214,6 +263,17 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
 
         Ok(module.reference.unwrap_app()?)
+    }
+
+    /// Retrieves an APP's code id from version control given the module **id** and **version**.
+    pub fn get_standalone_code(
+        &self,
+        id: &str,
+        version: ModuleVersion,
+    ) -> Result<u64, crate::AbstractInterfaceError> {
+        let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
+
+        Ok(module.reference.unwrap_standalone()?)
     }
 
     /// Retrieves an APP or STANDALONE code id from version control given the module **id** and **version**.

@@ -27,9 +27,10 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 cw-semver = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core = { workspace = true }
+abstract-std = { workspace = true }
 abstract-macros = { workspace = true }
 cw-ownable = { workspace = true }
+cosmwasm-schema = { workspace = true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

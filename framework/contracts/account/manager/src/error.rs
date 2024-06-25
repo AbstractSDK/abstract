@@ -1,8 +1,8 @@
-use abstract_core::{
+use abstract_sdk::{std::objects::module::ModuleInfo, AbstractSdkError};
+use abstract_std::{
     objects::{validation::ValidationError, version_control::VersionControlError},
     AbstractError,
 };
-use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
 use cosmwasm_std::{Instantiate2AddressError, StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -66,6 +66,9 @@ pub enum ManagerError {
     #[error("The provided module {0} was not found")]
     ModuleNotFound(String),
 
+    #[error("The provided module {0} can't be installed on an Abstract account")]
+    ModuleNotInstallable(String),
+
     #[error("Module {module_id} with version {version} does not fit requirement {comp}, post_migration: {post_migration}")]
     VersionRequirementNotMet {
         module_id: String,
@@ -116,8 +119,8 @@ pub enum ManagerError {
     #[error("Can't create account with Renounced governance")]
     InitRenounced {},
 
-    #[error("Reinstalls of same version of app are not allowed")]
-    AppReinstall {},
+    #[error("Reinstalls of same version of app or standalone are not allowed")]
+    ProhibitedReinstall {},
 
     #[error("Failed to query modules to install: {error}")]
     QueryModulesFailed { error: VersionControlError },

@@ -16,7 +16,6 @@ crate-type = ["cdylib", "rlib"]
 
 [[example]]
 name = "deploy"
-required-features = ["interface"]
 
 [[example]]
 name = "schema"
@@ -25,14 +24,14 @@ required-features = ["schema"]
 [features]
 default = ["export"]
 export = []
-interface = [
-  "dep:abstract-interface",
-  "dep:cw-orch",
-  "export",
-  "abstract-dex-standard/interface",
-]
 schema = ["abstract-adapter/schema"]
-testing = ["dep:abstract-client", "dep:cw-orch", "dep:cw20", "dep:serde_json"]
+# TODO: do we need all these deps here?
+testing = [
+  "dep:abstract-client",
+  "dep:cw20",
+  "dep:serde_json",
+  "abstract-adapter/test-utils",
+]
 
 # Supported Dexes
 wynd = [
@@ -42,11 +41,11 @@ wynd = [
 ]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
 astroport = ["abstract-astroport-adapter/full_integration"]
-bow = ["abstract-kujira-adapter/full_integration"]
+fin = ["abstract-kujira-adapter/full_integration"]
 terraswap = ["dep:terraswap", "dep:cw20"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
 
-osmosis-test = ["cw-orch/osmosis-test-tube"]
+osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 
 # Builds
 [package.metadata.optimizer]
@@ -65,7 +64,7 @@ builds = [
     "osmosis",
   ] },
   { name = "kujira", features = [
-    "bow",
+    "fin",
   ] },
   { name = "injective", features = [
     "astroport",
@@ -86,12 +85,9 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
-
-abstract-interface = { workspace = true, optional = true }
-abstract-core = { workspace = true }
-abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true }
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true }
+cw-orch-osmosis-test-tube = { workspace = true, optional = true }
 
 # Local
 abstract-dex-standard = { workspace = true }
@@ -134,16 +130,15 @@ dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
 wyndex-bundle = { workspace = true }
-abstract-testing = { workspace = true }
-abstract-sdk = { workspace = true, features = ["test-utils"] }
+
 dex = { path = ".", features = [
-  "interface",
   "wynd",
   "osmosis",
+  "testing",
 ], package = "abstract-dex-adapter" }
 
 abstract-wyndex-adapter = { workspace = true, features = ["local"] }
 
-cw20 = { workspace = true, features = ["interface"] }
-cw20-base = { workspace = true, features = ["interface"] }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
 cw-utils = { workspace = true }

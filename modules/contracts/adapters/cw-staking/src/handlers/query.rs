@@ -1,4 +1,4 @@
-use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
+use abstract_adapter::sdk::features::{AbstractNameService, AbstractRegistryAccess};
 use abstract_staking_standard::{msg::StakingQueryMsg, CwStakingError};
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError};
 
@@ -23,7 +23,7 @@ pub fn query_handler(
             staking_tokens,
         } => {
             // if provider is on an app-chain, error
-            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            let (local_provider_name, is_over_ibc) = is_over_ibc(&env, &provider)?;
             if is_over_ibc {
                 Err(CwStakingError::IbcQueryNotSupported)
             } else {
@@ -49,7 +49,7 @@ pub fn query_handler(
         } => {
             let staking_tokens = stakes.clone();
             // if provider is on an app-chain, error
-            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            let (local_provider_name, is_over_ibc) = is_over_ibc(&env, &provider)?;
             if is_over_ibc {
                 Err(CwStakingError::IbcQueryNotSupported)
             } else {
@@ -78,7 +78,7 @@ pub fn query_handler(
             staker_address,
         } => {
             // if provider is on an app-chain, error
-            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            let (local_provider_name, is_over_ibc) = is_over_ibc(&env, &provider)?;
             if is_over_ibc {
                 Err(CwStakingError::IbcQueryNotSupported)
             } else {
@@ -104,7 +104,7 @@ pub fn query_handler(
             staking_tokens,
         } => {
             // if provider is on an app-chain, error
-            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            let (local_provider_name, is_over_ibc) = is_over_ibc(&env, &provider)?;
             if is_over_ibc {
                 Err(CwStakingError::IbcQueryNotSupported)
             } else {

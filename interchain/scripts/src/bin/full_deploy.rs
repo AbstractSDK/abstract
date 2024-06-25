@@ -1,28 +1,26 @@
+use abstract_interface::Abstract;
+use abstract_std::objects::gov_type::GovernanceDetails;
 use std::{
     fs::{self, File},
     io::BufReader,
     net::TcpStream,
 };
 
-use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_interface::Abstract;
 use abstract_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
+
 use clap::Parser;
-use cw_orch::prelude::{
-    networks::{parse_network, ChainInfo},
-    *,
-};
+use cw_orch::{daemon::networks::parse_network, prelude::*};
 use reqwest::Url;
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
-fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
+fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
 
     if networks.is_empty() {
-        networks = SUPPORTED_CHAINS.to_vec();
+        networks = SUPPORTED_CHAINS.iter().map(|x| x.clone().into()).collect();
     }
 
     let deployment_status = read_deployment()?;
@@ -41,14 +39,14 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     //     networks = deployment_status.chain_ids.into_iter().map(|n| parse_network(&n)).collect();
     // }
 
-    let networks = rt.block_on(assert_wallet_balance(&networks));
+    let networks = rt.block_on(assert_wallet_balance(networks));
 
     // write_deployment(&deployment_status)?;
 
     for network in networks {
         let urls = network.grpc_urls.to_vec();
         for url in urls {
-            rt.block_on(ping_grpc(url))?;
+            rt.block_on(ping_grpc(&url))?;
         }
 
         let chain = DaemonBuilder::default()
@@ -138,10 +136,12 @@ fn main() {
 
     let args = Arguments::parse();
 
+    // let networks = vec![abstract_scripts::ROLLKIT_TESTNET];
+
     let networks = args
         .network_ids
         .iter()
-        .map(|n| parse_network(n).unwrap())
+        .map(|n| parse_network(n).unwrap().into())
         .collect::<Vec<_>>();
 
     if let Err(ref err) = full_deploy(networks) {

@@ -1,13 +1,13 @@
 use std::{collections::HashMap, ops::Deref};
 
-use abstract_core::{
+use abstract_std::{
     manager::state::{ACCOUNT_ID, ACCOUNT_MODULES},
     objects::common_namespace::OWNERSHIP_STORAGE_KEY,
     version_control::state::ACCOUNT_ADDRESSES,
 };
 use cosmwasm_std::{
-    from_json, testing::MockQuerier, to_json_binary, Addr, Binary, ContractInfoResponse,
-    ContractResult, Empty, QuerierWrapper, SystemResult, WasmQuery,
+    Addr, Binary, ContractInfoResponse, ContractResult, Empty, QuerierWrapper, SystemResult,
+    WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map, PrimaryKey};
@@ -96,17 +96,17 @@ where
 }
 
 impl MockQuerierBuilder {
-    pub fn with_fallback_smart_handler<SH: 'static>(mut self, handler: SH) -> Self
+    pub fn with_fallback_smart_handler<SH>(mut self, handler: SH) -> Self
     where
-        SH: Fn(&str, &Binary) -> BinaryQueryResult,
+        SH: 'static + Fn(&str, &Binary) -> BinaryQueryResult,
     {
         self.fallback_smart_handler = Box::new(handler);
         self
     }
 
-    pub fn with_fallback_raw_handler<RH: 'static>(mut self, handler: RH) -> Self
+    pub fn with_fallback_raw_handler<RH>(mut self, handler: RH) -> Self
     where
-        RH: Fn(&str, &Binary) -> BinaryQueryResult,
+        RH: 'static + Fn(&str, &Binary) -> BinaryQueryResult,
     {
         self.fallback_raw_handler = Box::new(handler);
         self
@@ -131,9 +131,9 @@ impl MockQuerierBuilder {
     /// }).build();
     ///
     /// ```
-    pub fn with_smart_handler<SH: 'static>(mut self, contract: &str, handler: SH) -> Self
+    pub fn with_smart_handler<SH>(mut self, contract: &str, handler: SH) -> Self
     where
-        SH: Fn(&Binary) -> BinaryQueryResult,
+        SH: 'static + Fn(&Binary) -> BinaryQueryResult,
     {
         self.smart_handlers
             .insert(contract.to_string(), Box::new(handler));
@@ -158,9 +158,9 @@ impl MockQuerierBuilder {
     ///     }
     /// }).build();
     /// ```
-    pub fn with_raw_handler<RH: 'static>(mut self, contract: &str, handler: RH) -> Self
+    pub fn with_raw_handler<RH>(mut self, contract: &str, handler: RH) -> Self
     where
-        RH: Fn(&str) -> BinaryQueryResult,
+        RH: 'static + Fn(&str) -> BinaryQueryResult,
     {
         self.raw_handlers
             .insert(contract.to_string(), Box::new(handler));
@@ -422,7 +422,7 @@ pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {
 
 #[cfg(test)]
 mod tests {
-    use abstract_core::{
+    use abstract_std::{
         manager::state::ACCOUNT_MODULES, proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
@@ -432,7 +432,7 @@ mod tests {
     use super::*;
 
     mod account {
-        use abstract_core::version_control::AccountBase;
+        use abstract_std::version_control::AccountBase;
 
         use super::*;
 
@@ -457,10 +457,10 @@ mod tests {
     }
 
     mod queries {
-        use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
-        use cosmwasm_std::{from_json, QueryRequest};
-
         use super::*;
+
+        use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
+        use cosmwasm_std::QueryRequest;
 
         #[test]
         fn smart_query() {

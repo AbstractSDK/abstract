@@ -1,6 +1,6 @@
-use abstract_core::objects::module;
 use abstract_sdk::{
-    core::{
+    std::IBC_CLIENT,
+    std::{
         module_factory::FactoryModuleInstallConfig,
         objects::{
             module::ModuleInfo, module_reference::ModuleReference,
@@ -9,6 +9,7 @@ use abstract_sdk::{
     },
     *,
 };
+use abstract_std::objects::module;
 use cosmwasm_std::{
     from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
     DepsMut, Env, MessageInfo, StdResult, WasmMsg,
@@ -57,6 +58,8 @@ pub fn execute_create_modules(
     // Attributes logging
     let mut module_ids: Vec<String> = Vec::with_capacity(modules_responses.len());
 
+    let mut at_least_one_standalone = false;
+
     let canonical_contract_addr = deps.api.addr_canonicalize(env.contract.address.as_str())?;
     for (owner_init_msg, module_response) in
         init_msgs.into_iter().zip(modules_responses.into_iter())
@@ -82,7 +85,7 @@ pub fn execute_create_modules(
                     amount: vec![fee],
                 }));
             }
-            abstract_core::objects::module::Monetization::None => {}
+            abstract_std::objects::module::Monetization::None => {}
             // The monetization must be known to the factory for a module to be installed
             _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
         };
@@ -96,13 +99,13 @@ pub fn execute_create_modules(
                 let init_msg = owner_init_msg.unwrap();
                 let init_msg_as_value: Value = from_json(init_msg)?;
                 // App base message
-                let app_base_msg = abstract_core::app::BaseInstantiateMsg {
+                let app_base_msg = abstract_std::app::BaseInstantiateMsg {
                     ans_host_address: config.ans_host_address.to_string(),
                     version_control_address: version_control.address.to_string(),
                     account_base: account_base.clone(),
                 };
 
-                let app_init_msg = abstract_core::app::InstantiateMsg::<Value> {
+                let app_init_msg = abstract_std::app::InstantiateMsg::<Value> {
                     base: app_base_msg,
                     module: init_msg_as_value,
                 };
@@ -126,6 +129,7 @@ pub fn execute_create_modules(
                 modules_to_register.push(addr.clone());
             }
             ModuleReference::Standalone(code_id) => {
+                at_least_one_standalone = true;
                 let (addr, init_msg) = instantiate2_contract(
                     deps.as_ref(),
                     canonical_contract_addr.clone(),
@@ -141,13 +145,27 @@ pub fn execute_create_modules(
                 modules_to_register.push(module_address);
                 module_instantiate_messages.push(init_msg);
             }
+            ModuleReference::Native(native_address) => {
+                if new_module.info.id() == IBC_CLIENT {
+                    modules_to_register.push(native_address.clone());
+                    continue;
+                }
+                return Err(ModuleFactoryError::ModuleNotInstallable {});
+            }
             _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
         };
     }
 
+    // If we have at least one standalone installed, then have to save this to state as \
+    // Standalone may need this information for AccountIdentification \
+    // Contract Info query does not work during instantiation on self contract, because contract does not exist yet.
+    if at_least_one_standalone {
+        CURRENT_BASE.save(deps.storage, &account_base)?;
+    }
+
     let sum_of_monetization = sum_of_monetization.into_vec();
     if sum_of_monetization != info.funds {
-        return Err(core::AbstractError::Fee(format!(
+        return Err(std::AbstractError::Fee(format!(
             "Invalid fee payment sent. Expected {:?}, sent {:?}",
             sum_of_monetization, info.funds
         ))
@@ -263,7 +281,7 @@ pub fn update_factory_binaries(
 
 #[cfg(test)]
 mod test {
-    use abstract_core::module_factory::ExecuteMsg;
+    use abstract_std::module_factory::ExecuteMsg;
     use abstract_testing::OWNER;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use speculoos::prelude::*;
@@ -338,13 +356,10 @@ mod test {
     }
 
     mod instantiate_contract {
-        use abstract_core::objects::{module::ModuleVersion, AccountId};
-        use cosmwasm_std::{
-            coin, testing::mock_info, to_json_binary, Api, CodeInfoResponse, Empty, HexBinary,
-            QuerierResult,
-        };
-
         use super::*;
+
+        use abstract_std::objects::{module::ModuleVersion, AccountId};
+        use cosmwasm_std::{coin, Api, CodeInfoResponse, Empty, HexBinary, QuerierResult};
 
         #[test]
         fn should_create_msg_with_instantiate2_msg() -> ModuleFactoryTestResult {
@@ -437,7 +452,7 @@ mod test {
     use cosmwasm_std::to_json_binary;
 
     mod update_factory_binaries {
-        use abstract_core::{objects::module::ModuleVersion, AbstractError};
+        use abstract_std::{objects::module::ModuleVersion, AbstractError};
         use abstract_testing::map_tester::*;
 
         use super::*;

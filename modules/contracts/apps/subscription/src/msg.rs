@@ -2,7 +2,7 @@
 
 //! # Subscription Add-On
 //!
-//! `abstract_core::subscription` provides OS owners with a tool to easily create smart-contract subscriptions for their products.
+//! `abstract_std::subscription` provides OS owners with a tool to easily create smart-contract subscriptions for their products.
 //!
 //! ## Description
 //! The subscription contract has three main uses.
@@ -28,7 +28,7 @@
 //! * The total income of the system is shared between the DAO and the contributors. See [`ContributionConfig`].
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
-use abstract_sdk::cw_helpers::Clearable;
+use abstract_app::sdk::cw_helpers::Clearable;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{to_json_binary, Addr, Binary, CosmosMsg, Decimal, StdResult, Uint64, WasmMsg};
 use cw_asset::{Asset, AssetInfoUnchecked};
@@ -63,10 +63,9 @@ pub struct SubscriptionInstantiateMsg {
 
 /// App execution messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
+#[derive(cw_orch::ExecuteFns)]
 pub enum SubscriptionExecuteMsg {
-    #[cfg_attr(feature = "interface", payable)]
+    #[cw_orch(payable)]
     /// Subscriber payment
     Pay {
         /// Address of new subscriber
@@ -100,9 +99,7 @@ pub enum SubscriptionExecuteMsg {
 
 /// Subscriptions query messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
-#[derive(QueryResponses)]
+#[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum SubscriptionQueryMsg {
     /// Get state of subscriptions and contributors
     /// Returns [`StateResponse`]

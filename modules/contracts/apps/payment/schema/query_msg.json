@@ -33,6 +33,7 @@
     "AppQueryMsg": {
       "oneOf": [
         {
+          "description": "Returns [`ConfigResponse`]",
           "type": "object",
           "required": [
             "config"
@@ -46,6 +47,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Returns [`TipperResponse`]",
           "type": "object",
           "required": [
             "tipper"
@@ -93,6 +95,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Returns [`TipCountResponse`]",
           "type": "object",
           "required": [
             "tip_count"
@@ -106,6 +109,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Returns [`TippersCountResponse`]",
           "type": "object",
           "required": [
             "list_tippers_count"
@@ -157,7 +161,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns the admin.",
+          "description": "Returns the admin. Returns [`AdminResponse`]",
           "type": "object",
           "required": [
             "base_admin"
@@ -171,7 +175,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns module data",
+          "description": "Returns module data Returns [`ModuleDataResponse`]",
           "type": "object",
           "required": [
             "module_data"
@@ -185,7 +189,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns top level owner",
+          "description": "Returns top level owner Returns [`TopLevelOwnerResponse`]",
           "type": "object",
           "required": [
             "top_level_owner"

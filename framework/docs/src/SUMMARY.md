@@ -23,6 +23,7 @@
     - [Version Control](./5_platform/2_version_control.md)
     - [Account Factory](./5_platform/3_account_factory.md)
     - [Module Factory](./5_platform/5_module_factory.md)
+    - [Module Flows](./5_platform/8_modules.md)
 
 - [Tools and Libraries](1_products/index.md)
   - [CW-Orchestrator](./1_products/1_cw_orchestrator.md)
@@ -38,12 +39,20 @@
 - [Introduction](./4_get_started/1_index.md)
 - [Setup](./4_get_started/2_installation.md)
 - [Module Builder](./4_get_started/3_module_builder.md)
-- [Account Abstraction SDK](./4_get_started/4_sdk.md)
-- [Testing](./4_get_started/6_module_testing.md)
+- [Account SDK](./4_get_started/4_sdk.md)
 - [Abstract Client](./4_get_started/5_abstract_client.md)
+- [Testing](./4_get_started/6_module_testing.md)
 - [Deployment](./4_get_started/7_module_deployment.md)
 - [Dependencies](./4_get_started/8_dependencies.md)
-
+- [IBC Capabilities](./4_get_started/10_ibc_capabilities.md)
+  - [Account IBC](./ibc/account-ibc.md)
+  - [Module IBC](./ibc/module-ibc.md)
+- [Metadata](./4_get_started/9_metadata.md)
+- [Modules](./modules/index.md)
+    - [CW Staking](./modules/cw-staking.md)
+    - [Dex](./modules/dex.md)
+    - [Lending Market](./modules/lending-market.md)
+    - [Subscription](./modules/subscription.md)
 
 # Case Studies
 ---
@@ -56,9 +65,6 @@
 # Resources and Support
 
 ---
-<!-- - [Interchain Abstract Accounts](./ibc/index.md)
-    - [Overview](./ibc/overview.md)
-    - [Specification](./ibc/spec.md) -->
 
 - [FAQ](./video_and_content/faq.md)
 - [Videos](./video_and_content/videos.md)
