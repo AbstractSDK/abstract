@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cw_gov_ownable::{cw_ownable_execute, cw_ownable_query, Action};
+use cw_gov_ownable::{cw_ownable_execute, cw_ownable_query, GovAction};
 
 #[cw_ownable_execute]
 #[cw_serde]
@@ -29,12 +29,12 @@ fn derive_execute_variants() {
 
     // If this compiles we have won.
     match msg {
-        ExecuteMsg::UpdateOwnership(Action::TransferOwnership {
+        ExecuteMsg::UpdateOwnership(GovAction::TransferOwnership {
             new_owner: _,
             expiry: _,
         })
-        | ExecuteMsg::UpdateOwnership(Action::AcceptOwnership)
-        | ExecuteMsg::UpdateOwnership(Action::RenounceOwnership)
+        | ExecuteMsg::UpdateOwnership(GovAction::AcceptOwnership)
+        | ExecuteMsg::UpdateOwnership(GovAction::RenounceOwnership)
         | ExecuteMsg::Foo
         | ExecuteMsg::Bar(_)
         | ExecuteMsg::Fuzz { .. } => "yay",

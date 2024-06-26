@@ -62,7 +62,7 @@ fn merge_variants(metadata: TokenStream, left: TokenStream, right: TokenStream) 
 ///
 /// ```rust
 /// use cosmwasm_schema::cw_serde;
-/// use cw_gov_ownable::Action;
+/// use cw_gov_ownable::GovAction;
 ///
 /// #[cw_serde]
 /// enum ExecuteMsg {
@@ -84,7 +84,7 @@ pub fn cw_ownable_execute(metadata: TokenStream, input: TokenStream) -> TokenStr
                 /// can be either to propose transferring ownership to an account,
                 /// accept a pending ownership transfer, or renounce the ownership
                 /// permanently.
-                UpdateOwnership(::cw_gov_ownable::Action),
+                UpdateOwnership(::cw_gov_ownable::GovAction),
             }
         }
         .into(),

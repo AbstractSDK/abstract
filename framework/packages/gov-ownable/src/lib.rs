@@ -1,63 +1,13 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
 
-use abstract_std::objects::gov_type::GovernanceDetails;
+pub use abstract_std::objects::gov_type::{GovAction, GovernanceDetails, Ownership};
 use abstract_std::AbstractError;
 
-use std::fmt::Display;
-
-use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{
-    Addr, Attribute, BlockInfo, DepsMut, QuerierWrapper, StdError, StdResult, Storage,
-};
-use cw_address_like::AddressLike;
+use cosmwasm_std::{Addr, BlockInfo, DepsMut, QuerierWrapper, StdError, StdResult, Storage};
 // re-export the proc macros and the Expiration class
 pub use cw_gov_ownable_derive::{cw_ownable_execute, cw_ownable_query};
 use cw_storage_plus::Item;
 pub use cw_utils::Expiration;
-
-/// The contract's ownership info
-#[cw_serde]
-pub struct Ownership<T: AddressLike> {
-    /// The contract's current owner.
-    pub owner: GovernanceDetails<T>,
-
-    /// The account who has been proposed to take over the ownership.
-    /// `None` if there isn't a pending ownership transfer.
-    pub pending_owner: Option<GovernanceDetails<T>>,
-
-    /// The deadline for the pending owner to accept the ownership.
-    /// `None` if there isn't a pending ownership transfer, or if a transfer
-    /// exists and it doesn't have a deadline.
-    pub pending_expiry: Option<Expiration>,
-}
-
-/// Actions that can be taken to alter the contract's ownership
-#[cw_serde]
-pub enum Action {
-    /// Propose to transfer the contract's ownership to another account,
-    /// optionally with an expiry time.
-    ///
-    /// Can only be called by the contract's current owner.
-    ///
-    /// Any existing pending ownership transfer is overwritten.
-    TransferOwnership {
-        new_owner: GovernanceDetails<String>,
-        expiry: Option<Expiration>,
-    },
-
-    /// Accept the pending ownership transfer.
-    ///
-    /// Can only be called by the pending owner.
-    AcceptOwnership,
-
-    /// Give up the contract's ownership and the possibility of appointing
-    /// a new owner.
-    ///
-    /// Can only be invoked by the contract's current owner.
-    ///
-    /// Any existing pending ownership transfer is canceled.
-    RenounceOwnership,
-}
 
 /// Errors associated with the contract's ownership
 #[derive(thiserror::Error, Debug, PartialEq)]
@@ -159,68 +109,20 @@ pub fn update_ownership(
     block: &BlockInfo,
     sender: &Addr,
     version_control: Addr,
-    action: Action,
+    action: GovAction,
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
     match action {
-        Action::TransferOwnership { new_owner, expiry } => {
+        GovAction::TransferOwnership { new_owner, expiry } => {
             transfer_ownership(deps, sender, new_owner, version_control, expiry)
         }
-        Action::AcceptOwnership => accept_ownership(deps.storage, &deps.querier, block, sender),
-        Action::RenounceOwnership => renounce_ownership(deps.storage, &deps.querier, sender),
+        GovAction::AcceptOwnership => accept_ownership(deps.storage, &deps.querier, block, sender),
+        GovAction::RenounceOwnership => renounce_ownership(deps.storage, &deps.querier, sender),
     }
 }
 
 /// Get the current ownership value.
 pub fn get_ownership(storage: &dyn Storage) -> StdResult<Ownership<Addr>> {
     OWNERSHIP.load(storage)
-}
-
-impl<T: AddressLike> Ownership<T> {
-    /// Serializes the current ownership state as attributes which may
-    /// be used in a message response. Serialization is done according
-    /// to the std::fmt::Display implementation for `T` and
-    /// `cosmwasm_std::Expiration` (for `pending_expiry`). If an
-    /// ownership field has no value, `"none"` will be serialized.
-    ///
-    /// Attribute keys used:
-    ///  - owner
-    ///  - pending_owner
-    ///  - pending_expiry
-    ///
-    /// Callers should take care not to use these keys elsewhere
-    /// in their response as CosmWasm will override reused attribute
-    /// keys.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use cw_utils::Expiration;
-    ///
-    /// assert_eq!(
-    ///     Ownership {
-    ///         owner: Some("blue"),
-    ///         pending_owner: None,
-    ///         pending_expiry: Some(Expiration::Never {})
-    ///     }
-    ///     .into_attributes(),
-    ///     vec![
-    ///         Attribute::new("owner", "blue"),
-    ///         Attribute::new("pending_owner", "none"),
-    ///         Attribute::new("pending_expiry", "expiration: never")
-    ///     ],
-    /// )
-    /// ```
-    pub fn into_attributes(self) -> Vec<Attribute> {
-        vec![
-            Attribute::new("owner", self.owner.to_string()),
-            Attribute::new("pending_owner", none_or(self.pending_owner.as_ref())),
-            Attribute::new("pending_expiry", none_or(self.pending_expiry.as_ref())),
-        ]
-    }
-}
-
-fn none_or<T: Display>(or: Option<&T>) -> String {
-    or.map_or_else(|| "none".to_string(), |or| or.to_string())
 }
 
 /// Propose to transfer the contract's ownership to the given address, with an
@@ -330,7 +232,7 @@ fn renounce_ownership(
 
 #[cfg(test)]
 mod tests {
-    use cosmwasm_std::{testing::mock_dependencies, Timestamp};
+    use cosmwasm_std::{testing::mock_dependencies, Attribute, Timestamp};
 
     use super::*;
 
@@ -449,7 +351,7 @@ mod tests {
                 &mock_block_at_height(12345),
                 &jake_address,
                 vc_addr(),
-                Action::TransferOwnership {
+                GovAction::TransferOwnership {
                     new_owner: pumpkin.clone().into(),
                     expiry: None,
                 },
@@ -465,7 +367,7 @@ mod tests {
                 &mock_block_at_height(12345),
                 &larry_address,
                 vc_addr(),
-                Action::TransferOwnership {
+                GovAction::TransferOwnership {
                     new_owner: pumpkin.clone().into(),
                     expiry: Some(Expiration::AtHeight(42069)),
                 },
@@ -502,7 +404,7 @@ mod tests {
                 &mock_block_at_height(12345),
                 &pumpkin_address,
                 vc_addr(),
-                Action::AcceptOwnership,
+                GovAction::AcceptOwnership,
             )
             .unwrap_err();
             assert_eq!(err, GovOwnershipError::TransferNotFound);
@@ -524,7 +426,7 @@ mod tests {
                 &mock_block_at_height(12345),
                 &jake_address,
                 vc_addr(),
-                Action::AcceptOwnership,
+                GovAction::AcceptOwnership,
             )
             .unwrap_err();
             assert_eq!(err, GovOwnershipError::NotPendingOwner);
@@ -537,7 +439,7 @@ mod tests {
                 &mock_block_at_height(69420),
                 &pumpkin_address,
                 vc_addr(),
-                Action::AcceptOwnership,
+                GovAction::AcceptOwnership,
             )
             .unwrap_err();
             assert_eq!(err, GovOwnershipError::TransferExpired);
@@ -550,7 +452,7 @@ mod tests {
                 &mock_block_at_height(10000),
                 &pumpkin_address,
                 vc_addr(),
-                Action::AcceptOwnership,
+                GovAction::AcceptOwnership,
             )
             .unwrap();
             assert_eq!(
@@ -588,7 +490,7 @@ mod tests {
                 &mock_block_at_height(12345),
                 &jake_address,
                 vc_addr(),
-                Action::RenounceOwnership,
+                GovAction::RenounceOwnership,
             )
             .unwrap_err();
             assert_eq!(err, GovOwnershipError::NotOwner);
@@ -601,7 +503,7 @@ mod tests {
                 &mock_block_at_height(12345),
                 &larry_address,
                 vc_addr(),
-                Action::RenounceOwnership,
+                GovAction::RenounceOwnership,
             )
             .unwrap();
 
@@ -625,7 +527,7 @@ mod tests {
                 &mock_block_at_height(12345),
                 &larry_address,
                 vc_addr(),
-                Action::RenounceOwnership,
+                GovAction::RenounceOwnership,
             )
             .unwrap_err();
             assert_eq!(err, GovOwnershipError::NoOwner);

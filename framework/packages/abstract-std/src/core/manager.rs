@@ -68,7 +68,7 @@ use crate::{
     manager::state::SuspensionStatus,
     objects::{
         account::AccountId,
-        gov_type::{GovernanceDetails, TopLevelOwnerResponse},
+        gov_type::{GovAction, GovernanceDetails, Ownership, TopLevelOwnerResponse},
         module::ModuleInfo,
         AssetEntry,
     },
@@ -138,7 +138,6 @@ impl ModuleInstallConfig {
 }
 
 /// Manager execute messages
-#[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
 #[derive(cw_orch::ExecuteFns)]
 pub enum ExecuteMsg {
@@ -199,10 +198,14 @@ pub enum ExecuteMsg {
     UpdateSubAccount(UpdateSubAccountAction),
     /// Callback endpoint
     Callback(CallbackMsg),
+    /// Update the contract's ownership. The `action` to be provided
+    /// can be either to propose transferring ownership to an account,
+    /// accept a pending ownership transfer, or renounce the ownership
+    /// permanently.
+    UpdateOwnership(GovAction),
 }
 
 /// Manager query messages
-#[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum QueryMsg {
@@ -238,6 +241,9 @@ pub enum QueryMsg {
     /// Returns [`TopLevelOwnerResponse`]
     #[returns(TopLevelOwnerResponse)]
     TopLevelOwner {},
+    /// Query the contract's ownership information
+    #[returns(Ownership<String>)]
+    Ownership {},
 }
 
 #[cosmwasm_schema::cw_serde]

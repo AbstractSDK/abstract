@@ -1,9 +1,10 @@
 //! # Governance structure object
 
 use crate::{objects::account, version_control};
-use cosmwasm_std::{Addr, Deps, QuerierWrapper};
+use cosmwasm_std::{Addr, Attribute, Deps, QuerierWrapper};
 use cw721::OwnerOfResponse;
 use cw_address_like::AddressLike;
+use cw_utils::Expiration;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -11,6 +12,70 @@ use crate::AbstractError;
 
 const MIN_GOV_TYPE_LENGTH: usize = 4;
 const MAX_GOV_TYPE_LENGTH: usize = 64;
+
+// FIXME: It's literally impossible to create full API outside abstract-std
+/// The contract's ownership info
+#[cosmwasm_schema::cw_serde]
+pub struct Ownership<T: AddressLike> {
+    /// The contract's current owner.
+    pub owner: GovernanceDetails<T>,
+
+    /// The account who has been proposed to take over the ownership.
+    /// `None` if there isn't a pending ownership transfer.
+    pub pending_owner: Option<GovernanceDetails<T>>,
+
+    /// The deadline for the pending owner to accept the ownership.
+    /// `None` if there isn't a pending ownership transfer, or if a transfer
+    /// exists and it doesn't have a deadline.
+    pub pending_expiry: Option<Expiration>,
+}
+
+impl<T: AddressLike> Ownership<T> {
+    /// Serializes the current ownership state as attributes which may
+    /// be used in a message response. Serialization is done according
+    /// to the std::fmt::Display implementation for `T` and
+    /// `cosmwasm_std::Expiration` (for `pending_expiry`). If an
+    /// ownership field has no value, `"none"` will be serialized.
+    ///
+    /// Attribute keys used:
+    ///  - owner
+    ///  - pending_owner
+    ///  - pending_expiry
+    ///
+    /// Callers should take care not to use these keys elsewhere
+    /// in their response as CosmWasm will override reused attribute
+    /// keys.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use cw_utils::Expiration;
+    ///
+    /// assert_eq!(
+    ///     Ownership {
+    ///         owner: Some("blue"),
+    ///         pending_owner: None,
+    ///         pending_expiry: Some(Expiration::Never {})
+    ///     }
+    ///     .into_attributes(),
+    ///     vec![
+    ///         Attribute::new("owner", "blue"),
+    ///         Attribute::new("pending_owner", "none"),
+    ///         Attribute::new("pending_expiry", "expiration: never")
+    ///     ],
+    /// )
+    /// ```
+    pub fn into_attributes(self) -> Vec<Attribute> {
+        fn none_or<T: std::fmt::Display>(or: Option<&T>) -> String {
+            or.map_or_else(|| "none".to_string(), |or| or.to_string())
+        }
+        vec![
+            Attribute::new("owner", self.owner.to_string()),
+            Attribute::new("pending_owner", none_or(self.pending_owner.as_ref())),
+            Attribute::new("pending_expiry", none_or(self.pending_expiry.as_ref())),
+        ]
+    }
+}
 
 /// Governance types
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -42,6 +107,34 @@ pub enum GovernanceDetails<T: AddressLike> {
         collection_addr: T,
         token_id: String,
     },
+}
+
+/// Actions that can be taken to alter the contract's governance ownership
+#[cosmwasm_schema::cw_serde]
+pub enum GovAction {
+    /// Propose to transfer the contract's ownership to another account,
+    /// optionally with an expiry time.
+    ///
+    /// Can only be called by the contract's current owner.
+    ///
+    /// Any existing pending ownership transfer is overwritten.
+    TransferOwnership {
+        new_owner: GovernanceDetails<String>,
+        expiry: Option<Expiration>,
+    },
+
+    /// Accept the pending ownership transfer.
+    ///
+    /// Can only be called by the pending owner.
+    AcceptOwnership,
+
+    /// Give up the contract's ownership and the possibility of appointing
+    /// a new owner.
+    ///
+    /// Can only be invoked by the contract's current owner.
+    ///
+    /// Any existing pending ownership transfer is canceled.
+    RenounceOwnership,
 }
 
 impl GovernanceDetails<String> {

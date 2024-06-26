@@ -67,21 +67,8 @@ pub fn instantiate(
     validate_link(msg.link.as_deref())?;
     validate_name(&msg.name)?;
 
-    let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
-
-    let owner: Option<Addr> = match &governance_details {
-        // If NFT-owned we don't save an owner because it is determined by the NFT ownership.
-        GovernanceDetails::NFT { .. } => None,
-        gov => Some(
-            gov.owner_address(&deps.querier)
-                .ok_or(ManagerError::InitRenounced {})?,
-        ),
-    };
-
-    let governance_details_owner = governance_details.to_string();
     let account_info = AccountInfo {
         name: msg.name,
-        governance_details,
         chain_id: env.block.chain_id,
         description: msg.description,
         link: msg.link,
@@ -98,19 +85,16 @@ pub fn instantiate(
     )?;
 
     // Set owner
-    // TODO: should we have
-    cw_gov_ownable::initialize_owner(
-        deps.storage,
-        account_info.governance_details,
-        config.version_control_address,
-    )?;
+    let cw_gov_owner =
+        cw_gov_ownable::initialize_owner(deps, msg.owner, config.version_control_address)?;
+
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
     let mut response = ManagerResponse::new(
         "instantiate",
         vec![
             ("account_id".to_owned(), msg.account_id.to_string()),
-            ("owner".to_owned(), governance_details_owner),
+            ("owner".to_owned(), cw_gov_owner.owner.to_string()),
         ],
     );
 
@@ -129,7 +113,7 @@ pub fn instantiate(
     }
 
     // Register on manager if it's sub-account
-    if let GovernanceDetails::SubAccount { manager, .. } = account_info.governance_details {
+    if let GovernanceDetails::SubAccount { manager, .. } = cw_gov_owner.owner {
         response = response.add_message(wasm_execute(
             manager,
             &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
@@ -200,17 +184,15 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 // Used to claim or renounce an ownership change.
                 ExecuteMsg::UpdateOwnership(action) => {
-                    let mut info = info;
-                    let mut deps = deps;
-                    let msgs = match action {
+                    let msgs = match &action {
                         // Disallow the user from using the TransferOwnership action.
-                        cw_gov_ownable::Action::TransferOwnership { .. } => {
+                        cw_gov_ownable::GovAction::TransferOwnership { .. } => {
                             return Err(ManagerError::MustUseProposeOwner {});
                         }
-                        cw_gov_ownable::Action::AcceptOwnership => {
+                        cw_gov_ownable::GovAction::AcceptOwnership => {
                             update_governance(deps.branch(), &mut info.sender)?
                         }
-                        cw_gov_ownable::Action::RenounceOwnership => renounce_governance(
+                        cw_gov_ownable::GovAction::RenounceOwnership => renounce_governance(
                             deps.branch(),
                             env.contract.address,
                             &mut info.sender,
@@ -219,14 +201,19 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     // Clear pending governance for either renounced or accepted ownership
                     PENDING_GOVERNANCE.remove(deps.storage);
 
-                    let result: ManagerResult = abstract_sdk::execute_update_ownership!(
-                        ManagerResponse,
+                    let config = CONFIG.load(&deps.storage)?;
+                    let new_owner_attributes = cw_gov_ownable::update_ownership(
                         deps,
-                        env,
-                        info,
-                        action
-                    );
-                    Ok(result?.add_messages(msgs))
+                        &env.block,
+                        &info.sender,
+                        config.version_control_address,
+                        action,
+                    )?
+                    .into_attributes();
+                    Ok(
+                        ManagerResponse::new("update_ownership", new_owner_attributes)
+                            .add_messages(msgs),
+                    )
                 }
                 _ => panic!(),
             }
