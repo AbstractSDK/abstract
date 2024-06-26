@@ -1,10 +1,11 @@
 //! # Governance structure object
 
 use crate::{objects::account, version_control};
-use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Deps, QuerierWrapper};
 use cw721::OwnerOfResponse;
 use cw_address_like::AddressLike;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 use crate::AbstractError;
 
@@ -12,7 +13,7 @@ const MIN_GOV_TYPE_LENGTH: usize = 4;
 const MAX_GOV_TYPE_LENGTH: usize = 64;
 
 /// Governance types
-#[cw_serde]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[non_exhaustive]
 pub enum GovernanceDetails<T: AddressLike> {
     /// A single address is admin
