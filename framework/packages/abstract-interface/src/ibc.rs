@@ -90,10 +90,7 @@ pub mod connection {
         }
     }
 
-    pub fn connect_one_way_to<
-        Chain: IbcQueryHandler,
-        IBC: InterchainEnv<Chain>,
-    >(
+    pub fn connect_one_way_to<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
         abstr: &Abstract<Chain>,
         dest: &Abstract<Chain>,
         interchain: &IBC,
