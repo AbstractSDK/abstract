@@ -164,8 +164,8 @@ impl<T: CwEnv> Abstract<T> {
         Ok(has_migrated)
     }
 
-    /// Update native modules in version control  
-    pub fn update_natives_in_version_control(&self) -> Result<(), crate::AbstractInterfaceError> {
+    /// Registers the deployment in version control  
+    pub fn register_in_version_control(&self) -> Result<(), crate::AbstractInterfaceError> {
         let mut natives_to_register = vec![];
 
         let modules = self
