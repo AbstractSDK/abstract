@@ -84,13 +84,13 @@ pub mod connection {
             remote_abstr: &Abstract<Chain>,
             interchain: &IBC,
         ) -> Result<(), AbstractInterfaceError> {
-            abstract_ibc_one_way_connection_with(self, remote_abstr, interchain)?;
-            abstract_ibc_one_way_connection_with(remote_abstr, self, interchain)?;
+            connect_one_way_to(self, remote_abstr, interchain)?;
+            connect_one_way_to(remote_abstr, self, interchain)?;
             Ok(())
         }
     }
 
-    pub fn abstract_ibc_one_way_connection_with<
+    pub fn connect_one_way_to<
         Chain: IbcQueryHandler,
         IBC: InterchainEnv<Chain>,
     >(
