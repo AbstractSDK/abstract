@@ -79,13 +79,13 @@ pub mod connection {
         /// If a polytone deployment is already , it uses the existing deployment, If it doesn't exist, it creates it
         ///
         /// You usually don't need this function on actual networks if you're not an Abstract maintainer
-        pub fn connect<IBC: InterchainEnv<Chain>>(
+        pub fn connect_to<IBC: InterchainEnv<Chain>>(
             &self,
-            dst_abstr: &Abstract<Chain>,
+            remote_abstr: &Abstract<Chain>,
             interchain: &IBC,
         ) -> Result<(), AbstractInterfaceError> {
-            abstract_ibc_one_way_connection_with(self, dst_abstr, interchain)?;
-            abstract_ibc_one_way_connection_with(dst_abstr, self, interchain)?;
+            abstract_ibc_one_way_connection_with(self, remote_abstr, interchain)?;
+            abstract_ibc_one_way_connection_with(remote_abstr, self, interchain)?;
             Ok(())
         }
     }

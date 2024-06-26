@@ -16,7 +16,7 @@ fn full_deploy() -> cw_orch::anyhow::Result<()> {
     let src_abstr = Abstract::deploy_on(src_chain.clone(), src_chain.sender().to_string())?;
     let dst_abstr = Abstract::deploy_on(dst_chain.clone(), dst_chain.sender().to_string())?;
 
-    src_abstr.connect(&dst_abstr, &interchain)?;
+    src_abstr.connect_to(&dst_abstr, &interchain)?;
 
     Ok(())
 }
