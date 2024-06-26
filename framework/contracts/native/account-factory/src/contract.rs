@@ -3,11 +3,9 @@ use abstract_sdk::{
     execute_update_ownership, query_ownership,
     std::{account_factory::*, ACCOUNT_FACTORY},
 };
-use abstract_std::objects::module_version::assert_contract_upgrade;
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
-use semver::Version;
 
 use crate::{commands, error::AccountFactoryError, queries, state::*};
 
@@ -29,7 +27,6 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
-        ibc_host: None,
     };
 
     cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
@@ -52,14 +49,12 @@ pub fn execute(
             ans_host_contract,
             version_control_contract,
             module_factory_address,
-            ibc_host,
         } => commands::execute_update_config(
             deps,
             info,
             ans_host_contract,
             version_control_contract,
             module_factory_address,
-            ibc_host,
         ),
         ExecuteMsg::CreateAccount {
             governance,
@@ -109,16 +104,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResult {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
-
-    assert_contract_upgrade(deps.storage, ACCOUNT_FACTORY, version)?;
-    cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
-
-    Ok(AccountFactoryResponse::action("migrate"))
-}
-
 #[cfg(test)]
 mod tests {
     use abstract_testing::prelude::*;
@@ -166,7 +151,6 @@ mod tests {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: None,
                 module_factory_address: None,
-                ibc_host: None,
             };
 
             test_only_owner(deps.as_mut(), msg)?;
@@ -184,7 +168,6 @@ mod tests {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: None,
                 module_factory_address: None,
-                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -193,7 +176,6 @@ mod tests {
                 version_control_contract: Addr::unchecked(TEST_VERSION_CONTROL),
                 ans_host_contract: Addr::unchecked(new_ans_host),
                 module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -211,7 +193,6 @@ mod tests {
                 ans_host_contract: None,
                 version_control_contract: Some(new_version_control.to_string()),
                 module_factory_address: None,
-                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -220,7 +201,6 @@ mod tests {
                 version_control_contract: Addr::unchecked(new_version_control),
                 ans_host_contract: Addr::unchecked(TEST_ANS_HOST),
                 module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -238,7 +218,6 @@ mod tests {
                 ans_host_contract: None,
                 version_control_contract: None,
                 module_factory_address: Some(new_module_factory.to_string()),
-                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -247,7 +226,6 @@ mod tests {
                 version_control_contract: Addr::unchecked(TEST_VERSION_CONTROL),
                 ans_host_contract: Addr::unchecked(TEST_ANS_HOST),
                 module_factory_address: Addr::unchecked(new_module_factory),
-                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -267,7 +245,6 @@ mod tests {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: Some(new_version_control.to_string()),
                 module_factory_address: Some(new_module_factory.to_string()),
-                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -276,7 +253,6 @@ mod tests {
                 version_control_contract: Addr::unchecked(new_version_control),
                 ans_host_contract: Addr::unchecked(new_ans_host),
                 module_factory_address: Addr::unchecked(new_module_factory),
-                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -364,10 +340,10 @@ mod tests {
     }
 
     mod migrate {
-        use abstract_std::AbstractError;
-
         use super::*;
-        use crate::contract;
+
+        use abstract_std::AbstractError;
+        use semver::Version;
 
         #[test]
         fn disallow_same_version() -> AccountFactoryResult<()> {
@@ -376,7 +352,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res)
                 .is_err()
@@ -401,7 +377,7 @@ mod tests {
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res)
                 .is_err()
@@ -425,7 +401,7 @@ mod tests {
             let old_name = "old:contract";
             cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
             assert_that!(res)
                 .is_err()
@@ -453,7 +429,7 @@ mod tests {
             .to_string();
             cw2::set_contract_version(deps.as_mut().storage, ACCOUNT_FACTORY, small_version)?;
 
-            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            let res = crate::migrate::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
             assert_that!(res.messages).has_length(0);
 
             assert_that!(cw2::get_contract_version(&deps.storage)?.version)

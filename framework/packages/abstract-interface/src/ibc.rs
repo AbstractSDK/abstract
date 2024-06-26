@@ -65,7 +65,6 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 // Helpers to create connection with another chain
 pub mod connection {
     use super::*;
-    use abstract_std::account_factory::ExecuteMsgFns;
     use abstract_std::ibc_client::ExecuteMsgFns as _;
     use abstract_std::ibc_client::QueryMsgFns;
     use abstract_std::ibc_host::ExecuteMsgFns as _;
@@ -123,13 +122,6 @@ pub mod connection {
         dest.ibc
             .host
             .register_chain_proxy(chain1_name, proxy_address.remote_polytone_proxy.unwrap())?;
-
-        dest.account_factory.update_config(
-            None,
-            Some(dest.ibc.host.address()?.to_string()),
-            None,
-            None,
-        )?;
 
         Ok(())
     }
