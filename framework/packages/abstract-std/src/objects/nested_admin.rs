@@ -136,7 +136,7 @@ pub fn query_top_level_owner<Q: CustomQuery>(
     maybe_manager: Addr,
 ) -> StdResult<Addr> {
     // Starting from (potentially)manager that owns this module
-    let mut current = manager::state::INFO.query(querier, maybe_manager.clone());
+    let mut current = manager::state::INFO.query(querier, maybe_manager);
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
     for _ in 0..MAX_ADMIN_RECURSION {
         match &current {
