@@ -1,20 +1,18 @@
 //! # Governance structure object
 
+use crate::{objects::account, version_control};
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Deps, QuerierWrapper};
 use cw721::OwnerOfResponse;
 use cw_address_like::AddressLike;
 
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
-use super::account::ACCOUNT_ID;
 use crate::AbstractError;
 
 const MIN_GOV_TYPE_LENGTH: usize = 4;
 const MAX_GOV_TYPE_LENGTH: usize = 64;
 
 /// Governance types
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cw_serde]
 #[non_exhaustive]
 pub enum GovernanceDetails<T: AddressLike> {
     /// A single address is admin
@@ -59,8 +57,8 @@ impl GovernanceDetails<String> {
             }
             GovernanceDetails::SubAccount { manager, proxy } => {
                 let manager_addr = deps.api.addr_validate(&manager)?;
-                let account_id = ACCOUNT_ID.query(&deps.querier, manager_addr)?;
-                let base = crate::version_control::state::ACCOUNT_ADDRESSES.query(
+                let account_id = account::ACCOUNT_ID.query(&deps.querier, manager_addr)?;
+                let base = version_control::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
                     version_control_addr,
                     &account_id,
@@ -209,10 +207,10 @@ impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
 
 #[cfg(test)]
 mod test {
+    use super::*;
+
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
-
-    use super::*;
 
     #[test]
     fn test_verify() {
@@ -251,7 +249,7 @@ mod test {
         // too long
         let gov = GovernanceDetails::External {
             governance_address: "gov_address".to_string(),
-            governance_type: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string(),
+            governance_type: "a".repeat(190),
         };
         assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
 
@@ -260,7 +258,7 @@ mod test {
             governance_address: "NOT_OK".to_string(),
             governance_type: "gov_type".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control)).is_err();
+        assert!(gov.verify(deps.as_ref(), mock_version_control).is_err());
 
         // good nft
         let gov = GovernanceDetails::NFT {
