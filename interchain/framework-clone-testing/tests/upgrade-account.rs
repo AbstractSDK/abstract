@@ -14,6 +14,7 @@ const SENDER: &str = "juno1kjzpqv393k4g064xh04j4hwy5d0s03wfvqejga";
 fn find_old_account() -> anyhow::Result<(CloneTesting, u32, String)> {
     let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
 
+    abstr_deployment.migrate_if_version_changed()?;
     // List accounts
     let max_account_id = abstr_deployment
         .account_factory

@@ -54,12 +54,6 @@
                   "null"
                 ]
               },
-              "ibc_host": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
               "module_factory_address": {
                 "type": [
                   "string",
@@ -573,16 +567,6 @@
       "properties": {
         "ans_host_contract": {
           "$ref": "#/definitions/Addr"
-        },
-        "ibc_host": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Addr"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "local_account_sequence": {
           "type": "integer",
