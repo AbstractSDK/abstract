@@ -125,8 +125,6 @@ fn test_bank_send() -> anyhow::Result<()> {
     })?;
 
     let test_env = TestEnv::setup(juno.clone(), osmosis.clone())?;
-    let dst_account = test_env.abs_dst.account_builder().build()?;
-    let dst_proxy = dst_account.proxy()?;
 
     let _ = daemon_interchain.check_ibc(
         "juno-1",
@@ -142,29 +140,80 @@ fn test_bank_send() -> anyhow::Result<()> {
         )?,
     )?;
 
+    // First ica account id is 0
+    let mut current_ica_account_id = 0;
+
     // Waiting for channel to open, cw-orch not capable of waiting channel open
     std::thread::sleep(Duration::from_secs(15));
 
-    let last_ica_account = test_env.standalone.ica_count()?.count - 1;
-    let state = test_env.standalone.ica_contract_state(last_ica_account)?;
+    let state = test_env
+        .standalone
+        .ica_contract_state(current_ica_account_id)?;
     let ica_addr = state.ica_state.unwrap().ica_addr;
 
-    // Send 10_000 uosmo from ICA to the
+    // Send 10_000 uosmo from ICA to some address
+    let receiving_addr = test_env.abs_dst.version_control().addr_str()?;
     let amount = coins(10_000, "uosmo");
     RUNTIME.block_on(osmosis.wallet().bank_send(&ica_addr, amount.clone()))?;
 
     let _ = daemon_interchain.check_ibc(
         "juno-1",
         test_env.standalone.send_action(
-            last_ica_account,
+            current_ica_account_id,
             cosmwasm_std::CosmosMsg::Bank(cosmwasm_std::BankMsg::Send {
-                to_address: dst_proxy.to_string(),
+                to_address: receiving_addr.to_string(),
                 amount: amount.clone(),
             }),
         )?,
     )?;
 
-    let dst_proxy_balance = osmosis.balance(dst_proxy, None)?;
+    let dst_proxy_balance = osmosis.balance(receiving_addr.clone(), None)?;
     assert_eq!(dst_proxy_balance, amount);
+
+    // It's possible to use control multiple ica with same ica controller
+
+    let _ = daemon_interchain.check_ibc(
+        "juno-1",
+        test_env.standalone.create_ica_contract(
+            ChannelOpenInitOptions {
+                connection_id: ibc_path.chain_1.connection_id.to_string(),
+                counterparty_connection_id: ibc_path.chain_2.connection_id.to_string(),
+                counterparty_port_id: None,
+                tx_encoding: None,
+                channel_ordering: Some(cosmwasm_std::IbcOrder::Ordered),
+            },
+            None,
+        )?,
+    )?;
+
+    current_ica_account_id += 1;
+
+    // Waiting for channel to open, cw-orch not capable of waiting channel open
+    std::thread::sleep(Duration::from_secs(15));
+
+    let state = test_env
+        .standalone
+        .ica_contract_state(current_ica_account_id)?;
+    let ica_addr = state.ica_state.unwrap().ica_addr;
+
+    // Send 15_000 uosmo from ICA to some address
+    let receiving_addr = test_env.abs_dst.name_service().addr_str()?;
+    let amount = coins(15_000, "uosmo");
+    RUNTIME.block_on(osmosis.wallet().bank_send(&ica_addr, amount.clone()))?;
+
+    let _ = daemon_interchain.check_ibc(
+        "juno-1",
+        test_env.standalone.send_action(
+            current_ica_account_id,
+            cosmwasm_std::CosmosMsg::Bank(cosmwasm_std::BankMsg::Send {
+                to_address: receiving_addr.to_string(),
+                amount: amount.clone(),
+            }),
+        )?,
+    )?;
+
+    let dst_proxy_balance = osmosis.balance(receiving_addr, None)?;
+    assert_eq!(dst_proxy_balance, amount);
+
     Ok(())
 }
