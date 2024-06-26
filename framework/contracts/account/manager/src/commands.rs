@@ -1102,7 +1102,7 @@ fn assert_is_admin(deps: Deps, env: &Env, sender: &Addr) -> ManagerResult<()> {
         // if no owner, set current contract as "owner".
         // this enables NFT ownership and will still error on Renounced ownership
         .unwrap_or(env.contract.address.clone());
-    NestedAdmin::assert_admin_custom(&deps.querier, &sender, owner).map_err(Into::into)
+    NestedAdmin::assert_admin_custom(&deps.querier, sender, owner).map_err(Into::into)
 }
 
 pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> ManagerResult {

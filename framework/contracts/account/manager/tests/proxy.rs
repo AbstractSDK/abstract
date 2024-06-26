@@ -49,7 +49,7 @@ fn deploy_and_mint_nft(
         },
         Some("test-account-nft-collection"),
         Some(&sender),
-        &vec![],
+        &[],
     )?;
 
     let mut nft_addr = String::default();
@@ -492,7 +492,7 @@ fn nft_owner_success() -> Result<(), Error> {
     let start_amnt = 100_000;
     let burn_amnt = 10_000u128;
     let start_balance = vec![Coin::new(start_amnt, TTOKEN)];
-    let burn_amount: Vec<Coin> = vec![Coin::new(burn_amnt.clone(), TTOKEN)];
+    let burn_amount: Vec<Coin> = vec![Coin::new(burn_amnt, TTOKEN)];
 
     let first_burn = Uint128::from(start_amnt).checked_sub(burn_amnt.into())?;
 
