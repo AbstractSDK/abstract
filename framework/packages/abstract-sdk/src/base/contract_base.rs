@@ -34,7 +34,7 @@ pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
 // ANCHOR: ibc
 /// Function signature for an IBC callback handler.
 pub type IbcCallbackHandlerFn<Module, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, Callback, IbcResult) -> Result<Response, Error>;
+    fn(DepsMut, Env, Module, Callback, IbcResult) -> Result<Response, Error>;
 // ANCHOR_END: ibc
 
 // ANCHOR: module_ibc
@@ -377,7 +377,7 @@ mod test {
     #[test]
     fn test_with_ibc_callback_handlers() {
         const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
-            |_, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
+            |_, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_ibc_callback(HANDLER);
 
