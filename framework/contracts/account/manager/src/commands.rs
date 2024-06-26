@@ -283,7 +283,7 @@ pub fn create_sub_account(
     account_id: Option<u32>,
 ) -> ManagerResult {
     // only owner can create a subaccount
-    assert_is_admin(deps.as_ref(), env, &info.sender)?;
+    assert_is_admin(deps.as_ref(), env.clone(), &info.sender)?;
 
     let create_account_msg = &abstract_std::account_factory::ExecuteMsg::CreateAccount {
         // proxy of this manager will be the account owner
@@ -442,7 +442,7 @@ pub fn propose_owner(
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
-    assert_is_admin(deps.as_ref(), env, &info.sender)?;
+    assert_is_admin(deps.as_ref(), env.clone(), &info.sender)?;
     // In case it's a top level owner we need to pass current owner into update_ownership method
     let owner = cw_ownable::get_ownership(deps.storage)?
         .owner
@@ -619,7 +619,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
-    assert_is_admin(deps.as_ref(), env, &info.sender)?;
+    assert_is_admin(deps.as_ref(), env.clone(), &info.sender)?;
     ensure!(!modules.is_empty(), ManagerError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];
@@ -1172,8 +1172,6 @@ mod tests {
 
         Ok(())
     }
-
-    use cw_ownable::OwnershipError;
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 

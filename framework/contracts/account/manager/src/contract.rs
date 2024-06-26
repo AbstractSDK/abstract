@@ -72,7 +72,7 @@ pub fn instantiate(
 
     let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
 
-    let owner: Option<Addr> = match governance_details {
+    let owner: Option<Addr> = match &governance_details {
         // If NFT-owned we don't save an owner because it is determined by the NFT ownership.
         GovernanceDetails::NFT { .. } => None,
         gov => Some(
@@ -81,6 +81,7 @@ pub fn instantiate(
         ),
     };
 
+    let governance_details_owner = governance_details.to_string();
     let account_info = AccountInfo {
         name: msg.name,
         governance_details,
@@ -100,14 +101,14 @@ pub fn instantiate(
     )?;
 
     // Set owner
-    cw_ownable::initialize_owner(deps.storage, deps.api, owner.map(|addr| addr.as_str()))?;
+    cw_ownable::initialize_owner(deps.storage, deps.api, owner.as_ref().map(Addr::as_str))?;
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
     let mut response = ManagerResponse::new(
         "instantiate",
         vec![
             ("account_id".to_owned(), msg.account_id.to_string()),
-            ("owner".to_owned(), governance_details.to_string()),
+            ("owner".to_owned(), governance_details_owner),
         ],
     );
 

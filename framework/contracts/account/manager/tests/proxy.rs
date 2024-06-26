@@ -17,7 +17,7 @@ use abstract_std::{
 };
 use abstract_testing::prelude::*;
 use anyhow::Error;
-use cosmwasm_std::{coin, ensure, CosmosMsg, Uint128};
+use cosmwasm_std::{coin, CosmosMsg, Uint128};
 use cw721::OwnerOfResponse;
 use cw_orch::{
     mock::{cw_multi_test::MockApiBech32, MockBase},
