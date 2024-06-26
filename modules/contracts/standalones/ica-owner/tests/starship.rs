@@ -98,8 +98,9 @@ impl<Env: CwEnv> TestEnv<Env> {
 }
 
 #[test]
+#[ignore = "This test requires starship to be running"]
 fn test_bank_send() -> anyhow::Result<()> {
-    std::env::set_var("RUST_LOG", "debug");
+    let _ = env_logger::builder().is_test(true).try_init();
     // Make sure we don't corrupt actual state
     // Don't forget to remove this file if it's fresh starship
     std::env::set_var(
@@ -108,8 +109,6 @@ fn test_bank_send() -> anyhow::Result<()> {
     );
     // Some txs don't succeed with default gas_buffer
     std::env::set_var(cw_orch::daemon::env::GAS_BUFFER_ENV_NAME, "1.8");
-
-    env_logger::init();
 
     let starship = Starship::new(RUNTIME.handle(), None)?;
     let daemon_interchain = starship.interchain_env();
