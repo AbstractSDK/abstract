@@ -3,9 +3,9 @@ use cosmwasm_std::{
     StdResult,
 };
 use cw_controllers::{Admin, AdminError, AdminResponse};
-use schemars::JsonSchema;
+// use schemars::JsonSchema;
 
-use crate::{
+use abstract_std::{
     manager::{self, state::AccountInfo},
     objects::gov_type::GovernanceDetails,
 };
@@ -51,7 +51,7 @@ impl<'a> NestedAdmin<'a> {
             Ok(true)
         } else {
             // Check if top level owner address is equal to the caller
-            Ok(query_top_level_owner(querier, admin)
+            Ok(dbg!(query_top_level_owner(querier, admin))
                 .map(|admin| admin == caller)
                 .unwrap_or(false))
         }
@@ -91,7 +91,7 @@ impl<'a> NestedAdmin<'a> {
         new_admin: Option<Addr>,
     ) -> Result<Response<C>, AdminError>
     where
-        C: Clone + core::fmt::Debug + PartialEq + JsonSchema,
+        C: Clone + core::fmt::Debug + PartialEq,
     {
         self.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -135,30 +135,26 @@ pub fn query_top_level_owner<Q: CustomQuery>(
     querier: &QuerierWrapper<Q>,
     maybe_manager: Addr,
 ) -> StdResult<Addr> {
-    // Starting from (potentially)manager that owns this module
-    let mut current = manager::state::INFO.query(querier, maybe_manager);
-    // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-    for _ in 0..MAX_ADMIN_RECURSION {
-        match &current {
-            Ok(AccountInfo {
-                governance_details: GovernanceDetails::SubAccount { manager, .. },
-                ..
-            }) => {
-                current = manager::state::INFO.query(querier, manager.clone());
-            }
-            _ => break,
-        }
-    }
+    todo!()
+    // // Starting from (potentially)manager that owns this module
+    // let mut current = dbg!(manager::state::INFO.query(querier, maybe_manager));
+    // // Get sub-accounts until we get non-sub-account governance or reach recursion limit
+    // for _ in 0..MAX_ADMIN_RECURSION {
+    //     match &current {
+    //         Ok(AccountInfo {
+    //             governance_details: GovernanceDetails::SubAccount { manager, .. },
+    //             ..
+    //         }) => {
+    //             current = manager::state::INFO.query(querier, manager.clone());
+    //         }
+    //         _ => break,
+    //     }
+    // }
 
-    // Get top level account owner address
-    current.and_then(|info| {
-        info.governance_details
-            .owner_address(&querier.into_empty())
-            .ok_or(StdError::generic_err("Top level account got renounced"))
-    })
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct TopLevelOwnerResponse {
-    pub address: Addr,
+    // // Get top level account owner address
+    // current.and_then(|info| {
+    //     info.governance_details
+    //         .owner_address(&querier.into_empty())
+    //         .ok_or(StdError::generic_err("Top level account got renounced"))
+    // })
 }

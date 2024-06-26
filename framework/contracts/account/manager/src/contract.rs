@@ -11,10 +11,7 @@ use abstract_sdk::std::{
     MANAGER,
 };
 use abstract_std::{
-    manager::{
-        state::{ACCOUNT_MODULES, PENDING_GOVERNANCE},
-        UpdateSubAccountAction,
-    },
+    manager::{state::ACCOUNT_MODULES, UpdateSubAccountAction},
     objects::gov_type::GovernanceDetails,
     PROXY,
 };
@@ -101,7 +98,12 @@ pub fn instantiate(
     )?;
 
     // Set owner
-    cw_ownable::initialize_owner(deps.storage, deps.api, owner.as_ref().map(Addr::as_str))?;
+    // TODO: should we have
+    cw_gov_ownable::initialize_owner(
+        deps.storage,
+        account_info.governance_details,
+        config.version_control_address,
+    )?;
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
     let mut response = ManagerResponse::new(
@@ -202,13 +204,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     let mut deps = deps;
                     let msgs = match action {
                         // Disallow the user from using the TransferOwnership action.
-                        cw_ownable::Action::TransferOwnership { .. } => {
+                        cw_gov_ownable::Action::TransferOwnership { .. } => {
                             return Err(ManagerError::MustUseProposeOwner {});
                         }
-                        cw_ownable::Action::AcceptOwnership => {
+                        cw_gov_ownable::Action::AcceptOwnership => {
                             update_governance(deps.branch(), &mut info.sender)?
                         }
-                        cw_ownable::Action::RenounceOwnership => renounce_governance(
+                        cw_gov_ownable::Action::RenounceOwnership => renounce_governance(
                             deps.branch(),
                             env.contract.address,
                             &mut info.sender,

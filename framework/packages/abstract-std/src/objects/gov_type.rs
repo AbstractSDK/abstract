@@ -194,16 +194,21 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
 impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
-            GovernanceDetails::Monarchy { .. } => "monarch".to_string(),
-            GovernanceDetails::SubAccount { .. } => "sub-account".to_string(),
+            GovernanceDetails::Monarchy { .. } => "monarch",
+            GovernanceDetails::SubAccount { .. } => "sub-account",
             GovernanceDetails::External {
                 governance_type, ..
-            } => governance_type.to_owned(),
-            GovernanceDetails::Renounced {} => "renounced".to_string(),
-            GovernanceDetails::NFT { .. } => "nft".to_string(),
+            } => governance_type.as_str(),
+            GovernanceDetails::Renounced {} => "renounced",
+            GovernanceDetails::NFT { .. } => "nft",
         };
-        write!(f, "{}", str)
+        write!(f, "{str}")
     }
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct TopLevelOwnerResponse {
+    pub address: Addr,
 }
 
 #[cfg(test)]

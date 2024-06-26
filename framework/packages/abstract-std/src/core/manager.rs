@@ -17,15 +17,11 @@
 pub mod state {
     use std::collections::HashSet;
 
-    use cosmwasm_std::{Addr, Deps};
-    use cw_address_like::AddressLike;
-    use cw_ownable::Ownership;
+    use cosmwasm_std::Addr;
     use cw_storage_plus::{Item, Map};
 
     pub use crate::objects::account::ACCOUNT_ID;
-    use crate::objects::{
-        common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, module::ModuleId,
-    };
+    use crate::objects::module::ModuleId;
 
     pub type SuspensionStatus = bool;
 
@@ -38,42 +34,11 @@ pub mod state {
 
     /// Abstract Account details.
     #[cosmwasm_schema::cw_serde]
-    pub struct AccountInfo<T: AddressLike = Addr> {
+    pub struct AccountInfo {
         pub name: String,
-        pub governance_details: GovernanceDetails<T>,
         pub chain_id: String,
         pub description: Option<String>,
         pub link: Option<String>,
-    }
-
-    impl AccountInfo<String> {
-        /// Check an account's info, verifying the gov details.
-        pub fn verify(
-            self,
-            deps: Deps,
-            version_control_addr: Addr,
-        ) -> Result<AccountInfo<Addr>, crate::AbstractError> {
-            let governance_details = self.governance_details.verify(deps, version_control_addr)?;
-            Ok(AccountInfo {
-                name: self.name,
-                governance_details,
-                chain_id: self.chain_id,
-                description: self.description,
-                link: self.link,
-            })
-        }
-    }
-
-    impl From<AccountInfo<Addr>> for AccountInfo<String> {
-        fn from(value: AccountInfo<Addr>) -> Self {
-            AccountInfo {
-                name: value.name,
-                governance_details: value.governance_details.into(),
-                chain_id: value.chain_id,
-                description: value.description,
-                link: value.link,
-            }
-        }
     }
 
     /// Suspension status
@@ -81,9 +46,7 @@ pub mod state {
     /// Configuration
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
     /// Info about the Account
-    pub const INFO: Item<AccountInfo<Addr>> = Item::new("\u{0}{4}info");
-    /// Account owner - managed by cw-ownable
-    pub const OWNER: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
+    pub const INFO: Item<AccountInfo> = Item::new("info");
     /// Enabled Abstract modules
     pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new("modules");
     /// Stores the dependency relationship between modules
@@ -91,10 +54,9 @@ pub mod state {
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
     /// List of sub-accounts
     pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("sub_accs");
-    /// Pending new governance
-    pub const PENDING_GOVERNANCE: Item<GovernanceDetails<Addr>> = Item::new("pgov");
     /// Context for old adapters that are currently removing authorized addresses
     pub const REMOVE_ADAPTER_AUTHORIZED_CONTEXT: Item<u64> = Item::new("rm_a_auth");
+    // Additional states, not listed here: cw_gov_ownable::GovOwnership
 }
 
 use cosmwasm_schema::QueryResponses;
@@ -105,8 +67,10 @@ use self::state::AccountInfo;
 use crate::{
     manager::state::SuspensionStatus,
     objects::{
-        account::AccountId, gov_type::GovernanceDetails, module::ModuleInfo,
-        nested_admin::TopLevelOwnerResponse, AssetEntry,
+        account::AccountId,
+        gov_type::{GovernanceDetails, TopLevelOwnerResponse},
+        module::ModuleInfo,
+        AssetEntry,
     },
 };
 
@@ -296,7 +260,7 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct InfoResponse {
-    pub info: AccountInfo<Addr>,
+    pub info: AccountInfo,
 }
 
 #[cosmwasm_schema::cw_serde]

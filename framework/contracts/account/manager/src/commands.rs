@@ -8,7 +8,7 @@ use abstract_std::{
     manager::{
         state::{
             AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, DEPENDENTS, INFO,
-            PENDING_GOVERNANCE, REMOVE_ADAPTER_AUTHORIZED_CONTEXT, SUB_ACCOUNTS, SUSPENSION_STATUS,
+            REMOVE_ADAPTER_AUTHORIZED_CONTEXT, SUB_ACCOUNTS, SUSPENSION_STATUS,
         },
         CallbackMsg, ExecuteMsg, InternalConfigAction, ModuleInstallConfig, UpdateSubAccountAction,
     },
@@ -34,7 +34,7 @@ use cosmwasm_std::{
     SubMsgResult, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
-use cw_ownable::OwnershipError;
+use cw_gov_ownable::GovOwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
 
@@ -444,12 +444,12 @@ pub fn propose_owner(
 ) -> ManagerResult {
     assert_is_admin(deps.as_ref(), &env, &info.sender)?;
     // In case it's a top level owner we need to pass current owner into update_ownership method
-    let owner = cw_ownable::get_ownership(deps.storage)?
+    let owner = cw_gov_ownable::get_ownership(deps.storage)?
         .owner
-        .ok_or(cw_ownable::OwnershipError::NoOwner)?;
+        .ok_or(GovOwnershipError::NoOwner)?;
     // verify the provided governance details
     let config = CONFIG.load(deps.storage)?;
-    let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address)?;
+    let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address.clone())?;
     let new_owner_addr = verified_gov
         .owner_address(&deps.querier)
         .ok_or(ManagerError::ProposeRenounced {})?;
@@ -467,11 +467,12 @@ pub fn propose_owner(
 
     PENDING_GOVERNANCE.save(deps.storage, &verified_gov)?;
     // Update the Owner of the Account
-    let ownership = cw_ownable::update_ownership(
+    let ownership = cw_gov_ownable::update_ownership(
         deps,
         &env.block,
         &owner,
-        cw_ownable::Action::TransferOwnership {
+        config.version_control_address,
+        cw_gov_ownable::Action::TransferOwnership {
             new_owner: new_owner_addr.into_string(),
             expiry: None,
         },
@@ -488,7 +489,7 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
     // Get pending governance
     let pending_governance = PENDING_GOVERNANCE
         .may_load(deps.storage)?
-        .ok_or(OwnershipError::TransferNotFound)?;
+        .ok_or(GovOwnershipError::TransferNotFound)?;
 
     // Clear state for previous manager if it was sub-account
     if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
@@ -904,6 +905,7 @@ pub fn update_info(
     link: Option<String>,
 ) -> ManagerResult {
     assert_is_admin(deps.as_ref(), &env, &info.sender)?;
+
     let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
         validate_name(&name)?;
@@ -1097,8 +1099,7 @@ pub fn update_internal_config(
 /// - The owner of the contract (i.e. account).
 /// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
 fn assert_is_admin(deps: Deps, env: &Env, sender: &Addr) -> ManagerResult<()> {
-    let owner = cw_ownable::get_ownership(deps.storage)?
-        .owner
+    let owner = dbg!(cw_gov_ownable::get_ownership(deps.storage)?.owner)
         // if no owner, set current contract as "owner".
         // this enables NFT ownership and will still error on Renounced ownership
         .unwrap_or(env.contract.address.clone());
@@ -1228,10 +1229,10 @@ mod tests {
             let res = execute_as_owner(deps.as_mut(), set_owner_msg);
             assert_that!(&res).is_ok();
 
-            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+            let accept_msg = ExecuteMsg::UpdateOwnership(cw_gov_ownable::Action::AcceptOwnership);
             execute_as(deps.as_mut(), new_owner, accept_msg)?;
 
-            let actual_owner = cw_ownable::get_ownership(&deps.storage)?.owner.unwrap();
+            let actual_owner = cw_gov_ownable::get_ownership(&deps.storage)?.owner.unwrap();
 
             assert_that!(&actual_owner).is_equal_to(Addr::unchecked(new_owner));
 
@@ -1262,7 +1263,7 @@ mod tests {
                 .to_string())
             .is_equal_to("owner".to_string());
 
-            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+            let accept_msg = ExecuteMsg::UpdateOwnership(cw_gov_ownable::Action::AcceptOwnership);
             execute_as(deps.as_mut(), &new_gov, accept_msg)?;
 
             let actual_info = INFO.load(deps.as_ref().storage)?;
@@ -1885,7 +1886,7 @@ mod tests {
             // mock pending owner
             Item::new("ownership").save(
                 deps.as_mut().storage,
-                &cw_ownable::Ownership {
+                &cw_gov_ownable::Ownership {
                     owner: None,
                     pending_expiry: None,
                     pending_owner: Some(Addr::unchecked(pending_owner)),
@@ -1899,7 +1900,7 @@ mod tests {
                 },
             )?;
 
-            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership {});
+            let msg = ExecuteMsg::UpdateOwnership(cw_gov_ownable::Action::AcceptOwnership {});
 
             execute_as(deps.as_mut(), pending_owner, msg)?;
 
@@ -1913,7 +1914,7 @@ mod tests {
 
             let transfer_to = "not_owner";
 
-            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+            let msg = ExecuteMsg::UpdateOwnership(cw_gov_ownable::Action::TransferOwnership {
                 new_owner: transfer_to.to_string(),
                 expiry: None,
             });
