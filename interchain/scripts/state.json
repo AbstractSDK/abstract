@@ -194,20 +194,20 @@
     },
     "pion-1": {
       "code_ids": {
-        "abstract:account-factory": 4832,
-        "abstract:ans-host": 4835,
+        "abstract:account-factory": 5193,
+        "abstract:ans-host": 5196,
         "abstract:challenge": 4845,
         "abstract:cw-staking": 4840,
         "abstract:dca": 4844,
         "abstract:dex": 4841,
         "abstract:etf": 4843,
-        "abstract:ibc-client": 4838,
-        "abstract:ibc-host": 4839,
-        "abstract:manager": 4836,
-        "abstract:module-factory": 4833,
+        "abstract:ibc-client": 5199,
+        "abstract:ibc-host": 5200,
+        "abstract:manager": 5197,
+        "abstract:module-factory": 5194,
         "abstract:money-market": 4842,
-        "abstract:proxy": 4837,
-        "abstract:version-control": 4834
+        "abstract:proxy": 5198,
+        "abstract:version-control": 5195
       },
       "default": {
         "abstract:account-factory": "neutron120t0zkewul37gfuurtlvf8j7a5ekp8eq48xjf4s54z5c7mve0mxsk3zuyu",
@@ -357,14 +357,14 @@
   "xion": {
     "xion-testnet-1": {
       "code_ids": {
-        "abstract:account-factory": 654,
-        "abstract:ans-host": 657,
-        "abstract:ibc-client": 660,
-        "abstract:ibc-host": 661,
-        "abstract:manager": 658,
-        "abstract:module-factory": 655,
-        "abstract:proxy": 659,
-        "abstract:version-control": 656
+        "abstract:account-factory": 751,
+        "abstract:ans-host": 698,
+        "abstract:ibc-client": 701,
+        "abstract:ibc-host": 702,
+        "abstract:manager": 699,
+        "abstract:module-factory": 696,
+        "abstract:proxy": 700,
+        "abstract:version-control": 697
       },
       "default": {
         "abstract:account-factory": "xion146fns53rghyn7yclpw6krnzdarwh423t8pq9ye4jlvegrf7d2kzsrwvp2x",

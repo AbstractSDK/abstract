@@ -333,6 +333,17 @@ impl From<(ModuleInfo, ModuleReference)> for Module {
     }
 }
 
+impl Module {
+    // Helper to know if this module supposed to be whitelisted on proxy contract
+    pub fn should_be_whitelisted(&self) -> bool {
+        match &self.reference {
+            // Standalone or Native(for example IBC Client) contracts not supposed to be whitelisted on proxy
+            ModuleReference::Standalone(_) | ModuleReference::Native(_) => false,
+            _ => true,
+        }
+    }
+}
+
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInitMsg {
     pub fixed_init: Option<Binary>,

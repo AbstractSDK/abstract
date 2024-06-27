@@ -2,7 +2,7 @@ pub use abstract_std::app;
 use abstract_std::{
     ibc::{Callback, IbcResult},
     ibc_client::{self, InstalledModuleIdentification},
-    objects::{chain_name::ChainName, module::ModuleInfo},
+    objects::{chain_name::ChainName, dependency::StaticDependency, module::ModuleInfo},
     IBC_CLIENT,
 };
 use cosmwasm_schema::{cw_serde, QueryResponses};
@@ -141,6 +141,9 @@ pub const IBC_CALLBACK_MODULE_QUERY_RECEIVED: Item<String> =
     Item::new("ibc_callback_module_query_received");
 
 pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContract {
+    const IBC_CLIENT_DEP: StaticDependency =
+        StaticDependency::new(IBC_CLIENT, &[abstract_std::registry::ABSTRACT_VERSION]);
+
     MockAppContract::new(id, version, None)
         .with_instantiate(|deps, _, _, _, _| {
             IBC_CALLBACK_RECEIVED.save(deps.storage, &false)?;
@@ -246,7 +249,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
         })
         .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
         .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
-        .with_ibc_callback(|deps, _, _, _, callback, result| {
+        .with_ibc_callback(|deps, _, _, callback, result| {
             eprintln!("{:?}", result);
             match &result {
                 IbcResult::Query {
@@ -264,7 +267,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                         MockCallbackMsg::ModuleQuery => {
                             IBC_CALLBACK_MODULE_QUERY_RECEIVED.save(
                                 deps.storage,
-                                &from_json(&result.get_query_result(0)?.1).unwrap(),
+                                &from_json(result.get_query_result(0)?.1).unwrap(),
                             )?;
                         }
                         _ => unreachable!(),
@@ -288,6 +291,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
             MODULE_IBC_RECEIVED.save(deps.storage, &src_module_info.module)?;
             Ok(Response::new().add_attribute("mock_module_ibc", "executed"))
         })
+        .with_dependencies(&[IBC_CLIENT_DEP])
 }
 
 pub mod origin_app {
@@ -331,7 +335,6 @@ pub mod test {
         );
         Ok(())
     }
-
     use crate::{
         interchain_accounts::create_test_remote_account,
         module_to_module_interactions::{
@@ -340,9 +343,7 @@ pub mod test {
             MockExecMsgFns, MockInitMsg, MockQueryMsgFns, ReceivedIbcCallbackStatus,
             ReceivedIbcQueryCallbackStatus,
         },
-        setup::{
-            ibc_abstract_setup, ibc_connect_polytone_and_abstract, mock_test::logger_test_init,
-        },
+        setup::{ibc_abstract_setup, mock_test::logger_test_init},
         JUNO, STARGAZE,
     };
     use abstract_app::objects::{chain_name::ChainName, module::ModuleInfo};
@@ -362,9 +363,7 @@ pub mod test {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        // We just verified all steps pass
         let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE);
 
@@ -414,9 +413,7 @@ pub mod test {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE);
 
@@ -479,9 +476,7 @@ pub mod test {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        // We just verified all steps pass
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE);
 
@@ -598,9 +593,7 @@ pub mod test {
         let mock_interchain =
             MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-        // We just verified all steps pass
         let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-        ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE);
         let remote = mock_interchain.chain(STARGAZE)?;
@@ -664,10 +657,8 @@ pub mod test {
             let mock_interchain =
                 MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
 
-            // We just verified all steps pass
             let (abstr_origin, abstr_remote) =
                 ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
-            ibc_connect_polytone_and_abstract(&mock_interchain, STARGAZE, JUNO)?;
 
             let remote_name = ChainName::from_chain_id(STARGAZE);
 

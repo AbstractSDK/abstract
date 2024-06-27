@@ -51,6 +51,46 @@ impl<Chain: CwEnv> VersionControl<Chain> {
         Ok(modules.swap_remove(0).module)
     }
 
+    /// Query a single module registered or pending
+    pub fn registered_or_pending_module(
+        &self,
+        info: ModuleInfo,
+    ) -> Result<Module, crate::AbstractInterfaceError> {
+        let mut module_list_response = self.module_list(
+            Some(ModuleFilter {
+                namespace: Some(info.namespace.to_string()),
+                name: Some(info.name.clone()),
+                version: Some(info.version.to_string()),
+                status: Some(ModuleStatus::Registered),
+            }),
+            None,
+            None,
+        )?;
+
+        if !module_list_response.modules.is_empty() {
+            // Return if it's registered module else it's pending or neither registered or pending
+            Ok(module_list_response.modules.swap_remove(0).module)
+        } else {
+            let mut module_list_response = self.module_list(
+                Some(ModuleFilter {
+                    namespace: Some(info.namespace.to_string()),
+                    name: Some(info.name),
+                    version: Some(info.version.to_string()),
+                    status: Some(ModuleStatus::Pending),
+                }),
+                None,
+                None,
+            )?;
+            if !module_list_response.modules.is_empty() {
+                Ok(module_list_response.modules.swap_remove(0).module)
+            } else {
+                Err(crate::AbstractInterfaceError::Std(
+                    cosmwasm_std::StdError::generic_err("Module not found"),
+                ))
+            }
+        }
+    }
+
     pub fn register_base(
         &self,
         account: &AbstractAccount<Chain>,

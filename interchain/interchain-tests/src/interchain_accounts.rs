@@ -91,13 +91,10 @@ mod test {
         IBC_CLIENT, ICS20, PROXY,
     };
 
-    use abstract_interface::connection::abstract_ibc_connection_with;
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary, wasm_execute, Uint128};
     use cw_orch::mock::cw_multi_test::AppResponse;
-    use cw_orch_polytone::Polytone;
     use ibc_relayer_types::core::ics24_host::identifier::PortId;
-    use polytone::handshake::POLYTONE_VERSION;
 
     #[test]
     fn ibc_account_action() -> AnyResult<()> {
@@ -185,40 +182,9 @@ mod test {
         let abstr_destination_remote =
             Abstract::deploy_on(chain3.clone(), chain3.sender().to_string())?;
 
-        // Deploying polytone on both chains
-        let polytone_1 = Polytone::deploy_on(chain1.clone(), None)?;
-        let polytone_2 = Polytone::deploy_on(chain2.clone(), None)?;
-        let polytone_3 = Polytone::deploy_on(chain3.clone(), None)?;
-
-        // Creating a connection between 2 polytone deployments
-        mock_interchain.create_contract_channel(
-            &polytone_1.note,
-            &polytone_2.voice,
-            POLYTONE_VERSION,
-            None,
-        )?;
-
-        mock_interchain.create_contract_channel(
-            &polytone_2.note,
-            &polytone_3.voice,
-            POLYTONE_VERSION,
-            None,
-        )?;
-
-        // Create the connection between client and host
-        abstract_ibc_connection_with(
-            &abstr_origin,
-            &mock_interchain,
-            &abstr_intermediate_remote,
-            &polytone_1,
-        )?;
-        abstract_ibc_connection_with(
-            &abstr_intermediate_remote,
-            &mock_interchain,
-            &abstr_destination_remote,
-            &polytone_2,
-        )?;
-
+        // Creating a connection between 2 abstract deployments
+        abstr_origin.connect_to(&abstr_intermediate_remote, &mock_interchain)?;
+        abstr_intermediate_remote.connect_to(&abstr_destination_remote, &mock_interchain)?;
         // END SETUP
 
         // Create a local account for testing
