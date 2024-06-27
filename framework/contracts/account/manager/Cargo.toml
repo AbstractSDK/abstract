@@ -32,6 +32,7 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
+abstract-nested-admin = { workspace = true }
 semver = { workspace = true }
 cw-semver = { workspace = true }
 abstract-macros = { workspace = true }

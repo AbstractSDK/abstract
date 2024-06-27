@@ -36,7 +36,6 @@ use abstract_testing::{
 use cosmwasm_std::{coins, BankMsg, Uint128};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_orch::prelude::*;
-use cw_ownable::Ownership;
 
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
@@ -52,23 +51,13 @@ fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
             name: String::from("Default Abstract Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::Monarchy {
-                monarch: sender.clone()
-            },
             link: None,
         },
         account_info
     );
 
-    let ownership: Ownership<String> = account.ownership()?;
-    assert_eq!(
-        Ownership {
-            owner: Some(sender.to_string()),
-            pending_owner: None,
-            pending_expiry: None
-        },
-        ownership
-    );
+    let owner = account.owner()?;
+    assert_eq!(owner, sender);
 
     Ok(())
 }
@@ -106,7 +95,6 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
             name: String::from(name),
             chain_id: String::from("cosmos-testnet-14002"),
             description: Some(String::from(description)),
-            governance_details,
             link: Some(String::from(link)),
         },
         account_info.into()
@@ -177,11 +165,12 @@ fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
             name: String::from("Default Abstract Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::Monarchy { monarch: sender },
             link: None,
         },
         account_info
     );
+    let owner = publisher.account().owner()?;
+    assert_eq!(owner, sender);
 
     Ok(())
 }
@@ -217,11 +206,13 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
             name: String::from(name),
             chain_id: String::from("cosmos-testnet-14002"),
             description: Some(String::from(description)),
-            governance_details,
             link: Some(String::from(link)),
         },
         account_info.into()
     );
+
+    let ownership = publisher.account().ownership()?;
+    assert_eq!(ownership.owner, governance_details);
 
     // Namespace is claimed.
     let account_id = client
@@ -289,13 +280,17 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
             name: String::from("Sub Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::SubAccount {
-                manager: publisher_manager.clone(),
-                proxy: publisher_proxy
-            },
             link: None,
         },
         sub_account_details
+    );
+    let sub_account_ownership = my_app.account().ownership()?;
+    assert_eq!(
+        sub_account_ownership.owner,
+        GovernanceDetails::SubAccount {
+            manager: publisher_manager.to_string(),
+            proxy: publisher_proxy.to_string(),
+        }
     );
 
     let sub_accounts = publisher.account().sub_accounts()?;
@@ -321,12 +316,16 @@ fn can_publish_and_install_app() -> anyhow::Result<()> {
             name: String::from("Default Abstract Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::Monarchy {
-                monarch: client.sender()
-            },
             link: None,
         },
         sub_account_details
+    );
+    let sub_account_ownership = my_adapter.account().ownership()?;
+    assert_eq!(
+        sub_account_ownership.owner,
+        GovernanceDetails::Monarchy {
+            monarch: client.sender().to_string()
+        }
     );
 
     Ok(())
@@ -362,13 +361,17 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
             name: String::from("Sub Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::SubAccount {
-                manager: publisher_manager.clone(),
-                proxy: publisher_proxy
-            },
             link: None,
         },
         sub_account_details
+    );
+    let sub_account_ownership = my_adapter.account().ownership()?;
+    assert_eq!(
+        sub_account_ownership.owner,
+        GovernanceDetails::SubAccount {
+            manager: publisher_manager.to_string(),
+            proxy: publisher_proxy.to_string(),
+        }
     );
 
     // Install adapter on current account
@@ -391,13 +394,18 @@ fn can_publish_and_install_adapter() -> anyhow::Result<()> {
             name: String::from("Default Abstract Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::Monarchy {
-                monarch: client.sender()
-            },
             link: None,
         },
         sub_account_details
     );
+    let sub_account_ownership = my_adapter.account().ownership()?;
+    assert_eq!(
+        sub_account_ownership.owner,
+        GovernanceDetails::Monarchy {
+            monarch: client.sender().to_string()
+        }
+    );
+
     Ok(())
 }
 
@@ -832,9 +840,6 @@ fn doc_example_test() -> anyhow::Result<()> {
             name: String::from("Default Abstract Account"),
             chain_id: String::from("cosmos-testnet-14002"),
             description: None,
-            governance_details: GovernanceDetails::Monarchy {
-                monarch: sender.clone()
-            },
             link: None,
         },
         account_info

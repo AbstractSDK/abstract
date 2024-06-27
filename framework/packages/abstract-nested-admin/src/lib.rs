@@ -3,12 +3,10 @@ use cosmwasm_std::{
     StdResult,
 };
 use cw_controllers::{Admin, AdminError, AdminResponse};
-// use schemars::JsonSchema;
+use cw_gov_ownable::Ownership;
+use schemars::JsonSchema;
 
-use abstract_std::{
-    manager::{self, state::AccountInfo},
-    objects::gov_type::GovernanceDetails,
-};
+use abstract_std::objects::gov_type::GovernanceDetails;
 
 /// Max manager admin recursion
 pub const MAX_ADMIN_RECURSION: usize = 2;
@@ -91,7 +89,7 @@ impl<'a> NestedAdmin<'a> {
         new_admin: Option<Addr>,
     ) -> Result<Response<C>, AdminError>
     where
-        C: Clone + core::fmt::Debug + PartialEq,
+        C: Clone + core::fmt::Debug + PartialEq + JsonSchema,
     {
         self.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -135,26 +133,26 @@ pub fn query_top_level_owner<Q: CustomQuery>(
     querier: &QuerierWrapper<Q>,
     maybe_manager: Addr,
 ) -> StdResult<Addr> {
-    todo!()
-    // // Starting from (potentially)manager that owns this module
-    // let mut current = dbg!(manager::state::INFO.query(querier, maybe_manager));
-    // // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-    // for _ in 0..MAX_ADMIN_RECURSION {
-    //     match &current {
-    //         Ok(AccountInfo {
-    //             governance_details: GovernanceDetails::SubAccount { manager, .. },
-    //             ..
-    //         }) => {
-    //             current = manager::state::INFO.query(querier, manager.clone());
-    //         }
-    //         _ => break,
-    //     }
-    // }
+    // Starting from (potentially)manager that owns this module
+    let mut current = cw_gov_ownable::query_ownership(querier, maybe_manager);
+    // Get sub-accounts until we get non-sub-account governance or reach recursion limit
+    for _ in 0..MAX_ADMIN_RECURSION {
+        match current {
+            Ok(Ownership {
+                owner: GovernanceDetails::SubAccount { manager, .. },
+                ..
+            }) => {
+                current = cw_gov_ownable::query_ownership(querier, manager);
+            }
+            _ => break,
+        }
+    }
 
-    // // Get top level account owner address
-    // current.and_then(|info| {
-    //     info.governance_details
-    //         .owner_address(&querier.into_empty())
-    //         .ok_or(StdError::generic_err("Top level account got renounced"))
-    // })
+    // Get top level account owner address
+    current.and_then(|ownership| {
+        ownership
+            .owner
+            .owner_address(&querier.into_empty())
+            .ok_or(StdError::generic_err("Top level account got renounced"))
+    })
 }

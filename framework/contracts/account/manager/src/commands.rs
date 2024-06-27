@@ -1,4 +1,5 @@
 use abstract_macros::abstract_response;
+use abstract_nested_admin::{query_top_level_owner, NestedAdmin};
 use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_std::{
     adapter::{
@@ -18,7 +19,6 @@ use abstract_std::{
         gov_type::GovernanceDetails,
         module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
-        nested_admin::{query_top_level_owner, NestedAdmin},
         salt::generate_instantiate_salt,
         validation::{validate_description, validate_link, validate_name},
         version_control::VersionControlContract,
@@ -446,56 +446,45 @@ pub fn propose_owner(
     // In case it's a top level owner we need to pass current owner into update_ownership method
     let owner = cw_gov_ownable::get_ownership(deps.storage)?
         .owner
+        .owner_address(&deps.querier)
         .ok_or(GovOwnershipError::NoOwner)?;
     // verify the provided governance details
     let config = CONFIG.load(deps.storage)?;
-    let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address.clone())?;
-    let new_owner_addr = verified_gov
-        .owner_address(&deps.querier)
-        .ok_or(ManagerError::ProposeRenounced {})?;
 
-    // Check that there are changes
-    let acc_info = INFO.load(deps.storage)?;
-    if acc_info.governance_details == verified_gov {
-        return Err(ManagerError::NoUpdates {});
-    }
-
-    let mut response = ManagerResponse::new(
-        "update_owner",
-        vec![("governance_type", verified_gov.to_string())],
-    );
-
-    PENDING_GOVERNANCE.save(deps.storage, &verified_gov)?;
     // Update the Owner of the Account
     let ownership = cw_gov_ownable::update_ownership(
         deps,
         &env.block,
         &owner,
         config.version_control_address,
-        cw_gov_ownable::Action::TransferOwnership {
-            new_owner: new_owner_addr.into_string(),
+        cw_gov_ownable::GovAction::TransferOwnership {
+            new_owner,
             expiry: None,
         },
     )?;
-    response = response.add_attributes(ownership.into_attributes());
-    Ok(response)
+    Ok(ManagerResponse::new(
+        "update_owner",
+        vec![("governance_type", ownership.owner.to_string())],
+    )
+    .add_attributes(ownership.into_attributes()))
 }
 
-/// Update governance of this account after claim
-pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResult<Vec<CosmosMsg>> {
+/// Update governance of sub_accounts account after claim
+pub(crate) fn update_sub_governance(
+    deps: DepsMut,
+    sender: &mut Addr,
+) -> ManagerResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
-    let mut acc_info = INFO.load(deps.storage)?;
     let mut account_id = None;
+    let ownership = cw_gov_ownable::get_ownership(deps.storage)?;
     // Get pending governance
-    let pending_governance = PENDING_GOVERNANCE
-        .may_load(deps.storage)?
+    let pending_governance = ownership
+        .pending_owner
         .ok_or(GovOwnershipError::TransferNotFound)?;
 
     // Clear state for previous manager if it was sub-account
-    if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
+    if let GovernanceDetails::SubAccount { manager, .. } = ownership.owner {
         let id = ACCOUNT_ID.load(deps.storage)?;
-        // For optimizing the gas we save it, in case new owner is sub-account as well
-        account_id = Some(id.clone());
         let unregister_message = wasm_execute(
             manager,
             &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
@@ -503,6 +492,8 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
             }),
             vec![],
         )?;
+        // For optimizing the gas we save it, in case new owner is sub-account as well
+        account_id = Some(id);
         msgs.push(unregister_message.into());
     }
 
@@ -533,9 +524,6 @@ pub(crate) fn update_governance(deps: DepsMut, sender: &mut Addr) -> ManagerResu
         }
     }
 
-    // Update governance of this account
-    acc_info.governance_details = pending_governance;
-    INFO.save(deps.storage, &acc_info)?;
     Ok(msgs)
 }
 
@@ -559,8 +547,8 @@ pub(crate) fn renounce_governance(
         ManagerError::RenounceWithSubAccount {}
     );
 
-    let mut account_info = INFO.load(deps.storage)?;
-    if let GovernanceDetails::SubAccount { manager, proxy } = account_info.governance_details {
+    let ownership = cw_gov_ownable::get_ownership(deps.storage)?;
+    if let GovernanceDetails::SubAccount { manager, proxy } = ownership.owner {
         // If called by top-level owner, update the sender to let cw-ownable think it was called by the proxy.
         let top_level_owner = query_top_level_owner(&deps.querier, manager_addr)?;
         if top_level_owner == *sender {
@@ -578,9 +566,6 @@ pub(crate) fn renounce_governance(
             .into(),
         );
     }
-    // Renounce governance
-    account_info.governance_details = GovernanceDetails::Renounced {};
-    INFO.save(deps.storage, &account_info)?;
 
     let config = CONFIG.load(deps.storage)?;
     let vc = VersionControlContract::new(config.version_control_address);
@@ -1100,6 +1085,7 @@ pub fn update_internal_config(
 /// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
 fn assert_is_admin(deps: Deps, env: &Env, sender: &Addr) -> ManagerResult<()> {
     let owner = dbg!(cw_gov_ownable::get_ownership(deps.storage)?.owner)
+        .owner_address(&deps.querier)
         // if no owner, set current contract as "owner".
         // this enables NFT ownership and will still error on Renounced ownership
         .unwrap_or(env.contract.address.clone());
@@ -1178,7 +1164,6 @@ mod tests {
 
     mod set_owner_and_gov_type {
         use super::*;
-        use cosmwasm_std::QuerierWrapper;
 
         #[test]
         fn only_owner() -> ManagerTestResult {
@@ -1229,12 +1214,15 @@ mod tests {
             let res = execute_as_owner(deps.as_mut(), set_owner_msg);
             assert_that!(&res).is_ok();
 
-            let accept_msg = ExecuteMsg::UpdateOwnership(cw_gov_ownable::Action::AcceptOwnership);
+            let accept_msg =
+                ExecuteMsg::UpdateOwnership(cw_gov_ownable::GovAction::AcceptOwnership);
             execute_as(deps.as_mut(), new_owner, accept_msg)?;
 
-            let actual_owner = cw_gov_ownable::get_ownership(&deps.storage)?.owner.unwrap();
+            let actual_owner = cw_gov_ownable::get_ownership(&deps.storage)?.owner;
 
-            assert_that!(&actual_owner).is_equal_to(Addr::unchecked(new_owner));
+            assert_that!(&actual_owner).is_equal_to(GovernanceDetails::Monarchy {
+                monarch: Addr::unchecked(new_owner),
+            });
 
             Ok(())
         }
@@ -1254,21 +1242,21 @@ mod tests {
 
             execute_as_owner(deps.as_mut(), msg)?;
 
-            let querier = QuerierWrapper::new(&deps.querier);
-            let actual_info = INFO.load(deps.as_ref().storage)?;
-            assert_that!(&actual_info
-                .governance_details
-                .owner_address(&querier)
+            let ownership = cw_gov_ownable::get_ownership(deps.as_ref().storage)?;
+            assert_that!(ownership
+                .owner
+                .owner_address(&deps.as_ref().querier)
                 .unwrap()
                 .to_string())
             .is_equal_to("owner".to_string());
 
-            let accept_msg = ExecuteMsg::UpdateOwnership(cw_gov_ownable::Action::AcceptOwnership);
+            let accept_msg =
+                ExecuteMsg::UpdateOwnership(cw_gov_ownable::GovAction::AcceptOwnership);
             execute_as(deps.as_mut(), &new_gov, accept_msg)?;
 
-            let actual_info = INFO.load(deps.as_ref().storage)?;
-            assert_that!(&actual_info
-                .governance_details
+            let ownership = cw_gov_ownable::get_ownership(deps.as_ref().storage)?;
+            assert_that!(ownership
+                .owner
                 .owner_address(&deps.as_ref().querier)
                 .unwrap()
                 .to_string())
@@ -1594,9 +1582,6 @@ mod tests {
                 deps.as_mut().storage,
                 &AccountInfo {
                     name: prev_name.clone(),
-                    governance_details: GovernanceDetails::Monarchy {
-                        monarch: Addr::unchecked(""),
-                    },
                     chain_id: "".to_string(),
                     description: Some("description".to_string()),
                     link: Some("link".to_string()),
@@ -1887,20 +1872,17 @@ mod tests {
             Item::new("ownership").save(
                 deps.as_mut().storage,
                 &cw_gov_ownable::Ownership {
-                    owner: None,
+                    owner: GovernanceDetails::Monarchy {
+                        monarch: Addr::unchecked("owner"),
+                    },
                     pending_expiry: None,
-                    pending_owner: Some(Addr::unchecked(pending_owner)),
-                },
-            )?;
-            // mock pending governance
-            Item::new("pgov").save(
-                deps.as_mut().storage,
-                &GovernanceDetails::Monarchy {
-                    monarch: pending_owner.to_owned(),
+                    pending_owner: Some(GovernanceDetails::Monarchy {
+                        monarch: Addr::unchecked(pending_owner),
+                    }),
                 },
             )?;
 
-            let msg = ExecuteMsg::UpdateOwnership(cw_gov_ownable::Action::AcceptOwnership {});
+            let msg = ExecuteMsg::UpdateOwnership(cw_gov_ownable::GovAction::AcceptOwnership {});
 
             execute_as(deps.as_mut(), pending_owner, msg)?;
 
@@ -1914,8 +1896,10 @@ mod tests {
 
             let transfer_to = "not_owner";
 
-            let msg = ExecuteMsg::UpdateOwnership(cw_gov_ownable::Action::TransferOwnership {
-                new_owner: transfer_to.to_string(),
+            let msg = ExecuteMsg::UpdateOwnership(cw_gov_ownable::GovAction::TransferOwnership {
+                new_owner: GovernanceDetails::Monarchy {
+                    monarch: transfer_to.to_string(),
+                },
                 expiry: None,
             });
 

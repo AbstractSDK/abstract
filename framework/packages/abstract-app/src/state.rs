@@ -1,3 +1,4 @@
+use abstract_nested_admin::NestedAdmin;
 use abstract_sdk::{
     base::{ModuleIbcHandlerFn, SudoHandlerFn},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
@@ -5,7 +6,7 @@ use abstract_sdk::{
 };
 use abstract_std::{
     app::AppState,
-    objects::{dependency::StaticDependency, module::ModuleInfo, nested_admin::NestedAdmin},
+    objects::{dependency::StaticDependency, module::ModuleInfo},
     AbstractError, AbstractResult,
 };
 use cosmwasm_std::{Empty, StdResult, Storage};

@@ -98,7 +98,8 @@ abstract-staking-standard = { path = "packages/standards/staking" }
 
 abstract-integration-tests = { path = "packages/abstract-integration-tests" }
 
-# Gov ownable
+# Ownership
+abstract-nested-admin = { version = "0.23.0-beta.0", path = "packages/abstract-nested-admin" }
 cw-gov-ownable = { version = "0.1.0", path = "packages/gov-ownable" }
 cw-gov-ownable-derive = { version = "0.1.0", path = "packages/gov-ownable/derive" }
 

@@ -574,12 +574,14 @@ pub fn query_account_owner(
     manager_addr: Addr,
     account_id: &AccountId,
 ) -> VCResult<Addr> {
-    let cw_ownable::Ownership { owner, .. } =
-        abstract_std::manager::state::OWNER.query(querier, manager_addr)?;
+    let cw_gov_ownable::Ownership { owner, .. } =
+        cw_gov_ownable::query_ownership(querier, manager_addr)?;
 
-    owner.ok_or_else(|| VCError::NoAccountOwner {
-        account_id: account_id.clone(),
-    })
+    owner
+        .owner_address(querier)
+        .ok_or_else(|| VCError::NoAccountOwner {
+            account_id: account_id.clone(),
+        })
 }
 
 pub fn validate_account_owner(

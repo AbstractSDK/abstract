@@ -34,7 +34,6 @@ use abstract_std::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
-        nested_admin::MAX_ADMIN_RECURSION,
         validation::verifiers,
         AccountId, AssetEntry,
     },
@@ -42,7 +41,6 @@ use abstract_std::{
     PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
-use cw721::OwnerOfResponse;
 use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 
 use crate::{
@@ -428,7 +426,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Query account info
-    pub fn info(&self) -> AbstractClientResult<AccountInfo<Addr>> {
+    pub fn info(&self) -> AbstractClientResult<AccountInfo> {
         let info_response: InfoResponse = self.abstr_account.manager.info()?;
         Ok(info_response.info)
     }
@@ -546,17 +544,18 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Returns owner of the account
-    pub fn ownership(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
+    pub fn ownership(&self) -> AbstractClientResult<cw_gov_ownable::Ownership<String>> {
         self.abstr_account.manager.ownership().map_err(Into::into)
     }
 
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
-        let governance = self.abstr_account.manager.info()?.info.governance_details;
-
-        let environment = self.environment();
-        get_nested_governance_owner(governance, environment)
+        self.abstr_account
+            .manager
+            .top_level_owner()
+            .map(|tlo| tlo.address)
+            .map_err(Into::into)
     }
 
     /// Executes a [`CosmosMsg`] on the proxy of the account.
@@ -856,52 +855,52 @@ impl<Chain: CwEnv> Debug for Account<Chain> {
     }
 }
 
-pub(crate) fn get_nested_governance_owner<Chain: CwEnv>(
-    mut governance: GovernanceDetails<Addr>,
-    environment: Chain,
-) -> AbstractClientResult<Addr> {
-    // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-    for _ in 0..MAX_ADMIN_RECURSION {
-        match &governance {
-            GovernanceDetails::SubAccount { manager, .. } => {
-                governance = environment
-                    .query::<_, InfoResponse>(&manager::QueryMsg::Info {}, manager)
-                    .map_err(|err| err.into())?
-                    .info
-                    .governance_details;
-            }
-            _ => break,
-        }
-    }
+// pub(crate) fn get_nested_governance_owner<Chain: CwEnv>(
+//     mut governance: GovernanceDetails<String>,
+//     environment: Chain,
+// ) -> AbstractClientResult<Addr> {
+//     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
+//     for _ in 0..MAX_ADMIN_RECURSION {
+//         match &governance {
+//             GovernanceDetails::SubAccount { manager, .. } => {
+//                 governance = environment
+//                     .query::<_, InfoResponse>(&manager::QueryMsg::TopLevelOwner {  } {}, manager)
+//                     .map_err(|err| err.into())?
+//                     .info
+//                     .governance_details;
+//             }
+//             _ => break,
+//         }
+//     }
 
-    let owner = match governance {
-        GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
-        GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
-        GovernanceDetails::External {
-            governance_address, ..
-        } => Some(governance_address.clone()),
-        GovernanceDetails::Renounced {} => None,
-        GovernanceDetails::NFT {
-            collection_addr,
-            token_id,
-        } => {
-            let owner = environment
-                .query::<_, OwnerOfResponse>(
-                    &cw721::Cw721QueryMsg::OwnerOf {
-                        token_id: token_id.to_string(),
-                        include_expired: None,
-                    },
-                    &collection_addr,
-                )
-                .map_err(|err| err.into())?
-                .owner;
-            return Ok(Addr::unchecked(owner));
-        }
-        _ => todo!(),
-    };
+//     let owner = match governance {
+//         GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
+//         GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
+//         GovernanceDetails::External {
+//             governance_address, ..
+//         } => Some(governance_address.clone()),
+//         GovernanceDetails::Renounced {} => None,
+//         GovernanceDetails::NFT {
+//             collection_addr,
+//             token_id,
+//         } => {
+//             let owner = environment
+//                 .query::<_, OwnerOfResponse>(
+//                     &cw721::Cw721QueryMsg::OwnerOf {
+//                         token_id: token_id.to_string(),
+//                         include_expired: None,
+//                     },
+//                     &collection_addr,
+//                 )
+//                 .map_err(|err| err.into())?
+//                 .owner;
+//             return Ok(Addr::unchecked(owner));
+//         }
+//         _ => todo!(),
+//     };
 
-    owner.ok_or(AbstractClientError::RenouncedAccount {})
-}
+//     owner.ok_or(AbstractClientError::RenouncedAccount {})
+// }
 
 #[cfg(test)]
 pub mod test {

@@ -16,8 +16,8 @@ use abstract_std::{
     PROXY,
 };
 use cosmwasm_std::{
-    ensure_eq, wasm_execute, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdError, StdResult,
+    ensure_eq, wasm_execute, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
+    StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
@@ -85,8 +85,11 @@ pub fn instantiate(
     )?;
 
     // Set owner
-    let cw_gov_owner =
-        cw_gov_ownable::initialize_owner(deps, msg.owner, config.version_control_address)?;
+    let cw_gov_owner = cw_gov_ownable::initialize_owner(
+        deps.branch(),
+        msg.owner,
+        config.version_control_address.clone(),
+    )?;
 
     SUSPENSION_STATUS.save(deps.storage, &false)?;
 
@@ -127,7 +130,7 @@ pub fn instantiate(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
+pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
     match msg {
         ExecuteMsg::UpdateStatus {
             is_suspended: suspension_status,
@@ -184,13 +187,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 // Used to claim or renounce an ownership change.
                 ExecuteMsg::UpdateOwnership(action) => {
+                    let mut info = info;
                     let msgs = match &action {
                         // Disallow the user from using the TransferOwnership action.
                         cw_gov_ownable::GovAction::TransferOwnership { .. } => {
                             return Err(ManagerError::MustUseProposeOwner {});
                         }
                         cw_gov_ownable::GovAction::AcceptOwnership => {
-                            update_governance(deps.branch(), &mut info.sender)?
+                            update_sub_governance(deps.branch(), &mut info.sender)?
                         }
                         cw_gov_ownable::GovAction::RenounceOwnership => renounce_governance(
                             deps.branch(),
@@ -198,10 +202,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                             &mut info.sender,
                         )?,
                     };
-                    // Clear pending governance for either renounced or accepted ownership
-                    PENDING_GOVERNANCE.remove(deps.storage);
 
-                    let config = CONFIG.load(&deps.storage)?;
+                    let config = CONFIG.load(deps.storage)?;
                     let new_owner_attributes = cw_gov_ownable::update_ownership(
                         deps,
                         &env.block,
@@ -231,7 +233,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::Info {} => queries::handle_account_info_query(deps),
         QueryMsg::Config {} => queries::handle_config_query(deps),
-        QueryMsg::Ownership {} => abstract_sdk::query_ownership!(deps),
+        QueryMsg::Ownership {} => {
+            cosmwasm_std::to_json_binary(&cw_gov_ownable::get_ownership(deps.storage)?)
+        }
         QueryMsg::SubAccountIds { start_after, limit } => {
             queries::handle_sub_accounts_query(deps, start_after, limit)
         }

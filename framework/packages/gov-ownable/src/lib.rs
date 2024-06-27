@@ -3,7 +3,9 @@
 pub use abstract_std::objects::gov_type::{GovAction, GovernanceDetails, Ownership};
 use abstract_std::AbstractError;
 
-use cosmwasm_std::{Addr, BlockInfo, DepsMut, QuerierWrapper, StdError, StdResult, Storage};
+use cosmwasm_std::{
+    Addr, BlockInfo, CustomQuery, DepsMut, QuerierWrapper, StdError, StdResult, Storage,
+};
 // re-export the proc macros and the Expiration class
 pub use cw_gov_ownable_derive::{cw_ownable_execute, cw_ownable_query};
 use cw_storage_plus::Item;
@@ -123,6 +125,13 @@ pub fn update_ownership(
 /// Get the current ownership value.
 pub fn get_ownership(storage: &dyn Storage) -> StdResult<Ownership<Addr>> {
     OWNERSHIP.load(storage)
+}
+
+pub fn query_ownership<Q: CustomQuery>(
+    querier: &QuerierWrapper<Q>,
+    remote_contract: Addr,
+) -> StdResult<Ownership<Addr>> {
+    OWNERSHIP.query(querier, remote_contract)
 }
 
 /// Propose to transfer the contract's ownership to the given address, with an

@@ -13,5 +13,7 @@ keywords.workspace = true
 
 [dependencies]
 cosmwasm-std = { workspace = true }
+schemars = { workspace = true }
+cw-gov-ownable = { workspace = true }
 cw-controllers = { workspace = true }
 abstract-std = { workspace = true }

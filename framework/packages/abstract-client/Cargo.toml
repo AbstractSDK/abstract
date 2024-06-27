@@ -32,7 +32,7 @@ cw-orch-polytone = { workspace = true, optional = true }
 serde.workspace = true
 semver.workspace = true
 thiserror.workspace = true
-cw-ownable.workspace = true
+cw-gov-ownable.workspace = true
 
 # Used for test-utils feature
 cw-asset = { workspace = true, optional = true }

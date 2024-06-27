@@ -13,7 +13,7 @@ use crate::AbstractError;
 const MIN_GOV_TYPE_LENGTH: usize = 4;
 const MAX_GOV_TYPE_LENGTH: usize = 64;
 
-// FIXME: It's literally impossible to create full API outside abstract-std
+// FIXME: Should be inside cw-gov-ownable, but it's literally impossible to create full API outside abstract-std
 /// The contract's ownership info
 #[cosmwasm_schema::cw_serde]
 pub struct Ownership<T: AddressLike> {

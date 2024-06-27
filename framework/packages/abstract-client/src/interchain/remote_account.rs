@@ -27,8 +27,8 @@ use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
 use cw_orch_interchain::{types::IbcTxAnalysis, IbcQueryHandler, InterchainEnv};
 
 use crate::{
-    account::get_nested_governance_owner, client::AbstractClientResult, AbstractClient,
-    AbstractClientError, Account, Environment, RemoteApplication,
+    client::AbstractClientResult, AbstractClient, AbstractClientError, Account, Environment,
+    RemoteApplication,
 };
 
 /// A builder for creating [`RemoteAccounts`](RemoteAccount).
@@ -293,7 +293,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     /// Query account info
-    pub fn info(&self) -> AbstractClientResult<AccountInfo<Addr>> {
+    pub fn info(&self) -> AbstractClientResult<AccountInfo> {
         let info_response: InfoResponse = self
             .remote_chain()
             .query(&manager::QueryMsg::Info {}, &self.manager()?)
@@ -385,7 +385,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     /// Returns owner of the account
-    pub fn ownership(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
+    pub fn ownership(&self) -> AbstractClientResult<cw_gov_ownable::Ownership<String>> {
         let manager = self.manager()?;
         self.remote_chain()
             .query(&manager::QueryMsg::Ownership {}, &manager)
@@ -396,16 +396,11 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
-        let governance = self
-            .abstr_owner_account
+        self.abstr_owner_account
             .manager
-            .info()?
-            .info
-            .governance_details;
-
-        let environment = self.origin_chain();
-
-        get_nested_governance_owner(governance, environment)
+            .top_level_owner()
+            .map(|tlo| tlo.address)
+            .map_err(Into::into)
     }
 
     /// Executes a [`CosmosMsg`] on the proxy of the account.
