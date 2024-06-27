@@ -65,7 +65,6 @@ impl<Chain: CwEnv> AbstractIbc<Chain> {
 // Helpers to create connection with another chain
 pub mod connection {
     use super::*;
-    use abstract_std::account_factory::ExecuteMsgFns;
     use abstract_std::ibc_client::ExecuteMsgFns as _;
     use abstract_std::ibc_client::QueryMsgFns;
     use abstract_std::ibc_host::ExecuteMsgFns as _;
@@ -79,21 +78,18 @@ pub mod connection {
         /// If a polytone deployment is already , it uses the existing deployment, If it doesn't exist, it creates it
         ///
         /// You usually don't need this function on actual networks if you're not an Abstract maintainer
-        pub fn connect<IBC: InterchainEnv<Chain>>(
+        pub fn connect_to<IBC: InterchainEnv<Chain>>(
             &self,
-            dst_abstr: &Abstract<Chain>,
+            remote_abstr: &Abstract<Chain>,
             interchain: &IBC,
         ) -> Result<(), AbstractInterfaceError> {
-            abstract_ibc_one_way_connection_with(self, dst_abstr, interchain)?;
-            abstract_ibc_one_way_connection_with(dst_abstr, self, interchain)?;
+            connect_one_way_to(self, remote_abstr, interchain)?;
+            connect_one_way_to(remote_abstr, self, interchain)?;
             Ok(())
         }
     }
 
-    pub fn abstract_ibc_one_way_connection_with<
-        Chain: IbcQueryHandler,
-        IBC: InterchainEnv<Chain>,
-    >(
+    pub fn connect_one_way_to<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
         abstr: &Abstract<Chain>,
         dest: &Abstract<Chain>,
         interchain: &IBC,
@@ -126,13 +122,6 @@ pub mod connection {
         dest.ibc
             .host
             .register_chain_proxy(chain1_name, proxy_address.remote_polytone_proxy.unwrap())?;
-
-        dest.account_factory.update_config(
-            None,
-            Some(dest.ibc.host.address()?.to_string()),
-            None,
-            None,
-        )?;
 
         Ok(())
     }

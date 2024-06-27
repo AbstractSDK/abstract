@@ -72,7 +72,7 @@ fn connect(
         vec![src_daemon, dst_daemon],
         &ChannelCreationValidator,
     );
-    src_abstract.connect(&dst_abstract, &interchain)?;
+    src_abstract.connect_to(&dst_abstract, &interchain)?;
 
     Ok(())
 }

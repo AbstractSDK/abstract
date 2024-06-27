@@ -26,7 +26,6 @@ pub mod state {
         pub version_control_contract: Addr,
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
-        pub ibc_host: Option<Addr>,
     }
 
     /// Account Factory context for post-[`crate::manager`] [`crate::proxy`] creation
@@ -81,8 +80,6 @@ pub enum ExecuteMsg {
         version_control_contract: Option<String>,
         // New module factory contract
         module_factory_address: Option<String>,
-        // New ibc host contract
-        ibc_host: Option<String>,
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
@@ -129,7 +126,6 @@ pub struct ConfigResponse {
     pub ans_host_contract: Addr,
     pub version_control_contract: Addr,
     pub module_factory_address: Addr,
-    pub ibc_host: Option<Addr>,
     pub local_account_sequence: AccountSequence,
 }
 

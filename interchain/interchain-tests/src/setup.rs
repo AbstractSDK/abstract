@@ -17,7 +17,7 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     let abstr_remote =
         Abstract::deploy_on(remote_chain.clone(), remote_chain.sender().to_string())?;
 
-    abstr_origin.connect(&abstr_remote, interchain)?;
+    abstr_origin.connect_to(&abstr_remote, interchain)?;
 
     Ok((abstr_origin, abstr_remote))
 }

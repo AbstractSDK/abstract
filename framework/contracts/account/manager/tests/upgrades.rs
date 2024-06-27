@@ -6,7 +6,7 @@ use abstract_interface::{
 };
 use abstract_manager::error::ManagerError;
 use abstract_std::{
-    app,
+    app, ibc_client,
     manager::{ModuleInstallConfig, ModuleVersionsResponse},
     module_factory::SimulateInstallModulesResponse,
     objects::{
@@ -15,9 +15,10 @@ use abstract_std::{
         module::{ModuleInfo, ModuleVersion, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
+        AccountId,
     },
     version_control::UpdateModule,
-    AbstractError,
+    AbstractError, IBC_CLIENT,
 };
 use abstract_testing::prelude::*;
 use cosmwasm_std::coin;
@@ -909,6 +910,26 @@ fn install_app_with_proxy_action() -> AResult {
     let sender = chain.sender();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::install_app_with_proxy_action(chain)
+}
+
+#[test]
+fn native_not_migratable() -> AResult {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let abstr_account = AbstractAccount::new(&abstr, AccountId::local(0));
+    abstr_account.install_module::<ibc_client::InstantiateMsg>(IBC_CLIENT, None, None)?;
+
+    let latest_ibc_client = ModuleInfo::from_id_latest(IBC_CLIENT).unwrap();
+
+    let err: ManagerError = abstr_account
+        .manager
+        .upgrade(vec![(latest_ibc_client.clone(), None)])
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(err, ManagerError::NotUpgradeable(latest_ibc_client));
+    Ok(())
 }
 
 // TODO:

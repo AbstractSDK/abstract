@@ -179,8 +179,8 @@ mod test {
             Abstract::deploy_on(chain3.clone(), chain3.sender().to_string())?;
 
         // Creating a connection between 2 abstract deployments
-        abstr_origin.connect(&abstr_intermediate_remote, &mock_interchain)?;
-        abstr_intermediate_remote.connect(&abstr_destination_remote, &mock_interchain)?;
+        abstr_origin.connect_to(&abstr_intermediate_remote, &mock_interchain)?;
+        abstr_intermediate_remote.connect_to(&abstr_destination_remote, &mock_interchain)?;
         // END SETUP
 
         // Create a local account for testing

@@ -1,9 +1,6 @@
 use std::path::PathBuf;
 
-use abstract_std::{
-    account_factory::ExecuteMsgFns as _, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY,
-    VERSION_CONTROL,
-};
+use abstract_std::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 use cw_orch::prelude::*;
 
 use crate::{
@@ -101,17 +98,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         // Approve abstract contracts if needed
         deployment.version_control.approve_any_abstract_modules()?;
-
-        // Only the ibc host is allowed to create remote accounts on the account factory
-        deployment
-            .account_factory
-            .update_config(
-                None,
-                Some(deployment.ibc.host.address().unwrap().to_string()),
-                None,
-                None,
-            )
-            .unwrap();
 
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
