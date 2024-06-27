@@ -1,12 +1,9 @@
 use abstract_sdk::std::{
     manager::{
         state::{AccountInfo, Config, CONFIG, INFO, SUSPENSION_STATUS},
-        CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+        CallbackMsg, ExecuteMsg, InstantiateMsg, QueryMsg,
     },
-    objects::{
-        module_version::assert_contract_upgrade,
-        validation::{validate_description, validate_link, validate_name},
-    },
+    objects::validation::{validate_description, validate_link, validate_name},
     proxy::state::ACCOUNT_ID,
     MANAGER,
 };
@@ -20,7 +17,6 @@ use cosmwasm_std::{
     StdResult,
 };
 use cw2::set_contract_version;
-use semver::Version;
 
 use crate::{
     commands::{self, *},
@@ -31,15 +27,7 @@ use crate::{
 pub type ManagerResult<R = Response> = Result<R, ManagerError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
-
-    assert_contract_upgrade(deps.storage, MANAGER, version)?;
-    set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
-    Ok(ManagerResponse::action("migrate"))
-}
+pub use crate::migrate::migrate;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -278,13 +266,14 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ManagerResult {
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::testing::*;
+    use semver::Version;
     use speculoos::prelude::*;
 
     use super::*;
     use crate::{contract, test_common::mock_init};
 
     mod migrate {
-        use abstract_std::AbstractError;
+        use abstract_std::{manager::MigrateMsg, AbstractError};
         use cw2::get_contract_version;
 
         use super::*;

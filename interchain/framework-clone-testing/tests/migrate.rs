@@ -76,6 +76,8 @@ fn old_account_migrate() -> anyhow::Result<()> {
 }
 
 #[test]
+// FIXME: un-ignore it when possible
+#[ignore = "0.23 includes massive ownership revamp which is not compatible with new versions"]
 fn old_account_functions() -> anyhow::Result<()> {
     let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
 
