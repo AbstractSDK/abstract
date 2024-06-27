@@ -216,12 +216,7 @@ impl AbstractInterchainClientBuilder<Daemon> {
                             {
                                 continue;
                             }
-                            let trace = format!(
-                                "{}/{}/{}",
-                                asset_chain.chain_id(),
-                                channel_id,
-                                asset_denom
-                            );
+                            let trace = format!("transfer/{}/{}", channel_id, asset_denom);
                             // TODO, can this fail ?
                             let denom_hash = asset_chain
                                 .rt_handle
