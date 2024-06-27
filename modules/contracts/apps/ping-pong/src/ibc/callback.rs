@@ -3,7 +3,7 @@ use abstract_app::{
     sdk::AbstractResponse,
     std::ibc::{Callback, IbcResult},
 };
-use cosmwasm_std::{from_json, DepsMut, Env, MessageInfo};
+use cosmwasm_std::{from_json, DepsMut, Env};
 
 use crate::{
     contract::{App, AppResult},
@@ -15,7 +15,6 @@ use crate::{
 pub fn ibc_callback(
     deps: DepsMut,
     env: Env,
-    _info: MessageInfo,
     app: App,
     callback: Callback,
     result: IbcResult,

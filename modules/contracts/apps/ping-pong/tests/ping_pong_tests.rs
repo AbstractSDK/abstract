@@ -1,25 +1,21 @@
-mod common;
-
+use abstract_app::abstract_interface::VCQueryFns;
 use abstract_app::objects::namespace::Namespace;
 use abstract_app::objects::AccountId;
 
-use abstract_client::{AbstractClient, Environment};
-use abstract_client::{Application, RemoteAccount};
+use abstract_client::{AbstractClient, Application, Environment, RemoteAccount};
 
 use abstract_app::std::objects::account::AccountTrace;
 use abstract_app::std::objects::chain_name::ChainName;
-use abstract_interface::VCQueryFns;
 
 use cw_orch::{anyhow, prelude::*};
 use cw_orch_interchain::prelude::*;
-use cw_orch_polytone::Polytone;
 
-use common::ibc_connect_polytone_and_abstract;
-use common::mock_test::logger_test_init;
-use common::{JUNO, STARGAZE};
 use ping_pong::contract::APP_ID;
 use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, WinsResponse};
 use ping_pong::{AppExecuteMsgFns, AppInterface, AppQueryMsgFns};
+
+const JUNO: &str = "juno-1";
+const STARGAZE: &str = "stargaze-1";
 
 #[allow(unused)]
 struct PingPong<'a, Env: IbcQueryHandler, IbcEnv: InterchainEnv<Env>> {
@@ -40,12 +36,7 @@ impl<'a> PingPong<'a, MockBech32, MockBech32InterchainEnv> {
         let abs_juno = AbstractClient::builder(mock_juno.clone()).build()?;
         let abs_stargaze = AbstractClient::builder(mock_stargaze.clone()).build()?;
 
-        // Deploying polytone on both chains
-        Polytone::deploy_on(mock_juno, None)?;
-        Polytone::deploy_on(mock_stargaze, None)?;
-
-        ibc_connect_polytone_and_abstract(mock_interchain, JUNO, STARGAZE)?;
-        ibc_connect_polytone_and_abstract(mock_interchain, STARGAZE, JUNO)?;
+        abs_juno.connect_to(&abs_stargaze, mock_interchain)?;
 
         let namespace = Namespace::from_id(APP_ID)?;
         // Publish and install on both chains
@@ -96,6 +87,10 @@ pub(crate) fn set_to_lose(chain: MockBech32) {
         i.height += 1;
         chain.app.borrow_mut().set_block(i);
     }
+}
+
+pub fn logger_test_init() {
+    let _ = env_logger::builder().is_test(true).try_init();
 }
 
 #[test]
