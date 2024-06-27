@@ -23,6 +23,7 @@ cw2 = { workspace = true }
 cw-asset = { workspace = true }
 semver = { workspace = true }
 cw-ownable = { workspace = true }
+cw-gov-ownable = { workspace = true }
 
 [dev-dependencies]
 abstract-sdk = { path = "../abstract-sdk", features = ["test-utils"] }

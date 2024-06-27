@@ -34,6 +34,7 @@ use cosmwasm_std::{
     SubMsgResult, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
+use cw_controllers::AdminError;
 use cw_gov_ownable::GovOwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
@@ -1087,12 +1088,21 @@ pub fn update_internal_config(
 /// - The owner of the contract (i.e. account).
 /// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
 fn assert_is_admin(deps: Deps, env: &Env, sender: &Addr) -> ManagerResult<()> {
-    let owner = dbg!(cw_gov_ownable::get_ownership(deps.storage)?.owner)
+    let ownership = cw_gov_ownable::get_ownership(deps.storage)?.owner;
+    let owner = ownership
         .owner_address(&deps.querier)
         // if no owner, set current contract as "owner".
         // this enables NFT ownership and will still error on Renounced ownership
         .unwrap_or(env.contract.address.clone());
-    NestedAdmin::assert_admin_custom(&deps.querier, sender, owner).map_err(Into::into)
+    // If owner is sender - owner is the admin
+    if owner == sender {
+        return Ok(());
+    }
+    // Else we maybe dealing with sub account and need to check recursive admins
+    let GovernanceDetails::SubAccount { manager, .. } = ownership else {
+        return Err(ManagerError::Admin(AdminError::NotAdmin {}));
+    };
+    NestedAdmin::assert_admin_custom(&deps.querier, sender, manager).map_err(Into::into)
 }
 
 pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> ManagerResult {

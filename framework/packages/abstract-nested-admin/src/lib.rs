@@ -49,7 +49,7 @@ impl<'a> NestedAdmin<'a> {
             Ok(true)
         } else {
             // Check if top level owner address is equal to the caller
-            Ok(dbg!(query_top_level_owner(querier, admin))
+            Ok(query_top_level_owner(querier, admin)
                 .map(|admin| admin == caller)
                 .unwrap_or(false))
         }
@@ -131,10 +131,10 @@ impl<'a> NestedAdmin<'a> {
 
 pub fn query_top_level_owner<Q: CustomQuery>(
     querier: &QuerierWrapper<Q>,
-    maybe_manager: Addr,
+    maybe_proxy: Addr,
 ) -> StdResult<Addr> {
     // Starting from (potentially)manager that owns this module
-    let mut current = cw_gov_ownable::query_ownership(querier, maybe_manager);
+    let mut current = cw_gov_ownable::query_ownership(querier, maybe_proxy);
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
     for _ in 0..MAX_ADMIN_RECURSION {
         match current {
