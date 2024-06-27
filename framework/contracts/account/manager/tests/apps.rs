@@ -4,7 +4,12 @@ use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_std::{
     manager::ModuleInstallConfig,
-    objects::{gov_type::TopLevelOwnerResponse, module::ModuleInfo, AccountId},
+    objects::{
+        gov_type::TopLevelOwnerResponse,
+        module::{ModuleInfo, ModuleStatus, ModuleVersion},
+        AccountId,
+    },
+    version_control::ModuleFilter,
     PROXY,
 };
 use abstract_testing::prelude::*;
@@ -186,5 +191,112 @@ fn cant_reinstall_app_after_uninstall() -> AResult {
     };
     let manager_err: ManagerError = err.downcast().unwrap();
     assert_eq!(manager_err, ManagerError::ProhibitedReinstall {});
+    Ok(())
+}
+
+#[test]
+fn deploy_strategy_uploaded() -> AResult {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let _account = create_default_account(&deployment.account_factory)?;
+
+    deployment
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
+    deployment
+        .version_control
+        .update_config(None, None, Some(false))?;
+
+    let app = MockApp::new_test(chain.clone());
+    app.upload()?;
+
+    // Deploy try
+    app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
+    let module_list = deployment.version_control.module_list(
+        Some(ModuleFilter {
+            status: Some(ModuleStatus::Pending),
+            ..Default::default()
+        }),
+        None,
+        None,
+    )?;
+    assert!(module_list.modules[0].module.info.name == "app");
+
+    // Clean module
+    deployment.version_control.approve_or_reject_modules(
+        vec![],
+        vec![ModuleInfo::from_id(
+            APP_ID,
+            ModuleVersion::Version(APP_VERSION.to_owned()),
+        )?],
+    )?;
+
+    // Deploy Error
+    app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Error)?;
+    let module_list = deployment.version_control.module_list(
+        Some(ModuleFilter {
+            status: Some(ModuleStatus::Pending),
+            ..Default::default()
+        }),
+        None,
+        None,
+    )?;
+    assert!(module_list.modules[0].module.info.name == "app");
+
+    // Clean module
+    deployment.version_control.approve_or_reject_modules(
+        vec![],
+        vec![ModuleInfo::from_id(
+            APP_ID,
+            ModuleVersion::Version(APP_VERSION.to_owned()),
+        )?],
+    )?;
+
+    app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Force)?;
+    let module_list = deployment.version_control.module_list(
+        Some(ModuleFilter {
+            status: Some(ModuleStatus::Pending),
+            ..Default::default()
+        }),
+        None,
+        None,
+    )?;
+    assert!(module_list.modules[0].module.info.name == "app");
+
+    Ok(())
+}
+
+#[test]
+fn deploy_strategy_deployed() -> AResult {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let _account = create_default_account(&deployment.account_factory)?;
+
+    deployment
+        .version_control
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
+    deployment
+        .version_control
+        .update_config(None, None, Some(false))?;
+
+    let app = MockApp::new_test(chain.clone());
+
+    // deploy (not approved)
+    app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try)?;
+
+    // Deploy try
+    let try_res = app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Try);
+    assert!(try_res.is_ok());
+
+    // Deploy Error
+    let error_res = app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Error);
+    assert!(error_res.is_err());
+
+    // Deploy Force
+    let force_res = app.deploy(APP_VERSION.parse().unwrap(), DeployStrategy::Force);
+    // App not updatable
+    assert!(force_res.is_err());
     Ok(())
 }

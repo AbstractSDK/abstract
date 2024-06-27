@@ -18,6 +18,7 @@ cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }
 semver = { workspace = true }
+cw-semver = { workspace = true }
 schemars = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
@@ -55,4 +56,5 @@ abstract-testing = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.11.3"
 cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch-interchain = { workspace = true, features = ["daemon"] }
 cw721-base = "0.18.0"

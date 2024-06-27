@@ -1,7 +1,8 @@
 use crate::base::features::ModuleIdentification;
 use crate::{base::Handler, AbstractSdkError};
 use abstract_std::ibc::IbcResponseMsg;
-use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response};
+use abstract_std::IBC_CLIENT;
+use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
 /// Trait for a contract's IBC callback ExecuteMsg variant.
 pub trait IbcCallbackEndpoint: Handler {
@@ -16,6 +17,19 @@ pub trait IbcCallbackEndpoint: Handler {
         info: MessageInfo,
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::Error> {
+        // Make sure module have ibc_client as dependency
+        if !self
+            .dependencies()
+            .iter()
+            .any(|static_dep| static_dep.id == IBC_CLIENT)
+        {
+            return Err(AbstractSdkError::Std(StdError::generic_err(format!(
+                "Ibc Client is not dependency of {}",
+                self.module_id()
+            )))
+            .into());
+        }
+
         let ibc_client = self.ibc_client_addr(deps.as_ref())?;
 
         if info.sender.ne(&ibc_client) {
@@ -32,6 +46,6 @@ pub trait IbcCallbackEndpoint: Handler {
                     self.module_id().to_string(),
                 ))?;
 
-        ibc_callback_handler(deps, env, info, self, msg.callback, msg.result)
+        ibc_callback_handler(deps, env, self, msg.callback, msg.result)
     }
 }

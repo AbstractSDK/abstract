@@ -8,10 +8,8 @@ use abstract_sdk::{
             module_reference::ModuleReference,
         },
         proxy::InstantiateMsg as ProxyInstantiateMsg,
-        version_control::{
-            AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
-        },
-        AbstractResult, MANAGER, PROXY,
+        version_control::{AccountBase, ExecuteMsg as VCExecuteMsg},
+        MANAGER, PROXY,
     },
 };
 use abstract_std::{
@@ -21,11 +19,11 @@ use abstract_std::{
         account::AccountTrace, module::assert_module_data_validity,
         salt::generate_instantiate_salt, AccountId, AssetEntry, ABSTRACT_ACCOUNT_ID,
     },
-    AbstractError,
+    AbstractError, IBC_HOST,
 };
 use cosmwasm_std::{
     ensure_eq, instantiate2_address, to_json_binary, Addr, Coins, CosmosMsg, Deps, DepsMut, Empty,
-    Env, MessageInfo, QuerierWrapper, SubMsg, SubMsgResult, WasmMsg,
+    Env, MessageInfo, SubMsg, SubMsgResult, WasmMsg,
 };
 use cw721::OwnerOfResponse;
 use cw_ownable::OwnershipError;
@@ -54,7 +52,7 @@ pub fn execute_create_account(
     account_id: Option<AccountId>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
-    let abstract_registry = VersionControlContract::new(config.version_control_contract.clone());
+    let version_control = VersionControlContract::new(config.version_control_contract.clone());
 
     let governance = governance.verify(deps.as_ref(), config.version_control_contract.clone())?;
     // Check if the caller is the manager the proposed owner account when creating a sub-account.
@@ -96,13 +94,18 @@ pub fn execute_create_account(
         }
         Some(account_id) => {
             // if the non-local account_id is provided, assert that the caller is the ibc host
-            let ibc_host = config
-                .ibc_host
-                .ok_or(AccountFactoryError::IbcHostNotSet {})?;
+            let sender_cw2_info = cw2::query_contract_info(&deps.querier, info.sender.clone())?;
+            let ibc_host_addr = version_control
+                .query_module_reference_raw(
+                    &ModuleInfo::from_id(IBC_HOST, sender_cw2_info.version.into())?,
+                    &deps.querier,
+                )?
+                .unwrap_native()?;
+
             ensure_eq!(
                 info.sender,
-                ibc_host,
-                AccountFactoryError::SenderNotIbcHost(info.sender.into(), ibc_host.into())
+                ibc_host_addr,
+                AccountFactoryError::SenderNotIbcHost(info.sender.into(), ibc_host_addr.into())
             );
             // then assert that the account trace is remote and properly formatted
             account_id.trace().verify_remote()?;
@@ -112,10 +115,19 @@ pub fn execute_create_account(
     };
 
     // Query version_control for code_id of Proxy and Module contract
-    let proxy_module: Module =
-        query_module(&deps.querier, &config.version_control_contract, PROXY)?;
-    let manager_module: Module =
-        query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
+    let (manager_module, proxy_module) = {
+        let mut modules = version_control.query_modules_configs(
+            vec![
+                ModuleInfo::from_id_latest(PROXY)?,
+                ModuleInfo::from_id_latest(MANAGER)?,
+            ],
+            &deps.querier,
+        )?;
+        let manager_module: Module = modules.pop().unwrap().module;
+        let proxy_module: Module = modules.pop().unwrap().module;
+
+        (manager_module, proxy_module)
+    };
 
     let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
         config.module_factory_address.to_string(),
@@ -125,7 +137,7 @@ pub fn execute_create_account(
     )?;
     let funds_for_install = simulate_resp.total_required_funds;
     let funds_for_namespace_fee = if namespace.is_some() {
-        abstract_registry
+        version_control
             .namespace_registration_fee(&deps.querier)?
             .into_iter()
             .collect()
@@ -301,21 +313,6 @@ fn generate_new_local_account_id(
     Ok(AccountId::new(next_sequence, origin)?)
 }
 
-fn query_module(
-    querier: &QuerierWrapper,
-    version_control_addr: &Addr,
-    module_id: &str,
-) -> AbstractResult<Module> {
-    let ModulesResponse { mut modules } = querier.query_wasm_smart(
-        version_control_addr.to_string(),
-        &VCQuery::Modules {
-            infos: vec![ModuleInfo::from_id_latest(module_id)?],
-        },
-    )?;
-
-    Ok(modules.swap_remove(0).module)
-}
-
 /// Validates instantiated manager and proxy modules
 pub fn validate_instantiated_account(deps: DepsMut, _result: SubMsgResult) -> AccountFactoryResult {
     let context = CONTEXT.load(deps.storage)?;
@@ -361,7 +358,6 @@ pub fn execute_update_config(
     ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
-    ibc_host: Option<String>,
 ) -> AccountFactoryResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
@@ -380,11 +376,6 @@ pub fn execute_update_config(
     if let Some(module_factory_address) = module_factory_address {
         // validate address format
         config.module_factory_address = deps.api.addr_validate(&module_factory_address)?;
-    }
-
-    if let Some(ibc_host) = ibc_host {
-        // validate address format
-        config.ibc_host = Some(deps.api.addr_validate(&ibc_host)?);
     }
     CONFIG.save(deps.storage, &config)?;
 
