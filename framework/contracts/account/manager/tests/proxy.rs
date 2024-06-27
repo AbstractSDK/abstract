@@ -3,7 +3,7 @@ use abstract_integration_tests::*;
 use abstract_interface::*;
 use abstract_manager::{contract::CONTRACT_VERSION, error::ManagerError};
 use abstract_std::{
-    manager::{InfoResponse, ManagerModuleInfo, ModuleInstallConfig, ModuleVersionsResponse},
+    manager::{ManagerModuleInfo, ModuleInstallConfig, ModuleVersionsResponse},
     objects::{
         fee::FixedFee,
         gov_type::GovernanceDetails,
@@ -442,7 +442,7 @@ fn renounce_cleans_namespace() -> AResult {
 
     account
         .manager
-        .update_ownership(cw_ownable::Action::RenounceOwnership)?;
+        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)?;
 
     let namespace_result = deployment
         .version_control
@@ -450,14 +450,9 @@ fn renounce_cleans_namespace() -> AResult {
     assert_eq!(namespace_result, NamespaceResponse::Unclaimed {});
 
     // Governance is in fact renounced
-    let acc_cfg: InfoResponse = account.manager.info()?;
-    assert_eq!(
-        acc_cfg.info.governance_details,
-        GovernanceDetails::Renounced {}
-    );
+    let ownership = account.manager.ownership()?;
+    assert_eq!(ownership.owner, GovernanceDetails::Renounced {});
 
-    let account_owner = account.manager.ownership()?;
-    assert!(account_owner.owner.is_none());
     Ok(())
 }
 

@@ -262,7 +262,9 @@ fn sub_account_move_ownership() -> AResult {
 
     // Claim ownership
     sub_account.manager.call_as(&new_owner).execute(
-        &abstract_std::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership),
+        &abstract_std::manager::ExecuteMsg::UpdateOwnership(
+            cw_gov_ownable::GovAction::AcceptOwnership,
+        ),
         None,
     )?;
     let account = AbstractAccount::new(&deployment, AccountId::local(1));
@@ -348,7 +350,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         .module_action(vec![wasm_execute(
             new_account_sub_account_manager,
             &abstract_std::manager::ExecuteMsg::UpdateOwnership(
-                cw_ownable::Action::AcceptOwnership,
+                cw_gov_ownable::GovAction::AcceptOwnership,
             ),
             vec![],
         )?
@@ -363,8 +365,8 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     assert_eq!(sub_ids.sub_accounts, Vec::<u32>::new());
 
     let new_account_sub_account = AbstractAccount::new(&deployment, AccountId::local(4));
-    let info = new_account_sub_account.manager.info()?.info;
-    assert_eq!(new_governance, info.governance_details.into());
+    let info = new_account_sub_account.manager.ownership()?;
+    assert_eq!(new_governance, info.owner);
     take_storage_snapshot!(chain, "sub_account_move_ownership_to_sub_account");
 
     Ok(())
@@ -433,8 +435,9 @@ fn account_updated_to_subaccount() -> AResult {
     account.proxy.set_address(&proxy1_addr);
 
     // account1 accepting account2 as a sub-account
-    let accept_msg =
-        abstract_std::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+    let accept_msg = abstract_std::manager::ExecuteMsg::UpdateOwnership(
+        cw_gov_ownable::GovAction::AcceptOwnership,
+    );
     account.manager.exec_on_module(
         to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![wasm_execute(manager2_addr, &accept_msg, vec![])?.into()],
@@ -473,7 +476,7 @@ fn account_updated_to_subaccount_recursive() -> AResult {
     // accepting ownership by sender instead of the manager
     account
         .manager
-        .update_ownership(cw_ownable::Action::AcceptOwnership)?;
+        .update_ownership(cw_gov_ownable::GovAction::AcceptOwnership)?;
 
     // Check manager knows about his new sub-account
     account.manager.set_address(&manager1_addr);
@@ -529,7 +532,7 @@ fn cant_renounce_with_sub_accounts() -> AResult {
 
     let err: ManagerError = account
         .manager
-        .update_ownership(cw_ownable::Action::RenounceOwnership)
+        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)
         .unwrap_err()
         .downcast()
         .unwrap();
@@ -562,28 +565,18 @@ fn can_renounce_sub_accounts() -> AResult {
 
     sub_account
         .manager
-        .update_ownership(cw_ownable::Action::RenounceOwnership)?;
+        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)?;
 
     account
         .manager
-        .update_ownership(cw_ownable::Action::RenounceOwnership)?;
+        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)?;
 
     // No owners
-    let account_owner = account.manager.ownership()?;
-    assert!(account_owner.owner.is_none());
-    let sub_account_owner = sub_account.manager.ownership()?;
-    assert!(sub_account_owner.owner.is_none());
-
     // Renounced governance
-    let account_info = account.manager.info()?;
-    assert_eq!(
-        account_info.info.governance_details,
-        GovernanceDetails::Renounced {}
-    );
-    let sub_account_info = sub_account.manager.info()?;
-    assert_eq!(
-        sub_account_info.info.governance_details,
-        GovernanceDetails::Renounced {}
-    );
+    let account_owner = account.manager.ownership()?;
+    assert_eq!(account_owner.owner, GovernanceDetails::Renounced {});
+    let sub_account_owner = sub_account.manager.ownership()?;
+    assert_eq!(sub_account_owner.owner, GovernanceDetails::Renounced {});
+
     Ok(())
 }

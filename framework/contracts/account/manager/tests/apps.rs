@@ -4,7 +4,7 @@ use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_std::{
     manager::ModuleInstallConfig,
-    objects::{module::ModuleInfo, nested_admin::TopLevelOwnerResponse, AccountId},
+    objects::{gov_type::TopLevelOwnerResponse, module::ModuleInfo, AccountId},
     PROXY,
 };
 use abstract_testing::prelude::*;

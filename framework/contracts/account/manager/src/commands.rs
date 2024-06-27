@@ -464,7 +464,10 @@ pub fn propose_owner(
     )?;
     Ok(ManagerResponse::new(
         "update_owner",
-        vec![("governance_type", ownership.owner.to_string())],
+        vec![(
+            "governance_type",
+            ownership.pending_owner.clone().unwrap().to_string(),
+        )],
     )
     .add_attributes(ownership.into_attributes()))
 }
@@ -1191,8 +1194,8 @@ mod tests {
             assert_that!(res).is_err().matches(|err| {
                 matches!(
                     err,
-                    ManagerError::Abstract(abstract_std::AbstractError::Std(
-                        StdError::GenericErr { .. }
+                    ManagerError::Ownership(GovOwnershipError::Abstract(
+                        abstract_std::AbstractError::Std(StdError::GenericErr { .. })
                     ))
                 )
             });

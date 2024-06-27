@@ -97,7 +97,7 @@ fn can_create_account_with_optional_parameters() -> anyhow::Result<()> {
             description: Some(String::from(description)),
             link: Some(String::from(link)),
         },
-        account_info.into()
+        account_info
     );
 
     // Namespace is claimed.
@@ -208,7 +208,7 @@ fn can_create_publisher_with_optional_parameters() -> anyhow::Result<()> {
             description: Some(String::from(description)),
             link: Some(String::from(link)),
         },
-        account_info.into()
+        account_info
     );
 
     let ownership = publisher.account().ownership()?;
