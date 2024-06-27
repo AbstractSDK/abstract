@@ -188,7 +188,7 @@ impl<Chain: IbcQueryHandler> AbstractInterchainClientBuilder<Chain> {
 impl AbstractInterchainClientBuilder<Daemon> {
     /// Deploy abstract with current configuration
     pub fn build_daemon<IBC: InterchainEnv<Daemon>>(
-        &self,
+        &mut self,
         interchain: &IBC,
     ) -> AbstractClientResult<AbstractInterchainClient<Daemon>> {
         // First we propagate the different informations cross-chain
@@ -198,21 +198,42 @@ impl AbstractInterchainClientBuilder<Daemon> {
         for i in 0..chain_len {
             for j in 0..chain_len {
                 if i != j {
-                    for (asset_name, asset) in &self.builders[j].assets {
-                        // We check the asset on the chain i
+                    let asset_chain = &self.builders[j].chain.clone();
+                    for (asset_name, asset) in self.builders[j].assets.clone() {
+                        // We check the availability of an asset that is registered on chain j, on chain i (j = osmosis, i = archway for instance)
+                        // We check all the channels to make sure the asset exists on this channel
 
-                        let ibc: cw_orch::daemon::queriers::Ibc = self.builders[i].chain.querier();
-
-                        ibc._denom_hash(
-                            "how do we figure out which channel the assets can be sent to ? "
-                                .to_string(),
-                        );
-
-                        match asset {
-                            cw_asset::AssetInfoBase::Native(denom) => todo!(),
-                            cw_asset::AssetInfoBase::Cw20(address) => todo!(),
-                            _ => todo!(),
+                        let asset_denom = match asset {
+                            cw_asset::AssetInfoBase::Native(denom) => denom,
+                            cw_asset::AssetInfoBase::Cw20(address) => address,
+                            _ => unimplemented!(),
                         };
+                        let ibc: cw_orch::daemon::queriers::Ibc = self.builders[i].chain.querier();
+                        // We look for a suitable channel for our ics20 token
+                        for (channel, channel_id) in self.builders[i].channels.clone() {
+                            if channel.connected_chain != asset_chain.chain_id()
+                                || channel.protocol != "ics20-1"
+                            {
+                                continue;
+                            }
+                            let trace = format!(
+                                "{}/{}/{}",
+                                asset_chain.chain_id(),
+                                channel_id,
+                                asset_denom
+                            );
+                            // TODO, can this fail ?
+                            let denom_hash = asset_chain
+                                .rt_handle
+                                .block_on(ibc._denom_hash(trace))
+                                .unwrap();
+
+                            // If we find a denom hash that works, we register it inside the i builder
+                            self.builders[i].asset(
+                                asset_name.clone(),
+                                cw_asset::AssetInfoBase::Native(format!("ibc/{}", denom_hash)),
+                            );
+                        }
                     }
                 }
             }

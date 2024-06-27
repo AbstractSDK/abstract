@@ -369,7 +369,6 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         Chain: cw_orch_interchain::IbcQueryHandler,
     {
         self.abstr.connect_to(&remote_abstr.abstr, ibc)?;
-
         Ok(())
     }
 }

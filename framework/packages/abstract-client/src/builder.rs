@@ -39,7 +39,7 @@ pub struct AbstractClientBuilder<Chain: CwEnv> {
     dexes: Vec<String>,
     contracts: Vec<(UncheckedContractEntry, String)>,
     pub(crate) assets: Vec<(String, AssetInfoUnchecked)>,
-    channels: Vec<(UncheckedChannelEntry, String)>,
+    pub(crate) channels: Vec<(UncheckedChannelEntry, String)>,
     pools: Vec<(UncheckedPoolAddress, PoolMetadata)>,
 }
 
