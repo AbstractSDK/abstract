@@ -360,7 +360,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     /// Connect this abstract client to the remote abstract client
     /// If [`cw_orch_polytone::Polytone`] is deployed between 2 chains, it will NOT redeploy it (good for actual chains)
     /// If Polytone is not deployed, deploys it between the 2 chains (good for integration testing)
-    pub fn ibc_connection_with(
+    pub fn connect_to(
         &self,
         remote_abstr: &AbstractClient<Chain>,
         ibc: &impl cw_orch_interchain::InterchainEnv<Chain>,
@@ -368,7 +368,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
     where
         Chain: cw_orch_interchain::IbcQueryHandler,
     {
-        self.abstr.connect(&remote_abstr.abstr, ibc)?;
+        self.abstr.connect_to(&remote_abstr.abstr, ibc)?;
 
         Ok(())
     }

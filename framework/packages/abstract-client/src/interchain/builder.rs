@@ -160,7 +160,7 @@ impl<Chain: IbcQueryHandler> AbstractInterchainClientBuilder<Chain> {
                 all_abstrs
                     .get(all_chains[i])
                     .unwrap()
-                    .ibc_connection_with(all_abstrs.get(all_chains[j]).unwrap(), interchain)?;
+                    .connect_to(all_abstrs.get(all_chains[j]).unwrap(), interchain)?;
             }
         }
 
@@ -238,7 +238,7 @@ impl AbstractInterchainClientBuilder<Daemon> {
                 all_abstrs
                     .get(all_chains[i])
                     .unwrap()
-                    .ibc_connection_with(all_abstrs.get(all_chains[j]).unwrap(), interchain)?;
+                    .connect_to(all_abstrs.get(all_chains[j]).unwrap(), interchain)?;
             }
         }
 
