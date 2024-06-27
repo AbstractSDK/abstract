@@ -35,11 +35,11 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 /// A builder for setting up tests for `Abstract` in an environment where Abstract isn't deployed yet.
 /// Example: [`Mock`](cw_orch::prelude::Mock) or a local [`Daemon`](cw_orch::prelude::Daemon).
 pub struct AbstractClientBuilder<Chain: CwEnv> {
-    chain: Chain,
+    pub(crate) chain: Chain,
     dexes: Vec<String>,
     contracts: Vec<(UncheckedContractEntry, String)>,
-    assets: Vec<(String, AssetInfoUnchecked)>,
-    channels: Vec<(UncheckedChannelEntry, String)>,
+    pub(crate) assets: Vec<(String, AssetInfoUnchecked)>,
+    pub(crate) channels: Vec<(UncheckedChannelEntry, String)>,
     pools: Vec<(UncheckedPoolAddress, PoolMetadata)>,
 }
 

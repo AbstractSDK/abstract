@@ -28,8 +28,12 @@ pub use source::AccountSource;
 // Interchain stuff
 #[cfg(feature = "interchain")]
 mod interchain {
+    pub mod builder;
+    pub mod client;
     pub(crate) mod remote_account;
     mod remote_application;
+    pub use builder::AbstractInterchainClientBuilder;
+    pub use client::AbstractInterchainClient;
     pub use remote_account::RemoteAccount;
     pub use remote_application::RemoteApplication;
 }
