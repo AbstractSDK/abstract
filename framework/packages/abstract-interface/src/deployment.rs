@@ -15,7 +15,7 @@ use rust_embed::RustEmbed;
 // https://github.com/pyrossh/rust-embed/pull/234
 #[folder = "./"]
 #[include = "state.json"]
-struct State;
+pub struct State;
 
 impl State {
     pub fn load_state() -> serde_json::Value {
