@@ -11,8 +11,6 @@ use crate::{
 use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
-// Can't use symlinks in debug mode
-// https://github.com/pyrossh/rust-embed/pull/234
 #[folder = "./"]
 #[include = "state.json"]
 pub struct State;
