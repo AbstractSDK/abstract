@@ -240,7 +240,7 @@ impl GovernanceDetails<Addr> {
                 collection_addr,
                 token_id,
             } => {
-                let res: OwnerOfResponse = querier
+                let res: Option<OwnerOfResponse> = querier
                     .query_wasm_smart(
                         collection_addr,
                         &cw721::Cw721QueryMsg::OwnerOf {
@@ -248,8 +248,8 @@ impl GovernanceDetails<Addr> {
                             include_expired: None,
                         },
                     )
-                    .unwrap();
-                Some(Addr::unchecked(res.owner))
+                    .ok();
+                res.map(|owner_response| Addr::unchecked(owner_response.owner))
             }
         }
     }

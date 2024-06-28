@@ -484,6 +484,7 @@ pub fn propose_owner(
             expiry: None,
         },
     )?;
+
     Ok(ManagerResponse::new(
         "update_owner",
         vec![(
