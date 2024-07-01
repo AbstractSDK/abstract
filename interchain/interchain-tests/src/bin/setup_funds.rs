@@ -95,8 +95,7 @@ pub fn test_send_funds() -> AnyResult<()> {
         },
     )?;
 
-    interchain
-        .check_ibc(STARGAZE, send_funds_tx)?;
+    interchain.check_ibc(STARGAZE, send_funds_tx)?;
 
     // Verify the funds have been received
     let remote_account_config = abstr_juno
