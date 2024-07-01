@@ -365,7 +365,7 @@ mod tests {
         let result = IbcResult::FatalError("ibc execution error".to_string());
 
         let response_msg = IbcResponseMsg {
-            callback: Callback::new(&String::from("15")),
+            callback: Callback::new(&String::from("15")).unwrap(),
             result,
         };
 

@@ -195,7 +195,7 @@ fn successful_ping_pong_to_home_chain() -> anyhow::Result<()> {
     // stargaze plays against stargaze
     let pp = remote_app.execute(
         &ping_pong::msg::AppExecuteMsg::PingPong {
-            opponent_chain: ChainName::from_chain_id(STARGAZE),
+            opponent_chain: ChainName::from_chain_id(JUNO),
         }
         .into(),
     )?;
