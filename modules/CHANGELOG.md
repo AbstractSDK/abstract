@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Fixed feature namings for kujira adapters to use protocol name instead of the chain name
+- `Collateral` and `Borrow` queries on ghost return zero, instead of erroring
 
 ## [0.22.1] - 2024-05-08
 
