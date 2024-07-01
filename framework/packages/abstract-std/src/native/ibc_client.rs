@@ -8,8 +8,8 @@ use crate::{
     ibc_host::HostAction,
     manager::{self, ModuleInstallConfig},
     objects::{
-        account::AccountId, chain_name::ChainName, module::ModuleInfo,
-        module_reference::ModuleReference, version_control::VersionControlContract, AssetEntry,
+        account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
+        truncated_chain_id::TruncatedChainId, version_control::VersionControlContract, AssetEntry,
     },
     AbstractError,
 };
@@ -22,7 +22,7 @@ pub mod state {
     use crate::objects::{
         account::{AccountSequence, AccountTrace},
         ans_host::AnsHost,
-        chain_name::ChainName,
+        truncated_chain_id::TruncatedChainId,
         version_control::VersionControlContract,
     };
 
@@ -45,14 +45,14 @@ pub mod state {
 
     // Saves the local note deployed contract and the remote abstract host connected
     // This allows sending cross-chain messages
-    pub const IBC_INFRA: Map<&ChainName, IbcInfrastructure> = Map::new("ibci");
-    pub const REVERSE_POLYTONE_NOTE: Map<&Addr, ChainName> = Map::new("revpn");
+    pub const IBC_INFRA: Map<&TruncatedChainId, IbcInfrastructure> = Map::new("ibci");
+    pub const REVERSE_POLYTONE_NOTE: Map<&Addr, TruncatedChainId> = Map::new("revpn");
 
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (account_trace, account_sequence, chain_name) -> remote proxy account address. We use a
     /// triple instead of including AccountId since nested tuples do not behave as expected due to
     /// a bug that will be fixed in a future release.
-    pub const ACCOUNTS: Map<(&AccountTrace, AccountSequence, &ChainName), String> =
+    pub const ACCOUNTS: Map<(&AccountTrace, AccountSequence, &TruncatedChainId), String> =
         Map::new("accs");
 
     // For callbacks tests
@@ -78,7 +78,7 @@ pub enum ExecuteMsg {
     /// This allows for monitoring which chain are connected to the contract remotely
     RegisterInfrastructure {
         /// Chain to register the infrastructure for ("juno", "osmosis", etc.)
-        chain: ChainName,
+        chain: TruncatedChainId,
         /// Polytone note (locally deployed)
         note: String,
         /// Address of the abstract host deployed on the remote chain
@@ -95,7 +95,7 @@ pub enum ExecuteMsg {
     SendFunds {
         /// host chain to be executed on
         /// Example: "osmosis"
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         funds: Vec<Coin>,
     },
     /// Only callable by Account proxy
@@ -104,7 +104,7 @@ pub enum ExecuteMsg {
     Register {
         /// host chain to be executed on
         /// Example: "osmosis"
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         base_asset: Option<AssetEntry>,
         namespace: Option<String>,
         install_modules: Vec<ModuleInstallConfig>,
@@ -114,7 +114,7 @@ pub enum ExecuteMsg {
     ModuleIbcAction {
         /// host chain to be executed on
         /// Example: "osmosis"
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         /// Module of this account on host chain
         target_module: ModuleInfo,
         /// Json-encoded IbcMsg to the target module
@@ -127,7 +127,7 @@ pub enum ExecuteMsg {
     IbcQuery {
         /// host chain to be executed on
         /// Example: "osmosis"
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         /// Cosmos Query requests
         queries: Vec<QueryRequest<ModuleQuery>>,
         /// Callback info to identify the callback that is sent (acts similar to the reply ID)
@@ -139,12 +139,12 @@ pub enum ExecuteMsg {
     RemoteAction {
         /// host chain to be executed on
         /// Example: "osmosis"
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         /// execute the custom host function
         action: HostAction,
     },
     /// Owner method: Remove connection for remote chain
-    RemoveHost { host_chain: ChainName },
+    RemoveHost { host_chain: TruncatedChainId },
     /// Callback from the Polytone implementation
     /// This is triggered regardless of the execution result
     Callback(CallbackMessage),
@@ -263,7 +263,7 @@ pub enum QueryMsg {
     /// Returns the host information associated with a specific chain-name (e.g. osmosis, juno)
     /// Returns [`HostResponse`]
     #[returns(HostResponse)]
-    Host { chain_name: ChainName },
+    Host { chain_name: TruncatedChainId },
 
     /// Get list of remote accounts
     /// Returns [`ListAccountsResponse`]
@@ -278,7 +278,7 @@ pub enum QueryMsg {
     #[returns(AccountResponse)]
     #[cw_orch(fn_name("remote_account"))]
     Account {
-        chain_name: ChainName,
+        chain_name: TruncatedChainId,
         account_id: AccountId,
     },
 
@@ -311,22 +311,22 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListAccountsResponse {
-    pub accounts: Vec<(AccountId, ChainName, String)>,
+    pub accounts: Vec<(AccountId, TruncatedChainId, String)>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListRemoteHostsResponse {
-    pub hosts: Vec<(ChainName, String)>,
+    pub hosts: Vec<(TruncatedChainId, String)>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListRemoteProxiesResponse {
-    pub proxies: Vec<(ChainName, Option<String>)>,
+    pub proxies: Vec<(TruncatedChainId, Option<String>)>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListIbcInfrastructureResponse {
-    pub counterparts: Vec<(ChainName, IbcInfrastructure)>,
+    pub counterparts: Vec<(TruncatedChainId, IbcInfrastructure)>,
 }
 
 #[cosmwasm_schema::cw_serde]

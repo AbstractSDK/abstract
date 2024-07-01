@@ -5,7 +5,7 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{objects::chain_name::ChainName, AbstractResult};
+use crate::{objects::truncated_chain_id::TruncatedChainId, AbstractResult};
 
 /// Key to get the Address of a connected_chain
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
@@ -22,7 +22,7 @@ impl UncheckedChannelEntry {
         }
     }
     pub fn check(self) -> AbstractResult<ChannelEntry> {
-        let chain_name: ChainName = ChainName::from_string(self.connected_chain)?;
+        let chain_name: TruncatedChainId = TruncatedChainId::from_string(self.connected_chain)?;
         Ok(ChannelEntry {
             connected_chain: chain_name,
             protocol: self.protocol.to_ascii_lowercase(),
@@ -47,7 +47,7 @@ impl TryFrom<String> for UncheckedChannelEntry {
 /// Use [`UncheckedChannelEntry`] to construct this type.  
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
 pub struct ChannelEntry {
-    pub connected_chain: ChainName,
+    pub connected_chain: TruncatedChainId,
     pub protocol: String,
 }
 
@@ -91,7 +91,7 @@ impl KeyDeserialize for &ChannelEntry {
         let u = tu.split_off(t_len);
 
         Ok(ChannelEntry {
-            connected_chain: ChainName::_from_string(String::from_vec(tu)?),
+            connected_chain: TruncatedChainId::_from_string(String::from_vec(tu)?),
             protocol: String::from_vec(u)?,
         })
     }
@@ -122,7 +122,7 @@ mod test {
 
     fn mock_key() -> ChannelEntry {
         ChannelEntry {
-            connected_chain: ChainName::from_str("osmosis").unwrap(),
+            connected_chain: TruncatedChainId::from_str("osmosis").unwrap(),
             protocol: "ics20".to_string(),
         }
     }
@@ -130,15 +130,15 @@ mod test {
     fn mock_keys() -> (ChannelEntry, ChannelEntry, ChannelEntry) {
         (
             ChannelEntry {
-                connected_chain: ChainName::from_str("osmosis").unwrap(),
+                connected_chain: TruncatedChainId::from_str("osmosis").unwrap(),
                 protocol: "ics20".to_string(),
             },
             ChannelEntry {
-                connected_chain: ChainName::from_str("osmosis").unwrap(),
+                connected_chain: TruncatedChainId::from_str("osmosis").unwrap(),
                 protocol: "ics".to_string(),
             },
             ChannelEntry {
-                connected_chain: ChainName::from_str("cosmos").unwrap(),
+                connected_chain: TruncatedChainId::from_str("cosmos").unwrap(),
                 protocol: "abstract".to_string(),
             },
         )

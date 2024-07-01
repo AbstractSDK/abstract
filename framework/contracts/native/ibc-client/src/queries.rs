@@ -8,7 +8,7 @@ use abstract_std::{
     },
     objects::{
         account::{AccountSequence, AccountTrace},
-        chain_name::ChainName,
+        truncated_chain_id::TruncatedChainId,
         AccountId,
     },
     AbstractError,
@@ -23,10 +23,10 @@ pub fn list_accounts(
     start: Option<(AccountId, String)>,
     limit: Option<u32>,
 ) -> IbcClientResult<ListAccountsResponse> {
-    let start: Option<(AccountTrace, AccountSequence, ChainName)> = start
+    let start: Option<(AccountTrace, AccountSequence, TruncatedChainId)> = start
         .map(|s| {
             let account_id: AccountId = s.0;
-            let chain = ChainName::from_str(&s.1)?;
+            let chain = TruncatedChainId::from_str(&s.1)?;
             let (trace, seq) = account_id.decompose();
             Ok::<_, AbstractError>((trace, seq, chain))
         })
@@ -34,7 +34,7 @@ pub fn list_accounts(
 
     let accounts: Vec<(
         AccountId,
-        abstract_std::objects::chain_name::ChainName,
+        abstract_std::objects::truncated_chain_id::TruncatedChainId,
         String,
     )> = cw_paginate::paginate_map(
         &ACCOUNTS,
@@ -54,16 +54,18 @@ pub fn list_proxies_by_account_id(
     deps: Deps,
     account_id: AccountId,
 ) -> IbcClientResult<ListRemoteProxiesResponse> {
-    let proxies: Vec<(abstract_std::objects::chain_name::ChainName, Option<String>)> =
-        cw_paginate::paginate_map_prefix(
-            &ACCOUNTS,
-            deps.storage,
-            (account_id.trace(), account_id.seq()),
-            // Not using pagination as there are not a lot of chains.
-            None,
-            None,
-            |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
-        )?;
+    let proxies: Vec<(
+        abstract_std::objects::truncated_chain_id::TruncatedChainId,
+        Option<String>,
+    )> = cw_paginate::paginate_map_prefix(
+        &ACCOUNTS,
+        deps.storage,
+        (account_id.trace(), account_id.seq()),
+        // Not using pagination as there are not a lot of chains.
+        None,
+        None,
+        |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
+    )?;
 
     Ok(ListRemoteProxiesResponse { proxies })
 }
@@ -106,7 +108,7 @@ pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
 }
 
 /// Returns the remote-host and polytone proxy addresses (useful for registering the proxy on the host)
-pub fn host(deps: Deps, host_chain: ChainName) -> IbcClientResult<HostResponse> {
+pub fn host(deps: Deps, host_chain: TruncatedChainId) -> IbcClientResult<HostResponse> {
     host_chain.verify()?;
 
     let ibc_counterpart = IBC_INFRA.load(deps.storage, &host_chain)?;
@@ -120,7 +122,7 @@ pub fn host(deps: Deps, host_chain: ChainName) -> IbcClientResult<HostResponse> 
 
 pub fn account(
     deps: Deps,
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
     account_id: AccountId,
 ) -> IbcClientResult<AccountResponse> {
     host_chain.verify()?;

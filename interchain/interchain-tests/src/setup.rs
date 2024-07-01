@@ -25,7 +25,8 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
 #[cfg(test)]
 pub mod mock_test {
     use abstract_std::{
-        ibc_client::QueryMsgFns, ibc_host::QueryMsgFns as _, objects::chain_name::ChainName,
+        ibc_client::QueryMsgFns, ibc_host::QueryMsgFns as _,
+        objects::truncated_chain_id::TruncatedChainId,
     };
 
     use super::*;
@@ -49,12 +50,18 @@ pub mod mock_test {
         // We verify the host is active on the client on chain JUNO
         let remote_hosts = origin_abstr.ibc.client.list_remote_hosts()?;
         assert_eq!(remote_hosts.hosts.len(), 1);
-        assert_eq!(remote_hosts.hosts[0].0, ChainName::from_chain_id(STARGAZE));
+        assert_eq!(
+            remote_hosts.hosts[0].0,
+            TruncatedChainId::from_chain_id(STARGAZE)
+        );
 
         // We verify the client is active on the host chain JUNO
         let remote_hosts = remote_abstr.ibc.host.client_proxies(None, None)?;
         assert_eq!(remote_hosts.chains.len(), 1);
-        assert_eq!(remote_hosts.chains[0].0, ChainName::from_chain_id(JUNO));
+        assert_eq!(
+            remote_hosts.chains[0].0,
+            TruncatedChainId::from_chain_id(JUNO)
+        );
 
         Ok(())
     }

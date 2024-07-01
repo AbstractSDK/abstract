@@ -7,8 +7,8 @@ use abstract_adapter::std::{
     objects::{
         account::AccountTrace,
         ans_host::AnsHost,
-        chain_name::ChainName,
         namespace::{Namespace, ABSTRACT_NAMESPACE},
+        truncated_chain_id::TruncatedChainId,
         AccountId,
     },
 };
@@ -140,7 +140,7 @@ fn handle_ibc_request(
     dex_name: DexName,
     action: &DexRawAction,
 ) -> DexResult {
-    let host_chain = ChainName::from_string(dex_name.clone())?; // TODO, this is faulty
+    let host_chain = TruncatedChainId::from_string(dex_name.clone())?; // TODO, this is faulty
 
     let ans = adapter.name_service(deps.as_ref());
     let ibc_client = adapter.ibc_client(deps.as_ref());

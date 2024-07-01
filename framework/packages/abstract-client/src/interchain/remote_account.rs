@@ -15,11 +15,11 @@ use abstract_std::{
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        chain_name::ChainName,
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
         nested_admin::MAX_ADMIN_RECURSION,
+        truncated_chain_id::TruncatedChainId,
         AccountId, AssetEntry,
     },
     proxy, IBC_CLIENT, PROXY,
@@ -65,7 +65,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
     ) -> AbstractClientResult<RemoteAccount<Chain, IBC>> {
         // Make sure ibc client installed on account
         let ibc_client = self.application::<IbcClient<Chain>>()?;
-        let remote_chain_name = ChainName::from_chain_id(&remote_chain.chain_id());
+        let remote_chain_name = TruncatedChainId::from_chain_id(&remote_chain.chain_id());
         let account_id = self.id()?;
 
         // Check it exists first
@@ -85,7 +85,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name =
-                ChainName::from_chain_id(&owner_account.manager.get_chain().chain_id());
+                TruncatedChainId::from_chain_id(&owner_account.manager.get_chain().chain_id());
             id.push_chain(chain_name);
             id
         };
@@ -183,7 +183,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
             install_modules,
             ..Default::default()
         };
-        let host_chain = ChainName::from_chain_id(&remote_env_info.chain_id);
+        let host_chain = TruncatedChainId::from_chain_id(&remote_env_info.chain_id);
 
         let response = owner_account
             .abstr_account
@@ -192,7 +192,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
 
         let remote_account_id = {
             let mut id = owner_account.id()?;
-            let chain_name = ChainName::from_chain_id(
+            let chain_name = TruncatedChainId::from_chain_id(
                 &owner_account.abstr_account.manager.get_chain().chain_id(),
             );
             id.push_chain(chain_name);
@@ -242,9 +242,9 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
         self.remote_account_id.clone()
     }
 
-    /// ChainName of the host chain
-    pub fn host_chain(&self) -> ChainName {
-        ChainName::from_chain_id(&self.remote_chain().env_info().chain_id)
+    /// Truncated chain id of the host chain
+    pub fn host_chain(&self) -> TruncatedChainId {
+        TruncatedChainId::from_chain_id(&self.remote_chain().env_info().chain_id)
     }
 
     fn remote_chain(&self) -> Chain {

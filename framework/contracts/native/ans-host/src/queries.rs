@@ -305,7 +305,7 @@ mod test {
     };
     use abstract_std::{
         ans_host::*,
-        objects::{chain_name::ChainName, pool_id::PoolAddressBase, PoolType},
+        objects::{pool_id::PoolAddressBase, truncated_chain_id::TruncatedChainId, PoolType},
     };
     use abstract_testing::OWNER;
     use cosmwasm_std::{
@@ -409,7 +409,7 @@ mod test {
             .map(|input| {
                 (
                     ChannelEntry {
-                        connected_chain: ChainName::from_string(
+                        connected_chain: TruncatedChainId::from_string(
                             input.0.to_string().to_ascii_lowercase(),
                         )
                         .unwrap(),
@@ -426,8 +426,10 @@ mod test {
         let channel_entry: Vec<ChannelEntry> = input
             .into_iter()
             .map(|input| ChannelEntry {
-                connected_chain: ChainName::from_string(input.0.to_string().to_ascii_lowercase())
-                    .unwrap(),
+                connected_chain: TruncatedChainId::from_string(
+                    input.0.to_string().to_ascii_lowercase(),
+                )
+                .unwrap(),
                 protocol: input.1.to_string().to_ascii_lowercase(),
             })
             .collect();
@@ -837,7 +839,7 @@ mod test {
         // Filter for entries after `Foo` - Alphabetically
         let msg = QueryMsg::ChannelList {
             start_after: Some(ChannelEntry {
-                connected_chain: ChainName::from_str("foo").unwrap(),
+                connected_chain: TruncatedChainId::from_str("foo").unwrap(),
                 protocol: "foo1".to_string(),
             }),
             limit: Some(42_u8),

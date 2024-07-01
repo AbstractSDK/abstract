@@ -42,7 +42,7 @@ pub enum AbstractClientError {
     #[error("Remote account of {account_id} not found on {chain} in {ibc_client_addr}")]
     RemoteAccountNotFound {
         account_id: abstract_std::objects::AccountId,
-        chain: abstract_std::objects::chain_name::ChainName,
+        chain: abstract_std::objects::truncated_chain_id::TruncatedChainId,
         ibc_client_addr: cosmwasm_std::Addr,
     },
 

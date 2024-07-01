@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use crate::{
     base::ExecuteMsg,
     ibc_client,
-    objects::{chain_name::ChainName, module::ModuleInfo},
+    objects::{module::ModuleInfo, truncated_chain_id::TruncatedChainId},
 };
 
 /// Callback from modules, that is turned into an IbcResponseMsg by the ibc client
@@ -145,7 +145,7 @@ pub struct ModuleIbcMsg {
 #[cw_serde]
 pub struct ModuleIbcInfo {
     /// Remote chain identification
-    pub chain: ChainName,
+    pub chain: TruncatedChainId,
     /// Information about the module that called ibc action on this module
     pub module: ModuleInfo,
 }

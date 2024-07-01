@@ -7,8 +7,8 @@ use abstract_std::{
         HelperAction, HostAction, InternalAction,
     },
     objects::{
-        account::AccountTrace, chain_name::ChainName, module::ModuleInfo,
-        module_reference::ModuleReference, AccountId,
+        account::AccountTrace, module::ModuleInfo, module_reference::ModuleReference,
+        truncated_chain_id::TruncatedChainId, AccountId,
     },
 };
 use cosmwasm_std::{
@@ -28,7 +28,7 @@ use crate::{
 pub fn handle_host_action(
     deps: DepsMut,
     env: Env,
-    client_chain: ChainName,
+    client_chain: TruncatedChainId,
     proxy_address: String,
     received_account_id: AccountId,
     host_action: HostAction,
@@ -122,7 +122,7 @@ pub fn handle_host_action(
 pub fn handle_module_execute(
     deps: DepsMut,
     env: Env,
-    src_chain: ChainName,
+    src_chain: TruncatedChainId,
     source_module: InstalledModuleIdentification,
     target_module: ModuleInfo,
     msg: Binary,
@@ -197,14 +197,14 @@ pub fn handle_host_module_query(
 /// We need to figure what trace module is implying here
 pub fn client_to_host_module_account_id(
     env: &Env,
-    remote_chain: ChainName,
+    remote_chain: TruncatedChainId,
     mut account_id: AccountId,
 ) -> AccountId {
     let account_trace = account_id.trace_mut();
     match account_trace {
         AccountTrace::Local => account_trace.push_chain(remote_chain),
         AccountTrace::Remote(trace) => {
-            let current_chain_name = ChainName::from_chain_id(&env.block.chain_id);
+            let current_chain_name = TruncatedChainId::from_chain_id(&env.block.chain_id);
             // If current chain_name == last trace in account_id it means we got response back from remote chain
             if current_chain_name.eq(trace.last().unwrap()) {
                 trace.pop();

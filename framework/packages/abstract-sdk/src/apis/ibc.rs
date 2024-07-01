@@ -8,7 +8,7 @@ use abstract_std::{
     ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
-    objects::{chain_name::ChainName, module::ModuleInfo},
+    objects::{module::ModuleInfo, truncated_chain_id::TruncatedChainId},
     proxy::ExecuteMsg,
     ABSTRACT_VERSION, IBC_CLIENT,
 };
@@ -100,7 +100,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Send module action from this module to the target module
     pub fn module_ibc_action<M: Serialize>(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         target_module: ModuleInfo,
         exec_msg: &M,
         callback: Option<Callback>,
@@ -123,7 +123,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Use [`abstract_std::ibc::IbcResponseMsg::module_query_response`] to parse response
     pub fn module_ibc_query<B: Serialize, M: Serialize>(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         target_module: InstalledModuleIdentification,
         query_msg: &base::QueryMsg<B, M>,
         callback: Callback,
@@ -147,7 +147,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Send query from this module to the host chain
     pub fn ibc_query(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         query: impl Into<QueryRequest<ModuleQuery>>,
         callback: Callback,
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -167,7 +167,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Send queries from this module to the host chain
     pub fn ibc_queries(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         queries: Vec<QueryRequest<ModuleQuery>>,
         callback: Callback,
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -186,7 +186,10 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
 
     /// Address of the remote proxy
     /// Note: only Accounts that are remote to *this* chain are queryable
-    pub fn remote_proxy_addr(&self, host_chain: &ChainName) -> AbstractSdkResult<Option<String>> {
+    pub fn remote_proxy_addr(
+        &self,
+        host_chain: &TruncatedChainId,
+    ) -> AbstractSdkResult<Option<String>> {
         let ibc_client_addr = self.module_address()?;
         let account_id = self.base.account_id(self.deps)?;
 
@@ -206,7 +209,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     pub fn create_remote_account(
         &self,
         // The chain on which you want to create an account
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
@@ -226,7 +229,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     /// Call a [`HostAction`] on the host of the provided `host_chain`.
     pub fn host_action(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         action: HostAction,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
@@ -242,7 +245,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     /// IbcClient the provided coins from the Account to its proxy on the `receiving_chain`.
     pub fn ics20_transfer(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         funds: Vec<Coin>,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
@@ -259,7 +262,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     pub fn install_remote_app<M: Serialize>(
         &self,
         // The chain on which you want to install an app
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         module: ModuleInfo,
         init_msg: &M,
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -280,7 +283,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     pub fn install_remote_api<M: Serialize>(
         &self,
         // The chain on which you want to install an api
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         module: ModuleInfo,
     ) -> AbstractSdkResult<CosmosMsg> {
         self.host_action(
@@ -298,7 +301,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     /// I.e. can be used to execute admin actions on remote modules.
     pub fn execute_on_module<M: Serialize>(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         module_id: String,
         exec_msg: &M,
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -315,7 +318,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
 
     /// Address of the remote proxy
     /// Note: only works if account is local
-    pub fn remote_proxy(&self, host_chain: &ChainName) -> AbstractSdkResult<Option<String>> {
+    pub fn remote_proxy(&self, host_chain: &TruncatedChainId) -> AbstractSdkResult<Option<String>> {
         let account_id = self.base.account_id(self.deps)?;
         let ibc_client_addr = self.module_address()?;
 

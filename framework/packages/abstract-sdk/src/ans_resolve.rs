@@ -494,7 +494,7 @@ mod tests {
     mod channel_entry {
         use std::str::FromStr;
 
-        use abstract_std::objects::chain_name::ChainName;
+        use abstract_std::objects::truncated_chain_id::TruncatedChainId;
 
         use super::*;
         use crate::std::ans_host::state::CHANNELS;
@@ -503,7 +503,7 @@ mod tests {
         fn exists() {
             let test_channel_entry = ChannelEntry {
                 protocol: "protocol".to_string(),
-                connected_chain: ChainName::from_str("abstract").unwrap(),
+                connected_chain: TruncatedChainId::from_str("abstract").unwrap(),
             };
 
             let expected_value = "channel-id".to_string();
@@ -524,7 +524,7 @@ mod tests {
         fn does_not_exist() {
             let not_exist_channel = ChannelEntry {
                 protocol: "protocol".to_string(),
-                connected_chain: ChainName::from_str("chain").unwrap(),
+                connected_chain: TruncatedChainId::from_str("chain").unwrap(),
             };
 
             test_dne(&not_exist_channel);
