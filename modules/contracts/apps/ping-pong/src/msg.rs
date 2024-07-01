@@ -25,8 +25,8 @@ pub enum AppExecuteMsg {
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses, cw_orch::QueryFns)]
 pub enum AppQueryMsg {
-    #[returns(WinsResponse)]
-    Wins {},
+    #[returns(GameStatusResponse)]
+    GameStatus {},
     /// Returns last ping pong that was initiated through this smart contract
     #[returns(BlockHeightResponse)]
     BlockHeight {},
@@ -53,7 +53,7 @@ pub enum PingPongCallbackMsg {
 pub struct AppMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
-pub struct WinsResponse {
+pub struct GameStatusResponse {
     pub wins: u32,
     pub losses: u32,
 }

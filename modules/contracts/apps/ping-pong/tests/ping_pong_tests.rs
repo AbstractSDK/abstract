@@ -11,7 +11,7 @@ use cw_orch::{anyhow, prelude::*};
 use cw_orch_interchain::prelude::*;
 
 use ping_pong::contract::APP_ID;
-use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, WinsResponse};
+use ping_pong::msg::{AppInstantiateMsg, AppQueryMsg, GameStatusResponse};
 use ping_pong::{AppExecuteMsgFns, AppInterface, AppQueryMsgFns};
 
 const JUNO: &str = "juno-1";
@@ -105,23 +105,23 @@ fn successful_install() -> anyhow::Result<()> {
 
     let mock_stargaze = env.abs_stargaze.environment();
 
-    let wins = app1.wins()?;
-    assert_eq!(wins, WinsResponse { wins: 0, losses: 0 });
+    let wins = app1.game_status()?;
+    assert_eq!(wins, GameStatusResponse { wins: 0, losses: 0 });
 
     let module_addrs = env
         .remote_account
         .module_addresses(vec![APP_ID.to_owned()])?;
-    let wins: WinsResponse = mock_stargaze.query(
-        &ping_pong::msg::QueryMsg::from(AppQueryMsg::Wins {}),
+    let wins: GameStatusResponse = mock_stargaze.query(
+        &ping_pong::msg::QueryMsg::from(AppQueryMsg::GameStatus {}),
         &module_addrs.modules[0].1,
     )?;
-    assert_eq!(wins, WinsResponse { wins: 0, losses: 0 });
+    assert_eq!(wins, GameStatusResponse { wins: 0, losses: 0 });
 
     let app2 = env.remote_account.application::<AppInterface<_>>()?;
 
-    let wins: WinsResponse = app2.wins()?;
+    let wins: GameStatusResponse = app2.game_status()?;
 
-    assert_eq!(wins, WinsResponse { wins: 0, losses: 0 });
+    assert_eq!(wins, GameStatusResponse { wins: 0, losses: 0 });
     Ok(())
 }
 
@@ -144,10 +144,10 @@ fn successful_ping_pong() -> anyhow::Result<()> {
             AccountTrace::Remote(vec![ChainName::from_chain_id(JUNO)]),
         )?)?;
 
-    let wins = app.wins()?;
-    assert_eq!(wins, WinsResponse { losses: 0, wins: 0 });
-    let wins = remote_app.wins()?;
-    assert_eq!(wins, WinsResponse { losses: 0, wins: 0 });
+    let wins = app.game_status()?;
+    assert_eq!(wins, GameStatusResponse { losses: 0, wins: 0 });
+    let wins = remote_app.game_status()?;
+    assert_eq!(wins, GameStatusResponse { losses: 0, wins: 0 });
 
     // let stargaze win
     set_to_win(mock_interchain.chain(STARGAZE)?);
@@ -158,8 +158,8 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     mock_interchain.check_ibc(JUNO, pp)?.into_result()?;
 
     // stargaze wins, juno lost.
-    let wins = app.wins()?;
-    assert_eq!(wins, WinsResponse { losses: 1, wins: 0 });
+    let wins = app.game_status()?;
+    assert_eq!(wins, GameStatusResponse { losses: 1, wins: 0 });
 
     // now let juno win
     set_to_lose(mock_interchain.chain(STARGAZE)?);
@@ -168,11 +168,11 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     let pp = app.ping_pong(ChainName::from_chain_id(STARGAZE))?;
     mock_interchain.check_ibc(JUNO, pp)?.into_result()?;
 
-    let wins = app.wins()?;
+    let wins = app.game_status()?;
     assert_eq!(wins.wins, 1);
     assert_eq!(wins.losses, 1);
 
-    let wins: WinsResponse = remote_app.wins()?;
+    let wins: GameStatusResponse = remote_app.game_status()?;
     assert_eq!(wins.losses, 1);
     Ok(())
 }
@@ -226,13 +226,13 @@ fn successful_ping_pong() -> anyhow::Result<()> {
 //         });
 //     assert!(ping_ponged.is_some());
 
-//     let wins: WinsResponse = app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
+//     let wins: GameStatusResponse = app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
 //     assert_eq!(wins.wins, 0);
-//     let previous_ping_pong: WinsResponse =
-//         app.wins()?;
+//     let previous_ping_pong: GameStatusResponse =
+//         app.game_status()?;
 //     assert_eq!(
 //         previous_ping_pong,
-//         WinsResponse {
+//         GameStatusResponse {
 //             wins: 0
 //         }
 //     );
@@ -291,24 +291,24 @@ fn successful_ping_pong() -> anyhow::Result<()> {
 //     });
 //     assert!(ping_ponged.is_some());
 
-//     let wins = app.wins()?;
+//     let wins = app.game_status()?;
 //     assert_eq!(wins.wins, 0);
-//     let previous_ping_pong = app.wins()?;
+//     let previous_ping_pong = app.game_status()?;
 //     assert_eq!(
 //         previous_ping_pong,
-//         WinsResponse {
+//         GameStatusResponse {
 //             wins
 //         }
 //     );
 
 //     // Remote
-//     let wins: WinsResponse = remote_app.query(&ping_pong::msg::AppQueryMsg::Wins {  } {}.into())?;
+//     let wins: GameStatusResponse = remote_app.query(&ping_pong::msg::AppQueryMsg::GameStatus {  } {}.into())?;
 //     assert_eq!(wins.wins, 0);
-//     let previous_ping_pong: WinsResponse =
-//         remote_app.query(&ping_pong::msg::AppQueryMsg::Wins {}.into())?;
+//     let previous_ping_pong: GameStatusResponse =
+//         remote_app.query(&ping_pong::msg::AppQueryMsg::GameStatus {}.into())?;
 //     assert_eq!(
 //         previous_ping_pong,
-//         WinsResponse {
+//         GameStatusResponse {
 //             wins: 0
 //         }
 //     );

@@ -33,9 +33,6 @@ pub enum AppError {
     #[error("Can't start ping pong with zero pongs")]
     ZeroPongs {},
 
-    #[error("Match not found for rematch")]
-    NothingToRematch {},
-
     #[error("First play must be a Ping")]
     FirstPlayMustBePing {},
 }
