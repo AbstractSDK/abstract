@@ -50,31 +50,18 @@ osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 # Builds
 [package.metadata.optimizer]
 builds = [
-  { name = "juno", features = [
-    "wynd",
-  ] },
+  { name = "juno", features = ["wynd"] },
   { name = "terra2", features = [
     "astroport",
-    "terraswap",
+    # No one uses terraswap but it makes wasm too big
+    # "terraswap",
   ] },
-  { name = "neutron", features = [
-    "astroport",
-  ] },
-  { name = "osmosis", features = [
-    "osmosis",
-  ] },
-  { name = "kujira", features = [
-    "fin",
-  ] },
-  { name = "injective", features = [
-    "astroport",
-  ] },
-  { name = "sei", features = [
-    "astroport",
-  ] },
-  { name = "archway", features = [
-    "astrovault",
-  ] },
+  { name = "neutron", features = ["astroport"] },
+  { name = "osmosis", features = ["osmosis"] },
+  { name = "kujira", features = ["fin"] },
+  { name = "injective", features = ["astroport"] },
+  { name = "sei", features = ["astroport"] },
+  { name = "archway", features = ["astrovault"] },
 ]
 
 [dependencies]
