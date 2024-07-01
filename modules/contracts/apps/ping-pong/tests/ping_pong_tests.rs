@@ -177,6 +177,49 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn successful_ping_pong_to_home_chain() -> anyhow::Result<()> {
+    logger_test_init();
+
+    // Create a sender and mock env
+    let mock_interchain =
+        MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+    let env = PingPong::setup(&mock_interchain)?;
+    let app = env.app;
+    let remote_app = env.remote_account.application::<AppInterface<_>>()?;
+
+    // let stargaze win
+    set_to_win(mock_interchain.chain(STARGAZE)?);
+    set_to_lose(mock_interchain.chain(JUNO)?);
+
+    // stargaze plays against stargaze
+    let pp = remote_app.execute(
+        &ping_pong::msg::AppExecuteMsg::PingPong {
+            opponent_chain: ChainName::from_chain_id(STARGAZE),
+        }
+        .into(),
+    )?;
+
+    // stargaze wins, juno lost.
+    let wins = remote_app.game_status()?;
+    assert_eq!(wins, GameStatusResponse { losses: 0, wins: 1 });
+
+    // // now let juno win
+    // set_to_lose(mock_interchain.chain(STARGAZE)?);
+    // set_to_win(mock_interchain.chain(JUNO)?);
+
+    // let pp = app.ping_pong(ChainName::from_chain_id(STARGAZE))?;
+    // mock_interchain.check_ibc(JUNO, pp)?.into_result()?;
+
+    // let wins = app.game_status()?;
+    // assert_eq!(wins.wins, 1);
+    // assert_eq!(wins.losses, 1);
+
+    // let wins: GameStatusResponse = remote_app.game_status()?;
+    // assert_eq!(wins.losses, 1);
+    Ok(())
+}
+
 // #[test]
 // fn successful_remote_ping_pong() -> anyhow::Result<()> {
 //     logger_test_init();
