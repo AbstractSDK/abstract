@@ -41,3 +41,11 @@ pub use entry::{
     dex_asset_pairing::DexAssetPairing,
     lp_token::{DexName, LpToken},
 };
+
+pub mod chain_name {
+    use super::truncated_chain_id::TruncatedChainId;
+
+    // Type name `ChainName` was not suitable name for the type
+    #[deprecated = "Use TruncatedChainId instead"]
+    pub type ChainName = TruncatedChainId;
+}
