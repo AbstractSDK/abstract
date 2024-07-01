@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Removed
 
+- Terraswap no longer supported on terra
+
 ### Fixed
 
 - Fixed feature namings for kujira adapters to use protocol name instead of the chain name
