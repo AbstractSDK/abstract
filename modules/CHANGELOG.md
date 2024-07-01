@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Removed
 
-- Terraswap no longer supported on terra
+- Dex integration Terraswap no longer supported on terra
 
 ### Fixed
 
