@@ -27,11 +27,11 @@ required-features = ["daemon-bin"]
 default = ["export"]
 export = []
 daemon-bin = [
-    "cw-orch/daemon",
-    "dep:clap",
-    "dep:abstract-client",
-    "dep:dotenv",
-    "dep:env_logger",
+  "cw-orch/daemon",
+  "dep:clap",
+  "dep:abstract-client",
+  "dep:dotenv",
+  "dep:env_logger",
 ]
 
 [dependencies]

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Ping pong application that demonstrates IBC features of abstract
+
 ### Changed
 
 ### Removed

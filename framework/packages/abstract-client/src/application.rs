@@ -2,8 +2,6 @@
 //!
 //! [`Application`] represents a module installed on a (sub-)account
 
-use std::ops::{Deref, DerefMut};
-
 use abstract_interface::RegisteredModule;
 use cw_orch::{contract::Contract, prelude::*};
 
@@ -11,24 +9,45 @@ use crate::{account::Account, client::AbstractClientResult};
 
 /// An application represents a module installed on a (sub)-[`Account`].
 ///
-/// It derefs to the module itself, so you can call its methods directly from the application struct.
+/// It implements cw-orch traits of the module itself, so you can call its methods directly from the application struct.
+#[derive(Clone)]
 pub struct Application<T: CwEnv, M> {
     account: Account<T>,
     module: M,
 }
 
 /// Allows to access the module's methods directly from the application struct
-impl<Chain: CwEnv, M> Deref for Application<Chain, M> {
-    type Target = M;
-
-    fn deref(&self) -> &Self::Target {
-        &self.module
-    }
+impl<Chain: CwEnv, M: InstantiableContract + ContractInstance<Chain>> InstantiableContract
+    for Application<Chain, M>
+{
+    type InstantiateMsg = M::InstantiateMsg;
 }
 
-impl<Chain: CwEnv, M> DerefMut for Application<Chain, M> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.module
+impl<Chain: CwEnv, M: QueryableContract + ContractInstance<Chain>> QueryableContract
+    for Application<Chain, M>
+{
+    type QueryMsg = M::QueryMsg;
+}
+
+impl<Chain: CwEnv, M: ExecutableContract + ContractInstance<Chain>> ExecutableContract
+    for Application<Chain, M>
+{
+    type ExecuteMsg = M::ExecuteMsg;
+}
+
+impl<Chain: CwEnv, M: MigratableContract + ContractInstance<Chain>> MigratableContract
+    for Application<Chain, M>
+{
+    type MigrateMsg = M::MigrateMsg;
+}
+
+impl<Chain: CwEnv, M: ContractInstance<Chain>> ContractInstance<Chain> for Application<Chain, M> {
+    fn as_instance(&self) -> &Contract<Chain> {
+        self.module.as_instance()
+    }
+
+    fn as_instance_mut(&mut self) -> &mut Contract<Chain> {
+        self.module.as_instance_mut()
     }
 }
 
