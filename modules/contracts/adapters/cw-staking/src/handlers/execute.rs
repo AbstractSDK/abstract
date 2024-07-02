@@ -4,7 +4,7 @@ use abstract_adapter::sdk::{
     IbcInterface, Resolve,
 };
 use abstract_adapter::std::ibc::Callback;
-use abstract_adapter::std::objects::truncated_chain_id::TruncatedChainId;
+use abstract_adapter::std::objects::TruncatedChainId;
 use abstract_staking_standard::msg::{ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg};
 use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo};
 

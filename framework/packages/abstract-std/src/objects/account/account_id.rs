@@ -4,7 +4,7 @@ use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
 use super::{account_trace::AccountTrace, AccountSequence};
-use crate::{objects::truncated_chain_id::TruncatedChainId, AbstractError};
+use crate::{objects::TruncatedChainId, AbstractError};
 
 /// Unique identifier for an account.
 /// On each chain this is unique.

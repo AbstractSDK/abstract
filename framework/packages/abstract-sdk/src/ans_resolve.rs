@@ -494,7 +494,7 @@ mod tests {
     mod channel_entry {
         use std::str::FromStr;
 
-        use abstract_std::objects::truncated_chain_id::TruncatedChainId;
+        use abstract_std::objects::TruncatedChainId;
 
         use super::*;
         use crate::std::ans_host::state::CHANNELS;

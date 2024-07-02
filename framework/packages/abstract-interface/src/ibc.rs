@@ -68,7 +68,7 @@ pub mod connection {
     use abstract_std::ibc_client::ExecuteMsgFns as _;
     use abstract_std::ibc_client::QueryMsgFns;
     use abstract_std::ibc_host::ExecuteMsgFns as _;
-    use abstract_std::objects::truncated_chain_id::TruncatedChainId;
+    use abstract_std::objects::TruncatedChainId;
     use cw_orch_interchain::prelude::*;
     use cw_orch_polytone::interchain::PolytoneConnection;
 

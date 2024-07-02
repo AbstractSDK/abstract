@@ -8,8 +8,7 @@ use abstract_std::{
     },
     objects::{
         account::{AccountSequence, AccountTrace},
-        truncated_chain_id::TruncatedChainId,
-        AccountId,
+        AccountId, TruncatedChainId,
     },
     AbstractError,
 };
@@ -32,20 +31,17 @@ pub fn list_accounts(
         })
         .transpose()?;
 
-    let accounts: Vec<(
-        AccountId,
-        abstract_std::objects::truncated_chain_id::TruncatedChainId,
-        String,
-    )> = cw_paginate::paginate_map(
-        &ACCOUNTS,
-        deps.storage,
-        start.as_ref().map(|s| Bound::exclusive((&s.0, s.1, &s.2))),
-        limit,
-        |(trace, seq, chain), address| {
-            // We can unwrap since the trace has been verified when the account was registered.
-            Ok::<_, StdError>((AccountId::new(seq, trace).unwrap(), chain, address))
-        },
-    )?;
+    let accounts: Vec<(AccountId, abstract_std::objects::TruncatedChainId, String)> =
+        cw_paginate::paginate_map(
+            &ACCOUNTS,
+            deps.storage,
+            start.as_ref().map(|s| Bound::exclusive((&s.0, s.1, &s.2))),
+            limit,
+            |(trace, seq, chain), address| {
+                // We can unwrap since the trace has been verified when the account was registered.
+                Ok::<_, StdError>((AccountId::new(seq, trace).unwrap(), chain, address))
+            },
+        )?;
 
     Ok(ListAccountsResponse { accounts })
 }
@@ -54,18 +50,16 @@ pub fn list_proxies_by_account_id(
     deps: Deps,
     account_id: AccountId,
 ) -> IbcClientResult<ListRemoteProxiesResponse> {
-    let proxies: Vec<(
-        abstract_std::objects::truncated_chain_id::TruncatedChainId,
-        Option<String>,
-    )> = cw_paginate::paginate_map_prefix(
-        &ACCOUNTS,
-        deps.storage,
-        (account_id.trace(), account_id.seq()),
-        // Not using pagination as there are not a lot of chains.
-        None,
-        None,
-        |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
-    )?;
+    let proxies: Vec<(abstract_std::objects::TruncatedChainId, Option<String>)> =
+        cw_paginate::paginate_map_prefix(
+            &ACCOUNTS,
+            deps.storage,
+            (account_id.trace(), account_id.seq()),
+            // Not using pagination as there are not a lot of chains.
+            None,
+            None,
+            |chain, proxy| Ok::<_, StdError>((chain, Some(proxy))),
+        )?;
 
     Ok(ListRemoteProxiesResponse { proxies })
 }

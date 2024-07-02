@@ -6,8 +6,7 @@ use abstract_std::{
     module_factory::SimulateInstallModulesResponse,
     objects::{
         module::{ModuleInfo, ModuleVersion},
-        truncated_chain_id::TruncatedChainId,
-        AccountId,
+        AccountId, TruncatedChainId,
     },
     IBC_CLIENT, MANAGER, PROXY,
 };

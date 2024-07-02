@@ -3,9 +3,7 @@ use std::fmt::Display;
 use cosmwasm_std::{ensure, Env, StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
-use crate::{
-    constants::CHAIN_DELIMITER, objects::truncated_chain_id::TruncatedChainId, AbstractError,
-};
+use crate::{constants::CHAIN_DELIMITER, objects::TruncatedChainId, AbstractError};
 
 pub const MAX_TRACE_LENGTH: usize = 6;
 pub(crate) const LOCAL: &str = "local";

@@ -27,7 +27,7 @@ pub mod namespace;
 pub mod paged_map;
 pub mod price_source;
 pub mod time_weighted_average;
-pub mod truncated_chain_id;
+pub(crate) mod truncated_chain_id;
 pub mod validation;
 pub mod voting;
 
@@ -41,9 +41,10 @@ pub use entry::{
     dex_asset_pairing::DexAssetPairing,
     lp_token::{DexName, LpToken},
 };
+pub use truncated_chain_id::TruncatedChainId;
 
 pub mod chain_name {
-    use super::truncated_chain_id::TruncatedChainId;
+    use super::TruncatedChainId;
 
     // Type name `ChainName` was not suitable name for the type
     #[deprecated = "Use TruncatedChainId instead"]

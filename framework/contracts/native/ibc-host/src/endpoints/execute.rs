@@ -1,7 +1,7 @@
 use abstract_sdk::{feature_objects::VersionControlContract, std::ibc_host::ExecuteMsg};
 use abstract_std::{
     ibc_host::state::{CHAIN_PROXIES, CONFIG, REVERSE_CHAIN_PROXIES},
-    objects::truncated_chain_id::TruncatedChainId,
+    objects::TruncatedChainId,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 

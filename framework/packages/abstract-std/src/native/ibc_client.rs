@@ -9,7 +9,7 @@ use crate::{
     manager::{self, ModuleInstallConfig},
     objects::{
         account::AccountId, module::ModuleInfo, module_reference::ModuleReference,
-        truncated_chain_id::TruncatedChainId, version_control::VersionControlContract, AssetEntry,
+        version_control::VersionControlContract, AssetEntry, TruncatedChainId,
     },
     AbstractError,
 };
@@ -22,8 +22,8 @@ pub mod state {
     use crate::objects::{
         account::{AccountSequence, AccountTrace},
         ans_host::AnsHost,
-        truncated_chain_id::TruncatedChainId,
         version_control::VersionControlContract,
+        TruncatedChainId,
     };
 
     #[cosmwasm_schema::cw_serde]

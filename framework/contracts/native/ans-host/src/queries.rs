@@ -305,7 +305,7 @@ mod test {
     };
     use abstract_std::{
         ans_host::*,
-        objects::{pool_id::PoolAddressBase, truncated_chain_id::TruncatedChainId, PoolType},
+        objects::{pool_id::PoolAddressBase, PoolType, TruncatedChainId},
     };
     use abstract_testing::OWNER;
     use cosmwasm_std::{

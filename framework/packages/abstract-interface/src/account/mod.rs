@@ -15,7 +15,7 @@ use abstract_std::{
     manager::ModuleInstallConfig,
     objects::{
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
-        truncated_chain_id::TruncatedChainId,
+        TruncatedChainId,
     },
     version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
     ABSTRACT_EVENT_TYPE, MANAGER, PROXY,

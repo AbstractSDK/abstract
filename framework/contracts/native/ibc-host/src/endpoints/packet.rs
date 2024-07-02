@@ -7,8 +7,8 @@ use abstract_std::{
         HelperAction, HostAction, InternalAction,
     },
     objects::{
-        account::AccountTrace, module::ModuleInfo, module_reference::ModuleReference,
-        truncated_chain_id::TruncatedChainId, AccountId,
+        account::AccountTrace, module::ModuleInfo, module_reference::ModuleReference, AccountId,
+        TruncatedChainId,
     },
 };
 use cosmwasm_std::{

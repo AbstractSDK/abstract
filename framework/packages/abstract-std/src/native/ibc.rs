@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use crate::{
     base::ExecuteMsg,
     ibc_client,
-    objects::{module::ModuleInfo, truncated_chain_id::TruncatedChainId},
+    objects::{module::ModuleInfo, TruncatedChainId},
 };
 
 /// Callback from modules, that is turned into an IbcResponseMsg by the ibc client

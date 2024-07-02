@@ -3,7 +3,7 @@ use abstract_std::{
     ibc::{Callback, IbcResult},
     ibc_client::{self, InstalledModuleIdentification},
     objects::{
-        dependency::StaticDependency, module::ModuleInfo, truncated_chain_id::TruncatedChainId,
+        dependency::StaticDependency, module::ModuleInfo, TruncatedChainId,
     },
     IBC_CLIENT,
 };
@@ -348,7 +348,7 @@ pub mod test {
         setup::{ibc_abstract_setup, mock_test::logger_test_init},
         JUNO, STARGAZE,
     };
-    use abstract_app::objects::{module::ModuleInfo, truncated_chain_id::TruncatedChainId};
+    use abstract_app::objects::{module::ModuleInfo, TruncatedChainId};
     use abstract_interface::{
         AppDeployer, DeployStrategy, Manager, ManagerQueryFns, VCExecFns, VCQueryFns,
     };

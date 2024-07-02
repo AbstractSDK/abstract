@@ -6,7 +6,7 @@ use abstract_std::{
     account_factory,
     ibc_host::state::CONFIG,
     manager::{self, ModuleInstallConfig},
-    objects::{truncated_chain_id::TruncatedChainId, AccountId, AssetEntry},
+    objects::{AccountId, AssetEntry, TruncatedChainId},
     proxy,
     version_control::AccountBase,
     PROXY,

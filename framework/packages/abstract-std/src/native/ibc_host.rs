@@ -13,9 +13,7 @@ use cosmwasm_std::{Addr, Binary};
 use crate::{
     ibc_client::InstalledModuleIdentification,
     manager::{self, ModuleInstallConfig},
-    objects::{
-        account::AccountId, module::ModuleInfo, truncated_chain_id::TruncatedChainId, AssetEntry,
-    },
+    objects::{account::AccountId, module::ModuleInfo, AssetEntry, TruncatedChainId},
 };
 
 pub mod state {

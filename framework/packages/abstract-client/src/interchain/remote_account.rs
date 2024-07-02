@@ -19,8 +19,7 @@ use abstract_std::{
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
         nested_admin::MAX_ADMIN_RECURSION,
-        truncated_chain_id::TruncatedChainId,
-        AccountId, AssetEntry,
+        AccountId, AssetEntry, TruncatedChainId,
     },
     proxy, IBC_CLIENT, PROXY,
 };

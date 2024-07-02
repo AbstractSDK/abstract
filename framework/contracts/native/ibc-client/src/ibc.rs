@@ -4,7 +4,7 @@ use abstract_std::{
         state::{ACCOUNTS, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
-    objects::truncated_chain_id::TruncatedChainId,
+    objects::TruncatedChainId,
 };
 use cosmwasm_std::{from_json, Attribute, DepsMut, Env, MessageInfo};
 use polytone::callbacks::{Callback as PolytoneCallback, CallbackMessage};

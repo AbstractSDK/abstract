@@ -14,7 +14,7 @@ pub fn generate_instantiate_salt(account_id: &AccountId) -> Binary {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::objects::{account::AccountTrace, truncated_chain_id::TruncatedChainId};
+    use crate::objects::{account::AccountTrace, TruncatedChainId};
 
     #[test]
     fn generate_module_salt_local() {

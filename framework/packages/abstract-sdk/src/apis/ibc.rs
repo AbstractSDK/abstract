@@ -8,7 +8,7 @@ use abstract_std::{
     ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
-    objects::{module::ModuleInfo, truncated_chain_id::TruncatedChainId},
+    objects::{module::ModuleInfo, TruncatedChainId},
     proxy::ExecuteMsg,
     ABSTRACT_VERSION, IBC_CLIENT,
 };

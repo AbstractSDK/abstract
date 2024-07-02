@@ -1,7 +1,7 @@
 use abstract_interface::Abstract;
 use abstract_std::ibc_client::QueryMsgFns as _;
 use abstract_std::ibc_host::QueryMsgFns;
-use abstract_std::objects::truncated_chain_id::TruncatedChainId;
+use abstract_std::objects::TruncatedChainId;
 use anyhow::anyhow;
 use cw_orch::prelude::*;
 use cw_orch_polytone::Polytone;

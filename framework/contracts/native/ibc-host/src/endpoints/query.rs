@@ -6,7 +6,7 @@ use abstract_std::{
         state::{CHAIN_PROXIES, CONFIG},
         ClientProxiesResponse, ClientProxyResponse, ConfigResponse,
     },
-    objects::truncated_chain_id::TruncatedChainId,
+    objects::TruncatedChainId,
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use cw_storage_plus::Bound;

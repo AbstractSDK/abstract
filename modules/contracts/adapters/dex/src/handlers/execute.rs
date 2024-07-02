@@ -8,7 +8,7 @@ use abstract_adapter::std::{
         account::AccountTrace,
         ans_host::AnsHost,
         namespace::{Namespace, ABSTRACT_NAMESPACE},
-        truncated_chain_id::TruncatedChainId,
+        TruncatedChainId,
         AccountId,
     },
 };

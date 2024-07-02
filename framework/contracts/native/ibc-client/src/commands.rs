@@ -14,8 +14,8 @@ use abstract_std::{
     ibc_host::{self, HostAction, InternalAction},
     manager::{self, ModuleInstallConfig},
     objects::{
-        module::ModuleInfo, module_reference::ModuleReference,
-        truncated_chain_id::TruncatedChainId, AccountId, AssetEntry, ChannelEntry,
+        module::ModuleInfo, module_reference::ModuleReference, AccountId, AssetEntry, ChannelEntry,
+        TruncatedChainId,
     },
     version_control::AccountBase,
     IBC_CLIENT, ICS20,

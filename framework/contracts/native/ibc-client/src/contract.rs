@@ -322,7 +322,7 @@ mod tests {
     mod register_infrastructure {
         use std::str::FromStr;
 
-        use abstract_std::objects::truncated_chain_id::TruncatedChainId;
+        use abstract_std::objects::TruncatedChainId;
         use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
 
@@ -469,7 +469,7 @@ mod tests {
         use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
-            objects::{truncated_chain_id::TruncatedChainId, version_control::VersionControlError},
+            objects::{version_control::VersionControlError, TruncatedChainId},
         };
 
         use cosmwasm_std::wasm_execute;
@@ -602,10 +602,7 @@ mod tests {
 
         use crate::commands::PACKET_LIFETIME;
         use abstract_std::{
-            objects::{
-                truncated_chain_id::TruncatedChainId, version_control::VersionControlError,
-                ChannelEntry,
-            },
+            objects::{version_control::VersionControlError, ChannelEntry, TruncatedChainId},
             ICS20,
         };
         use cosmwasm_std::{coins, Coin, CosmosMsg, IbcMsg};
@@ -695,8 +692,7 @@ mod tests {
             ibc_host::{self, HostAction, InternalAction},
             manager,
             objects::{
-                gov_type::GovernanceDetails, truncated_chain_id::TruncatedChainId,
-                version_control::VersionControlError,
+                gov_type::GovernanceDetails, version_control::VersionControlError, TruncatedChainId,
             },
         };
         use cosmwasm_std::wasm_execute;
@@ -821,7 +817,7 @@ mod tests {
     mod update_config {
         use std::str::FromStr;
 
-        use abstract_std::objects::truncated_chain_id::TruncatedChainId;
+        use abstract_std::objects::TruncatedChainId;
 
         use super::*;
 
@@ -915,7 +911,7 @@ mod tests {
     mod remove_host {
         use std::str::FromStr;
 
-        use abstract_std::objects::truncated_chain_id::TruncatedChainId;
+        use abstract_std::objects::TruncatedChainId;
 
         use super::*;
 
@@ -972,9 +968,7 @@ mod tests {
     mod callback {
         use std::str::FromStr;
 
-        use abstract_std::objects::{
-            account::TEST_ACCOUNT_ID, truncated_chain_id::TruncatedChainId,
-        };
+        use abstract_std::objects::{account::TEST_ACCOUNT_ID, TruncatedChainId};
         use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
         use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
 
@@ -1355,9 +1349,7 @@ mod tests {
 
         use std::str::FromStr;
 
-        use abstract_std::objects::{
-            account::AccountTrace, truncated_chain_id::TruncatedChainId, AccountId,
-        };
+        use abstract_std::objects::{account::AccountTrace, AccountId, TruncatedChainId};
 
         #[test]
         fn works_with_multiple_local_accounts() -> IbcClientTestResult {
