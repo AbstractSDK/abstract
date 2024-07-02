@@ -4,9 +4,9 @@ use abstract_scripts::abstract_ibc::{
     has_abstract_ibc, has_polytone_connection, verify_abstract_ibc,
 };
 use abstract_scripts::NEUTRON_1;
-use abstract_std::objects::chain_name::ChainName;
 use abstract_std::objects::module::ModuleVersion;
 use abstract_std::objects::namespace::Namespace;
+use abstract_std::objects::TruncatedChainId;
 use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
 use cw_orch::daemon::networks::{ARCHWAY_1, JUNO_1, OSMOSIS_1, PHOENIX_1};
 use cw_orch::environment::ChainKind;

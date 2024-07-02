@@ -8,8 +8,7 @@ use abstract_std::{
     },
     objects::{
         account::{AccountSequence, AccountTrace},
-        chain_name::ChainName,
-        AccountId,
+        AccountId, TruncatedChainId,
     },
     AbstractError,
 };
@@ -23,29 +22,26 @@ pub fn list_accounts(
     start: Option<(AccountId, String)>,
     limit: Option<u32>,
 ) -> IbcClientResult<ListAccountsResponse> {
-    let start: Option<(AccountTrace, AccountSequence, ChainName)> = start
+    let start: Option<(AccountTrace, AccountSequence, TruncatedChainId)> = start
         .map(|s| {
             let account_id: AccountId = s.0;
-            let chain = ChainName::from_str(&s.1)?;
+            let chain = TruncatedChainId::from_str(&s.1)?;
             let (trace, seq) = account_id.decompose();
             Ok::<_, AbstractError>((trace, seq, chain))
         })
         .transpose()?;
 
-    let accounts: Vec<(
-        AccountId,
-        abstract_std::objects::chain_name::ChainName,
-        String,
-    )> = cw_paginate::paginate_map(
-        &ACCOUNTS,
-        deps.storage,
-        start.as_ref().map(|s| Bound::exclusive((&s.0, s.1, &s.2))),
-        limit,
-        |(trace, seq, chain), address| {
-            // We can unwrap since the trace has been verified when the account was registered.
-            Ok::<_, StdError>((AccountId::new(seq, trace).unwrap(), chain, address))
-        },
-    )?;
+    let accounts: Vec<(AccountId, abstract_std::objects::TruncatedChainId, String)> =
+        cw_paginate::paginate_map(
+            &ACCOUNTS,
+            deps.storage,
+            start.as_ref().map(|s| Bound::exclusive((&s.0, s.1, &s.2))),
+            limit,
+            |(trace, seq, chain), address| {
+                // We can unwrap since the trace has been verified when the account was registered.
+                Ok::<_, StdError>((AccountId::new(seq, trace).unwrap(), chain, address))
+            },
+        )?;
 
     Ok(ListAccountsResponse { accounts })
 }
@@ -54,7 +50,7 @@ pub fn list_proxies_by_account_id(
     deps: Deps,
     account_id: AccountId,
 ) -> IbcClientResult<ListRemoteProxiesResponse> {
-    let proxies: Vec<(abstract_std::objects::chain_name::ChainName, Option<String>)> =
+    let proxies: Vec<(abstract_std::objects::TruncatedChainId, Option<String>)> =
         cw_paginate::paginate_map_prefix(
             &ACCOUNTS,
             deps.storage,
@@ -106,7 +102,7 @@ pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
 }
 
 /// Returns the remote-host and polytone proxy addresses (useful for registering the proxy on the host)
-pub fn host(deps: Deps, host_chain: ChainName) -> IbcClientResult<HostResponse> {
+pub fn host(deps: Deps, host_chain: TruncatedChainId) -> IbcClientResult<HostResponse> {
     host_chain.verify()?;
 
     let ibc_counterpart = IBC_INFRA.load(deps.storage, &host_chain)?;
@@ -120,7 +116,7 @@ pub fn host(deps: Deps, host_chain: ChainName) -> IbcClientResult<HostResponse> 
 
 pub fn account(
     deps: Deps,
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
     account_id: AccountId,
 ) -> IbcClientResult<AccountResponse> {
     host_chain.verify()?;

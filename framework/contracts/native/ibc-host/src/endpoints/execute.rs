@@ -1,7 +1,7 @@
 use abstract_sdk::{feature_objects::VersionControlContract, std::ibc_host::ExecuteMsg};
 use abstract_std::{
     ibc_host::state::{CHAIN_PROXIES, CONFIG, REVERSE_CHAIN_PROXIES},
-    objects::chain_name::ChainName,
+    objects::TruncatedChainId,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
@@ -34,7 +34,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             action,
         } => {
             // This endpoint retrieves the chain name from the executor of the message
-            let client_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
+            let client_chain: TruncatedChainId =
+                REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
 
             handle_host_action(deps, env, client_chain, proxy_address, account_id, action)
         }
@@ -47,7 +48,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             source_module,
             target_module,
         } => {
-            let src_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
+            let src_chain: TruncatedChainId =
+                REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
             handle_module_execute(deps, env, src_chain, source_module, target_module, msg)
         }
     }
@@ -90,7 +92,7 @@ fn update_config(
 fn register_chain_proxy(
     deps: DepsMut,
     info: MessageInfo,
-    chain: ChainName,
+    chain: TruncatedChainId,
     proxy: String,
 ) -> HostResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
@@ -109,7 +111,7 @@ fn register_chain_proxy(
     Ok(HostResponse::action("register_chain_client"))
 }
 
-fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: ChainName) -> HostResult {
+fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: TruncatedChainId) -> HostResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     chain.verify()?;

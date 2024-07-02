@@ -68,7 +68,7 @@ pub mod connection {
     use abstract_std::ibc_client::ExecuteMsgFns as _;
     use abstract_std::ibc_client::QueryMsgFns;
     use abstract_std::ibc_host::ExecuteMsgFns as _;
-    use abstract_std::objects::chain_name::ChainName;
+    use abstract_std::objects::TruncatedChainId;
     use cw_orch_interchain::prelude::*;
     use cw_orch_polytone::interchain::PolytoneConnection;
 
@@ -96,10 +96,10 @@ pub mod connection {
     ) -> Result<(), AbstractInterfaceError> {
         // First we register client and host respectively
         let chain1_id = abstr.ibc.client.get_chain().chain_id();
-        let chain1_name = ChainName::from_chain_id(&chain1_id);
+        let chain1_name = TruncatedChainId::from_chain_id(&chain1_id);
 
         let chain2_id = dest.ibc.client.get_chain().chain_id();
-        let chain2_name = ChainName::from_chain_id(&chain2_id);
+        let chain2_name = TruncatedChainId::from_chain_id(&chain2_id);
 
         // We get the polytone connection
         let polytone_connection =

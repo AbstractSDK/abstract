@@ -75,7 +75,7 @@ pub fn test_send_funds() -> AnyResult<()> {
     // let account_config = osmo_abstr.account.manager.config()?;
     // let account_id = AccountId::new(
     //     account_config.account_id.seq(),
-    //     AccountTrace::Remote(vec![ChainName::from("osmosis")]),
+    //     AccountTrace::Remote(vec![TruncatedChainId::from("osmosis")]),
     // )?;
 
     // Get the ibc client address

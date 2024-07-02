@@ -5,9 +5,8 @@ use abstract_std::{
     manager::*,
     module_factory::SimulateInstallModulesResponse,
     objects::{
-        chain_name::ChainName,
         module::{ModuleInfo, ModuleVersion},
-        AccountId,
+        AccountId, TruncatedChainId,
     },
     IBC_CLIENT, MANAGER, PROXY,
 };
@@ -196,7 +195,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     /// Helper to create remote accounts
     pub fn register_remote_account(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let result = self.exec_on_module(
@@ -233,7 +232,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn execute_on_remote(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         msg: ExecuteMsg,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
@@ -251,7 +250,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn execute_on_remote_module(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
         module_id: &str,
         msg: Binary,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
@@ -273,7 +272,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn send_all_funds_back(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_std::proxy::ExecuteMsg::IbcAction {

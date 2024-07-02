@@ -13,9 +13,9 @@ pub const MIN_CHAIN_NAME_LENGTH: usize = 3;
 #[derive(Eq, PartialOrd, Ord)]
 /// The name of a chain, aka the chain-id without the post-fix number.
 /// ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`
-pub struct ChainName(String);
+pub struct TruncatedChainId(String);
 
-impl ChainName {
+impl TruncatedChainId {
     // Construct the chain name from the environment (chain-id)
     pub fn new(env: &Env) -> Self {
         let chain_id = &env.block.chain_id;
@@ -85,13 +85,13 @@ impl ChainName {
     }
 }
 
-impl std::fmt::Display for ChainName {
+impl std::fmt::Display for TruncatedChainId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl FromStr for ChainName {
+impl FromStr for TruncatedChainId {
     type Err = AbstractError;
     fn from_str(value: &str) -> AbstractResult<Self> {
         let chain_name = Self(value.to_string());
@@ -100,7 +100,7 @@ impl FromStr for ChainName {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &ChainName {
+impl<'a> PrimaryKey<'a> for &TruncatedChainId {
     type Prefix = ();
 
     type SubPrefix = ();
@@ -114,18 +114,18 @@ impl<'a> PrimaryKey<'a> for &ChainName {
     }
 }
 
-impl<'a> Prefixer<'a> for &ChainName {
+impl<'a> Prefixer<'a> for &TruncatedChainId {
     fn prefix(&self) -> Vec<Key> {
         self.0.prefix()
     }
 }
 
-impl KeyDeserialize for &ChainName {
-    type Output = ChainName;
+impl KeyDeserialize for &TruncatedChainId {
+    type Output = TruncatedChainId;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        Ok(ChainName(String::from_vec(value)?))
+        Ok(TruncatedChainId(String::from_vec(value)?))
     }
 }
 
@@ -138,37 +138,37 @@ mod test {
 
     #[test]
     fn test_namespace() {
-        let namespace = ChainName::new(&mock_env());
+        let namespace = TruncatedChainId::new(&mock_env());
         assert_that!(namespace.as_str()).is_equal_to("cosmos-testnet");
     }
 
     #[test]
     fn test_from_string() {
-        let namespace = ChainName::from_string("test-me".to_string()).unwrap();
+        let namespace = TruncatedChainId::from_string("test-me".to_string()).unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test-me");
     }
 
     #[test]
     fn test_from_str() {
-        let namespace = ChainName::from_str("test-too").unwrap();
+        let namespace = TruncatedChainId::from_str("test-too").unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test-too");
     }
 
     #[test]
     fn test_to_string() {
-        let namespace = ChainName::from_str("test").unwrap();
+        let namespace = TruncatedChainId::from_str("test").unwrap();
         assert_that!(namespace.to_string()).is_equal_to("test".to_string());
     }
 
     #[test]
     fn test_from_str_long() {
-        let namespace = ChainName::from_str("test-a-b-c-d-e-f").unwrap();
+        let namespace = TruncatedChainId::from_str("test-a-b-c-d-e-f").unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test-a-b-c-d-e-f");
     }
 
     #[test]
     fn string_key_works() {
-        let k = &ChainName::from_str("test-abc").unwrap();
+        let k = &TruncatedChainId::from_str("test-abc").unwrap();
         let path = k.key();
         assert_eq!(1, path.len());
         assert_eq!(b"test-abc", path[0].as_ref());
@@ -181,35 +181,35 @@ mod test {
 
     #[test]
     fn local_empty_fails() {
-        ChainName::from_str("").unwrap_err();
+        TruncatedChainId::from_str("").unwrap_err();
     }
 
     #[test]
     fn local_too_short_fails() {
-        ChainName::from_str("a").unwrap_err();
+        TruncatedChainId::from_str("a").unwrap_err();
     }
 
     #[test]
     fn local_too_long_fails() {
-        ChainName::from_str(&"a".repeat(MAX_CHAIN_NAME_LENGTH + 1)).unwrap_err();
+        TruncatedChainId::from_str(&"a".repeat(MAX_CHAIN_NAME_LENGTH + 1)).unwrap_err();
     }
 
     #[test]
     fn local_uppercase_fails() {
-        ChainName::from_str("AAAAA").unwrap_err();
+        TruncatedChainId::from_str("AAAAA").unwrap_err();
     }
 
     #[test]
     fn local_non_alphanumeric_fails() {
-        ChainName::from_str("a_aoeuoau").unwrap_err();
+        TruncatedChainId::from_str("a_aoeuoau").unwrap_err();
     }
 
     #[test]
     fn from_chain_id() {
-        let normal_chain_name = ChainName::from_chain_id("juno-1");
-        assert_eq!(normal_chain_name, ChainName::_from_str("juno"));
+        let normal_chain_name = TruncatedChainId::from_chain_id("juno-1");
+        assert_eq!(normal_chain_name, TruncatedChainId::_from_str("juno"));
 
-        let postfixless_chain_name = ChainName::from_chain_id("juno");
-        assert_eq!(postfixless_chain_name, ChainName::_from_str("juno"));
+        let postfixless_chain_name = TruncatedChainId::from_chain_id("juno");
+        assert_eq!(postfixless_chain_name, TruncatedChainId::_from_str("juno"));
     }
 }

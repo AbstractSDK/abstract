@@ -4,7 +4,7 @@ use abstract_adapter::sdk::{
     IbcInterface, Resolve,
 };
 use abstract_adapter::std::ibc::Callback;
-use abstract_adapter::std::objects::chain_name::ChainName;
+use abstract_adapter::std::objects::TruncatedChainId;
 use abstract_staking_standard::msg::{ExecuteMsg, ProviderName, StakingAction, StakingExecuteMsg};
 use cosmwasm_std::{to_json_binary, Coin, Deps, DepsMut, Env, MessageInfo};
 
@@ -68,7 +68,7 @@ fn handle_ibc_request(
     provider_name: ProviderName,
     action: &StakingAction,
 ) -> StakingResult {
-    let host_chain = ChainName::from_string(provider_name.clone())?; // TODO : Especially this line is faulty
+    let host_chain = TruncatedChainId::from_string(provider_name.clone())?; // TODO : Especially this line is faulty
     let ans = adapter.name_service(deps.as_ref());
     let ibc_client = adapter.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action

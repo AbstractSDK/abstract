@@ -14,8 +14,8 @@
 use abstract_std::{
     manager::ModuleInstallConfig,
     objects::{
-        chain_name::ChainName,
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
+        TruncatedChainId,
     },
     version_control::{ExecuteMsgFns, ModuleFilter, QueryMsgFns},
     ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
@@ -213,7 +213,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     pub fn register_remote_account(
         &self,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         self.manager.register_remote_account(host_chain)
@@ -222,7 +222,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn create_remote_account(
         &self,
         account_details: AccountDetails,
-        host_chain: ChainName,
+        host_chain: TruncatedChainId,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let AccountDetails {

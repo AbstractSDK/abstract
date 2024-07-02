@@ -1,7 +1,7 @@
 use abstract_interface::Abstract;
 use abstract_std::ibc_client::QueryMsgFns as _;
 use abstract_std::ibc_host::QueryMsgFns;
-use abstract_std::objects::chain_name::ChainName;
+use abstract_std::objects::TruncatedChainId;
 use anyhow::anyhow;
 use cw_orch::prelude::*;
 use cw_orch_polytone::Polytone;
@@ -54,7 +54,7 @@ pub fn verify_abstract_ibc(
     let host = src_abstract
         .ibc
         .client
-        .host(ChainName::from_chain_id(dst_chain.chain_id))?;
+        .host(TruncatedChainId::from_chain_id(dst_chain.chain_id))?;
 
     // We verify the host matches dst chain host for this original chain
     if host.remote_polytone_proxy.is_none() {
@@ -69,7 +69,7 @@ pub fn verify_abstract_ibc(
     let proxy = dst_abstract
         .ibc
         .host
-        .client_proxy(ChainName::from_chain_id(src_chain.chain_id).into_string())?;
+        .client_proxy(TruncatedChainId::from_chain_id(src_chain.chain_id).into_string())?;
 
     if host.remote_polytone_proxy.unwrap() != proxy.proxy {
         anyhow::bail!("Wrong proxy address registered on the dst chain")

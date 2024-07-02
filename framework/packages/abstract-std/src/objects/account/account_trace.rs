@@ -3,7 +3,7 @@ use std::fmt::Display;
 use cosmwasm_std::{ensure, Env, StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
-use crate::{constants::CHAIN_DELIMITER, objects::chain_name::ChainName, AbstractError};
+use crate::{constants::CHAIN_DELIMITER, objects::TruncatedChainId, AbstractError};
 
 pub const MAX_TRACE_LENGTH: usize = 6;
 pub(crate) const LOCAL: &str = "local";
@@ -13,7 +13,7 @@ pub(crate) const LOCAL: &str = "local";
 pub enum AccountTrace {
     Local,
     // path of the chains that triggered the account creation
-    Remote(Vec<ChainName>),
+    Remote(Vec<TruncatedChainId>),
 }
 
 impl KeyDeserialize for &AccountTrace {
@@ -121,18 +121,18 @@ impl AccountTrace {
     pub fn push_local_chain(&mut self, env: &Env) {
         match &self {
             AccountTrace::Local => {
-                *self = AccountTrace::Remote(vec![ChainName::new(env)]);
+                *self = AccountTrace::Remote(vec![TruncatedChainId::new(env)]);
             }
             AccountTrace::Remote(path) => {
                 let mut path = path.clone();
-                path.push(ChainName::new(env));
+                path.push(TruncatedChainId::new(env));
                 *self = AccountTrace::Remote(path);
             }
         }
     }
 
     /// push a chain name to the account's path
-    pub fn push_chain(&mut self, chain_name: ChainName) {
+    pub fn push_chain(&mut self, chain_name: TruncatedChainId) {
         match &self {
             AccountTrace::Local => {
                 *self = AccountTrace::Remote(vec![chain_name]);
@@ -155,7 +155,7 @@ impl AccountTrace {
             Self::Remote(
                 trace
                     .split(CHAIN_DELIMITER)
-                    .map(ChainName::_from_str)
+                    .map(TruncatedChainId::_from_str)
                     .collect(),
             )
         };
@@ -173,7 +173,7 @@ impl AccountTrace {
             Self::Remote(
                 trace
                     .split(CHAIN_DELIMITER)
-                    .map(ChainName::_from_str)
+                    .map(TruncatedChainId::_from_str)
                     .collect(),
             )
         };
@@ -189,9 +189,9 @@ impl TryFrom<&str> for AccountTrace {
         if trace == LOCAL {
             Ok(Self::Local)
         } else {
-            let chain_trace: Vec<ChainName> = trace
+            let chain_trace: Vec<TruncatedChainId> = trace
                 .split(CHAIN_DELIMITER)
-                .map(|t| ChainName::from_string(t.to_string()))
+                .map(|t| TruncatedChainId::from_string(t.to_string()))
                 .collect::<Result<Vec<_>, _>>()?;
             Ok(Self::Remote(chain_trace))
         }
@@ -231,7 +231,7 @@ mod test {
 
     mod format {
         use super::*;
-        use crate::objects::chain_name::MAX_CHAIN_NAME_LENGTH;
+        use crate::objects::truncated_chain_id::MAX_CHAIN_NAME_LENGTH;
 
         #[test]
         fn local_works() {
@@ -244,7 +244,7 @@ mod test {
             let trace = AccountTrace::from_str("bitcoin").unwrap();
             assert_eq!(
                 trace,
-                AccountTrace::Remote(vec![ChainName::from_str("bitcoin").unwrap()])
+                AccountTrace::Remote(vec![TruncatedChainId::from_str("bitcoin").unwrap()])
             );
         }
 
@@ -254,8 +254,8 @@ mod test {
             assert_eq!(
                 trace,
                 AccountTrace::Remote(vec![
-                    ChainName::from_str("bitcoin").unwrap(),
-                    ChainName::from_str("ethereum").unwrap()
+                    TruncatedChainId::from_str("bitcoin").unwrap(),
+                    TruncatedChainId::from_str("ethereum").unwrap()
                 ])
             );
         }
@@ -266,9 +266,9 @@ mod test {
             assert_eq!(
                 trace,
                 AccountTrace::Remote(vec![
-                    ChainName::from_str("bitcoin").unwrap(),
-                    ChainName::from_str("ethereum").unwrap(),
-                    ChainName::from_str("cosmos").unwrap(),
+                    TruncatedChainId::from_str("bitcoin").unwrap(),
+                    TruncatedChainId::from_str("ethereum").unwrap(),
+                    TruncatedChainId::from_str("cosmos").unwrap(),
                 ])
             );
         }
@@ -304,7 +304,7 @@ mod test {
         use super::*;
 
         fn mock_key() -> AccountTrace {
-            AccountTrace::Remote(vec![ChainName::from_str("bitcoin").unwrap()])
+            AccountTrace::Remote(vec![TruncatedChainId::from_str("bitcoin").unwrap()])
         }
 
         #[test]
