@@ -6,12 +6,12 @@
 //! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  
 pub mod state {
 
-    use cosmwasm_std::{Addr, Binary};
-    use cw_storage_plus::{Item, Map};
+    use cosmwasm_std::Addr;
+    use cw_storage_plus::Item;
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
 
-    use crate::{objects::module::ModuleInfo, version_control::AccountBase};
+    use crate::version_control::AccountBase;
 
     #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
     pub struct Config {
@@ -20,7 +20,6 @@ pub mod state {
     }
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
-    pub const MODULE_INIT_BINARIES: Map<&ModuleInfo, Binary> = Map::new("module_init_binaries");
     /// Base of account on which modules getting installed right now
     /// It's set only if one of the modules is standalone
     pub const CURRENT_BASE: Item<AccountBase> = Item::new("cur_manager");
@@ -54,10 +53,6 @@ pub enum ExecuteMsg {
     InstallModules {
         modules: Vec<FactoryModuleInstallConfig>,
         salt: Binary,
-    },
-    UpdateFactoryBinaryMsgs {
-        to_add: Vec<(ModuleInfo, Binary)>,
-        to_remove: Vec<ModuleInfo>,
     },
 }
 
