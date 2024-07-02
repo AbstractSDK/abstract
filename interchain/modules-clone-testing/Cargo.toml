@@ -37,6 +37,7 @@ abstract-cw-staking = { workspace = true, features = [
 abstract-money-market-adapter = { workspace = true, features = [
   "testing",
   "mars",
+  "ghost",
 ] }
 astroport = { version = "3.11.1" }
 kujira = { version = "0.8" }

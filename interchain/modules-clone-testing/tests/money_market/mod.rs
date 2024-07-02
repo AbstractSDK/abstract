@@ -1,1 +1,2 @@
+mod ghost;
 mod mars;
