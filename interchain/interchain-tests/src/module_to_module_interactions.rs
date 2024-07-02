@@ -2,9 +2,7 @@ pub use abstract_std::app;
 use abstract_std::{
     ibc::{Callback, IbcResult},
     ibc_client::{self, InstalledModuleIdentification},
-    objects::{
-        dependency::StaticDependency, module::ModuleInfo, TruncatedChainId,
-    },
+    objects::{dependency::StaticDependency, module::ModuleInfo, TruncatedChainId},
     IBC_CLIENT,
 };
 use cosmwasm_schema::{cw_serde, QueryResponses};

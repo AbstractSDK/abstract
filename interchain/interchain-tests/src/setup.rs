@@ -25,8 +25,7 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
 #[cfg(test)]
 pub mod mock_test {
     use abstract_std::{
-        ibc_client::QueryMsgFns, ibc_host::QueryMsgFns as _,
-        objects::TruncatedChainId,
+        ibc_client::QueryMsgFns, ibc_host::QueryMsgFns as _, objects::TruncatedChainId,
     };
 
     use super::*;

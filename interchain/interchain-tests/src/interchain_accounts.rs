@@ -1,6 +1,4 @@
-use abstract_std::objects::{
-    account::AccountTrace, TruncatedChainId, AccountId,
-};
+use abstract_std::objects::{account::AccountTrace, AccountId, TruncatedChainId};
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ManagerQueryFns};
 use anyhow::Result as AnyResult;

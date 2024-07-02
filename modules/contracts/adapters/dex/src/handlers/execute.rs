@@ -8,8 +8,7 @@ use abstract_adapter::std::{
         account::AccountTrace,
         ans_host::AnsHost,
         namespace::{Namespace, ABSTRACT_NAMESPACE},
-        TruncatedChainId,
-        AccountId,
+        AccountId, TruncatedChainId,
     },
 };
 use abstract_dex_standard::{
