@@ -17,7 +17,6 @@ The following lending markets are currently supported:
 
 - Mars (Osmosis)
 - Kujira Ghost (Kujira)
-- Cavern Protocol (Terra)
 
 If you would like to request support for an additional lending market, please create a GitHub issue or reach out to us on Discord.
 

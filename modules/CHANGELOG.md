@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Removed
 
+- Money Market Cavern protocol no longer supported
+
 ### Fixed
 
 - Fixed feature namings for kujira adapters to use protocol name instead of the chain name

@@ -7,7 +7,6 @@ members = [
   "wyndex-adapter",
   "kujira-adapter",
   "mars-adapter",
-  "cavern-adapter",
 ]
 
 resolver = "2"
