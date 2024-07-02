@@ -98,7 +98,6 @@ impl<Env: CwEnv> TestEnv<Env> {
 }
 
 #[test]
-#[ignore = "This test requires starship to be running"]
 fn test_bank_send() -> anyhow::Result<()> {
     let _ = env_logger::builder().is_test(true).try_init();
     // Make sure we don't corrupt actual state
