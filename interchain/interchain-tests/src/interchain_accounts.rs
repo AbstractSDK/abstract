@@ -55,7 +55,9 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
     // destination chain
     let register_tx = origin_account.register_remote_account(remote_name)?;
 
-    interchain.check_ibc(origin_id, register_tx)?;
+    interchain
+        .check_ibc(origin_id, register_tx)?
+        .into_result()?;
 
     // After this is all ended, we return the account id of the account we just created on the remote chain
     let account_config = origin_account.manager.config()?;
@@ -89,13 +91,10 @@ mod test {
         IBC_CLIENT, ICS20, PROXY,
     };
 
-    use abstract_interface::connection::abstract_ibc_connection_with;
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary, wasm_execute, Uint128};
     use cw_orch::mock::cw_multi_test::AppResponse;
-    use cw_orch_polytone::Polytone;
     use ibc_relayer_types::core::ics24_host::identifier::PortId;
-    use polytone::handshake::POLYTONE_VERSION;
 
     #[test]
     fn ibc_account_action() -> AnyResult<()> {
@@ -125,7 +124,9 @@ mod test {
             },
         )?;
 
-        mock_interchain.check_ibc(JUNO, ibc_action_result)?;
+        mock_interchain
+            .check_ibc(JUNO, ibc_action_result)?
+            .into_result()?;
 
         // We check the account description changed on chain 2
         let remote_abstract_account =
@@ -181,40 +182,9 @@ mod test {
         let abstr_destination_remote =
             Abstract::deploy_on(chain3.clone(), chain3.sender().to_string())?;
 
-        // Deploying polytone on both chains
-        let polytone_1 = Polytone::deploy_on(chain1.clone(), None)?;
-        let polytone_2 = Polytone::deploy_on(chain2.clone(), None)?;
-        let polytone_3 = Polytone::deploy_on(chain3.clone(), None)?;
-
-        // Creating a connection between 2 polytone deployments
-        mock_interchain.create_contract_channel(
-            &polytone_1.note,
-            &polytone_2.voice,
-            POLYTONE_VERSION,
-            None,
-        )?;
-
-        mock_interchain.create_contract_channel(
-            &polytone_2.note,
-            &polytone_3.voice,
-            POLYTONE_VERSION,
-            None,
-        )?;
-
-        // Create the connection between client and host
-        abstract_ibc_connection_with(
-            &abstr_origin,
-            &mock_interchain,
-            &abstr_intermediate_remote,
-            &polytone_1,
-        )?;
-        abstract_ibc_connection_with(
-            &abstr_intermediate_remote,
-            &mock_interchain,
-            &abstr_destination_remote,
-            &polytone_2,
-        )?;
-
+        // Creating a connection between 2 abstract deployments
+        abstr_origin.connect_to(&abstr_intermediate_remote, &mock_interchain)?;
+        abstr_intermediate_remote.connect_to(&abstr_destination_remote, &mock_interchain)?;
         // END SETUP
 
         // Create a local account for testing
@@ -250,7 +220,9 @@ mod test {
         let register_tx =
             origin_account.register_remote_account(ChainName::from_chain_id(STARGAZE))?;
 
-        mock_interchain.check_ibc(JUNO, register_tx)?;
+        mock_interchain
+            .check_ibc(JUNO, register_tx)?
+            .into_result()?;
 
         // Create account from JUNO on OSMOSIS by going through STARGAZE
         let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
@@ -266,7 +238,9 @@ mod test {
             })?,
         )?;
 
-        mock_interchain.check_ibc(JUNO, create_account_remote_tx)?;
+        mock_interchain
+            .check_ibc(JUNO, create_account_remote_tx)?
+            .into_result()?;
 
         let destination_remote_account_id = AccountId::new(
             origin_account.manager.config()?.account_id.seq(),
@@ -379,7 +353,9 @@ mod test {
         )?;
 
         // The create remote account tx is passed ?
-        mock_interchain.check_ibc(JUNO, create_account_remote_tx)?;
+        mock_interchain
+            .check_ibc(JUNO, create_account_remote_tx)?
+            .into_result()?;
 
         // Can get the account from stargaze.
         let created_account_id = AccountId::new(1, AccountTrace::Local)?;
@@ -699,7 +675,9 @@ mod test {
             },
         )?;
 
-        mock_interchain.check_ibc(JUNO, send_funds_tx)?;
+        mock_interchain
+            .check_ibc(JUNO, send_funds_tx)?
+            .into_result()?;
 
         // Verify local balance after sending funds.
         let origin_balance = mock_interchain
@@ -720,7 +698,9 @@ mod test {
             .manager
             .send_all_funds_back(ChainName::from_chain_id(STARGAZE))?;
 
-        mock_interchain.check_ibc(JUNO, send_funds_back_tx)?;
+        mock_interchain
+            .check_ibc(JUNO, send_funds_back_tx)?
+            .into_result()?;
 
         // Check balance on remote chain.
         let remote_balance = mock_interchain
