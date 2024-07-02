@@ -45,6 +45,29 @@ impl AccountId {
         Ok(Self { seq, trace })
     }
 
+    /// Construct the `AccountId` for an account on a remote chain based on the current Account.
+    /// Will pop the trace if the destination chain is the last chain in the trace.
+    pub fn into_dest_account_id(mut self, src_chain: ChainName, dest_chain: ChainName) -> Self {
+        match &mut self.trace {
+            AccountTrace::Remote(ref mut chains) => {
+                // if last account chain is the destination chain, pop
+                if chains.last() != Some(&dest_chain) {
+                    chains.push(src_chain);
+                } else {
+                    chains.pop();
+                    // if the pop made the AccountId empty then we're targeting a local account.
+                    if chains.is_empty() {
+                        self.trace = AccountTrace::Local;
+                    }
+                }
+            }
+            AccountTrace::Local => {
+                self.trace = AccountTrace::Remote(vec![src_chain]);
+            }
+        }
+        self
+    }
+
     /// **Does not verify input**. Used internally for testing
     pub const fn const_new(seq: AccountSequence, trace: AccountTrace) -> Self {
         Self { seq, trace }
