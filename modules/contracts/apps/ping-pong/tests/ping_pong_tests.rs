@@ -72,9 +72,7 @@ impl<'a> PingPong<'a, MockBech32, MockBech32InterchainEnv> {
 
 pub(crate) fn set_to_win(chain: MockBech32) {
     let mut i = chain.block_info().unwrap();
-    if i.height % 2 == 0 {
-        ()
-    } else {
+    if i.height % 2 == 1 {
         i.height += 1;
         chain.app.borrow_mut().set_block(i);
     }
@@ -82,9 +80,7 @@ pub(crate) fn set_to_win(chain: MockBech32) {
 
 pub(crate) fn set_to_lose(chain: MockBech32) {
     let mut i = chain.block_info().unwrap();
-    if i.height % 2 == 1 {
-        ()
-    } else {
+    if i.height % 2 == 0 {
         i.height += 1;
         chain.app.borrow_mut().set_block(i);
     }

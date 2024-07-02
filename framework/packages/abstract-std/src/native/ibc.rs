@@ -146,7 +146,7 @@ impl IbcResult {
                 // result should always be size 1 (proxy -> ibc-host --multiple-msgs-> module)
                 let res = result
                     .result
-                    .get(0)
+                    .first()
                     .expect("execution response without submsg");
                 Ok(res.events.clone())
             }
