@@ -55,7 +55,9 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
     // destination chain
     let register_tx = origin_account.register_remote_account(remote_name)?;
 
-    interchain.check_ibc(origin_id, register_tx)?;
+    interchain
+        .check_ibc(origin_id, register_tx)?
+        .into_result()?;
 
     // After this is all ended, we return the account id of the account we just created on the remote chain
     let account_config = origin_account.manager.config()?;
@@ -122,7 +124,9 @@ mod test {
             },
         )?;
 
-        mock_interchain.check_ibc(JUNO, ibc_action_result)?;
+        mock_interchain
+            .check_ibc(JUNO, ibc_action_result)?
+            .into_result()?;
 
         // We check the account description changed on chain 2
         let remote_abstract_account =
@@ -216,7 +220,9 @@ mod test {
         let register_tx =
             origin_account.register_remote_account(TruncatedChainId::from_chain_id(STARGAZE))?;
 
-        mock_interchain.check_ibc(JUNO, register_tx)?;
+        mock_interchain
+            .check_ibc(JUNO, register_tx)?
+            .into_result()?;
 
         // Create account from JUNO on OSMOSIS by going through STARGAZE
         let create_account_remote_tx = origin_account.manager.execute_on_remote_module(
@@ -232,7 +238,9 @@ mod test {
             })?,
         )?;
 
-        mock_interchain.check_ibc(JUNO, create_account_remote_tx)?;
+        mock_interchain
+            .check_ibc(JUNO, create_account_remote_tx)?
+            .into_result()?;
 
         let destination_remote_account_id = AccountId::new(
             origin_account.manager.config()?.account_id.seq(),
@@ -345,7 +353,9 @@ mod test {
         )?;
 
         // The create remote account tx is passed ?
-        mock_interchain.check_ibc(JUNO, create_account_remote_tx)?;
+        mock_interchain
+            .check_ibc(JUNO, create_account_remote_tx)?
+            .into_result()?;
 
         // Can get the account from stargaze.
         let created_account_id = AccountId::new(1, AccountTrace::Local)?;
@@ -665,7 +675,9 @@ mod test {
             },
         )?;
 
-        mock_interchain.check_ibc(JUNO, send_funds_tx)?;
+        mock_interchain
+            .check_ibc(JUNO, send_funds_tx)?
+            .into_result()?;
 
         // Verify local balance after sending funds.
         let origin_balance = mock_interchain
@@ -686,7 +698,9 @@ mod test {
             .manager
             .send_all_funds_back(TruncatedChainId::from_chain_id(STARGAZE))?;
 
-        mock_interchain.check_ibc(JUNO, send_funds_back_tx)?;
+        mock_interchain
+            .check_ibc(JUNO, send_funds_back_tx)?
+            .into_result()?;
 
         // Check balance on remote chain.
         let remote_balance = mock_interchain

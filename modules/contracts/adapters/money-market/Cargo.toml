@@ -29,7 +29,6 @@ testing = ["dep:abstract-client", "dep:cw20"]
 
 # Supported Moneymarkets
 mars = ["abstract-mars-adapter/full_integration"]
-cavern = ["abstract-cavern-adapter/full_integration"]
 ghost = ["abstract-kujira-adapter/full_integration"]
 
 osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
@@ -39,9 +38,6 @@ osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 builds = [
   { name = "osmosis", features = [
     "mars",
-  ] },
-  { name = "terra2", features = [
-    "cavern",
   ] },
   { name = "kujira", features = [
     "ghost",
@@ -67,9 +63,6 @@ abstract-adapter-utils = { workspace = true }
 
 # Kujira #
 abstract-kujira-adapter = { workspace = true }
-
-# Cavern #
-abstract-cavern-adapter = { workspace = true }
 
 # Mars #
 abstract-mars-adapter = { workspace = true }
