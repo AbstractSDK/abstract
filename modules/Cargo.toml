@@ -69,7 +69,6 @@ abstract-osmosis-adapter = { path = "../integrations/osmosis-adapter", default-f
 abstract-astroport-adapter = { path = "../integrations/astroport-adapter", default-features = false }
 abstract-kujira-adapter = { path = "../integrations/kujira-adapter", default-features = false }
 abstract-mars-adapter = { path = "../integrations/mars-adapter", default-features = false }
-abstract-cavern-adapter = { path = "../integrations/cavern-adapter", default-features = false }
 abstract-astrovault-adapter = { path = "../integrations/astrovault-adapter", default-features = false }
 
 wyndex-bundle = { path = "../integrations/bundles/wyndex" }

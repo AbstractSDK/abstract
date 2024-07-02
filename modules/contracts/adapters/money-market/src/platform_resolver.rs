@@ -15,9 +15,6 @@ pub(crate) fn identify_money_market(value: &str) -> Result<Box<dyn Identify>, Mo
         abstract_mars_adapter::MARS => {
             Ok(Box::<abstract_mars_adapter::money_market::Mars>::default())
         }
-        abstract_cavern_adapter::CAVERN => {
-            Ok(Box::<abstract_cavern_adapter::money_market::Cavern>::default())
-        }
         _ => Err(MoneyMarketError::UnknownMoneyMarket(value.to_owned())),
     }
 }
@@ -33,10 +30,6 @@ pub(crate) fn resolve_money_market(
         #[cfg(feature = "mars")]
         abstract_mars_adapter::MARS => {
             Ok(Box::<abstract_mars_adapter::money_market::Mars>::default())
-        }
-        #[cfg(feature = "cavern")]
-        abstract_cavern_adapter::CAVERN => {
-            Ok(Box::<abstract_cavern_adapter::money_market::Cavern>::default())
         }
         _ => Err(MoneyMarketError::ForeignMoneyMarket(value.to_owned())),
     }

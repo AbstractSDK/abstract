@@ -109,3 +109,31 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>, M: ContractInstance<
         Ok(())
     }
 }
+
+// ## Traits to make generated queries work
+
+impl<
+        'a,
+        Chain: IbcQueryHandler,
+        IBC: InterchainEnv<Chain>,
+        M: QueryableContract + ContractInstance<Chain>,
+    > QueryableContract for RemoteApplication<'a, Chain, IBC, M>
+{
+    type QueryMsg = M::QueryMsg;
+}
+
+impl<
+        'a,
+        Chain: IbcQueryHandler,
+        IBC: InterchainEnv<Chain>,
+        M: QueryableContract + ContractInstance<Chain>,
+    > ContractInstance<Chain> for RemoteApplication<'a, Chain, IBC, M>
+{
+    fn as_instance(&self) -> &Contract<Chain> {
+        self.module.as_instance()
+    }
+
+    fn as_instance_mut(&mut self) -> &mut Contract<Chain> {
+        self.module.as_instance_mut()
+    }
+}
