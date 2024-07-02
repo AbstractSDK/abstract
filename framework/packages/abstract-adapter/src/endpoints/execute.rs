@@ -1,3 +1,4 @@
+use abstract_nested_admin::query_top_level_owner;
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ModuleIbcEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
@@ -6,7 +7,6 @@ use abstract_sdk::{
 use abstract_std::{
     adapter::{AdapterBaseMsg, AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
     manager::state::ACCOUNT_MODULES,
-    objects::nested_admin::query_top_level_owner,
 };
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, QuerierWrapper, Response, StdResult};
 use schemars::JsonSchema;

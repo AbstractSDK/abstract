@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use abstract_nested_admin::query_top_level_owner;
 use abstract_sdk::{
     feature_objects::VersionControlContract,
     std::manager::{
@@ -14,8 +15,8 @@ use abstract_std::{
         SubAccountIdsResponse,
     },
     objects::{
+        gov_type::TopLevelOwnerResponse,
         module::{self, ModuleInfo},
-        nested_admin::{query_top_level_owner, TopLevelOwnerResponse},
     },
     AbstractError,
 };

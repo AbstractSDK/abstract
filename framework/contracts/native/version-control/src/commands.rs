@@ -574,12 +574,14 @@ pub fn query_account_owner(
     manager_addr: Addr,
     account_id: &AccountId,
 ) -> VCResult<Addr> {
-    let cw_ownable::Ownership { owner, .. } =
-        abstract_std::manager::state::OWNER.query(querier, manager_addr)?;
+    let cw_gov_ownable::Ownership { owner, .. } =
+        cw_gov_ownable::query_ownership(querier, manager_addr)?;
 
-    owner.ok_or_else(|| VCError::NoAccountOwner {
-        account_id: account_id.clone(),
-    })
+    owner
+        .owner_address(querier)
+        .ok_or_else(|| VCError::NoAccountOwner {
+            account_id: account_id.clone(),
+        })
 }
 
 pub fn validate_account_owner(
@@ -646,8 +648,10 @@ mod test {
                         Ok(to_json_binary(&resp).unwrap())
                     }
                     ManagerQueryMsg::Ownership {} => {
-                        let resp = cw_ownable::Ownership {
-                            owner: Some(Addr::unchecked(OWNER)),
+                        let resp = cw_gov_ownable::Ownership {
+                            owner: cw_gov_ownable::GovernanceDetails::Monarchy {
+                                monarch: Addr::unchecked(OWNER),
+                            },
                             pending_expiry: None,
                             pending_owner: None,
                         };
@@ -2333,11 +2337,11 @@ mod test {
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(
                     TEST_MANAGER,
-                    cw_storage_plus::Item::<cw_ownable::Ownership<Addr>>::new(
+                    cw_storage_plus::Item::<cw_gov_ownable::Ownership<Addr>>::new(
                         OWNERSHIP_STORAGE_KEY,
                     ),
-                    &cw_ownable::Ownership {
-                        owner: None,
+                    &cw_gov_ownable::Ownership {
+                        owner: cw_gov_ownable::GovernanceDetails::Renounced {},
                         pending_owner: None,
                         pending_expiry: None,
                     },

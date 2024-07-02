@@ -41,8 +41,6 @@ expression: all_storage
     - "\"mock1xsemjm2xzx8nfaj50rt2dn04g24yarrr3mf6uwhqtc4ampff9nsqrc867x\""
   - - "\u0000{12}is_suspended"
     - "false"
-  - - "\u0000{4}info"
-    - "{\"name\":\"Default Abstract Account\",\"governance_details\":{\"Monarchy\":{\"monarch\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\"}},\"chain_id\":\"cosmos-testnet-14002\",\"description\":null,\"link\":null}"
   - - "\u0000{6}config"
     - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"module_factory_address\":\"mock1wkwy0xh89ksdgj9hr347dyd2dw7zesmtrue6kfzyml4vdtz6e5wsldye53\"}"
   - - acc_id
@@ -51,8 +49,10 @@ expression: all_storage
     - "[]"
   - - contract_info
     - "{\"contract\":\"abstract:manager\",\"version\":\"0.23.0-beta.0\"}"
+  - - info
+    - "{\"name\":\"Default Abstract Account\",\"chain_id\":\"cosmos-testnet-14002\",\"description\":null,\"link\":null}"
   - - ownership
-    - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":{\"Monarchy\":{\"monarch\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\"}},\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:manager-local-1":
   - - "\u0000\u0007modulesabstract:proxy"
     - "\"mock17krt3hhgtspmv8lqhx8hcfnsz55z7t58gf6j0e6zrv9jq00rm08qyhxeu8\""
@@ -60,8 +60,6 @@ expression: all_storage
     - "\"mock1x22q8lfhz7qcvtzs0dakhgx2th64l79kepjujhhxk5x804taeqlqu2pr45\""
   - - "\u0000{12}is_suspended"
     - "false"
-  - - "\u0000{4}info"
-    - "{\"name\":\"Default Abstract Account\",\"governance_details\":{\"Monarchy\":{\"monarch\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\"}},\"chain_id\":\"cosmos-testnet-14002\",\"description\":null,\"link\":null}"
   - - "\u0000{6}config"
     - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"module_factory_address\":\"mock1wkwy0xh89ksdgj9hr347dyd2dw7zesmtrue6kfzyml4vdtz6e5wsldye53\"}"
   - - acc_id
@@ -72,8 +70,10 @@ expression: all_storage
     - "{\"contract\":\"abstract:manager\",\"version\":\"0.23.0-beta.0\"}"
   - - icontext
     - "[[{\"info\":{\"namespace\":\"tester\",\"name\":\"mock-adapter1\",\"version\":{\"version\":\"2.0.0\"}},\"reference\":{\"adapter\":\"mock1x22q8lfhz7qcvtzs0dakhgx2th64l79kepjujhhxk5x804taeqlqu2pr45\"}},null]]"
+  - - info
+    - "{\"name\":\"Default Abstract Account\",\"chain_id\":\"cosmos-testnet-14002\",\"description\":null,\"link\":null}"
   - - ownership
-    - "{\"owner\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\",\"pending_owner\":null,\"pending_expiry\":null}"
+    - "{\"owner\":{\"Monarchy\":{\"monarch\":\"mock1pgm8hyk0pvphmlvfjc8wsvk4daluz5tgrw6pu5mfpemk74uxnx9qwrtv4f\"}},\"pending_owner\":null,\"pending_expiry\":null}"
 "abstract:module-factory":
   - - "\u0000{5}config"
     - "{\"version_control_address\":\"mock1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqwm38hv\",\"ans_host_address\":\"mock1mzdhwvvh22wrt07w59wxyd58822qavwkx5lcej7aqfkpqqlhaqfsetqc4t\"}"

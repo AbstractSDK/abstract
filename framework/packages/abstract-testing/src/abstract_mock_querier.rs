@@ -9,7 +9,6 @@ use abstract_std::{
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfo;
-use cw_ownable::Ownership;
 use cw_storage_plus::Item;
 
 use crate::prelude::*;
@@ -49,8 +48,10 @@ impl AbstractMockQuerierBuilder {
             .with_contract_item(
                 manager,
                 Item::new(OWNERSHIP_STORAGE_KEY),
-                &Some(Ownership {
-                    owner: Some(Addr::unchecked(OWNER)),
+                &Some(cw_gov_ownable::Ownership {
+                    owner: cw_gov_ownable::GovernanceDetails::Monarchy {
+                        monarch: Addr::unchecked(OWNER),
+                    },
                     pending_owner: None,
                     pending_expiry: None,
                 }),

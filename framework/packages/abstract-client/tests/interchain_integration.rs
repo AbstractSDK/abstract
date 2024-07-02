@@ -28,11 +28,11 @@ fn create_remote_account() -> anyhow::Result<()> {
         .build()?;
 
     // Make sure it's created and remote
-    let info = remote_osmo_account.info()?;
+    let ownership = remote_osmo_account.ownership()?;
     let GovernanceDetails::External {
         governance_address: _,
         governance_type,
-    } = info.governance_details
+    } = ownership.owner
     else {
         panic!("unexpected governance details for remote account");
     };

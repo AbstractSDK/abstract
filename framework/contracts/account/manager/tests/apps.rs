@@ -5,8 +5,8 @@ use abstract_manager::error::ManagerError;
 use abstract_std::{
     manager::ModuleInstallConfig,
     objects::{
+        gov_type::TopLevelOwnerResponse,
         module::{ModuleInfo, ModuleStatus, ModuleVersion},
-        nested_admin::TopLevelOwnerResponse,
         AccountId,
     },
     version_control::ModuleFilter,

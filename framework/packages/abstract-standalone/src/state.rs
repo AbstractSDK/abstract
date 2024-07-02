@@ -1,10 +1,11 @@
+use abstract_nested_admin::NestedAdmin;
 use abstract_sdk::{
     base::{ModuleId, ModuleMetadata, VersionString},
     features::ModuleIdentification,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
 };
 use abstract_std::{
-    objects::{dependency::StaticDependency, module::ModuleInfo, nested_admin::NestedAdmin},
+    objects::{dependency::StaticDependency, module::ModuleInfo},
     standalone::StandaloneState,
     AbstractResult,
 };

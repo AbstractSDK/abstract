@@ -11,7 +11,7 @@ use cw_semver::Version;
 // owner of the abstract infra
 const SENDER: &str = "juno1kjzpqv393k4g064xh04j4hwy5d0s03wfvqejga";
 
-fn find_old_account() -> anyhow::Result<(CloneTesting, u32, String)> {
+fn find_old_account() -> anyhow::Result<(CloneTesting, u32, Addr)> {
     let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
 
     abstr_deployment.migrate_if_version_changed()?;
@@ -25,7 +25,7 @@ fn find_old_account() -> anyhow::Result<(CloneTesting, u32, String)> {
         .flat_map(|account_id| {
             // Create the account helper
             let account = AbstractAccount::new(&abstr_deployment, AccountId::local(account_id));
-            if let Some(owner) = account.manager.ownership()?.owner {
+            if let Some(owner) = account.manager.top_level_owner().ok() {
                 let proxy_version = Version::parse(
                     &account
                         .manager
@@ -34,7 +34,7 @@ fn find_old_account() -> anyhow::Result<(CloneTesting, u32, String)> {
                         .version,
                 )?;
 
-                Ok((account_id, owner, proxy_version))
+                Ok((account_id, owner.address, proxy_version))
             } else {
                 bail!("No owner for this account")
             }
@@ -51,7 +51,7 @@ fn find_old_account() -> anyhow::Result<(CloneTesting, u32, String)> {
 fn upgrade_account_iteratively() -> anyhow::Result<()> {
     let (chain, account_id, owner) = find_old_account()?;
 
-    let abstr_deployment = Abstract::load_from(chain.call_as(&Addr::unchecked(owner)).clone())?;
+    let abstr_deployment = Abstract::load_from(chain.call_as(&owner).clone())?;
     let account = AbstractAccount::new(&abstr_deployment, AccountId::local(account_id));
 
     account.upgrade()?;

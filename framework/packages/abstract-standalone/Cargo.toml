@@ -25,6 +25,7 @@ cw2 = { workspace = true }
 cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
+abstract-nested-admin = { workspace = true }
 
 # Interface
 cw-orch = { workspace = true }
