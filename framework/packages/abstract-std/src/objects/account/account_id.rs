@@ -50,7 +50,11 @@ impl AccountId {
 
     /// Construct the `AccountId` for an account on a remote chain based on the current Account.
     /// Will pop the trace if the destination chain is the last chain in the trace.
-    pub fn into_dest_account_id(mut self, src_chain: TruncatedChainId, dest_chain: TruncatedChainId) -> Self {
+    pub fn into_dest_account_id(
+        mut self,
+        src_chain: TruncatedChainId,
+        dest_chain: TruncatedChainId,
+    ) -> Self {
         match &mut self.trace {
             AccountTrace::Remote(ref mut chains) => {
                 // if last account chain is the destination chain, pop
