@@ -2,6 +2,7 @@ use abstract_app::abstract_interface::VCQueryFns;
 use abstract_app::objects::namespace::Namespace;
 use abstract_app::objects::AccountId;
 
+use abstract_app::std::ABSTRACT_EVENT_TYPE;
 use abstract_client::{AbstractClient, Application, Environment, RemoteAccount};
 
 use abstract_app::std::objects::account::AccountTrace;
@@ -105,8 +106,8 @@ fn successful_install() -> anyhow::Result<()> {
 
     let mock_stargaze = env.abs_stargaze.environment();
 
-    let wins = app1.game_status()?;
-    assert_eq!(wins, GameStatusResponse { wins: 0, losses: 0 });
+    let game_status = app1.game_status()?;
+    assert_eq!(game_status, GameStatusResponse { wins: 0, losses: 0 });
 
     let module_addrs = env
         .remote_account
@@ -144,10 +145,10 @@ fn successful_ping_pong() -> anyhow::Result<()> {
             AccountTrace::Remote(vec![ChainName::from_chain_id(JUNO)]),
         )?)?;
 
-    let wins = app.game_status()?;
-    assert_eq!(wins, GameStatusResponse { losses: 0, wins: 0 });
-    let wins = remote_app.game_status()?;
-    assert_eq!(wins, GameStatusResponse { losses: 0, wins: 0 });
+    let game_status = app.game_status()?;
+    assert_eq!(game_status, GameStatusResponse { losses: 0, wins: 0 });
+    let game_status = remote_app.game_status()?;
+    assert_eq!(game_status, GameStatusResponse { losses: 0, wins: 0 });
 
     // let stargaze win
     set_to_win(mock_interchain.chain(STARGAZE)?);
@@ -158,8 +159,8 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     mock_interchain.check_ibc(JUNO, pp)?.into_result()?;
 
     // stargaze wins, juno lost.
-    let wins = app.game_status()?;
-    assert_eq!(wins, GameStatusResponse { losses: 1, wins: 0 });
+    let game_status = app.game_status()?;
+    assert_eq!(game_status, GameStatusResponse { losses: 1, wins: 0 });
 
     // now let juno win
     set_to_lose(mock_interchain.chain(STARGAZE)?);
@@ -168,9 +169,9 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     let pp = app.ping_pong(ChainName::from_chain_id(STARGAZE))?;
     mock_interchain.check_ibc(JUNO, pp)?.into_result()?;
 
-    let wins = app.game_status()?;
-    assert_eq!(wins.wins, 1);
-    assert_eq!(wins.losses, 1);
+    let game_status = app.game_status()?;
+    assert_eq!(game_status.wins, 1);
+    assert_eq!(game_status.losses, 1);
 
     let wins: GameStatusResponse = remote_app.game_status()?;
     assert_eq!(wins.losses, 1);
@@ -193,168 +194,80 @@ fn successful_ping_pong_to_home_chain() -> anyhow::Result<()> {
     set_to_lose(mock_interchain.chain(JUNO)?);
 
     // stargaze plays against stargaze
-    let pp = remote_app.execute(
-        &ping_pong::msg::AppExecuteMsg::PingPong {
-            opponent_chain: ChainName::from_chain_id(JUNO),
-        }
-        .into(),
-    )?;
+    // Note that `RemoteApplication` takes care of waiting for ibc
+    remote_app
+        .execute(
+            &ping_pong::msg::AppExecuteMsg::PingPong {
+                opponent_chain: ChainName::from_chain_id(JUNO),
+            }
+            .into(),
+        )?
+        .into_result()?;
 
     // stargaze wins, juno lost.
-    let wins = remote_app.game_status()?;
-    assert_eq!(wins, GameStatusResponse { losses: 0, wins: 1 });
+    let game_status = remote_app.game_status()?;
+    assert_eq!(game_status, GameStatusResponse { losses: 0, wins: 1 });
 
-    // // now let juno win
-    // set_to_lose(mock_interchain.chain(STARGAZE)?);
-    // set_to_win(mock_interchain.chain(JUNO)?);
+    // now let juno win
+    set_to_lose(mock_interchain.chain(STARGAZE)?);
+    set_to_win(mock_interchain.chain(JUNO)?);
 
-    // let pp = app.ping_pong(ChainName::from_chain_id(STARGAZE))?;
-    // mock_interchain.check_ibc(JUNO, pp)?.into_result()?;
+    remote_app
+        .execute(
+            &ping_pong::msg::AppExecuteMsg::PingPong {
+                opponent_chain: ChainName::from_chain_id(JUNO),
+            }
+            .into(),
+        )?
+        .into_result()?;
 
-    // let wins = app.game_status()?;
-    // assert_eq!(wins.wins, 1);
-    // assert_eq!(wins.losses, 1);
+    // juno won, stargaze lost.
+    let game_status = remote_app.game_status()?;
+    assert_eq!(game_status, GameStatusResponse { losses: 1, wins: 1 });
 
-    // let wins: GameStatusResponse = remote_app.game_status()?;
-    // assert_eq!(wins.losses, 1);
+    let game_status = app.game_status()?;
+    assert_eq!(game_status.losses, 1);
+
     Ok(())
 }
 
-// #[test]
-// fn successful_remote_ping_pong() -> anyhow::Result<()> {
-//     logger_test_init();
+#[test]
+fn query_and_maybe_ping_pong() -> anyhow::Result<()> {
+    // Create a sender and mock env
+    let mock_interchain =
+        MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+    let env = PingPong::setup(&mock_interchain)?;
+    let app = env.app;
 
-//     // Create a sender and mock env
-//     let mock_interchain =
-//         MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
-//     let env = PingPong::setup(&mock_interchain)?;
-//     let app = env.remote_account.application::<AppInterface<_>>()?;
+    // Set stargaze to win
+    set_to_win(mock_interchain.chain(STARGAZE)?);
+    set_to_lose(mock_interchain.chain(JUNO)?);
 
-//     let remote_ping_pong_response = app.execute(
-//         &ping_pong::msg::AppExecuteMsg::PingPong {
-//             opponent_chain: ChainName::from_chain_id(JUNO),
-//         }
-//         .into(),
-//     )?;
+    let pp = app.query_and_maybe_ping_pong(ChainName::from_chain_id(STARGAZE))?;
+    let response = mock_interchain.check_ibc(JUNO, pp)?;
 
-//     let wins_left_events = remote_ping_pong_response
-//         .events()
-//         .into_iter()
-//         .map(|ev| {
-//             ev.attributes
-//                 .into_iter()
-//                 .filter(|attr| attr.key == "wins_left")
-//                 .collect::<Vec<_>>()
-//         })
-//         .flatten()
-//         .collect::<Vec<_>>();
-//     assert_eq!(
-//         wins_left_events,
-//         vec![
-//             Attribute::new("wins_left", "4"),
-//             Attribute::new("wins_left", "3"),
-//             Attribute::new("wins_left", "2"),
-//             Attribute::new("wins_left", "1")
-//         ]
-//     );
+    // juno should query and not play, check events
+    let abstract_action_events = response.event_attr_values(ABSTRACT_EVENT_TYPE, "action");
+    assert!(abstract_action_events.contains(&String::from("dont_play")));
 
-//     let ping_ponged = remote_ping_pong_response
-//         .events()
-//         .into_iter()
-//         .find_map(|ev| {
-//             ev.attributes
-//                 .iter()
-//                 .find(|attr| attr.value == "ping_ponged")
-//                 .cloned()
-//         });
-//     assert!(ping_ponged.is_some());
+    // Check stats didn't change in any way
+    let game_status = app.game_status()?;
+    assert_eq!(game_status, GameStatusResponse { wins: 0, losses: 0 });
 
-//     let wins: GameStatusResponse = app.query(&ping_pong::msg::AppQueryMsg::Pongs {}.into())?;
-//     assert_eq!(wins.wins, 0);
-//     let previous_ping_pong: GameStatusResponse =
-//         app.game_status()?;
-//     assert_eq!(
-//         previous_ping_pong,
-//         GameStatusResponse {
-//             wins: 0
-//         }
-//     );
+    // Set juno to win
+    set_to_win(mock_interchain.chain(JUNO)?);
+    set_to_lose(mock_interchain.chain(STARGAZE)?);
 
-//     Ok(())
-// }
+    let pp = app.query_and_maybe_ping_pong(ChainName::from_chain_id(STARGAZE))?;
+    let response = mock_interchain.check_ibc(JUNO, pp)?;
 
-// #[test]
-// fn rematch() -> anyhow::Result<()> {
-//     logger_test_init();
+    // juno should query and play, check events
+    let abstract_action_events = response.event_attr_values(ABSTRACT_EVENT_TYPE, "action");
+    assert!(abstract_action_events.contains(&String::from("ping_pong")));
 
-//     // Create a sender and mock env
-//     let mock_interchain =
-//         MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
-//     let env = PingPong::setup(&mock_interchain)?;
-//     let app = env.app;
-//     let remote_app = env.remote_account.application::<AppInterface<_>>()?;
+    // juno won as expected
+    let game_status = app.game_status()?;
+    assert_eq!(game_status, GameStatusResponse { wins: 1, losses: 0 });
 
-//     remote_app.execute(
-//         &ping_pong::msg::AppExecuteMsg::PingPong {
-//             opponent_chain: ChainName::from_chain_id(JUNO),
-//         }
-//         .into(),
-//     )?;
-
-//     let rematch = app.rematch(env.remote_account.id(), ChainName::from_chain_id(STARGAZE))?;
-//     let ibc_wait_response = mock_interchain.wait_ibc(JUNO, rematch)?;
-//     ibc_wait_response.into_result()?;
-
-//     let wins_left_events = ibc_wait_response
-//         .events()
-//         .into_iter()
-//         .map(|ev| {
-//             ev.attributes
-//                 .into_iter()
-//                 .filter(|attr| attr.key == "wins_left")
-//                 .collect::<Vec<_>>()
-//         })
-//         .flatten()
-//         .collect::<Vec<_>>();
-//     assert_eq!(
-//         wins_left_events,
-//         vec![
-//             Attribute::new("wins_left", "4"),
-//             Attribute::new("wins_left", "3"),
-//             Attribute::new("wins_left", "2"),
-//             Attribute::new("wins_left", "1")
-//         ]
-//     );
-
-//     let ping_ponged = ibc_wait_response.events().into_iter().find_map(|ev| {
-//         ev.attributes
-//             .iter()
-//             .find(|attr| attr.value == "ping_ponged")
-//             .cloned()
-//     });
-//     assert!(ping_ponged.is_some());
-
-//     let wins = app.game_status()?;
-//     assert_eq!(wins.wins, 0);
-//     let previous_ping_pong = app.game_status()?;
-//     assert_eq!(
-//         previous_ping_pong,
-//         GameStatusResponse {
-//             wins
-//         }
-//     );
-
-//     // Remote
-//     let wins: GameStatusResponse = remote_app.query(&ping_pong::msg::AppQueryMsg::GameStatus {  } {}.into())?;
-//     assert_eq!(wins.wins, 0);
-//     let previous_ping_pong: GameStatusResponse =
-//         remote_app.query(&ping_pong::msg::AppQueryMsg::GameStatus {}.into())?;
-//     assert_eq!(
-//         previous_ping_pong,
-//         GameStatusResponse {
-//             wins: 0
-//         }
-//     );
-
-//     Ok(())
-// }
+    Ok(())
+}
