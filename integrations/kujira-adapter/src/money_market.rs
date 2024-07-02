@@ -1,5 +1,6 @@
 use crate::AVAILABLE_CHAINS;
 use abstract_money_market_standard::Identify;
+use cosmwasm_std::StdResult;
 
 pub const GHOST: &str = "ghost";
 
@@ -196,10 +197,14 @@ impl MoneyMarketCommand for Ghost {
     ) -> Result<Uint128, MoneyMarketError> {
         let market_msg = market::QueryMsg::Position { holder: user };
 
-        let query_response: market::PositionResponse =
-            deps.querier.query_wasm_smart(market_addr, &market_msg)?;
+        let query_response: StdResult<market::PositionResponse> =
+            deps.querier.query_wasm_smart(market_addr, &market_msg);
 
-        Ok(query_response.collateral_amount)
+        // harpoon returns error if user doesn't have position,
+        // in order to match other implementation we default error to zero
+        Ok(query_response
+            .map(|response| response.collateral_amount)
+            .unwrap_or_default())
     }
 
     fn user_borrow(
@@ -212,10 +217,14 @@ impl MoneyMarketCommand for Ghost {
     ) -> Result<Uint128, MoneyMarketError> {
         let market_msg = market::QueryMsg::Position { holder: user };
 
-        let query_response: market::PositionResponse =
-            deps.querier.query_wasm_smart(contract_addr, &market_msg)?;
+        let query_response: StdResult<market::PositionResponse> =
+            deps.querier.query_wasm_smart(contract_addr, &market_msg);
 
-        Ok(query_response.debt_shares)
+        // harpoon returns error if user doesn't have position,
+        // in order to match other implementation we default error to zero
+        Ok(query_response
+            .map(|response| response.debt_shares)
+            .unwrap_or_default())
     }
 
     fn current_ltv(
@@ -334,6 +343,7 @@ impl Ghost {
 
         ans_host.query_contract(querier, &vault_contract)
     }
+
     fn market_address(
         &self,
         querier: &QuerierWrapper,
