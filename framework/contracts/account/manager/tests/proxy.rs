@@ -448,7 +448,6 @@ fn can_take_any_last_two_billion_accounts() -> AResult {
     Ok(())
 }
 
-
 #[test]
 fn increment_not_effected_by_claiming() -> AResult {
     let chain = MockBech32::new("mock");
@@ -478,7 +477,11 @@ fn increment_not_effected_by_claiming() -> AResult {
     assert_eq!(next_account_id, 1);
 
     // create new account
-    deployment.account_factory.create_default_account(GovernanceDetails::Monarchy { monarch: sender.to_string() })?;
+    deployment
+        .account_factory
+        .create_default_account(GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        })?;
 
     let next_account_id = deployment.account_factory.config()?.local_account_sequence;
     assert_eq!(next_account_id, 2);
