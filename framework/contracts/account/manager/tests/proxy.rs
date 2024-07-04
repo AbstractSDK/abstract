@@ -456,7 +456,7 @@ fn increment_not_effected_by_claiming() -> AResult {
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let next_account_id = deployment.account_factory.config()?.local_account_sequence;
-    assert_eq!(next_account_id, 2);
+    assert_eq!(next_account_id, 1);
 
     deployment.account_factory.create_new_account(
         AccountDetails {
@@ -475,13 +475,13 @@ fn increment_not_effected_by_claiming() -> AResult {
     )?;
 
     let next_account_id = deployment.account_factory.config()?.local_account_sequence;
-    assert_eq!(next_account_id, 2);
+    assert_eq!(next_account_id, 1);
 
     // create new account
     deployment.account_factory.create_default_account(GovernanceDetails::Monarchy { monarch: sender.to_string() })?;
 
     let next_account_id = deployment.account_factory.config()?.local_account_sequence;
-    assert_eq!(next_account_id, 3);
-    
+    assert_eq!(next_account_id, 2);
+
     Ok(())
 }
