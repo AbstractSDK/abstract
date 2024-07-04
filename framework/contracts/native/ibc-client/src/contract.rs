@@ -322,7 +322,7 @@ mod tests {
     mod register_infrastructure {
         use std::str::FromStr;
 
-        use abstract_std::objects::chain_name::ChainName;
+        use abstract_std::objects::TruncatedChainId;
         use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
 
@@ -345,7 +345,7 @@ mod tests {
 
             IBC_INFRA.save(
                 deps.as_mut().storage,
-                &ChainName::from_str(TEST_CHAIN)?,
+                &TruncatedChainId::from_str(TEST_CHAIN)?,
                 &IbcInfrastructure {
                     polytone_note: Addr::unchecked("note"),
                     remote_abstract_host: "test_remote_host".into(),
@@ -372,7 +372,7 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note = String::from("note");
             let host = String::from("test_remote_host");
 
@@ -469,7 +469,7 @@ mod tests {
         use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
-            objects::{chain_name::ChainName, version_control::VersionControlError},
+            objects::{version_control::VersionControlError, TruncatedChainId},
         };
 
         use cosmwasm_std::wasm_execute;
@@ -482,7 +482,7 @@ mod tests {
             deps.querier = mocked_account_querier_builder().build();
             mock_init(deps.as_mut())?;
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
 
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name,
@@ -512,7 +512,7 @@ mod tests {
             deps.querier = mocked_account_querier_builder().build();
             mock_init(deps.as_mut())?;
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
 
             let msg = ExecuteMsg::RemoteAction {
                 host_chain: chain_name,
@@ -540,7 +540,7 @@ mod tests {
             deps.querier = mocked_account_querier_builder().build();
             mock_init(deps.as_mut())?;
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_contract = Addr::unchecked("note");
             let remote_ibc_host = String::from("test_remote_host");
 
@@ -602,7 +602,7 @@ mod tests {
 
         use crate::commands::PACKET_LIFETIME;
         use abstract_std::{
-            objects::{chain_name::ChainName, version_control::VersionControlError, ChannelEntry},
+            objects::{version_control::VersionControlError, ChannelEntry, TruncatedChainId},
             ICS20,
         };
         use cosmwasm_std::{coins, Coin, CosmosMsg, IbcMsg};
@@ -614,7 +614,7 @@ mod tests {
             deps.querier = mocked_account_querier_builder().build();
             mock_init(deps.as_mut())?;
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
 
             let msg = ExecuteMsg::SendFunds {
                 host_chain: chain_name,
@@ -635,7 +635,7 @@ mod tests {
         #[test]
         fn works() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let channel_entry = ChannelEntry {
                 connected_chain: chain_name.clone(),
                 protocol: String::from(ICS20),
@@ -691,7 +691,9 @@ mod tests {
         use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
-            objects::{chain_name::ChainName, version_control::VersionControlError},
+            objects::{
+                gov_type::GovernanceDetails, version_control::VersionControlError, TruncatedChainId,
+            },
         };
         use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
@@ -703,7 +705,7 @@ mod tests {
             deps.querier = mocked_account_querier_builder().build();
             mock_init(deps.as_mut())?;
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
 
             let msg = ExecuteMsg::Register {
                 host_chain: chain_name,
@@ -745,7 +747,7 @@ mod tests {
                 .build();
             mock_init(deps.as_mut())?;
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note_contract = Addr::unchecked("note");
             let remote_ibc_host = String::from("test_remote_host");
 
@@ -812,7 +814,7 @@ mod tests {
     mod update_config {
         use std::str::FromStr;
 
-        use abstract_std::objects::chain_name::ChainName;
+        use abstract_std::objects::TruncatedChainId;
 
         use super::*;
 
@@ -882,7 +884,7 @@ mod tests {
                 (
                     TEST_ACCOUNT_ID.trace(),
                     TEST_ACCOUNT_ID.seq(),
-                    &ChainName::from_str("channel")?,
+                    &TruncatedChainId::from_str("channel")?,
                 ),
                 &"Some-remote-account".to_string(),
             )?;
@@ -906,7 +908,7 @@ mod tests {
     mod remove_host {
         use std::str::FromStr;
 
-        use abstract_std::objects::chain_name::ChainName;
+        use abstract_std::objects::TruncatedChainId;
 
         use super::*;
 
@@ -924,7 +926,7 @@ mod tests {
 
             IBC_INFRA.save(
                 deps.as_mut().storage,
-                &ChainName::from_str(TEST_CHAIN)?,
+                &TruncatedChainId::from_str(TEST_CHAIN)?,
                 &IbcInfrastructure {
                     polytone_note: Addr::unchecked("note"),
                     remote_abstract_host: "test_remote_host".into(),
@@ -963,7 +965,7 @@ mod tests {
     mod callback {
         use std::str::FromStr;
 
-        use abstract_std::objects::{account::TEST_ACCOUNT_ID, chain_name::ChainName};
+        use abstract_std::objects::{account::TEST_ACCOUNT_ID, TruncatedChainId};
         use cosmwasm_std::{from_json, Binary, Event, SubMsgResponse};
         use polytone::callbacks::{Callback, CallbackMessage, ExecutionResponse};
 
@@ -975,7 +977,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let note = Addr::unchecked("note");
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
@@ -1002,7 +1004,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let note = Addr::unchecked("note");
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
@@ -1030,7 +1032,7 @@ mod tests {
             let env = mock_env();
 
             let note = Addr::unchecked("note");
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
 
             let msg = ExecuteMsg::Callback(CallbackMessage {
@@ -1057,7 +1059,7 @@ mod tests {
             mock_init(deps.as_mut())?;
             let env = mock_env();
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note = Addr::unchecked("note");
             let remote_ibc_host = String::from("test_remote_host");
 
@@ -1094,7 +1096,7 @@ mod tests {
             mock_init(deps.as_mut())?;
             let env = mock_env();
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note = Addr::unchecked("note");
             let remote_ibc_host = String::from("test_remote_host");
 
@@ -1148,7 +1150,7 @@ mod tests {
             mock_init(deps.as_mut())?;
             let env = mock_env();
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note = Addr::unchecked("note");
 
             REVERSE_POLYTONE_NOTE.save(deps.as_mut().storage, &note, &chain_name)?;
@@ -1177,7 +1179,7 @@ mod tests {
             mock_init(deps.as_mut())?;
             let env = mock_env();
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note = Addr::unchecked("note");
             let remote_proxy = String::from("remote_proxy");
 
@@ -1213,7 +1215,7 @@ mod tests {
             mock_init(deps.as_mut())?;
             let env = mock_env();
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note = Addr::unchecked("note");
             let remote_proxy = String::from("remote_proxy");
 
@@ -1249,7 +1251,7 @@ mod tests {
             mock_init(deps.as_mut())?;
             let env = mock_env();
 
-            let chain_name = ChainName::from_str(TEST_CHAIN)?;
+            let chain_name = TruncatedChainId::from_str(TEST_CHAIN)?;
             let note = Addr::unchecked("note");
             let remote_proxy = String::from("remote_proxy");
 
@@ -1344,7 +1346,7 @@ mod tests {
 
         use std::str::FromStr;
 
-        use abstract_std::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
+        use abstract_std::objects::{account::AccountTrace, AccountId, TruncatedChainId};
 
         #[test]
         fn works_with_multiple_local_accounts() -> IbcClientTestResult {
@@ -1353,10 +1355,10 @@ mod tests {
 
             let (trace, seq) = TEST_ACCOUNT_ID.decompose();
 
-            let chain1 = ChainName::from_str("chain-a")?;
+            let chain1 = TruncatedChainId::from_str("chain-a")?;
             let proxy1 = String::from("proxy1");
 
-            let chain2 = ChainName::from_str("chain-b")?;
+            let chain2 = TruncatedChainId::from_str("chain-b")?;
             let proxy2 = String::from("proxy2");
 
             ACCOUNTS.save(deps.as_mut().storage, (&trace, seq, &chain1), &proxy1)?;
@@ -1388,17 +1390,17 @@ mod tests {
             let account_id = AccountId::new(
                 1,
                 AccountTrace::Remote(vec![
-                    ChainName::from_str("juno")?,
-                    ChainName::from_str("osmosis")?,
+                    TruncatedChainId::from_str("juno")?,
+                    TruncatedChainId::from_str("osmosis")?,
                 ]),
             )?;
 
             let (trace, seq) = account_id.clone().decompose();
 
-            let terra_chain = ChainName::from_str("terra")?;
+            let terra_chain = TruncatedChainId::from_str("terra")?;
             let terra_proxy = String::from("terra-proxy");
 
-            let archway_chain = ChainName::from_str("archway")?;
+            let archway_chain = TruncatedChainId::from_str("archway")?;
             let archway_proxy = String::from("archway-proxy");
 
             ACCOUNTS.save(

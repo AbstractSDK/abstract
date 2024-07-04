@@ -2,7 +2,7 @@ pub use abstract_std::app;
 use abstract_std::{
     ibc::{Callback, IbcResult},
     ibc_client::{self, InstalledModuleIdentification},
-    objects::{chain_name::ChainName, dependency::StaticDependency, module::ModuleInfo},
+    objects::{dependency::StaticDependency, module::ModuleInfo, TruncatedChainId},
     IBC_CLIENT,
 };
 use cosmwasm_schema::{cw_serde, QueryResponses};
@@ -26,15 +26,15 @@ pub enum MockExecMsg {
     DoSomething {},
     DoSomethingAdmin {},
     DoSomethingIbc {
-        remote_chain: ChainName,
+        remote_chain: TruncatedChainId,
         target_module: ModuleInfo,
     },
     QuerySomethingIbc {
-        remote_chain: ChainName,
+        remote_chain: TruncatedChainId,
         address: String,
     },
     QueryModuleIbc {
-        remote_chain: ChainName,
+        remote_chain: TruncatedChainId,
         target_module: ModuleInfo,
     },
 }
@@ -205,7 +205,7 @@ pub const fn mock_app(id: &'static str, version: &'static str) -> MockAppContrac
                 use abstract_sdk::features::AccountIdentification;
                 let ibc_client = app.ibc_client(deps.as_ref());
                 let mut account = app.account_id(deps.as_ref())?;
-                account.push_chain(ChainName::new(&env));
+                account.push_chain(TruncatedChainId::new(&env));
                 let msg = ibc_client.module_ibc_query(
                     remote_chain,
                     InstalledModuleIdentification {
@@ -346,7 +346,7 @@ pub mod test {
         setup::{ibc_abstract_setup, mock_test::logger_test_init},
         JUNO, STARGAZE,
     };
-    use abstract_app::objects::{chain_name::ChainName, module::ModuleInfo};
+    use abstract_app::objects::{module::ModuleInfo, TruncatedChainId};
     use abstract_interface::{
         AppDeployer, DeployStrategy, Manager, ManagerQueryFns, VCExecFns, VCQueryFns,
     };
@@ -365,7 +365,7 @@ pub mod test {
 
         let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE);
+        let remote_name = TruncatedChainId::from_chain_id(STARGAZE);
 
         let (origin_account, _remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -415,7 +415,7 @@ pub mod test {
 
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE);
+        let remote_name = TruncatedChainId::from_chain_id(STARGAZE);
 
         let (origin_account, _remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -478,7 +478,7 @@ pub mod test {
 
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE);
+        let remote_name = TruncatedChainId::from_chain_id(STARGAZE);
 
         let (origin_account, remote_account_id) =
             create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -522,7 +522,9 @@ pub mod test {
             },
         )?;
 
-        mock_interchain.check_ibc(JUNO, remote_install_response)?;
+        mock_interchain
+            .check_ibc(JUNO, remote_install_response)?
+            .into_result()?;
 
         // We get the object for handling the actual module on the remote account
         let remote_manager = abstr_remote
@@ -560,7 +562,9 @@ pub mod test {
             get_received_ibc_callback_status_res
         );
 
-        mock_interchain.check_ibc(JUNO, ibc_action_result)?;
+        mock_interchain
+            .check_ibc(JUNO, ibc_action_result)?
+            .into_result()?;
 
         assert_remote_module_call_status(
             &remote_account_app,
@@ -571,7 +575,9 @@ pub mod test {
         // Module to module query
 
         let ibc_action_result = app.query_module_ibc(remote_name, target_module_info)?;
-        mock_interchain.check_ibc(JUNO, ibc_action_result)?;
+        mock_interchain
+            .check_ibc(JUNO, ibc_action_result)?
+            .into_result()?;
 
         let status = app.get_received_module_ibc_query_callback_status()?;
         assert_eq!("bar", status);
@@ -589,7 +595,7 @@ pub mod test {
 
         let (abstr_origin, _abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-        let remote_name = ChainName::from_chain_id(STARGAZE);
+        let remote_name = TruncatedChainId::from_chain_id(STARGAZE);
         let remote = mock_interchain.chain(STARGAZE)?;
         let remote_address =
             remote.addr_make_with_balance("remote-test", coins(REMOTE_AMOUNT, REMOTE_DENOM))?;
@@ -621,7 +627,9 @@ pub mod test {
             get_received_ibc_query_callback_status_res
         );
 
-        mock_interchain.check_ibc(JUNO, query_response)?;
+        mock_interchain
+            .check_ibc(JUNO, query_response)?
+            .into_result()?;
 
         let get_received_ibc_query_callback_status_res: ReceivedIbcQueryCallbackStatus =
             app.get_received_ibc_query_callback_status().unwrap();
@@ -652,7 +660,7 @@ pub mod test {
             let (abstr_origin, abstr_remote) =
                 ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
-            let remote_name = ChainName::from_chain_id(STARGAZE);
+            let remote_name = TruncatedChainId::from_chain_id(STARGAZE);
 
             let (origin_account, remote_account_id) =
                 create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
@@ -696,7 +704,9 @@ pub mod test {
                 },
             )?;
 
-            mock_interchain.check_ibc(JUNO, remote_install_response)?;
+            mock_interchain
+                .check_ibc(JUNO, remote_install_response)?
+                .into_result()?;
 
             // We get the object for handling the actual module on the remote account
             let remote_manager = abstr_remote

@@ -17,9 +17,9 @@ readme = "README.md"
 default = ["test-utils"]
 test-utils = ["cw-asset", "cw20", "cw20-base", "cw-plus-interface"]
 interchain = [
-    "dep:cw-orch-interchain",
-    "dep:cw-orch-polytone",
-    "abstract-interface/interchain",
+  "dep:cw-orch-interchain",
+  "dep:cw-orch-polytone",
+  "abstract-interface/interchain",
 ]
 
 [dependencies]

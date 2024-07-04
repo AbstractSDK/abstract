@@ -14,8 +14,8 @@ use abstract_std::{
     ibc_host::{self, HostAction, InternalAction},
     manager::{self, ModuleInstallConfig},
     objects::{
-        chain_name::ChainName, module::ModuleInfo, module_reference::ModuleReference, AccountId,
-        AssetEntry, ChannelEntry,
+        module::ModuleInfo, module_reference::ModuleReference, AccountId, AssetEntry, ChannelEntry,
+        TruncatedChainId,
     },
     version_control::AccountBase,
     IBC_CLIENT, ICS20,
@@ -68,7 +68,7 @@ pub fn execute_register_infrastructure(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
     host: String,
     note: String,
 ) -> IbcClientResult {
@@ -117,7 +117,7 @@ pub fn execute_register_infrastructure(
 pub fn execute_remove_host(
     deps: DepsMut,
     info: MessageInfo,
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
 ) -> IbcClientResult {
     host_chain.verify()?;
 
@@ -137,7 +137,7 @@ fn send_remote_host_action(
     deps: Deps,
     account_id: AccountId,
     account: AccountBase,
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
     action: HostAction,
     callback_request: Option<CallbackRequest>,
 ) -> IbcClientResult<CosmosMsg<Empty>> {
@@ -177,7 +177,7 @@ pub fn execute_send_packet(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
     action: HostAction,
 ) -> IbcClientResult {
     host_chain.verify()?;
@@ -221,7 +221,7 @@ pub fn execute_send_module_to_module_packet(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
     target_module: ModuleInfo,
     msg: Binary,
     callback: Option<Callback>,
@@ -322,7 +322,7 @@ pub fn execute_send_query(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
     queries: Vec<QueryRequest<ModuleQuery>>,
     callback: Callback,
 ) -> IbcClientResult {
@@ -366,7 +366,7 @@ pub fn execute_register_account(
     deps: DepsMut,
     info: MessageInfo,
     env: Env,
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
     base_asset: Option<AssetEntry>,
     namespace: Option<String>,
     install_modules: Vec<ModuleInstallConfig>,
@@ -414,7 +414,7 @@ pub fn execute_send_funds(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
     funds: Vec<Coin>,
 ) -> IbcClientResult {
     host_chain.verify()?;
