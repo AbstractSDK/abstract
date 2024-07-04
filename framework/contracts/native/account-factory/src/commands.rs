@@ -22,8 +22,8 @@ use abstract_std::{
     AbstractError, IBC_HOST,
 };
 use cosmwasm_std::{
-    ensure_eq, instantiate2_address, to_json_binary, Coins, CosmosMsg, Deps, DepsMut, Empty, Env,
-    MessageInfo, SubMsg, SubMsgResult, WasmMsg,
+    ensure_eq, instantiate2_address, to_json_binary, Coins, CosmosMsg, DepsMut, Empty, Env,
+    MessageInfo, Storage, SubMsg, SubMsgResult, WasmMsg,
 };
 
 use crate::{
@@ -97,7 +97,7 @@ pub fn execute_create_account(
             account_id.trace().verify_remote()?;
             account_id
         }
-        None => generate_new_local_account_id(deps.as_ref(), &info)?,
+        None => generate_new_local_account_id(deps.storage, &info)?,
     };
 
     // Query version_control for code_id of Proxy and Module contract
@@ -288,14 +288,16 @@ pub fn execute_create_account(
 
 // Generate new local account id
 fn generate_new_local_account_id(
-    deps: Deps,
+    storage: &mut dyn Storage,
     info: &MessageInfo,
 ) -> Result<AccountId, AccountFactoryError> {
     let origin = AccountTrace::Local;
-    let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0);
+    let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(storage)?.unwrap_or(0);
     if next_sequence == ABSTRACT_ACCOUNT_ID.seq() {
-        cw_ownable::assert_owner(deps.storage, &info.sender)?;
+        cw_ownable::assert_owner(storage, &info.sender)?;
     }
+    LOCAL_ACCOUNT_SEQUENCE.save(storage, &next_sequence.clone().checked_add(1).unwrap())?;
+
     Ok(AccountId::new(next_sequence, origin)?)
 }
 
@@ -318,11 +320,6 @@ pub fn validate_instantiated_account(deps: DepsMut, _result: SubMsgResult) -> Ac
         &context.proxy_module,
         Some(account_base.proxy.clone()),
     )?;
-
-    // Add 1 to account sequence for local origin
-    if account_id.is_local() {
-        LOCAL_ACCOUNT_SEQUENCE.save(deps.storage, &account_id.seq().checked_add(1).unwrap())?;
-    }
 
     let resp = AccountFactoryResponse::new(
         "create_account",
