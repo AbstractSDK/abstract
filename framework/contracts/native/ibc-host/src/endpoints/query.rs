@@ -6,7 +6,7 @@ use abstract_std::{
         state::{CHAIN_PROXIES, CONFIG},
         ClientProxiesResponse, ClientProxyResponse, ConfigResponse,
     },
-    objects::chain_name::ChainName,
+    objects::TruncatedChainId,
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env};
 use cw_storage_plus::Bound;
@@ -44,7 +44,7 @@ fn registered_chains(
     start_after: Option<String>,
     limit: Option<u32>,
 ) -> HostResult<ClientProxiesResponse> {
-    let start = start_after.map(ChainName::from_string).transpose()?;
+    let start = start_after.map(TruncatedChainId::from_string).transpose()?;
 
     let chains = cw_paginate::paginate_map(
         &CHAIN_PROXIES,
@@ -58,7 +58,7 @@ fn registered_chains(
 }
 
 fn associated_client(deps: Deps, chain: String) -> HostResult<ClientProxyResponse> {
-    let proxy = CHAIN_PROXIES.load(deps.storage, &ChainName::from_str(&chain)?)?;
+    let proxy = CHAIN_PROXIES.load(deps.storage, &TruncatedChainId::from_str(&chain)?)?;
     Ok(ClientProxyResponse { proxy })
 }
 
