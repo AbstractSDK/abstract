@@ -18,9 +18,6 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
         abstract_osmosis_adapter::OSMOSIS => {
             Ok(Box::<abstract_osmosis_adapter::dex::Osmosis>::default())
         }
-        crate::exchanges::terraswap::TERRASWAP => {
-            Ok(Box::<crate::exchanges::terraswap::Terraswap>::default())
-        }
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
         }
@@ -30,6 +27,9 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::dex::Astrovault>::default())
         }
+        // crate::exchanges::terraswap::TERRASWAP => {
+        //     Ok(Box::<crate::exchanges::terraswap::Terraswap>::default())
+        // }
         _ => Err(DexError::UnknownDex(value.to_owned())),
     }
 }
@@ -48,10 +48,6 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<Box<dyn DexCommand>, DexEr
         abstract_osmosis_adapter::OSMOSIS => {
             Ok(Box::<abstract_osmosis_adapter::dex::Osmosis>::default())
         }
-        #[cfg(feature = "terraswap")]
-        crate::exchanges::terraswap::TERRASWAP => {
-            Ok(Box::<crate::exchanges::terraswap::Terraswap>::default())
-        }
         #[cfg(feature = "astroport")]
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
@@ -64,6 +60,10 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<Box<dyn DexCommand>, DexEr
         abstract_astrovault_adapter::ASTROVAULT => {
             Ok(Box::<abstract_astrovault_adapter::dex::Astrovault>::default())
         }
+        // #[cfg(feature = "terraswap")]
+        // crate::exchanges::terraswap::TERRASWAP => {
+        //     Ok(Box::<crate::exchanges::terraswap::Terraswap>::default())
+        // }
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }
