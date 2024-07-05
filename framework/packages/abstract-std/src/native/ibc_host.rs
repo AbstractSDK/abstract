@@ -13,7 +13,7 @@ use cosmwasm_std::{Addr, Binary};
 use crate::{
     ibc_client::InstalledModuleIdentification,
     manager::{self, ModuleInstallConfig},
-    objects::{account::AccountId, chain_name::ChainName, module::ModuleInfo, AssetEntry},
+    objects::{account::AccountId, module::ModuleInfo, AssetEntry, TruncatedChainId},
 };
 
 pub mod state {
@@ -23,8 +23,8 @@ pub mod state {
     use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 
     /// Maps a chain name to the proxy it uses to interact on this local chain
-    pub const CHAIN_PROXIES: Map<&ChainName, Addr> = Map::new("ccl");
-    pub const REVERSE_CHAIN_PROXIES: Map<&Addr, ChainName> = Map::new("rev-ccl");
+    pub const CHAIN_PROXIES: Map<&TruncatedChainId, Addr> = Map::new("ccl");
+    pub const REVERSE_CHAIN_PROXIES: Map<&Addr, TruncatedChainId> = Map::new("rev-ccl");
     /// Configuration of the IBC host
     pub const CONFIG: Item<Config> = Item::new("cfg");
 
@@ -47,7 +47,7 @@ pub mod state {
         pub client_proxy_address: String,
         pub account_id: AccountId,
         pub action: HostAction,
-        pub chain_name: ChainName,
+        pub chain_name: TruncatedChainId,
     }
 }
 /// Used by Abstract to instantiate the contract
@@ -113,12 +113,12 @@ pub enum ExecuteMsg {
     /// Register the Polytone proxy for a specific chain.
     /// proxy should be a local address (will be validated)
     RegisterChainProxy {
-        chain: ChainName,
+        chain: TruncatedChainId,
         proxy: String,
     },
     /// Remove the Polytone proxy for a specific chain.
     RemoveChainProxy {
-        chain: ChainName,
+        chain: TruncatedChainId,
     },
     // ANCHOR: ibc-host-execute
     /// Allows for remote execution from the Polytone implementation
@@ -178,7 +178,7 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ClientProxiesResponse {
-    pub chains: Vec<(ChainName, Addr)>,
+    pub chains: Vec<(TruncatedChainId, Addr)>,
 }
 
 #[cosmwasm_schema::cw_serde]

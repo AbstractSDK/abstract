@@ -15,7 +15,6 @@ pub mod salt;
 pub use pool::*;
 
 pub mod account;
-pub mod chain_name;
 pub mod dependency;
 pub mod deposit_info;
 pub mod deposit_manager;
@@ -28,6 +27,7 @@ pub mod namespace;
 pub mod paged_map;
 pub mod price_source;
 pub mod time_weighted_average;
+pub(crate) mod truncated_chain_id;
 pub mod validation;
 pub mod voting;
 
@@ -41,3 +41,12 @@ pub use entry::{
     dex_asset_pairing::DexAssetPairing,
     lp_token::{DexName, LpToken},
 };
+pub use truncated_chain_id::TruncatedChainId;
+
+pub mod chain_name {
+    use super::TruncatedChainId;
+
+    // Type name `ChainName` was not suitable name for the type
+    #[deprecated = "Use TruncatedChainId instead"]
+    pub type ChainName = TruncatedChainId;
+}
