@@ -554,26 +554,21 @@ fn nft_owner_success() -> Result<(), Error> {
     let balance = chain.query_balance(&account.proxy.address()?, TTOKEN)?;
     assert_eq!(balance, first_burn.checked_sub(burn_amnt.into())?);
 
-    // NFT owner can change governance of account
+    // NFT owned account governance cannot be changed
     let not_nft_owner = chain.addr_make("not_nft_owner");
-    account
+    let err: ManagerError = account
         .manager
         .call_as(&new_nft_owner)
         .propose_owner(GovernanceDetails::Monarchy {
             monarch: not_nft_owner.to_string(),
-        })?;
-    account
-        .manager
-        .call_as(&not_nft_owner)
-        .update_ownership(cw_gov_ownable::GovAction::AcceptOwnership)?;
-    let owner = account.manager.ownership()?.owner;
+        })
+        .unwrap_err()
+        .downcast()
+        .unwrap();
     assert_eq!(
-        owner,
-        GovernanceDetails::Monarchy {
-            monarch: not_nft_owner.to_string()
-        }
+        err,
+        ManagerError::Ownership(cw_gov_ownable::GovOwnershipError::TransferOfNftOwned)
     );
-
     Ok(())
 }
 

@@ -2,7 +2,11 @@
 name = "cw-gov-ownable"
 version = "0.1.0"
 description = "Utility for controlling ownership of CosmWasm smart contracts"
-authors = { workspace = true }
+authors = [
+    "larry <gm@larry.engineer>",
+    "CyberHoward <cyberhoward@protonmail.com>",
+    "Abstract Money <contact@abstract.money>",
+]
 edition = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }

@@ -37,6 +37,9 @@ pub enum GovOwnershipError {
 
     #[error("Cannot transfer ownership to renounced structure. use action::renounce")]
     TransferToRenounced,
+
+    #[error("Cannot transfer NFT ownership")]
+    TransferOfNftOwned,
 }
 
 /// Storage constant for the contract's ownership
@@ -150,6 +153,10 @@ fn transfer_ownership(
     }
 
     OWNERSHIP.update(deps.storage, |ownership| {
+        // We prevent transfers of current ownership if it's NFT
+        if let GovernanceDetails::NFT { .. } = &ownership.owner {
+            return Err(GovOwnershipError::TransferOfNftOwned);
+        }
         // the contract must have an owner
         check_owner(&deps.querier, &ownership, sender)?;
 

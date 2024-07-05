@@ -15,10 +15,8 @@ use abstract_std::{
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
-        nested_admin::MAX_ADMIN_RECURSION,
         AccountId, AssetEntry, TruncatedChainId,
     },
     proxy, IBC_CLIENT, PROXY,

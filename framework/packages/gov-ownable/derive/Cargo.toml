@@ -1,8 +1,12 @@
 [package]
 name = "cw-gov-ownable-derive"
 version = "0.1.0"
-description = "Macros for generating code used by the `cw-ownable` crate"
-authors = { workspace = true }
+description = "Macros for generating code used by the `cw-gov-ownable` crate"
+authors = [
+    "larry <gm@larry.engineer>",
+    "CyberHoward <cyberhoward@protonmail.com>",
+    "Abstract Money <contact@abstract.money>",
+]
 edition = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }

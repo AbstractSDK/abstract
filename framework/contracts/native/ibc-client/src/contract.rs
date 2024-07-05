@@ -691,9 +691,7 @@ mod tests {
         use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
-            objects::{
-                gov_type::GovernanceDetails, version_control::VersionControlError, TruncatedChainId,
-            },
+            objects::{version_control::VersionControlError, TruncatedChainId},
         };
         use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
