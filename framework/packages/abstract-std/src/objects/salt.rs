@@ -14,7 +14,7 @@ pub fn generate_instantiate_salt(account_id: &AccountId) -> Binary {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::objects::{account::AccountTrace, chain_name::ChainName};
+    use crate::objects::{account::AccountTrace, TruncatedChainId};
 
     #[test]
     fn generate_module_salt_local() {
@@ -29,12 +29,12 @@ mod test {
             &AccountId::new(
                 5,
                 AccountTrace::Remote(vec![
-                    ChainName::from_chain_id("foo-1"),
-                    ChainName::from_chain_id("bar-42"),
-                    ChainName::from_chain_id("baz-4"),
-                    ChainName::from_chain_id("qux-24"),
-                    ChainName::from_chain_id("quux-99"),
-                    ChainName::from_chain_id("corge-5"),
+                    TruncatedChainId::from_chain_id("foo-1"),
+                    TruncatedChainId::from_chain_id("bar-42"),
+                    TruncatedChainId::from_chain_id("baz-4"),
+                    TruncatedChainId::from_chain_id("qux-24"),
+                    TruncatedChainId::from_chain_id("quux-99"),
+                    TruncatedChainId::from_chain_id("corge-5"),
                 ]),
             )
             .unwrap(),
