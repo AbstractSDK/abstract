@@ -131,10 +131,10 @@ impl<'a> NestedAdmin<'a> {
 
 pub fn query_top_level_owner<Q: CustomQuery>(
     querier: &QuerierWrapper<Q>,
-    maybe_proxy: Addr,
+    maybe_manager: Addr,
 ) -> StdResult<Addr> {
     // Starting from (potentially)manager that owns this module
-    let mut current = cw_gov_ownable::query_ownership(querier, maybe_proxy);
+    let mut current = cw_gov_ownable::query_ownership(querier, maybe_manager);
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
     for _ in 0..MAX_ADMIN_RECURSION {
         match current {

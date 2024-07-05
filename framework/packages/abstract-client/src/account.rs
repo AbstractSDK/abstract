@@ -855,53 +855,6 @@ impl<Chain: CwEnv> Debug for Account<Chain> {
     }
 }
 
-// pub(crate) fn get_nested_governance_owner<Chain: CwEnv>(
-//     mut governance: GovernanceDetails<String>,
-//     environment: Chain,
-// ) -> AbstractClientResult<Addr> {
-//     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-//     for _ in 0..MAX_ADMIN_RECURSION {
-//         match &governance {
-//             GovernanceDetails::SubAccount { manager, .. } => {
-//                 governance = environment
-//                     .query::<_, InfoResponse>(&manager::QueryMsg::TopLevelOwner {  } {}, manager)
-//                     .map_err(|err| err.into())?
-//                     .info
-//                     .governance_details;
-//             }
-//             _ => break,
-//         }
-//     }
-
-//     let owner = match governance {
-//         GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
-//         GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
-//         GovernanceDetails::External {
-//             governance_address, ..
-//         } => Some(governance_address.clone()),
-//         GovernanceDetails::Renounced {} => None,
-//         GovernanceDetails::NFT {
-//             collection_addr,
-//             token_id,
-//         } => {
-//             let owner = environment
-//                 .query::<_, OwnerOfResponse>(
-//                     &cw721::Cw721QueryMsg::OwnerOf {
-//                         token_id: token_id.to_string(),
-//                         include_expired: None,
-//                     },
-//                     &collection_addr,
-//                 )
-//                 .map_err(|err| err.into())?
-//                 .owner;
-//             return Ok(Addr::unchecked(owner));
-//         }
-//         _ => todo!(),
-//     };
-
-//     owner.ok_or(AbstractClientError::RenouncedAccount {})
-// }
-
 #[cfg(test)]
 pub mod test {
     use abstract_interface::{Abstract, VCQueryFns};

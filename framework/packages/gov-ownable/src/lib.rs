@@ -1,7 +1,7 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
 
 pub use abstract_std::objects::gov_type::{GovAction, GovernanceDetails, Ownership};
-use abstract_std::AbstractError;
+use abstract_std::{objects::common_namespace::OWNERSHIP_STORAGE_KEY, AbstractError};
 
 use cosmwasm_std::{
     Addr, BlockInfo, CustomQuery, DepsMut, QuerierWrapper, StdError, StdResult, Storage,
@@ -43,7 +43,7 @@ pub enum GovOwnershipError {
 }
 
 /// Storage constant for the contract's ownership
-const OWNERSHIP: Item<Ownership<Addr>> = Item::new("ownership");
+const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
 
 /// Set the given address as the contract owner.
 ///
