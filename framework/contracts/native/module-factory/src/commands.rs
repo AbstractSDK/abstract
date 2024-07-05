@@ -12,7 +12,7 @@ use abstract_sdk::{
 use abstract_std::objects::module;
 use cosmwasm_std::{
     from_json, to_json_binary, Addr, BankMsg, Binary, CanonicalAddr, Coin, Coins, CosmosMsg, Deps,
-    DepsMut, Env, MessageInfo, StdResult, WasmMsg,
+    DepsMut, Env, MessageInfo, WasmMsg,
 };
 use serde_cw_value::Value;
 
@@ -255,35 +255,14 @@ pub fn execute_update_config(
     Ok(ModuleFactoryResponse::action("update_config"))
 }
 
-// Only owner can execute it
-pub fn update_factory_binaries(
-    deps: DepsMut,
-    info: MessageInfo,
-    to_add: Vec<(ModuleInfo, Binary)>,
-    to_remove: Vec<ModuleInfo>,
-) -> ModuleFactoryResult {
-    // Only Admin can call this method
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
-
-    for (key, binary) in to_add.into_iter() {
-        // Update function for new or existing keys
-        key.assert_version_variant()?;
-        let insert = |_| -> StdResult<Binary> { Ok(binary) };
-        MODULE_INIT_BINARIES.update(deps.storage, &key, insert)?;
-    }
-
-    for key in to_remove {
-        key.assert_version_variant()?;
-        MODULE_INIT_BINARIES.remove(deps.storage, &key);
-    }
-    Ok(ModuleFactoryResponse::action("update_factory_binaries"))
-}
-
 #[cfg(test)]
 mod test {
     use abstract_std::module_factory::ExecuteMsg;
     use abstract_testing::OWNER;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        to_json_binary,
+    };
     use speculoos::prelude::*;
 
     use super::*;
@@ -444,97 +423,6 @@ mod test {
 
             assert_that!(actual_init_msg).matches(|i| matches!(i, CosmosMsg::Wasm { .. }));
             assert_that!(actual_init_msg).is_equal_to(CosmosMsg::from(expected_init_msg));
-
-            Ok(())
-        }
-    }
-
-    use cosmwasm_std::to_json_binary;
-
-    mod update_factory_binaries {
-        use abstract_std::{objects::module::ModuleVersion, AbstractError};
-        use abstract_testing::map_tester::*;
-
-        use super::*;
-
-        fn update_module_msgs_builder(
-            to_add: Vec<(ModuleInfo, Binary)>,
-            to_remove: Vec<ModuleInfo>,
-        ) -> ExecuteMsg {
-            ExecuteMsg::UpdateFactoryBinaryMsgs { to_add, to_remove }
-        }
-
-        fn mock_entry() -> (ModuleInfo, Binary) {
-            (
-                ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".to_string()))
-                    .unwrap(),
-                to_json_binary(&"tasty pizza usually has pineapple").unwrap(),
-            )
-        }
-
-        fn setup_map_tester<'a>() -> CwMapTester<
-            'a,
-            ExecuteMsg,
-            ModuleFactoryError,
-            &'a ModuleInfo,
-            Binary,
-            ModuleInfo,
-            Binary,
-        > {
-            let info = mock_info(OWNER, &[]);
-
-            let tester = CwMapTesterBuilder::default()
-                .info(info)
-                .map(MODULE_INIT_BINARIES)
-                .execute(execute)
-                .msg_builder(update_module_msgs_builder)
-                .mock_entry_builder(mock_entry)
-                .from_checked_entry(|(k, v)| (k, v))
-                .build()
-                .unwrap();
-
-            tester
-        }
-
-        #[test]
-        fn only_admin() -> ModuleFactoryTestResult {
-            let msg = ExecuteMsg::UpdateFactoryBinaryMsgs {
-                to_add: vec![],
-                to_remove: vec![],
-            };
-
-            test_only_admin(msg)
-        }
-
-        #[test]
-        fn test_map() -> ModuleFactoryTestResult {
-            let mut deps = mock_dependencies();
-
-            mock_init(deps.as_mut()).unwrap();
-
-            let mut map_tester = setup_map_tester();
-            map_tester.test_all(&mut deps)
-        }
-
-        #[test]
-        fn should_reject_latest_versions() -> ModuleFactoryTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-
-            let mut map_tester = setup_map_tester();
-
-            let bad_entry = (
-                ModuleInfo::from_id("test:module", ModuleVersion::Latest).unwrap(),
-                Binary::default(),
-            );
-
-            let res = map_tester.execute_update(deps.as_mut(), (vec![bad_entry], vec![]));
-
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(ModuleFactoryError::Abstract(AbstractError::Assert(
-                    "Module version must be set to a specific version".into(),
-                )));
 
             Ok(())
         }

@@ -59,9 +59,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
         ExecuteMsg::InstallModules { modules, salt } => {
             commands::execute_create_modules(deps, env, info, modules, salt)
         }
-        ExecuteMsg::UpdateFactoryBinaryMsgs { to_add, to_remove } => {
-            commands::update_factory_binaries(deps, info, to_add, to_remove)
-        }
         ExecuteMsg::UpdateOwnership(action) => {
             abstract_sdk::execute_update_ownership!(ModuleFactoryResponse, deps, env, info, action)
         }
@@ -133,6 +130,13 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ModuleFactoryResul
 
     assert_contract_upgrade(deps.storage, MODULE_FACTORY, version)?;
     set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
+
+    // Clear unused state map
+    // Removable after 0.23 migration, not critical as it won't do anything if there's no state for this map
+    let module_init_binaries: cw_storage_plus::Map<&ModuleInfo, Binary> =
+        cw_storage_plus::Map::new("module_init_binaries");
+    module_init_binaries.clear(deps.storage);
+
     Ok(ModuleFactoryResponse::action("migrate"))
 }
 
