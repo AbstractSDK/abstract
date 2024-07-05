@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use abstract_nested_admin::query_top_level_owner;
+use abstract_nested_admin::query_top_level_owner_addr;
 use abstract_sdk::{
     feature_objects::VersionControlContract,
     std::manager::{
@@ -110,7 +110,7 @@ pub fn handle_sub_accounts_query(
 }
 
 pub fn handle_top_level_owner_query(deps: Deps, env: Env) -> StdResult<Binary> {
-    let addr = query_top_level_owner(&deps.querier, env.contract.address)?;
+    let addr = query_top_level_owner_addr(&deps.querier, env.contract.address)?;
 
     to_json_binary(&TopLevelOwnerResponse { address: addr })
 }

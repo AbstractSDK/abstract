@@ -1,4 +1,4 @@
-use abstract_nested_admin::query_top_level_owner;
+use abstract_nested_admin::query_top_level_owner_addr;
 use abstract_std::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
     objects::{
@@ -102,7 +102,7 @@ impl<
 
     fn top_level_owner(&self, deps: Deps) -> StdResult<TopLevelOwnerResponse> {
         let manager = self.admin.get(deps)?.unwrap();
-        let addr = query_top_level_owner(&deps.querier, manager)?;
+        let addr = query_top_level_owner_addr(&deps.querier, manager)?;
         Ok(TopLevelOwnerResponse { address: addr })
     }
 }

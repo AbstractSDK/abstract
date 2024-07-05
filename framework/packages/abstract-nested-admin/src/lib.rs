@@ -49,7 +49,7 @@ impl<'a> NestedAdmin<'a> {
             Ok(true)
         } else {
             // Check if top level owner address is equal to the caller
-            Ok(query_top_level_owner(querier, admin)
+            Ok(query_top_level_owner_addr(querier, admin)
                 .map(|admin| admin == caller)
                 .unwrap_or(false))
         }
@@ -116,7 +116,7 @@ impl<'a> NestedAdmin<'a> {
     // This method tries to get top-level account owner
     pub fn query_account_owner<Q: CustomQuery>(&self, deps: Deps<Q>) -> StdResult<AdminResponse> {
         let admin = match self.0.get(deps)? {
-            Some(owner) => Some(query_top_level_owner(&deps.querier, owner).map_err(|_| {
+            Some(owner) => Some(query_top_level_owner_addr(&deps.querier, owner).map_err(|_| {
                 StdError::generic_err(
                     "Failed to query top level owner. Make sure this module is owned by the manager",
                 )
@@ -129,10 +129,23 @@ impl<'a> NestedAdmin<'a> {
     }
 }
 
-pub fn query_top_level_owner<Q: CustomQuery>(
+pub fn query_top_level_owner_addr<Q: CustomQuery>(
     querier: &QuerierWrapper<Q>,
     maybe_manager: Addr,
 ) -> StdResult<Addr> {
+    // Get top level account owner address
+    query_top_level_owner(querier, maybe_manager).and_then(|ownership| {
+        ownership
+            .owner
+            .owner_address(&querier.into_empty())
+            .ok_or(StdError::generic_err("Top level account got renounced"))
+    })
+}
+
+pub fn query_top_level_owner<Q: CustomQuery>(
+    querier: &QuerierWrapper<Q>,
+    maybe_manager: Addr,
+) -> StdResult<Ownership<Addr>> {
     // Starting from (potentially)manager that owns this module
     let mut current = cw_gov_ownable::query_ownership(querier, maybe_manager);
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
@@ -148,11 +161,5 @@ pub fn query_top_level_owner<Q: CustomQuery>(
         }
     }
 
-    // Get top level account owner address
-    current.and_then(|ownership| {
-        ownership
-            .owner
-            .owner_address(&querier.into_empty())
-            .ok_or(StdError::generic_err("Top level account got renounced"))
-    })
+    current
 }

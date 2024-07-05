@@ -1,4 +1,4 @@
-use abstract_nested_admin::query_top_level_owner;
+use abstract_nested_admin::query_top_level_owner_addr;
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ModuleIbcEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
@@ -50,7 +50,7 @@ impl<
 }
 
 fn is_top_level_owner(querier: &QuerierWrapper, manager: Addr, sender: &Addr) -> StdResult<bool> {
-    let owner = query_top_level_owner(querier, manager)?;
+    let owner = query_top_level_owner_addr(querier, manager)?;
     Ok(owner == sender)
 }
 

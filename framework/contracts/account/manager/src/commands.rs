@@ -1,5 +1,5 @@
 use abstract_macros::abstract_response;
-use abstract_nested_admin::{query_top_level_owner, NestedAdmin};
+use abstract_nested_admin::{query_top_level_owner, query_top_level_owner_addr, NestedAdmin};
 use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_std::{
     adapter::{
@@ -464,9 +464,10 @@ pub fn propose_owner(
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
-    assert_is_admin(deps.as_ref(), &env, &info.sender)?;
+    assert_admin_change(deps.as_ref(), &env, &info.sender)?;
+    let ownership = cw_gov_ownable::get_ownership(deps.storage)?;
     // In case it's a top level owner we need to pass current owner into update_ownership method
-    let owner = cw_gov_ownable::get_ownership(deps.storage)?
+    let owner = ownership
         .owner
         .owner_address(&deps.querier)
         .ok_or(GovOwnershipError::NoOwner)?;
@@ -540,7 +541,7 @@ pub(crate) fn update_sub_governance(
         msgs.push(register_message.into());
 
         // If called by top-level owner, update the sender to let cw-ownable think it was called by the owning-account's proxy.
-        let top_level_owner = query_top_level_owner(&deps.querier, manager.clone())?;
+        let top_level_owner = query_top_level_owner_addr(&deps.querier, manager.clone())?;
 
         // This line is **VERY** important
         // It ensures that only the top-level owner of the proposed owner account can claim the ownership over this account.
@@ -576,7 +577,16 @@ pub(crate) fn renounce_governance(
     let ownership = cw_gov_ownable::get_ownership(deps.storage)?;
     if let GovernanceDetails::SubAccount { manager, proxy } = ownership.owner {
         // If called by top-level owner, update the sender to let cw-ownable think it was called by the proxy.
-        let top_level_owner = query_top_level_owner(&deps.querier, manager_addr)?;
+        let top_level_ownership = query_top_level_owner(&deps.querier, manager_addr)?;
+        // Can't renounce NFT owned sub-account
+        if let GovernanceDetails::NFT { .. } = &top_level_ownership.owner {
+            return Err(ManagerError::Ownership(GovOwnershipError::ChangeOfNftOwned));
+        }
+        let top_level_owner = top_level_ownership
+            .owner
+            .owner_address(&deps.querier)
+            .ok_or(AdminError::NotAdmin {})?;
+
         if top_level_owner == *sender {
             *sender = proxy;
         }
@@ -1125,6 +1135,44 @@ fn assert_is_admin(deps: Deps, env: &Env, sender: &Addr) -> ManagerResult<()> {
         return Err(ManagerError::Admin(AdminError::NotAdmin {}));
     };
     NestedAdmin::assert_admin_custom(&deps.querier, sender, manager).map_err(Into::into)
+}
+
+/// Function that guards admin can change ownership.
+/// This function should return `Ok` when called by:
+/// - The owner of the contract (i.e. account).
+/// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
+/// And errors when:
+/// - Ownership is NFT of this account or top level account
+fn assert_admin_change(deps: Deps, env: &Env, sender: &Addr) -> ManagerResult<()> {
+    let ownership = cw_gov_ownable::get_ownership(deps.storage)?.owner;
+    let owner = ownership
+        .owner_address(&deps.querier)
+        // if no owner, set current contract as "owner".
+        // this enables NFT ownership and will still error on Renounced ownership
+        .unwrap_or(env.contract.address.clone());
+    // If owner is sender - owner is the admin
+    if owner == sender {
+        return Ok(());
+    }
+    // Else we maybe dealing with sub account and need to check recursive admins
+    let GovernanceDetails::SubAccount { manager, .. } = ownership else {
+        return Err(ManagerError::Admin(AdminError::NotAdmin {}));
+    };
+    let top_level_owner = query_top_level_owner(&deps.querier, manager)?;
+    // We need to check if top level account is NFT owned, as it's prohibited
+    // cw-gov-ownership checks during update_ownership only this account for NFT ownership
+    if let GovernanceDetails::NFT { .. } = &top_level_owner.owner {
+        return Err(ManagerError::Ownership(GovOwnershipError::ChangeOfNftOwned));
+    }
+    if !top_level_owner
+        .owner
+        .owner_address(&deps.querier)
+        .map(|owner| owner == sender)
+        .unwrap_or_default()
+    {
+        return Err(ManagerError::Admin(AdminError::NotAdmin {}));
+    }
+    Ok(())
 }
 
 pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> ManagerResult {

@@ -554,11 +554,42 @@ fn nft_owner_success() -> Result<(), Error> {
     let balance = chain.query_balance(&account.proxy.address()?, TTOKEN)?;
     assert_eq!(balance, first_burn.checked_sub(burn_amnt.into())?);
 
-    // NFT owned account governance cannot be changed
+    Ok(())
+}
+
+#[test]
+fn nft_owner_immutable() -> Result<(), Error> {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
+
+    let gov = GovernanceDetails::NFT {
+        collection_addr: nft_addr.clone(),
+        // token minted to sender
+        token_id: token_id.clone(),
+    };
+
+    // create nft-owned account
+    let account = deployment.account_factory.create_new_account(
+        AccountDetails {
+            name: "foo".to_string(),
+            description: None,
+            link: None,
+            namespace: None,
+            base_asset: None,
+            install_modules: vec![],
+            account_id: None,
+        },
+        gov,
+        None,
+    )?;
+
     let not_nft_owner = chain.addr_make("not_nft_owner");
+
+    // NFT owned account governance cannot be transferred
     let err: ManagerError = account
         .manager
-        .call_as(&new_nft_owner)
         .propose_owner(GovernanceDetails::Monarchy {
             monarch: not_nft_owner.to_string(),
         })
@@ -567,8 +598,61 @@ fn nft_owner_success() -> Result<(), Error> {
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(cw_gov_ownable::GovOwnershipError::TransferOfNftOwned)
+        ManagerError::Ownership(cw_gov_ownable::GovOwnershipError::ChangeOfNftOwned)
     );
+
+    // NFT owned account governance cannot be renounced
+    let err: ManagerError = account
+        .manager
+        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        ManagerError::Ownership(cw_gov_ownable::GovOwnershipError::ChangeOfNftOwned)
+    );
+
+    // create nft-owned sub-account
+    let sub_account = account.create_sub_account(
+        AccountDetails {
+            name: "sub-foo".to_string(),
+            description: None,
+            link: None,
+            namespace: None,
+            base_asset: None,
+            install_modules: vec![],
+            account_id: None,
+        },
+        None,
+    )?;
+
+    // NFT owned sub-account governance cannot be transferred
+    let err: ManagerError = sub_account
+        .manager
+        .propose_owner(GovernanceDetails::Monarchy {
+            monarch: not_nft_owner.to_string(),
+        })
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        ManagerError::Ownership(cw_gov_ownable::GovOwnershipError::ChangeOfNftOwned)
+    );
+
+    // NFT owned sub-account governance cannot be renounced
+    let err: ManagerError = sub_account
+        .manager
+        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        ManagerError::Ownership(cw_gov_ownable::GovOwnershipError::ChangeOfNftOwned)
+    );
+
     Ok(())
 }
 
