@@ -6,7 +6,7 @@ use abstract_app::std::ABSTRACT_EVENT_TYPE;
 use abstract_client::{AbstractClient, Application, Environment, RemoteAccount};
 
 use abstract_app::std::objects::account::AccountTrace;
-use abstract_app::std::objects::chain_name::TruncatedChainId;
+use abstract_app::std::objects::TruncatedChainId;
 
 use cw_orch::{anyhow, prelude::*};
 use cw_orch_interchain::prelude::*;
