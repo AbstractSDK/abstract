@@ -46,7 +46,7 @@ pub use truncated_chain_id::TruncatedChainId;
 pub mod chain_name {
     use super::TruncatedChainId;
 
-    // Type name `TruncatedChainId` was not suitable name for the type
+    // Type name `ChainName` was not suitable name for the type
     #[deprecated = "Use TruncatedChainId instead"]
     pub type ChainName = TruncatedChainId;
 }
