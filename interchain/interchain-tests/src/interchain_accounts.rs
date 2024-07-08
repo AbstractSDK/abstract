@@ -88,11 +88,11 @@ mod test {
             state::AccountInfo, ConfigResponse, ExecuteMsg as ManagerExecuteMsg, InfoResponse,
         },
         objects::{gov_type::GovernanceDetails, UncheckedChannelEntry},
-        IBC_CLIENT, ICS20, PROXY,
+        proxy, IBC_CLIENT, ICS20, PROXY,
     };
 
     use anyhow::Result as AnyResult;
-    use cosmwasm_std::{coins, to_json_binary, wasm_execute, Uint128};
+    use cosmwasm_std::{coins, to_json_binary, wasm_execute, IbcTimeout, Uint128};
     use cw_orch::mock::cw_multi_test::AppResponse;
     use ibc_relayer_types::core::ics24_host::identifier::PortId;
 
@@ -157,6 +157,79 @@ mod test {
             },
             account_response
         );
+
+        Ok(())
+    }
+
+    #[test]
+    fn ibc_stargate_action() -> AnyResult<()> {
+        logger_test_init();
+        let mock_interchain =
+            MockBech32InterchainEnv::new(vec![(JUNO, "juno"), (STARGAZE, "stargaze")]);
+
+        // We just verified all steps pass
+        let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
+
+        let (origin_account, remote_account_id) =
+            create_test_remote_account(&abstr_origin, JUNO, STARGAZE, &mock_interchain, None)?;
+        let remote_abstract_account =
+            AbstractAccount::new(&abstr_remote, remote_account_id.clone());
+
+        // Do stargate action on proxy to verify it's enabled
+        let amount = Coin {
+            denom: "ujuno".to_owned(),
+            amount: Uint128::new(100),
+        };
+        mock_interchain
+            .chain(JUNO)
+            .unwrap()
+            .add_balance(&origin_account.proxy.address()?, vec![amount.clone()])?;
+        let interchain_channel = mock_interchain.create_channel(
+            JUNO,
+            STARGAZE,
+            &PortId::transfer(),
+            &PortId::transfer(),
+            "ics20-1",
+            None, // Unordered channel
+        )?;
+
+        // The user on origin chain wants to change the account description
+        let ibc_transfer_result = origin_account.manager.execute_on_module(
+            PROXY,
+            &proxy::ExecuteMsg::ModuleAction {
+                msgs: vec![cosmwasm_std::CosmosMsg::Ibc(
+                    cosmwasm_std::IbcMsg::Transfer {
+                        channel_id: interchain_channel
+                            .interchain_channel
+                            .port_a
+                            .channel
+                            .unwrap()
+                            .to_string(),
+                        to_address: remote_abstract_account.proxy.address()?.to_string(),
+                        amount,
+                        timeout: IbcTimeout::with_timestamp(
+                            mock_interchain
+                                .chain(JUNO)
+                                .unwrap()
+                                .block_info()
+                                .unwrap()
+                                .time
+                                .plus_days(1),
+                        ),
+                    },
+                )],
+            },
+        )?;
+
+        mock_interchain
+            .check_ibc(JUNO, ibc_transfer_result)?
+            .into_result()?;
+
+        let remote_proxy_balance = mock_interchain
+            .chain(STARGAZE)
+            .unwrap()
+            .balance(remote_abstract_account.proxy.address()?, None)?;
+        assert_eq!(remote_proxy_balance, coins(100, "ibc/channel-0/ujuno"));
 
         Ok(())
     }
