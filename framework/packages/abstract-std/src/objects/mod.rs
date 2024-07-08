@@ -48,5 +48,5 @@ pub mod chain_name {
 
     // Type name `TruncatedChainId` was not suitable name for the type
     #[deprecated = "Use TruncatedChainId instead"]
-    pub type TruncatedChainId = TruncatedChainId;
+    pub type ChainName = TruncatedChainId;
 }

@@ -1,5 +1,5 @@
 use abstract_app::{
-    objects::chain_name::TruncatedChainId,
+    objects::TruncatedChainId,
     sdk::IbcInterface,
     std::{ibc::Callback, ibc_client::InstalledModuleIdentification},
     traits::{AbstractResponse, AccountIdentification},

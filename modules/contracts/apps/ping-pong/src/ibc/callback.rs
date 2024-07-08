@@ -1,5 +1,5 @@
 use abstract_app::{
-    objects::chain_name::TruncatedChainId,
+    objects::TruncatedChainId,
     sdk::AbstractResponse,
     std::ibc::{Callback, IbcResult},
 };

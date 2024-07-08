@@ -1,4 +1,4 @@
-use abstract_app::objects::chain_name::TruncatedChainId;
+use abstract_app::objects::TruncatedChainId;
 use cosmwasm_schema::QueryResponses;
 
 use crate::contract::App;

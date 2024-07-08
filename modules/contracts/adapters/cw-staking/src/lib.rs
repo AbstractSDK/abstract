@@ -57,7 +57,7 @@ pub mod interface {
             artifacts_dir_from_workspace!()
                 .find_wasm_path_with_build_postfix(
                     "abstract_cw_staking",
-                    BuildPostfix::TruncatedChainId(chain),
+                    BuildPostfix::ChainName(chain),
                 )
                 .unwrap()
         }
