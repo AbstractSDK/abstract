@@ -19,9 +19,6 @@ pub enum ManagerError {
     AbstractSdk(#[from] AbstractSdkError),
 
     #[error("{0}")]
-    Admin(#[from] AdminError),
-
-    #[error("{0}")]
     Validation(#[from] ValidationError),
 
     #[error("{0}")]

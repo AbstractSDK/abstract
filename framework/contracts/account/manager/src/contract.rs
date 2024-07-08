@@ -176,19 +176,15 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 // Used to claim or renounce an ownership change.
                 ExecuteMsg::UpdateOwnership(action) => {
                     let mut info = info;
+                    // If sub-account related it may require some messages to be constructed beforehand
                     let msgs = match &action {
-                        // Disallow the user from using the TransferOwnership action.
-                        ownership::GovAction::TransferOwnership { .. } => {
-                            return Err(ManagerError::MustUseProposeOwner {});
-                        }
+                        ownership::GovAction::TransferOwnership { .. } => vec![],
                         ownership::GovAction::AcceptOwnership => {
                             update_sub_governance(deps.branch(), &mut info.sender)?
                         }
-                        ownership::GovAction::RenounceOwnership => renounce_governance(
-                            deps.branch(),
-                            env.contract.address,
-                            &mut info.sender,
-                        )?,
+                        ownership::GovAction::RenounceOwnership => {
+                            renounce_governance(deps.branch())?
+                        }
                     };
 
                     let config = CONFIG.load(deps.storage)?;

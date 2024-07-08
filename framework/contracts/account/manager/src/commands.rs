@@ -19,7 +19,7 @@ use abstract_std::{
         module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
         ownership,
-        ownership::nested_admin::{query_top_level_owner, query_top_level_owner_addr, NestedAdmin},
+        ownership::nested_admin::{query_top_level_owner_addr, NestedAdmin},
         salt::generate_instantiate_salt,
         validation::{validate_description, validate_link, validate_name},
         version_control::VersionControlContract,
@@ -465,21 +465,15 @@ pub fn propose_owner(
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
-    assert_admin_change(deps.as_ref(), &env, &info.sender)?;
-    let ownership = ownership::get_ownership(deps.storage)?;
-    // In case it's a top level owner we need to pass current owner into update_ownership method
-    let owner = ownership
-        .owner
-        .owner_address(&deps.querier)
-        .ok_or(GovOwnershipError::NoOwner)?;
     // verify the provided governance details
     let config = CONFIG.load(deps.storage)?;
 
     // Update the Owner of the Account
+    // Safety: update_ownership checks sender
     let ownership = ownership::update_ownership(
         deps,
         &env.block,
-        &owner,
+        &info.sender,
         config.version_control_address,
         ownership::GovAction::TransferOwnership {
             new_owner,
@@ -557,11 +551,7 @@ pub(crate) fn update_sub_governance(
 
 /// Renounce ownership of this account \
 /// **WARNING**: This will lock the account, making it unusable.
-pub(crate) fn renounce_governance(
-    deps: DepsMut,
-    manager_addr: Addr,
-    sender: &mut Addr,
-) -> ManagerResult<Vec<CosmosMsg>> {
+pub(crate) fn renounce_governance(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
 
     let account_id = ACCOUNT_ID.load(deps.storage)?;
@@ -576,21 +566,7 @@ pub(crate) fn renounce_governance(
     );
 
     let ownership = ownership::get_ownership(deps.storage)?;
-    if let GovernanceDetails::SubAccount { manager, proxy } = ownership.owner {
-        // If called by top-level owner, update the sender to let cw-ownable think it was called by the proxy.
-        let top_level_ownership = query_top_level_owner(&deps.querier, manager_addr)?;
-        // Can't renounce NFT owned sub-account
-        if let GovernanceDetails::NFT { .. } = &top_level_ownership.owner {
-            return Err(ManagerError::Ownership(GovOwnershipError::ChangeOfNftOwned));
-        }
-        let top_level_owner = top_level_ownership
-            .owner
-            .owner_address(&deps.querier)
-            .ok_or(AdminError::NotAdmin {})?;
-
-        if top_level_owner == *sender {
-            *sender = proxy;
-        }
+    if let GovernanceDetails::SubAccount { manager, .. } = ownership.owner {
         // Unregister itself (sub-account) from the owning account.
         msgs.push(
             wasm_execute(
@@ -1127,53 +1103,16 @@ fn assert_is_admin(deps: Deps, env: &Env, sender: &Addr) -> ManagerResult<()> {
         // if no owner, set current contract as "owner".
         // this enables NFT ownership and will still error on Renounced ownership
         .unwrap_or(env.contract.address.clone());
-    // If owner is sender - owner is the admin
+    // If owner is sender - owner it's the admin
     if owner == sender {
         return Ok(());
     }
     // Else we maybe dealing with sub account and need to check recursive admins
     let GovernanceDetails::SubAccount { manager, .. } = ownership else {
-        return Err(ManagerError::Admin(AdminError::NotAdmin {}));
+        return Err(ManagerError::Ownership(GovOwnershipError::NotOwner));
     };
-    NestedAdmin::assert_admin_custom(&deps.querier, sender, manager).map_err(Into::into)
-}
-
-/// Function that guards admin can change ownership.
-/// This function should return `Ok` when called by:
-/// - The owner of the contract (i.e. account).
-/// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
-/// And errors when:
-/// - Ownership is NFT of this account or top level account
-fn assert_admin_change(deps: Deps, env: &Env, sender: &Addr) -> ManagerResult<()> {
-    let ownership = ownership::get_ownership(deps.storage)?.owner;
-    let owner = ownership
-        .owner_address(&deps.querier)
-        // if no owner, set current contract as "owner".
-        // this enables NFT ownership and will still error on Renounced ownership
-        .unwrap_or(env.contract.address.clone());
-    // If owner is sender - owner is the admin
-    if owner == sender {
-        return Ok(());
-    }
-    // Else we maybe dealing with sub account and need to check recursive admins
-    let GovernanceDetails::SubAccount { manager, .. } = ownership else {
-        return Err(ManagerError::Admin(AdminError::NotAdmin {}));
-    };
-    let top_level_owner = query_top_level_owner(&deps.querier, manager)?;
-    // We need to check if top level account is NFT owned, as it's prohibited
-    // cw-gov-ownership checks during update_ownership only this account for NFT ownership
-    if let GovernanceDetails::NFT { .. } = &top_level_owner.owner {
-        return Err(ManagerError::Ownership(GovOwnershipError::ChangeOfNftOwned));
-    }
-    if !top_level_owner
-        .owner
-        .owner_address(&deps.querier)
-        .map(|owner| owner == sender)
-        .unwrap_or_default()
-    {
-        return Err(ManagerError::Admin(AdminError::NotAdmin {}));
-    }
-    Ok(())
+    NestedAdmin::assert_admin_custom(&deps.querier, sender, manager)
+        .map_err(|_| ManagerError::Ownership(GovOwnershipError::NotOwner))
 }
 
 pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> ManagerResult {
@@ -1239,7 +1178,9 @@ mod tests {
         let res = execute_as(deps.as_mut(), "not_owner", msg);
         assert_that!(&res)
             .is_err()
-            .is_equal_to(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
+            .is_equal_to(ManagerError::Ownership(
+                ownership::GovOwnershipError::NotOwner,
+            ));
 
         Ok(())
     }
@@ -1462,7 +1403,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), "not_account_factory", msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
+                .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
 
             Ok(())
         }
@@ -1487,7 +1428,7 @@ mod tests {
             let res = execute_as(deps.as_mut(), "not_owner", msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
+                .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
 
             Ok(())
         }
@@ -1890,7 +1831,7 @@ mod tests {
 
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
+                .is_equal_to(ManagerError::Ownership(GovOwnershipError::NotOwner));
 
             let factory_res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
             assert_that!(&factory_res).is_err();
@@ -1967,29 +1908,6 @@ mod tests {
             let msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership {});
 
             execute_as(deps.as_mut(), pending_owner, msg)?;
-
-            Ok(())
-        }
-
-        #[test]
-        fn disallows_ownership_transfer() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-
-            let transfer_to = "not_owner";
-
-            let msg = ExecuteMsg::UpdateOwnership(ownership::GovAction::TransferOwnership {
-                new_owner: GovernanceDetails::Monarchy {
-                    monarch: transfer_to.to_string(),
-                },
-                expiry: None,
-            });
-
-            let res = execute_as_owner(deps.as_mut(), msg);
-
-            assert_that!(res)
-                .is_err()
-                .is_equal_to(ManagerError::MustUseProposeOwner {});
 
             Ok(())
         }
