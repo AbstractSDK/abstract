@@ -1038,10 +1038,6 @@
         },
         "additionalProperties": false
       },
-      "ChainName": {
-        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
-        "type": "string"
-      },
       "ChannelEntry": {
         "description": "Key to get the Address of a connected_chain Use [`UncheckedChannelEntry`] to construct this type.",
         "type": "object",
@@ -1051,7 +1047,7 @@
         ],
         "properties": {
           "connected_chain": {
-            "$ref": "#/definitions/ChainName"
+            "$ref": "#/definitions/TruncatedChainId"
           },
           "protocol": {
             "type": "string"
@@ -1128,6 +1124,10 @@
           "LiquidityBootstrap",
           "ConcentratedLiquidity"
         ]
+      },
+      "TruncatedChainId": {
+        "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+        "type": "string"
       },
       "UniquePoolId": {
         "type": "integer",
@@ -1441,10 +1441,6 @@
       },
       "additionalProperties": false,
       "definitions": {
-        "ChainName": {
-          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
-          "type": "string"
-        },
         "ChannelEntry": {
           "description": "Key to get the Address of a connected_chain Use [`UncheckedChannelEntry`] to construct this type.",
           "type": "object",
@@ -1454,12 +1450,16 @@
           ],
           "properties": {
             "connected_chain": {
-              "$ref": "#/definitions/ChainName"
+              "$ref": "#/definitions/TruncatedChainId"
             },
             "protocol": {
               "type": "string"
             }
           }
+        },
+        "TruncatedChainId": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
         }
       }
     },
@@ -1490,10 +1490,6 @@
       },
       "additionalProperties": false,
       "definitions": {
-        "ChainName": {
-          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
-          "type": "string"
-        },
         "ChannelEntry": {
           "description": "Key to get the Address of a connected_chain Use [`UncheckedChannelEntry`] to construct this type.",
           "type": "object",
@@ -1503,12 +1499,16 @@
           ],
           "properties": {
             "connected_chain": {
-              "$ref": "#/definitions/ChainName"
+              "$ref": "#/definitions/TruncatedChainId"
             },
             "protocol": {
               "type": "string"
             }
           }
+        },
+        "TruncatedChainId": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
         }
       }
     },
