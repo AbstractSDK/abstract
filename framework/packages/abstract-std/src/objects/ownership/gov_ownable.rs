@@ -1,13 +1,12 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
 
-pub use abstract_std::objects::gov_type::{GovAction, GovernanceDetails, Ownership};
-use abstract_std::{objects::common_namespace::OWNERSHIP_STORAGE_KEY, AbstractError};
+pub use crate::objects::gov_type::{GovAction, GovernanceDetails};
+use crate::{objects::common_namespace::OWNERSHIP_STORAGE_KEY, AbstractError};
 
 use cosmwasm_std::{
-    Addr, BlockInfo, CustomQuery, DepsMut, QuerierWrapper, StdError, StdResult, Storage,
+    Addr, Attribute, BlockInfo, CustomQuery, DepsMut, QuerierWrapper, StdError, StdResult, Storage,
 };
-// re-export the proc macros and the Expiration class
-pub use cw_gov_ownable_derive::{cw_ownable_execute, cw_ownable_query};
+use cw_address_like::AddressLike;
 use cw_storage_plus::Item;
 pub use cw_utils::Expiration;
 
@@ -44,6 +43,69 @@ pub enum GovOwnershipError {
 
 /// Storage constant for the contract's ownership
 const OWNERSHIP: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
+
+/// The contract's ownership info
+#[cosmwasm_schema::cw_serde]
+pub struct Ownership<T: AddressLike> {
+    /// The contract's current owner.
+    pub owner: GovernanceDetails<T>,
+
+    /// The account who has been proposed to take over the ownership.
+    /// `None` if there isn't a pending ownership transfer.
+    pub pending_owner: Option<GovernanceDetails<T>>,
+
+    /// The deadline for the pending owner to accept the ownership.
+    /// `None` if there isn't a pending ownership transfer, or if a transfer
+    /// exists and it doesn't have a deadline.
+    pub pending_expiry: Option<Expiration>,
+}
+
+impl<T: AddressLike> Ownership<T> {
+    /// Serializes the current ownership state as attributes which may
+    /// be used in a message response. Serialization is done according
+    /// to the std::fmt::Display implementation for `T` and
+    /// `cosmwasm_std::Expiration` (for `pending_expiry`). If an
+    /// ownership field has no value, `"none"` will be serialized.
+    ///
+    /// Attribute keys used:
+    ///  - owner
+    ///  - pending_owner
+    ///  - pending_expiry
+    ///
+    /// Callers should take care not to use these keys elsewhere
+    /// in their response as CosmWasm will override reused attribute
+    /// keys.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use cw_utils::Expiration;
+    ///
+    /// assert_eq!(
+    ///     Ownership {
+    ///         owner: Some("blue"),
+    ///         pending_owner: None,
+    ///         pending_expiry: Some(Expiration::Never {})
+    ///     }
+    ///     .into_attributes(),
+    ///     vec![
+    ///         Attribute::new("owner", "blue"),
+    ///         Attribute::new("pending_owner", "none"),
+    ///         Attribute::new("pending_expiry", "expiration: never")
+    ///     ],
+    /// )
+    /// ```
+    pub fn into_attributes(self) -> Vec<Attribute> {
+        fn none_or<T: std::fmt::Display>(or: Option<&T>) -> String {
+            or.map_or_else(|| "none".to_string(), |or| or.to_string())
+        }
+        vec![
+            Attribute::new("owner", self.owner.to_string()),
+            Attribute::new("pending_owner", none_or(self.pending_owner.as_ref())),
+            Attribute::new("pending_expiry", none_or(self.pending_expiry.as_ref())),
+        ]
+    }
+}
 
 /// Set the given address as the contract owner.
 ///

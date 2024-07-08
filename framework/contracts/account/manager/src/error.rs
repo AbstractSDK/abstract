@@ -25,7 +25,7 @@ pub enum ManagerError {
     Validation(#[from] ValidationError),
 
     #[error("{0}")]
-    Ownership(#[from] cw_gov_ownable::GovOwnershipError),
+    Ownership(#[from] abstract_std::objects::ownership::GovOwnershipError),
 
     #[error("{0}")]
     Instantiate2AddressError(#[from] Instantiate2AddressError),

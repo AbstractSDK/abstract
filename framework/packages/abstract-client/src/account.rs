@@ -34,6 +34,7 @@ use abstract_std::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
+        ownership,
         validation::verifiers,
         AccountId, AssetEntry,
     },
@@ -544,7 +545,7 @@ impl<Chain: CwEnv> Account<Chain> {
     }
 
     /// Returns owner of the account
-    pub fn ownership(&self) -> AbstractClientResult<cw_gov_ownable::Ownership<String>> {
+    pub fn ownership(&self) -> AbstractClientResult<ownership::Ownership<String>> {
         self.abstr_account.manager.ownership().map_err(Into::into)
     }
 

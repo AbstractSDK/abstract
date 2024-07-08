@@ -10,7 +10,7 @@ use abstract_std::{
         module::{ModuleInfo, ModuleVersion, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
-        AccountId, ABSTRACT_ACCOUNT_ID,
+        ownership, AccountId, ABSTRACT_ACCOUNT_ID,
     },
     version_control::{NamespaceResponse, UpdateModule},
     PROXY,
@@ -442,7 +442,7 @@ fn renounce_cleans_namespace() -> AResult {
 
     account
         .manager
-        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)?;
+        .update_ownership(ownership::GovAction::RenounceOwnership)?;
 
     let namespace_result = deployment
         .version_control
@@ -598,19 +598,19 @@ fn nft_owner_immutable() -> Result<(), Error> {
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(cw_gov_ownable::GovOwnershipError::ChangeOfNftOwned)
+        ManagerError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
     );
 
     // NFT owned account governance cannot be renounced
     let err: ManagerError = account
         .manager
-        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)
+        .update_ownership(ownership::GovAction::RenounceOwnership)
         .unwrap_err()
         .downcast()
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(cw_gov_ownable::GovOwnershipError::ChangeOfNftOwned)
+        ManagerError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
     );
 
     // create nft-owned sub-account
@@ -638,19 +638,19 @@ fn nft_owner_immutable() -> Result<(), Error> {
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(cw_gov_ownable::GovOwnershipError::ChangeOfNftOwned)
+        ManagerError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
     );
 
     // NFT owned sub-account governance cannot be renounced
     let err: ManagerError = sub_account
         .manager
-        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)
+        .update_ownership(ownership::GovAction::RenounceOwnership)
         .unwrap_err()
         .downcast()
         .unwrap();
     assert_eq!(
         err,
-        ManagerError::Ownership(cw_gov_ownable::GovOwnershipError::ChangeOfNftOwned)
+        ManagerError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
     );
 
     Ok(())

@@ -17,7 +17,7 @@ use abstract_std::{
     objects::{
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
-        AccountId, AssetEntry, TruncatedChainId,
+        ownership, AccountId, AssetEntry, TruncatedChainId,
     },
     proxy, IBC_CLIENT, PROXY,
 };
@@ -384,7 +384,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     /// Returns owner of the account
-    pub fn ownership(&self) -> AbstractClientResult<cw_gov_ownable::Ownership<String>> {
+    pub fn ownership(&self) -> AbstractClientResult<ownership::Ownership<String>> {
         let manager = self.manager()?;
         self.remote_chain()
             .query(&manager::QueryMsg::Ownership {}, &manager)

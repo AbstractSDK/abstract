@@ -3,7 +3,7 @@ use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_std::{
     manager::SubAccountIdsResponse,
-    objects::{gov_type::GovernanceDetails, AccountId},
+    objects::{gov_type::GovernanceDetails, ownership, AccountId},
     PROXY,
 };
 use cosmwasm_std::{to_json_binary, wasm_execute};
@@ -262,9 +262,7 @@ fn sub_account_move_ownership() -> AResult {
 
     // Claim ownership
     sub_account.manager.call_as(&new_owner).execute(
-        &abstract_std::manager::ExecuteMsg::UpdateOwnership(
-            cw_gov_ownable::GovAction::AcceptOwnership,
-        ),
+        &abstract_std::manager::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership),
         None,
     )?;
     let account = AbstractAccount::new(&deployment, AccountId::local(1));
@@ -350,7 +348,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         .module_action(vec![wasm_execute(
             new_account_sub_account_manager,
             &abstract_std::manager::ExecuteMsg::UpdateOwnership(
-                cw_gov_ownable::GovAction::AcceptOwnership,
+                ownership::GovAction::AcceptOwnership,
             ),
             vec![],
         )?
@@ -435,9 +433,8 @@ fn account_updated_to_subaccount() -> AResult {
     account.proxy.set_address(&proxy1_addr);
 
     // account1 accepting account2 as a sub-account
-    let accept_msg = abstract_std::manager::ExecuteMsg::UpdateOwnership(
-        cw_gov_ownable::GovAction::AcceptOwnership,
-    );
+    let accept_msg =
+        abstract_std::manager::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
     account.manager.exec_on_module(
         to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![wasm_execute(manager2_addr, &accept_msg, vec![])?.into()],
@@ -476,7 +473,7 @@ fn account_updated_to_subaccount_recursive() -> AResult {
     // accepting ownership by sender instead of the manager
     account
         .manager
-        .update_ownership(cw_gov_ownable::GovAction::AcceptOwnership)?;
+        .update_ownership(ownership::GovAction::AcceptOwnership)?;
 
     // Check manager knows about his new sub-account
     account.manager.set_address(&manager1_addr);
@@ -532,7 +529,7 @@ fn cant_renounce_with_sub_accounts() -> AResult {
 
     let err: ManagerError = account
         .manager
-        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)
+        .update_ownership(ownership::GovAction::RenounceOwnership)
         .unwrap_err()
         .downcast()
         .unwrap();
@@ -565,11 +562,11 @@ fn can_renounce_sub_accounts() -> AResult {
 
     sub_account
         .manager
-        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)?;
+        .update_ownership(ownership::GovAction::RenounceOwnership)?;
 
     account
         .manager
-        .update_ownership(cw_gov_ownable::GovAction::RenounceOwnership)?;
+        .update_ownership(ownership::GovAction::RenounceOwnership)?;
 
     // No owners
     // Renounced governance

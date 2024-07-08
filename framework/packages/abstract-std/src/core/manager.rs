@@ -68,8 +68,9 @@ use crate::{
     manager::state::SuspensionStatus,
     objects::{
         account::AccountId,
-        gov_type::{GovAction, GovernanceDetails, Ownership, TopLevelOwnerResponse},
+        gov_type::{GovAction, GovernanceDetails, TopLevelOwnerResponse},
         module::ModuleInfo,
+        ownership::Ownership,
         AssetEntry,
     },
 };

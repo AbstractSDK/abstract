@@ -2,8 +2,6 @@
 members = [
   "packages/abstract-*",
   "packages/standards/*",
-  "packages/gov-ownable",
-  "packages/gov-ownable/derive",
   "contracts/native/*",
   "contracts/account/*",
   "contracts/templates/*",
@@ -98,11 +96,6 @@ abstract-dex-standard = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 
 abstract-integration-tests = { path = "packages/abstract-integration-tests" }
-
-# Ownership
-abstract-nested-admin = { version = "0.23.0-beta.0", path = "packages/abstract-nested-admin" }
-cw-gov-ownable = { version = "0.1.0", path = "packages/gov-ownable" }
-cw-gov-ownable-derive = { version = "0.1.0", path = "packages/gov-ownable/derive" }
 
 ## Testing
 rstest = "0.17.0"

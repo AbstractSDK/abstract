@@ -1,9 +1,9 @@
-use abstract_nested_admin::query_top_level_owner_addr;
 use abstract_std::{
     app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
     objects::{
         gov_type::TopLevelOwnerResponse,
         module_version::{ModuleDataResponse, MODULE},
+        ownership::nested_admin::query_top_level_owner_addr,
     },
 };
 use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};

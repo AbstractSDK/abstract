@@ -1,12 +1,13 @@
+use crate::objects::{gov_type::GovernanceDetails, ownership::Ownership};
+
 use cosmwasm_std::{
     attr, Addr, CustomQuery, Deps, DepsMut, MessageInfo, QuerierWrapper, Response, StdError,
     StdResult,
 };
 use cw_controllers::{Admin, AdminError, AdminResponse};
-use cw_gov_ownable::Ownership;
 use schemars::JsonSchema;
 
-use abstract_std::objects::gov_type::GovernanceDetails;
+use super::query_ownership;
 
 /// Max manager admin recursion
 pub const MAX_ADMIN_RECURSION: usize = 2;
@@ -147,7 +148,7 @@ pub fn query_top_level_owner<Q: CustomQuery>(
     maybe_manager: Addr,
 ) -> StdResult<Ownership<Addr>> {
     // Starting from (potentially)manager that owns this module
-    let mut current = cw_gov_ownable::query_ownership(querier, maybe_manager);
+    let mut current = query_ownership(querier, maybe_manager);
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
     for _ in 0..MAX_ADMIN_RECURSION {
         match current {
@@ -155,7 +156,7 @@ pub fn query_top_level_owner<Q: CustomQuery>(
                 owner: GovernanceDetails::SubAccount { manager, .. },
                 ..
             }) => {
-                current = cw_gov_ownable::query_ownership(querier, manager);
+                current = query_ownership(querier, manager);
             }
             _ => break,
         }

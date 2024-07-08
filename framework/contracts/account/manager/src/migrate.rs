@@ -3,12 +3,11 @@ use abstract_std::{
         state::{AccountInfo, CONFIG, INFO},
         MigrateMsg,
     },
-    objects::module_version::assert_contract_upgrade,
+    objects::{gov_type::GovernanceDetails, module_version::assert_contract_upgrade, ownership},
     MANAGER,
 };
 use cosmwasm_std::{DepsMut, Env};
 use cw2::set_contract_version;
-use cw_gov_ownable::GovernanceDetails;
 use cw_storage_plus::Item;
 use semver::Version;
 
@@ -46,7 +45,7 @@ pub fn migrate(mut deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult 
         )?;
         // Update ownership
         let config = CONFIG.load(deps.storage)?;
-        cw_gov_ownable::initialize_owner(
+        ownership::initialize_owner(
             deps.branch(),
             info.governance_details,
             config.version_control_address,

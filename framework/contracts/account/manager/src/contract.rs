@@ -9,7 +9,7 @@ use abstract_sdk::std::{
 };
 use abstract_std::{
     manager::{state::ACCOUNT_MODULES, UpdateSubAccountAction},
-    objects::gov_type::GovernanceDetails,
+    objects::{gov_type::GovernanceDetails, ownership},
     PROXY,
 };
 use cosmwasm_std::{
@@ -73,7 +73,7 @@ pub fn instantiate(
     )?;
 
     // Set owner
-    let cw_gov_owner = cw_gov_ownable::initialize_owner(
+    let cw_gov_owner = ownership::initialize_owner(
         deps.branch(),
         msg.owner,
         config.version_control_address.clone(),
@@ -178,13 +178,13 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     let mut info = info;
                     let msgs = match &action {
                         // Disallow the user from using the TransferOwnership action.
-                        cw_gov_ownable::GovAction::TransferOwnership { .. } => {
+                        ownership::GovAction::TransferOwnership { .. } => {
                             return Err(ManagerError::MustUseProposeOwner {});
                         }
-                        cw_gov_ownable::GovAction::AcceptOwnership => {
+                        ownership::GovAction::AcceptOwnership => {
                             update_sub_governance(deps.branch(), &mut info.sender)?
                         }
-                        cw_gov_ownable::GovAction::RenounceOwnership => renounce_governance(
+                        ownership::GovAction::RenounceOwnership => renounce_governance(
                             deps.branch(),
                             env.contract.address,
                             &mut info.sender,
@@ -192,7 +192,7 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     };
 
                     let config = CONFIG.load(deps.storage)?;
-                    let new_owner_attributes = cw_gov_ownable::update_ownership(
+                    let new_owner_attributes = ownership::update_ownership(
                         deps,
                         &env.block,
                         &info.sender,
@@ -222,7 +222,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Info {} => queries::handle_account_info_query(deps),
         QueryMsg::Config {} => queries::handle_config_query(deps),
         QueryMsg::Ownership {} => {
-            cosmwasm_std::to_json_binary(&cw_gov_ownable::get_ownership(deps.storage)?)
+            cosmwasm_std::to_json_binary(&ownership::get_ownership(deps.storage)?)
         }
         QueryMsg::SubAccountIds { start_after, limit } => {
             queries::handle_sub_accounts_query(deps, start_after, limit)

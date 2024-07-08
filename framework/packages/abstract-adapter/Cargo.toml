@@ -25,7 +25,6 @@ thiserror = { workspace = true }
 cw2 = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-std = { workspace = true }
-abstract-nested-admin = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true }
 # Keep this as a version and update when publishing new versions

@@ -13,7 +13,7 @@ use abstract_std::{
         module::{ModuleInfo, ModuleVersion, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
-        AccountId,
+        ownership, AccountId,
     },
     version_control::UpdateModule,
     PROXY,
@@ -514,7 +514,7 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
         .module_action(vec![wasm_execute(
             new_account_manager,
             &abstract_std::manager::ExecuteMsg::UpdateOwnership(
-                cw_gov_ownable::GovAction::AcceptOwnership,
+                ownership::GovAction::AcceptOwnership,
             ),
             vec![],
         )?

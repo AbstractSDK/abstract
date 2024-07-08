@@ -14,6 +14,7 @@ use abstract_std::{
     objects::{
         fee::FixedFee,
         module::{self, Module},
+        ownership,
         validation::validate_link,
         ABSTRACT_ACCOUNT_ID,
     },
@@ -574,8 +575,7 @@ pub fn query_account_owner(
     manager_addr: Addr,
     account_id: &AccountId,
 ) -> VCResult<Addr> {
-    let cw_gov_ownable::Ownership { owner, .. } =
-        cw_gov_ownable::query_ownership(querier, manager_addr)?;
+    let ownership::Ownership { owner, .. } = ownership::query_ownership(querier, manager_addr)?;
 
     owner
         .owner_address(querier)
@@ -648,8 +648,8 @@ mod test {
                         Ok(to_json_binary(&resp).unwrap())
                     }
                     ManagerQueryMsg::Ownership {} => {
-                        let resp = cw_gov_ownable::Ownership {
-                            owner: cw_gov_ownable::GovernanceDetails::Monarchy {
+                        let resp = ownership::Ownership {
+                            owner: ownership::GovernanceDetails::Monarchy {
                                 monarch: Addr::unchecked(OWNER),
                             },
                             pending_expiry: None,
@@ -2337,11 +2337,9 @@ mod test {
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(
                     TEST_MANAGER,
-                    cw_storage_plus::Item::<cw_gov_ownable::Ownership<Addr>>::new(
-                        OWNERSHIP_STORAGE_KEY,
-                    ),
-                    &cw_gov_ownable::Ownership {
-                        owner: cw_gov_ownable::GovernanceDetails::Renounced {},
+                    cw_storage_plus::Item::<ownership::Ownership<Addr>>::new(OWNERSHIP_STORAGE_KEY),
+                    &ownership::Ownership {
+                        owner: ownership::GovernanceDetails::Renounced {},
                         pending_owner: None,
                         pending_expiry: None,
                     },
