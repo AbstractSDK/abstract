@@ -8,7 +8,7 @@ Initialize the owner during instantiation using the `initialize_owner` method pr
 
 ```rust
 use cosmwasm_std::{entry_point, DepsMut, Env, MessageInfo, Response};
-use cw_gov_ownable::OwnershipError;
+use abstract_std::objects::ownership::OwnershipError;
 
 #[entry_point]
 pub fn instantiate(
@@ -22,21 +22,7 @@ pub fn instantiate(
 }
 ```
 
-Use the `#[cw_ownable_execute]` macro to extend your execute message:
-
-```rust
-use cosmwasm_schema::cw_serde;
-use cw_gov_ownable::cw_ownable_execute;
-
-#[cw_ownable_execute]
-#[cw_serde]
-enum ExecuteMsg {
-    Foo {},
-    Bar {},
-}
-```
-
-The macro inserts a new variant, `UpdateOwnership` to the enum:
+Insert a new variant, `UpdateOwnership` to the ExecuteMsg enum:
 
 ```rust
 #[cw_serde]
@@ -57,7 +43,7 @@ Handle the messages using the `update_ownership` function provided by this crate
 
 ```rust
 use cosmwasm_std::{entry_point, DepsMut, Env, MessageInfo, Response};
-use cw_gov_ownable::{cw_serde, update_ownership, OwnershipError};
+use abstract_std::objects::ownership::{update_ownership, OwnershipError};
 
 #[entry_point]
 pub fn execute(
@@ -76,24 +62,7 @@ pub fn execute(
 }
 ```
 
-Use the `#[cw_ownable_query]` macro to extend your query message:
-
-```rust
-use cosmwasm_schema::{cw_serde, QueryResponses};
-use cw_gov_ownable::cw_ownable_query;
-
-#[cw_ownable_query]
-#[cw_serde]
-#[derive(QueryResponses)]
-pub enum QueryMsg {
-    #[returns(FooResponse)]
-    Foo {},
-    #[returns(BarResponse)]
-    Bar {},
-}
-```
-
-The macro inserts a new variant, `Ownership`:
+Insert a new variant to the QueryMsg, `Ownership`:
 
 ```rust
 #[cw_serde]
@@ -108,11 +77,11 @@ enum QueryMsg {
 }
 ```
 
-Handle the message using the `get_ownership` function provided by this crate:
+Handle the message using the `get_ownership` function provided by this module:
 
 ```rust
 use cosmwasm_std::{entry_point, Deps, Env, Binary};
-use cw_gov_ownable::get_ownership;
+use abstract_std::objects::ownership::get_ownership;
 
 #[entry_point]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
@@ -122,6 +91,12 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 ```
+
+## Edge cases
+
+### NFT governance type
+
+In case NFT contract does not return owner of `owner_of`, ownership will act as renounced. For example NFT got burned or something happened with NFT contract.
 
 ## License
 

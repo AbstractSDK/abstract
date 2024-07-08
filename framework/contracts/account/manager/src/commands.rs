@@ -18,8 +18,7 @@ use abstract_std::{
         gov_type::GovernanceDetails,
         module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
-        ownership,
-        ownership::nested_admin::query_top_level_owner_addr,
+        ownership::{self, nested_admin::query_top_level_owner_addr, GovOwnershipError},
         salt::generate_instantiate_salt,
         validation::{validate_description, validate_link, validate_name},
         version_control::VersionControlContract,
@@ -36,7 +35,6 @@ use cosmwasm_std::{
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
-use ownership::GovOwnershipError;
 use semver::Version;
 
 use crate::{

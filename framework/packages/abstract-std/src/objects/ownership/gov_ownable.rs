@@ -1,4 +1,4 @@
-#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
+#![doc = include_str!("README.md")]
 
 pub use crate::objects::gov_type::{GovAction, GovernanceDetails};
 use crate::{objects::common_namespace::OWNERSHIP_STORAGE_KEY, AbstractError};
