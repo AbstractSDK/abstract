@@ -1,5 +1,5 @@
 use abstract_app::{
-    objects::chain_name::ChainName,
+    objects::TruncatedChainId,
     sdk::IbcInterface,
     std::{ibc::Callback, ibc_client::InstalledModuleIdentification},
     traits::{AbstractResponse, AccountIdentification},
@@ -26,7 +26,7 @@ pub fn execute_handler(
     }
 }
 
-pub(crate) fn ping_pong(deps: DepsMut, opponent_chain: ChainName, app: App) -> AppResult {
+pub(crate) fn ping_pong(deps: DepsMut, opponent_chain: TruncatedChainId, app: App) -> AppResult {
     let current_module_info = app.module_info()?;
     let ibc_client = app.ibc_client(deps.as_ref());
     let ibc_action = ibc_client.module_ibc_action(
@@ -47,11 +47,16 @@ pub(crate) fn ping_pong(deps: DepsMut, opponent_chain: ChainName, app: App) -> A
         .add_message(ibc_action))
 }
 
-fn query_and_ping(env: &Env, deps: DepsMut, opponent_chain: ChainName, app: App) -> AppResult {
+fn query_and_ping(
+    env: &Env,
+    deps: DepsMut,
+    opponent_chain: TruncatedChainId,
+    app: App,
+) -> AppResult {
     let ibc_client = app.ibc_client(deps.as_ref());
     let dest_account_id = app
         .account_id(deps.as_ref())?
-        .into_dest_account_id(ChainName::new(env), opponent_chain.clone());
+        .into_dest_account_id(TruncatedChainId::new(env), opponent_chain.clone());
 
     let module_query = ibc_client.module_ibc_query(
         opponent_chain.clone(),

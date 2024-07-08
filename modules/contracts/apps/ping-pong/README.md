@@ -7,7 +7,7 @@ PingPong {
     /// How many pings pongs in and out should be done
     pongs: u32,
     /// Host chain
-    host_chain: ChainName,
+    host_chain: TruncatedChainId,
 }
 ```
 
