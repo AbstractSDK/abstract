@@ -296,7 +296,7 @@ fn generate_new_local_account_id(
     if next_sequence == ABSTRACT_ACCOUNT_ID.seq() {
         cw_ownable::assert_owner(storage, &info.sender)?;
     }
-    LOCAL_ACCOUNT_SEQUENCE.save(storage, &next_sequence.clone().checked_add(1).unwrap())?;
+    LOCAL_ACCOUNT_SEQUENCE.save(storage, &next_sequence.checked_add(1).unwrap())?;
 
     Ok(AccountId::new(next_sequence, origin)?)
 }
