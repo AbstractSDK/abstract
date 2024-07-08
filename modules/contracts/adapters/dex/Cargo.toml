@@ -42,7 +42,6 @@ wynd = [
 osmosis = ["abstract-osmosis-adapter/full_integration"]
 astroport = ["abstract-astroport-adapter/full_integration"]
 fin = ["abstract-kujira-adapter/full_integration"]
-# terraswap = ["dep:terraswap", "dep:cw20"]
 astrovault = ["abstract-astrovault-adapter/full_integration"]
 
 osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
@@ -50,18 +49,30 @@ osmosis-test = ["dep:cw-orch-osmosis-test-tube"]
 # Builds
 [package.metadata.optimizer]
 builds = [
-  { name = "juno", features = ["wynd"] },
+  { name = "juno", features = [
+    "wynd",
+  ] },
   { name = "terra2", features = [
     "astroport",
-    # No one uses terraswap but it makes wasm too big
-    # "terraswap",
   ] },
-  { name = "neutron", features = ["astroport"] },
-  { name = "osmosis", features = ["osmosis"] },
-  { name = "kujira", features = ["fin"] },
-  { name = "injective", features = ["astroport"] },
-  { name = "sei", features = ["astroport"] },
-  { name = "archway", features = ["astrovault"] },
+  { name = "neutron", features = [
+    "astroport",
+  ] },
+  { name = "osmosis", features = [
+    "osmosis",
+  ] },
+  { name = "kujira", features = [
+    "fin",
+  ] },
+  { name = "injective", features = [
+    "astroport",
+  ] },
+  { name = "sei", features = [
+    "astroport",
+  ] },
+  { name = "archway", features = [
+    "astrovault",
+  ] },
 ]
 
 [dependencies]
