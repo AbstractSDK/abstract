@@ -47,7 +47,7 @@ pub mod interface {
             artifacts_dir_from_workspace!()
                 .find_wasm_path_with_build_postfix(
                     "abstract_money_market_adapter",
-                    BuildPostfix::ChainName(chain),
+                    BuildPostfix::TruncatedChainId(chain),
                 )
                 .unwrap()
         }

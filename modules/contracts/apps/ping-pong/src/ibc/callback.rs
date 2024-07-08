@@ -1,5 +1,5 @@
 use abstract_app::{
-    objects::chain_name::ChainName,
+    objects::chain_name::TruncatedChainId,
     sdk::AbstractResponse,
     std::ibc::{Callback, IbcResult},
 };
@@ -58,7 +58,7 @@ pub fn play_if_win(
     deps: DepsMut,
     app: App,
     result: IbcResult,
-    opponent_chain: ChainName,
+    opponent_chain: TruncatedChainId,
 ) -> AppResult {
     let (_, result) = result.get_query_result(0)?;
     let BlockHeightResponse { height } = from_json(result)?;
