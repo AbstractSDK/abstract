@@ -449,40 +449,6 @@ pub(crate) fn _uninstall_module(deps: DepsMut, module_id: String) -> ManagerResu
     Ok(response)
 }
 
-/// Proposes a new owner for the account.
-/// Use [ExecuteMsg::UpdateOwnership] to claim the ownership.
-pub fn propose_owner(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    new_owner: GovernanceDetails<String>,
-) -> ManagerResult {
-    // verify the provided governance details
-    let config = CONFIG.load(deps.storage)?;
-
-    // Update the Owner of the Account
-    // Safety: update_ownership checks sender
-    let ownership = ownership::update_ownership(
-        deps,
-        &env.block,
-        &info.sender,
-        config.version_control_address,
-        ownership::GovAction::TransferOwnership {
-            new_owner,
-            expiry: None,
-        },
-    )?;
-
-    Ok(ManagerResponse::new(
-        "update_owner",
-        vec![(
-            "governance_type",
-            ownership.pending_owner.clone().unwrap().to_string(),
-        )],
-    )
-    .add_attributes(ownership.into_attributes()))
-}
-
 /// Update governance of sub_accounts account after claim
 pub(crate) fn update_sub_governance(
     deps: DepsMut,
@@ -1149,15 +1115,18 @@ mod tests {
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     mod set_owner_and_gov_type {
+        use ownership::GovAction;
+
         use super::*;
 
         #[test]
         fn only_owner() -> ManagerTestResult {
-            let msg = ExecuteMsg::ProposeOwner {
-                owner: GovernanceDetails::Monarchy {
+            let msg = ExecuteMsg::UpdateOwnership(GovAction::TransferOwnership {
+                new_owner: GovernanceDetails::Monarchy {
                     monarch: "test_owner".to_string(),
                 },
-            };
+                expiry: None,
+            });
 
             test_only_owner(msg)
         }
@@ -1167,11 +1136,12 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::ProposeOwner {
-                owner: GovernanceDetails::Monarchy {
+            let msg = ExecuteMsg::UpdateOwnership(GovAction::TransferOwnership {
+                new_owner: GovernanceDetails::Monarchy {
                     monarch: "INVALID".to_string(),
                 },
-            };
+                expiry: None,
+            });
 
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that!(res).is_err().matches(|err| {
@@ -1191,11 +1161,12 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let new_owner = "new_owner";
-            let set_owner_msg = ExecuteMsg::ProposeOwner {
-                owner: GovernanceDetails::Monarchy {
+            let set_owner_msg = ExecuteMsg::UpdateOwnership(GovAction::TransferOwnership {
+                new_owner: GovernanceDetails::Monarchy {
                     monarch: new_owner.to_string(),
                 },
-            };
+                expiry: None,
+            });
 
             let res = execute_as_owner(deps.as_mut(), set_owner_msg);
             assert_that!(&res).is_ok();
@@ -1219,11 +1190,12 @@ mod tests {
 
             let new_gov = "new_gov".to_string();
 
-            let msg = ExecuteMsg::ProposeOwner {
-                owner: GovernanceDetails::Monarchy {
+            let msg = ExecuteMsg::UpdateOwnership(GovAction::TransferOwnership {
+                new_owner: GovernanceDetails::Monarchy {
                     monarch: new_gov.clone(),
                 },
-            };
+                expiry: None,
+            });
 
             execute_as_owner(deps.as_mut(), msg)?;
 

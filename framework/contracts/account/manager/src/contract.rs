@@ -134,7 +134,6 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::UpdateInternalConfig(config) => {
                     update_internal_config(deps, info, config)
                 }
-                ExecuteMsg::ProposeOwner { owner } => propose_owner(deps, env, info, owner),
                 ExecuteMsg::InstallModules { modules } => install_modules(deps, info, modules),
                 ExecuteMsg::UninstallModule { module_id } => {
                     uninstall_module(deps, info, module_id)

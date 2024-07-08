@@ -9,8 +9,9 @@ use abstract_std::{
     },
     manager::ModuleInstallConfig,
     objects::{
-        gov_type::GovernanceDetails, module::ModuleInfo, AccountId, AssetEntry,
-        UncheckedChannelEntry,
+        gov_type::{GovAction, GovernanceDetails},
+        module::ModuleInfo,
+        AccountId, AssetEntry, UncheckedChannelEntry,
     },
     ACCOUNT_FACTORY, ICS20, MANAGER, PROXY,
 };
@@ -284,11 +285,14 @@ fn account_action() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ProposeOwner {
-                    owner: GovernanceDetails::Monarchy {
-                        monarch: mock.addr_make("new_owner").to_string(),
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateOwnership(
+                    GovAction::TransferOwnership {
+                        new_owner: GovernanceDetails::Monarchy {
+                            monarch: mock.addr_make("new_owner").to_string(),
+                        },
+                        expiry: None,
                     },
-                }],
+                )],
             },
             proxy_addr.to_string(),
         )
@@ -306,8 +310,10 @@ fn account_action() -> anyhow::Result<()> {
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
             .add_attribute("contract", MANAGER)
-            .add_attribute("action", "update_owner")
-            .add_attribute("governance_type", "monarch")
+            .add_attribute("action", "update_ownership")
+            .add_attribute("owner", "abstract-ibc")
+            .add_attribute("pending_owner", "monarch")
+            .add_attribute("pending_expiry", "none")
     ));
 
     Ok(())
@@ -336,11 +342,14 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
         .ibc_execute(
             AccountId::local(account_sequence),
             HostAction::Dispatch {
-                manager_msgs: vec![abstract_std::manager::ExecuteMsg::ProposeOwner {
-                    owner: GovernanceDetails::Monarchy {
-                        monarch: mock.addr_make("new_owner").to_string(),
+                manager_msgs: vec![abstract_std::manager::ExecuteMsg::UpdateOwnership(
+                    GovAction::TransferOwnership {
+                        new_owner: GovernanceDetails::Monarchy {
+                            monarch: mock.addr_make("new_owner").to_string(),
+                        },
+                        expiry: None,
                     },
-                }],
+                )],
             },
             mock.addr_make("proxy_address").to_string(),
         )
@@ -358,8 +367,10 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
             .add_attribute("contract", MANAGER)
-            .add_attribute("action", "update_owner")
-            .add_attribute("governance_type", "monarch")
+            .add_attribute("action", "update_ownership")
+            .add_attribute("owner", "abstract-ibc")
+            .add_attribute("pending_owner", "monarch")
+            .add_attribute("pending_expiry", "none")
     ));
 
     Ok(())

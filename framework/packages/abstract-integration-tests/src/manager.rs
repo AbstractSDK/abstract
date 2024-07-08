@@ -503,7 +503,12 @@ pub fn account_move_ownership_to_sub_account<T: CwEnv<Sender = Addr>>(chain: T) 
         manager: sub_manager_addr.to_string(),
         proxy: sub_proxy_addr.to_string(),
     };
-    new_account.manager.propose_owner(new_governance.clone())?;
+    new_account
+        .manager
+        .update_ownership(ownership::GovAction::TransferOwnership {
+            new_owner: new_governance.clone(),
+            expiry: None,
+        })?;
     let new_account_manager = new_account.manager.address()?;
     let new_account_id = new_account.id()?;
 

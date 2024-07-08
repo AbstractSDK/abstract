@@ -3,7 +3,10 @@ use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_std::{
     manager::SubAccountIdsResponse,
-    objects::{gov_type::GovernanceDetails, ownership, AccountId},
+    objects::{
+        gov_type::{GovAction, GovernanceDetails},
+        ownership, AccountId,
+    },
     PROXY,
 };
 use cosmwasm_std::{to_json_binary, wasm_execute};
@@ -241,8 +244,11 @@ fn sub_account_move_ownership() -> AResult {
     let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
     sub_account
         .manager
-        .propose_owner(GovernanceDetails::Monarchy {
-            monarch: new_owner.to_string(),
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::Monarchy {
+                monarch: new_owner.to_string(),
+            },
+            expiry: None,
         })?;
 
     // Make sure it's not updated until claimed
@@ -333,7 +339,10 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     };
     new_account_sub_account
         .manager
-        .propose_owner(new_governance.clone())?;
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: new_governance.clone(),
+            expiry: None,
+        })?;
     let new_account_sub_account_manager = new_account_sub_account.manager.address()?;
 
     let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
@@ -399,7 +408,10 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
     };
     let err = new_account
         .manager
-        .propose_owner(new_governance)
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: new_governance.clone(),
+            expiry: None,
+        })
         .unwrap_err();
     let err = err.root().to_string();
     assert!(err.contains("manager and proxy has different account ids"));
@@ -425,9 +437,12 @@ fn account_updated_to_subaccount() -> AResult {
     // Setting account1 as pending owner of account2
     account
         .manager
-        .propose_owner(GovernanceDetails::SubAccount {
-            manager: manager1_addr.to_string(),
-            proxy: proxy1_addr.to_string(),
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::SubAccount {
+                manager: manager1_addr.to_string(),
+                proxy: proxy1_addr.to_string(),
+            },
+            expiry: None,
         })?;
     account.manager.set_address(&manager1_addr);
     account.proxy.set_address(&proxy1_addr);
@@ -466,9 +481,12 @@ fn account_updated_to_subaccount_recursive() -> AResult {
     // Setting account1 as pending owner of account2
     account
         .manager
-        .propose_owner(GovernanceDetails::SubAccount {
-            manager: manager1_addr.to_string(),
-            proxy: proxy1_addr.to_string(),
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::SubAccount {
+                manager: manager1_addr.to_string(),
+                proxy: proxy1_addr.to_string(),
+            },
+            expiry: None,
         })?;
     // accepting ownership by sender instead of the manager
     account

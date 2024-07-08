@@ -6,7 +6,7 @@ use abstract_std::{
     manager::{ManagerModuleInfo, ModuleInstallConfig, ModuleVersionsResponse},
     objects::{
         fee::FixedFee,
-        gov_type::GovernanceDetails,
+        gov_type::{GovAction, GovernanceDetails},
         module::{ModuleInfo, ModuleVersion, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
@@ -590,8 +590,11 @@ fn nft_owner_immutable() -> Result<(), Error> {
     // NFT owned account governance cannot be transferred
     let err: ManagerError = account
         .manager
-        .propose_owner(GovernanceDetails::Monarchy {
-            monarch: not_nft_owner.to_string(),
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::Monarchy {
+                monarch: not_nft_owner.to_string(),
+            },
+            expiry: None,
         })
         .unwrap_err()
         .downcast()
@@ -630,8 +633,11 @@ fn nft_owner_immutable() -> Result<(), Error> {
     // NFT owned sub-account governance cannot be transferred
     let err: ManagerError = sub_account
         .manager
-        .propose_owner(GovernanceDetails::Monarchy {
-            monarch: not_nft_owner.to_string(),
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::Monarchy {
+                monarch: not_nft_owner.to_string(),
+            },
+            expiry: None,
         })
         .unwrap_err()
         .downcast()
