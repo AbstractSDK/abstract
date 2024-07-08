@@ -47,7 +47,12 @@ pub(crate) fn ping_pong(deps: DepsMut, opponent_chain: TruncatedChainId, app: Ap
         .add_message(ibc_action))
 }
 
-fn query_and_ping(env: &Env, deps: DepsMut, opponent_chain: TruncatedChainId, app: App) -> AppResult {
+fn query_and_ping(
+    env: &Env,
+    deps: DepsMut,
+    opponent_chain: TruncatedChainId,
+    app: App,
+) -> AppResult {
     let ibc_client = app.ibc_client(deps.as_ref());
     let dest_account_id = app
         .account_id(deps.as_ref())?
