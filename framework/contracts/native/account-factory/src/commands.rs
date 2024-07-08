@@ -385,7 +385,7 @@ fn verify_nft_ownership(
     sender: Addr,
     nft_addr: Addr,
     nft_id: String,
-) -> Result<(), AbstractError> {
+) -> Result<(), AccountFactoryError> {
     // get owner of token_id from collection
     let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
         nft_addr,
@@ -398,7 +398,7 @@ fn verify_nft_ownership(
     ensure_eq!(
         sender,
         owner.owner,
-        AbstractError::Ownership(OwnershipError::NotOwner)
+        AccountFactoryError::Ownership(OwnershipError::NotOwner)
     );
 
     Ok(())

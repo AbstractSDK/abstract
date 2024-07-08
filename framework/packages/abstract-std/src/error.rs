@@ -19,9 +19,6 @@ pub enum AbstractError {
     Overflow(#[from] OverflowError),
 
     #[error("{0}")]
-    Ownership(#[from] cw_ownable::OwnershipError),
-
-    #[error("{0}")]
     VersionControlError(#[from] VersionControlError),
 
     #[error("{0}")]
