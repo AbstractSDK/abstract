@@ -158,17 +158,29 @@ pub fn assert_owner(
     sender: &Addr,
 ) -> Result<(), GovOwnershipError> {
     let ownership = OWNERSHIP.load(store)?;
-    check_owner(querier, &ownership, sender)
+    // If current sender is owner of this account - it's the owner
+    if check_owner(querier, &ownership, sender).is_ok() {
+        return Ok(());
+    }
+    // Otherwise we need to check top level owner
+    let top_level_ownership = if let GovernanceDetails::SubAccount { manager, .. } = ownership.owner
+    {
+        query_top_level_owner(querier, manager)?
+    } else {
+        ownership
+    };
+    // the contract must have an owner
+    check_owner(querier, &top_level_ownership, sender)
 }
 
 /// Assert that an account is the contract's current owner.
 fn check_owner(
     querier: &QuerierWrapper,
-    top_level_ownership: &Ownership<Addr>,
+    ownership: &Ownership<Addr>,
     sender: &Addr,
 ) -> Result<(), GovOwnershipError> {
     // the contract must have an owner
-    let Some(current_owner) = &top_level_ownership.owner.owner_address(querier) else {
+    let Some(current_owner) = &ownership.owner.owner_address(querier) else {
         return Err(GovOwnershipError::NoOwner);
     };
 

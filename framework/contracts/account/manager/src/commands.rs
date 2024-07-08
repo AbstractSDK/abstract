@@ -19,7 +19,7 @@ use abstract_std::{
         module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
         ownership,
-        ownership::nested_admin::{query_top_level_owner_addr, NestedAdmin},
+        ownership::nested_admin::query_top_level_owner_addr,
         salt::generate_instantiate_salt,
         validation::{validate_description, validate_link, validate_name},
         version_control::VersionControlContract,
@@ -35,7 +35,6 @@ use cosmwasm_std::{
     SubMsgResult, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
-use cw_controllers::AdminError;
 use cw_storage_plus::Item;
 use ownership::GovOwnershipError;
 use semver::Version;
@@ -90,12 +89,11 @@ pub fn update_module_addresses(
 /// Attempts to install a new module through the Module Factory Contract
 pub fn install_modules(
     mut deps: DepsMut,
-    env: Env,
-    msg_info: MessageInfo,
+    info: MessageInfo,
     modules: Vec<ModuleInstallConfig>,
 ) -> ManagerResult {
     // only owner can call this method
-    assert_is_admin(deps.as_ref(), &env, &msg_info.sender)?;
+    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
@@ -104,7 +102,7 @@ pub fn install_modules(
         modules,
         config.module_factory_address,
         config.version_control_address,
-        msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
+        info.funds, // We forward all the funds to the module_factory address for them to use in the install
     )?;
     let response = ManagerResponse::new("install_modules", std::iter::once(install_attribute))
         .add_submessages(install_msgs);
@@ -263,13 +261,12 @@ pub(crate) fn register_dependencies(deps: DepsMut, _result: SubMsgResult) -> Man
 /// Execute the [`exec_msg`] on the provided [`module_id`],
 pub fn exec_on_module(
     deps: DepsMut,
-    env: Env,
-    msg_info: MessageInfo,
+    info: MessageInfo,
     module_id: String,
     exec_msg: Binary,
 ) -> ManagerResult {
     // only owner can forward messages to modules
-    assert_is_admin(deps.as_ref(), &env, &msg_info.sender)?;
+    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
@@ -277,7 +274,7 @@ pub fn exec_on_module(
         CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: module_addr.into(),
             msg: exec_msg,
-            funds: msg_info.funds,
+            funds: info.funds,
         }),
     );
 
@@ -299,7 +296,7 @@ pub fn create_sub_account(
     account_id: Option<u32>,
 ) -> ManagerResult {
     // only owner can create a subaccount
-    assert_is_admin(deps.as_ref(), &env, &info.sender)?;
+    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
 
     let create_account_msg = &abstract_std::account_factory::ExecuteMsg::CreateAccount {
         // proxy of this manager will be the account owner
@@ -401,14 +398,9 @@ fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, M
 }
 
 /// Uninstall the module with the ID [`module_id`]
-pub fn uninstall_module(
-    deps: DepsMut,
-    env: Env,
-    msg_info: MessageInfo,
-    module_id: String,
-) -> ManagerResult {
+pub fn uninstall_module(deps: DepsMut, info: MessageInfo, module_id: String) -> ManagerResult {
     // only owner can uninstall modules
-    assert_is_admin(deps.as_ref(), &env, &msg_info.sender)?;
+    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
 
     _uninstall_module(deps, module_id)
 }
@@ -618,7 +610,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
-    assert_is_admin(deps.as_ref(), &env, &info.sender)?;
+    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
     ensure!(!modules.is_empty(), ManagerError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];
@@ -896,13 +888,12 @@ pub fn replace_adapter(
 /// Update the Account information
 pub fn update_info(
     deps: DepsMut,
-    env: Env,
     info: MessageInfo,
     name: Option<String>,
     description: Option<String>,
     link: Option<String>,
 ) -> ManagerResult {
-    assert_is_admin(deps.as_ref(), &env, &info.sender)?;
+    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
 
     let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
@@ -920,13 +911,12 @@ pub fn update_info(
 
 pub fn update_suspension_status(
     deps: DepsMut,
-    env: Env,
-    msg_info: MessageInfo,
+    info: MessageInfo,
     is_suspended: SuspensionStatus,
     response: Response,
 ) -> ManagerResult {
     // only owner can update suspension status
-    assert_is_admin(deps.as_ref(), &env, &msg_info.sender)?;
+    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
 
     SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
 
@@ -1052,14 +1042,13 @@ fn configure_old_adapter(
 
 pub fn update_account_status(
     deps: DepsMut,
-    env: Env,
     info: MessageInfo,
     suspension_status: Option<bool>,
 ) -> Result<Response, ManagerError> {
     let mut response = ManagerResponse::action("update_status");
 
     if let Some(suspension_status) = suspension_status {
-        response = update_suspension_status(deps, env, info, suspension_status, response)?;
+        response = update_suspension_status(deps, info, suspension_status, response)?;
     } else {
         return Err(ManagerError::NoUpdates {});
     }
@@ -1069,12 +1058,7 @@ pub fn update_account_status(
 
 /// Allows the owner to manually update the internal configuration of the account.
 /// This can be used to unblock the account and its modules in case of a bug/lock on the account.
-pub fn update_internal_config(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    config: Binary,
-) -> ManagerResult {
+pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) -> ManagerResult {
     // deserialize the config action
     let action: InternalConfigAction =
         from_json(config).map_err(|error| ManagerError::InvalidConfigAction { error })?;
@@ -1088,31 +1072,8 @@ pub fn update_internal_config(
         }
     };
 
-    assert_is_admin(deps.as_ref(), &env, &info.sender)?;
+    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
     update_module_addresses(deps, add, remove)
-}
-
-/// Function that guards all the admin rights.
-/// This function should return `Ok` when called by:
-/// - The owner of the contract (i.e. account).
-/// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
-fn assert_is_admin(deps: Deps, env: &Env, sender: &Addr) -> ManagerResult<()> {
-    let ownership = ownership::get_ownership(deps.storage)?.owner;
-    let owner = ownership
-        .owner_address(&deps.querier)
-        // if no owner, set current contract as "owner".
-        // this enables NFT ownership and will still error on Renounced ownership
-        .unwrap_or(env.contract.address.clone());
-    // If owner is sender - owner it's the admin
-    if owner == sender {
-        return Ok(());
-    }
-    // Else we maybe dealing with sub account and need to check recursive admins
-    let GovernanceDetails::SubAccount { manager, .. } = ownership else {
-        return Err(ManagerError::Ownership(GovOwnershipError::NotOwner));
-    };
-    NestedAdmin::assert_admin_custom(&deps.querier, sender, manager)
-        .map_err(|_| ManagerError::Ownership(GovOwnershipError::NotOwner))
 }
 
 pub(crate) fn adapter_authorized_remove(deps: DepsMut, result: SubMsgResult) -> ManagerResult {
@@ -1809,7 +1770,6 @@ mod tests {
 
     mod update_internal_config {
         use abstract_std::manager::{InternalConfigAction::UpdateModuleAddresses, QueryMsg};
-        use cw_controllers::AdminError;
 
         use super::*;
 

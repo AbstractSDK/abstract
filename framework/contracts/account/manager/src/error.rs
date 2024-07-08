@@ -4,7 +4,6 @@ use abstract_std::{
     AbstractError,
 };
 use cosmwasm_std::{Instantiate2AddressError, StdError};
-use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
