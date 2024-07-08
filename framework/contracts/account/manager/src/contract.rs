@@ -179,10 +179,10 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                     let msgs = match &action {
                         ownership::GovAction::TransferOwnership { .. } => vec![],
                         ownership::GovAction::AcceptOwnership => {
-                            update_sub_governance(deps.branch(), &mut info.sender)?
+                            maybe_update_sub_account_governance(deps.branch(), &mut info.sender)?
                         }
                         ownership::GovAction::RenounceOwnership => {
-                            renounce_governance(deps.branch())?
+                            remove_account_from_contracts(deps.branch())?
                         }
                     };
 

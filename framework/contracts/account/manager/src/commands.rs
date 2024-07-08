@@ -448,7 +448,7 @@ pub(crate) fn _uninstall_module(deps: DepsMut, module_id: String) -> ManagerResu
 }
 
 /// Update governance of sub_accounts account after claim
-pub(crate) fn update_sub_governance(
+pub(crate) fn maybe_update_sub_account_governance(
     deps: DepsMut,
     sender: &mut Addr,
 ) -> ManagerResult<Vec<CosmosMsg>> {
@@ -507,7 +507,7 @@ pub(crate) fn update_sub_governance(
 
 /// Renounce ownership of this account \
 /// **WARNING**: This will lock the account, making it unusable.
-pub(crate) fn renounce_governance(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>> {
+pub(crate) fn remove_account_from_contracts(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
 
     let account_id = ACCOUNT_ID.load(deps.storage)?;
