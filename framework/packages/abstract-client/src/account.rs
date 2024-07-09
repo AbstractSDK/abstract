@@ -642,14 +642,18 @@ impl<Chain: CwEnv> Account<Chain> {
             if sub_account_ids.is_empty() {
                 break;
             }
-            sub_accounts.extend(sub_account_ids.into_iter().map(|id| {
+            sub_accounts.extend(sub_account_ids);
+        }
+
+        Ok(sub_accounts
+            .into_iter()
+            .map(|id| {
                 Account::new(
                     AbstractAccount::new(&abstr_deployment, AccountId::local(id)),
                     false,
                 )
-            }));
-        }
-        Ok(sub_accounts)
+            })
+            .collect())
     }
 
     /// Address of the proxy
