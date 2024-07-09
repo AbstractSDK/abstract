@@ -200,15 +200,15 @@ fn check_ownership_can_change(
 ) -> Result<(), GovOwnershipError> {
     match &ownership.owner {
         GovernanceDetails::SubAccount { manager, .. } => {
-            let top_level_owner = query_top_level_owner(&querier, manager.clone())?;
+            let top_level_owner = query_top_level_owner(querier, manager.clone())?;
             // Verify top level account allows ownership changes
             // We prevent transfers of current ownership if it's NFT
             top_level_owner.assert_can_change_ownership()?;
 
             // Assert admin
             // We are dealing with sub account, so we need to check both manager as caller and top level address
-            if check_owner(&querier, &ownership, sender).is_err() {
-                check_owner(&querier, &top_level_owner, sender)?
+            if check_owner(querier, ownership, sender).is_err() {
+                check_owner(querier, &top_level_owner, sender)?
             }
         }
         _ => {
@@ -217,7 +217,7 @@ fn check_ownership_can_change(
             ownership.assert_can_change_ownership()?;
 
             // Assert admin
-            check_owner(&querier, &ownership, sender)?;
+            check_owner(querier, ownership, sender)?;
         }
     }
 
@@ -271,7 +271,7 @@ fn transfer_ownership(
 
     OWNERSHIP.update(deps.storage, |ownership| {
         // Check sender and verify governance is not immutable
-        check_ownership_can_change(&deps.querier, &ownership, &sender)?;
+        check_ownership_can_change(&deps.querier, &ownership, sender)?;
         // NOTE: We don't validate the expiry, i.e. asserting it is later than
         // the current block time.
         //
@@ -332,12 +332,11 @@ fn accept_ownership(
             // If not direct owner, need to check top level ownership
 
             // Check if top level owner of pending is caller
-            let is_top_level_sender = query_top_level_owner(querier, manager.clone())?
+            query_top_level_owner(querier, manager.clone())?
                 .owner
                 .owner_address(querier)
                 .map(|top_sender| top_sender == sender)
-                .unwrap_or_default();
-            is_top_level_sender
+                .unwrap_or_default()
         } else {
             false
         };
@@ -370,7 +369,7 @@ fn renounce_ownership(
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
     OWNERSHIP.update(store, |ownership| {
         // Check sender and verify governance is not immutable
-        check_ownership_can_change(querier, &ownership, &sender)?;
+        check_ownership_can_change(querier, &ownership, sender)?;
 
         Ok(Ownership {
             owner: GovernanceDetails::Renounced {},

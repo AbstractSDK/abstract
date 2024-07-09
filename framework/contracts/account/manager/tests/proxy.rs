@@ -72,7 +72,7 @@ fn mint_nft(
             extension: None,
         },
         &[],
-        &nft_addr,
+        nft_addr,
     )?;
     Ok(())
 }
@@ -714,9 +714,7 @@ fn nft_pending_owner_no_owner() -> Result<(), Error> {
 
     // Burn NFT, to ensure account becomes unusable
     chain.execute(
-        &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Burn {
-            token_id: token_id.into(),
-        },
+        &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Burn { token_id },
         &[],
         &nft_addr,
     )?;
