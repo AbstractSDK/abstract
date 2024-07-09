@@ -192,6 +192,38 @@ fn check_owner(
     Ok(())
 }
 
+/// Asserts governance change allowed and account is the contract's current owner.
+fn check_ownership_can_change(
+    querier: &QuerierWrapper,
+    ownership: &Ownership<Addr>,
+    sender: &Addr,
+) -> Result<(), GovOwnershipError> {
+    match &ownership.owner {
+        GovernanceDetails::SubAccount { manager, .. } => {
+            let top_level_owner = query_top_level_owner(&querier, manager.clone())?;
+            // Verify top level account allows ownership changes
+            // We prevent transfers of current ownership if it's NFT
+            top_level_owner.assert_can_change_ownership()?;
+
+            // Assert admin
+            // We are dealing with sub account, so we need to check both manager as caller and top level address
+            if check_owner(&querier, &ownership, sender).is_err() {
+                check_owner(&querier, &top_level_owner, sender)?
+            }
+        }
+        _ => {
+            // Verify account allows ownership changes
+            // We prevent transfers of current ownership if it's NFT
+            ownership.assert_can_change_ownership()?;
+
+            // Assert admin
+            check_owner(&querier, &ownership, sender)?;
+        }
+    }
+
+    Ok(())
+}
+
 /// Update the contract's ownership info based on the given action.
 /// Return the updated ownership.
 pub fn update_ownership(
@@ -238,18 +270,8 @@ fn transfer_ownership(
     }
 
     OWNERSHIP.update(deps.storage, |ownership| {
-        let top_level_ownership =
-            if let GovernanceDetails::SubAccount { manager, .. } = &ownership.owner {
-                query_top_level_owner(&deps.querier, manager.clone())?
-            } else {
-                ownership.clone()
-            };
-        // the contract must have an owner
-        check_owner(&deps.querier, &top_level_ownership, sender)?;
-
-        // Verify top level account allows ownership changes
-        // We prevent transfers of current ownership if it's NFT
-        top_level_ownership.assert_can_change_ownership()?;
+        // Check sender and verify governance is not immutable
+        check_ownership_can_change(&deps.querier, &ownership, &sender)?;
 
         // NOTE: We don't validate the expiry, i.e. asserting it is later than
         // the current block time.
@@ -324,17 +346,8 @@ fn renounce_ownership(
     sender: &Addr,
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
     OWNERSHIP.update(store, |ownership| {
-        let top_level_ownership =
-            if let GovernanceDetails::SubAccount { manager, .. } = &ownership.owner {
-                query_top_level_owner(querier, manager.clone())?
-            } else {
-                ownership.clone()
-            };
-        // Verify top level account allows ownership changes
-        // We prevent renounce of current ownership if it's NFT
-        top_level_ownership.assert_can_change_ownership()?;
-
-        check_owner(querier, &top_level_ownership, sender)?;
+        // Check sender and verify governance is not immutable
+        check_ownership_can_change(querier, &ownership, &sender)?;
 
         Ok(Ownership {
             owner: GovernanceDetails::Renounced {},
