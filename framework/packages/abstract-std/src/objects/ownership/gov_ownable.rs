@@ -265,14 +265,13 @@ fn transfer_ownership(
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
     let new_owner = new_owner.verify(deps.as_ref(), version_control)?;
 
-    if let GovernanceDetails::Renounced {} = new_owner {
+    if new_owner.owner_address(&deps.querier).is_none() {
         return Err(GovOwnershipError::TransferToRenounced {});
     }
 
     OWNERSHIP.update(deps.storage, |ownership| {
         // Check sender and verify governance is not immutable
         check_ownership_can_change(&deps.querier, &ownership, &sender)?;
-
         // NOTE: We don't validate the expiry, i.e. asserting it is later than
         // the current block time.
         //
@@ -317,19 +316,43 @@ fn accept_ownership(
         };
 
         // If new gov has an owner they must accept
-        if let Some(pending_owner) = maybe_pending_owner.owner_address(querier) {
-            // the sender must be the pending owner
-            if sender != pending_owner {
-                return Err(GovOwnershipError::NotPendingOwner);
-            };
-
-            // if the transfer has a deadline, it must not have been reached
-            if let Some(expiry) = &ownership.pending_expiry {
-                if expiry.is_expired(block) {
-                    return Err(GovOwnershipError::TransferExpired);
-                }
-            }
+        let Some(pending_owner) = maybe_pending_owner.owner_address(querier) else {
+            // It's either renounced or broken nft
+            // - For renouncing we allow only `GovAction::RenounceOwnership`
+            // - For NFT we just change ownership directly to NFT owner
+            // Both of these cases never put state into pending_owner
+            //
+            // It's most likely unreachable state, but error, in case somehow we have invalid pending owner
+            return Err(GovOwnershipError::TransferNotFound);
         };
+
+        let is_pending_owner = if sender == pending_owner {
+            true
+        } else if let GovernanceDetails::SubAccount { manager, .. } = &maybe_pending_owner {
+            // If not direct owner, need to check top level ownership
+
+            // Check if top level owner of pending is caller
+            let is_top_level_sender = query_top_level_owner(querier, manager.clone())?
+                .owner
+                .owner_address(querier)
+                .map(|top_sender| top_sender == sender)
+                .unwrap_or_default();
+            is_top_level_sender
+        } else {
+            false
+        };
+
+        // The sender must be the pending owner
+        if !is_pending_owner {
+            return Err(GovOwnershipError::NotPendingOwner);
+        }
+
+        // if the transfer has a deadline, it must not have been reached
+        if let Some(expiry) = &ownership.pending_expiry {
+            if expiry.is_expired(block) {
+                return Err(GovOwnershipError::TransferExpired);
+            }
+        }
 
         Ok(Ownership {
             owner: maybe_pending_owner,
