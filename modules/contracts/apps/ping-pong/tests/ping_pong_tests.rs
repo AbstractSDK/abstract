@@ -6,7 +6,7 @@ use abstract_app::std::ABSTRACT_EVENT_TYPE;
 use abstract_client::{AbstractClient, Application, Environment, RemoteAccount};
 
 use abstract_app::std::objects::account::AccountTrace;
-use abstract_app::std::objects::chain_name::ChainName;
+use abstract_app::std::objects::TruncatedChainId;
 
 use cw_orch::{anyhow, prelude::*};
 use cw_orch_interchain::prelude::*;
@@ -138,7 +138,7 @@ fn successful_ping_pong() -> anyhow::Result<()> {
         .version_control()
         .account_base(AccountId::new(
             1,
-            AccountTrace::Remote(vec![ChainName::from_chain_id(JUNO)]),
+            AccountTrace::Remote(vec![TruncatedChainId::from_chain_id(JUNO)]),
         )?)?;
 
     let game_status = app.game_status()?;
@@ -151,7 +151,7 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     set_to_lose(mock_interchain.chain(JUNO)?);
 
     // juno plays against stargaze
-    let pp = app.ping_pong(ChainName::from_chain_id(STARGAZE))?;
+    let pp = app.ping_pong(TruncatedChainId::from_chain_id(STARGAZE))?;
     mock_interchain.check_ibc(JUNO, pp)?.into_result()?;
 
     // stargaze wins, juno lost.
@@ -162,7 +162,7 @@ fn successful_ping_pong() -> anyhow::Result<()> {
     set_to_lose(mock_interchain.chain(STARGAZE)?);
     set_to_win(mock_interchain.chain(JUNO)?);
 
-    let pp = app.ping_pong(ChainName::from_chain_id(STARGAZE))?;
+    let pp = app.ping_pong(TruncatedChainId::from_chain_id(STARGAZE))?;
     mock_interchain.check_ibc(JUNO, pp)?.into_result()?;
 
     let game_status = app.game_status()?;
@@ -194,7 +194,7 @@ fn successful_ping_pong_to_home_chain() -> anyhow::Result<()> {
     remote_app
         .execute(
             &ping_pong::msg::AppExecuteMsg::PingPong {
-                opponent_chain: ChainName::from_chain_id(JUNO),
+                opponent_chain: TruncatedChainId::from_chain_id(JUNO),
             }
             .into(),
         )?
@@ -211,7 +211,7 @@ fn successful_ping_pong_to_home_chain() -> anyhow::Result<()> {
     remote_app
         .execute(
             &ping_pong::msg::AppExecuteMsg::PingPong {
-                opponent_chain: ChainName::from_chain_id(JUNO),
+                opponent_chain: TruncatedChainId::from_chain_id(JUNO),
             }
             .into(),
         )?
@@ -239,7 +239,7 @@ fn query_and_maybe_ping_pong() -> anyhow::Result<()> {
     set_to_win(mock_interchain.chain(STARGAZE)?);
     set_to_lose(mock_interchain.chain(JUNO)?);
 
-    let pp = app.query_and_maybe_ping_pong(ChainName::from_chain_id(STARGAZE))?;
+    let pp = app.query_and_maybe_ping_pong(TruncatedChainId::from_chain_id(STARGAZE))?;
     let response = mock_interchain.check_ibc(JUNO, pp)?;
 
     // juno should query and not play, check events
@@ -254,7 +254,7 @@ fn query_and_maybe_ping_pong() -> anyhow::Result<()> {
     set_to_win(mock_interchain.chain(JUNO)?);
     set_to_lose(mock_interchain.chain(STARGAZE)?);
 
-    let pp = app.query_and_maybe_ping_pong(ChainName::from_chain_id(STARGAZE))?;
+    let pp = app.query_and_maybe_ping_pong(TruncatedChainId::from_chain_id(STARGAZE))?;
     let response = mock_interchain.check_ibc(JUNO, pp)?;
 
     // juno should query and play, check events
