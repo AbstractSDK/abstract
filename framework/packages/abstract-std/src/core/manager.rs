@@ -194,10 +194,10 @@ pub enum ExecuteMsg {
     UpdateSubAccount(UpdateSubAccountAction),
     /// Callback endpoint
     Callback(CallbackMsg),
-    /// Update the contract's ownership. The `action` to be provided
-    /// can be either to propose transferring ownership to an account,
+    /// Update the contract's ownership. The `action`
+    /// can propose transferring ownership to an account,
     /// accept a pending ownership transfer, or renounce the ownership
-    /// permanently.
+    /// of the account permanently.
     UpdateOwnership(GovAction),
 }
 

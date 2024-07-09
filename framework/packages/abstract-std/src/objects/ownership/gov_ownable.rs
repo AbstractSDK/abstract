@@ -39,7 +39,7 @@ pub enum GovOwnershipError {
     #[error("Cannot transfer ownership to renounced structure. use action::renounce")]
     TransferToRenounced,
 
-    #[error("Cannot change NFT ownership")]
+    #[error("Cannot change NFT ownership. Transfer the NFT to change account ownership.")]
     ChangeOfNftOwned,
 }
 
@@ -260,7 +260,7 @@ fn transfer_ownership(
         //
         // By not doing the check, we save a little bit of gas.
         //
-        // To fix the erorr, the owner can simply invoke `transfer_ownership`
+        // To fix the error, the owner can simply invoke `transfer_ownership`
         // again with the correct expiry and overwrite the invalid one.
 
         let new_ownership = if let GovernanceDetails::NFT { .. } = new_owner {
