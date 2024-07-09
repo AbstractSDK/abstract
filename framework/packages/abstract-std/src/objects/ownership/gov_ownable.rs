@@ -283,22 +283,11 @@ fn transfer_ownership(
         //
         // To fix the erorr, the owner can simply invoke `transfer_ownership`
         // again with the correct expiry and overwrite the invalid one.
-
-        let new_ownership = if let GovernanceDetails::NFT { .. } = new_owner {
-            // if NFT, no way for NFT contract to accept so just confirm
-            Ownership {
-                owner: new_owner,
-                pending_owner: None,
-                pending_expiry: None,
-            }
-        } else {
-            Ownership {
-                pending_owner: Some(new_owner),
-                pending_expiry: expiry,
-                ..ownership
-            }
-        };
-        Ok(new_ownership)
+        Ok(Ownership {
+            pending_owner: Some(new_owner),
+            pending_expiry: expiry,
+            ..ownership
+        })
     })
 }
 
@@ -315,14 +304,12 @@ fn accept_ownership(
             return Err(GovOwnershipError::TransferNotFound);
         };
 
-        // If new gov has an owner they must accept
+        // If new gov has no owner they cannot accept
         let Some(pending_owner) = maybe_pending_owner.owner_address(querier) else {
-            // It's either renounced or broken nft
-            // - For renouncing we allow only `GovAction::RenounceOwnership`
-            // - For NFT we just change ownership directly to NFT owner
-            // Both of these cases never put state into pending_owner
+            // It's most likely burned NFT or corrupted NFT contract after proposal
+            // Make sure to not "renounce" ownership accidentally.
             //
-            // It's most likely unreachable state, but error, in case somehow we have invalid pending owner
+            // P.S. GovAction::RenounceOwnership still available to the original owner if that was intentional
             return Err(GovOwnershipError::TransferNotFound);
         };
 

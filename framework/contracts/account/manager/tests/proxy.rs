@@ -664,7 +664,7 @@ fn nft_owner_immutable() -> Result<(), Error> {
 }
 
 #[test]
-fn nft_pending_owner_no_owner() -> Result<(), Error> {
+fn nft_pending_owner() -> Result<(), Error> {
     let chain = MockBech32::new("mock");
     let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
@@ -707,14 +707,67 @@ fn nft_pending_owner_no_owner() -> Result<(), Error> {
             new_owner: gov.clone(),
             expiry: None,
         })?;
-    // Account have correct governance
+    // Burn nft, which will make it act like we don't have pending ownership
+    chain.execute(
+        &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Burn { token_id },
+        &[],
+        &nft_addr,
+    )?;
+    // Account have pending NFT governance
     // Note that there is no pending period
     let ownership = account.manager.ownership()?;
-    assert_eq!(ownership.owner, gov);
+    assert_eq!(ownership.pending_owner.unwrap(), gov);
+
+    let err: ManagerError = account
+        .manager
+        .update_ownership(GovAction::AcceptOwnership)
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        ManagerError::Ownership(ownership::GovOwnershipError::TransferNotFound)
+    );
+
+    // Mint new NFT, since we burned previous one
+    let new_token_id = "2".to_owned();
+    mint_nft(&chain, chain.sender(), &new_token_id, &nft_addr)?;
+
+    // Propose NFT governance
+    account
+        .manager
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: (GovernanceDetails::NFT {
+                collection_addr: nft_addr.to_string(),
+                // token minted to sender
+                token_id: new_token_id.clone(),
+            }),
+            expiry: None,
+        })?;
+
+    // Only NFT owner can accept it
+    let err: ManagerError = account
+        .manager
+        .call_as(&chain.addr_make("not_nft_owner"))
+        .update_ownership(GovAction::AcceptOwnership)
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        ManagerError::Ownership(ownership::GovOwnershipError::NotPendingOwner)
+    );
+
+    // Now accept without accidents
+    account
+        .manager
+        .update_ownership(GovAction::AcceptOwnership)?;
 
     // Burn NFT, to ensure account becomes unusable
     chain.execute(
-        &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Burn { token_id },
+        &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Burn {
+            token_id: new_token_id,
+        },
         &[],
         &nft_addr,
     )?;
