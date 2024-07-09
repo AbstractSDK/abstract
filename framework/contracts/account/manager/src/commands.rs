@@ -400,11 +400,6 @@ pub fn uninstall_module(deps: DepsMut, info: MessageInfo, module_id: String) -> 
     // only owner can uninstall modules
     ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
 
-    _uninstall_module(deps, module_id)
-}
-
-/// Marked as internal because no access control is done here
-pub(crate) fn _uninstall_module(deps: DepsMut, module_id: String) -> ManagerResult {
     validation::validate_not_proxy(&module_id)?;
 
     // module can only be uninstalled if there are no dependencies on it
