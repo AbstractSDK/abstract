@@ -174,12 +174,11 @@ pub fn execute(mut deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) 
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 // Used to claim or renounce an ownership change.
                 ExecuteMsg::UpdateOwnership(action) => {
-                    let mut info = info;
                     // If sub-account related it may require some messages to be constructed beforehand
                     let msgs = match &action {
                         ownership::GovAction::TransferOwnership { .. } => vec![],
                         ownership::GovAction::AcceptOwnership => {
-                            maybe_update_sub_account_governance(deps.branch(), &mut info.sender)?
+                            maybe_update_sub_account_governance(deps.branch())?
                         }
                         ownership::GovAction::RenounceOwnership => {
                             remove_account_from_contracts(deps.branch())?

@@ -29,7 +29,7 @@ use speculoos::prelude::*;
 fn deploy_and_mint_nft(
     chain: MockBase<MockApiBech32>,
     sender: Addr,
-) -> Result<(String, String), Error> {
+) -> Result<(String, Addr), Error> {
     let token_id = String::from("1");
 
     let cw721_contract = Box::new(ContractWrapper::new(
@@ -52,28 +52,29 @@ fn deploy_and_mint_nft(
         &[],
     )?;
 
-    let mut nft_addr = String::default();
-    // get contract id
-    for event in &res.events {
-        for attribute in &event.attributes {
-            if attribute.key.to_lowercase() == "_contract_address" {
-                nft_addr = attribute.value.to_string();
-            }
-        }
-    }
+    let nft_addr = res.instantiated_contract_address()?;
 
-    // mint nft
+    mint_nft(&chain, sender, token_id.clone(), &nft_addr)?;
+    Ok((token_id, nft_addr))
+}
+
+fn mint_nft(
+    chain: &MockBase<MockApiBech32>,
+    owner: impl Into<String>,
+    token_id: impl Into<String>,
+    nft_addr: &Addr,
+) -> anyhow::Result<()> {
     chain.execute(
         &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Mint {
-            token_id: token_id.clone(),
-            owner: sender.to_string(),
+            token_id: token_id.into(),
+            owner: owner.into(),
             token_uri: None,
             extension: None,
         },
         &[],
-        &Addr::unchecked(nft_addr.clone()),
+        nft_addr,
     )?;
-    Ok((token_id, nft_addr))
+    Ok(())
 }
 
 #[test]
@@ -464,7 +465,7 @@ fn nft_owner_success() -> Result<(), Error> {
     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
     let gov = GovernanceDetails::NFT {
-        collection_addr: nft_addr.clone(),
+        collection_addr: nft_addr.to_string(),
         // token minted to sender
         token_id: token_id.clone(),
     };
@@ -565,7 +566,7 @@ fn nft_owner_immutable() -> Result<(), Error> {
     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
     let gov = GovernanceDetails::NFT {
-        collection_addr: nft_addr.clone(),
+        collection_addr: nft_addr.to_string(),
         // token minted to sender
         token_id: token_id.clone(),
     };
@@ -659,6 +660,128 @@ fn nft_owner_immutable() -> Result<(), Error> {
         ManagerError::Ownership(ownership::GovOwnershipError::ChangeOfNftOwned)
     );
 
+    Ok(())
+}
+
+#[test]
+fn nft_pending_owner() -> Result<(), Error> {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
+
+    let gov = GovernanceDetails::NFT {
+        collection_addr: nft_addr.to_string(),
+        // token minted to sender
+        token_id: token_id.clone(),
+    };
+
+    let account =
+        deployment
+            .account_factory
+            .create_default_account(GovernanceDetails::Monarchy {
+                monarch: chain.sender().to_string(),
+            })?;
+    // Transferring to token id that pending governance don't own act same way as transferring to renounced governance
+    let err: ManagerError = account
+        .manager
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::NFT {
+                collection_addr: nft_addr.to_string(),
+                token_id: "falsy_token_id".to_owned(),
+            },
+            expiry: None,
+        })
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        ManagerError::Ownership(ownership::GovOwnershipError::TransferToRenounced)
+    );
+
+    // Now transfer to correct token id
+    account
+        .manager
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: gov.clone(),
+            expiry: None,
+        })?;
+    // Burn nft, which will make it act like we don't have pending ownership
+    chain.execute(
+        &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Burn { token_id },
+        &[],
+        &nft_addr,
+    )?;
+    // Account have pending NFT governance
+    // Note that there is no pending period
+    let ownership = account.manager.ownership()?;
+    assert_eq!(ownership.pending_owner.unwrap(), gov);
+
+    let err: ManagerError = account
+        .manager
+        .update_ownership(GovAction::AcceptOwnership)
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        ManagerError::Ownership(ownership::GovOwnershipError::TransferNotFound)
+    );
+
+    // Mint new NFT, since we burned previous one
+    let new_token_id = "2".to_owned();
+    mint_nft(&chain, chain.sender(), &new_token_id, &nft_addr)?;
+
+    // Propose NFT governance
+    account
+        .manager
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: (GovernanceDetails::NFT {
+                collection_addr: nft_addr.to_string(),
+                // token minted to sender
+                token_id: new_token_id.clone(),
+            }),
+            expiry: None,
+        })?;
+
+    // Only NFT owner can accept it
+    let err: ManagerError = account
+        .manager
+        .call_as(&chain.addr_make("not_nft_owner"))
+        .update_ownership(GovAction::AcceptOwnership)
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        ManagerError::Ownership(ownership::GovOwnershipError::NotPendingOwner)
+    );
+
+    // Now accept without accidents
+    account
+        .manager
+        .update_ownership(GovAction::AcceptOwnership)?;
+
+    // Burn NFT, to ensure account becomes unusable
+    chain.execute(
+        &cw721_base::ExecuteMsg::<Option<Empty>, Empty>::Burn {
+            token_id: new_token_id,
+        },
+        &[],
+        &nft_addr,
+    )?;
+
+    let err: ManagerError = account
+        .manager
+        .update_info(Some("RIP Account".to_owned()), None, None)
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        ManagerError::Ownership(ownership::GovOwnershipError::NoOwner)
+    );
     Ok(())
 }
 

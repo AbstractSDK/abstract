@@ -2,8 +2,11 @@
 //! Otherwise you will have too many requests
 
 use abstract_framework_clone_testing::common;
-use abstract_interface::{Abstract, AbstractAccount, AccountFactoryQueryFns, ManagerQueryFns};
+use abstract_interface::{
+    Abstract, AbstractAccount, AccountDetails, AccountFactoryQueryFns, ManagerQueryFns,
+};
 use abstract_std::{objects::AccountId, PROXY};
+use abstract_testing::addresses::TEST_VERSION;
 use anyhow::{bail, Ok};
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};
 use cw_orch_clone_testing::CloneTesting;
@@ -54,7 +57,48 @@ fn upgrade_account_iteratively() -> anyhow::Result<()> {
     let abstr_deployment = Abstract::load_from(chain.call_as(&owner).clone())?;
     let account = AbstractAccount::new(&abstr_deployment, AccountId::local(account_id));
 
-    account.upgrade()?;
+    account.upgrade(&abstr_deployment)?;
+    let info_account = account.manager.module_info(PROXY)?.unwrap();
+    assert_eq!(info_account.version.version, TEST_VERSION);
+
+    Ok(())
+}
+
+#[test]
+fn upgrade_accounts_and_sub_accounts() -> anyhow::Result<()> {
+    let (abstr_deployment, chain) = common::setup(JUNO_1, Addr::unchecked(SENDER))?;
+
+    let account = abstr_deployment.account_factory.create_default_account(
+        abstract_client::GovernanceDetails::Monarchy {
+            monarch: chain.sender().to_string(),
+        },
+    )?;
+    let sub_account = account.create_sub_account(
+        AccountDetails {
+            name: "sub_account_one".to_string(),
+            ..Default::default()
+        },
+        None,
+    )?;
+    let sub_sub_account = sub_account.create_sub_account(
+        AccountDetails {
+            name: "sub_account_two".to_string(),
+            ..Default::default()
+        },
+        None,
+    )?;
+
+    abstr_deployment.migrate_if_version_changed()?;
+
+    account.upgrade(&abstr_deployment)?;
+    let info_account = account.manager.module_info(PROXY)?.unwrap();
+    assert_eq!(info_account.version.version, TEST_VERSION);
+
+    let info_sub_account = sub_account.manager.module_info(PROXY)?.unwrap();
+    assert_eq!(info_sub_account.version.version, TEST_VERSION);
+
+    let info_sub_sub_account = sub_sub_account.manager.module_info(PROXY)?.unwrap();
+    assert_eq!(info_sub_sub_account.version.version, TEST_VERSION);
 
     Ok(())
 }

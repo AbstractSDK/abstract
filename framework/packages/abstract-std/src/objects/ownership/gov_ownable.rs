@@ -192,6 +192,38 @@ fn check_owner(
     Ok(())
 }
 
+/// Asserts governance change allowed and account is the contract's current owner.
+fn check_ownership_can_change(
+    querier: &QuerierWrapper,
+    ownership: &Ownership<Addr>,
+    sender: &Addr,
+) -> Result<(), GovOwnershipError> {
+    match &ownership.owner {
+        GovernanceDetails::SubAccount { manager, .. } => {
+            let top_level_owner = query_top_level_owner(querier, manager.clone())?;
+            // Verify top level account allows ownership changes
+            // We prevent transfers of current ownership if it's NFT
+            top_level_owner.assert_can_change_ownership()?;
+
+            // Assert admin
+            // We are dealing with sub account, so we need to check both manager as caller and top level address
+            if check_owner(querier, ownership, sender).is_err() {
+                check_owner(querier, &top_level_owner, sender)?
+            }
+        }
+        _ => {
+            // Verify account allows ownership changes
+            // We prevent transfers of current ownership if it's NFT
+            ownership.assert_can_change_ownership()?;
+
+            // Assert admin
+            check_owner(querier, ownership, sender)?;
+        }
+    }
+
+    Ok(())
+}
+
 /// Update the contract's ownership info based on the given action.
 /// Return the updated ownership.
 pub fn update_ownership(
@@ -233,24 +265,13 @@ fn transfer_ownership(
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
     let new_owner = new_owner.verify(deps.as_ref(), version_control)?;
 
-    if let GovernanceDetails::Renounced {} = new_owner {
+    if new_owner.owner_address(&deps.querier).is_none() {
         return Err(GovOwnershipError::TransferToRenounced {});
     }
 
     OWNERSHIP.update(deps.storage, |ownership| {
-        let top_level_ownership =
-            if let GovernanceDetails::SubAccount { manager, .. } = &ownership.owner {
-                query_top_level_owner(&deps.querier, manager.clone())?
-            } else {
-                ownership.clone()
-            };
-        // the contract must have an owner
-        check_owner(&deps.querier, &top_level_ownership, sender)?;
-
-        // Verify top level account allows ownership changes
-        // We prevent transfers of current ownership if it's NFT
-        top_level_ownership.assert_can_change_ownership()?;
-
+        // Check sender and verify governance is not immutable
+        check_ownership_can_change(&deps.querier, &ownership, sender)?;
         // NOTE: We don't validate the expiry, i.e. asserting it is later than
         // the current block time.
         //
@@ -262,22 +283,11 @@ fn transfer_ownership(
         //
         // To fix the error, the owner can simply invoke `transfer_ownership`
         // again with the correct expiry and overwrite the invalid one.
-
-        let new_ownership = if let GovernanceDetails::NFT { .. } = new_owner {
-            // if NFT, no way for NFT contract to accept so just confirm
-            Ownership {
-                owner: new_owner,
-                pending_owner: None,
-                pending_expiry: None,
-            }
-        } else {
-            Ownership {
-                pending_owner: Some(new_owner),
-                pending_expiry: expiry,
-                ..ownership
-            }
-        };
-        Ok(new_ownership)
+        Ok(Ownership {
+            pending_owner: Some(new_owner),
+            pending_expiry: expiry,
+            ..ownership
+        })
     })
 }
 
@@ -294,20 +304,41 @@ fn accept_ownership(
             return Err(GovOwnershipError::TransferNotFound);
         };
 
-        // If new gov has an owner they must accept
-        if let Some(pending_owner) = maybe_pending_owner.owner_address(querier) {
-            // the sender must be the pending owner
-            if sender != pending_owner {
-                return Err(GovOwnershipError::NotPendingOwner);
-            };
-
-            // if the transfer has a deadline, it must not have been reached
-            if let Some(expiry) = &ownership.pending_expiry {
-                if expiry.is_expired(block) {
-                    return Err(GovOwnershipError::TransferExpired);
-                }
-            }
+        // If new gov has no owner they cannot accept
+        let Some(pending_owner) = maybe_pending_owner.owner_address(querier) else {
+            // It's most likely burned NFT or corrupted NFT contract after proposal
+            // Make sure to not "renounce" ownership accidentally.
+            //
+            // P.S. GovAction::RenounceOwnership still available to the original owner if that was intentional
+            return Err(GovOwnershipError::TransferNotFound);
         };
+
+        let is_pending_owner = if sender == pending_owner {
+            true
+        } else if let GovernanceDetails::SubAccount { manager, .. } = &maybe_pending_owner {
+            // If not direct owner, need to check top level ownership
+
+            // Check if top level owner of pending is caller
+            query_top_level_owner(querier, manager.clone())?
+                .owner
+                .owner_address(querier)
+                .map(|top_sender| top_sender == sender)
+                .unwrap_or_default()
+        } else {
+            false
+        };
+
+        // The sender must be the pending owner
+        if !is_pending_owner {
+            return Err(GovOwnershipError::NotPendingOwner);
+        }
+
+        // if the transfer has a deadline, it must not have been reached
+        if let Some(expiry) = &ownership.pending_expiry {
+            if expiry.is_expired(block) {
+                return Err(GovOwnershipError::TransferExpired);
+            }
+        }
 
         Ok(Ownership {
             owner: maybe_pending_owner,
@@ -324,17 +355,8 @@ fn renounce_ownership(
     sender: &Addr,
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
     OWNERSHIP.update(store, |ownership| {
-        let top_level_ownership =
-            if let GovernanceDetails::SubAccount { manager, .. } = &ownership.owner {
-                query_top_level_owner(querier, manager.clone())?
-            } else {
-                ownership.clone()
-            };
-        // Verify top level account allows ownership changes
-        // We prevent renounce of current ownership if it's NFT
-        top_level_ownership.assert_can_change_ownership()?;
-
-        check_owner(querier, &top_level_ownership, sender)?;
+        // Check sender and verify governance is not immutable
+        check_ownership_can_change(querier, &ownership, sender)?;
 
         Ok(Ownership {
             owner: GovernanceDetails::Renounced {},

@@ -4,11 +4,8 @@
 use abstract_app::mock::MockInitMsg;
 use abstract_framework_clone_testing::common;
 use abstract_integration_tests::manager::mock_app::{MockApp, APP_VERSION};
-use abstract_interface::{Abstract, AppDeployer, DeployStrategy, ManagerExecFns, VCExecFns};
-use abstract_std::{
-    objects::{gov_type::GovernanceDetails, module::ModuleInfo},
-    MANAGER, PROXY,
-};
+use abstract_interface::{Abstract, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_std::{objects::gov_type::GovernanceDetails, PROXY};
 use abstract_testing::prelude::*;
 use anyhow::Ok;
 use cw_orch::{daemon::networks::JUNO_1, prelude::*};
@@ -56,17 +53,7 @@ fn old_account_migrate() -> anyhow::Result<()> {
     let migrated = abstr_deployment.migrate_if_version_changed()?;
 
     if migrated {
-        let account_migrate_modules = vec![
-            (
-                ModuleInfo::from_id_latest(MANAGER)?,
-                Some(to_json_binary(&abstract_std::manager::MigrateMsg {})?),
-            ),
-            (
-                ModuleInfo::from_id_latest(PROXY)?,
-                Some(to_json_binary(&abstract_std::proxy::MigrateMsg {})?),
-            ),
-        ];
-        old_account.manager.upgrade(account_migrate_modules)?;
+        old_account.upgrade(&abstr_deployment)?;
         let info = old_account.manager.module_info(PROXY)?.unwrap();
         assert_eq!(info.version.version, TEST_VERSION)
     } else {
