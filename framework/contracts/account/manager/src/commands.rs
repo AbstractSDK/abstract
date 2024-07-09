@@ -18,7 +18,7 @@ use abstract_std::{
         gov_type::GovernanceDetails,
         module::{assert_module_data_validity, Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
-        ownership::{self, nested_admin::query_top_level_owner_addr, GovOwnershipError},
+        ownership::{self, GovOwnershipError},
         salt::generate_instantiate_salt,
         validation::{validate_description, validate_link, validate_name},
         version_control::VersionControlContract,
@@ -448,10 +448,7 @@ pub(crate) fn _uninstall_module(deps: DepsMut, module_id: String) -> ManagerResu
 }
 
 /// Update governance of sub_accounts account after claim
-pub(crate) fn maybe_update_sub_account_governance(
-    deps: DepsMut,
-    sender: &mut Addr,
-) -> ManagerResult<Vec<CosmosMsg>> {
+pub(crate) fn maybe_update_sub_account_governance(deps: DepsMut) -> ManagerResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
     let mut account_id = None;
     let ownership = ownership::get_ownership(deps.storage)?;
@@ -476,7 +473,7 @@ pub(crate) fn maybe_update_sub_account_governance(
     }
 
     // Update state for new manager if owner will be the sub-account
-    if let GovernanceDetails::SubAccount { manager, proxy } = &pending_governance {
+    if let GovernanceDetails::SubAccount { manager, .. } = &pending_governance {
         let id = if let Some(id) = account_id {
             id
         } else {
@@ -490,16 +487,6 @@ pub(crate) fn maybe_update_sub_account_governance(
             vec![],
         )?;
         msgs.push(register_message.into());
-
-        // If called by top-level owner, update the sender to let cw-ownable think it was called by the owning-account's proxy.
-        let top_level_owner = query_top_level_owner_addr(&deps.querier, manager.clone())?;
-
-        // This line is **VERY** important
-        // It ensures that only the top-level owner of the proposed owner account can claim the ownership over this account.
-        // This makes it impossible for others to assign their own accounts to be owned by other users' accounts. (if using is binary)
-        if top_level_owner == *sender {
-            *sender = proxy.clone();
-        }
     }
 
     Ok(msgs)
