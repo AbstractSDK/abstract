@@ -5,6 +5,6 @@ pub mod nested_admin;
 pub use super::gov_type::GovernanceDetails;
 
 pub use gov_ownable::{
-    assert_nested_owner, get_ownership, initialize_owner, is_owner, query_ownership, update_ownership,
-    GovAction, GovOwnershipError, Ownership,
+    assert_nested_owner, get_ownership, initialize_owner, is_owner, query_ownership,
+    update_ownership, GovAction, GovOwnershipError, Ownership,
 };

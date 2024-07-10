@@ -457,7 +457,8 @@ mod tests {
             );
             assert!(res.is_ok());
 
-            let res = assert_nested_owner(deps.as_ref().storage, &deps.as_ref().querier, &jake_address);
+            let res =
+                assert_nested_owner(deps.as_ref().storage, &deps.as_ref().querier, &jake_address);
             assert_eq!(res.unwrap_err(), GovOwnershipError::NotOwner);
         }
 
