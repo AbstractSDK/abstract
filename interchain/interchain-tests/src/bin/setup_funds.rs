@@ -23,7 +23,7 @@ use cw_orch_proto::tokenfactory::{create_denom, get_denom, mint};
 use ibc_relayer_types::core::ics24_host::identifier::PortId;
 
 pub fn test_send_funds() -> AnyResult<()> {
-    std::env::set_var(cw_orch::daemon::env::GAS_BUFFER_ENV_NAME, "1.8");
+    std::env::set_var(cw_orch::daemon::env::MIN_GAS_ENV_NAME, "100000");
     env_logger::init();
 
     set_env();
@@ -38,9 +38,9 @@ pub fn test_send_funds() -> AnyResult<()> {
 
     let abstr_stargaze = Abstract::deploy_on(stargaze.clone(), stargaze.sender().to_string())?;
     let abstr_juno = Abstract::deploy_on(juno.clone(), juno.sender().to_string())?;
+    abstr_juno.connect_to(&abstr_stargaze, &interchain)?;
     // let abstr_stargaze: Abstract<Daemon> = Abstract::load_from(stargaze.clone())?;
     // let abstr_juno: Abstract<Daemon> = Abstract::load_from(juno.clone())?;
-    abstr_juno.connect_to(&abstr_stargaze, &interchain)?;
 
     let sender = juno.sender().to_string();
 
