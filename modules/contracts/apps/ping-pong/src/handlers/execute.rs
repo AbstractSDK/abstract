@@ -1,10 +1,10 @@
 use abstract_app::{
     objects::TruncatedChainId,
-    sdk::IbcInterface,
+    sdk::{IbcClient, IbcInterface},
     std::{ibc::Callback, ibc_client::InstalledModuleIdentification},
     traits::{AbstractResponse, AccountIdentification},
 };
-use cosmwasm_std::{DepsMut, Env, MessageInfo};
+use cosmwasm_std::{CosmosMsg, DepsMut, Env, MessageInfo};
 
 use crate::{
     contract::{App, AppResult},
@@ -27,11 +27,12 @@ pub fn execute_handler(
 }
 
 pub(crate) fn ping_pong(deps: DepsMut, opponent_chain: TruncatedChainId, app: App) -> AppResult {
-    let current_module_info = app.module_info()?;
-    let ibc_client = app.ibc_client(deps.as_ref());
-    let ibc_action = ibc_client.module_ibc_action(
+    // # ANCHOR: ibc_client
+    let self_module_info = app.module_info()?;
+    let ibc_client: IbcClient<_> = app.ibc_client(deps.as_ref());
+    let ibc_action: CosmosMsg = ibc_client.module_ibc_action(
         opponent_chain.clone(),
-        current_module_info,
+        self_module_info,
         // Start by playing a Ping
         &PingPongIbcMsg {
             hand: PingOrPong::Ping,
@@ -40,6 +41,7 @@ pub(crate) fn ping_pong(deps: DepsMut, opponent_chain: TruncatedChainId, app: Ap
             opponent_chain,
         })?),
     )?;
+    // # ANCHOR_END: ibc_client
 
     Ok(app
         .response("ping_pong")
