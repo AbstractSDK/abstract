@@ -91,7 +91,7 @@ pub fn install_modules(
     modules: Vec<ModuleInstallConfig>,
 ) -> ManagerResult {
     // only owner can call this method
-    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
@@ -264,7 +264,7 @@ pub fn exec_on_module(
     exec_msg: Binary,
 ) -> ManagerResult {
     // only owner can forward messages to modules
-    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
@@ -294,7 +294,7 @@ pub fn create_sub_account(
     account_id: Option<u32>,
 ) -> ManagerResult {
     // only owner can create a subaccount
-    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     let create_account_msg = &abstract_std::account_factory::ExecuteMsg::CreateAccount {
         // proxy of this manager will be the account owner
@@ -398,7 +398,7 @@ fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, M
 /// Uninstall the module with the ID [`module_id`]
 pub fn uninstall_module(deps: DepsMut, info: MessageInfo, module_id: String) -> ManagerResult {
     // only owner can uninstall modules
-    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     validation::validate_not_proxy(&module_id)?;
 
@@ -556,7 +556,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
-    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
     ensure!(!modules.is_empty(), ManagerError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];
@@ -839,7 +839,7 @@ pub fn update_info(
     description: Option<String>,
     link: Option<String>,
 ) -> ManagerResult {
-    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
@@ -862,7 +862,7 @@ pub fn update_suspension_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update suspension status
-    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
 
     SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
 
@@ -1018,7 +1018,7 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
         }
     };
 
-    ownership::assert_owner(deps.storage, &deps.querier, &info.sender)?;
+    ownership::assert_nested_owner(deps.storage, &deps.querier, &info.sender)?;
     update_module_addresses(deps, add, remove)
 }
 

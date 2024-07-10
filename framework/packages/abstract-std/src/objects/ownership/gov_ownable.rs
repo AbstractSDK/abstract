@@ -120,7 +120,7 @@ impl<T: AddressLike> Ownership<T> {
 
 impl Ownership<Addr> {
     /// Assert that an account is the contract's current owner.
-    fn check_owner(
+    fn assert_owner(
         &self,
         querier: &QuerierWrapper,
         sender: &Addr,
@@ -139,7 +139,7 @@ impl Ownership<Addr> {
     }
 
     /// Asserts governance change allowed and account is the contract's current owner.
-    fn check_owner_can_change(
+    fn assert_owner_can_change(
         &self,
         querier: &QuerierWrapper,
         sender: &Addr,
@@ -153,8 +153,8 @@ impl Ownership<Addr> {
 
                 // Assert admin
                 // We are dealing with sub account, so we need to check both manager as caller and top level address
-                if self.check_owner(querier, sender).is_err() {
-                    top_level_owner.check_owner(querier, sender)?
+                if self.assert_owner(querier, sender).is_err() {
+                    top_level_owner.assert_owner(querier, sender)?
                 }
             }
             _ => {
@@ -163,7 +163,7 @@ impl Ownership<Addr> {
                 self.assert_can_change_owner()?;
 
                 // Assert admin
-                self.check_owner(querier, sender)?;
+                self.assert_owner(querier, sender)?;
             }
         }
 
@@ -205,14 +205,14 @@ pub fn is_owner(store: &dyn Storage, querier: &QuerierWrapper, addr: &Addr) -> S
 }
 
 /// Assert that an account is the contract's current owner.
-pub fn assert_owner(
+pub fn assert_nested_owner(
     store: &dyn Storage,
     querier: &QuerierWrapper,
     sender: &Addr,
 ) -> Result<(), GovOwnershipError> {
     let ownership = OWNERSHIP.load(store)?;
     // If current sender is owner of this account - it's the owner
-    if ownership.check_owner(querier, sender).is_ok() {
+    if ownership.assert_owner(querier, sender).is_ok() {
         return Ok(());
     }
     // Otherwise we need to check top level owner
@@ -223,7 +223,7 @@ pub fn assert_owner(
         ownership
     };
     // the contract must have an owner
-    top_level_ownership.check_owner(querier, sender)
+    top_level_ownership.assert_owner(querier, sender)
 }
 
 /// Update the contract's ownership info based on the given action.
@@ -273,7 +273,7 @@ fn transfer_ownership(
 
     OWNERSHIP.update(deps.storage, |ownership| {
         // Check sender and verify governance is not immutable
-        ownership.check_owner_can_change(&deps.querier, sender)?;
+        ownership.assert_owner_can_change(&deps.querier, sender)?;
         // NOTE: We don't validate the expiry, i.e. asserting it is later than
         // the current block time.
         //
@@ -358,7 +358,7 @@ fn renounce_ownership(
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
     OWNERSHIP.update(store, |ownership| {
         // Check sender and verify governance is not immutable
-        ownership.check_owner_can_change(querier, sender)?;
+        ownership.assert_owner_can_change(querier, sender)?;
 
         Ok(Ownership {
             owner: GovernanceDetails::Renounced {},
@@ -450,14 +450,14 @@ mod tests {
         {
             initialize_owner(deps.as_mut(), larry.clone().into(), vc_addr()).unwrap();
 
-            let res = assert_owner(
+            let res = assert_nested_owner(
                 deps.as_ref().storage,
                 &deps.as_ref().querier,
                 &larry_address,
             );
             assert!(res.is_ok());
 
-            let res = assert_owner(deps.as_ref().storage, &deps.as_ref().querier, &jake_address);
+            let res = assert_nested_owner(deps.as_ref().storage, &deps.as_ref().querier, &jake_address);
             assert_eq!(res.unwrap_err(), GovOwnershipError::NotOwner);
         }
 
@@ -466,7 +466,7 @@ mod tests {
             let depsmut = deps.as_mut();
             renounce_ownership(depsmut.storage, &depsmut.querier, &larry_address).unwrap();
 
-            let res = assert_owner(
+            let res = assert_nested_owner(
                 deps.as_ref().storage,
                 &deps.as_ref().querier,
                 &larry_address,
