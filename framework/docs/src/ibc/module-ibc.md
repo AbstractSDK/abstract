@@ -35,7 +35,7 @@ In order to send a message, a module needs to interact with the `ibc-client` mod
 {{#include ../../../../modules/contracts/apps/ping-pong/src/handlers/execute.rs:ibc_client}}
 ```
 
-- `opponent_chain` is the chain name of the destination chain where the app is expected to be installed.
+- `opponent_chain` is the `TruncatedChainId` of the destination chain where the app is expected to be installed.
 - `target_module` describes the module on which the message will be executed on the remote chain. In this case, it is another instance of the ping-pong app.
 - `msg` is the message that will be executed on the remote module via a custom endpoint. We explain in the section about [receiving a message](#receiving-a-message) how this message is used by the targeted module.
 - `callback_info` is used to request a callback once the packet has been received and acknowledged. We explain more about this behavior in the [acks and callbacks section](#acknowledgements-and-callbacks)
