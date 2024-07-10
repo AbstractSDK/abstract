@@ -29,7 +29,7 @@ Let's see how to create a contract with IMC capabilities by following the ping-p
 
 ### Sending a message
 
-In order to send a message, a module needs to interact with the `ibc-client` module. You can use the <a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.IbcClient.html" target="_blank">`IbcClient` API</a> to interact with the ibc-client. The show below shows how the ping-pong app sends a message to an instance of itself on another chain.
+In order to send a message, a module needs to interact with the `ibc-client` module. You can use the <a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.IbcClient.html" target="_blank">`IbcClient` API</a> to interact with the ibc-client. The example below shows how the ping-pong app sends a message to an instance of itself on another chain.
 
 ```rust
 {{#include ../../../../modules/contracts/apps/ping-pong/src/handlers/execute.rs:ibc_client}}
