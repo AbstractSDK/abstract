@@ -109,7 +109,7 @@ impl<T: AddressLike> Ownership<T> {
     }
 
     /// Assert current owner supports governance change
-    pub fn assert_can_change_owner(&self) -> Result<(), GovOwnershipError> {
+    pub fn assert_owner_can_change(&self) -> Result<(), GovOwnershipError> {
         if let GovernanceDetails::NFT { .. } = self.owner {
             return Err(GovOwnershipError::ChangeOfNftOwned);
         }
@@ -139,7 +139,7 @@ impl Ownership<Addr> {
     }
 
     /// Asserts governance change allowed and account is the contract's current owner.
-    fn assert_owner_can_change(
+    fn assert_nested_sender_can_change_owner(
         &self,
         querier: &QuerierWrapper,
         sender: &Addr,
@@ -149,7 +149,7 @@ impl Ownership<Addr> {
                 let top_level_owner = query_top_level_owner(querier, manager.clone())?;
                 // Verify top level account allows ownership changes
                 // We prevent transfers of current ownership if it's NFT
-                top_level_owner.assert_can_change_owner()?;
+                top_level_owner.assert_owner_can_change()?;
 
                 // Assert admin
                 // We are dealing with sub account, so we need to check both manager as caller and top level address
@@ -160,7 +160,7 @@ impl Ownership<Addr> {
             _ => {
                 // Verify account allows ownership changes
                 // We prevent transfers of current ownership if it's NFT
-                self.assert_can_change_owner()?;
+                self.assert_owner_can_change()?;
 
                 // Assert admin
                 self.assert_owner(querier, sender)?;
@@ -273,7 +273,7 @@ fn transfer_ownership(
 
     OWNERSHIP.update(deps.storage, |ownership| {
         // Check sender and verify governance is not immutable
-        ownership.assert_owner_can_change(&deps.querier, sender)?;
+        ownership.assert_nested_sender_can_change_owner(&deps.querier, sender)?;
         // NOTE: We don't validate the expiry, i.e. asserting it is later than
         // the current block time.
         //
@@ -358,7 +358,7 @@ fn renounce_ownership(
 ) -> Result<Ownership<Addr>, GovOwnershipError> {
     OWNERSHIP.update(store, |ownership| {
         // Check sender and verify governance is not immutable
-        ownership.assert_owner_can_change(querier, sender)?;
+        ownership.assert_nested_sender_can_change_owner(querier, sender)?;
 
         Ok(Ownership {
             owner: GovernanceDetails::Renounced {},
