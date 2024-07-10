@@ -92,7 +92,7 @@ mod test {
     };
 
     use anyhow::Result as AnyResult;
-    use cosmwasm_std::{coins, to_json_binary, wasm_execute, IbcTimeout, Uint128};
+    use cosmwasm_std::{coin, coins, to_json_binary, wasm_execute, IbcTimeout, Uint128};
     use cw_orch::mock::cw_multi_test::AppResponse;
     use ibc_relayer_types::core::ics24_host::identifier::PortId;
 
@@ -742,7 +742,7 @@ mod test {
             PROXY,
             abstract_std::proxy::ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
-                    funds: coins(10, origin_denom),
+                    funds: vec![coin(10, origin_denom).into()],
                     host_chain: TruncatedChainId::from_chain_id(STARGAZE),
                 },
             },

@@ -62,7 +62,7 @@ pub fn execute_ibc_action(deps: DepsMut, msg_info: MessageInfo, msg: IbcClientMs
         })?;
 
     let funds_to_send = if let IbcClientMsg::SendFunds { funds, .. } = &msg {
-        funds.to_vec()
+        funds.iter().map(|send| send.coin.clone()).collect()
     } else {
         vec![]
     };
@@ -390,7 +390,7 @@ mod test {
         use super::*;
 
         use abstract_std::{manager, proxy::state::State};
-        use cosmwasm_std::coins;
+        use cosmwasm_std::coin;
 
         #[test]
         fn add_module() {
@@ -461,7 +461,7 @@ mod test {
                 )
                 .unwrap();
 
-            let funds = coins(10, "denom");
+            let funds = vec![coin(10, "denom").into()];
             let msg = ExecuteMsg::IbcAction {
                 msg: abstract_std::ibc_client::ExecuteMsg::SendFunds {
                     host_chain: "juno".parse().unwrap(),
@@ -494,7 +494,7 @@ mod test {
                         funds: funds.clone(),
                     })
                     .unwrap(),
-                    funds,
+                    funds: funds.into_iter().map(|send| send.coin).collect(),
                 },
             )));
         }

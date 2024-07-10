@@ -96,7 +96,7 @@ pub enum ExecuteMsg {
         /// host chain to be executed on
         /// Example: "osmosis"
         host_chain: TruncatedChainId,
-        funds: Vec<Coin>,
+        funds: Vec<InterchainSend>,
     },
     /// Only callable by Account proxy
     /// Register an Account on a remote chain over IBC
@@ -182,6 +182,18 @@ pub struct InstalledModuleIdentification {
 pub struct ModuleAddr {
     pub reference: ModuleReference,
     pub address: Addr,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct InterchainSend {
+    pub coin: Coin,
+    pub memo: Option<String>,
+}
+
+impl From<Coin> for InterchainSend {
+    fn from(coin: Coin) -> Self {
+        Self { coin, memo: None }
+    }
 }
 
 impl InstalledModuleIdentification {

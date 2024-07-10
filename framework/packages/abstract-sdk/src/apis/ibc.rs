@@ -5,14 +5,14 @@
 use abstract_std::{
     base,
     ibc::{Callback, ModuleQuery},
-    ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification},
+    ibc_client::{self, ExecuteMsg as IbcClientMsg, InstalledModuleIdentification, InterchainSend},
     ibc_host::HostAction,
     manager::ModuleInstallConfig,
     objects::{module::ModuleInfo, TruncatedChainId},
     proxy::ExecuteMsg,
     ABSTRACT_VERSION, IBC_CLIENT,
 };
-use cosmwasm_std::{to_json_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps, QueryRequest};
+use cosmwasm_std::{to_json_binary, wasm_execute, Addr, CosmosMsg, Deps, QueryRequest};
 use serde::Serialize;
 
 use super::{AbstractApi, ApiIdentification};
@@ -246,7 +246,7 @@ impl<'a, T: IbcInterface + AccountExecutor> IbcClient<'a, T> {
     pub fn ics20_transfer(
         &self,
         host_chain: TruncatedChainId,
-        funds: Vec<Coin>,
+        funds: Vec<InterchainSend>,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
@@ -384,7 +384,7 @@ mod test {
         let stub = MockModule::new();
         let client = stub.ibc_client(deps.as_ref());
 
-        let expected_funds = coins(100, "denom");
+        let expected_funds = vec![coin(100, "denom").into()];
 
         let msg = client.ics20_transfer(TEST_HOST_CHAIN.parse().unwrap(), expected_funds.clone());
         assert_that!(msg).is_ok();
