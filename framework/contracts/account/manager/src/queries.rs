@@ -14,8 +14,9 @@ use abstract_std::{
         SubAccountIdsResponse,
     },
     objects::{
+        gov_type::TopLevelOwnerResponse,
         module::{self, ModuleInfo},
-        nested_admin::{query_top_level_owner, TopLevelOwnerResponse},
+        ownership::nested_admin::query_top_level_owner_addr,
     },
     AbstractError,
 };
@@ -109,7 +110,7 @@ pub fn handle_sub_accounts_query(
 }
 
 pub fn handle_top_level_owner_query(deps: Deps, env: Env) -> StdResult<Binary> {
-    let addr = query_top_level_owner(&deps.querier, env.contract.address)?;
+    let addr = query_top_level_owner_addr(&deps.querier, env.contract.address)?;
 
     to_json_binary(&TopLevelOwnerResponse { address: addr })
 }

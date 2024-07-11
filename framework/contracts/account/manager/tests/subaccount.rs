@@ -2,11 +2,14 @@ use abstract_integration_tests::{create_default_account, AResult};
 use abstract_interface::*;
 use abstract_manager::error::ManagerError;
 use abstract_std::{
-    manager::SubAccountIdsResponse,
-    objects::{gov_type::GovernanceDetails, AccountId},
-    PROXY,
+    manager::{self, SubAccountIdsResponse},
+    objects::{
+        gov_type::{GovAction, GovernanceDetails},
+        ownership, AccountId,
+    },
+    proxy, PROXY,
 };
-use cosmwasm_std::{to_json_binary, wasm_execute};
+use cosmwasm_std::{to_json_binary, wasm_execute, WasmMsg};
 use cw_orch::prelude::*;
 
 #[test]
@@ -241,8 +244,11 @@ fn sub_account_move_ownership() -> AResult {
     let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
     sub_account
         .manager
-        .propose_owner(GovernanceDetails::Monarchy {
-            monarch: new_owner.to_string(),
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::Monarchy {
+                monarch: new_owner.to_string(),
+            },
+            expiry: None,
         })?;
 
     // Make sure it's not updated until claimed
@@ -262,7 +268,7 @@ fn sub_account_move_ownership() -> AResult {
 
     // Claim ownership
     sub_account.manager.call_as(&new_owner).execute(
-        &abstract_std::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership),
+        &abstract_std::manager::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership),
         None,
     )?;
     let account = AbstractAccount::new(&deployment, AccountId::local(1));
@@ -333,7 +339,10 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     };
     new_account_sub_account
         .manager
-        .propose_owner(new_governance.clone())?;
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: new_governance.clone(),
+            expiry: None,
+        })?;
     let new_account_sub_account_manager = new_account_sub_account.manager.address()?;
 
     let sub_account = AbstractAccount::new(&deployment, AccountId::local(2));
@@ -348,7 +357,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         .module_action(vec![wasm_execute(
             new_account_sub_account_manager,
             &abstract_std::manager::ExecuteMsg::UpdateOwnership(
-                cw_ownable::Action::AcceptOwnership,
+                ownership::GovAction::AcceptOwnership,
             ),
             vec![],
         )?
@@ -363,8 +372,8 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     assert_eq!(sub_ids.sub_accounts, Vec::<u32>::new());
 
     let new_account_sub_account = AbstractAccount::new(&deployment, AccountId::local(4));
-    let info = new_account_sub_account.manager.info()?.info;
-    assert_eq!(new_governance, info.governance_details.into());
+    let info = new_account_sub_account.manager.ownership()?;
+    assert_eq!(new_governance, info.owner);
     take_storage_snapshot!(chain, "sub_account_move_ownership_to_sub_account");
 
     Ok(())
@@ -399,7 +408,10 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
     };
     let err = new_account
         .manager
-        .propose_owner(new_governance)
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: new_governance.clone(),
+            expiry: None,
+        })
         .unwrap_err();
     let err = err.root().to_string();
     assert!(err.contains("manager and proxy has different account ids"));
@@ -425,16 +437,19 @@ fn account_updated_to_subaccount() -> AResult {
     // Setting account1 as pending owner of account2
     account
         .manager
-        .propose_owner(GovernanceDetails::SubAccount {
-            manager: manager1_addr.to_string(),
-            proxy: proxy1_addr.to_string(),
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::SubAccount {
+                manager: manager1_addr.to_string(),
+                proxy: proxy1_addr.to_string(),
+            },
+            expiry: None,
         })?;
     account.manager.set_address(&manager1_addr);
     account.proxy.set_address(&proxy1_addr);
 
     // account1 accepting account2 as a sub-account
     let accept_msg =
-        abstract_std::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+        abstract_std::manager::ExecuteMsg::UpdateOwnership(ownership::GovAction::AcceptOwnership);
     account.manager.exec_on_module(
         to_json_binary(&abstract_std::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![wasm_execute(manager2_addr, &accept_msg, vec![])?.into()],
@@ -466,14 +481,17 @@ fn account_updated_to_subaccount_recursive() -> AResult {
     // Setting account1 as pending owner of account2
     account
         .manager
-        .propose_owner(GovernanceDetails::SubAccount {
-            manager: manager1_addr.to_string(),
-            proxy: proxy1_addr.to_string(),
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::SubAccount {
+                manager: manager1_addr.to_string(),
+                proxy: proxy1_addr.to_string(),
+            },
+            expiry: None,
         })?;
     // accepting ownership by sender instead of the manager
     account
         .manager
-        .update_ownership(cw_ownable::Action::AcceptOwnership)?;
+        .update_ownership(ownership::GovAction::AcceptOwnership)?;
 
     // Check manager knows about his new sub-account
     account.manager.set_address(&manager1_addr);
@@ -529,7 +547,7 @@ fn cant_renounce_with_sub_accounts() -> AResult {
 
     let err: ManagerError = account
         .manager
-        .update_ownership(cw_ownable::Action::RenounceOwnership)
+        .update_ownership(ownership::GovAction::RenounceOwnership)
         .unwrap_err()
         .downcast()
         .unwrap();
@@ -562,28 +580,110 @@ fn can_renounce_sub_accounts() -> AResult {
 
     sub_account
         .manager
-        .update_ownership(cw_ownable::Action::RenounceOwnership)?;
+        .update_ownership(ownership::GovAction::RenounceOwnership)?;
 
     account
         .manager
-        .update_ownership(cw_ownable::Action::RenounceOwnership)?;
+        .update_ownership(ownership::GovAction::RenounceOwnership)?;
 
     // No owners
-    let account_owner = account.manager.ownership()?;
-    assert!(account_owner.owner.is_none());
-    let sub_account_owner = sub_account.manager.ownership()?;
-    assert!(sub_account_owner.owner.is_none());
-
     // Renounced governance
-    let account_info = account.manager.info()?;
+    let account_owner = account.manager.ownership()?;
+    assert_eq!(account_owner.owner, GovernanceDetails::Renounced {});
+    let sub_account_owner = sub_account.manager.ownership()?;
+    assert_eq!(sub_account_owner.owner, GovernanceDetails::Renounced {});
+
+    Ok(())
+}
+
+#[test]
+fn account_updated_to_subaccount_without_recursion() -> AResult {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    // Creating account1
+    let account_1 = create_default_account(&deployment.account_factory)?;
+
+    // Creating account2
+    let account_2 = create_default_account(&deployment.account_factory)?;
+
+    // Setting account1 as pending owner of account2
+    account_2
+        .manager
+        .update_ownership(GovAction::TransferOwnership {
+            new_owner: GovernanceDetails::SubAccount {
+                manager: account_1.manager.addr_str()?,
+                proxy: account_1.proxy.addr_str()?,
+            },
+            expiry: None,
+        })?;
+
+    // accepting ownership by sender instead of the manager
+    account_1.manager.execute_on_module(
+        PROXY,
+        proxy::ExecuteMsg::ModuleAction {
+            msgs: vec![WasmMsg::Execute {
+                contract_addr: account_2.manager.addr_str()?,
+                msg: to_json_binary(&manager::ExecuteMsg::UpdateOwnership(
+                    GovAction::AcceptOwnership,
+                ))?,
+                funds: vec![],
+            }
+            .into()],
+        },
+    )?;
+
+    // Check manager knows about his new sub-account
+    let ids = account_1.manager.sub_account_ids(None, None)?;
+    assert_eq!(ids.sub_accounts.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn sub_account_to_regular_account_without_recursion() -> AResult {
+    let chain = MockBech32::new("mock");
+    let sender = chain.sender();
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    // Creating account1
+    let account = create_default_account(&deployment.account_factory)?;
+    let sub_account = account.create_sub_account(
+        AccountDetails {
+            name: "sub_account".to_owned(),
+            ..Default::default()
+        },
+        None,
+    )?;
+
+    account.manager.execute_on_module(
+        PROXY,
+        proxy::ExecuteMsg::ModuleAction {
+            msgs: vec![WasmMsg::Execute {
+                contract_addr: sub_account.manager.addr_str()?,
+                msg: to_json_binary(&manager::ExecuteMsg::UpdateOwnership(
+                    GovAction::TransferOwnership {
+                        new_owner: GovernanceDetails::Monarchy {
+                            monarch: chain.sender().to_string(),
+                        },
+                        expiry: None,
+                    },
+                ))?,
+                funds: vec![],
+            }
+            .into()],
+        },
+    )?;
+
+    sub_account
+        .manager
+        .update_ownership(GovAction::AcceptOwnership)?;
+    let ownership = sub_account.manager.ownership()?;
     assert_eq!(
-        account_info.info.governance_details,
-        GovernanceDetails::Renounced {}
-    );
-    let sub_account_info = sub_account.manager.info()?;
-    assert_eq!(
-        sub_account_info.info.governance_details,
-        GovernanceDetails::Renounced {}
+        ownership.owner,
+        GovernanceDetails::Monarchy {
+            monarch: chain.sender().to_string()
+        }
     );
     Ok(())
 }

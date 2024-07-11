@@ -338,19 +338,48 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     /// Attempts to upgrade the Account
     /// returns `true` if any migrations were performed.
-    pub fn upgrade(&self) -> Result<bool, AbstractInterfaceError> {
+    pub fn upgrade(
+        &self,
+        abstract_deployment: &Abstract<Chain>,
+    ) -> Result<bool, AbstractInterfaceError> {
         let mut one_migration_was_successful = false;
 
-        // We upgrade the manager to the latest version through all the versions
+        // upgrade sub accounts first
+        {
+            let mut sub_account_ids = vec![];
+            let mut start_after = None;
+            loop {
+                let sub_account_ids_page = self
+                    .manager
+                    .sub_account_ids(None, start_after)?
+                    .sub_accounts;
+
+                start_after = sub_account_ids_page.last().cloned();
+                if sub_account_ids_page.is_empty() {
+                    break;
+                }
+                sub_account_ids.extend(sub_account_ids_page);
+            }
+            dbg!(&sub_account_ids);
+            for sub_account_id in sub_account_ids {
+                let abstract_account =
+                    AbstractAccount::new(abstract_deployment, AccountId::local(sub_account_id));
+                if abstract_account.upgrade(abstract_deployment)? {
+                    one_migration_was_successful = true;
+                }
+            }
+        }
+
+        // We upgrade the proxy to the latest version through all the versions
         loop {
-            if self.upgrade_next_module_version(MANAGER)?.is_none() {
+            if self.upgrade_next_module_version(PROXY)?.is_none() {
                 break;
             }
             one_migration_was_successful = true;
         }
 
         loop {
-            if self.upgrade_next_module_version(PROXY)?.is_none() {
+            if self.upgrade_next_module_version(MANAGER)?.is_none() {
                 break;
             }
             one_migration_was_successful = true;

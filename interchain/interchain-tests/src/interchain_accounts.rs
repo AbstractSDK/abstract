@@ -379,11 +379,6 @@ mod test {
             InfoResponse {
                 info: abstract_std::manager::state::AccountInfo {
                     name: account_name,
-                    governance_details:
-                        abstract_std::objects::gov_type::GovernanceDetails::External {
-                            governance_address: abstr_remote.ibc.host.address()?,
-                            governance_type: "abstract-ibc".to_string()
-                        },
                     chain_id: STARGAZE.to_string(),
                     description,
                     link
@@ -435,14 +430,11 @@ mod test {
 
         let created_abstract_account = AbstractAccount::new(&abstr_remote, created_account_id);
 
-        let account_info: AccountInfo<Addr> = created_abstract_account.manager.info()?.info;
+        let account_info: AccountInfo = created_abstract_account.manager.info()?.info;
 
         assert_eq!(
             AccountInfo {
                 chain_id: STARGAZE.to_owned(),
-                governance_details: GovernanceDetails::Monarchy {
-                    monarch: abstr_remote.version_control.address()?.to_string(),
-                },
                 description: None,
                 name: account_name,
                 link: None,
