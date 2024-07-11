@@ -31,29 +31,6 @@ const APP: BalancerApp = BalancerApp::new(BALANCER, MODULE_VERSION, None)
 
 You can now safely start using the [Abstract APIs](./4_sdk.md) that should be included in any of your dependencies.
 
-<!-- `StaticDependency` defines how the dependency is supposed to be imported and used. It contains `id` of the module and `version` of the module.
-
-```rust
-pub struct StaticDependency {
-    pub id: ModuleId<'static>,
-    pub version_req: &'static [&'static str],
-}
-```
-
-`version` uses uses [Semantic Versioning (SemVer)](https://semver.org/) for its packages. You can specify dependencies using exact versions, version ranges, or other qualifiers to ensure compatibility of your modules.
-
-```admonish info
-Make sure to keep an eye out for deprecating dependencies as well. Security updates are a must to update and some patches can be ignored.
-```
-
-### Addressing other modules
-
-If your module needs some modules to be enabled, it can add those as a dependency. You can then easily call messages on these modules by using the ModuleInterface trait as described in [Dependency Execution Flow](https://docs.abstract.money/3_framework/6_module_types.html#dependency-execution).
-
-Under the hood the ID of the dependency module will be resolved on the Manager contract, returning the address of that module. The address is then used to call or query the dependency.
-
-You can also query dependencies using the same trait or by performing a raw-query provided by the SDK. -->
-
 ## Dependency Installation
 
 Before you can install your own module you must install all your module's dependencies. To do this we provide a `DependencyCreation` trait that you should implement for your module. The goal of the trait is to enable you to configure which dependencies should be installed and with which parameters.
