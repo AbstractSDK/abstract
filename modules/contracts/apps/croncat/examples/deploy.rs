@@ -30,7 +30,7 @@ fn main() -> anyhow::Result<()> {
     let abstract_deployment = Abstract::load_from(chain.clone())?;
     let account = abstract_deployment.account_factory.create_default_account(
         GovernanceDetails::Monarchy {
-            monarch: chain.sender().into_string(),
+            monarch: chain.sender_addr().into_string(),
         },
     )?;
 

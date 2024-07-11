@@ -54,7 +54,7 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
             .chain(network.clone())
             .build()?;
 
-        let sender = chain.sender();
+        let sender = chain.sender_addr();
 
         let deployment = match Abstract::deploy_on(chain, sender.to_string()) {
             Ok(deployment) => {

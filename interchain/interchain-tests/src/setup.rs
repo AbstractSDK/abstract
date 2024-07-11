@@ -13,9 +13,9 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
 
     // Deploying abstract and the IBC abstract logic
     let abstr_origin =
-        Abstract::deploy_on(origin_chain.clone(), origin_chain.sender().to_string())?;
+        Abstract::deploy_on(origin_chain.clone(), origin_chain.sender_addr().to_string())?;
     let abstr_remote =
-        Abstract::deploy_on(remote_chain.clone(), remote_chain.sender().to_string())?;
+        Abstract::deploy_on(remote_chain.clone(), remote_chain.sender_addr().to_string())?;
 
     abstr_origin.connect_to(&abstr_remote, interchain)?;
 

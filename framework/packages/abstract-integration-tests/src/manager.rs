@@ -58,7 +58,7 @@ pub fn account_install_app<T: CwEnv>(chain: T) -> AResult {
 /// Test installing an app on an account
 pub fn create_sub_account_with_modules_installed<T: CwEnv>(chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let factory = &deployment.account_factory;
 
     let deployer_acc = factory.create_new_account(
@@ -146,7 +146,7 @@ pub fn create_account_with_installed_module_monetization_and_init_funds<T: MutCw
     mut chain: T,
     (coin1, coin2): (&str, &str),
 ) -> AResult {
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     // Adding coins to fill monetization
     chain
         .add_balance(&sender, vec![coin(18, coin1), coin(20, coin2)])
@@ -401,7 +401,7 @@ pub fn uninstall_modules<T: CwEnv>(chain: T) -> AResult {
 }
 
 pub fn installing_one_adapter_with_fee_should_succeed<T: MutCwEnv>(mut chain: T) -> AResult {
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::load_from(chain.clone())?;
     let account = create_default_account(&deployment.account_factory)?;
     chain.set_balance(&sender, coins(45, "ujunox")).unwrap();

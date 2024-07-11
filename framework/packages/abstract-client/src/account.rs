@@ -42,12 +42,15 @@ use abstract_std::{
     PROXY,
 };
 use cosmwasm_std::{to_json_binary, Attribute, Coins, CosmosMsg, Uint128};
-use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
+use cw_orch::{
+    contract::Contract,
+    environment::{Environment as _, MutCwEnv},
+    prelude::*,
+};
 
 use crate::{
-    client::AbstractClientResult,
-    infrastructure::{Environment, Infrastructure},
-    AbstractClientError, Application,
+    client::AbstractClientResult, infrastructure::Infrastructure, AbstractClientError, Application,
+    Environment,
 };
 
 /// A builder for creating [`Accounts`](Account).
@@ -274,8 +277,8 @@ impl<'a, Chain: CwEnv> AccountBuilder<'a, Chain> {
             }
         }
 
-        let chain = self.abstr.version_control.get_chain();
-        let sender = chain.sender().to_string();
+        let chain = self.abstr.version_control.environment();
+        let sender = chain.sender_addr().to_string();
         let name = self
             .name
             .clone()

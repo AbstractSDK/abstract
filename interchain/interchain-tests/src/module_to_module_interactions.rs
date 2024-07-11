@@ -354,7 +354,7 @@ pub mod test {
     use abstract_testing::addresses::{TEST_MODULE_ID, TEST_NAMESPACE, TEST_VERSION};
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary};
-    use cw_orch::prelude::*;
+    use cw_orch::{environment::Environment, prelude::*};
     use cw_orch_interchain::{prelude::*, types::IbcPacketOutcome};
 
     #[test]
@@ -372,7 +372,7 @@ pub mod test {
 
         let app = MockAppOriginI::new(
             TEST_MODULE_ID,
-            abstr_origin.version_control.get_chain().clone(),
+            abstr_origin.version_control.environment().clone(),
         );
 
         abstr_origin.version_control.claim_namespace(
@@ -426,7 +426,7 @@ pub mod test {
         // Install local app
         let app = MockAppOriginI::new(
             TEST_MODULE_ID,
-            abstr_origin.version_control.get_chain().clone(),
+            abstr_origin.version_control.environment().clone(),
         );
 
         abstr_origin
@@ -440,7 +440,7 @@ pub mod test {
         // Install remote app
         let app_remote = MockAppRemoteI::new(
             TEST_MODULE_ID_REMOTE,
-            abstr_remote.version_control.get_chain().clone(),
+            abstr_remote.version_control.environment().clone(),
         );
 
         abstr_remote
@@ -489,7 +489,7 @@ pub mod test {
         // Install local app
         let app = MockAppOriginI::new(
             TEST_MODULE_ID,
-            abstr_origin.version_control.get_chain().clone(),
+            abstr_origin.version_control.environment().clone(),
         );
 
         abstr_origin
@@ -503,7 +503,7 @@ pub mod test {
         // Install remote app
         let app_remote = MockAppRemoteI::new(
             TEST_MODULE_ID_REMOTE,
-            abstr_remote.version_control.get_chain().clone(),
+            abstr_remote.version_control.environment().clone(),
         );
 
         abstr_remote
@@ -534,13 +534,13 @@ pub mod test {
             .manager;
         let manager = Manager::new(
             "remote-account-manager",
-            abstr_remote.version_control.get_chain().clone(),
+            abstr_remote.version_control.environment().clone(),
         );
         manager.set_address(&remote_manager);
         let module_address = manager.module_info(TEST_MODULE_ID_REMOTE)?.unwrap().address;
         let remote_account_app = MockAppRemoteI::new(
             "remote-account-app",
-            abstr_remote.version_control.get_chain().clone(),
+            abstr_remote.version_control.environment().clone(),
         );
         remote_account_app.set_address(&module_address);
 
@@ -606,7 +606,7 @@ pub mod test {
         // Install local app
         let app = MockAppOriginI::new(
             TEST_MODULE_ID,
-            abstr_origin.version_control.get_chain().clone(),
+            abstr_origin.version_control.environment().clone(),
         );
 
         abstr_origin
@@ -671,7 +671,7 @@ pub mod test {
             // Install local app
             let app = MockAppOriginI::new(
                 TEST_MODULE_ID,
-                abstr_origin.version_control.get_chain().clone(),
+                abstr_origin.version_control.environment().clone(),
             );
 
             abstr_origin
@@ -685,7 +685,7 @@ pub mod test {
             // Install remote app
             let app_remote = MockAppRemoteI::new(
                 TEST_MODULE_ID_REMOTE,
-                abstr_remote.version_control.get_chain().clone(),
+                abstr_remote.version_control.environment().clone(),
             );
 
             abstr_remote
@@ -716,13 +716,13 @@ pub mod test {
                 .manager;
             let manager = Manager::new(
                 "remote-account-manager",
-                abstr_remote.version_control.get_chain().clone(),
+                abstr_remote.version_control.environment().clone(),
             );
             manager.set_address(&remote_manager);
             let module_address = manager.module_info(TEST_MODULE_ID_REMOTE)?.unwrap().address;
             let remote_account_app = MockAppRemoteI::new(
                 "remote-account-app",
-                abstr_remote.version_control.get_chain().clone(),
+                abstr_remote.version_control.environment().clone(),
             );
             remote_account_app.set_address(&module_address);
 

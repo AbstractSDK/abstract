@@ -32,7 +32,7 @@ mod proxy;
 use std::collections::HashSet;
 
 use abstract_std::{manager::ManagerModuleInfo, objects::AccountId};
-use cw_orch::prelude::*;
+use cw_orch::{environment::Environment, prelude::*};
 use serde::Serialize;
 use speculoos::prelude::*;
 
@@ -277,7 +277,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             funds,
         )?;
 
-        Self::from_tx_response(self.manager.get_chain(), result)
+        Self::from_tx_response(self.manager.environment(), result)
     }
 
     // Parse account from events
@@ -365,7 +365,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
     ) -> Result<Option<Chain::Response>, AbstractInterfaceError> {
-        let chain = self.manager.get_chain().clone();
+        let chain = self.manager.environment().clone();
 
         // We start by getting the current module version
         let current_cw2_module_version: ContractVersion = if module_id == MANAGER {
@@ -464,7 +464,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         namespace: impl Into<String>,
     ) -> Result<Chain::Response, AbstractInterfaceError> {
-        let abstr = Abstract::load_from(self.manager.get_chain().clone())?;
+        let abstr = Abstract::load_from(self.manager.environment().clone())?;
         abstr
             .version_control
             .claim_namespace(self.id()?, namespace.into())

@@ -21,7 +21,7 @@ mod staking {
         let uluna = "uluna";
 
         let mock = MockBech32::new("mock");
-        let liquidity_provider = mock.sender();
+        let liquidity_provider = mock.sender_addr();
         let owner = mock.addr_make(WYNDEX_OWNER);
 
         mock.set_balance(

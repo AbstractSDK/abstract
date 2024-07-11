@@ -39,14 +39,15 @@ fn main() -> anyhow::Result<()> {
         .build()
         .unwrap();
     // Deploy abstract locally
-    let abstract_deployment = Abstract::deploy_on(daemon.clone(), daemon.sender().to_string())?;
+    let abstract_deployment =
+        Abstract::deploy_on(daemon.clone(), daemon.sender_addr().to_string())?;
 
     let app = CalendarAppInterface::new(APP_ID, daemon.clone());
 
     // Create account
     let account = abstract_deployment.account_factory.create_default_account(
         GovernanceDetails::Monarchy {
-            monarch: daemon.sender().into_string(),
+            monarch: daemon.sender_addr().into_string(),
         },
     )?;
 

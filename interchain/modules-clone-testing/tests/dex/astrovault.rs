@@ -46,7 +46,7 @@ impl AstrovaultDex {
                     .call_as(&Addr::unchecked(cw20_minter.minter))
                     .execute(
                         &cw20::Cw20ExecuteMsg::UpdateMinter {
-                            new_minter: Some(self.chain.sender().to_string()),
+                            new_minter: Some(self.chain.sender_addr().to_string()),
                         },
                         &[],
                         &addr,

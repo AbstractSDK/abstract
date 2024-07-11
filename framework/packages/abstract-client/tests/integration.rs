@@ -41,7 +41,7 @@ use cw_ownable::Ownership;
 #[test]
 fn can_create_account_without_optional_parameters() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let client = AbstractClient::builder(chain).build()?;
 
     let account: Account<MockBech32> = client.account_builder().build()?;
@@ -164,7 +164,7 @@ fn err_fetching_unclaimed_namespace() -> anyhow::Result<()> {
 #[test]
 fn can_create_publisher_without_optional_parameters() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let client = AbstractClient::builder(chain).build()?;
 
     let publisher: Publisher<MockBech32> = client
@@ -522,7 +522,7 @@ fn can_install_module_with_dependencies() -> anyhow::Result<()> {
 #[test]
 fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let client = AbstractClient::builder(chain.clone()).build()?;
 
     let name = "name";
@@ -594,7 +594,7 @@ fn can_build_cw20_with_all_options() -> anyhow::Result<()> {
 #[test]
 fn can_build_cw20_with_minimum_options() -> anyhow::Result<()> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let client = AbstractClient::builder(chain).build()?;
 
     let name = "name";
@@ -767,7 +767,7 @@ fn doc_example_test() -> anyhow::Result<()> {
     // ## ANCHOR: build_client
     // Create environment
     let env: MockBech32 = MockBech32::new("mock");
-    let sender: Addr = env.sender();
+    let sender: Addr = env.sender_addr();
 
     // Build the client
     let client: AbstractClient<MockBech32> = AbstractClient::builder(env).build()?;
@@ -1040,7 +1040,7 @@ fn install_application_on_account_builder() -> anyhow::Result<()> {
 fn auto_funds_work() -> anyhow::Result<()> {
     // Give enough tokens for the owner
     let chain = MockBech32::new("mock");
-    let owner = chain.sender();
+    let owner = chain.sender_addr();
     chain.set_balance(&owner, coins(50, TTOKEN))?;
 
     let client = AbstractClient::builder(chain).build()?;

@@ -24,7 +24,11 @@ use abstract_std::{
     proxy, IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{to_json_binary, CosmosMsg, Uint128};
-use cw_orch::{contract::Contract, environment::MutCwEnv, prelude::*};
+use cw_orch::{
+    contract::Contract,
+    environment::{Environment as _, MutCwEnv},
+    prelude::*,
+};
 use cw_orch_interchain::{types::IbcTxAnalysis, IbcQueryHandler, InterchainEnv};
 
 use crate::{
@@ -84,7 +88,7 @@ impl<'a, Chain: IbcQueryHandler> Account<Chain> {
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name =
-                TruncatedChainId::from_chain_id(&owner_account.manager.get_chain().chain_id());
+                TruncatedChainId::from_chain_id(&owner_account.manager.environment().chain_id());
             id.push_chain(chain_name);
             id
         };
@@ -192,7 +196,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccountBuilder
         let remote_account_id = {
             let mut id = owner_account.id()?;
             let chain_name = TruncatedChainId::from_chain_id(
-                &owner_account.abstr_account.manager.get_chain().chain_id(),
+                &owner_account.abstr_account.manager.environment().chain_id(),
             );
             id.push_chain(chain_name);
             id
@@ -251,7 +255,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     fn origin_chain(&self) -> Chain {
-        self.abstr_owner_account.manager.get_chain().clone()
+        self.abstr_owner_account.manager.environment().clone()
     }
 
     /// Get proxy address of the account

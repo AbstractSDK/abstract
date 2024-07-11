@@ -30,7 +30,7 @@ fn manual_deploy(network: ChainInfoOwned) -> anyhow::Result<()> {
         .chain(network.clone())
         .build()?;
 
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
 
     // Abstract
     let _abstr = match Abstract::load_from(chain.clone()) {

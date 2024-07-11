@@ -11,7 +11,7 @@ use crate::AResult;
 
 pub fn create_one_account_with_namespace_fee<T: MutCwEnv>(mut chain: T) -> AResult {
     let deployment = Abstract::load_from(chain.clone())?;
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;

@@ -2,7 +2,7 @@ use abstract_std::objects::{account::AccountTrace, AccountId, TruncatedChainId};
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 use abstract_interface::{Abstract, AbstractAccount, AccountDetails, ManagerQueryFns};
 use anyhow::Result as AnyResult;
-use cw_orch::prelude::*;
+use cw_orch::{environment::Environment, prelude::*};
 use cw_orch_interchain::prelude::*;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
@@ -41,8 +41,8 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
         abstract_std::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: abstr_origin
                 .version_control
-                .get_chain()
-                .sender()
+                .environment()
+                .sender_addr()
                 .to_string(),
         },
         funds.as_deref(),
@@ -93,7 +93,7 @@ mod test {
 
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{coins, to_json_binary, wasm_execute, IbcTimeout, Uint128};
-    use cw_orch::mock::cw_multi_test::AppResponse;
+    use cw_orch::{environment::Environment, mock::cw_multi_test::AppResponse};
     use ibc_relayer_types::core::ics24_host::identifier::PortId;
 
     #[test]
@@ -249,11 +249,11 @@ mod test {
         let chain3 = mock_interchain.chain(OSMOSIS).unwrap();
 
         // Deploying abstract and the IBC abstract logic
-        let abstr_origin = Abstract::deploy_on(chain1.clone(), chain1.sender().to_string())?;
+        let abstr_origin = Abstract::deploy_on(chain1.clone(), chain1.sender_addr().to_string())?;
         let abstr_intermediate_remote =
-            Abstract::deploy_on(chain2.clone(), chain2.sender().to_string())?;
+            Abstract::deploy_on(chain2.clone(), chain2.sender_addr().to_string())?;
         let abstr_destination_remote =
-            Abstract::deploy_on(chain3.clone(), chain3.sender().to_string())?;
+            Abstract::deploy_on(chain3.clone(), chain3.sender_addr().to_string())?;
 
         // Creating a connection between 2 abstract deployments
         abstr_origin.connect_to(&abstr_intermediate_remote, &mock_interchain)?;
@@ -278,8 +278,8 @@ mod test {
                 abstract_std::objects::gov_type::GovernanceDetails::Monarchy {
                     monarch: abstr_origin
                         .version_control
-                        .get_chain()
-                        .sender()
+                        .environment()
+                        .sender_addr()
                         .to_string(),
                 },
                 None,
@@ -476,7 +476,7 @@ mod test {
             GovernanceDetails::Monarchy {
                 monarch: abstr
                     .account_factory
-                    .get_chain()
+                    .environment()
                     .addr_make("user")
                     .to_string(),
             },
@@ -515,7 +515,7 @@ mod test {
         // Cannot call with sender that is not host.
         let result = remote_account
             .manager
-            .call_as(&mock_interchain.chain(STARGAZE)?.sender())
+            .call_as(&mock_interchain.chain(STARGAZE)?.sender_addr())
             .update_info(
                 Some(new_description.clone()),
                 Some(new_link.clone()),
@@ -677,7 +677,7 @@ mod test {
         let (abstr_origin, abstr_remote) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
         mock_interchain.chain(JUNO)?.set_balance(
-            &abstr_origin.version_control.get_chain().sender(),
+            &abstr_origin.version_control.environment().sender_addr(),
             coins(100, origin_denom),
         )?;
         let (origin_account, remote_account_id) = create_test_remote_account(

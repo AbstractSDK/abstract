@@ -106,7 +106,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: chain.sender().to_string(),
+                monarch: chain.sender_addr().to_string(),
             })?;
         Ok(deployment)
     }

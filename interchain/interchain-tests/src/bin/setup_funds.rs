@@ -32,7 +32,7 @@ pub fn test_send_funds() -> AnyResult<()> {
     let abstr_stargaze: Abstract<Daemon> = Abstract::load_from(stargaze.clone())?;
     let abstr_juno: Abstract<Daemon> = Abstract::load_from(juno.clone())?;
 
-    let sender = juno.sender().to_string();
+    let sender = juno.sender_addr().to_string();
 
     let test_amount: u128 = 100_000_000_000;
     let token_subdenom = format!(
