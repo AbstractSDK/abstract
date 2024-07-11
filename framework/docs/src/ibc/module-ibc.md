@@ -101,7 +101,7 @@ The `callback_info` field allows conditional message execution after the IBC pac
 
 #### Callback Execution
 
-If a callback was requested when sending a module IBC message, the callback will be executed wether the execution was successful or not. A callback message will be executed on the ̀[`ibc_callback`](./4_get_started/3_module_builder.md#ibc-callback) endpoint of the calling module. The function signature for this endpoint is:
+If a callback was requested when sending a module IBC message, the callback will be executed wether the execution was successful or not. A callback message will be executed on the ̀[`ibc_callback`](../4_get_started/3_module_builder.md#ibc-callback) endpoint of the calling module. The function signature for this endpoint is:
 
 ```rust
 pub fn ibc_callback(deps: DepsMut, env: Env, module: Module, response_msg: IbcResponseMsg) -> Result<Response, Error>;
