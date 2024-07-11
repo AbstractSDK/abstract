@@ -4,7 +4,6 @@ use abstract_std::{
     AbstractError,
 };
 use cosmwasm_std::{Instantiate2AddressError, StdError};
-use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -19,13 +18,10 @@ pub enum ManagerError {
     AbstractSdk(#[from] AbstractSdkError),
 
     #[error("{0}")]
-    Admin(#[from] AdminError),
-
-    #[error("{0}")]
     Validation(#[from] ValidationError),
 
     #[error("{0}")]
-    Ownership(#[from] cw_ownable::OwnershipError),
+    Ownership(#[from] abstract_std::objects::ownership::GovOwnershipError),
 
     #[error("{0}")]
     Instantiate2AddressError(#[from] Instantiate2AddressError),

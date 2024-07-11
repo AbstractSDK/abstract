@@ -1,11 +1,13 @@
 //! # Governance structure object
 
-use cosmwasm_std::{Addr, Deps};
+use crate::{objects::account, version_control};
+use cosmwasm_std::{Addr, Deps, QuerierWrapper};
+use cw721::OwnerOfResponse;
 use cw_address_like::AddressLike;
+use cw_utils::Expiration;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::account::ACCOUNT_ID;
 use crate::AbstractError;
 
 const MIN_GOV_TYPE_LENGTH: usize = 4;
@@ -37,6 +39,38 @@ pub enum GovernanceDetails<T: AddressLike> {
     /// Renounced account
     /// This account no longer has an owner and cannot be used.
     Renounced {},
+    NFT {
+        collection_addr: T,
+        token_id: String,
+    },
+}
+
+/// Actions that can be taken to alter the contract's governance ownership
+#[cosmwasm_schema::cw_serde]
+pub enum GovAction {
+    /// Propose to transfer the contract's ownership to another account,
+    /// optionally with an expiry time.
+    ///
+    /// Can only be called by the contract's current owner.
+    ///
+    /// Any existing pending ownership transfer is overwritten.
+    TransferOwnership {
+        new_owner: GovernanceDetails<String>,
+        expiry: Option<Expiration>,
+    },
+
+    /// Accept the pending ownership transfer.
+    ///
+    /// Can only be called by the pending owner.
+    AcceptOwnership,
+
+    /// Give up the contract's ownership and the possibility of appointing
+    /// a new owner.
+    ///
+    /// Can only be invoked by the contract's current owner.
+    ///
+    /// Any existing pending ownership transfer is canceled.
+    RenounceOwnership,
 }
 
 impl GovernanceDetails<String> {
@@ -53,8 +87,8 @@ impl GovernanceDetails<String> {
             }
             GovernanceDetails::SubAccount { manager, proxy } => {
                 let manager_addr = deps.api.addr_validate(&manager)?;
-                let account_id = ACCOUNT_ID.query(&deps.querier, manager_addr)?;
-                let base = crate::version_control::state::ACCOUNT_ADDRESSES.query(
+                let account_id = account::ACCOUNT_ID.query(&deps.querier, manager_addr)?;
+                let base = version_control::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
                     version_control_addr,
                     &account_id,
@@ -117,13 +151,20 @@ impl GovernanceDetails<String> {
                 })
             }
             GovernanceDetails::Renounced {} => Ok(GovernanceDetails::Renounced {}),
+            GovernanceDetails::NFT {
+                collection_addr,
+                token_id,
+            } => Ok(GovernanceDetails::NFT {
+                collection_addr: deps.api.addr_validate(&collection_addr.to_string())?,
+                token_id,
+            }),
         }
     }
 }
 
 impl GovernanceDetails<Addr> {
     /// Get the owner address from the governance details
-    pub fn owner_address(&self) -> Option<Addr> {
+    pub fn owner_address(&self, querier: &QuerierWrapper) -> Option<Addr> {
         match self {
             GovernanceDetails::Monarchy { monarch } => Some(monarch.clone()),
             GovernanceDetails::SubAccount { proxy, .. } => Some(proxy.clone()),
@@ -131,6 +172,21 @@ impl GovernanceDetails<Addr> {
                 governance_address, ..
             } => Some(governance_address.clone()),
             GovernanceDetails::Renounced {} => None,
+            GovernanceDetails::NFT {
+                collection_addr,
+                token_id,
+            } => {
+                let res: Option<OwnerOfResponse> = querier
+                    .query_wasm_smart(
+                        collection_addr,
+                        &cw721::Cw721QueryMsg::OwnerOf {
+                            token_id: token_id.to_string(),
+                            include_expired: None,
+                        },
+                    )
+                    .ok();
+                res.map(|owner_response| Addr::unchecked(owner_response.owner))
+            }
         }
     }
 }
@@ -153,6 +209,13 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
                 governance_type,
             },
             GovernanceDetails::Renounced {} => GovernanceDetails::Renounced {},
+            GovernanceDetails::NFT {
+                collection_addr,
+                token_id,
+            } => GovernanceDetails::NFT {
+                collection_addr: collection_addr.to_string(),
+                token_id,
+            },
         }
     }
 }
@@ -160,23 +223,29 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
 impl<T: AddressLike> std::fmt::Display for GovernanceDetails<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
-            GovernanceDetails::Monarchy { .. } => "monarch".to_string(),
-            GovernanceDetails::SubAccount { .. } => "sub-account".to_string(),
+            GovernanceDetails::Monarchy { .. } => "monarch",
+            GovernanceDetails::SubAccount { .. } => "sub-account",
             GovernanceDetails::External {
                 governance_type, ..
-            } => governance_type.to_owned(),
-            GovernanceDetails::Renounced {} => "renounced".to_string(),
+            } => governance_type.as_str(),
+            GovernanceDetails::Renounced {} => "renounced",
+            GovernanceDetails::NFT { .. } => "nft",
         };
-        write!(f, "{}", str)
+        write!(f, "{str}")
     }
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct TopLevelOwnerResponse {
+    pub address: Addr,
 }
 
 #[cfg(test)]
 mod test {
+    use super::*;
+
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
-
-    use super::*;
 
     #[test]
     fn test_verify() {
@@ -215,7 +284,7 @@ mod test {
         // too long
         let gov = GovernanceDetails::External {
             governance_address: "gov_address".to_string(),
-            governance_type: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string(),
+            governance_type: "a".repeat(190),
         };
         assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_err();
 
@@ -224,6 +293,14 @@ mod test {
             governance_address: "NOT_OK".to_string(),
             governance_type: "gov_type".to_string(),
         };
-        assert_that!(gov.verify(deps.as_ref(), mock_version_control)).is_err();
+        assert!(gov.verify(deps.as_ref(), mock_version_control).is_err());
+
+        // good nft
+        let gov = GovernanceDetails::NFT {
+            collection_addr: "collection_addr".to_string(),
+            token_id: "1".to_string(),
+        };
+        let mock_version_control = Addr::unchecked("mock_version_control");
+        assert_that!(gov.verify(deps.as_ref(), mock_version_control.clone())).is_ok();
     }
 }

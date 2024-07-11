@@ -8,6 +8,7 @@ use crate::{
     state::LOSSES,
 };
 
+// # ANCHOR: module_ibc
 pub fn receive_module_ibc(
     deps: DepsMut,
     env: Env,
@@ -24,7 +25,7 @@ pub fn receive_module_ibc(
         }
     );
     let ping_msg: PingPongIbcMsg = from_json(msg)?;
-
+    // # ANCHOR_END: module_ibc
     ensure!(
         matches!(ping_msg.hand, PingOrPong::Ping),
         AppError::FirstPlayMustBePing {}

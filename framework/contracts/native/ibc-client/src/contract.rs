@@ -691,9 +691,7 @@ mod tests {
         use abstract_std::{
             ibc_host::{self, HostAction, InternalAction},
             manager,
-            objects::{
-                gov_type::GovernanceDetails, version_control::VersionControlError, TruncatedChainId,
-            },
+            objects::{version_control::VersionControlError, TruncatedChainId},
         };
         use cosmwasm_std::wasm_execute;
         use polytone::callbacks::CallbackRequest;
@@ -735,9 +733,6 @@ mod tests {
                         manager::QueryMsg::Info {} => to_json_binary(&manager::InfoResponse {
                             info: manager::state::AccountInfo {
                                 name: String::from("name"),
-                                governance_details: GovernanceDetails::Monarchy {
-                                    monarch: Addr::unchecked("monarch"),
-                                },
                                 chain_id: String::from("chain-id"),
                                 description: None,
                                 link: None,

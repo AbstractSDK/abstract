@@ -15,11 +15,9 @@ use abstract_std::{
         ModuleInfosResponse, ModuleInstallConfig,
     },
     objects::{
-        gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
         namespace::Namespace,
-        nested_admin::MAX_ADMIN_RECURSION,
-        AccountId, AssetEntry, TruncatedChainId,
+        ownership, AccountId, AssetEntry, TruncatedChainId,
     },
     proxy, IBC_CLIENT, PROXY,
 };
@@ -294,7 +292,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     /// Query account info
-    pub fn info(&self) -> AbstractClientResult<AccountInfo<Addr>> {
+    pub fn info(&self) -> AbstractClientResult<AccountInfo> {
         let info_response: InfoResponse = self
             .remote_chain()
             .query(&manager::QueryMsg::Info {}, &self.manager()?)
@@ -386,7 +384,7 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     }
 
     /// Returns owner of the account
-    pub fn ownership(&self) -> AbstractClientResult<cw_ownable::Ownership<String>> {
+    pub fn ownership(&self) -> AbstractClientResult<ownership::Ownership<String>> {
         let manager = self.manager()?;
         self.remote_chain()
             .query(&manager::QueryMsg::Ownership {}, &manager)
@@ -397,32 +395,11 @@ impl<'a, Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>> RemoteAccount<'a, Ch
     /// Returns the owner address of the account.
     /// If the account is a sub-account, it will return the top-level owner address.
     pub fn owner(&self) -> AbstractClientResult<Addr> {
-        let mut governance = self
-            .abstr_owner_account
+        self.abstr_owner_account
             .manager
-            .info()?
-            .info
-            .governance_details;
-
-        let environment = self.origin_chain();
-        // Get sub-accounts until we get non-sub-account governance or reach recursion limit
-        for _ in 0..MAX_ADMIN_RECURSION {
-            match &governance {
-                GovernanceDetails::SubAccount { manager, .. } => {
-                    governance = environment
-                        .query::<_, InfoResponse>(&manager::QueryMsg::Info {}, manager)
-                        .map_err(|err| err.into())?
-                        .info
-                        .governance_details;
-                }
-                _ => break,
-            }
-        }
-
-        // Get top level account owner address
-        governance
-            .owner_address()
-            .ok_or(AbstractClientError::RenouncedAccount {})
+            .top_level_owner()
+            .map(|tlo| tlo.address)
+            .map_err(Into::into)
     }
 
     /// Executes a [`CosmosMsg`] on the proxy of the account.

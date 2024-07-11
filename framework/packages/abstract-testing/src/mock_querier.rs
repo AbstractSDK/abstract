@@ -2,7 +2,9 @@ use std::{collections::HashMap, ops::Deref};
 
 use abstract_std::{
     manager::state::{ACCOUNT_ID, ACCOUNT_MODULES},
-    objects::common_namespace::OWNERSHIP_STORAGE_KEY,
+    objects::{
+        common_namespace::OWNERSHIP_STORAGE_KEY, gov_type::GovernanceDetails, ownership::Ownership,
+    },
     version_control::state::ACCOUNT_ADDRESSES,
 };
 use cosmwasm_std::{
@@ -347,17 +349,24 @@ impl MockQuerierBuilder {
 }
 
 pub trait MockQuerierOwnership {
-    /// Add the [`cw_ownable::Ownership`] to the querier.
+    /// Add the [`cw_gov_ownable::Ownership`] to the querier.
     fn with_owner(self, contract: &str, owner: Option<impl ToString>) -> Self;
 }
 
 impl MockQuerierOwnership for MockQuerierBuilder {
     fn with_owner(mut self, contract: &str, owner: Option<impl ToString>) -> Self {
+        let owner = if let Some(owner) = owner {
+            GovernanceDetails::Monarchy {
+                monarch: Addr::unchecked(owner.to_string()),
+            }
+        } else {
+            GovernanceDetails::Renounced {}
+        };
         self = self.with_contract_item(
             contract,
             Item::new(OWNERSHIP_STORAGE_KEY),
-            &cw_ownable::Ownership {
-                owner: owner.map(|o| Addr::unchecked(o.to_string())),
+            &Ownership {
+                owner,
                 pending_owner: None,
                 pending_expiry: None,
             },
