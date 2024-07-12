@@ -460,7 +460,7 @@ fn renounce_cleans_namespace() -> AResult {
 #[test]
 fn nft_owner_success() -> Result<(), Error> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
@@ -561,7 +561,7 @@ fn nft_owner_success() -> Result<(), Error> {
 #[test]
 fn nft_owner_immutable() -> Result<(), Error> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
@@ -666,7 +666,7 @@ fn nft_owner_immutable() -> Result<(), Error> {
 #[test]
 fn nft_pending_owner() -> Result<(), Error> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
@@ -680,7 +680,7 @@ fn nft_pending_owner() -> Result<(), Error> {
         deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: chain.sender().to_string(),
+                monarch: chain.sender_addr().to_string(),
             })?;
     // Transferring to token id that pending governance don't own act same way as transferring to renounced governance
     let err: ManagerError = account
@@ -731,7 +731,7 @@ fn nft_pending_owner() -> Result<(), Error> {
 
     // Mint new NFT, since we burned previous one
     let new_token_id = "2".to_owned();
-    mint_nft(&chain, chain.sender(), &new_token_id, &nft_addr)?;
+    mint_nft(&chain, chain.sender_addr(), &new_token_id, &nft_addr)?;
 
     // Propose NFT governance
     account

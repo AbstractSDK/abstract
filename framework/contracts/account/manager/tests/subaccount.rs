@@ -599,7 +599,7 @@ fn can_renounce_sub_accounts() -> AResult {
 #[test]
 fn account_updated_to_subaccount_without_recursion() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     // Creating account1
@@ -643,7 +643,7 @@ fn account_updated_to_subaccount_without_recursion() -> AResult {
 #[test]
 fn sub_account_to_regular_account_without_recursion() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     // Creating account1
@@ -664,7 +664,7 @@ fn sub_account_to_regular_account_without_recursion() -> AResult {
                 msg: to_json_binary(&manager::ExecuteMsg::UpdateOwnership(
                     GovAction::TransferOwnership {
                         new_owner: GovernanceDetails::Monarchy {
-                            monarch: chain.sender().to_string(),
+                            monarch: chain.sender_addr().to_string(),
                         },
                         expiry: None,
                     },
@@ -682,7 +682,7 @@ fn sub_account_to_regular_account_without_recursion() -> AResult {
     assert_eq!(
         ownership.owner,
         GovernanceDetails::Monarchy {
-            monarch: chain.sender().to_string()
+            monarch: chain.sender_addr().to_string()
         }
     );
     Ok(())
