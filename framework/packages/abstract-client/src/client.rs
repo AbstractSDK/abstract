@@ -40,7 +40,7 @@ use abstract_std::objects::{
     AccountId,
 };
 use cosmwasm_std::{BlockInfo, Uint128};
-use cw_orch::prelude::*;
+use cw_orch::{environment::Environment as _, prelude::*};
 use rand::Rng;
 
 use crate::{
@@ -150,7 +150,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
     /// Address of the sender
     pub fn sender(&self) -> Addr {
-        self.environment().sender()
+        self.environment().sender_addr()
     }
 
     /// Fetch an [`Account`] from a given source.
@@ -166,7 +166,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
         source: T,
     ) -> AbstractClientResult<Account<Chain>> {
         let source = source.into();
-        let chain = self.abstr.version_control.get_chain();
+        let chain = self.abstr.version_control.environment();
 
         match source {
             AccountSource::Namespace(namespace) => {
@@ -276,7 +276,7 @@ impl<Chain: CwEnv> AbstractClient<Chain> {
 
             // only take accounts that the current sender owns
             let account = AbstractAccount::new(&self.abstr, account_id.clone());
-            if account.manager.top_level_owner()?.address != self.environment().sender() {
+            if account.manager.top_level_owner()?.address != self.environment().sender_addr() {
                 continue;
             }
 
@@ -415,7 +415,7 @@ mod tests {
     #[test]
     fn last_owned_abstract_account() {
         let chain = MockBech32::new("mock");
-        let sender = chain.sender();
+        let sender = chain.sender_addr();
         Abstract::deploy_on(chain.clone(), sender.to_string()).unwrap();
 
         let client = AbstractClient::new(chain.clone()).unwrap();

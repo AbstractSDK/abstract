@@ -21,18 +21,16 @@ pub fn test_send_funds() -> AnyResult<()> {
 
     set_env();
 
-    let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
-
-    let starship = Starship::new(rt.handle(), None).unwrap();
+    let starship = Starship::new(None).unwrap();
     let interchain = starship.interchain_env();
 
-    let juno = interchain.chain(JUNO).unwrap();
-    let stargaze = interchain.chain(STARGAZE).unwrap();
+    let juno = interchain.get_chain(JUNO).unwrap();
+    let stargaze = interchain.get_chain(STARGAZE).unwrap();
 
     let abstr_stargaze: Abstract<Daemon> = Abstract::load_from(stargaze.clone())?;
     let abstr_juno: Abstract<Daemon> = Abstract::load_from(juno.clone())?;
 
-    let sender = juno.sender().to_string();
+    let sender = juno.sender_addr().to_string();
 
     let test_amount: u128 = 100_000_000_000;
     let token_subdenom = format!(
@@ -95,7 +93,7 @@ pub fn test_send_funds() -> AnyResult<()> {
         },
     )?;
 
-    interchain.check_ibc(STARGAZE, send_funds_tx)?;
+    interchain.await_and_check_packets(STARGAZE, send_funds_tx)?;
 
     // Verify the funds have been received
     let remote_account_config = abstr_juno

@@ -25,9 +25,8 @@ fn full_deploy() -> anyhow::Result<()> {
         .collect();
 
     for network in networks {
-        let chain = DaemonBuilder::default()
+        let chain = DaemonBuilder::new(network.clone())
             .handle(rt.handle())
-            .chain(network.clone())
             .build()?;
 
         // Deploy Adapters

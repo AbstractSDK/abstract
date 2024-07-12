@@ -93,7 +93,7 @@ fn create_etf(mock: MockBech32) -> Result<EtfEnv<MockBech32>, AbstractInterfaceE
 fn proper_initialization() -> AResult {
     // create testing environment
     let mock = MockBech32::new("mock");
-    let owner = mock.sender();
+    let owner = mock.sender_addr();
 
     // create a etf
     let etf_env = crate::create_etf(mock.clone())?;

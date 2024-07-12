@@ -80,7 +80,7 @@ fn mint_nft(
 #[test]
 fn instantiate() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
@@ -111,7 +111,7 @@ fn instantiate() -> AResult {
 #[test]
 fn exec_through_manager() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     // This testing environments allows you to use simple deploy contraptions:
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
@@ -151,7 +151,7 @@ fn exec_through_manager() -> AResult {
 #[test]
 fn default_without_response_data() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None, account.id()?)?;
@@ -173,7 +173,7 @@ fn default_without_response_data() -> AResult {
 #[test]
 fn with_response_data() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     Abstract::deploy_on(chain.clone(), sender.to_string())?;
     abstract_integration_tests::manager::with_response_data(chain.clone())?;
     take_storage_snapshot!(chain, "proxy_with_response_data");
@@ -184,7 +184,7 @@ fn with_response_data() -> AResult {
 #[test]
 fn install_standalone_modules() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AbstractAccount::new(&deployment, AccountId::local(0));
 
@@ -232,7 +232,7 @@ fn install_standalone_modules() -> AResult {
 #[test]
 fn install_standalone_versions_not_met() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AbstractAccount::new(&deployment, AccountId::local(0));
 
@@ -276,7 +276,7 @@ fn install_standalone_versions_not_met() -> AResult {
 #[test]
 fn install_multiple_modules() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AbstractAccount::new(&deployment, ABSTRACT_ACCOUNT_ID);
@@ -417,7 +417,7 @@ fn install_multiple_modules() -> AResult {
 #[test]
 fn renounce_cleans_namespace() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let account = deployment.account_factory.create_new_account(
@@ -460,7 +460,7 @@ fn renounce_cleans_namespace() -> AResult {
 #[test]
 fn nft_owner_success() -> Result<(), Error> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
@@ -561,7 +561,7 @@ fn nft_owner_success() -> Result<(), Error> {
 #[test]
 fn nft_owner_immutable() -> Result<(), Error> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
@@ -666,7 +666,7 @@ fn nft_owner_immutable() -> Result<(), Error> {
 #[test]
 fn nft_pending_owner() -> Result<(), Error> {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let (token_id, nft_addr) = deploy_and_mint_nft(chain.clone(), sender.clone())?;
 
@@ -680,7 +680,7 @@ fn nft_pending_owner() -> Result<(), Error> {
         deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: chain.sender().to_string(),
+                monarch: chain.sender_addr().to_string(),
             })?;
     // Transferring to token id that pending governance don't own act same way as transferring to renounced governance
     let err: ManagerError = account
@@ -731,7 +731,7 @@ fn nft_pending_owner() -> Result<(), Error> {
 
     // Mint new NFT, since we burned previous one
     let new_token_id = "2".to_owned();
-    mint_nft(&chain, chain.sender(), &new_token_id, &nft_addr)?;
+    mint_nft(&chain, chain.sender_addr(), &new_token_id, &nft_addr)?;
 
     // Propose NFT governance
     account
@@ -788,7 +788,7 @@ fn nft_pending_owner() -> Result<(), Error> {
 #[test]
 fn can_take_any_last_two_billion_accounts() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     deployment.account_factory.create_new_account(
@@ -831,7 +831,7 @@ fn can_take_any_last_two_billion_accounts() -> AResult {
 #[test]
 fn increment_not_effected_by_claiming() -> AResult {
     let chain = MockBech32::new("mock");
-    let sender = chain.sender();
+    let sender = chain.sender_addr();
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let next_account_id = deployment.account_factory.config()?.local_account_sequence;
